@@ -89,7 +89,6 @@ class Arpack(package.Package):
         self.log.Exit('To install ARPACK with 64-bit integers you also need a BLAS with 64-bit integers')
       confopt = confopt+' INTERFACE64=1'
     (result,output) = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
-    self.log.write(output)
     if result:
       self.log.Exit('Installation of ARPACK failed')
 

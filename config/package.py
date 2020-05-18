@@ -275,7 +275,7 @@ Downloaded package %s from: %s is not a tarball.
         self.log.Println(self.packagename.upper()+' library flags:')
         self.log.Println(' '+' '.join(self.packageflags))
 
-  def LinkWithOutput(self,functions,callbacks,flags,givencode='',cflags='',clanguage='c'):
+  def Link(self,functions,callbacks,flags,givencode='',cflags='',clanguage='c',logdump=True):
 
     # Create temporary directory and makefile
     try:
@@ -322,6 +322,11 @@ Downloaded package %s from: %s is not a tarball.
     cfile = open(os.path.join(tmpdir,'checklink.c'),'w')
     cfile.write(code)
     cfile.close()
+    if logdump:
+      try:
+        self.log.write('- '*35+'\nChecking link with code:\n')
+        self.log.write(code)
+      except AttributeError: pass
 
     # Try to compile test program
     (result, output) = self.RunCommand('cd ' + tmpdir + ';' + self.make + ' checklink LINKFLAGS="'+' '.join(flags)+'"')
@@ -332,11 +337,6 @@ Downloaded package %s from: %s is not a tarball.
     else:
       return (1,code + output)
 
-  def Link(self,functions,callbacks,flags,givencode='',cflags='',clanguage='c'):
-    (result, output) = self.LinkWithOutput(functions,callbacks,flags,givencode,cflags,clanguage)
-    self.log.write(output)
-    return result
-
   def FortranLink(self,functions,callbacks,flags):
     output = '\n=== With linker flags: '+' '.join(flags)
 
@@ -346,7 +346,7 @@ Downloaded package %s from: %s is not a tarball.
     c = []
     for i in callbacks:
       c.append(i+'_')
-    (result, output1) = self.LinkWithOutput(f,c,flags)
+    (result, output1) = self.Link(f,c,flags,logdump=False)
     output1 = '\n====== With underscore Fortran names\n' + output1
     if result: return ('UNDERSCORE',output1)
 
@@ -356,7 +356,7 @@ Downloaded package %s from: %s is not a tarball.
     c = []
     for i in callbacks:
       c.append(i.upper())
-    (result, output2) = self.LinkWithOutput(f,c,flags)
+    (result, output2) = self.Link(f,c,flags,logdump=False)
     output2 = '\n====== With capital Fortran names\n' + output2
     if result: return ('CAPS',output2)
 

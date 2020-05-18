@@ -17,7 +17,8 @@ class PETSc(package.Package):
     self.packagename = 'petsc'
 
   def Check(self):
-    self.havepackage = self.Link([],[],[])
+    (result, output) = self.Link([],[],[])
+    self.havepackage = result
 
   def InitDir(self,prefixdir):
     if 'PETSC_DIR' in os.environ:

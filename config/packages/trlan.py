@@ -61,7 +61,6 @@ class Trlan(package.Package):
     else:
       target = 'plib'
     (result,output) = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make+' '+target)
-    self.log.write(output)
     if result:
       self.log.Exit('Installation of TRLAN failed')
 
