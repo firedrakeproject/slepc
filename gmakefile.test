@@ -113,8 +113,8 @@ endif
 
 SLEPC_COMPILE.c = $(call quiet,$(cc_name)) -c $(PCC_FLAGS) $(PFLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(C_DEPFLAGS)
 SLEPC_COMPILE.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
-SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(CUDAC_FLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
-SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(CUDAC_FLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
+SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
+SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
 SLEPC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
 
 testlangs := c cu cxx F F90
