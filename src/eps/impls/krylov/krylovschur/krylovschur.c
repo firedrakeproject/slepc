@@ -192,6 +192,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       eps->ops->solve = EPSSolve_KrylovSchur_Default;
       eps->ops->computevectors = EPSComputeVectors_Schur;
       ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+      ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_SYMM:
@@ -267,9 +268,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i,j,*pj,k,l,nv,ld,nconv;
+  PetscInt        j,*pj,k,l,nv,ld,nconv;
   Mat             U,Op;
-  PetscScalar     *S,*Q,*g;
+  PetscScalar     *S,*g;
   PetscReal       beta,gamma=1.0;
   PetscBool       breakdown,harmonic;
 
@@ -315,6 +316,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       j=1;
     }
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,eps->rr,eps->ri,pj);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
@@ -359,15 +361,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
           ierr = BVMultColumn(eps->V,-1.0,1.0,nv,g);CHKERRQ(ierr);
           ierr = BVScaleColumn(eps->V,nv,1.0/gamma);CHKERRQ(ierr);
           ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
+          ierr = DSSetDimensions(eps->ds,nv,0,k,nv);CHKERRQ(ierr);
         }
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-        ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-        for (i=k;i<k+l;i++) {
-          S[k+l+i*ld] = Q[nv-1+i*ld]*beta*gamma;
-        }
-        ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-        ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = DSTruncate(eps->ds,k+l);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */

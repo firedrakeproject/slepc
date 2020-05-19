@@ -638,10 +638,11 @@ PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
+  ds->t = ds->n;
   A = ds->mat[DS_MAT_A];
   if (!ds->compact && ds->extrarow && ds->k==ds->n) {
     for (i=l;i<n;i++) A[n+i*ld] = A[ds->n+i*ld];
+    for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
   }
   if (ds->extrarow) ds->k = n;
   else ds->k = 0;

@@ -234,7 +234,6 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
-  DSCheckSolved(ds,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
   if (!ds->ops->truncate) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (n<ds->l || n>ds->n) SETERRQ3(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n (%D). Must be between l (%D) and n (%D)",n,ds->l,ds->n);

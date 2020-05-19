@@ -664,20 +664,19 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
   PetscScalar    *A;
 
   PetscFunctionBegin;
-  if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
+  ds->t = ds->n;
   A = ds->mat[DS_MAT_A];
-  /* be careful not to break a diagonal 2x2 block */
-  if (A[n+(n-1)*ld]==0.0) newn = n;
-  else {
+  if (ds->state>=DS_STATE_CONDENSED && A[n+(n-1)*ld]!=0.0) { /* be careful not to break a diagonal 2x2 block */
     if (n<ds->n-1) newn = n+1;
     else newn = n-1;
-  }
+  } else newn = n;
   if (ds->extrarow && ds->k==ds->n) {
     /* copy entries of extra row to the new position, then clean last row */
     for (i=l;i<newn;i++) A[newn+i*ld] = A[ds->n+i*ld];
     for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
   }
-  ds->k = 0;
+  if (ds->extrarow) ds->k = n;
+  else ds->k = 0;
   ds->n = newn;
   ierr = PetscInfo1(ds,"Decomposition truncated to size n=%D\n",newn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -722,14 +721,14 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gamma)
+PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gammaout)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   *ipiv,info,n,ld,one=1,ncol;
   PetscScalar    *A,*B,*Q,*g=gin,*ghat;
   PetscScalar    done=1.0,dmone=-1.0,dzero=0.0;
-  PetscReal      gnorm;
+  PetscReal      gamma=1.0;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
@@ -785,10 +784,10 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
   }
 
   /* Compute gamma factor */
-  if (gamma) {
-    gnorm = 0.0;
-    for (i=0;i<n;i++) gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
-    *gamma = PetscSqrtReal(1.0+gnorm);
+  if (gammaout || (recover && ds->extrarow)) gamma = SlepcAbs(1.0,BLASnrm2_(&n,g,&one));
+  if (gammaout) *gammaout = gamma;
+  if (recover && ds->extrarow) {
+    for (j=ds->l;j<ds->l+ds->k;j++) A[ds->n+j*ld] *= gamma;
   }
   PetscFunctionReturn(0);
 }
