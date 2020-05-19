@@ -36,9 +36,9 @@ class Feast(package.Package):
       else:
         functions += ['zfeast_hrci']
 
-    result = self.Link(functions,[],[])
+    (result,output) = self.Link(functions,[],[])
     if not result:
-      self.log.write('ERROR: Unable to link with FEAST, maybe your MKL version does not contain it')
+      self.log.write('WARNING: Unable to link with FEAST, maybe your MKL version does not contain it')
       self.log.write('If you do not want to check for FEAST, rerun configure adding --with-feast=0')
       self.havepackage = False
     else:
