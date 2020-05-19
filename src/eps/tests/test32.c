@@ -126,4 +126,18 @@ int main(int argc,char **argv)
          suffix: 4_gnhep
          args: -eps_gen_non_hermitian
 
+   testset:
+      requires: !single
+      args: -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky -eps_interval .8,1.1 -eps_krylovschur_partitions 2
+      output_file: output/test32_5.out
+      nsize: 3
+      test:
+         suffix: 5_mumps
+         requires: mumps
+         args: -st_pc_factor_mat_solver_type mumps -mat_mumps_icntl_13 1
+      test:
+         suffix: 5_superlu
+         requires: superlu_dist
+         args: -st_pc_factor_mat_solver_type superlu_dist -mat_superlu_dist_rowperm NOROWPERM
+
 TEST*/

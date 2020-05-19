@@ -168,6 +168,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   Mat                A,B=NULL,Ar=NULL,Br=NULL;
   PetscInt           i;
   PetscReal          h,a,b,zero;
+  PetscBool          asymm,bsymm,aherm,bherm;
   PetscMPIInt        rank;
   EPS_SR             sr=ctx->sr;
   PC                 pc;
@@ -189,9 +190,13 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   } else {
     ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
     ierr = PetscObjectGetId((PetscObject)A,&Aid);CHKERRQ(ierr);
+    ierr = MatGetOption(A,MAT_SYMMETRIC,&asymm);CHKERRQ(ierr);
+    ierr = MatGetOption(A,MAT_HERMITIAN,&aherm);CHKERRQ(ierr);
     if (B) {
       ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr);
       ierr = PetscObjectGetId((PetscObject)B,&Bid);CHKERRQ(ierr);
+      ierr = MatGetOption(B,MAT_SYMMETRIC,&bsymm);CHKERRQ(ierr);
+      ierr = MatGetOption(B,MAT_HERMITIAN,&bherm);CHKERRQ(ierr);
     }
     if (!ctx->subc) {
       /* Create context for subcommunicators */
@@ -204,10 +209,14 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
       ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
       ctx->Astate = Astate;
       ctx->Aid = Aid;
+      ierr = MatSetOption(Ar,MAT_SYMMETRIC,asymm);CHKERRQ(ierr);
+      ierr = MatSetOption(Ar,MAT_HERMITIAN,aherm);CHKERRQ(ierr);
       if (B) {
         ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
         ctx->Bstate = Bstate;
         ctx->Bid = Bid;
+        ierr = MatSetOption(Br,MAT_SYMMETRIC,bsymm);CHKERRQ(ierr);
+        ierr = MatSetOption(Br,MAT_HERMITIAN,bherm);CHKERRQ(ierr);
       }
     } else {
       if (ctx->Astate != Astate || (B && ctx->Bstate != Bstate) || ctx->Aid != Aid || (B && ctx->Bid != Bid)) {
@@ -215,10 +224,14 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
         ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
         ctx->Astate = Astate;
         ctx->Aid = Aid;
+        ierr = MatSetOption(Ar,MAT_SYMMETRIC,asymm);CHKERRQ(ierr);
+        ierr = MatSetOption(Ar,MAT_HERMITIAN,aherm);CHKERRQ(ierr);
         if (B) {
           ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
           ctx->Bstate = Bstate;
           ctx->Bid = Bid;
+          ierr = MatSetOption(Br,MAT_SYMMETRIC,bsymm);CHKERRQ(ierr);
+          ierr = MatSetOption(Br,MAT_HERMITIAN,bherm);CHKERRQ(ierr);
         }
         ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
         ierr = MatDestroy(&Ar);CHKERRQ(ierr);
