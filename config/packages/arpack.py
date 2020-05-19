@@ -22,7 +22,6 @@ class Arpack(package.Package):
     self.archive        = 'arpack-ng-'+self.version+'.tar.gz'
     self.dirname        = 'arpack-ng-'+self.version
     self.supportssingle = True
-    self.supports64bint = True
     self.fortran        = True
     self.ProcessArgs(argdb)
 
