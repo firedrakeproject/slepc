@@ -45,14 +45,17 @@ class Slicot(package.Package):
     builddir  = self.Download(externdir,slepc.downloaddir)
     libname = 'libslicot.a'
 
-    # Configure
-    g = open(os.path.join(builddir,'make.inc'),'w')
-    g.write('FORTRAN   = '+petsc.fc+'\n')
-    g.write('OPTS      = '+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'\n')
-    g.write('ARCH      = '+petsc.ar+'\n')
-    g.write('ARCHFLAGS = '+petsc.ar_flags+'\n')
-    g.write('SLICOTLIB = ../'+libname+'\n')
-    g.close()
+    # Makefile
+    cont  = 'FORTRAN   = '+petsc.fc+'\n'
+    cont += 'OPTS      = '+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'\n'
+    cont += 'ARCH      = '+petsc.ar+'\n'
+    cont += 'ARCHFLAGS = '+petsc.ar_flags+'\n'
+    cont += 'SLICOTLIB = ../'+libname+'\n'
+    self.log.write('Using makefile definitions:\n')
+    self.log.write(cont)
+    mfile = open(os.path.join(builddir,'make.inc'),'w')
+    mfile.write(cont)
+    mfile.close()
 
     # Build package
     target = 'lib'

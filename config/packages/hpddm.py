@@ -42,13 +42,16 @@ class HPDDM(package.Package):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = self.Download(externdir,slepc.downloaddir)
     incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
-    g = open(os.path.join(builddir,'SONAME_SL_LINKER'),'w')
-    g.write('include '+os.path.join(petsc.dir,petsc.arch,'lib','petsc','conf','petscvariables')+'\n')
-    g.write('soname:\n')
-    g.write('\t@echo $(call SONAME_FUNCTION,'+os.path.join(libdir,'libhpddm_petsc')+',0)\n')
-    g.write('sl_linker:\n')
-    g.write('\t@echo $(call SL_LINKER_FUNCTION,'+os.path.join(libdir,'libhpddm_petsc')+',0,0)\n')
-    g.close()
+    cont  = 'include '+os.path.join(petsc.dir,petsc.arch,'lib','petsc','conf','petscvariables')+'\n'
+    cont += 'soname:\n'
+    cont += '\t@echo $(call SONAME_FUNCTION,'+os.path.join(libdir,'libhpddm_petsc')+',0)\n'
+    cont += 'sl_linker:\n'
+    cont += '\t@echo $(call SL_LINKER_FUNCTION,'+os.path.join(libdir,'libhpddm_petsc')+',0,0)\n'
+    self.log.write('Using makefile:\n')
+    self.log.write(cont)
+    mfile = open(os.path.join(builddir,'SONAME_SL_LINKER'),'w')
+    mfile.write(cont)
+    mfile.close()
     d = os.path.join(petsc.dir,petsc.arch,'lib')
     l = petsc.slflag+d+' -L'+d+' -lpetsc'
     d = libdir
