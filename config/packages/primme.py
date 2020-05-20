@@ -102,26 +102,29 @@ class Primme(package.Package):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = self.Download(externdir,slepc.downloaddir)
 
-    # Configure
-    g = open(os.path.join(builddir,'mymake_flags'),'w')
-    g.write('export LIBRARY     = libprimme.'+petsc.ar_lib_suffix+'\n')
-    g.write('export SOLIBRARY   = libprimme.'+petsc.sl_suffix+'\n')
-    g.write('export SONAMELIBRARY = libprimme.'+petsc.sl_suffix+self.version+'\n')
-    g.write('export CC          = '+petsc.cc+'\n')
+    # Makefile
+    cont =  'export LIBRARY       = libprimme.'+petsc.ar_lib_suffix+'\n'
+    cont += 'export SOLIBRARY     = libprimme.'+petsc.sl_suffix+'\n'
+    cont += 'export SONAMELIBRARY = libprimme.'+petsc.sl_suffix+self.version+'\n'
+    cont += 'export CC            = '+petsc.cc+'\n'
     if hasattr(petsc,'fc'):
-      g.write('export F77         = '+petsc.fc+'\n')
-    g.write('export DEFINES     = ')
+      cont += 'export F77           = '+petsc.fc+'\n'
+    cont += 'export DEFINES       = '
     if petsc.blaslapackmangling == 'underscore':
-      g.write('-DF77UNDERSCORE ')
+      cont += '-DF77UNDERSCORE '
     if petsc.blaslapackint64:
-      g.write('-DPRIMME_BLASINT_SIZE=64')
-    g.write('\n')
-    g.write('export INCLUDE     = \n')
-    g.write('export CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+' '+self.buildflags+'\n')
-    g.write('export RANLIB      = '+petsc.ranlib+'\n')
-    g.write('export PREFIX      = '+prefixdir+'\n')
-    g.write('include makefile\n')
-    g.close()
+      cont += '-DPRIMME_BLASINT_SIZE=64'
+    cont += '\n'
+    cont += 'export INCLUDE       = \n'
+    cont += 'export CFLAGS        = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+' '+self.buildflags+'\n'
+    cont += 'export RANLIB        = '+petsc.ranlib+'\n'
+    cont += 'export PREFIX        = '+prefixdir+'\n'
+    cont += 'include makefile\n'
+    self.log.write('Using makefile definitions:\n')
+    self.log.write(cont)
+    mfile = open(os.path.join(builddir,'mymake_flags'),'w')
+    mfile.write(cont)
+    mfile.close()
 
     # Build package
     target = ' install' if petsc.buildsharedlib else ' lib'

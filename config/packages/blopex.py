@@ -83,15 +83,18 @@ class Blopex(package.Package):
     downloadd = self.Download(externdir,slepc.downloaddir)
     builddir  = os.path.join(downloadd,'blopex_abstract')
 
-    # Configure
-    g = open(os.path.join(builddir,'Makefile.inc'),'w')
-    g.write('CC          = '+petsc.cc+'\n')
-    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+'\n')
-    g.write('AR          = '+petsc.ar+' '+petsc.ar_flags+'\n')
-    g.write('AR_LIB_SUFFIX = '+petsc.ar_lib_suffix+'\n')
-    g.write('RANLIB      = '+petsc.ranlib+'\n')
-    g.write('TARGET_ARCH = \n')
-    g.close()
+    # Makefile
+    cont  = 'CC            = '+petsc.cc+'\n'
+    cont += 'CFLAGS        = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+'\n'
+    cont += 'AR            = '+petsc.ar+' '+petsc.ar_flags+'\n'
+    cont += 'AR_LIB_SUFFIX = '+petsc.ar_lib_suffix+'\n'
+    cont += 'RANLIB        = '+petsc.ranlib+'\n'
+    cont += 'TARGET_ARCH   =\n'
+    self.log.write('Using makefile definitions:\n')
+    self.log.write(cont)
+    mfile = open(os.path.join(builddir,'Makefile.inc'),'w')
+    mfile.write(cont)
+    mfile.close()
 
     # Build package
     (result,output) = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)

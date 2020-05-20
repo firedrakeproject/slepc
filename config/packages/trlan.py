@@ -47,13 +47,16 @@ class Trlan(package.Package):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = self.Download(externdir,slepc.downloaddir)
 
-    # Configure
-    g = open(os.path.join(builddir,'Make.inc'),'w')
-    g.write('FC     = '+petsc.fc+'\n')
-    g.write('F90    = '+petsc.fc+'\n')
-    g.write('FFLAGS = '+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'\n')
-    g.write('SHELL  = /bin/sh\n')
-    g.close()
+    # Makefile
+    cont  = 'FC     = '+petsc.fc+'\n'
+    cont += 'F90    = '+petsc.fc+'\n'
+    cont += 'FFLAGS = '+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'\n'
+    cont += 'SHELL  = /bin/sh\n'
+    self.log.write('Using makefile definitions:\n')
+    self.log.write(cont)
+    mfile = open(os.path.join(builddir,'Make.inc'),'w')
+    mfile.write(cont)
+    mfile.close()
 
     # Build package
     if petsc.mpiuni:

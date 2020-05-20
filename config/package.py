@@ -56,7 +56,7 @@ class Package:
     else:
       (result,output) = subprocess.getstatusoutput(instr)
     try:
-      self.log.write(output)
+      self.log.write('Output:\n'+output+'\n'+'- '*35)
     except AttributeError: pass
     return (result,output)
 
