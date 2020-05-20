@@ -453,6 +453,7 @@ gnu-c:
   tags:
     - linux-debian
   variables:
+    PETSC_CONFIG_OPTS: --download-superlu_dist
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009
 
 gnu-c-c99-nompi:

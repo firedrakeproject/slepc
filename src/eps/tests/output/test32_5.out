@@ -1,0 +1,8 @@
+
+Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
+
+ Using cholesky for the PC
+ Found 14 eigenvalues, all of them computed up to the required tolerance:
+     0.82091, 0.85874, 0.88843, 0.89990, 0.91863, 0.92601, 0.95099, 0.96373, 
+     0.98586, 0.99591, 1.03256, 1.06668, 1.07293, 1.09702
+
