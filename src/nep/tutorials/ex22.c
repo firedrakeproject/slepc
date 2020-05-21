@@ -208,10 +208,10 @@ int main(int argc,char **argv)
       output_file: output/ex22_3.out
       test:
          suffix: 3
-         args: -nep_type {{rii slp narnoldi}} -nep_deflation_simpleu
+         args: -nep_type {{rii slp narnoldi}}
       test:
          suffix: 3_simpleu
-         args: -nep_type narnoldi -nep_deflation_simpleu
+         args: -nep_type {{rii slp narnoldi}} -nep_deflation_simpleu
       test:
          suffix: 3_slp_thres
          args: -nep_type slp -nep_slp_deflation_threshold 1e-8
