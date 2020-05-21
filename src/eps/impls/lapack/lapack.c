@@ -28,6 +28,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PetscFunctionBegin;
   eps->ncv = eps->n;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which==EPS_ALL && eps->inta!=eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),1,"This solver does not support interval computation");
   if (eps->balance!=EPS_BALANCE_NONE) { ierr = PetscInfo(eps,"Warning: balancing ignored\n");CHKERRQ(ierr); }

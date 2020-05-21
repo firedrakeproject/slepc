@@ -75,7 +75,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   } else eps->ncv = eps->nev;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
-  if (!eps->max_it) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
+  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {

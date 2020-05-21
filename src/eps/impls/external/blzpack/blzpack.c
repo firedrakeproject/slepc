@@ -62,7 +62,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
     if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2)) SETERRQ(PetscObjectComm((PetscObject)eps),0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   } else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
-  if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
+  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000,eps->n);
 
   if (!blz->block_size) blz->block_size = 3;
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");

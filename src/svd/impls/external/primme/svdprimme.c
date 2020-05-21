@@ -158,7 +158,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   ierr = SVDMatGetSize(svd,&m,&n);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&mloc,&nloc);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
-  if (!svd->max_it) svd->max_it = PETSC_MAX_INT;
+  if (svd->max_it==PETSC_DEFAULT) svd->max_it = PETSC_MAX_INT;
   svd->leftbasis = PETSC_TRUE;
   if (svd->stopping!=SVDStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
 #if !defined(SLEPC_HAVE_PRIMME2p2)

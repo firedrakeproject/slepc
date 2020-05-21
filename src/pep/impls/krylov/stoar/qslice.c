@@ -513,7 +513,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   if (ctx->nev==1) ctx->nev = PetscMin(20,pep->n);  /* nev not set, use default value */
   if (pep->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   pep->ops->backtransform = PEPBackTransform_Skip;
-  if (!pep->max_it) pep->max_it = 100;
+  if (pep->max_it==PETSC_DEFAULT) pep->max_it = 100;
 
   /* create spectrum slicing context and initialize it */
   ierr = PEPQSliceResetSR(pep);CHKERRQ(ierr);

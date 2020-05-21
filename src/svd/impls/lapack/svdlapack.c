@@ -23,7 +23,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   svd->ncv = N;
   if (svd->mpd) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (svd->stop!=SVD_STOP_BASIC) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined stopping test not supported in this solver");
-  svd->max_it = 1;
+  if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
   ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);

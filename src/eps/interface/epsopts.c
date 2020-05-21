@@ -162,7 +162,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) { ierr = EPSSetBalance(eps,bal,j,r);CHKERRQ(ierr); }
 
-    i = eps->max_it? eps->max_it: PETSC_DEFAULT;
+    i = eps->max_it;
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,&flg1);CHKERRQ(ierr);
     r = eps->tol;
     ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol,&r,&flg2);CHKERRQ(ierr);
@@ -356,7 +356,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
     eps->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    eps->max_it = 0;
+    eps->max_it = PETSC_DEFAULT;
     eps->state  = EPS_STATE_INITIAL;
   } else {
     if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");

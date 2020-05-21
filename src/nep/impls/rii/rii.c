@@ -44,7 +44,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   nep->ncv = nep->nev;
   if (nep->mpd) { ierr = PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
   nep->mpd = nep->nev;
-  if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
 
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);

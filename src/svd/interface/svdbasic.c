@@ -48,7 +48,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   ierr = SlepcHeaderCreate(svd,SVD_CLASSID,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
 
   svd->OP               = NULL;
-  svd->max_it           = 0;
+  svd->max_it           = PETSC_DEFAULT;
   svd->nsv              = 1;
   svd->ncv              = 0;
   svd->mpd              = 0;

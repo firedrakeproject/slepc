@@ -135,7 +135,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for Hermitian problems");
   if (!blopex->bs) blopex->bs = PetscMin(16,eps->nev);
   ierr = EPSSetDimensions_BLOPEX(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");

@@ -65,7 +65,7 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!ctx->rkc) ctx->rkc = 10;
   if (!ctx->rkl) ctx->rkl = 3*ctx->rkc;
-  if (!eps->max_it) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
+  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
   if (!eps->which) eps->which=EPS_LARGEST_REAL;
   if (eps->which!=EPS_LARGEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }

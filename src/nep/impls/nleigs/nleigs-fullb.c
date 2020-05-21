@@ -292,7 +292,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) { ierr = EPSSetRG(ctx->eps,nep->rg);CHKERRQ(ierr);}
   ierr = EPSSetDimensions(ctx->eps,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->tol,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->tol,nep->max_it);CHKERRQ(ierr);
   ierr = EPSSetTwoSided(ctx->eps,nep->twosided);CHKERRQ(ierr);
   /* Transfer the trackall option from pep to eps */
   ierr = NEPGetTrackAll(nep,&trackall);CHKERRQ(ierr);

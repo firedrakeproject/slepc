@@ -300,7 +300,7 @@ PetscErrorCode LMESetTolerances(LME lme,PetscReal tol,PetscInt maxits)
     lme->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    lme->max_it = 0;
+    lme->max_it = PETSC_DEFAULT;
     lme->setupcalled = 0;
   } else {
     if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");

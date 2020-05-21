@@ -13,7 +13,7 @@ EPS Object: 1 MPI processes
   number of eigenvalues (nev): 4
   number of column vectors (ncv): 0
   maximum dimension of projected problem (mpd): 0
-  maximum number of iterations: 0
+  maximum number of iterations: -2
   convergence test: relative to the eigenvalue and matrix norms
   computed matrix norms: norm(A)=0.
 BV Object: 1 MPI processes

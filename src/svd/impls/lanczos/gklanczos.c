@@ -44,7 +44,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
   if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd");
-  if (!svd->max_it) svd->max_it = PetscMax(N/svd->ncv,100);
+  if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
   svd->leftbasis = PetscNot(lanczos->oneside);
   ierr = SVDAllocateSolution(svd,1);CHKERRQ(ierr);
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);

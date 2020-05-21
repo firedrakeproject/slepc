@@ -839,7 +839,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     }
   }
   ctx->L = PetscMin(ctx->L,ctx->L_max);
-  if (!eps->max_it) eps->max_it = 1;
+  if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
   if (!eps->extraction) { ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr); }

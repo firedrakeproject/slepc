@@ -114,7 +114,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
     svd->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    svd->max_it = 0;
+    svd->max_it = PETSC_DEFAULT;
     svd->state  = SVD_STATE_INITIAL;
   } else {
     if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
@@ -667,7 +667,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscOptionsBool("-svd_implicittranspose","Handle matrix transpose implicitly","SVDSetImplicitTranspose",svd->impltrans,&val,&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetImplicitTranspose(svd,val);CHKERRQ(ierr); }
 
-    i = svd->max_it? svd->max_it: PETSC_DEFAULT;
+    i = svd->max_it;
     ierr = PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,&flg1);CHKERRQ(ierr);
     r = svd->tol;
     ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol,&r,&flg2);CHKERRQ(ierr);

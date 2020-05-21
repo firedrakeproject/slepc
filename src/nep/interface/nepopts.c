@@ -144,7 +144,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     ierr = PetscOptionsEnum("-nep_refine_scheme","Scheme used for linear systems within iterative refinement","NEPSetRefine",NEPRefineSchemes,(PetscEnum)scheme,(PetscEnum*)&scheme,&flg5);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3 || flg4 || flg5) { ierr = NEPSetRefine(nep,refine,i,r,j,scheme);CHKERRQ(ierr); }
 
-    i = nep->max_it? nep->max_it: PETSC_DEFAULT;
+    i = nep->max_it;
     ierr = PetscOptionsInt("-nep_max_it","Maximum number of iterations","NEPSetTolerances",nep->max_it,&i,&flg1);CHKERRQ(ierr);
     r = nep->tol;
     ierr = PetscOptionsReal("-nep_tol","Tolerance","NEPSetTolerances",nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->tol,&r,&flg2);CHKERRQ(ierr);
@@ -328,7 +328,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal tol,PetscInt maxits)
     nep->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    nep->max_it = 0;
+    nep->max_it = PETSC_DEFAULT;
     nep->state  = NEP_STATE_INITIAL;
   } else {
     if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
