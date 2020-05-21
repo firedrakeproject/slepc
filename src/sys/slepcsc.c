@@ -118,7 +118,7 @@ PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,Pets
 #endif
     while (j<n) {
       ierr = SlepcSCCompare(sc,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
-      if (result<0) break;
+      if (result<=0) break;
 #if !defined(PETSC_USE_COMPLEX)
       /* keep together every complex conjugated eigenpair */
       if (!im) {
