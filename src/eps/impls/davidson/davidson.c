@@ -44,12 +44,12 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   /* Setup EPS options and get the problem specification */
   bs = data->blocksize;
   if (bs <= 0) bs = 1;
-  if (eps->ncv) {
+  if (eps->ncv!=PETSC_DEFAULT) {
     if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of ncv must be at least nev");
-  } else if (eps->mpd) eps->ncv = eps->mpd + eps->nev + bs;
+  } else if (eps->mpd!=PETSC_DEFAULT) eps->ncv = eps->mpd + eps->nev + bs;
   else if (eps->nev<500) eps->ncv = PetscMin(eps->n-bs,PetscMax(2*eps->nev,eps->nev+15))+bs;
   else eps->ncv = PetscMin(eps->n-bs,eps->nev+500)+bs;
-  if (!eps->mpd) eps->mpd = eps->ncv;
+  if (eps->mpd==PETSC_DEFAULT) eps->mpd = eps->ncv;
   if (eps->mpd > eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
   if (eps->mpd < 2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The mpd has to be greater than 2");
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100*eps->ncv,2*eps->n);

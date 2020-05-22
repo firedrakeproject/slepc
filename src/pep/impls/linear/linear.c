@@ -391,7 +391,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     }
     ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
 
-    ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv,pep->mpd);CHKERRQ(ierr);
     ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,pep->max_it);CHKERRQ(ierr);
   }
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);

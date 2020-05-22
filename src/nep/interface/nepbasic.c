@@ -46,8 +46,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 
   nep->max_it          = PETSC_DEFAULT;
   nep->nev             = 1;
-  nep->ncv             = 0;
-  nep->mpd             = 0;
+  nep->ncv             = PETSC_DEFAULT;
+  nep->mpd             = PETSC_DEFAULT;
   nep->nini            = 0;
   nep->target          = 0.0;
   nep->tol             = PETSC_DEFAULT;

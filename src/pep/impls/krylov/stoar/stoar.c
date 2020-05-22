@@ -905,13 +905,13 @@ static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt 
   if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
   ctx->nev = nev;
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    ctx->ncv = 0;
+    ctx->ncv = PETSC_DEFAULT;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     ctx->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    ctx->mpd = 0;
+    ctx->mpd = PETSC_DEFAULT;
   } else {
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     ctx->mpd = mpd;
@@ -1140,6 +1140,8 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->data = (void*)ctx;
   ctx->lock    = PETSC_TRUE;
   ctx->nev     = 1;
+  ctx->ncv     = PETSC_DEFAULT;
+  ctx->mpd     = PETSC_DEFAULT;
   ctx->alpha   = 1.0;
   ctx->beta    = 0.0;
   ctx->checket = PETSC_TRUE;

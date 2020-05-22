@@ -59,10 +59,10 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
   PetscBool      istrivial,issinv;
 
   PetscFunctionBegin;
-  if (eps->ncv) {
+  if (eps->ncv!=PETSC_DEFAULT) {
     if (eps->ncv<eps->nev+1) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev+1");
   } else eps->ncv = eps->nev+1;
-  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!ctx->rkc) ctx->rkc = 10;
   if (!ctx->rkl) ctx->rkl = 3*ctx->rkc;
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);

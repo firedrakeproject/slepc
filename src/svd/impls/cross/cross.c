@@ -149,7 +149,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
   if (!cross->usereps) {
     ierr = EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL);CHKERRQ(ierr);
-    ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
     ierr = EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it);CHKERRQ(ierr);
     switch (svd->conv) {
     case SVD_CONV_ABS:

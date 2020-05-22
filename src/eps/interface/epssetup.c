@@ -559,14 +559,14 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
   PetscBool      krylov;
 
   PetscFunctionBegin;
-  if (*ncv) { /* ncv set */
+  if (*ncv!=PETSC_DEFAULT) { /* ncv set */
     ierr = PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,"");CHKERRQ(ierr);
     if (krylov) {
       if (*ncv<nev+1 && !(*ncv==nev && *ncv==eps->n)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev+1");
     } else {
       if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
     }
-  } else if (*mpd) { /* mpd set */
+  } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
     *ncv = PetscMin(eps->n,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */
     if (nev<500) *ncv = PetscMin(eps->n,PetscMax(2*nev,nev+15));
@@ -575,7 +575,7 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
       *ncv = PetscMin(eps->n,nev+(*mpd));
     }
   }
-  if (!*mpd) *mpd = *ncv;
+  if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
   PetscFunctionReturn(0);
 }
 

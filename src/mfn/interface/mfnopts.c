@@ -258,7 +258,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveInt(mfn,ncv,2);
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    mfn->ncv = 0;
+    mfn->ncv = PETSC_DEFAULT;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     mfn->ncv = ncv;

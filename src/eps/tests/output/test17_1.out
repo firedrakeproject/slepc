@@ -4,7 +4,7 @@ Spectrum-slicing test, N=1225 (35x35 grid)
  Restart parameter before changing = 0. ... changed to 0.4
  Detect zeros before changing = 0 ... changed to 1
  Locking flag before changing = 1 ... changed to 0
- Sub-solve dimensions before changing = [1,0,0] ... changed to [30,60,60]
+ Sub-solve dimensions before changing = [1,-2,-2] ... changed to [30,60,60]
  Using 2 partitions
  Using sub-interval separations =  1.2
  Inertias after EPSSetUp:

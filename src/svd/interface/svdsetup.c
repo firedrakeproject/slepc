@@ -156,7 +156,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   if (svd->ncv > PetscMin(M,N)) svd->ncv = PetscMin(M,N);
   if (svd->nsv > PetscMin(M,N)) svd->nsv = PetscMin(M,N);
-  if (svd->ncv && svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
+  if (svd->ncv!=PETSC_DEFAULT && svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   /* call specific solver setup */
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);
@@ -263,9 +263,9 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
-  if (svd->ncv) { /* ncv set */
+  if (svd->ncv!=PETSC_DEFAULT) { /* ncv set */
     if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv");
-  } else if (svd->mpd) { /* mpd set */
+  } else if (svd->mpd!=PETSC_DEFAULT) { /* mpd set */
     svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
   } else { /* neither set: defaults depend on nsv being small or large */
     if (svd->nsv<500) svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
@@ -274,7 +274,7 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
       svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
     }
   }
-  if (!svd->mpd) svd->mpd = svd->ncv;
+  if (svd->mpd==PETSC_DEFAULT) svd->mpd = svd->ncv;
   PetscFunctionReturn(0);
 }
 

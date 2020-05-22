@@ -434,7 +434,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscBool      istrivial,isellipse,flg,useconj;
 
   PetscFunctionBegin;
-  if (!nep->ncv) {
+  if (nep->ncv==PETSC_DEFAULT) {
     nep->ncv = ctx->L_max*ctx->M;
     if (nep->ncv>nep->n) {
       nep->ncv = nep->n;
@@ -450,7 +450,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   }
   ctx->L = PetscMin(ctx->L,ctx->L_max);
   if (nep->max_it==PETSC_DEFAULT) nep->max_it = 1;
-  if (!nep->mpd) nep->mpd = nep->ncv;
+  if (nep->mpd==PETSC_DEFAULT) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_ALL;
   if (nep->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
 

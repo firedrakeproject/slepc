@@ -196,13 +196,13 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   if (nsv<1) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
   svd->nsv = nsv;
   if (ncv == PETSC_DEFAULT || ncv == PETSC_DECIDE) {
-    svd->ncv = 0;
+    svd->ncv = PETSC_DEFAULT;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     svd->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    svd->mpd = 0;
+    svd->mpd = PETSC_DEFAULT;
   } else {
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     svd->mpd = mpd;
@@ -687,9 +687,9 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
     i = svd->nsv;
     ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->nsv,&i,&flg1);CHKERRQ(ierr);
-    j = svd->ncv? svd->ncv: PETSC_DEFAULT;
+    j = svd->ncv;
     ierr = PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,&flg2);CHKERRQ(ierr);
-    k = svd->mpd? svd->mpd: PETSC_DEFAULT;
+    k = svd->mpd;
     ierr = PetscOptionsInt("-svd_mpd","Maximum dimension of projected problem","SVDSetDimensions",svd->mpd,&k,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) { ierr = SVDSetDimensions(svd,i,j,k);CHKERRQ(ierr); }
 

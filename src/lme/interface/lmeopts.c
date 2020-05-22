@@ -359,7 +359,7 @@ PetscErrorCode LMESetDimensions(LME lme,PetscInt ncv)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidLogicalCollectiveInt(lme,ncv,2);
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    lme->ncv = 0;
+    lme->ncv = PETSC_DEFAULT;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     lme->ncv = ncv;

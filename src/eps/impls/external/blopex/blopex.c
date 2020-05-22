@@ -116,10 +116,10 @@ PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
 
   PetscFunctionBegin;
   k = ((eps->nev-1)/ctx->bs+1)*ctx->bs;
-  if (*ncv) { /* ncv set */
+  if (*ncv!=PETSC_DEFAULT) { /* ncv set */
     if (*ncv<k) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv is not sufficiently large");
   } else *ncv = k;
-  if (!*mpd) *mpd = *ncv;
+  if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
   else { ierr = PetscInfo(eps,"Warning: given value of mpd ignored\n");CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }

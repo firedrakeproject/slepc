@@ -823,7 +823,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   Mat            A;
 
   PetscFunctionBegin;
-  if (!eps->ncv) {
+  if (eps->ncv==PETSC_DEFAULT) {
     eps->ncv = ctx->L_max*ctx->M;
     if (eps->ncv>eps->n) {
       eps->ncv = eps->n;
@@ -840,7 +840,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   }
   ctx->L = PetscMin(ctx->L,ctx->L_max);
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
-  if (!eps->mpd) eps->mpd = eps->ncv;
+  if (eps->mpd==PETSC_DEFAULT) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
   if (!eps->extraction) { ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr); }
   else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");

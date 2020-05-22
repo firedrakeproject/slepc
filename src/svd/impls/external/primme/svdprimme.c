@@ -206,10 +206,10 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   }
 
   /* If user sets mpd or ncv, maxBasisSize is modified */
-  if (svd->mpd) {
+  if (svd->mpd!=PETSC_DEFAULT) {
     primme->maxBasisSize = svd->mpd;
-    if (svd->ncv) { ierr = PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
-  } else if (svd->ncv) primme->maxBasisSize = svd->ncv;
+    if (svd->ncv!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
+  } else if (svd->ncv!=PETSC_DEFAULT) primme->maxBasisSize = svd->ncv;
 
   if (primme_svds_set_method(ops->method,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,PRIMME_DEFAULT_METHOD,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"PRIMME method not valid");
 

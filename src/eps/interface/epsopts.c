@@ -184,9 +184,9 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
     i = eps->nev;
     ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,&flg1);CHKERRQ(ierr);
-    j = eps->ncv? eps->ncv: PETSC_DEFAULT;
+    j = eps->ncv;
     ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&j,&flg2);CHKERRQ(ierr);
-    k = eps->mpd? eps->mpd: PETSC_DEFAULT;
+    k = eps->mpd;
     ierr = PetscOptionsInt("-eps_mpd","Maximum dimension of projected problem","EPSSetDimensions",eps->mpd,&k,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) { ierr = EPSSetDimensions(eps,i,j,k);CHKERRQ(ierr); }
 
@@ -441,13 +441,13 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   if (nev<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
   eps->nev = nev;
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    eps->ncv = 0;
+    eps->ncv = PETSC_DEFAULT;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     eps->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    eps->mpd = 0;
+    eps->mpd = PETSC_DEFAULT;
   } else {
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     eps->mpd = mpd;
