@@ -941,6 +941,27 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode EPSSetUpSort_CISS(EPS eps)
+{
+  PetscErrorCode ierr;
+  SlepcSC        sc;
+
+  PetscFunctionBegin;
+  /* fill sorting criterion context */
+  eps->sc->comparison    = SlepcCompareSmallestReal;
+  eps->sc->comparisonctx = NULL;
+  eps->sc->map           = NULL;
+  eps->sc->mapobj        = NULL;
+
+  /* fill sorting criterion for DS */
+  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = SlepcCompareLargestMagnitude;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSSolve_CISS(EPS eps)
 {
   PetscErrorCode ierr;
@@ -951,7 +972,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscReal      error,max_error,norm;
   PetscBool      *fl1;
   Vec            si,w[3];
-  SlepcSC        sc;
   PetscRandom    rand;
 #if defined(PETSC_USE_COMPLEX)
   PetscBool      isellipse;
@@ -961,12 +981,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   w[0] = eps->work[0];
   w[1] = NULL;
   w[2] = eps->work[1];
-  /* override SC settings */
-  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
-  sc->comparison    = SlepcCompareLargestMagnitude;
-  sc->comparisonctx = NULL;
-  sc->map           = NULL;
-  sc->mapobj        = NULL;
   ierr = VecGetLocalSize(w[0],&nlocal);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
@@ -1982,6 +1996,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
 
   eps->ops->solve          = EPSSolve_CISS;
   eps->ops->setup          = EPSSetUp_CISS;
+  eps->ops->setupsort      = EPSSetUpSort_CISS;
   eps->ops->setfromoptions = EPSSetFromOptions_CISS;
   eps->ops->destroy        = EPSDestroy_CISS;
   eps->ops->reset          = EPSReset_CISS;

@@ -846,6 +846,7 @@ static PetscErrorCode EPSPowerSetNonlinear_Power(EPS eps,PetscBool nonlinear)
   if (power->nonlinear != nonlinear) {
     power->nonlinear = nonlinear;
     eps->useds = PetscNot(nonlinear);
+    eps->ops->setupsort = nonlinear? NULL: EPSSetUpSort_Default;
     eps->state = EPS_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
@@ -1193,6 +1194,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->categ = EPS_CATEGORY_OTHER;
 
   eps->ops->setup          = EPSSetUp_Power;
+  eps->ops->setupsort      = EPSSetUpSort_Default;
   eps->ops->setfromoptions = EPSSetFromOptions_Power;
   eps->ops->reset          = EPSReset_Power;
   eps->ops->destroy        = EPSDestroy_Power;

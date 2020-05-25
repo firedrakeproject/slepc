@@ -423,6 +423,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
 
   eps->ops->solve          = EPSSolve_RQCG;
   eps->ops->setup          = EPSSetUp_RQCG;
+  eps->ops->setupsort      = EPSSetUpSort_Default;
   eps->ops->setfromoptions = EPSSetFromOptions_RQCG;
   eps->ops->destroy        = EPSDestroy_RQCG;
   eps->ops->reset          = EPSReset_RQCG;

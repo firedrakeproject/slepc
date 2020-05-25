@@ -646,6 +646,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
 
   eps->ops->solve          = EPSSolve_XD;
   eps->ops->setup          = EPSSetUp_JD;
+  eps->ops->setupsort      = EPSSetUpSort_Default;
   eps->ops->setfromoptions = EPSSetFromOptions_JD;
   eps->ops->destroy        = EPSDestroy_JD;
   eps->ops->reset          = EPSReset_XD;

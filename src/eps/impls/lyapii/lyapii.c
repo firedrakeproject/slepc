@@ -815,6 +815,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
 
   eps->ops->solve          = EPSSolve_LyapII;
   eps->ops->setup          = EPSSetUp_LyapII;
+  eps->ops->setupsort      = EPSSetUpSort_Default;
   eps->ops->setfromoptions = EPSSetFromOptions_LyapII;
   eps->ops->reset          = EPSReset_LyapII;
   eps->ops->destroy        = EPSDestroy_LyapII;

@@ -288,6 +288,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 
   eps->ops->solve          = EPSSolve_Subspace;
   eps->ops->setup          = EPSSetUp_Subspace;
+  eps->ops->setupsort      = EPSSetUpSort_Default;
   eps->ops->destroy        = EPSDestroy_Subspace;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;

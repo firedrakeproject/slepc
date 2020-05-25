@@ -94,7 +94,6 @@ static PetscErrorCode EstimateRange(Mat A,PetscReal *left,PetscReal *right)
 static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
 {
   PetscErrorCode ierr;
-  SlepcSC        sc;
   PetscReal      rleft,rright;
   Mat            A;
 
@@ -116,13 +115,6 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-
-  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
-  sc->rg            = NULL;
-  sc->comparison    = SlepcCompareLargestReal;
-  sc->comparisonctx = NULL;
-  sc->map           = NULL;
-  sc->mapobj        = NULL;
   PetscFunctionReturn(0);
 }
 
@@ -228,6 +220,38 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSAllocate(eps->dsts,eps->ncv+1);CHKERRQ(ierr);
       break;
     default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error");
+  }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode EPSSetUpSort_KrylovSchur(EPS eps)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  SlepcSC         sc;
+  PetscBool       isfilt;
+
+  PetscFunctionBegin;
+  ierr = EPSSetUpSort_Default(eps);CHKERRQ(ierr);
+  if (eps->which==EPS_ALL) {
+    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt);CHKERRQ(ierr);
+    if (isfilt) {
+      ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+      sc->rg            = NULL;
+      sc->comparison    = SlepcCompareLargestReal;
+      sc->comparisonctx = NULL;
+      sc->map           = NULL;
+      sc->mapobj        = NULL;
+    } else {
+      if (!ctx->global && ctx->sr->numEigs>0) {
+        ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+        sc->rg            = NULL;
+        sc->comparison    = SlepcCompareLargestMagnitude;
+        sc->comparisonctx = NULL;
+        sc->map           = NULL;
+        sc->mapobj        = NULL;
+      }
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -1403,6 +1427,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 
   /* solve and computevectors determined at setup */
   eps->ops->setup          = EPSSetUp_KrylovSchur;
+  eps->ops->setupsort      = EPSSetUpSort_KrylovSchur;
   eps->ops->setfromoptions = EPSSetFromOptions_KrylovSchur;
   eps->ops->destroy        = EPSDestroy_KrylovSchur;
   eps->ops->reset          = EPSReset_KrylovSchur;

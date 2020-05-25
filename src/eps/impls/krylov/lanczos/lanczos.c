@@ -852,6 +852,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
 
   eps->ops->solve          = EPSSolve_Lanczos;
   eps->ops->setup          = EPSSetUp_Lanczos;
+  eps->ops->setupsort      = EPSSetUpSort_Default;
   eps->ops->setfromoptions = EPSSetFromOptions_Lanczos;
   eps->ops->destroy        = EPSDestroy_Lanczos;
   eps->ops->reset          = EPSReset_Lanczos;

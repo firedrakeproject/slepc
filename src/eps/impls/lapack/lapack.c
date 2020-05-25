@@ -187,6 +187,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
 
   eps->ops->solve          = EPSSolve_LAPACK;
   eps->ops->setup          = EPSSetUp_LAPACK;
+  eps->ops->setupsort      = EPSSetUpSort_Default;
   eps->ops->backtransform  = EPSBackTransform_Default;
   PetscFunctionReturn(0);
 }

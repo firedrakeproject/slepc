@@ -375,7 +375,6 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscReal       r;
   MPI_Request     req;
   Mat             A,B=NULL;
-  SlepcSC         sc;
   DSParallelType  ptype;
 
   PetscFunctionBegin;
@@ -553,14 +552,6 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       ierr = EPSSliceAllocateSolution(eps,1);CHKERRQ(ierr);
     }
     dssz = eps->ncv+1;
-    if (sr->numEigs>0) {
-      ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
-      sc->rg            = NULL;
-      sc->comparison    = SlepcCompareLargestMagnitude;
-      sc->comparisonctx = NULL;
-      sc->map           = NULL;
-      sc->mapobj        = NULL;
-    }
     ierr = DSGetParallel(ctx->eps->ds,&ptype);CHKERRQ(ierr);
     ierr = DSSetParallel(eps->ds,ptype);CHKERRQ(ierr);
     ierr = DSGetMethod(ctx->eps->ds,&method);CHKERRQ(ierr);

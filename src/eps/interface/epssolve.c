@@ -124,6 +124,7 @@ PetscErrorCode EPSSolve(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
+  PetscBool      isexternal;
   STMatMode      matmode;
   Mat            A,B;
 
@@ -181,7 +182,10 @@ PetscErrorCode EPSSolve(EPS eps)
 #endif
 
   /* Sort eigenvalues according to eps->which parameter */
-  ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSLAPACK,EPSARPACK,EPSBLOPEX,EPSBLZPACK,EPSFEAST,EPSPRIMME,EPSTRLAN,"");CHKERRQ(ierr);
+  if (!isexternal) {
+    ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
   /* Various viewers */

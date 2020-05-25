@@ -23,6 +23,7 @@ typedef struct _EPSOps *EPSOps;
 struct _EPSOps {
   PetscErrorCode (*solve)(EPS);
   PetscErrorCode (*setup)(EPS);
+  PetscErrorCode (*setupsort)(EPS);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,EPS);
   PetscErrorCode (*publishoptions)(EPS);
   PetscErrorCode (*destroy)(EPS);
@@ -326,5 +327,6 @@ SLEPC_INTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetDefaultST(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetDefaultST_Precond(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetDefaultST_GMRES(EPS);
+SLEPC_INTERN PetscErrorCode EPSSetUpSort_Default(EPS);
 
 #endif

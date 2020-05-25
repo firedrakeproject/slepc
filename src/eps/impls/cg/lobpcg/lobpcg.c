@@ -712,6 +712,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
 
   eps->ops->solve          = EPSSolve_LOBPCG;
   eps->ops->setup          = EPSSetUp_LOBPCG;
+  eps->ops->setupsort      = EPSSetUpSort_Default;
   eps->ops->setfromoptions = EPSSetFromOptions_LOBPCG;
   eps->ops->destroy        = EPSDestroy_LOBPCG;
   eps->ops->view           = EPSView_LOBPCG;
