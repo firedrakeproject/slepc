@@ -44,10 +44,10 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   ierr = NEPInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
 
-  nep->max_it          = 0;
+  nep->max_it          = PETSC_DEFAULT;
   nep->nev             = 1;
-  nep->ncv             = 0;
-  nep->mpd             = 0;
+  nep->ncv             = PETSC_DEFAULT;
+  nep->mpd             = PETSC_DEFAULT;
   nep->nini            = 0;
   nep->target          = 0.0;
   nep->tol             = PETSC_DEFAULT;

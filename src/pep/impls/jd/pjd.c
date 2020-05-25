@@ -135,7 +135,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PetscFunctionBegin;
   pep->lineariz = PETSC_FALSE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
-  if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
+  if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_TARGET_MAGNITUDE;
   if (pep->which!=PEP_TARGET_MAGNITUDE && pep->which!=PEP_TARGET_REAL && pep->which!=PEP_TARGET_IMAGINARY) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Wrong value of pep->which");
 

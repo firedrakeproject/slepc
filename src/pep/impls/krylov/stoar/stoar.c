@@ -138,7 +138,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   } else {
     ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
     if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-    if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
+    if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
     pep->ops->solve = PEPSolve_STOAR;
     ld   = pep->ncv+2;
     ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
@@ -905,13 +905,13 @@ static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt 
   if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
   ctx->nev = nev;
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    ctx->ncv = 0;
+    ctx->ncv = PETSC_DEFAULT;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     ctx->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    ctx->mpd = 0;
+    ctx->mpd = PETSC_DEFAULT;
   } else {
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     ctx->mpd = mpd;
@@ -1140,6 +1140,8 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->data = (void*)ctx;
   ctx->lock    = PETSC_TRUE;
   ctx->nev     = 1;
+  ctx->ncv     = PETSC_DEFAULT;
+  ctx->mpd     = PETSC_DEFAULT;
   ctx->alpha   = 1.0;
   ctx->beta    = 0.0;
   ctx->checket = PETSC_TRUE;

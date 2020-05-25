@@ -40,8 +40,8 @@ PetscErrorCode LMESetUp_Krylov(LME lme)
 
   PetscFunctionBegin;
   ierr = MatGetSize(lme->A,&N,NULL);CHKERRQ(ierr);
-  if (!lme->ncv) lme->ncv = PetscMin(30,N);
-  if (!lme->max_it) lme->max_it = 100;
+  if (lme->ncv==PETSC_DEFAULT) lme->ncv = PetscMin(30,N);
+  if (lme->max_it==PETSC_DEFAULT) lme->max_it = 100;
   ierr = LMEAllocateSolution(lme,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

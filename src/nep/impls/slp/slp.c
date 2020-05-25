@@ -39,12 +39,12 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   ST             st;
 
   PetscFunctionBegin;
-  if (nep->ncv) { ierr = PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
+  if (nep->ncv!=PETSC_DEFAULT) { ierr = PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
   nep->ncv = nep->nev;
-  if (nep->mpd) { ierr = PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
+  if (nep->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
   nep->mpd = nep->nev;
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
-  if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
 
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
@@ -56,7 +56,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),1,"SLP does not support spectral transformation");
   ierr = EPSSetDimensions(ctx->eps,1,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it);CHKERRQ(ierr);
   if (nep->twosided) {
     nep->ops->solve = NEPSolve_SLP_Twosided;
     nep->ops->computevectors = NULL;
@@ -66,7 +66,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
     if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),1,"SLP does not support spectral transformation");
     ierr = EPSSetDimensions(ctx->epsts,1,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(ctx->epsts,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
-    ierr = EPSSetTolerances(ctx->epsts,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = EPSSetTolerances(ctx->epsts,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it);CHKERRQ(ierr);
   } else {
     nep->ops->solve = NEPSolve_SLP;
     nep->ops->computevectors = NEPComputeVectors_Schur;

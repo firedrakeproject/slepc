@@ -215,8 +215,8 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
   lme->C               = NULL;
   lme->X               = NULL;
   lme->problem_type    = LME_LYAPUNOV;
-  lme->max_it          = 0;
-  lme->ncv             = 0;
+  lme->max_it          = PETSC_DEFAULT;
+  lme->ncv             = PETSC_DEFAULT;
   lme->tol             = PETSC_DEFAULT;
   lme->errorifnotconverged = PETSC_FALSE;
 

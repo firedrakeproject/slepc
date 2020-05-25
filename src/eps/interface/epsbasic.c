@@ -47,10 +47,10 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   ierr = EPSInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
 
-  eps->max_it          = 0;
+  eps->max_it          = PETSC_DEFAULT;
   eps->nev             = 1;
-  eps->ncv             = 0;
-  eps->mpd             = 0;
+  eps->ncv             = PETSC_DEFAULT;
+  eps->mpd             = PETSC_DEFAULT;
   eps->nini            = 0;
   eps->nds             = 0;
   eps->target          = 0.0;

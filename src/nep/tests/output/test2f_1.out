@@ -31,7 +31,7 @@ FN Object: 1 MPI processes
  ... changed to  2
  Refinement:  1, tol= 0.000000001, its= 2, scheme= 3
  Which =  7, target = 1.1
- Dimensions: nev= 1, ncv=12, mpd= 0
+ Dimensions: nev= 1, ncv=12, mpd= -2
  Tolerance = 0.000001, max_its = 200
  Convergence test = 0, stopping test = 0
 DS Object: 1 MPI processes

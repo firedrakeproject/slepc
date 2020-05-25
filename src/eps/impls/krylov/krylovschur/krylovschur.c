@@ -112,10 +112,10 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
     ierr = PetscInfo2(eps,"Setting eigenvalue range to [%g,%g]\n",(double)rleft,(double)rright);CHKERRQ(ierr);
     ierr = STFilterSetRange(eps->st,rleft,rright);CHKERRQ(ierr);
   }
-  if (!eps->ncv && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
+  if (eps->ncv==PETSC_DEFAULT && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
-  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
 
   ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
   sc->rg            = NULL;
@@ -148,7 +148,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   } else {
     ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
     if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
-    if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+    if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
     if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   }
   if (!ctx->lock && eps->mpd<eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
@@ -710,13 +710,13 @@ static PetscErrorCode EPSKrylovSchurSetDimensions_KrylovSchur(EPS eps,PetscInt n
   if (nev<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
   ctx->nev = nev;
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    ctx->ncv = 0;
+    ctx->ncv = PETSC_DEFAULT;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     ctx->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    ctx->mpd = 0;
+    ctx->mpd = PETSC_DEFAULT;
   } else {
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     ctx->mpd = mpd;
@@ -1397,6 +1397,8 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   eps->data   = (void*)ctx;
   ctx->lock   = PETSC_TRUE;
   ctx->nev    = 1;
+  ctx->ncv    = PETSC_DEFAULT;
+  ctx->mpd    = PETSC_DEFAULT;
   ctx->npart  = 1;
   ctx->detect = PETSC_FALSE;
   ctx->global = PETSC_TRUE;

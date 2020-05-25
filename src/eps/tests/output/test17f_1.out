@@ -5,7 +5,7 @@ Spectrum-slicing test, n = 35 (Fortran)
  ... changed to 0.4000
  Locking flag before changing = T
  ... changed to F
- Sub-solve dimensions before changing: nev= 1, ncv= 0, mpd= 0
+ Sub-solve dimensions before changing: nev= 1, ncv= -2, mpd= -2
  ... changed to: nev=30, ncv=60, mpd=60
  Using  2 partitions
  Using sub-interval separations =
