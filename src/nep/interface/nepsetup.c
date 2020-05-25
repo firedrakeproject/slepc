@@ -252,9 +252,9 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec is[])
 PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
   PetscFunctionBegin;
-  if (*ncv) { /* ncv set */
+  if (*ncv!=PETSC_DEFAULT) { /* ncv set */
     if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev");
-  } else if (*mpd) { /* mpd set */
+  } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
     *ncv = PetscMin(nep->n,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */
     if (nev<500) *ncv = PetscMin(nep->n,PetscMax(2*nev,nev+15));
@@ -263,7 +263,7 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
       *ncv = PetscMin(nep->n,nev+(*mpd));
     }
   }
-  if (!*mpd) *mpd = *ncv;
+  if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
   PetscFunctionReturn(0);
 }
 

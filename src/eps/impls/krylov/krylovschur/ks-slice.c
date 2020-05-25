@@ -394,7 +394,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       eps->tol = SLEPC_DEFAULT_TOL*1e-2;
 #endif
     }
-    if (!eps->max_it) eps->max_it = 100;
+    if (eps->max_it==PETSC_DEFAULT) eps->max_it = 100;
     if (ctx->nev==1) ctx->nev = PetscMin(40,eps->n);  /* nev not set, use default value */
     if (eps->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   }

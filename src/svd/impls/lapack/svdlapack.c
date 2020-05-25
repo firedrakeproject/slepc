@@ -21,9 +21,9 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   svd->ncv = N;
-  if (svd->mpd) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (svd->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
-  svd->max_it = 1;
+  if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
   ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);

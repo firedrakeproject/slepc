@@ -162,7 +162,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsEnum("-pep_refine_scheme","Scheme used for linear systems within iterative refinement","PEPSetRefine",PEPRefineSchemes,(PetscEnum)scheme,(PetscEnum*)&scheme,&flg5);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3 || flg4 || flg5) { ierr = PEPSetRefine(pep,refine,i,r,j,scheme);CHKERRQ(ierr); }
 
-    i = pep->max_it? pep->max_it: PETSC_DEFAULT;
+    i = pep->max_it;
     ierr = PetscOptionsInt("-pep_max_it","Maximum number of iterations","PEPSetTolerances",pep->max_it,&i,&flg1);CHKERRQ(ierr);
     r = pep->tol;
     ierr = PetscOptionsReal("-pep_tol","Tolerance","PEPSetTolerances",pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,&r,&flg2);CHKERRQ(ierr);
@@ -184,9 +184,9 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     i = pep->nev;
     ierr = PetscOptionsInt("-pep_nev","Number of eigenvalues to compute","PEPSetDimensions",pep->nev,&i,&flg1);CHKERRQ(ierr);
-    j = pep->ncv? pep->ncv: PETSC_DEFAULT;
+    j = pep->ncv;
     ierr = PetscOptionsInt("-pep_ncv","Number of basis vectors","PEPSetDimensions",pep->ncv,&j,&flg2);CHKERRQ(ierr);
-    k = pep->mpd? pep->mpd: PETSC_DEFAULT;
+    k = pep->mpd;
     ierr = PetscOptionsInt("-pep_mpd","Maximum dimension of projected problem","PEPSetDimensions",pep->mpd,&k,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) { ierr = PEPSetDimensions(pep,i,j,k);CHKERRQ(ierr); }
 
@@ -352,7 +352,7 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
     pep->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    pep->max_it = 0;
+    pep->max_it = PETSC_DEFAULT;
     pep->state  = PEP_STATE_INITIAL;
   } else {
     if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
@@ -439,13 +439,13 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
   pep->nev = nev;
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    pep->ncv = 0;
+    pep->ncv = PETSC_DEFAULT;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     pep->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
-    pep->mpd = 0;
+    pep->mpd = PETSC_DEFAULT;
   } else {
     if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     pep->mpd = mpd;

@@ -34,8 +34,8 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 
   PetscFunctionBegin;
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
-  if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
-  if (!mfn->max_it) mfn->max_it = 100;
+  if (mfn->ncv==PETSC_DEFAULT) mfn->ncv = PetscMin(30,N);
+  if (mfn->max_it==PETSC_DEFAULT) mfn->max_it = 100;
   ierr = MFNAllocateSolution(mfn,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

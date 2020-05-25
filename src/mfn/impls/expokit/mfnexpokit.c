@@ -33,8 +33,8 @@ PetscErrorCode MFNSetUp_Expokit(MFN mfn)
 
   PetscFunctionBegin;
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
-  if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
-  if (!mfn->max_it) mfn->max_it = 100;
+  if (mfn->ncv==PETSC_DEFAULT) mfn->ncv = PetscMin(30,N);
+  if (mfn->max_it==PETSC_DEFAULT) mfn->max_it = 100;
   ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
 
   ierr = PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp);CHKERRQ(ierr);

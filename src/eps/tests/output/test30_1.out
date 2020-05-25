@@ -11,9 +11,9 @@ EPS Object: 1 MPI processes
   selected portion of the spectrum: closest to target: 4.8 (in magnitude)
   postprocessing eigenvectors with purification
   number of eigenvalues (nev): 4
-  number of column vectors (ncv): 0
-  maximum dimension of projected problem (mpd): 0
-  maximum number of iterations: 0
+  number of column vectors (ncv): -2
+  maximum dimension of projected problem (mpd): -2
+  maximum number of iterations: -2
   convergence test: relative to the eigenvalue and matrix norms
   computed matrix norms: norm(A)=0.
 BV Object: 1 MPI processes

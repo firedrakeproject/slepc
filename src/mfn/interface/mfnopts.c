@@ -199,7 +199,7 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
     mfn->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
-    mfn->max_it = 0;
+    mfn->max_it = PETSC_DEFAULT;
     mfn->setupcalled = 0;
   } else {
     if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
@@ -258,7 +258,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidLogicalCollectiveInt(mfn,ncv,2);
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
-    mfn->ncv = 0;
+    mfn->ncv = PETSC_DEFAULT;
   } else {
     if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     mfn->ncv = ncv;

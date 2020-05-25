@@ -47,10 +47,10 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   ierr = PEPInitializePackage();CHKERRQ(ierr);
   ierr = SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView);CHKERRQ(ierr);
 
-  pep->max_it          = 0;
+  pep->max_it          = PETSC_DEFAULT;
   pep->nev             = 1;
-  pep->ncv             = 0;
-  pep->mpd             = 0;
+  pep->ncv             = PETSC_DEFAULT;
+  pep->mpd             = PETSC_DEFAULT;
   pep->nini            = 0;
   pep->target          = 0.0;
   pep->tol             = PETSC_DEFAULT;

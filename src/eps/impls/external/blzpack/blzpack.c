@@ -59,11 +59,11 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
-  if (eps->ncv) {
+  if (eps->ncv!=PETSC_DEFAULT) {
     if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2)) SETERRQ(PetscObjectComm((PetscObject)eps),0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
   } else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
-  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
-  if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
+  if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000,eps->n);
 
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinv);CHKERRQ(ierr);
   if (!eps->which) {
