@@ -20,7 +20,7 @@ EPS Object: 1 MPI processes
   selected portion of the spectrum: largest real parts
   number of eigenvalues (nev): 1
   number of column vectors (ncv): 2
-  maximum dimension of projected problem (mpd): 0
+  maximum dimension of projected problem (mpd): -2
   maximum number of iterations: 10000
   convergence test: relative to the eigenvalue
 BV Object: 1 MPI processes
