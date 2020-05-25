@@ -165,6 +165,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
 
   eps->ops->solve          = EPSSolve_TRLAN;
   eps->ops->setup          = EPSSetUp_TRLAN;
+  eps->ops->setupsort      = EPSSetUpSort_Basic;
   eps->ops->destroy        = EPSDestroy_TRLAN;
   eps->ops->reset          = EPSReset_TRLAN;
   eps->ops->backtransform  = EPSBackTransform_Default;

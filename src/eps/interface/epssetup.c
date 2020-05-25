@@ -115,16 +115,11 @@ PetscErrorCode EPSCheckCompatibleST(EPS eps)
 }
 
 /*
-   EPSSetUpSort_Default: configure the sorting criterion according to 'which'
+   EPSSetUpSort_Basic: configure the EPS sorting criterion according to 'which'
 */
-PetscErrorCode EPSSetUpSort_Default(EPS eps)
+PetscErrorCode EPSSetUpSort_Basic(EPS eps)
 {
-  PetscErrorCode ierr;
-  SlepcSC        sc;
-  PetscBool      istrivial;
-
   PetscFunctionBegin;
-  /* fill sorting criterion context */
   switch (eps->which) {
     case EPS_LARGEST_MAGNITUDE:
       eps->sc->comparison    = SlepcCompareLargestMagnitude;
@@ -173,7 +168,21 @@ PetscErrorCode EPSSetUpSort_Default(EPS eps)
   }
   eps->sc->map    = NULL;
   eps->sc->mapobj = NULL;
+  PetscFunctionReturn(0);
+}
 
+/*
+   EPSSetUpSort_Default: configure both EPS and DS sorting criterion
+*/
+PetscErrorCode EPSSetUpSort_Default(EPS eps)
+{
+  PetscErrorCode ierr;
+  SlepcSC        sc;
+  PetscBool      istrivial;
+
+  PetscFunctionBegin;
+  /* fill sorting criterion context */
+  ierr = EPSSetUpSort_Basic(eps);CHKERRQ(ierr);
   /* fill sorting criterion for DS */
   ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);

@@ -488,6 +488,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
 
   eps->ops->solve          = EPSSolve_BLZPACK;
   eps->ops->setup          = EPSSetUp_BLZPACK;
+  eps->ops->setupsort      = EPSSetUpSort_Basic;
   eps->ops->setfromoptions = EPSSetFromOptions_BLZPACK;
   eps->ops->destroy        = EPSDestroy_BLZPACK;
   eps->ops->reset          = EPSReset_BLZPACK;

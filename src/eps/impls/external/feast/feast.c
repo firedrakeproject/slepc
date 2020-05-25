@@ -349,6 +349,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
 
   eps->ops->solve          = EPSSolve_FEAST;
   eps->ops->setup          = EPSSetUp_FEAST;
+  eps->ops->setupsort      = EPSSetUpSort_Basic;
   eps->ops->setfromoptions = EPSSetFromOptions_FEAST;
   eps->ops->destroy        = EPSDestroy_FEAST;
   eps->ops->reset          = EPSReset_FEAST;

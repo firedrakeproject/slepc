@@ -301,6 +301,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
 
   eps->ops->solve          = EPSSolve_ARPACK;
   eps->ops->setup          = EPSSetUp_ARPACK;
+  eps->ops->setupsort      = EPSSetUpSort_Basic;
   eps->ops->destroy        = EPSDestroy_ARPACK;
   eps->ops->reset          = EPSReset_ARPACK;
   eps->ops->backtransform  = EPSBackTransform_ARPACK;

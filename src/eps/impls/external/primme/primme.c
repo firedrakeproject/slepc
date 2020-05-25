@@ -605,6 +605,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
 
   eps->ops->solve          = EPSSolve_PRIMME;
   eps->ops->setup          = EPSSetUp_PRIMME;
+  eps->ops->setupsort      = EPSSetUpSort_Basic;
   eps->ops->setfromoptions = EPSSetFromOptions_PRIMME;
   eps->ops->destroy        = EPSDestroy_PRIMME;
   eps->ops->reset          = EPSReset_PRIMME;

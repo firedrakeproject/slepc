@@ -426,6 +426,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
 
   eps->ops->solve          = EPSSolve_BLOPEX;
   eps->ops->setup          = EPSSetUp_BLOPEX;
+  eps->ops->setupsort      = EPSSetUpSort_Basic;
   eps->ops->setfromoptions = EPSSetFromOptions_BLOPEX;
   eps->ops->destroy        = EPSDestroy_BLOPEX;
   eps->ops->reset          = EPSReset_BLOPEX;
