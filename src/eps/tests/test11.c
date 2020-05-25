@@ -208,6 +208,6 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
       suffix: 2
       args: -target 0.77 -eps_type gd -eps_nev 4 -eps_tol 1e-7 -eps_gd_krylov_start -eps_gd_blocksize 3
       requires: double
-      filter: sed -e "s/[+-]0\.00000i//g"
+      filter: sed -e "s/[+-]0\.0*i//g"
 
 TEST*/

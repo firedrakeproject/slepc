@@ -119,7 +119,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -nep_type slp -nep_target -.5 -nep_error_backward ::ascii_info_detail -nep_view_values -nep_error_absolute ::ascii_matlab -nep_monitor_all -nep_converged_reason -nep_view
-      filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/[+-]0.000000i//" -e "s/+0i//" -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//g" -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/[+-]0\.0*i//g" -e "s/+0i//" -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//g" -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
 
    test:

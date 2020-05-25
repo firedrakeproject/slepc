@@ -299,7 +299,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscBool trans,PetscScalar kr,PetscSca
 
    testset:
       args: -st_type sinvert -eps_target 1.1 -eps_nev 4
-      filter: grep -v method | sed -e "s/[+-]0.0*i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      filter: grep -v method | sed -e "s/[+-]0\.0*i//g" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: !single
       output_file: output/ex41_1.out
       test:

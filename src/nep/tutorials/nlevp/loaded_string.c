@@ -214,7 +214,7 @@ int main(int argc,char **argv)
       args: -nep_target 10 -nep_nev 3 -nep_tol 5e-10 -terse
       requires: !single
       output_file: output/loaded_string_8.out
-      filter: sed -e "s/[+-]0\.00000i//g"
+      filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 8
          args: -nep_type {{rii slp narnoldi}}
