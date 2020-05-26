@@ -179,6 +179,10 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
          args: -eps_type lapack
          timeoutfactor: 2
       test:
+         suffix: 1_elemental
+         args: -eps_type elemental
+         requires: elemental
+      test:
          suffix: 1_krylovschur_vecs
          args: -bv_type vecs -bv_orthog_refine always -eps_ncv 12
       test:

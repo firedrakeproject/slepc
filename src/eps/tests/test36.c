@@ -75,10 +75,17 @@ int main(int argc,char **argv)
    build:
       requires: complex
 
-   test:
-      suffix: 1
-      args: -m 18 -n 19 -eps_nev 4 -eps_max_it 1000 -eps_type {{krylovschur subspace arnoldi gd jd lapack}}
+   testset:
+      args: -m 18 -n 19 -eps_nev 4 -eps_max_it 1000
       requires: !single complex
+      output_file: output/test36_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur subspace arnoldi gd jd lapack}}
+      test:
+         suffix: 1_elemental
+         args: -eps_type elemental
+         requires: elemental
 
    test:
       suffix: 2
