@@ -327,6 +327,7 @@ SLEPC_INTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetDefaultST(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetDefaultST_Precond(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetDefaultST_GMRES(EPS);
+SLEPC_INTERN PetscErrorCode EPSSetDefaultST_NoFactor(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetUpSort_Basic(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetUpSort_Default(EPS);
 

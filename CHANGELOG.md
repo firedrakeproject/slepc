@@ -4,6 +4,7 @@
 
 ### Added
 
+- Add an interface to eigensolvers in Elemental.
 - Reintroduce interface to FEAST external solver via MKL.
 
 ## [3.13] - 2020-03-31

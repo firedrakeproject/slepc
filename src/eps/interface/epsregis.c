@@ -40,6 +40,9 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS);
 #if defined(SLEPC_HAVE_FEAST)
 SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS);
 #endif
+#if defined(SLEPC_HAVE_ELEMENTAL)
+SLEPC_EXTERN PetscErrorCode EPSCreate_Elemental(EPS);
+#endif
 
 /*@C
   EPSRegisterAll - Registers all the eigenvalue solvers in the EPS package.
@@ -86,6 +89,9 @@ PetscErrorCode EPSRegisterAll(void)
 #endif
 #if defined(SLEPC_HAVE_FEAST)
   ierr = EPSRegister(EPSFEAST,EPSCreate_FEAST);CHKERRQ(ierr);
+#endif
+#if defined(SLEPC_HAVE_ELEMENTAL)
+  ierr = EPSRegister(EPSELEMENTAL,EPSCreate_Elemental);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }

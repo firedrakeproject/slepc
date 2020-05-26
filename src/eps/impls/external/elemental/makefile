@@ -10,10 +10,18 @@
 
 ALL: lib
 
-LIBBASE  = libslepceps
-DIRS     = arpack blopex blzpack elemental feast primme trlan
-LOCDIR   = src/eps/impls/external/
-MANSEC   = EPS
+#requiresdefine  'SLEPC_HAVE_ELEMENTAL'
+
+CFLAGS    =
+FFLAGS    =
+SOURCEC   =
+SOURCECXX = elemental.cxx
+SOURCEF   =
+SOURCEH   =
+LIBBASE   = libslepceps
+DIRS      =
+MANSEC    = EPS
+LOCDIR    = src/eps/impls/external/elemental/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

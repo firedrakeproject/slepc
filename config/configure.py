@@ -101,20 +101,21 @@ else:
   packagesinpetsc = ''
 
 # Load classes for packages and process their command-line options
-import arpack, blopex, blzpack, feast, hpddm, primme, slicot, trlan, sowing, lapack
-arpack  = arpack.Arpack(argdb,log)
-blopex  = blopex.Blopex(argdb,log)
-blzpack = blzpack.Blzpack(argdb,log)
-feast   = feast.Feast(argdb,log,packagesinpetsc)
-primme  = primme.Primme(argdb,log)
-trlan   = trlan.Trlan(argdb,log)
-sowing  = sowing.Sowing(argdb,log)
-lapack  = lapack.Lapack(argdb,log)
-slicot  = slicot.Slicot(argdb,log)
-hpddm   = hpddm.HPDDM(argdb,log)
+import arpack, blopex, blzpack, elemental, feast, hpddm, primme, slicot, trlan, sowing, lapack
+arpack    = arpack.Arpack(argdb,log)
+blopex    = blopex.Blopex(argdb,log)
+blzpack   = blzpack.Blzpack(argdb,log)
+elemental = elemental.Elemental(argdb,log,packagesinpetsc)
+feast     = feast.Feast(argdb,log,packagesinpetsc)
+primme    = primme.Primme(argdb,log)
+trlan     = trlan.Trlan(argdb,log)
+sowing    = sowing.Sowing(argdb,log)
+lapack    = lapack.Lapack(argdb,log)
+slicot    = slicot.Slicot(argdb,log)
+hpddm     = hpddm.HPDDM(argdb,log)
 
 externalpackages = [arpack, blopex, blzpack, hpddm, primme, slicot, trlan]
-petscpackages    = [lapack, feast]
+petscpackages    = [lapack, elemental, feast]
 checkpackages    = petscpackages + externalpackages
 
 # Print help if requested and check for wrong command-line options

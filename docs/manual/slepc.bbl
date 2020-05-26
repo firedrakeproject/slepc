@@ -216,6 +216,11 @@ Polizzi, E. (2009).
 \newblock Density-matrix-based algorithm for solving eigenvalue problems.
 \newblock {\em Phys. Rev. B\/}, 79(11):115112.
 
+\bibitem[{Poulson(2013)}]{Poulson:2013:ELE}
+Poulson, J., B.~Marker, R.~A.~van de Geijn, J.~R.~Hammond, and N.~A.~Romero (2013).
+\newblock Elemental: a new framework for distributed memory dense matrix computations.
+\newblock {\em {ACM} Trans. Math. Software\/}, 39(2):1--24.
+
 \bibitem[{Romero and Roman(2014)}]{Romero:2014:PID}
 Romero, E. and J.~E. Roman (2014).
 \newblock A parallel implementation of {Davidson} methods for large-scale

@@ -74,6 +74,31 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
 }
 
 /*
+   This is for direct eigensolvers that work with A and B directly, so
+   no need to factorize B.
+*/
+PetscErrorCode EPSSetDefaultST_NoFactor(EPS eps)
+{
+  PetscErrorCode ierr;
+  KSP            ksp;
+  PC             pc;
+
+  PetscFunctionBegin;
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STSHIFT);CHKERRQ(ierr);
+  }
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+  }
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  if (!((PetscObject)pc)->type_name) {
+    ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/*
    Check that the ST selected by the user is compatible with the EPS solver and options
 */
 PetscErrorCode EPSCheckCompatibleST(EPS eps)

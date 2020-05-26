@@ -58,6 +58,7 @@ typedef const char* EPSType;
 #define EPSBLOPEX      "blopex"
 #define EPSPRIMME      "primme"
 #define EPSFEAST       "feast"
+#define EPSELEMENTAL   "elemental"
 
 /* Logging support */
 SLEPC_EXTERN PetscClassId EPS_CLASSID;
