@@ -91,7 +91,11 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (denseok) {
     ierr = STGetShift(eps->st,&shift);CHKERRQ(ierr);
     if (shift != 0.0) {
-      ierr = MatShift(Adense,shift);CHKERRQ(ierr);
+      if (nmat>1) {
+        ierr = MatAXPY(Adense,-shift,Bdense,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+      } else {
+        ierr = MatShift(Adense,-shift);CHKERRQ(ierr);
+      }
     }
     /* use dummy pc and ksp to avoid problems when B is not positive definite */
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
