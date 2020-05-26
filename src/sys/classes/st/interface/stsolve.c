@@ -29,37 +29,6 @@ PetscErrorCode STApply_Generic(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode STApplyMat_Generic(ST st,Mat B,Mat C)
-{
-  PetscErrorCode ierr;
-  Vec            x,y;
-  PetscInt       i,n;
-
-  PetscFunctionBegin;
-  ierr = MatGetSize(C,NULL,&n);CHKERRQ(ierr);
-  if (st->M && st->P) {
-    for (i=0;i<n;i++) {
-      ierr = MatDenseGetColumnVecRead(B,i,&x);CHKERRQ(ierr);
-      ierr = MatDenseGetColumnVecWrite(C,i,&y);CHKERRQ(ierr);
-      ierr = MatMult(st->M,x,st->work[0]);CHKERRQ(ierr);
-      ierr = STMatSolve(st,st->work[0],y);CHKERRQ(ierr);
-      ierr = MatDenseRestoreColumnVecRead(B,i,&x);CHKERRQ(ierr);
-      ierr = MatDenseRestoreColumnVecWrite(C,i,&y);CHKERRQ(ierr);
-    }
-  } else if (st->M) {
-    ierr = MatMatMult(st->M,B,MAT_REUSE_MATRIX,PETSC_DEFAULT,&C);CHKERRQ(ierr);
-  } else {
-    for (i=0;i<n;i++) {
-      ierr = MatDenseGetColumnVecRead(B,i,&x);CHKERRQ(ierr);
-      ierr = MatDenseGetColumnVecWrite(C,i,&y);CHKERRQ(ierr);
-      ierr = STMatSolve(st,x,y);CHKERRQ(ierr);
-      ierr = MatDenseRestoreColumnVecRead(B,i,&x);CHKERRQ(ierr);
-      ierr = MatDenseRestoreColumnVecWrite(C,i,&y);CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
 /*@
    STApply - Applies the spectral transformation operator to a vector, for
    instance (A - sB)^-1 B in the case of the shift-and-invert transformation
@@ -94,6 +63,58 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   if (!st->ops->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
   ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
   ierr = MatMult(Op,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode STApplyMat_Generic(ST st,Mat B,Mat C)
+{
+  PetscErrorCode ierr;
+  Mat            work;
+
+  PetscFunctionBegin;
+  if (st->M && st->P) {
+    ierr = MatMatMult(st->M,B,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&work);CHKERRQ(ierr);
+    ierr = STMatMatSolve(st,work,C);CHKERRQ(ierr);
+    ierr = MatDestroy(&work);CHKERRQ(ierr);
+  } else if (st->M) {
+    ierr = MatMatMult(st->M,B,MAT_REUSE_MATRIX,PETSC_DEFAULT,&C);CHKERRQ(ierr);
+  } else {
+    ierr = STMatMatSolve(st,B,C);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STApplyMat - Applies the spectral transformation operator to a matrix, for
+   instance (A - sB)^-1 B in the case of the shift-and-invert transformation
+   and generalized eigenproblem.
+
+   Collective on st
+
+   Input Parameters:
++  st - the spectral transformation context
+-  X  - input matrix
+
+   Output Parameter:
+.  y - output matrix
+
+   Level: developer
+
+.seealso: STApply()
+@*/
+PetscErrorCode STApplyMat(ST st,Mat X,Mat Y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(X,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(Y,MAT_CLASSID,3);
+  PetscValidType(st,1);
+  STCheckMatrices(st,1);
+  if (X == Y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"X and Y must be different matrices");
+  if (!st->ops->applymat) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applymat");
+  ierr = (*st->ops->applymat)(st,X,Y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

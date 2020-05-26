@@ -194,6 +194,45 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
 }
 
 /*@
+   STMatMatSolve - Solves P X = B, where P is the preconditioner matrix of
+   the spectral transformation, using a KSP object stored internally.
+
+   Collective on st
+
+   Input Parameters:
++  st - the spectral transformation context
+-  B  - right hand side vectors
+
+   Output Parameter:
+.  X - computed solutions
+
+   Level: developer
+
+.seealso: STMatSolve()
+@*/
+PetscErrorCode STMatMatSolve(ST st,Mat B,Mat X)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(B,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(X,MAT_CLASSID,3);
+  STCheckMatrices(st,1);
+
+  if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  ierr = PetscLogEventBegin(ST_MatSolve,st,B,X,0);CHKERRQ(ierr);
+  if (!st->P) {
+    /* P=NULL means identity matrix */
+    ierr = MatCopy(B,X,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  } else {
+    ierr = KSPMatSolve(st->ksp,B,X);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(ST_MatSolve,st,B,X,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
    STMatSolveTranspose - Solves P' x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
