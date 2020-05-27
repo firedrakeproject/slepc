@@ -162,6 +162,11 @@ int main(int argc,char **argv)
       test:
          suffix: 1_cholesky
          args: -mat_type sbaij
+      test:
+         suffix: 1_elemental
+         nsize: {{1 2}}
+         requires: elemental
+         args: -eps_type elemental
 
    testset:
       args: -n 18 -eps_type ciss -rg_interval_endpoints 20.8,22

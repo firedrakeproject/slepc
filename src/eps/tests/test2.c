@@ -122,6 +122,10 @@ int main(int argc,char **argv)
       test:
          suffix: 1_krylovschur
          args: -eps_type krylovschur -eps_krylovschur_locking {{0 1}}
+      test:
+         suffix: 1_elemental
+         requires: elemental
+         args: -eps_type elemental
 
    testset:
       args: -eps_type lanczos -eps_nev 4

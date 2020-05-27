@@ -317,6 +317,7 @@ Wrapper to \primme         & \texttt{EPSPRIMME}   & \texttt{primme} \\
 Wrapper to \blzpack        & \texttt{EPSBLZPACK}  & \texttt{blzpack} \\
 Wrapper to \trlan          & \texttt{EPSTRLAN}    & \texttt{trlan} \\
 Wrapper to \blopex         & \texttt{EPSBLOPEX}   & \texttt{blopex} \\
+Wrapper to \elemental      & \texttt{EPSELEMENTAL}& \texttt{elemental} \\
 Wrapper to \feast          & \texttt{EPSFEAST}    & \texttt{feast} \\\hline
 \end{tabular} }
 \caption{\label{tab:solvers}Eigenvalue solvers available in the \ident{EPS} module.}
@@ -357,6 +358,7 @@ Method   &  Portion of spectrum & Problem type & \!Real/complex\! & \!Two-sided\
 \texttt{blzpack}     & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!& real & \\
 \texttt{trlan}       & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & real & \\
 \texttt{blopex}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both & \\
+\texttt{elemental}   & All $\lambda$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both & \\
 \texttt{feast}       & All $\mathrm{Re}(\lambda)$ in an interval & any & both & \\ \hline
 \end{tabular}
 \caption{\label{tab:support}Supported problem types for all eigensolvers available in \slepc.}

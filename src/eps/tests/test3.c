@@ -136,6 +136,10 @@ int main(int argc,char **argv)
          suffix: 1_blzpack
          args: -eps_type blzpack -st_type sinvert -eps_target 2.7
          requires: blzpack
+      test:
+         suffix: 1_elemental
+         args: -eps_type elemental
+         requires: elemental
 
    testset:
       args: -eps_nev 4 -eps_smallest_real -eps_max_it 500

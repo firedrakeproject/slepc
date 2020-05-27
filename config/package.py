@@ -260,7 +260,7 @@ Downloaded package %s from: %s is not a tarball.
       if self.hasdloadflags:
         print(('  --download-'+self.packagename+'-cflags=<flags>').ljust(wd)+': Indicate extra flags to compile '+self.packagename.upper())
     if self.installable:
-      print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper()+(' (requires PETSc with %s)'%self.petscdepend.upper() if hasattr(self,'petscdepend') else ''))
+      print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Test for '+self.packagename.upper()+(' (requires PETSc with %s)'%self.petscdepend.upper() if hasattr(self,'petscdepend') else ''))
     if self.installable and not hasattr(self,'petscdepend'):
       print(('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the root directory of the '+self.packagename.upper()+' installation')
       print(('  --with-'+self.packagename+'-lib=<libraries>').ljust(wd)+': Indicate comma-separated libraries and link flags for '+self.packagename.upper())
@@ -319,7 +319,7 @@ Downloaded package %s from: %s is not a tarball.
     else:
       code = givencode
 
-    cfile = open(os.path.join(tmpdir,'checklink.c'),'w')
+    cfile = open(os.path.join(tmpdir,'checklink.cxx' if clanguage=='c++' else 'checklink.c'),'w')
     cfile.write(code)
     cfile.close()
     if logdump:

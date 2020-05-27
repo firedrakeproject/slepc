@@ -386,7 +386,7 @@ gnu-c-complex-multilib:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-visibility=1 --with-fortran-bindings=0 --download-sowing
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-visibility=1 --with-fortran-bindings=0 --download-sowing --download-elemental --download-metis --download-parmetis
 
 intel-c-complex-mkl:
   extends:
@@ -453,7 +453,7 @@ gnu-c:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --download-superlu_dist
+    PETSC_CONFIG_OPTS: --download-superlu_dist --download-elemental --download-metis --download-parmetis
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009
 
 gnu-c-c99-nompi:
