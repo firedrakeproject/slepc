@@ -113,6 +113,11 @@ int main(int argc,char **argv)
          suffix: 1
          args: -svd_nsv 4
       test:
+         suffix: 1_elemental
+         args: -svd_nsv 4
+         output_file: output/ex14_1.out
+         requires: elemental
+      test:
          suffix: 2
          args: -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -svd_view
          filter: grep -v tolerance
@@ -123,6 +128,11 @@ int main(int argc,char **argv)
       test:
          suffix: 1_complex
          args: -svd_nsv 4
+      test:
+         suffix: 1_complex_elemental
+         args: -svd_nsv 4
+         output_file: output/ex14_1_complex.out
+         requires: elemental
       test:
          suffix: 2_complex
          args: -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -svd_view

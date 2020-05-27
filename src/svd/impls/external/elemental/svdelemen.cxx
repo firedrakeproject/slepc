@@ -26,6 +26,7 @@ PetscErrorCode SVDSetUp_Elemental(SVD svd)
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
+  if (M!=N) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Not implemented for rectangular matrices");
   svd->ncv = N;
   if (svd->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
@@ -45,23 +46,12 @@ PetscErrorCode SVDSolve_Elemental(SVD svd)
   SVD_Elemental  *ctx = (SVD_Elemental*)svd->data;
   Mat            A = ctx->Ae,Z,Q,U,V;
   Mat_Elemental  *a = (Mat_Elemental*)A->data,*q,*z;
-  PetscInt       i,m,n,rrank,ridx,erow;
+  PetscInt       i,rrank,ridx,erow;
 
   PetscFunctionBegin;
-  ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   El::DistMatrix<PetscReal,El::STAR,El::VC> sigma(*a->grid);
-  ierr = MatCreate(PetscObjectComm((PetscObject)(A)),&Z);CHKERRQ(ierr);
-  ierr = MatSetSizes(Z,m,n,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
-  ierr = MatSetType(Z,MATELEMENTAL);CHKERRQ(ierr);
-  ierr = MatSetUp(Z);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(Z,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(Z,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreate(PetscObjectComm((PetscObject)(A)),&Q);CHKERRQ(ierr);
-  ierr = MatSetSizes(Q,n,n,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
-  ierr = MatSetType(Q,MATELEMENTAL);CHKERRQ(ierr);
-  ierr = MatSetUp(Q);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(Q,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(Q,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Z);CHKERRQ(ierr);
+  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q);CHKERRQ(ierr);
   z = (Mat_Elemental*)Z->data;
   q = (Mat_Elemental*)Q->data;
 
