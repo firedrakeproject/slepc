@@ -10,10 +10,17 @@
 
 ALL: lib
 
-LIBBASE  = libslepcsvd
-DIRS     = elemental primme
-LOCDIR   = src/svd/impls/external/
-MANSEC   = SVD
+#requiresdefine  'SLEPC_HAVE_ELEMENTAL'
+
+FFLAGS    =
+SOURCEC   =
+SOURCECXX = svdelemen.cxx
+SOURCEF   =
+SOURCEH   =
+LIBBASE   = libslepcsvd
+DIRS      =
+MANSEC    = SVD
+LOCDIR    = src/svd/impls/external/elemental/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

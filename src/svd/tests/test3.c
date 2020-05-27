@@ -139,6 +139,10 @@ int main(int argc,char **argv)
          suffix: 1_primme
          args: -svd_type primme
          requires: primme
+      test:
+         suffix: 1_elemental
+         args: -svd_type elemental
+         requires: elemental
 
    testset:
       args: -svd_implicittranspose -svd_nsv 4 -svd_tol 1e-5

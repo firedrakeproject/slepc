@@ -42,6 +42,7 @@ typedef const char* SVDType;
 #define SVDLAPACK      "lapack"
 #define SVDLANCZOS     "lanczos"
 #define SVDTRLANCZOS   "trlanczos"
+#define SVDELEMENTAL   "elemental"
 #define SVDPRIMME      "primme"
 
 /* Logging support */

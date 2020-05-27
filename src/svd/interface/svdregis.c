@@ -15,6 +15,9 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD);
 SLEPC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
 SLEPC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD);
 SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD);
+#if defined(SLEPC_HAVE_ELEMENTAL)
+SLEPC_EXTERN PetscErrorCode SVDCreate_Elemental(SVD);
+#endif
 #if defined(SLEPC_HAVE_PRIMME)
 SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD);
 #endif
@@ -40,6 +43,9 @@ PetscErrorCode SVDRegisterAll(void)
   ierr = SVDRegister(SVDLAPACK,SVDCreate_LAPACK);CHKERRQ(ierr);
   ierr = SVDRegister(SVDLANCZOS,SVDCreate_Lanczos);CHKERRQ(ierr);
   ierr = SVDRegister(SVDTRLANCZOS,SVDCreate_TRLanczos);CHKERRQ(ierr);
+#if defined(SLEPC_HAVE_ELEMENTAL)
+  ierr = SVDRegister(SVDELEMENTAL,SVDCreate_Elemental);CHKERRQ(ierr);
+#endif
 #if defined(SLEPC_HAVE_PRIMME)
   ierr = SVDRegister(SVDPRIMME,SVDCreate_PRIMME);CHKERRQ(ierr);
 #endif

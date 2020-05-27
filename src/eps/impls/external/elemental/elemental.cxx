@@ -11,7 +11,7 @@
    This file implements a wrapper to eigensolvers in Elemental.
 */
 
-#include <slepc/private/epsimpl.h>
+#include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
 #include <petsc/private/petscelemental.h>
 
 typedef struct {
