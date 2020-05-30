@@ -221,13 +221,11 @@ PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
   PetscInt       j;
-  PetscBool      flg;
   Mat            Vmat,Wmat;
   Vec            vv,ww;
 
   PetscFunctionBegin;
-  ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
-  if (V->vmm && flg) {
+  if (V->vmm) {
     ierr = BVGetMat(V,&Vmat);CHKERRQ(ierr);
     ierr = BVGetMat(W,&Wmat);CHKERRQ(ierr);
     ierr = MatProductCreateWithMat(A,Vmat,NULL,Wmat);CHKERRQ(ierr);
@@ -534,6 +532,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->getcolumn        = BVGetColumn_Svec_CUDA;
     bv->ops->restorecolumn    = BVRestoreColumn_Svec_CUDA;
     bv->ops->restoresplit     = BVRestoreSplit_Svec_CUDA;
+    bv->ops->getmat           = BVGetMat_Svec_CUDA;
+    bv->ops->restoremat       = BVRestoreMat_Svec_CUDA;
 #endif
   } else {
     bv->ops->mult             = BVMult_Svec;

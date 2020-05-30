@@ -29,6 +29,37 @@ PetscErrorCode STApply_Generic(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode STApplyMat_Generic(ST st,Mat B,Mat C)
+{
+  PetscErrorCode ierr;
+  Vec            x,y;
+  PetscInt       i,n;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(C,NULL,&n);CHKERRQ(ierr);
+  if (st->M && st->P) {
+    for (i=0;i<n;i++) {
+      ierr = MatDenseGetColumnVecRead(B,i,&x);CHKERRQ(ierr);
+      ierr = MatDenseGetColumnVecWrite(C,i,&y);CHKERRQ(ierr);
+      ierr = MatMult(st->M,x,st->work[0]);CHKERRQ(ierr);
+      ierr = STMatSolve(st,st->work[0],y);CHKERRQ(ierr);
+      ierr = MatDenseRestoreColumnVecRead(B,i,&x);CHKERRQ(ierr);
+      ierr = MatDenseRestoreColumnVecWrite(C,i,&y);CHKERRQ(ierr);
+    }
+  } else if (st->M) {
+    ierr = MatMatMult(st->M,B,MAT_REUSE_MATRIX,PETSC_DEFAULT,&C);CHKERRQ(ierr);
+  } else {
+    for (i=0;i<n;i++) {
+      ierr = MatDenseGetColumnVecRead(B,i,&x);CHKERRQ(ierr);
+      ierr = MatDenseGetColumnVecWrite(C,i,&y);CHKERRQ(ierr);
+      ierr = STMatSolve(st,x,y);CHKERRQ(ierr);
+      ierr = MatDenseRestoreColumnVecRead(B,i,&x);CHKERRQ(ierr);
+      ierr = MatDenseRestoreColumnVecWrite(C,i,&y);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@
    STApply - Applies the spectral transformation operator to a vector, for
    instance (A - sB)^-1 B in the case of the shift-and-invert transformation
@@ -272,14 +303,31 @@ static PetscErrorCode MatMultHermitianTranspose_STOperator(Mat Op,Vec x,Vec y)
 }
 #endif
 
+static PetscErrorCode MatMatMult_STOperator(Mat Op,Mat B,Mat C,void *ctx)
+{
+  PetscErrorCode ierr;
+  ST             st;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = STSetUp(st);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_Apply,st,B,C,0);CHKERRQ(ierr);
+  ierr = STApplyMat_Generic(st,B,C);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(ST_Apply,st,B,C,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
 {
   PetscErrorCode ierr;
   PetscInt       m,n,M,N;
+  Vec            v;
+  VecType        vtype;
 
   PetscFunctionBegin;
   if (!st->Op) {
     if (Op) *Op = NULL;
+    /* create the shell matrix */
     ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
     ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,&st->Op);CHKERRQ(ierr);
@@ -290,6 +338,15 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
 #else
     ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
 #endif
+    if (!st->D && st->ops->apply==STApply_Generic) {
+      ierr = MatShellSetMatProductOperation(st->Op,MATPRODUCT_AB,NULL,MatMatMult_STOperator,NULL,MATDENSE,MATDENSE);CHKERRQ(ierr);
+    }
+    /* make sure the shell matrix generates a vector of the same type as the problem matrices */
+    ierr = MatCreateVecs(st->A[0],&v,NULL);CHKERRQ(ierr);
+    ierr = VecGetType(v,&vtype);CHKERRQ(ierr);
+    ierr = MatShellSetVecType(st->Op,vtype);CHKERRQ(ierr);
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+    /* build the operator matrices */
     ierr = STComputeOperator(st);CHKERRQ(ierr);
   }
   if (Op) *Op = st->Op;

@@ -32,6 +32,8 @@ SLEPC_INTERN PetscErrorCode BVResize_Svec_CUDA(BV,PetscInt,PetscBool);
 SLEPC_INTERN PetscErrorCode BVGetColumn_Svec_CUDA(BV,PetscInt,Vec*);
 SLEPC_INTERN PetscErrorCode BVRestoreColumn_Svec_CUDA(BV,PetscInt,Vec*);
 SLEPC_INTERN PetscErrorCode BVRestoreSplit_Svec_CUDA(BV,BV*,BV*);
+SLEPC_INTERN PetscErrorCode BVGetMat_Svec_CUDA(BV,Mat*);
+SLEPC_INTERN PetscErrorCode BVRestoreMat_Svec_CUDA(BV,Mat*);
 #endif
 
 #endif

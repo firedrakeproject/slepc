@@ -1451,25 +1451,29 @@ PetscErrorCode BVGetMat(BV bv,Mat *A)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscValidPointer(A,2);
-  m = bv->k-bv->l;
-  if (!bv->Aget) create=PETSC_TRUE;
-  else {
-    ierr = MatDenseGetArray(bv->Aget,&aa);CHKERRQ(ierr);
-    if (aa) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
-    ierr = MatGetSize(bv->Aget,NULL,&cols);CHKERRQ(ierr);
-    if (cols!=m) {
-      ierr = MatDestroy(&bv->Aget);CHKERRQ(ierr);
-      create=PETSC_TRUE;
+  if (bv->ops->getmat) {
+    ierr = (*bv->ops->getmat)(bv,A);CHKERRQ(ierr);
+  } else {
+    m = bv->k-bv->l;
+    if (!bv->Aget) create=PETSC_TRUE;
+    else {
+      ierr = MatDenseGetArray(bv->Aget,&aa);CHKERRQ(ierr);
+      if (aa) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
+      ierr = MatGetSize(bv->Aget,NULL,&cols);CHKERRQ(ierr);
+      if (cols!=m) {
+        ierr = MatDestroy(&bv->Aget);CHKERRQ(ierr);
+        create=PETSC_TRUE;
+      }
     }
+    ierr = BVGetArray(bv,&vv);CHKERRQ(ierr);
+    if (create) {
+      ierr = MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget);CHKERRQ(ierr); /* pass a pointer to avoid allocation of storage */
+      ierr = MatDenseReplaceArray(bv->Aget,NULL);CHKERRQ(ierr);  /* replace with a null pointer, the value after BVRestoreMat */
+      ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Aget);CHKERRQ(ierr);
+    }
+    ierr = MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n);CHKERRQ(ierr);  /* set the actual pointer */
+    *A = bv->Aget;
   }
-  ierr = BVGetArray(bv,&vv);CHKERRQ(ierr);
-  if (create) {
-    ierr = MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget);CHKERRQ(ierr); /* pass a pointer to avoid allocation of storage */
-    ierr = MatDensePlaceArray(bv->Aget,NULL);CHKERRQ(ierr);  /* replace with a null pointer, the value after BVRestoreMat */
-    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Aget);CHKERRQ(ierr);
-  }
-  ierr = MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n);CHKERRQ(ierr);  /* set the actual pointer */
-  *A = bv->Aget;
   PetscFunctionReturn(0);
 }
 
@@ -1502,11 +1506,15 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
   PetscValidPointer(A,2);
   if (!bv->Aget) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVRestoreMat must match a previous call to BVGetMat");
   if (bv->Aget!=*A) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with BVGetMat");
-  ierr = MatDenseGetArray(bv->Aget,&aa);CHKERRQ(ierr);
-  vv = aa-(bv->nc+bv->l)*bv->n;
-  ierr = MatDenseResetArray(bv->Aget);CHKERRQ(ierr);
-  ierr = BVRestoreArray(bv,&vv);CHKERRQ(ierr);
-  *A = NULL;
+  if (bv->ops->restoremat) {
+    ierr = (*bv->ops->restoremat)(bv,A);CHKERRQ(ierr);
+  } else {
+    ierr = MatDenseGetArray(bv->Aget,&aa);CHKERRQ(ierr);
+    vv = aa-(bv->nc+bv->l)*bv->n;
+    ierr = MatDenseResetArray(bv->Aget);CHKERRQ(ierr);
+    ierr = BVRestoreArray(bv,&vv);CHKERRQ(ierr);
+    *A = NULL;
+  }
   PetscFunctionReturn(0);
 }
 

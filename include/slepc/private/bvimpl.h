@@ -49,6 +49,8 @@ struct _BVOps {
   PetscErrorCode (*restorearrayread)(BV,const PetscScalar**);
   PetscErrorCode (*restoresplit)(BV,BV*,BV*);
   PetscErrorCode (*gramschmidt)(BV,PetscInt,Vec,PetscBool*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*);
+  PetscErrorCode (*getmat)(BV,Mat*);
+  PetscErrorCode (*restoremat)(BV,Mat*);
   PetscErrorCode (*duplicate)(BV,BV);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,BV);
