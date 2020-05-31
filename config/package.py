@@ -54,7 +54,13 @@ class Package:
     if sys.version_info < (3,):
       (result,output) = commands.getstatusoutput(instr)
     else:
-      (result,output) = subprocess.getstatusoutput(instr)
+      try:
+        output = subprocess.check_output(instr,shell=True,stderr=subprocess.STDOUT)
+        result = 0
+      except subprocess.CalledProcessError as ex:
+        output = ex.output
+        result = ex.returncode
+      output = output.decode(encoding='UTF-8',errors='replace').rstrip()
     try:
       self.log.write(output)
     except AttributeError: pass

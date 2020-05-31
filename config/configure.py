@@ -118,7 +118,7 @@ if emptyarch:
     pseudoarch += '-opt'
   if not 'real' in petsc.scalar:
     pseudoarch += '-' + petsc.scalar
-  archname = 'installed-'+pseudoarch
+  archname = 'installed-'+pseudoarch.replace('linux-','linux2-')
 else:
   archname = petsc.arch
 
