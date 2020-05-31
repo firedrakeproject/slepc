@@ -143,7 +143,7 @@ argdb.ErrorIfNotEmpty()
 
 # Check if packages-download directory contains requested packages
 if slepc.downloaddir:
-  l = filter(None, [pkg.MissingTarball(slepc.downloaddir) for pkg in externalpackages])
+  l = list(filter(None, [pkg.MissingTarball(slepc.downloaddir) for pkg in externalpackages]))
   if l:
     log.Println('\n\nDownload the following packages and run the script again:')
     for pkg in l: log.Println(pkg)
