@@ -86,7 +86,7 @@ PetscErrorCode BVInitializePackage(void)
   ierr = PetscLogEventRegister("BVMatMultVec",BV_CLASSID,&BV_MatMultVec);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMatProject",BV_CLASSID,&BV_MatProject);CHKERRQ(ierr);
   /* MPI reduction operation used in BVOrthogonalize */
-  ierr = MPI_Op_create(SlepcGivensPacked,PETSC_TRUE,&MPIU_TSQR);CHKERRQ(ierr);
+  ierr = MPI_Op_create(SlepcGivensPacked,PETSC_FALSE,&MPIU_TSQR);CHKERRQ(ierr);
   ierr = MPI_Op_create(SlepcPythag,PETSC_TRUE,&MPIU_LAPY2);CHKERRQ(ierr);
   /* Process Info */
   classids[0] = BV_CLASSID;
