@@ -133,12 +133,12 @@ int main(int argc,char **argv)
 
   /* Scalar evaluation */
   x = 2.2;
-  ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE);CHKERRQ(ierr);
   ierr = FNEvaluateFunction(f,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(f,x,&yp);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
   /* Test duplication */

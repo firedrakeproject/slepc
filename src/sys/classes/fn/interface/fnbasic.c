@@ -885,7 +885,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   ierr = FNRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)fn);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-fn_type","Math function type","FNSetType",FNList,(char*)(((PetscObject)fn)->type_name?((PetscObject)fn)->type_name:FNRATIONAL),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-fn_type","Math function type","FNSetType",FNList,(char*)(((PetscObject)fn)->type_name?((PetscObject)fn)->type_name:FNRATIONAL),type,sizeof(type),&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = FNSetType(fn,type);CHKERRQ(ierr);
     } else if (!((PetscObject)fn)->type_name) {

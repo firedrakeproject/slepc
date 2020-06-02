@@ -944,8 +944,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   EPS_shift       sPres;
   PetscBool       breakdown,complIterating,sch0,sch1;
   EPS_SR          sr = ctx->sr;
-#define MSGLEN 100
-  char            messg[MSGLEN];
+  char            messg[100];
 
   PetscFunctionBegin;
   /* Spectrum slicing data */
@@ -1105,7 +1104,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   sPres->comp[0] = PetscNot(count0 < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(count1 < sPres->nsch[1]);
-  ierr = PetscSNPrintf(messg,MSGLEN,"Lanczos: %D evals in [%g,%g]%s and %D evals in [%g,%g]%s\n",count0,(double)(sr->dir==1)?sPres->ext[0]:sPres->value,(double)(sr->dir==1)?sPres->value:sPres->ext[0],(sPres->comp[0])?"*":"",count1,(double)(sr->dir==1)?sPres->value:sPres->ext[1],(double)(sr->dir==1)?sPres->ext[1]:sPres->value,(sPres->comp[1])?"*":"");CHKERRQ(ierr);
+  ierr = PetscSNPrintf(messg,sizeof(messg),"Lanczos: %D evals in [%g,%g]%s and %D evals in [%g,%g]%s\n",count0,(double)(sr->dir==1)?sPres->ext[0]:sPres->value,(double)(sr->dir==1)?sPres->value:sPres->ext[0],(sPres->comp[0])?"*":"",count1,(double)(sr->dir==1)?sPres->value:sPres->ext[1],(double)(sr->dir==1)?sPres->ext[1]:sPres->value,(sPres->comp[1])?"*":"");CHKERRQ(ierr);
   ierr = PetscInfo(eps,messg);CHKERRQ(ierr);
   if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1]) InertiaMismatch(eps,ctx->detect);
   ierr = PetscFree(iwork);CHKERRQ(ierr);

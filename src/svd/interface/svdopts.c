@@ -657,7 +657,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = SVDRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)svd);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-svd_type","SVD solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-svd_type","SVD solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,sizeof(type),&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = SVDSetType(svd,type);CHKERRQ(ierr);
     } else if (!((PetscObject)svd)->type_name) {

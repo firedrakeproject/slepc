@@ -204,14 +204,14 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  Phi_%D: ",ctx->k);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     if (fn->beta!=(PetscScalar)1.0) {
-      ierr = SlepcSNPrintfScalar(str,50,fn->beta,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s*",str);CHKERRQ(ierr);
     }
     if (fn->alpha==(PetscScalar)1.0) {
-      ierr = PetscSNPrintf(strx,50,"x");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(strx,sizeof(strx),"x");CHKERRQ(ierr);
     } else {
-      ierr = SlepcSNPrintfScalar(str,50,fn->alpha,PETSC_TRUE);CHKERRQ(ierr);
-      ierr = PetscSNPrintf(strx,50,"(%s*x)",str);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(strx,sizeof(strx),"(%s*x)",str);CHKERRQ(ierr);
     }
     if (!ctx->k) {
       ierr = PetscViewerASCIIPrintf(viewer,"exp(%s)\n",strx);CHKERRQ(ierr);

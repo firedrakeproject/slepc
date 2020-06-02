@@ -202,12 +202,12 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     for (i=0;i<ctx->n;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      ierr = SlepcSNPrintfScalar(str,50,ctx->vr[i],PETSC_FALSE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->vr[i],PETSC_FALSE);CHKERRQ(ierr);
 #else
       if (ctx->vi[i]!=0.0) {
-        ierr = PetscSNPrintf(str,50,"%g%+gi",(double)ctx->vr[i],(double)ctx->vi[i]);CHKERRQ(ierr);
+        ierr = PetscSNPrintf(str,sizeof(str),"%g%+gi",(double)ctx->vr[i],(double)ctx->vi[i]);CHKERRQ(ierr);
       } else {
-        ierr = PetscSNPrintf(str,50,"%g",(double)ctx->vr[i]);CHKERRQ(ierr);
+        ierr = PetscSNPrintf(str,sizeof(str),"%g",(double)ctx->vr[i]);CHKERRQ(ierr);
       }
 #endif
       ierr = PetscViewerASCIIPrintf(viewer,"%s%s",str,(i<ctx->n-1)?", ":"");CHKERRQ(ierr);

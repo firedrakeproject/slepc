@@ -128,9 +128,9 @@ static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
 
   PetscFunctionBegin;
   ierr = PetscStrcpy(libs,SLEPC_LIB_DIR);CHKERRQ(ierr);
-  ierr = PetscStrcat(libs,"/libslepc");CHKERRQ(ierr);
-  ierr = PetscStrcat(libs,name);CHKERRQ(ierr);
-  ierr = PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,1024,found);CHKERRQ(ierr);
+  ierr = PetscStrlcat(libs,"/libslepc",sizeof(libs));CHKERRQ(ierr);
+  ierr = PetscStrlcat(libs,name,sizeof(libs));CHKERRQ(ierr);
+  ierr = PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,sizeof(dlib),found);CHKERRQ(ierr);
   if (*found) {
     ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&PetscDLLibrariesLoaded,dlib);CHKERRQ(ierr);
   }

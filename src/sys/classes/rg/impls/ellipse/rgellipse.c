@@ -130,7 +130,7 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->center,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  center: %s, radius: %g, vscale: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale));CHKERRQ(ierr);
   } else if (isdraw) {
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);

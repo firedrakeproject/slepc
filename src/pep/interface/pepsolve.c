@@ -81,8 +81,7 @@ PetscErrorCode PEPSolve(PEP pep)
   PetscErrorCode ierr;
   PetscInt       i,k;
   PetscBool      flg,islinear;
-#define OPTLEN 16
-  char           str[OPTLEN];
+  char           str[16];
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -157,7 +156,7 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPValuesViewFromOptions(pep);CHKERRQ(ierr);
   ierr = PEPVectorsViewFromOptions(pep);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
-    ierr = PetscSNPrintf(str,OPTLEN,"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
+    ierr = PetscSNPrintf(str,sizeof(str),"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
     ierr = MatViewFromOptions(pep->A[i],(PetscObject)pep,str);CHKERRQ(ierr);
   }
 

@@ -459,11 +459,10 @@ PetscErrorCode QEPDefiniteCheckError(Mat *A,PEP pep,PetscBool hyperbolic,PetscRe
   Vec            vr,vi,w[4];
   PetscInt       i,nconv;
   BV             bv;
-#define EXLEN 30
-  char           ex[EXLEN],sep[]=" ---------------------- --------------------\n";
+  char           ex[30],sep[]=" ---------------------- --------------------\n";
 
   PetscFunctionBegin;
-  ierr = PetscSNPrintf(ex,EXLEN,"||P(k)x||/||kx||");CHKERRQ(ierr);
+  ierr = PetscSNPrintf(ex,sizeof(ex),"||P(k)x||/||kx||");CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);
   ierr = PEPGetConverged(pep,&nconv);CHKERRQ(ierr);
   ierr = PEPGetBV(pep,&bv);CHKERRQ(ierr);

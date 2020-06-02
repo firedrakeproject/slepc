@@ -57,7 +57,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   for (i=0;i<NMAT;i++) {
-    ierr = PetscOptionsGetString(NULL,NULL,string[i],filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsGetString(NULL,NULL,string[i],filename,sizeof(filename),&flg);CHKERRQ(ierr);
     if (!flg) SETERRQ1(PETSC_COMM_WORLD,1,"Must indicate a filename with the %s option",string[i]);
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
     ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);

@@ -42,7 +42,7 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-z",&z,NULL);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,50,z,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(str,sizeof(str),z,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nAcoustic wave 1-D, n=%D z=%s\n\n",n,str);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

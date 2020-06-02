@@ -106,7 +106,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
-    ierr = SlepcSNPrintfScalar(str,50,eps->target,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcSNPrintfScalar(str,sizeof(str),eps->target,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     if (!eps->which) {
       ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
@@ -358,20 +358,19 @@ static PetscErrorCode EPSErrorView_DETAIL(EPS eps,EPSErrorType etype,PetscViewer
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
   PetscInt       i;
-#define EXLEN 30
-  char           ex[EXLEN],sep[]=" ---------------------- --------------------\n";
+  char           ex[30],sep[]=" ---------------------- --------------------\n";
 
   PetscFunctionBegin;
   if (!eps->nconv) PetscFunctionReturn(0);
   switch (etype) {
     case EPS_ERROR_ABSOLUTE:
-      ierr = PetscSNPrintf(ex,EXLEN,"   ||Ax-k%sx||",eps->isgeneralized?"B":"");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex),"   ||Ax-k%sx||",eps->isgeneralized?"B":"");CHKERRQ(ierr);
       break;
     case EPS_ERROR_RELATIVE:
-      ierr = PetscSNPrintf(ex,EXLEN,"||Ax-k%sx||/||kx||",eps->isgeneralized?"B":"");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex),"||Ax-k%sx||/||kx||",eps->isgeneralized?"B":"");CHKERRQ(ierr);
       break;
     case EPS_ERROR_BACKWARD:
-      ierr = PetscSNPrintf(ex,EXLEN,"    eta(x,k)");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex),"    eta(x,k)");CHKERRQ(ierr);
       break;
   }
   ierr = PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);
@@ -712,8 +711,7 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscInt       i,k;
   Vec            x;
-#define NMLEN 30
-  char           vname[NMLEN];
+  char           vname[30];
   const char     *ename;
 
   PetscFunctionBegin;
@@ -729,13 +727,13 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
     ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       k = eps->perm[i];
-      ierr = PetscSNPrintf(vname,NMLEN,"X%d_%s",(int)i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,sizeof(vname),"X%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(eps->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,k,&x);CHKERRQ(ierr);
       if (eps->twosided) {
-        ierr = PetscSNPrintf(vname,NMLEN,"Y%d_%s",(int)i,ename);CHKERRQ(ierr);
+        ierr = PetscSNPrintf(vname,sizeof(vname),"Y%d_%s",(int)i,ename);CHKERRQ(ierr);
         ierr = BVGetColumn(eps->W,k,&x);CHKERRQ(ierr);
         ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
         ierr = VecView(x,viewer);CHKERRQ(ierr);

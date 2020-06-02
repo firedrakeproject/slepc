@@ -37,8 +37,8 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscOptionsGetString(NULL,NULL,"-type",peptype,30,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(NULL,NULL,"-epstype",epstype,30,&epsgiven);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-type",peptype,sizeof(peptype),NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-epstype",epstype,sizeof(epstype),&epsgiven);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

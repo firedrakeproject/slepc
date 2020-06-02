@@ -120,7 +120,7 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = STRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)st);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-st_type","Spectral transformation","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-st_type","Spectral transformation","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,sizeof(type),&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = STSetType(st,type);CHKERRQ(ierr);
     } else if (!((PetscObject)st)->type_name) {

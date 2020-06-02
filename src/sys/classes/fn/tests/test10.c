@@ -26,12 +26,12 @@ PetscErrorCode TestPhiFunction(FN fn,PetscScalar x,Mat A,PetscBool verbose)
   PetscFunctionBeginUser;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE);CHKERRQ(ierr);
   ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
   ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nf(%s)=%s\n",strx,str);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
   /* compute phi_k(A)*e_1 */
   ierr = MatCreateVecs(A,&v,&f);CHKERRQ(ierr);

@@ -280,7 +280,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   ierr = RGRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)rg);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-rg_type","Region type","RGSetType",RGList,(char*)(((PetscObject)rg)->type_name?((PetscObject)rg)->type_name:RGINTERVAL),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-rg_type","Region type","RGSetType",RGList,(char*)(((PetscObject)rg)->type_name?((PetscObject)rg)->type_name:RGINTERVAL),type,sizeof(type),&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = RGSetType(rg,type);CHKERRQ(ierr);
     } else if (!((PetscObject)rg)->type_name) {

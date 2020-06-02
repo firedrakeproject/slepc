@@ -2041,7 +2041,7 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  RK shifts: ");CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
       for (i=0;i<ctx->nshifts;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,ctx->shifts[i],PETSC_FALSE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->shifts[i],PETSC_FALSE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s%s",str,(i<ctx->nshifts-1)?",":"");CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);

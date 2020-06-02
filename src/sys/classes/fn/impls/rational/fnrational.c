@@ -176,10 +176,10 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     if (fn->alpha!=(PetscScalar)1.0 || fn->beta!=(PetscScalar)1.0) {
-      ierr = SlepcSNPrintfScalar(str,50,fn->alpha,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_FALSE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"  Scale factors: alpha=%s,",str);CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = SlepcSNPrintfScalar(str,50,fn->beta,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_FALSE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer," beta=%s\n",str);CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     }
@@ -187,16 +187,16 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
       if (!ctx->np) {
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n");CHKERRQ(ierr);
       } else if (ctx->np==1) {
-        ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[0],PETSC_FALSE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[0],PETSC_FALSE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: %s\n",str);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"  Polynomial: ");CHKERRQ(ierr);
         ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
         for (i=0;i<ctx->np-1;i++) {
-          ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
+          ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
           ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->np-i-1);CHKERRQ(ierr);
         }
-        ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s\n",str);CHKERRQ(ierr);
         ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
       }
@@ -204,26 +204,26 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  Inverse polinomial: 1 / (");CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
       for (i=0;i<ctx->nq-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->nq-i-1);CHKERRQ(ierr);
       }
-      ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  Rational function: (");CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
       for (i=0;i<ctx->np-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->np-i-1);CHKERRQ(ierr);
       }
-      ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s) / (",str);CHKERRQ(ierr);
       for (i=0;i<ctx->nq-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
+        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->nq-i-1);CHKERRQ(ierr);
       }
-      ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     }

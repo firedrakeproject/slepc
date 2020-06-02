@@ -641,7 +641,7 @@ PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
     ierr = VecSetBlockSize(vnew,bs);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)vnew);CHKERRQ(ierr);
     if (((PetscObject)bv)->name) {
-      ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)vnew,str);CHKERRQ(ierr);
     }
     if (copy) {

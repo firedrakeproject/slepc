@@ -78,7 +78,7 @@ PetscErrorCode LMESetFromOptions(LME lme)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   ierr = LMERegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)lme);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-lme_type","Linear matrix equation","LMESetType",LMEList,(char*)(((PetscObject)lme)->type_name?((PetscObject)lme)->type_name:LMEKRYLOV),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-lme_type","Linear matrix equation","LMESetType",LMEList,(char*)(((PetscObject)lme)->type_name?((PetscObject)lme)->type_name:LMEKRYLOV),type,sizeof(type),&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = LMESetType(lme,type);CHKERRQ(ierr);
     } else if (!((PetscObject)lme)->type_name) {

@@ -304,7 +304,7 @@ PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
     ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)A);CHKERRQ(ierr);
     if (((PetscObject)bv)->name) {
-      ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)A,str);CHKERRQ(ierr);
     }
     if (copy) {
@@ -468,7 +468,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   ierr = MatAssemblyEnd(ctx->A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)ctx->A);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {
-    ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
+    ierr = PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
     ierr = PetscObjectSetName((PetscObject)ctx->A,str);CHKERRQ(ierr);
   }
 

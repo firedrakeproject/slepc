@@ -887,7 +887,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   ierr = BVRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)bv);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,256,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,sizeof(type),&flg1);CHKERRQ(ierr);
     if (flg1) {
       ierr = BVSetType(bv,type);CHKERRQ(ierr);
     } else if (!((PetscObject)bv)->type_name) {

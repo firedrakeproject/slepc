@@ -120,7 +120,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   ierr = NEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)nep);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-nep_type","Nonlinear eigensolver method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-nep_type","Nonlinear eigensolver method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,sizeof(type),&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPSetType(nep,type);CHKERRQ(ierr);
     } else if (!((PetscObject)nep)->type_name) {

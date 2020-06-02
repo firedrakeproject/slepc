@@ -847,7 +847,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    ierr = SlepcSNPrintfScalar(str,50,st->sigma,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcSNPrintfScalar(str,sizeof(str),st->sigma,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  shift: %s\n",str);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of matrices: %D\n",st->nmat);CHKERRQ(ierr);
     switch (st->matmode) {

@@ -31,7 +31,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-rep",&rep,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(NULL,NULL,"-file",filename,PETSC_MAX_PATH_LEN,&fromfile);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-file",filename,sizeof(filename),&fromfile);CHKERRQ(ierr);
   ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)B,"B");CHKERRQ(ierr);
   if (fromfile) {

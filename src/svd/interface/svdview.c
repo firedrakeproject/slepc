@@ -233,17 +233,16 @@ static PetscErrorCode SVDErrorView_DETAIL(SVD svd,SVDErrorType etype,PetscViewer
   PetscErrorCode ierr;
   PetscReal      error,sigma;
   PetscInt       i;
-#define EXLEN 30
-  char           ex[EXLEN],sep[]=" ---------------------- --------------------\n";
+  char           ex[30],sep[]=" ---------------------- --------------------\n";
 
   PetscFunctionBegin;
   if (!svd->nconv) PetscFunctionReturn(0);
   switch (etype) {
     case SVD_ERROR_ABSOLUTE:
-      ierr = PetscSNPrintf(ex,EXLEN," absolute error");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex)," absolute error");CHKERRQ(ierr);
       break;
     case SVD_ERROR_RELATIVE:
-      ierr = PetscSNPrintf(ex,EXLEN," relative error");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex)," relative error");CHKERRQ(ierr);
       break;
   }
   ierr = PetscViewerASCIIPrintf(viewer,"%s          sigma           %s\n%s",sep,ex,sep);CHKERRQ(ierr);
@@ -537,8 +536,7 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscInt       i,k;
   Vec            x;
-#define NMLEN 30
-  char           vname[NMLEN];
+  char           vname[30];
   const char     *ename;
 
   PetscFunctionBegin;
@@ -554,12 +552,12 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
     ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
     for (i=0;i<svd->nconv;i++) {
       k = svd->perm[i];
-      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",(int)i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,sizeof(vname),"V%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
       ierr = BVRestoreColumn(svd->V,k,&x);CHKERRQ(ierr);
-      ierr = PetscSNPrintf(vname,NMLEN,"U%d_%s",(int)i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,sizeof(vname),"U%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->U,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);

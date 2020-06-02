@@ -121,7 +121,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   ierr = PEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)pep);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-pep_type","Polynomial eigensolver method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-pep_type","Polynomial eigensolver method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,sizeof(type),&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PEPSetType(pep,type);CHKERRQ(ierr);
     } else if (!((PetscObject)pep)->type_name) {

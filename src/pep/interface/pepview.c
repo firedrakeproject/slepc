@@ -89,7 +89,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcSNPrintfScalar(str,sizeof(str),pep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!pep->which) {
       ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
     } else switch (pep->which) {
@@ -332,20 +332,19 @@ static PetscErrorCode PEPErrorView_DETAIL(PEP pep,PEPErrorType etype,PetscViewer
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
   PetscInt       i;
-#define EXLEN 30
-  char           ex[EXLEN],sep[]=" ---------------------- --------------------\n";
+  char           ex[30],sep[]=" ---------------------- --------------------\n";
 
   PetscFunctionBegin;
   if (!pep->nconv) PetscFunctionReturn(0);
   switch (etype) {
     case PEP_ERROR_ABSOLUTE:
-      ierr = PetscSNPrintf(ex,EXLEN,"   ||P(k)x||");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex),"   ||P(k)x||");CHKERRQ(ierr);
       break;
     case PEP_ERROR_RELATIVE:
-      ierr = PetscSNPrintf(ex,EXLEN,"||P(k)x||/||kx||");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex),"||P(k)x||/||kx||");CHKERRQ(ierr);
       break;
     case PEP_ERROR_BACKWARD:
-      ierr = PetscSNPrintf(ex,EXLEN,"    eta(x,k)");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex),"    eta(x,k)");CHKERRQ(ierr);
       break;
   }
   ierr = PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);
@@ -682,8 +681,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscInt       i,k;
   Vec            x;
-#define NMLEN 30
-  char           vname[NMLEN];
+  char           vname[30];
   const char     *ename;
 
   PetscFunctionBegin;
@@ -699,7 +697,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
     ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
     for (i=0;i<pep->nconv;i++) {
       k = pep->perm[i];
-      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",(int)i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,sizeof(vname),"V%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);

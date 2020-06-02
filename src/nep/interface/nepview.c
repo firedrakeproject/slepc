@@ -85,7 +85,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = SlepcSNPrintfScalar(str,50,nep->target,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SlepcSNPrintfScalar(str,sizeof(str),nep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!nep->which) {
       ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
     } else switch (nep->which) {
@@ -332,20 +332,19 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
   PetscInt       i;
-#define EXLEN 30
-  char           ex[EXLEN],sep[]=" ---------------------- --------------------\n";
+  char           ex[30],sep[]=" ---------------------- --------------------\n";
 
   PetscFunctionBegin;
   if (!nep->nconv) PetscFunctionReturn(0);
   switch (etype) {
     case NEP_ERROR_ABSOLUTE:
-      ierr = PetscSNPrintf(ex,EXLEN,"    ||T(k)x||");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex),"    ||T(k)x||");CHKERRQ(ierr);
       break;
     case NEP_ERROR_RELATIVE:
-      ierr = PetscSNPrintf(ex,EXLEN," ||T(k)x||/||kx||");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex)," ||T(k)x||/||kx||");CHKERRQ(ierr);
       break;
     case NEP_ERROR_BACKWARD:
-      ierr = PetscSNPrintf(ex,EXLEN,"    eta(x,k)");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,sizeof(ex),"    eta(x,k)");CHKERRQ(ierr);
       break;
   }
   ierr = PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);
@@ -686,8 +685,7 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscInt       i,k;
   Vec            x;
-#define NMLEN 30
-  char           vname[NMLEN];
+  char           vname[30];
   const char     *ename;
 
   PetscFunctionBegin;
@@ -703,13 +701,13 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
       k = nep->perm[i];
-      ierr = PetscSNPrintf(vname,NMLEN,"X%d_%s",(int)i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,sizeof(vname),"X%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(nep->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
       ierr = BVRestoreColumn(nep->V,k,&x);CHKERRQ(ierr);
       if (nep->twosided) {
-        ierr = PetscSNPrintf(vname,NMLEN,"Y%d_%s",(int)i,ename);CHKERRQ(ierr);
+        ierr = PetscSNPrintf(vname,sizeof(vname),"Y%d_%s",(int)i,ename);CHKERRQ(ierr);
         ierr = BVGetColumn(nep->W,k,&x);CHKERRQ(ierr);
         ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
         ierr = VecView(x,viewer);CHKERRQ(ierr);

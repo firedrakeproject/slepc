@@ -240,7 +240,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   if (lflag!=0) {
     char msg[2048] = "";
     for (i = 0; i < 33; i++) {
-      if (blz->istor[15] & (1 << i)) { ierr = PetscStrcat(msg,blzpack_error[i]);CHKERRQ(ierr); }
+      if (blz->istor[15] & (1 << i)) { ierr = PetscStrlcat(msg,blzpack_error[i],sizeof(msg));CHKERRQ(ierr); }
     }
     SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15],msg);
   }
