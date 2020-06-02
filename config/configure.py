@@ -84,8 +84,8 @@ showhelp = argdb.PopHelp()
 
 # Load main classes, process the corresponding command-line options
 import slepc, petsc
-slepc   = slepc.SLEPc(argdb,log)
-petsc   = petsc.PETSc(argdb,log)
+slepc = slepc.SLEPc(argdb,log)
+petsc = petsc.PETSc(argdb,log)
 
 # Check enviroment and PETSc version
 if not showhelp:
