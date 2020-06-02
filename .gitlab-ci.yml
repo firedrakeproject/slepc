@@ -180,17 +180,17 @@ checksource:
     - cd ..
     - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
+    - git fetch
     - |
       if [ -z ${PETSC_BRANCH+x} ];
       then
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
-          then git checkout maint;
-          else git checkout master;
+          then git checkout origin/maint;
+          else git checkout origin/master;
         fi
       else
-        git checkout $PETSC_BRANCH
+        git checkout origin/$PETSC_BRANCH
       fi
-    - git pull
     - export PETSC_DIR=$PWD
     - export PETSC_ARCH=arch-$CI_JOB_NAME
     - bash -c "${PYTHON} ./configure --with-debugging=0 --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O' --CUDAFLAGS='-ccbin gcc-5' ${PETSC_CONFIG_OPTS}"
