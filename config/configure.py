@@ -55,16 +55,18 @@ def WriteReconfigScript(reconfig,slepcdir,usedargs):
   reconfig.write('execfile(os.path.join(\''+slepcdir+'\',\'config\',\'configure.py\'))\n')
 
 # Use en_US as language so that compiler messages are in English
-if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
-if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
+def fixLang(lang):
+  if lang in os.environ and os.environ[lang] != '':
+    lv = os.environ[lang]
+    enc = ''
+    try: lv,enc = lv.split('.')
+    except: pass
+    if lv not in ['en_US','C']: lv = 'en_US'
+    if enc: lv = lv+'.'+enc
+    os.environ[lang] = lv
 
-# Check python version
-if sys.version_info < (2,6) or (sys.version_info >= (3,0) and sys.version_info < (3,4)):
-  print('*******************************************************************************')
-  print('*        Python version 2.6+ or 3.4+ is required to run ./configure           *')
-  print('*           Try: "python2.7 ./configure" or "python3 ./configure"             *')
-  print('*******************************************************************************')
-  sys.exit(4)
+fixLang('LC_LOCAL')
+fixLang('LANG')
 
 # Set python path
 configdir = os.path.abspath('config')
@@ -126,7 +128,7 @@ if emptyarch:
     pseudoarch += '-opt'
   if not 'real' in petsc.scalar:
     pseudoarch += '-' + petsc.scalar
-  archname = 'installed-'+pseudoarch
+  archname = 'installed-'+pseudoarch.replace('linux-','linux2-')
 else:
   archname = petsc.arch
 

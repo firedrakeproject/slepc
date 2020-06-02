@@ -380,27 +380,28 @@ int main(int argc,char **argv)
       suffix: 11
       nsize: 7
       args: -bv_orthog_block tsqr -bv_type {{vecs contiguous svec mat}shared output}
+      requires: !valgrind
       output_file: output/test11_1.out
 
    test:
       suffix: 11_cuda
       nsize: 7
       args: -bv_orthog_block tsqr -bv_type svec -vec_type cuda
-      requires: cuda
+      requires: cuda !valgrind
       output_file: output/test11_1.out
 
    test:
       suffix: 12
       nsize: 9
       args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr -bv_type {{vecs contiguous svec mat}shared output}
-      requires: !single
+      requires: !single !valgrind
       output_file: output/test11_12.out
 
    test:
       suffix: 12_cuda
       nsize: 9
       args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr -bv_type svec -vec_type cuda
-      requires: !single cuda
+      requires: !single !valgrind cuda
       output_file: output/test11_12.out
 
    test:
