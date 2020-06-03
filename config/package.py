@@ -16,9 +16,9 @@ try:
 except ImportError:
   from urllib.request import urlretrieve
 try:
-  import urlparse
+  import urlparse as urlparse_local
 except ImportError:
-  from urllib import parse as urlparse
+  from urllib import parse as urlparse_local
 if sys.version_info < (3,):
   import commands
 else:
@@ -26,7 +26,7 @@ else:
 import socket
 
 # Fix parsing for nonstandard schemes
-urlparse.uses_netloc.extend(['bk', 'ssh', 'svn'])
+urlparse_local.uses_netloc.extend(['bk', 'ssh', 'svn'])
 
 class Package:
 
@@ -164,7 +164,9 @@ class Package:
         url = self.packageurl
         if url=='':
           url = self.url
-        filename = os.path.basename(urlparse.urlparse(url)[2])
+        if os.path.exists(url):
+          url = 'file:'+url
+        filename = os.path.basename(urlparse_local.urlparse(url)[2])
         localFile = os.path.join(externdir,self.archive)
         self.log.write('Downloading '+url+' to '+localFile)
 
