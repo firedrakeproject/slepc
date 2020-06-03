@@ -20,7 +20,7 @@
 
        [1] C. Campos and J.E. Roman, "A polynomial Jacobi-Davidson solver
            with support for non-monomial bases and deflation", BIT Numer.
-           Math. (in press), 2019.
+           Math. 60:295-318, 2020.
 
        [2] G.L.G. Sleijpen et al., "Jacobi-Davidson type methods for
            generalized eigenproblems and polynomial eigenproblems", BIT
@@ -41,10 +41,9 @@ static const char citation[] =
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"A polynomial {Jacobi-Davidson} solver with support for non-monomial bases and deflation\",\n"
   "   journal = \"{BIT} Numer. Math.\",\n"
-  "   volume = \"IP\",\n"
-  "   number = \"-\",\n"
-  "   pages = \"1--24\",\n"
-  "   year = \"2019,\"\n"
+  "   volume = \"60\",\n"
+  "   pages = \"295--318\",\n"
+  "   year = \"2020,\"\n"
   "   doi = \"https://doi.org/10.1007/s10543-019-00778-z\"\n"
   "}\n";
 
