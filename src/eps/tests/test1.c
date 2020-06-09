@@ -160,6 +160,10 @@ int main(int argc,char **argv)
          suffix: 1_lobpcg
          args: -eps_type lobpcg -st_shift 22 -eps_largest_real
       test:
+         suffix: 1_hpddm
+         requires: hpddm
+         args: -eps_type lobpcg -st_shift 22 -eps_largest_real -st_pc_type lu -st_ksp_type hpddm -st_ksp_hpddm_type preonly
+      test:
          suffix: 1_cholesky
          args: -mat_type sbaij
       test:
@@ -217,6 +221,10 @@ int main(int argc,char **argv)
       test:
          suffix: 5_lobpcg
          args: -eps_type lobpcg -eps_lobpcg_blocksize 3
+      test:
+         suffix: 5_hpddm
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 3 -st_pc_type lu -st_ksp_type hpddm -st_ksp_hpddm_type preonly
+         requires: hpddm
       test:
          suffix: 5_blopex
          args: -eps_type blopex -eps_conv_abs -st_shift 0.1

@@ -22,6 +22,7 @@ typedef struct _STOps *STOps;
 
 struct _STOps {
   PetscErrorCode (*apply)(ST,Vec,Vec);
+  PetscErrorCode (*applymat)(ST,Mat,Mat);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
   PetscErrorCode (*backtransform)(ST,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*setshift)(ST,PetscScalar);
@@ -112,6 +113,7 @@ SLEPC_INTERN PetscErrorCode STIsInjective_Shell(ST,PetscBool*);
 SLEPC_INTERN PetscErrorCode STComputeOperator(ST);
 SLEPC_INTERN PetscErrorCode STGetOperator_Private(ST,Mat*);
 SLEPC_INTERN PetscErrorCode STApply_Generic(ST,Vec,Vec);
+SLEPC_INTERN PetscErrorCode STApplyMat_Generic(ST,Mat,Mat);
 SLEPC_INTERN PetscErrorCode STApplyTranspose_Generic(ST,Vec,Vec);
 
 #endif

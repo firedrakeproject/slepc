@@ -130,9 +130,19 @@ int main(int argc,char **argv)
          nsize: 1
          args: -rg_type interval -rg_interval_endpoints 1.1,1.25
       test:
+         suffix: ciss_1_hpddm
+         nsize: 1
+         args: -rg_type interval -rg_interval_endpoints 1.1,1.25 -st_ksp_type hpddm -st_ksp_hpddm_type preonly
+         requires: hpddm
+      test:
          suffix: ciss_2
          nsize: 2
          args: -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2
+      test:
+         suffix: ciss_2_hpddm
+         nsize: 2
+         args: -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2 -eps_ciss_ksp_type hpddm -eps_ciss_ksp_hpddm_type preonly
+         requires: hpddm
       test:
          suffix: feast
          args: -eps_type feast -eps_interval 1.1,1.25 -eps_ncv 64
