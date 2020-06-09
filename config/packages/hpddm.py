@@ -20,7 +20,7 @@ class HPDDM(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'hpddm'
     self.downloadable   = True
-    self.gitcommit      = '21c972f2488edbbd4948c937d7c929b38de9def7'
+    self.gitcommit      = 'ce6ce80b62e9bc71efedf8b9cb6ffb00dfd6e44e'
     self.url            = 'https://github.com/hpddm/hpddm/archive/'+self.gitcommit+'.tar.gz'
     self.archive        = self.gitcommit+'.tar.gz'
     self.dirname        = 'hpddm-'+self.gitcommit
@@ -56,10 +56,13 @@ class HPDDM(package.Package):
     l = petsc.slflag+d+' -L'+d+' -lpetsc'
     d = libdir
     if petsc.isinstall:
-      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-current/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
-      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-current/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
-      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-master/src/ksp/pc/impls/bjacobi/bjacobi.h',os.path.join(builddir,'include','bjacobi.h'));
-      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-master/src/ksp/pc/impls/asm/asm.h',os.path.join(builddir,'include','asm.h'));
+      branch = 'current'
+      if slepc.isrepo and slepc.branch != 'maint':
+        branch = 'master'
+      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
+      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
+      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/pc/impls/bjacobi/bjacobi.h',os.path.join(builddir,'include','bjacobi.h'));
+      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/pc/impls/asm/asm.h',os.path.join(builddir,'include','asm.h'));
       (result,output) = self.RunCommand('sed -i.bak -e \'s@../src/ksp/pc/impls/bjacobi/@@\' -e \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'interface','ksphpddm.cxx'))
       if result:
         self.log.Exit('Patching petsc/src/ksp/ksp/impls/hpddm/hpddm.cxx failed')
