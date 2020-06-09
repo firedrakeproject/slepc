@@ -86,11 +86,11 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
-  PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,its;
+  PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,its,prev=0;
   PetscReal      norm;
   PetscScalar    *eigr,dot;
   PetscBool      breakdown,countc,flip=PETSC_FALSE,checkprecond=PETSC_FALSE;
-  Mat            A,B,M;
+  Mat            A,B,M,V=NULL,W=NULL;
   Vec            v,z,w=eps->work[0];
   BV             X,Y=NULL,Z,R,P,AX,BX;
   SlepcSC        sc;
@@ -304,30 +304,44 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     }
 
     /* 9. Apply preconditioner to the residuals */
-    for (j=ini;j<ctx->bs;j++) {
-      ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
-      ierr = STApply(eps->st,v,w);CHKERRQ(ierr);
-      if (checkprecond) {
+    ierr = BVGetMat(R,&V);CHKERRQ(ierr);
+    if (prev != ctx->bs-ini) {
+      prev = ctx->bs-ini;
+      ierr = MatDestroy(&W);CHKERRQ(ierr);
+      ierr = MatDuplicate(V,MAT_SHARE_NONZERO_PATTERN,&W);CHKERRQ(ierr);
+    }
+    ierr = STApplyMat(eps->st,V,W);CHKERRQ(ierr);
+    if (checkprecond) {
+      for (j=ini;j<ctx->bs;j++) {
+        ierr = MatDenseGetColumnVecRead(V,j-ini,&v);CHKERRQ(ierr);
+        ierr = MatDenseGetColumnVecRead(W,j-ini,&w);CHKERRQ(ierr);
         ierr = VecDot(v,w,&dot);CHKERRQ(ierr);
+        ierr = MatDenseRestoreColumnVecRead(W,j-ini,&w);CHKERRQ(ierr);
+        ierr = MatDenseRestoreColumnVecRead(V,j-ini,&v);CHKERRQ(ierr);
         if (PetscRealPart(dot)<0.0) {
           ierr = PetscInfo(eps,"The preconditioner is not positive-definite\n");CHKERRQ(ierr);
           eps->reason = EPS_DIVERGED_BREAKDOWN;
           goto diverged;
         }
       }
-      if (nc+locked>0) {
+    }
+    if (nc+locked>0) {
+      for (j=ini;j<ctx->bs;j++) {
+        ierr = MatDenseGetColumnVecWrite(W,j-ini,&w);CHKERRQ(ierr);
         ierr = BVOrthogonalizeVec(Y,w,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (norm>0.0 && !breakdown) {
           ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
-        } else {
+        }
+        ierr = MatDenseRestoreColumnVecWrite(W,j-ini,&w);CHKERRQ(ierr);
+        if (norm<=0.0 || breakdown) {
           ierr = PetscInfo(eps,"Orthogonalization of preconditioned residual failed\n");CHKERRQ(ierr);
           eps->reason = EPS_DIVERGED_BREAKDOWN;
           goto diverged;
         }
       }
-      ierr = VecCopy(w,v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
     }
+    ierr = MatCopy(W,V,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = BVRestoreMat(R,&V);CHKERRQ(ierr);
 
     /* 11. B-orthonormalize preconditioned residuals */
     ierr = BVOrthogonalize(R,NULL);CHKERRQ(ierr);
@@ -394,6 +408,10 @@ diverged:
 
   if (flip) sc->comparison = SlepcCompareLargestReal;
   ierr = PetscFree(eigr);CHKERRQ(ierr);
+  ierr = MatDestroy(&W);CHKERRQ(ierr);
+  if (V) { /* only needed when goto diverged is reached */
+    ierr = BVRestoreMat(R,&V);CHKERRQ(ierr);
+  }
   ierr = BVDestroy(&Z);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&R);CHKERRQ(ierr);
