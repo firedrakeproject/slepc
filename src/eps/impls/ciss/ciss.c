@@ -356,16 +356,22 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,p_id;
-  Mat            Fz,kspMat;
-  Vec            Bvj,vj,yj;
+  PetscInt       i,p_id;
+  Mat            Fz,kspMat,MV,BMV=NULL,MC;
   KSP            ksp;
 
   PetscFunctionBegin;
   if (!ctx->ksp) { ierr = EPSCISSGetKSPs(eps,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = BVCreateVec(V,&Bvj);CHKERRQ(ierr);
   if (ctx->usest) {
     ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
+  }
+  ierr = BVSetActiveColumns(V,L_start,L_end);CHKERRQ(ierr);
+  ierr = BVGetMat(V,&MV);CHKERRQ(ierr);
+  if (B) {
+    ierr = MatProductCreate(B,MV,NULL,&BMV);CHKERRQ(ierr);
+    ierr = MatProductSetType(BMV,MATPRODUCT_AB);CHKERRQ(ierr);
+    ierr = MatProductSetFromOptions(BMV);CHKERRQ(ierr);
+    ierr = MatProductSymbolic(BMV);CHKERRQ(ierr);
   }
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = i*ctx->subcomm->n + ctx->subcomm_id;
@@ -382,30 +388,28 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     }
-    for (j=L_start;j<L_end;j++) {
-      ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
-      ierr = BVGetColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
-      if (B) {
-        ierr = MatMult(B,vj,Bvj);CHKERRQ(ierr);
-        if (ctx->usest) {
-          ierr = KSPSolve(ksp,Bvj,yj);CHKERRQ(ierr);
-        } else {
-          ierr = KSPSolve(ctx->ksp[i],Bvj,yj);CHKERRQ(ierr);
-        }
+    ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+L_start,i*ctx->L_max+L_end);CHKERRQ(ierr);
+    ierr = BVGetMat(ctx->Y,&MC);CHKERRQ(ierr);
+    if (B) {
+      ierr = MatProductNumeric(BMV);CHKERRQ(ierr);
+      if (ctx->usest) {
+        ierr = KSPMatSolve(ksp,BMV,MC);CHKERRQ(ierr);
       } else {
-        if (ctx->usest) {
-          ierr = KSPSolve(ksp,vj,yj);CHKERRQ(ierr);
-        } else {
-          ierr = KSPSolve(ctx->ksp[i],vj,yj);CHKERRQ(ierr);
-        }
+        ierr = KSPMatSolve(ctx->ksp[i],BMV,MC);CHKERRQ(ierr);
       }
-      ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
+    } else {
+      if (ctx->usest) {
+        ierr = KSPMatSolve(ksp,MV,MC);CHKERRQ(ierr);
+      } else {
+        ierr = KSPMatSolve(ctx->ksp[i],MV,MC);CHKERRQ(ierr);
+      }
     }
     if (ctx->usest && i<ctx->num_solve_point-1) { ierr = KSPReset(ksp);CHKERRQ(ierr); }
+    ierr = BVRestoreMat(ctx->Y,&MC);CHKERRQ(ierr);
   }
+  ierr = MatDestroy(&BMV);CHKERRQ(ierr);
+  ierr = BVRestoreMat(V,&MV);CHKERRQ(ierr);
   if (ctx->usest) { ierr = MatDestroy(&Fz);CHKERRQ(ierr); }
-  ierr = VecDestroy(&Bvj);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
