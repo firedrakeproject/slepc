@@ -222,7 +222,7 @@ modulesdir = slepc.CreateDirTwo(confdir,'modules','slepc')
 pkgconfdir = slepc.CreateDir(libdir,'pkgconfig')
 slepcvars  = slepc.CreateFile(confdir,'slepcvariables')
 slepcconf  = slepc.CreateFile(includedir,'slepcconf.h')
-pkgconfig  = slepc.CreateFile(pkgconfdir,'SLEPc.pc')
+pkgconfig  = slepc.CreateFile(pkgconfdir,'slepc.pc')
 if slepc.isinstall:
   modules  = slepc.CreateFile(modulesdir,slepc.lversion)
 else:

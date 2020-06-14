@@ -92,7 +92,7 @@ variables:
     when: always
     paths:
     - arch-*/lib/slepc/conf/*.log
-    - arch-*/lib/pkgconfig/SLEPc.pc
+    - arch-*/lib/pkgconfig/slepc.pc
     - arch-*/tests/testresults.xml
     - arch-*/tests/test_*_tap.log
     - arch-*/tests/test_*_err.log
@@ -213,7 +213,7 @@ checksource:
     when: always
     paths:
     - arch-*/lib/slepc/conf/*.log
-    - arch-*/lib/pkgconfig/SLEPc.pc
+    - arch-*/lib/pkgconfig/slepc.pc
     - arch-*/tests/testresults.xml
     - arch-*/tests/test_*_tap.log
     - arch-*/tests/test_*_err.log
