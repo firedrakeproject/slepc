@@ -479,6 +479,15 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\item[Specific options.] Since BLOPEX contains preconditioned solvers, the \slepc interface uses \ident{STPRECOND}, as described in \ref{sec:precond}.
 	\end{description}
 
+\subsection*{\underline{\scalapack}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Blackford:1997:SUG}.
+	\item[Website.] \url{http://www.netlib.org/scalapack}.
+	\item[Summary.] \scalapack is a library of high-performance linear algebra routines for parallel distributed memory machines. It contains eigensolvers for dense Hermitian eigenvalue problems, as well as solvers for the SVD.
+	\item[Installation.] For using \scalapack from \slepc it is necessary to select it during configuration of \petsc.
+	\end{description}
+
 \subsection*{\underline{\elemental}}
 	\begin{description}
 	\setlength{\itemsep}{0pt}

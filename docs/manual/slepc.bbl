@@ -52,6 +52,15 @@ Bj{\"o}rck, {\AA}. (1996).
 \newblock {\em Numerical Methods for Least Squares Problems\/}.
 \newblock SIAM, Philadelphia.
 
+\bibitem[{Blackford {\em et~al.\/}(1997)Blackford, Choi, Cleary, D'Azevedo,
+  Demmel, Dhillon, Dongarra, Hammarling, Henry, Petitet,Stanley, Walker and
+  Whaley}]{Blackford:1997:SUG}
+Blackford, L. S., J.~Choi, A.~Cleary, E.~D'Azevedo, J.~Demmel, I.~Dhillon,
+  J.~Dongarra, S.~Hammarling, G.~Henry, A.~Petitet, K.~Stanley, D.~Walker,
+  and R.~C.~Whaley (1997).
+\newblock {\em {ScaLAPACK} Users' Guide\/}.
+\newblock SIAM, Philadelphia.
+
 \bibitem[{Campos and Roman(2012)}]{Campos:2012:SSS}
 Campos, C. and J.~E. Roman (2012).
 \newblock Strategies for spectrum slicing based on restarted {Lanczos} methods.
