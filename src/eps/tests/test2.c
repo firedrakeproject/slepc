@@ -123,6 +123,10 @@ int main(int argc,char **argv)
          suffix: 1_krylovschur
          args: -eps_type krylovschur -eps_krylovschur_locking {{0 1}}
       test:
+         suffix: 1_scalapack
+         requires: scalapack
+         args: -eps_type scalapack
+      test:
          suffix: 1_elemental
          requires: elemental
          args: -eps_type elemental

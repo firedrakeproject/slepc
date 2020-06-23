@@ -331,8 +331,8 @@ gnu-c-multilib:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme-2.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
+    PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1 --download-scalapack
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --with-primme-dir=/usr/local/opt/primme-2.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot --with-packages-download-dir=/var/local/downloads
 
 intel-cxx-mkl:
   extends:
@@ -342,7 +342,7 @@ intel-cxx-mkl:
     - linux-debian
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 #intel-c-complex-mkl:
@@ -396,7 +396,7 @@ intel-c-complex-mkl:
     - linux-ubuntu
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalapack=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-primme --download-blopex --with-feast=0
 
 pgi-c-nompi:
@@ -443,7 +443,7 @@ gnu-c-single:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-precision=single
+    PETSC_CONFIG_OPTS: --with-precision=single --download-scalapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0
 
 gnu-c:
