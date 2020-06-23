@@ -31,6 +31,7 @@
 #define SVDLAPACK    'lapack'
 #define SVDLANCZOS   'lanczos'
 #define SVDTRLANCZOS 'trlanczos'
+#define SVDSCALAPACK 'scalapack'
 #define SVDELEMENTAL 'elemental'
 #define SVDPRIMME    'primme'
 
