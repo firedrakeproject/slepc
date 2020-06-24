@@ -100,6 +100,7 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
     PetscCheckScaLapackInfo("sygvx",info);
     ierr = PetscBLASIntCast(minlwork[0],&lwork);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(minlrwork[0],&lrwork);CHKERRQ(ierr);
+    lrwork += a->N*a->N;
     liwork = minliwork;
     /* call computational routine */
     ierr = PetscMalloc3(lwork,&work,lrwork,&rwork,liwork,&iwork);CHKERRQ(ierr);
