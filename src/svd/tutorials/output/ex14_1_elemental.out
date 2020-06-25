@@ -1,0 +1,12 @@
+
+Singular value problem stored in file.
+
+ Reading REAL matrix from a binary file...
+ Number of iterations of the method: 1
+ Solution method: elemental
+
+ Number of requested singular values: 4
+ Stopping condition: tol=1e-08, maxit=1
+ All requested singular values computed up to the required tolerance:
+     35.00752, 34.10419, 34.10419, 33.20131
+

@@ -10,10 +10,16 @@
 
 ALL: lib
 
-LIBBASE  = libslepcsvd
-DIRS     = elemental primme scalapack
-LOCDIR   = src/svd/impls/external/
-MANSEC   = SVD
+#requiresdefine  'SLEPC_HAVE_SCALAPACK'
+
+FFLAGS    =
+SOURCEC   = svdscalap.c
+SOURCEF   =
+SOURCEH   =
+LIBBASE   = libslepcsvd
+DIRS      =
+MANSEC    = SVD
+LOCDIR    = src/svd/impls/external/scalapack/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

@@ -165,7 +165,7 @@ class PETSc(package.Package):
         elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
           self.arch = l[2].strip('"')
         else:
-          for p in ['hpddm','mkl','elemental']:
+          for p in ['hpddm','mkl','elemental','scalapack']:
             if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_'+p.upper() and l[2]=='1':
               self.packages.append(p)
       f.close()

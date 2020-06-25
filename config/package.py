@@ -393,6 +393,7 @@ Downloaded package %s from: %s is not a tarball.
     name = self.packagename.upper()
     error = ''
     mangling = ''
+    flags = ['']
     for d in dirs:
       for l in libs:
         if d:

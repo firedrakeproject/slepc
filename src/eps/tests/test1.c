@@ -167,6 +167,11 @@ int main(int argc,char **argv)
          suffix: 1_cholesky
          args: -mat_type sbaij
       test:
+         suffix: 1_scalapack
+         nsize: {{1 2 3}}
+         requires: scalapack
+         args: -eps_type scalapack
+      test:
          suffix: 1_elemental
          nsize: {{1 2}}
          requires: elemental

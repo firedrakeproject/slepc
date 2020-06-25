@@ -113,9 +113,14 @@ int main(int argc,char **argv)
          suffix: 1
          args: -svd_nsv 4
       test:
+         suffix: 1_scalapack
+         nsize: {{1 2 3}}
+         args: -svd_nsv 4 -svd_type scalapack
+         requires: scalapack
+      test:
          suffix: 1_elemental
-         args: -svd_nsv 4
-         output_file: output/ex14_1.out
+         nsize: {{1 2 3}}
+         args: -svd_nsv 4 -svd_type elemental
          requires: elemental
       test:
          suffix: 2
@@ -129,9 +134,14 @@ int main(int argc,char **argv)
          suffix: 1_complex
          args: -svd_nsv 4
       test:
+         suffix: 1_complex_scalapack
+         nsize: {{1 2 3}}
+         args: -svd_nsv 4 -svd_type scalapack
+         requires: scalapack
+      test:
          suffix: 1_complex_elemental
-         args: -svd_nsv 4
-         output_file: output/ex14_1_complex.out
+         nsize: {{1 2 3}}
+         args: -svd_nsv 4 -svd_type elemental
          requires: elemental
       test:
          suffix: 2_complex

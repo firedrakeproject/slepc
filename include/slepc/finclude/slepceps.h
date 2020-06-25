@@ -55,6 +55,7 @@
 #define EPSBLOPEX      'blopex'
 #define EPSPRIMME      'primme'
 #define EPSFEAST       'feast'
+#define EPSSCALAPACK   'scalapack'
 #define EPSELEMENTAL   'elemental'
 
 #endif

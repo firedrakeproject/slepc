@@ -144,9 +144,15 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
+      test:
+         suffix: 1
+      test:
+         suffix: 1_scalapack
+         nsize: {{1 2}}
+         args: -svd_type scalapack
+         requires: scalapack
 
 TEST*/
