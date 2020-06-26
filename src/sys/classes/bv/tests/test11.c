@@ -452,7 +452,7 @@ int main(int argc,char **argv)
    test:
       suffix: 16_cuda
       nsize: 2
-      args: -withb -bv_orthog_block svqb -bv_type svec -vec_type cuda
+      args: -withb -bv_orthog_block svqb -bv_type svec -vec_type cuda -mat_type aijcusparse
       requires: cuda
       output_file: output/test11_4.out
 
@@ -478,7 +478,7 @@ int main(int argc,char **argv)
    test:
       suffix: 18_cuda
       nsize: 2
-      args: -resid -withb -bv_orthog_block svqb -bv_type svec -vec_type cuda
+      args: -resid -withb -bv_orthog_block svqb -bv_type svec -vec_type cuda -mat_type aijcusparse
       requires: cuda
       output_file: output/test11_9.out
 
