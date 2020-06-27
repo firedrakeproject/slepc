@@ -59,11 +59,9 @@ Options for all PETSc programs:
  -info [filename][:[~]<list,of,classnames>[:[~]self]]: print verbose information
  -v: prints PETSc version number and release date
  -options_file <file>: reads options from file
+ -options_monitor: monitor options to standard output, including that set previously e.g. in option files
+ -options_monitor_cancel: cancels all hardwired option monitors
  -petsc_sleep n: sleeps n seconds before running program
-----------------------------------------
-Options for handling options:
-  -options_monitor <now stdout : formerly stdout>: Monitor options database (PetscOptionsMonitorSet)
-  -options_monitor_cancel: <FALSE : FALSE> Cancel all options database monitors (PetscOptionsMonitorCancel)
 M = [
 1+0i 0.625+0i -0.125+0i
 -0.5+0i 1.25+0i -5.5+0i

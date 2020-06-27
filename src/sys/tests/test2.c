@@ -43,7 +43,7 @@ int main(int argc,char **argv)
       requires: debug
 
    test:
-      args: -h
+      args: -help
       filter: sed -e "s/\(Development GIT.*\)/version/" | sed -e "s/\(Release Version.*\)/version/" | sed -e "s/\(linked from.*\)/linked from PATH/"
 
 TEST*/
