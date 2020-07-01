@@ -7,6 +7,11 @@
 - Add interfaces to eigensolvers and SVD solvers in ScaLAPACK and Elemental.
 - Reintroduce interface to FEAST external solver via MKL.
 
+### Changed
+
+- `EPSLOBPCG`, `EPSCISS`, and `NEPCISS` now use `MatProduct()/KSPMatSolve()`
+  instead of `MatMult()/KSPSolve()`.
+
 ## [3.13] - 2020-03-31
 
 ### Added
@@ -14,6 +19,7 @@
 - `EPS`: new solver `lyapii` (Lyapunov inverse iteration) to compute rightmost eigenvalues.
 - `NEP`: add a two-sided version of SLP.
 - New functions: `EPSSetLeftInitialSpace()`, `MFNSolveTranspose()`.
+- Interface to `PCHPDDM` and `KSPHPDDM` using `--download-hpddm`.
 
 ### Changed
 

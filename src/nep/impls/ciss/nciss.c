@@ -181,13 +181,13 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
 {
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i,j,p_id;
-  Mat            kspMat;
-  Vec            Bvj,vj,yj;
+  PetscInt       i,p_id;
+  Mat            kspMat,MV,BMV=NULL,MC;
 
   PetscFunctionBegin;
   if (!ctx->ksp) { ierr = NEPCISSGetKSPs(nep,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = BVCreateVec(V,&Bvj);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(V,L_start,L_end);CHKERRQ(ierr);
+  ierr = BVGetMat(V,&MV);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = i*ctx->subcomm->n + ctx->subcomm_id;
     if (initksp) {
@@ -197,16 +197,20 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
       ierr = MatDestroy(&kspMat);CHKERRQ(ierr);
     }
     ierr = NEPComputeJacobian(nep,ctx->omega[p_id],dT);CHKERRQ(ierr);
-    for (j=L_start;j<L_end;j++) {
-      ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
-      ierr = BVGetColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
-      ierr = MatMult(dT,vj,Bvj);CHKERRQ(ierr);
-      ierr = KSPSolve(ctx->ksp[i],Bvj,yj);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+L_start,i*ctx->L_max+L_end);CHKERRQ(ierr);
+    ierr = BVGetMat(ctx->Y,&MC);CHKERRQ(ierr);
+    if (!i) {
+      ierr = MatProductCreate(dT,MV,NULL,&BMV);CHKERRQ(ierr);
+      ierr = MatProductSetType(BMV,MATPRODUCT_AB);CHKERRQ(ierr);
+      ierr = MatProductSetFromOptions(BMV);CHKERRQ(ierr);
+      ierr = MatProductSymbolic(BMV);CHKERRQ(ierr);
     }
+    ierr = MatProductNumeric(BMV);CHKERRQ(ierr);
+    ierr = KSPMatSolve(ctx->ksp[i],BMV,MC);CHKERRQ(ierr);
+    ierr = BVRestoreMat(ctx->Y,&MC);CHKERRQ(ierr);
   }
-  ierr = VecDestroy(&Bvj);CHKERRQ(ierr);
+  ierr = MatDestroy(&BMV);CHKERRQ(ierr);
+  ierr = BVRestoreMat(V,&MV);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
