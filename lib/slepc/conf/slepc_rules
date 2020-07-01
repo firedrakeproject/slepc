@@ -114,7 +114,10 @@ slepc_html: chk_c2html
 ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files:
 	@touch -t 197102020000 ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files
 
-slepc_libs: ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files ./${PETSC_ARCH}/tests/testfiles
+${SLEPC_DIR}/${PETSC_ARCH}/tests/testfiles:
+	@${MKDIR} -p ${SLEPC_DIR}/${PETSC_ARCH}/tests && touch -t 197102020000 ${SLEPC_DIR}/${PETSC_ARCH}/tests/testfiles
+
+slepc_libs: ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files ${SLEPC_DIR}/${PETSC_ARCH}/tests/testfiles
 	+@cd ${SLEPC_DIR} && MAKEFLAGS="-j$(MAKE_NP) -l$(MAKE_LOAD) $(MAKEFLAGS)" ${OMAKE_PRINTDIR} -f gmakefile ${MAKE_PAR_OUT_FLG} V=${V} slepc_libs
 
 getlinklibs_slepc:
