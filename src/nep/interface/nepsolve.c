@@ -624,7 +624,7 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
   Vec            xr,xi=NULL;
   PetscInt       j,nwork,issplit=0;
   PetscScalar    kr,ki,s;
-  PetscReal      er,z=0.0,errorl;
+  PetscReal      er,z=0.0,errorl,nrm;
   PetscBool      flg;
 
   PetscFunctionBegin;
@@ -674,8 +674,11 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
       break;
     case NEP_ERROR_BACKWARD:
       if (nep->fui!=NEP_USER_INTERFACE_SPLIT) {
-        *error = 0.0;
-        ierr = PetscInfo(nep,"Backward error only available in split form\n");CHKERRQ(ierr);
+        ierr = NEPComputeFunction(nep,kr,nep->function,nep->function);CHKERRQ(ierr);
+        ierr = MatHasOperation(nep->function,MATOP_NORM,&flg);CHKERRQ(ierr);
+        if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+        ierr = MatNorm(nep->function,NORM_INFINITY,&nrm);CHKERRQ(ierr);
+        *error /= nrm*er;
         break;
       }
       /* initialization of matrix norms */
@@ -690,7 +693,7 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
         ierr = FNEvaluateFunction(nep->f[j],kr,&s);CHKERRQ(ierr);
         z = z + nep->nrma[j]*PetscAbsScalar(s);
       }
-      *error /= z;
+      *error /= z*er;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
