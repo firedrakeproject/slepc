@@ -20,7 +20,9 @@ SLEPc help information includes that for the PETSc libraries, which provide
 low-level system infrastructure and linear algebra tools.
 ----------------------------------------
 Options for all PETSc programs:
- -help: prints help method for each option
+ -version: prints PETSc version
+ -help intro: prints example description and PETSc version, and exits
+ -help: prints example description, PETSc version, and available options for used routines
  -on_error_abort: cause an abort when an error is detected. Useful
         only when run in the debugger
  -on_error_attach_debugger [gdb,dbx,xxgdb,ups,noxterm]
@@ -57,7 +59,6 @@ Options for all PETSc programs:
  -log_trace [filename]: prints trace of all PETSc calls
  -log_exclude <list,of,classnames>: exclude given classes from logging
  -info [filename][:[~]<list,of,classnames>[:[~]self]]: print verbose information
- -v: prints PETSc version number and release date
  -options_file <file>: reads options from file
  -options_monitor: monitor options to standard output, including that set previously e.g. in option files
  -options_monitor_cancel: cancels all hardwired option monitors
