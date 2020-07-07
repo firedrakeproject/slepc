@@ -1812,6 +1812,7 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
 
   PetscFunctionBegin;
   ncols = left? bv->nc+bv->l: bv->m-bv->l;
+  if (*split && ncols!=(*split)->m) { ierr = BVDestroy(split);CHKERRQ(ierr); }
   if (!*split) {
     ierr = BVCreate(PetscObjectComm((PetscObject)bv),split);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)*split);CHKERRQ(ierr);
@@ -1819,8 +1820,6 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
     (*split)->splitparent = bv;
     ierr = BVSetSizesFromVec(*split,bv->t,ncols);CHKERRQ(ierr);
     ierr = BVDuplicate_Private(bv,*split);CHKERRQ(ierr);
-  } else {
-    ierr = BVResize(*split,ncols,PETSC_FALSE);CHKERRQ(ierr);
   }
   (*split)->l  = 0;
   (*split)->k  = left? bv->l: bv->k-bv->l;

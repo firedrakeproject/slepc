@@ -285,38 +285,27 @@ PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
   PetscErrorCode ierr;
   BV_MAT         *ctx = (BV_MAT*)bv->data;
   PetscScalar    *pA,*pnew;
-  PetscInt       lsplit;
   Mat            A;
   char           str[50];
-  PetscScalar    *array;
-  BV             parent;
 
   PetscFunctionBegin;
-  if (bv->issplit==2) {
-    parent = bv->splitparent;
-    lsplit = parent->lsplit;
-    ierr = MatDenseGetArray(((BV_MAT*)parent->data)->A,&array);CHKERRQ(ierr);
-    ierr = MatDensePlaceArray(ctx->A,array+lsplit*bv->n);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(((BV_MAT*)parent->data)->A,&array);CHKERRQ(ierr);
-  } else if (!bv->issplit) {
-    ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,PETSC_DECIDE,m,NULL,&A);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)A);CHKERRQ(ierr);
-    if (((PetscObject)bv)->name) {
-      ierr = PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
-      ierr = PetscObjectSetName((PetscObject)A,str);CHKERRQ(ierr);
-    }
-    if (copy) {
-      ierr = MatDenseGetArray(ctx->A,&pA);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(A,&pnew);CHKERRQ(ierr);
-      ierr = PetscArraycpy(pnew,pA,PetscMin(m,bv->m)*bv->n);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(ctx->A,&pA);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(A,&pnew);CHKERRQ(ierr);
-    }
-    ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
-    ctx->A = A;
+  ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,PETSC_DECIDE,m,NULL,&A);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)A);CHKERRQ(ierr);
+  if (((PetscObject)bv)->name) {
+    ierr = PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)A,str);CHKERRQ(ierr);
   }
+  if (copy) {
+    ierr = MatDenseGetArray(ctx->A,&pA);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(A,&pnew);CHKERRQ(ierr);
+    ierr = PetscArraycpy(pnew,pA,PetscMin(m,bv->m)*bv->n);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(ctx->A,&pA);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(A,&pnew);CHKERRQ(ierr);
+  }
+  ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
+  ctx->A = A;
   PetscFunctionReturn(0);
 }
 
