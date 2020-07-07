@@ -245,45 +245,37 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
-  PetscInt       j,bs,lsplit;
+  PetscInt       j,bs;
   PetscScalar    *newarray;
   Vec            *newV;
   char           str[50];
-  BV             parent;
 
   PetscFunctionBegin;
-  if (bv->issplit==2) {
-    parent = bv->splitparent;
-    lsplit = parent->lsplit;
-    ctx->V = ((BV_CONTIGUOUS*)parent->data)->V+lsplit;
-    ctx->array = ((BV_CONTIGUOUS*)parent->data)->array+lsplit*bv->n;
-  } else if (!bv->issplit) {
-    ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
-    ierr = PetscMalloc1(m*bv->n,&newarray);CHKERRQ(ierr);
-    ierr = PetscArrayzero(newarray,m*bv->n);CHKERRQ(ierr);
-    ierr = PetscMalloc1(m,&newV);CHKERRQ(ierr);
-    for (j=0;j<m;j++) {
-      if (ctx->mpi) {
-        ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,PETSC_DECIDE,newarray+j*bv->n,newV+j);CHKERRQ(ierr);
-      } else {
-        ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,newarray+j*bv->n,newV+j);CHKERRQ(ierr);
-      }
+  ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
+  ierr = PetscMalloc1(m*bv->n,&newarray);CHKERRQ(ierr);
+  ierr = PetscArrayzero(newarray,m*bv->n);CHKERRQ(ierr);
+  ierr = PetscMalloc1(m,&newV);CHKERRQ(ierr);
+  for (j=0;j<m;j++) {
+    if (ctx->mpi) {
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,PETSC_DECIDE,newarray+j*bv->n,newV+j);CHKERRQ(ierr);
+    } else {
+      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,newarray+j*bv->n,newV+j);CHKERRQ(ierr);
     }
-    ierr = PetscLogObjectParents(bv,m,newV);CHKERRQ(ierr);
-    if (((PetscObject)bv)->name) {
-      for (j=0;j<m;j++) {
-        ierr = PetscSNPrintf(str,sizeof(str),"%s_%d",((PetscObject)bv)->name,(int)j);CHKERRQ(ierr);
-        ierr = PetscObjectSetName((PetscObject)newV[j],str);CHKERRQ(ierr);
-      }
-    }
-    if (copy) {
-      ierr = PetscArraycpy(newarray,ctx->array,PetscMin(m,bv->m)*bv->n);CHKERRQ(ierr);
-    }
-    ierr = VecDestroyVecs(bv->m,&ctx->V);CHKERRQ(ierr);
-    ctx->V = newV;
-    ierr = PetscFree(ctx->array);CHKERRQ(ierr);
-    ctx->array = newarray;
   }
+  ierr = PetscLogObjectParents(bv,m,newV);CHKERRQ(ierr);
+  if (((PetscObject)bv)->name) {
+    for (j=0;j<m;j++) {
+      ierr = PetscSNPrintf(str,sizeof(str),"%s_%d",((PetscObject)bv)->name,(int)j);CHKERRQ(ierr);
+      ierr = PetscObjectSetName((PetscObject)newV[j],str);CHKERRQ(ierr);
+    }
+  }
+  if (copy) {
+    ierr = PetscArraycpy(newarray,ctx->array,PetscMin(m,bv->m)*bv->n);CHKERRQ(ierr);
+  }
+  ierr = VecDestroyVecs(bv->m,&ctx->V);CHKERRQ(ierr);
+  ctx->V = newV;
+  ierr = PetscFree(ctx->array);CHKERRQ(ierr);
+  ctx->array = newarray;
   PetscFunctionReturn(0);
 }
 
