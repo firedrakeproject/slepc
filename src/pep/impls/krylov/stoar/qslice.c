@@ -20,7 +20,7 @@
 
        [1] C. Campos and J.E. Roman, "Inertia-based spectrum slicing
            for symmetric quadratic eigenvalue problems", Numer. Linear
-           Algebra Appl. (in press), 2020.
+           Algebra Appl. 27(4):e2293, 2020.
 */
 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
@@ -33,9 +33,9 @@ static const char citation[] =
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"Inertia-based spectrum slicing for symmetric quadratic eigenvalue problems\",\n"
   "   journal = \"Numer. Linear Algebra Appl.\",\n"
-  "   volume = \"IP\",\n"
-  "   number = \"x\",\n"
-  "   pages = \"xx--xx\",\n"
+  "   volume = \"27\",\n"
+  "   number = \"4\",\n"
+  "   pages = \"e2293\",\n"
   "   year = \"2020,\"\n"
   "   doi = \"https://doi.org/10.1002/nla.2293\"\n"
   "}\n";
