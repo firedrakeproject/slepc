@@ -45,8 +45,9 @@ def description():
 name     = name()
 version  = version()
 
-url      = 'https://gitlab.com/slepc/%(name)s/' % vars()
-download = url + '-/archive/%(version)s.tar.gz' % vars()
+url      = 'https://gitlab.com/slepc/slepc4py'
+pypiroot = 'https://pypi.io/packages/source/%s/%s/' % (name[0], name)
+download = pypiroot + '%(name)s-%(version)s.tar.gz' % vars()
 
 devstat  = ['Development Status :: 5 - Production/Stable']
 keywords = ['SLEPc', 'PETSc', 'MPI']

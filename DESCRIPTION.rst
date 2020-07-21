@@ -24,7 +24,7 @@ You can also install the in-development version of slepc4py with::
 
   $ pip install Cython numpy mpi4py
   $ pip install --no-deps git+https://gitlab.com/petsc/petsc
-  $ pip install --no-deps git+https://bitbucket.org/petsc/petsc4py
+  $ pip install --no-deps git+https://gitlab.com/petsc/petsc4py
   $ pip install --no-deps git+https://gitlab.com/slepc/slepc
   $ pip install --no-deps git+https://gitlab.com/slepc/slepc4py
 
@@ -32,7 +32,7 @@ or::
 
   $ pip install Cython numpy mpi4py
   $ pip install --no-deps https://gitlab.com/petsc/petsc/-/archive/master.tar.gz
-  $ pip install --no-deps https://bitbucket.org/petsc/petsc4py/get/master.tar.gz
+  $ pip install --no-deps https://gitlab.com/petsc/petsc4py/-/archive/master.tar.gz
   $ pip install --no-deps https://gitlab.com/slepc/slepc/-/archive/master.tar.gz
   $ pip install --no-deps https://gitlab.com/slepc/slepc4py/-/archive/master.tar.gz
 
