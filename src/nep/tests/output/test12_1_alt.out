@@ -42,7 +42,8 @@ NEP Object: 1 MPI processes
   number of column vectors (ncv): 18
   maximum dimension of projected problem (mpd): 18
   maximum number of iterations: 5000
-  convergence test: relative to the eigenvalue
+  convergence test: relative to the matrix norms
+  computed matrix norms: 0., 0.
 BV Object: 1 MPI processes
   type: svec
   39 columns of global length 100
