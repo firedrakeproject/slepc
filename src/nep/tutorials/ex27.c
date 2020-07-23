@@ -271,6 +271,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
    test:
       suffix: 4
       args: -split 0 -nep_nev 3 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_nleigs_interpolation_degree 90 -terse
+      requires: !__float128
       output_file: output/ex27_2.out
 
    test:
