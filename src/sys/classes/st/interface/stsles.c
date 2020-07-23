@@ -344,6 +344,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
       ierr = PetscInfo2(st,"Vector %D norm=%g\n",i,(double)norm);CHKERRQ(ierr);
       ierr = BVCreateVec(V,T+c);CHKERRQ(ierr);
       ierr = VecCopy(vi,T[c]);CHKERRQ(ierr);
+      ierr = VecNormalize(T[c],NULL);CHKERRQ(ierr);
       c++;
     }
     ierr = BVRestoreColumn(V,-nc+i,&vi);CHKERRQ(ierr);
