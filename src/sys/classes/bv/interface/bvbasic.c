@@ -281,9 +281,9 @@ PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
   V->nc = nc;
   V->ci[0] = -V->nc-1;
   V->ci[1] = -V->nc-1;
-  V->l = 0;
   V->m = total-nc;
-  V->k = V->m;
+  V->l = PetscMin(V->l,V->m);
+  V->k = PetscMin(V->k,V->m);
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
