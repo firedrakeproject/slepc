@@ -20,7 +20,7 @@ class HPDDM(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'hpddm'
     self.downloadable   = True
-    self.gitcommit      = '55efb85f9046a7ce630c30b67a118f4ab96d9a2a'
+    self.gitcommit      = '90bcc19f07d79d3ba032753e22bef25b04cd01b6'
     self.url            = 'https://github.com/hpddm/hpddm/archive/'+self.gitcommit+'.tar.gz'
     self.archive        = self.gitcommit+'.tar.gz'
     self.dirname        = 'hpddm-'+self.gitcommit
@@ -61,13 +61,6 @@ class HPDDM(package.Package):
         branch = 'master'
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
-      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/pc/impls/asm/asm.h',os.path.join(builddir,'include','asm.h'));
-      (result,output) = self.RunCommand('sed -i.bak \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'interface','ksphpddm.cxx'))
-      if result:
-        self.log.Exit('Patching petsc/src/ksp/ksp/impls/hpddm/hpddm.cxx failed')
-      result,output = self.RunCommand('sed -i.bak \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'include','HPDDM_PETSc.hpp'))
-      if result:
-        self.log.Exit('Patching '+os.path.join(builddir,'include','HPDDM_PETSc.hpp')+' failed')
     else:
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','ksp','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','ksphpddm.cxx'))
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','pc','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','pchpddm.cxx'))
