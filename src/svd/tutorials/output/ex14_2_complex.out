@@ -46,7 +46,6 @@ SVD Object: 1 MPI processes
                 rows=648, cols=648
                 package used to perform factorization: petsc
                 total: nonzeros=171722, allocated nonzeros=171722
-                total number of mallocs used during MatSetValues calls =0
                   not using I-node routines
         linear system matrix = precond matrix:
         Mat Object: 1 MPI processes
