@@ -75,7 +75,6 @@
 
 !     ** Create BV object X
       call BVCreate(PETSC_COMM_WORLD,X,ierr);CHKERRA(ierr)
-      call PetscObjectSetName(X,'X',ierr);CHKERRA(ierr)
       call BVSetSizesFromVec(X,t,k,ierr);CHKERRA(ierr)
       call BVSetFromOptions(X,ierr);CHKERRA(ierr)
 
@@ -96,7 +95,6 @@
 
 !     ** Create BV object Y
       call BVCreate(PETSC_COMM_WORLD,Y,ierr);CHKERRA(ierr)
-      call PetscObjectSetName(Y,'Y',ierr);CHKERRA(ierr)
       call BVSetSizesFromVec(Y,t,l,ierr);CHKERRA(ierr)
       call BVSetFromOptions(Y,ierr);CHKERRA(ierr)
 
@@ -110,7 +108,6 @@
 
 !     ** Create Mat
       call MatCreateSeqDense(PETSC_COMM_SELF,k,l,PETSC_NULL_SCALAR,Q,ierr);CHKERRA(ierr)
-      call PetscObjectSetName(Q,'Q',ierr);CHKERRA(ierr)
       call MatDenseGetArray(Q,qq,iq,ierr);CHKERRA(ierr)
       do i=0,k-1
         do j=0,l-1
@@ -141,7 +138,6 @@
 
 !     ** Test BVDot
       call MatCreateSeqDense(PETSC_COMM_SELF,l,k,PETSC_NULL_SCALAR,M,ierr);CHKERRA(ierr)
-      call PetscObjectSetName(M,'M',ierr);CHKERRA(ierr)
       call BVDot(X,Y,M,ierr);CHKERRA(ierr)
 
 !     ** Test BVDotVec
