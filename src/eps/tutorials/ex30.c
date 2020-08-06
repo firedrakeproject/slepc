@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Illustrates the use of a region for filtering; the number of wanted eigenvalues in not known a priori.\n\n"
+static char help[] = "Illustrates the use of a region for filtering; the number of wanted eigenvalues is not known a priori.\n\n"
   "The problem is the Brusselator wave model as in ex9.c.\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = block dimension of the 2x2 block matrix.\n"
@@ -245,7 +245,7 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
 
     Ignores the value of nev. It only takes into account the number of
     eigenpairs that have converged in recent outer iterations (restarts);
-    if no new eigenvalus have converged in the last few restarts,
+    if no new eigenvalues have converged in the last few restarts,
     we stop the iteration, assuming that no more eigenvalues are present
     inside the region.
 */
