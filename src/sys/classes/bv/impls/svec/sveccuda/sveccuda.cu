@@ -211,7 +211,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
     }
   }
   ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
-  cerr = WaitForGPU();CHKERRCUDA(cerr);
+  cerr = WaitForCUDA();CHKERRCUDA(cerr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   cerr = cudaFree(d_q);CHKERRCUDA(cerr);
   cerr = cudaFree(d_work);CHKERRCUDA(cerr);
@@ -256,7 +256,7 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
     cerr = cudaMemcpy(d_A+(s-V->l+j)*m,d_work+(j*m),m*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
   }
   ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
-  cerr = WaitForGPU();CHKERRCUDA(cerr);
+  cerr = WaitForCUDA();CHKERRCUDA(cerr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   cerr = cudaFree(d_q);CHKERRCUDA(cerr);
   cerr = cudaFree(d_work);CHKERRCUDA(cerr);
@@ -340,7 +340,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
       }
     }
   }
-  cerr = WaitForGPU();CHKERRCUDA(cerr);
+  cerr = WaitForCUDA();CHKERRCUDA(cerr);
   cerr = cudaFree(d_work);CHKERRCUDA(cerr);
   ierr = MatDenseRestoreArray(M,&pm);CHKERRQ(ierr);
   ierr = VecCUDARestoreArrayRead(x->v,&d_px);CHKERRQ(ierr);
@@ -368,7 +368,7 @@ PetscErrorCode ConjugateCudaArray(PetscScalar *a, PetscInt n)
   try {
     ptr = thrust::device_pointer_cast(a);
     thrust::transform(ptr,ptr+n,ptr,conjugate());
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
+    cerr = WaitForCUDA();CHKERRCUDA(cerr);
   } catch (char *ex) {
     SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Thrust error: %s", ex);
   }
@@ -453,7 +453,7 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
       cerr = cudaFree(d_work);CHKERRCUDA(cerr);
     }
   }
-  cerr = WaitForGPU();CHKERRCUDA(cerr);
+  cerr = WaitForCUDA();CHKERRCUDA(cerr);
   ierr = VecCUDARestoreArrayRead(z,&d_py);CHKERRQ(ierr);
   ierr = VecCUDARestoreArrayRead(x->v,&d_px);CHKERRQ(ierr);
   ierr = PetscLogGpuFlops(2.0*n*k);CHKERRQ(ierr);

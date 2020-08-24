@@ -239,8 +239,8 @@ PetscErrorCode STMatMatSolve(ST st,Mat B,Mat X)
    Collective on st
 
    Input Parameters:
-.  st - the spectral transformation context
-.  b  - right hand side vector
++  st - the spectral transformation context
+-  b  - right hand side vector
 
    Output Parameter:
 .  x - computed solution
