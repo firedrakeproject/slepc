@@ -30,7 +30,7 @@ PetscErrorCode BV_CleanCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h)
     ierr = VecCUDAGetArray(bv->buffer,&d_a);CHKERRQ(ierr);
     d_hh = d_a + j*(bv->nc+bv->m);
     cerr = cudaMemset(d_hh,0,(bv->nc+j)*sizeof(PetscScalar));CHKERRCUDA(cerr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
+    cerr = WaitForCUDA();CHKERRCUDA(cerr);
     ierr = VecCUDARestoreArray(bv->buffer,&d_a);CHKERRQ(ierr);
   } else { /* cpu memory */
     for (i=0;i<bv->nc+j;i++) h[i] = 0.0;
@@ -85,7 +85,7 @@ PetscErrorCode BV_SetValue_CUDA(BV bv,PetscInt j,PetscInt k,PetscScalar *h,Petsc
     d_h = a + k*(bv->nc+bv->m) + bv->nc+j;
     cerr = cudaMemcpy(d_h,&value,sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
     ierr = PetscLogCpuToGpu(sizeof(PetscScalar));CHKERRQ(ierr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
+    cerr = WaitForCUDA();CHKERRCUDA(cerr);
     ierr = VecCUDARestoreArray(bv->buffer,&a);CHKERRQ(ierr);
   } else { /* cpu memory */
     h[bv->nc+j] = value;
@@ -214,7 +214,7 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
     cerr = cudaGetLastError();CHKERRCUDA(cerr);
     ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
     ierr = PetscLogGpuFlops(1.0*bv->nc+j);CHKERRQ(ierr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
+    cerr = WaitForCUDA();CHKERRCUDA(cerr);
     ierr = VecCUDARestoreArrayRead(bv->omega,&d_omega);CHKERRQ(ierr);
     ierr = VecCUDARestoreArray(bv->buffer,&d_h);CHKERRQ(ierr);
   } else {
@@ -243,7 +243,7 @@ PetscErrorCode BV_SquareRoot_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *bet
     ierr = VecCUDAGetArrayRead(bv->buffer,&d_h);CHKERRQ(ierr);
     cerr = cudaMemcpy(&hh,d_h+bv->nc+j,sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
     ierr = PetscLogGpuToCpu(sizeof(PetscScalar));CHKERRQ(ierr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
+    cerr = WaitForCUDA();CHKERRCUDA(cerr);
     ierr = BV_SafeSqrt(bv,hh,beta);CHKERRQ(ierr);
     ierr = VecCUDARestoreArrayRead(bv->buffer,&d_h);CHKERRQ(ierr);
   } else {
@@ -269,7 +269,7 @@ PetscErrorCode BV_StoreCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscSc
     d_h = d_a + j*(bv->nc+bv->m)+bv->nc;
     cerr = cudaMemcpy(dest-bv->l,d_h,(j-bv->l)*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
     ierr = PetscLogGpuToCpu((j-bv->l)*sizeof(PetscScalar));CHKERRQ(ierr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
+    cerr = WaitForCUDA();CHKERRCUDA(cerr);
     ierr = VecCUDARestoreArrayRead(bv->buffer,&d_a);CHKERRQ(ierr);
   } else {
     for (i=bv->l;i<j;i++) dest[i-bv->l] = h[bv->nc+i];
