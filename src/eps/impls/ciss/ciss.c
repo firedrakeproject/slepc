@@ -1751,7 +1751,7 @@ static PetscErrorCode EPSCISSGetExtraction_CISS(EPS eps,EPSCISSExtraction *extra
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-+  extraction - extraction technique
+.  extraction - extraction technique
 
    Level: advanced
 

@@ -714,7 +714,7 @@ PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,Pets
    Collective on ds
 
    Input Parameter:
-+  ds   - the direct solver context
+.  ds   - the direct solver context
 
    Input/Output Parameters:
 +  eigr - (optional) array with the computed eigenvalues (real part)
