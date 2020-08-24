@@ -63,6 +63,7 @@ nativeptr BV
 nativeptr FN
 nativeptr RG
 nativeptr DS
+nativeptr SlepcSC
 #
 parm errparm z
 parm errparmlocal __z
