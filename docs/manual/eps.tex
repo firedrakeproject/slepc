@@ -620,7 +620,7 @@ Similarly, eigenvectors may be viewed with \Verb!-eps_view_vectors!, either in t
    $ ./ex1 -n 120 -eps_nev 8 -eps_view_vectors binary:evec.bin
 \end{Verbatim}
 
-Two more related functions are available: \ident{EPSErrorView} and \ident{EPSReasonView}. These will show computed errors and the converged reason (plus number of iterations), respectively. Again, we illustrate its use via the command line. The option \Verb!-eps_error_relative! will show eigenvalues whose relative error are below the tolerance. The different types of errors have their corresponding options, see Table \ref{tab:errors}. A more detailed output can be obtained as follows:
+Two more related functions are available: \ident{EPSErrorView} and \ident{EPSConvergedReasonView}. These will show computed errors and the converged reason (plus number of iterations), respectively. Again, we illustrate its use via the command line. The option \Verb!-eps_error_relative! will show eigenvalues whose relative error are below the tolerance. The different types of errors have their corresponding options, see Table \ref{tab:errors}. A more detailed output can be obtained as follows:
 \begin{Verbatim}[fontsize=\footnotesize,numbers=none]
    $ ./ex1 -n 120 -eps_nev 8 -eps_error_relative ::ascii_info_detail
       ---------------------- --------------------

@@ -16,7 +16,7 @@
 #define epsview_                          EPSVIEW
 #define epsviewfromoptions_               EPSVIEWFROMOPTIONS
 #define epserrorview_                     EPSERRORVIEW
-#define epsreasonview_                    EPSREASONVIEW
+#define epsconvergedreasonview_           EPSCONVERGEDREASONVIEW
 #define epsvaluesview_                    EPSVALUESVIEW
 #define epsvectorsview_                   EPSVECTORSVIEW
 #define epssetoptionsprefix_              EPSSETOPTIONSPREFIX
@@ -71,7 +71,7 @@
 #define epsview_                          epsview
 #define epsviewfromoptions_               epsviewfromoptions
 #define epserrorview_                     epserrorview
-#define epsreasonview_                    epsreasonview
+#define epsconvergedreasonview_           epsconvergedreasonview
 #define epsvaluesview_                    epsvaluesview
 #define epsvectorsview_                   epsvectorsview
 #define epssetoptionsprefix_              epssetoptionsprefix
@@ -226,11 +226,11 @@ SLEPC_EXTERN void epsviewfromoptions_(EPS *eps,PetscObject obj,char* type,PetscE
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void epsreasonview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void epsconvergedreasonview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = EPSReasonView(*eps,v);
+  *ierr = EPSConvergedReasonView(*eps,v);
 }
 
 SLEPC_EXTERN void epserrorview_(EPS *eps,EPSErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)

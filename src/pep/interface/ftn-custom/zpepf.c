@@ -16,7 +16,7 @@
 #define pepview_                          PEPVIEW
 #define pepviewfromoptions_               PEPVIEWFROMOPTIONS
 #define peperrorview_                     PEPERRORVIEW
-#define pepreasonview_                    PEPREASONVIEW
+#define pepconvergedreasonview_           PEPCONVERGEDREASONVIEW
 #define pepvaluesview_                    PEPVALUESVIEW
 #define pepvectorsview_                   PEPVECTORSVIEW
 #define pepsetoptionsprefix_              PEPSETOPTIONSPREFIX
@@ -71,7 +71,7 @@
 #define pepview_                          pepview
 #define pepviewfromoptions_               pepviewfromoptions
 #define peperrorview_                     peperrorview
-#define pepreasonview_                    pepreasonview
+#define pepconvergedreasonview_           pepconvergedreasonview
 #define pepvaluesview_                    pepvaluesview
 #define pepvectorsview_                   pepvectorsview
 #define pepsetoptionsprefix_              pepsetoptionsprefix
@@ -219,11 +219,11 @@ SLEPC_EXTERN void pepviewfromoptions_(PEP *pep,PetscObject obj,char* type,PetscE
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void pepreasonview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepconvergedreasonview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = PEPReasonView(*pep,v);
+  *ierr = PEPConvergedReasonView(*pep,v);
 }
 
 SLEPC_EXTERN void peperrorview_(PEP *pep,PEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)

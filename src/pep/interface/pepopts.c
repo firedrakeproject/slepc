@@ -262,7 +262,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsName("-pep_view","Print detailed information on solver used","PEPView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-pep_view_vectors","View computed eigenvectors","PEPVectorsView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-pep_view_values","View computed eigenvalues","PEPValuesView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-pep_converged_reason","Print reason for convergence, and number of iterations","PEPReasonView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-pep_converged_reason","Print reason for convergence, and number of iterations","PEPConvergedReasonView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-pep_error_absolute","Print absolute errors of each eigenpair","PEPErrorView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-pep_error_relative","Print relative errors of each eigenpair","PEPErrorView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-pep_error_backward","Print backward errors of each eigenpair","PEPErrorView",NULL);CHKERRQ(ierr);

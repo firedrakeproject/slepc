@@ -186,7 +186,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* Various viewers */
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view");CHKERRQ(ierr);
-  ierr = EPSReasonViewFromOptions(eps);CHKERRQ(ierr);
+  ierr = EPSConvergedReasonViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSErrorViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSValuesViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSVectorsViewFromOptions(eps);CHKERRQ(ierr);

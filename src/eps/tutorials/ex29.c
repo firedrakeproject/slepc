@@ -86,7 +86,7 @@ int main(int argc,char **argv)
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
     ierr = EPSGetConvergedReason(eps,&reason);CHKERRQ(ierr);
     if (reason!=EPS_CONVERGED_USER) {
-      ierr = EPSReasonView(eps,viewer);CHKERRQ(ierr);
+      ierr = EPSConvergedReasonView(eps,viewer);CHKERRQ(ierr);
       ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
     } else {
       ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);

@@ -120,7 +120,7 @@ int main(int argc,char **argv)
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
     ierr = SVDGetConvergedReason(svd,&reason);CHKERRQ(ierr);
     if (reason!=SVD_CONVERGED_USER) {
-      ierr = SVDReasonView(svd,viewer);CHKERRQ(ierr);
+      ierr = SVDConvergedReasonView(svd,viewer);CHKERRQ(ierr);
       ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
     } else {
       ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);

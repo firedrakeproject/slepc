@@ -219,7 +219,7 @@ PetscErrorCode NEPViewFromOptions(NEP nep,PetscObject obj,const char name[])
 }
 
 /*@C
-   NEPReasonView - Displays the reason a NEP solve converged or diverged.
+   NEPConvergedReasonView - Displays the reason a NEP solve converged or diverged.
 
    Collective on nep
 
@@ -230,22 +230,31 @@ PetscErrorCode NEPViewFromOptions(NEP nep,PetscObject obj,const char name[])
    Options Database Keys:
 .  -nep_converged_reason - print reason for convergence, and number of iterations
 
+   Note:
+   To change the format of the output call PetscViewerPushFormat(viewer,format) before
+   this call. Use PETSC_VIEWER_DEFAULT for the default, use PETSC_VIEWER_FAILED to only
+   display a reason if it fails. The latter can be set in the command line with
+   -nep_converged_reason ::failed
+
    Level: intermediate
 
-.seealso: NEPSetConvergenceTest(), NEPSetTolerances(), NEPGetIterationNumber()
+.seealso: NEPSetConvergenceTest(), NEPSetTolerances(), NEPGetIterationNumber(), NEPConvergedReasonViewFromOptions(
 @*/
-PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
+PetscErrorCode NEPConvergedReasonView(NEP nep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
-  PetscBool      isAscii;
+  PetscErrorCode    ierr;
+  PetscBool         isAscii;
+  PetscViewerFormat format;
 
   PetscFunctionBegin;
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
   if (isAscii) {
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
-    if (nep->reason > 0) {
+    if (nep->reason > 0 && format != PETSC_VIEWER_FAILED) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve converged (%D eigenpair%s) due to %s; iterations %D\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",nep->nconv,(nep->nconv>1)?"s":"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
-    } else {
+    } else if (nep->reason <= 0) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
@@ -254,7 +263,7 @@ PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
 }
 
 /*@
-   NEPReasonViewFromOptions - Processes command line options to determine if/how
+   NEPConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the NEP converged reason is to be viewed.
 
    Collective on nep
@@ -263,8 +272,10 @@ PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
 .  nep - the nonlinear eigensolver context
 
    Level: developer
+
+.seealso: NEPConvergedReasonView()
 @*/
-PetscErrorCode NEPReasonViewFromOptions(NEP nep)
+PetscErrorCode NEPConvergedReasonViewFromOptions(NEP nep)
 {
   PetscErrorCode    ierr;
   PetscViewer       viewer;
@@ -278,7 +289,7 @@ PetscErrorCode NEPReasonViewFromOptions(NEP nep)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = NEPReasonView(nep,viewer);CHKERRQ(ierr);
+    ierr = NEPConvergedReasonView(nep,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

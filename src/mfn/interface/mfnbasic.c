@@ -105,7 +105,7 @@ PetscErrorCode MFNViewFromOptions(MFN mfn,PetscObject obj,const char name[])
   PetscFunctionReturn(0);
 }
 /*@C
-   MFNReasonView - Displays the reason an MFN solve converged or diverged.
+   MFNConvergedReasonView - Displays the reason an MFN solve converged or diverged.
 
    Collective on mfn
 
@@ -116,22 +116,31 @@ PetscErrorCode MFNViewFromOptions(MFN mfn,PetscObject obj,const char name[])
    Options Database Keys:
 .  -mfn_converged_reason - print reason for convergence, and number of iterations
 
+   Note:
+   To change the format of the output call PetscViewerPushFormat(viewer,format) before
+   this call. Use PETSC_VIEWER_DEFAULT for the default, use PETSC_VIEWER_FAILED to only
+   display a reason if it fails. The latter can be set in the command line with
+   -mfn_converged_reason ::failed
+
    Level: intermediate
 
-.seealso: MFNSetTolerances(), MFNGetIterationNumber()
+.seealso: MFNSetTolerances(), MFNGetIterationNumber(), MFNConvergedReasonViewFromOptions()
 @*/
-PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
+PetscErrorCode MFNConvergedReasonView(MFN mfn,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
-  PetscBool      isAscii;
+  PetscErrorCode    ierr;
+  PetscBool         isAscii;
+  PetscViewerFormat format;
 
   PetscFunctionBegin;
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn));
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
   if (isAscii) {
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
-    if (mfn->reason > 0) {
+    if (mfn->reason > 0 && format != PETSC_VIEWER_FAILED) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve converged due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
-    } else {
+    } else if (mfn->reason <= 0) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve did not converge due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
@@ -140,7 +149,7 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
 }
 
 /*@
-   MFNReasonViewFromOptions - Processes command line options to determine if/how
+   MFNConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the MFN converged reason is to be viewed.
 
    Collective on mfn
@@ -149,8 +158,10 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
 .  mfn - the matrix function context
 
    Level: developer
+
+.seealso: MFNConvergedReasonView()
 @*/
-PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
+PetscErrorCode MFNConvergedReasonViewFromOptions(MFN mfn)
 {
   PetscErrorCode    ierr;
   PetscViewer       viewer;
@@ -164,7 +175,7 @@ PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->options,((PetscObject)mfn)->prefix,"-mfn_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = MFNReasonView(mfn,viewer);CHKERRQ(ierr);
+    ierr = MFNConvergedReasonView(mfn,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

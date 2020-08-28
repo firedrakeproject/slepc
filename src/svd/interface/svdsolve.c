@@ -105,7 +105,7 @@ PetscErrorCode SVDSolve(SVD svd)
 
   /* various viewers */
   ierr = SVDViewFromOptions(svd,NULL,"-svd_view");CHKERRQ(ierr);
-  ierr = SVDReasonViewFromOptions(svd);CHKERRQ(ierr);
+  ierr = SVDConvergedReasonViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDErrorViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDValuesViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDVectorsViewFromOptions(svd);CHKERRQ(ierr);

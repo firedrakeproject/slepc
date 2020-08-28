@@ -112,7 +112,7 @@ PetscErrorCode LMEViewFromOptions(LME lme,PetscObject obj,const char name[])
   PetscFunctionReturn(0);
 }
 /*@C
-   LMEReasonView - Displays the reason an LME solve converged or diverged.
+   LMEConvergedReasonView - Displays the reason an LME solve converged or diverged.
 
    Collective on lme
 
@@ -123,22 +123,31 @@ PetscErrorCode LMEViewFromOptions(LME lme,PetscObject obj,const char name[])
    Options Database Keys:
 .  -lme_converged_reason - print reason for convergence, and number of iterations
 
+   Note:
+   To change the format of the output call PetscViewerPushFormat(viewer,format) before
+   this call. Use PETSC_VIEWER_DEFAULT for the default, use PETSC_VIEWER_FAILED to only
+   display a reason if it fails. The latter can be set in the command line with
+   -lme_converged_reason ::failed
+
    Level: intermediate
 
-.seealso: LMESetTolerances(), LMEGetIterationNumber()
+.seealso: LMESetTolerances(), LMEGetIterationNumber(), LMEConvergedReasonViewFromOptions()
 @*/
-PetscErrorCode LMEReasonView(LME lme,PetscViewer viewer)
+PetscErrorCode LMEConvergedReasonView(LME lme,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
-  PetscBool      isAscii;
+  PetscErrorCode    ierr;
+  PetscBool         isAscii;
+  PetscViewerFormat format;
 
   PetscFunctionBegin;
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)lme));
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
   if (isAscii) {
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)lme)->tablevel);CHKERRQ(ierr);
-    if (lme->reason > 0) {
+    if (lme->reason > 0 && format != PETSC_VIEWER_FAILED) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve converged due to %s; iterations %D\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its);CHKERRQ(ierr);
-    } else {
+    } else if (lme->reason <= 0) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve did not converge due to %s; iterations %D\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)lme)->tablevel);CHKERRQ(ierr);
@@ -147,7 +156,7 @@ PetscErrorCode LMEReasonView(LME lme,PetscViewer viewer)
 }
 
 /*@
-   LMEReasonViewFromOptions - Processes command line options to determine if/how
+   LMEConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the LME converged reason is to be viewed.
 
    Collective on lme
@@ -156,8 +165,10 @@ PetscErrorCode LMEReasonView(LME lme,PetscViewer viewer)
 .  lme - the linear matrix equation context
 
    Level: developer
+
+.seealso: LMEConvergedReasonView()
 @*/
-PetscErrorCode LMEReasonViewFromOptions(LME lme)
+PetscErrorCode LMEConvergedReasonViewFromOptions(LME lme)
 {
   PetscErrorCode    ierr;
   PetscViewer       viewer;
@@ -171,7 +182,7 @@ PetscErrorCode LMEReasonViewFromOptions(LME lme)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)lme),((PetscObject)lme)->options,((PetscObject)lme)->prefix,"-lme_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = LMEReasonView(lme,viewer);CHKERRQ(ierr);
+    ierr = LMEConvergedReasonView(lme,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

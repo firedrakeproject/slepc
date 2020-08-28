@@ -14,7 +14,7 @@
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define mfnview_                          MFNVIEW
 #define mfnviewfromoptions_               MFNVIEWFROMOPTIONS
-#define mfnreasonview_                    MFNREASONVIEW
+#define mfnconvergedreasonview_           MFNCONVERGEDREASONVIEW
 #define mfnsetoptionsprefix_              MFNSETOPTIONSPREFIX
 #define mfnappendoptionsprefix_           MFNAPPENDOPTIONSPREFIX
 #define mfngetoptionsprefix_              MFNGETOPTIONSPREFIX
@@ -29,7 +29,7 @@
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define mfnview_                          mfnview
 #define mfnviewfromoptions_               mfnviewfromoptions
-#define mfnreasonview_                    mfnreasonview
+#define mfnconvergedreasonview_           mfnconvergedreasonview
 #define mfnsetoptionsprefix_              mfnsetoptionsprefix
 #define mfnappendoptionsprefix_           mfnappendoptionsprefix
 #define mfngetoptionsprefix_              mfngetoptionsprefix
@@ -90,11 +90,11 @@ SLEPC_EXTERN void mfnviewfromoptions_(MFN *mfn,PetscObject obj,char* type,PetscE
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void mfnreasonview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void mfnconvergedreasonview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = MFNReasonView(*mfn,v);
+  *ierr = MFNConvergedReasonView(*mfn,v);
 }
 
 SLEPC_EXTERN void mfnsettype_(MFN *mfn,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)

@@ -43,7 +43,7 @@ static PetscErrorCode MFNSolve_Private(MFN mfn,Vec b,Vec x)
 
   /* various viewers */
   ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view");CHKERRQ(ierr);
-  ierr = MFNReasonViewFromOptions(mfn);CHKERRQ(ierr);
+  ierr = MFNConvergedReasonViewFromOptions(mfn);CHKERRQ(ierr);
   ierr = MatViewFromOptions(mfn->A,(PetscObject)mfn,"-mfn_view_mat");CHKERRQ(ierr);
   ierr = VecViewFromOptions(b,(PetscObject)mfn,"-mfn_view_rhs");CHKERRQ(ierr);
   ierr = VecViewFromOptions(x,(PetscObject)mfn,"-mfn_view_solution");CHKERRQ(ierr);

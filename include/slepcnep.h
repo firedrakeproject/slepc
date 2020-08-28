@@ -171,8 +171,10 @@ SLEPC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPViewFromOptions(NEP,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode NEPErrorView(NEP,NEPErrorType,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPErrorViewFromOptions(NEP);
-SLEPC_EXTERN PetscErrorCode NEPReasonView(NEP,PetscViewer);
-SLEPC_EXTERN PetscErrorCode NEPReasonViewFromOptions(NEP);
+SLEPC_EXTERN PetscErrorCode NEPConvergedReasonView(NEP,PetscViewer);
+SLEPC_EXTERN PetscErrorCode NEPConvergedReasonViewFromOptions(NEP);
+PETSC_DEPRECATED_FUNCTION("Use NEPConvergedReasonView() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode NEPReasonView(NEP nep,PetscViewer v) {return NEPConvergedReasonView(nep,v);}
+PETSC_DEPRECATED_FUNCTION("Use NEPConvergedReasonViewFromOptions() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode NEPReasonViewFromOptions(NEP nep) {return NEPConvergedReasonViewFromOptions(nep);}
 SLEPC_EXTERN PetscErrorCode NEPValuesView(NEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPValuesViewFromOptions(NEP);
 SLEPC_EXTERN PetscErrorCode NEPVectorsView(NEP,PetscViewer);

@@ -216,8 +216,10 @@ SLEPC_EXTERN PetscErrorCode PEPViewFromOptions(PEP,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode PEPErrorView(PEP,PEPErrorType,PetscViewer);
 PETSC_DEPRECATED_FUNCTION("Use PEPErrorView()") PETSC_STATIC_INLINE PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
 SLEPC_EXTERN PetscErrorCode PEPErrorViewFromOptions(PEP);
-SLEPC_EXTERN PetscErrorCode PEPReasonView(PEP,PetscViewer);
-SLEPC_EXTERN PetscErrorCode PEPReasonViewFromOptions(PEP);
+SLEPC_EXTERN PetscErrorCode PEPConvergedReasonView(PEP,PetscViewer);
+SLEPC_EXTERN PetscErrorCode PEPConvergedReasonViewFromOptions(PEP);
+PETSC_DEPRECATED_FUNCTION("Use PEPConvergedReasonView() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode PEPReasonView(PEP pep,PetscViewer v) {return PEPConvergedReasonView(pep,v);}
+PETSC_DEPRECATED_FUNCTION("Use PEPConvergedReasonViewFromOptions() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode PEPReasonViewFromOptions(PEP pep) {return PEPConvergedReasonViewFromOptions(pep);}
 SLEPC_EXTERN PetscErrorCode PEPValuesView(PEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode PEPValuesViewFromOptions(PEP);
 SLEPC_EXTERN PetscErrorCode PEPVectorsView(PEP,PetscViewer);

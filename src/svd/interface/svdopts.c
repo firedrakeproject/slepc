@@ -731,7 +731,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDReasonView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDConvergedReasonView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
 

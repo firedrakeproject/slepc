@@ -151,7 +151,7 @@ PetscErrorCode PEPSolve(PEP pep)
 
   /* various viewers */
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view");CHKERRQ(ierr);
-  ierr = PEPReasonViewFromOptions(pep);CHKERRQ(ierr);
+  ierr = PEPConvergedReasonViewFromOptions(pep);CHKERRQ(ierr);
   ierr = PEPErrorViewFromOptions(pep);CHKERRQ(ierr);
   ierr = PEPValuesViewFromOptions(pep);CHKERRQ(ierr);
   ierr = PEPVectorsViewFromOptions(pep);CHKERRQ(ierr);
