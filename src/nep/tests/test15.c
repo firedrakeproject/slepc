@@ -174,7 +174,7 @@ int main(int argc,char **argv)
   /* show detailed info unless -terse option is given by user */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = NEPReasonView(nep,viewer);CHKERRQ(ierr);
+  ierr = NEPConvergedReasonView(nep,viewer);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (!terse) {
     ierr = NEPErrorView(nep,NEP_ERROR_BACKWARD,viewer);CHKERRQ(ierr);

@@ -17,7 +17,7 @@
 #define nepview_                          NEPVIEW
 #define nepviewfromoptions_               NEPVIEWFROMOPTIONS
 #define neperrorview_                     NEPERRORVIEW
-#define nepreasonview_                    NEPREASONVIEW
+#define nepconvergedreasonview_           NEPCONVERGEDREASONVIEW
 #define nepvaluesview_                    NEPVALUESVIEW
 #define nepvectorsview_                   NEPVECTORSVIEW
 #define nepsetoptionsprefix_              NEPSETOPTIONSPREFIX
@@ -68,7 +68,7 @@
 #define nepview_                          nepview
 #define nepviewfromoptions_               nepviewfromoptions
 #define neperrorview_                     neperrorview
-#define nepreasonview_                    nepreasonview
+#define nepconvergedreasonview_           nepconvergedreasonview
 #define nepvaluesview_                    nepvaluesview
 #define nepvectorsview_                   nepvectorsview
 #define nepsetoptionsprefix_              nepsetoptionsprefix
@@ -236,11 +236,11 @@ SLEPC_EXTERN void nepviewfromoptions_(NEP *nep,PetscObject obj,char* type,PetscE
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void nepreasonview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepconvergedreasonview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = NEPReasonView(*nep,v);
+  *ierr = NEPConvergedReasonView(*nep,v);
 }
 
 SLEPC_EXTERN void neperrorview_(NEP *nep,NEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)

@@ -14,7 +14,7 @@
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define lmeview_                          LMEVIEW
 #define lmeviewfromoptions_               LMEVIEWFROMOPTIONS
-#define lmereasonview_                    LMEREASONVIEW
+#define lmeconvergedreasonview_           LMECONVERGEDREASONVIEW
 #define lmesetoptionsprefix_              LMESETOPTIONSPREFIX
 #define lmeappendoptionsprefix_           LMEAPPENDOPTIONSPREFIX
 #define lmegetoptionsprefix_              LMEGETOPTIONSPREFIX
@@ -29,7 +29,7 @@
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define lmeview_                          lmeview
 #define lmeviewfromoptions_               lmeviewfromoptions
-#define lmereasonview_                    lmereasonview
+#define lmeconvergedreasonview_           lmeconvergedreasonview
 #define lmesetoptionsprefix_              lmesetoptionsprefix
 #define lmeappendoptionsprefix_           lmeappendoptionsprefix
 #define lmegetoptionsprefix_              lmegetoptionsprefix
@@ -90,11 +90,11 @@ SLEPC_EXTERN void lmeviewfromoptions_(LME *lme,PetscObject obj,char* type,PetscE
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void lmereasonview_(LME *lme,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void lmeconvergedreasonview_(LME *lme,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = LMEReasonView(*lme,v);
+  *ierr = LMEConvergedReasonView(*lme,v);
 }
 
 SLEPC_EXTERN void lmesettype_(LME *lme,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)

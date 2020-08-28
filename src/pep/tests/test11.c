@@ -156,7 +156,7 @@ int main(int argc,char **argv)
   /* show detailed info unless -terse option is given by user */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = PEPReasonView(pep,viewer);CHKERRQ(ierr);
+  ierr = PEPConvergedReasonView(pep,viewer);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (!terse) {
     ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,viewer);CHKERRQ(ierr);

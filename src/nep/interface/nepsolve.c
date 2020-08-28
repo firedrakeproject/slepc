@@ -103,7 +103,7 @@ PetscErrorCode NEPSolve(NEP nep)
 
   /* various viewers */
   ierr = NEPViewFromOptions(nep,NULL,"-nep_view");CHKERRQ(ierr);
-  ierr = NEPReasonViewFromOptions(nep);CHKERRQ(ierr);
+  ierr = NEPConvergedReasonViewFromOptions(nep);CHKERRQ(ierr);
   ierr = NEPErrorViewFromOptions(nep);CHKERRQ(ierr);
   ierr = NEPValuesViewFromOptions(nep);CHKERRQ(ierr);
   ierr = NEPVectorsViewFromOptions(nep);CHKERRQ(ierr);

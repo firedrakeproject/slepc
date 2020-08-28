@@ -245,7 +245,7 @@ PetscErrorCode EPSViewFromOptions(EPS eps,PetscObject obj,const char name[])
 }
 
 /*@C
-   EPSReasonView - Displays the reason an EPS solve converged or diverged.
+   EPSConvergedReasonView - Displays the reason an EPS solve converged or diverged.
 
    Collective on eps
 
@@ -256,22 +256,31 @@ PetscErrorCode EPSViewFromOptions(EPS eps,PetscObject obj,const char name[])
    Options Database Keys:
 .  -eps_converged_reason - print reason for convergence, and number of iterations
 
+   Note:
+   To change the format of the output call PetscViewerPushFormat(viewer,format) before
+   this call. Use PETSC_VIEWER_DEFAULT for the default, use PETSC_VIEWER_FAILED to only
+   display a reason if it fails. The latter can be set in the command line with
+   -eps_converged_reason ::failed
+
    Level: intermediate
 
-.seealso: EPSSetConvergenceTest(), EPSSetTolerances(), EPSGetIterationNumber()
+.seealso: EPSSetConvergenceTest(), EPSSetTolerances(), EPSGetIterationNumber(), EPSConvergedReasonViewFromOptions()
 @*/
-PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
+PetscErrorCode EPSConvergedReasonView(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
-  PetscBool      isAscii;
+  PetscErrorCode    ierr;
+  PetscBool         isAscii;
+  PetscViewerFormat format;
 
   PetscFunctionBegin;
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
   if (isAscii) {
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-    if (eps->reason > 0) {
+    if (eps->reason > 0 && format != PETSC_VIEWER_FAILED) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve converged (%D eigenpair%s) due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",eps->nconv,(eps->nconv>1)?"s":"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
-    } else {
+    } else if (eps->reason <= 0) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
@@ -280,7 +289,7 @@ PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
 }
 
 /*@
-   EPSReasonViewFromOptions - Processes command line options to determine if/how
+   EPSConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the EPS converged reason is to be viewed.
 
    Collective on eps
@@ -289,8 +298,10 @@ PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
 .  eps - the eigensolver context
 
    Level: developer
+
+.seealso: EPSConvergedReasonView()
 @*/
-PetscErrorCode EPSReasonViewFromOptions(EPS eps)
+PetscErrorCode EPSConvergedReasonViewFromOptions(EPS eps)
 {
   PetscErrorCode    ierr;
   PetscViewer       viewer;
@@ -304,7 +315,7 @@ PetscErrorCode EPSReasonViewFromOptions(EPS eps)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = EPSReasonView(eps,viewer);CHKERRQ(ierr);
+    ierr = EPSConvergedReasonView(eps,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

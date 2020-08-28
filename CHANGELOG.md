@@ -11,6 +11,8 @@
 
 - `EPSLOBPCG`, `EPSCISS`, and `NEPCISS` now use `MatProduct()/KSPMatSolve()`
   instead of `MatMult()/KSPSolve()`.
+- Rename `XXXReasonView()` to `XXXConvergedReasonView()`, and `XXXReasonViewFromOptions()`
+  to `XXXConvergedReasonViewFromOptions()`.
 
 ## [3.13] - 2020-03-31
 

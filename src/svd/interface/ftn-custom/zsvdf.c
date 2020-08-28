@@ -20,7 +20,7 @@
 #define svdmonitorfirst_                  SVDMONITORFIRST
 #define svdview_                          SVDVIEW
 #define svderrorview_                     SVDERRORVIEW
-#define svdreasonview_                    SVDREASONVIEW
+#define svdconvergedreasonview_           SVDCONVERGEDREASONVIEW
 #define svdvaluesview_                    SVDVALUESVIEW
 #define svdvectorsview_                   SVDVECTORSVIEW
 #define svdsettype_                       SVDSETTYPE
@@ -57,7 +57,7 @@
 #define svdmonitorfirst_                  svdmonitorfirst
 #define svdview_                          svdview
 #define svderrorview_                     svderrorview
-#define svdreasonview_                    svdreasonview
+#define svdconvergedreasonview_           svdconvergedreasonview
 #define svdvaluesview_                    svdvaluesview
 #define svdvectorsview_                   svdvectorsview
 #define svdsettype_                       svdsettype
@@ -167,11 +167,11 @@ SLEPC_EXTERN void svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
   *ierr = SVDView(*svd,v);
 }
 
-SLEPC_EXTERN void svdreasonview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdconvergedreasonview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
-  *ierr = SVDReasonView(*svd,v);
+  *ierr = SVDConvergedReasonView(*svd,v);
 }
 
 SLEPC_EXTERN void svderrorview_(SVD *svd,SVDErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)

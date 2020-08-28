@@ -239,7 +239,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPReasonView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPConvergedReasonView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",NULL);CHKERRQ(ierr);
 

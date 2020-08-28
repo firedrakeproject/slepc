@@ -64,7 +64,7 @@ PetscErrorCode LMESolve(LME lme)
 
   /* various viewers */
   ierr = LMEViewFromOptions(lme,NULL,"-lme_view");CHKERRQ(ierr);
-  ierr = LMEReasonViewFromOptions(lme);CHKERRQ(ierr);
+  ierr = LMEConvergedReasonViewFromOptions(lme);CHKERRQ(ierr);
   ierr = MatViewFromOptions(lme->A,(PetscObject)lme,"-lme_view_mat");CHKERRQ(ierr);
   ierr = MatViewFromOptions(lme->C,(PetscObject)lme,"-lme_view_rhs");CHKERRQ(ierr);
   ierr = MatViewFromOptions(lme->X,(PetscObject)lme,"-lme_view_solution");CHKERRQ(ierr);

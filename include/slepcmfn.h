@@ -54,8 +54,10 @@ SLEPC_EXTERN PetscErrorCode MFNSolve(MFN,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode MFNSolveTranspose(MFN,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode MFNView(MFN,PetscViewer);
 SLEPC_EXTERN PetscErrorCode MFNViewFromOptions(MFN,PetscObject,const char[]);
-SLEPC_EXTERN PetscErrorCode MFNReasonView(MFN,PetscViewer);
-SLEPC_EXTERN PetscErrorCode MFNReasonViewFromOptions(MFN);
+SLEPC_EXTERN PetscErrorCode MFNConvergedReasonView(MFN,PetscViewer);
+SLEPC_EXTERN PetscErrorCode MFNConvergedReasonViewFromOptions(MFN);
+PETSC_DEPRECATED_FUNCTION("Use MFNConvergedReasonView() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode MFNReasonView(MFN mfn,PetscViewer v) {return MFNConvergedReasonView(mfn,v);}
+PETSC_DEPRECATED_FUNCTION("Use MFNConvergedReasonViewFromOptions() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode MFNReasonViewFromOptions(MFN mfn) {return MFNConvergedReasonViewFromOptions(mfn);}
 
 SLEPC_EXTERN PetscErrorCode MFNSetBV(MFN,BV);
 SLEPC_EXTERN PetscErrorCode MFNGetBV(MFN,BV*);

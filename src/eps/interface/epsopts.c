@@ -266,7 +266,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_view_vectors","View computed eigenvectors","EPSVectorsView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_view_values","View computed eigenvalues","EPSValuesView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_converged_reason","Print reason for convergence, and number of iterations","EPSReasonView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_converged_reason","Print reason for convergence, and number of iterations","EPSConvergedReasonView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_error_absolute","Print absolute errors of each eigenpair","EPSErrorView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_error_relative","Print relative errors of each eigenpair","EPSErrorView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_error_backward","Print backward errors of each eigenpair","EPSErrorView",NULL);CHKERRQ(ierr);

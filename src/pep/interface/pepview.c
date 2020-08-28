@@ -228,7 +228,7 @@ PetscErrorCode PEPViewFromOptions(PEP pep,PetscObject obj,const char name[])
 }
 
 /*@C
-   PEPReasonView - Displays the reason a PEP solve converged or diverged.
+   PEPConvergedReasonView - Displays the reason a PEP solve converged or diverged.
 
    Collective on pep
 
@@ -239,22 +239,31 @@ PetscErrorCode PEPViewFromOptions(PEP pep,PetscObject obj,const char name[])
    Options Database Keys:
 .  -pep_converged_reason - print reason for convergence, and number of iterations
 
+   Note:
+   To change the format of the output call PetscViewerPushFormat(viewer,format) before
+   this call. Use PETSC_VIEWER_DEFAULT for the default, use PETSC_VIEWER_FAILED to only
+   display a reason if it fails. The latter can be set in the command line with
+   -pep_converged_reason ::failed
+
    Level: intermediate
 
-.seealso: PEPSetConvergenceTest(), PEPSetTolerances(), PEPGetIterationNumber()
+.seealso: PEPSetConvergenceTest(), PEPSetTolerances(), PEPGetIterationNumber(), PEPConvergedReasonViewFromOptions()
 @*/
-PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
+PetscErrorCode PEPConvergedReasonView(PEP pep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
-  PetscBool      isAscii;
+  PetscErrorCode    ierr;
+  PetscBool         isAscii;
+  PetscViewerFormat format;
 
   PetscFunctionBegin;
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)pep));
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
   if (isAscii) {
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
-    if (pep->reason > 0) {
+    if (pep->reason > 0 && format != PETSC_VIEWER_FAILED) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve converged (%D eigenpair%s) due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",pep->nconv,(pep->nconv>1)?"s":"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
-    } else {
+    } else if (pep->reason <= 0) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve did not converge due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
@@ -263,7 +272,7 @@ PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
 }
 
 /*@
-   PEPReasonViewFromOptions - Processes command line options to determine if/how
+   PEPConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the PEP converged reason is to be viewed.
 
    Collective on pep
@@ -272,8 +281,10 @@ PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
 .  pep - the eigensolver context
 
    Level: developer
+
+.seealso: PEPConvergedReasonView()
 @*/
-PetscErrorCode PEPReasonViewFromOptions(PEP pep)
+PetscErrorCode PEPConvergedReasonViewFromOptions(PEP pep)
 {
   PetscErrorCode    ierr;
   PetscViewer       viewer;
@@ -287,7 +298,7 @@ PetscErrorCode PEPReasonViewFromOptions(PEP pep)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,"-pep_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = PEPReasonView(pep,viewer);CHKERRQ(ierr);
+    ierr = PEPConvergedReasonView(pep,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

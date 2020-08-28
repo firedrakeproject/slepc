@@ -130,7 +130,7 @@ PetscErrorCode SVDViewFromOptions(SVD svd,PetscObject obj,const char name[])
 }
 
 /*@C
-   SVDReasonView - Displays the reason an SVD solve converged or diverged.
+   SVDConvergedReasonView - Displays the reason an SVD solve converged or diverged.
 
    Collective on svd
 
@@ -141,22 +141,31 @@ PetscErrorCode SVDViewFromOptions(SVD svd,PetscObject obj,const char name[])
    Options Database Keys:
 .  -svd_converged_reason - print reason for convergence, and number of iterations
 
+   Note:
+   To change the format of the output call PetscViewerPushFormat(viewer,format) before
+   this call. Use PETSC_VIEWER_DEFAULT for the default, use PETSC_VIEWER_FAILED to only
+   display a reason if it fails. The latter can be set in the command line with
+   -svd_converged_reason ::failed
+
    Level: intermediate
 
-.seealso: SVDSetTolerances(), SVDGetIterationNumber()
+.seealso: SVDSetTolerances(), SVDGetIterationNumber(), SVDConvergedReasonViewFromOptions()
 @*/
-PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
+PetscErrorCode SVDConvergedReasonView(SVD svd,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
-  PetscBool      isAscii;
+  PetscErrorCode    ierr;
+  PetscBool         isAscii;
+  PetscViewerFormat format;
 
   PetscFunctionBegin;
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
   if (isAscii) {
+    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
-    if (svd->reason > 0) {
+    if (svd->reason > 0 && format != PETSC_VIEWER_FAILED) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve converged (%D singular triplet%s) due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",svd->nconv,(svd->nconv>1)?"s":"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
-    } else {
+    } else if (svd->reason <= 0) {
       ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve did not converge due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
@@ -165,7 +174,7 @@ PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
 }
 
 /*@
-   SVDReasonViewFromOptions - Processes command line options to determine if/how
+   SVDConvergedReasonViewFromOptions - Processes command line options to determine if/how
    the SVD converged reason is to be viewed.
 
    Collective on svd
@@ -174,8 +183,10 @@ PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
 .  svd - the singular value solver context
 
    Level: developer
+
+.seealso: SVDConvergedReasonView()
 @*/
-PetscErrorCode SVDReasonViewFromOptions(SVD svd)
+PetscErrorCode SVDConvergedReasonViewFromOptions(SVD svd)
 {
   PetscErrorCode    ierr;
   PetscViewer       viewer;
@@ -189,7 +200,7 @@ PetscErrorCode SVDReasonViewFromOptions(SVD svd)
   ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,"-svd_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = SVDReasonView(svd,viewer);CHKERRQ(ierr);
+    ierr = SVDConvergedReasonView(svd,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

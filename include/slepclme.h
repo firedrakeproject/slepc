@@ -72,8 +72,10 @@ SLEPC_EXTERN PetscErrorCode LMESetUp(LME);
 SLEPC_EXTERN PetscErrorCode LMESolve(LME);
 SLEPC_EXTERN PetscErrorCode LMEView(LME,PetscViewer);
 SLEPC_EXTERN PetscErrorCode LMEViewFromOptions(LME,PetscObject,const char[]);
-SLEPC_EXTERN PetscErrorCode LMEReasonView(LME,PetscViewer);
-SLEPC_EXTERN PetscErrorCode LMEReasonViewFromOptions(LME);
+SLEPC_EXTERN PetscErrorCode LMEConvergedReasonView(LME,PetscViewer);
+SLEPC_EXTERN PetscErrorCode LMEConvergedReasonViewFromOptions(LME);
+PETSC_DEPRECATED_FUNCTION("Use LMEConvergedReasonView() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode LMEReasonView(LME lme,PetscViewer v) {return LMEConvergedReasonView(lme,v);}
+PETSC_DEPRECATED_FUNCTION("Use LMEConvergedReasonViewFromOptions() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode LMEReasonViewFromOptions(LME lme) {return LMEConvergedReasonViewFromOptions(lme);}
 
 SLEPC_EXTERN PetscErrorCode LMESetBV(LME,BV);
 SLEPC_EXTERN PetscErrorCode LMEGetBV(LME,BV*);
