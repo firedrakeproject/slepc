@@ -33,6 +33,8 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
+PetscLogEvent EPS_CISS_SVD;
+
 typedef struct {
   /* parameters */
   PetscInt          N;          /* number of integration points (32) */
@@ -539,6 +541,7 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
 #endif
 
   PetscFunctionBegin;
+  ierr = PetscLogEventBegin(EPS_CISS_SVD,eps,0,0,0);CHKERRQ(ierr);
   ierr = PetscMalloc1(5*ml,&work);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
@@ -561,6 +564,7 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
+  ierr = PetscLogEventEnd(EPS_CISS_SVD,eps,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1056,7 +1060,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         ierr = ConstructS(eps);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
+        ierr = PetscLogEventBegin(EPS_CISS_SVD,eps,0,0,0);CHKERRQ(ierr);
         ierr = SVD_S(ctx->S,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
+        ierr = PetscLogEventEnd(EPS_CISS_SVD,eps,0,0,0);CHKERRQ(ierr);
         if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
           if (ctx->pA) {
             ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
@@ -2021,6 +2027,10 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetExtraction_C",EPSCISSSetExtraction_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetExtraction_C",EPSCISSGetExtraction_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetKSPs_C",EPSCISSGetKSPs_CISS);CHKERRQ(ierr);
+
+  /* log events */
+  ierr = PetscLogEventRegister("EPSCISS_SVD",EPS_CLASSID,&EPS_CISS_SVD);CHKERRQ(ierr);
+
   /* set default values of parameters */
   ctx->N                  = 32;
   ctx->L                  = 16;
