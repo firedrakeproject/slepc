@@ -37,7 +37,6 @@
 #include <petscsnes.h>
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
-static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,Vec w,PetscBool *changed_y,PetscBool *changed_w,void *ctx);
 PetscErrorCode EPSSolve_Power(EPS);
 PetscErrorCode EPSSolve_TS_Power(EPS);
 
@@ -67,7 +66,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   PetscErrorCode (*formFunctionA)(SNES,Vec,Vec,void*);
   PetscErrorCode (*formJacobianA)(SNES,Vec,Mat,Mat,void*);
   void           *ctx;
-  SNESLineSearch linesearch;
 
   PetscFunctionBegin;
   if (eps->ncv!=PETSC_DEFAULT) {
@@ -90,7 +88,8 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 
   if (power->nonlinear) {
     if (eps->nev>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration cannot compute more than one eigenvalue");
-    ierr = EPSSetWorkVecs(eps,4);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
+    if (power->update && eps->max_it>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"More than one iteration is not allowed for Newton eigensolver (SNES)");
 
     /* Set up SNES solver */
     /* If SNES was setup, we need to reset it so that it will be consistent with the current EPS */
@@ -134,10 +133,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     /* If users do not provide a matrix, we simply use A */
     ierr = SNESSetJacobian(power->snes,A,P? P:A,formJacobianA,ctx);CHKERRQ(ierr);
     ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
-    ierr = SNESGetLineSearch(power->snes,&linesearch);CHKERRQ(ierr);
-    if (power->update) {
-      ierr = SNESLineSearchSetPostCheck(linesearch,SNESLineSearchPostheckFunction,ctx);CHKERRQ(ierr);
-    }
     ierr = SNESSetUp(power->snes);CHKERRQ(ierr);
     if (B) {
       ierr = PetscObjectQueryFunction((PetscObject)B,"formFunction",&power->formFunctionB);CHKERRQ(ierr);
@@ -254,22 +249,6 @@ static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
       ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
     }
   } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem");
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,Vec w,PetscBool *changed_y,PetscBool *changed_w,void *ctx)
-{
-  PetscErrorCode ierr;
-  SNES           snes;
-  EPS            eps;
-  Vec            oldx;
-
-  PetscFunctionBegin;
-  ierr = SNESLineSearchGetSNES(linesearch,&snes);CHKERRQ(ierr);
-  ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
-  if (!eps) SETERRQ(PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
-  oldx = eps->work[3];
-  ierr = VecCopy(x,oldx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -425,9 +404,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     /* y = OP v */
     ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
     if (power->nonlinear) {
-      ierr = VecCopy(v,eps->work[3]);CHKERRQ(ierr);
       ierr = EPSPowerApply_SNES(eps,v,y);CHKERRQ(ierr);
-      ierr = VecCopy(eps->work[3],v);CHKERRQ(ierr);
     } else {
       ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
     }
@@ -460,16 +437,23 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       /* approximate eigenvalue is the Rayleigh quotient */
       eps->eigr[eps->nconv] = theta;
 
-      /* compute relative error as ||y-theta v||_2/|theta| */
-      ierr = VecCopy(y,e);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
-      ierr = VecAXPY(e,power->nonlinear?-1.0:-theta,v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
-      ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
-      if (power->nonlinear)
-        relerr *= PetscAbsScalar(theta);
-      else
-        relerr /= PetscAbsScalar(theta);
+      /**
+       *  If Newton method (update, SNES) is used, we do not compute "relerr" since
+       * the convergence is determineed by SNES.
+       */
+      if (power->update) relerr = 0.;
+      else {
+        /* compute relative error as ||y-theta v||_2/|theta| */
+        ierr = VecCopy(y,e);CHKERRQ(ierr);
+        ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
+        ierr = VecAXPY(e,power->nonlinear?-1.0:-theta,v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
+        ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
+        if (power->nonlinear)
+          relerr *= PetscAbsScalar(theta);
+        else
+          relerr /= PetscAbsScalar(theta);
+      }
 
     } else {  /* RQI */
 
@@ -535,9 +519,12 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
     if (power->update) {
       ierr = SNESGetConvergedReason(power->snes,&snesreason);CHKERRQ(ierr);
-    }
-    /* if relerr<tol, accept eigenpair */
-    if (relerr<eps->tol || (power->update && snesreason > 0)) {
+      /* For Newton eigensolver, we are ready to return once SNES converged */
+      if (snesreason>0)
+        eps->nconv = eps->nconv + 1;
+
+      /* if relerr<tol, accept eigenpair */
+    } else if (relerr<eps->tol) {
       eps->nconv = eps->nconv + 1;
       if (eps->nconv<eps->nev) {
         ierr = EPSGetStartVector(eps,eps->nconv,&breakdown);CHKERRQ(ierr);
@@ -936,6 +923,8 @@ static PetscErrorCode EPSPowerSetUpdate_Power(EPS eps,PetscBool update)
   if (!power->nonlinear) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"This option does not make sense for linear problems");
   power->update = update;
   eps->state = EPS_STATE_INITIAL;
+  /* SNES will directly return solution for us, and we do not need to do more than one iteration */
+  if (power->update) eps->max_it = 1;
   PetscFunctionReturn(0);
 }
 
