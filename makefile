@@ -48,7 +48,7 @@ all:
 	@echo "Finishing make run at `date +'%a, %d %b %Y %H:%M:%S %z'`" >> ${PETSC_ARCH}/lib/slepc/conf/make.log
 	@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then exit 1; fi
 
-all-local: info slepc_libs
+all-local: info slepc_libs slepc4py-build
 
 #
 # Prints information about the system and version of SLEPc being compiled
@@ -154,6 +154,7 @@ reconfigure:
 #
 install:
 	@${PYTHON} ./config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_INSTALLDIR} -destDir=${DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB};
+	+${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} slepc4py-install
 
 # ------------------------------------------------------------------
 #

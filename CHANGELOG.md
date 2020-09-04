@@ -6,6 +6,7 @@
 
 - Add interfaces to eigensolvers and SVD solvers in ScaLAPACK and Elemental.
 - Reintroduce interface to FEAST external solver via MKL.
+- New configure option `--download-slepc4py`
 
 ### Changed
 
