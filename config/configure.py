@@ -222,6 +222,7 @@ includedir = slepc.CreateDir(archdir,'include')
 modulesdir = slepc.CreateDirTwo(confdir,'modules','slepc')
 pkgconfdir = slepc.CreateDir(libdir,'pkgconfig')
 slepcvars  = slepc.CreateFile(confdir,'slepcvariables')
+slepcrules = slepc.CreateFile(confdir,'slepcrules')
 slepcconf  = slepc.CreateFile(includedir,'slepcconf.h')
 pkgconfig  = slepc.CreateFile(pkgconfdir,'slepc.pc')
 if slepc.isinstall:
@@ -305,6 +306,7 @@ if not slepc.isinstall:
     log.Exit('Unable to make reconfigure script executable:\n'+str(e))
 
 # Finish with configuration files (except slepcvars)
+slepcrules.close()
 slepcconf.write('\n#endif\n')
 slepcconf.close()
 pkgconfig.close()
