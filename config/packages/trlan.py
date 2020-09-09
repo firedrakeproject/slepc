@@ -46,11 +46,12 @@ class Trlan(package.Package):
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = self.Download(externdir,slepc.downloaddir)
+    extra_fcflags = ' -fallow-argument-mismatch' if petsc.isGfortran100plus() else ''
 
     # Makefile
     cont  = 'FC     = '+petsc.fc+'\n'
     cont += 'F90    = '+petsc.fc+'\n'
-    cont += 'FFLAGS = '+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'\n'
+    cont += 'FFLAGS = '+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+extra_fcflags+'\n'
     cont += 'SHELL  = /bin/sh\n'
     self.log.write('Using makefile definitions:\n')
     self.log.write(cont)

@@ -175,3 +175,16 @@ class PETSc(package.Package):
       else:
         self.log.Exit('Cannot process file ' + petscconf_h)
 
+  def isGfortran100plus(self):
+    '''returns true if the compiler is gfortran-10.0.x or later'''
+    try:
+      (result, output) = self.RunCommand(self.fc+' --version',)
+      import re
+      strmatch = re.match('GNU Fortran\s+\(.*\)\s+(\d+)\.(\d+)',output)
+      if strmatch:
+        VMAJOR,VMINOR = strmatch.groups()
+        if (int(VMAJOR),int(VMINOR)) >= (10,0):
+          return 1
+    except RuntimeError:
+      pass
+
