@@ -419,17 +419,15 @@ static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar l
   PetscErrorCode   ierr;
   NEP_DEF_MATSHELL *matctx,*matctxC;
   PetscInt         nloc,mloc,n=extop->n,j,i,szd=extop->szd,ldh=szd+1,k;
-  Mat              F;
-  Mat              Mshell,Mcomp;
+  Mat              F,Mshell,Mcomp;
   PetscBool        ini=PETSC_FALSE;
   PetscScalar      *hf,*hfj,*hfjp,sone=1.0,*hH,*hHprev,*pts,*B,*A,*Hj=extop->Hj,*basisv,zero=0.0;
   PetscBLASInt     n_,info,szd_;
 
   PetscFunctionBegin;
-  if (!M) {
-    Mshell = jacobian?extop->MJ:extop->MF;
-  } else Mshell = *M;
-  Mcomp  = jacobian?extop->MF:extop->MJ;
+  if (!M) Mshell = jacobian?extop->MJ:extop->MF;
+  else Mshell = *M;
+  Mcomp = jacobian?extop->MF:extop->MJ;
   if (!Mshell) {
     ini = PETSC_TRUE;
     ierr = PetscNew(&matctx);CHKERRQ(ierr);
