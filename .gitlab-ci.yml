@@ -174,7 +174,7 @@ checksource:
     - printf "PETSC_OPTIONS:$PETSC_OPTIONS\n"
     - printf "PETSC_CONFIG_OPTS=${PETSC_CONFIG_OPTS}\n"
     - printf "SLEPC_CONFIG_OPTS=${SLEPC_CONFIG_OPTS}\n"
-    - source /opt/intel/bin/compilervars.sh intel64
+    - source /opt/intel/bin/compilervars.sh intel64 || true
     - export SLEPC_DIR=$PWD
     - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
     - cd ..
@@ -363,7 +363,7 @@ gnu-c-cuda:
     - .stage-2
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, gpu:nvidia
   variables:
     PETSC_CONFIG_OPTS: --with-cuda --with-openmp --download-mumps --download-scalapack --download-metis --download-parmetis
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
@@ -393,7 +393,7 @@ intel-c-complex-mkl:
     - .stage-2
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:athor
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalapack=1
@@ -404,7 +404,7 @@ pgi-c-nompi:
     - .stage-2
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:athor
   variables:
     MAKE_CFLAGS: ''
     MAKE_CXXFLAGS: ''
@@ -493,7 +493,7 @@ gnu-c-cuda-complex:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, gpu:nvidia
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-openmp
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
@@ -504,7 +504,7 @@ gnu-c-cuda-single:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, gpu:nvidia
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-visibility=1 --with-cuda --with-openmp
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
@@ -515,7 +515,7 @@ intel-c-complex-int64-mkl:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:athor
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex --with-64-bit-indices --with-64-bit-blas-indices
