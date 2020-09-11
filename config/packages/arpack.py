@@ -26,7 +26,7 @@ class Arpack(package.Package):
     self.ProcessArgs(argdb)
 
   def Functions(self,petsc):
-    if petsc.mpiuni:
+    if petsc.mpiuni or petsc.msmpi:
       if petsc.scalar == 'real':
         if petsc.precision == 'single':
           functions = ['snaupd','sneupd','ssaupd','sseupd']
@@ -56,7 +56,7 @@ class Arpack(package.Package):
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
-      if petsc.mpiuni:
+      if petsc.mpiuni or petsc.msmpi:
         libs = [['-larpack'],['-larpack_LINUX'],['-larpack_SUN4']]
       else:
         libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]
@@ -79,8 +79,8 @@ class Arpack(package.Package):
 
     # Build package
     extra_fcflags = ' -fallow-argument-mismatch' if petsc.isGfortran100plus() else ''
-    confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.cc_flags+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+extra_fcflags+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+extra_fcflags+'"'
-    if not petsc.mpiuni:
+    confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.cc_flags+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+extra_fcflags+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+extra_fcflags+'" LIBS="'+petsc.blaslapack_lib+'"'
+    if not petsc.mpiuni and not petsc.msmpi:
       confopt = confopt+' --enable-mpi MPICC="'+petsc.cc+'" MPIF77="'+petsc.fc+'" MPIFC="'+petsc.fc+'"'
     if not petsc.buildsharedlib:
       confopt = confopt+' --disable-shared'
@@ -94,7 +94,7 @@ class Arpack(package.Package):
 
     # Check build
     functions = self.Functions(petsc)
-    if petsc.mpiuni:
+    if petsc.mpiuni or petsc.msmpi:
       libs = [['-larpack']]
     else:
       libs = [['-lparpack','-larpack']]

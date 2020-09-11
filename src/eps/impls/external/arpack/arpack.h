@@ -27,7 +27,7 @@ typedef struct {
    Definition of routines from the ARPACK package
 */
 
-#if defined(PETSC_HAVE_MPIUNI)
+#if defined(PETSC_HAVE_MPIUNI) || defined(PETSC_HAVE_MSMPI)
 
 #if defined(PETSC_USE_COMPLEX)
 
@@ -133,7 +133,7 @@ typedef struct {
 
 #endif
 
-#if defined(PETSC_HAVE_MPIUNI)
+#if defined(PETSC_HAVE_MPIUNI) || defined(PETSC_HAVE_MSMPI)
 
 #define COMM_ARG
 
