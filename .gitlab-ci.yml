@@ -334,17 +334,6 @@ gnu-c-multilib:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1 --download-scalapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --with-primme-dir=/usr/local/opt/primme-2.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot --with-packages-download-dir=/var/local/downloads
 
-intel-cxx-mkl:
-  extends:
-    - .stage-2
-    - .linux_test
-  tags:
-    - linux-debian
-  variables:
-    MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
-
 #intel-c-complex-mkl:
 #  extends:
 #    - .stage-2
@@ -398,19 +387,6 @@ intel-c-complex-mkl:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalapack=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-primme --download-blopex --with-feast=0
-
-pgi-c-nompi:
-  extends:
-    - .stage-2
-    - .linux_test
-  tags:
-    - linux-ubuntu, name:athor
-  variables:
-    MAKE_CFLAGS: ''
-    MAKE_CXXFLAGS: ''
-    MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/pgi/linux86-64/2019/bin/pgcc --with-fc=/opt/pgi/linux86-64/2019/bin/pgfortran --with-cxx=/opt/pgi/linux86-64/2019/bin/pgc++ --with-blaslapack-dir=/opt/pgi/linux86-64/2019/lib --with-mpi=0
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-blopex --download-primme
 
 #
 # The following tests run as part of stage-3.
@@ -539,5 +515,29 @@ gnu-c-float128:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --download-f2cblaslapack --with-precision=__float128
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+
+pgi-c-nompi:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-ubuntu, name:athor
+  variables:
+    MAKE_CFLAGS: ''
+    MAKE_CXXFLAGS: ''
+    MAKE_FFLAGS: ''
+    PETSC_CONFIG_OPTS: --with-cc=/opt/pgi/linux86-64/2019/bin/pgcc --with-fc=/opt/pgi/linux86-64/2019/bin/pgfortran --with-cxx=/opt/pgi/linux86-64/2019/bin/pgc++ --with-blaslapack-dir=/opt/pgi/linux86-64/2019/lib --with-mpi=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-blopex --download-primme
+
+intel-cxx-mkl:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    MAKE_FFLAGS: ''
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
