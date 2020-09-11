@@ -75,7 +75,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   char           bmat[1],howmny[] = "A";
   const char     *which;
   PetscInt       n,iparam[11],ipntr[14],ido,info,nev,ncv,rvec;
-#if !defined(PETSC_HAVE_MPIUNI)
+#if !defined(PETSC_HAVE_MPIUNI) && !defined(PETSC_HAVE_MSMPI)
   MPI_Fint       fcomm;
 #endif
   PetscScalar    sigmar,*pV,*resid;
@@ -89,7 +89,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscFunctionBegin;
   nev = eps->nev;
   ncv = eps->ncv;
-#if !defined(PETSC_HAVE_MPIUNI)
+#if !defined(PETSC_HAVE_MPIUNI) && !defined(PETSC_HAVE_MSMPI)
   fcomm = MPI_Comm_c2f(PetscObjectComm((PetscObject)eps));
 #endif
   n = eps->nloc;

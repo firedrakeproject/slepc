@@ -124,12 +124,15 @@ class PETSc(package.Package):
           self.sl_suffix = v
         elif k == 'RANLIB':
           self.ranlib = v
+        elif k == 'BLASLAPACK_LIB':
+          self.blaslapack_lib = v
       f.close()
     except:
       self.log.Exit('Cannot process file ' + petscvariables)
 
     self.ind64 = False
     self.mpiuni = False
+    self.msmpi = False
     self.debug = False
     self.singlelib = False
     self.blaslapackmangling = ''
@@ -146,6 +149,8 @@ class PETSc(package.Package):
           self.ind64 = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MPIUNI' and l[2]=='1':
           self.mpiuni = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MSMPI' and l[2]=='1':
+          self.msmpi = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_DEBUG' and l[2]=='1':
           self.debug = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_SINGLE_LIBRARY' and l[2]=='1':
