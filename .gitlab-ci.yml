@@ -441,7 +441,7 @@ gnu-c-single:
     - .stage-3
     - .linux_test
   tags:
-    - linux-debian
+    - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --download-scalapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0
@@ -471,7 +471,7 @@ gnu-c-debug:
     - .stage-3
     - .linux_test
   tags:
-    - linux-debian
+    - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-debugging=1 --CXXFLAGS='-O -g -std=c++11' --with-cxx-dialect=C++11
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan=https://codeforge.lbl.gov/frs/download.php/210/trlan-201009.tar.gz --download-blopex --download-hpddm
