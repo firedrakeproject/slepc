@@ -315,7 +315,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
   /* Solve the Secular Equation. */
 
-  if (k != 0 || k == 0) {
+  if (k != 0) {
 
     /* ....not everything was deflated. */
 
