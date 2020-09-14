@@ -457,7 +457,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     }
 
     /* Eigenvalue is already stored in function evaluations.
-     * Assign eigenvalue to theta to make the rest code consistent
+     * Assign eigenvalue to theta to make the rest of the code consistent
      */
     if (power->update) theta = eps->eigr[eps->nconv];
     /* Eigenvalue: 1/|Bx| */
