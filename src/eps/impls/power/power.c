@@ -480,10 +480,9 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         ierr = VecAXPY(e,power->nonlinear?-1.0:-theta,v);CHKERRQ(ierr);
         ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
         ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
-        if (power->nonlinear)
-          relerr *= PetscAbsScalar(theta);
-        else
-          relerr /= PetscAbsScalar(theta);
+        if (power->nonlinear) relerr *= PetscAbsScalar(theta);
+        else relerr /= PetscAbsScalar(theta);
+
       }
 
     } else {  /* RQI */
