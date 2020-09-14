@@ -32,7 +32,7 @@ Options for all PETSc programs:
        start all processes in the debugger
  -on_error_emacs <machinename>
     emacs jumps to error file
- -debugger_nodes [n1,n2,..] Nodes to start in debugger
+ -debugger_ranks [n1,n2,..] Ranks to start in debugger
  -debugger_pause [m] : delay (in seconds) to attach debugger
  -stop_for_debugger : prints message on how to attach debugger manually
                       waits the delay for you to attach
