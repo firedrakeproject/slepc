@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the MFN object in SLEPc
+!  Used by slepcmfnmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcsys.h"
 #include "slepc/finclude/slepcmfn.h"
@@ -30,6 +30,3 @@
       external MFNMONITORDEFAULT
       external MFNMONITORLG
 
-!
-!  End of Fortran include file for the MFN package in SLEPc
-!

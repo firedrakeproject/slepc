@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the PEP object in SLEPc
+!  Used by slepcpepmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcpep.h"
 
@@ -89,6 +89,3 @@
       external PEPMONITORCONVERGED
       external PEPMONITORFIRST
 
-!
-!  End of Fortran include file for the PEP package in SLEPc
-!

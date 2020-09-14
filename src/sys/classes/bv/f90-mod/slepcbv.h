@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the BV object in SLEPc
+!  Used by slepcbvmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcbv.h"
 
@@ -34,6 +34,3 @@
       PetscEnum, parameter :: BV_MATMULT_MAT            =  1
       PetscEnum, parameter :: BV_MATMULT_MAT_SAVE       =  2
 
-!
-!  End of Fortran include file for the BV package in SLEPc
-!

@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the DS object in SLEPc
+!  Used by slepcdsmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcds.h"
 
@@ -50,6 +50,3 @@
       PetscEnum, parameter :: DS_PARALLEL_REDUNDANT    = 0
       PetscEnum, parameter :: DS_PARALLEL_SYNCHRONIZED = 1
 
-!
-!  End of Fortran include file for the DS package in SLEPc
-!

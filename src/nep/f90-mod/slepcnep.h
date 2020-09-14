@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the NEP object in SLEPc
+!  Used by slepcnepmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcnep.h"
 
@@ -72,6 +72,3 @@
       external NEPMONITORCONVERGED
       external NEPMONITORFIRST
 
-!
-!  End of Fortran include file for the NEP package in SLEPc
-!

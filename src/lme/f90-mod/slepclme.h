@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the LME object in SLEPc
+!  Used by slepclmemod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcsys.h"
 #include "slepc/finclude/slepclme.h"
@@ -36,6 +36,3 @@
       external LMEMONITORDEFAULT
       external LMEMONITORLG
 
-!
-!  End of Fortran include file for the LME package in SLEPc
-!

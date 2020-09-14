@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Basic include file for Fortran use of the SLEPc package
+!  Used by slepcsysmod.F90 to create Fortran module file
 !
 
 #include "slepc/finclude/slepcsys.h"

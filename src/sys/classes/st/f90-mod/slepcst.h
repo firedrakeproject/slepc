@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the ST object in SLEPc
+!  Used by slepcstmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcst.h"
 
@@ -21,6 +21,3 @@
       PetscEnum, parameter :: ST_MATMODE_INPLACE       =  1
       PetscEnum, parameter :: ST_MATMODE_SHELL         =  2
 
-!
-!  End of Fortran include file for the ST package in SLEPc
-!

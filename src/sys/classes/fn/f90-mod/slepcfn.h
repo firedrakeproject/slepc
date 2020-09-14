@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the FN object in SLEPc
+!  Used by slepcfnmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcfn.h"
 
@@ -22,6 +22,3 @@
       PetscEnum, parameter :: FN_COMBINE_DIVIDE        =  2
       PetscEnum, parameter :: FN_COMBINE_COMPOSE       =  3
 
-!
-!  End of Fortran include file for the FN package in SLEPc
-!

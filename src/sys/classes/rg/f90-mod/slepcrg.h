@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the RG object in SLEPc
+!  Used by slepcrgmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcrg.h"
 
@@ -17,6 +17,3 @@
 
       RG, parameter :: SLEPC_NULL_RG = tRG(0)
 
-!
-!  End of Fortran include file for the RG package in SLEPc
-!

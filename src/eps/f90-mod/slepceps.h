@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the EPS object in SLEPc
+!  Used by slepcepsmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepceps.h"
 
@@ -110,6 +110,3 @@
       external EPSMONITORCONVERGED
       external EPSMONITORFIRST
 
-!
-!  End of Fortran include file for the EPS package in SLEPc
-!

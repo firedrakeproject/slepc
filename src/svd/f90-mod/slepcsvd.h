@@ -7,7 +7,7 @@
 !  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Include file for Fortran use of the SVD object in SLEPc
+!  Used by slepcsvdmod.F90 to create Fortran module file
 !
 #include "slepc/finclude/slepcsvd.h"
 
@@ -49,6 +49,3 @@
       external SVDMONITORCONVERGED
       external SVDMONITORFIRST
 
-!
-!  End of Fortran include file for the SVD package in SLEPc
-!
