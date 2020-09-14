@@ -415,7 +415,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   SETERRQ(PETSC_COMM_SELF,1,"This function requires C99 or C++ complex support");
 #else
   PetscInt       i,j,n_,s,k,m,mod;
-  PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,info,*piv,minlen,lwork,one=1;
+  PetscBLASInt   n,n2,irsize = 0,rsizediv2,ipsize = 0,iremainsize = 0,info,*piv,minlen,lwork,one=1;
   PetscReal      nrm,shift;
 #if defined(PETSC_USE_COMPLEX) || defined(PETSC_HAVE_ESSL)
   PetscReal      *rwork=NULL;

@@ -621,7 +621,7 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
 PetscErrorCode FNEvaluateFunctionMat_Log_Higham(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n = 0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -638,7 +638,7 @@ PetscErrorCode FNEvaluateFunctionMat_Log_Higham(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMatVec_Log_Higham(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n = 0;
   PetscScalar    *T;
   PetscInt       m;
   Mat            B;

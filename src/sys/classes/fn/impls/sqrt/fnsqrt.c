@@ -38,7 +38,7 @@ PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n = 0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -55,7 +55,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n = 0;
   PetscScalar    *T;
   PetscInt       m;
   Mat            B;
@@ -75,7 +75,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n = 0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -92,7 +92,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n = 0;
   PetscScalar    *Ba;
   PetscInt       m;
 
@@ -195,7 +195,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n = 0;
   PetscScalar    *Ba;
   PetscInt       m;
 

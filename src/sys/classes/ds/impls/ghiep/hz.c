@@ -289,7 +289,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i,off;
-  PetscBLASInt   n1,ld;
+  PetscBLASInt   n1,ld = 0;
   PetscScalar    *A,*B,*Q;
   PetscReal      *d,*e,*s;
 

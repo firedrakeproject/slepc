@@ -275,7 +275,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,n2,n3,lwork,info,l,n,ld,off;
+  PetscBLASInt   n1 = 0,n2 = 0,n3,lwork,info,l = 0,n = 0,ld,off;
   PetscScalar    *A,*Q,*work,*tau;
   PetscReal      *d,*e;
 
@@ -384,7 +384,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,n2,n3,info,l,n,ld,off;
+  PetscBLASInt   n1 = 0,n2 = 0,n3,info,l = 0,n = 0,ld,off;
   PetscScalar    *Q,*A;
   PetscReal      *d,*e;
 
@@ -432,7 +432,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
+  PetscBLASInt   n1 = 0,n2 = 0,n3,lwork,liwork,info,l = 0,n = 0,m = 0,ld,off,il,iu,*isuppz;
   PetscScalar    *A,*Q,*W=NULL,one=1.0,zero=0.0;
   PetscReal      *d,*e,abstol=0.0,vl,vu;
 #if defined(PETSC_USE_COMPLEX)
@@ -510,7 +510,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,info,l,ld,off,lrwork,liwork;
+  PetscBLASInt   n1,info,l = 0,ld,off,lrwork,liwork;
   PetscScalar    *Q,*A;
   PetscReal      *d,*e;
 #if defined(PETSC_USE_COMPLEX)
@@ -570,7 +570,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   i,j,k,m,n,info,nblks,bs,ld,lde,lrwork,liwork,*ksizes,*iwork,mingapi;
+  PetscBLASInt   i,j,k,m,n = 0,info,nblks,bs = 0,ld = 0,lde,lrwork,liwork,*ksizes,*iwork,mingapi;
   PetscScalar    *Q,*A;
   PetscReal      *D,*E,*d,*e,tol=PETSC_MACHINE_EPSILON/2,tau1=1e-16,tau2=1e-18,*rwork,mingap;
 

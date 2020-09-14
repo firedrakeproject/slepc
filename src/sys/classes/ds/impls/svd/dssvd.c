@@ -170,7 +170,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,n2,n3,m2,m3,info,l,n,m,nm,ld,off,lwork;
+  PetscBLASInt   n1 = 0,n2 = 0,n3,m2 = 0,m3,info,l = 0,n = 0,m = 0,nm,ld,off,lwork;
   PetscScalar    *A,*U,*VT,qwork;
   PetscReal      *d,*e,*Ur,*VTr;
 #if defined(PETSC_USE_COMPLEX)
