@@ -550,9 +550,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       ierr = SNESGetConvergedReason(power->snes,&snesreason);CHKERRQ(ierr);
       /* For Newton eigensolver, we are ready to return once SNES converged. */
       if (snesreason>0) eps->nconv = 1;
-
-      /* if relerr<tol, accept eigenpair */
-    } else if (relerr<eps->tol) {
+    } else if (relerr<eps->tol) {   /* accept eigenpair */
       eps->nconv = eps->nconv + 1;
       if (eps->nconv<eps->nev) {
         ierr = EPSGetStartVector(eps,eps->nconv,&breakdown);CHKERRQ(ierr);
