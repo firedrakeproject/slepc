@@ -482,7 +482,6 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
         if (power->nonlinear) relerr *= PetscAbsScalar(theta);
         else relerr /= PetscAbsScalar(theta);
-
       }
 
     } else {  /* RQI */
