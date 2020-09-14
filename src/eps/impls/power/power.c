@@ -460,8 +460,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
      * Assign eigenvalue to theta to make the rest of the code consistent
      */
     if (power->update) theta = eps->eigr[eps->nconv];
-    /* Eigenvalue: 1/|Bx| */
-    else if (power->nonlinear) theta = 1.0/norm*sign;
+    else if (power->nonlinear) theta = 1.0/norm*sign; /* Eigenvalue: 1/|Bx| */
 
     if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
