@@ -190,5 +190,6 @@ int main(int argc,char **argv)
    test:
       args: -terse
       suffix: 1
+      requires: !mumps  # does not work in complex scalars
 
 TEST*/
