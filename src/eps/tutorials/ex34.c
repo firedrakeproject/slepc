@@ -545,5 +545,5 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
          suffix: 6
          args: -use_shell_matrix -eps_power_update -init_eps_power_snes_mf_operator 1 -eps_power_snes_mf_operator 1 -form_function_ab {{0 1}} -eps_monitor_all
          output_file: output/ex34_6.out
-         filter: sed -e "1,3s/[0-9]//g"
+         filter: sed -e "s/\([+-].*i\)//g" -e "1,3s/[0-9]//g" -e "/[45] EPS/d"
 TEST*/
