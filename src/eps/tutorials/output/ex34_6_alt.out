@@ -1,0 +1,8 @@
+   EPS nconv= Values (Errors) . (.e+)
+   EPS nconv= Values (Errors) . (.e+)
+   EPS nconv= Values (Errors) . (.e+)
+  3 EPS nconv=0 Values (Errors) 64.3921 (0.00000000e+00)
+ Solution method: power (nonlinear with monolithic update)
+
+ Number of requested eigenvalues: 1
+k: 64.3921, relative error below tol

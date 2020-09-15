@@ -37,7 +37,6 @@
 #include <petscsnes.h>
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
-static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,Vec w,PetscBool *changed_y,PetscBool *changed_w,void *ctx);
 PetscErrorCode EPSSolve_Power(EPS);
 PetscErrorCode EPSSolve_TS_Power(EPS);
 
@@ -56,6 +55,19 @@ typedef struct {
   PetscReal         norm0; /* norm of initial vector */
 } EPS_POWER;
 
+static PetscErrorCode SNESMonitor_PowerUpdate(SNES snes,PetscInt its,PetscReal fnorm,void *ctx)
+{
+  PetscErrorCode ierr;
+  EPS            eps;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
+  if (!eps) SETERRQ(PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
+  /* Call EPS monitor on each SNES iteration */
+  ierr = EPSMonitor(eps,its,eps->nconv,eps->eigr,eps->eigi,eps->errest,PetscMin(eps->nconv+1,eps->nev));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSSetUp_Power(EPS eps)
 {
   PetscErrorCode ierr;
@@ -67,14 +79,17 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   PetscErrorCode (*formFunctionA)(SNES,Vec,Vec,void*);
   PetscErrorCode (*formJacobianA)(SNES,Vec,Mat,Mat,void*);
   void           *ctx;
-  SNESLineSearch linesearch;
 
   PetscFunctionBegin;
   if (eps->ncv!=PETSC_DEFAULT) {
     if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   } else eps->ncv = eps->nev;
   if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
+  if (eps->max_it==PETSC_DEFAULT) {
+    /* SNES will directly return the solution for us, and we need to do only one iteration */
+    if (power->nonlinear && power->update) eps->max_it = 1;
+    else eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
+  }
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which!=EPS_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest magnitude or target magnitude eigenvalues");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
@@ -90,7 +105,8 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 
   if (power->nonlinear) {
     if (eps->nev>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration cannot compute more than one eigenvalue");
-    ierr = EPSSetWorkVecs(eps,4);CHKERRQ(ierr);
+    ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
+    if (power->update && eps->max_it>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"More than one iteration is not allowed for Newton eigensolver (SNES)");
 
     /* Set up SNES solver */
     /* If SNES was setup, we need to reset it so that it will be consistent with the current EPS */
@@ -117,6 +133,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     if (power->update) {
       ierr = SNESSetFunction(power->snes,res,EPSPowerFormFunction_Update,ctx);CHKERRQ(ierr);
       ierr = PetscObjectQueryFunction((PetscObject)A,"formFunctionAB",&power->formFunctionAB);CHKERRQ(ierr);
+      ierr = SNESMonitorSet(power->snes,SNESMonitor_PowerUpdate,NULL,NULL);CHKERRQ(ierr);
     }
     else { ierr = SNESSetFunction(power->snes,res,formFunctionA,ctx);CHKERRQ(ierr); }
     ierr = VecDestroy(&res);CHKERRQ(ierr);
@@ -134,10 +151,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     /* If users do not provide a matrix, we simply use A */
     ierr = SNESSetJacobian(power->snes,A,P? P:A,formJacobianA,ctx);CHKERRQ(ierr);
     ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
-    ierr = SNESGetLineSearch(power->snes,&linesearch);CHKERRQ(ierr);
-    if (power->update) {
-      ierr = SNESLineSearchSetPostCheck(linesearch,SNESLineSearchPostheckFunction,ctx);CHKERRQ(ierr);
-    }
     ierr = SNESSetUp(power->snes);CHKERRQ(ierr);
     if (B) {
       ierr = PetscObjectQueryFunction((PetscObject)B,"formFunction",&power->formFunctionB);CHKERRQ(ierr);
@@ -257,33 +270,19 @@ static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,Vec w,PetscBool *changed_y,PetscBool *changed_w,void *ctx)
-{
-  PetscErrorCode ierr;
-  SNES           snes;
-  EPS            eps;
-  Vec            oldx;
-
-  PetscFunctionBegin;
-  ierr = SNESLineSearchGetSNES(linesearch,&snes);CHKERRQ(ierr);
-  ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
-  if (!eps) SETERRQ(PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
-  oldx = eps->work[3];
-  ierr = VecCopy(x,oldx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ctx)
 {
   PetscErrorCode ierr;
   EPS            eps;
   PetscReal      bx;
   Vec            Bx;
+  PetscScalar    sign;
   EPS_POWER      *power;
 
   PetscFunctionBegin;
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
   if (!eps) SETERRQ(PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
+  ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
   power = (EPS_POWER*)eps->data;
   Bx = eps->work[2];
   if (power->formFunctionAB) {
@@ -293,8 +292,10 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
     ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);
   }
   ierr = VecNorm(Bx,NORM_2,&bx);CHKERRQ(ierr);
-  ierr = Normalize(Bx,bx,power->idx,power->p,NULL);CHKERRQ(ierr);
+  ierr = Normalize(Bx,bx,power->idx,power->p,&sign);CHKERRQ(ierr);
   ierr = VecAXPY(y,-1.0,Bx);CHKERRQ(ierr);
+  /* Keep tracking eigenvalue update. It would be useful when we want to monitor solver progress via snes monitor. */
+  eps->eigr[(eps->nconv < eps->nev)? eps->nconv:(eps->nconv-1)] = 1.0/(bx*sign);
   PetscFunctionReturn(0);
 }
 
@@ -425,9 +426,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     /* y = OP v */
     ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
     if (power->nonlinear) {
-      ierr = VecCopy(v,eps->work[3]);CHKERRQ(ierr);
       ierr = EPSPowerApply_SNES(eps,v,y);CHKERRQ(ierr);
-      ierr = VecCopy(eps->work[3],v);CHKERRQ(ierr);
     } else {
       ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
     }
@@ -435,9 +434,14 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
     /* purge previously converged eigenvectors */
     if (power->nonlinear) {
-      ierr = EPSPowerUpdateFunctionB(eps,y,Bx);CHKERRQ(ierr);
-      ierr = VecNorm(Bx,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = Normalize(Bx,norm,power->idx,power->p,&sign);CHKERRQ(ierr);
+      /* We do not need to call this for Newton eigensolver since eigenvalue is
+       * updated in function evaluations.
+       */
+      if (!power->update) {
+        ierr = EPSPowerUpdateFunctionB(eps,y,Bx);CHKERRQ(ierr);
+        ierr = VecNorm(Bx,NORM_2,&norm);CHKERRQ(ierr);
+        ierr = Normalize(Bx,norm,power->idx,power->p,&sign);CHKERRQ(ierr);
+      }
     } else {
       ierr = DSGetArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,k);CHKERRQ(ierr);
@@ -452,24 +456,32 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
     }
 
-    /* Eigenvalue: 1/|Bx| */
-    if (power->nonlinear) theta = 1.0/norm*sign;
+    /* Eigenvalue is already stored in function evaluations.
+     * Assign eigenvalue to theta to make the rest of the code consistent
+     */
+    if (power->update) theta = eps->eigr[eps->nconv];
+    else if (power->nonlinear) theta = 1.0/norm*sign; /* Eigenvalue: 1/|Bx| */
 
     if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
       /* approximate eigenvalue is the Rayleigh quotient */
       eps->eigr[eps->nconv] = theta;
 
-      /* compute relative error as ||y-theta v||_2/|theta| */
-      ierr = VecCopy(y,e);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
-      ierr = VecAXPY(e,power->nonlinear?-1.0:-theta,v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
-      ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
-      if (power->nonlinear)
-        relerr *= PetscAbsScalar(theta);
-      else
-        relerr /= PetscAbsScalar(theta);
+      /**
+       * If the Newton method (update, SNES) is used, we do not compute "relerr"
+       * since SNES determines the convergence.
+       */
+      if (power->update) relerr = 0.;
+      else {
+        /* compute relative error as ||y-theta v||_2/|theta| */
+        ierr = VecCopy(y,e);CHKERRQ(ierr);
+        ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
+        ierr = VecAXPY(e,power->nonlinear?-1.0:-theta,v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
+        ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
+        if (power->nonlinear) relerr *= PetscAbsScalar(theta);
+        else relerr /= PetscAbsScalar(theta);
+      }
 
     } else {  /* RQI */
 
@@ -535,9 +547,9 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
     if (power->update) {
       ierr = SNESGetConvergedReason(power->snes,&snesreason);CHKERRQ(ierr);
-    }
-    /* if relerr<tol, accept eigenpair */
-    if (relerr<eps->tol || (power->update && snesreason > 0)) {
+      /* For Newton eigensolver, we are ready to return once SNES converged. */
+      if (snesreason>0) eps->nconv = 1;
+    } else if (relerr<eps->tol) {   /* accept eigenpair */
       eps->nconv = eps->nconv + 1;
       if (eps->nconv<eps->nev) {
         ierr = EPSGetStartVector(eps,eps->nconv,&breakdown);CHKERRQ(ierr);
@@ -548,8 +560,17 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         }
       }
     }
-    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,PetscMin(eps->nconv+1,eps->nev));CHKERRQ(ierr);
+    /* For Newton eigensolver, monitor will be called from SNES monitor */
+    if (!power->update) {
+      ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,PetscMin(eps->nconv+1,eps->nev));CHKERRQ(ierr);
+    }
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
+
+    /**
+     * When a customized stopping test is used, and reason can be set to be converged (EPS_CONVERGED_USER).
+     * In this case, we need to increase eps->nconv to "1" so users can retrieve the solution.
+     */
+    if (power->nonlinear && eps->reason>0) eps->nconv = 1;
   }
 
   if (power->nonlinear) {
