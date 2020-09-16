@@ -274,13 +274,13 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
          suffix: 6
       test:
          suffix: 6_hankel
-         args: -eps_ciss_extraction hankel -eps_ciss_spurious_threshold 1e-6
+         args: -eps_ciss_extraction hankel -eps_ciss_spurious_threshold 1e-6 -eps_ncv 64
       test:
          suffix: 6_cheby
          args: -eps_ciss_quadrule chebyshev
       test:
          suffix: 6_hankel_cheby
-         args: -eps_ciss_extraction hankel -eps_ciss_quadrule chebyshev
+         args: -eps_ciss_extraction hankel -eps_ciss_quadrule chebyshev -eps_ncv 64
       test:
          suffix: 6_refine
          args: -eps_ciss_refine_inner 1 -eps_ciss_refine_blocksize 1
