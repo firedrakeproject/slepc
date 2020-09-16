@@ -133,7 +133,7 @@ int main(int argc,char **argv)
       nsize: 3
       test:
          suffix: 5_mumps
-         requires: mumps
+         requires: mumps !complex
          args: -st_pc_factor_mat_solver_type mumps -mat_mumps_icntl_13 1
       test:
          suffix: 5_superlu
