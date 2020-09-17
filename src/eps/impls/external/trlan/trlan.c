@@ -82,6 +82,9 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscScalar    *pV;
   Vec            v0;
   Mat            A;
+#if !defined(PETSC_HAVE_MPIUNI)
+  MPI_Fint       fcomm;
+#endif
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
@@ -103,7 +106,8 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ipar[5]  = tr->restart;  /* restarting scheme */
   ierr = PetscBLASIntCast(eps->max_it,&ipar[6]);CHKERRQ(ierr); /* maximum number of MATVECs */
 #if !defined(PETSC_HAVE_MPIUNI)
-  ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&ipar[7]);CHKERRQ(ierr);
+  fcomm    = MPI_Comm_c2f(PetscObjectComm((PetscObject)eps));
+  ipar[7]  = fcomm;
 #endif
   ipar[8]  = 0;            /* verboseness */
   ipar[9]  = 99;           /* Fortran IO unit number used to write log messages */

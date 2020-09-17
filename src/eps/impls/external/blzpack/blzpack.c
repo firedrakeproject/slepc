@@ -138,6 +138,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   Mat            A,M;
   KSP            ksp;
   PC             pc;
+  MPI_Fint       fcomm;
 
   PetscFunctionBegin;
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
@@ -170,7 +171,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   blz->istor[10] = eps->isgeneralized ? 1 : 0;   /* solutions refinement (purify) */
   blz->istor[11] = 0;                  /* level of printing */
   blz->istor[12] = 6;                  /* file unit for output */
-  ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&blz->istor[13]);CHKERRQ(ierr);
+  fcomm = MPI_Comm_c2f(PetscObjectComm((PetscObject)eps));
+  blz->istor[13] = fcomm;
 
   blz->rstor[2]  = eps->tol;           /* threshold for convergence */
 
