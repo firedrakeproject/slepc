@@ -47,7 +47,7 @@ PetscErrorCode BV_AddCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscScal
   PetscErrorCode ierr;
   PetscScalar    *d_h,*d_c,sone=1.0;
   PetscInt       i;
-  PetscBLASInt   idx,one=1;
+  PetscBLASInt   idx=0,one=1;
   cublasStatus_t cberr;
   cublasHandle_t cublasv2handle;
 
@@ -103,7 +103,7 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
   const PetscScalar *d_h;
   PetscScalar       dot;
   PetscInt          i;
-  PetscBLASInt      idx,one=1;
+  PetscBLASInt      idx=0,one=1;
   cublasStatus_t    cberr;
   cublasHandle_t    cublasv2handle;
 
