@@ -471,7 +471,7 @@ gnu-c-cuda-complex:
   tags:
     - linux-ubuntu, gpu:nvidia
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-openmp
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-openmp --download-thrust
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
   allow_failure: true
 
