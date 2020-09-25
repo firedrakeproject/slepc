@@ -110,7 +110,7 @@ int main(int argc,char **argv)
          requires: double !complex !define(PETSC_USE_64BIT_INDICES)
       test:
          suffix: 1_cuda
-         args: -mat_type aijcusparse
+         args: -mat_type aijcusparse -st_pc_factor_mat_solver_type cusparse
          requires: cuda double !complex !define(PETSC_USE_64BIT_INDICES)
 
    testset:
@@ -121,7 +121,7 @@ int main(int argc,char **argv)
          requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
       test:
          suffix: 2_cuda
-         args: -mat_type aijcusparse
+         args: -mat_type aijcusparse -st_pc_factor_mat_solver_type cusparse
          requires: cuda double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
 
 TEST*/

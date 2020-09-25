@@ -188,7 +188,7 @@ int main(int argc,char **argv)
          args: -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 5e-11 -skiporth
       test:
          suffix: 1_ciss_cuda
-         args: -mat_type aijcusparse
+         args: -mat_type aijcusparse -st_pc_factor_mat_solver_type cusparse
          requires: cuda
 
    testset:
@@ -267,7 +267,7 @@ int main(int argc,char **argv)
          args: -eps_type lanczos -eps_lanczos_reorthog full
       test:
          suffix: 7_ciss
-         args: -eps_type ciss -rg_interval_endpoints 20.8,22
+         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -st_pc_factor_mat_solver_type cusparse
          output_file: output/test1_1_ciss.out
 
    testset:
