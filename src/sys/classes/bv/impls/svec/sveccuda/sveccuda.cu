@@ -29,7 +29,7 @@
 static PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *d_A,PetscScalar beta,PetscScalar *d_B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   m,one=1;
+  PetscBLASInt   m=0,one=1;
   cublasStatus_t cberr;
   cublasHandle_t cublasv2handle;
 
@@ -57,7 +57,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   const PetscScalar *d_px,*d_A;
   PetscScalar       *d_py,*q,*d_q,*d_B,*d_C;
   PetscInt          ldq,mq;
-  PetscBLASInt      m,n,k,ldq_;
+  PetscBLASInt      m=0,n=0,k=0,ldq_=0;
   cublasStatus_t    cberr;
   cudaError_t       cerr;
   cublasHandle_t    cublasv2handle;
@@ -107,7 +107,7 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   BV_SVEC           *x = (BV_SVEC*)X->data;
   const PetscScalar *d_px,*d_A;
   PetscScalar       *d_py,*d_q,*d_x,*d_y;
-  PetscBLASInt      n,k,one=1;
+  PetscBLASInt      n=0,k=0,one=1;
   cublasStatus_t    cberr;
   cublasHandle_t    cublasv2handle;
   cudaError_t       cerr;
@@ -159,7 +159,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   BV_SVEC        *ctx = (BV_SVEC*)V->data;
   PetscScalar    *d_pv,*q,*d_q,*d_A,*d_B,*d_work,sone=1.0,szero=0.0;
   PetscInt       j,ldq,nq;
-  PetscBLASInt   m,n,k,l,ldq_,bs=BLOCKSIZE;
+  PetscBLASInt   m=0,n=0,k=0,l,ldq_=0,bs=BLOCKSIZE;
   cublasStatus_t cberr;
   size_t         freemem,totmem;
   cublasHandle_t cublasv2handle;
@@ -229,7 +229,7 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
   BV_SVEC        *ctx = (BV_SVEC*)V->data;
   PetscScalar    *d_pv,*q,*d_q,*d_A,*d_B,*d_work,sone=1.0,szero=0.0;
   PetscInt       j,ldq,nq;
-  PetscBLASInt   m,n,k,ldq_;
+  PetscBLASInt   m=0,n=0,k=0,ldq_=0;
   cublasStatus_t cberr;
   cublasHandle_t cublasv2handle;
   cudaError_t    cerr;
@@ -275,7 +275,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
   const PetscScalar *d_px,*d_py,*d_A,*d_B;
   PetscScalar       *pm,*d_work,sone=1.0,szero=0.0,*C,*CC;
   PetscInt          j,ldm;
-  PetscBLASInt      m,n,k,ldm_;
+  PetscBLASInt      m=0,n=0,k=0,ldm_=0;
   PetscMPIInt       len;
   cublasStatus_t    cberr;
   cublasHandle_t    cublasv2handle;
@@ -385,7 +385,7 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
   BV_SVEC           *x = (BV_SVEC*)X->data;
   const PetscScalar *d_A,*d_x,*d_px,*d_py;
   PetscScalar       *d_work,szero=0.0,sone=1.0,*qq=q;
-  PetscBLASInt      n,k,one=1;
+  PetscBLASInt      n=0,k=0,one=1;
   PetscMPIInt       len;
   Vec               z = y;
   cublasStatus_t    cberr;
@@ -469,7 +469,7 @@ PetscErrorCode BVDotVec_Local_Svec_CUDA(BV X,Vec y,PetscScalar *m)
   BV_SVEC           *x = (BV_SVEC*)X->data;
   const PetscScalar *d_A,*d_x,*d_px,*d_py;
   PetscScalar       *d_y,szero=0.0,sone=1.0;
-  PetscBLASInt      n,k,one=1;
+  PetscBLASInt      n=0,k=0,one=1;
   Vec               z = y;
   cublasStatus_t    cberr;
   cublasHandle_t    cublasv2handle;
@@ -515,7 +515,7 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
   PetscErrorCode ierr;
   BV_SVEC        *ctx = (BV_SVEC*)bv->data;
   PetscScalar    *d_array, *d_A;
-  PetscBLASInt   n,one=1;
+  PetscBLASInt   n=0,one=1;
   cublasStatus_t cberr;
   cublasHandle_t cublasv2handle;
   cudaError_t    cerr;

@@ -275,7 +275,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,n2,n3,lwork,info,l,n,ld,off;
+  PetscBLASInt   n1 = 0,n2,lwork,info,l = 0,n = 0,ld,off;
   PetscScalar    *A,*Q,*work,*tau;
   PetscReal      *d,*e;
 
@@ -283,9 +283,8 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->k-l+1,&n1);CHKERRQ(ierr); /* size of leading block, excl. locked */
-  ierr = PetscBLASIntCast(n-ds->k-1,&n2);CHKERRQ(ierr); /* size of trailing block */
-  n3 = n1+n2;
+  ierr = PetscBLASIntCast(PetscMax(0,ds->k-l+1),&n1);CHKERRQ(ierr); /* size of leading block, excl. locked */
+  n2 = n-l;     /* n2 = n1 + size of trailing block */
   off = l+l*ld;
   A  = ds->mat[DS_MAT_A];
   Q  = ds->mat[DS_MAT_Q];
@@ -308,9 +307,9 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
       tau  = ds->work;
       work = ds->work+ld;
       lwork = ld*ld;
-      PetscStackCallBLAS("LAPACKsytrd",LAPACKsytrd_("L",&n3,Q+off,&ld,d+l,e+l,tau,work,&lwork,&info));
+      PetscStackCallBLAS("LAPACKsytrd",LAPACKsytrd_("L",&n2,Q+off,&ld,d+l,e+l,tau,work,&lwork,&info));
       SlepcCheckLapackInfo("sytrd",info);
-      PetscStackCallBLAS("LAPACKorgtr",LAPACKorgtr_("L",&n3,Q+off,&ld,tau,work,&lwork,&info));
+      PetscStackCallBLAS("LAPACKorgtr",LAPACKorgtr_("L",&n2,Q+off,&ld,tau,work,&lwork,&info));
       SlepcCheckLapackInfo("orgtr",info);
     } else {
       /* copy tridiagonal to d,e */
@@ -384,7 +383,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,n2,n3,info,l,n,ld,off;
+  PetscBLASInt   n1,info,l = 0,n = 0,ld,off;
   PetscScalar    *Q,*A;
   PetscReal      *d,*e;
 
@@ -393,9 +392,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->k-l+1,&n1);CHKERRQ(ierr); /* size of leading block, excl. locked */
-  ierr = PetscBLASIntCast(n-ds->k-1,&n2);CHKERRQ(ierr); /* size of trailing block */
-  n3 = n1+n2;
+  n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
   off = l+l*ld;
   Q  = ds->mat[DS_MAT_Q];
   A  = ds->mat[DS_MAT_A];
@@ -409,7 +406,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (i=0;i<l;i++) wr[i] = d[i];
 
   ierr = DSAllocateWork_Private(ds,0,2*ld,0);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ds->rwork,&info));
+  PetscStackCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n1,d+l,e+l,Q+off,&ld,ds->rwork,&info));
   SlepcCheckLapackInfo("steqr",info);
   for (i=l;i<n;i++) wr[i] = d[i];
 
@@ -432,7 +429,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,n2,n3,lwork,liwork,info,l,n,m,ld,off,il,iu,*isuppz;
+  PetscBLASInt   n1 = 0,n2 = 0,n3,lwork,liwork,info,l = 0,n = 0,m = 0,ld,off,il,iu,*isuppz;
   PetscScalar    *A,*Q,*W=NULL,one=1.0,zero=0.0;
   PetscReal      *d,*e,abstol=0.0,vl,vu;
 #if defined(PETSC_USE_COMPLEX)
@@ -510,7 +507,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,info,l,ld,off,lrwork,liwork;
+  PetscBLASInt   n1,info,l = 0,ld,off,lrwork,liwork;
   PetscScalar    *Q,*A;
   PetscReal      *d,*e;
 #if defined(PETSC_USE_COMPLEX)
@@ -570,7 +567,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   i,j,k,m,n,info,nblks,bs,ld,lde,lrwork,liwork,*ksizes,*iwork,mingapi;
+  PetscBLASInt   i,j,k,m,n = 0,info,nblks,bs = 0,ld = 0,lde,lrwork,liwork,*ksizes,*iwork,mingapi;
   PetscScalar    *Q,*A;
   PetscReal      *D,*E,*d,*e,tol=PETSC_MACHINE_EPSILON/2,tau1=1e-16,tau2=1e-18,*rwork,mingap;
 

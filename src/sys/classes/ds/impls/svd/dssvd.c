@@ -170,7 +170,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n1,n2,n3,m2,m3,info,l,n,m,nm,ld,off,lwork;
+  PetscBLASInt   n1,m1,info,l = 0,n = 0,m = 0,nm,ld,off,lwork;
   PetscScalar    *A,*U,*VT,qwork;
   PetscReal      *d,*e,*Ur,*VTr;
 #if defined(PETSC_USE_COMPLEX)
@@ -182,11 +182,8 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->m,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->k-l+1,&n1);CHKERRQ(ierr); /* size of leading block, excl. locked */
-  ierr = PetscBLASIntCast(n-ds->k-1,&n2);CHKERRQ(ierr); /* size of trailing block */
-  ierr = PetscBLASIntCast(m-ds->k-1,&m2);CHKERRQ(ierr);
-  n3 = n1+n2;
-  m3 = n1+m2;
+  n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
+  m1 = m-l;
   off = l+l*ld;
   A  = ds->mat[DS_MAT_A];
   U  = ds->mat[DS_MAT_U];
@@ -211,7 +208,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     Ur  = U;
     VTr = VT;
 #endif
-    PetscStackCallBLAS("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n3,d+l,e+l,Ur+off,&ld,VTr+off,&ld,NULL,NULL,ds->rwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n1,d+l,e+l,Ur+off,&ld,VTr+off,&ld,NULL,NULL,ds->rwork,ds->iwork,&info));
     SlepcCheckLapackInfo("bdsdc",info);
 #if defined(PETSC_USE_COMPLEX)
     for (i=l;i<n;i++) {
@@ -230,17 +227,17 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
     ierr = DSAllocateWork_Private(ds,0,5*nm*nm+7*nm,0);CHKERRQ(ierr);
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info));
 #else
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->iwork,&info));
 #endif
     SlepcCheckLapackInfo("gesdd",info);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPart(qwork),&lwork);CHKERRQ(ierr);
     ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
 #else
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->iwork,&info));
 #endif
     SlepcCheckLapackInfo("gesdd",info);
   }

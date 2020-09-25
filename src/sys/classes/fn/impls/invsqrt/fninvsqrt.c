@@ -100,7 +100,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n = 0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -117,7 +117,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n = 0;
   PetscScalar    *T;
   PetscInt       m;
 

@@ -90,14 +90,13 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
 PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscScalar *A,PetscScalar *eigi,PetscBool mpi)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   m,n,j,k,info,zero=0;
+  PetscBLASInt   m,j,k,info,zero=0;
   PetscMPIInt    len;
   PetscReal      *norms,*rwork=NULL,*rwork2=NULL,done=1.0;
 
   PetscFunctionBegin;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
   ierr = BVAllocateWork_Private(bv,2*n_);CHKERRQ(ierr);
   rwork = (PetscReal*)bv->work;
   rwork2 = rwork+n_;
@@ -127,7 +126,7 @@ PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const Pe
     SlepcCheckLapackInfo("lascl",info);
     if (k==2) j++;
   }
-  ierr = PetscLogFlops(3.0*m*n);CHKERRQ(ierr);
+  ierr = PetscLogFlops(3.0*m*n_);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -141,7 +140,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   PetscErrorCode ierr;
   PetscInt       i,k,l,n,m,ld,lds;
   PetscScalar    *pR,*pS;
-  PetscBLASInt   info,n_,m_,ld_,lds_;
+  PetscBLASInt   info,n_ = 0,m_ = 0,ld_,lds_;
 
   PetscFunctionBegin;
   l = bv->l;
@@ -216,7 +215,7 @@ PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
   PetscErrorCode ierr;
   PetscInt       i,k,l,n,m,ld,lds;
   PetscScalar    *pR,*pS;
-  PetscBLASInt   info,n_,m_,ld_,lds_;
+  PetscBLASInt   info,n_,m_ = 0,ld_,lds_;
 
   PetscFunctionBegin;
   l = bv->l;
@@ -271,7 +270,7 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
   PetscInt       i,j,k,l,n,m,ld,lds;
   PetscScalar    *pR,*pS,*D,*work,a;
   PetscReal      *eig,dummy;
-  PetscBLASInt   info,lwork,n_,m_,ld_,lds_;
+  PetscBLASInt   info,lwork,n_,m_ = 0,ld_,lds_;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork,rdummy;
 #endif
@@ -354,7 +353,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
 {
   PetscErrorCode ierr;
   PetscInt       level,plevel,nlevels,powtwo,lda,worklen;
-  PetscBLASInt   m,n,i,j,k,l,s,nb,sz,lwork,info;
+  PetscBLASInt   m,n,i,j,k,l,s = 0,nb,sz,lwork,info;
   PetscScalar    *tau,*work,*A=NULL,*QQ=NULL,*Qhalf,*C=NULL,one=1.0,zero=0.0;
   PetscMPIInt    rank,size,count,stride;
   MPI_Datatype   tmat;

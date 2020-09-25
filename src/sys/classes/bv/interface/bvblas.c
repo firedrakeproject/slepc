@@ -118,7 +118,7 @@ PetscErrorCode BVMultInPlace_Vecs_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt
   PetscErrorCode    ierr;
   PetscScalar       zero=0.0,one=1.0,*out,*pout;
   const PetscScalar *pin;
-  PetscBLASInt      m,n,k,l,bs=BLOCKSIZE;
+  PetscBLASInt      m = 0,n,k,l,bs=BLOCKSIZE;
   PetscInt          j;
   const char        *bt;
 
