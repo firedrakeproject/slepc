@@ -108,6 +108,9 @@ check_build:
          if test -s .ftn.log; then \
            ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; \
          fi ; ${RM} .ftn.log && \
+	 if [ "${CUDA_LIB}" != "" ]; then \
+           ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10_cuda; \
+         fi; \
 	 if [ "${BLOPEX_LIB}" != "" ]; then \
            ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; \
          fi
