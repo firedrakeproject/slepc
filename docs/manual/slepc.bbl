@@ -9,6 +9,14 @@ Anderson, E., Z.~Bai, C.~Bischof, J.~Demmel, J.~Dongarra, J.~D. Croz,
 \newblock {\em {LAPACK} User's Guide\/}.
 \newblock SIAM, Philadelphia.
 
+\bibitem[{Auckenthaler {\em et~al.\/}(2011)Auckenthaler, Blum, Bungartz, Huckle,
+  Johanni, Kramer, Lang, Lederer, and Willems}]{Auckenthaler:2011:ELP}
+Auckenthaler, T., V.~Blum, H.-J.~Bungartz, T.~Huckle, R.~Johanni,
+L.~Kr{\"a}mer, B.~Lang, H.~Lederer, and P.~R.~Willems (2011).
+\newblock Parallel solution of partial symmetric eigenvalue problems from
+electronic structure calculations.
+\newblock {\em Parallel Comput.\/}, 37:783--794.
+
 \bibitem[{Bai {\em et~al.\/}(2000)Bai, Demmel, Dongarra, Ruhe, and van~der
   Vorst}]{Bai:2000:TSA}
 Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).

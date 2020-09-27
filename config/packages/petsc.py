@@ -126,6 +126,8 @@ class PETSc(package.Package):
           self.ranlib = v
         elif k == 'BLASLAPACK_LIB':
           self.blaslapack_lib = v
+        elif k == 'SCALAPACK_LIB':
+          self.scalapack_lib = v
       f.close()
     except:
       self.log.Exit('Cannot process file ' + petscvariables)

@@ -43,6 +43,9 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS);
 #if defined(SLEPC_HAVE_SCALAPACK)
 SLEPC_EXTERN PetscErrorCode EPSCreate_ScaLAPACK(EPS);
 #endif
+#if defined(SLEPC_HAVE_ELPA)
+SLEPC_EXTERN PetscErrorCode EPSCreate_ELPA(EPS);
+#endif
 #if defined(SLEPC_HAVE_ELEMENTAL)
 SLEPC_EXTERN PetscErrorCode EPSCreate_Elemental(EPS);
 #endif
@@ -95,6 +98,9 @@ PetscErrorCode EPSRegisterAll(void)
 #endif
 #if defined(SLEPC_HAVE_SCALAPACK)
   ierr = EPSRegister(EPSSCALAPACK,EPSCreate_ScaLAPACK);CHKERRQ(ierr);
+#endif
+#if defined(SLEPC_HAVE_ELPA)
+  ierr = EPSRegister(EPSELPA,EPSCreate_ELPA);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_ELEMENTAL)
   ierr = EPSRegister(EPSELEMENTAL,EPSCreate_Elemental);CHKERRQ(ierr);
