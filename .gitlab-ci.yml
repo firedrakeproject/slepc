@@ -356,7 +356,6 @@ gnu-c-cuda:
   variables:
     PETSC_CONFIG_OPTS: --with-cuda --with-openmp --download-mumps --download-scalapack --download-metis --download-parmetis
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
-  allow_failure: true
 
 clang-c:
   extends:
@@ -474,7 +473,6 @@ gnu-c-cuda-complex:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-openmp --download-thrust
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
     TEST_OPTS: -j1 query=requires queryval=cuda
-  allow_failure: true
 
 gnu-c-cuda-single:
   extends:
@@ -486,7 +484,6 @@ gnu-c-cuda-single:
     PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-visibility=1 --with-cuda --with-openmp
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
     TEST_OPTS: -j1 query=requires queryval=cuda
-  allow_failure: true
 
 intel-c-complex-int64-mkl:
   extends:
