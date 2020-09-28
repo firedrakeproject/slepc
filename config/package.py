@@ -46,6 +46,7 @@ class Package:
     self.fortran         = False
     self.hasheaders      = False
     self.hasdloadflags   = False
+    self.builtafterslepc = False
 
   def RunCommand(self,instr):
     try:
@@ -105,22 +106,26 @@ class Package:
           self.log.Exit('--download-'+self.packagename+'-cflags must be used together with --download-'+self.packagename)
         self.buildflags = string
 
-  def Process(self,slepcconf,slepcvars,slepc,petsc,archdir=''):
+  def Process(self,slepcconf,slepcvars,slepcrules,slepc,petsc,archdir=''):
     self.make = petsc.make
     if petsc.buildsharedlib:
       self.slflag = petsc.slflag
     if self.requested:
       name = self.packagename.upper()
-      if self.downloadpackage:
+      if self.downloadpackage and self.builtafterslepc:
+        self.log.NewSection('Downloading '+name+'...')
+        self.Precondition(slepc,petsc)
+        self.DownloadOnly(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir,slepc.prefixdir)
+      elif self.downloadpackage:
         if hasattr(self,'version'):
           self.log.NewSection('Installing '+name+' version '+self.version+'...')
         else:
           self.log.NewSection('Installing '+name+'...')
-        self.Precondition(petsc)
+        self.Precondition(slepc,petsc)
         self.DownloadAndInstall(slepcconf,slepcvars,slepc,petsc,archdir,slepc.prefixdir)
       elif self.installable:
         self.log.NewSection('Checking '+name+'...')
-        self.Precondition(petsc)
+        self.Precondition(slepc,petsc)
         self.Check(slepcconf,slepcvars,petsc,archdir)
         if not self.havepackage: self.log.setLastFailed()
       try:
@@ -128,8 +133,11 @@ class Package:
         self.log.write('Version number for '+name+' is '+self.iversion)
       except AttributeError:
         pass
+    else: # not requested
+      if hasattr(self,'SkipInstall'):
+        self.SkipInstall(slepcrules)
 
-  def Precondition(self,petsc):
+  def Precondition(self,slepc,petsc):
     package = self.packagename.upper()
     if petsc.scalar == 'complex':
       if 'complex' not in self.supportsscalar:
@@ -279,6 +287,8 @@ Downloaded package %s from: %s is not a tarball.
     if self.havepackage:
       if hasattr(self,'petscdepend'):
         self.log.Println(self.packagename.upper()+' from %s linked by PETSc' % self.petscdepend.upper())
+      elif self.builtafterslepc:
+        self.log.Println(self.packagename.upper()+' to be built after SLEPc')
       else:
         self.log.Println(self.packagename.upper()+' library flags:')
         self.log.Println(' '+' '.join(self.packageflags))

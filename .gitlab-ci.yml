@@ -196,6 +196,7 @@ checksource:
     - bash -c "${PYTHON} ./configure --with-debugging=0 --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O' ${PETSC_CONFIG_OPTS}"
     - make allfortranstubs
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS}
+    - if [ ! -z ${SLEPC4PY+x} ]; then export PYTHONPATH=$PETSC_DIR/$PETSC_ARCH/lib; echo $PYTHONPATH; fi
     - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
     - echo -e "section_start:`date +%s`:build_slepc\r\e[0KSLEPc configure and make"
     - cd $SLEPC_DIR
@@ -428,8 +429,9 @@ gnu-c:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --download-superlu_dist --download-elemental --download-metis --download-parmetis
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009
+    PETSC_CONFIG_OPTS: --download-superlu_dist --download-elemental --download-metis --download-parmetis --download-petsc4py
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --download-slepc4py
+    SLEPC4PY: 1
 
 gnu-c-c99-nompi:
   extends:

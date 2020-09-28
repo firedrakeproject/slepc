@@ -103,7 +103,7 @@ else:
   packagesinpetsc = ''
 
 # Load classes for packages and process their command-line options
-import arpack, blopex, blzpack, elemental, feast, hpddm, primme, scalapack, slicot, trlan, sowing, lapack
+import arpack, blopex, blzpack, elemental, feast, hpddm, primme, scalapack, slepc4py, slicot, trlan, sowing, lapack
 arpack    = arpack.Arpack(argdb,log)
 blopex    = blopex.Blopex(argdb,log)
 blzpack   = blzpack.Blzpack(argdb,log)
@@ -114,10 +114,11 @@ trlan     = trlan.Trlan(argdb,log)
 sowing    = sowing.Sowing(argdb,log)
 lapack    = lapack.Lapack(argdb,log)
 scalapack = scalapack.Scalapack(argdb,log,packagesinpetsc)
+slepc4py  = slepc4py.Slepc4py(argdb,log)
 slicot    = slicot.Slicot(argdb,log)
 hpddm     = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, hpddm, primme, slicot, trlan]
+externalpackages = [arpack, blopex, blzpack, hpddm, primme, slicot, slepc4py, trlan]
 petscpackages    = [lapack, elemental, feast, scalapack]
 checkpackages    = petscpackages + externalpackages
 
@@ -222,6 +223,7 @@ includedir = slepc.CreateDir(archdir,'include')
 modulesdir = slepc.CreateDirTwo(confdir,'modules','slepc')
 pkgconfdir = slepc.CreateDir(libdir,'pkgconfig')
 slepcvars  = slepc.CreateFile(confdir,'slepcvariables')
+slepcrules = slepc.CreateFile(confdir,'slepcrules')
 slepcconf  = slepc.CreateFile(includedir,'slepcconf.h')
 pkgconfig  = slepc.CreateFile(pkgconfdir,'slepc.pc')
 if slepc.isinstall:
@@ -284,7 +286,7 @@ if petsc.singlelib:
 
 # Check for external packages and for missing LAPACK functions
 for pkg in checkpackages:
-  pkg.Process(slepcconf,slepcvars,slepc,petsc,archdir)
+  pkg.Process(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir)
 
 # Write Modules and pkg-config configuration files
 log.NewSection('Writing various configuration files...')
@@ -305,6 +307,7 @@ if not slepc.isinstall:
     log.Exit('Unable to make reconfigure script executable:\n'+str(e))
 
 # Finish with configuration files (except slepcvars)
+slepcrules.close()
 slepcconf.write('\n#endif\n')
 slepcconf.close()
 pkgconfig.close()

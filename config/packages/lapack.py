@@ -24,7 +24,7 @@ class Lapack(package.Package):
     if hasattr(self,'missing'):
       self.log.Warn('Missing LAPACK functions: %s.\nSome SLEPc functionality will not be available.\nPlease reconfigure and recompile PETSc with a full LAPACK implementation'%(' '.join(self.missing)))
 
-  def Process(self,slepcconf,slepcvars,slepc,petsc,archdir=''):
+  def Process(self,slepcconf,slepcvars,slepcrules,slepc,petsc,archdir=''):
     self.make = petsc.make
     self.mangling = petsc.blaslapackmangling
     if petsc.buildsharedlib:

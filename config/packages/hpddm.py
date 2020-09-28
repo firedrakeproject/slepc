@@ -28,7 +28,7 @@ class HPDDM(package.Package):
     self.supports64bint = True
     self.ProcessArgs(argdb)
 
-  def Precondition(self,petsc):
+  def Precondition(self,slepc,petsc):
     pkg = self.packagename.upper()
     if not petsc.cxxdialectcxx11:
       self.log.Exit(pkg+' requires C++11')
@@ -36,7 +36,7 @@ class HPDDM(package.Package):
       self.log.Exit(pkg+' requires a shared library build')
     if self.packagename in petsc.packages:
       self.log.Exit(pkg+' requires PETSc to be built without '+pkg)
-    package.Package.Precondition(self,petsc)
+    package.Package.Precondition(self,slepc,petsc)
 
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
