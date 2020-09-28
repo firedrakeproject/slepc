@@ -15,6 +15,10 @@
 - Rename `XXXReasonView()` to `XXXConvergedReasonView()`, and `XXXReasonViewFromOptions()`
   to `XXXConvergedReasonViewFromOptions()`.
 
+### Deprecated
+
+- The `NEPCISS` solver has been deprecated and will be completely removed in future versions.
+
 ## [3.13] - 2020-03-31
 
 ### Added

@@ -472,9 +472,6 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 
     The target is a scalar value provided with NEPSetTarget().
 
-    NEP_ALL is intended for use in the context of the CISS solver for
-    computing all eigenvalues in a region.
-
     Level: intermediate
 
 .seealso: NEPGetWhichEigenpairs(), NEPSetTarget(), NEPSetEigenvalueComparison(), NEPWhich
