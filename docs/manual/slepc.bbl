@@ -33,7 +33,7 @@ Balay, S., S.~Abhyankar, M.~Adams, J.~Brown, P.~Brune, K.~Buschelman,
   D.~May, L.~C. McInnes, R.~Mills, T.~Munson, K.~Rupp, P.~Sanan, B.~Smith,
   S.~Zampini, H.~Zhang, and H.~Zhang (2020).
 \newblock {PETSc} Users Manual.
-\newblock Technical Report ANL-95/11 - Revision 3.13, Argonne National
+\newblock Technical Report ANL-95/11 - Revision 3.14, Argonne National
   Laboratory.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and
@@ -85,6 +85,11 @@ Campos, C. and J.~E. Roman (2016{\natexlab{b}}).
   {SLEPc}.
 \newblock {\em {SIAM} J. Sci. Comput.\/}, 38(5):S385--S411.
 
+\bibitem[{Campos and Roman(2019)}]{Campos:2019:NEP}
+Campos, C. and J.~E. Roman (2019).
+\newblock NEP: a module for the parallel solution of nonlinear eigenvalue problems in SLEPc.
+\newblock Tech.\ Rep.\ arXiv:1910.11712.
+
 \bibitem[{Campos and Roman(2020{\natexlab{a}})}]{Campos:2020:PJS}
 Campos, C. and J.~E. Roman (2020{\natexlab{a}}).
 \newblock A polynomial {Jacobi--Davidson} solver with support for non-monomial
@@ -94,7 +99,7 @@ Campos, C. and J.~E. Roman (2020{\natexlab{a}}).
 \bibitem[{Campos and Roman(2020{\natexlab{b}})}]{Campos:2020:ISS}
 Campos, C. and J.~E. Roman (2020{\natexlab{b}}).
 \newblock Inertia-based spectrum slicing for symmetric quadratic eigenvalue problems.
-\newblock {\em Numer. Linear Algebra Appl.\/}, (in press).
+\newblock {\em Numer. Linear Algebra Appl.\/}, 27(4):e2293.
 
 \bibitem[{Canning {\em et~al.\/}(2000)Canning, Wang, Williamson, and
   Zunger}]{Canning:2000:PEP}

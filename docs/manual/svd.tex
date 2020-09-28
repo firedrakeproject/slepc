@@ -189,6 +189,7 @@ The available methods for computing the partial SVD are shown in Table \ref{tab:
 \item Solvers based on \ident{EPS}. These solvers set up an \ident{EPS} object internally, thus using the available eigensolvers for solving the SVD problem. The two possible approaches in this case are the cross product matrix and the cyclic matrix, as described in \S\ref{sec:svd}.
 \item Specific SVD solvers. These are typically eigensolvers that have been adapted algorithmically to exploit the structure of the SVD problem. There are currently two solvers in this category: Lanczos and thick-restart Lanczos. A detailed description of these methods can be found in \hyperlink{str}{[STR-8]}.
 \item The \lapack solver. This is an interface to some LAPACK routines, analog of those in the case of eigenproblems. These routines operate in dense mode with only one processor and therefore are suitable only for moderate size problems. This solver should be used only for debugging purposes.
+\item External packages: \scalapack and \elemental are dense packages and compute the complete SVD, while \primme offers Davidson-type methods to compute only a few singular triplets.
 \end{itemize}
 The default solver is the one that uses the cross product matrix (\texttt{cross}), usually the fastest and most memory-efficient approach. See a more detailed explanation below.
 

@@ -181,7 +181,7 @@ The problem type can be specified at run time with the corresponding command lin
 	\end{Verbatim}
 
 By default, \slepc assumes that the problem is non-Hermitian. Some eigensolvers are able to exploit symmetry, that is, they compute a solution for Hermitian problems with less storage and/or computational cost than other methods that ignore this property. Also, symmetric solvers may be more accurate. On the other hand, some eigensolvers in \slepc only have a symmetric version and will abort if the problem is non-Hermitian.
-In the case of generalized eigenproblems some considerations apply regarding symmetry, especially in the case of singular $B$. This topic is tackled in \S\ref{sec:symm} and \S\ref{sec:purif}.
+In the case of generalized eigenproblems some considerations apply regarding symmetry, especially in the case of singular $B$. This topic is covered in \S\ref{sec:symm} and \S\ref{sec:purif}.
 For all these reasons, the user is strongly recommended to always specify the problem type in the source code.
 
 	The characteristics of the problem can be determined with the functions
@@ -325,9 +325,7 @@ Wrapper to \feast          & \texttt{EPSFEAST}    & \texttt{feast} \\\hline
 \caption{\label{tab:solvers}Eigenvalue solvers available in the \ident{EPS} module.}
 \end{table}
 
-The default solver is Krylov-Schur. A detailed description of the implemented algorithms is provided in the \hyperlink{str}{\slepc Technical Reports}. In addition to these methods, \slepc also provides wrappers to external packages such as \arpack, \blzpack, or \trlan. A complete list of these interfaces can be found in \S\ref{sec:wrap}.
-
-As an alternative, \slepc provides an interface to some \lapack routines. These routines operate in dense mode with only one processor and therefore are suitable only for moderate size problems. This solver should be used only for debugging purposes.
+The default solver is Krylov-Schur. A detailed description of the implemented algorithms is provided in the \hyperlink{str}{\slepc Technical Reports}. In addition to these methods, \slepc also provides wrappers to external packages such as \arpack, \blzpack, or \trlan. A complete list of these interfaces can be found in \S\ref{sec:wrap}. Note that some of these packages (\lapack, \scalapack, \elpa, \elemental) perform \emph{dense} computations and hence return the full eigendecomposition (furthermore, take into account that \lapack is a sequential library so the corresponding solver should be used only for debugging purposes with small problem sizes).
 
 The solution method can be specified procedurally or via the command line. The application programmer can set it by means of the command
 	\findex{EPSSetType}

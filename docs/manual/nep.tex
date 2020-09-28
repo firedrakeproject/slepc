@@ -20,6 +20,8 @@
 
 In terms of the user interface, \ident{NEP} is quite similar to previously discussed solvers. The main difference is how to represent the function $T$. We will show different alternatives for this.
 
+The \ident{NEP} module of SLEPc has been explained with more detail in \citep{Campos:2019:NEP}, including an algorithmic description of the implemented solvers.
+
 \section{\label{sec:nep}General Nonlinear Eigenproblems}
 
 As in previous chapters, we first set up the notation and briefly review basic properties of the eigenvalue problems to be addressed. In this case, we focus on general nonlinear eigenproblems, that is, those that cannot be expressed in a simpler form such as a polynomial eigenproblem. These problems arise in many applications, such as the discretization of delay differential equations. Some of the methods designed to solve such problems are based on Newton-type iterations, so in some ways \ident{NEP} has similarities to \petsc's nonlinear solvers \ident{SNES}. For background material on the nonlinear eigenproblem, the reader is referred to \citep{Guttel:2017:NEP}, \citep{Mehrmann:2004:NEP}.
@@ -157,8 +159,6 @@ Two-sided variants can be selected with
 %---------------------------------------------------
 \subsection{\label{sec:nepsplit}Expressing the NEP in Split Form}
 
-Instead of implementing callback functions for $T(\lambda)$ and $T'(\lambda)$, a usually simpler alternative is to use the split form of the nonlinear eigenproblem \eqref{eq:split}. Note that in split form, we have $T'(\lambda)=\sum_{i=0}^{\ell-1}A_if'_i(\lambda)$, so the derivatives of $f_i(\lambda)$ are also required. As described below, we will represent each of the analytic functions $f_i$ by means of an auxiliary object \ident{FN} that holds both the function and its derivative.
-
 \begin{figure}
 \begin{Verbatim}[fontsize=\small,numbers=left,numbersep=6pt,xleftmargin=15mm]
   FNCreate(PETSC_COMM_WORLD,&f1);  /* f1 = -lambda */
@@ -182,6 +182,8 @@ Instead of implementing callback functions for $T(\lambda)$ and $T'(\lambda)$, a
 \end{Verbatim}
 \caption{\label{fig:ex-split}Example code for defining the \ident{NEP} eigenproblem in the split form.}
 \end{figure}
+
+Instead of implementing callback functions for $T(\lambda)$ and $T'(\lambda)$, a usually simpler alternative is to use the split form of the nonlinear eigenproblem \eqref{eq:split}. Note that in split form, we have $T'(\lambda)=\sum_{i=0}^{\ell-1}A_if'_i(\lambda)$, so the derivatives of $f_i(\lambda)$ are also required. As described below, we will represent each of the analytic functions $f_i$ by means of an auxiliary object \ident{FN} that holds both the function and its derivative.
 
 Hence, for the split form representation we must provide $\ell$ matrices $A_i$ and the corresponding functions $f_i(\lambda)$, by means of%
 	\findex{NEPSetSplitOperator}

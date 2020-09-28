@@ -231,7 +231,7 @@ PetscErrorCode SlepcCitationsInitialize()
   ierr = PetscCitationsRegister("@TechReport{slepc-manual,\n"
     "   author = \"J. E. Roman and C. Campos and E. Romero and A. Tomas\",\n"
     "   title = \"{SLEPc} Users Manual\",\n"
-    "   number = \"DSIC-II/24/02 - Revision 3.13\",\n"
+    "   number = \"DSIC-II/24/02 - Revision 3.14\",\n"
     "   institution = \"D. Sistemes Inform\\`atics i Computaci\\'o, Universitat Polit\\`ecnica de Val\\`encia\",\n"
     "   year = \"2020\"\n"
     "}\n",NULL);CHKERRQ(ierr);

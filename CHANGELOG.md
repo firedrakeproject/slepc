@@ -1,17 +1,17 @@
 # Changelog of SLEPc versions
 
-## [Unreleased]
+## [3.14] - 2020-09-30
 
 ### Added
 
 - Add interfaces to dense eigensolvers and SVD solvers in ScaLAPACK, ELPA and Elemental.
 - Reintroduce interface to FEAST external solver via MKL.
-- New configure option `--download-slepc4py`
+- New configure option `--download-slepc4py`.
 
 ### Changed
 
-- `EPSLOBPCG`, `EPSCISS`, and `NEPCISS` now use `MatProduct()/KSPMatSolve()`
-  instead of `MatMult()/KSPSolve()`.
+- `EPSLOBPCG` and `EPSCISS` now use `MatProduct()`/`KSPMatSolve()` instead of
+  `MatMult()`/`KSPSolve()`.
 - Rename `XXXReasonView()` to `XXXConvergedReasonView()`, and `XXXReasonViewFromOptions()`
   to `XXXConvergedReasonViewFromOptions()`.
 
@@ -314,7 +314,8 @@
 - Classical and modified Gram-Schmidt orthogonalization use iterative refinement, with user options
   for parameter adjustment.
 
-[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.13...master
+[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.14...master
+[3.14]: https://gitlab.com/slepc/slepc/compare/v3.13...v3.14
 [3.13]: https://gitlab.com/slepc/slepc/compare/v3.12...v3.13
 [3.12]: https://gitlab.com/slepc/slepc/compare/v3.11...v3.12
 [3.11]: https://gitlab.com/slepc/slepc/compare/v3.10...v3.11

@@ -69,7 +69,7 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 
 Support for graphics processor unit (GPU) computing is included in \slepc. This is related to \S\ref{sec:supported} because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. GPU support in \slepc has been tested in all solver classes and most solvers should work, although the performance gain to be expected depends on the particular algorithm. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
 
-\slepc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{https://developer.nvidia.com/cuda-zone}} (and later), that provides a C/C++ compiler with CUDA extensions as well as the cuBLAS and cuSPARSE libraries that implement dense and sparse linear algebra operations. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
+\slepc's GPU support currently relies on NVIDIA CUDA Toolkit 7.5\footnote{\url{https://developer.nvidia.com/cuda-zone}} (and later), that provides a C/C++ compiler with CUDA extensions as well as the cuBLAS and cuSPARSE libraries that implement dense and sparse linear algebra operations. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
 	\begin{Verbatim}[fontsize=\small]
 	$ ./configure --with-precision=single --with-cuda
 	\end{Verbatim}
@@ -484,7 +484,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\setlength{\itemsep}{0pt}
 	\item[References.]\citep{Blackford:1997:SUG}.
 	\item[Website.] \url{http://www.netlib.org/scalapack}.
-	\item[Summary.] \scalapack is a library of high-performance linear algebra routines for parallel distributed memory machines. It contains eigensolvers for dense Hermitian eigenvalue problems, as well as solvers for the SVD.
+	\item[Summary.] \scalapack is a library of high-performance linear algebra routines for parallel distributed memory machines. It contains eigensolvers for dense Hermitian eigenvalue problems, as well as solvers for the (dense) SVD.
 	\item[Installation.] For using \scalapack from \slepc it is necessary to select it during configuration of \petsc.
 	\end{description}
 
@@ -493,7 +493,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\setlength{\itemsep}{0pt}
 	\item[References.]\citep{Auckenthaler:2011:ELP}.
 	\item[Website.] \url{http://elpa.mpcdf.mpg.de/}.
-	\item[Summary.] \elpa is a high-performance library for the parallel solution of dense symmetric eigenvalue problems on distributed memory computers. It uses a ScaLAPACK-compatible matrix distribution.
+	\item[Summary.] \elpa is a high-performance library for the parallel solution of dense symmetric (or Hermitian) eigenvalue problems on distributed memory computers. It uses a ScaLAPACK-compatible matrix distribution.
 	\item[Installation.] The \slepc wrapper to \elpa can be activated at configure time with the option \texttt{-{}-download\_elpa}, in which case \scalapack support must have been enabled during the configuration of \petsc.
 	\end{description}
 
