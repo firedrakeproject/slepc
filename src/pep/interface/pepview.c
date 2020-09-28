@@ -535,6 +535,31 @@ static PetscErrorCode PEPValuesView_DRAW(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode PEPValuesView_BINARY(PEP pep,PetscViewer viewer)
+{
+#if defined(PETSC_HAVE_COMPLEX)
+  PetscInt       i,k;
+  PetscComplex   *ev;
+  PetscErrorCode ierr;
+#endif
+
+  PetscFunctionBegin;
+#if defined(PETSC_HAVE_COMPLEX)
+  ierr = PetscMalloc1(pep->nconv,&ev);CHKERRQ(ierr);
+  for (i=0;i<pep->nconv;i++) {
+    k = pep->perm[i];
+#if defined(PETSC_USE_COMPLEX)
+    ev[i] = pep->eigr[k];
+#else
+    ev[i] = PetscCMPLX(pep->eigr[k],pep->eigi[k]);
+#endif
+  }
+  ierr = PetscViewerBinaryWrite(viewer,ev,pep->nconv,PETSC_COMPLEX);CHKERRQ(ierr);
+  ierr = PetscFree(ev);CHKERRQ(ierr);
+#endif
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode PEPValuesView_ASCII(PEP pep,PetscViewer viewer)
 {
   PetscInt       i,k;
@@ -599,7 +624,7 @@ static PetscErrorCode PEPValuesView_MATLAB(PEP pep,PetscViewer viewer)
 @*/
 PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
 {
-  PetscBool         isascii,isdraw;
+  PetscBool         isascii,isdraw,isbinary;
   PetscViewerFormat format;
   PetscErrorCode    ierr;
 
@@ -612,9 +637,12 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
   PetscCheckSameComm(pep,1,viewer,2);
   PEPCheckSolved(pep,1);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERBINARY,&isbinary);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isdraw) {
     ierr = PEPValuesView_DRAW(pep,viewer);CHKERRQ(ierr);
+  } else if (isbinary) {
+    ierr = PEPValuesView_BINARY(pep,viewer);CHKERRQ(ierr);
   } else if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     switch (format) {
