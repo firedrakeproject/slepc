@@ -127,6 +127,10 @@ int main(int argc,char **argv)
          requires: scalapack
          args: -eps_type scalapack
       test:
+         suffix: 1_elpa
+         requires: elpa
+         args: -eps_type elpa
+      test:
          suffix: 1_elemental
          requires: elemental
          args: -eps_type elemental

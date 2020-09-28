@@ -488,6 +488,15 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\item[Installation.] For using \scalapack from \slepc it is necessary to select it during configuration of \petsc.
 	\end{description}
 
+\subsection*{\underline{\elpa}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Auckenthaler:2011:ELP}.
+	\item[Website.] \url{http://elpa.mpcdf.mpg.de/}.
+	\item[Summary.] \elpa is a high-performance library for the parallel solution of dense symmetric eigenvalue problems on distributed memory computers. It uses a ScaLAPACK-compatible matrix distribution.
+	\item[Installation.] The \slepc wrapper to \elpa can be activated at configure time with the option \texttt{-{}-download\_elpa}, in which case \scalapack support must have been enabled during the configuration of \petsc.
+	\end{description}
+
 \subsection*{\underline{\elemental}}
 	\begin{description}
 	\setlength{\itemsep}{0pt}

@@ -59,6 +59,7 @@ typedef const char* EPSType;
 #define EPSPRIMME      "primme"
 #define EPSFEAST       "feast"
 #define EPSSCALAPACK   "scalapack"
+#define EPSELPA        "elpa"
 #define EPSELEMENTAL   "elemental"
 
 /* Logging support */
