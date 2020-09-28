@@ -540,5 +540,5 @@ intel-cxx-mkl:
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-elpa --with-packages-download-dir=/var/local/downloads
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 

@@ -30,11 +30,13 @@ class Elpa(package.Package):
     pkg = self.packagename.upper()
     if not 'scalapack' in petsc.packages:
       self.log.Exit('The ELPA interface requires that PETSc has been built with ScaLAPACK')
+    if petsc.language == 'c++':
+      self.log.Exit('The ELPA interface currently does not support compilation with C++')
     package.Package.Precondition(self,slepc,petsc)
 
 
   def SampleCode(self,petsc):
-    code = '#include <stdio.h>\n'
+    code = '#include <stdlib.h>\n'
     code += '#include <elpa/elpa.h>\n'
     code += 'int main() {\n'
     code += '  elpa_t handle;\n'
