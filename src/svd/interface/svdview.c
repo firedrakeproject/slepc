@@ -407,6 +407,23 @@ static PetscErrorCode SVDValuesView_DRAW(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode SVDValuesView_BINARY(SVD svd,PetscViewer viewer)
+{
+  PetscInt       i,k;
+  PetscReal      *sv;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscMalloc1(svd->nconv,&sv);CHKERRQ(ierr);
+  for (i=0;i<svd->nconv;i++) {
+    k = svd->perm[i];
+    sv[i] = svd->sigma[k];
+  }
+  ierr = PetscViewerBinaryWrite(viewer,sv,svd->nconv,PETSC_REAL);CHKERRQ(ierr);
+  ierr = PetscFree(sv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode SVDValuesView_ASCII(SVD svd,PetscViewer viewer)
 {
   PetscInt       i;
@@ -455,7 +472,7 @@ static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
 @*/
 PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
 {
-  PetscBool         isascii,isdraw;
+  PetscBool         isascii,isdraw,isbinary;
   PetscViewerFormat format;
   PetscErrorCode    ierr;
 
@@ -468,9 +485,12 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
   PetscCheckSameComm(svd,1,viewer,2);
   SVDCheckSolved(svd,1);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERBINARY,&isbinary);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isdraw) {
     ierr = SVDValuesView_DRAW(svd,viewer);CHKERRQ(ierr);
+  } else if (isbinary) {
+    ierr = SVDValuesView_BINARY(svd,viewer);CHKERRQ(ierr);
   } else if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     switch (format) {
