@@ -702,7 +702,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nmax,nmax,pH,&H);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nmax,nmax,pK,&K);CHKERRQ(ierr);
   for (j=0;matrix&&j<nep->nt;j++) {
-    PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
+    PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
     ierr = FNEvaluateFunctionMat(nep->f[j],H,K);
     PetscPopErrorHandler();
     if (!ierr) {

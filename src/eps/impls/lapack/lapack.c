@@ -42,7 +42,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
     ierr = MatHasOperation(A,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
     if (flg) {
-      PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
+      PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
       ierra  = MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);
       if (!ierra) { ierra |= MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&Adense); }
       ierra |= MatDestroy(&Ar);
@@ -52,7 +52,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
       ierr = MatHasOperation(B,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
       if (flg) {
-        PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
+        PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
         ierrb  = MatCreateRedundantMatrix(B,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Br);
         if (!ierrb) { ierrb |= MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&Bdense); }
         ierrb |= MatDestroy(&Br);
