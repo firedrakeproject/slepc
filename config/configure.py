@@ -355,7 +355,7 @@ if slepc.isinstall:
 log.Println('PETSc directory:\n '+petsc.dir)
 if petsc.isrepo:
   log.Println('  It is a git repository on branch: '+petsc.branch)
-  if slepc.isrepo and petsc.branch!='maint' and slepc.branch!='maint':
+  if slepc.isrepo and petsc.branch!='release' and slepc.branch!='release':
     try:
       import dateutil.parser, datetime
       petscdate = dateutil.parser.parse(petsc.gitdate)

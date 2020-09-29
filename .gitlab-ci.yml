@@ -61,7 +61,7 @@ variables:
       then
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
         then
-          if [ ! -d petsc ]; then git clone --depth 1 --branch maint https://gitlab.com/petsc/petsc.git; fi
+          if [ ! -d petsc ]; then git clone --depth 1 --branch release https://gitlab.com/petsc/petsc.git; fi
         else
           if [ ! -d petsc ]; then git clone --depth 1 --branch master https://gitlab.com/petsc/petsc.git; fi
         fi
@@ -141,7 +141,7 @@ checksource:
       then
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
         then
-          if [ ! -d petsc ]; then git clone --depth 1 --branch maint https://gitlab.com/petsc/petsc.git; fi
+          if [ ! -d petsc ]; then git clone --depth 1 --branch release https://gitlab.com/petsc/petsc.git; fi
         else
           if [ ! -d petsc ]; then git clone --depth 1 --branch master https://gitlab.com/petsc/petsc.git; fi
         fi
@@ -185,7 +185,7 @@ checksource:
       if [ -z ${PETSC_BRANCH+x} ];
       then
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
-          then git checkout origin/maint;
+          then git checkout origin/release;
           else git checkout origin/master;
         fi
       else
