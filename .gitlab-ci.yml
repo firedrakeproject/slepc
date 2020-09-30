@@ -157,7 +157,7 @@ checksource:
     - export PETSC_ARCH=`ls -d arch-*`
     - cd $SLEPC_DIR
     - python3 ./configure
-    - make checkbadSource_slepc SHELL=bash
+    - make checkbadSource SHELL=bash
     - make check_output SHELL=bash
     - make check_ascii SHELL=bash
   after_script:

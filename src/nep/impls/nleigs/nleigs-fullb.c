@@ -149,7 +149,7 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
     ierr = MatMultTranspose(ctx->D[0],z0,yy);CHKERRQ(ierr);
   }
   ierr = VecPlaceArray(xx,px);CHKERRQ(ierr);
-  ierr = VecAXPY(yy,-1.0,xx);;CHKERRQ(ierr);
+  ierr = VecAXPY(yy,-1.0,xx);CHKERRQ(ierr);
   ierr = VecResetArray(xx);CHKERRQ(ierr);
   ierr = VecScale(yy,-1.0/(s[0]-sigma));CHKERRQ(ierr);
   ierr = VecResetArray(yy);CHKERRQ(ierr);

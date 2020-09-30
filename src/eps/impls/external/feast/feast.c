@@ -136,9 +136,9 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
       for (k=0;k<ncv;k++) {
         ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-	for (i=0;i<eps->nloc;i++) pz[i] = PetscCMPLX(ctx->work2[eps->nloc*k+i].real,ctx->work2[eps->nloc*k+i].imag);
+        for (i=0;i<eps->nloc;i++) pz[i] = PetscCMPLX(ctx->work2[eps->nloc*k+i].real,ctx->work2[eps->nloc*k+i].imag);
 #else
-	for (i=0;i<eps->nloc;i++) pz[i] = ctx->work2[eps->nloc*k+i].real;
+        for (i=0;i<eps->nloc;i++) pz[i] = ctx->work2[eps->nloc*k+i].real;
 #endif
         ierr = VecRestoreArray(z,&pz);CHKERRQ(ierr);
         if (ijob == 11) {
@@ -150,12 +150,12 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
         }
         ierr = VecGetArray(w,&pz);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-	for (i=0;i<eps->nloc;i++) {
+        for (i=0;i<eps->nloc;i++) {
           ctx->work2[eps->nloc*k+i].real = PetscRealPart(pz[i]);
           ctx->work2[eps->nloc*k+i].imag = PetscImaginaryPart(pz[i]);
-	}
+        }
 #else
-	for (i=0;i<eps->nloc;i++) ctx->work2[eps->nloc*k+i].real = pz[i];
+        for (i=0;i<eps->nloc;i++) ctx->work2[eps->nloc*k+i].real = pz[i];
 #endif
         ierr = VecRestoreArray(w,&pz);CHKERRQ(ierr);
       }
