@@ -253,10 +253,6 @@ check_output:
 check_ascii:
 	@ ! git --no-pager grep -l -I -P "[^\x00-\x7F]"
 
-checkbadSource_slepc:
-	-@${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} checkbadSource 2>&1
-	@ exit `grep -c 'files with errors' checkbadSource.out`
-
 # -------------------------------------------------------------------------------
 #
 # Some macros to check if the Fortran interface is up-to-date.

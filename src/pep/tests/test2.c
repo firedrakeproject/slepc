@@ -262,6 +262,7 @@ int main(int argc,char **argv)
       test:
          suffix: 4_multiple_schur
          args: -pep_refine multiple -pep_refine_scheme schur
+         requires: !single
       test:
          suffix: 4_multiple_mbe
          args: -pep_refine multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu -pep_refine_pc_factor_shift_type nonzero
