@@ -7,6 +7,7 @@
 - Add interfaces to dense eigensolvers and SVD solvers in ScaLAPACK, ELPA and Elemental.
 - Reintroduce interface to FEAST external solver via MKL.
 - New configure option `--download-slepc4py`.
+- New functions `BVNormalize`, `VecCheckOrthonormality`, `STApplyMat`, `STMatMatSolve`.
 
 ### Changed
 
