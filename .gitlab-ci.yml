@@ -373,9 +373,10 @@ gnu-c-complex-multilib:
     - .stage-2
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:ahmes
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-visibility=1 --with-fortran-bindings=0 --download-sowing --download-elemental --download-metis --download-parmetis
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-visibility=1 --with-fortran-bindings=0 --download-sowing --download-elemental --download-metis --download-parmetis --download-scalapack
+    SLEPC_CONFIG_OPTS: --download-elpa
 
 intel-c-complex-mkl:
   extends:
