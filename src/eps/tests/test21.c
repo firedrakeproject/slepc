@@ -27,12 +27,17 @@ int main(int argc,char **argv)
   ST             st;
   RG             rg;
   PetscReal      radius,tol=1000*PETSC_MACHINE_EPSILON;
-  PetscScalar    target=0.5;
-  PetscInt       N,m=15,nev;
+  PetscScalar    target=0.5,kr,ki;
+  PetscComplex   *eigs,eval;
+  PetscInt       N,m=15,nev,i,nconv;
+  PetscBool      checkfile;
+  char           filename[PETSC_MAX_PATH_LEN];
+  PetscViewer    viewer;
   PetscErrorCode ierr;
   char           str[50];
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+#if defined(PETSC_HAVE_COMPLEX)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%D (m=%D)\n",N,m);CHKERRQ(ierr);
@@ -81,22 +86,43 @@ int main(int argc,char **argv)
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Solve the eigensystem
+               Solve the eigensystem and display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    Display solution and clean up
+                   Check file containing the eigenvalues
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  ierr = PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile);CHKERRQ(ierr);
+  if (checkfile) {
+    ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+    ierr = PetscMalloc1(nconv,&eigs);CHKERRQ(ierr);
+    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerBinaryRead(viewer,eigs,nconv,NULL,PETSC_COMPLEX);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
+      ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+      eval = kr;
+#else
+      eval = PetscCMPLX(kr,ki);
+#endif
+      if (eval!=eigs[i]) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalues in the file do not match");
+    }
+    ierr = PetscFree(eigs);CHKERRQ(ierr);
+  }
 
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = STDestroy(&st);CHKERRQ(ierr);
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
+#else
+  SETERRQ(PETSC_COMM_WORLD,1,"This example requires C99 complex numbers");
+#endif
   ierr = SlepcFinalize();
   return ierr;
 }
@@ -150,8 +176,8 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
 
    test:
       suffix: 1
-      args: -eps_nev 4 -eps_ncv 20
+      args: -eps_nev 4 -eps_ncv 20 -eps_view_values binary:myvalues.bin -checkfile myvalues.bin
       output_file: output/test11_1.out
-      requires: !single
+      requires: !single c99_complex
 
 TEST*/
