@@ -9,6 +9,11 @@
 */
 /*
    NEP routines related to the solution process
+
+   References:
+
+       [1] C. Campos and J.E. Roman, "NEP: a module for the parallel solution
+           of nonlinear eigenvalue problems in SLEPc", arXiv:1910.11712, 2019.
 */
 
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
