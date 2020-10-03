@@ -9,6 +9,12 @@
 */
 /*
    Skeleton of Davidson solver. Actual solvers are GD and JD.
+
+   References:
+
+       [1] E. Romero and J.E. Roman, "A parallel implementation of Davidson
+           methods for large-scale eigenvalue problems in SLEPc", ACM Trans.
+           Math. Software 40(2):13, 2014.
 */
 
 #include "davidson.h"

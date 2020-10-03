@@ -9,6 +9,12 @@
 */
 /*
    PEP routines related to the solution process
+
+   References:
+
+       [1] C. Campos and J.E. Roman, "Parallel iterative refinement in
+           polynomial eigenvalue problems", Numer. Linear Algebra Appl.
+           23(4):730-745, 2016.
 */
 
 #include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/

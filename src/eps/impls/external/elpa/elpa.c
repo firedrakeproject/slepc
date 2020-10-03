@@ -97,6 +97,7 @@ PetscErrorCode EPSSolve_ELPA(EPS eps)
 
    /* solve the eigenvalue problem */
    if (B) {
+     b = (Mat_ScaLAPACK*)B->data;
      elpa_generalized_eigenvectors(handle,a->loc,b->loc,w,q->loc,0,&ierr);CHKERRQ(ierr);
    } else {
      elpa_eigenvectors(handle,a->loc,w,q->loc,&ierr);CHKERRQ(ierr);
