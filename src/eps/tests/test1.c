@@ -172,6 +172,12 @@ int main(int argc,char **argv)
          requires: scalapack
          args: -eps_type scalapack
       test:
+         suffix: 1_elpa
+         nsize: {{1 2 3}}
+         requires: elpa
+         args: -eps_type elpa
+         filter: grep -v "Buffering level"
+      test:
          suffix: 1_elemental
          nsize: {{1 2}}
          requires: elemental
