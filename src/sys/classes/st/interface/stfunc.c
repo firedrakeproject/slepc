@@ -826,7 +826,6 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   STType         cstr;
-  const char*    pat=NULL;
   char           str[50];
   PetscBool      isascii,isstring;
 
@@ -861,12 +860,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       break;
     }
     if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) {
-      switch (st->str) {
-        case SAME_NONZERO_PATTERN:      pat = "same nonzero pattern";break;
-        case DIFFERENT_NONZERO_PATTERN: pat = "different nonzero pattern";break;
-        case SUBSET_NONZERO_PATTERN:    pat = "subset nonzero pattern";break;
-      }
-      ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",pat);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",MatStructures[st->str]);CHKERRQ(ierr);
     }
     if (st->transform && st->nmat>2) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n");CHKERRQ(ierr);
