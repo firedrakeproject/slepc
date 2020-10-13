@@ -11,12 +11,17 @@ cdef extern from * nogil:
     SlepcEPSType EPSRQCG
     SlepcEPSType EPSLOBPCG
     SlepcEPSType EPSCISS
+    SlepcEPSType EPSLYAPII
     SlepcEPSType EPSLAPACK
     SlepcEPSType EPSARPACK
     SlepcEPSType EPSBLZPACK
     SlepcEPSType EPSTRLAN
     SlepcEPSType EPSBLOPEX
     SlepcEPSType EPSPRIMME
+    SlepcEPSType EPSFEAST
+    SlepcEPSType EPSSCALAPACK
+    SlepcEPSType EPSELPA
+    SlepcEPSType EPSELEMENTAL
 
     ctypedef enum SlepcEPSProblemType "EPSProblemType":
         EPS_HEP

@@ -6,6 +6,9 @@ cdef extern from * nogil:
     SlepcSVDType SVDLAPACK
     SlepcSVDType SVDLANCZOS
     SlepcSVDType SVDTRLANCZOS
+    SlepcSVDType SVDSCALAPACK
+    SlepcSVDType SVDELEMENTAL
+    SlepcSVDType SVDPRIMME
 
     ctypedef enum SlepcSVDWhich "SVDWhich":
         SVD_LARGEST

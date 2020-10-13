@@ -16,9 +16,10 @@ class EPSType(object):
     - `RQCG`:         Rayleigh Quotient Conjugate Gradient.
     - `LOBPCG`:       Locally Optimal Block Preconditioned Conjugate Gradient.
     - `CISS`:         Contour Integral Spectrum Slicing.
+    - `LYAPII`:       Lyapunov inverse iteration.
     - `LAPACK`:       Wrappers to dense eigensolvers in Lapack.
 
-    Wrappers to sparse eigensolvers
+    Wrappers to external eigensolvers
     (should be enabled during installation of SLEPc)
 
     - `ARPACK`:
@@ -26,6 +27,10 @@ class EPSType(object):
     - `TRLAN`:
     - `BLOPEX`:
     - `PRIMME`:
+    - `FEAST`:
+    - `SCALAPACK`:
+    - `ELPA`:
+    - `ELEMENTAL`:
     """
     # provided implementations
     POWER        = S_(EPSPOWER)
@@ -38,6 +43,7 @@ class EPSType(object):
     RQCG         = S_(EPSRQCG)
     LOBPCG       = S_(EPSLOBPCG)
     CISS         = S_(EPSCISS)
+    LYAPII       = S_(EPSLYAPII)
     LAPACK       = S_(EPSLAPACK)
     # with external libraries
     ARPACK       = S_(EPSARPACK)
@@ -45,6 +51,10 @@ class EPSType(object):
     TRLAN        = S_(EPSTRLAN)
     BLOPEX       = S_(EPSBLOPEX)
     PRIMME       = S_(EPSPRIMME)
+    FEAST        = S_(EPSFEAST)
+    SCALAPACK    = S_(EPSSCALAPACK)
+    ELPA         = S_(EPSELPA)
+    ELEMENTAL    = S_(EPSELEMENTAL)
 
 class EPSProblemType(object):
     """

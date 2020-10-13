@@ -9,12 +9,22 @@ class SVDType(object):
     - `LAPACK`:    Wrappers to dense SVD solvers in Lapack.
     - `LANCZOS`:   Lanczos.
     - `TRLANCZOS`: Thick-restart Lanczos.
+
+    Wrappers to external SVD solvers
+    (should be enabled during installation of SLEPc)
+
+    - `SCALAPACK`:
+    - `ELEMENTAL`:
+    - `PRIMME`:
     """
     CROSS     = S_(SVDCROSS)
     CYCLIC    = S_(SVDCYCLIC)
     LAPACK    = S_(SVDLAPACK)
     LANCZOS   = S_(SVDLANCZOS)
     TRLANCZOS = S_(SVDTRLANCZOS)
+    SCALAPACK = S_(SVDSCALAPACK)
+    ELEMENTAL = S_(SVDELEMENTAL)
+    PRIMME    = S_(SVDPRIMME)
 
 class SVDErrorType(object):
     """
