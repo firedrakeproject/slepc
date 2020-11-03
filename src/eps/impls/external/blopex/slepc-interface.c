@@ -42,7 +42,7 @@ static void* mv_TempMultiVectorCreateFromBV(void* ii_,BlopexInt n,void* sample)
 
   ierr = BVGetActiveColumns(bv,&l,&k);CHKERRABORT(PETSC_COMM_SELF,ierr);
   ierr = PetscObjectComposedDataGetInt((PetscObject)bv,slepc_blopex_useconstr,useconstr,flg);CHKERRABORT(PETSC_COMM_SELF,ierr);
-  if (!l && useconstr) {
+  if (!l && flg && useconstr) {
     ierr = BVGetNumConstraints(bv,&nc);CHKERRABORT(PETSC_COMM_SELF,ierr);
     l = -nc;
   }

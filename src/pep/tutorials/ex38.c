@@ -133,7 +133,7 @@ int main(int argc,char **argv)
 #if defined(PETSC_HAVE_MUMPS)
 #if defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Spectrum slicing with MUMPS is not available for complex scalars");
-#endif
+#else
   ierr = PEPSTOARSetDetectZeros(pep,PETSC_TRUE);CHKERRQ(ierr);  /* enforce zero detection */
   ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   /*
@@ -146,6 +146,7 @@ int main(int argc,char **argv)
      '-mat_mumps_icntl_14 <percentage>': increase workspace with a percentage (50, 100 or more)
   */
   ierr = PetscOptionsInsertString(NULL,"-mat_mumps_icntl_13 1 -mat_mumps_icntl_24 1 -mat_mumps_cntl_3 1e-12");CHKERRQ(ierr);
+#endif
 #endif
 
   /*
