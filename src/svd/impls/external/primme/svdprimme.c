@@ -202,7 +202,6 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"'which' value not supported by PRIMME");
-      break;
   }
 
   /* If user sets mpd or ncv, maxBasisSize is modified */
