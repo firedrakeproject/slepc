@@ -261,7 +261,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'which' value not supported by PRIMME");
-      break;
   }
 
   switch (eps->extraction) {
@@ -276,7 +275,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'extraction' value not supported by PRIMME");
-      break;
   }
 
   /* If user sets mpd or ncv, maxBasisSize is modified */

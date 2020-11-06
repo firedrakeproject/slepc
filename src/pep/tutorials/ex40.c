@@ -135,17 +135,19 @@ int main(int argc,char **argv)
   ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
-#if defined(PETSC_HAVE_MUMPS)
-#if defined(PETSC_USE_COMPLEX)
-  SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Spectrum slicing with MUMPS is not available for complex scalars");
-#else
+
+  /*
+     Use MUMPS if available.
+     Note that in complex scalars we cannot use MUMPS for spectrum slicing,
+     because MatGetInertia() is not available in that case.
+  */
+#if defined(PETSC_HAVE_MUMPS) && !defined(PETSC_USE_COMPLEX)
   ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   /*
      Add several MUMPS options (see ex43.c for a better way of setting them in program):
      '-mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
   */
   ierr = PetscOptionsInsertString(NULL,"-mat_mumps_icntl_13 1 -mat_mumps_icntl_24 1 -mat_mumps_cntl_3 1e-12");CHKERRQ(ierr);
-#endif
 #endif
 
   /*
