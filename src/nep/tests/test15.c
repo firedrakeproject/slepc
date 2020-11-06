@@ -198,7 +198,7 @@ int main(int argc,char **argv)
 
     Ignores the value of nev. It only takes into account the number of
     eigenpairs that have converged in recent outer iterations (restarts);
-    if no new eigenvalus have converged in the last few restarts,
+    if no new eigenvalues have converged in the last few restarts,
     we stop the iteration, assuming that no more eigenvalues are present
     inside the region.
 */
