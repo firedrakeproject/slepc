@@ -35,7 +35,7 @@ Documentation
 
 The Users Manual as well as the HTML man pages for the detailed reference of each individual SLEPc routines are included in the SLEPc distribution and can also be found at the [online documentation](https://slepc.upv.es/documentation).
 
-The main reference for SLEPc is the following paper (see [other references at the SLEPc website](https://slepc.upv.es/documentation/material)):
+The main reference for SLEPc is the following paper (see [other references at the SLEPc website](https://slepc.upv.es/material)):
 
 - V. Hernandez, J. E. Roman, and V. Vidal, *SLEPc: A scalable and flexible toolkit for the solution of eigenvalue problems*, ACM Trans. Math. Software 31: 351-362 (2005). [DOI](https://doi.org/10.1145%2F1089014.1089019)
 
