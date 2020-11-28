@@ -1002,16 +1002,12 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
     alpha = ctx->frame[3];
     ierr = MatShift(ctx->T,alpha);CHKERRQ(ierr);
     for (i=0;i<4;i++) frame2[i] = ctx->frame[3] - ctx->frame[3-i];
-    ierr = FILTLAN_GetIntervals(ctx->intervals,frame2,ctx->polyDegree,ctx->baseDegree,ctx->opts,ctx->filterInfo);CHKERRQ(ierr);
-    /* translate the intervals back */
-    for (i=0;i<4;i++) ctx->intervals2[i] = ctx->frame[3] - ctx->intervals[3-i];
   } else {  /* it can be a mid-pass filter or a high-pass filter */
     if (ctx->frame[0] == 0.0) {
       ierr = PetscObjectReference((PetscObject)st->A[0]);CHKERRQ(ierr);
       ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
       ctx->T = st->A[0];
-      ierr = FILTLAN_GetIntervals(ctx->intervals,ctx->frame,ctx->polyDegree,ctx->baseDegree,ctx->opts,ctx->filterInfo);CHKERRQ(ierr);
-      for (i=0;i<6;i++) ctx->intervals2[i] = ctx->intervals[i];
+      for (i=0;i<4;i++) frame2[i] = ctx->frame[i];
     } else {
       /* T = A - frame[0]*eye(n) */
       ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
@@ -1019,23 +1015,39 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
       alpha = -ctx->frame[0];
       ierr = MatShift(ctx->T,alpha);CHKERRQ(ierr);
       for (i=0;i<4;i++) frame2[i] = ctx->frame[i] - ctx->frame[0];
-      ierr = FILTLAN_GetIntervals(ctx->intervals,frame2,ctx->polyDegree,ctx->baseDegree,ctx->opts,ctx->filterInfo);CHKERRQ(ierr);
-      /* translate the intervals back */
-      for (i=0;i<6;i++) ctx->intervals2[i] = ctx->intervals[i] + ctx->frame[0];
     }
   }
-  npoints = (ctx->filterInfo->filterType == 2)? 6: 4;
-  ierr = PetscFree(ctx->baseFilter);CHKERRQ(ierr);
-  ierr = PetscMalloc1((2*ctx->baseDegree+2)*(npoints-1),&ctx->baseFilter);CHKERRQ(ierr);
-  ierr = FILTLAN_HermiteBaseFilterInChebyshevBasis(ctx->baseFilter,ctx->intervals,npoints,HighLowFlags,ctx->baseDegree);CHKERRQ(ierr);
-  ierr = PetscInfo1(st,"Computed value of yLimit = %g\n",ctx->filterInfo->yLimit);CHKERRQ(ierr);
+
+  /* no need to recompute filter if the parameters did not change */
+  if (st->state==ST_STATE_INITIAL || ctx->filtch) {
+    ierr = FILTLAN_GetIntervals(ctx->intervals,frame2,ctx->polyDegree,ctx->baseDegree,ctx->opts,ctx->filterInfo);CHKERRQ(ierr);
+    /* translate the intervals back */
+    if (ctx->frame[0] == ctx->frame[1]) {  /* low pass filter, convert it to high pass filter */
+      for (i=0;i<4;i++) ctx->intervals2[i] = ctx->frame[3] - ctx->intervals[3-i];
+    } else {  /* it can be a mid-pass filter or a high-pass filter */
+      if (ctx->frame[0] == 0.0) {
+        for (i=0;i<6;i++) ctx->intervals2[i] = ctx->intervals[i];
+      } else {
+        for (i=0;i<6;i++) ctx->intervals2[i] = ctx->intervals[i] + ctx->frame[0];
+      }
+    }
+
+    npoints = (ctx->filterInfo->filterType == 2)? 6: 4;
+    ierr = PetscFree(ctx->baseFilter);CHKERRQ(ierr);
+    ierr = PetscMalloc1((2*ctx->baseDegree+2)*(npoints-1),&ctx->baseFilter);CHKERRQ(ierr);
+    ierr = FILTLAN_HermiteBaseFilterInChebyshevBasis(ctx->baseFilter,ctx->intervals,npoints,HighLowFlags,ctx->baseDegree);CHKERRQ(ierr);
+    ierr = PetscInfo1(st,"Computed value of yLimit = %g\n",ctx->filterInfo->yLimit);CHKERRQ(ierr);
+  }
+  ctx->filtch = PETSC_FALSE;
 
   /* create shell matrix*/
-  ierr = MatGetSize(ctx->T,&N,&M);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->T,&n,&m);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,N,M,st,G);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*G,MATOP_MULT,(void(*)(void))MatMult_FILTLAN);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*G);CHKERRQ(ierr);
+  if (!*G) {
+    ierr = MatGetSize(ctx->T,&N,&M);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(ctx->T,&n,&m);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,N,M,st,G);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(*G,MATOP_MULT,(void(*)(void))MatMult_FILTLAN);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*G);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
