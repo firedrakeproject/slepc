@@ -132,4 +132,9 @@ int main(int argc,char **argv)
       args: -modify -st_filter_range -0.5,8 -terse
       requires: !single
 
+   test:
+      suffix: 3
+      args: -modify -terse
+      requires: !single
+
 TEST*/

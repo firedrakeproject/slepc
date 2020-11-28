@@ -93,9 +93,11 @@ static PetscErrorCode EstimateRange(Mat A,PetscReal *left,PetscReal *right)
 
 static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscReal      rleft,rright;
-  Mat            A;
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+  PetscBool       estimaterange=PETSC_TRUE;
+  PetscReal       rleft,rright;
+  Mat             A;
 
   PetscFunctionBegin;
   EPSCheckHermitianCondition(eps,PETSC_TRUE," with polynomial filter");
@@ -104,12 +106,16 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION,PETSC_TRUE," with polynomial filter");
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
   ierr = STFilterSetInterval(eps->st,eps->inta,eps->intb);CHKERRQ(ierr);
-  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = STFilterGetRange(eps->st,&rleft,&rright);CHKERRQ(ierr);
-  if (!rleft && !rright) {
+  if (!ctx->estimatedrange) {
+    ierr = STFilterGetRange(eps->st,&rleft,&rright);CHKERRQ(ierr);
+    estimaterange = (!rleft && !rright)? PETSC_TRUE: PETSC_FALSE;
+  }
+  if (estimaterange) { /* user did not set a range */
+    ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
     ierr = EstimateRange(A,&rleft,&rright);CHKERRQ(ierr);
     ierr = PetscInfo2(eps,"Setting eigenvalue range to [%g,%g]\n",(double)rleft,(double)rright);CHKERRQ(ierr);
     ierr = STFilterSetRange(eps->st,rleft,rright);CHKERRQ(ierr);
+    ctx->estimatedrange = PETSC_TRUE;
   }
   if (eps->ncv==PETSC_DEFAULT && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
