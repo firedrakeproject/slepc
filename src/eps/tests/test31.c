@@ -22,7 +22,7 @@ int main(int argc,char **argv)
   EPS            eps;
   ST             st;
   PetscInt       N,n=10,m,Istart,Iend,II,i,j,degree;
-  PetscBool      flag,terse;
+  PetscBool      flag,modify=PETSC_FALSE,terse;
   PetscReal      inta,intb,rleft,rright;
   PetscErrorCode ierr;
 
@@ -32,6 +32,7 @@ int main(int argc,char **argv)
   if (!flag) m=n;
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-modify",&modify,&flag);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Create the 2-D Laplacian
@@ -93,6 +94,26 @@ int main(int argc,char **argv)
     ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+              Solve the problem again after changing the matrix
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  if (modify) {
+    ierr = MatSetValue(A,0,0,0.3,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
+    ierr = EPSSolve(eps);CHKERRQ(ierr);
+    ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+    if (terse) {
+      ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+      ierr = EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+      ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+      ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    }
+  }
+
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();
@@ -104,6 +125,16 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -terse
+      requires: !single
+
+   test:
+      suffix: 2
+      args: -modify -st_filter_range -0.5,8 -terse
+      requires: !single
+
+   test:
+      suffix: 3
+      args: -modify -terse
       requires: !single
 
 TEST*/

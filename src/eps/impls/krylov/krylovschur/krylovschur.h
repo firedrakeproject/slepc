@@ -94,6 +94,8 @@ typedef struct {
   PetscObjectId    Aid,Bid;            /* Id of subcommunicator matrices */
   IS               isrow,iscol;        /* index sets used in update of subcomm mats */
   Mat              *submata,*submatb;  /* seq matrices used in update of subcomm mats */
+  /* the following are used only in filter */
+  PetscBool        estimatedrange;     /* the filter range was not set by the user */
 } EPS_KRYLOVSCHUR;
 
 #endif
