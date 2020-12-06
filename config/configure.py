@@ -203,6 +203,9 @@ log.write('SLEPc version: '+slepc.lversion)
 if archdirexisted:
   if slepc.isinstall and not slepc.clean:
     log.Exit('You are requesting a prefix install but the arch directory '+archdir+' already exists and may contain files from previous builds; consider adding option --with-clean')
+  try:
+    os.unlink(os.path.join(confdir,'files'))
+  except: pass
   if slepc.clean:
     log.Println('\nCleaning arch dir '+archdir+'...')
     try:
