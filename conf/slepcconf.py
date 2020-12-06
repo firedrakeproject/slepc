@@ -26,6 +26,7 @@ from conf.baseconf import install    as _install
 from conf.baseconf import clean      as _clean
 from conf.baseconf import test       as _test
 from conf.baseconf import sdist      as _sdist
+from conf.baseconf import makefile
 
 from distutils.errors import DistutilsError
 
@@ -59,7 +60,12 @@ class SlepcConfig(PetscConfig):
         slepc_cfg = { }
         slepc_cfg['include_dirs'] = SLEPC_INCLUDE
         slepc_cfg['library_dirs'] = SLEPC_LIB_DIR
-        slepc_cfg['libraries']    = ['slepc']
+        if 'petscvec' in self['PETSC_LIB']:
+            slepc_variables = os.path.join(SLEPC_DIR, 'lib', 'slepc', 'conf', 'slepc_variables')
+            slepc_libs = makefile(open(slepc_variables, 'rt')).get('SHLIBS').replace('lib', '').split()
+        else:
+            slepc_libs = ['slepc']
+        slepc_cfg['libraries'] = slepc_libs
         slepc_cfg['runtime_library_dirs'] = slepc_cfg['library_dirs']
         self._configure_ext(extension, slepc_cfg, preppend=True)
         if self['BUILDSHAREDLIB'] == 'no':
@@ -75,7 +81,7 @@ class SlepcConfig(PetscConfig):
 
     def log_info(self):
         if not self.SLEPC_DIR: return
-        log.info('SLEPC_DIR:   %s' % self.SLEPC_DIR)
+        log.info('SLEPC_DIR:    %s' % self.SLEPC_DIR)
         PetscConfig.log_info(self)
 
 
