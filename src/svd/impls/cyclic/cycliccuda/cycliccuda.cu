@@ -42,38 +42,3 @@ PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode MatCreateVecs_Cyclic_CUDA(Mat B,Vec *right,Vec *left)
-{
-  PetscErrorCode ierr;
-  SVD            svd;
-  SVD_CYCLIC     *cyclic;
-  PetscInt       M,N,m,n;
-  PetscMPIInt    size;
-
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
-  cyclic = (SVD_CYCLIC*)svd->data;
-  ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
-  ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)cyclic->mat),&size);CHKERRQ(ierr);
-  if (right) {
-    ierr = VecCreate(PetscObjectComm((PetscObject)cyclic->mat),right);CHKERRQ(ierr);
-    ierr = VecSetSizes(*right,m+n,M+N);CHKERRQ(ierr);
-    if (size>1) {
-      ierr = VecSetType(*right,VECMPICUDA);CHKERRQ(ierr);
-    } else {
-      ierr = VecSetType(*right,VECSEQCUDA);CHKERRQ(ierr);
-    }
-  }
-  if (left) {
-    ierr = VecCreate(PetscObjectComm((PetscObject)cyclic->mat),left);CHKERRQ(ierr);
-    ierr = VecSetSizes(*left,m+n,M+N);CHKERRQ(ierr);
-    if (size>1) {
-      ierr = VecSetType(*left,VECMPICUDA);CHKERRQ(ierr);
-    } else {
-      ierr = VecSetType(*left,VECSEQCUDA);CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
-

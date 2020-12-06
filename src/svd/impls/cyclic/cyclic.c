@@ -113,7 +113,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 #if defined(PETSC_HAVE_CUDA)
       ierr = PetscObjectTypeCompareAny((PetscObject)(svd->A?svd->A:svd->AT),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
       if (cuda) {
-        ierr = MatShellSetOperation(cyclic->mat,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Cyclic_CUDA);CHKERRQ(ierr);
+        ierr = MatShellSetVecType(cyclic->mat,VECCUDA);CHKERRQ(ierr);
         ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))MatMult_Cyclic_CUDA);CHKERRQ(ierr);
       } else
 #endif
