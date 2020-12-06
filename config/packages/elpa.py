@@ -56,8 +56,8 @@ class Elpa(package.Package):
       dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
       incdirs = [os.path.join(self.packagedir,'include'),self.packagedir]
     else:
-      dirs = self.GenerateGuesses('Primme',archdir)
-      incdirs = self.GenerateGuesses('Primme',archdir,'include')
+      dirs = self.GenerateGuesses('elpa',archdir)
+      incdirs = self.GenerateGuesses('elpa',archdir,'include')
 
     libs = self.packagelibs
     if not libs:
