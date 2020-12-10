@@ -151,6 +151,10 @@ int main(int argc,char **argv)
       test:
          suffix: 1_lapack
          args: -svd_type lapack
+      test:
+         suffix: 1_scalapack
+         args: -svd_type scalapack
+         requires: scalapack
 
    testset:
       args: -svd_monitor_cancel  -mat_type aijcusparse
