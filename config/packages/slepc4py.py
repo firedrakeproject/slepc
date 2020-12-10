@@ -16,7 +16,9 @@ class Slepc4py(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename     = 'slepc4py'
     self.downloadable    = True
+    self.version         = '3.14.0'
     self.url             = 'https://gitlab.com/slepc/slepc4py.git'
+    self.dirname         = 'slepc4py-'+self.version
     self.builtafterslepc = True
     self.ProcessArgs(argdb)
 
@@ -26,15 +28,16 @@ class Slepc4py(package.Package):
     destdir   = os.path.join(prefixdir,'lib')
 
     # Check if source is already available
-    builddir = os.path.join(externdir,'slepc4py')
+    builddir = os.path.join(externdir,self.dirname)
     if os.path.exists(builddir):
       self.log.write('Using '+builddir)
     else: # clone slepc4py repo
       url = self.packageurl
       if url=='':
         url = self.url
+      self.log.write('Cloning '+url+' to '+builddir)
       try:
-        (result,output) = self.RunCommand('cd '+externdir+'&& git clone '+url)
+        (result,output) = self.RunCommand('cd '+externdir+'&& git clone -b '+self.version+' '+url+' '+self.dirname)
       except RuntimeError as e:
         self.log.Exit('Cannot clone '+url+': '+str(e))
 
