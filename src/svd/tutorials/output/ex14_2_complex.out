@@ -48,7 +48,7 @@ SVD Object: 1 MPI processes
                 total: nonzeros=171722, allocated nonzeros=171722
                   not using I-node routines
         linear system matrix = precond matrix:
-        Mat Object: 1 MPI processes
+        Mat Object: (svd_cyclic_st_) 1 MPI processes
           type: seqaij
           rows=648, cols=648
           total: nonzeros=54108, allocated nonzeros=54108

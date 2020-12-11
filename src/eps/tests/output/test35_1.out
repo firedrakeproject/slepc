@@ -36,7 +36,7 @@ ST Object: 1 MPI processes
             total: nonzeros=3605, allocated nonzeros=3605
                 block size is 1
     linear system matrix = precond matrix:
-    Mat Object: 1 MPI processes
+    Mat Object: (st_) 1 MPI processes
       type: seqaij
       rows=1225, cols=1225
       total: nonzeros=5985, allocated nonzeros=6125

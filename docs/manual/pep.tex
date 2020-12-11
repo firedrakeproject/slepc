@@ -410,13 +410,13 @@ As a complete example of how to solve a quadratic eigenproblem via explicit line
 	$ ./sleeper -pep_type linear -pep_target -10 -pep_linear_st_type sinvert
                     -pep_linear_st_ksp_type preonly -pep_linear_st_pc_type lu
                     -pep_linear_st_pc_factor_mat_solver_type mumps
-                    -mat_mumps_icntl_14 100 -pep_linear_explicitmatrix
+                    -pep_linear_st_mat_mumps_icntl_14 100 -pep_linear_explicitmatrix
 \end{Verbatim}
 This example uses MUMPS for solving the associated linear systems, see \S\ref{sec:lin} for details. The following command line example illustrates how to solve the same problem without explicitly forming the matrices. Note that in this case the \ident{ST} options are not prefixed with \texttt{-pep\_linear\_} since now they do not refer to the \ident{ST} within the \ident{PEPLINEAR} solver but the general \ident{ST} associated to \ident{PEP}.
 \begin{Verbatim}[fontsize=\small]
 	$ ./sleeper -pep_type linear -pep_target -10 -st_type sinvert
                     -st_ksp_type preonly -st_pc_type lu
-                    -st_pc_factor_mat_solver_type mumps -mat_mumps_icntl_14 100
+                    -st_pc_factor_mat_solver_type mumps -st_mat_mumps_icntl_14 100
 \end{Verbatim}
 
 %---------------------------------------------------
