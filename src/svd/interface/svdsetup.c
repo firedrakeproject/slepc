@@ -117,7 +117,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);
     if (!flg) expltrans = PETSC_FALSE;
     else {
-      ierr = PetscObjectTypeCompare((PetscObject)svd,SVDLAPACK,&flg);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompareAny((PetscObject)svd,&flg,SVDLAPACK,SVDSCALAPACK,SVDELEMENTAL,"");CHKERRQ(ierr);
       if (flg) expltrans = PETSC_FALSE;
     }
   }
