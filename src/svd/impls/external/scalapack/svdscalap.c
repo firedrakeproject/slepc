@@ -47,16 +47,25 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   Mat_ScaLAPACK  *a = (Mat_ScaLAPACK*)A->data,*q,*z;
   PetscScalar    *work,minlwork;
   PetscBLASInt   info,lwork=-1,one=1;
+  PetscInt       M,N,m,n,mn;
 #if defined(PETSC_USE_COMPLEX)
   PetscBLASInt   lrwork;
   PetscReal      *rwork,dummy;
 #endif
 
   PetscFunctionBegin;
-  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Z);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
+  mn = (M>=N)? n: m;
+  ierr = MatCreate(PetscObjectComm((PetscObject)A),&Z);CHKERRQ(ierr);
+  ierr = MatSetSizes(Z,m,mn,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
+  ierr = MatSetType(Z,MATSCALAPACK);CHKERRQ(ierr);
+  ierr = MatSetUp(Z);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(Z,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(Z,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   z = (Mat_ScaLAPACK*)Z->data;
   ierr = MatCreate(PetscObjectComm((PetscObject)A),&QT);CHKERRQ(ierr);
-  ierr = MatSetSizes(QT,A->cmap->n,A->cmap->n,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
+  ierr = MatSetSizes(QT,mn,n,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = MatSetType(QT,MATSCALAPACK);CHKERRQ(ierr);
   ierr = MatSetUp(QT);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(QT,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -86,15 +95,20 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
 #endif
 
-  ierr = BVGetMat(svd->U,&U);CHKERRQ(ierr);
-  ierr = MatConvert(Z,MATDENSE,MAT_REUSE_MATRIX,&U);CHKERRQ(ierr);
-  ierr = BVRestoreMat(svd->U,&U);CHKERRQ(ierr);
-  ierr = MatDestroy(&Z);CHKERRQ(ierr);
   ierr = MatHermitianTranspose(QT,MAT_INITIAL_MATRIX,&Q);CHKERRQ(ierr);
   ierr = MatDestroy(&QT);CHKERRQ(ierr);
+  ierr = BVGetMat(svd->U,&U);CHKERRQ(ierr);
   ierr = BVGetMat(svd->V,&V);CHKERRQ(ierr);
-  ierr = MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V);CHKERRQ(ierr);
+  if (M>=N) {
+    ierr = MatConvert(Z,MATDENSE,MAT_REUSE_MATRIX,&U);CHKERRQ(ierr);
+    ierr = MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V);CHKERRQ(ierr);
+  } else {
+    ierr = MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&U);CHKERRQ(ierr);
+    ierr = MatConvert(Z,MATDENSE,MAT_REUSE_MATRIX,&V);CHKERRQ(ierr);
+  }
+  ierr = BVRestoreMat(svd->U,&U);CHKERRQ(ierr);
   ierr = BVRestoreMat(svd->V,&V);CHKERRQ(ierr);
+  ierr = MatDestroy(&Z);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
 
   svd->nconv  = svd->ncv;

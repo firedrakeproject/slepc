@@ -16,7 +16,10 @@ class Sowing(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'sowing'
     self.downloadable = True
-    self.url          = 'https://bitbucket.org/petsc/pkg-sowing.git'
+    self.version      = '1.1.26'
+    self.url          = 'https://bitbucket.org/petsc/pkg-sowing/get/v'+self.version+'-p1.tar.gz'
+    self.archive      = 'sowing-'+self.version+'-p1.tar.gz'
+    self.dirname      = 'sowing-'+self.version+'-p1'
     self.ProcessArgs(argdb)
 
   def ShowHelp(self):
@@ -28,21 +31,9 @@ class Sowing(package.Package):
     name = self.packagename.upper()
     self.log.NewSection('Installing '+name+'...')
 
-    # Create externalpackages directory
+    # Get package
     externdir = slepc.CreateDir(archdir,'externalpackages')
-
-    # Check if source is already available
-    builddir = os.path.join(externdir,'pkg-sowing')
-    if os.path.exists(builddir):
-      self.log.write('Using '+builddir)
-    else: # clone Sowing repo
-      url = self.packageurl
-      if url=='':
-        url = self.url
-      try:
-        (result,output) = self.RunCommand('cd '+externdir+'&& git clone '+url)
-      except RuntimeError as e:
-        self.log.Exit('Cannot clone '+url+': '+str(e))
+    builddir  = self.Download(externdir,slepc.downloaddir)
 
     # Configure, build and install package
     (result,output) = self.RunCommand('cd '+builddir+'&& ./configure --prefix='+archdir+'&&'+petsc.make+'&&'+petsc.make+' install')

@@ -285,12 +285,16 @@ Downloaded package %s from: %s is not a tarball.
 
   def ShowInfo(self):
     if self.havepackage:
-      if hasattr(self,'petscdepend'):
-        self.log.Println(self.packagename.upper()+' from %s linked by PETSc' % self.petscdepend.upper())
-      elif self.builtafterslepc:
-        self.log.Println(self.packagename.upper()+' to be built after SLEPc')
+      if hasattr(self,'version'):
+        packagename = self.packagename.upper()+' version '+self.version
       else:
-        self.log.Println(self.packagename.upper()+' library flags:')
+        packagename = self.packagename.upper()
+      if hasattr(self,'petscdepend'):
+        self.log.Println(packagename+' from %s linked by PETSc' % self.petscdepend.upper())
+      elif self.builtafterslepc:
+        self.log.Println(packagename+' to be built after SLEPc')
+      else:
+        self.log.Println(packagename+' library flags:')
         self.log.Println(' '+' '.join(self.packageflags))
 
   def Link(self,functions,callbacks,flags,givencode='',cflags='',clanguage='c',logdump=True):
