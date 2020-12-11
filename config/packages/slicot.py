@@ -17,8 +17,8 @@ class Slicot(package.Package):
     self.packagename    = 'slicot'
     self.installable    = True
     self.version        = '4.5'
-    self.url            = 'http://slicot.org/objects/software/shared/slicot45.tar.gz'
     self.archive        = 'slicot45.tar.gz'
+    self.url            = 'http://slicot.org/objects/software/shared/'+self.archive
     self.dirname        = 'slicot'
     self.supportsscalar = ['real']
     self.fortran        = True
