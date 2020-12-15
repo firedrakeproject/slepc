@@ -109,7 +109,7 @@ PetscErrorCode STSetUp_Precond(ST st)
 
   PetscFunctionBegin;
   if (st->P) {
-    ierr = KSPSetOperators(st->ksp,ctx->ksphasmat?st->P:NULL,st->P);CHKERRQ(ierr);
+    ierr = STKSPSetOperators(st,ctx->ksphasmat?st->P:NULL,st->P);CHKERRQ(ierr);
     /* NOTE: we do not call KSPSetUp() here because some eigensolvers such as JD require a lazy setup */
   }
   PetscFunctionReturn(0);
@@ -130,8 +130,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
     }
   }
   if (st->P) {
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,ctx->ksphasmat?st->P:NULL,st->P);CHKERRQ(ierr);
+    ierr = STKSPSetOperators(st,ctx->ksphasmat?st->P:NULL,st->P);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

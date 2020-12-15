@@ -118,14 +118,14 @@ int main(int argc,char **argv)
   ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   /*
      Add several MUMPS options (see ex43.c for a better way of setting them in program):
-     '-mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
-     '-mat_mumps_icntl_24 1': detect null pivots in factorization (for the case that a shift is equal to an eigenvalue)
-     '-mat_mumps_cntl_3 <tol>': a tolerance used for null pivot detection (must be larger than machine epsilon)
+     '-st_mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
+     '-st_mat_mumps_icntl_24 1': detect null pivots in factorization (for the case that a shift is equal to an eigenvalue)
+     '-st_mat_mumps_cntl_3 <tol>': a tolerance used for null pivot detection (must be larger than machine epsilon)
 
      Note: depending on the interval, it may be necessary also to increase the workspace:
-     '-mat_mumps_icntl_14 <percentage>': increase workspace with a percentage (50, 100 or more)
+     '-st_mat_mumps_icntl_14 <percentage>': increase workspace with a percentage (50, 100 or more)
   */
-  ierr = PetscOptionsInsertString(NULL,"-mat_mumps_icntl_13 1 -mat_mumps_icntl_24 1 -mat_mumps_cntl_3 1e-12");CHKERRQ(ierr);
+  ierr = PetscOptionsInsertString(NULL,"-st_mat_mumps_icntl_13 1 -st_mat_mumps_icntl_24 1 -st_mat_mumps_cntl_3 1e-12");CHKERRQ(ierr);
 #endif
 
   /*

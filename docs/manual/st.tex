@@ -459,14 +459,14 @@ Note that \petsc's Cholesky factorization is not parallel, so for doing spectrum
 \begin{Verbatim}[fontsize=\small]
 	$ ./ex2 -n 50 -eps_interval 0.4,0.8 -st_type sinvert
                 -st_ksp_type preonly -st_pc_type cholesky
-                -st_pc_factor_mat_solver_type mumps -mat_mumps_icntl_13 1
+                -st_pc_factor_mat_solver_type mumps -st_mat_mumps_icntl_13 1
 \end{Verbatim}
 The last option is required by MUMPS to compute the inertia. An alternative is to use SuperLU\_DIST, in which case the required options would be:
 \begin{Verbatim}[fontsize=\small]
 	$ ./ex2 -n 50 -eps_interval 0.4,0.8 -st_type sinvert
                 -st_ksp_type preonly -st_pc_type cholesky
                 -st_pc_factor_mat_solver_type superlu_dist
-                -mat_superlu_dist_rowperm NOROWPERM
+                -st_mat_superlu_dist_rowperm NOROWPERM
 \end{Verbatim}
 In the latter example, \ident{MatSetOption} must be used in both matrices to explicitly state that they are symmetric (or Hermitian in the complex case).
 
@@ -506,7 +506,7 @@ The analogue example using MUMPS with 5 processes in each partition:
 \begin{Verbatim}[fontsize=\small]
 	$ mpiexec -n 20 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
                   -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
-                  -st_pc_factor_mat_solver_type mumps -mat_mumps_icntl_13 1
+                  -st_pc_factor_mat_solver_type mumps -st_mat_mumps_icntl_13 1
 \end{Verbatim}
 
 \subsection{Spectrum Folding}

@@ -361,6 +361,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
   PetscInt       i,p_id;
   Mat            Fz,kspMat,MV,BMV=NULL,MC;
   KSP            ksp;
+  const char     *prefix;
 
   PetscFunctionBegin;
   if (!ctx->ksp) { ierr = EPSCISSGetKSPs(eps,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
@@ -385,6 +386,9 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
         ierr = MatShift(kspMat,-ctx->omega[p_id]);CHKERRQ(ierr);
       }
       ierr = KSPSetOperators(ctx->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
+      /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS) */
+      ierr = KSPGetOptionsPrefix(ctx->ksp[i],&prefix);CHKERRQ(ierr);
+      ierr = MatSetOptionsPrefix(kspMat,prefix);CHKERRQ(ierr);
       ierr = MatDestroy(&kspMat);CHKERRQ(ierr);
     } else if (ctx->usest) {
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);

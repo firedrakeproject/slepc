@@ -116,4 +116,22 @@ SLEPC_INTERN PetscErrorCode STApply_Generic(ST,Vec,Vec);
 SLEPC_INTERN PetscErrorCode STApplyMat_Generic(ST,Mat,Mat);
 SLEPC_INTERN PetscErrorCode STApplyTranspose_Generic(ST,Vec,Vec);
 
+/*
+  STKSPSetOperators - Sets the KSP matrices
+*/
+PETSC_STATIC_INLINE PetscErrorCode STKSPSetOperators(ST st,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  const char     *prefix;
+
+  PetscFunctionBegin;
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
+  ierr = KSPSetOperators(st->ksp,A,B);CHKERRQ(ierr);
+  /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS) */
+  ierr = KSPGetOptionsPrefix(st->ksp,&prefix);CHKERRQ(ierr);
+  ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 #endif

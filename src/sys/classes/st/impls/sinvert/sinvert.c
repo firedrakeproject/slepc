@@ -110,9 +110,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
       ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[nmat-1];
-      if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-      ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
-      ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+      ierr = STKSPSetOperators(st,st->P,st->P);CHKERRQ(ierr);
     } else {
       for (k=0;k<nmat;k++) {
         ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
@@ -154,8 +152,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
     }
   }
   if (st->P) {
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+    ierr = STKSPSetOperators(st,st->P,st->P);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

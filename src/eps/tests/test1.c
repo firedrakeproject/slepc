@@ -210,7 +210,7 @@ int main(int argc,char **argv)
          suffix: 2_parallel
          requires: mumps !complex
          nsize: 3
-         args: -eps_interval .1,1.1 -eps_krylovschur_partitions 2 -st_pc_factor_mat_solver_type mumps -mat_mumps_icntl_13 1
+         args: -eps_interval .1,1.1 -eps_krylovschur_partitions 2 -st_pc_factor_mat_solver_type mumps -st_mat_mumps_icntl_13 1
          output_file: output/test1_2.out
 
    test:
