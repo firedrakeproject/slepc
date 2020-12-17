@@ -87,7 +87,7 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
     /* allocate workspace */
     PetscStackCallBLAS("SCALAPACKsygvx",SCALAPACKsygvx_(&one,"V","A","L",&a->N,a->loc,&one,&one,a->desc,b->loc,&one,&one,b->desc,&rdummy,&rdummy,&idummy,&idummy,&abstol,&m,&idummy,w,&orfac,q->loc,&one,&one,q->desc,minlwork,&lwork,&minliwork,&liwork,ifail,iclustr,gap,&info));
     PetscCheckScaLapackInfo("sygvx",info);
-    ierr = PetscBLASIntCast(minlwork[0],&lwork);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast((PetscInt)minlwork[0],&lwork);CHKERRQ(ierr);
     liwork = minliwork;
     /* call computational routine */
     ierr = PetscMalloc2(lwork,&work,liwork,&iwork);CHKERRQ(ierr);
@@ -98,8 +98,8 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
     /* allocate workspace */
     PetscStackCallBLAS("SCALAPACKsygvx",SCALAPACKsygvx_(&one,"V","A","L",&a->N,a->loc,&one,&one,a->desc,b->loc,&one,&one,b->desc,&rdummy,&rdummy,&idummy,&idummy,&abstol,&m,&idummy,w,&orfac,q->loc,&one,&one,q->desc,minlwork,&lwork,minlrwork,&lrwork,&minliwork,&liwork,ifail,iclustr,gap,&info));
     PetscCheckScaLapackInfo("sygvx",info);
-    ierr = PetscBLASIntCast(minlwork[0],&lwork);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(minlrwork[0],&lrwork);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast((PetscInt)PetscRealPart(minlwork[0]),&lwork);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast((PetscInt)minlrwork[0],&lrwork);CHKERRQ(ierr);
     lrwork += a->N*a->N;
     liwork = minliwork;
     /* call computational routine */
@@ -116,7 +116,7 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
     /* allocate workspace */
     PetscStackCallBLAS("SCALAPACKsyev",SCALAPACKsyev_("V","L",&a->N,a->loc,&one,&one,a->desc,w,q->loc,&one,&one,q->desc,minlwork,&lwork,&info));
     PetscCheckScaLapackInfo("syev",info);
-    ierr = PetscBLASIntCast(minlwork[0],&lwork);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast((PetscInt)minlwork[0],&lwork);CHKERRQ(ierr);
     ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
     /* call computational routine */
     PetscStackCallBLAS("SCALAPACKsyev",SCALAPACKsyev_("V","L",&a->N,a->loc,&one,&one,a->desc,w,q->loc,&one,&one,q->desc,work,&lwork,&info));
@@ -126,8 +126,8 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
     /* allocate workspace */
     PetscStackCallBLAS("SCALAPACKsyev",SCALAPACKsyev_("V","L",&a->N,a->loc,&one,&one,a->desc,w,q->loc,&one,&one,q->desc,minlwork,&lwork,minlrwork,&lrwork,&info));
     PetscCheckScaLapackInfo("syev",info);
-    ierr = PetscBLASIntCast(minlwork[0],&lwork);CHKERRQ(ierr);
-    lrwork = 4*a->N;  /* ierr = PetscBLASIntCast(minlrwork[0],&lrwork);CHKERRQ(ierr); */
+    ierr = PetscBLASIntCast((PetscInt)PetscRealPart(minlwork[0]),&lwork);CHKERRQ(ierr);
+    lrwork = 4*a->N;  /* ierr = PetscBLASIntCast((PetscInt)minlrwork[0],&lrwork);CHKERRQ(ierr); */
     ierr = PetscMalloc2(lwork,&work,lrwork,&rwork);CHKERRQ(ierr);
     /* call computational routine */
     PetscStackCallBLAS("SCALAPACKsyev",SCALAPACKsyev_("V","L",&a->N,a->loc,&one,&one,a->desc,w,q->loc,&one,&one,q->desc,work,&lwork,rwork,&lrwork,&info));

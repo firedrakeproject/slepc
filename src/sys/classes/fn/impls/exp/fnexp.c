@@ -449,7 +449,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,&work1,&query,&info));
   SlepcCheckLapackInfo("geev",info);
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast((PetscInt)work1,&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,work,&lwork,&info));
   ierr = PetscFree(work);CHKERRQ(ierr);

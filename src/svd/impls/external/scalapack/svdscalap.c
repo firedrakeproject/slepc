@@ -76,7 +76,7 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   /* allocate workspace */
   PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,&minlwork,&lwork,&info));
   PetscCheckScaLapackInfo("gesvd",info);
-  ierr = PetscBLASIntCast(minlwork,&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast((PetscInt)minlwork,&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
   /* call computational routine */
   PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,work,&lwork,&info));
@@ -86,7 +86,7 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   /* allocate workspace */
   PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,&minlwork,&lwork,&dummy,&info));
   PetscCheckScaLapackInfo("gesvd",info);
-  ierr = PetscBLASIntCast(minlwork,&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(minlwork),&lwork);CHKERRQ(ierr);
   lrwork = 1+4*PetscMax(a->M,a->N);
   ierr = PetscMalloc2(lwork,&work,lrwork,&rwork);CHKERRQ(ierr);
   /* call computational routine */
