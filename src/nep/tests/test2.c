@@ -34,7 +34,6 @@ int main(int argc,char **argv)
   MatStructure         mstr;
   PetscErrorCode       ierr;
   PetscViewerAndFormat *vf;
-  const char           *str=NULL;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
@@ -97,12 +96,7 @@ int main(int argc,char **argv)
   ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
   ierr = NEPSetSplitOperator(nep,3,A,f,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = NEPGetSplitOperatorInfo(nep,&nterm,&mstr);CHKERRQ(ierr);
-  switch (mstr) {
-    case DIFFERENT_NONZERO_PATTERN: str = "different"; break;
-    case SUBSET_NONZERO_PATTERN:    str = "subset"; break;
-    case SAME_NONZERO_PATTERN:      str = "same"; break;
-  }
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Nonlinear function with %d terms, with %s nonzero pattern\n",(int)nterm,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Nonlinear function with %d terms, with %s\n",(int)nterm,MatStructures[mstr]);CHKERRQ(ierr);
   ierr = NEPGetSplitOperatorTerm(nep,0,&B,&g);CHKERRQ(ierr);
   ierr = MatView(B,NULL);CHKERRQ(ierr);
   ierr = FNView(g,NULL);CHKERRQ(ierr);

@@ -123,7 +123,7 @@ PetscErrorCode MatCreateExplicit_Linear_SA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
   if (a!=0.0 && b!=0.0) {
     ierr = MatDuplicate(ctx->C,MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     ierr = MatScale(T,a*ctx->dsfactor*ctx->sfactor);CHKERRQ(ierr);
-    ierr = MatAXPY(T,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatAXPY(T,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,UNKNOWN_NONZERO_PATTERN);CHKERRQ(ierr);
   } else {
     if (a==0.0) { T = ctx->M; scalt = -b*ctx->dsfactor*ctx->sfactor*ctx->sfactor; }
     else { T = ctx->C; scalt = a*ctx->dsfactor*ctx->sfactor; }
@@ -146,7 +146,7 @@ PetscErrorCode MatCreateExplicit_Linear_SB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
   if (a!=0.0 && b!=0.0) {
     ierr = MatDuplicate(ctx->C,MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     ierr = MatScale(T,-b*ctx->dsfactor*ctx->sfactor);CHKERRQ(ierr);
-    ierr = MatAXPY(T,a*ctx->dsfactor,ctx->K,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatAXPY(T,a*ctx->dsfactor,ctx->K,UNKNOWN_NONZERO_PATTERN);CHKERRQ(ierr);
   } else {
     if (b==0.0) { T = ctx->K; scalt = a*ctx->dsfactor; }
     else { T = ctx->C; scalt = -b*ctx->dsfactor*ctx->sfactor; }
@@ -171,7 +171,7 @@ PetscErrorCode MatCreateExplicit_Linear_HA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
   if (a!=0.0 && b!=0.0) {
     ierr = MatDuplicate(ctx->C,MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     ierr = MatScale(T,a*ctx->dsfactor*ctx->sfactor);CHKERRQ(ierr);
-    ierr = MatAXPY(T,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatAXPY(T,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,UNKNOWN_NONZERO_PATTERN);CHKERRQ(ierr);
   } else {
     if (a==0.0) { T = ctx->M; scalt = b*ctx->dsfactor*ctx->sfactor*ctx->sfactor; }
     else { T = ctx->C; scalt = a*ctx->dsfactor*ctx->sfactor; }
@@ -194,7 +194,7 @@ PetscErrorCode MatCreateExplicit_Linear_HB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
   if (a!=0.0 && b!=0.0) {
     ierr = MatDuplicate(ctx->C,MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     ierr = MatScale(T,b*ctx->dsfactor*ctx->sfactor);CHKERRQ(ierr);
-    ierr = MatAXPY(T,a*ctx->dsfactor,ctx->K,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatAXPY(T,a*ctx->dsfactor,ctx->K,UNKNOWN_NONZERO_PATTERN);CHKERRQ(ierr);
   } else {
     if (b==0.0) { T = ctx->K; scalt = a*ctx->dsfactor; }
     else { T = ctx->C; scalt = b*ctx->dsfactor*ctx->sfactor; }

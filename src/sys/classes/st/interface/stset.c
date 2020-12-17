@@ -160,21 +160,26 @@ PetscErrorCode STSetFromOptions(ST st)
 
    Input Parameters:
 +  st  - the spectral transformation context
--  str - either SAME_NONZERO_PATTERN, DIFFERENT_NONZERO_PATTERN or
-         SUBSET_NONZERO_PATTERN
+-  str - either SAME_NONZERO_PATTERN, DIFFERENT_NONZERO_PATTERN,
+         SUBSET_NONZERO_PATTERN, or UNKNOWN_NONZERO_PATTERN
 
    Options Database Key:
 .  -st_matstructure <str> - Indicates the structure flag, where <str> is one
          of 'same' (matrices have the same nonzero pattern), 'different'
-         (different nonzero pattern) or 'subset' (pattern is a subset of the
-         first one).
+         (different nonzero pattern), 'subset' (pattern is a subset of the
+         first one), or 'unknown'.
 
    Notes:
-   By default, the sparsity patterns are assumed to be different. If the
-   patterns are equal or a subset then it is recommended to set this attribute
+   If the sparsity pattern of the second matrix is equal or a subset of the
+   pattern of the first matrix then it is recommended to set this attribute
    for efficiency reasons (in particular, for internal MatAXPY() operations).
+   If not set, the default is UNKNOWN_NONZERO_PATTERN, in which case the patterns
+   will be compared to determine if they are equal.
 
    This function has no effect in the case of standard eigenproblems.
+
+   In case of polynomial eigenproblems, the flag applies to all matrices
+   relative to the first one.
 
    Level: advanced
 
@@ -189,6 +194,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
     case SAME_NONZERO_PATTERN:
     case DIFFERENT_NONZERO_PATTERN:
     case SUBSET_NONZERO_PATTERN:
+    case UNKNOWN_NONZERO_PATTERN:
       st->str = str;
       break;
     default:
@@ -207,8 +213,8 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 .  st  - the spectral transformation context
 
    Output Parameters:
-.  str - either SAME_NONZERO_PATTERN, DIFFERENT_NONZERO_PATTERN or
-         SUBSET_NONZERO_PATTERN
+.  str - either SAME_NONZERO_PATTERN, DIFFERENT_NONZERO_PATTERN,
+         SUBSET_NONZERO_PATTERN, or UNKNOWN_NONZERO_PATTERN
 
    Level: advanced
 

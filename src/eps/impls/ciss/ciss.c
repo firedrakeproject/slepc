@@ -381,7 +381,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
     if (!ctx->usest && initksp) {
       ierr = MatDuplicate(A,MAT_COPY_VALUES,&kspMat);CHKERRQ(ierr);
       if (B) {
-        ierr = MatAXPY(kspMat,-ctx->omega[p_id],B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+        ierr = MatAXPY(kspMat,-ctx->omega[p_id],B,UNKNOWN_NONZERO_PATTERN);CHKERRQ(ierr);
       } else {
         ierr = MatShift(kspMat,-ctx->omega[p_id]);CHKERRQ(ierr);
       }

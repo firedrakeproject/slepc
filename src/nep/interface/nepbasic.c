@@ -87,7 +87,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->A               = NULL;
   nep->f               = NULL;
   nep->nt              = 0;
-  nep->mstr            = DIFFERENT_NONZERO_PATTERN;
+  nep->mstr            = UNKNOWN_NONZERO_PATTERN;
   nep->IS              = NULL;
   nep->eigr            = NULL;
   nep->eigi            = NULL;
@@ -811,8 +811,10 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
    The structure flag provides information about A_i's nonzero pattern
    (see MatStructure enum). If all matrices have the same pattern, then
    use SAME_NONZERO_PATTERN. If the patterns are different but contained
-   in the pattern of the first one, then use SUBSET_NONZERO_PATTERN.
-   Otherwise use DIFFERENT_NONZERO_PATTERN.
+   in the pattern of the first one, then use SUBSET_NONZERO_PATTERN. If
+   patterns are known to be different, use DIFFERENT_NONZERO_PATTERN.
+   If set to UNKNOWN_NONZERO_PATTERN, the patterns will be compared to
+   determine if they are equal.
 
    This function must be called before NEPSetUp(). If it is called again
    after NEPSetUp() then the NEP object is reset.

@@ -107,7 +107,7 @@ int main(int argc,char **argv)
   A[0] = K; A[1] = C; A[2] = M;
   if (nohyp) {
     s = c*.6;
-    ierr = TransformMatricesMoebius(A,DIFFERENT_NONZERO_PATTERN,c,s,-s,c,At);CHKERRQ(ierr);
+    ierr = TransformMatricesMoebius(A,UNKNOWN_NONZERO_PATTERN,c,s,-s,c,At);CHKERRQ(ierr);
     for (i=0;i<3;i++) { ierr = MatDestroy(&A[i]);CHKERRQ(ierr); }
     Op = At;
   } else Op = A;

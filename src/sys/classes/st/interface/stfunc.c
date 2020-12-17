@@ -181,7 +181,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->sigma        = 0.0;
   st->defsigma     = 0.0;
   st->matmode      = ST_MATMODE_COPY;
-  st->str          = DIFFERENT_NONZERO_PATTERN;
+  st->str          = UNKNOWN_NONZERO_PATTERN;
   st->transform    = PETSC_FALSE;
   st->D            = NULL;
 
