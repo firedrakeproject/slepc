@@ -544,3 +544,13 @@ intel-cxx-mkl:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
+gnu-cxx-complex-int64:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-fedora
+  variables:
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-hpddm
+
