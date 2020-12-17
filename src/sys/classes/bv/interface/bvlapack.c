@@ -304,7 +304,7 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = PetscMalloc4(n,&eig,n,&D,lwork,&work,PetscMax(1,3*n-2),&rwork);CHKERRQ(ierr);
 #else
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n_,pS,&lds_,&dummy,&a,&lwork,&info));
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc3(n,&eig,n,&D,lwork,&work);CHKERRQ(ierr);
 #endif
 

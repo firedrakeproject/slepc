@@ -551,7 +551,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
   ierr = PetscMalloc5(m,&eig,m*m,&Q,m*k,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
 #else
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,&dummy,&a,&lwork,&info));
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc4(m,&eig,m*m,&Q,m*k,&W,lwork,&work);CHKERRQ(ierr);
 #endif
 

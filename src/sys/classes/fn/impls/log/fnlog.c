@@ -416,7 +416,7 @@ static PetscErrorCode gauss_legendre(PetscBLASInt n,PetscScalar *x,PetscScalar *
   ierr = PetscMalloc3(n,&eig,lwork,&work,PetscMax(1,3*n-2),&rwork);CHKERRQ(ierr);
 #else
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,&dummy,&a,&lwork,&info));
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc2(n,&eig,lwork,&work);CHKERRQ(ierr);
 #endif
 
