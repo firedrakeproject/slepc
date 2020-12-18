@@ -23,6 +23,7 @@ class Arpack(package.Package):
     self.dirname        = 'arpack-ng-'+self.version
     self.supportssingle = True
     self.fortran        = True
+    self.hasheaders     = True   # the option --with-arpack-include=... is simply ignored
     self.ProcessArgs(argdb)
 
   def Functions(self,petsc):
