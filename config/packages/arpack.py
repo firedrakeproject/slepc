@@ -23,6 +23,7 @@ class Arpack(package.Package):
     self.dirname        = 'arpack-ng-'+self.version
     self.supportssingle = True
     self.fortran        = True
+    self.hasheaders     = True   # the option --with-arpack-include=... is simply ignored
     self.ProcessArgs(argdb)
 
   def Functions(self,petsc):
@@ -62,7 +63,7 @@ class Arpack(package.Package):
         libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]
 
     if self.packagedir:
-      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
+      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
     else:
       dirs = self.GenerateGuesses('Arpack',archdir)
     self.FortranLib(slepcconf,slepcvars,dirs,libs,functions)

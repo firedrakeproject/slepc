@@ -62,7 +62,7 @@ class Primme(package.Package):
   def Check(self,slepcconf,slepcvars,petsc,archdir):
     code = self.SampleCode(petsc)
     if self.packagedir:
-      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
+      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
       incdirs = [os.path.join(self.packagedir,'include'),self.packagedir]
     else:
       dirs = self.GenerateGuesses('Primme',archdir)
