@@ -36,7 +36,7 @@ class Trlan(package.Package):
         libs = [['-ltrlan_mpi']]
 
     if self.packagedir:
-      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
+      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
     else:
       dirs = self.GenerateGuesses('TRLan',archdir)
 
