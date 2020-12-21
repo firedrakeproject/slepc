@@ -29,7 +29,7 @@ class SLEPc(package.Package):
     print('  --with-packages-download-dir=<dir>'.ljust(wd)+': Skip network download of tarballs and locate them in specified dir')
     print('\nSLEPc:')
     print('  --prefix=<dir>'.ljust(wd)+': Specify location to install SLEPc (e.g., /usr/local)')
-    print('  --DATAFILESPATH=<dir>'.ljust(wd)+': Specify location of datafiles (for SLEPc developers)')
+    print('  --DATAFILESPATH=<dir>'.ljust(wd)+': Location of datafiles (available at https://slepc.upv.es/datafiles/)')
 
   def InitDir(self):
     if 'SLEPC_DIR' in os.environ:
