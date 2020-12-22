@@ -78,6 +78,5 @@ int main(int argc,char **argv)
       suffix: 1
       args: -eps_harmonic -eps_conv_norm
       filter: grep -v tolerance | sed -e "s/symmetric/hermitian/"
-      TODO: temporarily broken due to a change in PETSc
 
 TEST*/
