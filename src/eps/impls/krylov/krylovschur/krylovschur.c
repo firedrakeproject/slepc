@@ -1221,7 +1221,7 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
         ierr = MatGetOwnershipIS(Ag,&ctx->isrow,&ctx->iscol);CHKERRQ(ierr);
         reuse = PETSC_FALSE;
       }
-      if (str==DIFFERENT_NONZERO_PATTERN) reuse = PETSC_FALSE;
+      if (str==DIFFERENT_NONZERO_PATTERN || str==UNKNOWN_NONZERO_PATTERN) reuse = PETSC_FALSE;
       if (ctx->submata && !reuse) {
         ierr = MatDestroyMatrices(1,&ctx->submata);CHKERRQ(ierr);
       }

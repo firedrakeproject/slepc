@@ -105,7 +105,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
-  ierr = NEPSetSplitOperator(nep,4,A,f,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = NEPSetSplitOperator(nep,4,A,f,UNKNOWN_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);

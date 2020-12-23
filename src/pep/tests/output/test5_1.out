@@ -39,7 +39,7 @@ ST Object: 1 MPI processes
   type: shift
   shift: 0.
   number of matrices: 3
-  all matrices have different nonzero pattern
+  all matrices have unknown nonzero pattern
   KSP Object: (st_) 1 MPI processes
     type: preonly
     maximum iterations=10000, initial guess is zero
