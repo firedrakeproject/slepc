@@ -186,7 +186,7 @@ int main(int argc,char **argv)
          args: -pep_type linear -pep_linear_explicitmatrix
       test:
          suffix: 1_linear_symm
-         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_eps_gen_indefinite -pep_scale scalar
+         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_eps_gen_indefinite -pep_scale scalar -pep_ncv 10
          requires: !single
       test:
          suffix: 1_stoar
