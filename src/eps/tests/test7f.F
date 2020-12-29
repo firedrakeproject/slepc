@@ -160,5 +160,6 @@
 !   test:
 !      suffix: 1
 !      args: -eps_nev 4 -eps_ncv 19
+!      filter: sed -e "s/83791/83792/"
 !
 !TEST*/

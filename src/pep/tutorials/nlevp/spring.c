@@ -159,6 +159,7 @@ int main(int argc,char **argv)
    test:
       suffix: 3
       args: -n 300 -pep_hermitian -pep_interval -10.1,-9.5 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse
+      filter: sed -e "s/52565/52566/" | sed -e "s/90758/90759/"
 
    test:
       suffix: 4

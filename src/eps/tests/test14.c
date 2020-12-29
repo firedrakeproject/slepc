@@ -139,5 +139,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -eps_ncv 14
+      filter: sed -e "s/00001/00000/"
 
 TEST*/

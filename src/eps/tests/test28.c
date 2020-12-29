@@ -139,5 +139,6 @@ int main(int argc,char **argv)
    test:
       suffix: 3
       args: -eps_interval 0.5,0.67 -st_type sinvert -st_pc_type cholesky -terse
+      filter: sed -e "s/55253/55252/"
 
 TEST*/

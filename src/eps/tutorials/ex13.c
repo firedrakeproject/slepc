@@ -140,7 +140,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 4
-      args: -eps_nev 4 -eps_tol 1e-5 -eps_smallest_real -eps_type {{gd lobpcg rqcg}} -terse
+      args: -eps_nev 4 -eps_tol 1e-4 -eps_smallest_real -eps_type {{gd lobpcg rqcg}} -terse
       output_file: output/ex13_1.out
       filter: grep -v Solution
 

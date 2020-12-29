@@ -187,5 +187,6 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
    test:
       suffix: 1
       args: -eps_largest_real -eps_nev 4 -eps_two_sided {{0 1}} -eps_krylovschur_locking {{0 1}} -terse
+      filter: sed -e "s/90424/90423/"
 
 TEST*/
