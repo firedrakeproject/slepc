@@ -82,13 +82,26 @@ $(OBJDIR)/%.o : CCPPFLAGS+=-Dslepc_EXPORTS
 $(OBJDIR)/%.o : CXXCPPFLAGS+=-Dslepc_EXPORTS
 endif
 
-ifneq ($(CUDAC),)
-langs := F F90 cu cxx c
-else
 langs := F F90 cxx c
+ifneq ($(CUDAC),)
+langs += cu
 endif
+ifneq ($(HIPCC),)
+langs += hip.cpp
+endif
+ifneq ($(SYCLCPP),)
+langs += sycl.cxx
+endif
+ifneq ($(KOKKOS_LIB),)
+langs += kokkos.cxx
+endif
+
 concatlang = $(foreach lang, $(langs), $(srcs-$(1).$(lang):src/%.$(lang)=$(OBJDIR)/%.o))
 srcs.o := $(foreach pkg, $(pkgs), $(call concatlang,$(pkg)))
+concatlangsrc = $(foreach lang, $(langs), $(srcs-$(1).$(lang)))
+csrc := $(foreach pkg, $(pkgs),  $(srcs-$(pkg).c))
+showcsrc:
+	-@echo $(csrc)
 
 define SHARED_RECIPE_DLL
   @$(RM) $@ dllcmd.${PETSC_ARCH}
@@ -170,8 +183,17 @@ $(call soname_function,%) : $(call libname_function,%)
 $(OBJDIR)/%.o : src/%.c | $$(@D)/.DIR
 	$(SLEPC_COMPILE.c) $(abspath $<) -o $@
 
+$(OBJDIR)/%.o : src/%.kokkos.cxx | $$(@D)/.DIR
+	$(SLEPC_COMPILE.kokkos.cxx) $(abspath $<) -o $@
+
 $(OBJDIR)/%.o : src/%.cxx | $$(@D)/.DIR
 	$(SLEPC_COMPILE.cxx) $(abspath $<) -o $@
+
+$(OBJDIR)/%.o : src/%.hip.cpp | $$(@D)/.DIR
+	$(SLEPC_COMPILE.hip.cpp) $(abspath $<) -o $@
+
+$(OBJDIR)/%.o : src/%.sycl.cxx | $$(@D)/.DIR
+	$(SLEPC_COMPILE.sycl.cxx) $(abspath $<) -o $@
 
 $(OBJDIR)/%.o : src/%.cu | $$(@D)/.DIR
 	$(SLEPC_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
@@ -213,11 +235,13 @@ $(srcs.o) : $(slepcvariables)
 .PHONY: clean all print
 
 clean:
-	$(RM) -rf $(OBJDIR) $(LIBDIR)/libslepc* $(MODDIR)/slepc*.mod $(MPIUNI_MOD) $(generated)
+	${RM} -r $(OBJDIR) $(LIBDIR)/libslepc* $(MODDIR)/slepc*.mod $(MPIUNI_MOD) $(generated)
 
 # make print VAR=the-variable
 print:
-	@echo $($(VAR))
+	$(info $($(VAR)))
+	@true
+
 
 allobj.d := $(srcs.o:%.o=%.d)
 # Tell make that allobj.d are all up to date.  Without this, the include
