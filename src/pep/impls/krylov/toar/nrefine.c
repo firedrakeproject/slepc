@@ -822,7 +822,7 @@ static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscSca
       root = 0;
       for (j=0;j<i%matctx->subc->n;j++) root += matctx->subc->subsize[j];
       ierr = PetscMPIIntCast(k,&len);CHKERRQ(ierr);
-      ierr = MPI_Bcast(dHi,len,MPIU_SCALAR,root,matctx->subc->dupparent);CHKERRQ(ierr);
+      ierr = MPI_Bcast(dHi,len,MPIU_SCALAR,root,matctx->subc->dupparent);CHKERRMPI(ierr);
       break;
     case PEP_REFINE_SCHEME_SCHUR:
       break;
@@ -1075,7 +1075,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
       matctx->compM1 = PETSC_TRUE;
       ierr = MatGetSize(E[0],NULL,&N0);CHKERRQ(ierr);
       ierr = MatGetSize(E[1],NULL,&N1);CHKERRQ(ierr);
-      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)M),&np);CHKERRQ(ierr);
+      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)M),&np);CHKERRMPI(ierr);
       ierr = MatGetOwnershipRanges(E[0],&rgs0);CHKERRQ(ierr);
       ierr = MatGetOwnershipRanges(E[1],&rgs1);CHKERRQ(ierr);
       ierr = PetscMalloc4(PetscMax(k,N1),&matctx->idxp,N0,&matctx->idxg,N0,&matctx->map0,N1,&matctx->map1);CHKERRQ(ierr);
@@ -1088,7 +1088,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
       ierr = MatCreateVecs(matctx->E[1],NULL,&matctx->t1);CHKERRQ(ierr);
       ierr = VecDuplicate(matctx->tN,&matctx->ttN);CHKERRQ(ierr);
       if (matctx->subc) {
-        ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRQ(ierr);
+        ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRMPI(ierr);
         count = np*k;
         ierr = PetscMalloc2(count,&idx1,count,&idx2);CHKERRQ(ierr);
         ierr = VecCreateMPI(PetscObjectComm((PetscObject)pep),m1-n1,PETSC_DECIDE,&matctx->tp);CHKERRQ(ierr);

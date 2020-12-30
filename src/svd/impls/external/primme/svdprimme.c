@@ -151,8 +151,8 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   primme_svds_params *primme = &ops->primme;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)svd),&numProcs);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&procID);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)svd),&numProcs);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&procID);CHKERRMPI(ierr);
 
   /* Check some constraints and set some default values */
   ierr = SVDMatGetSize(svd,&m,&n);CHKERRQ(ierr);
@@ -322,7 +322,7 @@ PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",SVDPRIMMEMethods[(SVDPRIMMEMethod)ctx->method]);CHKERRQ(ierr);
 
     /* Display PRIMME params */
-    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&rank);CHKERRQ(ierr);
+    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&rank);CHKERRMPI(ierr);
     if (!rank) primme_svds_display_params(ctx->primme);
   }
   PetscFunctionReturn(0);

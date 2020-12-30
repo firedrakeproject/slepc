@@ -100,8 +100,8 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
   }
   if (nep->scheme==NEP_REFINE_SCHEME_EXPLICIT) {
-    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ctx->A[0]),&rank);CHKERRQ(ierr);
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ctx->A[0]),&size);CHKERRQ(ierr);
+    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ctx->A[0]),&rank);CHKERRMPI(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ctx->A[0]),&size);CHKERRMPI(ierr);
     if (size>1) {
       if (nep->npart==1) {
         ierr = BVGetColumn(nep->V,0,&v);CHKERRQ(ierr);
@@ -136,14 +136,14 @@ static PetscErrorCode NEPSimpleNRefGatherEigenpair(NEP nep,NEPSimpNRefctx *ctx,P
   PetscScalar    *array;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(comm,&nproc);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(comm,&nproc);CHKERRMPI(ierr);
   p = (nproc/nep->npart)*(sc+1)+PetscMin(sc+1,nproc%nep->npart)-1;
   if (nep->npart>1) {
     /* Communicate convergence successful */
-    ierr = MPI_Bcast(fail,1,MPIU_INT,p,comm);CHKERRQ(ierr);
+    ierr = MPI_Bcast(fail,1,MPIU_INT,p,comm);CHKERRMPI(ierr);
     if (!(*fail)) {
       /* Process 0 of subcommunicator sc broadcasts the eigenvalue */
-      ierr = MPI_Bcast(&nep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRQ(ierr);
+      ierr = MPI_Bcast(&nep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRMPI(ierr);
       /* Gather nep->V[idx] from the subcommuniator sc */
       ierr = BVGetColumn(nep->V,idx,&v);CHKERRQ(ierr);
       if (nep->refinesubc->color==sc) {
@@ -160,7 +160,7 @@ static PetscErrorCode NEPSimpleNRefGatherEigenpair(NEP nep,NEPSimpNRefctx *ctx,P
     }
   } else {
     if (nep->scheme==NEP_REFINE_SCHEME_EXPLICIT && !(*fail)) {
-      ierr = MPI_Bcast(&nep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRQ(ierr);
+      ierr = MPI_Bcast(&nep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRMPI(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -256,8 +256,8 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
   switch (nep->scheme) {
   case NEP_REFINE_SCHEME_EXPLICIT:
     comm = PetscObjectComm((PetscObject)A[0]);
-    ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
-    ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
+    ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
+    ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
     ierr = MatGetSize(M,&mg,NULL);CHKERRQ(ierr);
     ierr = MatGetOwnershipRange(M,&m0,&m1);CHKERRQ(ierr);
     if (ini) {
@@ -309,8 +309,8 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
     }
     ierr = VecRestoreArrayRead(w,&array);CHKERRQ(ierr);
     ierr = VecConjugate(v);CHKERRQ(ierr);
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)A[0]),&size);CHKERRQ(ierr);
-    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)A[0]),&rank);CHKERRQ(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)A[0]),&size);CHKERRMPI(ierr);
+    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)A[0]),&rank);CHKERRMPI(ierr);
     if (size>1) {
       if (rank==size-1) {
         ierr = PetscMalloc1(nep->n,&cols2);CHKERRQ(ierr);
@@ -396,8 +396,8 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   ierr = VecDuplicate(v,&t[0]);CHKERRQ(ierr);
   ierr = VecDuplicate(v,&t[1]);CHKERRQ(ierr);
   if (nep->npart==1) { ierr = BVRestoreColumn(nep->V,0,&v);CHKERRQ(ierr); }
-  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
   ierr = VecGetLocalSize(r,&n);CHKERRQ(ierr);
   ierr = PetscMalloc3(nep->npart,&idx_sc,nep->npart,&its_sc,nep->npart,&fail_sc);CHKERRQ(ierr);
   for (i=0;i<nep->npart;i++) fail_sc[i] = 0;

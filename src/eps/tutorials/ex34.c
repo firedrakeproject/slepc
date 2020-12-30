@@ -282,7 +282,7 @@ PetscErrorCode CreateSquareMesh(MPI_Comm comm,DM *dm)
   ierr = DMPlexCreateBoxMesh(comm,dim,PETSC_FALSE,cells,NULL,NULL,NULL,PETSC_TRUE,dm);CHKERRQ(ierr);
   ierr = DMSetFromOptions(*dm);CHKERRQ(ierr);
   ierr = DMSetUp(*dm);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
   if (size > 1) {
     ierr = DMPlexDistribute(*dm,0,NULL,&pdm);CHKERRQ(ierr);
     ierr = DMDestroy(dm);CHKERRQ(ierr);

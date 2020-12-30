@@ -619,8 +619,8 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
   ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
   symm = set? flg: PETSC_FALSE;
 
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRMPI(ierr);
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
 
     ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -648,7 +648,7 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
   if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) {  /* synchronize */
     ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
     ierr = MatDenseGetArray(F,&pF);CHKERRQ(ierr);
-    ierr = MPI_Bcast(pF,n*n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRQ(ierr);
+    ierr = MPI_Bcast(pF,n*n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRMPI(ierr);
     ierr = MatDenseRestoreArray(F,&pF);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -776,8 +776,8 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
   symm = set? flg: PETSC_FALSE;
 
   /* evaluate matrix function */
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRMPI(ierr);
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
     ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
     if (symm && !fn->method) {  /* prefer diagonalization */
@@ -807,7 +807,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
   if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) {
     ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
     ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
-    ierr = MPI_Bcast(pv,n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRQ(ierr);
+    ierr = MPI_Bcast(pv,n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRMPI(ierr);
     ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -952,7 +952,7 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)fn,viewer);CHKERRQ(ierr);
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRMPI(ierr);
     if (size>1) {
       ierr = PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",FNParallelTypes[fn->pmode]);CHKERRQ(ierr);
     }

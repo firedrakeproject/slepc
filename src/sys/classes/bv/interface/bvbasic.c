@@ -736,7 +736,7 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
   ierr = VecGetSize(buffer,&n);CHKERRQ(ierr);
   ld = bv->m+bv->nc;
   if (n != ld*bv->m) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Buffer size must be %d",ld*bv->m);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)buffer),&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)buffer),&size);CHKERRMPI(ierr);
   if (size>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Buffer must be a sequential vector");
 
   ierr = PetscObjectReference((PetscObject)buffer);CHKERRQ(ierr);

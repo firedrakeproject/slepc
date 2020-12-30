@@ -73,7 +73,7 @@ int main(int argc,char **argv)
      vector is set to random values
   */
   ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
   if (!rank) {
     ierr = VecSetValue(v0,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
     ierr = VecSetValue(v0,1,1.0,INSERT_VALUES);CHKERRQ(ierr);

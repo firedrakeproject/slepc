@@ -1287,7 +1287,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
     if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
       pep->npart = 1;
     } else {
-      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&size);CHKERRQ(ierr);
+      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&size);CHKERRMPI(ierr);
       if (npart<1 || npart>size) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
       pep->npart = npart;
     }

@@ -178,8 +178,8 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID);CHKERRMPI(ierr);
 
   /* Check some constraints and set some default values */
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PETSC_MAX_INT;
@@ -396,7 +396,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",EPSPRIMMEMethods[(EPSPRIMMEMethod)ctx->method]);CHKERRQ(ierr);
 
     /* Display PRIMME params */
-    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank);CHKERRQ(ierr);
+    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank);CHKERRMPI(ierr);
     if (!rank) primme_display_params(ctx->primme);
   }
   PetscFunctionReturn(0);

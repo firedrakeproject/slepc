@@ -154,7 +154,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm of X = %g\n",(double)nrm);CHKERRQ(ierr);
 
   /* Test BVGetArrayRead */
-  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
   if (!rank) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"First row of X =\n");CHKERRQ(ierr);
     ierr = BVGetArrayRead(X,&pX);CHKERRQ(ierr);

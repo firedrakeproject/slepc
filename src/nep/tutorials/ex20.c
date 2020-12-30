@@ -407,13 +407,13 @@ PetscErrorCode FixSign(Vec x)
   const PetscScalar *xx;
 
   PetscFunctionBeginUser;
-  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
   if (!rank) {
     ierr = VecGetArrayRead(x,&xx);CHKERRQ(ierr);
     sign = *xx/PetscAbsScalar(*xx);
     ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   }
-  ierr = MPI_Bcast(&sign,1,MPIU_SCALAR,0,PETSC_COMM_WORLD);CHKERRQ(ierr);
+  ierr = MPI_Bcast(&sign,1,MPIU_SCALAR,0,PETSC_COMM_WORLD);CHKERRMPI(ierr);
   ierr = VecScale(x,1.0/sign);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

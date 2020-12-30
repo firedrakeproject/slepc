@@ -88,9 +88,9 @@ static PetscErrorCode VecCompNormEnd(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MPI_Type_free(&MPIU_NORM2);CHKERRQ(ierr);
-  ierr = MPI_Type_free(&MPIU_NORM1_AND_2);CHKERRQ(ierr);
-  ierr = MPI_Op_free(&MPIU_NORM2_SUM);CHKERRQ(ierr);
+  ierr = MPI_Type_free(&MPIU_NORM2);CHKERRMPI(ierr);
+  ierr = MPI_Type_free(&MPIU_NORM1_AND_2);CHKERRMPI(ierr);
+  ierr = MPI_Op_free(&MPIU_NORM2_SUM);CHKERRMPI(ierr);
   VecCompInitialized = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -100,11 +100,11 @@ static PetscErrorCode VecCompNormInit(void)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MPI_Type_contiguous(2,MPIU_REAL,&MPIU_NORM2);CHKERRQ(ierr);
-  ierr = MPI_Type_commit(&MPIU_NORM2);CHKERRQ(ierr);
-  ierr = MPI_Type_contiguous(3,MPIU_REAL,&MPIU_NORM1_AND_2);CHKERRQ(ierr);
-  ierr = MPI_Type_commit(&MPIU_NORM1_AND_2);CHKERRQ(ierr);
-  ierr = MPI_Op_create(SlepcSumNorm2_Local,PETSC_TRUE,&MPIU_NORM2_SUM);CHKERRQ(ierr);
+  ierr = MPI_Type_contiguous(2,MPIU_REAL,&MPIU_NORM2);CHKERRMPI(ierr);
+  ierr = MPI_Type_commit(&MPIU_NORM2);CHKERRMPI(ierr);
+  ierr = MPI_Type_contiguous(3,MPIU_REAL,&MPIU_NORM1_AND_2);CHKERRMPI(ierr);
+  ierr = MPI_Type_commit(&MPIU_NORM1_AND_2);CHKERRMPI(ierr);
+  ierr = MPI_Op_create(SlepcSumNorm2_Local,PETSC_TRUE,&MPIU_NORM2_SUM);CHKERRMPI(ierr);
   ierr = PetscRegisterFinalize(VecCompNormEnd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

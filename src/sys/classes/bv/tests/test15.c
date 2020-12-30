@@ -24,7 +24,7 @@ PetscErrorCode PrintFirstRow(BV X)
   const char        *name;
 
   PetscFunctionBeginUser;
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)X),&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)X),&rank);CHKERRMPI(ierr);
   if (!rank) {
     ierr = BVGetActiveColumns(X,NULL,&k);CHKERRQ(ierr);
     ierr = BVGetSizes(X,&nloc,NULL,NULL);CHKERRQ(ierr);
