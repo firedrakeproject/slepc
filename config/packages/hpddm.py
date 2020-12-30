@@ -47,11 +47,7 @@ class HPDDM(package.Package):
     cont += '\t@echo $(call SONAME_FUNCTION,'+os.path.join(libdir,'libhpddm_petsc')+',0)\n'
     cont += 'sl_linker:\n'
     cont += '\t@echo $(call SL_LINKER_FUNCTION,'+os.path.join(libdir,'libhpddm_petsc')+',0,0)\n'
-    self.log.write('Using makefile:\n')
-    self.log.write(cont)
-    mfile = open(os.path.join(builddir,'SONAME_SL_LINKER'),'w')
-    mfile.write(cont)
-    mfile.close()
+    self.WriteMakefile('SONAME_SL_LINKER',builddir,cont)
     d = os.path.join(petsc.dir,petsc.arch,'lib')
     l = petsc.slflag+d+' -L'+d+' -lpetsc'
     d = libdir

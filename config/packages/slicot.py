@@ -51,11 +51,7 @@ class Slicot(package.Package):
     cont += 'ARCH      = '+petsc.ar+'\n'
     cont += 'ARCHFLAGS = '+petsc.ar_flags+'\n'
     cont += 'SLICOTLIB = ../'+libname+'\n'
-    self.log.write('Using makefile definitions:\n')
-    self.log.write(cont)
-    mfile = open(os.path.join(builddir,'make.inc'),'w')
-    mfile.write(cont)
-    mfile.close()
+    self.WriteMakefile('make.inc',builddir,cont)
 
     # Build package
     target = 'lib'

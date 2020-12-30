@@ -53,11 +53,7 @@ class Trlan(package.Package):
     cont += 'F90    = '+petsc.fc+'\n'
     cont += 'FFLAGS = '+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+extra_fcflags+'\n'
     cont += 'SHELL  = /bin/sh\n'
-    self.log.write('Using makefile definitions:\n')
-    self.log.write(cont)
-    mfile = open(os.path.join(builddir,'Make.inc'),'w')
-    mfile.write(cont)
-    mfile.close()
+    self.WriteMakefile('Make.inc',builddir,cont)
 
     # Build package
     if petsc.mpiuni:
