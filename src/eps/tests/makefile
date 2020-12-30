@@ -47,7 +47,7 @@ testtest5_blopex: test5.PETSc
 	  ${RM} $${test}.tmp; \
 	  ${MAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test5.rm ; \
 	else fail=1; fi; \
-	exit $$fail
+	exit $${fail}
 
 testtest7f: test7f.PETSc
 	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
@@ -67,7 +67,7 @@ testtest7f: test7f.PETSc
 	  ${RM} $${test}.tmp; \
 	  ${MAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test7f.rm ; \
 	else fail=1; fi; \
-	exit $$fail
+	exit $${fail}
 
 testtest10: test10.PETSc
 	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
@@ -78,15 +78,15 @@ testtest10: test10.PETSc
 	elif [ -f test10 ]; then \
 	  test=test10_1; check=test10_1_ks; \
 	  options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude"; \
-	  ${MPIEXEC} -n 1 ./test10 $$options > $${test}.tmp 2>&1; \
+	  ${MPIEXEC} -n 1 ./test10 $${options} > $${test}.tmp 2>&1; \
 	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
 	    echo "C/C++ example src/eps/tests/test10 run successfully with 1 MPI process"; \
 	  else \
 	    echo "Possible error running C/C++ src/eps/tests/test10 with 1 MPI process"; \
 	    cat $${test}.tmp; fail=1; \
 	  fi; \
-	  if [ "${MPIEXEC}" != "${PETSC_DIR}/lib/petsc/bin/petsc-mpiexec.uni" ]; then \
-	    ${MPIEXEC} -n 2 ./test10 $$options > $${test}.tmp 2>&1; \
+	  if [ $${fail} -eq 0 -a "${MPIEXEC}" != "${PETSC_DIR}/lib/petsc/bin/petsc-mpiexec.uni" ]; then \
+	    ${MPIEXEC} -n 2 ./test10 $${options} > $${test}.tmp 2>&1; \
 	    if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
 	      echo "C/C++ example src/eps/tests/test10 run successfully with 2 MPI process"; \
 	    else \
@@ -97,7 +97,7 @@ testtest10: test10.PETSc
 	  ${RM} $${test}.tmp; \
 	  ${MAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test10.rm; \
 	else fail=1; fi; \
-	exit $$fail
+	exit $${fail}
 
 testtest10_cuda: test10.PETSc
 	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
@@ -108,7 +108,7 @@ testtest10_cuda: test10.PETSc
 	elif [ -f test10 ]; then \
 	  test=test10_1; check=test10_1_ks; \
 	  options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude -mat_type aijcusparse"; \
-	  ${MPIEXEC} -n 1 ./test10 $$options > $${test}.tmp 2>&1; \
+	  ${MPIEXEC} -n 1 ./test10 $${options} > $${test}.tmp 2>&1; \
 	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
 	    echo "C/C++ example src/eps/tests/test10 run successfully with CUDA"; \
 	  else \
@@ -118,5 +118,5 @@ testtest10_cuda: test10.PETSc
 	  ${RM} $${test}.tmp; \
 	  ${MAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test10.rm; \
 	else fail=1; fi; \
-	exit $$fail
+	exit $${fail}
 

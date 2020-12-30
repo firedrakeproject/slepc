@@ -119,7 +119,7 @@
  150  format (' ... changed to ',I2)
 
       its = 8
-      cut = 1.0e-6
+      cut = 2.0e-6
       bal = EPS_BALANCE_ONESIDE
       call EPSSetBalance(eps,bal,its,cut,ierr)
       call EPSGetBalance(eps,bal,its,cut,ierr)
@@ -209,5 +209,6 @@
 !   test:
 !      suffix: 1
 !      args: -eps_ncv 14
+!      filter: sed -e "s/00001/00000/"
 !
 !TEST*/

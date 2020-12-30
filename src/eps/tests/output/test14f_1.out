@@ -28,7 +28,7 @@ row 19: (19, 20.)
  hermitian
  Extraction before changing =  0
  ... changed to  1
- Balance:  1, its= 8, cutoff=0.000001
+ Balance:  1, its= 8, cutoff=0.000002
  Which =  7, target = 4.8
  Dimensions: nev= 4, ncv= -2, mpd= -2
  Tolerance =0.00022, max_its = 200

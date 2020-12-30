@@ -98,21 +98,20 @@ info:
 # Simple test examples for checking a correct installation
 check_install: check
 check:
-	-+@${OMAKE_SELF} PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log
+	+@(${OMAKE_SELF} PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check_build 2>&1; echo $$? > ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log) | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log; ecode=`cat ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log`; rm ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log; exit $${ecode}
 check_build:
 	-@echo "Running test examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
-	+@cd src/eps/tests && \
-         ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10 && \
-	 egrep "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
+	+@cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10
+	+@egrep "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
          if test -s .ftn.log; then \
-           ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; \
-         fi ; ${RM} .ftn.log && \
-	 if [ "${CUDA_LIB}" != "" ]; then \
-           ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10_cuda; \
-         fi; \
-	 if [ "${BLOPEX_LIB}" != "" ]; then \
-           ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; \
+           cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; \
+         fi ; ${RM} .ftn.log
+	+@if [ "${CUDA_LIB}" != "" ]; then \
+           cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10_cuda; \
+         fi
+	+@if [ "${BLOPEX_LIB}" != "" ]; then \
+           cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; \
          fi
 	-@echo "Completed test examples"
 

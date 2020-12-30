@@ -113,5 +113,6 @@ int main(int argc,char **argv)
          args:  -eps_type arpack
          suffix: 2_arpack
          requires: arpack
+         TODO: fails in new runners
 
 TEST*/

@@ -207,5 +207,6 @@ PetscErrorCode STDestroy_Fold(FoldShellST *fold)
    test:
       args: -m 11 -eps_nev 4 -terse
       suffix: 1
+      requires: !single
 
 TEST*/
