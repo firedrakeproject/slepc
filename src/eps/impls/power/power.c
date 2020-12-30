@@ -196,7 +196,7 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
   }
   ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   if (i==last) i=N;
-  ierr = MPIU_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
+  ierr = MPIU_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x));CHKERRMPI(ierr);
   if (*idx==N) SETERRQ(PetscObjectComm((PetscObject)x),1,"Zero vector found");CHKERRQ(ierr);
   ierr = VecGetLayout(x,&map);CHKERRQ(ierr);
   ierr = PetscLayoutFindOwner(map,*idx,p);CHKERRQ(ierr);
@@ -223,7 +223,7 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,
     if (absv>10*PETSC_MACHINE_EPSILON) alpha = xx[idx-first]/absv;
     ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   }
-  ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,p,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
+  ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,p,PetscObjectComm((PetscObject)x));CHKERRMPI(ierr);
   if (sign) *sign = alpha;
   alpha *= norm;
   ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);

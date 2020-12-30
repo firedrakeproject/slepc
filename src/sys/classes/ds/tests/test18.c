@@ -21,14 +21,14 @@ PetscErrorCode CheckArray(PetscScalar *A,const char *label,PetscInt k)
   PetscReal      error;
 
   PetscFunctionBeginUser;
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
   if (rank) {
-    ierr = MPI_Send(A,k,MPIU_SCALAR,0,111,PETSC_COMM_WORLD);CHKERRQ(ierr);
+    ierr = MPI_Send(A,k,MPIU_SCALAR,0,111,PETSC_COMM_WORLD);CHKERRMPI(ierr);
   } else {
     ierr = PetscMalloc1(k,&buf);CHKERRQ(ierr);
     for (p=1;p<size;p++) {
-      ierr = MPI_Recv(buf,k,MPIU_SCALAR,p,111,PETSC_COMM_WORLD,MPI_STATUS_IGNORE);CHKERRQ(ierr);
+      ierr = MPI_Recv(buf,k,MPIU_SCALAR,p,111,PETSC_COMM_WORLD,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
       dif = 0.0;
       for (j=0;j<k;j++) dif += A[j]-buf[j];
       error = PetscAbsScalar(dif);
@@ -100,7 +100,7 @@ int main(int argc,char **argv)
 
   /* Synchronize data and check */
   ierr = DSSynchronize(ds,wr,wi);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
   if (size>1) {
     ierr = CheckArray(wr,"wr",n);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)

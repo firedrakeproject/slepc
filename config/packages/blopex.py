@@ -90,11 +90,7 @@ class Blopex(package.Package):
     cont += 'AR_LIB_SUFFIX = '+petsc.ar_lib_suffix+'\n'
     cont += 'RANLIB        = '+petsc.ranlib+'\n'
     cont += 'TARGET_ARCH   =\n'
-    self.log.write('Using makefile definitions:\n')
-    self.log.write(cont)
-    mfile = open(os.path.join(builddir,'Makefile.inc'),'w')
-    mfile.write(cont)
-    mfile.close()
+    self.WriteMakefile('Makefile.inc',builddir,cont)
 
     # Build package
     (result,output) = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)

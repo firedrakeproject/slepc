@@ -133,7 +133,7 @@ static PetscErrorCode MatCreateTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat
   ierr = MatGetLocalSize(D,&m2,&n2);CHKERRQ(ierr);
 
   /* Create mappings */
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)G),&np);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)G),&np);CHKERRMPI(ierr);
   ierr = MatGetOwnershipRangesColumn(A,&mapptr1);CHKERRQ(ierr);
   ierr = MatGetOwnershipRangesColumn(B,&mapptr2);CHKERRQ(ierr);
   ierr = PetscMalloc4(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols,N1,&map1,N2,&map2);CHKERRQ(ierr);
@@ -395,7 +395,7 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
     }
   }
   if (!skip) {
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size);CHKERRQ(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size);CHKERRMPI(ierr);
     ierr = MatGetLocalSize(mat,&mloc,&nloc);CHKERRQ(ierr);
     ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
     ierr = MatGetBlockSizes(mat,&rbs,&cbs);CHKERRQ(ierr);

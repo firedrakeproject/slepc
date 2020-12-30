@@ -746,7 +746,7 @@ PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRMPI(ierr);
   if (size>1 && ds->pmode==DS_PARALLEL_SYNCHRONIZED) {
     ierr = PetscLogEventBegin(DS_Synchronize,ds,0,0,0);CHKERRQ(ierr);
     if (ds->ops->synchronize) {

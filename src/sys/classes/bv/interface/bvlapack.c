@@ -48,7 +48,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
   if (type==NORM_FROBENIUS || type==NORM_2) {
     lnrm = LAPACKlange_("F",&m,&n,(PetscScalar*)A,&m,rwork);
     if (mpi) {
-      ierr = MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      ierr = MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv));CHKERRMPI(ierr);
     } else *nrm = lnrm;
     ierr = PetscLogFlops(2.0*m*n);CHKERRQ(ierr);
   } else if (type==NORM_1) {
@@ -64,7 +64,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
         }
       }
       ierr = PetscMPIIntCast(n_,&len);CHKERRQ(ierr);
-      ierr = MPIU_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      ierr = MPIU_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRMPI(ierr);
       *nrm = 0.0;
       for (j=0;j<n_;j++) if (rwork2[j] > *nrm) *nrm = rwork2[j];
     } else {
@@ -76,7 +76,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
     rwork = (PetscReal*)bv->work;
     lnrm = LAPACKlange_("I",&m,&n,(PetscScalar*)A,&m,rwork);
     if (mpi) {
-      ierr = MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      ierr = MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)bv));CHKERRMPI(ierr);
     } else *nrm = lnrm;
     ierr = PetscLogFlops(1.0*m*n);CHKERRQ(ierr);
   }
@@ -113,7 +113,7 @@ PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const Pe
   if (mpi) {
     ierr = PetscMPIIntCast(n_,&len);CHKERRQ(ierr);
     ierr = PetscArrayzero(rwork2,n_);CHKERRQ(ierr);
-    ierr = MPIU_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    ierr = MPIU_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv));CHKERRMPI(ierr);
     norms = rwork2;
   } else norms = rwork;
   /* scale columns */
@@ -365,8 +365,8 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
   k  = PetscMin(m,n);
   nb = 16;
   lda = 2*n;
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)bv),&rank);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)bv),&rank);CHKERRMPI(ierr);
   nlevels = (PetscInt)PetscCeilReal(PetscLog2Real((PetscReal)size));
   powtwo  = PetscPowInt(2,(PetscInt)PetscFloorReal(PetscLog2Real((PetscReal)size)));
   worklen = n+n*nb;
@@ -408,8 +408,8 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
     ierr = PetscMPIIntCast(n,&count);CHKERRQ(ierr);
     ierr = PetscMPIIntCast(lda,&stride);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(lda,&l);CHKERRQ(ierr);
-    ierr = MPI_Type_vector(count,count,stride,MPIU_SCALAR,&tmat);CHKERRQ(ierr);
-    ierr = MPI_Type_commit(&tmat);CHKERRQ(ierr);
+    ierr = MPI_Type_vector(count,count,stride,MPIU_SCALAR,&tmat);CHKERRMPI(ierr);
+    ierr = MPI_Type_commit(&tmat);CHKERRMPI(ierr);
 
     for (level=nlevels;level>=1;level--) {
 
@@ -418,16 +418,16 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
 
       /* Stack triangular matrices */
       if (rank<s && s<size) {  /* send top part, receive bottom part */
-        ierr = MPI_Sendrecv(A,1,tmat,s,111,A+n,1,tmat,s,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
+        ierr = MPI_Sendrecv(A,1,tmat,s,111,A+n,1,tmat,s,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRMPI(ierr);
       } else if (s<size) {  /* copy top to bottom, receive top part */
-        ierr = MPI_Sendrecv(A,1,tmat,rank,111,A+n,1,tmat,rank,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
-        ierr = MPI_Sendrecv(A+n,1,tmat,s,111,A,1,tmat,s,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
+        ierr = MPI_Sendrecv(A,1,tmat,rank,111,A+n,1,tmat,rank,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+        ierr = MPI_Sendrecv(A+n,1,tmat,s,111,A,1,tmat,s,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRMPI(ierr);
       }
       if (level<nlevels && size!=powtwo) {  /* for cases when size is not a power of 2 */
         if (rank<size-powtwo) {  /* send bottom part */
-          ierr = MPI_Send(A+n,1,tmat,rank+powtwo,111,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+          ierr = MPI_Send(A+n,1,tmat,rank+powtwo,111,PetscObjectComm((PetscObject)bv));CHKERRMPI(ierr);
         } else if (rank>=powtwo) {  /* receive bottom part */
-          ierr = MPI_Recv(A+n,1,tmat,rank-powtwo,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
+          ierr = MPI_Recv(A+n,1,tmat,rank-powtwo,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRMPI(ierr);
         }
       }
       /* Compute QR and build orthogonal matrix */
@@ -475,7 +475,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
       }
     }
 
-    ierr = MPI_Type_free(&tmat);CHKERRQ(ierr);
+    ierr = MPI_Type_free(&tmat);CHKERRMPI(ierr);
   }
 
   ierr = PetscLogFlops(3.0*m*n*n);CHKERRQ(ierr);
@@ -528,7 +528,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,P
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
   nb = 16;
   s  = n+n*(n-1)/2;  /* length of packed triangular matrix */
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRMPI(ierr);
   worklen = n+n*nb+2*s+m*n;
   ierr = BVAllocateWork_Private(bv,worklen);CHKERRQ(ierr);
   tau  = bv->work;
@@ -552,17 +552,17 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,P
   } else {
     /* Use MPI reduction operation to obtain global R */
     ierr = PetscMPIIntCast(s,&count);CHKERRQ(ierr);
-    ierr = MPI_Type_contiguous(count,MPIU_SCALAR,&tmat);CHKERRQ(ierr);
-    ierr = MPI_Type_commit(&tmat);CHKERRQ(ierr);
+    ierr = MPI_Type_contiguous(count,MPIU_SCALAR,&tmat);CHKERRMPI(ierr);
+    ierr = MPI_Type_commit(&tmat);CHKERRMPI(ierr);
     for (i=0;i<n;i++) {
       for (j=i;j<n;j++) R1[(2*n-i-1)*i/2+j] = (i<m)?A[i+j*m]:0.0;
     }
-    ierr = MPIU_Allreduce(R1,R2,1,tmat,MPIU_TSQR,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    ierr = MPIU_Allreduce(R1,R2,1,tmat,MPIU_TSQR,PetscObjectComm((PetscObject)bv));CHKERRMPI(ierr);
     for (i=0;i<n;i++) {
       for (j=0;j<i;j++) R[i+j*ldr] = 0.0;
       for (j=i;j<n;j++) R[i+j*ldr] = R2[(2*n-i-1)*i/2+j];
     }
-    ierr = MPI_Type_free(&tmat);CHKERRQ(ierr);
+    ierr = MPI_Type_free(&tmat);CHKERRMPI(ierr);
   }
 
   ierr = PetscLogFlops(3.0*m*n*n);CHKERRQ(ierr);

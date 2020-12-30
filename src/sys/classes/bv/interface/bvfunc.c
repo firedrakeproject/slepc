@@ -37,8 +37,8 @@ PetscErrorCode BVFinalizePackage(void)
 
   PetscFunctionBegin;
   ierr = PetscFunctionListDestroy(&BVList);CHKERRQ(ierr);
-  ierr = MPI_Op_free(&MPIU_TSQR);CHKERRQ(ierr);
-  ierr = MPI_Op_free(&MPIU_LAPY2);CHKERRQ(ierr);
+  ierr = MPI_Op_free(&MPIU_TSQR);CHKERRMPI(ierr);
+  ierr = MPI_Op_free(&MPIU_LAPY2);CHKERRMPI(ierr);
   BVPackageInitialized = PETSC_FALSE;
   BVRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -86,8 +86,8 @@ PetscErrorCode BVInitializePackage(void)
   ierr = PetscLogEventRegister("BVMatMultVec",BV_CLASSID,&BV_MatMultVec);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMatProject",BV_CLASSID,&BV_MatProject);CHKERRQ(ierr);
   /* MPI reduction operation used in BVOrthogonalize */
-  ierr = MPI_Op_create(SlepcGivensPacked,PETSC_FALSE,&MPIU_TSQR);CHKERRQ(ierr);
-  ierr = MPI_Op_create(SlepcPythag,PETSC_TRUE,&MPIU_LAPY2);CHKERRQ(ierr);
+  ierr = MPI_Op_create(SlepcGivensPacked,PETSC_FALSE,&MPIU_TSQR);CHKERRMPI(ierr);
+  ierr = MPI_Op_create(SlepcPythag,PETSC_TRUE,&MPIU_LAPY2);CHKERRMPI(ierr);
   /* Process Info */
   classids[0] = BV_CLASSID;
   ierr = PetscInfoProcessClass("bv",1,&classids[0]);CHKERRQ(ierr);

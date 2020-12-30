@@ -433,3 +433,9 @@ Downloaded package %s from: %s is not a tarball.
     self.havepackage = True
     self.packageflags = flags
 
+  def WriteMakefile(self,fname,builddir,cont):
+    self.log.write('Using makefile:\n')
+    self.log.write(cont)
+    with open(os.path.join(builddir,fname),'w') as mfile:
+      mfile.write(cont)
+

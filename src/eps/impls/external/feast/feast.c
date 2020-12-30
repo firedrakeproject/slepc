@@ -53,7 +53,7 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   PetscMPIInt    size;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRMPI(ierr);
   if (size!=1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The FEAST interface is supported for sequential runs only");
   EPSCheckSinvertCayley(eps);
   if (eps->ncv!=PETSC_DEFAULT) {

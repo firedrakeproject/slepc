@@ -120,11 +120,7 @@ class Primme(package.Package):
     cont += 'export RANLIB        = '+petsc.ranlib+'\n'
     cont += 'export PREFIX        = '+prefixdir+'\n'
     cont += 'include makefile\n'
-    self.log.write('Using makefile definitions:\n')
-    self.log.write(cont)
-    mfile = open(os.path.join(builddir,'mymake_flags'),'w')
-    mfile.write(cont)
-    mfile.close()
+    self.WriteMakefile('mymake_flags',builddir,cont)
 
     # Build package
     target = ' install' if petsc.buildsharedlib else ' lib'

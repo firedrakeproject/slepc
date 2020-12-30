@@ -284,7 +284,7 @@ PetscErrorCode STCheckFactorPackage(ST st)
   MatSolverType  stype;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRMPI(ierr);
   if (size==1) PetscFunctionReturn(0);
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCFactorGetMatSolverType(pc,&stype);CHKERRQ(ierr);
