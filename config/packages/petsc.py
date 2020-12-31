@@ -194,6 +194,39 @@ class PETSc(package.Package):
     else:
       self.archname = self.arch
 
+  def Process(self,slepcconf,slepcvars,slepcrules,slepc,petsc,archdir=''):
+    self.log.NewSection('Checking PETSc installation...')
+    if petsc.nversion > slepc.nversion:
+      self.log.Warn('PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
+    if slepc.release=='1' and not petsc.release=='1':
+      self.log.Exit('A release version of SLEPc requires a release version of PETSc, not a development version')
+    if slepc.release=='0' and petsc.release=='1':
+      if not 'slepc' in petsc.packages:
+        self.log.Exit('A development version of SLEPc cannot be built with a release version of PETSc')
+    if petsc.isinstall:
+      if os.path.realpath(petsc.prefixdir) != os.path.realpath(petsc.dir):
+        self.log.Warn('PETSC_DIR does not point to PETSc installation path')
+    petsc.Check()
+    if not petsc.havepackage:
+      self.log.Exit('Unable to link with PETSc')
+    if slepc.isrepo and not petsc.isinstall and petsc.branch!='release' and slepc.branch!='release':
+      try:
+        import dateutil.parser, datetime
+        petscdate = dateutil.parser.parse(petsc.gitdate)
+        slepcdate = dateutil.parser.parse(slepc.gitdate)
+        if abs(petscdate-slepcdate)>datetime.timedelta(days=30):
+          self.log.Warn('Your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
+      except ImportError: pass
+
+  def ShowInfo(self):
+    self.log.Println('PETSc directory:\n  '+self.dir)
+    if self.isrepo:
+      self.log.Println('  It is a git repository on branch: '+self.branch)
+    if self.isinstall:
+      self.log.Println('Prefix install with '+self.precision+' precision '+self.scalar+' numbers')
+    else:
+      self.log.Println('Architecture "'+self.archname+'" with '+self.precision+' precision '+self.scalar+' numbers')
+
   def isGfortran100plus(self):
     '''returns true if the compiler is gfortran-10.0.x or later'''
     try:

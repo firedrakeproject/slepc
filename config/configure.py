@@ -12,9 +12,6 @@
 from __future__ import print_function
 import os, sys, time, shutil
 
-def AddDefine(conffile,name,value,prefix='SLEPC_'):
-  conffile.write('#define '+prefix+name+' "'+value+'"\n')
-
 def WriteModulesFile(modules,version,sdir):
   ''' Write the contents of the Modules file '''
   modules.write('#%Module\n\n')
@@ -121,7 +118,7 @@ hpddm     = hpddm.HPDDM(argdb,log)
 
 externalpackages = [arpack, blopex, blzpack, elpa, hpddm, primme, slicot, slepc4py, trlan]
 petscpackages    = [lapack, elemental, feast, scalapack]
-checkpackages    = petscpackages + externalpackages
+checkpackages    = [slepc, petsc] + petscpackages + externalpackages
 
 # Print help if requested and check for wrong command-line options
 if showhelp:
@@ -223,26 +220,6 @@ else:
   reconfig = slepc.CreateFile(confdir,'reconfigure-'+petsc.archname+'.py')
   reconfigpath = os.path.join(confdir,'reconfigure-'+petsc.archname+'.py')
 
-# Write initial part of file slepcvariables
-slepcvars.write('SLEPC_CONFIGURE_OPTIONS = '+argdb.UsedArgs()+'\n')
-slepcvars.write('SLEPC_INSTALLDIR = '+slepc.prefixdir+'\n')
-if petsc.isinstall:
-  slepcvars.write('INSTALLED_PETSC = 1\n')
-if slepc.datadir:
-  slepcvars.write('DATAFILESPATH = '+slepc.datadir+'\n')
-
-# Write initial part of file slepcconf.h
-slepcconf.write('#if !defined(SLEPCCONF_H)\n')
-slepcconf.write('#define SLEPCCONF_H\n\n')
-AddDefine(slepcconf,'PETSC_DIR',petsc.dir)
-AddDefine(slepcconf,'PETSC_ARCH',petsc.arch)
-AddDefine(slepcconf,'DIR',slepc.dir)
-AddDefine(slepcconf,'LIB_DIR',os.path.join(slepc.prefixdir,'lib'))
-if slepc.isrepo:
-  AddDefine(slepcconf,'VERSION_GIT',slepc.gitrev)
-  AddDefine(slepcconf,'VERSION_DATE_GIT',slepc.gitdate)
-  AddDefine(slepcconf,'VERSION_BRANCH_GIT',slepc.branch)
-
 # Create global configuration file for the case of empty PETSC_ARCH
 if petsc.isinstall:
   globconf = slepc.CreateFile(os.path.join(slepc.dir,'lib','slepc','conf'),'slepcvariables')
@@ -250,31 +227,7 @@ if petsc.isinstall:
   globconf.write('PETSC_ARCH = '+petsc.archname+'\n')
   globconf.close()
 
-# Check if PETSc is working
-log.NewSection('Checking PETSc installation...')
-if petsc.nversion > slepc.nversion:
-  log.Warn('PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
-if slepc.release=='1' and not petsc.release=='1':
-  log.Exit('A release version of SLEPc requires a release version of PETSc, not a development version')
-if slepc.release=='0' and petsc.release=='1':
-  if not 'slepc' in petsc.packages:
-    log.Exit('A development version of SLEPc cannot be built with a release version of PETSc')
-if petsc.isinstall:
-  if os.path.realpath(petsc.prefixdir) != os.path.realpath(petsc.dir):
-    log.Warn('PETSC_DIR does not point to PETSc installation path')
-petsc.Check()
-if not petsc.havepackage:
-  log.Exit('Unable to link with PETSc')
-
-# Single library installation
-if petsc.singlelib:
-  slepcvars.write('SHLIBS = libslepc\n')
-  slepcvars.write('LIBNAME = '+os.path.join('${INSTALL_LIB_DIR}','libslepc.${AR_LIB_SUFFIX}')+'\n')
-  for module in ['SYS','EPS','SVD','PEP','NEP','MFN','LME']:
-    slepcvars.write('SLEPC_'+module+'_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_SNES_LIB}\n')
-  slepcvars.write('SLEPC_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_SNES_LIB}\n')
-
-# Check for external packages and for missing LAPACK functions
+# Various checks for SLEPc, PETSc, LAPACK, and external packages
 for pkg in checkpackages:
   pkg.Process(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir)
 
@@ -336,26 +289,6 @@ log.Println('')
 log.Println('='*80)
 log.Println('SLEPc Configuration')
 log.Println('='*80)
-log.Println('\nSLEPc directory:\n '+slepc.dir)
-if slepc.isrepo:
-  log.Println('  It is a git repository on branch: '+slepc.branch)
-if slepc.isinstall:
-  log.Println('SLEPc prefix directory:\n '+slepc.prefixdir)
-log.Println('PETSc directory:\n '+petsc.dir)
-if petsc.isrepo:
-  log.Println('  It is a git repository on branch: '+petsc.branch)
-  if slepc.isrepo and petsc.branch!='release' and slepc.branch!='release':
-    try:
-      import dateutil.parser, datetime
-      petscdate = dateutil.parser.parse(petsc.gitdate)
-      slepcdate = dateutil.parser.parse(slepc.gitdate)
-      if abs(petscdate-slepcdate)>datetime.timedelta(days=30):
-        log.Warn('Your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
-    except ImportError: pass
-if petsc.isinstall and slepc.isinstall:
-  log.Println('Prefix install with '+petsc.precision+' precision '+petsc.scalar+' numbers')
-else:
-  log.Println('Architecture "'+petsc.archname+'" with '+petsc.precision+' precision '+petsc.scalar+' numbers')
 for pkg in checkpackages:
   pkg.ShowInfo()
 log.write('\nFinishing Configure Run at '+time.ctime(time.time()))
