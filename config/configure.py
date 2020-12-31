@@ -203,60 +203,50 @@ if archdirexisted:
         shutil.rmtree(os.path.join(archdir,rdir))
       except: pass
 
-# Create other directories and configuration files
+# Write main configuration files
 if not slepc.prefixdir:
   slepc.prefixdir = archdir
 includedir = slepc.CreateDir(archdir,'include')
-modulesdir = slepc.CreateDirTwo(confdir,'modules','slepc')
-pkgconfdir = slepc.CreateDir(libdir,'pkgconfig')
-slepcvars  = slepc.CreateFile(confdir,'slepcvariables')
-slepcrules = slepc.CreateFile(confdir,'slepcrules')
-slepcconf  = slepc.CreateFile(includedir,'slepcconf.h')
-pkgconfig  = slepc.CreateFile(pkgconfdir,'slepc.pc')
-if slepc.isinstall:
-  modules  = slepc.CreateFile(modulesdir,slepc.lversion)
-else:
-  modules  = slepc.CreateFile(modulesdir,slepc.lversion+'-'+petsc.archname)
-  reconfig = slepc.CreateFile(confdir,'reconfigure-'+petsc.archname+'.py')
-  reconfigpath = os.path.join(confdir,'reconfigure-'+petsc.archname+'.py')
+with slepc.CreateFile(confdir,'slepcvariables') as slepcvars, \
+     slepc.CreateFile(confdir,'slepcrules') as slepcrules, \
+     slepc.CreateFile(includedir,'slepcconf.h') as slepcconf:
+  for pkg in checkpackages:
+    pkg.Process(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir)
+  slepcconf.write('\n#endif\n')
+
+log.NewSection('Writing various configuration files...')
 
 # Create global configuration file for the case of empty PETSC_ARCH
 if petsc.isinstall:
-  globconf = slepc.CreateFile(os.path.join(slepc.dir,'lib','slepc','conf'),'slepcvariables')
-  globconf.write('SLEPC_DIR = '+slepc.dir+'\n')
-  globconf.write('PETSC_ARCH = '+petsc.archname+'\n')
-  globconf.close()
+  with slepc.CreateFile(os.path.join(slepc.dir,'lib','slepc','conf'),'slepcvariables') as globconf:
+    globconf.write('SLEPC_DIR = '+slepc.dir+'\n')
+    globconf.write('PETSC_ARCH = '+petsc.archname+'\n')
 
-# Various checks for SLEPc, PETSc, LAPACK, and external packages
-for pkg in checkpackages:
-  pkg.Process(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir)
-
-# Write Modules and pkg-config configuration files
-log.NewSection('Writing various configuration files...')
+# Write Modules configuration file
+modulesdir = slepc.CreateDirTwo(confdir,'modules','slepc')
 log.write('Modules file in '+modulesdir)
 if slepc.isinstall:
-  WriteModulesFile(modules,slepc.lversion,slepc.prefixdir)
+  with slepc.CreateFile(modulesdir,slepc.lversion) as modules:
+    WriteModulesFile(modules,slepc.lversion,slepc.prefixdir)
 else:
-  WriteModulesFile(modules,slepc.lversion,slepc.dir)
+  with slepc.CreateFile(modulesdir,slepc.lversion+'-'+petsc.archname) as modules:
+    WriteModulesFile(modules,slepc.lversion,slepc.dir)
+
+# Write pkg-config configuration file
+pkgconfdir = slepc.CreateDir(libdir,'pkgconfig')
 log.write('pkg-config file in '+pkgconfdir)
-WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir,petsc.singlelib)
+with slepc.CreateFile(pkgconfdir,'slepc.pc') as pkgconfig:
+  WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir,petsc.singlelib)
 
 # Write reconfigure file
 if not slepc.isinstall:
-  WriteReconfigScript(reconfig,slepc.dir,argdb.UsedArgs())
+  log.write('Reconfigure file in '+confdir)
+  with slepc.CreateFile(confdir,'reconfigure-'+petsc.archname+'.py') as reconfig:
+    WriteReconfigScript(reconfig,slepc.dir,argdb.UsedArgs())
   try:
-    os.chmod(reconfigpath,0o775)
+    os.chmod(os.path.join(confdir,'reconfigure-'+petsc.archname+'.py'),0o775)
   except OSError as e:
     log.Exit('Unable to make reconfigure script executable:\n'+str(e))
-
-# Finish with configuration files
-slepcrules.close()
-slepcconf.write('\n#endif\n')
-slepcconf.close()
-pkgconfig.close()
-modules.close()
-if not slepc.isinstall: reconfig.close()
-slepcvars.close()
 
 # Print summary
 log.NewSection('')
