@@ -293,9 +293,11 @@ Downloaded package %s from: %s is not a tarball.
         self.log.Println(packagename+' from %s linked by PETSc' % self.petscdepend.upper())
       elif self.builtafterslepc:
         self.log.Println(packagename+' to be built after SLEPc')
-      else:
+      elif hasattr(self,'packageflags'):
         self.log.Println(packagename+' library flags:')
         self.log.Println(' '+' '.join(self.packageflags))
+      else:
+        self.log.Println(packagename+' installed')
 
   def Link(self,functions,callbacks,flags,givencode='',cflags='',clanguage='c',logdump=True):
 

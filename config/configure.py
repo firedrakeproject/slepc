@@ -118,7 +118,7 @@ hpddm     = hpddm.HPDDM(argdb,log)
 
 externalpackages = [arpack, blopex, blzpack, elpa, hpddm, primme, slicot, slepc4py, trlan]
 petscpackages    = [lapack, elemental, feast, scalapack]
-checkpackages    = [slepc, petsc] + petscpackages + externalpackages
+checkpackages    = [slepc, petsc, sowing] + petscpackages + externalpackages
 
 # Print help if requested and check for wrong command-line options
 if showhelp:
@@ -249,38 +249,13 @@ if not slepc.isinstall:
   except OSError as e:
     log.Exit('Unable to make reconfigure script executable:\n'+str(e))
 
-# Finish with configuration files (except slepcvars)
+# Finish with configuration files
 slepcrules.close()
 slepcconf.write('\n#endif\n')
 slepcconf.close()
 pkgconfig.close()
 modules.close()
 if not slepc.isinstall: reconfig.close()
-
-# Download sowing if requested and make Fortran stubs if necessary
-bfort = petsc.bfort
-if sowing.downloadpackage:
-  bfort = sowing.DownloadAndInstall(slepc,petsc,archdir)
-
-if slepc.isrepo and petsc.fortran:
-  try:
-    if not os.path.exists(bfort):
-      bfort = os.path.join(archdir,'bin','bfort')
-    if not os.path.exists(bfort):
-      bfort = sowing.DownloadAndInstall(slepc,petsc,archdir)
-    log.NewSection('Generating Fortran stubs...')
-    log.write('Using BFORT='+bfort)
-    sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))
-    import generatefortranstubs
-    generatefortranstubs.main(slepc.dir,bfort,os.getcwd(),0)
-    generatefortranstubs.processf90interfaces(slepc.dir,0)
-  except:
-    log.Exit('Try configuring with --download-sowing or use a git version of PETSc')
-
-if bfort != petsc.bfort:
-  slepcvars.write('BFORT = '+bfort+'\n')
-
-# Finally we can close the slepcvariables file
 slepcvars.close()
 
 # Print summary
