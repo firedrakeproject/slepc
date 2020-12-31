@@ -182,6 +182,18 @@ class PETSc(package.Package):
       else:
         self.log.Exit('Cannot process file ' + petscconf_h)
 
+    if self.isinstall:
+      pseudoarch = 'arch-' + sys.platform.replace('cygwin','mswin')+ '-' + self.language.lower().replace('+','x')
+      if self.debug:
+        pseudoarch += '-debug'
+      else:
+        pseudoarch += '-opt'
+      if not 'real' in self.scalar:
+        pseudoarch += '-' + self.scalar
+      self.archname = 'installed-'+pseudoarch.replace('linux-','linux2-')
+    else:
+      self.archname = self.arch
+
   def isGfortran100plus(self):
     '''returns true if the compiler is gfortran-10.0.x or later'''
     try:

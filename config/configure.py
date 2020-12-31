@@ -154,22 +154,8 @@ if slepc.downloaddir:
     for pkg in l: log.Println(pkg)
     log.Exit('Missing files in packages-download directory')
 
-# Check for empty PETSC_ARCH
-emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
-if emptyarch:
-  pseudoarch = 'arch-' + sys.platform.replace('cygwin','mswin')+ '-' + petsc.language.lower().replace('+','x')
-  if petsc.debug:
-    pseudoarch += '-debug'
-  else:
-    pseudoarch += '-opt'
-  if not 'real' in petsc.scalar:
-    pseudoarch += '-' + petsc.scalar
-  archname = 'installed-'+pseudoarch.replace('linux-','linux2-')
-else:
-  archname = petsc.arch
-
 # Create directories for configuration files
-archdir, archdirexisted = slepc.CreateDirTest(slepc.dir,archname)
+archdir, archdirexisted = slepc.CreateDirTest(slepc.dir,petsc.archname)
 libdir  = slepc.CreateDir(archdir,'lib')
 confdir = slepc.CreateDirTwo(libdir,'slepc','conf')
 
@@ -192,7 +178,7 @@ if not petsc.precision in ['double','single','__float128']:
 log.write('PETSc source directory: '+petsc.dir)
 log.write('PETSc install directory: '+petsc.prefixdir)
 log.write('PETSc version: '+petsc.lversion)
-if not emptyarch:
+if not petsc.isinstall:
   log.write('PETSc architecture: '+petsc.arch)
 log.write('SLEPc source directory: '+slepc.dir)
 if slepc.isinstall:
@@ -233,14 +219,14 @@ pkgconfig  = slepc.CreateFile(pkgconfdir,'slepc.pc')
 if slepc.isinstall:
   modules  = slepc.CreateFile(modulesdir,slepc.lversion)
 else:
-  modules  = slepc.CreateFile(modulesdir,slepc.lversion+'-'+archname)
-  reconfig = slepc.CreateFile(confdir,'reconfigure-'+archname+'.py')
-  reconfigpath = os.path.join(confdir,'reconfigure-'+archname+'.py')
+  modules  = slepc.CreateFile(modulesdir,slepc.lversion+'-'+petsc.archname)
+  reconfig = slepc.CreateFile(confdir,'reconfigure-'+petsc.archname+'.py')
+  reconfigpath = os.path.join(confdir,'reconfigure-'+petsc.archname+'.py')
 
 # Write initial part of file slepcvariables
 slepcvars.write('SLEPC_CONFIGURE_OPTIONS = '+argdb.UsedArgs()+'\n')
 slepcvars.write('SLEPC_INSTALLDIR = '+slepc.prefixdir+'\n')
-if emptyarch:
+if petsc.isinstall:
   slepcvars.write('INSTALLED_PETSC = 1\n')
 if slepc.datadir:
   slepcvars.write('DATAFILESPATH = '+slepc.datadir+'\n')
@@ -258,10 +244,10 @@ if slepc.isrepo:
   AddDefine(slepcconf,'VERSION_BRANCH_GIT',slepc.branch)
 
 # Create global configuration file for the case of empty PETSC_ARCH
-if emptyarch:
+if petsc.isinstall:
   globconf = slepc.CreateFile(os.path.join(slepc.dir,'lib','slepc','conf'),'slepcvariables')
   globconf.write('SLEPC_DIR = '+slepc.dir+'\n')
-  globconf.write('PETSC_ARCH = '+archname+'\n')
+  globconf.write('PETSC_ARCH = '+petsc.archname+'\n')
   globconf.close()
 
 # Check if PETSc is working
@@ -366,10 +352,10 @@ if petsc.isrepo:
       if abs(petscdate-slepcdate)>datetime.timedelta(days=30):
         log.Warn('Your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
     except ImportError: pass
-if emptyarch and slepc.isinstall:
+if petsc.isinstall and slepc.isinstall:
   log.Println('Prefix install with '+petsc.precision+' precision '+petsc.scalar+' numbers')
 else:
-  log.Println('Architecture "'+archname+'" with '+petsc.precision+' precision '+petsc.scalar+' numbers')
+  log.Println('Architecture "'+petsc.archname+'" with '+petsc.precision+' precision '+petsc.scalar+' numbers')
 for pkg in checkpackages:
   pkg.ShowInfo()
 log.write('\nFinishing Configure Run at '+time.ctime(time.time()))
@@ -377,9 +363,9 @@ log.write('='*80)
 print()
 print('xxx'+'='*74+'xxx')
 print(' Configure stage complete. Now build the SLEPc library with:')
-if emptyarch:
+if petsc.isinstall:
   print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir)
 else:
-  print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir+' PETSC_ARCH='+archname)
+  print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir+' PETSC_ARCH='+petsc.archname)
 print('xxx'+'='*74+'xxx')
 print()
