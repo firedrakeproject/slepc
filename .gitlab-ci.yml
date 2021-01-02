@@ -382,9 +382,9 @@ gnu-cxx-int64:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - compiler:intel
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices --with-blaslapack-dir=/opt/intel/mkl/
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-3.1.1
 
 gnu-c-single:
