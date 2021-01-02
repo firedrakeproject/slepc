@@ -129,10 +129,10 @@ else
 SLEPC_COMPILE.kokkos.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(CXX_DEPFLAGS)
 SLEPC_LINK.kokkos.cxx = $(CXXLINKER) $(CXX_LINKER_FLAGS) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(LDFLAGS)
 endif
-SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
+SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
 SLEPC_COMPILE.hip.cpp = $(call quiet,HIPCC) -c $(HIPCC_FLAGS) $(HIPCCFLAGS) $(HIPCCPPFLAGS) $(HIPCC_DEPFLAGS)
 SLEPC_COMPILE.sycl.cpp = $(call quiet,SYCLCPP) -c $(SYCLCPP_FLAGS) $(SYCLCPPFLAGS) $(SYCLCPPCPPFLAGS) $(SYCLCPP_DEPFLAGS)
-SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
+SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
 SLEPC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
 
 testlangs := c cu cxx F F90 kokkos.cxx hip.cpp sycl.cpp
