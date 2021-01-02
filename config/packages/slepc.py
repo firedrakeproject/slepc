@@ -94,6 +94,7 @@ class SLEPc(package.Package):
           elif l[1] == 'SLEPC_VERSION_SUBMINOR':
             subminor = l[2]
       f.close()
+      if self.release=='0': subminor = '99'
       self.version = major + '.' + minor
       self.lversion = major + '.' + minor + '.' + subminor
       self.nversion = int(major)*100 + int(minor)

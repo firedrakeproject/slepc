@@ -21,8 +21,8 @@ def WriteModulesFile(modules,version,sdir):
   modules.write('    puts stderr ""\n}\n')
   modules.write('module-whatis "SLEPc - Scalable Library for Eigenvalue Problem Computations"\n\n')
   modules.write('module load petsc\n')
-  modules.write('set slepc_dir %s\n' % sdir)
-  modules.write('setenv SLEPC_DIR $slepc_dir\n')
+  modules.write('set slepc_dir "%s"\n' % sdir)
+  modules.write('setenv SLEPC_DIR "$slepc_dir"\n')
 
 def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir,singlelib):
   ''' Write the contents of the pkg-config file '''
@@ -225,12 +225,8 @@ if petsc.isinstall:
 # Write Modules configuration file
 modulesdir = slepc.CreateDirTwo(confdir,'modules','slepc')
 log.write('Modules file in '+modulesdir)
-if slepc.isinstall:
-  with slepc.CreateFile(modulesdir,slepc.lversion) as modules:
-    WriteModulesFile(modules,slepc.lversion,slepc.prefixdir)
-else:
-  with slepc.CreateFile(modulesdir,slepc.lversion+'-'+petsc.archname) as modules:
-    WriteModulesFile(modules,slepc.lversion,slepc.dir)
+with slepc.CreateFile(modulesdir,slepc.lversion) as modules:
+  WriteModulesFile(modules,slepc.lversion,slepc.prefixdir if slepc.isinstall else slepc.dir)
 
 # Write pkg-config configuration file
 pkgconfdir = slepc.CreateDir(libdir,'pkgconfig')
