@@ -40,3 +40,26 @@ class Sowing(package.Package):
 
     self.havepackage = True
     return os.path.join(archdir,'bin','bfort')
+
+  def Process(self,slepcconf,slepcvars,slepcrules,slepc,petsc,archdir=''):
+    # Download sowing if requested and make Fortran stubs if necessary
+    bfort = petsc.bfort
+    if self.downloadpackage:
+      bfort = self.DownloadAndInstall(slepc,petsc,archdir)
+    if slepc.isrepo and petsc.fortran:
+      try:
+        if not os.path.exists(bfort):
+          bfort = os.path.join(archdir,'bin','bfort')
+        if not os.path.exists(bfort):
+          bfort = self.DownloadAndInstall(slepc,petsc,archdir)
+        self.log.NewSection('Generating Fortran stubs...')
+        self.log.write('Using BFORT='+bfort)
+        sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))
+        import generatefortranstubs
+        generatefortranstubs.main(slepc.dir,bfort,os.getcwd(),0)
+        generatefortranstubs.processf90interfaces(slepc.dir,0)
+      except:
+        self.log.Exit('Try configuring with --download-sowing or use a git version of PETSc')
+    if bfort != petsc.bfort:
+      slepcvars.write('BFORT = '+bfort+'\n')
+

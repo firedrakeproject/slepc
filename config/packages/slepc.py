@@ -15,11 +15,8 @@ class SLEPc(package.Package):
 
   def __init__(self,argdb,log):
     self.log         = log
-    self.clean       = argdb.PopBool('with-clean')[0]
-    self.prefixdir   = argdb.PopPath('prefix')[0]
+    self.ProcessArgs(argdb)
     self.isinstall   = not self.prefixdir==''
-    self.datadir     = argdb.PopPath('DATAFILESPATH',exist=True)[0]
-    self.downloaddir = argdb.PopPath('with-packages-download-dir',exist=True)[0]
 
   def ShowHelp(self):
     wd = package.Package.wd
@@ -30,6 +27,45 @@ class SLEPc(package.Package):
     print('\nSLEPc:')
     print('  --prefix=<dir>'.ljust(wd)+': Specify location to install SLEPc (e.g., /usr/local)')
     print('  --DATAFILESPATH=<dir>'.ljust(wd)+': Location of datafiles (available at https://slepc.upv.es/datafiles/)')
+
+  def ProcessArgs(self,argdb):
+    self.clean       = argdb.PopBool('with-clean')[0]
+    self.prefixdir   = argdb.PopPath('prefix')[0]
+    self.datadir     = argdb.PopPath('DATAFILESPATH',exist=True)[0]
+    self.downloaddir = argdb.PopPath('with-packages-download-dir',exist=True)[0]
+
+  def Process(self,slepcconf,slepcvars,slepcrules,slepc,petsc,archdir=''):
+    slepcvars.write('SLEPC_CONFIGURE_OPTIONS = '+' '.join(sys.argv[1:])+'\n')
+    slepcvars.write('SLEPC_INSTALLDIR = '+slepc.prefixdir+'\n')
+    if petsc.isinstall:
+      slepcvars.write('INSTALLED_PETSC = 1\n')
+    if slepc.datadir:
+      slepcvars.write('DATAFILESPATH = '+slepc.datadir+'\n')
+    # This should be the first write to file slepcconf.h
+    slepcconf.write('#if !defined(INCLUDED_SLEPCCONF_H)\n')
+    slepcconf.write('#define INCLUDED_SLEPCCONF_H\n\n')
+    self.AddDefine(slepcconf,'PETSC_DIR',petsc.dir)
+    self.AddDefine(slepcconf,'PETSC_ARCH',petsc.arch)
+    self.AddDefine(slepcconf,'DIR',slepc.dir)
+    self.AddDefine(slepcconf,'LIB_DIR',os.path.join(slepc.prefixdir,'lib'))
+    if slepc.isrepo:
+      self.AddDefine(slepcconf,'VERSION_GIT',slepc.gitrev)
+      self.AddDefine(slepcconf,'VERSION_DATE_GIT',slepc.gitdate)
+      self.AddDefine(slepcconf,'VERSION_BRANCH_GIT',slepc.branch)
+    # Single library installation
+    if petsc.singlelib:
+      slepcvars.write('SHLIBS = libslepc\n')
+      slepcvars.write('LIBNAME = '+os.path.join('${INSTALL_LIB_DIR}','libslepc.${AR_LIB_SUFFIX}')+'\n')
+      for module in ['SYS','EPS','SVD','PEP','NEP','MFN','LME']:
+        slepcvars.write('SLEPC_'+module+'_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_SNES_LIB}\n')
+      slepcvars.write('SLEPC_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_SNES_LIB}\n')
+
+  def ShowInfo(self):
+    self.log.Println('\nSLEPc directory:\n  '+self.dir)
+    if self.isrepo:
+      self.log.Println('  It is a git repository on branch: '+self.branch)
+    if self.isinstall:
+      self.log.Println('SLEPc prefix directory:\n '+self.prefixdir)
 
   def InitDir(self):
     if 'SLEPC_DIR' in os.environ:
@@ -58,6 +94,7 @@ class SLEPc(package.Package):
           elif l[1] == 'SLEPC_VERSION_SUBMINOR':
             subminor = l[2]
       f.close()
+      if self.release=='0': subminor = '99'
       self.version = major + '.' + minor
       self.lversion = major + '.' + minor + '.' + subminor
       self.nversion = int(major)*100 + int(minor)
@@ -149,4 +186,7 @@ class SLEPc(package.Package):
       except:
         self.log.Exit('Cannot create lib directory: '+libdir)
     return incdir,libdir
+
+  def AddDefine(self,conffile,name,value,prefix='SLEPC_'):
+    conffile.write('#define '+prefix+name+' "'+value+'"\n')
 
