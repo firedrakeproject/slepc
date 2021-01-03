@@ -150,6 +150,10 @@ int main(int argc,char **argv)
       test:
          suffix: 1_qarnoldi
          args: -pep_type qarnoldi -pep_conv_rel
+      test:
+         suffix: 1_cuda
+         args: -mat_type aijcusparse
+         requires: cuda
 
    test:
       suffix: 2
