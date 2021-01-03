@@ -195,7 +195,6 @@ static PetscErrorCode CholeskyFactor(PetscInt m,PetscScalar *A,PetscInt lda)
   ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
 
   if (info) {
-    ierr = PetscInfo(NULL,"potrf failed, retry on diagonally perturbed matrix\n");CHKERRQ(ierr);
     for (i=0;i<m;i++) {
       ierr = PetscArraycpy(A+i*lda,S+i*m,m);CHKERRQ(ierr);
       A[i+i*lda] += 50.0*PETSC_MACHINE_EPSILON;

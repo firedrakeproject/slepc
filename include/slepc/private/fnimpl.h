@@ -97,10 +97,9 @@ PETSC_STATIC_INLINE PetscErrorCode FN_FreeWorkMat(FN fn,Mat *M)
   PetscFunctionReturn(0);
 }
 
-SLEPC_INTERN PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt,PetscScalar*,PetscBLASInt);
-SLEPC_INTERN PetscErrorCode SlepcSqrtmSchur(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
-SLEPC_INTERN PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
-SLEPC_INTERN PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode FNSqrtmSchur(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode FNSqrtmDenmanBeavers(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode FNSqrtmNewtonSchulz(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 SLEPC_INTERN PetscErrorCode SlepcNormAm(PetscBLASInt,PetscScalar*,PetscInt,PetscScalar*,PetscRandom,PetscReal*);
 SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Private(FN,Mat,Mat,PetscBool);
 SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMatVec_Private(FN,Mat,Vec,PetscBool);
