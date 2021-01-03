@@ -227,8 +227,8 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
 */
 #if !defined(PETSC_USE_DEBUG)
 
-#define BVCheckSizes(h,arg) do {} while (0)
-#define BVCheckOp(h,arg,op) do {} while (0)
+#define BVCheckSizes(h,arg) do {(void)(h);} while (0)
+#define BVCheckOp(h,arg,op) do {(void)(h);} while (0)
 
 #else
 

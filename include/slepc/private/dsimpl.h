@@ -75,10 +75,10 @@ struct _p_DS {
 */
 #if !defined(PETSC_USE_DEBUG)
 
-#define DSCheckAlloc(h,arg) do {} while (0)
-#define DSCheckSolved(h,arg) do {} while (0)
-#define DSCheckValidMat(ds,m,arg) do {} while (0)
-#define DSCheckValidMatReal(ds,m,arg) do {} while (0)
+#define DSCheckAlloc(h,arg) do {(void)(h);} while (0)
+#define DSCheckSolved(h,arg) do {(void)(h);} while (0)
+#define DSCheckValidMat(ds,m,arg) do {(void)(ds);} while (0)
+#define DSCheckValidMatReal(ds,m,arg) do {(void)(ds);} while (0)
 
 #else
 

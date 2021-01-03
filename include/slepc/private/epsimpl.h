@@ -149,7 +149,7 @@ struct _p_EPS {
 */
 #if !defined(PETSC_USE_DEBUG)
 
-#define EPSCheckSolved(h,arg) do {} while (0)
+#define EPSCheckSolved(h,arg) do {(void)(h);} while (0)
 
 #else
 

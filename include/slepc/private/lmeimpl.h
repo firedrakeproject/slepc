@@ -76,7 +76,7 @@ SLEPC_INTERN PetscErrorCode LMEDenseRankSVD(LME,PetscInt,PetscScalar*,PetscInt,P
 */
 #if !defined(PETSC_USE_DEBUG)
 
-#define LMECheckCoeff(h,A,mat,eq) do {} while (0)
+#define LMECheckCoeff(h,A,mat,eq) do {(void)(h);} while (0)
 
 #else
 
