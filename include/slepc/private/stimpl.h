@@ -84,8 +84,8 @@ struct _p_ST {
 */
 #if !defined(PETSC_USE_DEBUG)
 
-#define STCheckMatrices(h,arg) do {} while (0)
-#define STCheckNotSeized(h,arg) do {} while (0)
+#define STCheckMatrices(h,arg) do {(void)(h);} while (0)
+#define STCheckNotSeized(h,arg) do {(void)(h);} while (0)
 
 #else
 

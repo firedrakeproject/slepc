@@ -142,11 +142,11 @@ struct _p_NEP {
 */
 #if !defined(PETSC_USE_DEBUG)
 
-#define NEPCheckProblem(h,arg) do {} while (0)
-#define NEPCheckCallback(h,arg) do {} while (0)
-#define NEPCheckSplit(h,arg) do {} while (0)
-#define NEPCheckDerivatives(h,arg) do {} while (0)
-#define NEPCheckSolved(h,arg) do {} while (0)
+#define NEPCheckProblem(h,arg) do {(void)(h);} while (0)
+#define NEPCheckCallback(h,arg) do {(void)(h);} while (0)
+#define NEPCheckSplit(h,arg) do {(void)(h);} while (0)
+#define NEPCheckDerivatives(h,arg) do {(void)(h);} while (0)
+#define NEPCheckSolved(h,arg) do {(void)(h);} while (0)
 
 #else
 

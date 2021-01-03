@@ -18,7 +18,7 @@
    Compute the square root of an upper quasi-triangular matrix T,
    using Higham's algorithm (LAA 88, 1987). T is overwritten with sqrtm(T).
  */
-PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
+static PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
 {
   PetscScalar  one=1.0,mone=-1.0;
   PetscReal    scal;
@@ -79,7 +79,7 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
    T is overwritten with sqrtm(T).
    If firstonly then only the first column of T will contain relevant values.
  */
-PetscErrorCode SlepcSqrtmSchur(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
+PetscErrorCode FNSqrtmSchur(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
 {
   PetscErrorCode ierr;
   PetscBLASInt   i,j,k,r,ione=1,sdim,lwork,*s,*p,info,bs=BLOCKSIZE;
@@ -157,7 +157,7 @@ PetscErrorCode SlepcSqrtmSchur(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,Pet
    of the Denman-Beavers iteration.
    T is overwritten with sqrtm(T) or inv(sqrtm(T)) depending on flag inv.
  */
-PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
+PetscErrorCode FNSqrtmDenmanBeavers(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
 {
   PetscScalar        *Told,*M=NULL,*invM,*work,work1,prod,alpha;
   PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sp25=0.25;
@@ -229,7 +229,7 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
       fnormT = LAPACKlange_("F",&n,&n,T,&n,rwork);
       ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
       reldiff = fnormdiff/fnormT;
-      ierr = PetscInfo4(NULL,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
+      ierr = PetscInfo4(fn,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
       if (reldiff<1e-2) scale = PETSC_FALSE;  /* Switch off scaling */
     }
 
@@ -248,7 +248,7 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
    Computes the principal square root of the matrix A using the Newton-Schulz iteration.
    T is overwritten with sqrtm(T) or inv(sqrtm(T)) depending on flag inv.
  */
-PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt ld,PetscBool inv)
+PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld,PetscBool inv)
 {
   PetscScalar        *Y=A,*Yold,*Z,*Zold,*M,alpha,sqrtnrm;
   PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sthree=3.0;
@@ -274,7 +274,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt
   alpha = 1.0/nrm;
   PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,A,&one));
   tol *= nrm;
-  ierr = PetscInfo2(NULL,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
+  ierr = PetscInfo2(fn,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
   ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
 
   /* Z = I */
@@ -300,7 +300,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt
     Yres = LAPACKlange_("fro",&n,&n,Yold,&n,rwork);
     ierr = PetscIsNanReal(Yres);CHKERRQ(ierr);
     if (Yres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
+    ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
     ierr = PetscLogFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }

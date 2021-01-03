@@ -16,7 +16,7 @@
 
 #if !defined(PETSC_USE_DEBUG)
 
-#define SlepcValidVecComp(y,arg) do {} while (0)
+#define SlepcValidVecComp(y,arg) do {(void)(y);} while (0)
 
 #else
 

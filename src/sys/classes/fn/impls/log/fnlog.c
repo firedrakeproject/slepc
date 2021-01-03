@@ -80,7 +80,7 @@ static PetscErrorCode qtri_struct(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
    wr,wi is overwritten. Required workspace is 3*n*n.
    On output, Troot contains the sth square root of T.
 */
-static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscScalar *wr,PetscScalar *wi,PetscInt maxroots,PetscInt *s,PetscInt *m,PetscScalar *Troot,PetscScalar *work)
+static PetscErrorCode FNlogm_params(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscScalar *wr,PetscScalar *wi,PetscInt maxroots,PetscInt *s,PetscInt *m,PetscScalar *Troot,PetscScalar *work)
 {
   PetscErrorCode  ierr;
   PetscInt        i,j,k,p,s0;
@@ -116,14 +116,14 @@ static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
     *s = *s + 1;
   } while (*s<maxroots);
   s0 = *s;
-  if (*s == maxroots) { ierr = PetscInfo(NULL,"Too many matrix square roots\n");CHKERRQ(ierr); }
+  if (*s == maxroots) { ierr = PetscInfo(fn,"Too many matrix square roots\n");CHKERRQ(ierr); }
 
   /* Troot = T */
   for (j=0;j<n;j++) {
     ierr = PetscArraycpy(Troot+j*ld,T+j*ld,PetscMin(j+2,n));CHKERRQ(ierr);
   }
   for (k=1;k<=PetscMin(*s,maxroots);k++) {
-    ierr = SlepcSqrtmSchur(n,Troot,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = FNSqrtmSchur(fn,n,Troot,ld,PETSC_FALSE);CHKERRQ(ierr);
   }
   /* Compute value of s and m needed */
   /* TrootmI = Troot - I */
@@ -172,11 +172,11 @@ static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
       }
     }
     if (*s == maxroots) {
-      ierr = PetscInfo(NULL,"Too many matrix square roots\n");CHKERRQ(ierr);
+      ierr = PetscInfo(fn,"Too many matrix square roots\n");CHKERRQ(ierr);
       *m = mmax;  /* No good value found so take largest */
       break;
     }
-    ierr = SlepcSqrtmSchur(n,Troot,ld,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = FNSqrtmSchur(fn,n,Troot,ld,PETSC_FALSE);CHKERRQ(ierr);
     /* TrootmI = Troot - I */
     for (j=0;j<n;j++) {
       ierr = PetscArraycpy(TrootmI+j*ld,Troot+j*ld,PetscMin(j+2,n));CHKERRQ(ierr);
@@ -546,7 +546,7 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
  *     H. Al-Mohy and N. J. Higham, "Improved inverse scaling and squaring
  *     algorithms for the matrix logarithm", SIAM J. Sci. Comput. 34(4):C153-C169, 2012.
  */
-static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
+static PetscErrorCode FNLogmPade(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
 {
 #if !defined(PETSC_HAVE_COMPLEX)
   PetscFunctionBegin;
@@ -561,7 +561,7 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
 #endif
 
   PetscFunctionBegin;
-  lwork = 3*n*n; /* gees needs only 5*n, but work is also passed to logm_params */
+  lwork = 3*n*n; /* gees needs only 5*n, but work is also passed to FNlogm_params */
   k     = firstonly? 1: n;
 
   /* compute Schur decomposition A*Q = Q*T */
@@ -586,7 +586,7 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
   ierr = qtri_struct(n,T,ld,blockformat);CHKERRQ(ierr);
 
   /* get parameters */
-  ierr = logm_params(n,T,ld,wr,wi,100,&s,&m,Troot,work);CHKERRQ(ierr);
+  ierr = FNlogm_params(fn,n,T,ld,wr,wi,100,&s,&m,Troot,work);CHKERRQ(ierr);
 
   /* compute Troot - I = T(1/2^s) - I more accurately */
   ierr = recompute_diag_blocks_sqrt(n,Troot,T,ld,blockformat,s);CHKERRQ(ierr);
@@ -630,7 +630,7 @@ PetscErrorCode FNEvaluateFunctionMat_Log_Higham(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcLogmPade(n,T,n,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = FNLogmPade(fn,n,T,n,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -648,7 +648,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Log_Higham(FN fn,Mat A,Vec v)
   ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcLogmPade(n,T,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = FNLogmPade(fn,n,T,n,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetColumnVector(B,v,0);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&B);CHKERRQ(ierr);

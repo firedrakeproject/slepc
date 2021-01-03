@@ -47,7 +47,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmSchur(n,T,n,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = FNSqrtmSchur(fn,n,T,n,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -65,7 +65,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
   ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmSchur(n,T,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = FNSqrtmSchur(fn,n,T,n,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetColumnVector(B,v,0);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&B);CHKERRQ(ierr);
@@ -84,7 +84,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmDenmanBeavers(n,T,n,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = FNSqrtmDenmanBeavers(fn,n,T,n,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -101,7 +101,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmNewtonSchulz(n,Ba,n,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = FNSqrtmNewtonSchulz(fn,n,Ba,n,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -112,7 +112,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
    Computes the principal square root of the matrix A using the
    Sadeghi iteration. A is overwritten with sqrtm(A).
  */
-static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
+static PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
 {
   PetscScalar        *M,*M2,*G,*X=A,*work,work1,alpha,sqrtnrm;
   PetscScalar        szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
@@ -143,7 +143,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
     PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,M,&one));
     tol *= nrm;
   }
-  ierr = PetscInfo2(NULL,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
+  ierr = PetscInfo2(fn,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
 
   /* X = I */
   ierr = PetscArrayzero(X,N);CHKERRQ(ierr);
@@ -178,7 +178,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
     Mres = LAPACKlange_("fro",&n,&n,M2,&n,rwork);
     ierr = PetscIsNanReal(Mres);CHKERRQ(ierr);
     if (Mres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Mres);CHKERRQ(ierr);
+    ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Mres);CHKERRQ(ierr);
     ierr = PetscLogFlops(8.0*n*n*n+2.0*n*n+2.0*n*n*n/3.0+4.0*n*n*n/3.0+2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
 
@@ -204,7 +204,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmSadeghi(n,Ba,n);CHKERRQ(ierr);
+  ierr = FNSqrtmSadeghi(fn,n,Ba,n);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

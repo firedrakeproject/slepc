@@ -137,7 +137,7 @@ struct _p_PEP {
 */
 #if !defined(PETSC_USE_DEBUG)
 
-#define PEPCheckSolved(h,arg) do {} while (0)
+#define PEPCheckSolved(h,arg) do {(void)(h);} while (0)
 
 #else
 

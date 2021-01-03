@@ -105,7 +105,7 @@ struct _p_SVD {
 */
 #if !defined(PETSC_USE_DEBUG)
 
-#define SVDCheckSolved(h,arg) do {} while (0)
+#define SVDCheckSolved(h,arg) do {(void)(h);} while (0)
 
 #else
 
