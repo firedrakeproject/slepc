@@ -411,7 +411,8 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
   EPSCheckSolved(eps,1);
-  if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  if (i<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
+  if (i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
   ierr = EPSGetEigenvalue(eps,i,eigr,eigi);CHKERRQ(ierr);
   if (Vr || Vi) { ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
@@ -450,7 +451,8 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   EPSCheckSolved(eps,1);
-  if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  if (i<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
+  if (i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
   k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
   if (eigr) *eigr = eps->eigr[k];
@@ -507,7 +509,8 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Vr,3); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Vi,4); }
   EPSCheckSolved(eps,1);
-  if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  if (i<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
+  if (i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   k = eps->perm[i];
   ierr = BV_GetEigenvector(eps->V,k,eps->eigi[k],Vr,Vi);CHKERRQ(ierr);

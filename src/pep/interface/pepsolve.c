@@ -315,7 +315,8 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,5); PetscCheckSameComm(pep,1,Vr,5); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,6); PetscCheckSameComm(pep,1,Vi,6); }
   PEPCheckSolved(pep,1);
-  if (i<0 || i>=pep->nconv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  if (i<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
+  if (i>=pep->nconv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see PEPGetConverged()");
 
   ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
   k = pep->perm[i];
