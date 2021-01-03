@@ -218,9 +218,9 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     ierr = STGetMatrixTransformed(pep->st,k,&T[k]);CHKERRQ(ierr);
   }
   /* Form local auxiliar matrix M */
-  ierr = PetscObjectTypeCompareAny((PetscObject)T[0],&cont,MATMPIAIJ,MATSEQAIJ,"");CHKERRQ(ierr);
+  ierr = PetscObjectBaseTypeCompareAny((PetscObject)T[0],&cont,MATMPIAIJ,MATSEQAIJ,"");CHKERRQ(ierr);
   if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]),PETSC_ERR_SUP,"Only for MPIAIJ or SEQAIJ matrix types");
-  ierr = PetscObjectTypeCompare((PetscObject)T[0],MATMPIAIJ,&cont);CHKERRQ(ierr);
+  ierr = PetscObjectBaseTypeCompare((PetscObject)T[0],MATMPIAIJ,&cont);CHKERRQ(ierr);
   if (cont) {
     ierr = MatMPIAIJGetLocalMat(T[0],MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
     flg = PETSC_TRUE;
