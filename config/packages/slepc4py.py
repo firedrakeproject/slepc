@@ -55,17 +55,17 @@ class Slepc4py(package.Package):
     destdir  = os.path.join(slepc.prefixdir,'lib')
 
     # add makefile rules
-    envvars = 'PETSC_ARCH="" SLEPC_DIR=${SLEPC_INSTALLDIR}' if slepc.isinstall else ''
+    envvars = 'PETSC_ARCH="" PYTHONPATH=${PYTHONPATH} SLEPC_DIR=${SLEPC_INSTALLDIR}' if slepc.isinstall else 'PYTHONPATH=${PYTHONPATH}'
     confdir = os.path.join(destdir,'slepc','conf')
     rule =  'slepc4pybuild:\n'
     rule += '\t@echo "*** Building slepc4py ***"\n'
     rule += '\t@${RM} -f '+os.path.join(confdir,'slepc4py.errorflg')+'\n'
-    rule += '\t@(cd '+builddir+' && \\\n'
+    rule += '\t@cd '+builddir+' && \\\n'
     rule += '\t   %s ${PYTHON} setup.py clean --all && \\\n' % envvars
-    rule += '\t   %s ${PYTHON} setup.py build ) > ' % envvars
-    rule += os.path.join(confdir,'slepc4py.log')+' 2>&1 || \\\n'
+    rule += '\t   %s ${PYTHON} setup.py build  ' % envvars
+    rule += '\t   2>&1 || \\\n'
     rule += '\t   (echo "**************************ERROR*************************************" && \\\n'
-    rule += '\t   echo "Error building slepc4py. Check '+os.path.join(confdir,'slepc4py.log')+'" && \\\n'
+    rule += '\t   echo "Error building slepc4py." && \\\n'
     rule += '\t   echo "********************************************************************" && \\\n'
     rule += '\t   touch '+os.path.join(confdir,'slepc4py.errorflg')+' && \\\n'
     rule += '\t   exit 1)\n\n'
@@ -73,11 +73,11 @@ class Slepc4py(package.Package):
 
     rule =  'slepc4pyinstall:\n'
     rule += '\t@echo "*** Installing slepc4py ***"\n'
-    rule += '\t@(cd '+builddir+' && \\\n'
-    rule += '\t   %s ${PYTHON} setup.py install --install-lib=%s) >> ' % (envvars,destdir)
-    rule += os.path.join(confdir,'slepc4py.log')+' 2>&1 || \\\n'
+    rule += '\t@cd '+builddir+' && \\\n'
+    rule += '\t   %s ${PYTHON} setup.py install --install-lib=%s ' % (envvars,destdir)
+    rule += '\t   2>&1 || \\\n'
     rule += '\t   (echo "**************************ERROR*************************************" && \\\n'
-    rule += '\t   echo "Error building slepc4py. Check '+os.path.join(confdir,'slepc4py.log')+'" && \\\n'
+    rule += '\t   echo "Error installing slepc4py" && \\\n'
     rule += '\t   echo "********************************************************************" && \\\n'
     rule += '\t   exit 1)\n'
     rule += '\t@echo "====================================="\n'
