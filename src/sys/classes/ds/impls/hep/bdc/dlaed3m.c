@@ -191,7 +191,7 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
     /* ....calling DLAED4 for eigenpair J.... */
 
     PetscStackCallBLAS("LAPACKlaed4",LAPACKlaed4_(&k, &j, dlamda, w, &q[(j-1)*ldq], &rho, &d[j-1], info));
-    if (*info) SETERRQ3(PETSC_COMM_SELF,1,"Error in dlaed4, info = %d, failed when computing D(%d)=%g",*info,j,d[j-1]);
+    SlepcCheckLapackInfo("laed4",*info);
 
     if (j < k) {
 

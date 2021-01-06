@@ -574,7 +574,7 @@ L200:
   /* eigenanalysis of block 1 (using DSYEVD) */
 
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, z, &ldz, ev, work, &lwork, info));
-  if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dibtdc: Error in DSYEVD for block 1, info = %d",*info);
+  SlepcCheckLapackInfo("syev",*info);
 
   /* EV(1:) contains the eigenvalues in ascending order */
   /* (they are returned this way by DSYEVD) */
@@ -646,7 +646,7 @@ L200:
 
       PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, &z[np+np*ldz],
                      &ldz, &ev[np], work, &lwork, info));
-      if (*info) SETERRQ2(PETSC_COMM_SELF,1,"dibtdc: Error in DSYEVD for block %d, info = %d",k,*info);
+      SlepcCheckLapackInfo("syev",*info);
 
       /* EV(NPP1:) contains the eigenvalues in ascending order */
       /* (they are returned this way by DSYEVD) */
@@ -701,7 +701,7 @@ L200:
   /* eigenanalysis of block NBLKS (using dsyevd) */
 
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, &z[np+np*ldz], &ldz, &ev[np], work, &lwork, info));
-  if (*info) SETERRQ2(PETSC_COMM_SELF,1,"dibtdc: Error in DSYEVD for block %d, info = %d",nblks,*info);
+  SlepcCheckLapackInfo("syev",*info);
 
   /* EV(NPP1:) contains the eigenvalues in ascending order */
   /* (they are returned this way by DSYEVD) */

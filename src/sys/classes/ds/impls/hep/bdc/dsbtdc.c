@@ -318,7 +318,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
       }
     }
     PetscStackCallBLAS("LAPACKsyevd",LAPACKsyevd_("V", "L", &n, z, &ldz, ev, work, &lwork, iwork, &liwork, info));
-    if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: Error in DSYEVD, info = %d",*info);
+    SlepcCheckLapackInfo("syevd",*info);
     *info = -102;
     PetscFunctionReturn(0);
   }
@@ -377,7 +377,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O", "S", &kskp1, &ksk,
             &e[k*l1e*l2e], &l1e, &work[isvals],
             &work[iu], &ldu, &work[ivt], &ldvt, &work[iwspc], &i1, info));
-    if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: Error in DGESVD, info = %d",*info);
+    SlepcCheckLapackInfo("gesvd",*info);
 
     /* Note that after the return from DGESVD U is stored in */
     /* E(*,*,K), and V^{\top} is stored in WORK(IVT, IVT+1, ....) */
@@ -555,7 +555,7 @@ L20:
       PetscStackCallBLAS("LAPACKsyevd",LAPACKsyevd_("V", "L", &nk,
                     &z[np + np*ldz], &ldz, &ev[np],
                     work, &lwork, &iwork[nblks-1], &liwork, info));
-      if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: Error in DSYEVD, info = %d",*info);
+      SlepcCheckLapackInfo("syevd",*info);
       start = iend + 1;
       np += nk;
 
@@ -593,7 +593,7 @@ L20:
       /* scale the diagonal block */
       PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("L", &zero, &zero,
                     &anorm, &done, &ksk, &ksk, &d[k*l2d*l1d], &l1d, info));
-      if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: Error in DLASCL, info = %d",*info);
+      SlepcCheckLapackInfo("lascl",*info);
 
       /* scale the (approximated) off-diagonal block by dividing its */
       /* singular values */
@@ -622,7 +622,7 @@ L20:
 
     PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G", &zero, &zero, &done,
             &anorm, &nk, &one, &ev[np], &nk, info));
-    if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: Error in DLASCL, info = %d",*info);
+    SlepcCheckLapackInfo("lascl",*info);
 
     start = iend + 1;
     np += nk;
