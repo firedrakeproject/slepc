@@ -22,8 +22,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   PetscInt        i,k,l,ld,nv,t,nconv=0;
   Mat             U;
   Vec             vomega,w=eps->work[0];
-  PetscScalar     *Q,*aux;
-  PetscReal       *a,*b,*r,beta,beta1=1.0,*omega;
+  PetscScalar     *aux;
+  PetscReal       *a,*b,beta,beta1=1.0,*omega;
   PetscBool       breakdown=PETSC_FALSE,symmlost=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -72,6 +72,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
@@ -106,19 +107,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
       if (breakdown) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);
       else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-        ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-        ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-        b = a + ld;
-        r = a + 2*ld;
-        for (i=k;i<k+l;i++) {
-          r[i] = PetscRealPart(Q[nv-1+i*ld]*beta);
-        }
-        b[k+l-1] = r[k+l-1];
-        omega[k+l] = omega[nv];
-        ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-        ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-        ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+        ierr = DSTruncate(eps->ds,k+l);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */

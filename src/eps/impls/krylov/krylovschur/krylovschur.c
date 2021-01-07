@@ -212,6 +212,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       eps->ops->computevectors = EPSComputeVectors_Indefinite;
       ierr = DSSetType(eps->ds,DSGHIEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       /* force reorthogonalization for pseudo-Lanczos */
       ierr = BVGetOrthogonalization(eps->V,&otype,NULL,&eta,&obtype);CHKERRQ(ierr);
