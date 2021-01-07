@@ -26,7 +26,7 @@ int main(int argc,char **argv)
   EPS            eps;
   ST             st;
   RG             rg;
-  PetscReal      radius,tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      radius,tol=PETSC_SMALL;
   PetscScalar    target=0.5,kr,ki;
   PetscComplex   *eigs,eval;
   PetscInt       N,m=15,nev,i,nconv;

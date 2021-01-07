@@ -68,7 +68,7 @@ int main(int argc,char **argv)
   Vec            v0;              /* initial vector */
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      tol=PETSC_SMALL;
   PetscInt       N,m=15,nev;
   PetscScalar    origin=0.0;
   PetscBool      flg,delay,skipnorm=PETSC_FALSE;
@@ -225,7 +225,6 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
 
    testset:
       args: -eps_nev 4
-      requires: !single
       output_file: output/test9_1.out
       test:
          suffix: 1

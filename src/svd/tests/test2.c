@@ -19,7 +19,7 @@ int main(int argc,char **argv)
   SVD            svd;             /* singular value problem solver context */
   char           filename[PETSC_MAX_PATH_LEN];
   const char     *prefix,*scalar,*ints,*floats;
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      tol=PETSC_SMALL;
   PetscViewer    viewer;
   PetscErrorCode ierr;
 

@@ -16,7 +16,7 @@ int main(int argc,char **argv)
 {
   Mat            A1,A2;       /* problem matrices */
   EPS            eps;         /* eigenproblem solver context */
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON,v;
+  PetscReal      tol=PETSC_SMALL,v;
   Vec            d;
   PetscInt       n=30,i,Istart,Iend;
   PetscRandom    myrand;
@@ -161,6 +161,7 @@ int main(int argc,char **argv)
       test:
          suffix: 2_lanczos
          args: -eps_type lanczos
+         requires: !single
       test:
          suffix: 2_lanczos_delayed
          args: -eps_type lanczos -eps_lanczos_reorthog delayed -eps_tol 1e-8

@@ -29,7 +29,7 @@ int main(int argc,char **argv)
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   ST             st;              /* spectral transformation associated */
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      tol=PETSC_SMALL;
   PetscScalar    target=0.5;
   PetscInt       N,m=15,nev;
   PetscErrorCode ierr;
