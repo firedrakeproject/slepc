@@ -77,6 +77,7 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
 
   PetscFunctionBegin;
   ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   q = (Mat_ScaLAPACK*)Q->data;
 
   if (B) {
@@ -136,6 +137,7 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
 #endif
 
   }
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
 
   for (i=0;i<eps->ncv;i++) {
     eps->eigr[i]   = eps->errest[i];

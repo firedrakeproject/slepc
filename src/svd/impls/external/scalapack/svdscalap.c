@@ -72,6 +72,7 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   ierr = MatAssemblyEnd(QT,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   q = (Mat_ScaLAPACK*)QT->data;
 
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   /* allocate workspace */
   PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,&minlwork,&lwork,&info));
@@ -94,6 +95,7 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   PetscCheckScaLapackInfo("gesvd",info);
   ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
 #endif
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
 
   ierr = MatHermitianTranspose(QT,MAT_INITIAL_MATRIX,&Q);CHKERRQ(ierr);
   ierr = MatDestroy(&QT);CHKERRQ(ierr);

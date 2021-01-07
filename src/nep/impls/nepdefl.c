@@ -504,7 +504,9 @@ static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar l
           hfj[j*(n+1)] += lambda;
         }
         ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+        ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
         PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,hfj,&n_,&info));
+        ierr = PetscFPTrapPop();CHKERRQ(ierr);
         SlepcCheckLapackInfo("trtri",info);
         ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,hfj,&F);CHKERRQ(ierr);
         ierr = BVMultInPlace(matctx->U,F,0,n);CHKERRQ(ierr);
@@ -606,10 +608,12 @@ PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP extop,PetscScalar lambda)
       ierr = PetscArraycpy(solve->M,matctx->B,extop->szd*extop->szd);CHKERRQ(ierr);
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&snone,matctx->A,&szd_,solve->work,&n_,&sone,solve->M,&szd_));
       ierr = PetscMalloc1(n,&p);CHKERRQ(ierr);
+      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n_,&n_,solve->M,&szd_,p,&info));
       SlepcCheckLapackInfo("getrf",info);
       PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n_,solve->M,&szd_,p,solve->work,&n_,&info));
       SlepcCheckLapackInfo("getri",info);
+      ierr = PetscFPTrapPop();CHKERRQ(ierr);
       ierr = PetscFree(p);CHKERRQ(ierr);
     }
     solve->theta = lambda;

@@ -299,6 +299,7 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
   ierr = PetscBLASIntCast(row,&row_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(col,&col_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldx,&ldx_);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   n = PetscMin(row,col);
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   lwork = 3*col_+1;
@@ -333,6 +334,7 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
   }
   PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&row_,&n_,&n_,X,&ldx_,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("orgqr",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscFree4(p,tau,work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -923,6 +925,7 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
     M  = pcctx->M;
     ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
     if (pjd->midx==1) {
       ierr = PetscArraycpy(M,pjd->XpX,ld*ld);CHKERRQ(ierr);
       ierr = PetscCalloc2(10*n,&work,n,&p);CHKERRQ(ierr);
@@ -971,6 +974,7 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
     SlepcCheckLapackInfo("getrf",info);
     PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n_,M,&ld_,p,work,&n_,&info));
     SlepcCheckLapackInfo("getri",info);
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
     if (pjd->midx==1) {
       ierr = PetscFree2(work,p);CHKERRQ(ierr);
     } else {
@@ -1132,6 +1136,7 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(pep->ncv,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(pep->nconv,&nconv);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc2(pep->nconv*pep->nconv,&Z,3*pep->ncv,&wr);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","A",NULL,&nconv,pjd->T,&ld,NULL,&nconv,Z,&nconv,&nconv,&nc,wr,&info));
@@ -1139,6 +1144,7 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
   ierr = PetscMalloc3(pep->nconv*pep->nconv,&Z,3*pep->ncv,&wr,2*pep->ncv,&w);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","A",NULL,&nconv,pjd->T,&ld,NULL,&nconv,Z,&nconv,&nconv,&nc,w,wr,&info));
 #endif
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   SlepcCheckLapackInfo("trevc",info);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nconv,nconv,Z,&U);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pjd->X,0,pep->nconv);CHKERRQ(ierr);
@@ -1201,7 +1207,9 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
   ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(sz,&sz_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nvv,&nv_);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&rk_,R,&nv_,&info));
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   SlepcCheckLapackInfo("trtri",info);
   for (i=0;i<sz;i++) PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","C","N",&rk_,R,&nv_,r+i,&sz_));
   for (i=0;i<sz*rk;i++) r[i] = PetscConj(r[i])/PetscSqrtReal(np); /* revert */

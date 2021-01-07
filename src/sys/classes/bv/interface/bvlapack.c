@@ -170,6 +170,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   }
 
   /* compute upper Cholesky factor in R */
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n_,pR+l*ld+l,&ld_,&info));
   ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
 
@@ -194,6 +195,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*lds+l,&lds_,&info));
   }
   SlepcCheckLapackInfo("trtri",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogFlops(0.33*n*n*n);CHKERRQ(ierr);
 
   /* Zero out entries below the diagonal */
@@ -240,6 +242,7 @@ PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
   }
 
   /* compute S = inv(R) */
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   if (S==R) {
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pR+l*ld+l,&ld_,&info));
   } else {
@@ -250,6 +253,7 @@ PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*lds+l,&lds_,&info));
   }
   SlepcCheckLapackInfo("trtri",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogFlops(0.33*n*n*n);CHKERRQ(ierr);
 
   ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
@@ -295,6 +299,7 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
     ierr = MatGetSize(S,&lds,NULL);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   }
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 
   /* workspace query and memory allocation */
   lwork = -1;
@@ -340,6 +345,7 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = PetscFree3(eig,D,work);CHKERRQ(ierr);
 #endif
   ierr = PetscLogFlops(9.0*n*n*n);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
 
   ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
   if (S!=R) { ierr = MatDenseRestoreArray(S,&pS);CHKERRQ(ierr); }
