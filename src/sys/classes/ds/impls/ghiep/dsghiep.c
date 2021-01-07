@@ -42,8 +42,10 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
   n = ds->n;
   ld = ds->ld;
   if (tocompact) { /* switch from dense (arrow) to compact storage */
-    ierr = PetscArrayzero(T,3*ld);CHKERRQ(ierr);
-    ierr = PetscArrayzero(S,ld);CHKERRQ(ierr);
+    ierr = PetscArrayzero(T,n);CHKERRQ(ierr);
+    ierr = PetscArrayzero(T+ld,n);CHKERRQ(ierr);
+    ierr = PetscArrayzero(T+2*ld,n);CHKERRQ(ierr);
+    ierr = PetscArrayzero(S,n);CHKERRQ(ierr);
     for (i=0;i<n-1;i++) {
       T[i]    = PetscRealPart(A[i+i*ld]);
       T[ld+i] = PetscRealPart(A[i+1+i*ld]);
@@ -53,8 +55,10 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
     S[n-1] = PetscRealPart(B[n-1+(n-1)*ld]);
     for (i=ds->l;i<ds->k;i++) T[2*ld+i] = PetscRealPart(A[ds->k+i*ld]);
   } else { /* switch from compact (arrow) to dense storage */
-    ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
-    ierr = PetscArrayzero(B,ld*ld);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      ierr = PetscArrayzero(A+i*ld,n);CHKERRQ(ierr);
+      ierr = PetscArrayzero(B+i*ld,n);CHKERRQ(ierr);
+    }
     for (i=0;i<n-1;i++) {
       A[i+i*ld]     = T[i];
       A[i+1+i*ld]   = T[ld+i];

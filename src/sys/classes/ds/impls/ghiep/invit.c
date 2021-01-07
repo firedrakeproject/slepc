@@ -653,7 +653,8 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   ierr = PetscArrayzero(ds->rmat[DS_MAT_T]+2*ld,ld);CHKERRQ(ierr);
   d = ds->rmat[DS_MAT_T];
   e = d+ld;
-  for (i=0;i<nv;i++) {
+  d[l+nv-1] = PetscRealPart(wr[l+nv-1]*s[l+nv-1]);
+  for (i=0;i<nv-1;i++) {
     if (cmplxEig[i]==0) { /* Real */
       d[l+i] = PetscRealPart(wr[l+i]*s[l+i]);
       e[l+i] = 0.0;
@@ -669,7 +670,7 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
       d[l+i] = (vr-tr)*s[l+i];
       d[l+i+1] = (vr+tr)*s[l+i+1];
       e[l+i] = PetscRealPart(s[l+i]*(R[(i+1)+(i+1)*ldr]/R[i+i*ldr])*vi);
-      e[l+i+1] = 0.0;
+      if (i<nv-2) e[l+i+1] = 0.0;
       i++;
     }
   }
