@@ -133,10 +133,6 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS(FN fn,Mat A,Mat B)
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi(FN fn,Mat A,Mat B)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,*ipiv,info;
   PetscScalar    *Ba,*Wa;
@@ -163,7 +159,6 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi(FN fn,Mat A,Mat B)
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 #if defined(PETSC_HAVE_CUDA)
@@ -203,10 +198,6 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS_CUDA(FN fn,Mat A,Mat B)
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,*ipiv,info;
   PetscScalar    *Ba,*Wa;
@@ -233,7 +224,6 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 #endif
 

@@ -1501,10 +1501,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
  */
 PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Mat B)
 {
-#if defined(PETSC_MISSING_LAPACK_GEEV) || defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEV/GESV/LANGE - Lapack routines are unavailable");
-#else
   PetscInt       i,j,n_,s,k,m,zero=0,mod;
   PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,query=-1,info,*piv,minlen,lwork,one=1;
   PetscReal      nrm,shift=0.0,rone=1.0,rzero=0.0;
@@ -1775,7 +1771,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   magma_finalize();
   PetscFunctionReturn(0);
-#endif
 }
 #endif /* PETSC_HAVE_CUDA */
 
