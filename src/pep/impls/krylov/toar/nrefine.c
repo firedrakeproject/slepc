@@ -68,7 +68,9 @@ static PetscErrorCode MatMult_FS(Mat M ,Vec x,Vec y)
   ierr = VecConjugate(ctx->t);CHKERRQ(ierr);
   ierr = BVDotVec(ctx->M3,ctx->t,c);CHKERRQ(ierr);
   for (i=0;i<k;i++) c[i] = PetscConj(c[i]);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&k_,&one,ctx->M4,&k_,ctx->pM4,c,&k_,&info));
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   SlepcCheckLapackInfo("getrs",info);
   ierr = BVMultVec(ctx->M2,-1.0,1.0,y,c);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -212,7 +214,9 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
   ierr = BVGetArrayRead(ctx->M3,&m3);CHKERRQ(ierr);
   ierr = VecGetArray(ctx->t,&v);CHKERRQ(ierr);
   for (i=0;i<nloc;i++) for (j=0;j<k;j++) T[j+i*k] = m3[i+j*nloc];
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&k_,&nloc_,ctx->M4,&k_,ctx->pM4,T,&k_,&info));
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   SlepcCheckLapackInfo("gesv",info);
   for (i=0;i<nloc;i++) v[i] = BLASdot_(&k_,m2+i,&nloc_,T+i*k,&one);
   ierr = VecRestoreArray(ctx->t,&v);CHKERRQ(ierr);
@@ -237,6 +241,7 @@ static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScala
   ierr = KSPGetOperators(ksp,&M,NULL);CHKERRQ(ierr);
   ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   ierr = PetscCalloc1(k,&t0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lda,&lda_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
   for (i=0;i<k;i++) t0[i] = Rh[i];
@@ -250,6 +255,7 @@ static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScala
   for (i=0;i<k;i++) dHi[i] = Rh[i]-PetscConj(dHi[i]);
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&k_,&one,ctx->M4,&k_,ctx->pM4,dHi,&k_,&info));
   SlepcCheckLapackInfo("getrs",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscFree(t0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -942,7 +948,9 @@ static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt 
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&sone,S,&lds_,fH+j*k,&lda_,&zero,G+j*k,&ldg_));
   }
   /* Orthogonalize and update S */
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&ldg_,&k_,G,&ldg_,tau,work,&k_,&info));
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   SlepcCheckLapackInfo("geqrf",info);
   PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&k_,&k_,&sone,G,&ldg_,S,&lds_));
 
@@ -978,6 +986,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
     for (i=0;i<k;i++) dVS[i+j*2*k] = -dVS[i+j*2*k]+S[i+j*lds];
     for (i=k;i<2*k;i++) dVS[i+j*2*k] = -dVS[i+j*2*k];
   }
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&kdrs_,&k_,dVS,&k2_,tau,work,&k_,&info));
   SlepcCheckLapackInfo("geqrf",info);
   /* Copy triangular matrix in S */
@@ -987,6 +996,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   }
   PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&k2_,&k_,&k_,dVS,&k2_,tau,work,&k_,&info));
   SlepcCheckLapackInfo("orgqr",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
   for (j=0;j<k;j++) {
@@ -1375,10 +1385,12 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
     if (sinvert) {
       ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       ierr = PetscMalloc1(k,&p);CHKERRQ(ierr);
+      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&k_,&k_,H,&ld_,p,&info));
       SlepcCheckLapackInfo("getrf",info);
       PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&k_,H,&ld_,p,work,&k_,&info));
       SlepcCheckLapackInfo("getri",info);
+      ierr = PetscFPTrapPop();CHKERRQ(ierr);
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       pep->ops->backtransform = NULL;
     }

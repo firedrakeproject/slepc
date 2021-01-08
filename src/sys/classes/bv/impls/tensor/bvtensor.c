@@ -427,12 +427,14 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
         ierr = PetscArraycpy(M+(i-lock+j*newc)*nrow,S+i*lds+j*ctx->ld+lock,nrow);CHKERRQ(ierr);
       }
     }
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined (PETSC_USE_COMPLEX)
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,&info));
 #else
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,rwork+n,&info));
 #endif
     SlepcCheckLapackInfo("gesvd",info);
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
     /* SVD has rank min(newc,nrow) */
     rk = PetscMin(newc,nrow);
     for (i=0;i<rk;i++) {
@@ -465,12 +467,14 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
       ierr = PetscArraycpy(M+(i-lock-newc+j*nnc)*nrow,S+i*lds+j*ctx->ld+lock,nrow);CHKERRQ(ierr);
     }
   }
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
 #if !defined (PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,&info));
 #else
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,rwork+n,&info));
 #endif
   SlepcCheckLapackInfo("gesvd",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
   rk = 0;
   for (i=0;i<PetscMin(nrow,nnctdeg);i++) if (sg[i]>tol) rk++;
@@ -502,6 +506,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   rk = rk+newc;
   ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cs1-lock,&nnc_);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&nrow_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
   SlepcCheckLapackInfo("geqrf",info);
   for (i=0;i<deg;i++) {
@@ -509,6 +514,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   }
   PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&nrow_,&rk_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
   SlepcCheckLapackInfo("orgqr",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
 
   /* update vectors U(:,idx) = U*Q(:,idx) */
   rk = rk+lock;

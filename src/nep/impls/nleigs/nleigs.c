@@ -232,6 +232,7 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc1(8*ndpt,&rwork);CHKERRQ(ierr);
 #endif
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   norm = 0.0;
   for (i=0;i<ndpt;i++) {
     mean += F[i];
@@ -302,6 +303,7 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
     dxi[cont++] = D[i]/N[i];
   }
   *ndptx = cont;
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscFree5(R,z,f,C,ww);CHKERRQ(ierr);
   ierr = PetscFree6(A,S,VT,work,D,N);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
@@ -1107,6 +1109,7 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
     ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(n1,&n1_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(end+1,&dim);CHKERRQ(ierr);
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
     PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1_,&n_,W,&n1_,tau,work+nwu,&n1_,&info));
     SlepcCheckLapackInfo("geqrf",info);
     for (i=0;i<end;i++) t[i] = 0.0;
@@ -1120,6 +1123,7 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
     }
     ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&n1_,&sone,S,&lds_,t,&one,&szero,cont,&one));
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

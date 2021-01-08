@@ -45,6 +45,7 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   ierr = PetscArraycpy(A,pM,ncv*ncv);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nv,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ncv,&ncv_);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n_,&n_,A,&ncv_,p,&info));
   SlepcCheckLapackInfo("getrf",info);
   ierr = PetscLogFlops(2.0*n_*n_*n_/3.0);CHKERRQ(ierr);
@@ -60,6 +61,7 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   ierr = BVDotVec(eps->V,u,w);CHKERRQ(ierr);
   ierr = BVRestoreColumn(eps->W,nv,&u);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n_,&one,A,&ncv_,p,w,&ncv_,&info));
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = BVMultColumn(eps->W,-1.0,1.0,nv,w);CHKERRQ(ierr);
   ierr = DSGetArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
   beta = T[(nv-1)*ld+nv];

@@ -126,15 +126,15 @@ class ArgDB:
 
   def ErrorPetscOptions(self):
     petscopts = []
-    strings = ['with-precision','with-scalar-type','with-fc','with-blas-lapack-lib']
+    strings = ['with-precision','with-scalar-type','with-clanguage','with-cc','with-cxx','with-fc','with-blaslapack-lib','with-scalapack-dir','with-elemental-dir']
     for s in strings:
       value,found = self.PopString(s)
       if found: petscopts.append(s)
-    bools = ['with-fortran-bindings','with-64-bit-indices','with-shared-libraries','with-debugging','with-cuda', 'with-mpi']
+    bools = ['with-fortran-bindings','with-64-bit-indices','with-shared-libraries','with-single-library','with-debugging','with-cuda','with-mpi','with-openmp']
     for s in bools:
       value,found = self.PopBool(s)
       if found: petscopts.append(s)
-    urls = ['download-f2cblaslapack','download-mumps']
+    urls = ['download-f2cblaslapack','download-mumps','download-scalapack','download-elemental']
     for s in urls:
       url,flag,found = self.PopUrl(s)
       if found: petscopts.append(s)

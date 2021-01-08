@@ -18,7 +18,7 @@ int main(int argc,char **argv)
   EPS               eps;        /* eigenproblem solver context */
   ST                st;
   Vec               *X,v;
-  PetscReal         lev=0.0,tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal         lev=0.0,tol=PETSC_SMALL;
   PetscInt          N,n=45,m,Istart,Iend,II,i,j,nconv;
   PetscBool         flag,skiporth=PETSC_FALSE;
   EPSPowerShiftType variant;

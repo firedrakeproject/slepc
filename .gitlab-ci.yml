@@ -404,7 +404,7 @@ gnu-c:
   tags:
     - linux-ubuntu, name:maat
   variables:
-    PETSC_CONFIG_OPTS: --download-superlu_dist --download-elemental --download-metis --download-parmetis --download-petsc4py
+    PETSC_CONFIG_OPTS: --download-superlu_dist --download-elemental --download-metis --download-parmetis --with-petsc4py
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.1.1 --download-blopex --download-slepc4py
     SLEPC4PY: 1
 

@@ -21,7 +21,7 @@ int main(int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   char           filename[PETSC_MAX_PATH_LEN];
   const char     *prefix,*scalar,*ints,*floats;
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      tol=PETSC_SMALL;
   PetscViewer    viewer;
   PetscBool      flg,symm;
   PetscErrorCode ierr;
@@ -91,7 +91,8 @@ int main(int argc,char **argv)
 
    testset:
       args: -eps_nev 3
-      requires: !single !complex
+      requires: !complex
+      filter: sed -e "s/92073/92072/" | sed -e "s/80649/80648/" | sed -e "s/80647/80648/" | sed -e "s/45755/45756/"
       output_file: output/test5_1.out
       test:
          suffix: 1

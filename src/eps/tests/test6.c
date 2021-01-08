@@ -21,7 +21,7 @@ int main(int argc,char **argv)
   EPS            eps;         /* eigenproblem solver context */
   Vec            v0;          /* initial vector */
   PetscRandom    rand;
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      tol=PETSC_SMALL;
   PetscInt       n=30,i,Istart,Iend,seed=0x12345678;
   PetscErrorCode ierr;
 
