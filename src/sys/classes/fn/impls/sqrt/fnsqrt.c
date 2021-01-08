@@ -38,7 +38,7 @@ PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n = 0;
+  PetscBLASInt   n=0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -55,7 +55,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Schur(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n = 0;
+  PetscBLASInt   n=0;
   PetscScalar    *T;
   PetscInt       m;
   Mat            B;
@@ -75,7 +75,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n = 0;
+  PetscBLASInt   n=0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -92,7 +92,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n = 0;
+  PetscBLASInt   n=0;
   PetscScalar    *Ba;
   PetscInt       m;
 
@@ -114,13 +114,13 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
  */
 PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
 {
-  PetscScalar    *M,*M2,*G,*X=A,*work,work1,sqrtnrm;
-  PetscScalar    szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
-  PetscReal      tol,Mres=0.0,nrm,rwork[1],done=1.0;
-  PetscBLASInt   N,i,it,*piv=NULL,info,lwork,query=-1,one=1,zero=0;
-  PetscBool      converged=PETSC_FALSE;
-  PetscErrorCode ierr;
-  unsigned int   ftz;
+  PetscScalar        *M,*M2,*G,*X=A,*work,work1,sqrtnrm;
+  PetscScalar        szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
+  PetscReal          tol,Mres=0.0,nrm,rwork[1],done=1.0;
+  PetscBLASInt       N,i,it,*piv=NULL,info,lwork=0,query=-1,one=1,zero=0;
+  PetscBool          converged=PETSC_FALSE;
+  PetscErrorCode     ierr;
+  unsigned int       ftz;
 
   PetscFunctionBegin;
   N = n*n;
@@ -264,12 +264,11 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
  */
 PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
 {
-  PetscScalar        *d_X,*d_M,*d_M2,*d_I,*d_G,*d_work,*d_Mold;
-  const PetscScalar  szero=0.0,sone=1.0,sneg_one=-1.0,spfive=0.5,s3d8=3.0/8.0;
-  const PetscScalar  smfive=-5.0,s15=15.0,s1d16=1.0/16.0,s5d16=5.0/16.0;
+  PetscScalar        *d_X,*d_M,*d_M2,*d_G,*d_work;
+  const PetscScalar  szero=0.0,sone=1.0;
+  const PetscScalar  smfive=-5.0,s15=15.0,s1d16=1.0/16.0;
   PetscReal          tol,Mres=0.0,alpha,nrm,sqrtnrm;
-  PetscInt           i,it,*piv,info,nb,lwork;
-  const PetscInt     maxit=500,query=-1;
+  PetscInt           it,*piv,info,nb,lwork;
   PetscBLASInt       N;
   const PetscBLASInt one=1,zero=0;
   PetscBool          converged=PETSC_FALSE;
@@ -369,7 +368,7 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n = 0;
+  PetscBLASInt   n=0;
   PetscScalar    *Ba;
   PetscInt       m;
 
@@ -387,7 +386,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n=0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -404,7 +403,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS_CUDA(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n=0;
   PetscScalar    *Ba;
   PetscInt       m;
 
@@ -421,7 +420,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS_CUDA(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n=0;
   PetscScalar    *Ba;
   PetscInt       m;
 

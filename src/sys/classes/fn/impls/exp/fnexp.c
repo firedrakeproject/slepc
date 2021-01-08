@@ -34,7 +34,7 @@ PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
 {
   PetscErrorCode    ierr;
-  PetscBLASInt      n,ld,ld2,*ipiv,info,inc=1;
+  PetscBLASInt      n=0,ld,ld2,*ipiv,info,inc=1;
   PetscInt          m,j,k,sexp;
   PetscBool         odd;
   const PetscInt    p=MAX_PADE;
@@ -416,7 +416,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   SETERRQ(PETSC_COMM_SELF,1,"This function requires C99 or C++ complex support");
 #else
   PetscInt          i,j,n_,s,k,m,mod;
-  PetscBLASInt      n,n2,irsize = 0,rsizediv2,ipsize = 0,iremainsize = 0,info,*piv,minlen,lwork,one=1;
+  PetscBLASInt      n=0,n2=0,irsize=0,rsizediv2,ipsize=0,iremainsize=0,info,*piv,minlen,lwork=0,one=1;
   PetscReal         nrm,shift=0.0;
 #if defined(PETSC_USE_COMPLEX) || defined(PETSC_HAVE_ESSL)
   PetscReal         *rwork=NULL;
@@ -749,7 +749,7 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
   PetscErrorCode  ierr;
   PetscScalar     sfactor,sone=1.0,szero=0.0,*A=Apowers[0],*Ascaled;
   PetscReal       d4,d6,d8,d10,eta1,eta3,eta4,eta5,rwork[1];
-  PetscBLASInt    n_,n2,one=1;
+  PetscBLASInt    n_=0,n2,one=1;
   PetscRandom     rand;
   const PetscReal coeff[5] = { 9.92063492063492e-06, 9.94131285136576e-11,  /* backward error function */
                                2.22819456055356e-16, 1.69079293431187e-22, 8.82996160201868e-36 };
@@ -831,7 +831,7 @@ done:
 PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
 {
   PetscErrorCode    ierr;
-  PetscBLASInt      n_,n2,*ipiv,info,one=1;
+  PetscBLASInt      n_=0,n2,*ipiv,info,one=1;
   PetscInt          n,m,j,s;
   PetscScalar       scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
   PetscScalar       *Ba,*Apowers[5],*Q,*P,*W,*work,*aux;
@@ -1019,7 +1019,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n,ld,ld2,*d_ipiv,*d_info,info,one=1,zero=0;
+  PetscBLASInt   n=0,ld,ld2,*d_ipiv,*d_info,info,one=1,zero=0;
   PetscInt       m,k,sexp;
   PetscBool      odd;
   const PetscInt p=MAX_PADE;
@@ -1204,11 +1204,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n,ld,ld2,*piv,info,one=1,zero=0;
-  PetscInt       m,j,k,sexp,nb,lwork;
+  PetscBLASInt   n=0,ld,ld2,*piv,info,one=1,zero=0;
+  PetscInt       m,k,sexp;
   PetscBool      odd;
   const PetscInt p=MAX_PADE;
-  PetscReal      c[MAX_PADE+1],s,*rwork;
+  PetscReal      c[MAX_PADE+1],s;
   PetscScalar    scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
   PetscScalar    *Aa,*Ba;
   PetscScalar    *d_Ba,*d_As,*d_A2,*d_Q,*d_P,*d_W,*aux;
@@ -1332,7 +1332,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscErrorCode    ierr;
-  PetscBLASInt      n_,n2,*ipiv,info,one=1;
+  PetscBLASInt      n_=0,n2,*ipiv,info,one=1;
   PetscInt          n,m,j,s,zero=0;
   PetscScalar       scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
   PetscScalar       *Aa,*Ba,*d_Ba,*Apowers[5],*d_Apowers[5],*d_Q,*d_P,*d_W,*work,*d_work,*aux;
@@ -1502,7 +1502,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscInt       i,j,n_,s,k,m,zero=0,mod;
-  PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,query=-1,info,*piv,minlen,lwork,one=1;
+  PetscBLASInt   n=0,n2=0,irsize=0,rsizediv2,ipsize=0,iremainsize=0,query=-1,info,*piv,minlen,lwork=0,one=1;
   PetscReal      nrm,shift=0.0,rone=1.0,rzero=0.0;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork=NULL;

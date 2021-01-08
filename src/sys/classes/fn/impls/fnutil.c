@@ -393,8 +393,8 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
 {
   PetscScalar        *d_A,*d_Yold,*d_Z,*d_Zold,*d_M;
   PetscReal          nrm,sqrtnrm;
-  const PetscScalar  szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_two=-2.0,sthree=3.0;
-  PetscReal          tol,Yres=0.0,alpha,sqrtalpha;
+  const PetscScalar  szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sthree=3.0;
+  PetscReal          tol,Yres=0.0,alpha;
   PetscInt           it;
   PetscBLASInt       N;
   const PetscBLASInt one=1,zero=0;
@@ -486,9 +486,9 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
  */
 PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
 {
-  PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,work1,zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
-  PetscReal      tol,Mres=0.0,detM,g,g2,reldiff,fnormdiff,fnormT,prod;
-  PetscInt       i,it,*piv=NULL,info,query=-1,lwork,nb;
+  PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
+  PetscReal      tol,Mres=0.0,detM,g,reldiff,fnormdiff,fnormT,prod;
+  PetscInt       i,it,*piv=NULL,info,lwork,nb;
   PetscBLASInt   N,one=1;
   PetscBool      converged=PETSC_FALSE,scale=PETSC_FALSE;
   cublasHandle_t cublasv2handle;
@@ -503,7 +503,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
   N = n*n;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
 
-    /* query work size */
+  /* query work size */
   nb = magma_get_xgetri_nb(n);
   lwork = nb*n;
   ierr = PetscMalloc1(n,&piv);CHKERRQ(ierr);

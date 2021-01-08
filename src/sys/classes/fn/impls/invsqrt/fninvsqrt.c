@@ -39,7 +39,7 @@ PetscErrorCode FNEvaluateDerivative_Invsqrt(FN fn,PetscScalar x,PetscScalar *y)
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Schur(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n,ld,*ipiv,info;
+  PetscBLASInt   n=0,ld,*ipiv,info;
   PetscScalar    *Ba,*Wa;
   PetscInt       m;
   Mat            W;
@@ -69,7 +69,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Schur(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n,ld,*ipiv,info,one=1;
+  PetscBLASInt   n=0,ld,*ipiv,info,one=1;
   PetscScalar    *Ba,*Wa;
   PetscInt       m;
   Mat            B,W;
@@ -100,7 +100,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n = 0;
+  PetscBLASInt   n=0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -117,7 +117,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n = 0;
+  PetscBLASInt   n=0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -134,7 +134,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n,ld,*ipiv,info;
+  PetscBLASInt   n=0,ld,*ipiv,info;
   PetscScalar    *Ba,*Wa;
   PetscInt       m;
   Mat            W;
@@ -165,7 +165,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n=0;
   PetscScalar    *T;
   PetscInt       m;
 
@@ -182,7 +182,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS_CUDA(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n;
+  PetscBLASInt   n=0;
   PetscScalar    *Ba;
   PetscInt       m;
 
@@ -199,7 +199,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS_CUDA(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   n,ld,*ipiv,info;
+  PetscBLASInt   n=0,ld,*ipiv,info;
   PetscScalar    *Ba,*Wa;
   PetscInt       m;
   Mat            W;
