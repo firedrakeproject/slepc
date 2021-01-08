@@ -106,9 +106,9 @@ SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Private(FN,Mat,Mat,PetscBool);
 SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMatVec_Private(FN,Mat,Vec,PetscBool);
 SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN,Mat,Mat); /* used in FNPHI */
 #if defined(PETSC_HAVE_CUDA)
-SLEPC_INTERN PetscErrorCode SlepcSqrtmDenmanBeavers_CUDAm(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
-SLEPC_INTERN PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
-SLEPC_INTERN PetscErrorCode SlepcSqrtmSadeghi_CUDAm(PetscBLASInt,PetscScalar*,PetscBLASInt);
+SLEPC_INTERN PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode FNSqrtmSadeghi_CUDAm(FN,PetscBLASInt,PetscScalar*,PetscBLASInt);
 #endif
 
 #endif

@@ -262,7 +262,7 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
  * Computes the principal square root of the matrix T using the
  * Sadeghi iteration. T is overwritten with sqrtm(T).
  */
-PetscErrorCode SlepcSqrtmSadeghi_CUDAm(PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
+PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
 {
   PetscScalar        *d_X,*d_M,*d_M2,*d_I,*d_G,*d_work,*d_Mold;
   const PetscScalar  szero=0.0,sone=1.0,sneg_one=-1.0,spfive=0.5,s3d8=3.0/8.0;
@@ -306,7 +306,7 @@ PetscErrorCode SlepcSqrtmSadeghi_CUDAm(PetscBLASInt n,PetscScalar *A,PetscBLASIn
     cberr = cublasXscal(cublasv2handle,N,&alpha,d_M,one);CHKERRCUBLAS(cberr);
     tol *= nrm;
   }
-  ierr = PetscInfo2(NULL,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
+  ierr = PetscInfo2(fn,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
 
   /* X = I */
   cerr = cudaMemset(d_X,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
@@ -344,7 +344,7 @@ PetscErrorCode SlepcSqrtmSadeghi_CUDAm(PetscBLASInt n,PetscScalar *A,PetscBLASIn
     cberr = cublasXnrm2(cublasv2handle,N,d_M2,one,&Mres);CHKERRCUBLAS(cberr);
     ierr = PetscIsNanReal(Mres);CHKERRQ(ierr);
     if (Mres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Mres);CHKERRQ(ierr);
+    ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Mres);CHKERRQ(ierr);
     ierr = PetscLogFlops(8.0*n*n*n+2.0*n*n+2.0*n*n*n/3.0+4.0*n*n*n/3.0+2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
 
@@ -396,7 +396,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmDenmanBeavers_CUDAm(n,T,n,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -413,7 +413,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS_CUDA(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmNewtonSchulz_CUDA(n,Ba,n,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = FNSqrtmNewtonSchulz_CUDA(fn,n,Ba,n,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -430,7 +430,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmSadeghi_CUDAm(n,Ba,n);CHKERRQ(ierr);
+  ierr = FNSqrtmSadeghi_CUDAm(fn,n,Ba,n);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -389,7 +389,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
  * Computes the principal square root of the matrix T using the
  * Newton-Schulz iteration. T is overwritten with sqrtm(T).
  */
-PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBLASInt ld,PetscBool inv)
+PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld,PetscBool inv)
 {
   PetscScalar        *d_A,*d_Yold,*d_Z,*d_Zold,*d_M;
   PetscReal          nrm,sqrtnrm;
@@ -428,7 +428,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBL
   alpha = 1.0/nrm;
   cberr = cublasXscal(cublasv2handle,N,&alpha,d_A,one);CHKERRCUBLAS(cberr);
   tol *= nrm;
-  ierr = PetscInfo2(NULL,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
+  ierr = PetscInfo2(fn,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
   ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
 
   /* Z = I; */
@@ -454,7 +454,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBL
     cberr = cublasXnrm2(cublasv2handle,N,d_Yold,one,&Yres);CHKERRCUBLAS(cberr);
     ierr = PetscIsNanReal(Yres);CHKERRQ(ierr);
     if (Yres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
+    ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
     ierr = PetscLogFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
@@ -484,7 +484,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBL
  * Computes the principal square root of the matrix T using the product form
  * of the Denman-Beavers iteration. T is overwritten with sqrtm(T).
  */
-PetscErrorCode SlepcSqrtmDenmanBeavers_CUDAm(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
+PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
 {
   PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,work1,zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
   PetscReal      tol,Mres=0.0,detM,g,g2,reldiff,fnormdiff,fnormT,prod;
@@ -573,11 +573,11 @@ PetscErrorCode SlepcSqrtmDenmanBeavers_CUDAm(PetscBLASInt n,PetscScalar *T,Petsc
       cberr = cublasXnrm2(cublasv2handle,N,d_T,one,&fnormT);CHKERRCUBLAS(cberr);
       ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
       reldiff = fnormdiff/fnormT;
-      ierr = PetscInfo4(NULL,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
+      ierr = PetscInfo4(fn,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
       if (reldiff<1e-2) scale = PETSC_FALSE; /* Switch to no scaling. */
     }
 
-    ierr = PetscInfo2(NULL,"it: %D Mres: %g\n",it,(double)Mres);
+    ierr = PetscInfo2(fn,"it: %D Mres: %g\n",it,(double)Mres);
     if (Mres<=tol) converged = PETSC_TRUE;
   }
 

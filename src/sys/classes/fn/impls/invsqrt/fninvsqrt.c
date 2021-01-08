@@ -179,7 +179,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmDenmanBeavers_CUDAm(n,T,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -196,7 +196,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS_CUDA(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSqrtmNewtonSchulz_CUDA(n,Ba,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = FNSqrtmNewtonSchulz_CUDA(fn,n,Ba,n,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -222,7 +222,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ld = n;
-  ierr = SlepcSqrtmSadeghi_CUDAm(n,Ba,n);CHKERRQ(ierr);
+  ierr = FNSqrtmSadeghi_CUDAm(fn,n,Ba,n);CHKERRQ(ierr);
   /* compute B = A\B */
   ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
