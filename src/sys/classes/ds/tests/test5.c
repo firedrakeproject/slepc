@@ -21,12 +21,13 @@ int main(int argc,char **argv)
   PetscScalar    *A,*B,*eigr,*eigi;
   PetscInt       i,j,n=10,ld;
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      verbose,extrarow;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GHIEP - dimension %D.\n",n);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-extrarow",&extrarow);CHKERRQ(ierr);
 
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
@@ -35,6 +36,7 @@ int main(int argc,char **argv)
   ld = n+2;  /* test leading dimension larger than n */
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
   ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetExtraRow(ds,extrarow);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -53,6 +55,7 @@ int main(int argc,char **argv)
     for (i=0;i<n-j;i++) { A[i+(i+j)*ld]=1.0; A[(i+j)+i*ld]=1.0; }
   }
   for (j=1;j<3;j++) { A[0+j*ld]=-1.0*(j+2); A[j+0*ld]=-1.0*(j+2); }
+  if (extrarow) A[n+(n-1)*ld]=-1.0;
   /* Signature matrix */
   for (i=0;i<n;i++) B[i+i*ld]=1.0;
   B[0] = -1.0;
@@ -74,6 +77,8 @@ int main(int argc,char **argv)
   sc->mapobj        = NULL;
   ierr = DSSolve(ds,eigr,eigi);CHKERRQ(ierr);
   ierr = DSSort(ds,eigr,eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+  if (extrarow) { ierr = DSUpdateExtraRow(ds);CHKERRQ(ierr); }
+
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
