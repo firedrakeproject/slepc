@@ -232,6 +232,8 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
 #include <petsccublas.h>
 #include "../cuda/fnutilcuda.h"
 
+#if defined(PETSC_HAVE_MAGMA)
+
 #if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_REAL_SINGLE)
 #define magma_xgetrf_gpu(a,b,c,d,e,f)   magma_cgetrf_gpu((a),(b),(magmaFloatComplex_ptr)(c),(d),(e),(f))
@@ -363,6 +365,7 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
 
   PetscFunctionReturn(0);
 }
+#endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
 
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)
@@ -383,23 +386,6 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)
 }
 
 #if defined(PETSC_HAVE_CUDA)
-PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
-{
-  PetscErrorCode ierr;
-  PetscBLASInt   n=0;
-  PetscScalar    *T;
-  PetscInt       m;
-
-  PetscFunctionBegin;
-  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
-  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS_CUDA(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
@@ -414,6 +400,24 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS_CUDA(FN fn,Mat A,Mat B)
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ierr = FNSqrtmNewtonSchulz_CUDA(fn,n,Ba,n,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#if defined(PETSC_HAVE_MAGMA)
+PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n=0;
+  PetscScalar    *T;
+  PetscInt       m;
+
+  PetscFunctionBegin;
+  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ierr = FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -433,7 +437,8 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-#endif
+#endif /* PETSC_HAVE_MAGMA */
+#endif /* PETSC_HAVE_CUDA */
 
 PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
 {
@@ -453,9 +458,11 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
                   "Denman-Beavers (product form)",
                   "Newton-Schulz iteration",
                   "Sadeghi iteration",
-                  "Denman-Beavers (product form) CUDAm",
-                  "Newton-Schulz iteration CUDA",
+                  "Newton-Schulz iteration CUDA"
+#if defined(PETSC_HAVE_MAGMA)
+                 ,"Denman-Beavers (product form) CUDAm",
                   "Sadeghi iteration CUDAm"
+#endif
   };
 #endif
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
@@ -499,12 +506,12 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
   fn->ops->evaluatefunctionmat[2]    = FNEvaluateFunctionMat_Sqrt_NS;
   fn->ops->evaluatefunctionmat[3]    = FNEvaluateFunctionMat_Sqrt_Sadeghi;
 #if defined(PETSC_HAVE_CUDA)
-  fn->ops->evaluatefunctionmat[4]    = FNEvaluateFunctionMat_Sqrt_DBP_CUDAm;
-  fn->ops->evaluatefunctionmat[5]    = FNEvaluateFunctionMat_Sqrt_NS_CUDA;
+  fn->ops->evaluatefunctionmat[4]    = FNEvaluateFunctionMat_Sqrt_NS_CUDA;
+#if defined(PETSC_HAVE_MAGMA)
+  fn->ops->evaluatefunctionmat[5]    = FNEvaluateFunctionMat_Sqrt_DBP_CUDAm;
   fn->ops->evaluatefunctionmat[6]    = FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm;
-//  fn->ops->evaluatefunctionmat[7]    = FNEvaluateFunctionMat_Sqrtm_Chebyshev_CUDAm;
-//  fn->ops->evaluatefunctionmat[8]    = FNEvaluateFunctionMat_Sqrtm_Chebyshev_CUDA;
-#endif /* defined(PETSC_HAVE_CUDA) */
+#endif /* PETSC_HAVE_MAGMA */
+#endif /* PETSC_HAVE_CUDA */
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Sqrt_Schur;
   fn->ops->view                      = FNView_Sqrt;
   PetscFunctionReturn(0);

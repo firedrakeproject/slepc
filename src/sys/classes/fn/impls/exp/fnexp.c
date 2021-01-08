@@ -1173,6 +1173,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_HAVE_MAGMA)
 /* magma */
 #if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_REAL_SINGLE)
@@ -1321,7 +1322,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
   magma_finalize();
   PetscFunctionReturn(0);
 }
-
 
 /*
  * Matrix exponential implementation based on algorithm and matlab code by N. Higham and co-authors
@@ -1772,6 +1772,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   magma_finalize();
   PetscFunctionReturn(0);
 }
+#endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
 
 PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
@@ -1792,11 +1793,13 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
                   "scaling & squaring, [6/6] Pade approximant",
                   "scaling & squaring, subdiagonal Pade approximant (product form)",
                   "scaling & squaring, subdiagonal Pade approximant (partial fraction)",
-                  "scaling & squaring, [m/m] Pade approximant (Higham) CUDAm",
-                  "scaling & squaring, [6/6] Pade approximant CUDA",
+                  "scaling & squaring, [6/6] Pade approximant CUDA"
+#if defined(PETSC_HAVE_MAGMA)
+                 ,"scaling & squaring, [m/m] Pade approximant (Higham) CUDAm",
                   "scaling & squaring, [6/6] Pade approximant CUDAm",
                   "scaling & squaring, subdiagonal Pade approximant (product form) CUDAm",
                   "scaling & squaring, subdiagonal Pade approximant (partial fraction) CUDAm",
+#endif
   };
 #endif
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
@@ -1840,11 +1843,13 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
   fn->ops->evaluatefunctionmat[2] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa; /* product form */
   fn->ops->evaluatefunctionmat[3] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa; /* partial fraction */
 #if defined(PETSC_HAVE_CUDA)
-  fn->ops->evaluatefunctionmat[4] = FNEvaluateFunctionMat_Exp_Higham_CUDAm;
-  fn->ops->evaluatefunctionmat[5] = FNEvaluateFunctionMat_Exp_Pade_CUDA;
+  fn->ops->evaluatefunctionmat[4] = FNEvaluateFunctionMat_Exp_Pade_CUDA;
+#if defined(PETSC_HAVE_MAGMA)
+  fn->ops->evaluatefunctionmat[5] = FNEvaluateFunctionMat_Exp_Higham_CUDAm;
   fn->ops->evaluatefunctionmat[6] = FNEvaluateFunctionMat_Exp_Pade_CUDAm;
   fn->ops->evaluatefunctionmat[7] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm; /* product form */
   fn->ops->evaluatefunctionmat[8] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm; /* partial fraction */
+#endif
 #endif
   fn->ops->view                   = FNView_Exp;
   PetscFunctionReturn(0);

@@ -359,6 +359,8 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
 #include <petsccublas.h>
 #include "cuda/fnutilcuda.h"
 
+#if defined(PETSC_HAVE_MAGMA)
+
 #if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_REAL_SINGLE)
 #define magma_xgetrf_gpu(a,b,c,d,e,f)   magma_cgetrf_gpu((a),(b),(magmaFloatComplex_ptr)(c),(d),(e),(f))
@@ -383,6 +385,8 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
 
 #include <magma_v2.h>
 #define CHKMAGMA(mierr) CHKERRABORT(PETSC_COMM_SELF,mierr)
+
+#endif /* PETSC_HAVE_MAGMA */
 
 /*
  * Matrix square root by Newton-Schulz iteration. CUDA version.
@@ -479,6 +483,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_HAVE_MAGMA)
 /*
  * Matrix square root by product form of Denman-Beavers iteration. CUDA version.
  * Computes the principal square root of the matrix T using the product form
@@ -592,6 +597,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
   magma_finalize();
   PetscFunctionReturn(0);
 }
+#endif /* PETSC_HAVE_MAGMA */
 
 #endif /* PETSC_HAVE_CUDA */
 
