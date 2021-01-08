@@ -40,7 +40,7 @@
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg, terse
-      PetscScalar    value(3)
+      PetscScalar    val(3)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -77,29 +77,29 @@
         row(1) = 0
         col(1) = 0
         col(2) = 1
-        value(1) =  2.0
-        value(2) = -1.0
-        call MatSetValues(A,one,row,two,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+        val(1) =  2.0
+        val(2) = -1.0
+        call MatSetValues(A,one,row,two,col,val,INSERT_VALUES,ierr);CHKERRA(ierr)
         Istart = Istart+1
       endif
       if (Iend .eq. n) then
         row(1) = n-1
         col(1) = n-2
         col(2) = n-1
-        value(1) = -1.0
-        value(2) =  2.0
-        call MatSetValues(A,one,row,two,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+        val(1) = -1.0
+        val(2) =  2.0
+        call MatSetValues(A,one,row,two,col,val,INSERT_VALUES,ierr);CHKERRA(ierr)
         Iend = Iend-1
       endif
-      value(1) = -1.0
-      value(2) =  2.0
-      value(3) = -1.0
+      val(1) = -1.0
+      val(2) =  2.0
+      val(3) = -1.0
       do i=Istart,Iend-1
         row(1) = i
         col(1) = i-1
         col(2) = i
         col(3) = i+1
-        call MatSetValues(A,one,row,three,col,value,INSERT_VALUES,ierr);CHKERRA(ierr)
+        call MatSetValues(A,one,row,three,col,val,INSERT_VALUES,ierr);CHKERRA(ierr)
       enddo
 
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
