@@ -22,10 +22,11 @@ typedef struct {
 
 PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
-  PetscErrorCode ierr;
-  BV_VECS        *y = (BV_VECS*)Y->data,*x = (BV_VECS*)X->data;
-  PetscScalar    *q,*s=NULL;
-  PetscInt       i,j,ldq;
+  PetscErrorCode    ierr;
+  BV_VECS           *y = (BV_VECS*)Y->data,*x = (BV_VECS*)X->data;
+  PetscScalar       *s=NULL;
+  const PetscScalar *q;
+  PetscInt          i,j,ldq;
 
   PetscFunctionBegin;
   if (Q) {
@@ -34,15 +35,15 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
       ierr = BVAllocateWork_Private(Y,X->k-X->l);CHKERRQ(ierr);
       s = Y->work;
     }
-    ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
     for (j=Y->l;j<Y->k;j++) {
       ierr = VecScale(y->V[Y->nc+j],beta);CHKERRQ(ierr);
       if (alpha!=1.0) {
         for (i=X->l;i<X->k;i++) s[i-X->l] = alpha*q[i+j*ldq];
-      } else s = q+j*ldq+X->l;
+      } else s = (PetscScalar*)(q+j*ldq+X->l);
       ierr = VecMAXPY(y->V[Y->nc+j],X->k-X->l,s,x->V+X->nc+X->l);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   } else {
     for (j=0;j<Y->k-Y->l;j++) {
       ierr = VecScale(y->V[Y->nc+Y->l+j],beta);CHKERRQ(ierr);
@@ -85,14 +86,14 @@ PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
 */
 PetscErrorCode BVMultInPlace_Vecs_ME(BV V,Mat Q,PetscInt s,PetscInt e)
 {
-  PetscErrorCode ierr;
-  BV_VECS        *ctx = (BV_VECS*)V->data;
-  PetscScalar    *q;
-  PetscInt       i,ldq;
+  PetscErrorCode    ierr;
+  BV_VECS           *ctx = (BV_VECS*)V->data;
+  const PetscScalar *q;
+  PetscInt          i,ldq;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
   /* V2 := V2*Q2 */
   ierr = BVMultInPlace_Vecs_Private(V,V->n,e-s,ldq,ctx->V+V->nc+s,q+s*ldq+s,PETSC_FALSE);CHKERRQ(ierr);
   /* V2 += V1*Q1 + V3*Q3 */
@@ -104,7 +105,7 @@ PetscErrorCode BVMultInPlace_Vecs_ME(BV V,Mat Q,PetscInt s,PetscInt e)
       ierr = VecMAXPY(ctx->V[V->nc+i],V->k-e,q+i*ldq+e,ctx->V+V->nc+e);CHKERRQ(ierr);
     }
   }
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -115,15 +116,15 @@ PetscErrorCode BVMultInPlace_Vecs_ME(BV V,Mat Q,PetscInt s,PetscInt e)
 */
 PetscErrorCode BVMultInPlace_Vecs_Alloc(BV V,Mat Q,PetscInt s,PetscInt e)
 {
-  PetscErrorCode ierr;
-  BV_VECS        *ctx = (BV_VECS*)V->data;
-  PetscScalar    *q;
-  PetscInt       i,ldq;
-  Vec            *W;
+  PetscErrorCode    ierr;
+  BV_VECS           *ctx = (BV_VECS*)V->data;
+  const PetscScalar *q;
+  PetscInt          i,ldq;
+  Vec               *W;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(V->t,e-s,&W);CHKERRQ(ierr);
   for (i=s;i<e;i++) {
     ierr = VecMAXPY(W[i-s],V->k-V->l,q+i*ldq+V->l,ctx->V+V->nc+V->l);CHKERRQ(ierr);
@@ -132,7 +133,7 @@ PetscErrorCode BVMultInPlace_Vecs_Alloc(BV V,Mat Q,PetscInt s,PetscInt e)
     ierr = VecCopy(W[i-s],ctx->V[V->nc+i]);CHKERRQ(ierr);
   }
   ierr = VecDestroyVecs(e-s,&W);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -141,14 +142,14 @@ PetscErrorCode BVMultInPlace_Vecs_Alloc(BV V,Mat Q,PetscInt s,PetscInt e)
 */
 PetscErrorCode BVMultInPlaceTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
 {
-  PetscErrorCode ierr;
-  BV_VECS        *ctx = (BV_VECS*)V->data;
-  PetscScalar    *q;
-  PetscInt       i,j,ldq,n;
+  PetscErrorCode    ierr;
+  BV_VECS           *ctx = (BV_VECS*)V->data;
+  const PetscScalar *q;
+  PetscInt          i,j,ldq,n;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,&n);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
   /* V2 := V2*Q2' */
   ierr = BVMultInPlace_Vecs_Private(V,V->n,e-s,ldq,ctx->V+V->nc+s,q+s*ldq+s,PETSC_TRUE);CHKERRQ(ierr);
   /* V2 += V1*Q1' + V3*Q3' */
@@ -160,7 +161,7 @@ PetscErrorCode BVMultInPlaceTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
       ierr = VecAXPY(ctx->V[V->nc+i],q[i+j*ldq],ctx->V[V->nc+j]);CHKERRQ(ierr);
     }
   }
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

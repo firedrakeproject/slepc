@@ -174,9 +174,9 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
   /* T12 */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&Mk);CHKERRQ(ierr);
   for (i=1;i<nmat;i++) {
-    ierr = MatDenseGetArray(Mk,&array);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayWrite(Mk,&array);CHKERRQ(ierr);
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&sone,S,&lds_,DHii+i*k,&lda_,&zero,array,&k_));
-    ierr = MatDenseRestoreArray(Mk,&array);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayWrite(Mk,&array);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(W,0,k);CHKERRQ(ierr);
     ierr = BVMult(W,1.0,0.0,V,Mk);CHKERRQ(ierr);
     if (i==1) {
@@ -188,13 +188,13 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
   }
 
   /* T21 */
-  ierr = MatDenseGetArray(Mk,&array);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayWrite(Mk,&array);CHKERRQ(ierr);
   for (i=1;i<deg;i++) {
     s = (i==1)?0.0:1.0;
     ss = PetscConj(fh[i]);
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&ss,S,&lds_,fH+i*k,&lda_,&s,array,&k_));
   }
-  ierr = MatDenseRestoreArray(Mk,&array);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayWrite(Mk,&array);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(M3,0,k);CHKERRQ(ierr);
   ierr = BVMult(M3,1.0,0.0,V,Mk);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
@@ -471,9 +471,9 @@ static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *f
   /* T12 */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&Mk);CHKERRQ(ierr);
   for (i=1;i<nmat;i++) {
-    ierr = MatDenseGetArray(Mk,&array);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayWrite(Mk,&array);CHKERRQ(ierr);
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&sone,S,&lds_,DHii+i*k,&lda_,&zero,array,&k_));
-    ierr = MatDenseRestoreArray(Mk,&array);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayWrite(Mk,&array);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(W,0,k);CHKERRQ(ierr);
     ierr = BVMult(W,1.0,0.0,V,Mk);CHKERRQ(ierr);
     if (i==1) {
@@ -485,13 +485,13 @@ static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *f
   }
 
   /* T21 */
-  ierr = MatDenseGetArray(Mk,&array);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayWrite(Mk,&array);CHKERRQ(ierr);
   for (i=1;i<deg;i++) {
     s = (i==1)?0.0:1.0;
     ss = PetscConj(fh[i]);
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&ss,S,&lds_,fH+i*k,&lda_,&s,array,&k_));
   }
-  ierr = MatDenseRestoreArray(Mk,&array);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayWrite(Mk,&array);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(M3,0,k);CHKERRQ(ierr);
   ierr = BVMult(M3,1.0,0.0,V,Mk);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
@@ -651,9 +651,9 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,nmat-1,NULL,&Md);CHKERRQ(ierr);
   for (i=0;i<nmat;i++) ts[i] = 1.0;
   for (j=0;j<k;j++) {
-    ierr = MatDenseGetArray(Md,&array);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayWrite(Md,&array);CHKERRQ(ierr);
     ierr = PetscArraycpy(array,T12+k+j*lda,(nmat-1)*k);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(Md,&array);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayWrite(Md,&array);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(W,0,nmat-1);CHKERRQ(ierr);
     ierr = BVMult(W,1.0,0.0,V,Md);CHKERRQ(ierr);
     for (i=nmat-1;i>0;i--) {
@@ -998,18 +998,18 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   SlepcCheckLapackInfo("orgqr",info);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M0);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayWrite(M0,&array);CHKERRQ(ierr);
   for (j=0;j<k;j++) {
     ierr = PetscArraycpy(array+j*k,dVS+j*2*k,k);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(M0,&array);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayWrite(M0,&array);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,M0,0,k);CHKERRQ(ierr);
   if (rds) {
-    ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayWrite(M0,&array);CHKERRQ(ierr);
     for (j=0;j<k;j++) {
       ierr = PetscArraycpy(array+j*k,dVS+k+j*2*k,rds);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(M0,&array);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayWrite(M0,&array);CHKERRQ(ierr);
     ierr = BVMultInPlace(dV,M0,0,k);CHKERRQ(ierr);
     ierr = BVMult(pep->V,1.0,1.0,dV,NULL);CHKERRQ(ierr);
   }

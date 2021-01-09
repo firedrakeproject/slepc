@@ -80,11 +80,11 @@ PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
 
   /* update vectors V = V*X */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&X0);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(X0,&pX0);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayWrite(X0,&pX0);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     ierr = PetscArraycpy(pX0+i*k,X+i*ldds,k);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(X0,&pX0);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayWrite(X0,&pX0);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,X0,0,k);CHKERRQ(ierr);
   ierr = MatDestroy(&X0);CHKERRQ(ierr);
   ierr = DSRestoreArray(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);

@@ -87,20 +87,21 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 */
 static PetscErrorCode ExtractSubmatrix(Mat A,PetscInt k,Mat *B)
 {
-  PetscErrorCode ierr;
-  PetscInt       j,m,n;
-  PetscScalar    *pA,*pB;
+  PetscErrorCode    ierr;
+  PetscInt          j,m,n;
+  PetscScalar       *pB;
+  const PetscScalar *pA;
 
   PetscFunctionBegin;
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,m-k,n-k,NULL,B);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(*B,&pB);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayWrite(*B,&pB);CHKERRQ(ierr);
   for (j=k;j<n;j++) {
     ierr = PetscArraycpy(pB+(j-k)*(m-k),pA+j*m+k,m-k);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(*B,&pB);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayWrite(*B,&pB);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

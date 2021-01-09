@@ -44,17 +44,16 @@ PetscErrorCode MFNSetUp_Expokit(MFN mfn)
 
 PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
 {
-  PetscErrorCode ierr;
-  PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
-  Vec            v,r;
-  Mat            M=NULL,K=NULL;
-  FN             fn;
-  PetscScalar    *H,*B,*F,*betaF,t,sgn,sfactor;
-  PetscReal      anorm,avnorm,tol,err_loc,rndoff;
-  PetscReal      t_out,t_new,t_now,t_step;
-  PetscReal      xm,fact,s,p1,p2;
-  PetscReal      beta,beta2,gamma,delta;
-  PetscBool      breakdown;
+  PetscErrorCode    ierr;
+  PetscInt          mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
+  Vec               v,r;
+  Mat               M=NULL,K=NULL;
+  FN                fn;
+  PetscScalar       *H,*B,*F,*betaF,t,sgn,sfactor;
+  const PetscScalar *pK;
+  PetscReal         anorm,avnorm,tol,err_loc,rndoff,t_out,t_new,t_now,t_step;
+  PetscReal         xm,fact,s,p1,p2,beta,beta2,gamma,delta;
+  PetscBool         breakdown;
 
   PetscFunctionBegin;
   m   = mfn->ncv;
@@ -128,10 +127,10 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
         err_loc = tol;
         break;
       } else {
-        ierr = MatDenseGetArray(K,&F);CHKERRQ(ierr);
-        p1 = PetscAbsScalar(beta*F[m]);
-        p2 = PetscAbsScalar(beta*F[m+1]*avnorm);
-        ierr = MatDenseRestoreArray(K,&F);CHKERRQ(ierr);
+        ierr = MatDenseGetArrayRead(K,&pK);CHKERRQ(ierr);
+        p1 = PetscAbsScalar(beta*pK[m]);
+        p2 = PetscAbsScalar(beta*pK[m+1]*avnorm);
+        ierr = MatDenseRestoreArrayRead(K,&pK);CHKERRQ(ierr);
         if (p1 > 10*p2) {
           err_loc = p2;
           xm = 1.0/(PetscReal)m;
@@ -153,9 +152,9 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
     }
 
     mx = mb + PetscMax(0,k1-1);
-    ierr = MatDenseGetArray(K,&F);CHKERRQ(ierr);
-    for (j=0;j<mx;j++) betaF[j] = beta*F[j];
-    ierr = MatDenseRestoreArray(K,&F);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(K,&pK);CHKERRQ(ierr);
+    for (j=0;j<mx;j++) betaF[j] = beta*pK[j];
+    ierr = MatDenseRestoreArrayRead(K,&pK);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(mfn->V,0,mx);CHKERRQ(ierr);
     ierr = BVMultVec(mfn->V,1.0,0.0,x,betaF);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);

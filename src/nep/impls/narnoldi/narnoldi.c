@@ -52,7 +52,8 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   NEP_NARNOLDI       *ctx = (NEP_NARNOLDI*)nep->data;
   Mat                T,H;
   Vec                f,r,u,uu;
-  PetscScalar        *X,lambda=0.0,lambda2=0.0,*eigr,*Hp,*Ap,sigma;
+  PetscScalar        *X,lambda=0.0,lambda2=0.0,*eigr,*Ap,sigma;
+  const PetscScalar  *Hp;
   PetscReal          beta,resnorm=0.0,nrm,perr=0.0;
   PetscInt           n,i,j,ldds,ldh;
   PetscBool          breakdown,skip=PETSC_FALSE;
@@ -200,12 +201,12 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSAllocate(nep->ds,PetscMax(nep->nconv,1));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(H,&Hp);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(H,&Hp);CHKERRQ(ierr);
   ierr = DSGetArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
   for (j=0;j<nep->nconv;j++)
     for (i=0;i<nep->nconv;i++) Ap[j*ldds+i] = Hp[j*ldh+i];
   ierr = DSRestoreArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(H,&Hp);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(H,&Hp);CHKERRQ(ierr);
   ierr = MatDestroy(&H);CHKERRQ(ierr);
   ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,nep->nconv);CHKERRQ(ierr);
   ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);

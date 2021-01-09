@@ -119,8 +119,8 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
   EPS_EIG_MATSHELL  *matctx;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt          n;
-  PetscScalar       *S,*Y,*C,zero=0.0,done=1.0,dtwo=2.0;
-  const PetscScalar *X;
+  PetscScalar       *Y,*C,zero=0.0,done=1.0,dtwo=2.0;
+  const PetscScalar *S,*X;
   PetscBLASInt      n_;
 #endif
 
@@ -133,7 +133,7 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 #else
   ierr = VecGetArrayRead(x,&X);CHKERRQ(ierr);
   ierr = VecGetArray(y,&Y);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(matctx->S,&S);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(matctx->S,&S);CHKERRQ(ierr);
 
   n = matctx->n;
   ierr = PetscCalloc1(n*n,&C);CHKERRQ(ierr);
@@ -144,12 +144,12 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&n_,&n_,&n_,&done,Y,&n_,S,&n_,&zero,C,&n_));
 
   /* Solve S*Y + Y*S' = -C */
-  ierr = LMEDenseLyapunov(matctx->lme,n,S,n,C,n,Y,n);CHKERRQ(ierr);
+  ierr = LMEDenseLyapunov(matctx->lme,n,(PetscScalar*)S,n,C,n,Y,n);CHKERRQ(ierr);
 
   ierr = PetscFree(C);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&X);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&Y);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(matctx->S,&S);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(matctx->S,&S);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
@@ -261,14 +261,15 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
  */
 static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
 {
-  PetscErrorCode   ierr;
-  PetscInt         n,m;
-  PetscBool        create=PETSC_FALSE;
-  EPS_EIG_MATSHELL *matctx;
+  PetscErrorCode    ierr;
+  PetscInt          n,m;
+  PetscBool         create=PETSC_FALSE;
+  EPS_EIG_MATSHELL  *matctx;
 #if defined(PETSC_USE_COMPLEX)
-  PetscScalar      theta,*aa,*bb,*ss;
-  PetscInt         i,j,f,c,off,ld;
-  IS               perm;
+  PetscScalar       theta,*aa,*bb;
+  const PetscScalar *ss;
+  PetscInt          i,j,f,c,off,ld;
+  IS                perm;
 #endif
 
   PetscFunctionBegin;
@@ -300,7 +301,7 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
 #if defined(PETSC_USE_COMPLEX)
   ierr = MatDenseGetArray(matctx->A,&aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(matctx->B,&bb);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(S,&ss);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(S,&ss);CHKERRQ(ierr);
   ld = n*n;
   for (f=0;f<n;f++) {
     off = f*n+f*n*ld;
@@ -314,7 +315,7 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
   }
   ierr = MatDenseRestoreArray(matctx->A,&aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(matctx->B,&bb);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(S,&ss);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(S,&ss);CHKERRQ(ierr);
   ierr = ISCreateStride(PETSC_COMM_SELF,n*n,0,1,&perm);CHKERRQ(ierr);
   ierr = MatDestroy(&matctx->F);CHKERRQ(ierr);
   ierr = MatDuplicate(matctx->A,MAT_COPY_VALUES,&matctx->F);CHKERRQ(ierr);

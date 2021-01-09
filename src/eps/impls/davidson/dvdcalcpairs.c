@@ -94,12 +94,13 @@ static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
  */
 static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,PetscInt kA,Mat aux)
 {
-  PetscErrorCode ierr;
-  PetscScalar    one=1.0,zero=0.0;
-  PetscInt       i,j,dA_=kA-lA,m0,n0,ldA_,ldQ_,ldZ_,nQ_;
-  PetscBLASInt   dA,nQ,ldA,ldQ,ldZ;
-  PetscScalar    *pA,*pQ,*pZ,*pW;
-  PetscBool      symm=PETSC_FALSE,set,flg;
+  PetscErrorCode    ierr;
+  PetscScalar       one=1.0,zero=0.0;
+  PetscInt          i,j,dA_=kA-lA,m0,n0,ldA_,ldQ_,ldZ_,nQ_;
+  PetscBLASInt      dA,nQ,ldA,ldQ,ldZ;
+  PetscScalar       *pA,*pW;
+  const PetscScalar *pQ,*pZ;
+  PetscBool         symm=PETSC_FALSE,set,flg;
 
   PetscFunctionBegin;
   ierr = MatGetSize(A,&m0,&n0);CHKERRQ(ierr); ldA_=m0;
@@ -120,10 +121,10 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
   ierr = PetscBLASIntCast(ldQ_,&ldQ);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldZ_,&ldZ);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&pQ);CHKERRQ(ierr);
-  if (Q!=Z) { ierr = MatDenseGetArray(Z,&pZ);CHKERRQ(ierr); }
+  ierr = MatDenseGetArrayRead(Q,&pQ);CHKERRQ(ierr);
+  if (Q!=Z) { ierr = MatDenseGetArrayRead(Z,&pZ);CHKERRQ(ierr); }
   else pZ = pQ;
-  ierr = MatDenseGetArray(aux,&pW);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayWrite(aux,&pW);CHKERRQ(ierr);
   /* W = A*Q */
   if (symm) {
     /* symmetrize before multiplying */
@@ -135,10 +136,9 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
   /* A = Q'*W */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&dA,&dA,&nQ,&one,&pZ[ldZ*l+l],&ldZ,pW,&nQ,&zero,&pA[ldA*lA+lA],&ldA));
   ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&pQ);CHKERRQ(ierr);
-  if (Q!=Z) { ierr = MatDenseGetArray(Z,&pZ);CHKERRQ(ierr); }
-  else pZ = pQ;
-  ierr = MatDenseRestoreArray(aux,&pW);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&pQ);CHKERRQ(ierr);
+  if (Q!=Z) { ierr = MatDenseRestoreArrayRead(Z,&pZ);CHKERRQ(ierr); }
+  ierr = MatDenseRestoreArrayWrite(aux,&pW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

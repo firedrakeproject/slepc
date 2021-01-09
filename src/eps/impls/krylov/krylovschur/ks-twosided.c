@@ -26,11 +26,12 @@
 
 static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
 {
-  PetscErrorCode ierr;
-  PetscScalar    *T,*S,*A,*w,*pM,beta;
-  Vec            u;
-  PetscInt       ld,ncv=eps->ncv,i,l,nnv;
-  PetscBLASInt   info,n_,ncv_,*p,one=1;
+  PetscErrorCode    ierr;
+  PetscScalar       *T,*S,*A,*w,beta;
+  const PetscScalar *pM;
+  Vec               u;
+  PetscInt          ld,ncv=eps->ncv,i,l,nnv;
+  PetscBLASInt      info,n_,ncv_,*p,one=1;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -41,8 +42,9 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   ierr = BVGetColumn(eps->V,nv,&u);CHKERRQ(ierr);
   ierr = BVDotVec(eps->W,u,w);CHKERRQ(ierr);
   ierr = BVRestoreColumn(eps->V,nv,&u);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(M,&pM);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(M,&pM);CHKERRQ(ierr);
   ierr = PetscArraycpy(A,pM,ncv*ncv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(M,&pM);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nv,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ncv,&ncv_);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -118,6 +120,7 @@ static PetscErrorCode EPSTwoSidedRQUpdate2(EPS eps,Mat M,PetscInt k)
   ierr = DSGetArray(eps->dsts,DS_MAT_Q,&Q);CHKERRQ(ierr);
   PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n_,&n_,&n_,&sone,Q,&ld_,w,&ncv_,&zero,pM,&ncv_));
   ierr = DSRestoreArray(eps->dsts,DS_MAT_Q,&Q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(M,&pM);CHKERRQ(ierr);
   ierr = PetscFree2(w,c);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,l,nv);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->W,l,nv);CHKERRQ(ierr);

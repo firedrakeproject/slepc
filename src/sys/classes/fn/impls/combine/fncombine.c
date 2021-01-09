@@ -94,18 +94,16 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
 
 PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
-  FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
-  PetscScalar    *Aa,*Ba,*Wa,*Za,one=1.0,zero=0.0;
-  PetscBLASInt   n,ld,ld2,inc=1,*ipiv,info;
-  PetscInt       m;
-  Mat            W,Z;
+  PetscErrorCode    ierr;
+  FN_COMBINE        *ctx = (FN_COMBINE*)fn->data;
+  PetscScalar       *Ba,*Wa,one=1.0,zero=0.0;
+  const PetscScalar *Za;
+  PetscBLASInt      n,ld,ld2,inc=1,*ipiv,info;
+  PetscInt          m;
+  Mat               W,Z;
 
   PetscFunctionBegin;
   ierr = FN_AllocateWorkMat(fn,A,&W);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ld  = n;
@@ -115,26 +113,38 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
     case FN_COMBINE_ADD:
       ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,B,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&one,Wa,&inc,Ba,&inc));
       ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
       break;
     case FN_COMBINE_MULTIPLY:
       ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(Z,&Za);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,Z,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
+      ierr = MatDenseGetArrayRead(Z,&Za);CHKERRQ(ierr);
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Wa,&ld,Za,&ld,&zero,Ba,&ld));
       ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(Z,&Za);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArrayRead(Z,&Za);CHKERRQ(ierr);
       ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
       break;
     case FN_COMBINE_DIVIDE:
       ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,W,PETSC_FALSE);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,B,PETSC_FALSE);CHKERRQ(ierr);
       ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
       PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
       SlepcCheckLapackInfo("gesv",info);
       ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
       ierr = PetscFree(ipiv);CHKERRQ(ierr);
       break;
     case FN_COMBINE_COMPOSE:
@@ -143,9 +153,6 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
       break;
   }
 
-  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

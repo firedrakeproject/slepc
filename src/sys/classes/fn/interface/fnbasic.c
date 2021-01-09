@@ -527,12 +527,12 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,PetscScalar *Bs,PetscInt m,PetscBool firstonly)
+static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,const PetscScalar *As,PetscScalar *Bs,PetscInt m,PetscBool firstonly)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   n,k,ld,lwork,info;
-  PetscScalar    *Q,*W,*work,a,x,y,one=1.0,zero=0.0;
+  PetscScalar    *Q,*W,*work,adummy,a,x,y,one=1.0,zero=0.0;
   PetscReal      *eig,dummy;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork,rdummy;
@@ -546,11 +546,11 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
   /* workspace query and memory allocation */
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,&dummy,&a,&lwork,&rdummy,&info));
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,&adummy,&ld,&dummy,&a,&lwork,&rdummy,&info));
   ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc5(m,&eig,m*m,&Q,m*k,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
 #else
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,&dummy,&a,&lwork,&info));
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,&adummy,&ld,&dummy,&a,&lwork,&info));
   ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc4(m,&eig,m*m,&Q,m*k,&W,lwork,&work);CHKERRQ(ierr);
 #endif
@@ -588,16 +588,17 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
 */
 static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
-  PetscInt       m;
-  PetscScalar    *As,*Bs;
+  PetscErrorCode    ierr;
+  PetscInt          m;
+  const PetscScalar *As;
+  PetscScalar       *Bs;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&As);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Bs);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = FNEvaluateFunctionMat_Sym_Private(fn,As,Bs,m,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&As);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Bs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -747,16 +748,17 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v)
 */
 static PetscErrorCode FNEvaluateFunctionMatVec_Sym_Default(FN fn,Mat A,Vec v)
 {
-  PetscErrorCode ierr;
-  PetscInt       m;
-  PetscScalar    *As,*vs;
+  PetscErrorCode    ierr;
+  PetscInt          m;
+  const PetscScalar *As;
+  PetscScalar       *vs;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&As);CHKERRQ(ierr);
   ierr = VecGetArray(v,&vs);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = FNEvaluateFunctionMat_Sym_Private(fn,As,vs,m,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&As);CHKERRQ(ierr);
   ierr = VecRestoreArray(v,&vs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

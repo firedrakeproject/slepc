@@ -17,13 +17,13 @@ static char help[] = "Test BV block orthogonalization.\n\n";
  */
 PetscErrorCode MyMatNorm(Mat A,PetscInt lda,PetscInt l,PetscInt k,PetscScalar diag,PetscReal *norm)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,j;
-  PetscScalar    *pA;
-  PetscReal      s,val;
+  PetscErrorCode    ierr;
+  PetscInt          i,j;
+  const PetscScalar *pA;
+  PetscReal         s,val;
 
   PetscFunctionBeginUser;
-  ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&pA);CHKERRQ(ierr);
   s = 0.0;
   for (i=l;i<k;i++) {
     for (j=l;j<k;j++) {
@@ -32,7 +32,7 @@ PetscErrorCode MyMatNorm(Mat A,PetscInt lda,PetscInt l,PetscInt k,PetscScalar di
     }
   }
   *norm = PetscSqrtReal(s);
-  ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&pA);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
