@@ -42,8 +42,10 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
   n = ds->n;
   ld = ds->ld;
   if (tocompact) { /* switch from dense (arrow) to compact storage */
-    ierr = PetscArrayzero(T,3*ld);CHKERRQ(ierr);
-    ierr = PetscArrayzero(S,ld);CHKERRQ(ierr);
+    ierr = PetscArrayzero(T,n);CHKERRQ(ierr);
+    ierr = PetscArrayzero(T+ld,n);CHKERRQ(ierr);
+    ierr = PetscArrayzero(T+2*ld,n);CHKERRQ(ierr);
+    ierr = PetscArrayzero(S,n);CHKERRQ(ierr);
     for (i=0;i<n-1;i++) {
       T[i]    = PetscRealPart(A[i+i*ld]);
       T[ld+i] = PetscRealPart(A[i+1+i*ld]);
@@ -53,8 +55,10 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
     S[n-1] = PetscRealPart(B[n-1+(n-1)*ld]);
     for (i=ds->l;i<ds->k;i++) T[2*ld+i] = PetscRealPart(A[ds->k+i*ld]);
   } else { /* switch from compact (arrow) to dense storage */
-    ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
-    ierr = PetscArrayzero(B,ld*ld);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      ierr = PetscArrayzero(A+i*ld,n);CHKERRQ(ierr);
+      ierr = PetscArrayzero(B+i*ld,n);CHKERRQ(ierr);
+    }
     for (i=0;i<n-1;i++) {
       A[i+i*ld]     = T[i];
       A[i+1+i*ld]   = T[ld+i];
@@ -403,6 +407,40 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   ierr = DSPermuteColumns_Private(ds,ds->l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+PetscErrorCode DSUpdateExtraRow_GHIEP(DS ds)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBLASInt   n,ld,incx=1;
+  PetscScalar    *A,*Q,*x,*y,one=1.0,zero=0.0;
+  PetscReal      *b,*r,beta;
+
+  PetscFunctionBegin;
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  A  = ds->mat[DS_MAT_A];
+  Q  = ds->mat[DS_MAT_Q];
+  b  = ds->rmat[DS_MAT_T]+ld;
+  r  = ds->rmat[DS_MAT_T]+2*ld;
+
+  if (ds->compact) {
+    beta = b[n-1];   /* in compact, we assume all entries are zero except the last one */
+    for (i=0;i<n;i++) r[i] = PetscRealPart(beta*Q[n-1+i*ld]);
+    ds->k = n;
+  } else {
+    ierr = DSAllocateWork_Private(ds,2*ld,0,0);CHKERRQ(ierr);
+    x = ds->work;
+    y = ds->work+ld;
+    for (i=0;i<n;i++) x[i] = PetscConj(A[n+i*ld]);
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
+    for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
+    ds->k = n;
+  }
+  PetscFunctionReturn(0);
+}
+
+
 
 /*
   Get eigenvectors with inverse iteration.
@@ -833,6 +871,34 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,ld=ds->ld,l=ds->l;
+  PetscScalar    *A;
+  PetscReal      *b,*r,*omega;
+
+  PetscFunctionBegin;
+  if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
+  A = ds->mat[DS_MAT_A];
+  if (!ds->compact && ds->extrarow && ds->k==ds->n) {
+    for (i=l;i<n;i++) A[n+i*ld] = A[ds->n+i*ld];
+  }
+  if (ds->compact) {
+    b = ds->rmat[DS_MAT_T]+ld;
+    r = ds->rmat[DS_MAT_T]+2*ld;
+    omega = ds->rmat[DS_MAT_D];
+    b[n-1] = r[n-1];
+    b[n] = b[ds->n];
+    omega[n] = omega[ds->n];
+  }
+  if (ds->extrarow) ds->k = n;
+  else ds->k = 0;
+  ds->n = n;
+  ierr = PetscInfo1(ds,"Decomposition truncated to size n=%D\n",n);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscErrorCode ierr;
@@ -911,6 +977,8 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->solve[2]      = DSSolve_GHIEP_QR;
   ds->ops->sort          = DSSort_GHIEP;
   ds->ops->synchronize   = DSSynchronize_GHIEP;
+  ds->ops->truncate      = DSTruncate_GHIEP;
+  ds->ops->update        = DSUpdateExtraRow_GHIEP;
   ds->ops->hermitian     = DSHermitian_GHIEP;
   PetscFunctionReturn(0);
 }

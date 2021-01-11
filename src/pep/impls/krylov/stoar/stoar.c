@@ -141,6 +141,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
     ld   = pep->ncv+2;
     ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
     ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
     ierr = DSAllocate(pep->ds,ld);CHKERRQ(ierr);
     ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -321,8 +322,8 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0;
   PetscInt       nconv=0,deg=pep->nmat-1;
-  PetscScalar    *Q,*om,sigma;
-  PetscReal      beta,norm=1.0,*omega,*a,*b,*r;
+  PetscScalar    *om,sigma;
+  PetscReal      beta,norm=1.0,*omega,*a,*b;
   PetscBool      breakdown,symmlost=PETSC_FALSE,sinv=PETSC_FALSE,falselock=PETSC_TRUE,flg;
   Mat            MQ,A;
   Vec            vomega;
@@ -400,6 +401,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     /* Solve projected problem */
     ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
     ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(pep->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
@@ -421,18 +423,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
           else l = l-1;
         }
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-        ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-        r = a + 2*ldds;
-        for (j=k;j<k+l;j++) {
-          r[j] = PetscRealPart(Q[nv-1+j*ldds]*beta);
-        }
-        b = a+ldds;
-        b[k+l-1] = r[k+l-1];
-        omega[k+l] = omega[nv];
-        ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-        ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-        ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+        ierr = DSTruncate(pep->ds,k+l);CHKERRQ(ierr);
       }
     }
     nconv = k;
