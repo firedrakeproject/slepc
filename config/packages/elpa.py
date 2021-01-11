@@ -111,13 +111,16 @@ class Elpa(package.Package):
 
     # Check build
     code = self.SampleCode(petsc)
-    if petsc.buildsharedlib:
-      l = petsc.slflag + libdir + ' -L' + libdir + ' -lelpa'
-    else:
-      l = '-L' + libdir + ' -lelpa'
-    f = '-I' + os.path.join(incdir,self.dirname)
+    altlibdir = os.path.join(prefixdir,'lib64')
+    for ldir in [libdir,altlibdir]:
+      if petsc.buildsharedlib:
+        l = petsc.slflag + ldir + ' -L' + ldir + ' -lelpa'
+      else:
+        l = '-L' + ldir + ' -lelpa'
+      f = '-I' + os.path.join(incdir,self.dirname)
+      (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
+      if result: break
 
-    (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
     if not result:
       self.log.Exit('Unable to link with downloaded ELPA')
 
