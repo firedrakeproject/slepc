@@ -105,7 +105,7 @@ class Primme(package.Package):
     # Makefile
     cont =  'export LIBRARY       = libprimme.'+petsc.ar_lib_suffix+'\n'
     cont += 'export SOLIBRARY     = libprimme.'+petsc.sl_suffix+'\n'
-    cont += 'export SONAMELIBRARY = libprimme.'+petsc.sl_suffix+self.version+'\n'
+    cont += 'export SONAMELIBRARY = libprimme.'+petsc.sl_suffix+'.'+self.version+'\n'
     cont += 'export CC            = '+petsc.cc+'\n'
     if hasattr(petsc,'fc'):
       cont += 'export F77           = '+petsc.fc+'\n'
