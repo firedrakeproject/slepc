@@ -99,7 +99,6 @@ class Arpack(package.Package):
       libs = [['-larpack']]
     else:
       libs = [['-lparpack','-larpack']]
-    libdir = os.path.join(prefixdir,'lib')
-    dirs = [libdir]
+    dirs = [os.path.join(prefixdir,'lib'),os.path.join(prefixdir,'lib64')]
     self.FortranLib(slepcconf,slepcvars,dirs,libs,functions)
 
