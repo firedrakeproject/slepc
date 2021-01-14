@@ -18,7 +18,7 @@ int main(int argc,char **argv)
   DS             ds;
   SlepcSC        sc;
   PetscReal      *T;
-  PetscScalar    *eig;
+  PetscScalar    *Q,*eig,d;
   PetscInt       i,n=10,l=2,k=5,ld;
   PetscViewer    viewer;
   PetscBool      verbose,extrarow;
@@ -84,6 +84,18 @@ int main(int argc,char **argv)
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)PetscRealPart(eig[i]));CHKERRQ(ierr);
   }
 
+  if (extrarow) {
+    /* Check that extra row is correct */
+    ierr = DSGetArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
+    ierr = DSGetArray(ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    d = 0.0;
+    for (i=l;i<n;i++) d += T[i+ld]-Q[n-1+i*ld];
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d));CHKERRQ(ierr);
+    }
+    ierr = DSRestoreArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
+    ierr = DSRestoreArray(ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+  }
   ierr = PetscFree(eig);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();
@@ -92,10 +104,14 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      requires: !single
+   testset:
       args: -n 9 -ds_method {{0 1 2}}
-      filter: grep -v "solving the problem"
+      filter: grep -v "solving the problem" | sed -e "s/extrarow//"
+      requires: !single
+      test:
+         suffix: 1
+      test:
+         suffix: 2
+         args: -extrarow
 
 TEST*/
