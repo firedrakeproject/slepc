@@ -494,17 +494,21 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveBool(bv,indef,3);
-  if (B) {
-    PetscValidHeaderSpecific(B,MAT_CLASSID,2);
-    ierr = MatGetLocalSize(B,&m,&n);CHKERRQ(ierr);
-    if (m!=n) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Matrix must be square");
-    if (bv->m && bv->n!=n) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
+  if (B!=bv->matrix || (B && ((PetscObject)B)->id!=((PetscObject)bv->matrix)->id) || indef!=bv->indef) {
+    if (B) {
+      PetscValidHeaderSpecific(B,MAT_CLASSID,2);
+      ierr = MatGetLocalSize(B,&m,&n);CHKERRQ(ierr);
+      if (m!=n) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Matrix must be square");
+      if (bv->m && bv->n!=n) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
+    }
+    if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
+    ierr = MatDestroy(&bv->matrix);CHKERRQ(ierr);
+    bv->matrix = B;
+    bv->indef  = indef;
+    ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+    if (bv->Bx) { ierr = PetscObjectStateIncrease((PetscObject)bv->Bx);CHKERRQ(ierr); }
+    if (bv->cached) { ierr = PetscObjectStateIncrease((PetscObject)bv->cached);CHKERRQ(ierr); }
   }
-  if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
-  ierr = MatDestroy(&bv->matrix);CHKERRQ(ierr);
-  bv->matrix = B;
-  bv->indef  = indef;
-  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
