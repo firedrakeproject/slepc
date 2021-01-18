@@ -207,7 +207,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
   /* singular vectors, but it would not necessarily hold in a D&C for a */
   /* general banded matrix !) */
 
-  t = 1. / PetscSqrtReal(2.);
+  t = 1. / PETSC_SQRT2;
   PetscStackCallBLAS("BLASscal",BLASscal_(&n, &t, z, &one));
 
   /* NOTE: at this point the value of RHO is modified in order to */
