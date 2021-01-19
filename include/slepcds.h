@@ -155,7 +155,7 @@ SLEPC_EXTERN PetscErrorCode DSSetDimensions(DS,PetscInt,PetscInt,PetscInt,PetscI
 SLEPC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSSetBlockSize(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSGetBlockSize(DS,PetscInt*);
-SLEPC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt,PetscBool);
 SLEPC_EXTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
 SLEPC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);

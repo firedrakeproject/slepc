@@ -128,11 +128,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     eps->nconv = k;
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   }
-
-  /* truncate Schur decomposition and change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSTruncate(eps->ds,eps->nconv,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

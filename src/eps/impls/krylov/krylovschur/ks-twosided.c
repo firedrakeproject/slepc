@@ -295,12 +295,8 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
   ierr = MatDestroy(&OpHT);CHKERRQ(ierr);
 
-  /* truncate Schur decomposition and change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->dsts,eps->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(eps->dsts,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSTruncate(eps->ds,eps->nconv,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSTruncate(eps->dsts,eps->nconv,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscFree6(pM,eigr,eigi,idx,idx2,p);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);

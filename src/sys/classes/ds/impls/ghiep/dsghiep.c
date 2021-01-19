@@ -869,31 +869,36 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n)
+PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
 {
   PetscErrorCode ierr;
   PetscInt       i,ld=ds->ld,l=ds->l;
-  PetscScalar    *A;
+  PetscScalar    *A = ds->mat[DS_MAT_A];
   PetscReal      *b,*r,*omega;
 
   PetscFunctionBegin;
-  if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
-  A = ds->mat[DS_MAT_A];
-  if (!ds->compact && ds->extrarow && ds->k==ds->n) {
-    for (i=l;i<n;i++) A[n+i*ld] = A[ds->n+i*ld];
+  if (trim) {
+    if (!ds->compact && ds->extrarow) {   /* clean extra row */
+      for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
+    }
+  } else {
+    if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
+    if (!ds->compact && ds->extrarow && ds->k==ds->n) {
+      for (i=l;i<n;i++) A[n+i*ld] = A[ds->n+i*ld];
+    }
+    if (ds->compact) {
+      b = ds->rmat[DS_MAT_T]+ld;
+      r = ds->rmat[DS_MAT_T]+2*ld;
+      omega = ds->rmat[DS_MAT_D];
+      b[n-1] = r[n-1];
+      b[n] = b[ds->n];
+      omega[n] = omega[ds->n];
+    }
+    if (ds->extrarow) ds->k = n;
+    else ds->k = 0;
+    ds->n = n;
   }
-  if (ds->compact) {
-    b = ds->rmat[DS_MAT_T]+ld;
-    r = ds->rmat[DS_MAT_T]+2*ld;
-    omega = ds->rmat[DS_MAT_D];
-    b[n-1] = r[n-1];
-    b[n] = b[ds->n];
-    omega[n] = omega[ds->n];
-  }
-  if (ds->extrarow) ds->k = n;
-  else ds->k = 0;
-  ds->n = n;
-  ierr = PetscInfo1(ds,"Decomposition truncated to size n=%D\n",n);CHKERRQ(ierr);
+  ierr = PetscInfo2(ds,"Decomposition %s to size n=%D\n",trim?"trimmed":"truncated",n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

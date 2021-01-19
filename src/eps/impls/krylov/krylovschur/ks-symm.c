@@ -83,7 +83,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
         }
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(eps->ds,k+l);CHKERRQ(ierr);
+        ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */

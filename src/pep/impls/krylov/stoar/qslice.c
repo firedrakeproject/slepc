@@ -1291,7 +1291,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
           else l = l-1;
         }
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(pep->ds,k+l);CHKERRQ(ierr);
+        ierr = DSTruncate(pep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
     nconv = k;
@@ -1355,10 +1355,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
     if (++sr->symmlost>10) SETERRQ1(PetscObjectComm((PetscObject)pep),1,"Symmetry lost at sigma=%g",(double)sr->sPres->value);
   } else sr->symmlost = 0;
 
-  /* truncate Schur decomposition and change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSTruncate(pep->ds,pep->nconv,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscFree(back);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -535,7 +535,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       l = (nv==k)?0:PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
       if (!breakdown) {
         /* prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(pep->ds,k+l);CHKERRQ(ierr);
+        ierr = DSTruncate(pep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
         ierr = DSGetDimensions(pep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
         l = newn-k;
       }

@@ -364,7 +364,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
           ierr = DSSetDimensions(eps->ds,nv,0,k,nv);CHKERRQ(ierr);
         }
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(eps->ds,k+l);CHKERRQ(ierr);
+        ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
@@ -380,10 +380,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   }
 
   if (harmonic) { ierr = PetscFree(g);CHKERRQ(ierr); }
-  /* truncate Schur decomposition and change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSTruncate(eps->ds,eps->nconv,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

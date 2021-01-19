@@ -1274,7 +1274,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       if (!breakdown) {
         /* Prepare the Rayleigh quotient for restart */
         if (!ctx->nshifts) {
-          ierr = DSTruncate(nep->ds,k+l);CHKERRQ(ierr);
+          ierr = DSTruncate(nep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
           ierr = DSGetDimensions(nep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
           l = newn-k;
         } else {
@@ -1354,10 +1354,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
     ierr = PetscFree(pU);CHKERRQ(ierr);
-    /* truncate Schur decomposition and change the state to raw so that
-       DSVectors() computes eigenvectors from scratch */
-    ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,0);CHKERRQ(ierr);
-    ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+    ierr = DSTruncate(nep->ds,nep->nconv,PETSC_TRUE);CHKERRQ(ierr);
   }
 
   /* Map eigenvalues back to the original problem */

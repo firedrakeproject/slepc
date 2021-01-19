@@ -288,7 +288,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
         pep->reason = PEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(pep->ds,k+l);CHKERRQ(ierr);
+        ierr = DSTruncate(pep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
         ierr = DSGetDimensions(pep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
         l = newn-k;
       }
@@ -310,10 +310,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
   ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
 
-  /* truncate Schur decomposition and change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSTruncate(pep->ds,pep->nconv,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscFree(work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

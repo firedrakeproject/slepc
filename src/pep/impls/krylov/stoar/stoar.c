@@ -423,7 +423,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
           else l = l-1;
         }
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(pep->ds,k+l);CHKERRQ(ierr);
+        ierr = DSTruncate(pep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
     nconv = k;
@@ -494,10 +494,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   }
   if (pep->sfactor!=1.0) { ierr = RGPopScale(pep->rg);CHKERRQ(ierr); }
 
-  /* truncate Schur decomposition and change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSTruncate(pep->ds,pep->nconv,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

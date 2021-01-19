@@ -107,7 +107,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
       if (breakdown) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);
       else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(eps->ds,k+l);CHKERRQ(ierr);
+        ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */

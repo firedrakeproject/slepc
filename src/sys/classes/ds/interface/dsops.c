@@ -215,35 +215,57 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscIn
    Logically Collective on ds
 
    Input Parameters:
-+  ds - the direct solver context
--  n  - the new size
++  ds   - the direct solver context
+.  n    - the new size
+-  trim - a flag to indicate if the factorization must be trimmed
 
    Note:
    The new size is set to n. In cases where the extra row is meaningful,
    the first n elements are kept as the extra row for the new system.
 
+   If the flag trim is turned on, it resets the locked and intermediate
+   dimensions to zero, see DSSetDimensions(), and sets the state to RAW.
+   It also cleans the extra row if being used.
+
+   The typical usage of trim=true is to truncate the Schur decomposition
+   at the end of a Krylov iteration. In this case, the state must be
+   changed to raw so that DSVectors() computes eigenvectors from scratch.
+
    Level: advanced
 
 .seealso: DSSetDimensions(), DSSetExtraRow(), DSStateType
 @*/
-PetscErrorCode DSTruncate(DS ds,PetscInt n)
+PetscErrorCode DSTruncate(DS ds,PetscInt n,PetscBool trim)
 {
   PetscErrorCode ierr;
+  DSStateType    old;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
+  PetscValidLogicalCollectiveBool(ds,trim,3);
   if (!ds->ops->truncate) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (n<ds->l || n>ds->n) SETERRQ3(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n (%D). Must be between l (%D) and n (%D)",n,ds->l,ds->n);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->truncate)(ds,n);CHKERRQ(ierr);
+  ierr = (*ds->ops->truncate)(ds,n,trim);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscInfo1(ds,"State has changed from %s to TRUNCATED\n",DSStateTypes[ds->state]);CHKERRQ(ierr);
-  ds->state = DS_STATE_TRUNCATED;
+  old = ds->state;
+  if (trim) {
+    ds->n = n;
+    ds->t = ds->n;   /* truncated length equal to the new dimension */
+    ds->l = 0;
+    ds->k = 0;
+    ds->state = DS_STATE_RAW;
+  } else {
+    ds->state = DS_STATE_TRUNCATED;
+  }
+  if (old!=ds->state) {
+    ierr = PetscInfo2(ds,"State has changed from %s to %s\n",DSStateTypes[old],DSStateTypes[ds->state]);CHKERRQ(ierr);
+  }
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

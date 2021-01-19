@@ -28,7 +28,7 @@ struct _DSOps {
   PetscErrorCode (*solve[DS_MAX_SOLVE])(DS,PetscScalar*,PetscScalar*);
   PetscErrorCode (*sort)(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
   PetscErrorCode (*sortperm)(DS,PetscInt*,PetscScalar*,PetscScalar*);
-  PetscErrorCode (*truncate)(DS,PetscInt);
+  PetscErrorCode (*truncate)(DS,PetscInt,PetscBool);
   PetscErrorCode (*update)(DS);
   PetscErrorCode (*cond)(DS,PetscReal*);
   PetscErrorCode (*transharm)(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);

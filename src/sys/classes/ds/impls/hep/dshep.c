@@ -631,23 +631,28 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 #endif
 
-PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
+PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n,PetscBool trim)
 {
   PetscErrorCode ierr;
   PetscInt       i,ld=ds->ld,l=ds->l;
-  PetscScalar    *A;
+  PetscScalar    *A = ds->mat[DS_MAT_A];
 
   PetscFunctionBegin;
-  ds->t = ds->n;
-  A = ds->mat[DS_MAT_A];
-  if (!ds->compact && ds->extrarow && ds->k==ds->n) {
-    for (i=l;i<n;i++) A[n+i*ld] = A[ds->n+i*ld];
-    for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
+  if (trim) {
+    if (!ds->compact && ds->extrarow) {   /* clean extra row */
+      for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
+    }
+  } else {
+    ds->t = ds->n;
+    if (!ds->compact && ds->extrarow && ds->k==ds->n) {
+      for (i=l;i<n;i++) A[n+i*ld] = A[ds->n+i*ld];
+      for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
+    }
+    if (ds->extrarow) ds->k = n;
+    else ds->k = 0;
+    ds->n = n;
   }
-  if (ds->extrarow) ds->k = n;
-  else ds->k = 0;
-  ds->n = n;
-  ierr = PetscInfo1(ds,"Decomposition truncated to size n=%D\n",n);CHKERRQ(ierr);
+  ierr = PetscInfo2(ds,"Decomposition %s to size n=%D\n",trim?"trimmed":"truncated",n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

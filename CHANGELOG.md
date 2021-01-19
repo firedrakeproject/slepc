@@ -2,11 +2,16 @@
 
 ## [unreleased]
 
+### Added
+
+- New tolerance to check a definite inner product, see `BVSetDefiniteTolerance()`.
+
 ### Changed
 
 - `ST`: now the coefficient/preconditioner matrix has the same prefix as the `KSP` object,
   so setting MUMPS options in the command-line requires the appropriate prefix, e.g.,
   `-st_mat_mumps_icntl_13 1`.
+- `DSTruncate()` now has an additional argument `trim`.
 
 ## [3.14] - 2020-09-30
 
