@@ -75,7 +75,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   k1 = 2;
   xm = 1.0/(PetscReal)m;
   beta = mfn->bnorm;
-  fact = PetscPowRealInt((m+1)/2.72,m+1)*PetscSqrtReal(2*PETSC_PI*(m+1));
+  fact = PetscPowRealInt((m+1)/2.72,m+1)*PetscSqrtReal(2.0*PETSC_PI*(m+1));
   t_new = (1.0/anorm)*PetscPowReal((fact*tol)/(4.0*beta*anorm),xm);
   s = PetscPowReal(10.0,PetscFloorReal(PetscLog10Real(t_new))-1);
   t_new = PetscCeilReal(t_new/s)*s;

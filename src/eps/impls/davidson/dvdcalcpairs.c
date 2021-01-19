@@ -123,10 +123,6 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
   ierr = MatDenseGetArray(Q,&pQ);CHKERRQ(ierr);
   if (Q!=Z) { ierr = MatDenseGetArray(Z,&pZ);CHKERRQ(ierr); }
   else pZ = pQ;
-#if PETSC_USE_DEBUG
-  /* Avoid valgrind warning in xgemm and xsymm */
-  ierr = MatZeroEntries(aux);CHKERRQ(ierr);
-#endif
   ierr = MatDenseGetArray(aux,&pW);CHKERRQ(ierr);
   /* W = A*Q */
   if (symm) {

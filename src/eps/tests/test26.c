@@ -99,7 +99,7 @@ int main(int argc,char **argv)
          args: -eps_true_residual {{0 1}}
          suffix: 1
       test:
-         args:  -eps_type arpack
+         args: -eps_type arpack
          suffix: 1_arpack
          requires: arpack
 
@@ -110,9 +110,8 @@ int main(int argc,char **argv)
       test:
          suffix: 2
       test:
-         args:  -eps_type arpack
+         args: -eps_type arpack
          suffix: 2_arpack
          requires: arpack
-         TODO: fails in new runners
 
 TEST*/

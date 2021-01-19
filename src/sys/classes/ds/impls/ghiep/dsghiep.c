@@ -440,8 +440,6 @@ PetscErrorCode DSUpdateExtraRow_GHIEP(DS ds)
   PetscFunctionReturn(0);
 }
 
-
-
 /*
   Get eigenvectors with inverse iteration.
   The system matrix is in Hessenberg form.

@@ -245,7 +245,7 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
     } else {
       ierr = VecResetArray(v);CHKERRQ(ierr);
     }
-    ierr = VecScale(u,PetscSqrtReal(2.0));CHKERRQ(ierr);
+    ierr = VecScale(u,PETSC_SQRT2);CHKERRQ(ierr);
     ierr = VecGetArray(u,&uu);CHKERRQ(ierr);
     ierr = PetscMemcpy(array,uu,nloc*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = VecRestoreArray(u,&uu);CHKERRQ(ierr);

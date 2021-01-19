@@ -188,7 +188,6 @@ int main(int argc,char **argv)
          suffix: 1_linear_symm
          args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_eps_gen_indefinite -pep_scale scalar
          requires: !single
-         TODO: fails occasionally in new runners
       test:
          suffix: 1_stoar
          args: -pep_type stoar -pep_scale scalar
