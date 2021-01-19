@@ -182,6 +182,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->matrix       = NULL;
   bv->indef        = PETSC_FALSE;
   bv->vmm          = BV_MATMULT_MAT;
+  bv->rrandom      = PETSC_FALSE;
+  bv->deftol       = 10*PETSC_MACHINE_EPSILON;
 
   bv->Bx           = NULL;
   bv->buffer       = NULL;
@@ -626,6 +628,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         } else {
           ierr = PetscViewerASCIIPrintf(viewer,"  non-standard inner product\n");CHKERRQ(ierr);
         }
+        ierr = PetscViewerASCIIPrintf(viewer,"  tolerance for definite inner product: %g\n",(double)bv->deftol);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"  inner product matrix:\n");CHKERRQ(ierr);
         ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);

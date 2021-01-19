@@ -75,6 +75,7 @@ struct _p_BV {
   PetscBool          indef;        /* matrix is indefinite */
   BVMatMultType      vmm;          /* version of matmult operation */
   PetscBool          rrandom;      /* reproducible random vectors */
+  PetscReal          deftol;       /* tolerance for BV_SafeSqrt */
 
   /*---------------------- Cached data and workspace -------------------*/
   Vec                buffer;       /* buffer vector used in orthogonalization */
@@ -123,12 +124,12 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal
     ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscAbsReal(PetscImaginaryPart(alpha))>10*PETSC_MACHINE_EPSILON && PetscAbsReal(PetscImaginaryPart(alpha))/absal>100*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
+  if (PetscAbsReal(PetscImaginaryPart(alpha))>bv->deftol && PetscAbsReal(PetscImaginaryPart(alpha))/absal>10*bv->deftol) SETERRQ1(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
 #endif
   if (bv->indef) {
     *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
   } else {
-    if (realp<-10*PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: indefinite matrix");
+    if (realp<-bv->deftol) SETERRQ(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: indefinite matrix");
     *res = (realp<0.0)? 0.0: PetscSqrtReal(realp);
   }
   PetscFunctionReturn(0);

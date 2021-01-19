@@ -133,6 +133,8 @@ SLEPC_EXTERN PetscErrorCode BVInsertVecs(BV,PetscInt,PetscInt*,Vec*,PetscBool);
 SLEPC_EXTERN PetscErrorCode BVInsertConstraints(BV,PetscInt*,Vec*);
 SLEPC_EXTERN PetscErrorCode BVSetNumConstraints(BV,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVGetNumConstraints(BV,PetscInt*);
+SLEPC_EXTERN PetscErrorCode BVSetDefiniteTolerance(BV,PetscReal);
+SLEPC_EXTERN PetscErrorCode BVGetDefiniteTolerance(BV,PetscReal*);
 SLEPC_EXTERN PetscErrorCode BVDuplicate(BV,BV*);
 SLEPC_EXTERN PetscErrorCode BVDuplicateResize(BV,PetscInt,BV*);
 SLEPC_EXTERN PetscErrorCode BVCopy(BV,BV);
