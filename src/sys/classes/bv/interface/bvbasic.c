@@ -484,7 +484,7 @@ PetscErrorCode BVGetActiveColumns(BV bv,PetscInt *l,PetscInt *k)
 
    Level: advanced
 
-.seealso: BVGetMatrix(), BVDot(), BVNorm(), BVOrthogonalize()
+.seealso: BVGetMatrix(), BVDot(), BVNorm(), BVOrthogonalize(), BVSetDefiniteTolerance()
 @*/
 PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
 {
@@ -909,6 +909,9 @@ PetscErrorCode BVSetFromOptions(BV bv)
     if (flg1 || flg2 || flg3 || flg4) { ierr = BVSetOrthogonalization(bv,otype,orefine,r,oblock);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEnum("-bv_matmult","Method for BVMatMult","BVSetMatMultMethod",BVMatMultTypes,(PetscEnum)bv->vmm,(PetscEnum*)&bv->vmm,NULL);CHKERRQ(ierr);
+
+    ierr = PetscOptionsReal("-bv_definite_tol","Tolerance for checking a definite inner product","BVSetDefiniteTolerance",r,&r,&flg1);CHKERRQ(ierr);
+    if (flg1) { ierr = BVSetDefiniteTolerance(bv,r);CHKERRQ(ierr); }
 
     /* undocumented option to generate random vectors that are independent of the number of processes */
     ierr = PetscOptionsGetBool(NULL,NULL,"-bv_reproducible_random",&bv->rrandom,NULL);CHKERRQ(ierr);
@@ -1928,6 +1931,73 @@ PetscErrorCode BVRestoreSplit(BV bv,BV *L,BV *R)
   bv->lsplit = 0;
   if (L) *L = NULL;
   if (R) *R = NULL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVSetDefiniteTolerance - Set the tolerance to be used when checking a
+   definite inner product.
+
+   Logically Collective on bv
+
+   Input Parameters:
++  bv     - basis vectors
+-  deftol - the tolerance
+
+   Options Database Key:
+.  -bv_definite_tol <deftol> - the tolerance
+
+   Notes:
+   When using a non-standard inner product, see BVSetMatrix(), the solver needs
+   to compute sqrt(z'*B*z) for various vectors z. If the inner product has not
+   been declared indefinite, the value z'*B*z must be positive, but due to
+   rounding error a tiny value may become negative. A tolerance is used to
+   detect this situation. Likewise, in complex arithmetic z'*B*z should be
+   real, and we use the same tolerance to check whether a nonzero imaginary part
+   can be considered negligible.
+
+   This function sets this tolerance, which defaults to 10*eps, where eps is
+   the machine epsilon. The default value should be good for most applications.
+
+   Level: advanced
+
+.seealso: BVSetMatrix()
+@*/
+PetscErrorCode BVSetDefiniteTolerance(BV bv,PetscReal deftol)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidLogicalCollectiveReal(bv,deftol,2);
+  if (deftol == PETSC_DEFAULT) bv->deftol = 10*PETSC_MACHINE_EPSILON;
+  else {
+    if (deftol<=0.0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of deftol. Must be > 0");
+    bv->deftol = deftol;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVGetDefiniteTolerance - Returns the tolerance for checking a definite
+   inner product.
+
+   Not Collective
+
+   Input Parameter:
+.  bv - the basis vectors
+
+   Output Parameters:
+.  deftol - the tolerance
+
+   Level: advanced
+
+.seealso: BVGetDefiniteTolerance()
+@*/
+PetscErrorCode BVGetDefiniteTolerance(BV bv,PetscReal *deftol)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidRealPointer(deftol,2);
+  *deftol = bv->deftol;
   PetscFunctionReturn(0);
 }
 
