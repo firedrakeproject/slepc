@@ -577,24 +577,22 @@ PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
 PetscErrorCode DSTruncate_GNHEP(DS ds,PetscInt n,PetscBool trim)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,newn,ld=ds->ld,l=ds->l;
-  PetscScalar    *A,*B;
+  PetscInt    i,newn=n,ld=ds->ld,l=ds->l;
+  PetscScalar *A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B];
 
   PetscFunctionBegin;
-  A = ds->mat[DS_MAT_A];
-  B = ds->mat[DS_MAT_B];
+  /* be careful not to break a diagonal 2x2 block */
+  if (ds->state>=DS_STATE_CONDENSED && n && (A[n+(n-1)*ld]!=0.0 || B[n+(n-1)*ld]!=0.0)) newn = (n<ds->n-1)? n+1: n-1;
   if (trim) {
     if (ds->extrarow) {   /* clean extra row */
       for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
       for (i=l;i<ds->n;i++) B[ds->n+i*ld] = 0.0;
     }
+    ds->l = 0;
+    ds->k = 0;
+    ds->n = newn;
+    ds->t = ds->n;   /* truncated length equal to the new dimension */
   } else {
-    ds->t = ds->n;
-    if (ds->state>=DS_STATE_CONDENSED && (A[n+(n-1)*ld]!=0.0 || B[n+(n-1)*ld]!=0.0)) { /* be careful not to break a diagonal 2x2 block */
-      if (n<ds->n-1) newn = n+1;
-      else newn = n-1;
-    } else newn = n;
     if (ds->extrarow && ds->k==ds->n) {
       /* copy entries of extra row to the new position, then clean last row */
       for (i=l;i<newn;i++) A[newn+i*ld] = A[ds->n+i*ld];
@@ -602,10 +600,10 @@ PetscErrorCode DSTruncate_GNHEP(DS ds,PetscInt n,PetscBool trim)
       for (i=l;i<newn;i++) B[newn+i*ld] = B[ds->n+i*ld];
       for (i=l;i<ds->n;i++) B[ds->n+i*ld] = 0.0;
     }
-    if (ds->extrarow) ds->k = 0;
+    ds->k = (ds->extrarow)? newn: 0;
+    ds->t = ds->n;   /* truncated length equal to previous dimension */
     ds->n = newn;
   }
-  ierr = PetscInfo1(ds,"Decomposition truncated to size n=%D\n",newn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

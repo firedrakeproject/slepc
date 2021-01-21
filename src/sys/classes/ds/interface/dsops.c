@@ -220,8 +220,10 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscIn
 -  trim - a flag to indicate if the factorization must be trimmed
 
    Note:
-   The new size is set to n. In cases where the extra row is meaningful,
-   the first n elements are kept as the extra row for the new system.
+   The new size is set to n. Note that in some cases the new size could
+   be n+1 or n-1 to avoid breaking a 2x2 diagonal block (e.g. in real
+   Schur form). In cases where the extra row is meaningful, the first
+   n elements are kept as the extra row for the new system.
 
    If the flag trim is turned on, it resets the locked and intermediate
    dimensions to zero, see DSSetDimensions(), and sets the state to RAW.
@@ -229,7 +231,7 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscIn
 
    The typical usage of trim=true is to truncate the Schur decomposition
    at the end of a Krylov iteration. In this case, the state must be
-   changed to raw so that DSVectors() computes eigenvectors from scratch.
+   changed to RAW so that DSVectors() computes eigenvectors from scratch.
 
    Level: advanced
 
@@ -253,16 +255,9 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n,PetscBool trim)
   ierr = (*ds->ops->truncate)(ds,n,trim);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = PetscInfo2(ds,"Decomposition %s to size n=%D\n",trim?"trimmed":"truncated",ds->n);CHKERRQ(ierr);
   old = ds->state;
-  if (trim) {
-    ds->n = n;
-    ds->t = ds->n;   /* truncated length equal to the new dimension */
-    ds->l = 0;
-    ds->k = 0;
-    ds->state = DS_STATE_RAW;
-  } else {
-    ds->state = DS_STATE_TRUNCATED;
-  }
+  ds->state = trim? DS_STATE_RAW: DS_STATE_TRUNCATED;
   if (old!=ds->state) {
     ierr = PetscInfo2(ds,"State has changed from %s to %s\n",DSStateTypes[old],DSStateTypes[ds->state]);CHKERRQ(ierr);
   }
