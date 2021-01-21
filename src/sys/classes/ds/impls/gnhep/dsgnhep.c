@@ -375,6 +375,32 @@ PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSUpdateExtraRow_GNHEP(DS ds)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBLASInt   n,ld,incx=1;
+  PetscScalar    *A,*B,*Q,*x,*y,one=1.0,zero=0.0;
+
+  PetscFunctionBegin;
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  A  = ds->mat[DS_MAT_A];
+  B  = ds->mat[DS_MAT_B];
+  Q  = ds->mat[DS_MAT_Q];
+  ierr = DSAllocateWork_Private(ds,2*ld,0,0);CHKERRQ(ierr);
+  x = ds->work;
+  y = ds->work+ld;
+  for (i=0;i<n;i++) x[i] = PetscConj(A[n+i*ld]);
+  PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
+  for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
+  for (i=0;i<n;i++) x[i] = PetscConj(B[n+i*ld]);
+  PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
+  for (i=0;i<n;i++) B[n+i*ld] = PetscConj(y[i]);
+  ds->k = n;
+  PetscFunctionReturn(0);
+}
+
 /*
    Write zeros from the column k to n in the lower triangular part of the
    matrices S and T, and inside 2-by-2 diagonal blocks of T in order to
@@ -549,6 +575,40 @@ PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSTruncate_GNHEP(DS ds,PetscInt n,PetscBool trim)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,newn,ld=ds->ld,l=ds->l;
+  PetscScalar    *A,*B;
+
+  PetscFunctionBegin;
+  A = ds->mat[DS_MAT_A];
+  B = ds->mat[DS_MAT_B];
+  if (trim) {
+    if (ds->extrarow) {   /* clean extra row */
+      for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
+      for (i=l;i<ds->n;i++) B[ds->n+i*ld] = 0.0;
+    }
+  } else {
+    ds->t = ds->n;
+    if (ds->state>=DS_STATE_CONDENSED && (A[n+(n-1)*ld]!=0.0 || B[n+(n-1)*ld]!=0.0)) { /* be careful not to break a diagonal 2x2 block */
+      if (n<ds->n-1) newn = n+1;
+      else newn = n-1;
+    } else newn = n;
+    if (ds->extrarow && ds->k==ds->n) {
+      /* copy entries of extra row to the new position, then clean last row */
+      for (i=l;i<newn;i++) A[newn+i*ld] = A[ds->n+i*ld];
+      for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
+      for (i=l;i<newn;i++) B[newn+i*ld] = B[ds->n+i*ld];
+      for (i=l;i<ds->n;i++) B[ds->n+i*ld] = 0.0;
+    }
+    if (ds->extrarow) ds->k = 0;
+    ds->n = newn;
+  }
+  ierr = PetscInfo1(ds,"Decomposition truncated to size n=%D\n",newn);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode DSCreate_GNHEP(DS ds)
 {
   PetscFunctionBegin;
@@ -558,6 +618,8 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GNHEP(DS ds)
   ds->ops->solve[0]      = DSSolve_GNHEP;
   ds->ops->sort          = DSSort_GNHEP;
   ds->ops->synchronize   = DSSynchronize_GNHEP;
+  ds->ops->truncate      = DSTruncate_GNHEP;
+  ds->ops->update        = DSUpdateExtraRow_GNHEP;
   PetscFunctionReturn(0);
 }
 
