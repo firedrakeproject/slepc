@@ -254,37 +254,37 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse
-
-   test:
-      suffix: 2
-      args: -split 0 -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse
-
-   test:
-      suffix: 3
-      args: -nep_nev 3 -nep_tol 1e-8 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_conv_norm -terse
-      requires: !single
+   testset:
+      args: -nep_nev 3 -terse
       output_file: output/ex27_1.out
+      test:
+         suffix: 1
+         args: -nep_nleigs_interpolation_degree 90
+      test:
+         suffix: 3
+         args: -nep_tol 1e-8 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_conv_norm
+         requires: !single
+         filter: sed -e "s/[+-]0\.0*i//g"
+      test:
+         suffix: 5
+         args: -mat_type aijcusparse
+         requires: cuda !single
 
-   test:
-      suffix: 4
-      args: -split 0 -nep_nev 3 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_nleigs_interpolation_degree 90 -terse
-      requires: !__float128
+   testset:
+      args: -split 0 -nep_nev 3 -terse
       output_file: output/ex27_2.out
-
-   test:
-      suffix: 5
-      args: -nep_nev 3 -mat_type aijcusparse -terse
-      requires: cuda !single
-      output_file: output/ex27_1.out
-
-   test:
-      suffix: 6
-      args: -split 0 -nep_nev 3 -mat_type aijcusparse -terse
-      requires: cuda !single
-      output_file: output/ex27_2.out
+      test:
+         suffix: 2
+         args: -nep_nleigs_interpolation_degree 90
+      test:
+         suffix: 4
+         args: -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_nleigs_interpolation_degree 90
+         requires: !__float128
+         filter: sed -e "s/[+-]0\.0*i//g"
+      test:
+         suffix: 6
+         args: -mat_type aijcusparse
+         requires: cuda !single
 
    test:
       suffix: 9

@@ -166,6 +166,6 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
       suffix: 1
       args: -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse -nep_view
       requires: double
-      filter: grep -v tolerance
+      filter: grep -v tolerance | sed -e "s/[+-]0\.0*i//g"
 
 TEST*/
