@@ -962,10 +962,8 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
     ierr = DSSetType(nep->ds,ctx->nshifts?DSGNHEP:DSNHEP);CHKERRQ(ierr);
     ierr = DSAllocate(nep->ds,nep->ncv+1);CHKERRQ(ierr);
     ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
-    if (!ctx->nshifts) {
-      sc->map = NEPNLEIGSBackTransform;
-      ierr = DSSetExtraRow(nep->ds,PETSC_TRUE);CHKERRQ(ierr);
-    }
+    if (!ctx->nshifts) sc->map = NEPNLEIGSBackTransform;
+    ierr = DSSetExtraRow(nep->ds,PETSC_TRUE);CHKERRQ(ierr);
     sc->mapobj        = (PetscObject)nep;
     sc->rg            = nep->rg;
     sc->comparison    = nep->sc->comparison;
@@ -1197,8 +1195,8 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i,k=0,l,nv=0,ld,lds,ldds,nq,newn;
-  PetscInt       deg=ctx->nmat-1,nconv=0;
-  PetscScalar    *S,*Q,*H,*pU,*K,betak=0,*eigr,*eigi;
+  PetscInt       deg=ctx->nmat-1,nconv=0,dsn,dsk;
+  PetscScalar    *S,*H,*pU,*K,betak=0,*eigr,*eigi;
   PetscReal      betah;
   PetscBool      falselock=PETSC_FALSE,breakdown=PETSC_FALSE;
   BV             W;
@@ -1258,9 +1256,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     /* Solve projected problem */
     ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
     ierr = DSSort(nep->ds,nep->eigr,nep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-    if (!ctx->nshifts) {
-      ierr = DSUpdateExtraRow(nep->ds);CHKERRQ(ierr);
-    }
+    ierr = DSUpdateExtraRow(nep->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
@@ -1273,22 +1269,11 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
       if (!breakdown) {
         /* Prepare the Rayleigh quotient for restart */
-        if (!ctx->nshifts) {
-          ierr = DSTruncate(nep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
-          ierr = DSGetDimensions(nep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-          l = newn-k;
-        } else {
-          ierr = DSGetArray(nep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-          ierr = DSGetArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-          ierr = DSGetArray(nep->ds,DS_MAT_A,&K);CHKERRQ(ierr);
-          for (i=ctx->lock?k:0;i<k+l;i++) {
-            H[k+l+i*ldds] = betah*Q[nv-1+i*ldds];
-            K[k+l+i*ldds] = betak*Q[nv-1+i*ldds];
-          }
-          ierr = DSRestoreArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-          ierr = DSRestoreArray(nep->ds,DS_MAT_A,&K);CHKERRQ(ierr);
-          ierr = DSRestoreArray(nep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-        }
+        ierr = DSGetDimensions(nep->ds,&dsn,NULL,NULL,&dsk,NULL);CHKERRQ(ierr);
+        ierr = DSSetDimensions(nep->ds,dsn,0,k,dsk);CHKERRQ(ierr);
+        ierr = DSTruncate(nep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
+        ierr = DSGetDimensions(nep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+        l = newn-k;
       }
     }
     nconv = k;
