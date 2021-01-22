@@ -443,7 +443,7 @@ cdef class DS(Object):
         CHKERR( DSGetRefined(self.ds, &val) )
         return val
 
-    def truncate(self, n):
+    def truncate(self, n, trim=False):
         """
         Truncates the system represented in the DS object.
 
@@ -451,9 +451,13 @@ cdef class DS(Object):
         ----------
         n: integer
            The new size.
+        trim: boolean
+              A flag to indicate if the factorization must be trimmed.
         """
-        cdef PetscInt val = n
-        CHKERR( DSTruncate(self.ds, val) )
+        cdef PetscInt val = asInt(n)
+        cdef PetscBool flg = PETSC_FALSE
+        if trim: flg = PETSC_TRUE
+        CHKERR( DSTruncate(self.ds, val, flg) )
 
     def updateExtraRow(self):
         """
