@@ -16,7 +16,7 @@ class Slepc4py(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename     = 'slepc4py'
     self.downloadable    = True
-    self.version         = '3.14.0'
+    self.version         = 'jose/dstruncate-signature'
     self.url             = 'https://gitlab.com/slepc/slepc4py.git'
     self.dirname         = 'slepc4py-'+self.version
     self.builtafterslepc = True
