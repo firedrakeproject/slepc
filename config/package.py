@@ -157,7 +157,7 @@ class Package:
 
   def MissingTarball(self,downloaddir):
     '''Check if tarball is missing in downloaddir'''
-    if self.downloadable and hasattr(self,'download') and self.download:
+    if self.downloadable and hasattr(self,'download') and self.download and hasattr(self,'archive'):
       localFile = os.path.join(downloaddir,self.archive)
       if not os.path.exists(localFile):
         url = self.packageurl
