@@ -257,6 +257,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
    test:
       suffix: 5
       args: -eps_type jd -eps_nev 3 -eps_target .5 -eps_harmonic -st_ksp_type bicg -st_pc_type lu -eps_jd_minv 2
+      filter: sed -e "s/[+-]0\.0*i//g"
       requires: !single
 
    test:

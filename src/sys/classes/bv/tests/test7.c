@@ -187,26 +187,20 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      nsize: 1
-      args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult vecs
-      filter: grep -v "Using method"
+   testset:
       output_file: output/test7_1.out
-
-   test:
-      suffix: 1_cuda
-      nsize: 1
-      args: -bv_type svec -mat_type aijcusparse -bv_matmult vecs
-      requires: cuda
-      filter: grep -v "Using method"
-      output_file: output/test7_1.out
-
-   test:
-      suffix: 2
-      nsize: 1
-      args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult mat
-      filter: grep -v "Using method"
-      output_file: output/test7_1.out
+      test:
+         suffix: 1
+         args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult vecs
+         filter: grep -v "Using method"
+      test:
+         suffix: 1_cuda
+         args: -bv_type svec -mat_type aijcusparse -bv_matmult vecs
+         requires: cuda
+         filter: grep -v "Using method"
+      test:
+         suffix: 2
+         args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult mat
+         filter: grep -v "Using method"
 
 TEST*/

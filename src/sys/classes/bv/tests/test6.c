@@ -111,36 +111,25 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      nsize: 1
-      args: -bv_type {{vecs contiguous svec mat}shared output}
+   testset:
       output_file: output/test6_1.out
-
-   test:
-      suffix: 1_cuda
-      nsize: 1
-      args: -bv_type svec -vec_type cuda
-      requires: cuda
-      output_file: output/test6_1.out
-
-   test:
-      suffix: 2
-      nsize: 2
-      args: -bv_type {{vecs contiguous svec mat}shared output}
-      output_file: output/test6_1.out
-
-   test:
-      suffix: 3
-      nsize: 1
-      args: -bv_type {{vecs contiguous svec mat}shared output} -bv_orthog_type mgs
-      output_file: output/test6_1.out
-
-   test:
-      suffix: 3_cuda
-      nsize: 1
-      args: -bv_type svec -vec_type cuda -bv_orthog_type mgs
-      requires: cuda
-      output_file: output/test6_1.out
+      test:
+         suffix: 1
+         args: -bv_type {{vecs contiguous svec mat}shared output}
+      test:
+         suffix: 1_cuda
+         args: -bv_type svec -vec_type cuda
+         requires: cuda
+      test:
+         suffix: 2
+         nsize: 2
+         args: -bv_type {{vecs contiguous svec mat}shared output}
+      test:
+         suffix: 3
+         args: -bv_type {{vecs contiguous svec mat}shared output} -bv_orthog_type mgs
+      test:
+         suffix: 3_cuda
+         args: -bv_type svec -vec_type cuda -bv_orthog_type mgs
+         requires: cuda
 
 TEST*/
