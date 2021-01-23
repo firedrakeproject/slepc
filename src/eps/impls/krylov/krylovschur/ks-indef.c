@@ -132,8 +132,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     eps->nconv = k;
     ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   }
-  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  ierr = DSTruncate(eps->ds,eps->nconv,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
