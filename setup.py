@@ -112,7 +112,9 @@ def run_setup():
         has_src = os.path.exists(os.path.join(topdir, src))
         has_git = os.path.isdir(os.path.join(topdir, '.git'))
         has_hg  = os.path.isdir(os.path.join(topdir, '.hg'))
-        if not has_src or has_git or has_hg:
+        suffix = os.path.join('src', 'binding', 'slepc4py')
+        in_slepc = topdir.endswith(os.path.sep + suffix)
+        if not has_src or has_git or has_hg or in_slepc:
             setup_args['setup_requires'] = ['Cython>='+CYTHON]
     #
     setup(packages     = ['slepc4py',
