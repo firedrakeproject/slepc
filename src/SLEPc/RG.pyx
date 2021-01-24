@@ -147,7 +147,7 @@ cdef class RG(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( RGIsTrivial(self.rg, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def getComplement(self):
         """

@@ -94,6 +94,11 @@ cdef extern from "scalar.h":
     object      PyPetscScalar_FromPetscScalar(PetscScalar)
     PetscScalar PyPetscScalar_AsPetscScalar(object) except? <PetscScalar>-1.0
 
+cdef inline object toBool(PetscBool value):
+    return True if value else False
+cdef inline PetscBool asBool(object value) except? <PetscBool>0:
+    return PETSC_TRUE if value else PETSC_FALSE
+
 cdef inline object toInt(PetscInt value):
     return value
 cdef inline PetscInt asInt(object value) except? -1:

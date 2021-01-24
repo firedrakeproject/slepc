@@ -1096,7 +1096,7 @@ cdef class PEP(Object):
         flag: boolean
             boolean flag indicating if the matrices are built explicitly .
         """
-        cdef PetscBool sval = flag
+        cdef PetscBool sval = asBool(flag)
         CHKERR( PEPLinearSetExplicitMatrix(self.pep, sval) )
 
     def getLinearExplicitMatrix(self):
@@ -1110,7 +1110,7 @@ cdef class PEP(Object):
         """
         cdef PetscBool sval = PETSC_FALSE
         CHKERR( PEPLinearGetExplicitMatrix(self.pep, &sval) )
-        return sval
+        return toBool(sval)
 
     #
 

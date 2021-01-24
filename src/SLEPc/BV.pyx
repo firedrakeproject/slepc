@@ -850,7 +850,7 @@ cdef class BV(Object):
         cdef PetscReal norm = 0
         cdef PetscBool ldep = PETSC_FALSE
         CHKERR( BVOrthogonalizeVec(self.bv, v.vec, NULL, &norm, &ldep) )
-        return (toReal(norm), <bint>ldep)
+        return (toReal(norm), toBool(ldep))
 
     def orthogonalize(self, Mat R=None, **kargs):
         """

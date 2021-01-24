@@ -437,7 +437,7 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSIsGeneralized(self.eps, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def isHermitian(self):
         """
@@ -452,7 +452,7 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSIsHermitian(self.eps, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def isPositive(self):
         """
@@ -467,7 +467,7 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSIsPositive(self.eps, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def getBalance(self):
         """
@@ -1478,8 +1478,7 @@ cdef class EPS(Object):
         but sometimes makes the solver converge less than the default
         algorithm.
         """
-        cdef PetscBool val = PETSC_FALSE
-        if delayed: val = PETSC_TRUE
+        cdef PetscBool val = asBool(delayed)
         CHKERR( EPSArnoldiSetDelayed(self.eps, val) )
 
     def getArnoldiDelayed(self):
@@ -1494,7 +1493,7 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSArnoldiGetDelayed(self.eps, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setLanczosReorthogType(self, reorthog):
         """
@@ -1883,7 +1882,7 @@ cdef class EPS(Object):
         nrest: integer
                The number of iterations between resets.
         """
-        cdef PetscInt val = nrest
+        cdef PetscInt val = asInt(nrest)
         CHKERR( EPSRQCGSetReset(self.eps, val) )
 
     def getRQCGReset(self):
@@ -1897,7 +1896,7 @@ cdef class EPS(Object):
         """
         cdef PetscInt val = 0
         CHKERR( EPSRQCGGetReset(self.eps, &val) )
-        return val
+        return toInt(val)
 
     #
     property problem_type:
