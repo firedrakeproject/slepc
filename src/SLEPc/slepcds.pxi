@@ -49,7 +49,7 @@ cdef extern from * nogil:
     int DSGetState(SlepcDS,SlepcDSStateType*)
     int DSSetDimensions(SlepcDS,PetscInt,PetscInt,PetscInt,PetscInt)
     int DSGetDimensions(SlepcDS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*)
-    int DSTruncate(SlepcDS,PetscInt)
+    int DSTruncate(SlepcDS,PetscInt,PetscBool)
     int DSSetMethod(SlepcDS,PetscInt)
     int DSGetMethod(SlepcDS,PetscInt*)
     int DSSetCompact(SlepcDS,PetscBool)

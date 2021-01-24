@@ -216,7 +216,7 @@ cdef class ST(Object):
               is applied to the linearization (handled by the eigensolver),
               otherwise it is applied to the original problem.
         """
-        cdef PetscBool sval = flag
+        cdef PetscBool sval = asBool(flag)
         CHKERR( STSetTransform(self.st, sval) )
 
     def getTransform(self):
@@ -235,7 +235,7 @@ cdef class ST(Object):
         """
         cdef PetscBool sval = PETSC_FALSE
         CHKERR( STGetTransform(self.st, &sval) )
-        return sval
+        return toBool(sval)
 
     def setMatMode(self, mode):
         """

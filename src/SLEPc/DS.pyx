@@ -200,7 +200,7 @@ cdef class DS(Object):
             Leading dimension (maximum allowed dimension for the
             matrices, including the extra row if present).
         """
-        cdef PetscInt val = ld
+        cdef PetscInt val = asInt(ld)
         CHKERR( DSAllocate(self.ds, val) )
 
     def getLeadingDimension(self):
@@ -214,7 +214,7 @@ cdef class DS(Object):
         """
         cdef PetscInt val = 0
         CHKERR( DSGetLeadingDimension(self.ds, &val) )
-        return val
+        return toInt(val)
 
     def setState(self, state):
         """
@@ -352,8 +352,7 @@ cdef class DS(Object):
 
         The default is ``False``.
         """
-        cdef PetscBool val = PETSC_FALSE
-        if comp: val = PETSC_TRUE
+        cdef PetscBool val = asBool(comp)
         CHKERR( DSSetCompact(self.ds, val) )
 
     def getCompact(self):
@@ -367,7 +366,7 @@ cdef class DS(Object):
         """
         cdef PetscBool val = PETSC_FALSE
         CHKERR( DSGetCompact(self.ds, &val) )
-        return val
+        return toBool(val)
 
     def setExtraRow(self, ext):
         """
@@ -389,8 +388,7 @@ cdef class DS(Object):
 
         The default is ``False``.
         """
-        cdef PetscBool val = PETSC_FALSE
-        if ext: val = PETSC_TRUE
+        cdef PetscBool val = asBool(ext)
         CHKERR( DSSetExtraRow(self.ds, val) )
 
     def getExtraRow(self):
@@ -404,7 +402,7 @@ cdef class DS(Object):
         """
         cdef PetscBool val = PETSC_FALSE
         CHKERR( DSGetExtraRow(self.ds, &val) )
-        return val
+        return toBool(val)
 
     def setRefined(self, ref):
         """
@@ -426,8 +424,7 @@ cdef class DS(Object):
 
         The default is ``False``.
         """
-        cdef PetscBool val = PETSC_FALSE
-        if ref: val = PETSC_TRUE
+        cdef PetscBool val = asBool(ref)
         CHKERR( DSSetRefined(self.ds, val) )
 
     def getRefined(self):
@@ -441,9 +438,9 @@ cdef class DS(Object):
         """
         cdef PetscBool val = PETSC_FALSE
         CHKERR( DSGetRefined(self.ds, &val) )
-        return val
+        return toBool(val)
 
-    def truncate(self, n):
+    def truncate(self, n, trim=False):
         """
         Truncates the system represented in the DS object.
 
@@ -451,9 +448,12 @@ cdef class DS(Object):
         ----------
         n: integer
            The new size.
+        trim: boolean
+              A flag to indicate if the factorization must be trimmed.
         """
-        cdef PetscInt val = n
-        CHKERR( DSTruncate(self.ds, val) )
+        cdef PetscInt val = asInt(n)
+        cdef PetscBool flg = asBool(trim)
+        CHKERR( DSTruncate(self.ds, val, flg) )
 
     def updateExtraRow(self):
         """

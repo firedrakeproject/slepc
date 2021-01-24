@@ -240,7 +240,7 @@ cdef class SVD(Object):
         """
         cdef PetscBool val = PETSC_FALSE
         CHKERR( SVDGetImplicitTranspose(self.svd, &val) )
-        return val
+        return toBool(val)
 
     def setImplicitTranspose(self, mode):
         """
@@ -260,7 +260,7 @@ cdef class SVD(Object):
         If this flag is set to true, the solver does not build the
         transpose, but handles it implicitly via MatMultTranspose().
         """
-        cdef PetscBool val = mode
+        cdef PetscBool val = asBool(mode)
         CHKERR( SVDSetImplicitTranspose(self.svd, val) )
 
     def getWhichSingularTriplets(self):
@@ -763,8 +763,7 @@ cdef class SVD(Object):
         flag: boolean
               True if ``H(A)`` is built explicitly.
         """
-        cdef PetscBool tval = PETSC_FALSE
-        if flag: tval = PETSC_TRUE
+        cdef PetscBool tval = asBool(flag)
         CHKERR( SVDCyclicSetExplicitMatrix(self.svd, tval) )
 
     def getCyclicExplicitMatrix(self):
@@ -779,7 +778,7 @@ cdef class SVD(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( SVDCyclicGetExplicitMatrix(self.svd, &tval) )
-        return <bint>tval
+        return toBool(tval)
 
     def setLanczosOneSide(self, flag=True):
         """
@@ -799,8 +798,7 @@ cdef class SVD(Object):
         to left singular vectors. It also saves the memory required
         for storing such vectors.
         """
-        cdef PetscBool tval = PETSC_FALSE
-        if flag: tval = PETSC_TRUE
+        cdef PetscBool tval = asBool(flag)
         CHKERR( SVDLanczosSetOneSide(self.svd, tval) )
 
     def setTRLanczosOneSide(self, flag=True):
@@ -820,8 +818,7 @@ cdef class SVD(Object):
         is faster because it avoids the orthogonalization associated
         to left singular vectors.
         """
-        cdef PetscBool tval = PETSC_FALSE
-        if flag: tval = PETSC_TRUE
+        cdef PetscBool tval = asBool(flag)
         CHKERR( SVDLanczosSetOneSide(self.svd, tval) )
 
     #
