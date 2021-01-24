@@ -2,6 +2,7 @@
 import sys, os
 
 def cythonize(source,
+              output=None,
               includes=(),
               destdir_c=None,
               destdir_h=None,
@@ -13,14 +14,20 @@ def cythonize(source,
     from Cython.Compiler import Options
     cwd = os.getcwd()
     try:
-        name, ext = os.path.splitext(source)
-        outputs_c = [name+'.c']
-        outputs_h = [name+'.h', name+'_api.h']
+        if output is None:
+            name, _ = os.path.splitext(source)
+            output = name + '.c'
+        else:
+            name, _ = os.path.splitext(output)
+        outputs_c = [output]
+        outputs_h = [name + '.h', name + '_api.h']
         # change working directory
         if wdir:
             os.chdir(wdir)
         # run Cython on source
         options = CompilationOptions(default_options)
+        if Options.directive_types['language_level'] is str:
+            options.language_level = '3str'
         options.output_file = outputs_c[0]
         options.include_path = list(includes)
         Options.generate_cleanup_code = 3
@@ -64,6 +71,7 @@ if __name__ == "__main__":
     import petsc4py
     sys.exit(
         cythonize('slepc4py.SLEPc.pyx',
+                  'slepc4py.SLEPc.c',
                   includes=['include', petsc4py.get_include()],
                   destdir_h=os.path.join('include', 'slepc4py'),
                   wdir='src')
