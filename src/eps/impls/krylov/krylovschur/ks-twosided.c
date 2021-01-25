@@ -130,8 +130,8 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   Mat             M,U,Op,OpHT;
   PetscReal       norm,norm2,beta,betat,s,t;
-  PetscScalar     *pM,*S,*T,*eigr,*eigi,*Q;
-  PetscInt        ld,l,nv,nvt,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,*idx2,id=0;
+  PetscScalar     *pM,*S,*T,*eigr,*eigi;
+  PetscInt        ld,l,nv,nvt,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,*idx2,id=0,dsn,dsk;
   PetscBool       breakdownt,breakdown,breakdownl;
 #if defined(PETSC_USE_COMPLEX)
   Mat             A;
@@ -223,6 +223,8 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     ierr = MatConjugate(U);CHKERRQ(ierr);
     ierr = DSRestoreMat(eps->dsts,DS_MAT_Q,&U);CHKERRQ(ierr);
 #endif
+    ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(eps->dsts);CHKERRQ(ierr);
     ierr = DSSynchronize(eps->dsts,eigr,eigi);CHKERRQ(ierr);
 
     /* Check convergence */
@@ -274,17 +276,11 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
           }
         }
       } else {
-        /* Prepare the Rayleigh quotient for restart */
-        ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-        ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-        for (i=k;i<k+l;i++) S[k+l+i*ld] = Q[nv-1+i*ld]*beta;
-        ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-        ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-        ierr = DSGetArray(eps->dsts,DS_MAT_A,&S);CHKERRQ(ierr);
-        ierr = DSGetArray(eps->dsts,DS_MAT_Q,&Q);CHKERRQ(ierr);
-        for (i=k;i<k+l;i++) S[k+l+i*ld] = Q[nv-1+i*ld]*betat;
-        ierr = DSRestoreArray(eps->dsts,DS_MAT_A,&S);CHKERRQ(ierr);
-        ierr = DSRestoreArray(eps->dsts,DS_MAT_Q,&Q);CHKERRQ(ierr);
+        ierr = DSGetDimensions(eps->ds,&dsn,NULL,NULL,&dsk,NULL);CHKERRQ(ierr);
+        ierr = DSSetDimensions(eps->ds,dsn,0,k,dsk);CHKERRQ(ierr);
+        ierr = DSSetDimensions(eps->dsts,dsn,0,k,dsk);CHKERRQ(ierr);
+        ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
+        ierr = DSTruncate(eps->dsts,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
       ierr = EPSTwoSidedRQUpdate2(eps,M,k+l);CHKERRQ(ierr);
     }
