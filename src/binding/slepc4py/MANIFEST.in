@@ -1,0 +1,16 @@
+include setup*.py *.cfg *.rst
+
+recursive-include demo [M,m]akefile* *.py
+recursive-include conf *.py *.cfg
+recursive-include src  *.py *.pyx *.px[di] *.h *.c *.i *.cfg
+recursive-include test *.py
+recursive-include *    [M,m]akefile
+
+include docs/*.html
+include docs/*.pdf
+include docs/*.info
+include docs/*.[137]
+include docs/*.rst
+recursive-include docs/usrman *
+recursive-include docs/apiref *
+recursive-include docs/source *
