@@ -23,8 +23,8 @@ are also available.
 
 .. [1] J. E. Roman, C. Campos, E. Romero, A. Tomas.
    SLEPc Users Manual. DSIC-II/24/02 - Revision 3.5
-   D. Sistemas Informáticos y Computación, Universitat Politècnica de
-   València. 2014.
+   D. Sistemas Informaticos y Computacion, Universitat Politecnica de
+   Valencia. 2014.
 
 .. [2] Vicente Hernandez, Jose E. Roman and Vicente Vidal.
    SLEPc: A Scalable and Flexible Toolkit for the Solution of
