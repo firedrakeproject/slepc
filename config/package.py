@@ -46,7 +46,8 @@ class Package:
     self.fortran         = False
     self.hasheaders      = False
     self.hasdloadflags   = False
-    self.builtafterslepc = False
+    self.requested       = False
+    self.havepackage     = False
 
   def RunCommand(self,instr):
     try:
@@ -70,9 +71,6 @@ class Package:
   def ProcessArgs(self,argdb,petscpackages=''):
     if hasattr(self,'petscdepend') and self.petscdepend in petscpackages:
       self.requested = True
-    else:
-      self.requested = False
-    self.havepackage = False
     if self.installable and not hasattr(self,'petscdepend'):
       string,found = argdb.PopPath('with-'+self.packagename+'-dir',exist=True)
       if found:
@@ -112,11 +110,7 @@ class Package:
       self.slflag = petsc.slflag
     if self.requested:
       name = self.packagename.upper()
-      if self.downloadpackage and self.builtafterslepc:
-        self.log.NewSection('Downloading '+name+'...')
-        self.Precondition(slepc,petsc)
-        self.DownloadOnly(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir,slepc.prefixdir)
-      elif self.downloadpackage:
+      if self.downloadpackage:
         if hasattr(self,'version'):
           self.log.NewSection('Installing '+name+' version '+self.version+'...')
         else:
@@ -291,8 +285,6 @@ Downloaded package %s from: %s is not a tarball.
         packagename = self.packagename.upper()
       if hasattr(self,'petscdepend'):
         self.log.Println(packagename+' from %s linked by PETSc' % self.petscdepend.upper())
-      elif self.builtafterslepc:
-        self.log.Println(packagename+' to be built after SLEPc')
       elif hasattr(self,'packageflags'):
         self.log.Println(packagename+' library flags:')
         self.log.Println(' '+' '.join(self.packageflags))
