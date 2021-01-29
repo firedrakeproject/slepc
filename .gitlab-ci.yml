@@ -28,6 +28,7 @@ variables:
 #
 
 .test:
+  interruptible: true
   only:
     refs:
 #     Set with CI/CD Shedules - New Schedule
