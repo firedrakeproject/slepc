@@ -127,7 +127,7 @@ gnu-cxx-complex-nofort:
 gnu-c-complex-nompi-int64:
   extends: .stage-1
   tags:
-    - linux-ubuntu, name:ahmes
+    - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-mpi=0 --with-fc=0 --with-scalar-type=complex --with-64-bit-indices
     DISABLE_TESTS: 1
@@ -374,8 +374,9 @@ gnu-c-complex:
   tags:
     - linux-fedora
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --with-primme-dir=/usr/local/opt/primme-3.1.1 --download-blopex --with-packages-download-dir=/var/local/downloads
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-petsc4py
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --with-primme-dir=/usr/local/opt/primme-3.1.1 --download-blopex --with-packages-download-dir=/var/local/downloads --with-slepc4py
+    SLEPC4PY: 1
 
 gnu-cxx-int64:
   extends:
