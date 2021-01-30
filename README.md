@@ -2,7 +2,7 @@
 SLEPc: Scalable Library for Eigenvalue Problem Computations
 ===========================================================
 
-- Authors: Jose E. Roman, Carmen Campos, Eloy Romero, Andres Tomas
+- Authors: Jose E. Roman, Carmen Campos, Lisandro Dalcin, Eloy Romero, Andres Tomas
 - Organization: Universitat Politecnica de Valencia, Spain
 - Website: https://slepc.upv.es
 - Contact: slepc-maint@upv.es

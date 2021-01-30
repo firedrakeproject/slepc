@@ -229,7 +229,7 @@ PetscErrorCode SlepcCitationsInitialize()
     "   doi = \"https://doi.org/10.1145/1089014.1089019\"\n"
     "}\n",NULL);CHKERRQ(ierr);
   ierr = PetscCitationsRegister("@TechReport{slepc-manual,\n"
-    "   author = \"J. E. Roman and C. Campos and E. Romero and A. Tomas\",\n"
+    "   author = \"J. E. Roman and C. Campos and L. Dalcin and E. Romero and A. Tomas\",\n"
     "   title = \"{SLEPc} Users Manual\",\n"
     "   number = \"DSIC-II/24/02 - Revision 3.14\",\n"
     "   institution = \"D. Sistemes Inform\\`atics i Computaci\\'o, Universitat Polit\\`ecnica de Val\\`encia\",\n"
