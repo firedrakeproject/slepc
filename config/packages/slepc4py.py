@@ -92,6 +92,12 @@ class Slepc4py(package.Package):
       slepcrules.write('slepc4py-build: slepc4pybuild slepc4pyinstall\n')
       slepcrules.write('slepc4py-install:\n')
 
+    rule =  'slepc4pytest:\n'
+    rule += '\t@echo "*** Testing slepc4py ***"\n'
+    rule += '\t@PYTHONPATH=%s:${PYTHONPATH} ${PYTHON} %s --verbose\n' % (destdir,os.path.join('src','binding','slepc4py','test','runtests.py'))
+    rule += '\t@echo "====================================="\n\n'
+    slepcrules.write(rule)
+
     slepcconf.write('#define SLEPC_HAVE_SLEPC4PY 1\n')
     slepcconf.write('#define SLEPC4PY_INSTALL_PATH %s\n' % destdir)
     self.havepackage = True
@@ -101,4 +107,5 @@ class Slepc4py(package.Package):
     # add emtpy rules
     slepcrules.write('slepc4py-build:\n')
     slepcrules.write('slepc4py-install:\n')
+    slepcrules.write('slepc4pytest:\n')
 
