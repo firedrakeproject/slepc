@@ -116,9 +116,10 @@ slepc4py  = slepc4py.Slepc4py(argdb,log)
 slicot    = slicot.Slicot(argdb,log)
 hpddm     = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, elpa, hpddm, primme, slicot, slepc4py, trlan]
+externalpackages = [arpack, blopex, blzpack, elpa, hpddm, primme, slicot, trlan]
 petscpackages    = [lapack, elemental, feast, scalapack]
-checkpackages    = [slepc, petsc, sowing] + petscpackages + externalpackages
+specialpackages  = [slepc, petsc, slepc4py, sowing]
+checkpackages    = specialpackages + petscpackages + externalpackages
 
 # Print help if requested and check for wrong command-line options
 if showhelp:
@@ -130,8 +131,8 @@ if showhelp:
   print('  <fname> means a file name, can also include the full path or url')
   print('  <libraries> means a comma-separated list of libraries, e.g., --with-arpack-lib=-lparpack,-larpack')
   print('  <flags> means a string of flags, e.g., --download-primme-cflags="-std=c99 -g"')
-  slepc.ShowHelp()
-  sowing.ShowHelp()
+  for pkg in specialpackages:
+    pkg.ShowHelp()
   print('\nOptional packages via PETSc (these are tested by default if present in PETSc\'s configuration):\n')
   for pkg in petscpackages:
     pkg.ShowHelp()

@@ -16,6 +16,9 @@ class PETSc(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename = 'petsc'
 
+  def ShowHelp(self):
+    pass
+
   def Check(self):
     (result, output) = self.Link([],[],[])
     self.havepackage = result

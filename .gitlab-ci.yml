@@ -182,6 +182,7 @@ gnu-c99-mlib-static:
     - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" check
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
+    - if [ ! -z ${SLEPC4PY+x} ]; then make slepc4pytest; fi
     - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" cleantest allgtests-tap TIMEOUT=${TIMEOUT} ${TEST_OPTS}; fi
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   artifacts:
@@ -374,8 +375,9 @@ gnu-c-complex:
   tags:
     - linux-fedora
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-blopex --with-packages-download-dir=/var/local/downloads
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-petsc4py
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-blopex --with-packages-download-dir=/var/local/downloads --with-slepc4py
+    SLEPC4PY: 1
 
 gnu-cxx-int64:
   extends:
@@ -405,7 +407,7 @@ gnu-c:
     - linux-ubuntu, name:maat
   variables:
     PETSC_CONFIG_OPTS: --download-superlu_dist --download-elemental --download-metis --download-parmetis --with-petsc4py
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-slepc4py
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --with-slepc4py
     SLEPC4PY: 1
 
 gnu-c-c99-nompi:
