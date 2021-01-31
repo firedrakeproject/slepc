@@ -138,7 +138,7 @@ gnu-c99-mlib-static:
   tags:
     - linux-fedora
   variables:
-    PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 --CFLAGS=-std=c99
+    PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1 --with-shared-libraries=0 --CFLAGS=-std=c99
     TEST_OPTS: search=eps_tests-test10_1
     CHECKSOURCE: 1
 
@@ -340,7 +340,7 @@ gnu-c-complex-multilib:
   tags:
     - linux-ubuntu, name:maat
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-fortran-bindings=0 --download-sowing --download-elemental --download-metis --download-parmetis --download-scalapack
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-visibility=1 --with-fortran-bindings=0 --download-sowing --download-elemental --download-metis --download-parmetis --download-scalapack
     SLEPC_CONFIG_OPTS: --download-elpa
 
 intel-c-complex-mkl:
@@ -366,7 +366,7 @@ gnu-c-multilib:
     - linux-debian
   variables:
     PYTHON: python2
-    PETSC_CONFIG_OPTS: --with-single-library=0 --download-scalapack
+    PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1 --download-scalapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --with-primme-dir=/usr/local/opt/primme-2.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot --with-packages-download-dir=/var/local/downloads
 
 gnu-c-complex:
@@ -461,7 +461,7 @@ gnu-c-cuda-single:
   tags:
     - linux-ubuntu, gpu:nvidia
   variables:
-    PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-cuda --with-openmp
+    PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-visibility=1 --with-cuda --with-openmp
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
     TEST_OPTS: -j1 query=requires queryval=cuda
 
