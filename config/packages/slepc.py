@@ -30,9 +30,11 @@ class SLEPc(package.Package):
 
   def ProcessArgs(self,argdb):
     self.clean       = argdb.PopBool('with-clean')[0]
-    self.prefixdir   = argdb.PopPath('prefix')[0]
     self.datadir     = argdb.PopPath('DATAFILESPATH',exist=True)[0]
     self.downloaddir = argdb.PopPath('with-packages-download-dir',exist=True)[0]
+    self.prefixdir   = argdb.PopPath('prefix')[0]
+    if self.prefixdir:
+      self.prefixdir = os.path.realpath(os.path.normpath(self.prefixdir))
 
   def Process(self,slepcconf,slepcvars,slepcrules,slepc,petsc,archdir=''):
     slepcvars.write('SLEPC_CONFIGURE_OPTIONS = '+' '.join(sys.argv[1:])+'\n')
@@ -65,7 +67,7 @@ class SLEPc(package.Package):
     if self.isrepo:
       self.log.Println('  It is a git repository on branch: '+self.branch)
     if self.isinstall:
-      self.log.Println('SLEPc prefix directory:\n '+self.prefixdir)
+      self.log.Println('SLEPc prefix directory:\n  '+self.prefixdir)
 
   def InitDir(self):
     if 'SLEPC_DIR' in os.environ:
