@@ -10,7 +10,8 @@
 
 static char help[] = "Symmetric-indefinite eigenproblem.\n\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n\n";
+  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
+  "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
 
 #include <slepceps.h>
 
@@ -18,13 +19,15 @@ int main(int argc,char **argv)
 {
   Mat            A,B;             /* problem matrices */
   EPS            eps;             /* eigenproblem solver context */
-  PetscInt       N,n=10,Istart,Iend,II,nev,i,j;
-  PetscBool      terse;
+  PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j;
+  PetscBool      flag,terse;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  N = n*n;
+  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  if (!flag) m=n;
+  N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSymmetric-indefinite eigenproblem, N=%D\n\n",N);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -45,7 +48,7 @@ int main(int argc,char **argv)
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
     if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
@@ -117,9 +120,9 @@ int main(int argc,char **argv)
          requires: cuda
 
    test:
-      suffix: 1_davidson
-      args: -eps_type {{gd jd}} -eps_target 0 -eps_harmonic -eps_nev 4 -eps_ncv 16 -terse
+      suffix: 2
+      args: -n 10 -m 11 -eps_type {{gd jd}} -eps_target 0.2 -eps_harmonic -eps_nev 2 -eps_ncv 10 -terse
       requires: !single
       filter: sed -e "s/[+-]0\.0*i//g"
-      output_file: output/test18_1.out
+
 TEST*/
