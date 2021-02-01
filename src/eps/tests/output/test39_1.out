@@ -1,0 +1,14 @@
+
+2-D Laplacian Eigenproblem, N=110 (10x11 grid)
+
+First solve:
+
+ All requested eigenvalues computed up to the required tolerance:
+     0.14916, 0.34896, 0.38564
+
+
+Second solve:
+
+ All requested eigenvalues computed up to the required tolerance:
+     0.14916, 0.34896, 0.38564
+
