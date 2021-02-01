@@ -8,51 +8,76 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Tests multiple calls to EPSSolve with different matrix of different size.\n\n"
+static char help[] = "Tests multiple calls to EPSSolve with matrices of different local size.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
 
 #include <slepceps.h>
 
+/*
+   Create 2-D Laplacian matrix
+*/
+PetscErrorCode Laplacian(MPI_Comm comm,PetscInt n,PetscInt m,PetscInt shift,Mat *A)
+{
+  PetscErrorCode ierr;
+  PetscInt       N = n*m,i,j,II,Istart,Iend,nloc;
+  PetscMPIInt    rank;
+
+  PetscFunctionBeginUser;
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+  nloc = PETSC_DECIDE;
+  ierr = PetscSplitOwnership(comm,&nloc,&N);CHKERRQ(ierr);
+  if (rank==0) nloc += shift;
+  else if (rank==1) nloc -= shift;
+
+  ierr = MatCreate(comm,A);CHKERRQ(ierr);
+  ierr = MatSetSizes(*A,nloc,nloc,N,N);CHKERRQ(ierr);
+  ierr = MatSetFromOptions(*A);CHKERRQ(ierr);
+  ierr = MatSetUp(*A);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(*A,&Istart,&Iend);CHKERRQ(ierr);
+  for (II=Istart;II<Iend;II++) {
+    i = II/n; j = II-i*n;
+    if (i>0) { ierr = MatSetValue(*A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<m-1) { ierr = MatSetValue(*A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (j>0) { ierr = MatSetValue(*A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (j<n-1) { ierr = MatSetValue(*A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(*A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 int main(int argc,char **argv)
 {
   Mat            A,B;
   EPS            eps;
-  PetscInt       N,n=10,m=11,Istart,Iend,II,nev=3,i,j;
+  PetscInt       N,n=10,m=11,nev=3;
+  PetscMPIInt    size;
   PetscBool      flag,terse;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
+  if (size==1) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This example requires at least two processes");
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                Create the 2-D Laplacian with coarse mesh
+                Create 2-D Laplacian matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  for (II=Istart;II<Iend;II++) {
-    i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = Laplacian(PETSC_COMM_WORLD,n,m,1,&A);CHKERRQ(ierr);
+  ierr = Laplacian(PETSC_COMM_WORLD,n,m,-1,&B);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Create the eigensolver, set options and solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"First solve:\n\n");CHKERRQ(ierr);
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
@@ -77,34 +102,10 @@ int main(int argc,char **argv)
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-               Create the 2-D Laplacian with finer mesh
+                       Solve with second matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  n *= 2;
-  m *= 2;
-  N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
-
-  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-  ierr = MatSetUp(B);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
-  for (II=Istart;II<Iend;II++) {
-    i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(B,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(B,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(B,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(B,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(B,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-       Solve again, calling EPSReset() since matrix size has changed
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSecond solve:\n\n");CHKERRQ(ierr);
   /*ierr = EPSReset(eps);CHKERRQ(ierr);*/  /* not required, will be called in EPSSetOperators() */
   ierr = EPSSetOperators(eps,B,NULL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
@@ -129,16 +130,8 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -eps_type {{krylovschur arnoldi lanczos gd jd rqcg lobpcg lapack}} -terse
+      nsize: 2
+      args: -eps_type {{krylovschur arnoldi lanczos lobpcg lapack}} -terse
       requires: !single
-
-   test:
-      suffix: 2
-      args: -eps_type {{power subspace}} -eps_target 8 -st_type sinvert -terse
-
-   test:
-      suffix: 3
-      args: -eps_interval 0.5,0.67 -st_type sinvert -st_pc_type cholesky -terse
-      filter: sed -e "s/55253/55252/"
 
 TEST*/

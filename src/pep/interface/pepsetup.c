@@ -277,7 +277,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 {
   PetscErrorCode ierr;
-  PetscInt       i,n=0,m,m0=0;
+  PetscInt       i,n=0,m,m0=0,mloc,nloc,mloc0=0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -290,13 +290,16 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
     PetscCheckSameComm(pep,1,A[i],3);
     ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
-    if (m!=n) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%D] is a non-square matrix",i);
-    if (!i) m0 = m;
-    if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of matrices do not match with each other");
+    ierr = MatGetLocalSize(A[i],&mloc,&nloc);CHKERRQ(ierr);
+    if (m!=n) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%D] is a non-square matrix (%D rows, %D cols)",i,m,n);
+    if (mloc!=nloc) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%D] does not have equal row and column local sizes (%D, %D)",i,mloc,nloc);
+    if (!i) { m0 = m; mloc0 = mloc; }
+    if (m!=m0) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%D] do not match with previous matrices (%D, %D)",i,m,m0);
+    if (mloc!=mloc0) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%D] do not match with previous matrices (%D, %D)",i,mloc,mloc0);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
   }
 
-  if (pep->state && n!=pep->n) { ierr = PEPReset(pep);CHKERRQ(ierr); }
+  if (pep->state && (n!=pep->n || nloc!=pep->nloc)) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   else if (pep->nmat) {
     ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
     ierr = PetscFree2(pep->pbc,pep->nrma);CHKERRQ(ierr);
