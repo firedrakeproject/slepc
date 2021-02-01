@@ -11,8 +11,8 @@ DOC_TEX	= slepc.tex \
 .SUFFIXES: .tex .pdf
 
 slepc.pdf: $(DOC_TEX) makefile
-	@ latexmk -bibtex- -pdf slepc
+	@ latexmk -bibtex- -pdf -silent slepc
 
 clean:
-	@ latexmk -bibtex- -pdf -c slepc
+	@ latexmk -bibtex- -pdf -silent -c slepc
 
