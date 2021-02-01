@@ -197,7 +197,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       break;
     case EPS_KS_SYMM:
     case EPS_KS_FILTER:
-      eps->ops->solve = EPSSolve_KrylovSchur_Symm;
+      eps->ops->solve = EPSSolve_KrylovSchur_Default;
       eps->ops->computevectors = EPSComputeVectors_Hermitian;
       ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
       ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -273,12 +273,13 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscInt        j,*pj,k,l,nv,ld,nconv;
   Mat             U,Op;
   PetscScalar     *S,*g;
-  PetscReal       beta,gamma=1.0;
-  PetscBool       breakdown,harmonic;
+  PetscReal       beta,gamma=1.0,*a,*b;
+  PetscBool       breakdown,harmonic,hermitian;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
+  hermitian = (eps->ishermitian && !harmonic)?PETSC_TRUE:PETSC_FALSE;
   if (harmonic) { ierr = PetscMalloc1(ld,&g);CHKERRQ(ierr); }
   if (eps->arbitrary) pj = &j;
   else pj = NULL;
@@ -294,9 +295,17 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = BVMatArnoldi(eps->V,Op,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+    if (hermitian) {
+      ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+      b = a + ld;
+      ierr = BVMatLanczos(eps->V,Op,a,b,eps->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
+      beta = b[nv-1];
+      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+    } else {
+      ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+      ierr = BVMatArnoldi(eps->V,Op,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+    }
     ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
@@ -331,12 +340,14 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     else {
       l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
 #if !defined(PETSC_USE_COMPLEX)
-      ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-      if (S[k+l+(k+l-1)*ld] != 0.0) {
-        if (k+l<nv-1) l = l+1;
-        else l = l-1;
+      if (!hermitian) {
+        ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+        if (S[k+l+(k+l-1)*ld] != 0.0) {
+          if (k+l<nv-1) l = l+1;
+          else l = l-1;
+        }
+        ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
       }
-      ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
 #endif
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
