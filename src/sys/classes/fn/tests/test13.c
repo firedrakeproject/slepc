@@ -153,7 +153,8 @@ int main(int argc,char **argv)
          requires: c99_complex !__float128
       test:
          suffix: 1_random
-         args: -fn_scale .04,2 -n 75 -random
+         args: -fn_scale .02,2 -n 75 -random
          requires: complex
+         filter_output: sed -e 's/04/02/'
 
 TEST*/

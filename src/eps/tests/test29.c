@@ -258,7 +258,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
    test:
       suffix: 2
       args: -f1 ${DATAFILESPATH}/matrices/complex/mhd1280a.petsc -f2 ${DATAFILESPATH}/matrices/complex/mhd1280b.petsc -eps_nev 6 -eps_tol 1e-11
-      filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      filter: sed -e "s/-892/+892/" | sed -e "s/-759/+759/" | sed -e "s/-674/+674/" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: complex datafilespath !define(PETSC_USE_64BIT_INDICES)
       timeoutfactor: 2
 
