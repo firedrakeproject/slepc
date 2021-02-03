@@ -10,6 +10,9 @@
 ### Changed
 
 - Configure option `--download-slepc4py` renamed to `--with-slepc4py`.
+- `EPSLANCZOS` now requires that `EPSLanczosSetReorthog()` is called explicitly, or the
+  corresponding command-line option is given. The intention is that inexperienced users
+  realize that they should use `EPSKRYLOVSCHUR` instead of `EPSLANCZOS`.
 - `ST`: now the coefficient/preconditioner matrix has the same prefix as the `KSP` object,
   so setting MUMPS options in the command-line requires the appropriate prefix, e.g.,
   `-st_mat_mumps_icntl_13 1`.

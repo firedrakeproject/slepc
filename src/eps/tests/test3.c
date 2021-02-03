@@ -107,7 +107,10 @@ int main(int argc,char **argv)
       output_file: output/test3_1.out
       test:
          suffix: 1
-         args: -eps_type {{krylovschur subspace arnoldi lanczos lapack}}
+         args: -eps_type {{krylovschur subspace arnoldi lapack}}
+      test:
+         suffix: 1_lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog local
       test:
          suffix: 1_power
          args: -eps_type power -eps_max_it 20000
@@ -160,7 +163,7 @@ int main(int argc,char **argv)
          args: -eps_type lobpcg -eps_lobpcg_blocksize 5 -st_pc_type none
       test:
          suffix: 2_lanczos
-         args: -eps_type lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog local
          requires: !single
       test:
          suffix: 2_lanczos_delayed

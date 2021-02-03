@@ -122,7 +122,7 @@ int main (int argc,char **argv)
          args: -eps_type {{krylovschur arnoldi gd jd rqcg lobpcg}}
       test:
          suffix: 1_lanczos
-         args: -eps_type lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog local
          requires: !single
       test:
          suffix: 1_gd2
