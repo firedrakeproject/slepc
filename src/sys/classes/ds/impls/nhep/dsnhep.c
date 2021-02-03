@@ -105,9 +105,9 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   mm=1,mout,info,ld,n,*select,inc = 1;
-  PetscScalar    tmp,done=1.0,zero=0.0;
-  PetscReal      norm;
+  PetscBLASInt   mm=1,mout,info,ld,n,*select,inc=1,cols=1,zero=0;
+  PetscScalar    sone=1.0,szero=0.0;
+  PetscReal      norm,done=1.0;
   PetscBool      iscomplex = PETSC_FALSE;
   PetscScalar    *A = ds->mat[DS_MAT_A];
   PetscScalar    *Q = ds->mat[DS_MAT_Q];
@@ -140,22 +140,20 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
   /* accumulate and normalize eigenvectors */
   if (ds->state>=DS_STATE_CONDENSED) {
     ierr = PetscArraycpy(ds->work,Y,mout*ld);CHKERRQ(ierr);
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,ds->work,&inc,&zero,Y,&inc));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,Q,&ld,ds->work,&inc,&szero,Y,&inc));
 #if !defined(PETSC_USE_COMPLEX)
-    if (iscomplex) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,ds->work+ld,&inc,&zero,Y+ld,&inc));
+    if (iscomplex) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,Q,&ld,ds->work+ld,&inc,&szero,Y+ld,&inc));
 #endif
+    cols = 1;
     norm = BLASnrm2_(&n,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
     if (iscomplex) {
-      tmp = BLASnrm2_(&n,Y+ld,&inc);
-      norm = SlepcAbsEigenvalue(norm,tmp);
+      norm = SlepcAbsEigenvalue(norm,BLASnrm2_(&n,Y+ld,&inc));
+      cols = 2;
     }
 #endif
-    tmp = 1.0 / norm;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Y,&inc));
-#if !defined(PETSC_USE_COMPLEX)
-    if (iscomplex) PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Y+ld,&inc));
-#endif
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&cols,Y,&ld,&info));
+    SlepcCheckLapackInfo("lascl",info);
   }
 
   /* set output arguments */
@@ -171,10 +169,10 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n,ld,mout,info,inc = 1;
+  PetscBLASInt   n,ld,mout,info,inc=1,cols,zero=0;
   PetscBool      iscomplex;
-  PetscScalar    *X,*Y,*Z,*A = ds->mat[DS_MAT_A],tmp;
-  PetscReal      norm;
+  PetscScalar    *X,*Y,*Z,*A = ds->mat[DS_MAT_A];
+  PetscReal      norm,done=1.0;
   const char     *side,*back;
 
   PetscFunctionBegin;
@@ -207,18 +205,16 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   /* normalize eigenvectors */
   for (i=0;i<n;i++) {
     iscomplex = (i<n-1 && A[i+1+i*ld]!=0.0)? PETSC_TRUE: PETSC_FALSE;
+    cols = 1;
     norm = BLASnrm2_(&n,Z+i*ld,&inc);
 #if !defined(PETSC_USE_COMPLEX)
     if (iscomplex) {
-      tmp = BLASnrm2_(&n,Z+(i+1)*ld,&inc);
-      norm = SlepcAbsEigenvalue(norm,tmp);
+      norm = SlepcAbsEigenvalue(norm,BLASnrm2_(&n,Z+(i+1)*ld,&inc));
+      cols = 2;
     }
 #endif
-    tmp = 1.0 / norm;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Z+i*ld,&inc));
-#if !defined(PETSC_USE_COMPLEX)
-    if (iscomplex) PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Z+(i+1)*ld,&inc));
-#endif
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&cols,Z+i*ld,&ld,&info));
+    SlepcCheckLapackInfo("lascl",info);
     if (iscomplex) i++;
   }
   PetscFunctionReturn(0);

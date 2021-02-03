@@ -516,9 +516,9 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
 {
   PetscErrorCode ierr;
   PetscInt       i,j,k,l,n,ld;
-  PetscBLASInt   one=1,rA_;
-  PetscScalar    alpha,*A,*A_,*m,*h,nr0;
-  PetscReal      nr_o,nr,*ns_;
+  PetscBLASInt   info,one=1,zero=0,rA_,ld_;
+  PetscScalar    *A,*A_,*m,*h,nr0;
+  PetscReal      nr_o,nr,nr_abs,*ns_,done=1.0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -533,6 +533,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   if (cols > n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) PetscFunctionReturn(0);
   ierr = PetscBLASIntCast(n,&rA_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&A_);CHKERRQ(ierr);
   A = &A_[ld*l+l];
   ierr = DSAllocateWork_Private(ds,n+cols,ns?0:cols,0);CHKERRQ(ierr);
@@ -564,8 +565,9 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
     }
     ns_[i] = PetscSign(nr);
     /* A[i] <- A[i]/|nr| */
-    alpha = 1.0/PetscAbs(nr);
-    PetscStackCallBLAS("BLASscal",BLASscal_(&rA_,&alpha,&A[i*ld],&one));
+    nr_abs = PetscAbs(nr);
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&nr_abs,&done,&rA_,&one,A+i*ld,&ld_,&info));
+    SlepcCheckLapackInfo("lascl",info);
   }
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = DSRestoreArray(ds,mat,&A_);CHKERRQ(ierr);

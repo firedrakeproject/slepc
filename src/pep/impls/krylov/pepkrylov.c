@@ -19,10 +19,10 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,nq,deg=pep->nmat-1,lds,idxcpy=0,ldds,k,ld;
-  PetscScalar    *X,*er,*ei,*SS,*vals,*ivals,sone=1.0,szero=0.0,*yi,*yr,*tr,*ti,alpha,t,*S,*pS0;
-  PetscBLASInt   k_,nq_,lds_,one=1,ldds_;
+  PetscScalar    *X,*er,*ei,*SS,*vals,*ivals,sone=1.0,szero=0.0,*yi,*yr,*tr,*ti,alpha,*S,*pS0;
+  PetscBLASInt   k_,nq_,lds_,one=1,ldds_,cols,info,zero=0;
   PetscBool      flg;
-  PetscReal      norm,max,factor=1.0;
+  PetscReal      norm,max,t,factor=1.0,done=1.0;
   Vec            xr,xi,w[4];
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   Mat            S0,MS;
@@ -145,12 +145,10 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
             PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&alpha,S+j*ld,&lds_,yi,&one,&sone,SS+(i+1)*nq,&one));
           }
         }
-        t = 1.0/t;
-        PetscStackCallBLAS("BLASscal",BLASscal_(&nq_,&t,SS+i*nq,&one));
-        if (yi) {
-          PetscStackCallBLAS("BLASscal",BLASscal_(&nq_,&t,SS+(i+1)*nq,&one));
-          i++;
-        }
+        cols = yi? 2: 1;
+        PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&t,&done,&nq_,&cols,SS+i*nq,&nq_,&info));
+        SlepcCheckLapackInfo("lascl",info);
+        if (yi) i++;
       }
       ierr = PetscFree2(tr,ti);CHKERRQ(ierr);
       break;

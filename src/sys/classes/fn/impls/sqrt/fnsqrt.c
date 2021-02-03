@@ -114,14 +114,13 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
  */
 static PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
 {
-  PetscScalar        *M,*M2,*G,*X=A,*work,work1,alpha,sqrtnrm;
-  PetscScalar        szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
-  PetscReal          tol,Mres=0.0,nrm,rwork[1];
-  PetscBLASInt       N,i,it,*piv=NULL,info,lwork,query=-1;
-  const PetscBLASInt one=1;
-  PetscBool          converged=PETSC_FALSE;
-  PetscErrorCode     ierr;
-  unsigned int       ftz;
+  PetscScalar    *M,*M2,*G,*X=A,*work,work1,sqrtnrm;
+  PetscScalar    szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
+  PetscReal      tol,Mres=0.0,nrm,rwork[1],done=1.0;
+  PetscBLASInt   N,i,it,*piv=NULL,info,lwork,query=-1,one=1,zero=0;
+  PetscBool      converged=PETSC_FALSE;
+  PetscErrorCode ierr;
+  unsigned int   ftz;
 
   PetscFunctionBegin;
   N = n*n;
@@ -139,8 +138,8 @@ static PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBL
   nrm = LAPACKlange_("fro",&n,&n,M,&n,rwork);
   if (nrm>1.0) {
     sqrtnrm = PetscSqrtReal(nrm);
-    alpha = 1.0/nrm;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,M,&one));
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&nrm,&done,&N,&one,M,&N,&info));
+    SlepcCheckLapackInfo("lascl",info);
     tol *= nrm;
   }
   ierr = PetscInfo2(fn,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
