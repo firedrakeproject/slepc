@@ -132,14 +132,9 @@ class PETSc(package.Package):
           self.blaslapack_lib = v
         elif k == 'SCALAPACK_LIB':
           self.scalapack_lib = v
-        elif k == 'PYTHONPATH':
-          self.pythonpath = v
       f.close()
     except:
       self.log.Exit('Cannot process file ' + petscvariables)
-
-    if not hasattr(self,'pythonpath'):
-      self.pythonpath = os.environ['PYTHONPATH'] if 'PYTHONPATH' in os.environ else ''
 
     self.ind64 = False
     self.mpiuni = False

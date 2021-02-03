@@ -43,8 +43,10 @@ class Slepc4py(package.Package):
     # Check petsc4py module
     try:
       if not 'PYTHONPATH' in os.environ:
-        for p in petsc.pythonpath.split(os.path.pathsep):
-          sys.path.insert(0,p)
+        pythonpath = os.path.join(petsc.dir,'lib') if petsc.isinstall else os.path.join(petsc.dir,petsc.arch,'lib')
+        sys.path.insert(0,pythonpath)
+      else:
+        pythonpath = '${PYTHONPATH}'
       from petsc4py import PETSc
     except ImportError:
       self.log.Exit('Cannot import petsc4py, make sure your PYTHONPATH is set correctly')
@@ -58,7 +60,7 @@ class Slepc4py(package.Package):
     destdir  = os.path.join(slepc.prefixdir,'lib')
 
     # add makefile rules
-    envvars = 'PETSC_ARCH="" PYTHONPATH=%s SLEPC_DIR=${SLEPC_INSTALLDIR}' % petsc.pythonpath if slepc.isinstall else 'PYTHONPATH=%s' % petsc.pythonpath
+    envvars = 'PETSC_ARCH="" PYTHONPATH=%s SLEPC_DIR=${SLEPC_INSTALLDIR}' % pythonpath if slepc.isinstall else 'PYTHONPATH=%s' % pythonpath
     confdir = os.path.join(destdir,'slepc','conf')
     rule =  'slepc4pybuild:\n'
     rule += '\t@echo "*** Building slepc4py ***"\n'
@@ -97,7 +99,7 @@ class Slepc4py(package.Package):
 
     rule =  'slepc4pytest:\n'
     rule += '\t@echo "*** Testing slepc4py ***"\n'
-    rule += '\t@PYTHONPATH=%s:%s ${PYTHON} %s --verbose\n' % (destdir,petsc.pythonpath,os.path.join('src','binding','slepc4py','test','runtests.py'))
+    rule += '\t@PYTHONPATH=%s:%s ${PYTHON} %s --verbose\n' % (destdir,pythonpath,os.path.join('src','binding','slepc4py','test','runtests.py'))
     rule += '\t@echo "====================================="\n\n'
     slepcrules.write(rule)
 
