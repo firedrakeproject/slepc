@@ -118,13 +118,11 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       i,j,k,off;
-  PetscScalar    *A,*B,*W,*X,*U,*Y,*E,*work,*beta,norm;
-  PetscReal      *ca,*cb,*cg;
-  PetscBLASInt   info,n,ldd,nd,lrwork=0,lwork,one=1;
+  PetscScalar    *A,*B,*W,*X,*U,*Y,*E,*work,*beta;
+  PetscReal      *ca,*cb,*cg,norm,done=1.0;
+  PetscBLASInt   info,n,ld,ldd,nd,lrwork=0,lwork,one=1,zero=0,cols;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
-#else
-  PetscScalar    norm0;
 #endif
 
   PetscFunctionBegin;
@@ -142,6 +140,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
   ierr = PetscBLASIntCast(ds->n*ctx->d,&nd);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld*ctx->d,&ldd);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscBLASIntCast(nd+2*nd,&lwork);CHKERRQ(ierr);
@@ -234,27 +233,25 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
     ierr = PetscArraycpy(Y+j*ds->ld,U+ds->n*(ctx->d-1)+j*ldd,ds->n);CHKERRQ(ierr);
   }
   for (j=0;j<nd;j++) {
+    cols = 1;
+    norm = BLASnrm2_(&n,X+j*ds->ld,&one);
 #if !defined(PETSC_USE_COMPLEX)
     if (wi[j] != 0.0) {
-      norm = BLASnrm2_(&n,X+j*ds->ld,&one);
-      norm0 = BLASnrm2_(&n,X+(j+1)*ds->ld,&one);
-      norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+j*ds->ld,&one));
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+(j+1)*ds->ld,&one));
-      norm = BLASnrm2_(&n,Y+j*ds->ld,&one);
-      norm0 = BLASnrm2_(&n,Y+(j+1)*ds->ld,&one);
-      norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,Y+j*ds->ld,&one));
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,Y+(j+1)*ds->ld,&one));
-      j++;
-    } else
-#endif
-    {
-      norm = 1.0/BLASnrm2_(&n,X+j*ds->ld,&one);
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+j*ds->ld,&one));
-      norm = 1.0/BLASnrm2_(&n,Y+j*ds->ld,&one);
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,Y+j*ds->ld,&one));
+      norm = SlepcAbsEigenvalue(norm,BLASnrm2_(&n,X+(j+1)*ds->ld,&one));
+      cols = 2;
     }
+#endif
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&cols,X+j*ds->ld,&ld,&info));
+    SlepcCheckLapackInfo("lascl",info);
+    norm = BLASnrm2_(&n,Y+j*ds->ld,&one);
+#if !defined(PETSC_USE_COMPLEX)
+    if (wi[j] != 0.0) norm = SlepcAbsEigenvalue(norm,BLASnrm2_(&n,Y+(j+1)*ds->ld,&one));
+#endif
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&cols,Y+j*ds->ld,&ld,&info));
+    SlepcCheckLapackInfo("lascl",info);
+#if !defined(PETSC_USE_COMPLEX)
+    if (wi[j] != 0.0) j++;
+#endif
   }
   PetscFunctionReturn(0);
 }

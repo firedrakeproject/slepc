@@ -250,14 +250,13 @@ PetscErrorCode FNSqrtmDenmanBeavers(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
  */
 PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld,PetscBool inv)
 {
-  PetscScalar        *Y=A,*Yold,*Z,*Zold,*M,alpha,sqrtnrm;
-  PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sthree=3.0;
-  PetscReal          tol,Yres=0.0,nrm,rwork[1];
-  PetscBLASInt       i,it,N;
-  const PetscBLASInt one=1;
-  PetscBool          converged=PETSC_FALSE;
-  PetscErrorCode     ierr;
-  unsigned int       ftz;
+  PetscScalar    *Y=A,*Yold,*Z,*Zold,*M;
+  PetscScalar    szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sthree=3.0;
+  PetscReal      sqrtnrm,tol,Yres=0.0,nrm,rwork[1],done=1.0;
+  PetscBLASInt   info,i,it,N,one=1,zero=0;
+  PetscBool      converged=PETSC_FALSE;
+  PetscErrorCode ierr;
+  unsigned int   ftz;
 
   PetscFunctionBegin;
   N = n*n;
@@ -271,8 +270,8 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
   for (i=0;i<n;i++) Z[i+i*ld] -= 1.0;
   nrm = LAPACKlange_("fro",&n,&n,Z,&n,rwork);
   sqrtnrm = PetscSqrtReal(nrm);
-  alpha = 1.0/nrm;
-  PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,A,&one));
+  PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&nrm,&done,&N,&one,A,&N,&info));
+  SlepcCheckLapackInfo("lascl",info);
   tol *= nrm;
   ierr = PetscInfo2(fn,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
   ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
@@ -310,9 +309,9 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
   /* undo scaling */
   if (inv) {
     ierr = PetscArraycpy(A,Z,N);CHKERRQ(ierr);
-    sqrtnrm = 1.0/sqrtnrm;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&N,&sqrtnrm,A,&one));
-  } else PetscStackCallBLAS("BLASscal",BLASscal_(&N,&sqrtnrm,A,&one));
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&sqrtnrm,&done,&N,&one,A,&N,&info));
+  } else PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&done,&sqrtnrm,&N,&one,A,&N,&info));
+  SlepcCheckLapackInfo("lascl",info);
 
   ierr = PetscFree4(Yold,Z,Zold,M);CHKERRQ(ierr);
   ierr = SlepcResetFlushToZero(&ftz);CHKERRQ(ierr);

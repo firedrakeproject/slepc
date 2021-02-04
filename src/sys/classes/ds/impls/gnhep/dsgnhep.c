@@ -68,9 +68,9 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rn
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   n,ld,mout,info,*select,mm,inc = 1;
-  PetscScalar    *X,*Y,*Z,*A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B],tmp,fone=1.0,fzero=0.0;
-  PetscReal      norm;
+  PetscBLASInt   n,ld,mout,info,*select,mm,inc=1,cols=1,zero=0;
+  PetscScalar    *X,*Y,*Z,*A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B],fone=1.0,fzero=0.0;
+  PetscReal      norm,done=1.0;
   PetscBool      iscomplex = PETSC_FALSE;
   const char     *side;
 
@@ -119,15 +119,12 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rn
   norm = BLASnrm2_(&n,Z,&inc);
 #if !defined(PETSC_USE_COMPLEX)
   if (iscomplex) {
-    tmp = BLASnrm2_(&n,Z+ld,&inc);
-    norm = SlepcAbsEigenvalue(norm,tmp);
+    norm = SlepcAbsEigenvalue(norm,BLASnrm2_(&n,Z+ld,&inc));
+    cols = 2;
   }
 #endif
-  tmp = 1.0 / norm;
-  PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Z,&inc));
-#if !defined(PETSC_USE_COMPLEX)
-  if (iscomplex) PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Z+ld,&inc));
-#endif
+  PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&cols,Z,&ld,&info));
+  SlepcCheckLapackInfo("lascl",info);
 
   /* set output arguments */
   if (iscomplex) (*k)++;

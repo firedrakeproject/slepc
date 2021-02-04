@@ -155,10 +155,10 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
-  PetscScalar    norm,sigma,lambda,mu,re,re2,sone=1.0,zero=0.0;
-  PetscBLASInt   info,n,ld,lrwork=0,lwork,one=1;
+  PetscScalar    sigma,lambda,mu,re,re2,sone=1.0,szero=0.0;
+  PetscBLASInt   info,n,ld,lrwork=0,lwork,one=1,zero=0;
   PetscInt       it,pos,j,maxit=100,result;
-  PetscReal      tol;
+  PetscReal      norm,tol,done=1.0;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #else
@@ -209,9 +209,9 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* evaluate T and T' */
     ierr = DSNEPComputeMatrix(ds,lambda,PETSC_FALSE,DS_MAT_A);CHKERRQ(ierr);
     if (it) {
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,A,&ld,X,&one,&zero,X+ld,&one));
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,A,&ld,X,&one,&szero,X+ld,&one));
       norm = BLASnrm2_(&n,X+ld,&one);
-      if (PetscRealPart(norm)/PetscAbsScalar(lambda)<=tol) break;
+      if (norm/PetscAbsScalar(lambda)<=tol) break;
     }
     ierr = DSNEPComputeMatrix(ds,lambda,PETSC_TRUE,DS_MAT_B);CHKERRQ(ierr);
 
@@ -258,8 +258,8 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     mu = alpha[pos]/beta[pos];
     ierr = PetscArraycpy(X,W+pos*ld,n);CHKERRQ(ierr);
     norm = BLASnrm2_(&n,X,&one);
-    norm = 1.0/norm;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X,&one));
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&one,X,&n,&info));
+    SlepcCheckLapackInfo("lascl",info);
 
     /* correct eigenvalue approximation */
     lambda = lambda - mu;
