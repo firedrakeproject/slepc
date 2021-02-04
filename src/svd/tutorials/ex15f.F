@@ -92,7 +92,7 @@
       call SVDCreate(PETSC_COMM_WORLD,svd,ierr)
 
 !     ** Set operator
-      call SVDSetOperator(svd,A,ierr)
+      call SVDSetOperators(svd,A,PETSC_NULL_MAT,ierr)
 
 !     ** Use thick-restart Lanczos as default solver
       call SVDSetType(svd,SVDTRLANCZOS,ierr)

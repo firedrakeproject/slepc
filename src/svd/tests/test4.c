@@ -77,10 +77,10 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
 
   /* test some interface functions */
-  ierr = SVDGetOperator(svd,&B);CHKERRQ(ierr);
+  ierr = SVDGetOperators(svd,&B,NULL);CHKERRQ(ierr);
   ierr = MatView(B,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   ierr = SVDSetConvergenceTest(svd,SVD_CONV_ABS);CHKERRQ(ierr);
   ierr = SVDSetStoppingTest(svd,SVD_STOP_BASIC);CHKERRQ(ierr);

@@ -69,7 +69,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
   ierr = SVDSetType(svd,SVDPRIMME);CHKERRQ(ierr);
   ierr = SVDPRIMMESetBlockSize(svd,4);CHKERRQ(ierr);
   ierr = SVDPRIMMESetMethod(svd,SVD_PRIMME_HYBRID);CHKERRQ(ierr);

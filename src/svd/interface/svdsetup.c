@@ -14,55 +14,66 @@
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 /*@
-   SVDSetOperator - Set the matrix associated with the singular value problem.
+   SVDSetOperators - Set the matrices associated with the singular value problem.
 
    Collective on svd
 
    Input Parameters:
 +  svd - the singular value solver context
--  A  - the matrix associated with the singular value problem
+.  A   - the matrix associated with the singular value problem
+-  B   - the second matrix in the case of GSVD
 
    Level: beginner
 
-.seealso: SVDSolve(), SVDGetOperator()
+.seealso: SVDSolve(), SVDGetOperators()
 @*/
-PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
+PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
-  PetscCheckSameComm(svd,1,mat,2);
-  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
-  if (svd->state) { ierr = SVDReset(svd);CHKERRQ(ierr); }
-  else { ierr = MatDestroy(&svd->OP);CHKERRQ(ierr); }
-  svd->OP = mat;
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
+  PetscCheckSameComm(svd,1,A,2);
+  if (B) PetscCheckSameComm(svd,1,B,3);
+
+  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+  if (B) { ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr); }
+  if (svd->state) {
+    ierr = SVDReset(svd);CHKERRQ(ierr);
+  } else {
+    ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->OPb);CHKERRQ(ierr);
+  }
+  svd->OP  = A;
+  svd->OPb = B;
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
 /*@
-   SVDGetOperator - Get the matrix associated with the singular value problem.
+   SVDGetOperators - Get the matrices associated with the singular value problem.
 
-   Not collective, though parallel Mats are returned if the SVD is parallel
+   Collective on svd
 
    Input Parameter:
 .  svd - the singular value solver context
 
    Output Parameters:
-.  A    - the matrix associated with the singular value problem
++  A  - the matrix associated with the singular value problem
+-  B  - the second matrix in the case of GSVD
 
-   Level: advanced
+   Level: intermediate
 
-.seealso: SVDSolve(), SVDSetOperator()
+.seealso: SVDSolve(), SVDSetOperators()
 @*/
-PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
+PetscErrorCode SVDGetOperators(SVD svd,Mat *A,Mat *B)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(A,2);
-  *A = svd->OP;
+  if (A) *A = svd->OP;
+  if (B) *B = svd->OPb;
   PetscFunctionReturn(0);
 }
 
@@ -108,7 +119,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
 
   /* check matrix */
-  if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first");
+  if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");
 
   /* determine how to handle the transpose */
   expltrans = PETSC_TRUE;

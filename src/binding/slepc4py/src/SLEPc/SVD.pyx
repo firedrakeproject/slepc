@@ -426,30 +426,38 @@ cdef class SVD(Object):
         cdef SlepcBV UBV = U.bv if U is not None else <SlepcBV>NULL
         CHKERR( SVDSetBV(self.svd, VBV, UBV) )
 
-    def getOperator(self):
+    def getOperators(self):
         """
-        Gets the matrix associated with the singular value problem.
+        Gets the matrices associated with the singular value problem.
 
         Returns
         -------
         A: Mat
            The matrix associated with the singular value problem.
+        B: Mat
+           The second matrix in the case of GSVD.
         """
         cdef Mat A = Mat()
-        CHKERR( SVDGetOperator(self.svd, &A.mat) )
+        cdef Mat B = Mat()
+        CHKERR( SVDGetOperators(self.svd, &A.mat, &B.mat) )
         PetscINCREF(A.obj)
-        return A
+        PetscINCREF(B.obj)
+        return (A, B)
 
-    def setOperator(self, Mat A):
+    def setOperators(self, Mat A, Mat B=None):
         """
-        Sets the matrix associated with the singular value problem.
+        Sets the matrices associated with the singular value problem.
 
         Parameters
         ----------
         A: Mat
            The matrix associated with the singular value problem.
+        B: Mat, optional
+           The second matrix in the case of GSVD; if not provided,
+           a usual SVD is assumed.
         """
-        CHKERR( SVDSetOperator(self.svd, A.mat) )
+        cdef PetscMat Bmat = B.mat if B is not None else <PetscMat>NULL
+        CHKERR( SVDSetOperators(self.svd, A.mat, Bmat) )
 
     #
 
@@ -820,6 +828,8 @@ cdef class SVD(Object):
         """
         cdef PetscBool tval = asBool(flag)
         CHKERR( SVDLanczosSetOneSide(self.svd, tval) )
+
+    setOperator = setOperators  # backward compatibility
 
     #
 

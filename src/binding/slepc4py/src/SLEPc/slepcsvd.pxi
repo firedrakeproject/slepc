@@ -39,8 +39,8 @@ cdef extern from * nogil:
     int SVDSetBV(SlepcSVD,SlepcBV,SlepcBV)
     int SVDGetBV(SlepcSVD,SlepcBV*,SlepcBV*)
 
-    int SVDSetOperator(SlepcSVD,PetscMat)
-    int SVDGetOperator(SlepcSVD,PetscMat*)
+    int SVDSetOperators(SlepcSVD,PetscMat,PetscMat)
+    int SVDGetOperators(SlepcSVD,PetscMat*,PetscMat*)
 
     int SVDSetInitialSpaces(SlepcSVD,PetscInt,PetscVec*,PetscInt,PetscVec*)
 

@@ -116,8 +116,10 @@ SLEPC_EXTERN PetscErrorCode SVDSetDS(SVD,DS);
 SLEPC_EXTERN PetscErrorCode SVDGetDS(SVD,DS*);
 SLEPC_EXTERN PetscErrorCode SVDSetType(SVD,SVDType);
 SLEPC_EXTERN PetscErrorCode SVDGetType(SVD,SVDType*);
-SLEPC_EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
-SLEPC_EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
+SLEPC_EXTERN PetscErrorCode SVDSetOperators(SVD,Mat,Mat);
+PETSC_DEPRECATED_FUNCTION("Use SVDSetOperators()") PETSC_STATIC_INLINE PetscErrorCode SVDSetOperator(SVD svd,Mat A) {return SVDSetOperators(svd,A,NULL);}
+SLEPC_EXTERN PetscErrorCode SVDGetOperators(SVD,Mat*,Mat*);
+PETSC_DEPRECATED_FUNCTION("Use SVDGetOperators()") PETSC_STATIC_INLINE PetscErrorCode SVDGetOperator(SVD svd,Mat *A) {return SVDGetOperators(svd,A,NULL);}
 SLEPC_EXTERN PetscErrorCode SVDSetInitialSpaces(SVD,PetscInt,Vec[],PetscInt,Vec[]);
 PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") PETSC_STATIC_INLINE PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt nr,Vec *isr) {return SVDSetInitialSpaces(svd,nr,isr,0,NULL);}
 PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") PETSC_STATIC_INLINE PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt nl,Vec *isl) {return SVDSetInitialSpaces(svd,0,NULL,nl,isl);}

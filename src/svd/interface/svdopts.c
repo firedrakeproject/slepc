@@ -39,7 +39,7 @@
 
    Level: advanced
 
-.seealso: SVDGetImplicitTranspose(), SVDSolve(), SVDSetOperator()
+.seealso: SVDGetImplicitTranspose(), SVDSolve(), SVDSetOperators()
 @*/
 PetscErrorCode SVDSetImplicitTranspose(SVD svd,PetscBool impl)
 {
@@ -67,7 +67,7 @@ PetscErrorCode SVDSetImplicitTranspose(SVD svd,PetscBool impl)
 
    Level: advanced
 
-.seealso: SVDSetImplicitTranspose(), SVDSolve(), SVDSetOperator()
+.seealso: SVDSetImplicitTranspose(), SVDSolve(), SVDSetOperators()
 @*/
 PetscErrorCode SVDGetImplicitTranspose(SVD svd,PetscBool *impl)
 {

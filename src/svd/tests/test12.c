@@ -97,7 +97,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
   ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
   ierr = SVDSetTolerances(svd,PETSC_DEFAULT,1000);CHKERRQ(ierr);
   ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);

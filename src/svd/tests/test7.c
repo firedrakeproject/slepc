@@ -88,7 +88,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
   ierr = SVDSetType(svd,SVDCYCLIC);CHKERRQ(ierr);
   ierr = SVDCyclicSetEPS(svd,eps);CHKERRQ(ierr);
   ierr = SVDCyclicSetExplicitMatrix(svd,PETSC_TRUE);CHKERRQ(ierr);

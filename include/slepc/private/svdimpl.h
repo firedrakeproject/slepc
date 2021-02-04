@@ -54,7 +54,7 @@ typedef enum { SVD_FEATURE_CONVERGENCE=16,  /* convergence test selected by user
 struct _p_SVD {
   PETSCHEADER(struct _SVDOps);
   /*------------------------- User parameters ---------------------------*/
-  Mat            OP;               /* problem matrix */
+  Mat            OP,OPb;           /* problem matrices */
   PetscInt       max_it;           /* max iterations */
   PetscInt       nsv;              /* number of requested values */
   PetscInt       ncv;              /* basis size */
