@@ -111,7 +111,7 @@ int main(int argc,char **argv)
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -terse
       test:
          suffix: 1
-         args: -svd_nsv 4
+         args: -svd_nsv 4 -svd_standard
       test:
          suffix: 1_scalapack
          nsize: {{1 2 3}}

@@ -121,6 +121,19 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* check matrix */
   if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");
 
+  /* Set default problem type */
+  if (!svd->problem_type) {
+    if (svd->OPb) {
+      ierr = SVDSetProblemType(svd,SVD_GENERALIZED);CHKERRQ(ierr);
+    } else {
+      ierr = SVDSetProblemType(svd,SVD_STANDARD);CHKERRQ(ierr);
+    }
+  } else if (!svd->OPb && svd->isgeneralized) {
+    ierr = PetscInfo(svd,"Problem type set as generalized but no matrix B was provided; reverting to a standard singular value problem\n");CHKERRQ(ierr);
+    svd->isgeneralized = PETSC_FALSE;
+    svd->problem_type = SVD_STANDARD;
+  } else if (svd->OPb && !svd->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type does not match the number of matrices");
+
   /* determine how to handle the transpose */
   expltrans = PETSC_TRUE;
   if (svd->impltrans) expltrans = PETSC_FALSE;

@@ -109,6 +109,7 @@ PetscReal error;
 
 SVDCreate( PETSC_COMM_WORLD, &svd );
 SVDSetOperators( svd, A, NULL );
+SVDSetProblemType( svd, SVD_STANDARD );
 SVDSetFromOptions( svd );
 SVDSolve( svd );
 SVDGetConverged( svd, &nconv );
@@ -121,7 +122,7 @@ SVDDestroy( &svd );
 \caption{\label{fig:ex-svd}Example code for basic solution with \ident{SVD}.}
 \end{figure}
 
-The basic steps for computing a partial SVD with \slepc are illustrated in Figure \ref{fig:ex-svd}. The steps are more or less the same as those described in chapter \ref{cap:eps} for the eigenvalue problem. First, the solver context is created with \ident{SVDCreate}. Then the problem matrices have to be specified with \ident{SVDSetOperators}. Then, a call to \ident{SVDSolve} invokes the actual solver. After that, \ident{SVDGetConverged} is used to determine how many solutions have been computed, which are retrieved with \ident{SVDGetSingularTriplet}. Finally, \ident{SVDDestroy} gets rid of the object.
+The basic steps for computing a partial SVD with \slepc are illustrated in Figure \ref{fig:ex-svd}. The steps are more or less the same as those described in chapter \ref{cap:eps} for the eigenvalue problem. First, the solver context is created with \ident{SVDCreate}. Then the problem matrices have to be specified with \ident{SVDSetOperators} and the type of problem can be selected via \ident{SVDSetProblemType}. Then, a call to \ident{SVDSolve} invokes the actual solver. After that, \ident{SVDGetConverged} is used to determine how many solutions have been computed, which are retrieved with \ident{SVDGetSingularTriplet}. Finally, \ident{SVDDestroy} gets rid of the object.
 
 If one compares this example code with the \ident{EPS} example in Figure \ref{fig:ex-eps}, the most outstanding differences are the following:
 \begin{itemize}
@@ -132,7 +133,7 @@ If one compares this example code with the \ident{EPS} example in Figure \ref{fi
 %---------------------------------------------------
 \section{Defining the Problem}
 
-Defining the problem consists in specifying the problem matrix, $A$, and the portion of the spectrum to be computed. If the GSVD is to be computed instead of the SVD, then a second matrix must be passed, $B$. In the case of \texttt{SVD}, the number of possibilities will be much more limited than in the case of \texttt{EPS}.
+Defining the problem consists in specifying the problem matrix $A$ (and also a second matrix $B$ in case of the GSVD), the problem type, and the portion of the spectrum to be computed.
 
 The problem matrices are provided with the following function
 	\findex{SVDSetOperators}
@@ -140,6 +141,23 @@ The problem matrices are provided with the following function
 	SVDSetOperators(SVD svd,Mat A,Mat B);
 	\end{Verbatim}
 where \texttt{A} can be any matrix, not necessarily square, stored in any allowed \petsc format including the matrix-free mechanism (see \S\ref{sec:supported} for a detailed discussion), and \texttt{B} is generally set to \texttt{NULL} except in the case of computing the GSVD.
+
+\begin{table}[t]
+\centering
+{\small \begin{tabular}{lll}
+Problem Type              & \ident{SVDProblemType}    & Command line key\\\hline
+Standard SVD              & \texttt{SVD\_STANDARD}    & \texttt{-svd\_standard}\\
+Generalized SVD (GSVD)    & \texttt{SVD\_GENERALIZED} & \texttt{-svd\_generalized}\\\hline
+\end{tabular} }
+\caption{\label{tab:ptypesvd}Problem types considered in \ident{SVD}.}
+\end{table}
+
+The problem type can be specified with the function
+	\findex{SVDSetProblemType}
+	\begin{Verbatim}[fontsize=\small]
+	SVDSetProblemType(SVD svd,SVDProblemType type);
+	\end{Verbatim}
+Note that in \ident{SVD} calling it is currently not strictly required, since if only one matrix is passed to \ident{SVDSetOperators} the problem type will default to a standard SVD, while if two matrices are passed then it defaults to GSVD. Table~\ref{tab:ptypesvd} lists the supported problem types.
 
 It is important to note that all SVD solvers in \slepc make use of both $A$ and $A^*$, as suggested by the description in \S\ref{sec:svd}. $A^*$ is not explicitly passed as an argument to \ident{SVDSetOperators}, therefore it will have to stem from $A$. There are two possibilities for this: either $A$ is transposed explicitly and $A^*$ is created as a distinct matrix, or $A^*$ is handled implicitly via \ident{MatMultTranspose} (or \ident{MatMultHermitianTranspose} in the complex case) operations whenever a matrix-vector product is required in the algorithm. The default is to build $A^*$ explicitly, but this behavior can be changed with
 	\findex{SVDSetImplicitTranspose}

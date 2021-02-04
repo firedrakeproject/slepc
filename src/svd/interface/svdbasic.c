@@ -59,6 +59,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->conv             = SVD_CONV_REL;
   svd->stop             = SVD_STOP_BASIC;
   svd->which            = SVD_LARGEST;
+  svd->problem_type     = (SVDProblemType)0;
   svd->impltrans        = PETSC_FALSE;
   svd->trackall         = PETSC_FALSE;
 
@@ -92,6 +93,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->nconv            = 0;
   svd->its              = 0;
   svd->leftbasis        = PETSC_FALSE;
+  svd->isgeneralized    = PETSC_FALSE;
   svd->reason           = SVD_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(svd,&svd->sc);CHKERRQ(ierr);

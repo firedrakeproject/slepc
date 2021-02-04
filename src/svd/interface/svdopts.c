@@ -664,6 +664,11 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
       ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsBoolGroupBegin("-svd_standard","Singular value decomposition (SVD)","SVDSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetProblemType(svd,SVD_STANDARD);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-svd_generalized","Generalized singular value decomposition (GSVD)","SVDSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetProblemType(svd,SVD_GENERALIZED);CHKERRQ(ierr); }
+
     ierr = PetscOptionsBool("-svd_implicittranspose","Handle matrix transpose implicitly","SVDSetImplicitTranspose",svd->impltrans,&val,&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetImplicitTranspose(svd,val);CHKERRQ(ierr); }
 
@@ -747,6 +752,96 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = BVSetFromOptions(svd->U);CHKERRQ(ierr);
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(svd->ds);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDSetProblemType - Specifies the type of the singular value problem.
+
+   Logically Collective on svd
+
+   Input Parameters:
++  svd  - the singular value solver context
+-  type - a known type of singular value problem
+
+   Options Database Keys:
++  -svd_standard    - standard singular value decomposition (SVD)
+-  -svd_generalized - generalized singular value problem (GSVD)
+
+   Notes:
+   The GSVD requires that two matrices have been passed via SVDSetOperators().
+
+   Level: intermediate
+
+.seealso: SVDSetOperators(), SVDSetType(), SVDGetProblemType(), SVDProblemType
+@*/
+PetscErrorCode SVDSetProblemType(SVD svd,SVDProblemType type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(svd,type,2);
+  if (type == svd->problem_type) PetscFunctionReturn(0);
+  switch (type) {
+    case SVD_STANDARD:
+      svd->isgeneralized = PETSC_FALSE;
+      break;
+    case SVD_GENERALIZED:
+      svd->isgeneralized = PETSC_TRUE;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Unknown singular value problem type");
+  }
+  svd->problem_type = type;
+  svd->state = SVD_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDGetProblemType - Gets the problem type from the SVD object.
+
+   Not Collective
+
+   Input Parameter:
+.  svd - the singular value solver context
+
+   Output Parameter:
+.  type - the problem type
+
+   Level: intermediate
+
+.seealso: SVDSetProblemType(), SVDProblemType
+@*/
+PetscErrorCode SVDGetProblemType(SVD svd,SVDProblemType *type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(type,2);
+  *type = svd->problem_type;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDIsGeneralized - Ask if the SVD object corresponds to a generalized
+   singular value problem.
+
+   Not collective
+
+   Input Parameter:
+.  svd - the singular value solver context
+
+   Output Parameter:
+.  is - the answer
+
+   Level: intermediate
+
+.seealso: SVDIsHermitian(), SVDIsPositive()
+@*/
+PetscErrorCode SVDIsGeneralized(SVD svd,PetscBool* is)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidBoolPointer(is,2);
+  *is = svd->isgeneralized;
   PetscFunctionReturn(0);
 }
 

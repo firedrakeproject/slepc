@@ -26,6 +26,16 @@ class SVDType(object):
     ELEMENTAL = S_(SVDELEMENTAL)
     PRIMME    = S_(SVDPRIMME)
 
+class SVDProblemType(object):
+    """
+    SVD problem type
+
+    - `STANDARD`:    Standard SVD.
+    - `GENERALIZED`: Generalized singular value decomposition (GSVD).
+    """
+    STANDARD    = SVD_STANDARD
+    GENERALIZED = SVD_GENERALIZED
+
 class SVDErrorType(object):
     """
     SVD error type to assess accuracy of computed solutions
@@ -72,6 +82,7 @@ cdef class SVD(Object):
     """
 
     Type            = SVDType
+    ProblemType     = SVDProblemType
     ErrorType       = SVDErrorType
     Which           = SVDWhich
     ConvergedReason = SVDConvergedReason
@@ -225,6 +236,45 @@ cdef class SVD(Object):
         option.
         """
         CHKERR( SVDSetFromOptions(self.svd) )
+
+    def getProblemType(self):
+        """
+        Gets the problem type from the SVD object.
+
+        Returns
+        -------
+        problem_type: `SVD.ProblemType` enumerate
+                      The problem type that was previously set.
+        """
+        cdef SlepcSVDProblemType val = SVD_STANDARD
+        CHKERR( SVDGetProblemType(self.svd, &val) )
+        return val
+
+    def setProblemType(self, problem_type):
+        """
+        Specifies the type of the singular value problem.
+
+        Parameters
+        ----------
+        problem_type: `SVD.ProblemType` enumerate
+               The problem type to be set.
+        """
+        cdef SlepcSVDProblemType val = problem_type
+        CHKERR( SVDSetProblemType(self.svd, val) )
+
+    def isGeneralized(self):
+        """
+        Tells whether the SVD object corresponds to a generalized
+        singular value problem.
+
+        Returns
+        -------
+        flag: boolean
+              True if two matrices were set with `setOperators()`.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( SVDIsGeneralized(self.svd, &tval) )
+        return toBool(tval)
 
     #
 
@@ -866,6 +916,7 @@ cdef class SVD(Object):
 # -----------------------------------------------------------------------------
 
 del SVDType
+del SVDProblemType
 del SVDErrorType
 del SVDWhich
 del SVDConvergedReason

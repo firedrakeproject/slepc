@@ -64,6 +64,7 @@ struct _p_SVD {
   SVDConv        conv;             /* convergence test */
   SVDStop        stop;             /* stopping test */
   SVDWhich       which;            /* which singular values are computed */
+  SVDProblemType problem_type;     /* which kind of problem to be solved */
   PetscBool      impltrans;        /* implicit transpose mode */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
@@ -100,6 +101,7 @@ struct _p_SVD {
   PetscInt       nconv;            /* number of converged values */
   PetscInt       its;              /* iteration counter */
   PetscBool      leftbasis;        /* if U is filled by the solver */
+  PetscBool      isgeneralized;
   SVDConvergedReason reason;
 };
 
@@ -118,6 +120,19 @@ struct _p_SVD {
   } while (0)
 
 #endif
+
+/*
+    Macros to check settings at SVDSetUp()
+*/
+
+/* SVDCheckStandard: the problem is not GSVD */
+#define SVDCheckStandardCondition(svd,condition,msg) \
+  do { \
+    if (condition) { \
+      if ((svd)->isgeneralized) SETERRQ2(PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(svd))->type_name,(msg)); \
+    } \
+  } while (0)
+#define SVDCheckStandard(svd) SVDCheckStandardCondition(svd,PETSC_TRUE,"")
 
 /* Check for unsupported features */
 #define SVDCheckUnsupportedCondition(svd,mask,condition,msg) \

@@ -151,6 +151,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   primme_svds_params *primme = &ops->primme;
 
   PetscFunctionBegin;
+  SVDCheckStandard(svd);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)svd),&numProcs);CHKERRMPI(ierr);
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&procID);CHKERRMPI(ierr);
 

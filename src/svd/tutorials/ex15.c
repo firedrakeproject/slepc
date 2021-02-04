@@ -65,9 +65,10 @@ int main(int argc,char **argv)
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
 
   /*
-     Set operator
+     Set operators and problem type
   */
   ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
+  ierr = SVDSetProblemType(svd,SVD_STANDARD);CHKERRQ(ierr);
 
   /*
      Use thick-restart Lanczos as default solver
