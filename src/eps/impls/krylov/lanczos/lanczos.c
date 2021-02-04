@@ -51,6 +51,8 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION);
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE);
 
+  if (lanczos->reorthog == (EPSLanczosReorthogType)-1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"You should explicitly provide the reorthogonalization type, e.g., -eps_lanczos_reorthog local\n          ...   Note that the EPSLANCZOS solver is *NOT RECOMMENDED* for general use, because it uses\n          ...   explicit restart which typically has slow convergence. The recommended solver is\n          ...   EPSKRYLOVSCHUR (the default), which implements Lanczos with thick restart in the\n          ...   case of symmetric/Hermitian problems");
+
   ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   if (lanczos->reorthog != EPS_LANCZOS_REORTHOG_FULL) {
@@ -703,12 +705,13 @@ PetscErrorCode EPSSetFromOptions_Lanczos(PetscOptionItems *PetscOptionsObject,EP
   PetscErrorCode         ierr;
   EPS_LANCZOS            *lanczos = (EPS_LANCZOS*)eps->data;
   PetscBool              flg;
-  EPSLanczosReorthogType reorthog;
+  EPSLanczosReorthogType reorthog=EPS_LANCZOS_REORTHOG_LOCAL,curval;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS Lanczos Options");CHKERRQ(ierr);
 
-    ierr = PetscOptionsEnum("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",EPSLanczosReorthogTypes,(PetscEnum)lanczos->reorthog,(PetscEnum*)&reorthog,&flg);CHKERRQ(ierr);
+    curval = (lanczos->reorthog==-1)? EPS_LANCZOS_REORTHOG_LOCAL: lanczos->reorthog;
+    ierr = PetscOptionsEnum("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",EPSLanczosReorthogTypes,(PetscEnum)curval,(PetscEnum*)&reorthog,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSLanczosSetReorthog(eps,reorthog);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
@@ -847,6 +850,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
+  ctx->reorthog = (EPSLanczosReorthogType)-1;
 
   eps->useds = PETSC_TRUE;
 

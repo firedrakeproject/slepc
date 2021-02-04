@@ -754,7 +754,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     }
   }
   if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = PetscObjectTypeCompare((PetscObject)nep->A[0],MATSHELL,&shell);CHKERRQ(ierr);
+  ierr = MatIsShell(nep->A[0],&shell);CHKERRQ(ierr);
   maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat-1,ctx->shifts[i],coeffs);CHKERRQ(ierr);
@@ -801,7 +801,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   ierr = PetscMalloc2(ctx->ddmaxit+1,&b,ctx->ddmaxit+1,&coeffs);CHKERRQ(ierr);
   T = nep->function;
   ierr = NEPComputeFunction(nep,s[0],T,T);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)T,MATSHELL,&shell);CHKERRQ(ierr);
+  ierr = MatIsShell(T,&shell);CHKERRQ(ierr);
   maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   if (!shell) {
     ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[0]);CHKERRQ(ierr);

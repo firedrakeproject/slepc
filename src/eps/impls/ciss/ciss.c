@@ -899,7 +899,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->V);CHKERRQ(ierr);
 
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)A,MATSHELL,&flg);CHKERRQ(ierr);
+  ierr = MatIsShell(A,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell is not supported in this solver");
 
   if (!ctx->usest_set) ctx->usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;

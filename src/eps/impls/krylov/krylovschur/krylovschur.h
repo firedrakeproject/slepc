@@ -16,7 +16,6 @@
 
 SLEPC_INTERN PetscErrorCode EPSReset_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
-SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS);

@@ -127,10 +127,15 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -eps_type {{krylovschur arnoldi lanczos gd jd rqcg lobpcg lapack}} -terse
+   testset:
       requires: !single
+      output_file: output/test28_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur arnoldi gd jd rqcg lobpcg lapack}} -terse
+      test:
+         suffix: 1_lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog local -terse
 
    test:
       suffix: 2

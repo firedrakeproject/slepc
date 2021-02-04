@@ -173,7 +173,10 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
       output_file: output/test8_1.out
       test:
          suffix: 1
-         args: -eps_type {{power subspace arnoldi lanczos}}
+         args: -eps_type {{power subspace arnoldi}}
+      test:
+         suffix: 1_lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog local
       test:
          suffix: 1_lapack
          args: -eps_type lapack
@@ -204,7 +207,10 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
       output_file: output/test8_2.out
       test:
          suffix: 2
-         args: -eps_type {{rqcg lobpcg lanczos}}
+         args: -eps_type {{rqcg lobpcg}}
+      test:
+         suffix: 2_lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog local
       test:
          suffix: 2_arpack
          args: -eps_type arpack -eps_ncv 6
@@ -222,8 +228,11 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
       args: -eps_nev 12 -eps_mpd 9 -eps_smallest_real -eps_max_it 1000
       output_file: output/test8_3.out
       test:
-         suffix: 3
-         args: -eps_type {{rqcg lanczos}}
+         suffix: 3_rqcg
+         args: -eps_type rqcg
+      test:
+         suffix: 3_lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog local
       test:
          suffix: 3_lobpcg
          args: -eps_type lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0 -st_ksp_type preonly -st_pc_type jacobi
