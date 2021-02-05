@@ -268,15 +268,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSDestroy_Subspace(EPS eps)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
   PetscFunctionBegin;
@@ -286,7 +277,6 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
   eps->ops->solve          = EPSSolve_Subspace;
   eps->ops->setup          = EPSSetUp_Subspace;
   eps->ops->setupsort      = EPSSetUpSort_Default;
-  eps->ops->destroy        = EPSDestroy_Subspace;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);
