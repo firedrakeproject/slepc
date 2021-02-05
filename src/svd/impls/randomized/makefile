@@ -10,10 +10,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = rsvd.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcsvd
-DIRS     = cross cyclic lapack lanczos randomized trlanczos external
-LOCDIR   = src/svd/impls/
+DIRS     =
 MANSEC   = SVD
+LOCDIR   = src/svd/impls/randomized/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

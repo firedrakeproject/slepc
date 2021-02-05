@@ -7,6 +7,7 @@
 - `SVD`: support for the GSVD added. This implies changes in the interface, e.g.,
   `SVDSetOperators()` should be used instead `SVDSetOperator()`. New functions have
   been added such as `SVDSetProblemType()` and `SVDIsGeneralized()`.
+- New solver `SVDRANDOMIZED`.
 - Import SLEPc4py sources into SLEPc source tree.
 - New tolerance to check a definite inner product, see `BVSetDefiniteTolerance()`.
 - New function `STSetPreconditionerMat()` to pass the matrix for building the

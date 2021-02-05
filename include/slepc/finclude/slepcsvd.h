@@ -27,14 +27,15 @@
 #define SVDStop            PetscEnum
 #define SVDPRIMMEMethod    PetscEnum
 
-#define SVDCROSS     'cross'
-#define SVDCYCLIC    'cyclic'
-#define SVDLAPACK    'lapack'
-#define SVDLANCZOS   'lanczos'
-#define SVDTRLANCZOS 'trlanczos'
-#define SVDSCALAPACK 'scalapack'
-#define SVDELEMENTAL 'elemental'
-#define SVDPRIMME    'primme'
+#define SVDCROSS      'cross'
+#define SVDCYCLIC     'cyclic'
+#define SVDLAPACK     'lapack'
+#define SVDLANCZOS    'lanczos'
+#define SVDTRLANCZOS  'trlanczos'
+#define SVDRANDOMIZED 'randomized'
+#define SVDSCALAPACK  'scalapack'
+#define SVDELEMENTAL  'elemental'
+#define SVDPRIMME     'primme'
 
 #endif
 
