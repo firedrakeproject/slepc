@@ -101,6 +101,7 @@ struct _p_SVD {
   PetscInt       nconv;            /* number of converged values */
   PetscInt       its;              /* iteration counter */
   PetscBool      leftbasis;        /* if U is filled by the solver */
+  PetscBool      swapped;          /* the U and V bases have been swapped (M<N) */
   PetscBool      isgeneralized;
   SVDConvergedReason reason;
 };

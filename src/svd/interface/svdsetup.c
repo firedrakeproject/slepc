@@ -30,6 +30,8 @@
 PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
 {
   PetscErrorCode ierr;
+  PetscInt       Ma,Na,Mb,Nb,ma,na,mb,nb,M0,N0,m0,n0;
+  PetscBool      samesize=PETSC_TRUE;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -38,13 +40,35 @@ PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
   PetscCheckSameComm(svd,1,A,2);
   if (B) PetscCheckSameComm(svd,1,B,3);
 
+  /* Check matrix sizes */
+  ierr = MatGetSize(A,&Ma,&Na);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&ma,&na);CHKERRQ(ierr);
+  if (svd->OP) {
+    ierr = MatGetSize(svd->OP,&M0,&N0);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(svd->OP,&m0,&n0);CHKERRQ(ierr);
+    if (M0!=Ma || N0!=Na || m0!=ma || n0!=na) samesize = PETSC_FALSE;
+  }
+  if (B) {
+    ierr = MatGetSize(B,&Mb,&Nb);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(B,&mb,&nb);CHKERRQ(ierr);
+    if (Na!=Nb) SETERRQ2(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different number of columns in A (%D) and B (%D)",Na,Nb);
+    if (na!=nb) SETERRQ2(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different local column size in A (%D) and B (%D)",na,nb);
+    if (svd->OPb) {
+      ierr = MatGetSize(svd->OPb,&M0,&N0);CHKERRQ(ierr);
+      ierr = MatGetLocalSize(svd->OPb,&m0,&n0);CHKERRQ(ierr);
+      if (M0!=Mb || N0!=Nb || m0!=mb || n0!=nb) samesize = PETSC_FALSE;
+    }
+  }
+
   ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-  if (B) { ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr); }
-  if (svd->state) {
+  if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
+  if (svd->state && !samesize) {
     ierr = SVDReset(svd);CHKERRQ(ierr);
   } else {
     ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
     ierr = MatDestroy(&svd->OPb);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   }
   svd->OP  = A;
   svd->OPb = B;
@@ -170,10 +194,16 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
 
   if (M<N) {
-    /* swap initial vectors and basis vectors */
-    T=svd->ISL; svd->ISL=svd->IS; svd->IS=T;
-    k=svd->ninil; svd->ninil=svd->nini; svd->nini=k;
-    bv=svd->V; svd->V=svd->U; svd->U=bv;
+    /* swap initial vectors */
+    if (svd->nini || svd->ninil) {
+      T=svd->ISL; svd->ISL=svd->IS; svd->IS=T;
+      k=svd->ninil; svd->ninil=svd->nini; svd->nini=k;
+    }
+    /* swap basis vectors */
+    if (!svd->swapped) {  /* only the first time in case of multiple calls */
+      bv=svd->V; svd->V=svd->U; svd->U=bv;
+      svd->swapped = PETSC_TRUE;
+    }
   }
 
   if (svd->ncv > PetscMin(M,N)) svd->ncv = PetscMin(M,N);
