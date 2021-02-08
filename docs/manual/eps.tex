@@ -197,7 +197,7 @@ For all these reasons, the user is strongly recommended to always specify the pr
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd);
 	\end{Verbatim}
-allows the specification of the number of eigenvalues to compute, \texttt{nev}. The second argument can be set to prescribe the number of column vectors to be used by the solution algorithm, \texttt{ncv}, that is, the largest dimension of the working subspace. The third argument has to do with a more advanced usage, as explained in \S\ref{sec:large-nev}. These parameters can also be set at run time with the options \Verb!-eps_nev!, \Verb!-eps_ncv! and \Verb!-eps_mpd!. For example, the command line
+allows the specification of the number of eigenvalues to compute, \texttt{nev}. The next argument can be set to prescribe the number of column vectors to be used by the solution algorithm, \texttt{ncv}, that is, the largest dimension of the working subspace. The last argument has to do with a more advanced usage, as explained in \S\ref{sec:large-nev}. These parameters can also be set at run time with the options \Verb!-eps_nev!, \Verb!-eps_ncv! and \Verb!-eps_mpd!. For example, the command line
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -eps_nev 10 -eps_ncv 24
 \end{Verbatim}

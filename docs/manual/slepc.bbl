@@ -1,13 +1,13 @@
 \begin{thebibliography}{40}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
-\bibitem[{Anderson {\em et~al.\/}(1992)Anderson, Bai, Bischof, Demmel,
+\bibitem[{Anderson {\em et~al.\/}(1999)Anderson, Bai, Bischof, Blackford, Demmel,
   Dongarra, Croz, Greenbaum, Hammarling, McKenney, and
-  Sorensen}]{Anderson:1992:LUG}
-Anderson, E., Z.~Bai, C.~Bischof, J.~Demmel, J.~Dongarra, J.~D. Croz,
-  A.~Greenbaum, S.~Hammarling, A.~McKenney, and D.~Sorensen (1992).
-\newblock {\em {LAPACK} User's Guide\/}.
-\newblock SIAM, Philadelphia.
+  Sorensen}]{Anderson:1999:LUG}
+Anderson, E., Z.~Bai, C.~Bischof, L.~S. Blackford, J.~Demmel, J.~Dongarra, J.~Du Croz,
+  A.~Greenbaum, S.~Hammarling, A.~McKenney, and D.~Sorensen (1999).
+\newblock {\em {LAPACK} Users' Guide\/}.
+\newblock SIAM, Philadelphia, third edition.
 
 \bibitem[{Auckenthaler {\em et~al.\/}(2011)Auckenthaler, Blum, Bungartz, Huckle,
   Johanni, Kramer, Lang, Lederer, and Willems}]{Auckenthaler:2011:ELP}
@@ -135,6 +135,11 @@ Fang, H. and Y.~Saad (2012).
 Golub, G.~H. and H.~A. van~der Vorst (2000).
 \newblock Eigenvalue computation in the 20th century.
 \newblock {\em J. Comput. Appl. Math.\/}, 123(1-2):35--65.
+
+\bibitem[{Golub and van Loan(1996)}]{Golub:1996:MC}
+Golub, G.~H. and C.~F. van Loan (1996).
+\newblock {\em Matrix Computations\/}.
+\newblock The Johns Hopkins University Press, Baltimore, MD, third edition.
 
 \bibitem[{Grimes {\em et~al.\/}(1994)Grimes, Lewis, and
   Simon}]{Grimes:1994:SBL}
