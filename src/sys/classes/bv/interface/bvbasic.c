@@ -816,7 +816,7 @@ PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
 
    Level: advanced
 
-.seealso: BVGetRandomContext(), BVSetRandom(), BVSetRandomColumn()
+.seealso: BVGetRandomContext(), BVSetRandom(), BVSetRandomNormal(), BVSetRandomColumn(), BVSetRandomCond()
 @*/
 PetscErrorCode BVSetRandomContext(BV bv,PetscRandom rand)
 {
@@ -846,7 +846,7 @@ PetscErrorCode BVSetRandomContext(BV bv,PetscRandom rand)
 
    Level: advanced
 
-.seealso: BVSetRandomContext(), BVSetRandom(), BVSetRandomColumn()
+.seealso: BVSetRandomContext(), BVSetRandom(), BVSetRandomNormal(), BVSetRandomColumn(), BVSetRandomCond()
 @*/
 PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
 {

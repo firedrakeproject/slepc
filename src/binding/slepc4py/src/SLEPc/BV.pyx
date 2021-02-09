@@ -822,6 +822,16 @@ cdef class BV(Object):
         """
         CHKERR( BVSetRandom(self.bv) )
 
+    def setRandomNormal(self):
+        """
+        Set the active columns of BV to random numbers (with normal distribution).
+
+        Notes
+        -----
+        All active columns (except the leading ones) are modified.
+        """
+        CHKERR( BVSetRandomNormal(self.bv) )
+
     def orthogonalizeVec(self, Vec v):
         """
         Orthogonalize a vector with respect to a set of vectors.

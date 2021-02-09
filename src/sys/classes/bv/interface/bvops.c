@@ -404,6 +404,37 @@ PETSC_STATIC_INLINE PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
   PetscFunctionReturn(0);
 }
 
+PETSC_STATIC_INLINE PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscInt k,Vec w1,Vec w2)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,low,high;
+  PetscScalar    *px,s,t;
+  Vec            x;
+
+  PetscFunctionBegin;
+  ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
+  if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
+    ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
+    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+    for (i=0;i<bv->N;i++) {
+      ierr = PetscRandomGetValue(bv->rand,&s);CHKERRQ(ierr);
+      ierr = PetscRandomGetValue(bv->rand,&t);CHKERRQ(ierr);
+      if (i>=low && i<high) {
+#if defined(PETSC_USE_COMPLEX)
+        px[i-low] = PetscCMPLX(PetscSqrtReal(-2.0*PetscLogReal(PetscRealPart(s)))*PetscCosReal(2.0*PETSC_PI*PetscRealPart(t)),PetscSqrtReal(-2.0*PetscLogReal(PetscImaginaryPart(s)))*PetscCosReal(2.0*PETSC_PI*PetscImaginaryPart(t)));
+#else
+        px[i-low] = PetscSqrtReal(-2.0*PetscLogReal(s))*PetscCosReal(2.0*PETSC_PI*t);
+#endif
+      }
+    }
+    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  } else {
+    ierr = VecSetRandomNormal(x,bv->rand,w1,w2);CHKERRQ(ierr);
+  }
+  ierr = BVRestoreColumn(bv,k,&x);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*@
    BVSetRandom - Set the columns of a BV to random numbers.
 
@@ -417,7 +448,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
 
    Level: advanced
 
-.seealso: BVSetRandomContext(), BVSetRandomColumn(), BVSetRandomCond(), BVSetActiveColumns()
+.seealso: BVSetRandomContext(), BVSetRandomColumn(), BVSetRandomNormal(), BVSetRandomCond(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVSetRandom(BV bv)
 {
@@ -450,7 +481,7 @@ PetscErrorCode BVSetRandom(BV bv)
 
    Level: advanced
 
-.seealso: BVSetRandomContext(), BVSetRandom(), BVSetActiveColumns()
+.seealso: BVSetRandomContext(), BVSetRandom(), BVSetRandomNormal(), BVSetRandomCond()
 @*/
 PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
 {
@@ -472,6 +503,59 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
 }
 
 /*@
+   BVSetRandomNormal - Set the columns of a BV to random numbers with a normal
+   distribution.
+
+   Logically Collective on bv
+
+   Input Parameters:
+.  bv - basis vectors
+
+   Notes:
+   All active columns (except the leading ones) are modified.
+
+   Other functions such as BVSetRandom(), BVSetRandomColumn(), and BVSetRandomCond()
+   produce random numbers with a uniform distribution. This function returns values
+   that fit a normal distribution (Gaussian).
+
+   Developer Notes:
+   The current implementation obtains each of the columns by applying the Box-Muller
+   transform on two random vectors with uniformly distributed entries.
+
+   Level: advanced
+
+.seealso: BVSetRandomContext(), BVSetRandom(), BVSetRandomColumn(), BVSetRandomCond(), BVSetActiveColumns()
+@*/
+PetscErrorCode BVSetRandomNormal(BV bv)
+{
+  PetscErrorCode ierr;
+  PetscInt       k;
+  Vec            w1=NULL,w2=NULL;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr);
+  if (!bv->rrandom) {
+    ierr = BVCreateVec(bv,&w1);CHKERRQ(ierr);
+    ierr = BVCreateVec(bv,&w2);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventBegin(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
+  for (k=bv->l;k<bv->k;k++) {
+    ierr = BVSetRandomNormalColumn_Private(bv,k,w1,w2);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
+  if (!bv->rrandom) {
+    ierr = VecDestroy(&w1);CHKERRQ(ierr);
+    ierr = VecDestroy(&w2);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
    BVSetRandomCond - Set the columns of a BV to random numbers, in a way that
    the generated matrix has a given condition number.
 
@@ -486,7 +570,7 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
 
    Level: advanced
 
-.seealso: BVSetRandomContext(), BVSetRandomColumn(), BVSetActiveColumns()
+.seealso: BVSetRandomContext(), BVSetRandom(), BVSetRandomColumn(), BVSetRandomNormal(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
 {
