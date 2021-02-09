@@ -435,27 +435,27 @@ gnu-c-c99-nompi:
     PETSC_CONFIG_OPTS: --CFLAGS='-std=c99 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0 --download-sowing --with-mpi=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-lib=/usr/local/opt/ARPACK/libparpack.a,/usr/local/opt/ARPACK/libarpack.a,-lgfortran,-lmpi_usempif08,-lmpi_usempi_ignore_tkr,-lmpi_mpifh,-lmpi --with-blopex-dir=/usr/local/opt/blopex --with-trlan-dir=/usr/local/opt/trlan-201009 --with-packages-download-dir=/var/local/downloads --download-primme --download-primme-cflags=-std=c99
 
-gnu-c-debug:
+gnu-c-coverage:
   extends:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora
+    - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-debugging=1 --CXXFLAGS='-O -g -std=c++11' --with-cxx-dialect=C++11
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan=https://codeforge.lbl.gov/frs/download.php/210/trlan-201009.tar.gz --download-blopex --download-hpddm
+    PETSC_CONFIG_OPTS: --with-debugging=1 --with-gcov=1 --CXXFLAGS='-O -g -std=c++11' --with-cxx-dialect=C++11
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-trlan=https://codeforge.lbl.gov/frs/download.php/210/trlan-201009.tar.gz --download-blopex --download-hpddm
+    COVERAGE: 1
 
-#
-
-gnu-c-debug-complex:
+gnu-c-complex-coverage:
   extends:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora
+    - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-debugging=1 --with-scalar-type=complex
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-blopex --download-hpddm
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-debugging=1 --with-gcov=1
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
+    COVERAGE: 1
 
 gnu-c-cuda-complex:
   extends:
@@ -543,28 +543,6 @@ gnu-cxx-complex-int64:
   variables:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-hpddm
-
-gnu-c-coverage:
-  extends:
-    - .stage-3
-    - .linux_test
-  tags:
-    - linux-ubuntu
-  variables:
-    PETSC_CONFIG_OPTS: --with-debugging=1 --with-gcov=1 --with-fortran-bindings=0
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --with-trlan-dir=/usr/local/opt/trlan-201009
-    COVERAGE: 1
-
-gnu-c-complex-coverage:
-  extends:
-    - .stage-3
-    - .linux_test
-  tags:
-    - linux-ubuntu
-  variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-debugging=1 --with-gcov=1 --with-fortran-bindings=0
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex
-    COVERAGE: 1
 
 #
 # The following tests run as part of stage-3, but only in scheduled pipelines.
