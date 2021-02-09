@@ -544,6 +544,28 @@ gnu-cxx-complex-int64:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-hpddm
 
+gnu-c-coverage:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-debugging=1 --with-gcov=1 --with-fortran-bindings=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --with-trlan-dir=/usr/local/opt/trlan-201009
+    COVERAGE: 1
+
+gnu-c-complex-coverage:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-debugging=1 --with-gcov=1 --with-fortran-bindings=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex
+    COVERAGE: 1
+
 #
 # The following tests run as part of stage-3, but only in scheduled pipelines.
 #
@@ -557,28 +579,6 @@ clang-c-complex-valgrind:
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-clang/bin/mpicc --with-cxx=/opt/mpich/3.3.2-clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/3.3.2-clang/bin/mpiexec --with-scalar-type=complex --with-shared-libraries=0 --download-sowing
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
-
-gnu-c-coverage:
-  extends:
-    - .stage-3-sched
-    - .linux_test
-  tags:
-    - linux-ubuntu
-  variables:
-    PETSC_CONFIG_OPTS: --with-debugging=1 --with-gcov=1 --with-fortran-bindings=0
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --with-trlan-dir=/usr/local/opt/trlan-201009
-    COVERAGE: 1
-
-gnu-c-complex-coverage:
-  extends:
-    - .stage-3-sched
-    - .linux_test
-  tags:
-    - linux-ubuntu
-  variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-debugging=1 --with-gcov=1 --with-fortran-bindings=0
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex
-    COVERAGE: 1
 
 intel-c-mkl:
   extends:
