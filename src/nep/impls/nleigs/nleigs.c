@@ -626,48 +626,6 @@ static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms,PetscInt maxnmat)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPNLEIGSNormEstimation(NEP nep,Mat M,PetscReal *norm,Vec *w)
-{
-  PetscScalar    *z,*x,*y;
-  PetscReal      tr;
-  Vec            X=w[0],Y=w[1];
-  PetscInt       n,i;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscRandom    rand;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (!ctx->vrn) {
-    /* generate a random vector with normally distributed entries with the Box-Muller transform */
-    ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr);
-    ierr = MatCreateVecs(M,&ctx->vrn,NULL);CHKERRQ(ierr);
-    ierr = VecSetRandom(X,rand);CHKERRQ(ierr);
-    ierr = VecSetRandom(Y,rand);CHKERRQ(ierr);
-    ierr = VecGetLocalSize(ctx->vrn,&n);CHKERRQ(ierr);
-    ierr = VecGetArray(ctx->vrn,&z);CHKERRQ(ierr);
-    ierr = VecGetArray(X,&x);CHKERRQ(ierr);
-    ierr = VecGetArray(Y,&y);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
-#if defined(PETSC_USE_COMPLEX)
-      z[i] = PetscCMPLX(PetscSqrtReal(-2.0*PetscLogReal(PetscRealPart(x[i])))*PetscCosReal(2.0*PETSC_PI*PetscRealPart(y[i])),PetscSqrtReal(-2.0*PetscLogReal(PetscImaginaryPart(x[i])))*PetscCosReal(2.0*PETSC_PI*PetscImaginaryPart(y[i])));
-#else
-      z[i] = PetscSqrtReal(-2.0*PetscLogReal(x[i]))*PetscCosReal(2.0*PETSC_PI*y[i]);
-#endif
-    }
-    ierr = VecRestoreArray(ctx->vrn,&z);CHKERRQ(ierr);
-    ierr = VecRestoreArray(X,&x);CHKERRQ(ierr);
-    ierr = VecRestoreArray(Y,&y);CHKERRQ(ierr);
-    ierr = VecNorm(ctx->vrn,NORM_2,&tr);CHKERRQ(ierr);
-    ierr = VecScale(ctx->vrn,1/tr);CHKERRQ(ierr);
-  }
-  /* matrix-free norm estimator of Ipsen https://ipsen.math.ncsu.edu/ps/slides_ima.pdf */
-  ierr = MatGetSize(M,&n,NULL);CHKERRQ(ierr);
-  ierr = MatMult(M,ctx->vrn,X);CHKERRQ(ierr);
-  ierr = VecNorm(X,NORM_2,norm);CHKERRQ(ierr);
-  *norm *= PetscSqrtReal((PetscReal)n);
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
 {
   PetscErrorCode ierr;
@@ -795,10 +753,12 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,*coeffs;
   Mat            *D=ctx->D,T;
   PetscBool      shell,has,vec=PETSC_FALSE;
+  PetscRandom    rand;
   Vec            w[2];
 
   PetscFunctionBegin;
   ierr = PetscMalloc2(ctx->ddmaxit+1,&b,ctx->ddmaxit+1,&coeffs);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr);
   T = nep->function;
   ierr = NEPComputeFunction(nep,s[0],T,T);CHKERRQ(ierr);
   ierr = MatIsShell(T,&shell);CHKERRQ(ierr);
@@ -817,8 +777,10 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   } else {
     ierr = MatCreateVecs(D[0],NULL,&w[0]);CHKERRQ(ierr);
     ierr = VecDuplicate(w[0],&w[1]);CHKERRQ(ierr);
+    ierr = VecDuplicate(w[0],&ctx->vrn);CHKERRQ(ierr);
+    ierr = VecSetRandomNormal(ctx->vrn,rand,w[0],w[1]);CHKERRQ(ierr);
     vec = PETSC_TRUE;
-    ierr = NEPNLEIGSNormEstimation(nep,D[0],&norm0,w);CHKERRQ(ierr);
+    ierr = MatNormEstimate(D[0],ctx->vrn,w[0],&norm0);CHKERRQ(ierr);
   }
   ctx->nmat = ctx->ddmaxit;
   for (k=1;k<ctx->ddmaxit;k++) {
@@ -840,9 +802,11 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
       if (!vec) {
         ierr = MatCreateVecs(D[k],NULL,&w[0]);CHKERRQ(ierr);
         ierr = VecDuplicate(w[0],&w[1]);CHKERRQ(ierr);
+        ierr = VecDuplicate(w[0],&ctx->vrn);CHKERRQ(ierr);
+        ierr = VecSetRandomNormal(ctx->vrn,rand,w[0],w[1]);CHKERRQ(ierr);
         vec = PETSC_TRUE;
       }
-      ierr = NEPNLEIGSNormEstimation(nep,D[k],&norm,w);CHKERRQ(ierr);
+      ierr = MatNormEstimate(D[k],ctx->vrn,w[0],&norm);CHKERRQ(ierr);
     }
     if (k>1 && norm/norm0 < ctx->ddtol && k>1) {
       ctx->nmat = k+1;

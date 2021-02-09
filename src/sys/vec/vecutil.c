@@ -263,3 +263,82 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
   PetscFunctionReturn(0);
 }
 
+/*@
+   VecSetRandomNormal - Sets all components of a vector to normally distributed random values.
+
+   Logically Collective on v
+
+   Input parameters:
++  v     - the vector to be filled with random values
+.  rctx  - the random number context (can be NULL)
+-  w1,w2 - two work vectors (can be NULL)
+
+   Output parameter:
+.  v     - the vector
+
+   Notes:
+   Fills the two work vectors with uniformly distributed random values (VecSetRandom)
+   and then applies the Box-Muller transform to get normally distributed values on v.
+
+   The resulting vector has unit 2-norm.
+
+   Level: developer
+@*/
+PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
+{
+  PetscErrorCode    ierr;
+  const PetscScalar *x,*y;
+  PetscScalar       *z;
+  PetscReal         nrm;
+  PetscInt          n,i;
+  PetscRandom       rand=NULL;
+  Vec               v1=NULL,v2=NULL;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(v,VEC_CLASSID,1);
+  PetscValidType(v,1);
+  if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_CLASSID,2);
+  if (w1) PetscValidHeaderSpecific(w1,VEC_CLASSID,3);
+  if (w2) PetscValidHeaderSpecific(w1,VEC_CLASSID,4);
+
+  if (!rctx) {
+    ierr = PetscRandomCreate(PetscObjectComm((PetscObject)v),&rand);CHKERRQ(ierr);
+    ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
+    rctx = rand;
+  }
+  if (!w1) {
+    ierr = VecDuplicate(v,&v1);CHKERRQ(ierr);
+    w1 = v1;
+  }
+  if (!w2) {
+    ierr = VecDuplicate(v,&v2);CHKERRQ(ierr);
+    w2 = v2;
+  }
+  PetscCheckSameTypeAndComm(v,1,w1,3);
+  PetscCheckSameTypeAndComm(v,1,w2,4);
+
+  ierr = VecSetRandom(w1,rand);CHKERRQ(ierr);
+  ierr = VecSetRandom(w2,rand);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
+  ierr = VecGetArrayWrite(v,&z);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(w1,&x);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(w2,&y);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    z[i] = PetscCMPLX(PetscSqrtReal(-2.0*PetscLogReal(PetscRealPart(x[i])))*PetscCosReal(2.0*PETSC_PI*PetscRealPart(y[i])),PetscSqrtReal(-2.0*PetscLogReal(PetscImaginaryPart(x[i])))*PetscCosReal(2.0*PETSC_PI*PetscImaginaryPart(y[i])));
+#else
+    z[i] = PetscSqrtReal(-2.0*PetscLogReal(x[i]))*PetscCosReal(2.0*PETSC_PI*y[i]);
+#endif
+  }
+  ierr = VecRestoreArrayWrite(v,&z);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(w1,&x);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(w2,&y);CHKERRQ(ierr);
+  ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = VecScale(v,1.0/nrm);CHKERRQ(ierr);
+
+  ierr = VecDestroy(&v1);CHKERRQ(ierr);
+  ierr = VecDestroy(&v2);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

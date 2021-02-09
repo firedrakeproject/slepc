@@ -28,6 +28,7 @@ SLEPC_EXTERN PetscErrorCode VecNormalizeComplex(Vec,Vec,PetscBool,PetscReal*);
 SLEPC_EXTERN PetscErrorCode VecCheckOrthogonality(Vec[],PetscInt,Vec[],PetscInt,Mat,PetscViewer,PetscReal*);
 SLEPC_EXTERN PetscErrorCode VecCheckOrthonormality(Vec[],PetscInt,Vec[],PetscInt,Mat,PetscViewer,PetscReal*);
 SLEPC_EXTERN PetscErrorCode VecDuplicateEmpty(Vec,Vec*);
+SLEPC_EXTERN PetscErrorCode VecSetRandomNormal(Vec,PetscRandom,Vec,Vec);
 
 /* Deprecated functions */
 PETSC_DEPRECATED_FUNCTION("Use VecNormalizeComplex()") PETSC_STATIC_INLINE PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool c,PetscReal *nrm) {return VecNormalizeComplex(xr,xi,c,nrm);}

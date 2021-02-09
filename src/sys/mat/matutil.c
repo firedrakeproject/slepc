@@ -437,3 +437,59 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
+/*@C
+   MatNormEstimate - Estimate the 2-norm of a matrix.
+
+   Collective on A
+
+   Input Parameters:
++  A   - the matrix
+.  vrn - random vector with normally distributed entries (can be NULL)
+-  w   - workspace vector (can be NULL)
+
+   Output Parameter:
+.  nrm - the norm estimate
+
+   Notes:
+   Does not need access to the matrix entries, just performs a matrix-vector product.
+   Based on work by I. Ipsen and coworkers https://ipsen.math.ncsu.edu/ps/slides_ima.pdf
+
+   If vrn is NULL, then it is created internally and filled with VecSetRandomNormal().
+
+   Level: developer
+
+.seealso: VecSetRandomNormal()
+@*/
+PetscErrorCode MatNormEstimate(Mat A,Vec vrn,Vec w,PetscReal *nrm)
+{
+  PetscErrorCode ierr;
+  PetscInt       n;
+  Vec            vv=NULL,ww=NULL;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(A,MAT_CLASSID,1);
+  PetscValidType(A,1);
+  if (vrn) PetscValidHeaderSpecific(vrn,VEC_CLASSID,2);
+  if (w) PetscValidHeaderSpecific(w,VEC_CLASSID,3);
+  PetscValidScalarPointer(nrm,4);
+
+  if (!vrn) {
+    ierr = MatCreateVecs(A,&vv,NULL);CHKERRQ(ierr);
+    vrn = vv;
+    ierr = VecSetRandomNormal(vv,NULL,NULL,NULL);CHKERRQ(ierr);
+  }
+  if (!w) {
+    ierr = MatCreateVecs(A,&ww,NULL);CHKERRQ(ierr);
+    w = ww;
+  }
+
+  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
+  ierr = MatMult(A,vrn,w);CHKERRQ(ierr);
+  ierr = VecNorm(w,NORM_2,nrm);CHKERRQ(ierr);
+  *nrm *= PetscSqrtReal((PetscReal)n);
+
+  ierr = VecDestroy(&vv);CHKERRQ(ierr);
+  ierr = VecDestroy(&ww);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
