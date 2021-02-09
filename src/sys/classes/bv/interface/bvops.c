@@ -577,6 +577,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
 PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 {
   PetscErrorCode ierr;
+  PetscInt       M,N,m,n;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
@@ -590,7 +591,13 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   BVCheckSizes(Y,3);
   PetscCheckSameComm(V,1,A,2);
   PetscCheckSameTypeAndComm(V,1,Y,3);
-  if (V->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, Y %D",V->n,Y->n);
+
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
+  if (M!=Y->N) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %D, Y %D",M,Y->N);
+  if (m!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %D, Y %D",m,Y->n);
+  if (N!=V->N) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %D, V %D",N,V->N);
+  if (n!=V->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %D, V %D",n,V->n);
   if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D active columns, should match %D active columns in V",Y->k-Y->l,V->k-V->l);
 
   ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
@@ -629,6 +636,7 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 PetscErrorCode BVMatMultTranspose(BV V,Mat A,BV Y)
 {
   PetscErrorCode ierr;
+  PetscInt       M,N,m,n;
   Mat            AT;
 
   PetscFunctionBegin;
@@ -642,8 +650,14 @@ PetscErrorCode BVMatMultTranspose(BV V,Mat A,BV Y)
   BVCheckSizes(Y,3);
   PetscCheckSameComm(V,1,A,2);
   PetscCheckSameTypeAndComm(V,1,Y,3);
-  if (V->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, Y %D",V->n,Y->n);
-  if (V->k-V->l>Y->m-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, not enough to store %D columns",Y->m-Y->l,V->k-V->l);
+
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
+  if (M!=V->N) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %D, V %D",M,V->N);
+  if (m!=V->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %D, V %D",m,V->n);
+  if (N!=Y->N) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %D, Y %D",N,Y->N);
+  if (n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %D, Y %D",n,Y->n);
+  if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D active columns, should match %D active columns in V",Y->k-Y->l,V->k-V->l);
 
   ierr = MatCreateTranspose(A,&AT);CHKERRQ(ierr);
   ierr = BVMatMult(V,AT,Y);CHKERRQ(ierr);
@@ -680,6 +694,7 @@ PetscErrorCode BVMatMultTranspose(BV V,Mat A,BV Y)
 PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
 {
   PetscErrorCode ierr;
+  PetscInt       M,N,m,n;
   Mat            AH;
 
   PetscFunctionBegin;
@@ -693,8 +708,14 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
   BVCheckSizes(Y,3);
   PetscCheckSameComm(V,1,A,2);
   PetscCheckSameTypeAndComm(V,1,Y,3);
-  if (V->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, Y %D",V->n,Y->n);
-  if (V->k-V->l>Y->m-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, not enough to store %D columns",Y->m-Y->l,V->k-V->l);
+
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
+  if (M!=V->N) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %D, V %D",M,V->N);
+  if (m!=V->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %D, V %D",m,V->n);
+  if (N!=Y->N) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %D, Y %D",N,Y->N);
+  if (n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %D, Y %D",n,Y->n);
+  if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D active columns, should match %D active columns in V",Y->k-Y->l,V->k-V->l);
 
   ierr = MatCreateHermitianTranspose(A,&AH);CHKERRQ(ierr);
   ierr = BVMatMult(V,AH,Y);CHKERRQ(ierr);
