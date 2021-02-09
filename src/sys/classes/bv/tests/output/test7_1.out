@@ -1,3 +1,3 @@
-Test BVMatMult (n=10, k=5).
+Test BVMatMult (m=10, n=10, k=5).
 Norm of error: 0.
 Norm of error: 0.

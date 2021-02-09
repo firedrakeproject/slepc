@@ -15,14 +15,14 @@ static char help[] = "Test multiplication of a Mat times a BV.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  Vec            t,v;
+  Vec            t,r,v;
   Mat            B,Ymat;
   BV             X,Y,Z,Zcopy;
-  PetscInt       i,j,n=10,k=5,rep=1,Istart,Iend;
+  PetscInt       i,j,m=10,n,k=5,rep=1,Istart,Iend;
   PetscScalar    *pZ;
   PetscReal      norm;
   PetscViewer    view;
-  PetscBool      verbose,fromfile;
+  PetscBool      flg,verbose,fromfile;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   BVMatMultType  vmm;
@@ -44,26 +44,28 @@ int main(int argc,char **argv)
     ierr = MatSetFromOptions(B);CHKERRQ(ierr);
     ierr = MatLoad(B,viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
-    ierr = MatGetSize(B,&n,NULL);CHKERRQ(ierr);
+    ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
     ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
   } else {
     /* Create 1-D Laplacian matrix */
-    ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-    ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
+    ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
+    if (!flg) n = m;
+    ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
     ierr = MatSetFromOptions(B);CHKERRQ(ierr);
     ierr = MatSetUp(B);CHKERRQ(ierr);
     ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
     for (i=Istart;i<Iend;i++) {
-      if (i>0) { ierr = MatSetValue(B,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-      if (i<n-1) { ierr = MatSetValue(B,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-      ierr = MatSetValue(B,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+      if (i>0 && i-1<n) { ierr = MatSetValue(B,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+      if (i+1<n) { ierr = MatSetValue(B,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+      if (i<n) { ierr = MatSetValue(B,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr); }
     }
     ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BVMatMult (n=%D, k=%D).\n",n,k);CHKERRQ(ierr);
-  ierr = MatCreateVecs(B,&t,NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BVMatMult (m=%D, n=%D, k=%D).\n",m,n,k);CHKERRQ(ierr);
+  ierr = MatCreateVecs(B,&t,&r);CHKERRQ(ierr);
 
   /* Create BV object X */
   ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
@@ -97,8 +99,11 @@ int main(int argc,char **argv)
   }
 
   /* Create BV object Y */
-  ierr = BVDuplicateResize(X,k+4,&Y);CHKERRQ(ierr);
+  ierr = BVCreate(PETSC_COMM_WORLD,&Y);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(Y,r,k+4);CHKERRQ(ierr);
+  ierr = BVSetMatMultMethod(Y,BV_MATMULT_VECS);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(Y);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(Y,2,k+2);CHKERRQ(ierr);
 
   /* Test BVMatMult */
@@ -119,7 +124,7 @@ int main(int argc,char **argv)
 
   if (!fromfile) {
     /* Create BV object Z */
-    ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
+    ierr = BVDuplicateResize(Y,k,&Z);CHKERRQ(ierr);
     ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
 
     /* Fill Z entries */
@@ -148,39 +153,41 @@ int main(int argc,char **argv)
   }
 
   /* Test BVMatMultColumn, multiply Y(:,2), result in Y(:,3) */
-  ierr = BVMatMultColumn(Y,B,2);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = BVView(Y,view);CHKERRQ(ierr);
-  }
-
-  if (!fromfile) {
-    /* Test BVGetArray, modify Z to match Y */
-    ierr = BVCopy(Zcopy,Z);CHKERRQ(ierr);
-    ierr = BVGetArray(Z,&pZ);CHKERRQ(ierr);
-    if (Istart==0) {
-      if (Iend<3) SETERRQ(PETSC_COMM_WORLD,1,"First process must have at least 3 rows");
-      pZ[Iend]   = 5.0;   /* modify 3 first entries of second column */
-      pZ[Iend+1] = -4.0;
-      pZ[Iend+2] = 1.0;
-    }
-    ierr = BVRestoreArray(Z,&pZ);CHKERRQ(ierr);
+  if (m==n) {
+    ierr = BVMatMultColumn(Y,B,2);CHKERRQ(ierr);
     if (verbose) {
-      ierr = BVView(Z,view);CHKERRQ(ierr);
+      ierr = BVView(Y,view);CHKERRQ(ierr);
     }
 
-    /* Check result again with BVMult */
-    ierr = BVMult(Z,-1.0,1.0,Y,NULL);CHKERRQ(ierr);
-    ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm);CHKERRQ(ierr);
+    if (!fromfile) {
+      /* Test BVGetArray, modify Z to match Y */
+      ierr = BVCopy(Zcopy,Z);CHKERRQ(ierr);
+      ierr = BVGetArray(Z,&pZ);CHKERRQ(ierr);
+      if (Istart==0) {
+        if (Iend<3) SETERRQ(PETSC_COMM_WORLD,1,"First process must have at least 3 rows");
+        pZ[Iend]   = 5.0;   /* modify 3 first entries of second column */
+        pZ[Iend+1] = -4.0;
+        pZ[Iend+2] = 1.0;
+      }
+      ierr = BVRestoreArray(Z,&pZ);CHKERRQ(ierr);
+      if (verbose) {
+        ierr = BVView(Z,view);CHKERRQ(ierr);
+      }
 
-    ierr = BVDestroy(&Z);CHKERRQ(ierr);
-    ierr = BVDestroy(&Zcopy);CHKERRQ(ierr);
+      /* Check result again with BVMult */
+      ierr = BVMult(Z,-1.0,1.0,Y,NULL);CHKERRQ(ierr);
+      ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm);CHKERRQ(ierr);
+    }
   }
 
+  ierr = BVDestroy(&Z);CHKERRQ(ierr);
+  ierr = BVDestroy(&Zcopy);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
+  ierr = VecDestroy(&r);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }
@@ -189,18 +196,32 @@ int main(int argc,char **argv)
 
    testset:
       output_file: output/test7_1.out
+      filter: grep -v "Using method"
       test:
          suffix: 1
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult vecs
-         filter: grep -v "Using method"
       test:
          suffix: 1_cuda
          args: -bv_type svec -mat_type aijcusparse -bv_matmult vecs
          requires: cuda
-         filter: grep -v "Using method"
+      test:
+         suffix: 1_mat
+         args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult mat
+
+   testset:
+      output_file: output/test7_2.out
+      filter: grep -v "Using method"
+      args: -m 34 -n 38 -k 9
+      nsize: 2
       test:
          suffix: 2
+         args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult vecs
+      test:
+         suffix: 2_cuda
+         args: -bv_type svec -mat_type aijcusparse -bv_matmult vecs
+         requires: cuda
+      test:
+         suffix: 2_mat
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult mat
-         filter: grep -v "Using method"
 
 TEST*/
