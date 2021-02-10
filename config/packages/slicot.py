@@ -47,7 +47,7 @@ class Slicot(package.Package):
 
     # Makefile
     cont  = 'FORTRAN   = '+petsc.fc+'\n'
-    cont += 'OPTS      = '+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'\n'
+    cont += 'OPTS      = '+petsc.getFFlags()+'\n'
     cont += 'ARCH      = '+petsc.ar+'\n'
     cont += 'ARCHFLAGS = '+petsc.ar_flags+'\n'
     cont += 'SLICOTLIB = ../'+libname+'\n'

@@ -244,3 +244,24 @@ class PETSc(package.Package):
     except RuntimeError:
       pass
 
+  def removeWarningFlags(self,flags):
+    outflags = []
+    for flag in flags:
+      if not flag in ['-Werror','-Wall','-Wwrite-strings','-Wno-strict-aliasing','-Wno-unknown-pragmas','-Wno-unused-variable','-Wno-unused-dummy-argument','-fvisibility=hidden','-std=c89','-pedantic','--coverage','-Mfree','-fdefault-integer-8']:
+        outflags.append(flag)
+    return outflags
+
+  def getCFlags(self):
+    outflags = self.removeWarningFlags(self.cc_flags.split())
+    return ' '.join(outflags)
+
+  def getCXXFlags(self):
+    outflags = self.removeWarningFlags(self.cxx_flags.split())
+    return ' '.join(outflags)
+
+  def getFFlags(self):
+    outflags = self.removeWarningFlags(self.fc_flags.split())
+    if self.isGfortran100plus():
+      outflags.append('-fallow-argument-mismatch')
+    return ' '.join(outflags)
+

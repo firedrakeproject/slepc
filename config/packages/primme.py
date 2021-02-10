@@ -116,7 +116,7 @@ class Primme(package.Package):
       cont += '-DPRIMME_BLASINT_SIZE=64'
     cont += '\n'
     cont += 'export INCLUDE       = \n'
-    cont += 'export CFLAGS        = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+' '+self.buildflags+'\n'
+    cont += 'export CFLAGS        = '+petsc.getCFlags()+' '+self.buildflags+'\n'
     cont += 'export RANLIB        = '+petsc.ranlib+'\n'
     cont += 'export PREFIX        = '+prefixdir+'\n'
     cont += 'include makefile\n'
