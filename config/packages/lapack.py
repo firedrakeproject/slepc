@@ -49,7 +49,7 @@ class Lapack(package.Package):
   def Check(self,slepcconf,slepcvars,petsc):
 
     # LAPACK standard functions
-    l = ['laev2','gehrd','lanhs','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl']
+    l = ['laev2','gehrd','lanhs','ggsvd','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl']
 
     # LAPACK functions with different real and complex names
     if petsc.scalar == 'real':
