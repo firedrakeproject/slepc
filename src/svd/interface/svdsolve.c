@@ -99,7 +99,14 @@ PetscErrorCode SVDSolve(SVD svd)
   }
   ierr = SVDViewFromOptions(svd,NULL,"-svd_view_pre");CHKERRQ(ierr);
 
-  ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
+  switch (svd->problem_type) {
+    case SVD_STANDARD:
+      ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
+      break;
+    case SVD_GENERALIZED:
+      ierr = (*svd->ops->solveg)(svd);CHKERRQ(ierr);
+      break;
+  }
   svd->state = SVD_STATE_SOLVED;
 
   /* sort singular triplets */
@@ -280,7 +287,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 }
 
 /*
-   SVDComputeResidualNorms_Private - Computes the norms of the left and
+   SVDComputeResidualNorms_Standard - Computes the norms of the left and
    right residuals associated with the i-th computed singular triplet.
 
    Input Parameters:
@@ -288,7 +295,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
      u,v   - singular vectors
      x,y   - two work vectors with the same dimensions as u,v
 @*/
-static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscReal sigma,Vec u,Vec v,Vec x,Vec y,PetscReal *norm1,PetscReal *norm2)
+static PetscErrorCode SVDComputeResidualNorms_Standard(SVD svd,PetscReal sigma,Vec u,Vec v,Vec x,Vec y,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;
   PetscInt       M,N;
@@ -315,6 +322,40 @@ static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscReal sigma,Ve
     ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
     ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+/*
+   SVDComputeResidualError_Generalized - In GSVD, compute the residual norm
+   norm = ||A'*A*x-sigma*B'*B*x||_2.
+
+   Input Parameters:
+     sigma - singular value
+     x     - right singular vector
+*/
+static PetscErrorCode SVDComputeResidualError_Generalized(SVD svd,PetscReal sigma,Vec x,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  Vec            u,v,t,z;
+
+  PetscFunctionBegin;
+  ierr = MatCreateVecs(svd->OP,&t,&u);CHKERRQ(ierr);
+  ierr = MatCreateVecs(svd->OPb,&z,&v);CHKERRQ(ierr);
+
+  /* t = A'*A*x */
+  ierr = MatMult(svd->OP,x,u);CHKERRQ(ierr);
+  ierr = MatMultHermitianTranspose(svd->OP,u,t);CHKERRQ(ierr);
+  /* z = B'*B*x */
+  ierr = MatMult(svd->OPb,x,v);CHKERRQ(ierr);
+  ierr = MatMultHermitianTranspose(svd->OPb,v,z);CHKERRQ(ierr);
+  /* norm = ||t-sigma*z||_2 */
+  ierr = VecAXPY(t,-sigma*sigma,z);CHKERRQ(ierr);
+  ierr = VecNorm(t,NORM_2,norm);CHKERRQ(ierr);
+
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = VecDestroy(&t);CHKERRQ(ierr);
+  ierr = VecDestroy(&z);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -362,12 +403,17 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   x = svd->workl[1];
   y = svd->workr[1];
 
-  /* compute residual norm */
+  /* compute residual norm and error */
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
-  ierr = SVDComputeResidualNorms_Private(svd,sigma,u,v,x,y,&norm1,&norm2);CHKERRQ(ierr);
-
-  /* compute error */
-  *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
+  switch (svd->problem_type) {
+    case SVD_STANDARD:
+      ierr = SVDComputeResidualNorms_Standard(svd,sigma,u,v,x,y,&norm1,&norm2);CHKERRQ(ierr);
+      *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
+      break;
+    case SVD_GENERALIZED:
+      ierr = SVDComputeResidualError_Generalized(svd,sigma,v,error);CHKERRQ(ierr);
+      break;
+  }
   switch (type) {
     case SVD_ERROR_ABSOLUTE:
       break;
