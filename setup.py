@@ -25,7 +25,7 @@ nonlinear eigenvalue problems
   You can also install the in-development versions with::
 
     $ pip install Cython numpy mpi4py
-    $ pip install --no-deps https://gitlab.com/petsc/petsc/-/archive/master/petsc-master.tar.gz
+    $ pip install --no-deps https://gitlab.com/petsc/petsc/-/archive/main/petsc-main.tar.gz
     $ pip install --no-deps https://bitbucket.org/petsc/petsc4py/get/master.tar.gz
     $ pip install --no-deps https://bitbucket.org/slepc/slepc/get/master.tar.gz
     $ pip install --no-deps https://bitbucket.org/slepc/slepc4py/get/master.tar.gz

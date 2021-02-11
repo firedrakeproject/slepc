@@ -65,7 +65,7 @@ variables:
       if [ -z ${PETSC_BRANCH+x} ]; then
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
           then git checkout origin/release;
-          else git checkout origin/master;
+          else git checkout origin/main;
         fi
       else
         git checkout origin/$PETSC_BRANCH
@@ -167,7 +167,7 @@ gnu-c99-mlib-static:
       if [ -z ${PETSC_BRANCH+x} ]; then
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
           then git checkout origin/release;
-          else git checkout origin/master;
+          else git checkout origin/main;
         fi
       else
         git checkout origin/$PETSC_BRANCH

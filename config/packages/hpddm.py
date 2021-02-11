@@ -54,7 +54,7 @@ class HPDDM(package.Package):
     if petsc.isinstall:
       branch = 'current'
       if slepc.isrepo and slepc.branch != 'release':
-        branch = 'master'
+        branch = 'dev'
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
     else:
