@@ -1,3 +1,4 @@
 *                         @slepc/integrators
 
 /src/binding/slepc4py/    @dalcinl @joseroman
+/config/packages/hpddm.py @prj-
