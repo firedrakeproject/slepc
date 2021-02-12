@@ -594,3 +594,23 @@ intel-c-mkl-install:
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --prefix=../install
     INSTALL: 1
 
+clang-c-single:
+  extends:
+    - .stage-3-sched
+    - .linux_test
+  tags:
+    - compiler:clang
+  variables:
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-clang/bin/mpicc --with-cxx=/opt/mpich/3.3.2-clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/3.3.2-clang/bin/mpiexec --download-sowing --with-precision=single
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme
+
+gnu-c-complex-single:
+  extends:
+    - .stage-3-sched
+    - .linux_test
+  tags:
+    - compiler:clang
+  variables:
+    PETSC_CONFIG_OPTS: --with-precision=single --with-scalar-type=complex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
+
