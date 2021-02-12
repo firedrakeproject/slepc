@@ -32,8 +32,8 @@ PetscErrorCode SVDSetUp_Randomized(SVD svd)
   PetscInt       N;
 
   PetscFunctionBegin;
+  if (svd->which!=SVD_LARGEST) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"This solver supports only largest singular values");
   ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
-
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
   if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be smaller than nsv");
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
@@ -139,6 +139,7 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     ierr = DSRestoreMat(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
     ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(svd->ds,svd->sigma,wi);CHKERRQ(ierr);
+    ierr = DSSort(svd->ds,svd->sigma,wi,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_VT,&Vt);CHKERRQ(ierr);
     ierr = MatTranspose(Vt,MAT_INPLACE_MATRIX,&Vt);CHKERRQ(ierr);
