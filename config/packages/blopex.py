@@ -85,7 +85,7 @@ class Blopex(package.Package):
 
     # Makefile
     cont  = 'CC            = '+petsc.cc+'\n'
-    cont += 'CFLAGS        = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+'\n'
+    cont += 'CFLAGS        = '+petsc.getCFlags()+'\n'
     cont += 'AR            = '+petsc.ar+' '+petsc.ar_flags+'\n'
     cont += 'AR_LIB_SUFFIX = '+petsc.ar_lib_suffix+'\n'
     cont += 'RANLIB        = '+petsc.ranlib+'\n'
