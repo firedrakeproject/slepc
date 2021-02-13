@@ -101,14 +101,19 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
 PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       m,n,p,i,j,ld,lowv,highv,lwork;
-  PetscBLASInt   m_,n_,p_,k,l,lda_,ldb_,ldu_,ldv_,ldq_,*iwork,info;
+  PetscInt       m,n,p,i,j,ld,lowv,highv;
+  PetscBLASInt   m_,n_,p_,k,l,lda_,ldb_,ldu_,ldv_,ldq_,lwork,*iwork,info;
   Mat            Ar,A,Br,B;
   Vec            v;
   PetscScalar    *pA,*pB,*U,*V,*Q,*pv,*work,sone=1.0;
   PetscReal      *alpha,*beta;
 #if defined (PETSC_USE_COMPLEX)
   PetscReal      *rwork;
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
+  PetscScalar    a,dummy;
+  PetscReal      rdummy;
+  PetscBLASInt   idummy;
 #endif
 
   PetscFunctionBegin;
@@ -129,6 +134,32 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
 
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&pB);CHKERRQ(ierr);
+
+#if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
+
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  /* workspace query and memory allocation */
+  lwork = -1;
+#if !defined (PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,&dummy,&lda_,&dummy,&ldb_,&rdummy,&rdummy,&dummy,&ldu_,&dummy,&ldv_,&dummy,&ldq_,&a,&lwork,&idummy,&info));
+  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,&dummy,&lda_,&dummy,&ldb_,&rdummy,&rdummy,&dummy,&ldu_,&dummy,&ldv_,&dummy,&ldq_,&a,&lwork,&rdummy,&idummy,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+#endif
+  ierr = PetscMalloc7(m*m,&U,p*p,&V,n*n,&Q,n,&alpha,n,&beta,lwork,&work,n,&iwork);CHKERRQ(ierr);
+
+#if !defined (PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,&lwork,iwork,&info));
+#else
+  ierr = PetscMalloc1(2*n,&rwork);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,&lwork,rwork,iwork,&info));
+#endif
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  SlepcCheckLapackInfo("ggsvd3",info);
+
+#else  // defined(SLEPC_MISSING_LAPACK_GGSVD3)
+
   lwork = PetscMax(PetscMax(3*n,m),p)+n;
   ierr = PetscMalloc7(m*m,&U,p*p,&V,n*n,&Q,n,&alpha,n,&beta,lwork,&work,n,&iwork);CHKERRQ(ierr);
 
@@ -141,6 +172,8 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
 #endif
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   SlepcCheckLapackInfo("ggsvd",info);
+
+#endif
 
   if (k+l<n) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case k+l<n not supported yet");
 
