@@ -309,6 +309,7 @@ PetscErrorCode STDestroy_User(SampleShellST *shell)
       test:
          suffix: 1_sinvert_twoside
          args: -st_type sinvert -eps_balance twoside
+         requires: !single
       test:
          suffix: 1_shell
          args: -st_type shell

@@ -257,18 +257,18 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
    testset:
       args: -nep_nev 3 -terse
       output_file: output/ex27_1.out
+      requires: !single
       test:
          suffix: 1
          args: -nep_nleigs_interpolation_degree 90
       test:
          suffix: 3
          args: -nep_tol 1e-8 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_conv_norm
-         requires: !single
          filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 5
          args: -mat_type aijcusparse
-         requires: cuda !single
+         requires: cuda
 
    testset:
       args: -split 0 -nep_nev 3 -terse
@@ -276,10 +276,11 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
       test:
          suffix: 2
          args: -nep_nleigs_interpolation_degree 90
+         requires: !single
       test:
          suffix: 4
          args: -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_nleigs_interpolation_degree 90
-         requires: !__float128
+         requires: double
          filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 6

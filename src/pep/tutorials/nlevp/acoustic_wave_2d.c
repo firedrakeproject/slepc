@@ -139,7 +139,7 @@ int main(int argc,char **argv)
    testset:
       args: -pep_nev 2 -pep_ncv 18 -terse
       output_file: output/acoustic_wave_2d_1.out
-      filter: sed -e "s/2.60936i/2.60937i/g"
+      filter: sed -e "s/2.60936i/2.60937i/g" | sed -e "s/2.60938i/2.60937i/g"
       test:
          suffix: 1
          args: -pep_type {{qarnoldi linear}}

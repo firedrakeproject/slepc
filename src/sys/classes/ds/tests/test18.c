@@ -122,17 +122,15 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       nsize: {{1 2 3}}
-      args: -ds_parallel redundant
-      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/"
-
-   test:
-      suffix: 2
-      nsize: {{1 2 3}}
-      args: -ds_parallel synchronized
-      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/"
+      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/" | sed -e "s/1.58254/1.58255/" | sed -e "s/1.75989/1.75988/"
       output_file: output/test18_1.out
+      test:
+         suffix: 1
+         args: -ds_parallel redundant
+      test:
+         suffix: 2
+         args: -ds_parallel synchronized
 
 TEST*/

@@ -84,7 +84,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -svd_nsv 7 -svd_type primme
-      requires: primme
+      requires: primme !single
       output_file: output/test2_1.out
       test:
          suffix: 1_primme

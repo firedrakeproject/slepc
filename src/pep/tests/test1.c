@@ -177,5 +177,6 @@ int main(int argc,char **argv)
       test:
          suffix: 1_linear_gd
          args: -type linear -epstype gd
+         requires: !single
 
 TEST*/

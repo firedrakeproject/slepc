@@ -119,7 +119,10 @@ int main (int argc,char **argv)
       output_file: output/test10_1.out
       test:
          suffix: 1
-         args: -eps_type {{krylovschur arnoldi gd jd rqcg lobpcg}}
+         args: -eps_type {{krylovschur arnoldi gd jd rqcg}}
+      test:
+         suffix: 1_lobpcg
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 6
       test:
          suffix: 1_lanczos
          args: -eps_type lanczos -eps_lanczos_reorthog local
