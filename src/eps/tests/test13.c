@@ -100,6 +100,7 @@ int main(int argc,char **argv)
    testset:
       args: -eps_max_it 5000 -st_pc_type jacobi
       output_file: output/test13_1.out
+      filter: sed -e "s/-1.98975/-1.98974/"
       test:
          suffix: 1
          args: -eps_type {{krylovschur gd jd}}

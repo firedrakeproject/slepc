@@ -170,13 +170,12 @@ int main(int argc,char **argv)
    testset:
       args: -m 11
       output_file: output/test1_1.out
-      filter: sed -e "s/1.16403/1.16404/g" | sed -e "s/1.65362i/1.65363i/g" | sed -e "s/-1.16404-1.65363i, -1.16404+1.65363i/-1.16404+1.65363i, -1.16404-1.65363i/" | sed -e "s/-0.51784-1.31039i, -0.51784+1.31039i/-0.51784+1.31039i, -0.51784-1.31039i/"
+      requires: !single
       test:
          suffix: 1
          args: -type {{toar qarnoldi linear}}
       test:
          suffix: 1_linear_gd
          args: -type linear -epstype gd
-         requires: !single
 
 TEST*/

@@ -99,5 +99,6 @@ int main(int argc,char **argv)
       suffix: 1
       args: -svd_nsv 4
       requires: primme
+      filter: sed -e "s/2.99255/2.99254/"
 
 TEST*/

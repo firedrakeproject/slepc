@@ -101,6 +101,7 @@ int main(int argc,char **argv)
    test:
       suffix: 2
       args: -n 18 -eps_type ciss -rg_interval_endpoints 1.0,1.2
+      requires: !single
 
    testset:
       nsize: {{1 4}}
