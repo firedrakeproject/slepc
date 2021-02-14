@@ -19,7 +19,11 @@ int main(int argc,char **argv)
   NEP                nep;
   Vec                xr,xi;
   PetscScalar        kr,ki,coeffs[3];
+  PetscComplex       *eigs,eval;
   PetscInt           n=6,i,Istart,Iend,nconv,its;
+  PetscBool          checkfile;
+  char               filename[PETSC_MAX_PATH_LEN];
+  PetscViewer        viewer;
   PetscErrorCode     ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -101,8 +105,30 @@ int main(int argc,char **argv)
     ierr = VecDestroy(&xr);CHKERRQ(ierr);
     ierr = VecDestroy(&xi);CHKERRQ(ierr);
   }
-
   ierr = NEPErrorView(nep,NEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                   Check file containing the eigenvalues
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  ierr = PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile);CHKERRQ(ierr);
+  if (checkfile) {
+    ierr = NEPGetConverged(nep,&nconv);CHKERRQ(ierr);
+    ierr = PetscMalloc1(nconv,&eigs);CHKERRQ(ierr);
+    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerBinaryRead(viewer,eigs,nconv,NULL,PETSC_COMPLEX);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
+      ierr = NEPGetEigenpair(nep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+      eval = kr;
+#else
+      eval = PetscCMPLX(kr,ki);
+#endif
+      if (eval!=eigs[i]) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalues in the file do not match");
+    }
+    ierr = PetscFree(eigs);CHKERRQ(ierr);
+  }
+
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   ierr = MatDestroy(&A[0]);CHKERRQ(ierr);
   ierr = MatDestroy(&A[1]);CHKERRQ(ierr);
@@ -126,6 +152,11 @@ int main(int argc,char **argv)
       suffix: 2
       args: -nep_type rii -nep_target -.5 -nep_rii_hermitian -nep_monitor -nep_view_values ::ascii_matlab
       filter: sed -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//" -e "s/([0-9]\.[0-9]*e[+-]\([0-9]*\))/(removed)/g"
+      requires: double
+
+   test:
+      suffix: 3
+      args: -nep_type slp -nep_nev 4 -nep_view_values binary:myvalues.bin -checkfile myvalues.bin
       requires: double
 
 TEST*/

@@ -43,7 +43,7 @@ PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
 PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscScalar    *Q = ds->mat[DS_MAT_Q];
-  PetscInt       ld = ds->ld,i;
+  PetscInt       ld = ds->ld;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -62,8 +62,7 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
         if (ds->state>=DS_STATE_CONDENSED) {
           ierr = PetscArraycpy(ds->mat[mat],Q,ld*ld);CHKERRQ(ierr);
         } else {
-          ierr = PetscArrayzero(ds->mat[mat],ld*ld);CHKERRQ(ierr);
-          for (i=0;i<ds->n;i++) *(ds->mat[mat]+i+i*ld) = 1.0;
+          ierr = DSSetIdentity(ds,mat);CHKERRQ(ierr);
         }
       }
       break;

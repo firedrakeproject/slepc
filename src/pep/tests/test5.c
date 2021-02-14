@@ -16,7 +16,12 @@ int main(int argc,char **argv)
 {
   Mat            A[3];
   PEP            pep;
-  PetscInt       n=6,Istart,Iend,i;
+  PetscScalar    kr,ki;
+  PetscComplex   *eigs,eval;
+  PetscInt       n=6,Istart,Iend,i,nconv;
+  PetscBool      checkfile;
+  char           filename[PETSC_MAX_PATH_LEN];
+  PetscViewer    viewer;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -70,6 +75,29 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = PEPSolve(pep);CHKERRQ(ierr);
   ierr = PEPErrorView(pep,PEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                   Check file containing the eigenvalues
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  ierr = PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile);CHKERRQ(ierr);
+  if (checkfile) {
+    ierr = PEPGetConverged(pep,&nconv);CHKERRQ(ierr);
+    ierr = PetscMalloc1(nconv,&eigs);CHKERRQ(ierr);
+    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerBinaryRead(viewer,eigs,nconv,NULL,PETSC_COMPLEX);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
+      ierr = PEPGetEigenpair(pep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+      eval = kr;
+#else
+      eval = PetscCMPLX(kr,ki);
+#endif
+      if (eval!=eigs[i]) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalues in the file do not match");
+    }
+    ierr = PetscFree(eigs);CHKERRQ(ierr);
+  }
+
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   ierr = MatDestroy(&A[0]);CHKERRQ(ierr);
   ierr = MatDestroy(&A[1]);CHKERRQ(ierr);
@@ -91,5 +119,10 @@ int main(int argc,char **argv)
       args: -n 12 -pep_largest_real -pep_monitor -pep_view_values ::ascii_matlab
       requires: double
       filter: sed -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/5\.\([49]\)999999[0-9]*e+00/5.\\1999999999999999e+00/"
+
+   test:
+      suffix: 3
+      args: -pep_nev 4 -pep_view_values binary:myvalues.bin -checkfile myvalues.bin
+      requires: double
 
 TEST*/

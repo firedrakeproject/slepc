@@ -201,8 +201,6 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
     case SVD_SMALLEST:
       primme->target = primme_svds_smallest;
       break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"'which' value not supported by PRIMME");
   }
 
   /* If user sets mpd or ncv, maxBasisSize is modified */
