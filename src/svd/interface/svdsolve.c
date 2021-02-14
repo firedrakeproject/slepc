@@ -302,11 +302,7 @@ static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscInt i,PetscRe
         ierr = MatMult(svd->AT,u,y);CHKERRQ(ierr);
       }
     } else {
-#if defined(PETSC_USE_COMPLEX)
       ierr = MatMultHermitianTranspose(svd->OP,u,y);CHKERRQ(ierr);
-#else
-      ierr = MatMultTranspose(svd->OP,u,y);CHKERRQ(ierr);
-#endif
     }
     ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
     ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
