@@ -273,27 +273,26 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 /*
    SVDComputeResidualNorms_Private - Computes the norms of the left and
    right residuals associated with the i-th computed singular triplet.
+
+   Input Parameters:
+     sigma - singular value
+     u,v   - singular vectors
+     x,y   - two work vectors with the same dimensions as u,v
 @*/
-static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscInt i,PetscReal *norm1,PetscReal *norm2)
+static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscReal sigma,Vec u,Vec v,Vec x,Vec y,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;
-  Vec            u,v,x = NULL,y = NULL;
-  PetscReal      sigma;
   PetscInt       M,N;
 
   PetscFunctionBegin;
-  ierr = MatCreateVecs(svd->OP,&v,&u);CHKERRQ(ierr);
-  ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
   /* norm1 = ||A*v-sigma*u||_2 */
   if (norm1) {
-    ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
     ierr = MatMult(svd->OP,v,x);CHKERRQ(ierr);
     ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,norm1);CHKERRQ(ierr);
   }
   /* norm2 = ||A^T*u-sigma*v||_2 */
   if (norm2) {
-    ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
     if (svd->A && svd->AT) {
       ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
       if (M<N) {
@@ -307,11 +306,6 @@ static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscInt i,PetscRe
     ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
     ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
   }
-
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -343,6 +337,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
 {
   PetscErrorCode ierr;
   PetscReal      sigma,norm1,norm2;
+  Vec            u,v,x,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -350,8 +345,19 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   PetscValidLogicalCollectiveEnum(svd,type,3);
   PetscValidRealPointer(error,4);
   SVDCheckSolved(svd,1);
-  ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
-  ierr = SVDComputeResidualNorms_Private(svd,i,&norm1,&norm2);CHKERRQ(ierr);
+
+  /* allocate work vectors */
+  ierr = SVDSetWorkVecs(svd,2,2);CHKERRQ(ierr);
+  u = svd->workl[0];
+  v = svd->workr[0];
+  x = svd->workl[1];
+  y = svd->workr[1];
+
+  /* compute residual norm */
+  ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
+  ierr = SVDComputeResidualNorms_Private(svd,sigma,u,v,x,y,&norm1,&norm2);CHKERRQ(ierr);
+
+  /* compute error */
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
   switch (type) {
     case SVD_ERROR_ABSOLUTE:

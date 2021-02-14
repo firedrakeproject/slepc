@@ -14,7 +14,7 @@
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 /*
-  SVDConvergedRelative - Checks convergence relative to the eigenvalue.
+  SVDConvergedRelative - Checks convergence relative to the singular value.
 */
 PetscErrorCode SVDConvergedRelative(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
 {
@@ -77,6 +77,52 @@ PetscErrorCode SVDStoppingBasic(SVD svd,PetscInt its,PetscInt max_it,PetscInt nc
   } else if (its >= max_it) {
     *reason = SVD_DIVERGED_ITS;
     ierr = PetscInfo1(svd,"Singular value solver iteration reached maximum number of iterations (%D)\n",its);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDSetWorkVecs - Sets a number of work vectors into an SVD object.
+
+   Collective on svd
+
+   Input Parameters:
++  svd    - singular value solver context
+.  nleft  - number of work vectors of dimension equal to left singular vector
+-  nright - number of work vectors of dimension equal to right singular vector
+
+   Developers Note:
+   This is SLEPC_EXTERN because it may be required by user plugin SVD
+   implementations.
+
+   Level: developer
+@*/
+PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
+{
+  PetscErrorCode ierr;
+  Vec            t;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveInt(svd,nleft,2);
+  PetscValidLogicalCollectiveInt(svd,nright,3);
+  if (nleft <= 0) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nleft must be > 0: nleft = %D",nleft);
+  if (nright <= 0) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nright must be > 0: nright = %D",nright);
+  if (svd->nworkl < nleft) {
+    ierr = VecDestroyVecs(svd->nworkl,&svd->workl);CHKERRQ(ierr);
+    svd->nworkl = nleft;
+    ierr = MatCreateVecsEmpty(svd->OP,NULL,&t);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(t,nleft,&svd->workl);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(svd,nleft,svd->workl);CHKERRQ(ierr);
+  }
+  if (svd->nworkr < nright) {
+    ierr = VecDestroyVecs(svd->nworkr,&svd->workr);CHKERRQ(ierr);
+    svd->nworkr = nright;
+    ierr = MatCreateVecsEmpty(svd->OP,&t,NULL);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(t,nright,&svd->workr);CHKERRQ(ierr);
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(svd,nright,svd->workr);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

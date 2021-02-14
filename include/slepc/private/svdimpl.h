@@ -88,8 +88,10 @@ struct _p_SVD {
   Mat            AT;               /* transposed matrix */
   Vec            *IS,*ISL;         /* placeholder for references to user initial space */
   PetscReal      *sigma;           /* singular values */
-  PetscInt       *perm;            /* permutation for singular value ordering */
   PetscReal      *errest;          /* error estimates */
+  PetscInt       *perm;            /* permutation for singular value ordering */
+  PetscInt       nworkl,nworkr;    /* number of work vectors */
+  Vec            *workl,*workr;    /* work vectors */
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables -------------------------- */
