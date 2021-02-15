@@ -33,7 +33,7 @@ PetscErrorCode SVDSetUp_Randomized(SVD svd)
 
   PetscFunctionBegin;
   if (svd->which!=SVD_LARGEST) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"This solver supports only largest singular values");
-  ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
+  ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
   if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be smaller than nsv");
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
@@ -45,42 +45,6 @@ PetscErrorCode SVDSetUp_Randomized(SVD svd)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDComputeResiduals(SVD svd,Vec u,Vec v,PetscScalar sigma,Vec uw,Vec vw,PetscReal *norm1,PetscReal *norm2)
-{
-  Vec            x=uw,y=vw;
-  PetscInt       M,N;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  /* norm1 = ||A*v-sigma*u||_2 */
-  if (norm1) {
-    x = uw;
-    ierr = MatMult(svd->OP,v,x);CHKERRQ(ierr);
-    ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
-    ierr = VecNorm(x,NORM_2,norm1);CHKERRQ(ierr);
-  }
-  /* norm2 = ||A^T*u-sigma*v||_2 */
-  if (norm2) {
-    y = vw;
-    if (svd->A && svd->AT) {
-      ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
-      if (M<N) {
-        ierr = MatMult(svd->A,u,y);CHKERRQ(ierr);
-      } else {
-        ierr = MatMult(svd->AT,u,y);CHKERRQ(ierr);
-      }
-    } else {
-#if defined(PETSC_USE_COMPLEX)
-      ierr = MatMultHermitianTranspose(svd->OP,u,y);CHKERRQ(ierr);
-#else
-      ierr = MatMultTranspose(svd->OP,u,y);CHKERRQ(ierr);
-#endif
-    }
-    ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
-    ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
 static PetscErrorCode SVDSubspaceResidualNorms(SVD svd,PetscInt nconv,PetscInt ncv,PetscScalar *sigma,PetscReal *res,Vec wu,Vec wv)
 {
   PetscErrorCode ierr;
@@ -92,7 +56,7 @@ static PetscErrorCode SVDSubspaceResidualNorms(SVD svd,PetscInt nconv,PetscInt n
   for (i=nconv;i<ncv;i++) {
     ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVGetColumn(svd->U,i,&u);CHKERRQ(ierr);
-    ierr = SVDComputeResiduals(svd,u,v,sigma[i],wu,wv,&norm1,&norm2);CHKERRQ(ierr);
+    ierr = SVDComputeResidualNorms_Private(svd,sigma[i],u,v,wu,wv,&norm1,&norm2);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->U,i,&u);CHKERRQ(ierr);
     res[i] = PetscMax(norm1,norm2);
