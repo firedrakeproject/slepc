@@ -380,13 +380,25 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
     ierr = BVResize(svd->V,requested,PETSC_FALSE);CHKERRQ(ierr);
   }
   /* allocate U */
-  if (svd->leftbasis) {
+  if (svd->leftbasis && !svd->isgeneralized) {
     if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
     if (!oldsize) {
       if (!((PetscObject)(svd->U))->type_name) {
         ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
       }
       ierr = MatCreateVecsEmpty(svd->A,NULL,&tl);CHKERRQ(ierr);
+      ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
+      ierr = VecDestroy(&tl);CHKERRQ(ierr);
+    } else {
+      ierr = BVResize(svd->U,requested,PETSC_FALSE);CHKERRQ(ierr);
+    }
+  } else if (svd->isgeneralized) {  /* left basis for the GSVD */
+    if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
+    if (!oldsize) {
+      if (!((PetscObject)(svd->U))->type_name) {
+        ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
+      }
+      ierr = SVDCreateLeftTemplate(svd,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
     } else {

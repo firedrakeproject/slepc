@@ -101,11 +101,11 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
 PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       m,n,p,i,j,ld,lowv,highv;
+  PetscInt       m,n,p,i,j,mlocal,plocal,ld,lowx,lowu,lowv,highx;
   PetscBLASInt   m_,n_,p_,k,l,lda_,ldb_,ldu_,ldv_,ldq_,lwork,*iwork,info;
   Mat            Ar,A,Br,B;
-  Vec            v;
-  PetscScalar    *pA,*pB,*U,*V,*Q,*pv,*work,sone=1.0;
+  Vec            uv,x;
+  PetscScalar    *pA,*pB,*U,*V,*Q,*px,*puv,*work,sone=1.0;
   PetscReal      *alpha,*beta;
 #if defined (PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -125,6 +125,8 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   ierr = MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&B);CHKERRQ(ierr);
   ierr = MatDestroy(&Br);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(svd->OP,&mlocal,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(svd->OPb,&plocal,NULL);CHKERRQ(ierr);
   ierr = MatGetSize(B,&p,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
@@ -182,15 +184,23 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&pB);CHKERRQ(ierr);
 
-  /* copy right singular vectors */
+  /* copy singular triplets */
   for (j=k;j<k+l;j++) {
     svd->sigma[j-k] = alpha[j]/beta[j];
-    ierr = BVGetColumn(svd->V,j-k,&v);CHKERRQ(ierr);
-    ierr = VecGetOwnershipRange(v,&lowv,&highv);CHKERRQ(ierr);
-    ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
-      for (i=lowv;i<highv;i++) pv[i-lowv] = Q[i+j*n];
-    ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->V,j-k,&v);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->V,j-k,&x);CHKERRQ(ierr);
+    ierr = VecGetOwnershipRange(x,&lowx,&highx);CHKERRQ(ierr);
+    ierr = VecGetArrayWrite(x,&px);CHKERRQ(ierr);
+    for (i=lowx;i<highx;i++) px[i-lowx] = Q[i+j*n];
+    ierr = VecRestoreArrayWrite(x,&px);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,j-k,&x);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->U,j-k,&uv);CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(svd->OP,&lowu,NULL);CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(svd->OPb,&lowv,NULL);CHKERRQ(ierr);
+    ierr = VecGetArrayWrite(uv,&puv);CHKERRQ(ierr);
+    for (i=0;i<mlocal;i++) puv[i] = U[i+lowu+j*m];
+    for (i=0;i<plocal;i++) puv[i+mlocal] = V[i+lowv+(j-k)*p];
+    ierr = VecRestoreArrayWrite(uv,&puv);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->U,j-k,&uv);CHKERRQ(ierr);
   }
 
   svd->nconv = l;

@@ -19,9 +19,10 @@ static char help[] = "Computes a partial generalized singular value decompositio
 int main(int argc,char **argv)
 {
   Mat            A,B;             /* operator matrices */
-  Vec            x;               /* right singular vectors */
+  Vec            u,v,x;           /* singular vectors */
   SVD            svd;             /* singular value problem solver context */
   SVDType        type;
+  Vec            uv,aux[2];
   PetscReal      error,tol,sigma;
   PetscInt       m=100,n,p=14,i,j,Istart,Iend,nsv,maxit,its,nconv;
   PetscBool      flg;
@@ -67,8 +68,6 @@ int main(int argc,char **argv)
   }
   ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-
-  ierr = MatCreateVecs(A,&x,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           Create the singular value solver and set various options
@@ -120,6 +119,16 @@ int main(int argc,char **argv)
 
   if (nconv>0) {
     /*
+       Create vectors. The interface returns u and v as stacked on top of each other
+       [u;v] so need to create a special vector (VecNest) to extract them
+    */
+    ierr = MatCreateVecs(A,&x,&u);CHKERRQ(ierr);
+    ierr = MatCreateVecs(B,NULL,&v);CHKERRQ(ierr);
+    aux[0] = u;
+    aux[1] = v;
+    ierr = VecCreateNest(PETSC_COMM_WORLD,2,NULL,aux,&uv);CHKERRQ(ierr);
+
+    /*
        Display singular values and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
@@ -129,7 +138,8 @@ int main(int argc,char **argv)
       /*
          Get converged singular triplets: i-th singular value is stored in sigma
       */
-      ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,x);CHKERRQ(ierr);
+      ierr = SVDGetSingularTriplet(svd,i,&sigma,uv,x);CHKERRQ(ierr);
+      /* at this point, u and v can be used normally as individual vectors */
 
       /*
          Compute the error associated to each singular triplet
@@ -140,6 +150,10 @@ int main(int argc,char **argv)
       ierr = PetscPrintf(PETSC_COMM_WORLD,"   % 12g\n",(double)error);CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    ierr = VecDestroy(&x);CHKERRQ(ierr);
+    ierr = VecDestroy(&u);CHKERRQ(ierr);
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+    ierr = VecDestroy(&uv);CHKERRQ(ierr);
   }
 
   /*
@@ -148,7 +162,6 @@ int main(int argc,char **argv)
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }

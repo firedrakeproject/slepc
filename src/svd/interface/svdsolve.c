@@ -67,7 +67,8 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 
    Options Database Keys:
 +  -svd_view - print information about the solver used
-.  -svd_view_mat binary - save the matrix to the default binary viewer
+.  -svd_view_mat0 binary - save the first matrix (A) to the default binary viewer
+.  -svd_view_mat0 binary - save the second matrix (B) to the default binary viewer
 .  -svd_view_vectors binary - save the computed singular vectors to the default binary viewer
 .  -svd_view_values - print computed singular values
 .  -svd_converged_reason - print reason for convergence, and number of iterations
@@ -127,7 +128,10 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = SVDErrorViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDValuesViewFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDVectorsViewFromOptions(svd);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat0");CHKERRQ(ierr);
+  if (svd->isgeneralized) {
+    ierr = MatViewFromOptions(svd->OPb,(PetscObject)svd,"-svd_view_mat1");CHKERRQ(ierr);
+  }
 
   /* Remove the initial subspaces */
   svd->nini = 0;
@@ -277,9 +281,11 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   if (i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see SVDGetConverged()");
   if (sigma) *sigma = svd->sigma[svd->perm[i]];
   if (u || v) {
-    ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
-    if (M<N) { w = u; u = v; v = w; }
-    ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
+    if (!svd->isgeneralized) {
+      ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+      if (M<N) { w = u; u = v; v = w; }
+      ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
+    }
     if (u) { ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr); }
     if (v) { ierr = BVCopyVec(svd->V,svd->perm[i],v);CHKERRQ(ierr); }
   }

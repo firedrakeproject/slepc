@@ -157,6 +157,34 @@ struct _p_SVD {
   } while (0)
 #define SVDCheckIgnored(svd,mask) SVDCheckIgnoredCondition(svd,mask,PETSC_TRUE,"")
 
+/*
+   Create the template vector for the left basis in GSVD, as in
+   MatCreateVecsEmpty(Z,NULL,&t) for Z=[A;B] without forming Z.
+ */
+PETSC_STATIC_INLINE PetscErrorCode SVDCreateLeftTemplate(SVD svd,Vec *t)
+{
+  PetscErrorCode ierr;
+  PetscInt       M,P,m,p;
+  Vec            v1,v2;
+  VecType        vec_type;
+
+  PetscFunctionBegin;
+  ierr = MatCreateVecsEmpty(svd->OP,NULL,&v1);CHKERRQ(ierr);
+  ierr = VecGetSize(v1,&M);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(v1,&m);CHKERRQ(ierr);
+  ierr = VecGetType(v1,&vec_type);CHKERRQ(ierr);
+  ierr = MatCreateVecsEmpty(svd->OPb,NULL,&v2);CHKERRQ(ierr);
+  ierr = VecGetSize(v2,&P);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(v2,&p);CHKERRQ(ierr);
+  ierr = VecCreate(PetscObjectComm((PetscObject)(v1)),t);CHKERRQ(ierr);
+  ierr = VecSetType(*t,vec_type);CHKERRQ(ierr);
+  ierr = VecSetSizes(*t,m+p,M+P);CHKERRQ(ierr);
+  ierr = VecSetUp(*t);CHKERRQ(ierr);
+  ierr = VecDestroy(&v1);CHKERRQ(ierr);
+  ierr = VecDestroy(&v2);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 SLEPC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
 SLEPC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
 SLEPC_INTERN PetscErrorCode SVDComputeVectors(SVD);

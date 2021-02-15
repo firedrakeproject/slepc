@@ -111,7 +111,8 @@ PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
   if (svd->nworkl < nleft) {
     ierr = VecDestroyVecs(svd->nworkl,&svd->workl);CHKERRQ(ierr);
     svd->nworkl = nleft;
-    ierr = MatCreateVecsEmpty(svd->OP,NULL,&t);CHKERRQ(ierr);
+    if (svd->isgeneralized) { ierr = SVDCreateLeftTemplate(svd,&t);CHKERRQ(ierr); }
+    else { ierr = MatCreateVecsEmpty(svd->OP,NULL,&t);CHKERRQ(ierr); }
     ierr = VecDuplicateVecs(t,nleft,&svd->workl);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(svd,nleft,svd->workl);CHKERRQ(ierr);
