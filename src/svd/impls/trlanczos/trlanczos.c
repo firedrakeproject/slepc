@@ -51,7 +51,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscInt       N;
 
   PetscFunctionBegin;
-  ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
+  ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
   if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd");
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
@@ -73,7 +73,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   PetscFunctionBegin;
   ierr = BVGetColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVGetColumn(U,k,&ui);CHKERRQ(ierr);
-  ierr = SVDMatMult(svd,PETSC_FALSE,vi,ui);CHKERRQ(ierr);
+  ierr = MatMult(svd->A,vi,ui);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
@@ -87,7 +87,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   for (i=k+1;i<n;i++) {
     ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVGetColumn(U,i-1,&ui1);CHKERRQ(ierr);
-    ierr = SVDMatMult(svd,PETSC_TRUE,ui1,vi);CHKERRQ(ierr);
+    ierr = MatMult(svd->AT,ui1,vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i-1,&ui1);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(V,i,NULL,&b,NULL);CHKERRQ(ierr);
@@ -96,7 +96,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
 
     ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVGetColumn(U,i,&ui);CHKERRQ(ierr);
-    ierr = SVDMatMult(svd,PETSC_FALSE,vi,ui);CHKERRQ(ierr);
+    ierr = MatMult(svd->A,vi,ui);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVGetColumn(U,i-1,&ui1);CHKERRQ(ierr);
     ierr = VecAXPY(ui,-b,ui1);CHKERRQ(ierr);
@@ -109,7 +109,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
 
   ierr = BVGetColumn(V,n,&vi);CHKERRQ(ierr);
   ierr = BVGetColumn(U,n-1,&ui1);CHKERRQ(ierr);
-  ierr = SVDMatMult(svd,PETSC_TRUE,ui1,vi);CHKERRQ(ierr);
+  ierr = MatMult(svd->AT,ui1,vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,n-1,&ui1);CHKERRQ(ierr);
   ierr = BVOrthogonalizeColumn(V,n,NULL,&b,NULL);CHKERRQ(ierr);
@@ -172,7 +172,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   PetscFunctionBegin;
   ierr = BVGetColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVGetColumn(U,k,&ui);CHKERRQ(ierr);
-  ierr = SVDMatMult(svd,PETSC_FALSE,vi,ui);CHKERRQ(ierr);
+  ierr = MatMult(svd->A,vi,ui);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
@@ -184,7 +184,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   for (i=k+1;i<n;i++) {
     ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVGetColumn(U,i-1,&ui1);CHKERRQ(ierr);
-    ierr = SVDMatMult(svd,PETSC_TRUE,ui1,vi);CHKERRQ(ierr);
+    ierr = MatMult(svd->AT,ui1,vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i-1,&ui1);CHKERRQ(ierr);
     ierr = BVNormColumnBegin(U,i-1,NORM_2,&a);CHKERRQ(ierr);
@@ -215,7 +215,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVGetColumn(U,i,&ui);CHKERRQ(ierr);
     ierr = BVGetColumn(U,i-1,&ui1);CHKERRQ(ierr);
-    ierr = SVDMatMult(svd,PETSC_FALSE,vi,ui);CHKERRQ(ierr);
+    ierr = MatMult(svd->A,vi,ui);CHKERRQ(ierr);
     ierr = VecAXPY(ui,-b,ui1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i,&ui);CHKERRQ(ierr);
@@ -227,7 +227,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
 
   ierr = BVGetColumn(V,n,&vi);CHKERRQ(ierr);
   ierr = BVGetColumn(U,n-1,&ui1);CHKERRQ(ierr);
-  ierr = SVDMatMult(svd,PETSC_TRUE,ui1,vi);CHKERRQ(ierr);
+  ierr = MatMult(svd->AT,ui1,vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,n,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,n-1,&ui1);CHKERRQ(ierr);
 

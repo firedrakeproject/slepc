@@ -20,8 +20,8 @@
 PetscErrorCode SVDComputeVectors_Left(SVD svd)
 {
   PetscErrorCode ierr;
-  Vec            tl,uj,vj;
-  PetscInt       j,oldsize;
+  Vec            tl;
+  PetscInt       oldsize;
 
   PetscFunctionBegin;
   if (!svd->leftbasis) {
@@ -32,18 +32,14 @@ PetscErrorCode SVDComputeVectors_Left(SVD svd)
       if (!((PetscObject)(svd->U))->type_name) {
         ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
       }
-      ierr = SVDMatCreateVecsEmpty(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = MatCreateVecsEmpty(svd->A,NULL,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
     }
-    for (j=0;j<svd->nconv;j++) {
-      ierr = BVGetColumn(svd->V,j,&vj);CHKERRQ(ierr);
-      ierr = BVGetColumn(svd->U,j,&uj);CHKERRQ(ierr);
-      ierr = SVDMatMult(svd,PETSC_FALSE,vj,uj);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->V,j,&vj);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->U,j,&uj);CHKERRQ(ierr);
-      ierr = BVOrthonormalizeColumn(svd->U,j,PETSC_FALSE,NULL,NULL);CHKERRQ(ierr);
-    }
+    ierr = BVSetActiveColumns(svd->V,0,svd->nconv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(svd->U,0,svd->nconv);CHKERRQ(ierr);
+    ierr = BVMatMult(svd->V,svd->A,svd->U);CHKERRQ(ierr);
+    ierr = BVOrthogonalize(svd->U,NULL);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

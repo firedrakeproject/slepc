@@ -33,8 +33,8 @@ static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   cross = (SVD_CROSS*)svd->data;
-  ierr = SVDMatMult(svd,PETSC_FALSE,x,cross->w);CHKERRQ(ierr);
-  ierr = SVDMatMult(svd,PETSC_TRUE,cross->w,y);CHKERRQ(ierr);
+  ierr = MatMult(svd->A,x,cross->w);CHKERRQ(ierr);
+  ierr = MatMult(svd->AT,cross->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -46,10 +46,10 @@ static PetscErrorCode MatCreateVecs_Cross(Mat B,Vec *right,Vec *left)
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   if (right) {
-    ierr = SVDMatCreateVecs(svd,right,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(svd->A,right,NULL);CHKERRQ(ierr);
     if (left) { ierr = VecDuplicate(*right,left);CHKERRQ(ierr); }
   } else {
-    ierr = SVDMatCreateVecs(svd,left,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(svd->A,left,NULL);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -71,8 +71,8 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
   if (!cross->diag) {
     /* compute diagonal from rows and store in cross->diag */
     ierr = VecDuplicate(d,&cross->diag);CHKERRQ(ierr);
-    ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
-    ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
+    ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(svd->A,NULL,&n);CHKERRQ(ierr);
     ierr = PetscCalloc2(N,&work1,N,&work2);CHKERRQ(ierr);
     if (svd->AT) {
       ierr = MatGetOwnershipRange(svd->AT,&start,&end);CHKERRQ(ierr);
@@ -133,12 +133,12 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
       ierr = MatProductSymbolic(cross->mat);CHKERRQ(ierr);
       ierr = MatProductNumeric(cross->mat);CHKERRQ(ierr);
     } else {
-      ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
+      ierr = MatGetLocalSize(svd->A,NULL,&n);CHKERRQ(ierr);
       ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cross->mat,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Cross);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
-      ierr = SVDMatCreateVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
+      ierr = MatCreateVecs(svd->A,NULL,&cross->w);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->w);CHKERRQ(ierr);
     }
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->mat);CHKERRQ(ierr);
