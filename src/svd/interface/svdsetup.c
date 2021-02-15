@@ -130,19 +130,17 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (expltrans) {
     if (M>=N) {
       svd->A = svd->OP;
-      ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
-      ierr = MatConjugate(svd->AT);CHKERRQ(ierr);
+      ierr = MatHermitianTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
     } else {
-      ierr = MatTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
-      ierr = MatConjugate(svd->A);CHKERRQ(ierr);
+      ierr = MatHermitianTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
       svd->AT = svd->OP;
     }
   } else {
     if (M>=N) {
       svd->A = svd->OP;
-      svd->AT = NULL;
+      ierr = MatCreateHermitianTranspose(svd->OP,&svd->AT);CHKERRQ(ierr);
     } else {
-      svd->A = NULL;
+      ierr = MatCreateHermitianTranspose(svd->OP,&svd->A);CHKERRQ(ierr);
       svd->AT = svd->OP;
     }
   }
@@ -262,7 +260,7 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
   PetscInt       N;
 
   PetscFunctionBegin;
-  ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
+  ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
   if (svd->ncv!=PETSC_DEFAULT) { /* ncv set */
     if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv");
   } else if (svd->mpd!=PETSC_DEFAULT) { /* mpd set */
@@ -321,7 +319,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
     if (!((PetscObject)(svd->V))->type_name) {
       ierr = BVSetType(svd->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = SVDMatCreateVecsEmpty(svd,&tr,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(svd->A,&tr,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(svd->V,tr,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&tr);CHKERRQ(ierr);
   } else {
@@ -334,7 +332,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
       if (!((PetscObject)(svd->U))->type_name) {
         ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
       }
-      ierr = SVDMatCreateVecsEmpty(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = MatCreateVecsEmpty(svd->A,NULL,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
     } else {

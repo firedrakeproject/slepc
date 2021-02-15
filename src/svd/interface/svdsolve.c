@@ -13,15 +13,18 @@
 
 #include <slepc/private/svdimpl.h>   /*I "slepcsvd.h" I*/
 
-PetscErrorCode SVDComputeVectors(SVD svd)
+/*
+  SVDComputeVectors_Left - Compute left singular vectors as U=A*V.
+  Only done if the leftbasis flag is false. Assumes V is available.
+ */
+PetscErrorCode SVDComputeVectors_Left(SVD svd)
 {
   PetscErrorCode ierr;
-  Vec            tl,uj,vj;
-  PetscInt       j,oldsize;
+  Vec            tl;
+  PetscInt       oldsize;
 
   PetscFunctionBegin;
-  SVDCheckSolved(svd,1);
-  if (svd->state==SVD_STATE_SOLVED) {
+  if (!svd->leftbasis) {
     /* generate left singular vectors on U */
     if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
     ierr = BVGetSizes(svd->U,NULL,NULL,&oldsize);CHKERRQ(ierr);
@@ -29,18 +32,26 @@ PetscErrorCode SVDComputeVectors(SVD svd)
       if (!((PetscObject)(svd->U))->type_name) {
         ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
       }
-      ierr = SVDMatCreateVecsEmpty(svd,NULL,&tl);CHKERRQ(ierr);
+      ierr = MatCreateVecsEmpty(svd->A,NULL,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
     }
-    for (j=0;j<svd->nconv;j++) {
-      ierr = BVGetColumn(svd->V,j,&vj);CHKERRQ(ierr);
-      ierr = BVGetColumn(svd->U,j,&uj);CHKERRQ(ierr);
-      ierr = SVDMatMult(svd,PETSC_FALSE,vj,uj);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->V,j,&vj);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->U,j,&uj);CHKERRQ(ierr);
-      ierr = BVOrthonormalizeColumn(svd->U,j,PETSC_FALSE,NULL,NULL);CHKERRQ(ierr);
-    }
+    ierr = BVSetActiveColumns(svd->V,0,svd->nconv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(svd->U,0,svd->nconv);CHKERRQ(ierr);
+    ierr = BVMatMult(svd->V,svd->A,svd->U);CHKERRQ(ierr);
+    ierr = BVOrthogonalize(svd->U,NULL);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDComputeVectors(SVD svd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  SVDCheckSolved(svd,1);
+  if (svd->state==SVD_STATE_SOLVED && svd->ops->computevectors) {
+    ierr = (*svd->ops->computevectors)(svd);CHKERRQ(ierr);
   }
   svd->state = SVD_STATE_VECTORS;
   PetscFunctionReturn(0);
@@ -89,7 +100,7 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = SVDViewFromOptions(svd,NULL,"-svd_view_pre");CHKERRQ(ierr);
 
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
-  svd->state = (svd->leftbasis)? SVD_STATE_VECTORS: SVD_STATE_SOLVED;
+  svd->state = SVD_STATE_SOLVED;
 
   /* sort singular triplets */
   if (svd->which == SVD_SMALLEST) {
@@ -258,14 +269,12 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   if (i<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   if (i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see SVDGetConverged()");
   if (sigma) *sigma = svd->sigma[svd->perm[i]];
-  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
-  if (M<N) { w = u; u = v; v = w; }
-  if (u) {
+  if (u || v) {
+    ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+    if (M<N) { w = u; u = v; v = w; }
     ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
-    ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr);
-  }
-  if (v) {
-    ierr = BVCopyVec(svd->V,svd->perm[i],v);CHKERRQ(ierr);
+    if (u) { ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr); }
+    if (v) { ierr = BVCopyVec(svd->V,svd->perm[i],v);CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
 }
@@ -273,27 +282,26 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 /*
    SVDComputeResidualNorms_Private - Computes the norms of the left and
    right residuals associated with the i-th computed singular triplet.
+
+   Input Parameters:
+     sigma - singular value
+     u,v   - singular vectors
+     x,y   - two work vectors with the same dimensions as u,v
 @*/
-static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscInt i,PetscReal *norm1,PetscReal *norm2)
+static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscReal sigma,Vec u,Vec v,Vec x,Vec y,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;
-  Vec            u,v,x = NULL,y = NULL;
-  PetscReal      sigma;
   PetscInt       M,N;
 
   PetscFunctionBegin;
-  ierr = MatCreateVecs(svd->OP,&v,&u);CHKERRQ(ierr);
-  ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
   /* norm1 = ||A*v-sigma*u||_2 */
   if (norm1) {
-    ierr = VecDuplicate(u,&x);CHKERRQ(ierr);
     ierr = MatMult(svd->OP,v,x);CHKERRQ(ierr);
     ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
     ierr = VecNorm(x,NORM_2,norm1);CHKERRQ(ierr);
   }
   /* norm2 = ||A^T*u-sigma*v||_2 */
   if (norm2) {
-    ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
     if (svd->A && svd->AT) {
       ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
       if (M<N) {
@@ -302,20 +310,11 @@ static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscInt i,PetscRe
         ierr = MatMult(svd->AT,u,y);CHKERRQ(ierr);
       }
     } else {
-#if defined(PETSC_USE_COMPLEX)
       ierr = MatMultHermitianTranspose(svd->OP,u,y);CHKERRQ(ierr);
-#else
-      ierr = MatMultTranspose(svd->OP,u,y);CHKERRQ(ierr);
-#endif
     }
     ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
     ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
   }
-
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -347,6 +346,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
 {
   PetscErrorCode ierr;
   PetscReal      sigma,norm1,norm2;
+  Vec            u,v,x,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -354,8 +354,19 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   PetscValidLogicalCollectiveEnum(svd,type,3);
   PetscValidRealPointer(error,4);
   SVDCheckSolved(svd,1);
-  ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
-  ierr = SVDComputeResidualNorms_Private(svd,i,&norm1,&norm2);CHKERRQ(ierr);
+
+  /* allocate work vectors */
+  ierr = SVDSetWorkVecs(svd,2,2);CHKERRQ(ierr);
+  u = svd->workl[0];
+  v = svd->workr[0];
+  x = svd->workl[1];
+  y = svd->workr[1];
+
+  /* compute residual norm */
+  ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
+  ierr = SVDComputeResidualNorms_Private(svd,sigma,u,v,x,y,&norm1,&norm2);CHKERRQ(ierr);
+
+  /* compute error */
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
   switch (type) {
     case SVD_ERROR_ABSOLUTE:

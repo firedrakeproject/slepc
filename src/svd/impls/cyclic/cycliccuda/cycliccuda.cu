@@ -24,15 +24,15 @@ PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   cyclic = (SVD_CYCLIC*)svd->data;
-  ierr = SVDMatGetLocalSize(svd,&m,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(svd->A,&m,NULL);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayRead(x,(const PetscScalar**)&d_px);CHKERRQ(ierr);
   ierr = VecCUDAGetArray(y,&d_py);CHKERRQ(ierr);
   ierr = VecCUDAPlaceArray(cyclic->x1,d_px);CHKERRQ(ierr);
   ierr = VecCUDAPlaceArray(cyclic->x2,d_px+m);CHKERRQ(ierr);
   ierr = VecCUDAPlaceArray(cyclic->y1,d_py);CHKERRQ(ierr);
   ierr = VecCUDAPlaceArray(cyclic->y2,d_py+m);CHKERRQ(ierr);
-  ierr = SVDMatMult(svd,PETSC_FALSE,cyclic->x2,cyclic->y1);CHKERRQ(ierr);
-  ierr = SVDMatMult(svd,PETSC_TRUE,cyclic->x1,cyclic->y2);CHKERRQ(ierr);
+  ierr = MatMult(svd->A,cyclic->x2,cyclic->y1);CHKERRQ(ierr);
+  ierr = MatMult(svd->AT,cyclic->x1,cyclic->y2);CHKERRQ(ierr);
   ierr = VecCUDAResetArray(cyclic->x1);CHKERRQ(ierr);
   ierr = VecCUDAResetArray(cyclic->x2);CHKERRQ(ierr);
   ierr = VecCUDAResetArray(cyclic->y1);CHKERRQ(ierr);

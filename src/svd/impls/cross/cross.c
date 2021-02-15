@@ -33,8 +33,8 @@ static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   cross = (SVD_CROSS*)svd->data;
-  ierr = SVDMatMult(svd,PETSC_FALSE,x,cross->w);CHKERRQ(ierr);
-  ierr = SVDMatMult(svd,PETSC_TRUE,cross->w,y);CHKERRQ(ierr);
+  ierr = MatMult(svd->A,x,cross->w);CHKERRQ(ierr);
+  ierr = MatMult(svd->AT,cross->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -46,10 +46,10 @@ static PetscErrorCode MatCreateVecs_Cross(Mat B,Vec *right,Vec *left)
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   if (right) {
-    ierr = SVDMatCreateVecs(svd,right,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(svd->A,right,NULL);CHKERRQ(ierr);
     if (left) { ierr = VecDuplicate(*right,left);CHKERRQ(ierr); }
   } else {
-    ierr = SVDMatCreateVecs(svd,left,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(svd->A,left,NULL);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -71,8 +71,8 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
   if (!cross->diag) {
     /* compute diagonal from rows and store in cross->diag */
     ierr = VecDuplicate(d,&cross->diag);CHKERRQ(ierr);
-    ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
-    ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
+    ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(svd->A,NULL,&n);CHKERRQ(ierr);
     ierr = PetscCalloc2(N,&work1,N,&work2);CHKERRQ(ierr);
     if (svd->AT) {
       ierr = MatGetOwnershipRange(svd->AT,&start,&end);CHKERRQ(ierr);
@@ -133,12 +133,12 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
       ierr = MatProductSymbolic(cross->mat);CHKERRQ(ierr);
       ierr = MatProductNumeric(cross->mat);CHKERRQ(ierr);
     } else {
-      ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
+      ierr = MatGetLocalSize(svd->A,NULL,&n);CHKERRQ(ierr);
       ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cross->mat,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Cross);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
-      ierr = SVDMatCreateVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
+      ierr = MatCreateVecs(svd->A,NULL,&cross->w);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->w);CHKERRQ(ierr);
     }
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->mat);CHKERRQ(ierr);
@@ -186,7 +186,6 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   PetscInt       i;
   PetscScalar    lambda;
   PetscReal      sigma;
-  Vec            v;
 
   PetscFunctionBegin;
   ierr = EPSSolve(cross->eps);CHKERRQ(ierr);
@@ -194,9 +193,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
-    ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
-    ierr = EPSGetEigenpair(cross->eps,i,&lambda,NULL,v,NULL);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(cross->eps,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
     sigma = PetscRealPart(lambda);
     if (sigma<-10*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS: %g",sigma);
     if (sigma<0.0) {
@@ -205,6 +202,23 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
     }
     svd->sigma[i] = PetscSqrtReal(sigma);
   }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDComputeVectors_Cross(SVD svd)
+{
+  PetscErrorCode ierr;
+  SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
+  PetscInt       i;
+  Vec            v;
+
+  PetscFunctionBegin;
+  for (i=0;i<svd->nconv;i++) {
+    ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(cross->eps,i,NULL,NULL,v,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
+  }
+  ierr = SVDComputeVectors_Left(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -475,6 +489,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   svd->ops->destroy        = SVDDestroy_Cross;
   svd->ops->reset          = SVDReset_Cross;
   svd->ops->view           = SVDView_Cross;
+  svd->ops->computevectors = SVDComputeVectors_Cross;
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetEPS_C",SVDCrossSetEPS_Cross);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C",SVDCrossGetEPS_Cross);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetExplicitMatrix_C",SVDCrossSetExplicitMatrix_Cross);CHKERRQ(ierr);

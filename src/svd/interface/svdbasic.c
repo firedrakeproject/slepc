@@ -79,8 +79,12 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->IS               = NULL;
   svd->ISL              = NULL;
   svd->sigma            = NULL;
-  svd->perm             = NULL;
   svd->errest           = NULL;
+  svd->perm             = NULL;
+  svd->nworkl           = 0;
+  svd->nworkr           = 0;
+  svd->workl            = NULL;
+  svd->workr            = NULL;
   svd->data             = NULL;
 
   svd->state            = SVD_STATE_INITIAL;
@@ -120,6 +124,10 @@ PetscErrorCode SVDReset(SVD svd)
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(svd->nworkl,&svd->workl);CHKERRQ(ierr);
+  svd->nworkl = 0;
+  ierr = VecDestroyVecs(svd->nworkr,&svd->workr);CHKERRQ(ierr);
+  svd->nworkr = 0;
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }

@@ -28,6 +28,7 @@ struct _SVDOps {
   PetscErrorCode (*destroy)(SVD);
   PetscErrorCode (*reset)(SVD);
   PetscErrorCode (*view)(SVD,PetscViewer);
+  PetscErrorCode (*computevectors)(SVD);
 };
 
 /*
@@ -88,8 +89,10 @@ struct _p_SVD {
   Mat            AT;               /* transposed matrix */
   Vec            *IS,*ISL;         /* placeholder for references to user initial space */
   PetscReal      *sigma;           /* singular values */
-  PetscInt       *perm;            /* permutation for singular value ordering */
   PetscReal      *errest;          /* error estimates */
+  PetscInt       *perm;            /* permutation for singular value ordering */
+  PetscInt       nworkl,nworkr;    /* number of work vectors */
+  Vec            *workl,*workr;    /* work vectors */
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables -------------------------- */
@@ -137,89 +140,9 @@ struct _p_SVD {
   } while (0)
 #define SVDCheckIgnored(svd,mask) SVDCheckIgnoredCondition(svd,mask,PETSC_TRUE,"")
 
-PETSC_STATIC_INLINE PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (trans) {
-    if (svd->AT) {
-      ierr = MatMult(svd->AT,x,y);CHKERRQ(ierr);
-    } else {
-#if defined(PETSC_USE_COMPLEX)
-      ierr = MatMultHermitianTranspose(svd->A,x,y);CHKERRQ(ierr);
-#else
-      ierr = MatMultTranspose(svd->A,x,y);CHKERRQ(ierr);
-#endif
-    }
-  } else {
-    if (svd->A) {
-      ierr = MatMult(svd->A,x,y);CHKERRQ(ierr);
-    } else {
-#if defined(PETSC_USE_COMPLEX)
-      ierr = MatMultHermitianTranspose(svd->AT,x,y);CHKERRQ(ierr);
-#else
-      ierr = MatMultTranspose(svd->AT,x,y);CHKERRQ(ierr);
-#endif
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-PETSC_STATIC_INLINE PetscErrorCode SVDMatCreateVecs(SVD svd,Vec *x,Vec *y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (svd->A) {
-    ierr = MatCreateVecs(svd->A,x,y);CHKERRQ(ierr);
-  } else {
-    ierr = MatCreateVecs(svd->AT,y,x);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-PETSC_STATIC_INLINE PetscErrorCode SVDMatCreateVecsEmpty(SVD svd,Vec *x,Vec *y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (svd->A) {
-    ierr = MatCreateVecsEmpty(svd->A,x,y);CHKERRQ(ierr);
-  } else {
-    ierr = MatCreateVecsEmpty(svd->AT,y,x);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-PETSC_STATIC_INLINE PetscErrorCode SVDMatGetSize(SVD svd,PetscInt *m,PetscInt *n)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (svd->A) {
-    ierr = MatGetSize(svd->A,m,n);CHKERRQ(ierr);
-  } else {
-    ierr = MatGetSize(svd->AT,n,m);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-PETSC_STATIC_INLINE PetscErrorCode SVDMatGetLocalSize(SVD svd,PetscInt *m,PetscInt *n)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (svd->A) {
-    ierr = MatGetLocalSize(svd->A,m,n);CHKERRQ(ierr);
-  } else {
-    ierr = MatGetLocalSize(svd->AT,n,m);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
 SLEPC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
 SLEPC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
 SLEPC_INTERN PetscErrorCode SVDComputeVectors(SVD);
+SLEPC_INTERN PetscErrorCode SVDComputeVectors_Left(SVD);
 
 #endif

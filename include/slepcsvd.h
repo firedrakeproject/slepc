@@ -166,6 +166,7 @@ SLEPC_EXTERN PetscErrorCode SVDVectorsView(SVD,PetscViewer);
 SLEPC_EXTERN PetscErrorCode SVDVectorsViewFromOptions(SVD);
 SLEPC_EXTERN PetscErrorCode SVDDestroy(SVD*);
 SLEPC_EXTERN PetscErrorCode SVDReset(SVD);
+SLEPC_EXTERN PetscErrorCode SVDSetWorkVecs(SVD,PetscInt,PetscInt);
 
 SLEPC_EXTERN PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);
 SLEPC_EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));

@@ -130,11 +130,11 @@ static void multMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,
     if (*transpose) {
       *ierr = VecPlaceArray(y,(PetscScalar*)xa+(*ldx)*i);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
       *ierr = VecPlaceArray(x,(PetscScalar*)ya+(*ldy)*i);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
-      *ierr = SVDMatMult(svd,PETSC_TRUE,y,x);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
+      *ierr = MatMult(svd->AT,y,x);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
     } else {
       *ierr = VecPlaceArray(x,(PetscScalar*)xa+(*ldx)*i);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
       *ierr = VecPlaceArray(y,(PetscScalar*)ya+(*ldy)*i);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
-      *ierr = SVDMatMult(svd,PETSC_FALSE,x,y);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
+      *ierr = MatMult(svd->A,x,y);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
     }
     *ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
     *ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)svd),*ierr);
@@ -155,8 +155,8 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&procID);CHKERRMPI(ierr);
 
   /* Check some constraints and set some default values */
-  ierr = SVDMatGetSize(svd,&m,&n);CHKERRQ(ierr);
-  ierr = SVDMatGetLocalSize(svd,&mloc,&nloc);CHKERRQ(ierr);
+  ierr = MatGetSize(svd->A,&m,&n);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(svd->A,&mloc,&nloc);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = PETSC_MAX_INT;
   svd->leftbasis = PETSC_TRUE;

@@ -25,7 +25,7 @@ PetscErrorCode SVDSetUp_ScaLAPACK(SVD svd)
   PetscInt       M,N;
 
   PetscFunctionBegin;
-  ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
   svd->ncv = N;
   if (svd->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
