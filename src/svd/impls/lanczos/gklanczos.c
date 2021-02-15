@@ -407,6 +407,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD svd)
   svd->ops->destroy        = SVDDestroy_Lanczos;
   svd->ops->setfromoptions = SVDSetFromOptions_Lanczos;
   svd->ops->view           = SVDView_Lanczos;
+  svd->ops->computevectors = SVDComputeVectors_Left;
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosSetOneSide_C",SVDLanczosSetOneSide_Lanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDLanczosGetOneSide_C",SVDLanczosGetOneSide_Lanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);

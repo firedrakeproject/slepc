@@ -13,15 +13,18 @@
 
 #include <slepc/private/svdimpl.h>   /*I "slepcsvd.h" I*/
 
-PetscErrorCode SVDComputeVectors(SVD svd)
+/*
+  SVDComputeVectors_Left - Compute left singular vectors as U=A*V.
+  Only done if the leftbasis flag is false. Assumes V is available.
+ */
+PetscErrorCode SVDComputeVectors_Left(SVD svd)
 {
   PetscErrorCode ierr;
   Vec            tl,uj,vj;
   PetscInt       j,oldsize;
 
   PetscFunctionBegin;
-  SVDCheckSolved(svd,1);
-  if (svd->state==SVD_STATE_SOLVED) {
+  if (!svd->leftbasis) {
     /* generate left singular vectors on U */
     if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
     ierr = BVGetSizes(svd->U,NULL,NULL,&oldsize);CHKERRQ(ierr);
@@ -41,6 +44,18 @@ PetscErrorCode SVDComputeVectors(SVD svd)
       ierr = BVRestoreColumn(svd->U,j,&uj);CHKERRQ(ierr);
       ierr = BVOrthonormalizeColumn(svd->U,j,PETSC_FALSE,NULL,NULL);CHKERRQ(ierr);
     }
+  }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDComputeVectors(SVD svd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  SVDCheckSolved(svd,1);
+  if (svd->state==SVD_STATE_SOLVED && svd->ops->computevectors) {
+    ierr = (*svd->ops->computevectors)(svd);CHKERRQ(ierr);
   }
   svd->state = SVD_STATE_VECTORS;
   PetscFunctionReturn(0);
@@ -89,7 +104,7 @@ PetscErrorCode SVDSolve(SVD svd)
   ierr = SVDViewFromOptions(svd,NULL,"-svd_view_pre");CHKERRQ(ierr);
 
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
-  svd->state = (svd->leftbasis)? SVD_STATE_VECTORS: SVD_STATE_SOLVED;
+  svd->state = SVD_STATE_SOLVED;
 
   /* sort singular triplets */
   if (svd->which == SVD_SMALLEST) {
@@ -258,14 +273,12 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   if (i<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   if (i>=svd->nconv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see SVDGetConverged()");
   if (sigma) *sigma = svd->sigma[svd->perm[i]];
-  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
-  if (M<N) { w = u; u = v; v = w; }
-  if (u) {
+  if (u || v) {
+    ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+    if (M<N) { w = u; u = v; v = w; }
     ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
-    ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr);
-  }
-  if (v) {
-    ierr = BVCopyVec(svd->V,svd->perm[i],v);CHKERRQ(ierr);
+    if (u) { ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr); }
+    if (v) { ierr = BVCopyVec(svd->V,svd->perm[i],v);CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
 }

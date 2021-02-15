@@ -186,7 +186,6 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   PetscInt       i;
   PetscScalar    lambda;
   PetscReal      sigma;
-  Vec            v;
 
   PetscFunctionBegin;
   ierr = EPSSolve(cross->eps);CHKERRQ(ierr);
@@ -194,9 +193,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
-    ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
-    ierr = EPSGetEigenpair(cross->eps,i,&lambda,NULL,v,NULL);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(cross->eps,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
     sigma = PetscRealPart(lambda);
     if (sigma<-10*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS: %g",sigma);
     if (sigma<0.0) {
@@ -205,6 +202,23 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
     }
     svd->sigma[i] = PetscSqrtReal(sigma);
   }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDComputeVectors_Cross(SVD svd)
+{
+  PetscErrorCode ierr;
+  SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
+  PetscInt       i;
+  Vec            v;
+
+  PetscFunctionBegin;
+  for (i=0;i<svd->nconv;i++) {
+    ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(cross->eps,i,NULL,NULL,v,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
+  }
+  ierr = SVDComputeVectors_Left(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -475,6 +489,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   svd->ops->destroy        = SVDDestroy_Cross;
   svd->ops->reset          = SVDReset_Cross;
   svd->ops->view           = SVDView_Cross;
+  svd->ops->computevectors = SVDComputeVectors_Cross;
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetEPS_C",SVDCrossSetEPS_Cross);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C",SVDCrossGetEPS_Cross);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetExplicitMatrix_C",SVDCrossSetExplicitMatrix_Cross);CHKERRQ(ierr);

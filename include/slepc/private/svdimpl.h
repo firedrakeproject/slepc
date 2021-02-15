@@ -28,6 +28,7 @@ struct _SVDOps {
   PetscErrorCode (*destroy)(SVD);
   PetscErrorCode (*reset)(SVD);
   PetscErrorCode (*view)(SVD,PetscViewer);
+  PetscErrorCode (*computevectors)(SVD);
 };
 
 /*
@@ -215,5 +216,6 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatGetLocalSize(SVD svd,PetscInt *m,PetscI
 SLEPC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
 SLEPC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
 SLEPC_INTERN PetscErrorCode SVDComputeVectors(SVD);
+SLEPC_INTERN PetscErrorCode SVDComputeVectors_Left(SVD);
 
 #endif
