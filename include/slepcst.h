@@ -109,6 +109,9 @@ SLEPC_EXTERN PetscErrorCode STIsInjective(ST,PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode STCheckNullSpace(ST,BV);
 
+SLEPC_EXTERN PetscErrorCode STSetPreconditionerMat(ST,Mat);
+SLEPC_EXTERN PetscErrorCode STGetPreconditionerMat(ST,Mat*);
+
 SLEPC_EXTERN PetscErrorCode STMatCreateVecs(ST,Vec*,Vec*);
 SLEPC_EXTERN PetscErrorCode STMatCreateVecsEmpty(ST,Vec*,Vec*);
 SLEPC_EXTERN PetscErrorCode STMatGetSize(ST,PetscInt*,PetscInt*);
@@ -146,8 +149,8 @@ SLEPC_EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backt
 SLEPC_EXTERN PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
-SLEPC_EXTERN PetscErrorCode STPrecondGetMatForPC(ST,Mat*);
-SLEPC_EXTERN PetscErrorCode STPrecondSetMatForPC(ST,Mat);
+PETSC_DEPRECATED_FUNCTION("Use STGetPreconditionerMat()") PETSC_STATIC_INLINE PetscErrorCode STPrecondGetMatForPC(ST st,Mat *A) {return STGetPreconditionerMat(st,A);}
+PETSC_DEPRECATED_FUNCTION("Use STSetPreconditionerMat()") PETSC_STATIC_INLINE PetscErrorCode STPrecondSetMatForPC(ST st,Mat A) {return STSetPreconditionerMat(st,A);}
 SLEPC_EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST,PetscBool*);
 SLEPC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST,PetscBool);
 

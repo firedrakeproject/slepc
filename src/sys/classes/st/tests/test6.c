@@ -105,7 +105,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(P,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
   /* apply new preconditioner */
-  ierr = STPrecondSetMatForPC(st,P);CHKERRQ(ierr);
+  ierr = STSetPreconditionerMat(st,P);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With user-provided matrix\n");CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);

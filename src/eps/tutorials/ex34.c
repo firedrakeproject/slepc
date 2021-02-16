@@ -123,7 +123,7 @@ int main(int argc,char **argv)
   /* Set a preconditioning matrix to ST */
   if (use_shell_matrix) {
     ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-    ierr = STPrecondSetMatForPC(st,P);CHKERRQ(ierr);
+    ierr = STSetPreconditionerMat(st,P);CHKERRQ(ierr);
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

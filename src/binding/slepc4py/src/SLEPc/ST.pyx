@@ -382,6 +382,32 @@ cdef class ST(Object):
         PetscINCREF(ksp.obj)
         return ksp
 
+    def setPreconditionerMat(self, Mat P=None):
+        """
+        Sets the matrix to be used to build the preconditioner.
+
+        Parameters
+        ----------
+        P: Mat, optional
+           The matrix that will be used in constructing the preconditioner.
+        """
+        cdef PetscMat Pmat = P.mat if P is not None else <PetscMat>NULL
+        CHKERR( STSetPreconditionerMat(self.st, Pmat) )
+
+    def getPreconditionerMat(self):
+        """
+        Gets the matrix previously set by setPreconditionerMat().
+
+        Returns
+        -------
+        P: Mat
+           The matrix that will be used in constructing the preconditioner.
+        """
+        cdef Mat P = Mat()
+        CHKERR( STGetPreconditionerMat(self.st, &P.mat) )
+        PetscINCREF(P.obj)
+        return P
+
     #
 
     def setUp(self):

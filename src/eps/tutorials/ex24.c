@@ -120,7 +120,7 @@ int main(int argc,char **argv)
     */
     ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
     ierr = STSetType(st,STPRECOND);CHKERRQ(ierr);
-    ierr = STPrecondSetMatForPC(st,P);CHKERRQ(ierr);
+    ierr = STSetPreconditionerMat(st,P);CHKERRQ(ierr);
     ierr = MatDestroy(&P);CHKERRQ(ierr);
     ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);

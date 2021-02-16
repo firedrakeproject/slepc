@@ -57,6 +57,7 @@ struct _p_ST {
   MatStructure     str;              /* whether matrices have the same pattern or not */
   PetscBool        transform;        /* whether transformed matrices are computed */
   Vec              D;                /* diagonal matrix for balancing */
+  Mat              Pmat;             /* user-provided preconditioner matrix */
 
   /*------------------------- Misc data --------------------------*/
   KSP              ksp;              /* linear solver used in some ST's */

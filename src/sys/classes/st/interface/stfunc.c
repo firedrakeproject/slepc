@@ -113,6 +113,7 @@ PetscErrorCode STReset(ST st)
   ierr = PetscFree(st->Astate);CHKERRQ(ierr);
   ierr = MatDestroy(&st->Op);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->Pmat);CHKERRQ(ierr);
   ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
   st->nwork = 0;
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
@@ -184,6 +185,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->str          = UNKNOWN_NONZERO_PATTERN;
   st->transform    = PETSC_FALSE;
   st->D            = NULL;
+  st->Pmat         = NULL;
 
   st->ksp          = NULL;
   st->usesksp      = PETSC_FALSE;
@@ -418,6 +420,77 @@ PetscErrorCode STResetMatrixState(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   for (i=0;i<st->nmat;i++) st->Astate[i] = ((PetscObject)st->A[i])->state;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STSetPreconditionerMat - Sets the matrix to be used to build the preconditioner.
+
+   Collective on st
+
+   Input Parameter:
++  st  - the spectral transformation context
+-  mat - the matrix that will be used in constructing the preconditioner
+
+   Notes:
+   This matrix will be passed to the internal KSP object (via the last argument
+   of KSPSetOperators()) as the matrix to be used when constructing the preconditioner.
+   If no matrix is set or mat is set to NULL, A-sigma*B will be used
+   to build the preconditioner, being sigma the value set by STSetShift().
+
+   More precisely, this is relevant for spectral transformations that represent
+   a rational matrix function, and use a KSP object for the denominator, called
+   K in the description of STGetOperator(). It includes also the STPRECOND case.
+   If the user has a good approximation to matrix K that can be used to build a
+   cheap preconditioner, it can be passed with this function. Note that it affects
+   only the Pmat argument of KSPSetOperators(), not the Amat argument.
+
+   If a preconditioner matrix is set, the default is to use an iterative KSP
+   rather than a direct method.
+
+   Level: advanced
+
+.seealso: STGetPreconditionerMat(), STSetShift(), STGetOperator()
+@*/
+PetscErrorCode STSetPreconditionerMat(ST st,Mat mat)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
+  PetscCheckSameComm(st,1,mat,2);
+  STCheckNotSeized(st,1);
+  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->Pmat);CHKERRQ(ierr);
+  st->Pmat     = mat;
+  st->state    = ST_STATE_INITIAL;
+  st->opready  = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STGetPreconditionerMat - Returns the matrix previously set by STSetPreconditionerMat().
+
+   Collective on st
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  mat - the matrix that will be used in constructing the preconditioner or
+   NULL if no matrix was set by STSetPreconditionerMat().
+
+   Level: advanced
+
+.seealso: STSetPreconditionerMat()
+@*/
+PetscErrorCode STGetPreconditionerMat(ST st,Mat *mat)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(mat,2);
+  *mat = st->Pmat;
   PetscFunctionReturn(0);
 }
 

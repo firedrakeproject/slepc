@@ -221,10 +221,11 @@ where the system is solved approximately with a preconditioned iterative linear 
 	It should be clear from the previous discussion, that \ident{STPRECOND} does not work in the same way as the rest of spectral transformations. In particular, it does not rely on \ident{STBackTransform}. It is rather a convenient mechanism for handling the preconditioner and linear solver (see examples in \S\ref{sec:lin}). The expressions shown in Tables \ref{tab:transforms} and \ref{tab:op} are just a reference to indicate from which matrix the preconditioner is built by default.
 
 	There is the possibility that the user overrides the default behaviour, that is, to explicitly supply a matrix from which the preconditioner is to be built, with
-	\findex{STPrecondSetMatForPC}
+	\findex{STSetPreconditionerMat}
 	\begin{Verbatim}[fontsize=\small]
-	STPrecondSetMatForPC(ST st,Mat mat);
+	STSetPreconditionerMat(ST st,Mat mat);
 	\end{Verbatim}
+The above function can also be used in other spectral transformations such as shift-and-invert in case the user has a cheap approximation $K$ of the coefficient matrix $A-\sigma B$.
 
 	Note that preconditioned eigensolvers in \ident{EPS} select \ident{STPRECOND} by default, so the user does not need to specify it explicitly.
 

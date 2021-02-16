@@ -204,7 +204,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
     ierr = MatDestroy(&st->P);CHKERRQ(ierr);
     st->P = st->T[1];
   }
-  ierr = STKSPSetOperators(st,st->P,st->P);CHKERRQ(ierr);
+  ierr = STKSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

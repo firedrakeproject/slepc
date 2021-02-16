@@ -94,7 +94,7 @@ PetscErrorCode STSetUp_Shift(ST st)
       ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[nmat-1];
-      ierr = STKSPSetOperators(st,st->P,st->P);CHKERRQ(ierr);
+      ierr = STKSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P);CHKERRQ(ierr);
     } else {
       for (k=0;k<nmat;k++) {
         ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
