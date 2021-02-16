@@ -253,13 +253,20 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 -  v     - right singular vector
 
    Note:
-   Both U or V can be NULL if singular vectors are not required.
+   Both u or v can be NULL if singular vectors are not required.
    Otherwise, the caller must provide valid Vec objects, i.e.,
    they must be created by the calling program with e.g. MatCreateVecs().
 
    The index i should be a value between 0 and nconv-1 (see SVDGetConverged()).
    Singular triplets are indexed according to the ordering criterion established
    with SVDSetWhichSingularTriplets().
+
+   In the case of GSVD, the solution consists in three vectors u,v,x that are
+   returned as follows. Vector x is returned in the right singular vector
+   (argument v) and has length equal to the number of columns of A and B.
+   The other two vectors are returned stacked on top of each other [u;v] in
+   the left singular vector argument, with length equal to m+n (number of rows
+   of A plus number of rows of B).
 
    Level: beginner
 
@@ -332,36 +339,50 @@ static PetscErrorCode SVDComputeResidualNorms_Standard(SVD svd,PetscReal sigma,V
 }
 
 /*
-   SVDComputeResidualError_Generalized - In GSVD, compute the residual norm
-   norm = ||A'*A*x-sigma*B'*B*x||_2.
+   SVDComputeResidualNorms_Generalized - In GSVD, compute the residual norms
+   norm1 = ||A*x-c*u||_2 and norm2 = ||B*x-s*v||_2.
 
    Input Parameters:
      sigma - singular value
      x     - right singular vector
 */
-static PetscErrorCode SVDComputeResidualError_Generalized(SVD svd,PetscReal sigma,Vec x,PetscReal *norm)
+static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigma,Vec uv,Vec x,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;
-  Vec            u,v,t,z;
+  Vec            u,v,ax,bx,nest,aux[2];
+  PetscReal      c,s;
 
   PetscFunctionBegin;
-  ierr = MatCreateVecs(svd->OP,&t,&u);CHKERRQ(ierr);
-  ierr = MatCreateVecs(svd->OPb,&z,&v);CHKERRQ(ierr);
+  ierr = MatCreateVecs(svd->OP,NULL,&u);CHKERRQ(ierr);
+  ierr = MatCreateVecs(svd->OPb,NULL,&v);CHKERRQ(ierr);
+  aux[0] = u;
+  aux[1] = v;
+  ierr = VecCreateNest(PETSC_COMM_WORLD,2,NULL,aux,&nest);CHKERRQ(ierr);
+  ierr = VecCopy(uv,nest);CHKERRQ(ierr);
+  ierr = VecDuplicate(u,&ax);CHKERRQ(ierr);
+  ierr = VecDuplicate(v,&bx);CHKERRQ(ierr);
 
-  /* t = A'*A*x */
-  ierr = MatMult(svd->OP,x,u);CHKERRQ(ierr);
-  ierr = MatMultHermitianTranspose(svd->OP,u,t);CHKERRQ(ierr);
-  /* z = B'*B*x */
-  ierr = MatMult(svd->OPb,x,v);CHKERRQ(ierr);
-  ierr = MatMultHermitianTranspose(svd->OPb,v,z);CHKERRQ(ierr);
-  /* norm = ||t-sigma*z||_2 */
-  ierr = VecAXPY(t,-sigma*sigma,z);CHKERRQ(ierr);
-  ierr = VecNorm(t,NORM_2,norm);CHKERRQ(ierr);
+  s = 1.0/PetscSqrtReal(1.0+sigma*sigma);
+  c = sigma*s;
+
+  /* norm1 = ||A*x-c*u||_2 */
+  if (norm1) {
+    ierr = MatMult(svd->OP,x,ax);CHKERRQ(ierr);
+    ierr = VecAXPY(ax,-c,u);CHKERRQ(ierr);
+    ierr = VecNorm(ax,NORM_2,norm1);CHKERRQ(ierr);
+  }
+  /* norm2 = ||B*x-s*v||_2 */
+  if (norm2) {
+    ierr = MatMult(svd->OPb,x,bx);CHKERRQ(ierr);
+    ierr = VecAXPY(bx,-s,v);CHKERRQ(ierr);
+    ierr = VecNorm(bx,NORM_2,norm2);CHKERRQ(ierr);
+  }
 
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
-  ierr = VecDestroy(&z);CHKERRQ(ierr);
+  ierr = VecDestroy(&nest);CHKERRQ(ierr);
+  ierr = VecDestroy(&ax);CHKERRQ(ierr);
+  ierr = VecDestroy(&bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -414,12 +435,12 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   switch (svd->problem_type) {
     case SVD_STANDARD:
       ierr = SVDComputeResidualNorms_Standard(svd,sigma,u,v,x,y,&norm1,&norm2);CHKERRQ(ierr);
-      *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
       break;
     case SVD_GENERALIZED:
-      ierr = SVDComputeResidualError_Generalized(svd,sigma,v,error);CHKERRQ(ierr);
+      ierr = SVDComputeResidualNorms_Generalized(svd,sigma,u,v,&norm1,&norm2);CHKERRQ(ierr);
       break;
   }
+  *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
   switch (type) {
     case SVD_ERROR_ABSOLUTE:
       break;
