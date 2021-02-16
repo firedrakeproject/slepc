@@ -325,10 +325,11 @@ PetscErrorCode DSDuplicate(DS ds,DS *dsnew)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidType(ds,1);
   PetscValidPointer(dsnew,2);
   ierr = DSCreate(PetscObjectComm((PetscObject)ds),dsnew);CHKERRQ(ierr);
-  ierr = DSSetType(*dsnew,((PetscObject)ds)->type_name);CHKERRQ(ierr);
+  if (((PetscObject)ds)->type_name) {
+    ierr = DSSetType(*dsnew,((PetscObject)ds)->type_name);CHKERRQ(ierr);
+  }
   (*dsnew)->method   = ds->method;
   (*dsnew)->compact  = ds->compact;
   (*dsnew)->refined  = ds->refined;
