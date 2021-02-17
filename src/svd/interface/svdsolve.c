@@ -322,15 +322,11 @@ static PetscErrorCode SVDComputeResidualNorms_Standard(SVD svd,PetscReal sigma,V
   }
   /* norm2 = ||A^T*u-sigma*v||_2 */
   if (norm2) {
-    if (svd->A && svd->AT) {
-      ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
-      if (M<N) {
-        ierr = MatMult(svd->A,u,y);CHKERRQ(ierr);
-      } else {
-        ierr = MatMult(svd->AT,u,y);CHKERRQ(ierr);
-      }
+    ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+    if (M<N) {
+      ierr = MatMult(svd->A,u,y);CHKERRQ(ierr);
     } else {
-      ierr = MatMultHermitianTranspose(svd->OP,u,y);CHKERRQ(ierr);
+      ierr = MatMult(svd->AT,u,y);CHKERRQ(ierr);
     }
     ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
     ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);

@@ -87,8 +87,8 @@ struct _p_SVD {
   DS             ds;               /* direct solver object */
   BV             U,V;              /* left and right singular vectors */
   SlepcSC        sc;               /* sorting criterion data */
-  Mat            A;                /* problem matrix (m>n) */
-  Mat            AT;               /* transposed matrix */
+  Mat            A,B;              /* problem matrices */
+  Mat            AT,BT;            /* transposed matrices */
   Vec            *IS,*ISL;         /* placeholder for references to user initial space */
   PetscReal      *sigma;           /* singular values */
   PetscReal      *errest;          /* error estimates */

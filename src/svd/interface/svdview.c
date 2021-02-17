@@ -42,6 +42,7 @@
 PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
+  const char     *type=NULL;
   PetscBool      isascii,isshell;
 
   PetscFunctionBegin;
@@ -60,6 +61,13 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
+    if (svd->problem_type) {
+      switch (svd->problem_type) {
+        case SVD_STANDARD:    type = "(standard) singular value problem"; break;
+        case SVD_GENERALIZED: type = "generalized singular value problem"; break;
+      }
+    } else type = "not yet set";
+    ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  transpose mode: %s\n",svd->impltrans?"implicit":"explicit");CHKERRQ(ierr);
     if (svd->which == SVD_LARGEST) {
       ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: largest\n");CHKERRQ(ierr);

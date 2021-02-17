@@ -68,7 +68,9 @@ PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
     ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
     ierr = MatDestroy(&svd->OPb);CHKERRQ(ierr);
     ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->B);CHKERRQ(ierr);
     ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
   }
   svd->OP  = A;
   svd->OPb = B;
@@ -123,7 +125,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      expltrans,flg;
-  PetscInt       M,N,k;
+  PetscInt       M,N,P,k,maxnsol;
   SlepcSC        sc;
   Vec            *T;
   BV             bv;
@@ -142,7 +144,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
 
-  /* check matrix */
+  /* check matrices */
   if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");
 
   /* Set default problem type */
@@ -170,13 +172,19 @@ PetscErrorCode SVDSetUp(SVD svd)
     }
   }
 
+  /* get matrix dimensions */
+  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+  if (svd->isgeneralized) {
+    ierr = MatGetSize(svd->OPb,&P,NULL);CHKERRQ(ierr);
+    if (M+P<N) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case when [A;B] has less rows than columns is not supported");
+  }
+
   /* build transpose matrix */
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
-  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
   if (expltrans) {
-    if (M>=N) {
+    if (svd->isgeneralized || M>=N) {
       svd->A = svd->OP;
       ierr = MatHermitianTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
     } else {
@@ -184,7 +192,7 @@ PetscErrorCode SVDSetUp(SVD svd)
       svd->AT = svd->OP;
     }
   } else {
-    if (M>=N) {
+    if (svd->isgeneralized || M>=N) {
       svd->A = svd->OP;
       ierr = MatCreateHermitianTranspose(svd->OP,&svd->AT);CHKERRQ(ierr);
     } else {
@@ -193,7 +201,21 @@ PetscErrorCode SVDSetUp(SVD svd)
     }
   }
 
-  if (M<N) {
+  /* build transpose matrix B for GSVD */
+  if (svd->isgeneralized) {
+    ierr = MatDestroy(&svd->B);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
+    ierr = PetscObjectReference((PetscObject)svd->OPb);CHKERRQ(ierr);
+    if (expltrans) {
+      svd->B = svd->OPb;
+      ierr = MatHermitianTranspose(svd->OPb,MAT_INITIAL_MATRIX,&svd->BT);CHKERRQ(ierr);
+    } else {
+      svd->B = svd->OPb;
+      ierr = MatCreateHermitianTranspose(svd->OPb,&svd->BT);CHKERRQ(ierr);
+    }
+  }
+
+  if (!svd->isgeneralized && M<N) {
     /* swap initial vectors */
     if (svd->nini || svd->ninil) {
       T=svd->ISL; svd->ISL=svd->IS; svd->IS=T;
@@ -206,8 +228,9 @@ PetscErrorCode SVDSetUp(SVD svd)
     }
   }
 
-  if (svd->ncv > PetscMin(M,N)) svd->ncv = PetscMin(M,N);
-  if (svd->nsv > PetscMin(M,N)) svd->nsv = PetscMin(M,N);
+  maxnsol = svd->isgeneralized? PetscMin(PetscMin(M,N),P): PetscMin(M,N);
+  svd->ncv = PetscMin(svd->ncv,maxnsol);
+  svd->nsv = PetscMin(svd->nsv,maxnsol);
   if (svd->ncv!=PETSC_DEFAULT && svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   /* call specific solver setup */
