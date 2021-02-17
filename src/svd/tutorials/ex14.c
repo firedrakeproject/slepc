@@ -111,7 +111,8 @@ int main(int argc,char **argv)
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -terse
       test:
          suffix: 1
-         args: -svd_nsv 4 -svd_standard
+         args: -svd_nsv 4 -svd_standard -svd_ncv 12 -svd_type {{trlanczos lanczos randomized cross}}
+         filter: grep -v method
       test:
          suffix: 1_scalapack
          nsize: {{1 2 3}}

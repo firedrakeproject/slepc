@@ -137,6 +137,9 @@ int main(int argc,char **argv)
          suffix: 1_lapack
          args: -svd_type lapack
       test:
+         suffix: 1_randomized
+         args: -svd_type randomized
+      test:
          suffix: 1_primme
          args: -svd_type primme
          requires: primme
@@ -176,6 +179,9 @@ int main(int argc,char **argv)
       test:
          suffix: 2_lapack
          args: -svd_type lapack
+      test:
+         suffix: 2_randomized
+         args: -svd_type randomized
 
    testset:
       args: -svd_nsv 4 -mat_type aijcusparse
@@ -209,6 +215,9 @@ int main(int argc,char **argv)
       test:
          suffix: 3_cuda_cyclic_exp
          args: -svd_type cyclic -svd_cyclic_explicitmatrix
+      test:
+         suffix: 3_cuda_randomized
+         args: -svd_type randomized
 
    test:
       suffix: 4

@@ -6,5 +6,5 @@ Singular value problem stored in file.
  Number of requested singular values: 4
  Stopping condition: tol=1e-08, maxit=100
  All requested singular values computed up to the required tolerance:
-     35.00752, 34.10419, 33.20131, 32.68111
+     35.00752, 34.10419, 34.10419, 33.20131
 
