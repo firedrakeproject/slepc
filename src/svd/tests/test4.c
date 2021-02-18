@@ -98,7 +98,7 @@ int main(int argc,char **argv)
   ierr = SVDGetStoppingTest(svd,&stop);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping test is %s\n",stest[stop]);CHKERRQ(ierr);
   ierr = SVDGetWhichSingularTriplets(svd,&which);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Which = %s\n",which?"largest":"smallest");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Which = %s\n",which?"smallest":"largest");CHKERRQ(ierr);
 
   /* call the solver */
   ierr = SVDSolve(svd);CHKERRQ(ierr);

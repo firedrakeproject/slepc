@@ -26,7 +26,7 @@ row 19: (19, 1.)  (20, 2.)
  Transpose mode is explicit
  Convergence test is absolute
  Stopping test is basic
- Which = smallest
+ Which = largest
  Finished - converged reason = 1
  All requested singular values computed up to the required tolerance:
      2.99254

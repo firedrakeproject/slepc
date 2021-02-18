@@ -68,7 +68,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
    Options Database Keys:
 +  -svd_view - print information about the solver used
 .  -svd_view_mat0 binary - save the first matrix (A) to the default binary viewer
-.  -svd_view_mat0 binary - save the second matrix (B) to the default binary viewer
+.  -svd_view_mat1 binary - save the second matrix (B) to the default binary viewer
 .  -svd_view_vectors binary - save the computed singular vectors to the default binary viewer
 .  -svd_view_values - print computed singular values
 .  -svd_converged_reason - print reason for convergence, and number of iterations
