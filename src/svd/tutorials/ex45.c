@@ -170,6 +170,13 @@ int main(int argc,char **argv)
 
    test:
       args: -m 20 -n 10 -p 6 -svd_type lapack
+      suffix: 1
+      filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      requires: double
+
+   test:
+      args: -m 15 -n 20 -p 20 -svd_type lapack
+      suffix: 2
       filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
 

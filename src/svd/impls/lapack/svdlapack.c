@@ -17,11 +17,15 @@
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N;
+  PetscInt       M,N,P;
 
   PetscFunctionBegin;
   ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
-  svd->ncv = N;
+  if (!svd->isgeneralized) svd->ncv = N;
+  else {
+    ierr = MatGetSize(svd->OPb,&P,NULL);CHKERRQ(ierr);
+    svd->ncv = PetscMin(M,PetscMin(N,P));
+  }
   if (svd->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
@@ -102,10 +106,10 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
 {
   PetscErrorCode ierr;
   PetscInt       m,n,p,i,j,mlocal,plocal,ld,lowx,lowu,lowv,highx;
-  PetscBLASInt   m_,n_,p_,k,l,lda_,ldb_,ldu_,ldv_,ldq_,lwork,*iwork,info;
+  PetscBLASInt   m_,n_,p_,q_,r_,k,l,lda_,ldb_,ldu_,ldv_,ldq_,lwork,*iwork,info;
   Mat            Ar,A,Br,B;
   Vec            uv,x;
-  PetscScalar    *pA,*pB,*U,*V,*Q,*px,*puv,*work,sone=1.0;
+  PetscScalar    *pA,*pB,*U,*V,*Q,*px,*puv,*work,sone=1.0,smone=-1.0;
   PetscReal      *alpha,*beta;
 #if defined (PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -180,12 +184,18 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   if (k+l<n) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case k+l<n not supported yet");
 
   /* X = Q*inv(R) */
-  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n_,&n_,&sone,pA,&lda_,Q,&ldq_));
+  q_ = PetscMin(m_,n_);
+  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n_,&q_,&sone,pA,&lda_,Q,&ldq_));
+  if (m<n) {
+    r_ = n_-m_;
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&r_,&m_,&sone,Q,&ldq_,pA,&lda_,&smone,Q+m_*ldq_,&ldq_));
+    PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n_,&r_,&sone,pB+m_*ldb_,&ldb_,Q+m_*ldq_,&ldq_));
+  }
   ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&pB);CHKERRQ(ierr);
 
   /* copy singular triplets */
-  for (j=k;j<k+l;j++) {
+  for (j=k;j<PetscMin(m,k+l);j++) {
     svd->sigma[j-k] = alpha[j]/beta[j];
     ierr = BVGetColumn(svd->V,j-k,&x);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(x,&lowx,&highx);CHKERRQ(ierr);
@@ -203,7 +213,7 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
     ierr = BVRestoreColumn(svd->U,j-k,&uv);CHKERRQ(ierr);
   }
 
-  svd->nconv = l;
+  svd->nconv = PetscMin(m,k+l)-k;
   svd->reason = SVD_CONVERGED_TOL;
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
