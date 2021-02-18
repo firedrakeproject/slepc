@@ -72,6 +72,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 #endif
 
   PetscFunctionBegin;
+  SVDCheckStandard(svd);
   ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
   if (!cyclic->mat) {

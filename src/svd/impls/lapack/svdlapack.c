@@ -12,15 +12,20 @@
 */
 
 #include <slepc/private/svdimpl.h>
+#include <slepcblaslapack.h>
 
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N;
+  PetscInt       M,N,P;
 
   PetscFunctionBegin;
   ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
-  svd->ncv = N;
+  if (!svd->isgeneralized) svd->ncv = N;
+  else {
+    ierr = MatGetSize(svd->OPb,&P,NULL);CHKERRQ(ierr);
+    svd->ncv = PetscMin(M,PetscMin(N,P));
+  }
   if (svd->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
@@ -97,11 +102,135 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
+{
+  PetscErrorCode ierr;
+  PetscInt       m,n,p,i,j,mlocal,plocal,ld,lowx,lowu,lowv,highx;
+  PetscBLASInt   m_,n_,p_,q_,r_,k,l,lda_,ldb_,ldu_,ldv_,ldq_,lwork,*iwork,info;
+  Mat            Ar,A,Br,B;
+  Vec            uv,x;
+  PetscScalar    *pA,*pB,*U,*V,*Q,*px,*puv,*work,sone=1.0,smone=-1.0;
+  PetscReal      *alpha,*beta;
+#if defined (PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
+  PetscScalar    a,dummy;
+  PetscReal      rdummy;
+  PetscBLASInt   idummy;
+#endif
+
+  PetscFunctionBegin;
+  ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
+  ierr = MatCreateRedundantMatrix(svd->OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+  ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&A);CHKERRQ(ierr);
+  ierr = MatDestroy(&Ar);CHKERRQ(ierr);
+  ierr = MatCreateRedundantMatrix(svd->OPb,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
+  ierr = MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&B);CHKERRQ(ierr);
+  ierr = MatDestroy(&Br);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(svd->OP,&mlocal,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(svd->OPb,&plocal,NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(B,&p,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(p,&p_);CHKERRQ(ierr);
+  lda_ = m_; ldb_ = p_;
+  ldu_ = m_; ldv_ = p_; ldq_ = n_;
+
+  ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&pB);CHKERRQ(ierr);
+
+#if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
+
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  /* workspace query and memory allocation */
+  lwork = -1;
+#if !defined (PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,&dummy,&lda_,&dummy,&ldb_,&rdummy,&rdummy,&dummy,&ldu_,&dummy,&ldv_,&dummy,&ldq_,&a,&lwork,&idummy,&info));
+  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,&dummy,&lda_,&dummy,&ldb_,&rdummy,&rdummy,&dummy,&ldu_,&dummy,&ldv_,&dummy,&ldq_,&a,&lwork,&rdummy,&idummy,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+#endif
+  ierr = PetscMalloc7(m*m,&U,p*p,&V,n*n,&Q,n,&alpha,n,&beta,lwork,&work,n,&iwork);CHKERRQ(ierr);
+
+#if !defined (PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,&lwork,iwork,&info));
+#else
+  ierr = PetscMalloc1(2*n,&rwork);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,&lwork,rwork,iwork,&info));
+#endif
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  SlepcCheckLapackInfo("ggsvd3",info);
+
+#else  // defined(SLEPC_MISSING_LAPACK_GGSVD3)
+
+  lwork = PetscMax(PetscMax(3*n,m),p)+n;
+  ierr = PetscMalloc7(m*m,&U,p*p,&V,n*n,&Q,n,&alpha,n,&beta,lwork,&work,n,&iwork);CHKERRQ(ierr);
+
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+#if !defined (PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,iwork,&info));
+#else
+  ierr = PetscMalloc1(2*n,&rwork);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKggsvd_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,rwork,iwork,&info));
+#endif
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  SlepcCheckLapackInfo("ggsvd",info);
+
+#endif
+
+  if (k+l<n) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case k+l<n not supported yet");
+
+  /* X = Q*inv(R) */
+  q_ = PetscMin(m_,n_);
+  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n_,&q_,&sone,pA,&lda_,Q,&ldq_));
+  if (m<n) {
+    r_ = n_-m_;
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&r_,&m_,&sone,Q,&ldq_,pA,&lda_,&smone,Q+m_*ldq_,&ldq_));
+    PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n_,&r_,&sone,pB+m_*ldb_,&ldb_,Q+m_*ldq_,&ldq_));
+  }
+  ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&pB);CHKERRQ(ierr);
+
+  /* copy singular triplets */
+  for (j=k;j<PetscMin(m,k+l);j++) {
+    svd->sigma[j-k] = alpha[j]/beta[j];
+    ierr = BVGetColumn(svd->V,j-k,&x);CHKERRQ(ierr);
+    ierr = VecGetOwnershipRange(x,&lowx,&highx);CHKERRQ(ierr);
+    ierr = VecGetArrayWrite(x,&px);CHKERRQ(ierr);
+    for (i=lowx;i<highx;i++) px[i-lowx] = Q[i+j*n];
+    ierr = VecRestoreArrayWrite(x,&px);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,j-k,&x);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->U,j-k,&uv);CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(svd->OP,&lowu,NULL);CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(svd->OPb,&lowv,NULL);CHKERRQ(ierr);
+    ierr = VecGetArrayWrite(uv,&puv);CHKERRQ(ierr);
+    for (i=0;i<mlocal;i++) puv[i] = U[i+lowu+j*m];
+    for (i=0;i<plocal;i++) puv[i+mlocal] = V[i+lowv+(j-k)*p];
+    ierr = VecRestoreArrayWrite(uv,&puv);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->U,j-k,&uv);CHKERRQ(ierr);
+  }
+
+  svd->nconv = PetscMin(m,k+l)-k;
+  svd->reason = SVD_CONVERGED_TOL;
+
+  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  ierr = MatDestroy(&B);CHKERRQ(ierr);
+  ierr = PetscFree7(U,V,Q,alpha,beta,work,iwork);CHKERRQ(ierr);
+#if defined (PETSC_USE_COMPLEX)
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+#endif
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
   svd->ops->setup   = SVDSetUp_LAPACK;
   svd->ops->solve   = SVDSolve_LAPACK;
+  svd->ops->solveg  = SVDSolve_LAPACK_GSVD;
   PetscFunctionReturn(0);
 }
 

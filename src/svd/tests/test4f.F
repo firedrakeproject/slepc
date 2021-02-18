@@ -96,10 +96,10 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call SVDCreate(PETSC_COMM_WORLD,svd,ierr)
-      call SVDSetOperator(svd,A,ierr)
+      call SVDSetOperators(svd,A,PETSC_NULL_MAT,ierr)
 
 !     ** test some interface functions
-      call SVDGetOperator(svd,B,ierr)
+      call SVDGetOperators(svd,B,PETSC_NULL_MAT,ierr)
       call MatView(B,PETSC_VIEWER_STDOUT_WORLD,ierr)
       call SVDSetConvergenceTest(svd,SVD_CONV_ABS,ierr)
       call SVDSetStoppingTest(svd,SVD_STOP_BASIC,ierr)

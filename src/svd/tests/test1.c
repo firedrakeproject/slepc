@@ -85,7 +85,7 @@ int main(int argc,char **argv)
   /*
      Set operator
   */
-  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime

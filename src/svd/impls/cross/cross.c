@@ -111,6 +111,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   PetscBool      trackall;
 
   PetscFunctionBegin;
+  SVDCheckStandard(svd);
   if (!cross->mat) {
     if (cross->explicitmatrix) {
       if (svd->A && svd->AT) {  /* explicit transpose */

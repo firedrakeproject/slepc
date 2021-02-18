@@ -4,22 +4,24 @@
 \chapter{\label{cap:svd}SVD: Singular Value Decomposition}
 %-------------------------------------------------------
 
-\noindent The Singular Value Decomposition (\ident{SVD}) solver object can be used for computing a partial SVD of a rectangular matrix. It provides uniform and efficient access to several specific SVD solvers included in \slepc, and also gives the possibility to compute the decomposition via the eigensolvers provided in the \ident{EPS} package.
+\noindent The Singular Value Decomposition (\ident{SVD}) solver object can be used for computing a partial SVD of a rectangular matrix, and other related problems. It provides uniform and efficient access to several specific SVD solvers included in \slepc, and also gives the possibility to compute the decomposition via the eigensolvers provided in the \ident{EPS} package.
 
 In many aspects, the user interface of \ident{SVD} resembles that of \ident{EPS}. For this reason, this chapter and chapter \ref{cap:eps} have a very similar structure.
 	
-\section{\label{sec:svd}The Singular Value Decomposition}
+\section{Mathematical Background}
 
-In this section, some basic concepts about the singular value decomposition are presented. The objective is to set up the notation and also to justify some of the solution approaches, particularly those based on the \ident{EPS} object. As in the case of eigensolvers, some of the implemented methods are described in detail in the \slepc \hyperlink{str}{technical reports}.
+This section provides some basic concepts about the singular value decomposition and other related problems. The objective is to set up the notation and also to justify some of the solution approaches, particularly those based on the \ident{EPS} object. As in the case of eigensolvers, some of the implemented methods are described in detail in the \slepc \hyperlink{str}{technical reports}.
 
 For background material about the SVD, see for instance \citep[ch.~6]{Bai:2000:TSA}. Many other books such as \citep{Bjorck:1996:NML} or \citep{Hansen:1998:RDI} present the SVD from the perspective of its application to the solution of least squares problems and other related linear algebra problems.
+
+\subsection{\label{sec:svd}The (Standard) Singular Value Decomposition (SVD)}
 
 The singular value decomposition (SVD) of an $m\times n$ matrix $A$ can be written as
 \begin{equation}
 \label{eq:svd}
 A=U\Sigma V^*,
 \end{equation}
-where $U=[u_1,\ldots,u_m]$ is an $m\times m$ unitary matrix ($U^*U=I$), $V=[v_1,\ldots,v_n]$ is an $n\times n$ unitary matrix ($V^*V=I$), and $\Sigma$ is an $m\times n$ diagonal matrix with diagonal entries $\Sigma_{ii}=\sigma_i$ for $i=1,\ldots,\min\{m,n\}$. If $A$ is real, $U$ and $V$ are real and orthogonal. The vectors $u_i$ are called the left singular vectors, the $v_i$ are the right singular vectors, and the $\sigma_i$ are the singular values.
+where $U=[u_1,\ldots,u_m]$ is an $m\times m$ unitary matrix ($U^*U=I$), $V=[v_1,\ldots,v_n]$ is an $n\times n$ unitary matrix ($V^*V=I$), and $\Sigma$ is an $m\times n$ diagonal matrix with real diagonal entries $\Sigma_{ii}=\sigma_i$ for $i=1,\ldots,\min\{m,n\}$. If $A$ is real, $U$ and $V$ are real and orthogonal. The vectors $u_i$ are called the left singular vectors, the $v_i$ are the right singular vectors, and the $\sigma_i$ are the singular values.
 
 \begin{figure}
 \centering
@@ -68,7 +70,7 @@ It is possible to formulate the problem of computing the singular triplets of a 
 \item With the \emph{cross product} matrix, either $A^*A$ or $AA^*$.
 \item With the \emph{cyclic} matrix, $H(A)=\left[\begin{smallmatrix}0&A\\A^*&0\end{smallmatrix}\right]$.
 \end{enumerate}
-In \slepc, the computation of the SVD is always based on one of these two alternatives, either by passing one of these matrices to an \ident{EPS} object or by performing the computation implicitly.
+In \slepc, the computation of the SVD is usually based on one of these two alternatives, either by passing one of these matrices to an \ident{EPS} object or by performing the computation implicitly.
 
 By pre-multiplying \eqref{eq:svdleft} by $A^*$ and then using \eqref{eq:svdright}, the following relation results
 \begin{equation}
@@ -91,7 +93,65 @@ Computing the SVD via the cross product approach may be adequate for determining
 \label{eq:cyclic}
 H(A)=\begin{bmatrix}0&A\\A^*&0\end{bmatrix},
 \end{equation}
-which is a Hermitian matrix of order $(m+n)$. It can be shown that $\pm\sigma_i$ is a pair of eigenvalues of $H(A)$ for $i=1,\ldots,r$ and the other $m+n-2r$ eigenvalues are zero. The unit eigenvectors associated with $\pm\sigma_i$ are $\frac{1}{\sqrt{2}}\left[\begin{smallmatrix}\pm u_i\\v_i\end{smallmatrix}\right]$. Thus it is possible to extract the singular values and the left and right singular vectors of $A$ directly from the eigenvalues and eigenvectors of $H(A)$. Note that in this case singular values are not squared, and therefore the computed values will be more accurate. The drawback in this case is that small eigenvalues are located in the interior of the spectrum.
+which is a Hermitian matrix of order $(m+n)$. It can be shown that $\pm\sigma_i$ is a pair of eigenvalues of $H(A)$ for $i=1,\ldots,r$ and the other $m+n-2r$ eigenvalues are zero. The unit eigenvectors associated with $\pm\sigma_i$ are $\frac{1}{\sqrt{2}}\left[\begin{smallmatrix}\pm u_i\\v_i\end{smallmatrix}\right]$. Thus it is possible to extract the singular values and the left and right singular vectors of $A$ directly from the eigenvalues and eigenvectors of $H(A)$. Note that in this case singular values are not squared, and therefore the computed values will be more accurate (especially the small ones). The drawback in this case is that small eigenvalues are located in the interior of the spectrum.
+
+\subsection{\label{sec:gsvd}The Generalized Singular Value Decomposition (GSVD)}
+
+An extension of the SVD to the case of two matrices is the generalized singular value decomposition (GSVD), which can be applied in constrained least squares problems, among others. An overview of the problem can be found in~\citep[\S 8.7.3]{Golub:1996:MC}.
+
+Consider two matrices, $A\in\mathbb{C}^{m\times n}$ with $m\geq n$ and $B\in\mathbb{C}^{p\times n}$. Note that both matrices must have the same column dimension. Then there exist two unitary matrices $U\in\mathbb{C}^{m\times m}$ and $V\in\mathbb{C}^{p\times p}$ and an invertible matrix $X\in\mathbb{C}^{n\times n}$ such that
+\begin{equation}
+\label{eq:gsvd}
+U^*AX=C,\qquad V^*BX=S,
+\end{equation}
+where $C=\mathrm{diag}(c_1,\dots,c_n)$ and $S=\mathrm{diag}(s_1,\dots,s_q)$ with $q=\min(p,n)$. The values $c_i$ and $s_i$ are real and nonnegative, and the ratios define the generalized singular values,
+\begin{equation}
+\label{eq:gsvd-values}
+\sigma(A,B)\equiv\{c_1/s_1,\dots,c_q/s_q\},
+\end{equation}
+and if $p<n$ we can consider that there are $n-p$ infinite generalized singular values, that is, $s_{q+1}=\dots=s_n=0$. Note that if $B$ is the identity matrix, $X$ can be taken to be unitary and then we recover the standard SVD, $\sigma(A,I)=\sigma(A)$, that is why \eqref{eq:gsvd} is considered a generalization of the SVD.
+
+The diagonal matrices $C$ and $S$ satisfy $C^*C+S^*S=I$, and are related to the CS decomposition~\citep[\S 2.6.4]{Golub:1996:MC} associated with the orthogonal factor of the QR factorization of matrices $A$ and $B$ stacked, that is, if
+\begin{equation}
+\label{eq:cs}
+Z:=\begin{bmatrix}A\\B\end{bmatrix}=\begin{bmatrix}Q_1\\Q_2\end{bmatrix}R,
+\end{equation}
+then $C$ and $S$ can be obtained from the singular values of $Q_1$ and $Q_2$, respectively. The matrix $Z$ is relevant for algorithms and is often built explicitly.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[scale=0.5]
+  \draw[fill=black!5] (-6.25,3) rectangle node {$U_n^*$} +(6,3);
+  \draw[fill=black!5] (0,0) rectangle node {$A$} +(3,6);
+  \draw[fill=black!5] (3.25,3) rectangle node {$X$} +(3,3);
+  \node at (6.75,4.5) {=};
+  \draw (7.25,3) rectangle +(3,3) (7.25,6) -- +(3,-3);
+  \node[below] at (8.75,3) {$C$};
+  \begin{scope}[yshift=-3.5cm]
+  \draw[fill=black!5] (-2.25,1) rectangle node {$V_n^*$} +(2,2);
+  \draw[fill=black!5] (0,1) rectangle node {$B$} +(3,2);
+  \draw[fill=black!5] (3.25,0) rectangle node {$X$} +(3,3);
+  \node at (6.75,1.75) {=};
+  \draw (7.25,1) rectangle +(3,2) (7.25,3) -- +(2,-2);
+  \node[below] at (8.75,1) {$S$};
+  \end{scope}
+\end{tikzpicture}
+\caption{\label{fig:gsvd}Scheme of the thin GSVD of two matrices $A$ and $B$, for the case $p<n$.}
+\end{figure}
+
+The above description assumes that matrix $Z$ has full column rank, and the rank of $B$ is also $q$. In the general case where these assumptions do not hold, the structure of matrices $C$ and $S$ is a bit more complicated. This includes also the case where $m<n$. A detailed description of those cases can be found in~\citep[\S 2.3.5.3]{Anderson:1999:LUG}.
+
+As in the case of the SVD, one can consider thin, compact, truncated, and partial versions of the GSVD. A pictorial representation of the thin GSVD is shown in Figure \ref{fig:gsvd}.
+
+The columns of $X$, $x_i$, are called the (right) generalized singular vectors. The left vectors in this case would correspond to the columns of $U$ and $V$. In SLEPc, the user interface will provide these vectors stacked on top of each other, as a single $(m+p)$-vector $\begin{bmatrix}u_i\\v_i\end{bmatrix}$.
+
+\paragraph{Equivalent Eigenvalue Problems.}
+In the GSVD it is also possible to formulate the problem as an eigenvalue problem, which opens the door to approach its solution via \ident{EPS}. The columns of $X$ satisfy
+\begin{equation}
+\label{eq:gsvdeig}
+s_i^2A^*Ax_i=c_i^2B^*Bx_i,
+\end{equation}
+and so if $s_i\neq 0$ then $A^*Ax_i=\sigma_i^2B^*Bx_i$, a generalized eigenvalue problem for the matrix pair $(A^*A,B^*B)$.
 
 %---------------------------------------------------
 \section{Basic Usage}
@@ -108,7 +168,8 @@ PetscInt  j, nconv;
 PetscReal error;
 
 SVDCreate( PETSC_COMM_WORLD, &svd );
-SVDSetOperator( svd, A );
+SVDSetOperators( svd, A, NULL );
+SVDSetProblemType( svd, SVD_STANDARD );
 SVDSetFromOptions( svd );
 SVDSolve( svd );
 SVDGetConverged( svd, &nconv );
@@ -121,30 +182,44 @@ SVDDestroy( &svd );
 \caption{\label{fig:ex-svd}Example code for basic solution with \ident{SVD}.}
 \end{figure}
 
-The basic steps for computing a partial SVD with \slepc are illustrated in Figure \ref{fig:ex-svd}. The steps are more or less the same as those described in chapter \ref{cap:eps} for the eigenvalue problem. First, the solver context is created with \ident{SVDCreate}. Then the problem matrix has to be specified with \ident{SVDSetOperator}. Then, a call to \ident{SVDSolve} invokes the actual solver. After that, \ident{SVDGetConverged} is used to determine how many solutions have been computed, which are retrieved with \ident{SVDGetSingularTriplet}. Finally, \ident{SVDDestroy} gets rid of the object.
+The basic steps for computing a partial SVD with \slepc are illustrated in Figure \ref{fig:ex-svd}. The steps are more or less the same as those described in chapter \ref{cap:eps} for the eigenvalue problem. First, the solver context is created with \ident{SVDCreate}. Then the problem matrices have to be specified with \ident{SVDSetOperators} and the type of problem can be selected via \ident{SVDSetProblemType}. Then, a call to \ident{SVDSolve} invokes the actual solver. After that, \ident{SVDGetConverged} is used to determine how many solutions have been computed, which are retrieved with \ident{SVDGetSingularTriplet}. Finally, \ident{SVDDestroy} gets rid of the object.
 
 If one compares this example code with the \ident{EPS} example in Figure \ref{fig:ex-eps}, the most outstanding differences are the following:
 \begin{itemize}
 \item The singular value is a \texttt{PetscReal}, not a \texttt{PetscScalar}.
 \item Each singular vector is defined with a single \texttt{Vec} object, not two as was the case for eigenvectors.
-\item Function \ident{SVDSetOperator} only admits one \texttt{Mat} argument.
-\item There is no equivalent to \ident{EPSSetProblemType}.
 \end{itemize}
-The reason for the last two differences is that \slepc does not currently support different kinds of SVD problems. This may change in future versions if some generalization of the SVD such as the GSVD is added.
 
 %---------------------------------------------------
 \section{Defining the Problem}
 
-Defining the problem consists in specifying the problem matrix, $A$, and the portion of the spectrum to be computed. In the case of the SVD, the number of possibilities will be much more limited than in the case of eigenproblems.
+Defining the problem consists in specifying the problem matrix $A$ (and also a second matrix $B$ in case of the GSVD), the problem type, and the portion of the spectrum to be computed.
 
-The problem matrix is provided with the following function
-	\findex{SVDSetOperator}
+The problem matrices are provided with the following function
+	\findex{SVDSetOperators}
 	\begin{Verbatim}[fontsize=\small]
-	SVDSetOperator(SVD svd,Mat A);
+	SVDSetOperators(SVD svd,Mat A,Mat B);
 	\end{Verbatim}
-where \texttt{A} can be any matrix, not necessarily square, stored in any allowed \petsc format including the matrix-free mechanism (see \S\ref{sec:supported} for a detailed discussion).
+where \texttt{A} can be any matrix, not necessarily square, stored in any allowed \petsc format including the matrix-free mechanism (see \S\ref{sec:supported} for a detailed discussion), and \texttt{B} is generally set to \texttt{NULL} except in the case of computing the GSVD.
 
-It is important to note that all SVD solvers in \slepc make use of both $A$ and $A^*$, as suggested by the description in \S\ref{sec:svd}. $A^*$ is not explicitly passed as an argument to \ident{SVDSetOperator}, therefore it will have to stem from $A$. There are two possibilities for this: either $A$ is transposed explicitly and $A^*$ is created as a distinct matrix, or $A^*$ is handled implicitly via \ident{MatMultTranspose} (or \ident{MatMultHermitianTranspose} in the complex case) operations whenever a matrix-vector product is required in the algorithm. The default is to build $A^*$ explicitly, but this behavior can be changed with
+The problem type can be specified with the function
+	\findex{SVDSetProblemType}
+	\begin{Verbatim}[fontsize=\small]
+	SVDSetProblemType(SVD svd,SVDProblemType type);
+	\end{Verbatim}
+Note that in \ident{SVD} calling it is currently not strictly required, since if only one matrix is passed to \ident{SVDSetOperators} the problem type will default to a standard SVD, while if two matrices are passed then it defaults to GSVD. Table~\ref{tab:ptypesvd} lists the supported problem types.
+
+\begin{table}[t]
+\centering
+{\small \begin{tabular}{lll}
+Problem Type              & \ident{SVDProblemType}    & Command line key\\\hline
+Standard SVD              & \texttt{SVD\_STANDARD}    & \texttt{-svd\_standard}\\
+Generalized SVD (GSVD)    & \texttt{SVD\_GENERALIZED} & \texttt{-svd\_generalized}\\\hline
+\end{tabular} }
+\caption{\label{tab:ptypesvd}Problem types considered in \ident{SVD}.}
+\end{table}
+
+It is important to note that all SVD solvers in \slepc make use of both $A$ and $A^*$, as suggested by the description in \S\ref{sec:svd}. $A^*$ is not explicitly passed as an argument to \ident{SVDSetOperators}, therefore it will have to stem from $A$. There are two possibilities for this: either $A$ is transposed explicitly and $A^*$ is created as a distinct matrix, or $A^*$ is handled implicitly via \ident{MatMultTranspose} (or \ident{MatMultHermitianTranspose} in the complex case) operations whenever a matrix-vector product is required in the algorithm. The default is to build $A^*$ explicitly, but this behavior can be changed with
 	\findex{SVDSetImplicitTranspose}
 	\begin{Verbatim}[fontsize=\small]
 	SVDSetImplicitTranspose(SVD svd,PetscBool impl);
@@ -155,9 +230,9 @@ In \S\ref{sec:svd}, it was mentioned that in \slepc the cross product approach c
 The user can specify how many singular values and vectors to compute. The default is to compute only one singular triplet. The function
 	\findex{SVDSetDimensions}
 	\begin{Verbatim}[fontsize=\small]
-	SVDSetDimensions(EPS eps,PetscInt nsv,PetscInt ncv,PetscInt mpd);
+	SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd);
 	\end{Verbatim}
-allows the specification of the number of singular values to compute, \texttt{nsv}. The second argument can be set to prescribe the number of column vectors to be used by the solution algorithm, \texttt{ncv}, that is, the largest dimension of the working subspace. These two parameters can also be set at run time with the options \Verb!-svd_nsv! and \Verb!-svd_ncv!. For example, the command line
+allows the specification of the number of singular values to compute, \texttt{nsv}. The next argument can be set to prescribe the number of column vectors to be used by the solution algorithm, \texttt{ncv}, that is, the largest dimension of the working subspace. These two parameters can also be set at run time with the options \Verb!-svd_nsv! and \Verb!-svd_ncv!. For example, the command line
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -svd_nsv 10 -svd_ncv 24
 \end{Verbatim}
@@ -175,7 +250,7 @@ As in the case of the \ident{EPS} object, the last argument, \texttt{mpd}, can b
 \end{table}
 
 	For the selection of the portion of the spectrum of interest, there are only two possibilities in the case of SVD: largest and smallest singular values, see Table \ref{tab:whichsvd}. The default is to compute the largest ones, but this can be changed with
-	\findex{EPSSetWhichEigenpairs}
+	\findex{SVDSetWhichSingularTriplets}
 	\begin{Verbatim}[fontsize=\small]
 	SVDSetWhichSingularTriplets(SVD svd,SVDWhich which);
 	\end{Verbatim}
@@ -195,17 +270,17 @@ The default solver is the one that uses the cross product matrix (\texttt{cross}
 
 \begin{table}
 \centering
-{\small \begin{tabular}{lll}
-                           &                      & {\footnotesize Options} \\
-Method                     & \ident{SVDType}      & {\footnotesize Database Name}\\\hline
-Cross Product              & \texttt{SVDCROSS}    & \texttt{cross} \\
-Cyclic Matrix              & \texttt{SVDCYCLIC}   & \texttt{cyclic} \\
-Lanczos                    & \texttt{SVDLANCZOS}  & \texttt{lanczos} \\
-Thick-restart Lanczos      & \texttt{SVDTRLANCZOS}& \texttt{trlanczos} \\\hline
-\lapack solver             & \texttt{SVDLAPACK}   & \texttt{lapack} \\
-Wrapper to \scalapack      & \texttt{SVDSCALAPACK}& \texttt{scalapack} \\
-Wrapper to \elemental      & \texttt{SVDELEMENTAL}& \texttt{elemental} \\
-Wrapper to \primme         & \texttt{SVDPRIMME}   & \texttt{primme} \\\hline
+{\small \begin{tabular}{lllll}
+                           &                      & {\footnotesize Options} & & Supports\\
+Method                     & \ident{SVDType}      & {\footnotesize Database Name}& Default & GSVD\\\hline
+Cross Product              & \texttt{SVDCROSS}    & \texttt{cross}        & $\star$ & \\
+Cyclic Matrix              & \texttt{SVDCYCLIC}   & \texttt{cyclic}       & & \\
+Lanczos                    & \texttt{SVDLANCZOS}  & \texttt{lanczos}      & & \\
+Thick-restart Lanczos      & \texttt{SVDTRLANCZOS}& \texttt{trlanczos}    & & \\\hline
+\lapack solver             & \texttt{SVDLAPACK}   & \texttt{lapack}       & & yes \\
+Wrapper to \scalapack      & \texttt{SVDSCALAPACK}& \texttt{scalapack}    & & \\
+Wrapper to \elemental      & \texttt{SVDELEMENTAL}& \texttt{elemental}    & & \\
+Wrapper to \primme         & \texttt{SVDPRIMME}   & \texttt{primme}       & & \\\hline
 \end{tabular} }
 \caption{\label{tab:svdsolvers}List of solvers available in the \ident{SVD} module.}
 \end{table}
@@ -216,6 +291,8 @@ The solution method can be specified procedurally or via the command line. The a
 	SVDSetType(SVD svd,SVDType method);
 	\end{Verbatim}
 while the user writes the options database command \Verb!-svd_type! followed by the name of the method (see Table \ref{tab:svdsolvers}).
+
+Note that not all solvers in the \ident{SVD} module support the GSVD problem of \S\ref{sec:gsvd}. Table \ref{tab:svdsolvers} indicates which solvers can be used for this.
 
 The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP}. These solvers implement the cross product matrix approach \eqref{eq:eigleft}, and the cyclic matrix approach \eqref{eq:cyclic}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver.
 
@@ -270,11 +347,13 @@ returns the $j$-th computed singular triplet, $(\sigma_j,u_j,v_j)$, where both $
 
 In some applications, it may be enough to compute only the right singular vectors. This is especially important in cases in which memory requirements are critical (remember that both $U_k$ and $V_k$ are dense matrices, and $U_k$ may require much more storage than $V_k$, see Figure \ref{fig:svd}). In \slepc, there is no general option for specifying this, but the default behavior of some solvers is to compute only right vectors and allocate/compute left vectors only in the case that the user requests them. This is done in the \texttt{cross} solver and in some special variants of other solvers such as one-sided Lanczos (consult the \hyperlink{str}{[STR-8]} technical report for specific solver options).
 
+In the case of the GSVD, the \texttt{sigma} argument of \ident{SVDGetSingularTriplet} contains $\sigma_i=c_i/s_i$ and the second \texttt{Vec} argument (\texttt{v}) contains the right singular vectors ($x_i$), while the first \texttt{Vec} argument (\texttt{u}) contains the other vectors of the decomposition stacked on top of each other, as a single $(m+p)$-vector: $\begin{bmatrix}u_i\\v_i\end{bmatrix}$.
+
 \paragraph{Reliability of the Computed Solution.}
 
 In SVD computations, a-posteriori error bounds are much the same as in the case of Hermitian eigenproblems, due to the equivalence discussed in \S\ref{sec:svd}. The residual vector is defined in terms of the cyclic matrix, $H(A)$, so its norm is
 \begin{equation}
-\|r\|_2=\left(\|A\tilde{v}-\tilde{\sigma}\tilde{u}\|_2^2+\|A^*\tilde{u}-\tilde{\sigma}\tilde{v}\|_2^2\right)^{\frac{1}{2}},
+\|r_\mathrm{SVD}\|_2=\left(\|A\tilde{v}-\tilde{\sigma}\tilde{u}\|_2^2+\|A^*\tilde{u}-\tilde{\sigma}\tilde{v}\|_2^2\right)^{\frac{1}{2}},
 \end{equation}
 where $\tilde{\sigma}$, $\tilde{u}$ and $\tilde{v}$ represent any of the \texttt{nconv} computed singular triplets delivered by \texttt{SVDGetSingularTriplet}.
 
@@ -287,6 +366,12 @@ where $\sigma$ is an exact singular value. The associated error can be obtained 
 	\begin{Verbatim}[fontsize=\small]
 	SVDComputeError(SVD svd,PetscInt j,SVDErrorType type,PetscReal *error);
 	\end{Verbatim}
+
+In the case of the GSVD, the function \ident{SVDComputeError} will compute a residual norm based on the two relations~\eqref{eq:gsvd},
+\begin{equation}
+\|r_\mathrm{GSVD}\|_2=\left(\|A\tilde{x}-\tilde{c}\tilde{u}\|_2^2+\|B\tilde{x}-\tilde{s}\tilde{v}\|_2^2\right)^{\frac{1}{2}},
+\end{equation}
+where $\tilde{x}$, $\tilde{u}$, $\tilde{v}$ are the computed singular vectors corresponding to $\tilde{\sigma}$, and $\tilde{c}$, $\tilde{s}$ are obtained from $\tilde{\sigma}$ as $\tilde{s}=1/\sqrt{1+\tilde{\sigma}^2}$ and $\tilde{c}=\tilde{\sigma}\tilde{s}$.
 
 \paragraph{Controlling and Monitoring Convergence.}
 

@@ -14,55 +14,92 @@
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 /*@
-   SVDSetOperator - Set the matrix associated with the singular value problem.
+   SVDSetOperators - Set the matrices associated with the singular value problem.
 
    Collective on svd
 
    Input Parameters:
 +  svd - the singular value solver context
--  A  - the matrix associated with the singular value problem
+.  A   - the matrix associated with the singular value problem
+-  B   - the second matrix in the case of GSVD
 
    Level: beginner
 
-.seealso: SVDSolve(), SVDGetOperator()
+.seealso: SVDSolve(), SVDGetOperators()
 @*/
-PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
+PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
 {
   PetscErrorCode ierr;
+  PetscInt       Ma,Na,Mb,Nb,ma,na,mb,nb,M0,N0,m0,n0;
+  PetscBool      samesize=PETSC_TRUE;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
-  PetscCheckSameComm(svd,1,mat,2);
-  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
-  if (svd->state) { ierr = SVDReset(svd);CHKERRQ(ierr); }
-  else { ierr = MatDestroy(&svd->OP);CHKERRQ(ierr); }
-  svd->OP = mat;
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
+  PetscCheckSameComm(svd,1,A,2);
+  if (B) PetscCheckSameComm(svd,1,B,3);
+
+  /* Check matrix sizes */
+  ierr = MatGetSize(A,&Ma,&Na);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&ma,&na);CHKERRQ(ierr);
+  if (svd->OP) {
+    ierr = MatGetSize(svd->OP,&M0,&N0);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(svd->OP,&m0,&n0);CHKERRQ(ierr);
+    if (M0!=Ma || N0!=Na || m0!=ma || n0!=na) samesize = PETSC_FALSE;
+  }
+  if (B) {
+    ierr = MatGetSize(B,&Mb,&Nb);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(B,&mb,&nb);CHKERRQ(ierr);
+    if (Na!=Nb) SETERRQ2(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different number of columns in A (%D) and B (%D)",Na,Nb);
+    if (na!=nb) SETERRQ2(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different local column size in A (%D) and B (%D)",na,nb);
+    if (svd->OPb) {
+      ierr = MatGetSize(svd->OPb,&M0,&N0);CHKERRQ(ierr);
+      ierr = MatGetLocalSize(svd->OPb,&m0,&n0);CHKERRQ(ierr);
+      if (M0!=Mb || N0!=Nb || m0!=mb || n0!=nb) samesize = PETSC_FALSE;
+    }
+  }
+
+  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+  if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
+  if (svd->state && !samesize) {
+    ierr = SVDReset(svd);CHKERRQ(ierr);
+  } else {
+    ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->OPb);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->B);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
+  }
+  svd->OP  = A;
+  svd->OPb = B;
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
 /*@
-   SVDGetOperator - Get the matrix associated with the singular value problem.
+   SVDGetOperators - Get the matrices associated with the singular value problem.
 
-   Not collective, though parallel Mats are returned if the SVD is parallel
+   Collective on svd
 
    Input Parameter:
 .  svd - the singular value solver context
 
    Output Parameters:
-.  A    - the matrix associated with the singular value problem
++  A  - the matrix associated with the singular value problem
+-  B  - the second matrix in the case of GSVD
 
-   Level: advanced
+   Level: intermediate
 
-.seealso: SVDSolve(), SVDSetOperator()
+.seealso: SVDSolve(), SVDSetOperators()
 @*/
-PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
+PetscErrorCode SVDGetOperators(SVD svd,Mat *A,Mat *B)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(A,2);
-  *A = svd->OP;
+  if (A) *A = svd->OP;
+  if (B) *B = svd->OPb;
   PetscFunctionReturn(0);
 }
 
@@ -88,7 +125,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      expltrans,flg;
-  PetscInt       M,N,k;
+  PetscInt       M,N,P,k,maxnsol;
   SlepcSC        sc;
   Vec            *T;
   BV             bv;
@@ -107,8 +144,21 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
 
-  /* check matrix */
-  if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first");
+  /* check matrices */
+  if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");
+
+  /* Set default problem type */
+  if (!svd->problem_type) {
+    if (svd->OPb) {
+      ierr = SVDSetProblemType(svd,SVD_GENERALIZED);CHKERRQ(ierr);
+    } else {
+      ierr = SVDSetProblemType(svd,SVD_STANDARD);CHKERRQ(ierr);
+    }
+  } else if (!svd->OPb && svd->isgeneralized) {
+    ierr = PetscInfo(svd,"Problem type set as generalized but no matrix B was provided; reverting to a standard singular value problem\n");CHKERRQ(ierr);
+    svd->isgeneralized = PETSC_FALSE;
+    svd->problem_type = SVD_STANDARD;
+  } else if (svd->OPb && !svd->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type does not match the number of matrices");
 
   /* determine how to handle the transpose */
   expltrans = PETSC_TRUE;
@@ -122,13 +172,19 @@ PetscErrorCode SVDSetUp(SVD svd)
     }
   }
 
+  /* get matrix dimensions */
+  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+  if (svd->isgeneralized) {
+    ierr = MatGetSize(svd->OPb,&P,NULL);CHKERRQ(ierr);
+    if (M+P<N) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case when [A;B] has less rows than columns is not supported");
+  }
+
   /* build transpose matrix */
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
-  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
   if (expltrans) {
-    if (M>=N) {
+    if (svd->isgeneralized || M>=N) {
       svd->A = svd->OP;
       ierr = MatHermitianTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
     } else {
@@ -136,7 +192,7 @@ PetscErrorCode SVDSetUp(SVD svd)
       svd->AT = svd->OP;
     }
   } else {
-    if (M>=N) {
+    if (svd->isgeneralized || M>=N) {
       svd->A = svd->OP;
       ierr = MatCreateHermitianTranspose(svd->OP,&svd->AT);CHKERRQ(ierr);
     } else {
@@ -145,15 +201,36 @@ PetscErrorCode SVDSetUp(SVD svd)
     }
   }
 
-  if (M<N) {
-    /* swap initial vectors and basis vectors */
-    T=svd->ISL; svd->ISL=svd->IS; svd->IS=T;
-    k=svd->ninil; svd->ninil=svd->nini; svd->nini=k;
-    bv=svd->V; svd->V=svd->U; svd->U=bv;
+  /* build transpose matrix B for GSVD */
+  if (svd->isgeneralized) {
+    ierr = MatDestroy(&svd->B);CHKERRQ(ierr);
+    ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
+    ierr = PetscObjectReference((PetscObject)svd->OPb);CHKERRQ(ierr);
+    if (expltrans) {
+      svd->B = svd->OPb;
+      ierr = MatHermitianTranspose(svd->OPb,MAT_INITIAL_MATRIX,&svd->BT);CHKERRQ(ierr);
+    } else {
+      svd->B = svd->OPb;
+      ierr = MatCreateHermitianTranspose(svd->OPb,&svd->BT);CHKERRQ(ierr);
+    }
   }
 
-  if (svd->ncv > PetscMin(M,N)) svd->ncv = PetscMin(M,N);
-  if (svd->nsv > PetscMin(M,N)) svd->nsv = PetscMin(M,N);
+  if (!svd->isgeneralized && M<N) {
+    /* swap initial vectors */
+    if (svd->nini || svd->ninil) {
+      T=svd->ISL; svd->ISL=svd->IS; svd->IS=T;
+      k=svd->ninil; svd->ninil=svd->nini; svd->nini=k;
+    }
+    /* swap basis vectors */
+    if (!svd->swapped) {  /* only the first time in case of multiple calls */
+      bv=svd->V; svd->V=svd->U; svd->U=bv;
+      svd->swapped = PETSC_TRUE;
+    }
+  }
+
+  maxnsol = svd->isgeneralized? PetscMin(PetscMin(M,N),P): PetscMin(M,N);
+  svd->ncv = PetscMin(svd->ncv,maxnsol);
+  svd->nsv = PetscMin(svd->nsv,maxnsol);
   if (svd->ncv!=PETSC_DEFAULT && svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   /* call specific solver setup */
@@ -326,13 +403,25 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
     ierr = BVResize(svd->V,requested,PETSC_FALSE);CHKERRQ(ierr);
   }
   /* allocate U */
-  if (svd->leftbasis) {
+  if (svd->leftbasis && !svd->isgeneralized) {
     if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
     if (!oldsize) {
       if (!((PetscObject)(svd->U))->type_name) {
         ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
       }
       ierr = MatCreateVecsEmpty(svd->A,NULL,&tl);CHKERRQ(ierr);
+      ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
+      ierr = VecDestroy(&tl);CHKERRQ(ierr);
+    } else {
+      ierr = BVResize(svd->U,requested,PETSC_FALSE);CHKERRQ(ierr);
+    }
+  } else if (svd->isgeneralized) {  /* left basis for the GSVD */
+    if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
+    if (!oldsize) {
+      if (!((PetscObject)(svd->U))->type_name) {
+        ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
+      }
+      ierr = SVDCreateLeftTemplate(svd,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
     } else {

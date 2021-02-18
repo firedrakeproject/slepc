@@ -170,13 +170,13 @@
 
 	Users that are already familiar with \packnoi{pets\rm c} can read chapter \ref{cap:int} very fast. Section \ref{sec:eig} provides a brief overview of eigenproblems and the general concepts used by eigensolvers, so it can be skipped by experienced users. Chapters \ref{cap:eps}--\ref{cap:mfn} describe the main \slepc functionality. Some of them include an advanced usage section that can be skipped at a first reading. Finally, chapter \ref{cap:add} contains less important, additional information.
 
-%\subsubsection*{What's New}
-%
-%The major changes in the Users Manual with respect to the previous version are:
-%\begin{itemize}
-%\setlength{\itemsep}{-2pt}
-%\item None.
-%\end{itemize}
+\subsubsection*{What's New}
+
+The major changes in the Users Manual with respect to the previous version are:
+\begin{itemize}
+\setlength{\itemsep}{-2pt}
+\item New section \S\ref{sec:gsvd} related to the generalized singular value decomposition (GSVD). The rest of Ch.~\ref{cap:svd} has been slightly modified to cover the new GSVD functionality.
+\end{itemize}
 
 \subsubsection*{\slepc Technical Reports}
 
@@ -245,6 +245,7 @@ Linear matrix equation        & $AXE+DXB=C$   & \texttt{LME} & See notes \\\hlin
 \item Most users are typically interested in linear eigenproblems only.
 \item In each problem class there may exist several subclasses (problem types in \slepc terminology), for instance symmetric-definite generalized eigenproblem in \texttt{EPS}.
 \item The solver class (module) is named after the problem class. For historical reasons, the one for linear eigenvalue problems is called \texttt{EPS} rather than \texttt{LEP}.
+\item The \texttt{SVD} module also supports the GSVD in addition to the SVD shown in the table.
 \item In previous \slepc versions there was a \texttt{QEP} module for quadratic eigenproblems. It has been replaced by \texttt{PEP}. %See \S\ref{sec:qeppep} for upgrading application code that used \texttt{QEP}.
 \item For the action of a matrix function (\texttt{MFN}), in \slepc we focus on methods that are closely related to methods for eigenvalue problems.
 \item The solver class \texttt{LME} is still experimental and it is not covered in this manual yet.

@@ -19,6 +19,7 @@
 #define SVD type(tSVD)
 
 #define SVDType            character*(80)
+#define SVDProblemType     PetscEnum
 #define SVDConvergedReason PetscEnum
 #define SVDErrorType       PetscEnum
 #define SVDWhich           PetscEnum

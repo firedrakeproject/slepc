@@ -46,10 +46,19 @@ class Lapack(package.Package):
     (result, output) = self.Link(functions,callbacks,flags,code)
     return result
 
+  def Mangle(self,i):
+    if self.mangling == 'underscore':
+      f = i + '_'
+    elif self.mangling == 'caps':
+      f = i.upper()
+    else:
+      f = i
+    return f
+
   def Check(self,slepcconf,slepcvars,petsc):
 
     # LAPACK standard functions
-    l = ['laev2','gehrd','lanhs','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl']
+    l = ['laev2','gehrd','lanhs','ggsvd','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl']
 
     # LAPACK functions with different real and complex names
     if petsc.scalar == 'real':
@@ -70,9 +79,7 @@ class Lapack(package.Package):
         prefix = 'z'
 
     # add prefix to LAPACK names
-    functions = []
-    for i in l:
-      functions.append(prefix + i)
+    functions = [prefix + i for i in l]
 
     # in this case, the real name represents both versions
     namesubst = {'unghr':'orghr','hetrd':'sytrd','ungtr':'orgtr'}
@@ -89,37 +96,27 @@ class Lapack(package.Package):
       functions.append(prefix + i)
 
     # check for all functions at once
-    allf = []
-    for i in functions:
-      if self.mangling == 'underscore':
-        f = i + '_'
-      elif self.mangling == 'caps':
-        f = i.upper()
-      else:
-        f = i
-      allf.append(f)
+    allf = [self.Mangle(i) for i in functions]
 
     self.log.write('=== Checking all LAPACK functions...')
-    if self.LinkBlasLapack(allf,[],[],petsc):
-      return
+    if not self.LinkBlasLapack(allf,[],[],petsc):
+      # check functions one by one
+      self.missing = []
+      for i in functions:
+        self.log.write('=== Checking LAPACK '+i+' function...')
+        if not self.LinkBlasLapack([self.Mangle(i)],[],[],petsc):
+          self.missing.append(i)
+          # some complex functions are represented by their real names
+          if i[1:] in namesubst:
+            nf = namesubst[i[1:]]
+          else:
+            nf = i[1:]
+          slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
 
-    # check functions one by one
-    self.missing = []
-    for i in functions:
-      if self.mangling == 'underscore':
-        f = i + '_\n'
-      elif self.mangling == 'caps':
-        f = i.upper() + '\n'
-      else:
-        f = i + '\n'
-
-      self.log.write('=== Checking LAPACK '+i+' function...')
-      if not self.LinkBlasLapack([f],[],[],petsc):
-        self.missing.append(i)
-        # some complex functions are represented by their real names
-        if i[1:] in namesubst:
-          nf = namesubst[i[1:]]
-        else:
-          nf = i[1:]
-        slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
+    # check ggsvd3 separately, as it is likely missing, do not issue warning
+    i = prefix + 'ggsvd3'
+    self.log.write('=== Checking LAPACK '+i+' function...')
+    if not self.LinkBlasLapack([self.Mangle(i)],[],[],petsc):
+      nf = i[1:]
+      slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
 

@@ -45,6 +45,7 @@ native PEPStop
 native PEPConvergedReason
 native PEPJDProjection
 native STMatMode
+native SVDProblemType
 native SVDWhich
 native SVDErrorType
 native SVDConv

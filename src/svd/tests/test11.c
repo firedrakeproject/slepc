@@ -81,7 +81,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
   ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 

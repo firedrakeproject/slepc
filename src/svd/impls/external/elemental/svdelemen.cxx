@@ -25,6 +25,7 @@ PetscErrorCode SVDSetUp_Elemental(SVD svd)
   PetscInt       M,N;
 
   PetscFunctionBegin;
+  SVDCheckStandard(svd);
   ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
   if (M!=N) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Not implemented for rectangular matrices");
   svd->ncv = N;

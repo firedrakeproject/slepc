@@ -10,6 +10,10 @@ cdef extern from * nogil:
     SlepcSVDType SVDELEMENTAL
     SlepcSVDType SVDPRIMME
 
+    ctypedef enum SlepcSVDProblemType "SVDProblemType":
+        SVD_STANDARD
+        SVD_GENERALIZED
+
     ctypedef enum SlepcSVDWhich "SVDWhich":
         SVD_LARGEST
         SVD_SMALLEST
@@ -36,11 +40,14 @@ cdef extern from * nogil:
     int SVDGetOptionsPrefix(SlepcSVD,char*[])
     int SVDSetFromOptions(SlepcSVD)
 
+    int SVDSetProblemType(SlepcSVD,SlepcSVDProblemType)
+    int SVDGetProblemType(SlepcSVD,SlepcSVDProblemType*)
+    int SVDIsGeneralized(SlepcSVD,PetscBool*)
     int SVDSetBV(SlepcSVD,SlepcBV,SlepcBV)
     int SVDGetBV(SlepcSVD,SlepcBV*,SlepcBV*)
 
-    int SVDSetOperator(SlepcSVD,PetscMat)
-    int SVDGetOperator(SlepcSVD,PetscMat*)
+    int SVDSetOperators(SlepcSVD,PetscMat,PetscMat)
+    int SVDGetOperators(SlepcSVD,PetscMat*,PetscMat*)
 
     int SVDSetInitialSpaces(SlepcSVD,PetscInt,PetscVec*,PetscInt,PetscVec*)
 

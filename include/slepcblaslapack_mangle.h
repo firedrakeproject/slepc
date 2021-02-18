@@ -101,6 +101,12 @@
 
 /* subroutines with different signature in real/complex */
 #define LAPACKggev_  PETSCBLAS(ggev,GGEV)
+#if !defined(SLEPC_MISSING_LAPACK_GGSVD)
+#define LAPACKggsvd_ PETSCBLAS(ggsvd,GGSVD)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
+#define LAPACKggsvd3_ PETSCBLAS(ggsvd3,GGSVD3)
+#endif
 #if !defined(SLEPC_MISSING_LAPACK_TREVC)
 #define LAPACKtrevc_ PETSCBLAS(trevc,TREVC)
 #endif

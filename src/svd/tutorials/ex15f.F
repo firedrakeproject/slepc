@@ -91,8 +91,9 @@
 !     ** Create singular value solver context
       call SVDCreate(PETSC_COMM_WORLD,svd,ierr)
 
-!     ** Set operator
-      call SVDSetOperator(svd,A,ierr)
+!     ** Set operators and problem type
+      call SVDSetOperators(svd,A,PETSC_NULL_MAT,ierr)
+      call SVDSetProblemType(svd,SVD_STANDARD,ierr)
 
 !     ** Use thick-restart Lanczos as default solver
       call SVDSetType(svd,SVDTRLANCZOS,ierr)

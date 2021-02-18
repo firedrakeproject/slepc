@@ -23,6 +23,9 @@
       PetscEnum, parameter :: SVD_DIVERGED_BREAKDOWN     = -2
       PetscEnum, parameter :: SVD_CONVERGED_ITERATING    =  0
 
+      PetscEnum, parameter :: SVD_STANDARD               =  1
+      PetscEnum, parameter :: SVD_GENERALIZED            =  2
+
       PetscEnum, parameter :: SVD_LARGEST                =  0
       PetscEnum, parameter :: SVD_SMALLEST               =  1
 

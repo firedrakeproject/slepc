@@ -26,6 +26,16 @@ class SVDType(object):
     ELEMENTAL = S_(SVDELEMENTAL)
     PRIMME    = S_(SVDPRIMME)
 
+class SVDProblemType(object):
+    """
+    SVD problem type
+
+    - `STANDARD`:    Standard SVD.
+    - `GENERALIZED`: Generalized singular value decomposition (GSVD).
+    """
+    STANDARD    = SVD_STANDARD
+    GENERALIZED = SVD_GENERALIZED
+
 class SVDErrorType(object):
     """
     SVD error type to assess accuracy of computed solutions
@@ -72,6 +82,7 @@ cdef class SVD(Object):
     """
 
     Type            = SVDType
+    ProblemType     = SVDProblemType
     ErrorType       = SVDErrorType
     Which           = SVDWhich
     ConvergedReason = SVDConvergedReason
@@ -225,6 +236,45 @@ cdef class SVD(Object):
         option.
         """
         CHKERR( SVDSetFromOptions(self.svd) )
+
+    def getProblemType(self):
+        """
+        Gets the problem type from the SVD object.
+
+        Returns
+        -------
+        problem_type: `SVD.ProblemType` enumerate
+                      The problem type that was previously set.
+        """
+        cdef SlepcSVDProblemType val = SVD_STANDARD
+        CHKERR( SVDGetProblemType(self.svd, &val) )
+        return val
+
+    def setProblemType(self, problem_type):
+        """
+        Specifies the type of the singular value problem.
+
+        Parameters
+        ----------
+        problem_type: `SVD.ProblemType` enumerate
+               The problem type to be set.
+        """
+        cdef SlepcSVDProblemType val = problem_type
+        CHKERR( SVDSetProblemType(self.svd, val) )
+
+    def isGeneralized(self):
+        """
+        Tells whether the SVD object corresponds to a generalized
+        singular value problem.
+
+        Returns
+        -------
+        flag: boolean
+              True if two matrices were set with `setOperators()`.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( SVDIsGeneralized(self.svd, &tval) )
+        return toBool(tval)
 
     #
 
@@ -426,30 +476,38 @@ cdef class SVD(Object):
         cdef SlepcBV UBV = U.bv if U is not None else <SlepcBV>NULL
         CHKERR( SVDSetBV(self.svd, VBV, UBV) )
 
-    def getOperator(self):
+    def getOperators(self):
         """
-        Gets the matrix associated with the singular value problem.
+        Gets the matrices associated with the singular value problem.
 
         Returns
         -------
         A: Mat
            The matrix associated with the singular value problem.
+        B: Mat
+           The second matrix in the case of GSVD.
         """
         cdef Mat A = Mat()
-        CHKERR( SVDGetOperator(self.svd, &A.mat) )
+        cdef Mat B = Mat()
+        CHKERR( SVDGetOperators(self.svd, &A.mat, &B.mat) )
         PetscINCREF(A.obj)
-        return A
+        PetscINCREF(B.obj)
+        return (A, B)
 
-    def setOperator(self, Mat A):
+    def setOperators(self, Mat A, Mat B=None):
         """
-        Sets the matrix associated with the singular value problem.
+        Sets the matrices associated with the singular value problem.
 
         Parameters
         ----------
         A: Mat
            The matrix associated with the singular value problem.
+        B: Mat, optional
+           The second matrix in the case of GSVD; if not provided,
+           a usual SVD is assumed.
         """
-        CHKERR( SVDSetOperator(self.svd, A.mat) )
+        cdef PetscMat Bmat = B.mat if B is not None else <PetscMat>NULL
+        CHKERR( SVDSetOperators(self.svd, A.mat, Bmat) )
 
     #
 
@@ -821,6 +879,8 @@ cdef class SVD(Object):
         cdef PetscBool tval = asBool(flag)
         CHKERR( SVDLanczosSetOneSide(self.svd, tval) )
 
+    setOperator = setOperators  # backward compatibility
+
     #
 
     property transpose_mode:
@@ -856,6 +916,7 @@ cdef class SVD(Object):
 # -----------------------------------------------------------------------------
 
 del SVDType
+del SVDProblemType
 del SVDErrorType
 del SVDWhich
 del SVDConvergedReason

@@ -48,6 +48,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   ierr = SlepcHeaderCreate(svd,SVD_CLASSID,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
 
   svd->OP               = NULL;
+  svd->OPb              = NULL;
   svd->max_it           = PETSC_DEFAULT;
   svd->nsv              = 1;
   svd->ncv              = PETSC_DEFAULT;
@@ -58,6 +59,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->conv             = SVD_CONV_REL;
   svd->stop             = SVD_STOP_BASIC;
   svd->which            = SVD_LARGEST;
+  svd->problem_type     = (SVDProblemType)0;
   svd->impltrans        = PETSC_FALSE;
   svd->trackall         = PETSC_FALSE;
 
@@ -75,7 +77,9 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->U                = NULL;
   svd->V                = NULL;
   svd->A                = NULL;
+  svd->B                = NULL;
   svd->AT               = NULL;
+  svd->BT               = NULL;
   svd->IS               = NULL;
   svd->ISL              = NULL;
   svd->sigma            = NULL;
@@ -91,6 +95,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->nconv            = 0;
   svd->its              = 0;
   svd->leftbasis        = PETSC_FALSE;
+  svd->swapped          = PETSC_FALSE;
+  svd->isgeneralized    = PETSC_FALSE;
   svd->reason           = SVD_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(svd,&svd->sc);CHKERRQ(ierr);
@@ -120,8 +126,11 @@ PetscErrorCode SVDReset(SVD svd)
   if (!svd) PetscFunctionReturn(0);
   if (svd->ops->reset) { ierr = (svd->ops->reset)(svd);CHKERRQ(ierr); }
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
+  ierr = MatDestroy(&svd->OPb);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&svd->B);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
+  ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(svd->nworkl,&svd->workl);CHKERRQ(ierr);

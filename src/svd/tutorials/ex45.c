@@ -8,52 +8,66 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Singular value decomposition of the Lauchli matrix.\n"
+static char help[] = "Computes a partial generalized singular value decomposition (GSVD).\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = matrix dimension.\n"
-  "  -mu <mu>, where <mu> = subdiagonal value.\n\n";
+  "  -m <m>, where <m> = number of rows of A.\n"
+  "  -n <n>, where <n> = number of columns of A.\n"
+  "  -p <p>, where <p> = number of rows of B.\n\n";
 
 #include <slepcsvd.h>
 
 int main(int argc,char **argv)
 {
-  Mat            A;               /* operator matrix */
-  Vec            u,v;             /* left and right singular vectors */
+  Mat            A,B;             /* operator matrices */
+  Vec            u,v,x;           /* singular vectors */
   SVD            svd;             /* singular value problem solver context */
   SVDType        type;
-  PetscReal      error,tol,sigma,mu=PETSC_SQRT_MACHINE_EPSILON;
-  PetscInt       n=100,i,j,Istart,Iend,nsv,maxit,its,nconv;
+  Vec            uv,aux[2];
+  PetscReal      error,tol,sigma;
+  PetscInt       m=100,n,p=14,i,j,Istart,Iend,nsv,maxit,its,nconv;
+  PetscBool      flg;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLauchli singular value decomposition, (%D x %D) mu=%g\n\n",n+1,n,(double)mu);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
+  if (!flg) n = m;
+  ierr = PetscOptionsGetInt(NULL,NULL,"-p",&p,&flg);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%D+%D)x%D\n\n",m,p,n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                          Build the Lauchli matrix
+                          Build the matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n+1,n);CHKERRQ(ierr);
+  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
   ierr = MatSetUp(A);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for (i=Istart;i<Iend;i++) {
-    if (i == 0) {
-      for (j=0;j<n;j++) {
-        ierr = MatSetValue(A,0,j,1.0,INSERT_VALUES);CHKERRQ(ierr);
-      }
-    } else {
-      ierr = MatSetValue(A,i,i-1,mu,INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i>0 && i-1<n) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i+1<n) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n) { ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i>n) { ierr = MatSetValue(A,i,n-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
   }
-
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,&v,&u);CHKERRQ(ierr);
+
+  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
+  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n);CHKERRQ(ierr);
+  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
+  ierr = MatSetUp(B);CHKERRQ(ierr);
+
+  ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    for (j=0;j<=PetscMin(i,n-1);j++) {
+      ierr = MatSetValue(B,i,j,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    }
+  }
+  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           Create the singular value solver and set various options
@@ -67,13 +81,8 @@ int main(int argc,char **argv)
   /*
      Set operators and problem type
   */
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetProblemType(svd,SVD_STANDARD);CHKERRQ(ierr);
-
-  /*
-     Use thick-restart Lanczos as default solver
-  */
-  ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,A,B);CHKERRQ(ierr);
+  ierr = SVDSetProblemType(svd,SVD_GENERALIZED);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
@@ -110,6 +119,16 @@ int main(int argc,char **argv)
 
   if (nconv>0) {
     /*
+       Create vectors. The interface returns u and v as stacked on top of each other
+       [u;v] so need to create a special vector (VecNest) to extract them
+    */
+    ierr = MatCreateVecs(A,&x,&u);CHKERRQ(ierr);
+    ierr = MatCreateVecs(B,NULL,&v);CHKERRQ(ierr);
+    aux[0] = u;
+    aux[1] = v;
+    ierr = VecCreateNest(PETSC_COMM_WORLD,2,NULL,aux,&uv);CHKERRQ(ierr);
+
+    /*
        Display singular values and relative errors
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
@@ -119,7 +138,8 @@ int main(int argc,char **argv)
       /*
          Get converged singular triplets: i-th singular value is stored in sigma
       */
-      ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
+      ierr = SVDGetSingularTriplet(svd,i,&sigma,uv,x);CHKERRQ(ierr);
+      /* at this point, u and v can be used normally as individual vectors */
 
       /*
          Compute the error associated to each singular triplet
@@ -127,9 +147,13 @@ int main(int argc,char **argv)
       ierr = SVDComputeError(svd,i,SVD_ERROR_RELATIVE,&error);CHKERRQ(ierr);
 
       ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",(double)sigma);CHKERRQ(ierr);
-      ierr = PetscPrintf(PETSC_COMM_WORLD," % 12g\n",(double)error);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"   % 12g\n",(double)error);CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    ierr = VecDestroy(&x);CHKERRQ(ierr);
+    ierr = VecDestroy(&u);CHKERRQ(ierr);
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+    ierr = VecDestroy(&uv);CHKERRQ(ierr);
   }
 
   /*
@@ -137,23 +161,23 @@ int main(int argc,char **argv)
   */
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }
 
 /*TEST
 
-   testset:
+   test:
+      args: -m 20 -n 10 -p 6 -svd_type lapack
+      suffix: 1
       filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
-      test:
-         suffix: 1
-      test:
-         suffix: 1_scalapack
-         nsize: {{1 2}}
-         args: -svd_type scalapack
-         requires: scalapack
+
+   test:
+      args: -m 15 -n 20 -p 20 -svd_type lapack
+      suffix: 2
+      filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      requires: double
 
 TEST*/

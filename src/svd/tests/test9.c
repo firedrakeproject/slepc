@@ -67,7 +67,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
   ierr = SVDSetTolerances(svd,1e-6,1000);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
@@ -101,7 +101,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDReset(svd);CHKERRQ(ierr);  /* if this is omitted, it will be called in SVDSetOperators() */
-  ierr = SVDSetOperator(svd,B);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,B,NULL);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 

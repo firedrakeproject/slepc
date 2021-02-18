@@ -92,7 +92,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"SVD prefix is currently: %s\n\n",prefix);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)svd,"SVD_solver");CHKERRQ(ierr);
 
-  ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
   ierr = SVDSetType(svd,SVDLANCZOS);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
