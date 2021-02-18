@@ -27,34 +27,36 @@ typedef struct {
 
 PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
 {
-  PetscErrorCode ierr;
-  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
-  PetscScalar    *pS,*q;
-  PetscInt       ldq,lds = ctx->ld*ctx->d;
+  PetscErrorCode    ierr;
+  BV_TENSOR         *ctx = (BV_TENSOR*)V->data;
+  PetscScalar       *pS;
+  const PetscScalar *q;
+  PetscInt          ldq,lds = ctx->ld*ctx->d;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVMultInPlaceTranspose_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
 {
-  PetscErrorCode ierr;
-  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
-  PetscScalar    *pS,*q;
-  PetscInt       ldq,lds = ctx->ld*ctx->d;
+  PetscErrorCode    ierr;
+  BV_TENSOR         *ctx = (BV_TENSOR*)V->data;
+  PetscScalar       *pS;
+  const PetscScalar *q;
+  PetscInt          ldq,lds = ctx->ld*ctx->d;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -62,21 +64,22 @@ PetscErrorCode BVMultInPlaceTranspose_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
 PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
-  BV_TENSOR      *x = (BV_TENSOR*)X->data,*y = (BV_TENSOR*)Y->data;
-  PetscScalar    *m,*px,*py;
-  PetscInt       ldm,lds = x->ld*x->d;
+  BV_TENSOR         *x = (BV_TENSOR*)X->data,*y = (BV_TENSOR*)Y->data;
+  PetscScalar       *m;
+  const PetscScalar *px,*py;
+  PetscInt          ldm,lds = x->ld*x->d;
 
   PetscFunctionBegin;
   if (x->U!=y->U) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"BVDot() in BVTENSOR requires that both operands have the same U factor");
   if (lds!=y->ld*y->d) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mismatching dimensions ld*d %D %D",lds,y->ld*y->d);
   ierr = MatGetSize(M,&ldm,NULL);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(x->S,&px);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(y->S,&py);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(x->S,&px);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(y->S,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
   ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,lds,ldm,py+(Y->nc+Y->l)*lds,px+(X->nc+X->l)*lds,m+X->l*ldm+Y->l,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(x->S,&px);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(y->S,&py);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(x->S,&px);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(y->S,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -100,19 +103,19 @@ PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
 
 PetscErrorCode BVNorm_Tensor(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
-  PetscErrorCode ierr;
-  BV_TENSOR      *ctx = (BV_TENSOR*)bv->data;
-  PetscScalar    *pS;
-  PetscInt       lds = ctx->ld*ctx->d;
+  PetscErrorCode    ierr;
+  BV_TENSOR         *ctx = (BV_TENSOR*)bv->data;
+  const PetscScalar *pS;
+  PetscInt          lds = ctx->ld*ctx->d;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(ctx->S,&pS);CHKERRQ(ierr);
   if (j<0) {
     ierr = BVNorm_LAPACK_Private(bv,lds,bv->k-bv->l,pS+(bv->nc+bv->l)*lds,type,val,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = BVNorm_LAPACK_Private(bv,lds,1,pS+(bv->nc+j)*lds,type,val,PETSC_FALSE);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(ctx->S,&pS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -132,16 +135,17 @@ PetscErrorCode BVCopyColumn_Tensor(BV V,PetscInt j,PetscInt i)
 
 static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
 {
-  PetscErrorCode ierr;
-  BV_TENSOR      *ctx = (BV_TENSOR*)bv->data;
-  PetscBLASInt   one=1,lds_;
-  PetscScalar    sone=1.0,szero=0.0,*S,*x,dot;
-  PetscReal      alpha=1.0,scale=0.0,aval;
-  PetscInt       i,lds,ld=ctx->ld;
+  PetscErrorCode    ierr;
+  BV_TENSOR         *ctx = (BV_TENSOR*)bv->data;
+  PetscBLASInt      one=1,lds_;
+  PetscScalar       sone=1.0,szero=0.0,*x,dot;
+  const PetscScalar *S;
+  PetscReal         alpha=1.0,scale=0.0,aval;
+  PetscInt          i,lds,ld=ctx->ld;
 
   PetscFunctionBegin;
   lds = ld*ctx->d;
-  ierr = MatDenseGetArray(ctx->S,&S);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(ctx->S,&S);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   if (ctx->qB) {
     x = ctx->sw;
@@ -164,6 +168,7 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
       *norm = scale*PetscSqrtReal(alpha);
     }
   }
+  ierr = MatDenseRestoreArrayRead(ctx->S,&S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

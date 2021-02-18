@@ -213,7 +213,7 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   ierr = MatCreateDense(PetscObjectComm((PetscObject)lme),n,n,N,N,NULL,&R);CHKERRQ(ierr);
 
   /* R=C1*C1' */
-  ierr = MatDenseGetArray(R,&Rarray);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayWrite(R,&Rarray);CHKERRQ(ierr);
   for (j=0;j<l;j++) {
     ierr = BVGetColumn(C1,j,&v);CHKERRQ(ierr);
     ierr = BVGetColumn(W,j,&w);CHKERRQ(ierr);
@@ -264,7 +264,7 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
     ierr = BVRestoreArrayRead(X1,&A);CHKERRQ(ierr);
     ierr = BVRestoreArrayRead(W,&B);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(R,&Rarray);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayWrite(R,&Rarray);CHKERRQ(ierr);
 
   /* compute ||R||_F */
   ierr = MatAssemblyBegin(R,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);

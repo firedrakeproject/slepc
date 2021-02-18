@@ -33,17 +33,18 @@ PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
-  PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
-  PetscInt       m,j,k,sexp;
-  PetscBool      odd;
-  const PetscInt p=MAX_PADE;
-  PetscReal      c[MAX_PADE+1],s,*rwork;
-  PetscScalar    scale,mone=-1.0,one=1.0,two=2.0,zero=0.0;
-  PetscScalar    *Aa,*Ba,*As,*A2,*Q,*P,*W,*aux;
+  PetscErrorCode    ierr;
+  PetscBLASInt      n,ld,ld2,*ipiv,info,inc=1;
+  PetscInt          m,j,k,sexp;
+  PetscBool         odd;
+  const PetscInt    p=MAX_PADE;
+  PetscReal         c[MAX_PADE+1],s,*rwork;
+  PetscScalar       scale,mone=-1.0,one=1.0,two=2.0,zero=0.0;
+  PetscScalar       *Ba,*As,*A2,*Q,*P,*W,*aux;
+  const PetscScalar *Aa;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
@@ -120,7 +121,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
   ierr = PetscLogFlops(2.0*n*n*n*sexp);CHKERRQ(ierr);
 
   ierr = PetscFree6(Q,W,As,A2,rwork,ipiv);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -414,28 +415,29 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,1,"This function requires C99 or C++ complex support");
 #else
-  PetscInt       i,j,n_,s,k,m,mod;
-  PetscBLASInt   n,n2,irsize = 0,rsizediv2,ipsize = 0,iremainsize = 0,info,*piv,minlen,lwork,one=1;
-  PetscReal      nrm,shift;
+  PetscInt          i,j,n_,s,k,m,mod;
+  PetscBLASInt      n,n2,irsize = 0,rsizediv2,ipsize = 0,iremainsize = 0,info,*piv,minlen,lwork,one=1;
+  PetscReal         nrm,shift;
 #if defined(PETSC_USE_COMPLEX) || defined(PETSC_HAVE_ESSL)
-  PetscReal      *rwork=NULL;
+  PetscReal         *rwork=NULL;
 #endif
-  PetscComplex   *As,*RR,*RR2,*expmA,*expmA2,*Maux,*Maux2,rsize,*r,psize,*p,remainsize,*remainterm,*rootp,*rootq,mult=0.0,scale,cone=1.0,czero=0.0,*aux;
-  PetscScalar    *Aa,*Ba,*Ba2,*sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*saux;
-  PetscErrorCode ierr;
-  PetscBool      isreal;
+  PetscComplex      *As,*RR,*RR2,*expmA,*expmA2,*Maux,*Maux2,rsize,*r,psize,*p,remainsize,*remainterm,*rootp,*rootq,mult=0.0,scale,cone=1.0,czero=0.0,*aux;
+  PetscScalar       *Ba,*Ba2,*sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*saux;
+  const PetscScalar *Aa;
+  PetscErrorCode    ierr;
+  PetscBool         isreal;
 #if defined(PETSC_HAVE_ESSL)
-  PetscScalar    sdummy,*wri;
-  PetscBLASInt   idummy,io=0;
+  PetscScalar       sdummy,*wri;
+  PetscBLASInt      idummy,io=0;
 #else
-  PetscBLASInt   query=-1;
-  PetscScalar    work1,*work;
+  PetscBLASInt      query=-1;
+  PetscScalar       work1,*work;
 #endif
 
   PetscFunctionBegin;
   ierr = MatGetSize(A,&n_,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   Ba2 = Ba;
   ierr = PetscBLASIntCast(n*n,&n2);CHKERRQ(ierr);
@@ -510,7 +512,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
     ierr = PetscArraycpy(Ba,sMaux,n2);CHKERRQ(ierr);
     ierr = PetscFree2(sMaux,Maux);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
     PetscFunctionReturn(0); /* quick return */
   }
@@ -692,7 +694,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   Maux = Maux2; expmA = expmA2; RR = RR2;
   ierr = PetscFree2(sMaux,Maux);CHKERRQ(ierr);
   ierr = PetscFree4(expmA,As,RR,piv);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
@@ -817,8 +819,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   PetscBLASInt      n_,n2,*ipiv,info,one=1;
   PetscInt          n,m,j,s;
   PetscScalar       scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
-  PetscScalar       *Aa,*Ba,*Apowers[5],*Q,*P,*W,*work,*aux;
-  const PetscScalar *c;
+  PetscScalar       *Ba,*Apowers[5],*Q,*P,*W,*work,*aux;
+  const PetscScalar *Aa,*c;
   const PetscScalar c3[4]   = { 120, 60, 12, 1 };
   const PetscScalar c5[6]   = { 30240, 15120, 3360, 420, 30, 1 };
   const PetscScalar c7[8]   = { 17297280, 8648640, 1995840, 277200, 25200, 1512, 56, 1 };
@@ -830,7 +832,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
                                 40840800,          960960,            16380,  182,  1 };
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
@@ -945,7 +947,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   ierr = PetscLogFlops(2.0*n*n*n*s);CHKERRQ(ierr);
 
   ierr = PetscFree2(work,ipiv);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

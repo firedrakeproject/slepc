@@ -45,7 +45,7 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,PetscScalar *Aa,PetscScalar *Ba,PetscInt m,PetscBool firstonly)
+static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,const PetscScalar *Aa,PetscScalar *Ba,PetscInt m,PetscBool firstonly)
 {
   PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
@@ -88,7 +88,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,PetscScalar *
     ierr = PetscLogFlops(2.0*n*n*n*(ctx->nq-1)+2.0*n*n*n/3.0+2.0*n*n*k);CHKERRQ(ierr);
   }
   if (Aa==Ba) {
-    ierr = PetscArraycpy(Aa,P,m*k);CHKERRQ(ierr);
+    ierr = PetscArraycpy(Ba,P,m*k);CHKERRQ(ierr);
     ierr = PetscFree4(P,Q,W,ipiv);CHKERRQ(ierr);
   } else {
     ierr = PetscFree3(Q,W,ipiv);CHKERRQ(ierr);
@@ -98,34 +98,36 @@ static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,PetscScalar *
 
 PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
-  PetscInt       m;
-  PetscScalar    *Aa,*Ba;
+  PetscErrorCode    ierr;
+  PetscInt          m;
+  const PetscScalar *Aa;
+  PetscScalar       *Ba;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
 {
-  PetscErrorCode ierr;
-  PetscInt       m;
-  PetscScalar    *Aa,*Ba;
-  Mat            B;
+  PetscErrorCode    ierr;
+  PetscInt          m;
+  const PetscScalar *Aa;
+  PetscScalar       *Ba;
+  Mat               B;
 
   PetscFunctionBegin;
   ierr = FN_AllocateWorkMat(fn,A,&B);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetColumnVector(B,v,0);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&B);CHKERRQ(ierr);

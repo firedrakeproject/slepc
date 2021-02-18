@@ -149,15 +149,16 @@ static PetscErrorCode NEPSLPSetUpLinearEP(NEP nep,NEP_EXT_OP extop,PetscScalar l
 
 PetscErrorCode NEPSolve_SLP(NEP nep)
 {
-  PetscErrorCode ierr;
-  NEP_SLP        *ctx = (NEP_SLP*)nep->data;
-  Mat            F,H;
-  Vec            uu,u,r;
-  PetscScalar    sigma,lambda,mu,im,*Hp,*Ap;
-  PetscReal      resnorm;
-  PetscInt       nconv,ldh,ldds,i,j;
-  PetscBool      skip=PETSC_FALSE,lock=PETSC_FALSE;
-  NEP_EXT_OP     extop=NULL;    /* Extended operator for deflation */
+  PetscErrorCode    ierr;
+  NEP_SLP           *ctx = (NEP_SLP*)nep->data;
+  Mat               F,H;
+  Vec               uu,u,r;
+  PetscScalar       sigma,lambda,mu,im,*Ap;
+  const PetscScalar *Hp;
+  PetscReal         resnorm;
+  PetscInt          nconv,ldh,ldds,i,j;
+  PetscBool         skip=PETSC_FALSE,lock=PETSC_FALSE;
+  NEP_EXT_OP        extop=NULL;    /* Extended operator for deflation */
 
   PetscFunctionBegin;
   /* get initial approximation of eigenvalue and eigenvector */
@@ -247,12 +248,12 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSAllocate(nep->ds,PetscMax(nep->nconv,1));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(H,&Hp);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(H,&Hp);CHKERRQ(ierr);
   ierr = DSGetArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
   for (j=0;j<nep->nconv;j++)
     for (i=0;i<nep->nconv;i++) Ap[j*ldds+i] = Hp[j*ldh+i];
   ierr = DSRestoreArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(H,&Hp);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(H,&Hp);CHKERRQ(ierr);
   ierr = MatDestroy(&H);CHKERRQ(ierr);
   ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,nep->nconv);CHKERRQ(ierr);
   ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);

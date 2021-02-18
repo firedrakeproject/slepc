@@ -42,14 +42,15 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 
 PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 {
-  PetscErrorCode ierr;
-  PetscInt       n=0,m,ld,ldh,j;
-  PetscBLASInt   m_,inc=1;
-  Mat            G=NULL,H=NULL;
-  Vec            F=NULL;
-  PetscScalar    *array,*farray,*garray,*harray;
-  PetscReal      beta,betaold=0.0,nrm=1.0;
-  PetscBool      breakdown,set,flg,symm=PETSC_FALSE;
+  PetscErrorCode    ierr;
+  PetscInt          n=0,m,ld,ldh,j;
+  PetscBLASInt      m_,inc=1;
+  Mat               G=NULL,H=NULL;
+  Vec               F=NULL;
+  PetscScalar       *array,*farray,*harray;
+  const PetscScalar *garray;
+  PetscReal         beta,betaold=0.0,nrm=1.0;
+  PetscBool         breakdown,set,flg,symm=PETSC_FALSE;
 
   PetscFunctionBegin;
   m  = mfn->ncv;
@@ -80,11 +81,11 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       ierr = PetscArraycpy(harray+n+(j+n)*ldh,array+j*ld,m);CHKERRQ(ierr);
     }
     if (mfn->its>1) {
-      ierr = MatDenseGetArray(G,&garray);CHKERRQ(ierr);
+      ierr = MatDenseGetArrayRead(G,&garray);CHKERRQ(ierr);
       for (j=0;j<n;j++) {
         ierr = PetscArraycpy(harray+j*ldh,garray+j*n,n);CHKERRQ(ierr);
       }
-      ierr = MatDenseRestoreArray(G,&garray);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArrayRead(G,&garray);CHKERRQ(ierr);
       ierr = MatDestroy(&G);CHKERRQ(ierr);
       harray[n+(n-1)*ldh] = betaold;
     }

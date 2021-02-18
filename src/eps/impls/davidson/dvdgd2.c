@@ -105,12 +105,12 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
                                           0        1
                                        -eigr_i -eigi_i
                                         eigi_i -eigr_i] */
-      ierr = MatDenseGetArray(M,&b);CHKERRQ(ierr);
+      ierr = MatDenseGetArrayWrite(M,&b);CHKERRQ(ierr);
       b[0] = b[5] = 1.0/d->nX[r_s+i];
       b[2] = b[7] = -d->eigr[r_s+i]/d->nX[r_s+i];
       b[6] = -(b[3] = d->eigi[r_s+i]/d->nX[r_s+i]);
       b[1] = b[4] = 0.0;
-      ierr = MatDenseRestoreArray(M,&b);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArrayWrite(M,&b);CHKERRQ(ierr);
       ierr = BVInsertVec(X,0,Ax[i]);CHKERRQ(ierr);
       ierr = BVInsertVec(X,1,Ax[i+1]);CHKERRQ(ierr);
       ierr = BVInsertVec(X,2,Bx[i]);CHKERRQ(ierr);
@@ -125,12 +125,12 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
     {
       /* [Ax_i Bx_i]*= [ 1/nX_i    conj(eig_i/nX_i)
                        -eig_i/nX_i     1/nX_i       ] */
-      ierr = MatDenseGetArray(M,&b);CHKERRQ(ierr);
+      ierr = MatDenseGetArrayWrite(M,&b);CHKERRQ(ierr);
       b[0] = 1.0/d->nX[r_s+i];
       b[1] = -d->eigr[r_s+i]/d->nX[r_s+i];
       b[4] = PetscConj(d->eigr[r_s+i]/d->nX[r_s+i]);
       b[5] = 1.0/d->nX[r_s+i];
-      ierr = MatDenseRestoreArray(M,&b);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArrayWrite(M,&b);CHKERRQ(ierr);
       ierr = BVInsertVec(X,0,Ax[i]);CHKERRQ(ierr);
       ierr = BVInsertVec(X,1,Bx[i]);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(X,0,2);CHKERRQ(ierr);

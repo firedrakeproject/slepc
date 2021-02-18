@@ -60,10 +60,11 @@ PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
 
 PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
 {
-  PetscErrorCode ierr;
-  FN_PHI         *ctx = (FN_PHI*)fn->data;
-  PetscInt       i,j,m,n,nh;
-  PetscScalar    *Aa,*Ha,*Fa,*va,sfactor=1.0;
+  PetscErrorCode    ierr;
+  FN_PHI            *ctx = (FN_PHI*)fn->data;
+  PetscInt          i,j,m,n,nh;
+  PetscScalar       *Ha,*va,sfactor=1.0;
+  const PetscScalar *Aa,*Fa;
 
   PetscFunctionBegin;
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
@@ -80,11 +81,11 @@ PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
     ierr = MatCreateDense(PETSC_COMM_SELF,n,n,n,n,NULL,&ctx->F);CHKERRQ(ierr);
   }
   ierr = MatDenseGetArray(ctx->H,&Ha);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&Aa);CHKERRQ(ierr);
   for (j=0;j<m;j++) {
     ierr = PetscArraycpy(Ha+j*n,Aa+j*m,m);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
   if (ctx->k) {
     for (j=0;j<m;j++) for (i=m;i<n;i++) Ha[i+j*n] = 0.0;
     for (j=m;j<n;j++) for (i=0;i<n;i++) Ha[i+j*n] = 0.0;
@@ -95,7 +96,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
 
   ierr = FNEvaluateFunctionMat_Exp_Higham(fn,ctx->H,ctx->F);CHKERRQ(ierr);
 
-  ierr = MatDenseGetArray(ctx->F,&Fa);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(ctx->F,&Fa);CHKERRQ(ierr);
   ierr = VecGetArray(v,&va);CHKERRQ(ierr);
   if (ctx->k) {
     sfactor = PetscPowScalarInt(fn->alpha,-ctx->k);
@@ -104,7 +105,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
     for (i=0;i<m;i++) va[i] = sfactor*Fa[i+0*n];
   }
   ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(ctx->F,&Fa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(ctx->F,&Fa);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

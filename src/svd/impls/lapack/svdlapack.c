@@ -38,11 +38,12 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 
 PetscErrorCode SVDSolve_LAPACK(SVD svd)
 {
-  PetscErrorCode ierr;
-  PetscInt       M,N,n,i,j,k,ld,lowu,lowv,highu,highv;
-  Mat            Ar,mat;
-  Vec            u,v;
-  PetscScalar    *pU,*pVT,*pmat,*pu,*pv,*A,*w;
+  PetscErrorCode    ierr;
+  PetscInt          M,N,n,i,j,k,ld,lowu,lowv,highu,highv;
+  Mat               Ar,mat;
+  Vec               u,v;
+  PetscScalar       *pU,*pVT,*pu,*pv,*A,*w;
+  const PetscScalar *pmat;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
@@ -51,13 +52,13 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   ierr = MatDestroy(&Ar);CHKERRQ(ierr);
   ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
   ierr = DSSetDimensions(svd->ds,M,N,0,0);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(mat,&pmat);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(mat,&pmat);CHKERRQ(ierr);
   ierr = DSGetArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
   for (i=0;i<M;i++)
     for (j=0;j<N;j++)
       A[i+j*ld] = pmat[i+j*M];
   ierr = DSRestoreArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(mat,&pmat);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(mat,&pmat);CHKERRQ(ierr);
   ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
   n = PetscMin(M,N);

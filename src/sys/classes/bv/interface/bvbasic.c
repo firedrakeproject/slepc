@@ -1413,11 +1413,11 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   PetscValidPointer(A,2);
 
   ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,bv->N,bv->m,NULL,A);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(*A,&aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayWrite(*A,&aa);CHKERRQ(ierr);
   ierr = BVGetArrayRead(bv,&vv);CHKERRQ(ierr);
   ierr = PetscArraycpy(aa,vv,bv->m*bv->n);CHKERRQ(ierr);
   ierr = BVRestoreArrayRead(bv,&vv);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(*A,&aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayWrite(*A,&aa);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);

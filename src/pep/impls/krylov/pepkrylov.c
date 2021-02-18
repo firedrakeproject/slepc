@@ -17,19 +17,20 @@
 
 PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,j,nq,deg=pep->nmat-1,lds,idxcpy=0,ldds,k,ld;
-  PetscScalar    *X,*er,*ei,*SS,*vals,*ivals,sone=1.0,szero=0.0,*yi,*yr,*tr,*ti,alpha,*S,*pS0;
-  PetscBLASInt   k_,nq_,lds_,one=1,ldds_,cols,info,zero=0;
-  PetscBool      flg;
-  PetscReal      norm,max,t,factor=1.0,done=1.0;
-  Vec            xr,xi,w[4];
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  Mat            S0,MS;
+  PetscErrorCode    ierr;
+  PetscInt          i,j,nq,deg=pep->nmat-1,lds,idxcpy=0,ldds,k,ld;
+  PetscScalar       *X,*er,*ei,*SS,*vals,*ivals,sone=1.0,szero=0.0,*yi,*yr,*tr,*ti,alpha,*pS0;
+  const PetscScalar *S;
+  PetscBLASInt      k_,nq_,lds_,one=1,ldds_,cols,info,zero=0;
+  PetscBool         flg;
+  PetscReal         norm,max,t,factor=1.0,done=1.0;
+  Vec               xr,xi,w[4];
+  PEP_TOAR          *ctx = (PEP_TOAR*)pep->data;
+  Mat               S0,MS;
 
   PetscFunctionBegin;
   ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(MS,&S);CHKERRQ(ierr);
   ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
   ierr = BVGetActiveColumns(pep->V,NULL,&nq);CHKERRQ(ierr);
   k = pep->nconv;
@@ -157,18 +158,16 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
 
   /* update vectors V = V*S */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nq,k,NULL,&S0);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(S0,&pS0);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayWrite(S0,&pS0);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     ierr = PetscArraycpy(pS0+i*nq,SS+i*nq,nq);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(S0,&pS0);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayWrite(S0,&pS0);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,S0,0,k);CHKERRQ(ierr);
   ierr = MatDestroy(&S0);CHKERRQ(ierr);
   ierr = PetscFree5(er,ei,SS,vals,ivals);CHKERRQ(ierr);
-  if (ctx->V) {
-    ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
-    ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-  }
+  ierr = MatDenseRestoreArrayRead(MS,&S);CHKERRQ(ierr);
+  ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

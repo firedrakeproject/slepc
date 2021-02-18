@@ -1156,15 +1156,16 @@ PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscScalar *K,PetscScalar *H,PetscInt l
 
 PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 {
-  PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
-  PetscInt       i,k=0,l,nv=0,ld,lds,ldds,nq,newn;
-  PetscInt       deg=ctx->nmat-1,nconv=0,dsn,dsk;
-  PetscScalar    *S,*H,*pU,*K,betak=0,*eigr,*eigi;
-  PetscReal      betah;
-  PetscBool      falselock=PETSC_FALSE,breakdown=PETSC_FALSE;
-  BV             W;
-  Mat            MS,MQ,U;
+  PetscErrorCode    ierr;
+  NEP_NLEIGS        *ctx = (NEP_NLEIGS*)nep->data;
+  PetscInt          i,k=0,l,nv=0,ld,lds,ldds,nq,newn;
+  PetscInt          deg=ctx->nmat-1,nconv=0,dsn,dsk;
+  PetscScalar       *H,*pU,*K,betak=0,*eigr,*eigi;
+  const PetscScalar *S;
+  PetscReal         betah;
+  PetscBool         falselock=PETSC_FALSE,breakdown=PETSC_FALSE;
+  BV                W;
+  Mat               MS,MQ,U;
 
   PetscFunctionBegin;
   if (ctx->lock) {
@@ -1290,12 +1291,12 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       ierr = MatDestroy(&MQ);CHKERRQ(ierr);
     }
     ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(MS,&S);CHKERRQ(ierr);
     ierr = PetscMalloc1(nq*nep->nconv,&pU);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
       ierr = PetscArraycpy(pU+i*nq,S+i*lds,nq);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(MS,&S);CHKERRQ(ierr);
     ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,nq,nep->nconv,pU,&U);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(nep->V,0,nq);CHKERRQ(ierr);

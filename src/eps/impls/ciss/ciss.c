@@ -469,12 +469,13 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
 
 static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
 {
-  PetscErrorCode ierr;
-  PetscMPIInt    sub_size,len;
-  PetscInt       i,j,k,s;
-  PetscScalar    *m,*temp,*temp2,*ppk,alp;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  Mat            M;
+  PetscErrorCode    ierr;
+  PetscMPIInt       sub_size,len;
+  PetscInt          i,j,k,s;
+  PetscScalar       *temp,*temp2,*ppk,alp;
+  const PetscScalar *pM;
+  EPS_CISS          *ctx = (EPS_CISS*)eps->data;
+  Mat               M;
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscSubcommChild(ctx->subcomm),&sub_size);CHKERRMPI(ierr);
@@ -489,15 +490,15 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
     ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
     ierr = BVDot(ctx->Y,ctx->V,M);CHKERRQ(ierr);
   }
-  ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(M,&pM);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) {
     for (j=0;j<ctx->L;j++) {
       for (k=0;k<ctx->L;k++) {
-        temp[k+j*ctx->L+i*ctx->L*ctx->L]=m[k+j*ctx->L+i*ctx->L*ctx->L_max];
+        temp[k+j*ctx->L+i*ctx->L*ctx->L]=pM[k+j*ctx->L+i*ctx->L*ctx->L_max];
       }
     }
   }
-  ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(M,&pM);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
   for (k=0;k<2*ctx->M;k++) {
     for (j=0;j<ctx->L;j++) {
@@ -1165,12 +1166,12 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       else {
         if (eps->nconv > ctx->L) {
           ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->nconv,ctx->L,NULL,&M);CHKERRQ(ierr);
-          ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
+          ierr = MatDenseGetArrayWrite(M,&temp);CHKERRQ(ierr);
           for (i=0;i<ctx->L*eps->nconv;i++) {
             ierr = PetscRandomGetValue(rand,&temp[i]);CHKERRQ(ierr);
             temp[i] = PetscRealPart(temp[i]);
           }
-          ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);
+          ierr = MatDenseRestoreArrayWrite(M,&temp);CHKERRQ(ierr);
           ierr = BVSetActiveColumns(ctx->S,0,eps->nconv);CHKERRQ(ierr);
           ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
           ierr = MatDestroy(&M);CHKERRQ(ierr);

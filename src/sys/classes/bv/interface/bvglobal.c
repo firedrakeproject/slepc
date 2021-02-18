@@ -975,11 +975,11 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar 
 */
 PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm)
 {
-  PetscErrorCode ierr;
-  PetscInt       j,lx,ly,kx,ky;
-  PetscScalar    *harray;
-  Mat            H;
-  BV             W;
+  PetscErrorCode    ierr;
+  PetscInt          j,lx,ly,kx,ky;
+  const PetscScalar *harray;
+  Mat               H;
+  BV                W;
 
   PetscFunctionBegin;
   lx = X->l; kx = X->k;
@@ -995,11 +995,11 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
     W->l = lx; W->k = kx;
     Y->l = 0;  Y->k = ly;
     ierr = BVDot(W,Y,H);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(H,&harray);CHKERRQ(ierr);
     for (j=lx;j<kx;j++) {
       ierr = PetscArraycpy(marray+j*ldm,harray+j*ly,ly);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);
   }
 
@@ -1009,11 +1009,11 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
     W->l = 0;  W->k = kx;
     Y->l = ly; Y->k = ky;
     ierr = BVDot(W,Y,H);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(H,&harray);CHKERRQ(ierr);
     for (j=0;j<kx;j++) {
       ierr = PetscArraycpy(marray+j*ldm+ly,harray+j*ky+ly,ky-ly);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&W);CHKERRQ(ierr);
@@ -1031,11 +1031,11 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
 */
 PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,j,lx,ly,kx,ky;
-  PetscScalar    *harray;
-  Mat            H;
-  BV             W;
+  PetscErrorCode    ierr;
+  PetscInt          i,j,lx,ly,kx,ky;
+  const PetscScalar *harray;
+  Mat               H;
+  BV                W;
 
   PetscFunctionBegin;
   lx = X->l; kx = X->k;
@@ -1048,11 +1048,11 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscS
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx-lx,NULL,&H);CHKERRQ(ierr);
     Y->l = 0; Y->k = ky;
     ierr = BVDot(W,Y,H);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(H,&harray);CHKERRQ(ierr);
     for (j=lx;j<kx;j++) {
       ierr = PetscArraycpy(marray+j*ldm,harray+(j-lx)*ky,ky);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);
   }
 
@@ -1070,13 +1070,13 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscS
       ierr = MatCreateSeqDense(PETSC_COMM_SELF,lx,ky-ly,NULL,&H);CHKERRQ(ierr);
       X->l = 0; X->k = lx;
       ierr = BVDot(W,X,H);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+      ierr = MatDenseGetArrayRead(H,&harray);CHKERRQ(ierr);
       for (i=0;i<ky-ly;i++) {
         for (j=0;j<lx;j++) {
           marray[i+j*ldm+ly] = PetscConj(harray[j+i*(ky-ly)]);
         }
       }
-      ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArrayRead(H,&harray);CHKERRQ(ierr);
       ierr = MatDestroy(&H);CHKERRQ(ierr);
     }
   }
@@ -1094,10 +1094,10 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscS
 */
 PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marray,PetscInt ldm)
 {
-  PetscErrorCode ierr;
-  PetscInt       j,lx,ly,kx,ky;
-  PetscScalar    *harray;
-  Mat            H;
+  PetscErrorCode    ierr;
+  PetscInt          j,lx,ly,kx,ky;
+  const PetscScalar *harray;
+  Mat               H;
 
   PetscFunctionBegin;
   lx = X->l; kx = X->k;
@@ -1109,11 +1109,11 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marra
     X->l = lx; X->k = kx;
     Y->l = 0;  Y->k = ly;
     ierr = BVDot(X,Y,H);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(H,&harray);CHKERRQ(ierr);
     for (j=lx;j<kx;j++) {
       ierr = PetscArraycpy(marray+j*ldm,harray+j*ly,ly);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);
   }
 
@@ -1123,11 +1123,11 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marra
     X->l = 0;  X->k = kx;
     Y->l = ly; Y->k = ky;
     ierr = BVDot(X,Y,H);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(H,&harray);CHKERRQ(ierr);
     for (j=0;j<kx;j++) {
       ierr = PetscArraycpy(marray+j*ldm+ly,harray+j*ky+ly,ky-ly);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);
   }
   X->l = lx; X->k = kx;

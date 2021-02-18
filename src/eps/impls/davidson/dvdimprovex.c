@@ -562,13 +562,13 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
 */
 static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
 {
-  PetscErrorCode ierr;
-  PetscInt       n=i_e-i_s,size_KZ,V_new,rm,i,lv,kv,lKZ,kKZ;
-  dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
-  PetscScalar    *array;
-  Mat            M;
-  Vec            u[2],v[2];
-  PetscBLASInt   s,ldXKZ,info;
+  PetscErrorCode    ierr;
+  PetscInt          n=i_e-i_s,size_KZ,V_new,rm,i,lv,kv,lKZ,kKZ;
+  dvdImprovex_jd    *data = (dvdImprovex_jd*)d->improveX_data;
+  const PetscScalar *array;
+  Mat               M;
+  Vec               u[2],v[2];
+  PetscBLASInt      s,ldXKZ,info;
 
   PetscFunctionBegin;
   /* Check consistency */
@@ -612,14 +612,14 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   /* XKZ <- U'*KZ */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,lKZ+n,lKZ+n,NULL,&M);CHKERRQ(ierr);
   ierr = BVMatProject(data->KZ,NULL,data->U,M);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(M,&array);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(M,&array);CHKERRQ(ierr);
   for (i=lKZ;i<lKZ+n;i++) { /* upper part */
     ierr = PetscArraycpy(&data->XKZ[data->ldXKZ*i],&array[i*(lKZ+n)],lKZ);CHKERRQ(ierr);
   }
   for (i=0;i<lKZ+n;i++) { /* lower part */
     ierr = PetscArraycpy(&data->XKZ[data->ldXKZ*i+lKZ],&array[i*(lKZ+n)+lKZ],n);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(M,&array);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(M,&array);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
 
   /* iXKZ <- inv(XKZ) */
@@ -962,7 +962,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
                                        0         theta_2i'     0        1
                                      theta_2i+1 -thetai_i   -eigr_i -eigi_i
                                      thetai_i    theta_2i+1  eigi_i -eigr_i ] */
-      ierr = MatDenseGetArray(M,&b);CHKERRQ(ierr);
+      ierr = MatDenseGetArrayWrite(M,&b);CHKERRQ(ierr);
       b[0] = b[5] = PetscConj(theta[2*i]);
       b[2] = b[7] = -theta[2*i+1];
       b[6] = -(b[3] = thetai[i]);
@@ -971,7 +971,7 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
       b[10] = b[15] = -d->eigr[i_s+i]/d->nX[i_s+i];
       b[14] = -(b[11] = d->eigi[i_s+i]/d->nX[i_s+i]);
       b[9] = b[12] = 0.0;
-      ierr = MatDenseRestoreArray(M,&b);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArrayWrite(M,&b);CHKERRQ(ierr);
       ierr = BVInsertVec(X,0,Ax[i]);CHKERRQ(ierr);
       ierr = BVInsertVec(X,1,Ax[i+1]);CHKERRQ(ierr);
       ierr = BVInsertVec(X,2,Bx[i]);CHKERRQ(ierr);
@@ -988,12 +988,12 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
     {
       /* [Ax_i Bx_i]*= [ theta_2i'    1/nX_i
                         theta_2i+1  -eig_i/nX_i ] */
-      ierr = MatDenseGetArray(M,&b);CHKERRQ(ierr);
+      ierr = MatDenseGetArrayWrite(M,&b);CHKERRQ(ierr);
       b[0] = PetscConj(theta[i*2]);
       b[1] = theta[i*2+1];
       b[4] = 1.0/d->nX[i_s+i];
       b[5] = -d->eigr[i_s+i]/d->nX[i_s+i];
-      ierr = MatDenseRestoreArray(M,&b);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArrayWrite(M,&b);CHKERRQ(ierr);
       ierr = BVInsertVec(X,0,Ax[i]);CHKERRQ(ierr);
       ierr = BVInsertVec(X,1,Bx[i]);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(X,0,2);CHKERRQ(ierr);

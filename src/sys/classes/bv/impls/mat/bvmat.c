@@ -21,73 +21,77 @@ typedef struct {
 PetscErrorCode BVMult_Mat(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
   PetscErrorCode ierr;
-  BV_MAT         *y = (BV_MAT*)Y->data,*x = (BV_MAT*)X->data;
-  PetscScalar    *px,*py,*q;
-  PetscInt       ldq;
+  BV_MAT            *y = (BV_MAT*)Y->data,*x = (BV_MAT*)X->data;
+  PetscScalar       *py;
+  const PetscScalar *px,*q;
+  PetscInt          ldq;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseGetArray(y->A,&py);CHKERRQ(ierr);
   if (Q) {
     ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
     ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   } else {
     ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(y->A,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVMultVec_Mat(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
 {
-  PetscErrorCode ierr;
-  BV_MAT         *x = (BV_MAT*)X->data;
-  PetscScalar    *px,*py,*qq=q;
+  PetscErrorCode    ierr;
+  BV_MAT            *x = (BV_MAT*)X->data;
+  PetscScalar       *py,*qq=q;
+  const PetscScalar *px;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(x->A,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   if (!q) { ierr = VecGetArray(X->buffer,&qq);CHKERRQ(ierr); }
   ierr = BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,px+(X->nc+X->l)*X->n,qq,beta,py);CHKERRQ(ierr);
   if (!q) { ierr = VecRestoreArray(X->buffer,&qq);CHKERRQ(ierr); }
-  ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(x->A,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVMultInPlace_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
 {
-  PetscErrorCode ierr;
-  BV_MAT         *ctx = (BV_MAT*)V->data;
-  PetscScalar    *pv,*q;
-  PetscInt       ldq;
+  PetscErrorCode    ierr;
+  BV_MAT            *ctx = (BV_MAT*)V->data;
+  PetscScalar       *pv;
+  const PetscScalar *q;
+  PetscInt          ldq;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(ctx->A,&pv);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->A,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVMultInPlaceTranspose_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
 {
-  PetscErrorCode ierr;
-  BV_MAT         *ctx = (BV_MAT*)V->data;
-  PetscScalar    *pv,*q;
-  PetscInt       ldq;
+  PetscErrorCode    ierr;
+  BV_MAT            *ctx = (BV_MAT*)V->data;
+  PetscScalar       *pv;
+  const PetscScalar *q;
+  PetscInt          ldq;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(ctx->A,&pv);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->A,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -95,19 +99,20 @@ PetscErrorCode BVMultInPlaceTranspose_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
 PetscErrorCode BVDot_Mat(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
-  BV_MAT         *x = (BV_MAT*)X->data,*y = (BV_MAT*)Y->data;
-  PetscScalar    *px,*py,*m;
-  PetscInt       ldm;
+  BV_MAT            *x = (BV_MAT*)X->data,*y = (BV_MAT*)Y->data;
+  PetscScalar       *m;
+  const PetscScalar *px,*py;
+  PetscInt          ldm;
 
   PetscFunctionBegin;
   ierr = MatGetSize(M,&ldm,NULL);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(y->A,&py);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(y->A,&py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
   ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,ldm,py+(Y->nc+Y->l)*Y->n,px+(X->nc+X->l)*X->n,m+X->l*ldm+Y->l,x->mpi);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(y->A,&py);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(y->A,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -115,8 +120,8 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *q)
 {
   PetscErrorCode    ierr;
   BV_MAT            *x = (BV_MAT*)X->data;
-  PetscScalar       *px,*qq=q;
-  const PetscScalar *py;
+  PetscScalar       *qq=q;
+  const PetscScalar *px,*py;
   Vec               z = y;
 
   PetscFunctionBegin;
@@ -124,33 +129,33 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *q)
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
-  ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(x->A,&px);CHKERRQ(ierr);
   ierr = VecGetArrayRead(z,&py);CHKERRQ(ierr);
   if (!q) { ierr = VecGetArray(X->buffer,&qq);CHKERRQ(ierr); }
   ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,qq,x->mpi);CHKERRQ(ierr);
   if (!q) { ierr = VecRestoreArray(X->buffer,&qq);CHKERRQ(ierr); }
   ierr = VecRestoreArrayRead(z,&py);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(x->A,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVDotVec_Local_Mat(BV X,Vec y,PetscScalar *m)
 {
-  PetscErrorCode ierr;
-  BV_MAT         *x = (BV_MAT*)X->data;
-  PetscScalar    *px,*py;
-  Vec            z = y;
+  PetscErrorCode    ierr;
+  BV_MAT            *x = (BV_MAT*)X->data;
+  const PetscScalar *px,*py;
+  Vec               z = y;
 
   PetscFunctionBegin;
   if (X->matrix) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
-  ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(z,&py);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(x->A,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(z,&py);CHKERRQ(ierr);
   ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,px+(X->nc+X->l)*X->n,py,m,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = VecRestoreArray(z,&py);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(z,&py);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(x->A,&px);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -173,35 +178,35 @@ PetscErrorCode BVScale_Mat(BV bv,PetscInt j,PetscScalar alpha)
 
 PetscErrorCode BVNorm_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
-  PetscErrorCode ierr;
-  BV_MAT         *ctx = (BV_MAT*)bv->data;
-  PetscScalar    *array;
+  PetscErrorCode    ierr;
+  BV_MAT            *ctx = (BV_MAT*)bv->data;
+  const PetscScalar *array;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(ctx->A,&array);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(ctx->A,&array);CHKERRQ(ierr);
   if (j<0) {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   } else {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(ctx->A,&array);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(ctx->A,&array);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVNorm_Local_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
-  PetscErrorCode ierr;
-  BV_MAT         *ctx = (BV_MAT*)bv->data;
-  PetscScalar    *array;
+  PetscErrorCode    ierr;
+  BV_MAT            *ctx = (BV_MAT*)bv->data;
+  const PetscScalar *array;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(ctx->A,&array);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(ctx->A,&array);CHKERRQ(ierr);
   if (j<0) {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(ctx->A,&array);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(ctx->A,&array);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -252,17 +257,18 @@ PetscErrorCode BVMatMult_Mat(BV V,Mat A,BV W)
 
 PetscErrorCode BVCopy_Mat(BV V,BV W)
 {
-  PetscErrorCode ierr;
-  BV_MAT         *v = (BV_MAT*)V->data,*w = (BV_MAT*)W->data;
-  PetscScalar    *pv,*pw,*pvc,*pwc;
+  PetscErrorCode    ierr;
+  BV_MAT            *v = (BV_MAT*)V->data,*w = (BV_MAT*)W->data;
+  PetscScalar       *pw,*pwc;
+  const PetscScalar *pv,*pvc;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(v->A,&pv);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(v->A,&pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(w->A,&pw);CHKERRQ(ierr);
   pvc = pv+(V->nc+V->l)*V->n;
   pwc = pw+(W->nc+W->l)*W->n;
   ierr = PetscArraycpy(pwc,pvc,(V->k-V->l)*V->n);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(v->A,&pv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(v->A,&pv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(w->A,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -282,11 +288,12 @@ PetscErrorCode BVCopyColumn_Mat(BV V,PetscInt j,PetscInt i)
 
 PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
 {
-  PetscErrorCode ierr;
-  BV_MAT         *ctx = (BV_MAT*)bv->data;
-  PetscScalar    *pA,*pnew;
-  Mat            A;
-  char           str[50];
+  PetscErrorCode    ierr;
+  BV_MAT            *ctx = (BV_MAT*)bv->data;
+  PetscScalar       *pnew;
+  const PetscScalar *pA;
+  Mat               A;
+  char              str[50];
 
   PetscFunctionBegin;
   ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,PETSC_DECIDE,m,NULL,&A);CHKERRQ(ierr);
@@ -298,11 +305,11 @@ PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
     ierr = PetscObjectSetName((PetscObject)A,str);CHKERRQ(ierr);
   }
   if (copy) {
-    ierr = MatDenseGetArray(ctx->A,&pA);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(A,&pnew);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(ctx->A,&pA);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayWrite(A,&pnew);CHKERRQ(ierr);
     ierr = PetscArraycpy(pnew,pA,PetscMin(m,bv->m)*bv->n);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(ctx->A,&pA);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(A,&pnew);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(ctx->A,&pA);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayWrite(A,&pnew);CHKERRQ(ierr);
   }
   ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
   ctx->A = A;
@@ -363,7 +370,7 @@ PetscErrorCode BVGetArrayRead_Mat(BV bv,const PetscScalar **a)
   BV_MAT         *ctx = (BV_MAT*)bv->data;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(ctx->A,(PetscScalar**)a);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(ctx->A,a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -373,7 +380,7 @@ PetscErrorCode BVRestoreArrayRead_Mat(BV bv,const PetscScalar **a)
   BV_MAT         *ctx = (BV_MAT*)bv->data;
 
   PetscFunctionBegin;
-  if (a) { ierr = MatDenseRestoreArray(ctx->A,(PetscScalar**)a);CHKERRQ(ierr); }
+  if (a) { ierr = MatDenseRestoreArrayRead(ctx->A,a);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

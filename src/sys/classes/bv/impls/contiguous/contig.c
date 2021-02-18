@@ -21,17 +21,17 @@ typedef struct {
 
 PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
-  PetscErrorCode ierr;
-  BV_CONTIGUOUS  *y = (BV_CONTIGUOUS*)Y->data,*x = (BV_CONTIGUOUS*)X->data;
-  PetscScalar    *q;
-  PetscInt       ldq;
+  PetscErrorCode    ierr;
+  BV_CONTIGUOUS     *y = (BV_CONTIGUOUS*)Y->data,*x = (BV_CONTIGUOUS*)X->data;
+  const PetscScalar *q;
+  PetscInt          ldq;
 
   PetscFunctionBegin;
   if (Q) {
     ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+    ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
     ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,x->array+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,y->array+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   } else {
     ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,x->array+(X->nc+X->l)*X->n,beta,y->array+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
   }
@@ -55,31 +55,31 @@ PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec 
 
 PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
 {
-  PetscErrorCode ierr;
-  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)V->data;
-  PetscScalar    *q;
-  PetscInt       ldq;
+  PetscErrorCode    ierr;
+  BV_CONTIGUOUS     *ctx = (BV_CONTIGUOUS*)V->data;
+  const PetscScalar *q;
+  PetscInt          ldq;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVMultInPlaceTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
 {
-  PetscErrorCode ierr;
-  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)V->data;
-  PetscScalar    *q;
-  PetscInt       ldq;
+  PetscErrorCode    ierr;
+  BV_CONTIGUOUS     *ctx = (BV_CONTIGUOUS*)V->data;
+  const PetscScalar *q;
+  PetscInt          ldq;
 
   PetscFunctionBegin;
   ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(Q,&q);CHKERRQ(ierr);
   ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
