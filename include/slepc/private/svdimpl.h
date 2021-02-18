@@ -191,6 +191,5 @@ SLEPC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,Pe
 SLEPC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
 SLEPC_INTERN PetscErrorCode SVDComputeVectors(SVD);
 SLEPC_INTERN PetscErrorCode SVDComputeVectors_Left(SVD);
-SLEPC_INTERN PetscErrorCode SVDComputeResidualNorms_Private(SVD,PetscReal,Vec,Vec,Vec,Vec,PetscReal*,PetscReal*);
 
 #endif

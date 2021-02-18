@@ -54,7 +54,14 @@ static PetscErrorCode SVDSubspaceResidualNorm(SVD svd,PetscInt i,PetscScalar sig
   PetscFunctionBegin;
   ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
   ierr = BVGetColumn(svd->U,i,&u);CHKERRQ(ierr);
-  ierr = SVDComputeResidualNorms_Private(svd,sigma,u,v,wu,wv,&norm1,&norm2);CHKERRQ(ierr);
+  /* norm1 = ||A*v-sigma*u||_2 */
+  ierr = MatMult(svd->A,v,wu);CHKERRQ(ierr);
+  ierr = VecAXPY(wu,-sigma,u);CHKERRQ(ierr);
+  ierr = VecNorm(wu,NORM_2,&norm1);CHKERRQ(ierr);
+  /* norm2 = ||A^T*u-sigma*v||_2 */
+  ierr = MatMult(svd->AT,u,wv);CHKERRQ(ierr);
+  ierr = VecAXPY(wv,-sigma,v);CHKERRQ(ierr);
+  ierr = VecNorm(wv,NORM_2,&norm2);CHKERRQ(ierr);
   ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(svd->U,i,&u);CHKERRQ(ierr);
   *res = PetscSqrtReal(norm1*norm1+norm2*norm2);
@@ -85,8 +92,8 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
   do {
     k = 0;
     svd->its++;
-  ierr = BVSetActiveColumns(svd->V,svd->nconv,svd->ncv);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(svd->U,svd->nconv,svd->ncv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(svd->V,svd->nconv,svd->ncv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(svd->U,svd->nconv,svd->ncv);CHKERRQ(ierr);
     /* Form AG */
     ierr = BVMatMult(svd->V,svd->A,svd->U);CHKERRQ(ierr);
     /* Orthogonalization Q=qr(AG)*/
@@ -115,8 +122,8 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     for (i=svd->nconv;i<svd->ncv;i++) {
       ierr = SVDSubspaceResidualNorm(svd,i,svd->sigma[i],&res,uu,vv);CHKERRQ(ierr);
       ierr = (*svd->converged)(svd,svd->sigma[i],res,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
-        if (svd->errest[i] < svd->tol) k++;
-        else break;
+      if (svd->errest[i] < svd->tol) k++;
+      else break;
     }
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
     svd->nconv += k;
