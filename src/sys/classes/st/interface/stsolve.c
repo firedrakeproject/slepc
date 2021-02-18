@@ -505,7 +505,7 @@ PetscErrorCode STComputeOperator(ST st)
       if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
       if (st->P) {
         ierr = STSetDefaultKSP(st);CHKERRQ(ierr);
-        ierr = STKSPSetOperators(st,st->P,st->P);CHKERRQ(ierr);
+        ierr = STKSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P);CHKERRQ(ierr);
       } else {
         /* STPRECOND defaults to PCNONE if st->P is empty */
         ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
@@ -821,7 +821,7 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 
   ierr = PetscLogEventBegin(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
   ierr = STMatMAXPY_Private(st,sigma,0.0,0,coeffs,PETSC_TRUE,&st->P);CHKERRQ(ierr);
-  ierr = STKSPSetOperators(st,st->P,st->P);CHKERRQ(ierr);
+  ierr = STKSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

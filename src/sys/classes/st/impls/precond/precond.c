@@ -15,8 +15,6 @@
 
 typedef struct {
   PetscBool ksphasmat;  /* the KSP must have the same matrix as PC */
-  PetscBool usermat;    /* the user has set a matrix */
-  Mat       mat;        /* user-provided matrix */
 } ST_PRECOND;
 
 static PetscErrorCode STSetDefaultKSP_Precond(ST st)
@@ -47,10 +45,9 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
 PetscErrorCode STPostSolve_Precond(ST st)
 {
   PetscErrorCode ierr;
-  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  if (st->matmode == ST_MATMODE_INPLACE && !(ctx->mat || (PetscAbsScalar(st->sigma)>=PETSC_MAX_REAL && st->nmat>1))) {
+  if (st->matmode == ST_MATMODE_INPLACE && !(st->Pmat || (PetscAbsScalar(st->sigma)>=PETSC_MAX_REAL && st->nmat>1))) {
     if (st->nmat>1) {
       ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
     } else {
@@ -72,7 +69,6 @@ PetscErrorCode STPostSolve_Precond(ST st)
 PetscErrorCode STComputeOperator_Precond(ST st)
 {
   PetscErrorCode ierr;
-  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
@@ -80,10 +76,10 @@ PetscErrorCode STComputeOperator_Precond(ST st)
   st->M = NULL;
 
   /* P = A-sigma*B */
-  if (ctx->mat) {
-    ierr = PetscObjectReference((PetscObject)ctx->mat);CHKERRQ(ierr);
+  if (st->Pmat) {
+    ierr = PetscObjectReference((PetscObject)st->Pmat);CHKERRQ(ierr);
     ierr = MatDestroy(&st->P);CHKERRQ(ierr);
-    st->P = ctx->mat;
+    st->P = st->Pmat;
   } else {
     ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr);
     ierr = MatDestroy(&st->T[0]);CHKERRQ(ierr);
@@ -121,7 +117,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  if (st->transform && !ctx->mat) {
+  if (st->transform && !st->Pmat) {
     ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
     if (st->P!=st->T[1]) {
       ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
@@ -132,89 +128,6 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   if (st->P) {
     ierr = STKSPSetOperators(st,ctx->ksphasmat?st->P:NULL,st->P);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
-{
-  ST_PRECOND *ctx = (ST_PRECOND*)st->data;
-
-  PetscFunctionBegin;
-  *mat = ctx->mat;
-  PetscFunctionReturn(0);
-}
-
-/*@
-   STPrecondGetMatForPC - Returns the matrix previously set by STPrecondSetMatForPC().
-
-   Not Collective, but the Mat is shared by all processors that share the ST
-
-   Input Parameter:
-.  st - the spectral transformation context
-
-   Output Parameter:
-.  mat - the matrix that will be used in constructing the preconditioner or
-   NULL if no matrix was set by STPrecondSetMatForPC().
-
-   Level: advanced
-
-.seealso: STPrecondSetMatForPC()
-@*/
-PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(mat,2);
-  ierr = PetscUseMethod(st,"STPrecondGetMatForPC_C",(ST,Mat*),(st,mat));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
-{
-  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  STCheckNotSeized(st,1);
-  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
-  ierr = MatDestroy(&ctx->mat);CHKERRQ(ierr);
-  ctx->mat     = mat;
-  ctx->usermat = mat? PETSC_TRUE: PETSC_FALSE;
-  st->state    = ST_STATE_INITIAL;
-  st->opready  = PETSC_FALSE;
-  PetscFunctionReturn(0);
-}
-
-/*@
-   STPrecondSetMatForPC - Sets the matrix that must be used to build the preconditioner.
-
-   Logically Collective on st
-
-   Input Parameter:
-+  st - the spectral transformation context
--  mat - the matrix that will be used in constructing the preconditioner
-
-   Level: advanced
-
-   Notes:
-   This matrix will be passed to the KSP object (via KSPSetOperators) as
-   the matrix to be used when constructing the preconditioner.
-   If no matrix is set or mat is set to NULL, A - sigma*B will
-   be used to build the preconditioner, being sigma the value set by STSetShift().
-
-.seealso: STPrecondSetMatForPC(), STSetShift()
-@*/
-PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
-  PetscCheckSameComm(st,1,mat,2);
-  ierr = PetscTryMethod(st,"STPrecondSetMatForPC_C",(ST,Mat),(st,mat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -300,14 +213,10 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *ksphasmat)
 
 PetscErrorCode STDestroy_Precond(ST st)
 {
-  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&ctx->mat);CHKERRQ(ierr);
   ierr = PetscFree(st->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetMatForPC_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetMatForPC_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -335,8 +244,6 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   st->ops->destroy         = STDestroy_Precond;
   st->ops->setdefaultksp   = STSetDefaultKSP_Precond;
 
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetMatForPC_C",STPrecondGetMatForPC_Precond);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetMatForPC_C",STPrecondSetMatForPC_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",STPrecondGetKSPHasMat_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",STPrecondSetKSPHasMat_Precond);CHKERRQ(ierr);
   PetscFunctionReturn(0);

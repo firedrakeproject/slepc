@@ -147,7 +147,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     /* This allows users to compute a different preconditioning matrix than A.
      * It is useful when A and B are shell matrices.
      */
-    ierr = STPrecondGetMatForPC(eps->st,&P);CHKERRQ(ierr);
+    ierr = STGetPreconditionerMat(eps->st,&P);CHKERRQ(ierr);
     /* If users do not provide a matrix, we simply use A */
     ierr = SNESSetJacobian(power->snes,A,P? P:A,formJacobianA,ctx);CHKERRQ(ierr);
     ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
@@ -342,7 +342,7 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = EPSSetProblemType(powereps,EPS_GNHEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(powereps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSPowerSetNonlinear(powereps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = STPrecondGetMatForPC(eps->st,&P);CHKERRQ(ierr);
+  ierr = STGetPreconditionerMat(eps->st,&P);CHKERRQ(ierr);
   /* attach dm to initial solve */
   ierr = EPSPowerGetSNES(eps,&snes);CHKERRQ(ierr);
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
@@ -355,7 +355,7 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = SNESSetDM(snes,dm);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(powereps);CHKERRQ(ierr);
   if (P) {
-    ierr = STPrecondSetMatForPC(powereps->st,P);CHKERRQ(ierr);
+    ierr = STSetPreconditionerMat(powereps->st,P);CHKERRQ(ierr);
   }
   ierr = EPSSolve(powereps);CHKERRQ(ierr);
   ierr = BVGetColumn(eps->V,0,&v2);CHKERRQ(ierr);

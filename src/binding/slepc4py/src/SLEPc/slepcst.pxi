@@ -33,6 +33,8 @@ cdef extern from * nogil:
     int STGetMatrix(SlepcST,PetscInt,PetscMat*)
     int STSetMatrices(SlepcST,PetscInt,PetscMat*)
     int STSetMatStructure(SlepcST,PetscMatStructure)
+    int STSetPreconditionerMat(SlepcST,PetscMat)
+    int STGetPreconditionerMat(SlepcST,PetscMat*)
 
     int STGetOperationCounters(SlepcST,PetscInt*,PetscInt*)
     int STResetOperationCounters(SlepcST)
