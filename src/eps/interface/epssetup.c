@@ -73,6 +73,7 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#if defined(SLEPC_HAVE_SCALAPACK) || defined(SLEPC_HAVE_ELPA) || defined(SLEPC_HAVE_ELEMENTAL)
 /*
    This is for direct eigensolvers that work with A and B directly, so
    no need to factorize B.
@@ -97,6 +98,7 @@ PetscErrorCode EPSSetDefaultST_NoFactor(EPS eps)
   }
   PetscFunctionReturn(0);
 }
+#endif
 
 /*
    Check that the ST selected by the user is compatible with the EPS solver and options

@@ -16,7 +16,11 @@ int main(int argc,char **argv)
 {
   Mat            A;
   SVD            svd;
-  PetscInt       n=6,Istart,Iend,i;
+  PetscReal      *sigma,sval;
+  PetscInt       n=6,Istart,Iend,i,nconv;
+  PetscBool      checkfile;
+  char           filename[PETSC_MAX_PATH_LEN];
+  PetscViewer    viewer;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -50,6 +54,24 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                   Check file containing the singular values
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  ierr = PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile);CHKERRQ(ierr);
+  if (checkfile) {
+    ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
+    ierr = PetscMalloc1(nconv,&sigma);CHKERRQ(ierr);
+    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerBinaryRead(viewer,sigma,nconv,NULL,PETSC_REAL);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
+      ierr = SVDGetSingularTriplet(svd,i,&sval,NULL,NULL);CHKERRQ(ierr);
+      if (sval!=sigma[i]) SETERRQ(PETSC_COMM_WORLD,1,"Singular values in the file do not match");
+    }
+    ierr = PetscFree(sigma);CHKERRQ(ierr);
+  }
+
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();
@@ -63,5 +85,10 @@ int main(int argc,char **argv)
       args: -svd_error_relative ::ascii_info_detail -svd_view_values -svd_monitor_conv -svd_error_absolute ::ascii_matlab -svd_monitor_all -svd_converged_reason -svd_view
       filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/1.999999/2.000000/" | sed -e "s/2.000001/2.000000/" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
       requires: !single
+
+   test:
+      suffix: 2
+      args: -svd_nsv 4 -svd_view_values binary:myvalues.bin -checkfile myvalues.bin
+      requires: double
 
 TEST*/

@@ -43,6 +43,7 @@
       PetscInt           m, n, i, Istart
       PetscInt           col(2), its, Iend
       PetscScalar        val(2)
+      SVDProblemType     ptype
       PetscMPIInt        rank
       PetscErrorCode     ierr
       PetscBool          flg, tmode
@@ -106,6 +107,15 @@
       call SVDSetFromOptions(svd,ierr)
 
 !     ** query properties and print them
+      call SVDGetProblemType(svd,ptype,ierr)
+      if (rank .eq. 0) then
+        write(*,105) ptype
+      endif
+ 105  format (/' Problem type = ',I2)
+      call SVDIsGeneralized(svd,flg,ierr)
+      if (flg .and. rank .eq. 0) then
+        write(*,*) 'generalized'
+      endif
       call SVDGetImplicitTranspose(svd,tmode,ierr)
       if (rank .eq. 0) then
         if (tmode) then
@@ -114,7 +124,7 @@
           write(*,110) 'explicit'
         endif
       endif
- 110  format (/' Transpose mode is',A9)
+ 110  format (' Transpose mode is',A9)
       call SVDGetConvergenceTest(svd,conv,ierr)
       if (rank .eq. 0) then
         write(*,120) conv

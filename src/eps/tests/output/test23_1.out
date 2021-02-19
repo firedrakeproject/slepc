@@ -13,6 +13,7 @@ EPS Object: eps 1 MPI processes
     50% of basis vectors kept after restart
     using the locking variant
   problem type: non-symmetric eigenvalue problem
+  balancing enabled: one-sided Krylov, with its=5
   selected portion of the spectrum: largest real parts
   computing all residuals (for tracking convergence)
   number of eigenvalues (nev): 1

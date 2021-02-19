@@ -34,6 +34,7 @@ int main(int argc,char **argv)
   SVDConv              conv;
   SVDStop              stop;
   SVDWhich             which;
+  SVDProblemType       ptype;
   SVDConvergedReason   reason;
   PetscInt             m=20,n,Istart,Iend,i,col[2],its;
   PetscScalar          value[] = { 1, 2 };
@@ -91,8 +92,12 @@ int main(int argc,char **argv)
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
   /* query properties and print them */
+  ierr = SVDGetProblemType(svd,&ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Problem type = %d",(int)ptype);CHKERRQ(ierr);
+  ierr = SVDIsGeneralized(svd,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," generalized");CHKERRQ(ierr); }
   ierr = SVDGetImplicitTranspose(svd,&tmode);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Transpose mode is %s\n",tmode?"implicit":"explicit");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Transpose mode is %s\n",tmode?"implicit":"explicit");CHKERRQ(ierr);
   ierr = SVDGetConvergenceTest(svd,&conv);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Convergence test is %s\n",ctest[conv]);CHKERRQ(ierr);
   ierr = SVDGetStoppingTest(svd,&stop);CHKERRQ(ierr);
