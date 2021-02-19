@@ -21,7 +21,7 @@
        [1] N. Halko, P.-G. Martinsson, and J. A. Tropp, "Finding
            structure with randomness: Probabilistic algorithms for
            constructing approximate matrix decompositions", SIAM Rev.,
-           53(2):217–288, 2011.
+           53(2):217-288, 2011.
 */
 
 #include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
@@ -71,8 +71,8 @@ static PetscErrorCode SVDSubspaceResidualNorm(SVD svd,PetscInt i,PetscScalar sig
 PetscErrorCode SVDSolve_Randomized(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscScalar    *wi;
-  PetscReal      res;
+  PetscScalar    *w;
+  PetscReal      res=1.0;
   PetscInt       i,k=0;
   Mat            A,U,Vt;
   Vec            uu,vv;
@@ -86,8 +86,8 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
   ierr = BVSetRandomNormal(svd->V);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(svd->V,0,svd->ncv);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(svd->U,0,svd->ncv);CHKERRQ(ierr);
-  ierr = PetscCalloc1(svd->ncv,&wi);CHKERRQ(ierr);
- 
+  ierr = PetscCalloc1(svd->ncv,&w);CHKERRQ(ierr);
+
   /* Subspace Iteration */
   do {
     k = 0;
@@ -108,8 +108,8 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     ierr = MatTranspose(A,MAT_INPLACE_MATRIX,&A);CHKERRQ(ierr);
     ierr = DSRestoreMat(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
     ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    ierr = DSSolve(svd->ds,svd->sigma,wi);CHKERRQ(ierr);
-    ierr = DSSort(svd->ds,svd->sigma,wi,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
+    ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_VT,&Vt);CHKERRQ(ierr);
     ierr = MatTranspose(Vt,MAT_INPLACE_MATRIX,&Vt);CHKERRQ(ierr);
@@ -120,7 +120,8 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     ierr = MatDestroy(&A);CHKERRQ(ierr);
     /* Check convergence */
     for (i=svd->nconv;i<svd->ncv;i++) {
-      ierr = SVDSubspaceResidualNorm(svd,i,svd->sigma[i],&res,uu,vv);CHKERRQ(ierr);
+      ierr = SVDSubspaceResidualNorm(svd,i,w[i],&res,uu,vv);CHKERRQ(ierr);
+      svd->sigma[i] = PetscRealPart(w[i]);
       ierr = (*svd->converged)(svd,svd->sigma[i],res,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
       if (svd->errest[i] < svd->tol) k++;
       else break;
@@ -129,7 +130,7 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     svd->nconv += k;
     ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
   } while (svd->reason == SVD_CONVERGED_ITERATING);
-  ierr = PetscFree(wi);CHKERRQ(ierr);
+  ierr = PetscFree(w);CHKERRQ(ierr);
   ierr = VecDestroy(&uu);CHKERRQ(ierr);
   ierr = VecDestroy(&vv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
