@@ -16,9 +16,11 @@ int main(int argc,char **argv)
 {
   Mat            A[3];
   PEP            pep;
+  Vec            xr,xi;
   PetscScalar    kr,ki;
   PetscComplex   *eigs,eval;
-  PetscInt       n=6,Istart,Iend,i,nconv;
+  PetscInt       n=6,Istart,Iend,i,nconv,its;
+  PetscReal      errest;
   PetscBool      checkfile;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
@@ -74,6 +76,16 @@ int main(int argc,char **argv)
                 Solve the eigensystem and display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = PEPSolve(pep);CHKERRQ(ierr);
+  ierr = PEPGetConverged(pep,&nconv);CHKERRQ(ierr);
+  ierr = PEPGetIterationNumber(pep,&its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," %D converged eigenpairs after %D iterations\n",nconv,its);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = MatCreateVecs(A[0],&xr,&xi);CHKERRQ(ierr);
+    ierr = PEPGetEigenpair(pep,0,&kr,&ki,xr,xi);CHKERRQ(ierr);
+    ierr = VecDestroy(&xr);CHKERRQ(ierr);
+    ierr = VecDestroy(&xi);CHKERRQ(ierr);
+    ierr = PEPGetErrorEstimate(pep,0,&errest);CHKERRQ(ierr);
+  }
   ierr = PEPErrorView(pep,PEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -81,7 +93,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile);CHKERRQ(ierr);
   if (checkfile) {
-    ierr = PEPGetConverged(pep,&nconv);CHKERRQ(ierr);
     ierr = PetscMalloc1(nconv,&eigs);CHKERRQ(ierr);
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
     ierr = PetscViewerBinaryRead(viewer,eigs,nconv,NULL,PETSC_COMPLEX);CHKERRQ(ierr);
@@ -124,5 +135,11 @@ int main(int argc,char **argv)
       suffix: 3
       args: -pep_nev 4 -pep_view_values binary:myvalues.bin -checkfile myvalues.bin
       requires: double
+
+   test:
+      suffix: 4
+      args: -pep_nev 4 -pep_ncv 10 -pep_refine -pep_conv_norm -pep_extract none -pep_scale scalar -pep_view -pep_monitor -pep_error_relative ::ascii_info_detail
+      requires: double !complex
+      filter: grep -v "tolerance" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
 
 TEST*/

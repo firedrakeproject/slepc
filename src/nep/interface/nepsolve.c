@@ -561,11 +561,11 @@ PetscErrorCode NEPGetLeftEigenvector(NEP nep,PetscInt i,Vec Wr,Vec Wi)
 
    Notes:
    This is the error estimate used internally by the eigensolver. The actual
-   error bound can be computed with NEPComputeRelativeError().
+   error bound can be computed with NEPComputeError().
 
    Level: advanced
 
-.seealso: NEPComputeRelativeError()
+.seealso: NEPComputeError()
 @*/
 PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
 {

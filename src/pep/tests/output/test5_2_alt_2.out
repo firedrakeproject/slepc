@@ -10,6 +10,7 @@ Lambda_pep = [
 5.9999999999999999e+00
 5.4999999999999999e+00
 ];
+ 2 converged eigenpairs after 5 iterations
  All requested eigenvalues computed up to the required tolerance:
      6.00000
 

@@ -1,6 +1,7 @@
 
 PEP of diagonal problem, n=6
 
+ 12 converged eigenpairs after 1 iterations
  All requested eigenvalues computed up to the required tolerance:
      -12.00000, -10.00000, -8.00000, -6.00000
 

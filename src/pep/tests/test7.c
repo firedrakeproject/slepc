@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   PC             pc;
   PetscBool      showinertia=PETSC_TRUE,lock,detect,checket;
   PetscInt       n=100,Istart,Iend,i,*inertias,ns,nev,ncv,mpd;
-  PetscReal      mu=1,tau=10,kappa=5,int0,int1,*shifts;
+  PetscReal      mu=1.0,tau=10.0,kappa=5.0,int0,int1,*shifts;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;

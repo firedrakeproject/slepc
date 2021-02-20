@@ -7,24 +7,10 @@
    SLEPc is distributed under a 2-clause BSD license (see LICENSE).
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-/*
-   This example implements one of the problems found at
-       NLEVP: A Collection of Nonlinear Eigenvalue Problems,
-       The University of Manchester.
-   The details of the collection can be found at:
-       [1] T. Betcke et al., "NLEVP: A Collection of Nonlinear Eigenvalue
-           Problems", ACM Trans. Math. Software 39(2), Article 7, 2013.
 
-   The spring problem is a QEP from the finite element model of a damped
-   mass-spring system. This implementation supports only scalar parameters,
-   that is all masses, dampers and springs have the same constants.
-   Furthermore, this implementation does not consider different constants
-   for dampers and springs connecting adjacent masses or masses to the ground.
-*/
-
-static char help[] = "FEM model of a damped mass-spring system.\n\n"
+static char help[] = "Illustrates region filtering in PEP (based on spring).\n"
   "The command line options are:\n"
-  "  -n <n> ... dimension of the matrices.\n"
+  "  -n <n> ... number of grid subdivisions.\n"
   "  -mu <value> ... mass (default 1).\n"
   "  -tau <value> ... damping constant of the dampers (default 10).\n"
   "  -kappa <value> ... damping constant of the springs (default 5).\n\n";
@@ -35,9 +21,9 @@ int main(int argc,char **argv)
 {
   Mat            M,C,K,A[3];      /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
-  PetscInt       n=5,Istart,Iend,i;
+  RG             rg;
+  PetscInt       n=30,Istart,Iend,i;
   PetscReal      mu=1.0,tau=10.0,kappa=5.0;
-  PetscBool      terse;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -105,12 +91,26 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    Create a region for filtering
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
+  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = RGIntervalSetEndpoints(rg,-47.0,-35.0,-0.001,0.001);CHKERRQ(ierr);
+#else
+  ierr = RGIntervalSetEndpoints(rg,-47.0,-35.0,-0.0,0.0);CHKERRQ(ierr);
+#endif
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
+  ierr = PEPSetRG(pep,rg);CHKERRQ(ierr);
   A[0] = K; A[1] = C; A[2] = M;
   ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
+  ierr = PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
   ierr = PEPSolve(pep);CHKERRQ(ierr);
 
@@ -118,67 +118,22 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  }
+  ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
+  ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }
 
 /*TEST
 
-   testset:
-      args: -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 -st_type sinvert -pep_scale diagonal -terse
-      output_file: output/spring_1.out
-      test:
-         suffix: 1
-         args: -pep_type {{toar linear}} -pep_conv_norm
-      test:
-         suffix: 1_stoar
-         args: -pep_type stoar -pep_hermitian -pep_conv_rel
-      test:
-         suffix: 1_qarnoldi
-         args: -pep_type qarnoldi -pep_conv_rel
-      test:
-         suffix: 1_cuda
-         args: -mat_type aijcusparse
-         requires: cuda
-
    test:
-      suffix: 2
-      args: -pep_type jd -pep_jd_minimality_index 1 -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -50 -terse
+      args: -pep_nev 8 -pep_type {{toar linear qarnoldi}}
+      suffix: 1
       requires: !single
-
-   test:
-      suffix: 3
-      args: -n 300 -pep_hermitian -pep_interval -10.1,-9.5 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse
-      filter: sed -e "s/52565/52566/" | sed -e "s/90758/90759/"
-
-   test:
-      suffix: 4
-      args: -n 300 -pep_hyperbolic -pep_interval -9.6,-.527 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse
-      requires: !single
-      timeoutfactor: 2
-
-   test:
-      suffix: 5
-      args: -n 300 -pep_hyperbolic -pep_interval -.506,-.3 -pep_type stoar -st_type sinvert -st_pc_type cholesky -pep_stoar_nev 11 -terse
-      requires: !single
-
-   test:
-      suffix: 6
-      args: -n 24 -pep_ncv 18 -pep_target -.5 -terse -pep_type jd -pep_jd_restart .6 -pep_jd_fix .001
-      requires: !single
+      output_file: output/test12_1.out
 
 TEST*/

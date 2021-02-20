@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Simple 1-D nonlinear eigenproblem.\n\n"
+static char help[] = "Illustrates use of NEPSetEigenvalueComparison().\n\n"
   "This is a simplified version of ex20.\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n";
@@ -27,6 +27,7 @@ static char help[] = "Simple 1-D nonlinear eigenproblem.\n\n"
 */
 PetscErrorCode FormFunction(NEP,PetscScalar,Mat,Mat,void*);
 PetscErrorCode FormJacobian(NEP,PetscScalar,Mat,void*);
+PetscErrorCode MyEigenSort(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*);
 
 /*
    User-defined application context
@@ -41,6 +42,8 @@ int main(int argc,char **argv)
   NEP            nep;             /* nonlinear eigensolver context */
   Mat            F,J;             /* Function and Jacobian matrices */
   ApplicationCtx ctx;             /* user-defined context */
+  PetscScalar    target;
+  RG             rg;
   PetscInt       n=128;
   PetscBool      terse;
   PetscErrorCode ierr;
@@ -56,10 +59,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
-
-  /*
-     Create Function and Jacobian matrices; set evaluation routines
-  */
 
   ierr = MatCreate(PETSC_COMM_WORLD,&F);CHKERRQ(ierr);
   ierr = MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
@@ -77,17 +76,25 @@ int main(int argc,char **argv)
   ierr = MatSetUp(J);CHKERRQ(ierr);
   ierr = NEPSetJacobian(nep,J,FormJacobian,&ctx);CHKERRQ(ierr);
 
+  ierr = NEPSetType(nep,NEPNLEIGS);CHKERRQ(ierr);
+  ierr = NEPGetRG(nep,&rg);CHKERRQ(ierr);
+  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = RGIntervalSetEndpoints(rg,2.0,400.0,-0.001,0.001);CHKERRQ(ierr);
+#else
+  ierr = RGIntervalSetEndpoints(rg,2.0,400.0,0,0);CHKERRQ(ierr);
+#endif
+  ierr = NEPSetTarget(nep,25.0);CHKERRQ(ierr);
+  ierr = NEPSetEigenvalueComparison(nep,MyEigenSort,&target);CHKERRQ(ierr);
+  ierr = NEPSetTolerances(nep,PETSC_SMALL,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
+  ierr = NEPGetTarget(nep,&target);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Solve the eigensystem
+              Solve the eigensystem and display the solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    Display solution and clean up
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
@@ -246,24 +253,36 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   PetscFunctionReturn(0);
 }
 
+/*
+    Function for user-defined eigenvalue ordering criterion.
+
+    Given two eigenvalues ar+i*ai and br+i*bi, the subroutine must choose
+    one of them as the preferred one according to the criterion.
+    In this example, eigenvalues are sorted with respect to the target,
+    but those on the right of the target are preferred.
+*/
+PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+{
+  PetscReal   a,b;
+  PetscScalar target = *(PetscScalar*)ctx;
+
+  PetscFunctionBeginUser;
+  if (PetscRealPart(ar-target)<0.0 && PetscRealPart(br-target)>0.0) *r = 1;
+  else {
+    a = SlepcAbsEigenvalue(ar-target,ai);
+    b = SlepcAbsEigenvalue(br-target,bi);
+    if (a>b) *r = 1;
+    else if (a<b) *r = -1;
+    else *r = 0;
+  }
+  PetscFunctionReturn(0);
+}
+
 /*TEST
 
    test:
       suffix: 1
-      args: -nep_type {{rii slp}} -nep_target 21 -terse -nep_view_vectors ::ascii_info
-      requires: !single
-      filter: sed -e "s/\(0x[0-9a-fA-F]*\)/objectid/"
-
-   test:
-      suffix: 2_cuda
-      args: -nep_type {{rii slp}} -nep_target 21 -mat_type aijcusparse -terse
-      requires: cuda !single
-      output_file: output/test3_1.out
-
-   test:
-      suffix: 3
-      args: -nep_type slp -nep_two_sided -nep_target 21 -terse -nep_view_vectors ::ascii_info
-      requires: !single
-      filter: sed -e "s/\(0x[0-9a-fA-F]*\)/objectid/"
+      args: -nep_nev 4 -nep_ncv 8 -terse
+      requires: double !complex
 
 TEST*/

@@ -91,4 +91,10 @@ int main(int argc,char **argv)
       args: -svd_nsv 4 -svd_view_values binary:myvalues.bin -checkfile myvalues.bin
       requires: double
 
+   test:
+      suffix: 3
+      args: -svd_type trlanczos -svd_error_relative ::ascii_info_detail -svd_view_values -svd_monitor_conv -svd_error_absolute ::ascii_matlab -svd_monitor_all -svd_converged_reason -svd_view
+      filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/1.999999/2.000000/" | sed -e "s/2.000001/2.000000/" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
+      requires: !single
+
 TEST*/
