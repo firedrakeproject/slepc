@@ -340,13 +340,15 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
     ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
     ierr = PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(svd->tol)-2,0.0);CHKERRQ(ierr);
   }
-  x = (PetscReal)its;
-  if (errest[nconv] > 0.0) y = PetscLog10Real(errest[nconv]);
-  else y = 0.0;
-  ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
-  if (its <= 20 || !(its % 5) || svd->reason) {
-    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+  if (nconv<nest) {
+    x = (PetscReal)its;
+    if (errest[nconv] > 0.0) y = PetscLog10Real(errest[nconv]);
+    else y = 0.0;
+    ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+    if (its <= 20 || !(its % 5) || svd->reason) {
+      ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+      ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
