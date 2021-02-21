@@ -161,4 +161,9 @@ int main(int argc,char **argv)
       filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
 
+   test:
+      suffix: 4
+      args: -nep_type slp -nep_nev 4 -nep_monitor_lg -nep_monitor_lg_all -nep_view_values draw -draw_save myeigen.ppm -draw_virtual
+      requires: double
+
 TEST*/

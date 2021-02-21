@@ -142,4 +142,9 @@ int main(int argc,char **argv)
       requires: double !complex
       filter: grep -v "tolerance" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
 
+   test:
+      suffix: 5
+      args: -n 12 -pep_largest_real -pep_monitor_lg -pep_monitor_lg_all -pep_view_values draw -draw_save myeigen.ppm -draw_virtual
+      requires: double
+
 TEST*/

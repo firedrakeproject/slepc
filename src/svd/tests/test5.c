@@ -97,4 +97,9 @@ int main(int argc,char **argv)
       filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/1.999999/2.000000/" | sed -e "s/2.000001/2.000000/" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
       requires: !single
 
+   test:
+      suffix: 4
+      args: -svd_monitor_lg -svd_monitor_lg_all -svd_view_values draw -draw_save mysingu.ppm -draw_virtual
+      requires: !single
+
 TEST*/

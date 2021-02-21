@@ -70,4 +70,9 @@ int main(int argc,char **argv)
       requires: double
       filter: sed -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/2\.[0-9]*e+01/2.0000000000000000e+01/" -e "s/1\.9999999999[0-9]*e+01/2.0000000000000000e+01/"
 
+   test:
+      suffix: 3
+      args: -n 20 -eps_largest_real -eps_monitor_lg -eps_monitor_lg_all -eps_view_values draw -draw_save myeigen.ppm -draw_virtual
+      requires: double
+
 TEST*/
