@@ -253,6 +253,12 @@ PetscErrorCode STApply_Exp(ST st,Vec x,Vec y)
       args: -eps_power_shift_type {{constant rayleigh}} -eps_two_sided {{0 1}} -eps_tol 1e-14 -terse
       requires: c99_complex !single
       filter: sed -e "s/[+-]0\.0*i//g"
-      output_file: output/ex36_2.out
+
+   test:
+      suffix: 3
+      args: -n 100 -st_type sinvert -eps_type ciss -rg_type ellipse -rg_ellipse_center 0 -rg_ellipse_radius 6 -eps_all -eps_tol 1e-6 -terse
+      requires: c99_complex !single
+      filter: sed -e "s/-3.37036-3.55528i, -3.37036+3.55528i/-3.37036+3.55528i, -3.37036-3.55528i/" -e "s/-1.79853-3.03216i, -1.79853+3.03216i/-1.79853+3.03216i, -1.79853-3.03216i/" -e "s/-0.67471-2.52856i, -0.67471+2.52856i/-0.67471+2.52856i, -0.67471-2.52856i/" -e "s/0.00002-2.13950i, 0.00002+2.13950i/0.00002+2.13950i, 0.00002-2.13950i/"
+
 
 TEST*/
