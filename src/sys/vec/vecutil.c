@@ -314,8 +314,8 @@ PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
   PetscCheckSameTypeAndComm(v,1,w1,3);
   PetscCheckSameTypeAndComm(v,1,w2,4);
 
-  ierr = VecSetRandom(w1,rand);CHKERRQ(ierr);
-  ierr = VecSetRandom(w2,rand);CHKERRQ(ierr);
+  ierr = VecSetRandom(w1,rctx);CHKERRQ(ierr);
+  ierr = VecSetRandom(w2,rctx);CHKERRQ(ierr);
   ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
   ierr = VecGetArrayWrite(v,&z);CHKERRQ(ierr);
   ierr = VecGetArrayRead(w1,&x);CHKERRQ(ierr);
