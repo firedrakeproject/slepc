@@ -36,8 +36,12 @@ PetscErrorCode PEPFinalizePackage(void)
 
   PetscFunctionBegin;
   ierr = PetscFunctionListDestroy(&PEPList);CHKERRQ(ierr);
-  PEPPackageInitialized = PETSC_FALSE;
-  PEPRegisterAllCalled  = PETSC_FALSE;
+  ierr = PetscFunctionListDestroy(&PEPMonitorList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&PEPMonitorCreateList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&PEPMonitorDestroyList);CHKERRQ(ierr);
+  PEPPackageInitialized       = PETSC_FALSE;
+  PEPRegisterAllCalled        = PETSC_FALSE;
+  PEPMonitorRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -64,6 +68,8 @@ PetscErrorCode PEPInitializePackage(void)
   ierr = PetscClassIdRegister("PEP Solver",&PEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = PEPRegisterAll();CHKERRQ(ierr);
+  /* Register Monitors */
+  ierr = PEPMonitorRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("PEPSetUp",PEP_CLASSID,&PEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PEPSolve",PEP_CLASSID,&PEP_Solve);CHKERRQ(ierr);

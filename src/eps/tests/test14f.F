@@ -39,7 +39,6 @@
       EPSProblemType     ptype
       PetscMPIInt        rank
       PetscErrorCode     ierr
-      SlepcConvMonitor   ctx
       PetscViewerAndFormat vf
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -169,10 +168,10 @@
      &                   PETSC_VIEWER_DEFAULT,vf,ierr)
       call EPSMonitorSet(eps,EPSMONITORFIRST,vf,                        &
      &                   PetscViewerAndFormatDestroy,ierr)
-      call SlepcConvMonitorCreate(PETSC_VIEWER_STDOUT_WORLD,            &
-     &                   PETSC_VIEWER_DEFAULT,ctx,ierr)
-      call EPSMonitorSet(eps,EPSMONITORCONVERGED,ctx,                   &
-     &                   SlepcConvMonitorDestroy,ierr)
+      call EPSMonitorConvergedCreate(PETSC_VIEWER_STDOUT_WORLD,         &
+     &                   PETSC_VIEWER_DEFAULT,PETSC_NULL_VEC,vf,ierr)
+      call EPSMonitorSet(eps,EPSMONITORCONVERGED,vf,                    &
+     &                   EPSMonitorConvergedDestroy,ierr)
       call EPSMonitorCancel(eps,ierr)
 
       call EPSGetST(eps,st,ierr)

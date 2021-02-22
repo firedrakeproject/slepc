@@ -14,6 +14,26 @@
 #include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
 #include <petscdraw.h>
 
+PetscErrorCode NEPMonitorLGCreate(MPI_Comm comm,const char host[],const char label[],const char metric[],PetscInt l,const char *names[],int x,int y,int m,int n,PetscDrawLG *lgctx)
+{
+  PetscDraw      draw;
+  PetscDrawAxis  axis;
+  PetscDrawLG    lg;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
+  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
+  ierr = PetscDrawLGCreate(draw,l,&lg);CHKERRQ(ierr);
+  if (names) { ierr = PetscDrawLGSetLegend(lg,names);CHKERRQ(ierr); }
+  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
+  ierr = PetscDrawLGGetAxis(lg,&axis);CHKERRQ(ierr);
+  ierr = PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric);CHKERRQ(ierr);
+  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
+  *lgctx = lg;
+  PetscFunctionReturn(0);
+}
+
 /*
    Runs the user provided monitor routines, if any.
 */
@@ -40,8 +60,7 @@ PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
 .  monitor - pointer to function (if this is NULL, it turns off monitoring)
 .  mctx    - [optional] context for private data for the
              monitor routine (use NULL if no context is desired)
--  monitordestroy - [optional] routine that frees monitor context
-             (may be NULL)
+-  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
    Calling Sequence of monitor:
 $   monitor(NEP nep,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal* errest,int nest,void *mctx)
@@ -60,10 +79,11 @@ $   monitor(NEP nep,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscR
 .    -nep_monitor_all    - print error estimates at each iteration
 .    -nep_monitor_conv   - print the eigenvalue approximations only when
       convergence has been reached
-.    -nep_monitor_lg     - sets line graph monitor for the first unconverged
+.    -nep_monitor draw::draw_lg - sets line graph monitor for the first unconverged
       approximate eigenvalue
-.    -nep_monitor_lg_all - sets line graph monitor for all unconverged
+.    -nep_monitor_all draw::draw_lg - sets line graph monitor for all unconverged
       approximate eigenvalues
+.    -nep_monitor_conv draw::draw_lg - sets line graph monitor for convergence history
 -    -nep_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to NEPMonitorSet(), but does not cancel those set via
       the options database.
@@ -146,6 +166,61 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void **ctx)
 }
 
 /*@C
+   NEPMonitorFirst - Print the first unconverged approximate value and
+   error estimate at each iteration of the nonlinear eigensolver.
+
+   Collective on nep
+
+   Input Parameters:
++  nep    - nonlinear eigensolver context
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -nep_monitor - activates NEPMonitorFirst()
+
+   Level: intermediate
+
+.seealso: NEPMonitorSet(), NEPMonitorAll(), NEPMonitorConverged()
+@*/
+PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
+{
+  PetscErrorCode ierr;
+  PetscViewer    viewer;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  if (its==1 && ((PetscObject)nep)->prefix) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)nep)->prefix);CHKERRQ(ierr);
+  }
+  if (nconv<nest) {
+    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eigr[nconv]),(double)PetscImaginaryPart(eigr[nconv]));CHKERRQ(ierr);
+#else
+    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eigr[nconv]);CHKERRQ(ierr);
+    if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)eigi[nconv]);CHKERRQ(ierr); }
+#endif
+    ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@C
    NEPMonitorAll - Print the current approximate values and
    error estimates at each iteration of the nonlinear eigensolver.
 
@@ -160,6 +235,9 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void **ctx)
 .  errest - error estimates
 .  nest   - number of error estimates to display
 -  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -nep_monitor_all - activates NEPMonitorAll()
 
    Level: intermediate
 
@@ -200,58 +278,6 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
 }
 
 /*@C
-   NEPMonitorFirst - Print the first unconverged approximate value and
-   error estimate at each iteration of the nonlinear eigensolver.
-
-   Collective on nep
-
-   Input Parameters:
-+  nep    - nonlinear eigensolver context
-.  its    - iteration number
-.  nconv  - number of converged eigenpairs so far
-.  eigr   - real part of the eigenvalues
-.  eigi   - imaginary part of the eigenvalues
-.  errest - error estimates
-.  nest   - number of error estimates to display
--  vf     - viewer and format for monitoring
-
-   Level: intermediate
-
-.seealso: NEPMonitorSet(), NEPMonitorAll(), NEPMonitorConverged()
-@*/
-PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
-{
-  PetscErrorCode ierr;
-  PetscViewer    viewer;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  if (its==1 && ((PetscObject)nep)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)nep)->prefix);CHKERRQ(ierr);
-  }
-  if (nconv<nest) {
-    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eigr[nconv]),(double)PetscImaginaryPart(eigr[nconv]));CHKERRQ(ierr);
-#else
-    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eigr[nconv]);CHKERRQ(ierr);
-    if (eigi[nconv]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)eigi[nconv]);CHKERRQ(ierr); }
-#endif
-    ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-/*@C
    NEPMonitorConverged - Print the approximate values and
    error estimates as they converge.
 
@@ -265,29 +291,34 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  ctx    - monitor context
+-  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -nep_monitor_conv - activates NEPMonitorConverged()
 
    Level: intermediate
 
 .seealso: NEPMonitorSet(), NEPMonitorFirst(), NEPMonitorAll()
 @*/
-PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,SlepcConvMonitor ctx)
+PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
   PetscInt       i;
   PetscViewer    viewer;
+  SlepcConvMon   ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(ctx,8);
-  viewer = ctx->viewer;
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  ctx = (SlepcConvMon)vf->data;
   if (its==1 && ((PetscObject)nep)->prefix) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)nep)->prefix);CHKERRQ(ierr);
   }
   if (its==1) ctx->oldnconv = 0;
   if (ctx->oldnconv!=nconv) {
-    ierr = PetscViewerPushFormat(viewer,ctx->format);CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP converged value (error) #%D",its,i);CHKERRQ(ierr);
@@ -308,62 +339,75 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
   PetscFunctionReturn(0);
 }
 
-/*@C
-   NEPMonitorLGCreate - Creates a line graph context for use with
-   NEP to monitor convergence.
+PetscErrorCode NEPMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+  SlepcConvMon   mctx;
 
-   Collective
+  PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  ierr = PetscNew(&mctx);CHKERRQ(ierr);
+  mctx->ctx = ctx;
+  (*vf)->data = (void*)mctx;
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode NEPMonitorConvergedDestroy(PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!*vf) PetscFunctionReturn(0);
+  ierr = PetscFree((*vf)->data);
+  ierr = PetscViewerDestroy(&(*vf)->viewer);CHKERRQ(ierr);
+  ierr = PetscDrawLGDestroy(&(*vf)->lg);CHKERRQ(ierr);
+  ierr = PetscFree(*vf);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   NEPMonitorFirstDrawLG - Plots the error estimate of the first unconverged
+   approximation at each iteration of the nonlinear eigensolver.
+
+   Collective on nep
 
    Input Parameters:
-+  comm - communicator context
-.  host - the X display to open, or null for the local machine
-.  label - the title to put in the title bar
-.  x, y - the screen coordinates of the upper left coordinate of
-          the window
--  m, n - the screen width and height in pixels
++  nep    - nonlinear eigensolver context
+.  its    - iteration number
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  vf     - viewer and format for monitoring
 
-   Output Parameter:
-.  lgctx - the drawing context
-
-   Options Database Keys:
-+  -nep_monitor_lg - Sets line graph monitor for the first residual
--  -nep_monitor_lg_all - Sets line graph monitor for all residuals
-
-   Notes:
-   Use PetscDrawLGDestroy() to destroy this line graph.
+   Options Database Key:
+.  -nep_monitor draw::draw_lg - activates NEPMonitorFirstDrawLG()
 
    Level: intermediate
 
 .seealso: NEPMonitorSet()
 @*/
-PetscErrorCode NEPMonitorLGCreate(MPI_Comm comm,const char host[],const char label[],int x,int y,int m,int n,PetscDrawLG *lgctx)
+PetscErrorCode NEPMonitorFirstDrawLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscDraw      draw;
+  PetscErrorCode ierr;
+  PetscViewer    viewer;
   PetscDrawLG    lg;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
-  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
-  ierr = PetscDrawLGCreate(draw,1,&lg);CHKERRQ(ierr);
-  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
-  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
-  *lgctx = lg;
-  PetscFunctionReturn(0);
-}
-
-PetscErrorCode NEPMonitorLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
-{
-  PetscDrawLG    lg = (PetscDrawLG)ctx;
   PetscReal      x,y;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(nep->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(nep->tol)-2,0.0);CHKERRQ(ierr);
   }
   if (nconv<nest) {
     x = (PetscReal)its;
@@ -375,22 +419,82 @@ PetscErrorCode NEPMonitorLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig
       ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
     }
   }
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPMonitorLGAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+/*@C
+   NEPMonitorFirstDrawLGCreate - Creates the plotter for the first error estimate.
+
+   Collective on viewer
+
+   Input Parameters:
++  viewer - the viewer
+.  format - the viewer format
+-  ctx    - an optional user context
+
+   Output Parameter:
+.  vf     - the viewer and format context
+
+   Level: intermediate
+
+.seealso: NEPMonitorSet()
+@*/
+PetscErrorCode NEPMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscDrawLG    lg = (PetscDrawLG)ctx;
-  PetscInt       i,n = PetscMin(nep->nev,255);
-  PetscReal      *x,*y;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  (*vf)->data = ctx;
+  ierr = NEPMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"First Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   NEPMonitorAllDrawLG - Plots the error estimate of all unconverged
+   approximations at each iteration of the nonlinear eigensolver.
+
+   Collective on nep
+
+   Input Parameters:
++  nep    - nonlinear eigensolver context
+.  its    - iteration number
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -nep_monitor_all draw::draw_lg - activates NEPMonitorAllDrawLG()
+
+   Level: intermediate
+
+.seealso: NEPMonitorSet()
+@*/
+PetscErrorCode NEPMonitorAllDrawLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
+{
+  PetscErrorCode ierr;
+  PetscViewer    viewer;
+  PetscDrawLG    lg;
+  PetscInt       i,n = PetscMin(nep->nev,255);
+  PetscReal      *x,*y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(nep->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(nep->tol)-2,0.0);CHKERRQ(ierr);
   }
   ierr = PetscMalloc2(n,&x,n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
@@ -404,6 +508,121 @@ PetscErrorCode NEPMonitorLGAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
     ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
   }
   ierr = PetscFree2(x,y);CHKERRQ(ierr);
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   NEPMonitorAllDrawLGCreate - Creates the plotter for all the error estimates.
+
+   Collective on viewer
+
+   Input Parameters:
++  viewer - the viewer
+.  format - the viewer format
+-  ctx    - an optional user context
+
+   Output Parameter:
+.  vf     - the viewer and format context
+
+   Level: intermediate
+
+.seealso: NEPMonitorSet()
+@*/
+PetscErrorCode NEPMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  (*vf)->data = ctx;
+  ierr = NEPMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"All Error Estimates","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   NEPMonitorConvergedDrawLG - Plots the number of converged eigenvalues
+   at each iteration of the nonlinear eigensolver.
+
+   Collective on nep
+
+   Input Parameters:
++  nep    - nonlinear eigensolver context
+.  its    - iteration number
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -nep_monitor_conv draw::draw_lg - activates NEPMonitorConvergedDrawLG()
+
+   Level: intermediate
+
+.seealso: NEPMonitorSet()
+@*/
+PetscErrorCode NEPMonitorConvergedDrawLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
+{
+  PetscErrorCode   ierr;
+  PetscViewer      viewer;
+  PetscDrawLG      lg;
+  PetscReal        x,y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  lg = vf->lg;
+  PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+  if (its==1) {
+    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,1,1,0,nep->nev);CHKERRQ(ierr);
+  }
+  x = (PetscReal)its;
+  y = (PetscReal)nep->nconv;
+  ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+  if (its <= 20 || !(its % 5) || nep->reason) {
+    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+  }
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   NEPMonitorConvergedDrawLGCreate - Creates the plotter for the convergence history.
+
+   Collective on viewer
+
+   Input Parameters:
++  viewer - the viewer
+.  format - the viewer format
+-  ctx    - an optional user context
+
+   Output Parameter:
+.  vf     - the viewer and format context
+
+   Level: intermediate
+
+.seealso: NEPMonitorSet()
+@*/
+PetscErrorCode NEPMonitorConvergedDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+  SlepcConvMon   mctx;
+
+  PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  ierr = PetscNew(&mctx);CHKERRQ(ierr);
+  mctx->ctx = ctx;
+  (*vf)->data = (void*)mctx;
+  ierr = NEPMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Convergence History","Number Converged",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

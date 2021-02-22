@@ -24,12 +24,12 @@
 #define pepgetoptionsprefix_              PEPGETOPTIONSPREFIX
 #define pepsettype_                       PEPSETTYPE
 #define pepgettype_                       PEPGETTYPE
-#define pepmonitorall_                    PEPMONITORALL
-#define pepmonitorlg_                     PEPMONITORLG
-#define pepmonitorlgall_                  PEPMONITORLGALL
 #define pepmonitorset_                    PEPMONITORSET
-#define pepmonitorconverged_              PEPMONITORCONVERGED
+#define pepmonitorall_                    PEPMONITORALL
 #define pepmonitorfirst_                  PEPMONITORFIRST
+#define pepmonitorconverged_              PEPMONITORCONVERGED
+#define pepmonitorconvergedcreate_        PEPMONITORCONVERGEDCREATE
+#define pepmonitorconvergeddestroy_       PEPMONITORCONVERGEDDESTROY
 #define pepconvergedabsolute_             PEPCONVERGEDABSOLUTE
 #define pepconvergedrelative_             PEPCONVERGEDRELATIVE
 #define pepsetconvergencetestfunction_    PEPSETCONVERGENCETESTFUNCTION
@@ -79,12 +79,12 @@
 #define pepgetoptionsprefix_              pepgetoptionsprefix
 #define pepsettype_                       pepsettype
 #define pepgettype_                       pepgettype
-#define pepmonitorall_                    pepmonitorall
-#define pepmonitorlg_                     pepmonitorlg
-#define pepmonitorlgall_                  pepmonitorlgall
 #define pepmonitorset_                    pepmonitorset
-#define pepmonitorconverged_              pepmonitorconverged
+#define pepmonitorall_                    pepmonitorall
 #define pepmonitorfirst_                  pepmonitorfirst
+#define pepmonitorconverged_              pepmonitorconverged
+#define pepmonitorconvergedcreate_        pepmonitorconvergedcreate
+#define pepmonitorconvergeddestroy_       pepmonitorconvergeddestroy
 #define pepconvergedabsolute_             pepconvergedabsolute
 #define pepconvergedrelative_             pepconvergedrelative
 #define pepsetconvergencetestfunction_    pepsetconvergencetestfunction
@@ -128,29 +128,32 @@
    These are not usually called from Fortran but allow Fortran users
    to transparently set these monitors from .F code
 */
-SLEPC_EXTERN void pepmonitorall_(PEP *pep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepmonitorall_(PEP *pep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = PEPMonitorAll(*pep,*it,*nconv,eigr,eigi,errest,*nest,*ctx);
+  *ierr = PEPMonitorAll(*pep,*it,*nconv,eigr,eigi,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void pepmonitorconverged_(PEP *pep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,SlepcConvMonitor *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepmonitorfirst_(PEP *pep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = PEPMonitorConverged(*pep,*it,*nconv,eigr,eigi,errest,*nest,*ctx);
+  *ierr = PEPMonitorFirst(*pep,*it,*nconv,eigr,eigi,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void pepmonitorfirst_(PEP *pep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepmonitorconverged_(PEP *pep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = PEPMonitorFirst(*pep,*it,*nconv,eigr,eigi,errest,*nest,*ctx);
+  *ierr = PEPMonitorConverged(*pep,*it,*nconv,eigr,eigi,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void pepmonitorlg_(PEP *pep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepmonitorconvergedcreate_(PetscViewer *vin,PetscViewerFormat *format,void *ctx,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = PEPMonitorLG(*pep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(vin,v);
+  CHKFORTRANNULLOBJECT(ctx);
+  *ierr = PEPMonitorConvergedCreate(v,*format,ctx,vf);
 }
 
-SLEPC_EXTERN void pepmonitorlgall_(PEP *pep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepmonitorconvergeddestroy_(PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = PEPMonitorLGAll(*pep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  *ierr = PEPMonitorConvergedDestroy(vf);
 }
 
 static struct {
@@ -299,13 +302,9 @@ SLEPC_EXTERN void pepmonitorset_(PEP *pep,void (*monitor)(PEP*,PetscInt*,PetscIn
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)pepmonitorall_) {
     *ierr = PEPMonitorSet(*pep,(PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))PEPMonitorAll,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)pepmonitorconverged_) {
-    *ierr = PEPMonitorSet(*pep,(PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))PEPMonitorConverged,*(SlepcConvMonitor*)mctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
+    *ierr = PEPMonitorSet(*pep,(PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))PEPMonitorConverged,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PEPMonitorConvergedDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)pepmonitorfirst_) {
     *ierr = PEPMonitorSet(*pep,(PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))PEPMonitorFirst,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)pepmonitorlg_) {
-    *ierr = PEPMonitorSet(*pep,PEPMonitorLG,0,0);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)pepmonitorlgall_) {
-    *ierr = PEPMonitorSet(*pep,PEPMonitorLGAll,0,0);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
     *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;

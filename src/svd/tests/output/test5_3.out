@@ -1,13 +1,13 @@
 
 SVD of diagonal matrix, n=6
 
+  1 SVD nconv=6 Values (Errors) 6. (removed) 5. (removed) 4. (removed) 3. (removed) 2. (removed) 1. (removed)
   1 SVD converged value (error) #0 6. (removed)
   1 SVD converged value (error) #1 5. (removed)
   1 SVD converged value (error) #2 4. (removed)
   1 SVD converged value (error) #3 3. (removed)
   1 SVD converged value (error) #4 2. (removed)
   1 SVD converged value (error) #5 1. (removed)
-  1 SVD nconv=6 Values (Errors) 6. (removed) 5. (removed) 4. (removed) 3. (removed) 2. (removed) 1. (removed)
 SVD Object: svd 1 MPI processes
   type: trlanczos
     two-sided reorthogonalization

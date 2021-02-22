@@ -558,9 +558,9 @@ The default is to use the criterion relative to the eigenvalue (note: for comput
     11 EPS nconv=2 first unconverged value (error) -0.671923+2.52712i (8.92724972e-05)
 \end{Verbatim}
 
-	Graphical monitoring (in an X display) is also available with \Verb!-eps_monitor_lg!. Figure \ref{fig:plot} (left) shows the result of the following sample command line:
+	Graphical monitoring (in an X display) is also available with \Verb!-eps_monitor draw:draw_lg!. Figure \ref{fig:plot} (left) shows the result of the following sample command line:
 \begin{Verbatim}[fontsize=\footnotesize,numbers=none]
-   $ ./ex9 -n 200 -eps_nev 12 -eps_tol 1e-12 -eps_monitor_lg -draw_pause .2
+   $ ./ex9 -n 200 -eps_nev 12 -eps_tol 1e-12 -eps_monitor draw:draw_lg -draw_pause .2
 \end{Verbatim}
 Again, only the error estimate of one eigenvalue is drawn. The spikes in the last part of the plot indicate convergence of one eigenvalue and switching to the next.
 
@@ -573,9 +573,9 @@ Again, only the error estimate of one eigenvalue is drawn. The spikes in the las
   \caption{\label{fig:plot}Graphical output in \slepc: default convergence monitor (left), simultaneous convergence monitor for all eigenvalues (middle) and eigenvalue plot (right).}
 \end{figure}
 
-	The two previously mentioned monitors have an alternative version (\Verb!*_all!) that processes all eigenvalues instead of just the first one. Figure \ref{fig:plot} (middle) corresponds to the same example but with \Verb!-eps_monitor_lg_all!. Note that these variants have a side effect: they force the computation of all error estimates even if the method would not normally do so.
+	The two previously mentioned monitors have an alternative version (\Verb!*_all!) that processes all eigenvalues instead of just the first one. Figure \ref{fig:plot} (middle) corresponds to the same example but with \Verb!-eps_monitor_all draw::draw_lg!. Note that these variants have a side effect: they force the computation of all error estimates even if the method would not normally do so.
 
-	A less verbose textual monitor is \Verb!-eps_monitor_conv!, which simply displays the iteration number at which convergence takes place.
+	A less verbose monitor is \Verb!-eps_monitor_conv!, which simply displays the iteration number at which convergence takes place.
 Note that several monitors can be used at the same time.
 \begin{Verbatim}[fontsize=\footnotesize,numbers=none]
    $ ./ex9 -n 200 -eps_nev 8 -eps_tol 1e-12 -eps_monitor_conv

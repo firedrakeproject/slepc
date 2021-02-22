@@ -561,68 +561,45 @@ PetscErrorCode SVDGetStoppingTest(SVD svd,SVDStop *stop)
 
    Input Parameters:
 +  svd      - the singular value solver context
-.  name     - the monitor option name
-.  help     - message indicating what monitoring is done
-.  manual   - manual page for the monitor
-.  monitor  - the monitor function, whose context is a PetscViewerAndFormat
+.  opt      - the command line option for this monitor
+.  name     - the monitor type one is seeking
+.  ctx      - an optional user context for the monitor, or NULL
 -  trackall - whether this monitor tracks all singular values or not
 
    Level: developer
 
-.seealso: SVDMonitorSet(), SVDSetTrackAll(), SVDConvMonitorSetFromOptions()
+.seealso: SVDMonitorSet(), SVDSetTrackAll()
 @*/
-PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool trackall)
+PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name[],void *ctx,PetscBool trackall)
 {
-  PetscErrorCode       ierr;
-  PetscBool            flg;
+  PetscErrorCode       (*mfunc)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+  PetscErrorCode       (*cfunc)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
+  PetscErrorCode       (*dfunc)(PetscViewerAndFormat**);
+  PetscViewerAndFormat *vf;
   PetscViewer          viewer;
   PetscViewerFormat    format;
-  PetscViewerAndFormat *vf;
+  PetscViewerType      vtype;
+  char                 key[PETSC_MAX_PATH_LEN];
+  PetscBool            flg;
+  PetscErrorCode       ierr;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
-    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = SVDMonitorSet(svd,(PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
-    if (trackall) {
-      ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,opt,&viewer,&format,&flg);CHKERRQ(ierr);
+  if (!flg) PetscFunctionReturn(0);
 
-/*@C
-   SVDConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
-   indicated by the user (for monitors that only show iteration numbers of convergence).
+  ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
+  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(SVDMonitorList,key,&mfunc);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(SVDMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(SVDMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
+  if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
+  if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
-   Collective on svd
-
-   Input Parameters:
-+  svd      - the singular value solver context
-.  name     - the monitor option name
-.  help     - message indicating what monitoring is done
-.  manual   - manual page for the monitor
--  monitor  - the monitor function, whose context is a SlepcConvMonitor
-
-   Level: developer
-
-.seealso: SVDMonitorSet(), SVDMonitorSetFromOptions()
-@*/
-PetscErrorCode SVDConvMonitorSetFromOptions(SVD svd,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,SlepcConvMonitor))
-{
-  PetscErrorCode    ierr;
-  PetscBool         flg;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
-  SlepcConvMonitor  ctx;
-
-  PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = SlepcConvMonitorCreate(viewer,format,&ctx);CHKERRQ(ierr);
-    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = SVDMonitorSet(svd,(PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*))monitor,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
+  ierr = (*cfunc)(viewer,format,ctx,&vf);CHKERRQ(ierr);
+  ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
+  ierr = SVDMonitorSet(svd,mfunc,vf,(PetscErrorCode(*)(void **))dfunc);CHKERRQ(ierr);
+  if (trackall) {
+    ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -651,7 +628,6 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscBool      set,flg,val,flg1,flg2,flg3;
   PetscInt       i,j,k;
   PetscReal      r;
-  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -708,29 +684,10 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
       Cancels all monitors hardwired into code before call to SVDSetFromOptions()
     */
     ierr = PetscOptionsBool("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = SVDMonitorCancel(svd);CHKERRQ(ierr);
-    }
-    /*
-      Text monitors
-    */
-    ierr = SVDMonitorSetFromOptions(svd,"-svd_monitor","Monitor first unconverged approximate singular value and error estimate","SVDMonitorFirst",SVDMonitorFirst,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = SVDConvMonitorSetFromOptions(svd,"-svd_monitor_conv","Monitor approximate singular values and error estimates as they converge","SVDMonitorConverged",SVDMonitorConverged);CHKERRQ(ierr);
-    ierr = SVDMonitorSetFromOptions(svd,"-svd_monitor_all","Monitor approximate singular values and error estimates","SVDMonitorAll",SVDMonitorAll,PETSC_TRUE);CHKERRQ(ierr);
-    /*
-      Line graph monitors
-    */
-    ierr = PetscOptionsBool("-svd_monitor_lg","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = SVDMonitorLGCreate(PetscObjectComm((PetscObject)svd),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
-      ierr = SVDMonitorSet(svd,SVDMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
-    }
-    ierr = PetscOptionsBool("-svd_monitor_lg_all","Monitor error estimates graphically","SVDMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = SVDMonitorLGCreate(PetscObjectComm((PetscObject)svd),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
-      ierr = SVDMonitorSet(svd,SVDMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
-      ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
-    }
+    if (set && flg) { ierr = SVDMonitorCancel(svd);CHKERRQ(ierr); }
+    ierr = SVDMonitorSetFromOptions(svd,"-svd_monitor","first_approximation",NULL,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = SVDMonitorSetFromOptions(svd,"-svd_monitor_all","all_approximations",NULL,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SVDMonitorSetFromOptions(svd,"-svd_monitor_conv","convergence_history",NULL,PETSC_FALSE);CHKERRQ(ierr);
 
     /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",NULL);CHKERRQ(ierr);
@@ -861,8 +818,7 @@ PetscErrorCode SVDIsGeneralized(SVD svd,PetscBool* is)
    usually an expensive operation and solvers commonly compute only the residual
    associated to the first unconverged singular value.
 
-   The options '-svd_monitor_all' and '-svd_monitor_lg_all' automatically
-   activate this option.
+   The option '-svd_monitor_all' automatically activates this option.
 
    Level: developer
 

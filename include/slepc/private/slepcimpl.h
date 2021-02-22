@@ -49,6 +49,10 @@ struct _n_SlepcConvMonitor {
   PetscViewerFormat format;
   PetscInt          oldnconv;
 };
+struct _n_SlepcConvMon {
+  void     *ctx;
+  PetscInt oldnconv;  /* previous value of nconv */
+};
 
 /*
   SlepcPrintEigenvalueASCII - Print an eigenvalue on an ASCII viewer.

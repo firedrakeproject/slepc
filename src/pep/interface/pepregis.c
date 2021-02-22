@@ -40,3 +40,27 @@ PetscErrorCode PEPRegisterAll(void)
   PetscFunctionReturn(0);
 }
 
+/*@C
+  PEPMonitorRegisterAll - Registers all the monitors in the PEP package.
+
+  Not Collective
+
+  Level: advanced
+@*/
+PetscErrorCode PEPMonitorRegisterAll(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (PEPMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  PEPMonitorRegisterAllCalled = PETSC_TRUE;
+
+  ierr = PEPMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,PEPMonitorFirst,NULL,NULL);CHKERRQ(ierr);
+  ierr = PEPMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,PEPMonitorFirstDrawLG,PEPMonitorFirstDrawLGCreate,NULL);CHKERRQ(ierr);
+  ierr = PEPMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,PEPMonitorAll,NULL,NULL);CHKERRQ(ierr);
+  ierr = PEPMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,PEPMonitorAllDrawLG,PEPMonitorAllDrawLGCreate,NULL);CHKERRQ(ierr);
+  ierr = PEPMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,PEPMonitorConverged,PEPMonitorConvergedCreate,PEPMonitorConvergedDestroy);CHKERRQ(ierr);
+  ierr = PEPMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,PEPMonitorConvergedDrawLG,PEPMonitorConvergedDrawLGCreate,PEPMonitorConvergedDestroy);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

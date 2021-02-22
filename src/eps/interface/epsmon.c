@@ -14,6 +14,26 @@
 #include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <petscdraw.h>
 
+PetscErrorCode EPSMonitorLGCreate(MPI_Comm comm,const char host[],const char label[],const char metric[],PetscInt l,const char *names[],int x,int y,int m,int n,PetscDrawLG *lgctx)
+{
+  PetscDraw      draw;
+  PetscDrawAxis  axis;
+  PetscDrawLG    lg;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
+  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
+  ierr = PetscDrawLGCreate(draw,l,&lg);CHKERRQ(ierr);
+  if (names) { ierr = PetscDrawLGSetLegend(lg,names);CHKERRQ(ierr); }
+  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
+  ierr = PetscDrawLGGetAxis(lg,&axis);CHKERRQ(ierr);
+  ierr = PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric);CHKERRQ(ierr);
+  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
+  *lgctx = lg;
+  PetscFunctionReturn(0);
+}
+
 /*
    Runs the user provided monitor routines, if any.
 */
@@ -59,10 +79,11 @@ $   monitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscR
 .    -eps_monitor_all    - print error estimates at each iteration
 .    -eps_monitor_conv   - print the eigenvalue approximations only when
       convergence has been reached
-.    -eps_monitor_lg     - sets line graph monitor for the first unconverged
+.    -eps_monitor draw::draw_lg - sets line graph monitor for the first unconverged
       approximate eigenvalue
-.    -eps_monitor_lg_all - sets line graph monitor for all unconverged
+.    -eps_monitor_all draw::draw_lg - sets line graph monitor for all unconverged
       approximate eigenvalues
+.    -eps_monitor_conv draw::draw_lg - sets line graph monitor for convergence history
 -    -eps_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to EPSMonitorSet(), but does not cancel those set via
       the options database.
@@ -145,6 +166,64 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void **ctx)
 }
 
 /*@C
+   EPSMonitorFirst - Print the first unconverged approximate value and
+   error estimate at each iteration of the eigensolver.
+
+   Collective on eps
+
+   Input Parameters:
++  eps    - eigensolver context
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -eps_monitor - activates EPSMonitorFirst()
+
+   Level: intermediate
+
+.seealso: EPSMonitorSet(), EPSMonitorAll(), EPSMonitorConverged()
+@*/
+PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
+{
+  PetscErrorCode ierr;
+  PetscScalar    er,ei;
+  PetscViewer    viewer;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  if (its==1 && ((PetscObject)eps)->prefix) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix);CHKERRQ(ierr);
+  }
+  if (nconv<nest) {
+    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    er = eigr[nconv]; ei = eigi[nconv];
+    ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
+#else
+    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
+    if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
+#endif
+    ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@C
    EPSMonitorAll - Print the current approximate values and
    error estimates at each iteration of the eigensolver.
 
@@ -159,6 +238,9 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void **ctx)
 .  errest - error estimates
 .  nest   - number of error estimates to display
 -  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -eps_monitor_all - activates EPSMonitorAll()
 
    Level: intermediate
 
@@ -202,61 +284,6 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
 }
 
 /*@C
-   EPSMonitorFirst - Print the first approximate value and
-   error estimate at each iteration of the eigensolver.
-
-   Collective on eps
-
-   Input Parameters:
-+  eps    - eigensolver context
-.  its    - iteration number
-.  nconv  - number of converged eigenpairs so far
-.  eigr   - real part of the eigenvalues
-.  eigi   - imaginary part of the eigenvalues
-.  errest - error estimates
-.  nest   - number of error estimates to display
--  vf     - viewer and format for monitoring
-
-   Level: intermediate
-
-.seealso: EPSMonitorSet(), EPSMonitorAll(), EPSMonitorConverged()
-@*/
-PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
-{
-  PetscErrorCode ierr;
-  PetscScalar    er,ei;
-  PetscViewer    viewer;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  if (its==1 && ((PetscObject)eps)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix);CHKERRQ(ierr);
-  }
-  if (nconv<nest) {
-    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-    er = eigr[nconv]; ei = eigi[nconv];
-    ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
-#else
-    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
-    if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
-#endif
-    ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-/*@C
    EPSMonitorConverged - Print the approximate values and
    error estimates as they converge.
 
@@ -270,30 +297,35 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
 .  eigi   - imaginary part of the eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  ctx    - monitor context
+-  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -eps_monitor_conv - activates EPSMonitorConverged()
 
    Level: intermediate
 
 .seealso: EPSMonitorSet(), EPSMonitorFirst(), EPSMonitorAll()
 @*/
-PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,SlepcConvMonitor ctx)
+PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    er,ei;
   PetscViewer    viewer;
+  SlepcConvMon   ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(ctx,8);
-  viewer = ctx->viewer;
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  ctx = (SlepcConvMon)vf->data;
   if (its==1 && ((PetscObject)eps)->prefix) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)eps)->prefix);CHKERRQ(ierr);
   }
   if (its==1) ctx->oldnconv = 0;
   if (ctx->oldnconv!=nconv) {
-    ierr = PetscViewerPushFormat(viewer,ctx->format);CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
     for (i=ctx->oldnconv;i<nconv;i++) {
       ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS converged value (error) #%D",its,i);CHKERRQ(ierr);
@@ -316,62 +348,75 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   PetscFunctionReturn(0);
 }
 
-/*@C
-   EPSMonitorLGCreate - Creates a line graph context for use with
-   EPS to monitor convergence.
+PetscErrorCode EPSMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+  SlepcConvMon   mctx;
 
-   Collective
+  PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  ierr = PetscNew(&mctx);CHKERRQ(ierr);
+  mctx->ctx = ctx;
+  (*vf)->data = (void*)mctx;
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode EPSMonitorConvergedDestroy(PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!*vf) PetscFunctionReturn(0);
+  ierr = PetscFree((*vf)->data);
+  ierr = PetscViewerDestroy(&(*vf)->viewer);CHKERRQ(ierr);
+  ierr = PetscDrawLGDestroy(&(*vf)->lg);CHKERRQ(ierr);
+  ierr = PetscFree(*vf);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   EPSMonitorFirstDrawLG - Plots the error estimate of the first unconverged
+   approximation at each iteration of the eigensolver.
+
+   Collective on eps
 
    Input Parameters:
-+  comm - communicator context
-.  host - the X display to open, or null for the local machine
-.  label - the title to put in the title bar
-.  x, y - the screen coordinates of the upper left coordinate of
-          the window
--  m, n - the screen width and height in pixels
++  eps    - eigensolver context
+.  its    - iteration number
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  vf     - viewer and format for monitoring
 
-   Output Parameter:
-.  lgctx - the drawing context
-
-   Options Database Keys:
-+  -eps_monitor_lg - Sets line graph monitor for the first residual
--  -eps_monitor_lg_all - Sets line graph monitor for all residuals
-
-   Notes:
-   Use PetscDrawLGDestroy() to destroy this line graph.
+   Options Database Key:
+.  -eps_monitor draw::draw_lg - activates EPSMonitorFirstDrawLG()
 
    Level: intermediate
 
 .seealso: EPSMonitorSet()
 @*/
-PetscErrorCode EPSMonitorLGCreate(MPI_Comm comm,const char host[],const char label[],int x,int y,int m,int n,PetscDrawLG *lgctx)
+PetscErrorCode EPSMonitorFirstDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscDraw      draw;
+  PetscErrorCode ierr;
+  PetscViewer    viewer;
   PetscDrawLG    lg;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
-  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
-  ierr = PetscDrawLGCreate(draw,1,&lg);CHKERRQ(ierr);
-  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
-  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
-  *lgctx = lg;
-  PetscFunctionReturn(0);
-}
-
-PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
-{
-  PetscDrawLG    lg = (PetscDrawLG)ctx;
   PetscReal      x,y;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(eps->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(eps->tol)-2,0.0);CHKERRQ(ierr);
   }
   if (nconv<nest) {
     x = (PetscReal)its;
@@ -383,22 +428,82 @@ PetscErrorCode EPSMonitorLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eig
       ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
     }
   }
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+/*@C
+   EPSMonitorFirstDrawLGCreate - Creates the plotter for the first error estimate.
+
+   Collective on viewer
+
+   Input Parameters:
++  viewer - the viewer
+.  format - the viewer format
+-  ctx    - an optional user context
+
+   Output Parameter:
+.  vf     - the viewer and format context
+
+   Level: intermediate
+
+.seealso: EPSMonitorSet()
+@*/
+PetscErrorCode EPSMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscDrawLG    lg = (PetscDrawLG)ctx;
-  PetscInt       i,n = PetscMin(eps->nev,255);
-  PetscReal      *x,*y;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  (*vf)->data = ctx;
+  ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"First Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   EPSMonitorAllDrawLG - Plots the error estimate of all unconverged
+   approximations at each iteration of the eigensolver.
+
+   Collective on eps
+
+   Input Parameters:
++  eps    - eigensolver context
+.  its    - iteration number
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -eps_monitor_all draw::draw_lg - activates EPSMonitorAllDrawLG()
+
+   Level: intermediate
+
+.seealso: EPSMonitorSet()
+@*/
+PetscErrorCode EPSMonitorAllDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
+{
+  PetscErrorCode ierr;
+  PetscViewer    viewer;
+  PetscDrawLG    lg;
+  PetscInt       i,n = PetscMin(eps->nev,255);
+  PetscReal      *x,*y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(eps->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(eps->tol)-2,0.0);CHKERRQ(ierr);
   }
   ierr = PetscMalloc2(n,&x,n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
@@ -412,6 +517,121 @@ PetscErrorCode EPSMonitorLGAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
     ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
   }
   ierr = PetscFree2(x,y);CHKERRQ(ierr);
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   EPSMonitorAllDrawLGCreate - Creates the plotter for all the error estimates.
+
+   Collective on viewer
+
+   Input Parameters:
++  viewer - the viewer
+.  format - the viewer format
+-  ctx    - an optional user context
+
+   Output Parameter:
+.  vf     - the viewer and format context
+
+   Level: intermediate
+
+.seealso: EPSMonitorSet()
+@*/
+PetscErrorCode EPSMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  (*vf)->data = ctx;
+  ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"All Error Estimates","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   EPSMonitorConvergedDrawLG - Plots the number of converged eigenvalues
+   at each iteration of the eigensolver.
+
+   Collective on eps
+
+   Input Parameters:
++  eps    - eigensolver context
+.  its    - iteration number
+.  its    - iteration number
+.  nconv  - number of converged eigenpairs so far
+.  eigr   - real part of the eigenvalues
+.  eigi   - imaginary part of the eigenvalues
+.  errest - error estimates
+.  nest   - number of error estimates to display
+-  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -eps_monitor_conv draw::draw_lg - activates EPSMonitorConvergedDrawLG()
+
+   Level: intermediate
+
+.seealso: EPSMonitorSet()
+@*/
+PetscErrorCode EPSMonitorConvergedDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
+{
+  PetscErrorCode   ierr;
+  PetscViewer      viewer;
+  PetscDrawLG      lg;
+  PetscReal        x,y;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(vf,8);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
+  lg = vf->lg;
+  PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+  if (its==1) {
+    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,1,1,0,eps->nev);CHKERRQ(ierr);
+  }
+  x = (PetscReal)its;
+  y = (PetscReal)eps->nconv;
+  ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+  if (its <= 20 || !(its % 5) || eps->reason) {
+    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+  }
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   EPSMonitorConvergedDrawLGCreate - Creates the plotter for the convergence history.
+
+   Collective on viewer
+
+   Input Parameters:
++  viewer - the viewer
+.  format - the viewer format
+-  ctx    - an optional user context
+
+   Output Parameter:
+.  vf     - the viewer and format context
+
+   Level: intermediate
+
+.seealso: EPSMonitorSet()
+@*/
+PetscErrorCode EPSMonitorConvergedDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+  SlepcConvMon   mctx;
+
+  PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  ierr = PetscNew(&mctx);CHKERRQ(ierr);
+  mctx->ctx = ctx;
+  (*vf)->data = (void*)mctx;
+  ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Convergence History","Number Converged",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

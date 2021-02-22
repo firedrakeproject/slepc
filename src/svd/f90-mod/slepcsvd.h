@@ -46,9 +46,9 @@
 !
 !   Possible arguments to SVDMonitorSet()
 !
-      external SVDMONITORALL
-      external SVDMONITORLG
-      external SVDMONITORLGALL
-      external SVDMONITORCONVERGED
       external SVDMONITORFIRST
+      external SVDMONITORALL
+      external SVDMONITORCONVERGED
+
+      external SVDMonitorConvergedDestroy
 

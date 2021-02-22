@@ -74,6 +74,10 @@
 typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
 SLEPC_EXTERN PetscErrorCode SlepcConvMonitorCreate(PetscViewer,PetscViewerFormat,SlepcConvMonitor*);
 SLEPC_EXTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor*);
+/*
+    Context for monitors of type XXXMonitorConverged
+*/
+typedef struct _n_SlepcConvMon* SlepcConvMon;
 
 /*
     Initialization of SLEPc and other system routines

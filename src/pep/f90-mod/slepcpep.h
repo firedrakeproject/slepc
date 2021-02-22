@@ -83,9 +83,9 @@
 !
 !   Possible arguments to PEPMonitorSet()
 !
-      external PEPMONITORALL
-      external PEPMONITORLG
-      external PEPMONITORLGALL
-      external PEPMONITORCONVERGED
       external PEPMONITORFIRST
+      external PEPMONITORALL
+      external PEPMONITORCONVERGED
+
+      external PEPMonitorConvergedDestroy
 

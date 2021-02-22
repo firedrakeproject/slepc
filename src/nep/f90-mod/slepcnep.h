@@ -66,9 +66,9 @@
 !
 !   Possible arguments to NEPMonitorSet()
 !
-      external NEPMONITORALL
-      external NEPMONITORLG
-      external NEPMONITORLGALL
-      external NEPMONITORCONVERGED
       external NEPMONITORFIRST
+      external NEPMONITORALL
+      external NEPMONITORCONVERGED
+
+      external NEPMonitorConvergedDestroy
 

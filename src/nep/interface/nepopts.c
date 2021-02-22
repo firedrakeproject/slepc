@@ -23,68 +23,45 @@
 
    Input Parameters:
 +  nep      - the nonlinear eigensolver context
-.  name     - the monitor option name
-.  help     - message indicating what monitoring is done
-.  manual   - manual page for the monitor
-.  monitor  - the monitor function, whose context is a PetscViewerAndFormat
+.  opt      - the command line option for this monitor
+.  name     - the monitor type one is seeking
+.  ctx      - an optional user context for the monitor, or NULL
 -  trackall - whether this monitor tracks all eigenvalues or not
 
    Level: developer
 
-.seealso: NEPMonitorSet(), NEPSetTrackAll(), NEPConvMonitorSetFromOptions()
+.seealso: NEPMonitorSet(), NEPSetTrackAll()
 @*/
-PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool trackall)
+PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name[],void *ctx,PetscBool trackall)
 {
-  PetscErrorCode       ierr;
-  PetscBool            flg;
+  PetscErrorCode       (*mfunc)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+  PetscErrorCode       (*cfunc)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
+  PetscErrorCode       (*dfunc)(PetscViewerAndFormat**);
+  PetscViewerAndFormat *vf;
   PetscViewer          viewer;
   PetscViewerFormat    format;
-  PetscViewerAndFormat *vf;
+  PetscViewerType      vtype;
+  char                 key[PETSC_MAX_PATH_LEN];
+  PetscBool            flg;
+  PetscErrorCode       ierr;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
-    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
-    if (trackall) {
-      ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,opt,&viewer,&format,&flg);CHKERRQ(ierr);
+  if (!flg) PetscFunctionReturn(0);
 
-/*@C
-   NEPConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
-   indicated by the user (for monitors that only show iteration numbers of convergence).
+  ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
+  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(NEPMonitorList,key,&mfunc);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(NEPMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(NEPMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
+  if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
+  if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
-   Collective on nep
-
-   Input Parameters:
-+  nep      - the nonlinear eigensolver context
-.  name     - the monitor option name
-.  help     - message indicating what monitoring is done
-.  manual   - manual page for the monitor
--  monitor  - the monitor function, whose context is a SlepcConvMonitor
-
-   Level: developer
-
-.seealso: NEPMonitorSet(), NEPMonitorSetFromOptions()
-@*/
-PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor))
-{
-  PetscErrorCode    ierr;
-  PetscBool         flg;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
-  SlepcConvMonitor  ctx;
-
-  PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = SlepcConvMonitorCreate(viewer,format,&ctx);CHKERRQ(ierr);
-    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
+  ierr = (*cfunc)(viewer,format,ctx,&vf);CHKERRQ(ierr);
+  ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
+  ierr = NEPMonitorSet(nep,mfunc,vf,(PetscErrorCode(*)(void **))dfunc);CHKERRQ(ierr);
+  if (trackall) {
+    ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -112,7 +89,6 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscReal       r;
   PetscScalar     s;
   PetscInt        i,j,k;
-  PetscDrawLG     lg;
   NEPRefine       refine;
   NEPRefineScheme scheme;
 
@@ -211,29 +187,10 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       Cancels all monitors hardwired into code before call to NEPSetFromOptions()
     */
     ierr = PetscOptionsBool("-nep_monitor_cancel","Remove any hardwired monitor routines","NEPMonitorCancel",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = NEPMonitorCancel(nep);CHKERRQ(ierr);
-    }
-    /*
-      Text monitors
-    */
-    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","NEPMonitorFirst",NEPMonitorFirst,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = NEPConvMonitorSetFromOptions(nep,"-nep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","NEPMonitorConverged",NEPMonitorConverged);CHKERRQ(ierr);
-    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor_all","Monitor approximate eigenvalues and error estimates","NEPMonitorAll",NEPMonitorAll,PETSC_TRUE);CHKERRQ(ierr);
-    /*
-      Line graph monitors
-    */
-    ierr = PetscOptionsBool("-nep_monitor_lg","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = NEPMonitorLGCreate(PetscObjectComm((PetscObject)nep),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
-      ierr = NEPMonitorSet(nep,NEPMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
-    }
-    ierr = PetscOptionsBool("-nep_monitor_lg_all","Monitor error estimates graphically","NEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = NEPMonitorLGCreate(PetscObjectComm((PetscObject)nep),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
-      ierr = NEPMonitorSet(nep,NEPMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
-      ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
-    }
+    if (set && flg) { ierr = NEPMonitorCancel(nep);CHKERRQ(ierr); }
+    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor","first_approximation",NULL,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor_all","all_approximations",NULL,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor_conv","convergence_history",NULL,PETSC_FALSE);CHKERRQ(ierr);
 
     /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",NULL);CHKERRQ(ierr);
@@ -960,8 +917,8 @@ PetscErrorCode NEPGetStoppingTest(NEP nep,NEPStop *stop)
    the residual for each eigenpair approximation. Computing the residual is
    usually an expensive operation and solvers commonly compute the associated
    residual to the first unconverged eigenpair.
-   The options '-nep_monitor_all' and '-nep_monitor_lg_all' automatically
-   activate this option.
+
+   The option '-nep_monitor_all' automatically activates this option.
 
    Level: developer
 

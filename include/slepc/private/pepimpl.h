@@ -15,7 +15,9 @@
 #include <slepc/private/slepcimpl.h>
 
 SLEPC_EXTERN PetscBool PEPRegisterAllCalled;
+SLEPC_EXTERN PetscBool PEPMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode PEPRegisterAll(void);
+SLEPC_EXTERN PetscErrorCode PEPMonitorRegisterAll(void);
 SLEPC_EXTERN PetscLogEvent PEP_SetUp,PEP_Solve,PEP_Refine;
 
 typedef struct _PEPOps *PEPOps;

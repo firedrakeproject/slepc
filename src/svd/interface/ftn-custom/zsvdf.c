@@ -13,11 +13,6 @@
 #include <slepcsvd.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define svdmonitorall_                    SVDMONITORALL
-#define svdmonitorlg_                     SVDMONITORLG
-#define svdmonitorlgall_                  SVDMONITORLGALL
-#define svdmonitorconverged_              SVDMONITORCONVERGED
-#define svdmonitorfirst_                  SVDMONITORFIRST
 #define svdview_                          SVDVIEW
 #define svderrorview_                     SVDERRORVIEW
 #define svdconvergedreasonview_           SVDCONVERGEDREASONVIEW
@@ -26,6 +21,11 @@
 #define svdsettype_                       SVDSETTYPE
 #define svdgettype_                       SVDGETTYPE
 #define svdmonitorset_                    SVDMONITORSET
+#define svdmonitorall_                    SVDMONITORALL
+#define svdmonitorfirst_                  SVDMONITORFIRST
+#define svdmonitorconverged_              SVDMONITORCONVERGED
+#define svdmonitorconvergedcreate_        SVDMONITORCONVERGEDCREATE
+#define svdmonitorconvergeddestroy_       SVDMONITORCONVERGEDDESTROY
 #define svdsetoptionsprefix_              SVDSETOPTIONSPREFIX
 #define svdappendoptionsprefix_           SVDAPPENDOPTIONSPREFIX
 #define svdgetoptionsprefix_              SVDGETOPTIONSPREFIX
@@ -50,11 +50,6 @@
 #define svdsetinitialspaces10_            SVDSETINITIALSPACES10
 #define svdsetinitialspaces11_            SVDSETINITIALSPACES11
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define svdmonitorall_                    svdmonitorall
-#define svdmonitorlg_                     svdmonitorlg
-#define svdmonitorlgall_                  svdmonitorlgall
-#define svdmonitorconverged_              svdmonitorconverged
-#define svdmonitorfirst_                  svdmonitorfirst
 #define svdview_                          svdview
 #define svderrorview_                     svderrorview
 #define svdconvergedreasonview_           svdconvergedreasonview
@@ -63,6 +58,11 @@
 #define svdsettype_                       svdsettype
 #define svdgettype_                       svdgettype
 #define svdmonitorset_                    svdmonitorset
+#define svdmonitorall_                    svdmonitorall
+#define svdmonitorfirst_                  svdmonitorfirst
+#define svdmonitorconverged_              svdmonitorconverged
+#define svdmonitorconvergedcreate_        svdmonitorconvergedcreate
+#define svdmonitorconvergeddestroy_       svdmonitorconvergeddestroy
 #define svdsetoptionsprefix_              svdsetoptionsprefix
 #define svdappendoptionsprefix_           svdappendoptionsprefix
 #define svdgetoptionsprefix_              svdgetoptionsprefix
@@ -92,29 +92,32 @@
    These are not usually called from Fortran but allow Fortran users
    to transparently set these monitors from .F code
 */
-SLEPC_EXTERN void svdmonitorall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = SVDMonitorAll(*svd,*it,*nconv,sigma,errest,*nest,*ctx);
+  *ierr = SVDMonitorAll(*svd,*it,*nconv,sigma,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void svdmonitorconverged_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,SlepcConvMonitor *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorfirst_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = SVDMonitorConverged(*svd,*it,*nconv,sigma,errest,*nest,*ctx);
+  *ierr = SVDMonitorFirst(*svd,*it,*nconv,sigma,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void svdmonitorfirst_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorconverged_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = SVDMonitorFirst(*svd,*it,*nconv,sigma,errest,*nest,*ctx);
+  *ierr = SVDMonitorConverged(*svd,*it,*nconv,sigma,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void svdmonitorlg_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorconvergedcreate_(PetscViewer *vin,PetscViewerFormat *format,void *ctx,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = SVDMonitorLG(*svd,*it,*nconv,sigma,errest,*nest,ctx);
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(vin,v);
+  CHKFORTRANNULLOBJECT(ctx);
+  *ierr = SVDMonitorConvergedCreate(v,*format,ctx,vf);
 }
 
-SLEPC_EXTERN void svdmonitorlgall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorconvergeddestroy_(PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = SVDMonitorLGAll(*svd,*it,*nconv,sigma,errest,*nest,ctx);
+  *ierr = SVDMonitorConvergedDestroy(vf);
 }
 
 static struct {
@@ -220,13 +223,9 @@ SLEPC_EXTERN void svdmonitorset_(SVD *svd,void (*monitor)(SVD*,PetscInt*,PetscIn
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)svdmonitorall_) {
     *ierr = SVDMonitorSet(*svd,(PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*))SVDMonitorAll,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)svdmonitorconverged_) {
-    *ierr = SVDMonitorSet(*svd,(PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*))SVDMonitorConverged,*(SlepcConvMonitor*)mctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
+    *ierr = SVDMonitorSet(*svd,(PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*))SVDMonitorConverged,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))SVDMonitorConvergedDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)svdmonitorfirst_) {
     *ierr = SVDMonitorSet(*svd,(PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*))SVDMonitorFirst,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)svdmonitorlg_) {
-    *ierr = SVDMonitorSet(*svd,SVDMonitorLG,0,0);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)svdmonitorlgall_) {
-    *ierr = SVDMonitorSet(*svd,SVDMonitorLGAll,0,0);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
     *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
