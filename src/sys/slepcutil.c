@@ -69,6 +69,32 @@ PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
 }
 
 /*
+   Internal functions used to register monitors.
+ */
+PetscErrorCode SlepcMonitorMakeKey_Internal(const char name[],PetscViewerType vtype,PetscViewerFormat format,char key[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscStrncpy(key,name,PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
+  ierr = PetscStrlcat(key,":",PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
+  ierr = PetscStrlcat(key,vtype,PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
+  ierr = PetscStrlcat(key,":",PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
+  ierr = PetscStrlcat(key,PetscViewerFormats[format],PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode PetscViewerAndFormatCreate_Internal(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  (*vf)->data = ctx;
+  PetscFunctionReturn(0);
+}
+
+/*
    Given n vectors in V, this function gets references of them into W.
    If m<0 then some previous non-processed vectors remain in W and must be freed.
  */

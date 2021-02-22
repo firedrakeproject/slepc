@@ -34,3 +34,23 @@ PetscErrorCode MFNRegisterAll(void)
   PetscFunctionReturn(0);
 }
 
+/*@C
+  MFNMonitorRegisterAll - Registers all the monitors in the MFN package.
+
+  Not Collective
+
+  Level: advanced
+@*/
+PetscErrorCode MFNMonitorRegisterAll(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (MFNMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  MFNMonitorRegisterAllCalled = PETSC_TRUE;
+
+  ierr = MFNMonitorRegister("error_estimate",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,MFNMonitorDefault,NULL,NULL);CHKERRQ(ierr);
+  ierr = MFNMonitorRegister("error_estimate",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,MFNMonitorDefaultDrawLG,MFNMonitorDefaultDrawLGCreate,NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

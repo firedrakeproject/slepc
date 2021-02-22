@@ -34,5 +34,4 @@
 !   Possible arguments to LMEMonitorSet()
 !
       external LMEMONITORDEFAULT
-      external LMEMONITORLG
 

@@ -15,7 +15,9 @@
 #include <slepc/private/slepcimpl.h>
 
 SLEPC_EXTERN PetscBool LMERegisterAllCalled;
+SLEPC_EXTERN PetscBool LMEMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode LMERegisterAll(void);
+SLEPC_EXTERN PetscErrorCode LMEMonitorRegisterAll(void);
 SLEPC_EXTERN PetscLogEvent LME_SetUp,LME_Solve,LME_ComputeError;
 
 typedef struct _LMEOps *LMEOps;

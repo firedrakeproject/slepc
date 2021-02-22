@@ -13,10 +13,19 @@
 
 #include <slepc/private/lmeimpl.h>      /*I "slepclme.h" I*/
 
-PetscFunctionList LMEList = 0;
-PetscBool         LMERegisterAllCalled = PETSC_FALSE;
+/* Logging support */
 PetscClassId      LME_CLASSID = 0;
 PetscLogEvent     LME_SetUp = 0,LME_Solve = 0,LME_ComputeError = 0;
+
+/* List of registered LME routines */
+PetscFunctionList LMEList = 0;
+PetscBool         LMERegisterAllCalled = PETSC_FALSE;
+
+/* List of registered LME monitors */
+PetscFunctionList LMEMonitorList              = NULL;
+PetscFunctionList LMEMonitorCreateList        = NULL;
+PetscFunctionList LMEMonitorDestroyList       = NULL;
+PetscBool         LMEMonitorRegisterAllCalled = PETSC_FALSE;
 
 /*@C
    LMEView - Prints the LME data structure.
@@ -357,6 +366,50 @@ PetscErrorCode LMERegister(const char *name,PetscErrorCode (*function)(LME))
   PetscFunctionBegin;
   ierr = LMEInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&LMEList,name,function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   LMEMonitorRegister - Adds LME monitor routine.
+
+   Not Collective
+
+   Input Parameters:
++  name    - name of a new monitor routine
+.  vtype   - a PetscViewerType for the output
+.  format  - a PetscViewerFormat for the output
+.  monitor - monitor routine
+.  create  - creation routine, or NULL
+-  destroy - destruction routine, or NULL
+
+   Notes:
+   LMEMonitorRegister() may be called multiple times to add several user-defined monitors.
+
+   Sample usage:
+.vb
+   LMEMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
+.ve
+
+   Then, your monitor can be chosen with the procedural interface via
+$      LMEMonitorSetFromOptions(lme,"-lme_monitor_my_monitor","my_monitor",NULL)
+   or at runtime via the option
+$      -lme_monitor_my_monitor
+
+   Level: advanced
+
+.seealso: LMEMonitorRegisterAll()
+@*/
+PetscErrorCode LMEMonitorRegister(const char name[],PetscViewerType vtype,PetscViewerFormat format,PetscErrorCode (*monitor)(LME,PetscInt,PetscReal,PetscViewerAndFormat*),PetscErrorCode (*create)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode (*destroy)(PetscViewerAndFormat**))
+{
+  char           key[PETSC_MAX_PATH_LEN];
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = LMEInitializePackage();CHKERRQ(ierr);
+  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&LMEMonitorList,key,monitor);CHKERRQ(ierr);
+  if (create)  { ierr = PetscFunctionListAdd(&LMEMonitorCreateList,key,create);CHKERRQ(ierr); }
+  if (destroy) { ierr = PetscFunctionListAdd(&LMEMonitorDestroyList,key,destroy);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

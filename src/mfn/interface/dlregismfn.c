@@ -29,8 +29,12 @@ PetscErrorCode MFNFinalizePackage(void)
 
   PetscFunctionBegin;
   ierr = PetscFunctionListDestroy(&MFNList);CHKERRQ(ierr);
-  MFNPackageInitialized = PETSC_FALSE;
-  MFNRegisterAllCalled  = PETSC_FALSE;
+  ierr = PetscFunctionListDestroy(&MFNMonitorList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&MFNMonitorCreateList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&MFNMonitorDestroyList);CHKERRQ(ierr);
+  MFNPackageInitialized       = PETSC_FALSE;
+  MFNRegisterAllCalled        = PETSC_FALSE;
+  MFNMonitorRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -57,6 +61,8 @@ PetscErrorCode MFNInitializePackage(void)
   ierr = PetscClassIdRegister("Matrix Function",&MFN_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = MFNRegisterAll();CHKERRQ(ierr);
+  /* Register Monitors */
+  ierr = MFNMonitorRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("MFNSetUp",MFN_CLASSID,&MFN_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("MFNSolve",MFN_CLASSID,&MFN_Solve);CHKERRQ(ierr);

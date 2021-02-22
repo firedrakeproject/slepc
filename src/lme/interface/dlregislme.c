@@ -30,8 +30,12 @@ PetscErrorCode LMEFinalizePackage(void)
 
   PetscFunctionBegin;
   ierr = PetscFunctionListDestroy(&LMEList);CHKERRQ(ierr);
-  LMEPackageInitialized = PETSC_FALSE;
-  LMERegisterAllCalled  = PETSC_FALSE;
+  ierr = PetscFunctionListDestroy(&LMEMonitorList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&LMEMonitorCreateList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&LMEMonitorDestroyList);CHKERRQ(ierr);
+  LMEPackageInitialized       = PETSC_FALSE;
+  LMERegisterAllCalled        = PETSC_FALSE;
+  LMEMonitorRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -58,6 +62,8 @@ PetscErrorCode LMEInitializePackage(void)
   ierr = PetscClassIdRegister("Lin. Matrix Equation",&LME_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = LMERegisterAll();CHKERRQ(ierr);
+  /* Register Monitors */
+  ierr = LMEMonitorRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("LMESetUp",LME_CLASSID,&LME_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("LMESolve",LME_CLASSID,&LME_Solve);CHKERRQ(ierr);

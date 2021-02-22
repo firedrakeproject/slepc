@@ -32,3 +32,23 @@ PetscErrorCode LMERegisterAll(void)
   PetscFunctionReturn(0);
 }
 
+/*@C
+  LMEMonitorRegisterAll - Registers all the monitors in the LME package.
+
+  Not Collective
+
+  Level: advanced
+@*/
+PetscErrorCode LMEMonitorRegisterAll(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (LMEMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  LMEMonitorRegisterAllCalled = PETSC_TRUE;
+
+  ierr = LMEMonitorRegister("error_estimate",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,LMEMonitorDefault,NULL,NULL);CHKERRQ(ierr);
+  ierr = LMEMonitorRegister("error_estimate",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,LMEMonitorDefaultDrawLG,LMEMonitorDefaultDrawLGCreate,NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

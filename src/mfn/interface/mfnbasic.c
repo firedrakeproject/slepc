@@ -13,10 +13,19 @@
 
 #include <slepc/private/mfnimpl.h>      /*I "slepcmfn.h" I*/
 
-PetscFunctionList MFNList = 0;
-PetscBool         MFNRegisterAllCalled = PETSC_FALSE;
+/* Logging support */
 PetscClassId      MFN_CLASSID = 0;
 PetscLogEvent     MFN_SetUp = 0,MFN_Solve = 0;
+
+/* List of registered MFN routines */
+PetscFunctionList MFNList = 0;
+PetscBool         MFNRegisterAllCalled = PETSC_FALSE;
+
+/* List of registered MFN monitors */
+PetscFunctionList MFNMonitorList              = NULL;
+PetscFunctionList MFNMonitorCreateList        = NULL;
+PetscFunctionList MFNMonitorDestroyList       = NULL;
+PetscBool         MFNMonitorRegisterAllCalled = PETSC_FALSE;
 
 /*@C
    MFNView - Prints the MFN data structure.
@@ -346,6 +355,50 @@ PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
   PetscFunctionBegin;
   ierr = MFNInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&MFNList,name,function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   MFNMonitorRegister - Adds MFN monitor routine.
+
+   Not Collective
+
+   Input Parameters:
++  name    - name of a new monitor routine
+.  vtype   - a PetscViewerType for the output
+.  format  - a PetscViewerFormat for the output
+.  monitor - monitor routine
+.  create  - creation routine, or NULL
+-  destroy - destruction routine, or NULL
+
+   Notes:
+   MFNMonitorRegister() may be called multiple times to add several user-defined monitors.
+
+   Sample usage:
+.vb
+   MFNMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
+.ve
+
+   Then, your monitor can be chosen with the procedural interface via
+$      MFNMonitorSetFromOptions(mfn,"-mfn_monitor_my_monitor","my_monitor",NULL)
+   or at runtime via the option
+$      -mfn_monitor_my_monitor
+
+   Level: advanced
+
+.seealso: MFNMonitorRegisterAll()
+@*/
+PetscErrorCode MFNMonitorRegister(const char name[],PetscViewerType vtype,PetscViewerFormat format,PetscErrorCode (*monitor)(MFN,PetscInt,PetscReal,PetscViewerAndFormat*),PetscErrorCode (*create)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode (*destroy)(PetscViewerAndFormat**))
+{
+  char           key[PETSC_MAX_PATH_LEN];
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MFNInitializePackage();CHKERRQ(ierr);
+  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&MFNMonitorList,key,monitor);CHKERRQ(ierr);
+  if (create)  { ierr = PetscFunctionListAdd(&MFNMonitorCreateList,key,create);CHKERRQ(ierr); }
+  if (destroy) { ierr = PetscFunctionListAdd(&MFNMonitorDestroyList,key,destroy);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

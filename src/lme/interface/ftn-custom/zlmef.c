@@ -21,7 +21,6 @@
 #define lmesettype_                       LMESETTYPE
 #define lmegettype_                       LMEGETTYPE
 #define lmemonitordefault_                LMEMONITORDEFAULT
-#define lmemonitorlg_                     LMEMONITORLG
 #define lmemonitorset_                    LMEMONITORSET
 #define lmegettolerances00_               LMEGETTOLERANCES00
 #define lmegettolerances10_               LMEGETTOLERANCES10
@@ -36,7 +35,6 @@
 #define lmesettype_                       lmesettype
 #define lmegettype_                       lmegettype
 #define lmemonitordefault_                lmemonitordefault
-#define lmemonitorlg_                     lmemonitorlg
 #define lmemonitorset_                    lmemonitorset
 #define lmegettolerances00_               lmegettolerances00
 #define lmegettolerances10_               lmegettolerances10
@@ -50,11 +48,6 @@
 SLEPC_EXTERN void lmemonitordefault_(LME *lme,PetscInt *it,PetscReal *errest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
 {
   *ierr = LMEMonitorDefault(*lme,*it,*errest,*ctx);
-}
-
-SLEPC_EXTERN void lmemonitorlg_(LME *lme,PetscInt *it,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
-{
-  *ierr = LMEMonitorLG(*lme,*it,*errest,ctx);
 }
 
 static struct {
@@ -148,8 +141,6 @@ SLEPC_EXTERN void lmemonitorset_(LME *lme,void (*monitor)(LME*,PetscInt*,PetscRe
   CHKFORTRANNULLFUNCTION(monitordestroy);
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)lmemonitordefault_) {
     *ierr = LMEMonitorSet(*lme,(PetscErrorCode (*)(LME,PetscInt,PetscReal,void*))LMEMonitorDefault,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)lmemonitorlg_) {
-    *ierr = LMEMonitorSet(*lme,LMEMonitorLG,0,0);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*lme,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
     *ierr = PetscObjectSetFortranCallback((PetscObject)*lme,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;

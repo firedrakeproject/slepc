@@ -28,5 +28,4 @@
 !   Possible arguments to MFNMonitorSet()
 !
       external MFNMONITORDEFAULT
-      external MFNMONITORLG
 

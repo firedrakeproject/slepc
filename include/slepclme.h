@@ -83,12 +83,6 @@ SLEPC_EXTERN PetscErrorCode LMESetTolerances(LME,PetscReal,PetscInt);
 SLEPC_EXTERN PetscErrorCode LMEGetTolerances(LME,PetscReal*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode LMESetDimensions(LME,PetscInt);
 SLEPC_EXTERN PetscErrorCode LMEGetDimensions(LME,PetscInt*);
-
-SLEPC_EXTERN PetscErrorCode LMEMonitor(LME,PetscInt,PetscReal);
-SLEPC_EXTERN PetscErrorCode LMEMonitorSet(LME,PetscErrorCode (*)(LME,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
-SLEPC_EXTERN PetscErrorCode LMEMonitorSetFromOptions(LME,const char*,const char*,const char*,PetscErrorCode (*)(LME,PetscInt,PetscReal,PetscViewerAndFormat*));
-SLEPC_EXTERN PetscErrorCode LMEMonitorCancel(LME);
-SLEPC_EXTERN PetscErrorCode LMEGetMonitorContext(LME,void **);
 SLEPC_EXTERN PetscErrorCode LMEGetIterationNumber(LME,PetscInt*);
 
 SLEPC_EXTERN PetscErrorCode LMEGetErrorEstimate(LME,PetscReal*);
@@ -100,9 +94,16 @@ SLEPC_EXTERN PetscErrorCode LMEDenseLyapunov(LME,PetscInt,PetscScalar*,PetscInt,
 SLEPC_EXTERN PetscErrorCode LMEDenseHessLyapunovChol(LME,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal*);
 PETSC_DEPRECATED_FUNCTION("Use LMEDenseHessLyapunovChol()") PETSC_STATIC_INLINE PetscErrorCode LMEDenseLyapunovChol(LME lme,PetscScalar *H,PetscInt m,PetscInt ldh,PetscScalar *r,PetscScalar *L,PetscInt ldl,PetscReal *res) {return LMEDenseHessLyapunovChol(lme,m,H,ldh,1,r,m,L,ldl,res);}
 
+SLEPC_EXTERN PetscErrorCode LMEMonitor(LME,PetscInt,PetscReal);
+SLEPC_EXTERN PetscErrorCode LMEMonitorSet(LME,PetscErrorCode (*)(LME,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
+SLEPC_EXTERN PetscErrorCode LMEMonitorCancel(LME);
+SLEPC_EXTERN PetscErrorCode LMEGetMonitorContext(LME,void **);
+
+SLEPC_EXTERN PetscErrorCode LMEMonitorSetFromOptions(LME,const char[],const char[],void*);
+SLEPC_EXTERN PetscErrorCode LMEMonitorLGCreate(MPI_Comm,const char[],const char[],const char[],PetscInt,const char*[],int,int,int,int,PetscDrawLG*);
 SLEPC_EXTERN PetscErrorCode LMEMonitorDefault(LME,PetscInt,PetscReal,PetscViewerAndFormat*);
-SLEPC_EXTERN PetscErrorCode LMEMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
-SLEPC_EXTERN PetscErrorCode LMEMonitorLG(LME,PetscInt,PetscReal,void*);
+SLEPC_EXTERN PetscErrorCode LMEMonitorDefaultDrawLG(LME,PetscInt,PetscReal,PetscViewerAndFormat*);
+SLEPC_EXTERN PetscErrorCode LMEMonitorDefaultDrawLGCreate(PetscViewer,PetscViewerFormat,void *,PetscViewerAndFormat**);
 
 SLEPC_EXTERN PetscErrorCode LMESetOptionsPrefix(LME,const char*);
 SLEPC_EXTERN PetscErrorCode LMEAppendOptionsPrefix(LME,const char*);
@@ -127,7 +128,11 @@ SLEPC_EXTERN const char *const*LMEConvergedReasons;
 SLEPC_EXTERN PetscErrorCode LMEGetConvergedReason(LME,LMEConvergedReason *);
 
 SLEPC_EXTERN PetscFunctionList LMEList;
+SLEPC_EXTERN PetscFunctionList LMEMonitorList;
+SLEPC_EXTERN PetscFunctionList LMEMonitorCreateList;
+SLEPC_EXTERN PetscFunctionList LMEMonitorDestroyList;
 SLEPC_EXTERN PetscErrorCode LMERegister(const char[],PetscErrorCode(*)(LME));
+SLEPC_EXTERN PetscErrorCode LMEMonitorRegister(const char[],PetscViewerType,PetscViewerFormat,PetscErrorCode(*)(LME,PetscInt,PetscReal,PetscViewerAndFormat*),PetscErrorCode(*)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode(*)(PetscViewerAndFormat**));
 
 SLEPC_EXTERN PetscErrorCode LMEAllocateSolution(LME,PetscInt);
 
