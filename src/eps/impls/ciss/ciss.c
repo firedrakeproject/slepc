@@ -946,10 +946,12 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     }
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
+  ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
   if (!eps->ishermitian) { ierr = PetscInfo(eps,"Warning: complex eigenvalues are not calculated exactly without --with-scalar-type=complex in PETSc\n");CHKERRQ(ierr); }
+#else
+  ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
@@ -984,15 +986,21 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscScalar    *Mu,*H0,*H1=NULL,*rr,*temp;
   PetscReal      error,max_error,norm;
   PetscBool      *fl1;
-  Vec            si,w[3];
+  Vec            si,si1=NULL,w[3];
   PetscRandom    rand;
 #if defined(PETSC_USE_COMPLEX)
   PetscBool      isellipse;
+#else
+  PetscReal      normi;
 #endif
 
   PetscFunctionBegin;
   w[0] = eps->work[0];
+#if defined(PETSC_USE_COMPLEX)
   w[1] = NULL;
+#else
+  w[1] = eps->work[2];
+#endif
   w[2] = eps->work[1];
   ierr = VecGetLocalSize(w[0],&nlocal);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -1151,13 +1159,28 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       max_error = 0.0;
       for (i=0;i<eps->nconv;i++) {
         ierr = BVGetColumn(ctx->S,i,&si);CHKERRQ(ierr);
-        ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,eps->eigr[i],eps->eigi[i],si,NULL,w,&error);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+        if (eps->eigi[i]!=0.0) { ierr = BVGetColumn(ctx->S,i+1,&si1);CHKERRQ(ierr); }
+#endif
+        ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,eps->eigr[i],eps->eigi[i],si,si1,w,&error);CHKERRQ(ierr);
         if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {  /* vector is not normalized */
           ierr = VecNorm(si,NORM_2,&norm);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+          if (eps->eigi[i]!=0.0) {
+            ierr = VecNorm(si1,NORM_2,&normi);CHKERRQ(ierr);
+            norm = SlepcAbsEigenvalue(norm,normi);
+          }
+#endif
           error /= norm;
         }
         ierr = (*eps->converged)(eps,eps->eigr[i],eps->eigi[i],error,&error,eps->convergedctx);CHKERRQ(ierr);
         ierr = BVRestoreColumn(ctx->S,i,&si);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+        if (eps->eigi[i]!=0.0) {
+          ierr = BVRestoreColumn(ctx->S,i+1,&si1);CHKERRQ(ierr);
+          i++;
+        }
+#endif
         max_error = PetscMax(max_error,error);
       }
 

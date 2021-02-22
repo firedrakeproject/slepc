@@ -1,0 +1,9 @@
+
+Brusselator wave model with matrix exponential, n=100
+
+ Solution method: ciss
+
+ Number of requested eigenvalues: 1
+ Found 8 eigenvalues, all of them computed up to the required tolerance:
+     -3.37036+3.55528i, -3.37036-3.55528i, -1.79853+3.03216i, -1.79853-3.03216i, -0.67471+2.52856i, -0.67471-2.52856i, 0.00002+2.13950i, 0.00002-2.13950i
+
