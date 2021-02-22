@@ -338,7 +338,9 @@ PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
 
   ierr = VecDestroy(&v1);CHKERRQ(ierr);
   ierr = VecDestroy(&v2);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  if (!rctx) {
+    ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
