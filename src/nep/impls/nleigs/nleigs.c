@@ -779,6 +779,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     ierr = VecDuplicate(w[0],&w[1]);CHKERRQ(ierr);
     ierr = VecDuplicate(w[0],&ctx->vrn);CHKERRQ(ierr);
     ierr = VecSetRandomNormal(ctx->vrn,rand,w[0],w[1]);CHKERRQ(ierr);
+    ierr = VecNormalize(ctx->vrn,NULL);CHKERRQ(ierr);
     vec = PETSC_TRUE;
     ierr = MatNormEstimate(D[0],ctx->vrn,w[0],&norm0);CHKERRQ(ierr);
   }
@@ -804,6 +805,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
         ierr = VecDuplicate(w[0],&w[1]);CHKERRQ(ierr);
         ierr = VecDuplicate(w[0],&ctx->vrn);CHKERRQ(ierr);
         ierr = VecSetRandomNormal(ctx->vrn,rand,w[0],w[1]);CHKERRQ(ierr);
+        ierr = VecNormalize(ctx->vrn,NULL);CHKERRQ(ierr);
         vec = PETSC_TRUE;
       }
       ierr = MatNormEstimate(D[k],ctx->vrn,w[0],&norm);CHKERRQ(ierr);

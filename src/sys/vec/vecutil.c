@@ -280,8 +280,6 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
    Fills the two work vectors with uniformly distributed random values (VecSetRandom)
    and then applies the Box-Muller transform to get normally distributed values on v.
 
-   The resulting vector has unit 2-norm.
-
    Level: developer
 @*/
 PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
@@ -289,7 +287,6 @@ PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
   PetscErrorCode    ierr;
   const PetscScalar *x,*y;
   PetscScalar       *z;
-  PetscReal         nrm;
   PetscInt          n,i;
   PetscRandom       rand=NULL;
   Vec               v1=NULL,v2=NULL;
@@ -333,8 +330,6 @@ PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
   ierr = VecRestoreArrayWrite(v,&z);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(w1,&x);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(w2,&y);CHKERRQ(ierr);
-  ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = VecScale(v,1.0/nrm);CHKERRQ(ierr);
 
   ierr = VecDestroy(&v1);CHKERRQ(ierr);
   ierr = VecDestroy(&v2);CHKERRQ(ierr);
