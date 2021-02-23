@@ -13,10 +13,19 @@
 
 #include <slepc/private/epsimpl.h>      /*I "slepceps.h" I*/
 
-PetscFunctionList EPSList = 0;
-PetscBool         EPSRegisterAllCalled = PETSC_FALSE;
+/* Logging support */
 PetscClassId      EPS_CLASSID = 0;
 PetscLogEvent     EPS_SetUp = 0,EPS_Solve = 0;
+
+/* List of registered EPS routines */
+PetscFunctionList EPSList = 0;
+PetscBool         EPSRegisterAllCalled = PETSC_FALSE;
+
+/* List of registered EPS monitors */
+PetscFunctionList EPSMonitorList              = NULL;
+PetscFunctionList EPSMonitorCreateList        = NULL;
+PetscFunctionList EPSMonitorDestroyList       = NULL;
+PetscBool         EPSMonitorRegisterAllCalled = PETSC_FALSE;
 
 /*@
    EPSCreate - Creates the default EPS context.
@@ -230,6 +239,50 @@ PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
   PetscFunctionBegin;
   ierr = EPSInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&EPSList,name,function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   EPSMonitorRegister - Adds EPS monitor routine.
+
+   Not Collective
+
+   Input Parameters:
++  name    - name of a new monitor routine
+.  vtype   - a PetscViewerType for the output
+.  format  - a PetscViewerFormat for the output
+.  monitor - monitor routine
+.  create  - creation routine, or NULL
+-  destroy - destruction routine, or NULL
+
+   Notes:
+   EPSMonitorRegister() may be called multiple times to add several user-defined monitors.
+
+   Sample usage:
+.vb
+   EPSMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
+.ve
+
+   Then, your monitor can be chosen with the procedural interface via
+$      EPSMonitorSetFromOptions(eps,"-eps_monitor_my_monitor","my_monitor",NULL)
+   or at runtime via the option
+$      -eps_monitor_my_monitor
+
+   Level: advanced
+
+.seealso: EPSMonitorRegisterAll()
+@*/
+PetscErrorCode EPSMonitorRegister(const char name[],PetscViewerType vtype,PetscViewerFormat format,PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscErrorCode (*create)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode (*destroy)(PetscViewerAndFormat**))
+{
+  char           key[PETSC_MAX_PATH_LEN];
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = EPSInitializePackage();CHKERRQ(ierr);
+  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&EPSMonitorList,key,monitor);CHKERRQ(ierr);
+  if (create)  { ierr = PetscFunctionListAdd(&EPSMonitorCreateList,key,create);CHKERRQ(ierr); }
+  if (destroy) { ierr = PetscFunctionListAdd(&EPSMonitorDestroyList,key,destroy);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

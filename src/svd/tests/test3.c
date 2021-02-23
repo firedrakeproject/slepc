@@ -218,7 +218,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 5
-      args: -svd_nsv 4 -svd_view_values draw -svd_monitor_lg
+      args: -svd_nsv 4 -svd_view_values draw -svd_monitor draw::draw_lg
       requires: x
       output_file: output/test3_1.out
 

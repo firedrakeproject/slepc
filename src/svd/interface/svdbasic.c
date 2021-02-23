@@ -13,10 +13,19 @@
 
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
-PetscFunctionList SVDList = 0;
-PetscBool         SVDRegisterAllCalled = PETSC_FALSE;
+/* Logging support */
 PetscClassId      SVD_CLASSID = 0;
 PetscLogEvent     SVD_SetUp = 0,SVD_Solve = 0;
+
+/* List of registered SVD routines */
+PetscFunctionList SVDList = 0;
+PetscBool         SVDRegisterAllCalled = PETSC_FALSE;
+
+/* List of registered SVD monitors */
+PetscFunctionList SVDMonitorList              = NULL;
+PetscFunctionList SVDMonitorCreateList        = NULL;
+PetscFunctionList SVDMonitorDestroyList       = NULL;
+PetscBool         SVDMonitorRegisterAllCalled = PETSC_FALSE;
 
 /*@
    SVDCreate - Creates the default SVD context.
@@ -286,6 +295,50 @@ PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
   PetscFunctionBegin;
   ierr = SVDInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&SVDList,name,function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   SVDMonitorRegister - Adds SVD monitor routine.
+
+   Not Collective
+
+   Input Parameters:
++  name    - name of a new monitor routine
+.  vtype   - a PetscViewerType for the output
+.  format  - a PetscViewerFormat for the output
+.  monitor - monitor routine
+.  create  - creation routine, or NULL
+-  destroy - destruction routine, or NULL
+
+   Notes:
+   SVDMonitorRegister() may be called multiple times to add several user-defined monitors.
+
+   Sample usage:
+.vb
+   SVDMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
+.ve
+
+   Then, your monitor can be chosen with the procedural interface via
+$      SVDMonitorSetFromOptions(svd,"-svd_monitor_my_monitor","my_monitor",NULL)
+   or at runtime via the option
+$      -svd_monitor_my_monitor
+
+   Level: advanced
+
+.seealso: SVDMonitorRegisterAll()
+@*/
+PetscErrorCode SVDMonitorRegister(const char name[],PetscViewerType vtype,PetscViewerFormat format,PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscErrorCode (*create)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode (*destroy)(PetscViewerAndFormat**))
+{
+  char           key[PETSC_MAX_PATH_LEN];
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = SVDInitializePackage();CHKERRQ(ierr);
+  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&SVDMonitorList,key,monitor);CHKERRQ(ierr);
+  if (create)  { ierr = PetscFunctionListAdd(&SVDMonitorCreateList,key,create);CHKERRQ(ierr); }
+  if (destroy) { ierr = PetscFunctionListAdd(&SVDMonitorDestroyList,key,destroy);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

@@ -22,31 +22,43 @@
    Collective on lme
 
    Input Parameters:
-+  lme      - the eigensolver context
-.  name     - the monitor option name
-.  help     - message indicating what monitoring is done
-.  manual   - manual page for the monitor
--  monitor  - the monitor function, whose context is a PetscViewerAndFormat
++  lme      - the linear matrix equation context
+.  opt  - the command line option for this monitor
+.  name - the monitor type one is seeking
+-  ctx  - an optional user context for the monitor, or NULL
 
    Level: developer
 
 .seealso: LMEMonitorSet()
 @*/
-PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(LME,PetscInt,PetscReal,PetscViewerAndFormat*))
+PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char opt[],const char name[],void *ctx)
 {
-  PetscErrorCode       ierr;
-  PetscBool            flg;
+  PetscErrorCode       (*mfunc)(LME,PetscInt,PetscReal,void*);
+  PetscErrorCode       (*cfunc)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
+  PetscErrorCode       (*dfunc)(PetscViewerAndFormat**);
+  PetscViewerAndFormat *vf;
   PetscViewer          viewer;
   PetscViewerFormat    format;
-  PetscViewerAndFormat *vf;
+  PetscViewerType      vtype;
+  char                 key[PETSC_MAX_PATH_LEN];
+  PetscBool            flg;
+  PetscErrorCode       ierr;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)lme),((PetscObject)lme)->options,((PetscObject)lme)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
-    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = LMEMonitorSet(lme,(PetscErrorCode (*)(LME,PetscInt,PetscReal,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
-  }
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)lme),((PetscObject)lme)->options,((PetscObject)lme)->prefix,opt,&viewer,&format,&flg);CHKERRQ(ierr);
+  if (!flg) PetscFunctionReturn(0);
+
+  ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
+  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(LMEMonitorList,key,&mfunc);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(LMEMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(LMEMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
+  if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
+  if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
+
+  ierr = (*cfunc)(viewer,format,ctx,&vf);CHKERRQ(ierr);
+  ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
+  ierr = LMEMonitorSet(lme,mfunc,vf,(PetscErrorCode(*)(void **))dfunc);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -72,7 +84,6 @@ PetscErrorCode LMESetFromOptions(LME lme)
   PetscBool      set,flg,flg1,flg2;
   PetscReal      r;
   PetscInt       i;
-  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
@@ -115,21 +126,8 @@ PetscErrorCode LMESetFromOptions(LME lme)
       Cancels all monitors hardwired into code before call to LMESetFromOptions()
     */
     ierr = PetscOptionsBool("-lme_monitor_cancel","Remove any hardwired monitor routines","LMEMonitorCancel",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = LMEMonitorCancel(lme);CHKERRQ(ierr);
-    }
-    /*
-      Text monitors
-    */
-    ierr = LMEMonitorSetFromOptions(lme,"-lme_monitor","Monitor error estimate","LMEMonitorDefault",LMEMonitorDefault);CHKERRQ(ierr);
-    /*
-      Line graph monitors
-    */
-    ierr = PetscOptionsBool("-lme_monitor_lg","Monitor error estimate graphically","LMEMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = LMEMonitorLGCreate(PetscObjectComm((PetscObject)lme),NULL,"Error estimate",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
-      ierr = LMEMonitorSet(lme,LMEMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
-    }
+    if (set && flg) { ierr = LMEMonitorCancel(lme);CHKERRQ(ierr); }
+    ierr = LMEMonitorSetFromOptions(lme,"-lme_monitor","error_estimate",NULL);CHKERRQ(ierr);
 
     /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsName("-lme_view","Print detailed information on solver used","LMEView",NULL);CHKERRQ(ierr);

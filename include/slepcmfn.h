@@ -67,20 +67,21 @@ SLEPC_EXTERN PetscErrorCode MFNSetTolerances(MFN,PetscReal,PetscInt);
 SLEPC_EXTERN PetscErrorCode MFNGetTolerances(MFN,PetscReal*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode MFNSetDimensions(MFN,PetscInt);
 SLEPC_EXTERN PetscErrorCode MFNGetDimensions(MFN,PetscInt*);
-
-SLEPC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal);
-SLEPC_EXTERN PetscErrorCode MFNMonitorSet(MFN,PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
-SLEPC_EXTERN PetscErrorCode MFNMonitorSetFromOptions(MFN,const char*,const char*,const char*,PetscErrorCode (*)(MFN,PetscInt,PetscReal,PetscViewerAndFormat*));
-SLEPC_EXTERN PetscErrorCode MFNMonitorCancel(MFN);
-SLEPC_EXTERN PetscErrorCode MFNGetMonitorContext(MFN,void **);
 SLEPC_EXTERN PetscErrorCode MFNGetIterationNumber(MFN,PetscInt*);
 
 SLEPC_EXTERN PetscErrorCode MFNSetErrorIfNotConverged(MFN,PetscBool);
 SLEPC_EXTERN PetscErrorCode MFNGetErrorIfNotConverged(MFN,PetscBool*);
 
+SLEPC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal);
+SLEPC_EXTERN PetscErrorCode MFNMonitorSet(MFN,PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
+SLEPC_EXTERN PetscErrorCode MFNMonitorCancel(MFN);
+SLEPC_EXTERN PetscErrorCode MFNGetMonitorContext(MFN,void **);
+
+SLEPC_EXTERN PetscErrorCode MFNMonitorSetFromOptions(MFN,const char[],const char[],void*);
+SLEPC_EXTERN PetscErrorCode MFNMonitorLGCreate(MPI_Comm,const char[],const char[],const char[],PetscInt,const char*[],int,int,int,int,PetscDrawLG*);
 SLEPC_EXTERN PetscErrorCode MFNMonitorDefault(MFN,PetscInt,PetscReal,PetscViewerAndFormat*);
-SLEPC_EXTERN PetscErrorCode MFNMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
-SLEPC_EXTERN PetscErrorCode MFNMonitorLG(MFN,PetscInt,PetscReal,void*);
+SLEPC_EXTERN PetscErrorCode MFNMonitorDefaultDrawLG(MFN,PetscInt,PetscReal,PetscViewerAndFormat*);
+SLEPC_EXTERN PetscErrorCode MFNMonitorDefaultDrawLGCreate(PetscViewer,PetscViewerFormat,void *,PetscViewerAndFormat**);
 
 SLEPC_EXTERN PetscErrorCode MFNSetOptionsPrefix(MFN,const char*);
 SLEPC_EXTERN PetscErrorCode MFNAppendOptionsPrefix(MFN,const char*);
@@ -106,7 +107,11 @@ SLEPC_EXTERN const char *const*MFNConvergedReasons;
 SLEPC_EXTERN PetscErrorCode MFNGetConvergedReason(MFN,MFNConvergedReason *);
 
 SLEPC_EXTERN PetscFunctionList MFNList;
+SLEPC_EXTERN PetscFunctionList MFNMonitorList;
+SLEPC_EXTERN PetscFunctionList MFNMonitorCreateList;
+SLEPC_EXTERN PetscFunctionList MFNMonitorDestroyList;
 SLEPC_EXTERN PetscErrorCode MFNRegister(const char[],PetscErrorCode(*)(MFN));
+SLEPC_EXTERN PetscErrorCode MFNMonitorRegister(const char[],PetscViewerType,PetscViewerFormat,PetscErrorCode(*)(MFN,PetscInt,PetscReal,PetscViewerAndFormat*),PetscErrorCode(*)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode(*)(PetscViewerAndFormat**));
 
 SLEPC_EXTERN PetscErrorCode MFNAllocateSolution(MFN,PetscInt);
 

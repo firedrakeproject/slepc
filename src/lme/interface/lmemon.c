@@ -14,6 +14,26 @@
 #include <slepc/private/lmeimpl.h>   /*I "slepclme.h" I*/
 #include <petscdraw.h>
 
+PetscErrorCode LMEMonitorLGCreate(MPI_Comm comm,const char host[],const char label[],const char metric[],PetscInt l,const char *names[],int x,int y,int m,int n,PetscDrawLG *lgctx)
+{
+  PetscDraw      draw;
+  PetscDrawAxis  axis;
+  PetscDrawLG    lg;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
+  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
+  ierr = PetscDrawLGCreate(draw,l,&lg);CHKERRQ(ierr);
+  if (names) { ierr = PetscDrawLGSetLegend(lg,names);CHKERRQ(ierr); }
+  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
+  ierr = PetscDrawLGGetAxis(lg,&axis);CHKERRQ(ierr);
+  ierr = PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric);CHKERRQ(ierr);
+  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
+  *lgctx = lg;
+  PetscFunctionReturn(0);
+}
+
 /*
    Runs the user provided monitor routines, if any.
 */
@@ -51,8 +71,8 @@ $   monitor(LME lme,int its,PetscReal errest,void *mctx)
 -  mctx   - optional monitoring context, as set by LMEMonitorSet()
 
    Options Database Keys:
-+    -lme_monitor        - print the error estimate
-.    -lme_monitor_lg     - sets line graph monitor for the error estimate
++    -lme_monitor - print the error estimate
+.    -lme_monitor draw::draw_lg - sets line graph monitor for the error estimate
 -    -lme_monitor_cancel - cancels all monitors that have been hardwired into
       a code by calls to LMEMonitorSet(), but does not cancel those set via
       the options database.
@@ -86,7 +106,7 @@ PetscErrorCode LMEMonitorSet(LME lme,PetscErrorCode (*monitor)(LME,PetscInt,Pets
 .  lme - linear matrix equation solver context obtained from LMECreate()
 
    Options Database Key:
-.    -lme_monitor_cancel - Cancels all monitors that have been hardwired
+.    -lme_monitor_cancel - cancels all monitors that have been hardwired
       into a code by calls to LMEMonitorSet(),
       but does not cancel those set via the options database.
 
@@ -146,6 +166,9 @@ PetscErrorCode LMEGetMonitorContext(LME lme,void **ctx)
 .  errest - error estimate
 -  vf     - viewer and format for monitoring
 
+   Options Database Key:
+.  -lme_monitor - activates LMEMonitorDefault()
+
    Level: intermediate
 
 .seealso: LMEMonitorSet()
@@ -172,56 +195,39 @@ PetscErrorCode LMEMonitorDefault(LME lme,PetscInt its,PetscReal errest,PetscView
 }
 
 /*@C
-   LMEMonitorLGCreate - Creates a line graph context for use with
-   LME to monitor convergence.
+   LMEMonitorDefaultDrawLG - Plots the error estimate of the current approximation at each
+   iteration of the linear matrix equation solver.
 
-   Collective
+   Collective on lme
 
    Input Parameters:
-+  comm - communicator context
-.  host - the X display to open, or null for the local machine
-.  label - the title to put in the title bar
-.  x, y - the screen coordinates of the upper left coordinate of
-          the window
--  m, n - the screen width and height in pixels
++  lme    - linear matrix equation solver context
+.  its    - iteration number
+.  errest - error estimate
+-  vf     - viewer and format for monitoring
 
-   Output Parameter:
-.  lgctx - the drawing context
-
-   Options Database Keys:
-.  -lme_monitor_lg - Sets line graph monitor
-
-   Notes:
-   Use PetscDrawLGDestroy() to destroy this line graph.
+   Options Database Key:
+.  -lme_monitor draw::draw_lg - activates LMEMonitorDefaultDrawLG()
 
    Level: intermediate
 
 .seealso: LMEMonitorSet()
 @*/
-PetscErrorCode LMEMonitorLGCreate(MPI_Comm comm,const char host[],const char label[],int x,int y,int m,int n,PetscDrawLG *lgctx)
+PetscErrorCode LMEMonitorDefaultDrawLG(LME lme,PetscInt its,PetscReal errest,PetscViewerAndFormat *vf)
 {
-  PetscDraw      draw;
+  PetscErrorCode ierr;
+  PetscViewer    viewer;
   PetscDrawLG    lg;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
-  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
-  ierr = PetscDrawLGCreate(draw,1,&lg);CHKERRQ(ierr);
-  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
-  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
-  *lgctx = lg;
-  PetscFunctionReturn(0);
-}
-
-PetscErrorCode LMEMonitorLG(LME lme,PetscInt its,PetscReal errest,void *ctx)
-{
-  PetscDrawLG    lg = (PetscDrawLG)ctx;
   PetscReal      x,y;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  PetscValidPointer(vf,4);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,4);
+  lg = vf->lg;
+  PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,4);
+  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
@@ -235,6 +241,35 @@ PetscErrorCode LMEMonitorLG(LME lme,PetscInt its,PetscReal errest,void *ctx)
     ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
     ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
   }
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   LMEMonitorDefaultDrawLGCreate - Creates the plotter for the error estimate.
+
+   Collective on viewer
+
+   Input Parameters:
++  viewer - the viewer
+.  format - the viewer format
+-  ctx    - an optional user context
+
+   Output Parameter:
+.  vf     - the viewer and format context
+
+   Level: intermediate
+
+.seealso: LMEMonitorSet()
+@*/
+PetscErrorCode LMEMonitorDefaultDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  (*vf)->data = ctx;
+  ierr = LMEMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

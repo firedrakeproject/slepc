@@ -216,7 +216,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 4
-      args: -nep_type interpol -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse -nep_monitor_lg
+      args: -nep_type interpol -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse -nep_monitor draw::draw_lg
       requires: x !single
       output_file: output/ex22_2.out
 

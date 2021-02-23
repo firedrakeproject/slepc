@@ -358,7 +358,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 13
-      args: -pep_nev 12 -pep_view_values draw -pep_monitor_lg
+      args: -pep_nev 12 -pep_view_values draw -pep_monitor draw::draw_lg
       requires: x !single
       output_file: output/test2_3.out
 

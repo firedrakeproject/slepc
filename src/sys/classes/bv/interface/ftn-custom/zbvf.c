@@ -86,6 +86,7 @@ SLEPC_EXTERN void bvviewfromoptions_(BV *bv,PetscObject obj,char* type,PetscErro
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = BVViewFromOptions(*bv,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }

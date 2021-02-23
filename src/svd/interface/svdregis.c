@@ -58,3 +58,27 @@ PetscErrorCode SVDRegisterAll(void)
   PetscFunctionReturn(0);
 }
 
+/*@C
+  SVDMonitorRegisterAll - Registers all the monitors in the SVD package.
+
+  Not Collective
+
+  Level: advanced
+@*/
+PetscErrorCode SVDMonitorRegisterAll(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (SVDMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  SVDMonitorRegisterAllCalled = PETSC_TRUE;
+
+  ierr = SVDMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorFirst,NULL,NULL);CHKERRQ(ierr);
+  ierr = SVDMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorFirstDrawLG,SVDMonitorFirstDrawLGCreate,NULL);CHKERRQ(ierr);
+  ierr = SVDMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorAll,NULL,NULL);CHKERRQ(ierr);
+  ierr = SVDMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorAllDrawLG,SVDMonitorAllDrawLGCreate,NULL);CHKERRQ(ierr);
+  ierr = SVDMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorConverged,SVDMonitorConvergedCreate,SVDMonitorConvergedDestroy);CHKERRQ(ierr);
+  ierr = SVDMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorConvergedDrawLG,SVDMonitorConvergedDrawLGCreate,SVDMonitorConvergedDestroy);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

@@ -25,12 +25,12 @@
 #define nepgetoptionsprefix_              NEPGETOPTIONSPREFIX
 #define nepsettype_                       NEPSETTYPE
 #define nepgettype_                       NEPGETTYPE
-#define nepmonitorall_                    NEPMONITORALL
-#define nepmonitorlg_                     NEPMONITORLG
-#define nepmonitorlgall_                  NEPMONITORLGALL
 #define nepmonitorset_                    NEPMONITORSET
-#define nepmonitorconverged_              NEPMONITORCONVERGED
+#define nepmonitorall_                    NEPMONITORALL
 #define nepmonitorfirst_                  NEPMONITORFIRST
+#define nepmonitorconverged_              NEPMONITORCONVERGED
+#define nepmonitorconvergedcreate_        NEPMONITORCONVERGEDCREATE
+#define nepmonitorconvergeddestroy_       NEPMONITORCONVERGEDDESTROY
 #define nepconvergedabsolute_             NEPCONVERGEDABSOLUTE
 #define nepconvergedrelative_             NEPCONVERGEDRELATIVE
 #define nepsetconvergencetestfunction_    NEPSETCONVERGENCETESTFUNCTION
@@ -76,12 +76,12 @@
 #define nepgetoptionsprefix_              nepgetoptionsprefix
 #define nepsettype_                       nepsettype
 #define nepgettype_                       nepgettype
-#define nepmonitorall_                    nepmonitorall
-#define nepmonitorlg_                     nepmonitorlg
-#define nepmonitorlgall_                  nepmonitorlgall
 #define nepmonitorset_                    nepmonitorset
-#define nepmonitorconverged_              nepmonitorconverged
+#define nepmonitorall_                    nepmonitorall
 #define nepmonitorfirst_                  nepmonitorfirst
+#define nepmonitorconverged_              nepmonitorconverged
+#define nepmonitorconvergedcreate_        nepmonitorconvergedcreate
+#define nepmonitorconvergeddestroy_       nepmonitorconvergeddestroy
 #define nepconvergedabsolute_             nepconvergedabsolute
 #define nepconvergedrelative_             nepconvergedrelative
 #define nepsetconvergencetestfunction_    nepsetconvergencetestfunction
@@ -121,29 +121,32 @@
    These are not usually called from Fortran but allow Fortran users
    to transparently set these monitors from .F code
 */
-SLEPC_EXTERN void nepmonitorall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepmonitorall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = NEPMonitorAll(*nep,*it,*nconv,eigr,eigi,errest,*nest,*ctx);
+  *ierr = NEPMonitorAll(*nep,*it,*nconv,eigr,eigi,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void nepmonitorconverged_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,SlepcConvMonitor *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepmonitorfirst_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = NEPMonitorConverged(*nep,*it,*nconv,eigr,eigi,errest,*nest,*ctx);
+  *ierr = NEPMonitorFirst(*nep,*it,*nconv,eigr,eigi,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void nepmonitorfirst_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepmonitorconverged_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = NEPMonitorFirst(*nep,*it,*nconv,eigr,eigi,errest,*nest,*ctx);
+  *ierr = NEPMonitorConverged(*nep,*it,*nconv,eigr,eigi,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void nepmonitorlg_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepmonitorconvergedcreate_(PetscViewer *vin,PetscViewerFormat *format,void *ctx,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = NEPMonitorLG(*nep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(vin,v);
+  CHKFORTRANNULLOBJECT(ctx);
+  *ierr = NEPMonitorConvergedCreate(v,*format,ctx,vf);
 }
 
-SLEPC_EXTERN void nepmonitorlgall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepmonitorconvergeddestroy_(PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = NEPMonitorLGAll(*nep,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  *ierr = NEPMonitorConvergedDestroy(vf);
 }
 
 static struct {
@@ -232,6 +235,7 @@ SLEPC_EXTERN void nepviewfromoptions_(NEP *nep,PetscObject obj,char* type,PetscE
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = NEPViewFromOptions(*nep,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }
@@ -316,13 +320,9 @@ SLEPC_EXTERN void nepmonitorset_(NEP *nep,void (*monitor)(NEP*,PetscInt*,PetscIn
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorall_) {
     *ierr = NEPMonitorSet(*nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))NEPMonitorAll,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorconverged_) {
-    *ierr = NEPMonitorSet(*nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))NEPMonitorConverged,*(SlepcConvMonitor*)mctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
+    *ierr = NEPMonitorSet(*nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))NEPMonitorConverged,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))NEPMonitorConvergedDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorfirst_) {
     *ierr = NEPMonitorSet(*nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))NEPMonitorFirst,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorlg_) {
-    *ierr = NEPMonitorSet(*nep,NEPMonitorLG,0,0);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorlgall_) {
-    *ierr = NEPMonitorSet(*nep,NEPMonitorLGAll,0,0);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
     *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;

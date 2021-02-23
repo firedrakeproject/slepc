@@ -104,9 +104,9 @@
 !
 !   Possible arguments to EPSMonitorSet()
 !
-      external EPSMONITORALL
-      external EPSMONITORLG
-      external EPSMONITORLGALL
-      external EPSMONITORCONVERGED
       external EPSMONITORFIRST
+      external EPSMONITORALL
+      external EPSMONITORCONVERGED
+
+      external EPSMonitorConvergedDestroy
 

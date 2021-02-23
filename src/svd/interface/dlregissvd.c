@@ -31,8 +31,12 @@ PetscErrorCode SVDFinalizePackage(void)
 
   PetscFunctionBegin;
   ierr = PetscFunctionListDestroy(&SVDList);CHKERRQ(ierr);
-  SVDPackageInitialized = PETSC_FALSE;
-  SVDRegisterAllCalled  = PETSC_FALSE;
+  ierr = PetscFunctionListDestroy(&SVDMonitorList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&SVDMonitorCreateList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&SVDMonitorDestroyList);CHKERRQ(ierr);
+  SVDPackageInitialized       = PETSC_FALSE;
+  SVDRegisterAllCalled        = PETSC_FALSE;
+  SVDMonitorRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -59,6 +63,8 @@ PetscErrorCode SVDInitializePackage(void)
   ierr = PetscClassIdRegister("SVD Solver",&SVD_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = SVDRegisterAll();CHKERRQ(ierr);
+  /* Register Monitors */
+  ierr = SVDMonitorRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve);CHKERRQ(ierr);

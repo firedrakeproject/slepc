@@ -1,6 +1,7 @@
 
 PEP of diagonal problem, n=6
 
+  1 PEP nconv=12 Values (Errors) 3. (removed) 2.5 (removed) 2. (removed) 1.5 (removed) 1. (removed) 0.5 (removed) -2. (removed) -4. (removed) -6. (removed) -8. (removed) -10. (removed) -12. (removed)
   1 PEP converged value (error) #0 3. (removed)
   1 PEP converged value (error) #1 2.5 (removed)
   1 PEP converged value (error) #2 2. (removed)
@@ -13,7 +14,6 @@ PEP of diagonal problem, n=6
   1 PEP converged value (error) #9 -8. (removed)
   1 PEP converged value (error) #10 -10. (removed)
   1 PEP converged value (error) #11 -12. (removed)
-  1 PEP nconv=12 Values (Errors) 3. (removed) 2.5 (removed) 2. (removed) 1.5 (removed) 1. (removed) 0.5 (removed) -2. (removed) -4. (removed) -6. (removed) -8. (removed) -10. (removed) -12. (removed)
 PEP Object: pep 1 MPI processes
   type: toar
     50% of basis vectors kept after restart

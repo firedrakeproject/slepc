@@ -15,7 +15,9 @@
 #include <slepc/private/slepcimpl.h>
 
 SLEPC_EXTERN PetscBool NEPRegisterAllCalled;
+SLEPC_EXTERN PetscBool NEPMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode NEPRegisterAll(void);
+SLEPC_EXTERN PetscErrorCode NEPMonitorRegisterAll(void);
 SLEPC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval,NEP_Resolvent;
 
 typedef struct _NEPOps *NEPOps;

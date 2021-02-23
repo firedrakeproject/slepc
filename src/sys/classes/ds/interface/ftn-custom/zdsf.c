@@ -92,6 +92,7 @@ SLEPC_EXTERN void dsviewfromoptions_(DS *ds,PetscObject obj,char* type,PetscErro
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = DSViewFromOptions(*ds,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }

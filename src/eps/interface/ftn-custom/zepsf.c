@@ -24,12 +24,12 @@
 #define epsgetoptionsprefix_              EPSGETOPTIONSPREFIX
 #define epssettype_                       EPSSETTYPE
 #define epsgettype_                       EPSGETTYPE
-#define epsmonitorall_                    EPSMONITORALL
-#define epsmonitorlg_                     EPSMONITORLG
-#define epsmonitorlgall_                  EPSMONITORLGALL
 #define epsmonitorset_                    EPSMONITORSET
-#define epsmonitorconverged_              EPSMONITORCONVERGED
+#define epsmonitorall_                    EPSMONITORALL
 #define epsmonitorfirst_                  EPSMONITORFIRST
+#define epsmonitorconverged_              EPSMONITORCONVERGED
+#define epsmonitorconvergedcreate_        EPSMONITORCONVERGEDCREATE
+#define epsmonitorconvergeddestroy_       EPSMONITORCONVERGEDDESTROY
 #define epsconvergedabsolute_             EPSCONVERGEDABSOLUTE
 #define epsconvergedrelative_             EPSCONVERGEDRELATIVE
 #define epsconvergednorm_                 EPSCONVERGEDNORM
@@ -79,12 +79,12 @@
 #define epsgetoptionsprefix_              epsgetoptionsprefix
 #define epssettype_                       epssettype
 #define epsgettype_                       epsgettype
-#define epsmonitorall_                    epsmonitorall
-#define epsmonitorlg_                     epsmonitorlg
-#define epsmonitorlgall_                  epsmonitorlgall
 #define epsmonitorset_                    epsmonitorset
-#define epsmonitorconverged_              epsmonitorconverged
+#define epsmonitorall_                    epsmonitorall
 #define epsmonitorfirst_                  epsmonitorfirst
+#define epsmonitorconverged_              epsmonitorconverged
+#define epsmonitorconvergedcreate_        epsmonitorconvergedcreate
+#define epsmonitorconvergeddestroy_       epsmonitorconvergeddestroy
 #define epsconvergedabsolute_             epsconvergedabsolute
 #define epsconvergedrelative_             epsconvergedrelative
 #define epsconvergednorm_                 epsconvergednorm
@@ -128,29 +128,32 @@
    These are not usually called from Fortran but allow Fortran users
    to transparently set these monitors from .F code
 */
-SLEPC_EXTERN void epsmonitorall_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void epsmonitorall_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = EPSMonitorAll(*eps,*it,*nconv,eigr,eigi,errest,*nest,*ctx);
+  *ierr = EPSMonitorAll(*eps,*it,*nconv,eigr,eigi,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void epsmonitorconverged_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,SlepcConvMonitor *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void epsmonitorfirst_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = EPSMonitorConverged(*eps,*it,*nconv,eigr,eigi,errest,*nest,*ctx);
+  *ierr = EPSMonitorFirst(*eps,*it,*nconv,eigr,eigi,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void epsmonitorfirst_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void epsmonitorconverged_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = EPSMonitorFirst(*eps,*it,*nconv,eigr,eigi,errest,*nest,*ctx);
+  *ierr = EPSMonitorConverged(*eps,*it,*nconv,eigr,eigi,errest,*nest,*vf);
 }
 
-SLEPC_EXTERN void epsmonitorlg_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void epsmonitorconvergedcreate_(PetscViewer *vin,PetscViewerFormat *format,void *ctx,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = EPSMonitorLG(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  PetscViewer v;
+  PetscPatchDefaultViewers_Fortran(vin,v);
+  CHKFORTRANNULLOBJECT(ctx);
+  *ierr = EPSMonitorConvergedCreate(v,*format,ctx,vf);
 }
 
-SLEPC_EXTERN void epsmonitorlgall_(EPS *eps,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void epsmonitorconvergeddestroy_(PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
-  *ierr = EPSMonitorLGAll(*eps,*it,*nconv,eigr,eigi,errest,*nest,ctx);
+  *ierr = EPSMonitorConvergedDestroy(vf);
 }
 
 static struct {
@@ -222,6 +225,7 @@ SLEPC_EXTERN void epsviewfromoptions_(EPS *eps,PetscObject obj,char* type,PetscE
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = EPSViewFromOptions(*eps,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }
@@ -306,13 +310,9 @@ SLEPC_EXTERN void epsmonitorset_(EPS *eps,void (*monitor)(EPS*,PetscInt*,PetscIn
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorall_) {
     *ierr = EPSMonitorSet(*eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))EPSMonitorAll,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorconverged_) {
-    *ierr = EPSMonitorSet(*eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))EPSMonitorConverged,*(SlepcConvMonitor*)mctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
+    *ierr = EPSMonitorSet(*eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))EPSMonitorConverged,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))EPSMonitorConvergedDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorfirst_) {
     *ierr = EPSMonitorSet(*eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))EPSMonitorFirst,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorlg_) {
-    *ierr = EPSMonitorSet(*eps,EPSMonitorLG,0,0);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)epsmonitorlgall_) {
-    *ierr = EPSMonitorSet(*eps,EPSMonitorLGAll,0,0);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
     *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;

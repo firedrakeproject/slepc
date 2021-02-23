@@ -40,7 +40,6 @@
       MatStructure       mstr
       PetscMPIInt        rank
       PetscErrorCode     ierr
-      SlepcConvMonitor   ctx
       PetscViewerAndFormat vf
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -200,10 +199,10 @@
      &                   PETSC_VIEWER_DEFAULT,vf,ierr)
       call NEPMonitorSet(nep,NEPMONITORFIRST,vf,                        &
      &                   PetscViewerAndFormatDestroy,ierr)
-      call SlepcConvMonitorCreate(PETSC_VIEWER_STDOUT_WORLD,            &
-     &                   PETSC_VIEWER_DEFAULT,ctx,ierr)
-      call NEPMonitorSet(nep,NEPMONITORCONVERGED,ctx,                   &
-     &                   SlepcConvMonitorDestroy,ierr)
+      call NEPMonitorConvergedCreate(PETSC_VIEWER_STDOUT_WORLD,         &
+     &                   PETSC_VIEWER_DEFAULT,PETSC_NULL_VEC,vf,ierr)
+      call NEPMonitorSet(nep,NEPMONITORCONVERGED,vf,                    &
+     &                   NEPMonitorConvergedDestroy,ierr)
       call NEPMonitorCancel(nep,ierr)
 
       call NEPGetDS(nep,ds,ierr)

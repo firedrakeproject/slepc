@@ -47,6 +47,7 @@
       PetscMPIInt        rank
       PetscErrorCode     ierr
       PetscBool          flg, tmode
+      PetscViewerAndFormat vf
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -104,7 +105,6 @@
       call MatView(B,PETSC_VIEWER_STDOUT_WORLD,ierr)
       call SVDSetConvergenceTest(svd,SVD_CONV_ABS,ierr)
       call SVDSetStoppingTest(svd,SVD_STOP_BASIC,ierr)
-      call SVDSetFromOptions(svd,ierr)
 
 !     ** query properties and print them
       call SVDGetProblemType(svd,ptype,ierr)
@@ -145,7 +145,18 @@
       endif
  140  format (' Which =',A9)
 
+      call PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,        &
+     &                   PETSC_VIEWER_DEFAULT,vf,ierr)
+      call SVDMonitorSet(svd,SVDMONITORFIRST,vf,                        &
+     &                   PetscViewerAndFormatDestroy,ierr)
+      call SVDMonitorConvergedCreate(PETSC_VIEWER_STDOUT_WORLD,         &
+     &                   PETSC_VIEWER_DEFAULT,PETSC_NULL_VEC,vf,ierr)
+      call SVDMonitorSet(svd,SVDMONITORCONVERGED,vf,                    &
+     &                   SVDMonitorConvergedDestroy,ierr)
+      call SVDMonitorCancel(svd,ierr)
+
 !     ** call the solver
+      call SVDSetFromOptions(svd,ierr)
       call SVDSolve(svd,ierr)
       call SVDGetConvergedReason(svd,reason,ierr)
       if (rank .eq. 0) then

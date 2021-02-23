@@ -86,6 +86,7 @@ SLEPC_EXTERN void rgviewfromoptions_(RG *rg,PetscObject obj,char* type,PetscErro
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = RGViewFromOptions(*rg,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }

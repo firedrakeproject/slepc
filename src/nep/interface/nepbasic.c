@@ -13,10 +13,19 @@
 
 #include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
 
-PetscFunctionList NEPList = 0;
-PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
+/* Logging support */
 PetscClassId      NEP_CLASSID = 0;
 PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0,NEP_Resolvent = 0;
+
+/* List of registered NEP routines */
+PetscFunctionList NEPList = 0;
+PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
+
+/* List of registered NEP monitors */
+PetscFunctionList NEPMonitorList              = NULL;
+PetscFunctionList NEPMonitorCreateList        = NULL;
+PetscFunctionList NEPMonitorDestroyList       = NULL;
+PetscBool         NEPMonitorRegisterAllCalled = PETSC_FALSE;
 
 /*@
    NEPCreate - Creates the default NEP context.
@@ -222,6 +231,50 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
   PetscFunctionBegin;
   ierr = NEPInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&NEPList,name,function);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   NEPMonitorRegister - Adds NEP monitor routine.
+
+   Not Collective
+
+   Input Parameters:
++  name    - name of a new monitor routine
+.  vtype   - a PetscViewerType for the output
+.  format  - a PetscViewerFormat for the output
+.  monitor - monitor routine
+.  create  - creation routine, or NULL
+-  destroy - destruction routine, or NULL
+
+   Notes:
+   NEPMonitorRegister() may be called multiple times to add several user-defined monitors.
+
+   Sample usage:
+.vb
+   NEPMonitorRegister("my_monitor",PETSCVIEWERASCII,PETSC_VIEWER_ASCII_INFO_DETAIL,MyMonitor,NULL,NULL);
+.ve
+
+   Then, your monitor can be chosen with the procedural interface via
+$      NEPMonitorSetFromOptions(nep,"-nep_monitor_my_monitor","my_monitor",NULL)
+   or at runtime via the option
+$      -nep_monitor_my_monitor
+
+   Level: advanced
+
+.seealso: NEPMonitorRegisterAll()
+@*/
+PetscErrorCode NEPMonitorRegister(const char name[],PetscViewerType vtype,PetscViewerFormat format,PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscErrorCode (*create)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode (*destroy)(PetscViewerAndFormat**))
+{
+  char           key[PETSC_MAX_PATH_LEN];
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = NEPInitializePackage();CHKERRQ(ierr);
+  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
+  ierr = PetscFunctionListAdd(&NEPMonitorList,key,monitor);CHKERRQ(ierr);
+  if (create)  { ierr = PetscFunctionListAdd(&NEPMonitorCreateList,key,create);CHKERRQ(ierr); }
+  if (destroy) { ierr = PetscFunctionListAdd(&NEPMonitorDestroyList,key,destroy);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

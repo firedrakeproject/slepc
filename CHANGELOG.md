@@ -22,6 +22,8 @@
   so setting MUMPS options in the command-line requires the appropriate prefix, e.g.,
   `-st_mat_mumps_icntl_13 1`.
 - `DSTruncate()` now has an additional argument `trim`.
+- Monitors have been reorganized as in PETSc. Now use `-eps_monitor draw::draw_lg`
+  instead of `-eps_monitor_lg`.
 
 ### Deprecated
 

@@ -107,3 +107,28 @@ PetscErrorCode EPSRegisterAll(void)
 #endif
   PetscFunctionReturn(0);
 }
+
+/*@C
+  EPSMonitorRegisterAll - Registers all the monitors in the EPS package.
+
+  Not Collective
+
+  Level: advanced
+@*/
+PetscErrorCode EPSMonitorRegisterAll(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (EPSMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  EPSMonitorRegisterAllCalled = PETSC_TRUE;
+
+  ierr = EPSMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorFirst,NULL,NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorFirstDrawLG,EPSMonitorFirstDrawLGCreate,NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorAll,NULL,NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorAllDrawLG,EPSMonitorAllDrawLGCreate,NULL);CHKERRQ(ierr);
+  ierr = EPSMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorConverged,EPSMonitorConvergedCreate,EPSMonitorConvergedDestroy);CHKERRQ(ierr);
+  ierr = EPSMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorConvergedDrawLG,EPSMonitorConvergedDrawLGCreate,EPSMonitorConvergedDestroy);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

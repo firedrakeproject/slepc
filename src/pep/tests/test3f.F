@@ -41,7 +41,6 @@
       PEPProblemType     ptype
       PetscMPIInt        rank
       PetscErrorCode     ierr
-      SlepcConvMonitor   ctx
       PetscViewerAndFormat vf
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -213,10 +212,10 @@
      &                   PETSC_VIEWER_DEFAULT,vf,ierr)
       call PEPMonitorSet(pep,PEPMONITORFIRST,vf,                        &
      &                   PetscViewerAndFormatDestroy,ierr)
-      call SlepcConvMonitorCreate(PETSC_VIEWER_STDOUT_WORLD,            &
-     &                   PETSC_VIEWER_DEFAULT,ctx,ierr)
-      call PEPMonitorSet(pep,PEPMONITORCONVERGED,ctx,                   &
-     &                   SlepcConvMonitorDestroy,ierr)
+      call PEPMonitorConvergedCreate(PETSC_VIEWER_STDOUT_WORLD,         &
+     &                   PETSC_VIEWER_DEFAULT,PETSC_NULL_VEC,vf,ierr)
+      call PEPMonitorSet(pep,PEPMONITORCONVERGED,vf,                    &
+     &                   PEPMonitorConvergedDestroy,ierr)
       call PEPMonitorCancel(pep,ierr)
 
       call PEPGetST(pep,st,ierr)

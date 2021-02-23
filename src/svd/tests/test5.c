@@ -99,7 +99,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 4
-      args: -svd_monitor_lg -svd_monitor_lg_all -svd_view_values draw -draw_save mysingu.ppm -draw_virtual
+      args: -svd_monitor draw::draw_lg -svd_monitor_all draw::draw_lg -svd_view_values draw -draw_save mysingu.ppm -draw_virtual
       requires: !single
 
 TEST*/

@@ -36,8 +36,12 @@ PetscErrorCode EPSFinalizePackage(void)
 
   PetscFunctionBegin;
   ierr = PetscFunctionListDestroy(&EPSList);CHKERRQ(ierr);
-  EPSPackageInitialized = PETSC_FALSE;
-  EPSRegisterAllCalled  = PETSC_FALSE;
+  ierr = PetscFunctionListDestroy(&EPSMonitorList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&EPSMonitorCreateList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&EPSMonitorDestroyList);CHKERRQ(ierr);
+  EPSPackageInitialized       = PETSC_FALSE;
+  EPSRegisterAllCalled        = PETSC_FALSE;
+  EPSMonitorRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -64,6 +68,8 @@ PetscErrorCode EPSInitializePackage()
   ierr = PetscClassIdRegister("EPS Solver",&EPS_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = EPSRegisterAll();CHKERRQ(ierr);
+  /* Register Monitors */
+  ierr = EPSMonitorRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve);CHKERRQ(ierr);

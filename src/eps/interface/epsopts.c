@@ -23,68 +23,45 @@
 
    Input Parameters:
 +  eps      - the eigensolver context
-.  name     - the monitor option name
-.  help     - message indicating what monitoring is done
-.  manual   - manual page for the monitor
-.  monitor  - the monitor function, whose context is a PetscViewerAndFormat
+.  opt      - the command line option for this monitor
+.  name     - the monitor type one is seeking
+.  ctx      - an optional user context for the monitor, or NULL
 -  trackall - whether this monitor tracks all eigenvalues or not
 
    Level: developer
 
-.seealso: EPSMonitorSet(), EPSSetTrackAll(), EPSConvMonitorSetFromOptions()
+.seealso: EPSMonitorSet(), EPSSetTrackAll()
 @*/
-PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool trackall)
+PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char opt[],const char name[],void *ctx,PetscBool trackall)
 {
-  PetscErrorCode       ierr;
-  PetscBool            flg;
+  PetscErrorCode       (*mfunc)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+  PetscErrorCode       (*cfunc)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**);
+  PetscErrorCode       (*dfunc)(PetscViewerAndFormat**);
+  PetscViewerAndFormat *vf;
   PetscViewer          viewer;
   PetscViewerFormat    format;
-  PetscViewerAndFormat *vf;
+  PetscViewerType      vtype;
+  char                 key[PETSC_MAX_PATH_LEN];
+  PetscBool            flg;
+  PetscErrorCode       ierr;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
-    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = EPSMonitorSet(eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
-    if (trackall) {
-      ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,opt,&viewer,&format,&flg);CHKERRQ(ierr);
+  if (!flg) PetscFunctionReturn(0);
 
-/*@C
-   EPSConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
-   indicated by the user (for monitors that only show iteration numbers of convergence).
+  ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
+  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(EPSMonitorList,key,&mfunc);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(EPSMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
+  ierr = PetscFunctionListFind(EPSMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
+  if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
+  if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
-   Collective on eps
-
-   Input Parameters:
-+  eps      - the eigensolver context
-.  name     - the monitor option name
-.  help     - message indicating what monitoring is done
-.  manual   - manual page for the monitor
--  monitor  - the monitor function, whose context is a SlepcConvMonitor
-
-   Level: developer
-
-.seealso: EPSMonitorSet(), EPSMonitorSetFromOptions()
-@*/
-PetscErrorCode EPSConvMonitorSetFromOptions(EPS eps,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor))
-{
-  PetscErrorCode    ierr;
-  PetscBool         flg;
-  PetscViewer       viewer;
-  PetscViewerFormat format;
-  SlepcConvMonitor  ctx;
-
-  PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = SlepcConvMonitorCreate(viewer,format,&ctx);CHKERRQ(ierr);
-    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = EPSMonitorSet(eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
+  ierr = (*cfunc)(viewer,format,ctx,&vf);CHKERRQ(ierr);
+  ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(eps,mfunc,vf,(PetscErrorCode(*)(void **))dfunc);CHKERRQ(ierr);
+  if (trackall) {
+    ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -112,7 +89,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscReal      r,array[2]={0,0};
   PetscScalar    s;
   PetscInt       i,j,k;
-  PetscDrawLG    lg;
   EPSBalance     bal;
 
   PetscFunctionBegin;
@@ -238,29 +214,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       Cancels all monitors hardwired into code before call to EPSSetFromOptions()
     */
     ierr = PetscOptionsBool("-eps_monitor_cancel","Remove any hardwired monitor routines","EPSMonitorCancel",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
-    }
-    /*
-      Text monitors
-    */
-    ierr = EPSMonitorSetFromOptions(eps,"-eps_monitor","Monitor first unconverged approximate eigenvalue and error estimate","EPSMonitorFirst",EPSMonitorFirst,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = EPSConvMonitorSetFromOptions(eps,"-eps_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","EPSMonitorConverged",EPSMonitorConverged);CHKERRQ(ierr);
-    ierr = EPSMonitorSetFromOptions(eps,"-eps_monitor_all","Monitor approximate eigenvalues and error estimates","EPSMonitorAll",EPSMonitorAll,PETSC_TRUE);CHKERRQ(ierr);
-    /*
-      Line graph monitors
-    */
-    ierr = PetscOptionsBool("-eps_monitor_lg","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)eps),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
-    }
-    ierr = PetscOptionsBool("-eps_monitor_lg_all","Monitor error estimates graphically","EPSMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) {
-      ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)eps),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
-      ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
-    }
+    if (set && flg) { ierr = EPSMonitorCancel(eps);CHKERRQ(ierr); }
+    ierr = EPSMonitorSetFromOptions(eps,"-eps_monitor","first_approximation",NULL,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = EPSMonitorSetFromOptions(eps,"-eps_monitor_all","all_approximations",NULL,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = EPSMonitorSetFromOptions(eps,"-eps_monitor_conv","convergence_history",NULL,PETSC_FALSE);CHKERRQ(ierr);
 
     /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",NULL);CHKERRQ(ierr);
@@ -1333,8 +1290,7 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
    usually an expensive operation and solvers commonly compute only the residual
    associated to the first unconverged eigenpair.
 
-   The options '-eps_monitor_all' and '-eps_monitor_lg_all' automatically
-   activate this option.
+   The option '-eps_monitor_all' automatically activates this option.
 
    Level: developer
 

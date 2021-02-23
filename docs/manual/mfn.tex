@@ -115,6 +115,6 @@ Currently implemented methods are:
 
 In the $f(A)v$ problem, there is no clear definition of residual, as opposed to the case of linear systems or eigenproblems. Still, the solvers have different ways of assessing the accuracy of the computed solution. The user can provide a tolerance and maximum number of iterations with \ident{MFNSetTolerances}, but there is no guarantee that an analog of the residual is below the tolerance.
 
-After the solver has finished, the number of performed (outer) iterations can be obtained with \ident{MFNGetIterationNumber}. There are also monitors that display the error estimate, which can be activated with command-line keys \Verb!-mfn_monitor!, or \Verb!-mfn_monitor_lg!. See \S\ref{sec:monitor} for additional details.
+After the solver has finished, the number of performed (outer) iterations can be obtained with \ident{MFNGetIterationNumber}. There are also monitors that display the error estimate, which can be activated with command-line keys \Verb!-mfn_monitor!, or \Verb!-mfn_monitor draw::draw_lg!. See \S\ref{sec:monitor} for additional details.
 
 

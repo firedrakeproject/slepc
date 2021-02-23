@@ -46,3 +46,27 @@ PetscErrorCode NEPRegisterAll(void)
   PetscFunctionReturn(0);
 }
 
+/*@C
+  NEPMonitorRegisterAll - Registers all the monitors in the NEP package.
+
+  Not Collective
+
+  Level: advanced
+@*/
+PetscErrorCode NEPMonitorRegisterAll(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (NEPMonitorRegisterAllCalled) PetscFunctionReturn(0);
+  NEPMonitorRegisterAllCalled = PETSC_TRUE;
+
+  ierr = NEPMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,NEPMonitorFirst,NULL,NULL);CHKERRQ(ierr);
+  ierr = NEPMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,NEPMonitorFirstDrawLG,NEPMonitorFirstDrawLGCreate,NULL);CHKERRQ(ierr);
+  ierr = NEPMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,NEPMonitorAll,NULL,NULL);CHKERRQ(ierr);
+  ierr = NEPMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,NEPMonitorAllDrawLG,NEPMonitorAllDrawLGCreate,NULL);CHKERRQ(ierr);
+  ierr = NEPMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,NEPMonitorConverged,NEPMonitorConvergedCreate,NEPMonitorConvergedDestroy);CHKERRQ(ierr);
+  ierr = NEPMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,NEPMonitorConvergedDrawLG,NEPMonitorConvergedDrawLGCreate,NEPMonitorConvergedDestroy);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

@@ -21,7 +21,6 @@
 #define mfnsettype_                       MFNSETTYPE
 #define mfngettype_                       MFNGETTYPE
 #define mfnmonitordefault_                MFNMONITORDEFAULT
-#define mfnmonitorlg_                     MFNMONITORLG
 #define mfnmonitorset_                    MFNMONITORSET
 #define mfngettolerances00_               MFNGETTOLERANCES00
 #define mfngettolerances10_               MFNGETTOLERANCES10
@@ -36,7 +35,6 @@
 #define mfnsettype_                       mfnsettype
 #define mfngettype_                       mfngettype
 #define mfnmonitordefault_                mfnmonitordefault
-#define mfnmonitorlg_                     mfnmonitorlg
 #define mfnmonitorset_                    mfnmonitorset
 #define mfngettolerances00_               mfngettolerances00
 #define mfngettolerances10_               mfngettolerances10
@@ -50,11 +48,6 @@
 SLEPC_EXTERN void mfnmonitordefault_(MFN *mfn,PetscInt *it,PetscReal *errest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
 {
   *ierr = MFNMonitorDefault(*mfn,*it,*errest,*ctx);
-}
-
-SLEPC_EXTERN void mfnmonitorlg_(MFN *mfn,PetscInt *it,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
-{
-  *ierr = MFNMonitorLG(*mfn,*it,*errest,ctx);
 }
 
 static struct {
@@ -86,6 +79,7 @@ SLEPC_EXTERN void mfnviewfromoptions_(MFN *mfn,PetscObject obj,char* type,PetscE
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = MFNViewFromOptions(*mfn,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }
@@ -148,8 +142,6 @@ SLEPC_EXTERN void mfnmonitorset_(MFN *mfn,void (*monitor)(MFN*,PetscInt*,PetscRe
   CHKFORTRANNULLFUNCTION(monitordestroy);
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)mfnmonitordefault_) {
     *ierr = MFNMonitorSet(*mfn,(PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*))MFNMonitorDefault,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)mfnmonitorlg_) {
-    *ierr = MFNMonitorSet(*mfn,MFNMonitorLG,0,0);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*mfn,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
     *ierr = PetscObjectSetFortranCallback((PetscObject)*mfn,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;

@@ -15,7 +15,9 @@
 #include <slepc/private/slepcimpl.h>
 
 SLEPC_EXTERN PetscBool EPSRegisterAllCalled;
+SLEPC_EXTERN PetscBool EPSMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode EPSRegisterAll(void);
+SLEPC_EXTERN PetscErrorCode EPSMonitorRegisterAll(void);
 SLEPC_EXTERN PetscLogEvent EPS_SetUp,EPS_Solve;
 
 typedef struct _EPSOps *EPSOps;

@@ -86,6 +86,7 @@ SLEPC_EXTERN void stviewfromoptions_(ST *st,PetscObject obj,char* type,PetscErro
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = STViewFromOptions(*st,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }

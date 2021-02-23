@@ -32,8 +32,12 @@ PetscErrorCode NEPFinalizePackage(void)
 
   PetscFunctionBegin;
   ierr = PetscFunctionListDestroy(&NEPList);CHKERRQ(ierr);
-  NEPPackageInitialized = PETSC_FALSE;
-  NEPRegisterAllCalled  = PETSC_FALSE;
+  ierr = PetscFunctionListDestroy(&NEPMonitorList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&NEPMonitorCreateList);CHKERRQ(ierr);
+  ierr = PetscFunctionListDestroy(&NEPMonitorDestroyList);CHKERRQ(ierr);
+  NEPPackageInitialized       = PETSC_FALSE;
+  NEPRegisterAllCalled        = PETSC_FALSE;
+  NEPMonitorRegisterAllCalled = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -60,6 +64,8 @@ PetscErrorCode NEPInitializePackage(void)
   ierr = PetscClassIdRegister("NEP Solver",&NEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = NEPRegisterAll();CHKERRQ(ierr);
+  /* Register Monitors */
+  ierr = NEPMonitorRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("NEPSetUp",NEP_CLASSID,&NEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPSolve",NEP_CLASSID,&NEP_Solve);CHKERRQ(ierr);
