@@ -225,6 +225,7 @@ SLEPC_EXTERN void epsviewfromoptions_(EPS *eps,PetscObject obj,char* type,PetscE
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = EPSViewFromOptions(*eps,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }

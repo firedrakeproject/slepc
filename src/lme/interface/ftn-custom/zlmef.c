@@ -79,6 +79,7 @@ SLEPC_EXTERN void lmeviewfromoptions_(LME *lme,PetscObject obj,char* type,PetscE
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = LMEViewFromOptions(*lme,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }

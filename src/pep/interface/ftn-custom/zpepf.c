@@ -218,6 +218,7 @@ SLEPC_EXTERN void pepviewfromoptions_(PEP *pep,PetscObject obj,char* type,PetscE
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = PEPViewFromOptions(*pep,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }

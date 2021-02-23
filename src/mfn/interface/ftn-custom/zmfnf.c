@@ -79,6 +79,7 @@ SLEPC_EXTERN void mfnviewfromoptions_(MFN *mfn,PetscObject obj,char* type,PetscE
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = MFNViewFromOptions(*mfn,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }

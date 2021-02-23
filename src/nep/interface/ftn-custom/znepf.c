@@ -235,6 +235,7 @@ SLEPC_EXTERN void nepviewfromoptions_(NEP *nep,PetscObject obj,char* type,PetscE
   char *t;
 
   FIXCHAR(type,len,t);
+  CHKFORTRANNULLOBJECT(obj);
   *ierr = NEPViewFromOptions(*nep,obj,t);if (*ierr) return;
   FREECHAR(type,t);
 }
