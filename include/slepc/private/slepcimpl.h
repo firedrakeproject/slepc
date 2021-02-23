@@ -44,11 +44,6 @@ SLEPC_INTERN PetscBool SlepcBeganPetsc;
     PetscHeaderCreate(h,classid,class_name,descr,mansec,comm,destroy,view))
 
 /* context for monitors of type XXXMonitorConverged */
-struct _n_SlepcConvMonitor {
-  PetscViewer       viewer;
-  PetscViewerFormat format;
-  PetscInt          oldnconv;
-};
 struct _n_SlepcConvMon {
   void     *ctx;
   PetscInt oldnconv;  /* previous value of nconv */

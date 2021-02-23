@@ -16,8 +16,6 @@
         PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tSlepcSC
 
-      external SlepcConvMonitorDestroy
-
 ! Default tolerance for the different solvers, depending on the precision
 
 #if defined(PETSC_USE_REAL_SINGLE)

@@ -10,64 +10,6 @@
 
 #include <slepc/private/slepcimpl.h>            /*I "slepcsys.h" I*/
 
-/*@C
-   SlepcConvMonitorCreate - Creates a SlepcConvMonitor context.
-
-   Collective on viewer
-
-   Input Parameters:
-+  viewer - the viewer where the monitor must send data
--  format - the format
-
-   Output Parameter:
-.  ctx - the created context
-
-   Notes:
-   The created context is used for EPS, SVD, PEP, and NEP monitor functions that just
-   print the iteration numbers at which convergence takes place (XXXMonitorConverged).
-
-   This function increases the reference count of the viewer so you can destroy the
-   viewer object after this call.
-
-   Level: developer
-
-.seealso: SlepcConvMonitorDestroy()
-@*/
-PetscErrorCode SlepcConvMonitorCreate(PetscViewer viewer,PetscViewerFormat format,SlepcConvMonitor *ctx)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscObjectReference((PetscObject)viewer);CHKERRQ(ierr);
-  ierr = PetscNew(ctx);CHKERRQ(ierr);
-  (*ctx)->viewer = viewer;
-  (*ctx)->format = format;
-  PetscFunctionReturn(0);
-}
-
-/*@C
-   SlepcConvMonitorDestroy - Destroys a SlepcConvMonitor context.
-
-   Collective
-
-   Input Parameters:
-.  ctx - the SlepcConvMonitor context to be destroyed.
-
-   Level: developer
-
-.seealso: SlepcConvMonitorCreate()
-@*/
-PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (!*ctx) PetscFunctionReturn(0);
-  ierr = PetscViewerDestroy(&(*ctx)->viewer);CHKERRQ(ierr);
-  ierr = PetscFree(*ctx);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 /*
    Internal functions used to register monitors.
  */
