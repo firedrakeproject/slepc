@@ -131,7 +131,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -mfn_monitor_cancel -mfn_converged_reason -mfn_view -log_exclude mfn,bv,fn
+      args: -mfn_monitor_cancel -mfn_converged_reason -mfn_view -log_exclude mfn,bv,fn -mfn_monitor draw::draw_lg -draw_virtual
 
    test:
       suffix: 2

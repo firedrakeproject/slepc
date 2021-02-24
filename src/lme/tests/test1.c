@@ -163,8 +163,8 @@ int main(int argc,char **argv)
 
    test:
       suffix: 3
-      args: -lme_monitor_cancel -info
+      args: -lme_monitor_cancel -info -lme_monitor draw::draw_lg -draw_virtual
       requires: double
-      filter: sed -e "s/equation = [0-9]\.[0-9]*e[+-]\([0-9]*\)/equation = (removed)/g" | sed -e "s/4.0[0-9]*e-10/4.03e-10/" | grep -v Comm | grep -v machine | grep -v PetscGetHostName | grep -v OpenMP | grep -v "Rank of the Cholesky factor" | grep -v "potrf failed" | grep -v "querying" | grep -v FPTrap
+      filter: sed -e "s/equation = [0-9]\.[0-9]*e[+-]\([0-9]*\)/equation = (removed)/g" | sed -e "s/4.0[0-9]*e-10/4.03e-10/" | grep -v Comm | grep -v machine | grep -v PetscGetHostName | grep -v OpenMP | grep -v Colormap | grep -v "Rank of the Cholesky factor" | grep -v "potrf failed" | grep -v "querying" | grep -v FPTrap
 
 TEST*/
