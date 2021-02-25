@@ -1,16 +1,12 @@
 #
-# stage-1 take only a few minutes and generally run on the cloud; they do not run the full test suite or external packages.
+# stage-1 takes only a few minutes; they do not run the full test suite or external packages.
 #
-# stage-2 runs on MCS systems and may take 10 to 15 minutes. They run the full test suite but with limited mixture of external packages
+# stage-2 takes less than 10 15 minutes. They run the full test suite but with limited mixture of external packages.
 #
-# stage-3 runs on MCS systems and may take an hour or more. They run the full test suite and heavily test external packages, utilize valgrind etc
-#         (not yet implemented)
+# stage-3 may take an hour or more. They run the full test suite and heavily test external packages, utilize valgrind etc.
 #
 # The stage-(n) tests are only started if all of the stage-(n-1) tests run without error
 #   You can limit the testing by using the variable STAGE with value 1 or 2
-#
-# By default the test branch is merged to main before testing. (not yet implemented)
-#   You can limite this by using the variable MERGETOMASTER with value 0 (not yet implemented)
 #
 
 stages:
@@ -106,7 +102,7 @@ variables:
     expire_in: 4 days
 
 #
-# The following tests run on the cloud as part of stage-1.
+# The following tests run as part of stage-1.
 #
 
 gnu-c-single-nofort:
