@@ -8,6 +8,7 @@ Diagonal Nonlinear Eigenproblem, n=6
   5 NEP nconv=1 Values (Errors) 2. (removed)
 NEP Object: nep 1 MPI processes
   type: slp
+  deflation threshold: 1e-08
   EPS Object: (nep_slp_) 1 MPI processes
     type: krylovschur
       50% of basis vectors kept after restart
