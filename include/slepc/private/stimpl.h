@@ -129,9 +129,13 @@ PETSC_STATIC_INLINE PetscErrorCode STKSPSetOperators(ST st,Mat A,Mat B)
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
   ierr = KSPSetOperators(st->ksp,A,B);CHKERRQ(ierr);
-  /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS) */
-  ierr = KSPGetOptionsPrefix(st->ksp,&prefix);CHKERRQ(ierr);
-  ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+  ierr = MatGetOptionsPrefix(B,&prefix);CHKERRQ(ierr);
+  if (!prefix) {
+    /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
+       only applies if the Mat has no user-defined prefix */
+    ierr = KSPGetOptionsPrefix(st->ksp,&prefix);CHKERRQ(ierr);
+    ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
