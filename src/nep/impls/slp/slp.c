@@ -56,6 +56,9 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   ierr = EPSSetDimensions(ctx->eps,1,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it);CHKERRQ(ierr);
+  if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
+  if (ctx->deftol==PETSC_DEFAULT) ctx->deftol = nep->tol;
+
   if (nep->twosided) {
     nep->ops->solve = NEPSolve_SLP_Twosided;
     nep->ops->computevectors = NULL;
@@ -295,7 +298,13 @@ static PetscErrorCode NEPSLPSetDeflationThreshold_SLP(NEP nep,PetscReal deftol)
   NEP_SLP *ctx = (NEP_SLP*)nep->data;
 
   PetscFunctionBegin;
-  ctx->deftol = deftol;
+  if (deftol == PETSC_DEFAULT) {
+    ctx->deftol = PETSC_DEFAULT;
+    nep->state  = NEP_STATE_INITIAL;
+  } else {
+    if (deftol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of deftol. Must be > 0");
+    ctx->deftol = deftol;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -696,8 +705,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
   nep->data = (void*)ctx;
 
-  nep->useds = PETSC_TRUE;
-  ctx->deftol = 0.0;
+  nep->useds  = PETSC_TRUE;
+  ctx->deftol = PETSC_DEFAULT;
 
   nep->ops->solve          = NEPSolve_SLP;
   nep->ops->setup          = NEPSetUp_SLP;
