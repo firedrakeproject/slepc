@@ -1,0 +1,19 @@
+
+Singular value problem stored in file.
+
+ Reading COMPLEX matrix from a binary file...
+ Number of iterations of the method: 1
+ Solution method: randomized
+
+ Number of requested singular values: 5
+ Stopping condition: tol=1e-08, maxit=1
+ SVD solve converged (5 singular triplets) due to CONVERGED_TOL; iterations 1
+ ---------------------- --------------------
+          sigma            relative error
+ ---------------------- --------------------
+        1.080800              0.7142
+        0.929362              0.9281
+        0.711709              0.9984
+        0.668235               1.015
+        0.549283              0.9918
+ ---------------------- --------------------

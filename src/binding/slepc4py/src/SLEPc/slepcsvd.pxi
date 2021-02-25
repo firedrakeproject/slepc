@@ -26,6 +26,7 @@ cdef extern from * nogil:
     ctypedef enum SlepcSVDConvergedReason "SVDConvergedReason":
         SVD_CONVERGED_TOL
         SVD_CONVERGED_USER
+        SVD_CONVERGED_MAXIT
         SVD_DIVERGED_ITS
         SVD_DIVERGED_BREAKDOWN
         SVD_CONVERGED_ITERATING

@@ -45,26 +45,30 @@ PetscErrorCode SVDSetUp_Randomized(SVD svd)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDSubspaceResidualNorm(SVD svd,PetscInt i,PetscScalar sigma,PetscReal *res,Vec wu,Vec wv)
+static PetscErrorCode SVDRandomizedResidualNorm(SVD svd,PetscInt i,PetscScalar sigma,PetscReal *res,Vec wu,Vec wv)
 {
   PetscErrorCode ierr;
   PetscReal      norm1,norm2;
   Vec            u,v;
 
   PetscFunctionBegin;
-  ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
-  ierr = BVGetColumn(svd->U,i,&u);CHKERRQ(ierr);
-  /* norm1 = ||A*v-sigma*u||_2 */
-  ierr = MatMult(svd->A,v,wu);CHKERRQ(ierr);
-  ierr = VecAXPY(wu,-sigma,u);CHKERRQ(ierr);
-  ierr = VecNorm(wu,NORM_2,&norm1);CHKERRQ(ierr);
-  /* norm2 = ||A^T*u-sigma*v||_2 */
-  ierr = MatMult(svd->AT,u,wv);CHKERRQ(ierr);
-  ierr = VecAXPY(wv,-sigma,v);CHKERRQ(ierr);
-  ierr = VecNorm(wv,NORM_2,&norm2);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(svd->U,i,&u);CHKERRQ(ierr);
-  *res = PetscSqrtReal(norm1*norm1+norm2*norm2);
+  if (svd->conv!=SVD_CONV_MAXIT) {
+    ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->U,i,&u);CHKERRQ(ierr);
+    /* norm1 = ||A*v-sigma*u||_2 */
+    ierr = MatMult(svd->A,v,wu);CHKERRQ(ierr);
+    ierr = VecAXPY(wu,-sigma,u);CHKERRQ(ierr);
+    ierr = VecNorm(wu,NORM_2,&norm1);CHKERRQ(ierr);
+    /* norm2 = ||A^T*u-sigma*v||_2 */
+    ierr = MatMult(svd->AT,u,wv);CHKERRQ(ierr);
+    ierr = VecAXPY(wv,-sigma,v);CHKERRQ(ierr);
+    ierr = VecNorm(wv,NORM_2,&norm2);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->U,i,&u);CHKERRQ(ierr);
+    *res = PetscSqrtReal(norm1*norm1+norm2*norm2);
+  } else {
+    *res = 1.0;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -118,11 +122,15 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     ierr = MatDestroy(&A);CHKERRQ(ierr);
     /* Check convergence */
     for (i=svd->nconv;i<svd->ncv;i++) {
-      ierr = SVDSubspaceResidualNorm(svd,i,w[i],&res,uu,vv);CHKERRQ(ierr);
+      ierr = SVDRandomizedResidualNorm(svd,i,w[i],&res,uu,vv);CHKERRQ(ierr);
       svd->sigma[i] = PetscRealPart(w[i]);
       ierr = (*svd->converged)(svd,svd->sigma[i],res,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
       if (svd->errest[i] < svd->tol) k++;
       else break;
+    }
+    if (svd->conv == SVD_CONV_MAXIT && svd->its >= svd->max_it) {
+      k = svd->nsv;
+      for (i=0;i<svd->ncv;i++) svd->sigma[i] = PetscRealPart(w[i]);
     }
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
     svd->nconv += k;

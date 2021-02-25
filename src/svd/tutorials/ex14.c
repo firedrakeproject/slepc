@@ -149,4 +149,16 @@ int main(int argc,char **argv)
          args: -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -svd_view
          filter: grep -v tolerance
 
+   testset:
+      args: -svd_nsv 5 -svd_type randomized -svd_max_it 1 -svd_conv_maxit
+      test:
+         suffix: 3
+         args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc
+         requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      test:
+         suffix: 3_complex
+         args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc
+         requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+         filter: sed -e 's/[0-9][0-9]$//'
+
 TEST*/

@@ -276,8 +276,8 @@ Method                     & \ident{SVDType}        & {\footnotesize Database Na
 Cross Product              & \texttt{SVDCROSS}      & \texttt{cross}        & $\star$ & \\
 Cyclic Matrix              & \texttt{SVDCYCLIC}     & \texttt{cyclic}       & & \\
 Lanczos                    & \texttt{SVDLANCZOS}    & \texttt{lanczos}      & & \\
-Thick-restart Lanczos      & \texttt{SVDTRLANCZOS}  & \texttt{trlanczos}    & & \\\hline
-RSVD                       & \texttt{SVDRANDOMIZED} & \texttt{randomized}   & & \\\hline
+Thick-restart Lanczos      & \texttt{SVDTRLANCZOS}  & \texttt{trlanczos}    & & \\
+Randomized SVD (RSVD)      & \texttt{SVDRANDOMIZED} & \texttt{randomized}   & & \\\hline
 \lapack solver             & \texttt{SVDLAPACK}     & \texttt{lapack}       & & yes \\
 Wrapper to \scalapack      & \texttt{SVDSCALAPACK}  & \texttt{scalapack}    & & \\
 Wrapper to \elemental      & \texttt{SVDELEMENTAL}  & \texttt{elemental}    & & \\
@@ -377,6 +377,21 @@ where $\tilde{x}$, $\tilde{u}$, $\tilde{v}$ are the computed singular vectors co
 \paragraph{Controlling and Monitoring Convergence.}
 
 Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations carried out by the solver can be determined with \ident{SVDGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{SVDSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-svd_monitor!, \Verb!-svd_monitor_all!, \Verb!-svd_monitor_conv!, \Verb!-svd_monitor draw::draw_lg!, or \Verb!-svd_monitor_all draw::draw_lg!. See \S\ref{sec:monitor} for additional details.
+
+\begin{table}
+\centering
+{\small \begin{tabular}{llll}
+Convergence criterion      & \texttt{SVDConv}          & Command line key           & Error bound \\\hline
+Absolute                   & \texttt{SVD\_CONV\_ABS}   & \texttt{-svd\_conv\_abs}   & $\|r\|$ \\
+Relative to eigenvalue     & \texttt{SVD\_CONV\_REL}   & \texttt{-svd\_conv\_rel}   & $\|r\|/|\lambda|$ \\
+Fixed number of iterations & \texttt{SVD\_CONV\_MAXIT} & \texttt{-svd\_conv\_maxit} & $\infty$ \\
+User-defined               & \texttt{SVD\_CONV\_USER}  & \texttt{-svd\_conv\_user}  & user function \\
+\hline
+\end{tabular} }
+\caption{\label{tab:svdconvergence}Available possibilities for the convergence criterion.}
+\end{table}
+
+As in the case of eigensolvers, the user can choose different convergence tests, based on an error bound obtained from the computed residual norm, $\|r\|$. Table \ref{tab:svdconvergence} lists the available options. It is worth mentioning the \texttt{SVD\_CONV\_MAXIT} convergence criterion, which is a bit special. With this criterion, the solver will not compute any residual norms and will stop with a successful status when the maximum number of iterations is reached. This is intended for the \texttt{SVDRANDOMIZED} solver in cases when a low-rank approximation of a matrix needs to be computed instead of accurate singular vectors.
 
 \paragraph{Viewing the Solution.}
 

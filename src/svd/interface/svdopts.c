@@ -356,8 +356,9 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,
   svd->convergeduser    = func;
   svd->convergeddestroy = destroy;
   svd->convergedctx     = ctx;
-  if (func == SVDConvergedRelative) svd->conv = SVD_CONV_REL;
-  else if (func == SVDConvergedAbsolute) svd->conv = SVD_CONV_ABS;
+  if (func == SVDConvergedAbsolute) svd->conv = SVD_CONV_ABS;
+  else if (func == SVDConvergedRelative) svd->conv = SVD_CONV_REL;
+  else if (func == SVDConvergedMaxIt) svd->conv = SVD_CONV_MAXIT;
   else {
     svd->conv      = SVD_CONV_USER;
     svd->converged = svd->convergeduser;
@@ -376,15 +377,17 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,
 -  conv - the type of convergence test
 
    Options Database Keys:
-+  -svd_conv_abs  - Sets the absolute convergence test
-.  -svd_conv_rel  - Sets the convergence test relative to the singular value
--  -svd_conv_user - Selects the user-defined convergence test
++  -svd_conv_abs   - Sets the absolute convergence test
+.  -svd_conv_rel   - Sets the convergence test relative to the singular value
+.  -svd_conv_maxit - Forces the maximum number of iterations as set by -svd_max_it
+-  -svd_conv_user  - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
-+     SVD_CONV_ABS  - absolute error ||r||
-.     SVD_CONV_REL  - error relative to the singular value l, ||r||/sigma
--     SVD_CONV_USER - function set by SVDSetConvergenceTestFunction()
++     SVD_CONV_ABS   - absolute error ||r||
+.     SVD_CONV_REL   - error relative to the singular value l, ||r||/sigma
+.     SVD_CONV_MAXIT - no convergence until maximum number of iterations has been reached
+-     SVD_CONV_USER  - function set by SVDSetConvergenceTestFunction()
 
    Level: intermediate
 
@@ -396,8 +399,9 @@ PetscErrorCode SVDSetConvergenceTest(SVD svd,SVDConv conv)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveEnum(svd,conv,2);
   switch (conv) {
-    case SVD_CONV_ABS:  svd->converged = SVDConvergedAbsolute; break;
-    case SVD_CONV_REL:  svd->converged = SVDConvergedRelative; break;
+    case SVD_CONV_ABS:   svd->converged = SVDConvergedAbsolute; break;
+    case SVD_CONV_REL:   svd->converged = SVDConvergedRelative; break;
+    case SVD_CONV_MAXIT: svd->converged = SVDConvergedMaxIt; break;
     case SVD_CONV_USER:
       if (!svd->convergeduser) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ORDER,"Must call SVDSetConvergenceTestFunction() first");
       svd->converged = svd->convergeduser;
@@ -654,10 +658,12 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol,&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) { ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsBoolGroupBegin("-svd_conv_rel","Relative error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_REL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-svd_conv_abs","Absolute error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupBegin("-svd_conv_abs","Absolute error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_ABS);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-svd_conv_rel","Relative error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_REL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-svd_conv_maxit","Maximum iterations convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_MAXIT);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-svd_conv_user","User-defined convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_USER);CHKERRQ(ierr); }
 

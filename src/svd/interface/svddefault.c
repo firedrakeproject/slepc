@@ -14,6 +14,16 @@
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
 /*
+  SVDConvergedAbsolute - Checks convergence absolutely.
+*/
+PetscErrorCode SVDConvergedAbsolute(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
+{
+  PetscFunctionBegin;
+  *errest = res;
+  PetscFunctionReturn(0);
+}
+
+/*
   SVDConvergedRelative - Checks convergence relative to the singular value.
 */
 PetscErrorCode SVDConvergedRelative(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
@@ -24,12 +34,12 @@ PetscErrorCode SVDConvergedRelative(SVD svd,PetscReal sigma,PetscReal res,PetscR
 }
 
 /*
-  SVDConvergedAbsolute - Checks convergence absolutely.
+  SVDConvergedMaxIt - Always returns Inf to force reaching the maximum number of iterations.
 */
-PetscErrorCode SVDConvergedAbsolute(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode SVDConvergedMaxIt(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscFunctionBegin;
-  *errest = res;
+  *errest = PETSC_MAX_REAL;
   PetscFunctionReturn(0);
 }
 
@@ -75,8 +85,11 @@ PetscErrorCode SVDStoppingBasic(SVD svd,PetscInt its,PetscInt max_it,PetscInt nc
     ierr = PetscInfo2(svd,"Singular value solver finished successfully: %D singular triplets converged at iteration %D\n",nconv,its);CHKERRQ(ierr);
     *reason = SVD_CONVERGED_TOL;
   } else if (its >= max_it) {
-    *reason = SVD_DIVERGED_ITS;
-    ierr = PetscInfo1(svd,"Singular value solver iteration reached maximum number of iterations (%D)\n",its);CHKERRQ(ierr);
+    if (svd->conv == SVD_CONV_MAXIT) *reason = SVD_CONVERGED_MAXIT;
+    else {
+      *reason = SVD_DIVERGED_ITS;
+      ierr = PetscInfo1(svd,"Singular value solver iteration reached maximum number of iterations (%D)\n",its);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }

@@ -184,5 +184,7 @@
 !
 !   test:
 !      suffix: 1
+!      args: -svd_type {{lanczos trlanczos cross cyclic randomized}}
+!      filter: sed -e 's/2.99255/2.99254/'
 !
 !TEST*/

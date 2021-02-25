@@ -19,6 +19,7 @@
 
       PetscEnum, parameter :: SVD_CONVERGED_TOL          =  1
       PetscEnum, parameter :: SVD_CONVERGED_USER         =  2
+      PetscEnum, parameter :: SVD_CONVERGED_MAXIT        =  3
       PetscEnum, parameter :: SVD_DIVERGED_ITS           = -1
       PetscEnum, parameter :: SVD_DIVERGED_BREAKDOWN     = -2
       PetscEnum, parameter :: SVD_CONVERGED_ITERATING    =  0
@@ -34,7 +35,8 @@
 
       PetscEnum, parameter :: SVD_CONV_ABS               =  0
       PetscEnum, parameter :: SVD_CONV_REL               =  1
-      PetscEnum, parameter :: SVD_CONV_USER              =  2
+      PetscEnum, parameter :: SVD_CONV_MAXIT             =  2
+      PetscEnum, parameter :: SVD_CONV_USER              =  3
 
       PetscEnum, parameter :: SVD_STOP_BASIC             =  0
       PetscEnum, parameter :: SVD_STOP_USER              =  1

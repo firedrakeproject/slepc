@@ -86,6 +86,8 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
     case SVD_CONV_REL:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the singular value\n");CHKERRQ(ierr);break;
+    case SVD_CONV_MAXIT:
+      ierr = PetscViewerASCIIPrintf(viewer,"maximum number of iterations\n");CHKERRQ(ierr);break;
     case SVD_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }

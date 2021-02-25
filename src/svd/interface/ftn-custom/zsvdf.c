@@ -31,6 +31,7 @@
 #define svdgetoptionsprefix_              SVDGETOPTIONSPREFIX
 #define svdconvergedabsolute_             SVDCONVERGEDABSOLUTE
 #define svdconvergedrelative_             SVDCONVERGEDRELATIVE
+#define svdconvergedmaxit_                SVDCONVERGEDMAXIT
 #define svdsetconvergencetestfunction_    SVDSETCONVERGENCETESTFUNCTION
 #define svdsetstoppingtestfunction_       SVDSETSTOPPINGTESTFUNCTION
 #define svdgetdimensions000_              SVDGETDIMENSIONS000
@@ -68,6 +69,7 @@
 #define svdgetoptionsprefix_              svdgetoptionsprefix
 #define svdconvergedabsolute_             svdconvergedabsolute
 #define svdconvergedrelative_             svdconvergedrelative
+#define svdconvergedmaxit_                svdconvergedmaxit
 #define svdsetconvergencetestfunction_    svdsetconvergencetestfunction
 #define svdsetstoppingtestfunction_       svdsetstoppingtestfunction
 #define svdgetdimensions000_              svdgetdimensions000
@@ -270,6 +272,11 @@ SLEPC_EXTERN void svdconvergedrelative_(SVD *svd,PetscReal *sigma,PetscReal *res
   *ierr = SVDConvergedRelative(*svd,*sigma,*res,errest,ctx);
 }
 
+SLEPC_EXTERN void svdconvergedmaxit_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = SVDConvergedMaxIt(*svd,*sigma,*res,errest,ctx);
+}
+
 SLEPC_EXTERN void svdsetconvergencetestfunction_(SVD *svd,void (*func)(SVD*,PetscReal*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (*destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
@@ -278,6 +285,8 @@ SLEPC_EXTERN void svdsetconvergencetestfunction_(SVD *svd,void (*func)(SVD*,Pets
     *ierr = SVDSetConvergenceTest(*svd,SVD_CONV_ABS);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)svdconvergedrelative_) {
     *ierr = SVDSetConvergenceTest(*svd,SVD_CONV_REL);
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)svdconvergedmaxit_) {
+    *ierr = SVDSetConvergenceTest(*svd,SVD_CONV_MAXIT);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;
     *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;

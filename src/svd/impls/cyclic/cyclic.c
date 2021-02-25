@@ -148,6 +148,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = EPSSetConvergenceTest(cyclic->eps,EPS_CONV_ABS);CHKERRQ(ierr);break;
     case SVD_CONV_REL:
       ierr = EPSSetConvergenceTest(cyclic->eps,EPS_CONV_REL);CHKERRQ(ierr);break;
+    case SVD_CONV_MAXIT:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Maxit convergence test not supported in this solver");
     case SVD_CONV_USER:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined convergence test not supported in this solver");
     }

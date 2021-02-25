@@ -338,6 +338,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     }
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
+    if (svd->conv == SVD_CONV_MAXIT && svd->its >= svd->max_it) k = svd->nsv;
 
     /* check convergence and update l */
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
