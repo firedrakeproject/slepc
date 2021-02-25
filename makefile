@@ -209,7 +209,7 @@ docsetdate: chk_petscdir
         version_minor=`grep '^#define SLEPC_VERSION_MINOR ' include/slepcversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
         version_subminor=`grep '^#define SLEPC_VERSION_SUBMINOR ' include/slepcversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
         if  [ $${version_release} = 0 ]; then \
-          slepcversion=slepc-master; \
+          slepcversion=slepc-main; \
           export slepcversion; \
         elif [ $${version_release} = 1 ]; then \
           slepcversion=slepc-$${version_major}.$${version_minor}.$${version_subminor}; \

@@ -54,8 +54,8 @@ source_suffix = '.rst'
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
 
-# The master toctree document.
-master_doc = 'index'
+# The main toctree document.
+main_doc = 'index'
 
 # General information about the project.
 project = u'SLEPc for Python'
@@ -165,7 +165,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'slepc4py', project, [author], 1)
+    (main_doc, 'slepc4py', project, [author], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -177,7 +177,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'slepc4py', project, author,
+    (main_doc, 'slepc4py', project, author,
      'slepc4py', project+u'.', 'Miscellaneous'),
 ]
 

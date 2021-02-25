@@ -9,7 +9,7 @@
 # The stage-(n) tests are only started if all of the stage-(n-1) tests run without error
 #   You can limit the testing by using the variable STAGE with value 1 or 2
 #
-# By default the test branch is merged to master before testing. (not yet implemented)
+# By default the test branch is merged to main before testing. (not yet implemented)
 #   You can limite this by using the variable MERGETOMASTER with value 0 (not yet implemented)
 #
 

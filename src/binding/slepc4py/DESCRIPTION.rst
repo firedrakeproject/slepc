@@ -32,9 +32,9 @@ or::
 
   $ pip install Cython numpy mpi4py
   $ pip install --no-deps https://gitlab.com/petsc/petsc/-/archive/main.tar.gz
-  $ pip install --no-deps https://gitlab.com/petsc/petsc4py/-/archive/master.tar.gz
-  $ pip install --no-deps https://gitlab.com/slepc/slepc/-/archive/master.tar.gz
-  $ pip install --no-deps https://gitlab.com/slepc/slepc4py/-/archive/master.tar.gz
+  $ pip install --no-deps https://gitlab.com/petsc/petsc4py/-/archive/main.tar.gz
+  $ pip install --no-deps https://gitlab.com/slepc/slepc/-/archive/main.tar.gz
+  $ pip install --no-deps https://gitlab.com/slepc/slepc4py/-/archive/main.tar.gz
 
 
 Citations

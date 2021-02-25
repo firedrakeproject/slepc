@@ -26,9 +26,9 @@ nonlinear eigenvalue problems
 
     $ pip install Cython numpy mpi4py
     $ pip install --no-deps https://gitlab.com/petsc/petsc/-/archive/main/petsc-main.tar.gz
-    $ pip install --no-deps https://bitbucket.org/petsc/petsc4py/get/master.tar.gz
-    $ pip install --no-deps https://bitbucket.org/slepc/slepc/get/master.tar.gz
-    $ pip install --no-deps https://bitbucket.org/slepc/slepc4py/get/master.tar.gz
+    $ pip install --no-deps https://bitbucket.org/petsc/petsc4py/get/main.tar.gz
+    $ pip install --no-deps https://bitbucket.org/slepc/slepc/get/main.tar.gz
+    $ pip install --no-deps https://bitbucket.org/slepc/slepc4py/get/main.tar.gz
 
 """
 
