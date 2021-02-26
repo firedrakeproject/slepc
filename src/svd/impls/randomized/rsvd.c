@@ -42,16 +42,19 @@ PetscErrorCode SVDSetUp_Randomized(SVD svd)
   ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSAllocate(svd->ds,svd->ncv);CHKERRQ(ierr);
+  ierr = SVDSetWorkVecs(svd,1,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDRandomizedResidualNorm(SVD svd,PetscInt i,PetscScalar sigma,PetscReal *res,Vec wu,Vec wv)
+static PetscErrorCode SVDRandomizedResidualNorm(SVD svd,PetscInt i,PetscScalar sigma,PetscReal *res)
 {
   PetscErrorCode ierr;
   PetscReal      norm1,norm2;
-  Vec            u,v;
+  Vec            u,v,wu,wv;
 
   PetscFunctionBegin;
+  wu = svd->swapped? svd->workr[0]: svd->workl[0];
+  wv = svd->swapped? svd->workl[0]: svd->workr[0];
   if (svd->conv!=SVD_CONV_MAXIT) {
     ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVGetColumn(svd->U,i,&u);CHKERRQ(ierr);
@@ -79,22 +82,15 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
   PetscReal      res=1.0;
   PetscInt       i,k=0;
   Mat            A,U,Vt;
-  Vec            uu,vv;
 
   PetscFunctionBegin;
-  /* Work space vectors */
-  ierr = BVCreateVec(svd->U,&uu);CHKERRQ(ierr);
-  ierr = BVCreateVec(svd->V,&vv);CHKERRQ(ierr);
   /* Form random matrix, G. Complete the initial basis with random vectors */
   ierr = BVSetActiveColumns(svd->V,svd->nini,svd->ncv);CHKERRQ(ierr);
   ierr = BVSetRandomNormal(svd->V);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(svd->V,0,svd->ncv);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(svd->U,0,svd->ncv);CHKERRQ(ierr);
   ierr = PetscCalloc1(svd->ncv,&w);CHKERRQ(ierr);
 
   /* Subspace Iteration */
   do {
-    k = 0;
     svd->its++;
     ierr = BVSetActiveColumns(svd->V,svd->nconv,svd->ncv);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(svd->U,svd->nconv,svd->ncv);CHKERRQ(ierr);
@@ -113,16 +109,17 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_VT,&Vt);CHKERRQ(ierr);
     ierr = BVMultInPlaceTranspose(svd->U,Vt,svd->nconv,svd->ncv);CHKERRQ(ierr);
     ierr = BVMultInPlace(svd->V,U,svd->nconv,svd->ncv);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
     ierr = MatDestroy(&Vt);CHKERRQ(ierr);
-    ierr = MatDestroy(&A);CHKERRQ(ierr);
     /* Check convergence */
+    k = 0;
     for (i=svd->nconv;i<svd->ncv;i++) {
-      ierr = SVDRandomizedResidualNorm(svd,i,w[i],&res,uu,vv);CHKERRQ(ierr);
+      ierr = SVDRandomizedResidualNorm(svd,i,w[i],&res);CHKERRQ(ierr);
       svd->sigma[i] = PetscRealPart(w[i]);
       ierr = (*svd->converged)(svd,svd->sigma[i],res,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
       if (svd->errest[i] < svd->tol) k++;
@@ -137,8 +134,6 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
   } while (svd->reason == SVD_CONVERGED_ITERATING);
   ierr = PetscFree(w);CHKERRQ(ierr);
-  ierr = VecDestroy(&uu);CHKERRQ(ierr);
-  ierr = VecDestroy(&vv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
