@@ -79,7 +79,7 @@ int main(int argc,char **argv)
       requires: !__float128
 
    test:
-      args: -svd_nsv 7 -svd_type {{lanczos trlanczos cross cyclic lapack}}
+      args: -svd_nsv 7 -svd_type {{lanczos trlanczos cross cyclic lapack randomized}}
       requires: !single
 
    testset:

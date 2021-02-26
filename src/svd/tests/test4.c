@@ -132,6 +132,9 @@ int main(int argc,char **argv)
          suffix: 1_lanczos
          args: -svd_type lanczos
       test:
+         suffix: 1_randomized
+         args: -svd_type randomized
+      test:
          suffix: 1_trlanczos
          args: -svd_type trlanczos -svd_ncv 12
       test:

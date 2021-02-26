@@ -454,6 +454,7 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
    Does not need access to the matrix entries, just performs a matrix-vector product.
    Based on work by I. Ipsen and coworkers https://ipsen.math.ncsu.edu/ps/slides_ima.pdf
 
+   The input vector vrn must have unit 2-norm.
    If vrn is NULL, then it is created internally and filled with VecSetRandomNormal().
 
    Level: developer
@@ -477,6 +478,7 @@ PetscErrorCode MatNormEstimate(Mat A,Vec vrn,Vec w,PetscReal *nrm)
     ierr = MatCreateVecs(A,&vv,NULL);CHKERRQ(ierr);
     vrn = vv;
     ierr = VecSetRandomNormal(vv,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = VecNormalize(vv,NULL);CHKERRQ(ierr);
   }
   if (!w) {
     ierr = MatCreateVecs(A,&ww,NULL);CHKERRQ(ierr);

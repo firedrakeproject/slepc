@@ -117,7 +117,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -svd_type {{lanczos trlanczos cross cyclic lapack}} -svd_nsv 3
+      args: -svd_type {{lanczos trlanczos cross cyclic lapack randomized}} -svd_nsv 3
       requires: double
 
 TEST*/

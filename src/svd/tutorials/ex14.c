@@ -111,7 +111,8 @@ int main(int argc,char **argv)
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -terse
       test:
          suffix: 1
-         args: -svd_nsv 4 -svd_standard
+         args: -svd_nsv 4 -svd_standard -svd_ncv 12 -svd_type {{trlanczos lanczos randomized cross}}
+         filter: grep -v method
       test:
          suffix: 1_scalapack
          nsize: {{1 2 3}}
@@ -147,5 +148,17 @@ int main(int argc,char **argv)
          suffix: 2_complex
          args: -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -svd_view
          filter: grep -v tolerance
+
+   testset:
+      args: -svd_nsv 5 -svd_type randomized -svd_max_it 1 -svd_conv_maxit
+      test:
+         suffix: 3
+         args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc
+         requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      test:
+         suffix: 3_complex
+         args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc
+         requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+         filter: sed -e 's/[0-9][0-9]$//'
 
 TEST*/

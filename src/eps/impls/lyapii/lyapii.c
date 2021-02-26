@@ -595,7 +595,7 @@ static PetscErrorCode EPSLyapIISetRanks_LyapII(EPS eps,PetscInt rkc,PetscInt rkl
 /*@
    EPSLyapIISetRanks - Set the ranks used in the solution of the Lyapunov equation.
 
-   Collective on EPS
+   Logically Collective on EPS
 
    Input Parameters:
 +  eps - the eigenproblem solver context
