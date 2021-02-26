@@ -1152,7 +1152,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
   } else {
     cerr = cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
   }
-  cerr = cudaMemcpy(Aa,d_As,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
   ierr = PetscLogFlops(2.0*n*n*n*sexp);CHKERRQ(ierr);
 
   cerr = cudaFree(d_Ba);CHKERRCUDA(cerr);
@@ -1307,7 +1306,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
   } else {
     cerr = cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
   }
-  cerr = cudaMemcpy(Aa,d_As,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
   ierr = PetscLogFlops(2.0*n*n*n*sexp);CHKERRQ(ierr);
 
   cerr = cudaFree(d_Ba);CHKERRCUDA(cerr);
