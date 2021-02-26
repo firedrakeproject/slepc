@@ -20,7 +20,8 @@ SLEPC_EXTERN PetscErrorCode MatCreateVecsEmpty(Mat,Vec*,Vec*);
 SLEPC_EXTERN PetscErrorCode MatNormEstimate(Mat,Vec,Vec,PetscReal*);
 
 /* Deprecated functions */
-PETSC_DEPRECATED_FUNCTION("Use MatCreateRedundantMatrix() followed by MatConvert()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat) {
+PETSC_DEPRECATED_FUNCTION("Use MatCreateRedundantMatrix() followed by MatConvert()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
+{
   PetscErrorCode ierr; Mat Ar;
   ierr = MatCreateRedundantMatrix(mat,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
   ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
