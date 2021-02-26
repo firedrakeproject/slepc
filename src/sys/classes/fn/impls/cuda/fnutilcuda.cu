@@ -44,7 +44,7 @@ __host__ PetscErrorCode clean_offdiagonal(PetscInt n,PetscScalar *d_pa,PetscInt 
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
     clean_offdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
-    cerr = cudaGetLastError(); CHKERRCUDA(cerr);
+    cerr = cudaGetLastError();CHKERRCUDA(cerr);
   }
   PetscFunctionReturn(0);
 }
@@ -69,7 +69,7 @@ __host__ PetscErrorCode set_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,Pe
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
     set_diagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
-    cerr = cudaGetLastError(); CHKERRCUDA(cerr);
+    cerr = cudaGetLastError();CHKERRCUDA(cerr);
   }
   PetscFunctionReturn(0);
 }
@@ -94,7 +94,7 @@ __host__ PetscErrorCode set_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
     set_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,vr,vi,i);
-    cerr = cudaGetLastError(); CHKERRCUDA(cerr);
+    cerr = cudaGetLastError();CHKERRCUDA(cerr);
   }
   PetscFunctionReturn(0);
 }
@@ -119,7 +119,7 @@ __host__ PetscErrorCode shift_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
     shift_diagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
-    cerr = cudaGetLastError(); CHKERRCUDA(cerr);
+    cerr = cudaGetLastError();CHKERRCUDA(cerr);
   }
   PetscFunctionReturn(0);
 }
@@ -144,7 +144,7 @@ __host__ PetscErrorCode shift_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt l
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
     shift_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,vr,vi,i);
-    cerr = cudaGetLastError(); CHKERRCUDA(cerr);
+    cerr = cudaGetLastError();CHKERRCUDA(cerr);
   }
   PetscFunctionReturn(0);
 }
@@ -369,8 +369,8 @@ __host__ PetscErrorCode get_params_2D(PetscInt rows,PetscInt cols,dim3 *dimGrid,
   struct cudaDeviceProp devprop;
 
   PetscFunctionBegin;
-  cerr = cudaGetDevice(&card); CHKERRCUDA(cerr);
-  cerr = cudaGetDeviceProperties(&devprop, card); CHKERRCUDA(cerr);
+  cerr = cudaGetDevice(&card);CHKERRCUDA(cerr);
+  cerr = cudaGetDeviceProperties(&devprop,card);CHKERRCUDA(cerr);
 
   *dimGrid_xcount = *dimGrid_ycount = 1;
 

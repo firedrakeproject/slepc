@@ -1489,10 +1489,10 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
 }
 
 /*
- * Matrix exponential implementation based on algorithm and matlab code by Stefan Güttel
+ * Matrix exponential implementation based on algorithm and matlab code by Stefan Guettel
  * and Yuji Nakatsukasa
  *
- *     Stefan Güttel and Yuji Nakatsukasa, "Scaled and Squared Subdiagonal Padé
+ *     Stefan Guettel and Yuji Nakatsukasa, "Scaled and Squared Subdiagonal Pade'
  *     Approximation for the Matrix Exponential",
  *     SIAM J. Matrix Anal. Appl. 37(1):145-170, 2016.
  *     https://doi.org/10.1137/15M1027553

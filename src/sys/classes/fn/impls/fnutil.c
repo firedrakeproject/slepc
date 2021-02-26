@@ -468,11 +468,12 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   /* undo scaling */
   if (inv) {
     sqrtnrm = 1.0/sqrtnrm;
-    cberr = cublasXscal(cublasv2handle,N,&sqrtnrm,d_A,one);CHKERRCUBLAS(cberr);
+    cberr = cublasXscal(cublasv2handle,N,&sqrtnrm,d_Z,one);CHKERRCUBLAS(cberr);
+    cerr = cudaMemcpy(A,d_Z,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
   } else {
     cberr = cublasXscal(cublasv2handle,N,&sqrtnrm,d_A,one);CHKERRCUBLAS(cberr);
+    cerr = cudaMemcpy(A,d_A,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
   }
-  cerr = cudaMemcpy(A,d_A,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
 
   cerr = cudaFree(d_A);CHKERRCUDA(cerr);
   cerr = cudaFree(d_Yold);CHKERRCUDA(cerr);
@@ -538,7 +539,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
 //      ierr = mult_diagonal(d_invM,n,ld,&detM);CHKERRQ(cerr);
       cerr = cudaMemcpy(T,d_invM,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
       prod = T[0];
-      for(i=1;i<n;i++) { prod *= T[i+i*ld]; }
+      for (i=1;i<n;i++) { prod *= T[i+i*ld]; }
       detM = PetscAbsReal(prod);
       g = PetscPowReal(detM,-1.0/(2.0*n));
       alpha = g;
