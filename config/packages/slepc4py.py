@@ -46,7 +46,7 @@ class Slepc4py(package.Package):
         pythonpath = os.path.join(petsc.dir,'lib') if petsc.isinstall else os.path.join(petsc.dir,petsc.arch,'lib')
         sys.path.insert(0,pythonpath)
       else:
-        pythonpath = '${PYTHONPATH}'
+        pythonpath = os.environ['PYTHONPATH']
       from petsc4py import PETSc
     except ImportError:
       self.log.Exit('Cannot import petsc4py, make sure your PYTHONPATH is set correctly')
