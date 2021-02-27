@@ -234,26 +234,19 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscBool      isascii;
   char           str[50];
-#if !defined(PETSC_HAVE_CUDA)
   const char     *methodname[] = {
                   "Schur method for inv(A)*sqrtm(A)",
                   "Denman-Beavers (product form)",
                   "Newton-Schulz iteration",
                   "Sadeghi iteration"
-  };
-#else
-  const char     *methodname[] = {
-                  "Schur method for inv(A)*sqrtm(A)",
-                  "Denman-Beavers (product form)",
-                  "Newton-Schulz iteration",
-                  "Sadeghi iteration"
-                 ,"Newton-Schulz iteration CUDA",
+#if defined(PETSC_HAVE_CUDA)
+                 ,"Newton-Schulz iteration CUDA"
 #if defined(PETSC_HAVE_MAGMA)
-                  "Denman-Beavers (product form) CUDAm",
-                  "Sadeghi iteration CUDAm"
+                 ,"Denman-Beavers (product form) CUDA/MAGMA",
+                  "Sadeghi iteration CUDA/MAGMA"
+#endif
 #endif
   };
-#endif
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;

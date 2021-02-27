@@ -12,7 +12,6 @@
 */
 
 #include <petscsys.h>
-
 #include "fnutilcuda.h"
 
 #if defined(PETSC_HAVE_CUDA)
@@ -24,11 +23,8 @@ __global__ void clean_offdiagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt l
 
   if (x<n) {
     for (j=0;j<n;j++){
-      if (j != x) {
-        d_pa[x+j*ld] = 0.0;
-      } else {
-        d_pa[x+j*ld] = d_pa[x+j*ld]*v;
-      }
+      if (j != x) d_pa[x+j*ld] = 0.0;
+      else d_pa[x+j*ld] = d_pa[x+j*ld]*v;
     }
   }
 }
@@ -36,9 +32,9 @@ __global__ void clean_offdiagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt l
 __host__ PetscErrorCode clean_offdiagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v)
 {
   /* XXX use 2D TBD */
-  PetscInt        i,dimGrid_xcount;
-  dim3            blocks3d,threads3d;
-  cudaError_t     cerr;
+  PetscInt    i,dimGrid_xcount;
+  dim3        blocks3d,threads3d;
+  cudaError_t cerr;
 
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
@@ -61,9 +57,9 @@ __global__ void set_diagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,Pet
 
 __host__ PetscErrorCode set_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v)
 {
-  PetscInt        i,dimGrid_xcount;
-  dim3            blocks3d,threads3d;
-  cudaError_t     cerr;
+  PetscInt    i,dimGrid_xcount;
+  dim3        blocks3d,threads3d;
+  cudaError_t cerr;
 
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
@@ -86,9 +82,9 @@ __global__ void set_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld,P
 
 __host__ PetscErrorCode set_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscReal vr,PetscReal vi)
 {
-  PetscInt        i,dimGrid_xcount;
-  dim3            blocks3d,threads3d;
-  cudaError_t     cerr;
+  PetscInt    i,dimGrid_xcount;
+  dim3        blocks3d,threads3d;
+  cudaError_t cerr;
 
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
@@ -111,9 +107,9 @@ __global__ void shift_diagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,P
 
 __host__ PetscErrorCode shift_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v)
 {
-  PetscInt        i,dimGrid_xcount;
-  dim3            blocks3d,threads3d;
-  cudaError_t     cerr;
+  PetscInt    i,dimGrid_xcount;
+  dim3        blocks3d,threads3d;
+  cudaError_t cerr;
 
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
@@ -136,9 +132,9 @@ __global__ void shift_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld
 
 __host__ PetscErrorCode shift_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscReal vr,PetscReal vi)
 {
-  PetscInt        i,dimGrid_xcount;
-  dim3            blocks3d,threads3d;
-  cudaError_t     cerr;
+  PetscInt    i,dimGrid_xcount;
+  dim3        blocks3d,threads3d;
+  cudaError_t cerr;
 
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
@@ -164,9 +160,9 @@ __global__ void copy_array2D_S2C_kernel(PetscInt m,PetscInt n,PetscComplex *d_pa
 
 __host__ PetscErrorCode copy_array2D_S2C(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscScalar *d_pb,PetscInt ldb)
 {
-  PetscInt        i,j,dimGrid_xcount,dimGrid_ycount;
-  dim3            blocks3d,threads3d;
-  cudaError_t     cerr;
+  PetscInt    i,j,dimGrid_xcount,dimGrid_ycount;
+  dim3        blocks3d,threads3d;
+  cudaError_t cerr;
 
   PetscFunctionBegin;
   get_params_2D(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
@@ -194,9 +190,9 @@ __global__ void copy_array2D_C2S_kernel(PetscInt m,PetscInt n,PetscScalar *d_pa,
 
 __host__ PetscErrorCode copy_array2D_C2S(PetscInt m,PetscInt n,PetscScalar *d_pa,PetscInt lda,PetscComplex *d_pb,PetscInt ldb)
 {
-  PetscInt        i,j,dimGrid_xcount,dimGrid_ycount;
-  dim3            blocks3d,threads3d;
-  cudaError_t     cerr;
+  PetscInt    i,j,dimGrid_xcount,dimGrid_ycount;
+  dim3        blocks3d,threads3d;
+  cudaError_t cerr;
 
   PetscFunctionBegin;
   get_params_2D(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
@@ -224,9 +220,9 @@ __global__ void add_array2D_Conj_kernel(PetscInt m,PetscInt n,PetscComplex *d_pa
 
 __host__ PetscErrorCode add_array2D_Conj(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda)
 {
-  PetscInt        i,j,dimGrid_xcount,dimGrid_ycount;
-  dim3            blocks3d,threads3d;
-  cudaError_t     cerr;
+  PetscInt    i,j,dimGrid_xcount,dimGrid_ycount;
+  dim3        blocks3d,threads3d;
+  cudaError_t cerr;
 
   PetscFunctionBegin;
   get_params_2D(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
@@ -256,10 +252,10 @@ __global__ void getisreal_array2D_kernel(PetscInt m,PetscInt n,PetscComplex *d_p
 
 __host__ PetscErrorCode getisreal_array2D(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscBool *d_result)
 {
-  PetscInt        i,j,dimGrid_xcount,dimGrid_ycount;
-  PetscBool       result=PETSC_TRUE;
-  dim3            blocks3d,threads3d;
-  cudaError_t     cerr;
+  PetscInt    i,j,dimGrid_xcount,dimGrid_ycount;
+  PetscBool   result=PETSC_TRUE;
+  dim3        blocks3d,threads3d;
+  cudaError_t cerr;
 
   PetscFunctionBegin;
   cerr = cudaMemcpy(d_result,&result,sizeof(PetscBool),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
@@ -346,7 +342,7 @@ __host__ PetscErrorCode get_params_1D(PetscInt rows,dim3 *dimGrid,dim3 *dimBlock
   *dimGrid_xcount = 1;
 
   // X axis
-  dimGrid->x = 1;
+  dimGrid->x  = 1;
   dimBlock->x = BLOCK_SIZE_X;
   if (rows>(BLOCK_SIZE_X*TILE_SIZE_X)) {
     dimGrid->x = (rows+((BLOCK_SIZE_X*TILE_SIZE_X)-1))/(BLOCK_SIZE_X*TILE_SIZE_X);
@@ -358,7 +354,6 @@ __host__ PetscErrorCode get_params_1D(PetscInt rows,dim3 *dimGrid,dim3 *dimBlock
     *dimGrid_xcount = (dimGrid->x+(devprop.maxGridSize[X_AXIS]-1))/devprop.maxGridSize[X_AXIS];
     dimGrid->x = devprop.maxGridSize[X_AXIS];
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -375,7 +370,7 @@ __host__ PetscErrorCode get_params_2D(PetscInt rows,PetscInt cols,dim3 *dimGrid,
   *dimGrid_xcount = *dimGrid_ycount = 1;
 
   // X axis
-  dimGrid->x = 1;
+  dimGrid->x  = 1;
   dimBlock->x = BLOCK_SIZE_X;
   if (rows > (BLOCK_SIZE_X*TILE_SIZE_X)) {
     dimGrid->x = (rows+((BLOCK_SIZE_X*TILE_SIZE_X)-1))/(BLOCK_SIZE_X*TILE_SIZE_X);
@@ -389,7 +384,7 @@ __host__ PetscErrorCode get_params_2D(PetscInt rows,PetscInt cols,dim3 *dimGrid,
   }
 
   // Y axis
-  dimGrid->y = 1;
+  dimGrid->y  = 1;
   dimBlock->y = BLOCK_SIZE_Y;
   if (cols>(BLOCK_SIZE_Y*TILE_SIZE_Y)) {
     dimGrid->y = (cols+((BLOCK_SIZE_Y*TILE_SIZE_Y)-1))/(BLOCK_SIZE_Y*TILE_SIZE_Y);
@@ -401,7 +396,6 @@ __host__ PetscErrorCode get_params_2D(PetscInt rows,PetscInt cols,dim3 *dimGrid,
     *dimGrid_ycount = (dimGrid->y+(devprop.maxGridSize[Y_AXIS]-1))/devprop.maxGridSize[Y_AXIS];
     dimGrid->y = devprop.maxGridSize[Y_AXIS];
   }
-
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_CUDA */

@@ -11,11 +11,11 @@
    Utility subroutines common to several impls
 */
 
-#include <petsccublas.h>
-#include <slepcsys.h>
-
 #if !defined(__FNUTILCUDA_H)
 #define __FNUTILCUDA_H
+
+#include <petsccublas.h>
+#include <slepcsys.h>
 
 #if defined(PETSC_HAVE_CUDA)
 

@@ -480,7 +480,6 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   cerr = cudaFree(d_Z);CHKERRCUDA(cerr);
   cerr = cudaFree(d_Zold);CHKERRCUDA(cerr);
   cerr = cudaFree(d_M);CHKERRCUDA(cerr);
-
   PetscFunctionReturn(0);
 }
 

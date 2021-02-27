@@ -114,13 +114,13 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
  */
 PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
 {
-  PetscScalar        *M,*M2,*G,*X=A,*work,work1,sqrtnrm;
-  PetscScalar        szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
-  PetscReal          tol,Mres=0.0,nrm,rwork[1],done=1.0;
-  PetscBLASInt       N,i,it,*piv=NULL,info,lwork=0,query=-1,one=1,zero=0;
-  PetscBool          converged=PETSC_FALSE;
-  PetscErrorCode     ierr;
-  unsigned int       ftz;
+  PetscScalar    *M,*M2,*G,*X=A,*work,work1,sqrtnrm;
+  PetscScalar    szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
+  PetscReal      tol,Mres=0.0,nrm,rwork[1],done=1.0;
+  PetscBLASInt   N,i,it,*piv=NULL,info,lwork=0,query=-1,one=1,zero=0;
+  PetscBool      converged=PETSC_FALSE;
+  PetscErrorCode ierr;
+  unsigned int   ftz;
 
   PetscFunctionBegin;
   N = n*n;
@@ -230,7 +230,7 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
 
 #include <cuda_runtime_api.h>
 #include <petsccublas.h>
-#include "../cuda/fnutilcuda.h"
+#include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
 
 #if defined(PETSC_HAVE_MAGMA)
 
@@ -362,7 +362,6 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
   ierr = PetscFree(piv);CHKERRQ(ierr);
 
   magma_finalize();
-
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_MAGMA */
@@ -445,26 +444,19 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscBool      isascii;
   char           str[50];
-#if !defined(PETSC_HAVE_CUDA)
   const char     *methodname[] = {
                   "Schur method for the square root",
                   "Denman-Beavers (product form)",
                   "Newton-Schulz iteration",
                   "Sadeghi iteration"
-  };
-#else
-  const char     *methodname[] = {
-                  "Schur method for the square root",
-                  "Denman-Beavers (product form)",
-                  "Newton-Schulz iteration",
-                  "Sadeghi iteration",
-                  "Newton-Schulz iteration CUDA"
+#if defined(PETSC_HAVE_CUDA)
+                 ,"Newton-Schulz iteration CUDA"
 #if defined(PETSC_HAVE_MAGMA)
-                 ,"Denman-Beavers (product form) CUDAm",
-                  "Sadeghi iteration CUDAm"
+                 ,"Denman-Beavers (product form) CUDA/MAGMA",
+                  "Sadeghi iteration CUDA/MAGMA"
+#endif
 #endif
   };
-#endif
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;

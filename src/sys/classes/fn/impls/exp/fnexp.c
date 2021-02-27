@@ -446,65 +446,61 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   Maux2 = Maux;
   ierr = PetscOptionsGetReal(NULL,NULL,"-fn_expm_estimated_eig",&shift,&flg);CHKERRQ(ierr);
   if (!flg) {
-  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
-  ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
-  /* estimate rightmost eigenvalue and shift A with it */
+    ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
+    ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
+    /* estimate rightmost eigenvalue and shift A with it */
 #if !defined(PETSC_HAVE_ESSL)
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,&work1,&query,&info));
-  SlepcCheckLapackInfo("geev",info);
-  ierr = PetscBLASIntCast((PetscInt)work1,&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,work,&lwork,&info));
-  ierr = PetscFree(work);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,&work1,&query,&info));
+    SlepcCheckLapackInfo("geev",info);
+    ierr = PetscBLASIntCast((PetscInt)work1,&lwork);CHKERRQ(ierr);
+    ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,work,&lwork,&info));
+    ierr = PetscFree(work);CHKERRQ(ierr);
 #else
-  ierr = PetscArraycpy(Maux,Aa,n2);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,Maux,&n,wr,NULL,&n,NULL,&n,&work1,&query,rwork,&info));
-  SlepcCheckLapackInfo("geev",info);
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc2(2*n,&rwork,lwork,&work);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,Maux,&n,wr,NULL,&n,NULL,&n,work,&lwork,rwork,&info));
-  ierr = PetscFree2(rwork,work);CHKERRQ(ierr);
+    ierr = PetscArraycpy(Maux,Aa,n2);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,Maux,&n,wr,NULL,&n,NULL,&n,&work1,&query,rwork,&info));
+    SlepcCheckLapackInfo("geev",info);
+    ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
+    ierr = PetscMalloc2(2*n,&rwork,lwork,&work);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,Maux,&n,wr,NULL,&n,NULL,&n,work,&lwork,rwork,&info));
+    ierr = PetscFree2(rwork,work);CHKERRQ(ierr);
 #endif
-  SlepcCheckLapackInfo("geev",info);
+    SlepcCheckLapackInfo("geev",info);
 #else /* defined(PETSC_HAVE_ESSL) */
-  ierr = PetscBLASIntCast(4*n,&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc2(lwork,&rwork,2*n,&wri);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(4*n,&lwork);CHKERRQ(ierr);
+    ierr = PetscMalloc2(lwork,&rwork,2*n,&wri);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,sMaux,&n,wri,&sdummy,&idummy,&idummy,&n,rwork,&lwork));
-  for (i=0;i<n;i++) {
-    wr[i] = wri[2*i];
-    wi[i] = wri[2*i+1];
-  }
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,sMaux,&n,wri,&sdummy,&idummy,&idummy,&n,rwork,&lwork));
+    for (i=0;i<n;i++) {
+      wr[i] = wri[2*i];
+      wi[i] = wri[2*i+1];
+    }
 #else
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,Maux,&n,wri,&sdummy,&idummy,&idummy,&n,rwork,&lwork));
-  for (i=0;i<n;i++) wr[i] = wri[i];
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,Maux,&n,wri,&sdummy,&idummy,&idummy,&n,rwork,&lwork));
+    for (i=0;i<n;i++) wr[i] = wri[i];
 #endif
-  ierr = PetscFree2(rwork,wri);CHKERRQ(ierr);
+    ierr = PetscFree2(rwork,wri);CHKERRQ(ierr);
 #endif
-  ierr = PetscLogFlops(25.0*n*n*n+(n*n*n)/3.0+1.0*n*n*n);CHKERRQ(ierr);
+    ierr = PetscLogFlops(25.0*n*n*n+(n*n*n)/3.0+1.0*n*n*n);CHKERRQ(ierr);
 
-  shift = PetscRealPart(wr[0]);
-  for (i=1;i<n;i++) {
-    if (PetscRealPart(wr[i]) > shift) shift = PetscRealPart(wr[i]);
-  }
-  ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
+    shift = PetscRealPart(wr[0]);
+    for (i=1;i<n;i++) {
+      if (PetscRealPart(wr[i]) > shift) shift = PetscRealPart(wr[i]);
+    }
+    ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
   }
   /* shift so that largest real part is (about) 0 */
   ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
   if (shift) {
-  for (i=0;i<n;i++) {
-    sMaux[i+i*n] -= shift;
-  }
-  ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+    for (i=0;i<n;i++) sMaux[i+i*n] -= shift;
+    ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscArraycpy(Maux,Aa,n2);CHKERRQ(ierr);
   if (shift) {
-  for (i=0;i<n;i++) {
-    Maux[i+i*n] -= shift;
-  }
-  ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+    for (i=0;i<n;i++) Maux[i+i*n] -= shift;
+    ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
   }
 #endif
 
@@ -513,13 +509,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
   ierr = sexpm_params(nrm,&s,&k,&m);CHKERRQ(ierr);
   if (s==0 && k==1 && m==0) { /* exp(A) = I+A to eps! */
-    if (shift) {
-    expshift = PetscExpReal(shift);
-    }
+    if (shift) expshift = PetscExpReal(shift);
     for (i=0;i<n;i++) sMaux[i+i*n] += 1.0;
     if (shift) {
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,sMaux,&one));
-    ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,sMaux,&one));
+      ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
     } else {
       ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
     }
@@ -700,9 +694,9 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     sMaux = Ba2;
   }
   if (shift) {
-  expshift = PetscExpReal(shift);
-  PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,Ba,&one));
-  ierr = PetscLogFlops(1.0*n2);CHKERRQ(ierr);
+    expshift = PetscExpReal(shift);
+    PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,Ba,&one));
+    ierr = PetscLogFlops(1.0*n2);CHKERRQ(ierr);
   }
 
   /* restore pointers */
@@ -1370,10 +1364,10 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   Apowers[4] = Apowers[3] + n*n;      /* Apowers[4] = A^8 */
   /* Matrix powers on device */
   d_Apowers[0] = d_work;                /* d_Apowers[0] = A   */
-  d_Apowers[1] = d_Apowers[0] + n*n;      /* d_Apowers[1] = A^2 */
-  d_Apowers[2] = d_Apowers[1] + n*n;      /* d_Apowers[2] = A^4 */
-  d_Apowers[3] = d_Apowers[2] + n*n;      /* d_Apowers[3] = A^6 */
-  d_Apowers[4] = d_Apowers[3] + n*n;      /* d_Apowers[4] = A^8 */
+  d_Apowers[1] = d_Apowers[0] + n*n;    /* d_Apowers[1] = A^2 */
+  d_Apowers[2] = d_Apowers[1] + n*n;    /* d_Apowers[2] = A^4 */
+  d_Apowers[3] = d_Apowers[2] + n*n;    /* d_Apowers[3] = A^6 */
+  d_Apowers[4] = d_Apowers[3] + n*n;    /* d_Apowers[4] = A^8 */
 
   ierr = cudaMemcpy(d_Apowers[0],Aa,n2*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
   cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[0],n_,d_Apowers[0],n_,&szero,d_Apowers[1],n_);CHKERRCUBLAS(cberr);
@@ -1536,45 +1530,45 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   d_Maux2 = d_Maux;
   ierr = PetscOptionsGetReal(NULL,NULL,"-fn_expm_estimated_eig",&shift,&flg);CHKERRQ(ierr);
   if (!flg) {
-  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
-  ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
-  /* estimate rightmost eigenvalue and shift A with it */
+    ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
+    ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
+    /* estimate rightmost eigenvalue and shift A with it */
 #if !defined(PETSC_USE_COMPLEX)
-  mierr = magma_xgeev(MagmaNoVec,MagmaNoVec,n,sMaux,n,wr,wi,NULL,n,NULL,n,&work1,query,&info);CHKMAGMA(mierr);
-  SlepcCheckLapackInfo("geev",info);
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
-  mierr = magma_xgeev(MagmaNoVec,MagmaNoVec,n,sMaux,n,wr,wi,NULL,n,NULL,n,work,lwork,&info);CHKMAGMA(mierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
+    mierr = magma_xgeev(MagmaNoVec,MagmaNoVec,n,sMaux,n,wr,wi,NULL,n,NULL,n,&work1,query,&info);CHKMAGMA(mierr);
+    SlepcCheckLapackInfo("geev",info);
+    ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
+    ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
+    mierr = magma_xgeev(MagmaNoVec,MagmaNoVec,n,sMaux,n,wr,wi,NULL,n,NULL,n,work,lwork,&info);CHKMAGMA(mierr);
+    ierr = PetscFree(work);CHKERRQ(ierr);
 #else
-  ierr = PetscArraycpy(Maux,Aa,n2);CHKERRQ(ierr);
-  mierr = magma_xgeev(MagmaNoVec,MagmaNoVec,n,Maux,n,wr,NULL,n,NULL,n,&work1,query,rwork,&info);CHKMAGMA(mierr);
-  SlepcCheckLapackInfo("geev",info);
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc2(2*n,&rwork,lwork,&work);CHKERRQ(ierr);
-  mierr = magma_xgeev(MagmaNoVec,MagmaNoVec,n,Maux,n,wr,NULL,n,NULL,n,work,lwork,rwork,&info);CHKMAGMA(mierr);
-  ierr = PetscFree2(rwork,work);CHKERRQ(ierr);
+    ierr = PetscArraycpy(Maux,Aa,n2);CHKERRQ(ierr);
+    mierr = magma_xgeev(MagmaNoVec,MagmaNoVec,n,Maux,n,wr,NULL,n,NULL,n,&work1,query,rwork,&info);CHKMAGMA(mierr);
+    SlepcCheckLapackInfo("geev",info);
+    ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
+    ierr = PetscMalloc2(2*n,&rwork,lwork,&work);CHKERRQ(ierr);
+    mierr = magma_xgeev(MagmaNoVec,MagmaNoVec,n,Maux,n,wr,NULL,n,NULL,n,work,lwork,rwork,&info);CHKMAGMA(mierr);
+    ierr = PetscFree2(rwork,work);CHKERRQ(ierr);
 #endif
-  SlepcCheckLapackInfo("geev",info);
-  ierr = PetscLogFlops(25.0*n*n*n+(n*n*n)/3.0+1.0*n*n*n);CHKERRQ(ierr);
+    SlepcCheckLapackInfo("geev",info);
+    ierr = PetscLogFlops(25.0*n*n*n+(n*n*n)/3.0+1.0*n*n*n);CHKERRQ(ierr);
 
-  shift = PetscRealPart(wr[0]);
-  for (i=1;i<n;i++) {
-    if (PetscRealPart(wr[i]) > shift) shift = PetscRealPart(wr[i]);
-  }
-  ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
+    shift = PetscRealPart(wr[0]);
+    for (i=1;i<n;i++) {
+      if (PetscRealPart(wr[i]) > shift) shift = PetscRealPart(wr[i]);
+    }
+    ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
   }
   /* shift so that largest real part is (about) 0 */
   cerr = cudaMemcpy(d_sMaux,Aa,sizeof(PetscScalar)*n2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   if (shift) {
-  ierr = shift_diagonal(n,d_sMaux,n,-shift);CHKERRQ(ierr);
-  ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+    ierr = shift_diagonal(n,d_sMaux,n,-shift);CHKERRQ(ierr);
+    ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
   cerr = cudaMemcpy(d_Maux,Aa,sizeof(PetscScalar)*n2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   if (shift) {
-  ierr = shift_diagonal(n,d_Maux,n,-shift);CHKERRQ(ierr);
-  ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+    ierr = shift_diagonal(n,d_Maux,n,-shift);CHKERRQ(ierr);
+    ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
   }
 #endif
 
@@ -1583,13 +1577,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
   ierr = sexpm_params(nrm,&s,&k,&m);CHKERRQ(ierr);
   if (s==0 && k==1 && m==0) { /* exp(A) = I+A to eps! */
-    if (shift) {
-    expshift = PetscExpReal(shift);
-    }
+    if (shift) expshift = PetscExpReal(shift);
     ierr = shift_Cdiagonal(n,d_Maux,n,rone,rzero);CHKERRQ(ierr);
     if (shift) {
-    cberr = cublasXscal(cublasv2handle,n2,&expshift,d_sMaux,one);CHKERRCUBLAS(cberr);
-    ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
+      cberr = cublasXscal(cublasv2handle,n2,&expshift,d_sMaux,one);CHKERRCUBLAS(cberr);
+      ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
     } else {
       ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
     }
@@ -1748,9 +1740,9 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     d_sMaux = d_Ba2;
   }
   if (shift) {
-  expshift = PetscExpReal(shift);
-  cberr = cublasXscal(cublasv2handle,n2,&expshift,d_Ba,one);CHKERRCUBLAS(cberr);
-  ierr = PetscLogFlops(1.0*n2);CHKERRQ(ierr);
+    expshift = PetscExpReal(shift);
+    cberr = cublasXscal(cublasv2handle,n2,&expshift,d_Ba,one);CHKERRCUBLAS(cberr);
+    ierr = PetscLogFlops(1.0*n2);CHKERRQ(ierr);
   }
 
   cerr = cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*n2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
@@ -1778,28 +1770,21 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
   PetscErrorCode ierr;
   PetscBool      isascii;
   char           str[50];
-#if !defined(PETSC_HAVE_CUDA)
   const char     *methodname[] = {
                   "scaling & squaring, [m/m] Pade approximant (Higham)",
                   "scaling & squaring, [6/6] Pade approximant",
                   "scaling & squaring, subdiagonal Pade approximant (product form)",
                   "scaling & squaring, subdiagonal Pade approximant (partial fraction)"
-  };
-#else
-  const char     *methodname[] = {
-                  "scaling & squaring, [m/m] Pade approximant (Higham)",
-                  "scaling & squaring, [6/6] Pade approximant",
-                  "scaling & squaring, subdiagonal Pade approximant (product form)",
-                  "scaling & squaring, subdiagonal Pade approximant (partial fraction)",
-                  "scaling & squaring, [6/6] Pade approximant CUDA"
+#if defined(PETSC_HAVE_CUDA)
+                 ,"scaling & squaring, [6/6] Pade approximant CUDA"
 #if defined(PETSC_HAVE_MAGMA)
-                 ,"scaling & squaring, [m/m] Pade approximant (Higham) CUDAm",
-                  "scaling & squaring, [6/6] Pade approximant CUDAm",
-                  "scaling & squaring, subdiagonal Pade approximant (product form) CUDAm",
-                  "scaling & squaring, subdiagonal Pade approximant (partial fraction) CUDAm",
+                 ,"scaling & squaring, [m/m] Pade approximant (Higham) CUDA/MAGMA",
+                  "scaling & squaring, [6/6] Pade approximant CUDA/MAGMA",
+                  "scaling & squaring, subdiagonal Pade approximant (product form) CUDA/MAGMA",
+                  "scaling & squaring, subdiagonal Pade approximant (partial fraction) CUDA/MAGMA",
+#endif
 #endif
   };
-#endif
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
