@@ -168,6 +168,10 @@ int main(int argc,char **argv)
          args: -fn_method 4
          requires: cuda !single
       test:
+         suffix: 1_magma
+         args: -fn_method {{5 6}}
+         requires: cuda magma !single
+      test:
          suffix: 2
          args: -inplace -fn_method {{0 1 2}}
       test:
@@ -178,6 +182,10 @@ int main(int argc,char **argv)
          suffix: 2_cuda
          args: -inplace -fn_method 4
          requires: cuda !single
+      test:
+         suffix: 2_magma
+         args: -inplace -fn_method {{5 6}}
+         requires: cuda magma !single
 
    testset:
       nsize: 3

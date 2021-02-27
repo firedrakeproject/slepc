@@ -180,11 +180,19 @@ int main(int argc,char **argv)
          args: -fn_method 4
          requires: cuda
       test:
+         suffix: 1_magma
+         args: -fn_method {{5 6}}
+         requires: cuda magma
+      test:
          suffix: 2
          args: -inplace -fn_method {{0 1 2 3}}
       test:
          suffix: 2_cuda
          args: -inplace -fn_method 4
          requires: cuda
+      test:
+         suffix: 2_magma
+         args: -inplace -fn_method {{5 6}}
+         requires: cuda magma
 
 TEST*/
