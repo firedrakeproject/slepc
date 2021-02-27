@@ -192,44 +192,7 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
 }
 
 #if defined(PETSC_HAVE_CUDA)
-
-#if defined(PETSC_USE_COMPLEX)
-#if defined(PETSC_USE_REAL_SINGLE)
-#define cublasXgetrfBatched(a,b,c,d,e,f,g)        cublasCgetrfBatched((a),(b),(cuComplex **)(c),(d),(e),(f),(g))
-#define cublasXgetriBatched(a,b,c,d,e,f,g,h,i)    cublasCgetriBatched((a),(b),(cuComplex **)(c),(d),(e),(cuComplex **)(f),(g),(h),(i))
-#define cublasXgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)  cublasCgemm((a),(b),(c),(d),(e),(f),(const cuComplex *)(g),(const cuComplex *)(h),(i),(const cuComplex *)(j),(k),(const cuComplex *)(l),(cuComplex *)(m),(n))
-#define cublasXscal(a,b,c,d,e)                    cublasCscal((a),(b),(const cuComplex *)(c),(cuComplex *)(d),(e))
-#define cublasXaxpy(a,b,c,d,e,f,g)                cublasCaxpy((a),(b),(const cuComplex *)(c),(const cuComplex *)(d),(e),(cuComplex *)(f),(g))
-#define cublasXnrm2(a,b,c,d,e)                    cublasCznrm2((a),(b),(const cuComplex *)(c),(d),(e))
-#else
-#define cublasXgetrfBatched(a,b,c,d,e,f,g)        cublasZgetrfBatched((a),(b),(cuDoubleComplex **)(c),(d),(e),(f),(g))
-#define cublasXgetriBatched(a,b,c,d,e,f,g,h,i)    cublasZgetriBatched((a),(b),(const cuDoubleComplex **)(c),(d),(e),(cuDoubleComplex **)(f),(g),(h),(i))
-#define cublasXgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)  cublasZgemm((a),(b),(c),(d),(e),(f),(const cuDoubleComplex *)(g),(const cuDoubleComplex *)(h),(i),(const cuDoubleComplex *)(j),(k),(const cuDoubleComplex *)(l),(cuDoubleComplex *)(m),(n))
-#define cublasXscal(a,b,c,d,e)                    cublasZscal((a),(b),(const cuDoubleComplex *)(c),(cuDoubleComplex *)(d),(e))
-#define cublasXaxpy(a,b,c,d,e,f,g)                cublasZaxpy((a),(b),(const cuDoubleComplex *)(c),(const cuDoubleComplex *)(d),(e),(cuDoubleComplex *)(f),(g))
-#define cublasXnrm2(a,b,c,d,e)                    cublasDznrm2((a),(b),(const cuDoubleComplex *)(c),(d),(e))
-#endif
-#else
-#if defined(PETSC_USE_REAL_SINGLE)
-#define cublasXgetrfBatched cublasSgetrfBatched
-#define cublasXgetriBatched cublasSgetriBatched
-#define cublasXgemm         cublasSgemm
-#define cublasXscal         cublasSscal
-#define cublasXaxpy         cublasSaxpy
-#define cublasXnrm2         cublasSnrm2
-#else
-#define cublasXgetrfBatched cublasDgetrfBatched
-#define cublasXgetriBatched cublasDgetriBatched
-#define cublasXgemm         cublasDgemm
-#define cublasXscal         cublasDscal
-#define cublasXaxpy         cublasDaxpy
-#define cublasXnrm2         cublasDnrm2
-#define cublasXnrm2         cublasDnrm2
-#endif
-#endif
-
 #include <cuda_runtime_api.h>
-#include <petsccublas.h>
 #include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
 
 #if defined(PETSC_HAVE_MAGMA)

@@ -962,53 +962,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
 }
 
 #if defined(PETSC_HAVE_CUDA)
-#include <cuda_runtime_api.h>
-#include <petsccublas.h>
 #include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
-
-#if defined(PETSC_USE_COMPLEX)
-#if defined(PETSC_USE_REAL_SINGLE)
-#define cublasXgetrfBatched(a,b,c,d,e,f,g)         cublasCgetrfBatched((a),(b),(cuComplex **)(c),(d),(e),(f),(g))
-#define cublasXgetrsBatched(a,b,c,d,e,f,g,h,i,j,k) cublasCgetrsBatched((a),(b),(c),(d),(const cuComplex **)(e),(f),(g),(cuComplex **)(h),(i),(j),(k))
-#define cublasXgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)   cublasCgemm((a),(b),(c),(d),(e),(f),(const cuComplex *)(g),(const cuComplex *)(h),(i),(const cuComplex *)(j),(k),(const cuComplex *)(l),(cuComplex *)(m),(n))
-#define cublasXscal(a,b,c,d,e)                     cublasCscal((a),(b),(const cuComplex *)(c),(cuComplex *)(d),(e))
-#define cublasXaxpy(a,b,c,d,e,f,g)                 cublasCaxpy((a),(b),(const cuComplex *)(c),(const cuComplex *)(d),(e),(cuComplex *)(f),(g))
-#define cublasXnrm2(a,b,c,d,e)                     cublasCznrm2((a),(b),(const cuComplex *)(c),(d),(e))
-#else
-#define cublasXgetrfBatched(a,b,c,d,e,f,g)         cublasZgetrfBatched((a),(b),(cuDoubleComplex **)(c),(d),(e),(f),(g))
-#define cublasXgetrsBatched(a,b,c,d,e,f,g,h,i,j,k) cublasZgetrsBatched((a),(b),(c),(d),(const cuDoubleComplex **)(e),(f),(g),(cuDoubleComplex **)(h),(i),(j),(k))
-#define cublasXgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)   cublasZgemm((a),(b),(c),(d),(e),(f),(const cuDoubleComplex *)(g),(const cuDoubleComplex *)(h),(i),(const cuDoubleComplex *)(j),(k),(const cuDoubleComplex *)(l),(cuDoubleComplex *)(m),(n))
-#define cublasXscal(a,b,c,d,e)                     cublasZscal((a),(b),(const cuDoubleComplex *)(c),(cuDoubleComplex *)(d),(e))
-#define cublasXaxpy(a,b,c,d,e,f,g)                 cublasZaxpy((a),(b),(const cuDoubleComplex *)(c),(const cuDoubleComplex *)(d),(e),(cuDoubleComplex *)(f),(g))
-#define cublasXnrm2(a,b,c,d,e)                     cublasDznrm2((a),(b),(const cuDoubleComplex *)(c),(d),(e))
-#endif /* COMPLEX DOUBLE */
-#else
-#if defined(PETSC_USE_REAL_SINGLE)
-#define cublasXgetrfBatched                        cublasSgetrfBatched
-#define cublasXgetrsBatched                        cublasSgetrsBatched
-#define cublasXgemm                                cublasSgemm
-#define cublasXscal                                cublasSscal
-#define cublasXaxpy                                cublasSaxpy
-#define cublasXnrm2                                cublasSnrm2
-#else
-#define cublasXgetrfBatched                        cublasDgetrfBatched
-#define cublasXgetrsBatched                        cublasDgetrsBatched
-#define cublasXgemm                                cublasDgemm
-#define cublasXscal                                cublasDscal
-#define cublasXaxpy                                cublasDaxpy
-#define cublasXnrm2                                cublasDnrm2
-#endif /* REAL DOUBLE */
-#endif /* COMPLEX */
-
-#if defined(PETSC_USE_REAL_SINGLE)
-#define cublasXCaxpy(a,b,c,d,e,f,g)                cublasCaxpy((a),(b),(const cuComplex *)(c),(const cuComplex *)(d),(e),(cuComplex *)(f),(g))
-#define cublasXCgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)  cublasCgemm((a),(b),(c),(d),(e),(f),(const cuComplex *)(g),(const cuComplex *)(h),(i),(const cuComplex *)(j),(k),(const cuComplex *)(l),(cuComplex *)(m),(n))
-#define cublasXCscal(a,b,c,d,e)                    cublasCscal((a),(b),(const cuComplex *)(c),(cuComplex *)(d),(e))
-#else
-#define cublasXCaxpy(a,b,c,d,e,f,g)                cublasZaxpy((a),(b),(const cuDoubleComplex *)(c),(const cuDoubleComplex *)(d),(e),(cuDoubleComplex *)(f),(g))
-#define cublasXCgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)  cublasZgemm((a),(b),(c),(d),(e),(f),(const cuDoubleComplex *)(g),(const cuDoubleComplex *)(h),(i),(const cuDoubleComplex *)(j),(k),(const cuDoubleComplex *)(l),(cuDoubleComplex *)(m),(n))
-#define cublasXCscal(a,b,c,d,e)                    cublasZscal((a),(b),(const cuDoubleComplex *)(c),(cuDoubleComplex *)(d),(e))
-#endif /* COMPLEX */
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 {

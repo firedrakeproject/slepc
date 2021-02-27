@@ -14,7 +14,8 @@
 #if !defined(__FNUTILCUDA_H)
 #define __FNUTILCUDA_H
 
-#include <petsccublas.h>
+#include <cuda_runtime_api.h>
+#include <slepccublas.h>
 #include <slepcsys.h>
 
 #if defined(PETSC_HAVE_CUDA)
