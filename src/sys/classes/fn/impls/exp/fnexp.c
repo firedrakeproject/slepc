@@ -963,6 +963,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
 
 #if defined(PETSC_HAVE_CUDA)
 #include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
+#include <slepccublas.h>
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 {
@@ -1121,33 +1122,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 }
 
 #if defined(PETSC_HAVE_MAGMA)
-/* magma */
-#if defined(PETSC_USE_COMPLEX)
-#if defined(PETSC_USE_REAL_SINGLE)
-#define magma_xgeev(a,b,c,d,e,f,g,h,i,j,k,l.m.n) magma_cgeev((a),(b),(c),(magmaFloatComplex*)(d),(e),(magmaFloatComplex*)(f),(magmaFloatComplex*)(g),(h),(magmaFloatComplex*)(i),(j),(magmaFloatComplex*)(k),(l),(m),(n))
-#define magma_xgesv_gpu(a,b,c,d,e,f,g,h)         magma_cgesv_gpu((a),(b),(magmaFloatComplex_ptr)(c),(d),(e),(magmaFloatComplex_ptr)(f),(g),(h))
-#else
-#define magma_xgeev(a,b,c,d,e,f,g,h,i,j,k,l,m,n) magma_zgeev((a),(b),(c),(magmaDoubleComplex*)(d),(e),(magmaDoubleComplex*)(f),(magmaDoubleComplex*)(g),(h),(magmaDoubleComplex*)(i),(j),(magmaDoubleComplex*)(k),(l),(m),(n))
-#define magma_xgesv_gpu(a,b,c,d,e,f,g,h)         magma_zgesv_gpu((a),(b),(magmaDoubleComplex_ptr)(c),(d),(e),(magmaDoubleComplex_ptr)(f),(g),(h))
-#endif
-#else
-#if defined(PETSC_USE_REAL_SINGLE)
-#define magma_xgeev                              magma_sgeev
-#define magma_xgesv_gpu                          magma_sgesv_gpu
-#else
-#define magma_xgeev                              magma_dgeev
-#define magma_xgesv_gpu                          magma_dgesv_gpu
-#endif
-#endif
-
-#if defined(PETSC_USE_REAL_SINGLE)
-#define magma_Cgesv_gpu(a,b,c,d,e,f,g,h)         magma_cgesv_gpu((a),(b),(magmaFloatComplex_ptr)(c),(d),(e),(magmaFloatComplex_ptr)(f),(g),(h))
-#else
-#define magma_Cgesv_gpu(a,b,c,d,e,f,g,h)         magma_zgesv_gpu((a),(b),(magmaDoubleComplex_ptr)(c),(d),(e),(magmaDoubleComplex_ptr)(f),(g),(h))
-#endif
-
-#include <magma_v2.h>
-#define CHKMAGMA(mierr) CHKERRABORT(PETSC_COMM_SELF,mierr)
+#include <slepcmagma.h>
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
 {

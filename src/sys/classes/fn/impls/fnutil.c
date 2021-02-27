@@ -320,35 +320,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
 
 #if defined(PETSC_HAVE_CUDA)
 #include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
-
-#if defined(PETSC_HAVE_MAGMA)
-
-#if defined(PETSC_USE_COMPLEX)
-#if defined(PETSC_USE_REAL_SINGLE)
-#define magma_xgetrf_gpu(a,b,c,d,e,f)   magma_cgetrf_gpu((a),(b),(magmaFloatComplex_ptr)(c),(d),(e),(f))
-#define magma_xgetri_gpu(a,b,c,d,e,f,g) magma_cgetri_gpu((a),(magmaFloatComplex_ptr)(b),(c),(d),(magmaFloatComplex_ptr)(e),(f),(g))
-#define magma_get_xgetri_nb             magma_get_cgetri_nb
-#else
-#define magma_xgetrf_gpu(a,b,c,d,e,f)   magma_zgetrf_gpu((a),(b),(magmaDoubleComplex_ptr)(c),(d),(e),(f))
-#define magma_xgetri_gpu(a,b,c,d,e,f,g) magma_zgetri_gpu((a),(magmaDoubleComplex_ptr)(b),(c),(d),(magmaDoubleComplex_ptr)(e),(f),(g))
-#define magma_get_xgetri_nb             magma_get_zgetri_nb
-#endif
-#else
-#if defined(PETSC_USE_REAL_SINGLE)
-#define magma_xgetrf_gpu                magma_sgetrf_gpu
-#define magma_xgetri_gpu                magma_sgetri_gpu
-#define magma_get_xgetri_nb             magma_get_sgetri_nb
-#else
-#define magma_xgetrf_gpu                magma_dgetrf_gpu
-#define magma_xgetri_gpu                magma_dgetri_gpu
-#define magma_get_xgetri_nb             magma_get_dgetri_nb
-#endif
-#endif
-
-#include <magma_v2.h>
-#define CHKMAGMA(mierr) CHKERRABORT(PETSC_COMM_SELF,mierr)
-
-#endif /* PETSC_HAVE_MAGMA */
+#include <slepccublas.h>
 
 /*
  * Matrix square root by Newton-Schulz iteration. CUDA version.
@@ -446,6 +418,8 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
 }
 
 #if defined(PETSC_HAVE_MAGMA)
+#include <slepcmagma.h>
+
 /*
  * Matrix square root by product form of Denman-Beavers iteration. CUDA version.
  * Computes the principal square root of the matrix T using the product form

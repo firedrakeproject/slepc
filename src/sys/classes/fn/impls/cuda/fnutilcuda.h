@@ -14,11 +14,10 @@
 #if !defined(__FNUTILCUDA_H)
 #define __FNUTILCUDA_H
 
-#include <cuda_runtime_api.h>
-#include <slepccublas.h>
 #include <slepcsys.h>
 
 #if defined(PETSC_HAVE_CUDA)
+#include <petsccublas.h>
 
 #define X_AXIS 0
 #define Y_AXIS 1
