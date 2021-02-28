@@ -466,7 +466,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
 
     if (scale) { /* g = (abs(det(M)))^(-1/(2*n)); */
       cerr = cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
-      mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKMAGMA(mierr);
+      mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKERRMAGMA(mierr);
       if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
       if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
 
@@ -487,10 +487,10 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     cerr = cudaMemcpy(d_Told,d_T,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
     cerr = cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
 
-    mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKMAGMA(mierr);
+    mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKERRMAGMA(mierr);
     if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
     if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
-    mierr = magma_xgetri_gpu(n,d_invM,ld,piv,d_work,lwork,&info);
+    mierr = magma_xgetri_gpu(n,d_invM,ld,piv,d_work,lwork,&info);CHKERRMAGMA(mierr);
     if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
     if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
     ierr = PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0);CHKERRQ(ierr);

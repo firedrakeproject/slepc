@@ -267,10 +267,10 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
     /* M = M*inv(G*G) */
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_G,ld,d_G,ld,&szero,d_M2,ld);CHKERRCUBLAS(cberr);
     /* magma */
-    mierr = magma_xgetrf_gpu(n,n,d_M2,ld,piv,&info);CHKMAGMA(mierr);
+    mierr = magma_xgetrf_gpu(n,n,d_M2,ld,piv,&info);CHKERRMAGMA(mierr);
     if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
     if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
-    mierr = magma_xgetri_gpu(n,d_M2,ld,piv,d_work,lwork,&info);
+    mierr = magma_xgetri_gpu(n,d_M2,ld,piv,d_work,lwork,&info);CHKERRMAGMA(mierr);
     if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
     if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
     /* magma */
