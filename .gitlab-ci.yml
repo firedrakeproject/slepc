@@ -329,7 +329,7 @@ gnu-c-cuda:
   tags:
     - linux-ubuntu, gpu:nvidia
   variables:
-    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --with-openmp --download-mumps --download-scalapack --download-metis --download-parmetis
+    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --with-openmp --download-mumps --download-scalapack --download-metis --download-parmetis --with-magma-dir=/usr/local/opt/magma-2.5.4
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
 
 clang-c:
@@ -460,7 +460,7 @@ gnu-c-cuda-complex:
   tags:
     - linux-ubuntu, gpu:nvidia
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-openmp --download-thrust
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-openmp --download-thrust --with-magma-dir=/usr/local/opt/magma-2.5.4
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
     TEST_OPTS: -j1 query=requires queryval=cuda
 

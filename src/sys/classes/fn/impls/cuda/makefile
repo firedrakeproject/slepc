@@ -8,17 +8,17 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requirespackage 'PETSC_HAVE_CUDA'
 ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = fnutil.c
+SOURCECU = fnutilcuda.cu
 SOURCEF  =
-SOURCEH  =
+SOURCEH  = fnutilcuda.h
 LIBBASE  = libslepcsys
-DIRS     = combine exp log phi rational sqrt invsqrt cuda
-LOCDIR   = src/sys/classes/fn/impls/
+DIRS     =
 MANSEC   = FN
+LOCDIR   = src/sys/classes/fn/impls/cuda/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

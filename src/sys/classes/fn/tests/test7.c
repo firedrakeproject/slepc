@@ -151,50 +151,51 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      nsize: 1
-      args: -fn_scale .05,2 -n 100 -fn_method {{0 1 2}shared output}
+   testset:
+      args: -fn_scale .05,2 -n 100
       filter: grep -v "computing matrix functions"
       output_file: output/test7_1.out
       timeoutfactor: 2
+      test:
+         suffix: 1
+         args: -fn_method {{0 1 2}}
+      test:
+         suffix: 1_sadeghi
+         args: -fn_method 3
+         requires: !single
+      test:
+         suffix: 1_cuda
+         args: -fn_method 4
+         requires: cuda !single
+      test:
+         suffix: 1_magma
+         args: -fn_method {{5 6}}
+         requires: cuda magma !single
+      test:
+         suffix: 2
+         args: -inplace -fn_method {{0 1 2}}
+      test:
+         suffix: 2_sadeghi
+         args: -inplace -fn_method 3
+         requires: !single
+      test:
+         suffix: 2_cuda
+         args: -inplace -fn_method 4
+         requires: cuda !single
+      test:
+         suffix: 2_magma
+         args: -inplace -fn_method {{5 6}}
+         requires: cuda magma !single
 
-   test:
-      suffix: 1_sadeghi
-      nsize: 1
-      args: -fn_scale .05,2 -n 100 -fn_method 3
-      requires: !single
-      filter: grep -v "computing matrix functions"
-      output_file: output/test7_1.out
-
-   test:
-      suffix: 2
-      nsize: 1
-      args: -fn_scale .05,2 -n 100 -inplace -fn_method {{0 1 2}shared output}
-      filter: grep -v "computing matrix functions"
-      output_file: output/test7_1.out
-      timeoutfactor: 2
-
-   test:
-      suffix: 2_sadeghi
-      nsize: 1
-      args: -fn_scale .05,2 -n 100 -inplace -fn_method 3
-      requires: !single
-      filter: grep -v "computing matrix functions"
-      output_file: output/test7_1.out
-
-   test:
-      suffix: 3
+   testset:
       nsize: 3
       args: -fn_scale .05,2 -n 100 -fn_parallel synchronized
       filter: grep -v "computing matrix functions" | grep -v "SYNCHRONIZED" | sed -e "s/3 MPI/1 MPI/g"
       output_file: output/test7_1.out
-
-   test:
-      suffix: 4
-      nsize: 3
-      args: -fn_scale .05,2 -n 100 -inplace -fn_parallel synchronized
-      filter: grep -v "computing matrix functions" | grep -v "SYNCHRONIZED" | sed -e "s/3 MPI/1 MPI/g"
-      output_file: output/test7_1.out
+      test:
+         suffix: 3
+      test:
+         suffix: 3_inplace
+         args: -inplace
 
 TEST*/

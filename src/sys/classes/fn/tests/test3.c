@@ -153,67 +153,63 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      nsize: 1
-      args: -fn_method {{0 1}shared output}
+   testset:
       filter: grep -v "computing matrix functions"
       output_file: output/test3_1.out
-
-   test:
-      suffix: 1_subdiagonalpade
-      nsize: 1
-      args: -fn_method {{2 3}}
-      requires: c99_complex !single
-      filter: grep -v "computing matrix functions"
-      output_file: output/test3_1.out
-
-   test:
-      suffix: 2
-      nsize: 1
-      args: -inplace
-      filter: grep -v "computing matrix functions"
-      output_file: output/test3_1.out
-
-   test:
-      suffix: 3
-      nsize: 1
-      args: -fn_scale 0.1 -fn_method {{0 1}shared output}
-      filter: grep -v "computing matrix functions"
-      output_file: output/test3_3.out
+      test:
+         suffix: 1
+         args: -fn_method {{0 1}}
+      test:
+         suffix: 1_subdiagonalpade
+         args: -fn_method {{2 3}}
+         requires: c99_complex !single
+      test:
+         suffix: 1_cuda
+         args: -fn_method 4
+         requires: cuda
+      test:
+         suffix: 1_magma
+         args: -fn_method {{5 6 7 8}}
+         requires: cuda magma
+      test:
+         suffix: 2
+         args: -inplace -fn_method{{0 1}}
+      test:
+         suffix: 2_subdiagonalpade
+         args: -inplace -fn_method{{2 3}}
+         requires: c99_complex !single
+      test:
+         suffix: 2_cuda
+         args: -inplace -fn_method 4
+         requires: cuda
+      test:
+         suffix: 2_magma
+         args: -inplace -fn_method {{5 6 7 8}}
+         requires: cuda magma
 
    testset:
-      nsize: 1
+      args: -fn_scale 0.1
       filter: grep -v "computing matrix functions"
       output_file: output/test3_3.out
       test:
-        suffix: 3_subdiagonalpade_product
-        args: -fn_scale 0.1 -fn_method 2
-        requires: c99_complex !single
+         suffix: 3
+         args: -fn_method {{0 1}}
       test:
-        suffix: 3_subdiagonalpade_partial
-        args: -fn_scale 0.1 -fn_method 3
+        suffix: 3_subdiagonalpade
+        args: -fn_method {{2 3}}
         requires: c99_complex !single
-
-   test:
-      suffix: 4
-      nsize: 1
-      args: -n 120 -fn_scale 0.6,1.5 -fn_method {{0 1}shared output}
-      requires: !single
-      filter: grep -v "computing matrix functions"
-      output_file: output/test3_4.out
 
    testset:
-      nsize: 1
+      args: -n 120 -fn_scale 0.6,1.5
       filter: grep -v "computing matrix functions"
       output_file: output/test3_4.out
       test:
-        suffix: 4_subdiagonalpade_product
-        args: -n 120 -fn_scale 0.6,1.5 -fn_method 2
-        requires: c99_complex !single
+         suffix: 4
+         args: -fn_method {{0 1}}
+         requires: !single
       test:
-        suffix: 4_subdiagonalpade_partial
-        args: -n 120 -fn_scale 0.6,1.5 -fn_method 3
+        suffix: 4_subdiagonalpade
+        args: -fn_method {{2 3}}
         requires: c99_complex !single
 
    test:
@@ -223,7 +219,7 @@ int main(int argc,char **argv)
       requires: c99_complex !single
       output_file: output/test3_5.out
 
-   testset:
+   test:
       suffix: 6
       args: -fn_scale 1e-9 -fn_method {{2 3}}
       filter: grep -v "computing matrix functions"
