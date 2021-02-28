@@ -14,8 +14,6 @@
 #include <petscsys.h>
 #include "fnutilcuda.h"
 
-#if defined(PETSC_HAVE_CUDA)
-
 __global__ void clean_offdiagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v,PetscInt xcount)
 {
   PetscInt x,j;
@@ -398,4 +396,4 @@ __host__ PetscErrorCode get_params_2D(PetscInt rows,PetscInt cols,dim3 *dimGrid,
   }
   PetscFunctionReturn(0);
 }
-#endif /* PETSC_HAVE_CUDA */
+
