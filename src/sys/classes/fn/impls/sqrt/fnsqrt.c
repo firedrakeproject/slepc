@@ -205,10 +205,9 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
  */
 PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
 {
-  PetscScalar        *d_X,*d_M,*d_M2,*d_G,*d_work;
-  const PetscScalar  szero=0.0,sone=1.0;
-  const PetscScalar  smfive=-5.0,s15=15.0,s1d16=1.0/16.0;
-  PetscReal          tol,Mres=0.0,alpha,nrm,sqrtnrm;
+  PetscScalar        *d_X,*d_M,*d_M2,*d_G,*d_work,alpha;
+  const PetscScalar  szero=0.0,sone=1.0,smfive=-5.0,s15=15.0,s1d16=1.0/16.0;
+  PetscReal          tol,Mres=0.0,nrm,sqrtnrm;
   PetscInt           it,*piv,info,nb,lwork;
   PetscBLASInt       N;
   const PetscBLASInt one=1,zero=0;
