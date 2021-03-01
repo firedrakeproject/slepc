@@ -655,29 +655,31 @@ PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
 PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n,PetscBool trim)
 {
-  PetscInt    i,newn=n,ld=ds->ld,l=ds->l;
+  PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A = ds->mat[DS_MAT_A];
 
   PetscFunctionBegin;
-  /* be careful not to break a diagonal 2x2 block */
-  if (ds->state>=DS_STATE_CONDENSED && n && A[n+(n-1)*ld]!=0.0) newn = (n<ds->n-1)? n+1: n-1;
+#if defined(PETSC_USE_DEBUG)
+  /* make sure diagonal 2x2 block is not broken */
+  if (ds->state>=DS_STATE_CONDENSED && n>0 && n<ds->n && A[n+(n-1)*ld]!=0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
+#endif
   if (trim) {
     if (ds->extrarow) {   /* clean extra row */
       for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
     }
     ds->l = 0;
     ds->k = 0;
-    ds->n = newn;
+    ds->n = n;
     ds->t = ds->n;   /* truncated length equal to the new dimension */
   } else {
     if (ds->extrarow && ds->k==ds->n) {
       /* copy entries of extra row to the new position, then clean last row */
-      for (i=l;i<newn;i++) A[newn+i*ld] = A[ds->n+i*ld];
+      for (i=l;i<n;i++) A[n+i*ld] = A[ds->n+i*ld];
       for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
     }
-    ds->k = (ds->extrarow)? newn: 0;
+    ds->k = (ds->extrarow)? n: 0;
     ds->t = ds->n;   /* truncated length equal to previous dimension */
-    ds->n = newn;
+    ds->n = n;
   }
   PetscFunctionReturn(0);
 }

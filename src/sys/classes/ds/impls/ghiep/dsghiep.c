@@ -885,9 +885,13 @@ PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A = ds->mat[DS_MAT_A];
-  PetscReal   *b,*r,*omega;
+  PetscReal   *T = ds->rmat[DS_MAT_T],*b,*r,*omega;
 
   PetscFunctionBegin;
+#if defined(PETSC_USE_DEBUG)
+  /* make sure diagonal 2x2 block is not broken */
+  if (ds->state>=DS_STATE_CONDENSED && n>0 && n<ds->n && T[n-1+ld]!=0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
+#endif
   if (trim) {
     if (!ds->compact && ds->extrarow) {   /* clean extra row */
       for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
@@ -903,8 +907,8 @@ PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
       for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
     }
     if (ds->compact) {
-      b = ds->rmat[DS_MAT_T]+ld;
-      r = ds->rmat[DS_MAT_T]+2*ld;
+      b = T+ld;
+      r = T+2*ld;
       omega = ds->rmat[DS_MAT_D];
       b[n-1] = r[n-1];
       b[n] = b[ds->n];
