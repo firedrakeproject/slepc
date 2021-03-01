@@ -416,18 +416,15 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     else {
       l = PetscMax(1,(PetscInt)((nv-k)/2));
       l = PetscMin(l,t);
+      ierr = DSGetTruncateSize(pep->ds,k,t,&l);CHKERRQ(ierr);
       if (!breakdown) {
-        ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-        if (*(a+ldds+k+l-1)!=0) {
-          if (k+l<nv-1) l = l+1;
-          else l = l-1;
-        }
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(pep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
     nconv = k;
     if (!ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if (l) { ierr = PetscInfo1(pep,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     /* Update S */
     ierr = DSGetMat(pep->ds,DS_MAT_Q,&MQ);CHKERRQ(ierr);

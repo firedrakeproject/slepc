@@ -454,7 +454,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,ldds,newn,nq=0,nconv=0;
+  PetscInt       i,j,k,l,nv=0,ld,lds,ldds,nq=0,nconv=0;
   PetscInt       nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*H,sigma;
   PetscReal      beta;
@@ -533,15 +533,15 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
     else {
       l = (nv==k)?0:PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
+      ierr = DSGetTruncateSize(pep->ds,k,nv,&l);CHKERRQ(ierr);
       if (!breakdown) {
         /* prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(pep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
-        ierr = DSGetDimensions(pep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-        l = newn-k;
       }
     }
     nconv = k;
     if (!ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if (l) { ierr = PetscInfo1(pep,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     /* update S */
     ierr = DSGetMat(pep->ds,DS_MAT_Q,&MQ);CHKERRQ(ierr);

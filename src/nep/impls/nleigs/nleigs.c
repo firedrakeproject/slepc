@@ -1160,7 +1160,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 {
   PetscErrorCode    ierr;
   NEP_NLEIGS        *ctx = (NEP_NLEIGS*)nep->data;
-  PetscInt          i,k=0,l,nv=0,ld,lds,ldds,nq,newn;
+  PetscInt          i,k=0,l,nv=0,ld,lds,ldds,nq;
   PetscInt          deg=ctx->nmat-1,nconv=0,dsn,dsk;
   PetscScalar       *H,*pU,*K,betak=0,*eigr,*eigi;
   const PetscScalar *S;
@@ -1234,17 +1234,17 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     if (nep->reason != NEP_CONVERGED_ITERATING || breakdown) l = 0;
     else {
       l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
+      ierr = DSGetTruncateSize(nep->ds,k,nv,&l);CHKERRQ(ierr);
       if (!breakdown) {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetDimensions(nep->ds,&dsn,NULL,NULL,&dsk,NULL);CHKERRQ(ierr);
         ierr = DSSetDimensions(nep->ds,dsn,0,k,dsk);CHKERRQ(ierr);
         ierr = DSTruncate(nep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
-        ierr = DSGetDimensions(nep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-        l = newn-k;
       }
     }
     nconv = k;
     if (!ctx->lock && nep->reason == NEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; }
+    if (l) { ierr = PetscInfo1(nep,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     /* Update S */
     ierr = DSGetMat(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&MQ);CHKERRQ(ierr);

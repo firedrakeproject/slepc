@@ -213,7 +213,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
-  PetscInt       j,k,l,lwork,nv,ld,newn,nconv;
+  PetscInt       j,k,l,lwork,nv,ld,nconv;
   Vec            v=pep->work[0],w=pep->work[1];
   Mat            Q;
   PetscScalar    *S,*work;
@@ -278,8 +278,12 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
-    else l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
+    else {
+      l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
+      ierr = DSGetTruncateSize(pep->ds,k,nv,&l);CHKERRQ(ierr);
+    }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if (l) { ierr = PetscInfo1(pep,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     if (pep->reason == PEP_CONVERGED_ITERATING) {
       if (breakdown) {
@@ -289,8 +293,6 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
       } else {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(pep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
-        ierr = DSGetDimensions(pep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-        l = newn-k;
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */

@@ -241,16 +241,10 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     if (eps->reason != EPS_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else {
       l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
-#if !defined(PETSC_USE_COMPLEX)
-      ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-      if (S[k+l+(k+l-1)*ld] != 0.0) {
-        if (k+l<nv-1) l = l+1;
-        else l = l-1;
-      }
-      ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-#endif
+      ierr = DSGetTruncateSize(eps->ds,k,nv,&l);CHKERRQ(ierr);
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);

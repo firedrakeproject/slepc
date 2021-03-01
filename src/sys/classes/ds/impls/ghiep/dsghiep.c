@@ -869,6 +869,18 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSGetTruncateSize_GHIEP(DS ds,PetscInt l,PetscInt n,PetscInt *k)
+{
+  PetscReal *T = ds->rmat[DS_MAT_T];
+
+  PetscFunctionBegin;
+  if (T[l+(*k)-1+ds->ld] !=0.0) {
+    if (l+(*k)<n-1) (*k)++;
+    else (*k)--;
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
@@ -975,17 +987,18 @@ PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
 SLEPC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
 {
   PetscFunctionBegin;
-  ds->ops->allocate      = DSAllocate_GHIEP;
-  ds->ops->view          = DSView_GHIEP;
-  ds->ops->vectors       = DSVectors_GHIEP;
-  ds->ops->solve[0]      = DSSolve_GHIEP_QR_II;
-  ds->ops->solve[1]      = DSSolve_GHIEP_HZ;
-  ds->ops->solve[2]      = DSSolve_GHIEP_QR;
-  ds->ops->sort          = DSSort_GHIEP;
-  ds->ops->synchronize   = DSSynchronize_GHIEP;
-  ds->ops->truncate      = DSTruncate_GHIEP;
-  ds->ops->update        = DSUpdateExtraRow_GHIEP;
-  ds->ops->hermitian     = DSHermitian_GHIEP;
+  ds->ops->allocate        = DSAllocate_GHIEP;
+  ds->ops->view            = DSView_GHIEP;
+  ds->ops->vectors         = DSVectors_GHIEP;
+  ds->ops->solve[0]        = DSSolve_GHIEP_QR_II;
+  ds->ops->solve[1]        = DSSolve_GHIEP_HZ;
+  ds->ops->solve[2]        = DSSolve_GHIEP_QR;
+  ds->ops->sort            = DSSort_GHIEP;
+  ds->ops->synchronize     = DSSynchronize_GHIEP;
+  ds->ops->gettruncatesize = DSGetTruncateSize_GHIEP;
+  ds->ops->truncate        = DSTruncate_GHIEP;
+  ds->ops->update          = DSUpdateExtraRow_GHIEP;
+  ds->ops->hermitian       = DSHermitian_GHIEP;
   PetscFunctionReturn(0);
 }
 

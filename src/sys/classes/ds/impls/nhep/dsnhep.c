@@ -795,17 +795,18 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 SLEPC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
 {
   PetscFunctionBegin;
-  ds->ops->allocate      = DSAllocate_NHEP;
-  ds->ops->view          = DSView_NHEP;
-  ds->ops->vectors       = DSVectors_NHEP;
-  ds->ops->solve[0]      = DSSolve_NHEP;
-  ds->ops->sort          = DSSort_NHEP;
-  ds->ops->sortperm      = DSSortWithPermutation_NHEP;
-  ds->ops->synchronize   = DSSynchronize_NHEP;
-  ds->ops->truncate      = DSTruncate_NHEP;
-  ds->ops->update        = DSUpdateExtraRow_NHEP;
-  ds->ops->cond          = DSCond_NHEP;
-  ds->ops->transharm     = DSTranslateHarmonic_NHEP;
+  ds->ops->allocate        = DSAllocate_NHEP;
+  ds->ops->view            = DSView_NHEP;
+  ds->ops->vectors         = DSVectors_NHEP;
+  ds->ops->solve[0]        = DSSolve_NHEP;
+  ds->ops->sort            = DSSort_NHEP;
+  ds->ops->sortperm        = DSSortWithPermutation_NHEP;
+  ds->ops->synchronize     = DSSynchronize_NHEP;
+  ds->ops->gettruncatesize = DSGetTruncateSize_Default;
+  ds->ops->truncate        = DSTruncate_NHEP;
+  ds->ops->update          = DSUpdateExtraRow_NHEP;
+  ds->ops->cond            = DSCond_NHEP;
+  ds->ops->transharm       = DSTranslateHarmonic_NHEP;
   PetscFunctionReturn(0);
 }
 

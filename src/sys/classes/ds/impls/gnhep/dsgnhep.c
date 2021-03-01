@@ -607,14 +607,15 @@ PetscErrorCode DSTruncate_GNHEP(DS ds,PetscInt n,PetscBool trim)
 SLEPC_EXTERN PetscErrorCode DSCreate_GNHEP(DS ds)
 {
   PetscFunctionBegin;
-  ds->ops->allocate      = DSAllocate_GNHEP;
-  ds->ops->view          = DSView_GNHEP;
-  ds->ops->vectors       = DSVectors_GNHEP;
-  ds->ops->solve[0]      = DSSolve_GNHEP;
-  ds->ops->sort          = DSSort_GNHEP;
-  ds->ops->synchronize   = DSSynchronize_GNHEP;
-  ds->ops->truncate      = DSTruncate_GNHEP;
-  ds->ops->update        = DSUpdateExtraRow_GNHEP;
+  ds->ops->allocate        = DSAllocate_GNHEP;
+  ds->ops->view            = DSView_GNHEP;
+  ds->ops->vectors         = DSVectors_GNHEP;
+  ds->ops->solve[0]        = DSSolve_GNHEP;
+  ds->ops->sort            = DSSort_GNHEP;
+  ds->ops->synchronize     = DSSynchronize_GNHEP;
+  ds->ops->gettruncatesize = DSGetTruncateSize_Default;
+  ds->ops->truncate        = DSTruncate_GNHEP;
+  ds->ops->update          = DSUpdateExtraRow_GNHEP;
   PetscFunctionReturn(0);
 }
 

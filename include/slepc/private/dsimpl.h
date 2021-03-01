@@ -28,6 +28,7 @@ struct _DSOps {
   PetscErrorCode (*solve[DS_MAX_SOLVE])(DS,PetscScalar*,PetscScalar*);
   PetscErrorCode (*sort)(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
   PetscErrorCode (*sortperm)(DS,PetscInt*,PetscScalar*,PetscScalar*);
+  PetscErrorCode (*gettruncatesize)(DS,PetscInt,PetscInt,PetscInt*);
   PetscErrorCode (*truncate)(DS,PetscInt,PetscBool);
   PetscErrorCode (*update)(DS);
   PetscErrorCode (*cond)(DS,PetscReal*);
@@ -116,6 +117,7 @@ SLEPC_INTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,DSMatT
 SLEPC_INTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
 SLEPC_INTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
 SLEPC_INTERN PetscErrorCode DSCopyMatrix_Private(DS,DSMatType,DSMatType);
+SLEPC_INTERN PetscErrorCode DSGetTruncateSize_Default(DS,PetscInt,PetscInt,PetscInt*);
 
 SLEPC_INTERN PetscErrorCode DSGHIEPOrthogEigenv(DS,DSMatType,PetscScalar*,PetscScalar*,PetscBool);
 SLEPC_INTERN PetscErrorCode DSGHIEPComplexEigs(DS,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
