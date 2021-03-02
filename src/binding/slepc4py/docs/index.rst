@@ -30,10 +30,10 @@ Discussion and Support
 Downloads and Development
 -------------------------
 
-+ Project Site:    https://gitlab.com/slepc/slepc4py
-+ Source Releases: https://gitlab.com/slepc/slepc4py/-/tags/
-+ Issue Tracker:   https://gitlab.com/slepc/slepc4py/issues/
-+ Git Repository:  https://gitlab.com/slepc/slepc4py.git
++ Project Site:    https://gitlab.com/slepc/slepc
++ Source Releases: https://gitlab.com/slepc/slepc/-/tags/
++ Issue Tracker:   https://gitlab.com/slepc/slepc/issues/
++ Git Repository:  https://gitlab.com/slepc/slepc.git
 
 
 Citations
