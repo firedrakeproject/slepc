@@ -74,7 +74,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
     ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
     ierr = MatGetLocalSize(svd->A,NULL,&n);CHKERRQ(ierr);
     ierr = PetscCalloc2(N,&work1,N,&work2);CHKERRQ(ierr);
-    if (svd->AT) {
+    if (svd->swapped) {
       ierr = MatGetOwnershipRange(svd->AT,&start,&end);CHKERRQ(ierr);
       for (i=start;i<end;i++) {
         ierr = MatGetRow(svd->AT,i,&ncols,NULL,&vals);CHKERRQ(ierr);
@@ -114,14 +114,14 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   SVDCheckStandard(svd);
   if (!cross->mat) {
     if (cross->explicitmatrix) {
-      if (svd->A && svd->AT) {  /* explicit transpose */
+      if (svd->expltrans) {  /* explicit transpose */
         ierr = MatProductCreate(svd->AT,svd->A,NULL,&cross->mat);CHKERRQ(ierr);
         ierr = MatProductSetType(cross->mat,MATPRODUCT_AB);CHKERRQ(ierr);
       } else {  /* implicit transpose */
 #if defined(PETSC_USE_COMPLEX)
         SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Must use explicit transpose with complex scalars");
 #else
-        if (svd->A) {
+        if (!svd->swapped) {
           ierr = MatProductCreate(svd->A,svd->A,NULL,&cross->mat);CHKERRQ(ierr);
           ierr = MatProductSetType(cross->mat,MATPRODUCT_AtB);CHKERRQ(ierr);
         } else {
@@ -196,7 +196,7 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
-    ierr = EPSGetEigenpair(cross->eps,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = EPSGetEigenvalue(cross->eps,i,&lambda,NULL);CHKERRQ(ierr);
     sigma = PetscRealPart(lambda);
     if (sigma<-10*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS: %g",sigma);
     if (sigma<0.0) {
@@ -218,7 +218,7 @@ PetscErrorCode SVDComputeVectors_Cross(SVD svd)
   PetscFunctionBegin;
   for (i=0;i<svd->nconv;i++) {
     ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
-    ierr = EPSGetEigenpair(cross->eps,i,NULL,NULL,v,NULL);CHKERRQ(ierr);
+    ierr = EPSGetEigenvector(cross->eps,i,v,NULL);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
   }
   ierr = SVDComputeVectors_Left(svd);CHKERRQ(ierr);

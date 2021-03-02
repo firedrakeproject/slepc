@@ -124,7 +124,7 @@ PetscErrorCode SVDGetOperators(SVD svd,Mat *A,Mat *B)
 PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscBool      expltrans,flg;
+  PetscBool      flg;
   PetscInt       M,N,P,k,maxnsol;
   SlepcSC        sc;
   Vec            *T;
@@ -161,14 +161,14 @@ PetscErrorCode SVDSetUp(SVD svd)
   } else if (svd->OPb && !svd->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type does not match the number of matrices");
 
   /* determine how to handle the transpose */
-  expltrans = PETSC_TRUE;
-  if (svd->impltrans) expltrans = PETSC_FALSE;
+  svd->expltrans = PETSC_TRUE;
+  if (svd->impltrans) svd->expltrans = PETSC_FALSE;
   else {
     ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);
-    if (!flg) expltrans = PETSC_FALSE;
+    if (!flg) svd->expltrans = PETSC_FALSE;
     else {
       ierr = PetscObjectTypeCompareAny((PetscObject)svd,&flg,SVDLAPACK,SVDSCALAPACK,SVDELEMENTAL,"");CHKERRQ(ierr);
-      if (flg) expltrans = PETSC_FALSE;
+      if (flg) svd->expltrans = PETSC_FALSE;
     }
   }
 
@@ -183,7 +183,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
-  if (expltrans) {
+  if (svd->expltrans) {
     if (svd->isgeneralized || M>=N) {
       svd->A = svd->OP;
       ierr = MatHermitianTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
@@ -206,7 +206,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     ierr = MatDestroy(&svd->B);CHKERRQ(ierr);
     ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
     ierr = PetscObjectReference((PetscObject)svd->OPb);CHKERRQ(ierr);
-    if (expltrans) {
+    if (svd->expltrans) {
       svd->B = svd->OPb;
       ierr = MatHermitianTranspose(svd->OPb,MAT_INITIAL_MATRIX,&svd->BT);CHKERRQ(ierr);
     } else {
