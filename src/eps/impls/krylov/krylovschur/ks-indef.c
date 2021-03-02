@@ -94,14 +94,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     else {
       l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
       l = PetscMin(l,t);
-      ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-      if (*(a+ld+k+l-1)!=0) {
-        if (k+l<t-1) l = l+1;
-        else l = l-1;
-      }
-      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+      ierr = DSGetTruncateSize(eps->ds,k,t,&l);CHKERRQ(ierr);
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);

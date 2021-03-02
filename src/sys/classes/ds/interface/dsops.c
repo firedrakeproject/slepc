@@ -341,6 +341,66 @@ PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSGetTruncateSize_Default(DS ds,PetscInt l,PetscInt n,PetscInt *k)
+{
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar *A = ds->mat[DS_MAT_A];
+#endif
+
+  PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
+  if (A[l+(*k)+(l+(*k)-1)*ds->ld] != 0.0) {
+    if (l+(*k)<n-1) (*k)++;
+    else (*k)--;
+  }
+#endif
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSGetTruncateSize - Gets the correct size to be used in DSTruncate()
+   to avoid breaking a 2x2 block.
+
+   Not Collective
+
+   Input Parameters:
++  ds - the direct solver context
+.  l  - the size of the locked part (set to 0 to use ds->l)
+.  n  - the total matrix size (set to 0 to use ds->n)
+-  k  - the wanted truncation size
+
+   Output Parameter:
+.  k  - the possibly modified value of the truncation size
+
+   Notes:
+   This should be called before DSTruncate() to make sure that the truncation
+   does not break a 2x2 block corresponding to a complex conjugate eigenvalue.
+
+   The total size is n (either user-provided or ds->n if 0 is passed). The
+   size where the truncation is intended is equal to l+k (where l can be
+   equal to the locked size ds->l if set to 0). Then if there is a 2x2 block
+   at the l+k limit, the value of k is increased (or decreased) by 1.
+
+   Level: advanced
+
+.seealso: DSTruncate(), DSSetDimensions()
+@*/
+PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  DSCheckAlloc(ds,1);
+  PetscValidLogicalCollectiveInt(ds,l,2);
+  PetscValidLogicalCollectiveInt(ds,n,3);
+  PetscValidPointer(k,4);
+  if (ds->ops->gettruncatesize) {
+    ierr = (*ds->ops->gettruncatesize)(ds,l?l:ds->l,n?n:ds->n,k);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@
    DSGetMat - Returns a sequential dense Mat object containing the requested
    matrix.
