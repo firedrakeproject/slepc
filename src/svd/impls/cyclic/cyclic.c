@@ -77,7 +77,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
   if (!cyclic->mat) {
     if (cyclic->explicitmatrix) {
-      if (!svd->A || !svd->AT) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
+      if (!svd->expltrans) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
       ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zm);CHKERRQ(ierr);
       ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
@@ -203,10 +203,10 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 
 PetscErrorCode SVDSolve_Cyclic(SVD svd)
 {
-  PetscErrorCode    ierr;
-  SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          i,j,nconv;
-  PetscScalar       sigma;
+  PetscErrorCode ierr;
+  SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
+  PetscInt       i,j,nconv;
+  PetscScalar    sigma;
 
   PetscFunctionBegin;
   ierr = EPSSolve(cyclic->eps);CHKERRQ(ierr);
@@ -214,7 +214,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   ierr = EPSGetIterationNumber(cyclic->eps,&svd->its);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(cyclic->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0,j=0;i<nconv;i++) {
-    ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = EPSGetEigenvalue(cyclic->eps,i,&sigma,NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma) > 0.0) {
       svd->sigma[j] = PetscRealPart(sigma);
       j++;

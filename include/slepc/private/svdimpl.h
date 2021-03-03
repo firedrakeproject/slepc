@@ -105,6 +105,7 @@ struct _p_SVD {
   PetscInt       its;              /* iteration counter */
   PetscBool      leftbasis;        /* if U is filled by the solver */
   PetscBool      swapped;          /* the U and V bases have been swapped (M<N) */
+  PetscBool      expltrans;        /* explicit transpose created */
   PetscBool      isgeneralized;
   SVDConvergedReason reason;
 };
