@@ -306,6 +306,13 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   d   = ds->rmat[DS_MAT_T];
   e   = ds->rmat[DS_MAT_T] + ld;
   s   = ds->rmat[DS_MAT_D];
+#if defined(PETSC_USE_DEBUG)
+  /* Check signature */
+  for (i=0;i<ds->n;i++) {
+    PetscReal de = (ds->compact)?s[i]:PetscRealPart(B[i*ld+i]);
+    if (de != 1.0 && de != -1.0) SETERRQ(PETSC_COMM_SELF,1,"Diagonal elements of the signature matrix must be 1 or -1");
+  }
+#endif
   /* Quick return */
   if (n1 == 1) {
     for (i=0;i<=ds->l;i++) Q[i+i*ld] = 1.0;
