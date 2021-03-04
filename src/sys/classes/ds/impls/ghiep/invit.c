@@ -561,11 +561,11 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
           t1 = cmplxEig[j];
           for (i=j;i<n-1;i++) cmplxEig[i] = cmplxEig[i+1];
           cmplxEig[n-1] = t1;
-          ierr = PetscArraycpy(col1,R+j*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscArraycpy(col1,R+j*ldr,n);CHKERRQ(ierr);
           for (i=j;i<n-1;i++) {
-            ierr = PetscArraycpy(R+i*ldr,R+(i+1)*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
+            ierr = PetscArraycpy(R+i*ldr,R+(i+1)*ldr,n);CHKERRQ(ierr);
           }
-          ierr = PetscArraycpy(R+(n-1)*ldr,col1,n*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscArraycpy(R+(n-1)*ldr,col1,n);CHKERRQ(ierr);
         }
       } else {
         k = k+1;
