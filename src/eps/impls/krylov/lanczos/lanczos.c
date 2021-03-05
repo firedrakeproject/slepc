@@ -710,7 +710,7 @@ PetscErrorCode EPSSetFromOptions_Lanczos(PetscOptionItems *PetscOptionsObject,EP
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS Lanczos Options");CHKERRQ(ierr);
 
-    curval = (lanczos->reorthog==-1)? EPS_LANCZOS_REORTHOG_LOCAL: lanczos->reorthog;
+    curval = (lanczos->reorthog==(EPSLanczosReorthogType)-1)? EPS_LANCZOS_REORTHOG_LOCAL: lanczos->reorthog;
     ierr = PetscOptionsEnum("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",EPSLanczosReorthogTypes,(PetscEnum)curval,(PetscEnum*)&reorthog,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSLanczosSetReorthog(eps,reorthog);CHKERRQ(ierr); }
 
@@ -837,7 +837,7 @@ PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  %s reorthogonalization\n",EPSLanczosReorthogTypes[lanczos->reorthog]);CHKERRQ(ierr);
+    if (lanczos->reorthog != (EPSLanczosReorthogType)-1) { ierr = PetscViewerASCIIPrintf(viewer,"  %s reorthogonalization\n",EPSLanczosReorthogTypes[lanczos->reorthog]);CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
 }
