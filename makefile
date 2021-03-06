@@ -246,12 +246,6 @@ allfortranstubs:
 deletefortranstubs:
 	-@find . -type d -name ftn-auto | xargs rm -rf
 
-check_output:
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} -f gmakefile.test check_output
-
-check_ascii:
-	@ ! git --no-pager grep -l -I -P "[^\x00-\x7F]"
-
 # -------------------------------------------------------------------------------
 #
 # Some macros to check if the Fortran interface is up-to-date.

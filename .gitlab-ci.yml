@@ -79,8 +79,7 @@ variables:
     - |
       if [ ! -z ${CHECKSOURCE+x} ]; then
         make checkbadSource SHELL=bash;
-        make check_output SHELL=bash;
-        make check_ascii SHELL=bash;
+        make -f gmakefile check_output SHELL=bash;
       fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
