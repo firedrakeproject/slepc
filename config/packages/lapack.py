@@ -8,6 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+from __future__ import print_function
 import log, package
 
 class Lapack(package.Package):
