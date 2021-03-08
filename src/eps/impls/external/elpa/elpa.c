@@ -79,33 +79,33 @@ PetscErrorCode EPSSolve_ELPA(EPS eps)
   ierr = elpa_init(20200417);CHKERRQ(ierr);    /* 20171201 */
   handle = elpa_allocate(&ierr);CHKERRQ(ierr);
 
-   /* set parameters of the matrix and its MPI distribution */
-   elpa_set(handle,"na",a->N,&ierr);CHKERRQ(ierr);                /* matrix size */
-   elpa_set(handle,"nev",a->N,&ierr);CHKERRQ(ierr);               /* number of eigenvectors to be computed (1<=nev<=na) */
-   elpa_set(handle,"local_nrows",a->locr,&ierr);CHKERRQ(ierr);    /* number of local rows of the distributed matrix on this MPI task  */
-   elpa_set(handle,"local_ncols",a->locc,&ierr);CHKERRQ(ierr);    /* number of local columns of the distributed matrix on this MPI task */
-   elpa_set(handle,"nblk",a->mb,&ierr);CHKERRQ(ierr);              /* size of the BLACS block cyclic distribution */
-   elpa_set(handle,"mpi_comm_parent",MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&ierr);CHKERRQ(ierr);
-   elpa_set(handle,"process_row",a->grid->myrow,&ierr);CHKERRQ(ierr);    /* row coordinate of MPI process */
-   elpa_set(handle,"process_col",a->grid->mycol,&ierr);CHKERRQ(ierr);    /* column coordinate of MPI process */
-   if (B) { elpa_set(handle,"blacs_context",a->grid->ictxt,&ierr);CHKERRQ(ierr); }
+  /* set parameters of the matrix and its MPI distribution */
+  elpa_set(handle,"na",a->N,&ierr);CHKERRQ(ierr);                /* matrix size */
+  elpa_set(handle,"nev",a->N,&ierr);CHKERRQ(ierr);               /* number of eigenvectors to be computed (1<=nev<=na) */
+  elpa_set(handle,"local_nrows",a->locr,&ierr);CHKERRQ(ierr);    /* number of local rows of the distributed matrix on this MPI task  */
+  elpa_set(handle,"local_ncols",a->locc,&ierr);CHKERRQ(ierr);    /* number of local columns of the distributed matrix on this MPI task */
+  elpa_set(handle,"nblk",a->mb,&ierr);CHKERRQ(ierr);              /* size of the BLACS block cyclic distribution */
+  elpa_set(handle,"mpi_comm_parent",MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&ierr);CHKERRQ(ierr);
+  elpa_set(handle,"process_row",a->grid->myrow,&ierr);CHKERRQ(ierr);    /* row coordinate of MPI process */
+  elpa_set(handle,"process_col",a->grid->mycol,&ierr);CHKERRQ(ierr);    /* column coordinate of MPI process */
+  if (B) { elpa_set(handle,"blacs_context",a->grid->ictxt,&ierr);CHKERRQ(ierr); }
 
-   /* setup and set tunable run-time options */
-   ierr = elpa_setup(handle);CHKERRQ(ierr);
-   elpa_set(handle,"solver",ELPA_SOLVER_2STAGE,&ierr);CHKERRQ(ierr);
-   /* elpa_print_settings(handle,&ierr);CHKERRQ(ierr); */
+  /* setup and set tunable run-time options */
+  ierr = elpa_setup(handle);CHKERRQ(ierr);
+  elpa_set(handle,"solver",ELPA_SOLVER_2STAGE,&ierr);CHKERRQ(ierr);
+  /* elpa_print_settings(handle,&ierr);CHKERRQ(ierr); */
 
-   /* solve the eigenvalue problem */
-   if (B) {
-     b = (Mat_ScaLAPACK*)B->data;
-     elpa_generalized_eigenvectors(handle,a->loc,b->loc,w,q->loc,0,&ierr);CHKERRQ(ierr);
-   } else {
-     elpa_eigenvectors(handle,a->loc,w,q->loc,&ierr);CHKERRQ(ierr);
-   }
+  /* solve the eigenvalue problem */
+  if (B) {
+    b = (Mat_ScaLAPACK*)B->data;
+    elpa_generalized_eigenvectors(handle,a->loc,b->loc,w,q->loc,0,&ierr);CHKERRQ(ierr);
+  } else {
+    elpa_eigenvectors(handle,a->loc,w,q->loc,&ierr);CHKERRQ(ierr);
+  }
 
-   /* cleanup */
-   elpa_deallocate(handle,&ierr);CHKERRQ(ierr);
-   elpa_uninit(&ierr);CHKERRQ(ierr);
+  /* cleanup */
+  elpa_deallocate(handle,&ierr);CHKERRQ(ierr);
+  elpa_uninit(&ierr);CHKERRQ(ierr);
 
   for (i=0;i<eps->ncv;i++) {
     eps->eigr[i]   = eps->errest[i];
