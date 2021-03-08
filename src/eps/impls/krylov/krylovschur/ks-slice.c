@@ -481,6 +481,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       if ((sr->dir>0&&ctx->subc->color==ctx->npart-1)||(sr->dir<0&&ctx->subc->color==0)) sr->hasEnd = sr_glob->hasEnd;
       else sr->hasEnd = PETSC_TRUE;
     }
+    /* sets first shift */
+    ierr = STSetShift(eps->st,(sr->int0==0.0)?10.0/PETSC_MAX_REAL:sr->int0);CHKERRQ(ierr);
     ierr = STSetUp(eps->st);CHKERRQ(ierr);
 
     /* compute inertia0 */
