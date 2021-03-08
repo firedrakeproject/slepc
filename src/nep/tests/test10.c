@@ -239,7 +239,7 @@ int main(int argc,char **argv)
        Solve again, calling NEPReset() since matrix size has changed
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPReset(nep);CHKERRQ(ierr);  /* if this is omitted, it will be called in NEPSetSplitOperators() */
+  /*ierr = NEPReset(nep);CHKERRQ(ierr);*/  /* not required, will be called in NEPSetSplitOperators() */
   mats[0] = A;  funs[0] = f2;
   mats[1] = Id; funs[1] = f1;
   mats[2] = B;  funs[2] = f3;
