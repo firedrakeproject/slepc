@@ -876,40 +876,47 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
 
 .seealso: NEPGetSplitOperatorTerm(), NEPGetSplitOperatorInfo()
  @*/
-PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructure str)
+PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructure str)
 {
-  PetscInt       i;
+  PetscInt       i,n=0,m,m0=0,mloc,nloc,mloc0=0;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidLogicalCollectiveInt(nep,n,2);
-  if (n <= 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %D",n);
+  PetscValidLogicalCollectiveInt(nep,nt,2);
+  if (nt <= 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %D",nt);
   PetscValidPointer(A,3);
-  PetscCheckSameComm(nep,1,*A,3);
   PetscValidPointer(f,4);
-  PetscCheckSameComm(nep,1,*f,4);
 
-  for (i=0;i<n;i++) {
+  for (i=0;i<nt;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
+    PetscCheckSameComm(nep,1,A[i],3);
     PetscValidHeaderSpecific(f[i],FN_CLASSID,4);
+    PetscCheckSameComm(nep,1,f[i],4);
+    ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(A[i],&mloc,&nloc);CHKERRQ(ierr);
+    if (m!=n) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"A[%D] is a non-square matrix (%D rows, %D cols)",i,m,n);
+    if (mloc!=nloc) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"A[%D] does not have equal row and column local sizes (%D, %D)",i,mloc,nloc);
+    if (!i) { m0 = m; mloc0 = mloc; }
+    if (m!=m0) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%D] do not match with previous matrices (%D, %D)",i,m,m0);
+    if (mloc!=mloc0) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%D] do not match with previous matrices (%D, %D)",i,mloc,mloc0);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
     ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
   }
 
-  if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
+  if (nep->state && (n!=nep->n || nloc!=nep->nloc)) { ierr = NEPReset(nep);CHKERRQ(ierr); }
   else { ierr = NEPReset_Problem(nep);CHKERRQ(ierr); }
 
   /* allocate space and copy matrices and functions */
-  ierr = PetscMalloc1(n,&nep->A);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(Mat));CHKERRQ(ierr);
-  for (i=0;i<n;i++) nep->A[i] = A[i];
-  ierr = PetscMalloc1(n,&nep->f);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(FN));CHKERRQ(ierr);
-  for (i=0;i<n;i++) nep->f[i] = f[i];
-  ierr = PetscCalloc1(n,&nep->nrma);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(PetscReal));CHKERRQ(ierr);
-  nep->nt    = n;
+  ierr = PetscMalloc1(nt,&nep->A);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,nt*sizeof(Mat));CHKERRQ(ierr);
+  for (i=0;i<nt;i++) nep->A[i] = A[i];
+  ierr = PetscMalloc1(nt,&nep->f);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,nt*sizeof(FN));CHKERRQ(ierr);
+  for (i=0;i<nt;i++) nep->f[i] = f[i];
+  ierr = PetscCalloc1(nt,&nep->nrma);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,nt*sizeof(PetscReal));CHKERRQ(ierr);
+  nep->nt    = nt;
   nep->mstr  = str;
   nep->fui   = NEP_USER_INTERFACE_SPLIT;
   nep->state = NEP_STATE_INITIAL;

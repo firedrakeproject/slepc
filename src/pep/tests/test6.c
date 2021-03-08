@@ -197,7 +197,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
        Solve again, calling PEPReset() since matrix size has changed
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = PEPReset(pep);CHKERRQ(ierr);  /* if this is omitted, it will be called in PEPSetOperators() */
+  /*ierr = PEPReset(pep);CHKERRQ(ierr);*/  /* not required, will be called in PEPSetOperators() */
   A[0] = K; A[1] = C; A[2] = M;
   ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
   ierr = PEPSolve(pep);CHKERRQ(ierr);
