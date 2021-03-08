@@ -30,8 +30,13 @@ all:
 	+@${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ${PETSC_ARCH}/lib/slepc/conf/make.log
 	@ln -sf ${PETSC_ARCH}/lib/slepc/conf/make.log make.log
 	+@${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-local 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;
+	@egrep '(out of memory allocating.*after a total of|gfortran: fatal error: Killed signal terminated program f951|f95: fatal error: Killed signal terminated program f951)' ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ${PETSC_ARCH}/lib/slepc/conf/memoryerror.log > /dev/null
 	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ./${PETSC_ARCH}/lib/slepc/conf/error.log > /dev/null
-	+@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then \
+	+@if test -s ${PETSC_ARCH}/lib/slepc/conf/memoryerror.log; then \
+           printf ${PETSC_TEXT_HILIGHT}"**************************ERROR*************************************\n" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
+           echo "  Error during compile, you need to increase the memory allocated to the VM and rerun " 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
+           printf "********************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;\
+         elif test -s ${PETSC_ARCH}/lib/slepc/conf/error.log; then \
            printf ${PETSC_TEXT_HILIGHT}"*******************************ERROR************************************\n" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
            echo "  Error during compile, check ${PETSC_ARCH}/lib/slepc/conf/make.log" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
            echo "  Send all contents of ./${PETSC_ARCH}/lib/slepc/conf to slepc-maint@upv.es" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;\
