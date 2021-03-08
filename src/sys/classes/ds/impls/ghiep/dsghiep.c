@@ -664,6 +664,13 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   d = ds->rmat[DS_MAT_T];
   e = ds->rmat[DS_MAT_T] + ld;
   s = ds->rmat[DS_MAT_D];
+#if defined(PETSC_USE_DEBUG)
+  /* Check signature */
+  for (i=0;i<ds->n;i++) {
+    PetscReal de = (ds->compact)?s[i]:PetscRealPart(B[i*ld+i]);
+    if (de != 1.0 && de != -1.0) SETERRQ(PETSC_COMM_SELF,1,"Diagonal elements of the signature matrix must be 1 or -1");
+  }
+#endif
   ierr = DSAllocateWork_Private(ds,ld*ld,2*ld,ld*2);CHKERRQ(ierr);
   lwork = ld*ld;
 
@@ -768,6 +775,13 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   Q = ds->mat[DS_MAT_Q];
   d = ds->rmat[DS_MAT_T];
   s = ds->rmat[DS_MAT_D];
+#if defined(PETSC_USE_DEBUG)
+  /* Check signature */
+  for (i=0;i<ds->n;i++) {
+    PetscReal de = (ds->compact)?s[i]:PetscRealPart(B[i*ld+i]);
+    if (de != 1.0 && de != -1.0) SETERRQ(PETSC_COMM_SELF,1,"Diagonal elements of the signature matrix must be 1 or -1");
+  }
+#endif
   lw = 14*ld+ld*ld;
   lwr = 7*ld;
   ierr = DSAllocateWork_Private(ds,lw,lwr,0);CHKERRQ(ierr);
