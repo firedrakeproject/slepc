@@ -329,7 +329,7 @@ __host__ PetscErrorCode getisreal_array2D(PetscInt m,PetscInt n,PetscComplex *d_
 
 __host__ PetscErrorCode get_params_1D(PetscInt rows,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount)
 {
-  PetscInt              card;
+  int                   card;
   struct cudaDeviceProp devprop;
   cudaError_t           cerr;
 
@@ -357,7 +357,7 @@ __host__ PetscErrorCode get_params_1D(PetscInt rows,dim3 *dimGrid,dim3 *dimBlock
 
 __host__ PetscErrorCode get_params_2D(PetscInt rows,PetscInt cols,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount,PetscInt *dimGrid_ycount)
 {
-  PetscInt              card;
+  int                   card;
   cudaError_t           cerr;
   struct cudaDeviceProp devprop;
 
