@@ -600,7 +600,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
     sc->comparisonctx = NULL;
     sc->map           = NULL;
     sc->mapobj        = NULL;
-  }
+  } else {pep->ncv = 0; pep->nev = 0; pep->mpd = 0;}
   PetscFunctionReturn(0);
 }
 

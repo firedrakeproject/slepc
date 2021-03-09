@@ -222,4 +222,8 @@ int main(int argc,char **argv)
          suffix: 1_complex
          requires: complex !mumps
 
+   test:
+      suffix: 2
+      args: -pep_interval 0,2
+
 TEST*/
