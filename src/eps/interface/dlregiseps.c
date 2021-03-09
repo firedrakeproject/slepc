@@ -19,6 +19,8 @@ const char *EPSLanczosReorthogTypes[] = {"LOCAL","FULL","SELECTIVE","PERIODIC","
 const char *EPSPRIMMEMethods[] = {"","DYNAMIC","DEFAULT_MIN_TIME","DEFAULT_MIN_MATVECS","ARNOLDI","GD","GD_PLUSK","GD_OLSEN_PLUSK","JD_OLSEN_PLUSK","RQI","JDQR","JDQMR","JDQMR_ETOL","SUBSPACE_ITERATION","LOBPCG_ORTHOBASIS","LOBPCG_ORTHOBASISW","EPSPRIMMEMethod","EPS_PRIMME_",0};
 const char *EPSCISSQuadRules[] = {"(not set yet)","TRAPEZOIDAL","CHEBYSHEV","EPSCISSQuadRule","EPS_CISS_QUADRULE_",0};
 const char *EPSCISSExtractions[] = {"RITZ","HANKEL","EPSCISSExtraction","EPS_CISS_EXTRACTION_",0};
+const char *EPSEVSLDOSMethods[] = {"KPM","LANCZOS","EPSEVSLDOSMethod","EPS_EVSL_DOS_",0};
+const char *EPSEVSLKPMDampings[] = {"NONE","JACKSON","SIGMA","EPSEVSLKPMDamping","EPS_EVSL_KPM_",0};
 const char *const EPSConvergedReasons_Shifted[] = {"","DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","EPSConvergedReason","EPS_",0};
 const char *const*EPSConvergedReasons = EPSConvergedReasons_Shifted + 4;
 

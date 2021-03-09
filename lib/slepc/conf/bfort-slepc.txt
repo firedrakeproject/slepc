@@ -19,6 +19,8 @@ native EPSLanczosReorthogType
 native EPSPRIMMEMethod
 native EPSCISSQuadRule
 native EPSCISSExtraction
+native EPSEVSLDOSMethod
+native EPSEVSLKPMDamping
 native FNCombineType
 native FNParallelType
 native MFNConvergedReason

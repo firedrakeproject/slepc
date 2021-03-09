@@ -7,7 +7,8 @@
 - `SVD`: support for the GSVD added. This implies changes in the interface, e.g.,
   `SVDSetOperators()` should be used instead `SVDSetOperator()`. New functions have
   been added such as `SVDSetProblemType()` and `SVDIsGeneralized()`.
-- New solver `SVDRANDOMIZED`.
+- `SVD`: New solver `SVDRANDOMIZED`.
+- `EPS`: New interface to external package EVSL.
 - Import SLEPc4py sources into SLEPc source tree.
 - New function `EPSKrylovSchurGetKSP()` to extract the `KSP` object used in the case
   of spectrum slicing runs. This allows setting MUMPS options even with partitions.

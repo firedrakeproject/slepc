@@ -36,6 +36,8 @@
 #define EPSPRIMMEMethod        PetscEnum
 #define EPSCISSQuadRule        PetscEnum
 #define EPSCISSExtraction      PetscEnum
+#define EPSEVSLDOSMethod       PetscEnum
+#define EPSEVSLKPMDamping      PetscEnum
 
 #define EPSPOWER       'power'
 #define EPSSUBSPACE    'subspace'

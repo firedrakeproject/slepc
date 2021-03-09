@@ -31,6 +31,7 @@ class EPSType(object):
     - `SCALAPACK`:
     - `ELPA`:
     - `ELEMENTAL`:
+    - `EVSL`:
     """
     # provided implementations
     POWER        = S_(EPSPOWER)
@@ -55,6 +56,7 @@ class EPSType(object):
     SCALAPACK    = S_(EPSSCALAPACK)
     ELPA         = S_(EPSELPA)
     ELEMENTAL    = S_(EPSELEMENTAL)
+    EVSL         = S_(EPSEVSL)
 
 class EPSProblemType(object):
     """
