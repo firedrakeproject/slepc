@@ -18,7 +18,7 @@ static char help[] = "Spectrum slicing on generalized symmetric eigenproblem.\n\
 
 int main(int argc,char **argv)
 {
-  Mat            A,B;         /* matrices */
+  Mat            A,B,F;       /* matrices */
   EPS            eps;         /* eigenproblem solver context */
   ST             st;          /* spectral transformation context */
   KSP            ksp;
@@ -102,8 +102,7 @@ int main(int argc,char **argv)
 
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
+  ierr = EPSKrylovSchurGetKSP(eps,&ksp);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
@@ -116,6 +115,7 @@ int main(int argc,char **argv)
 #if defined(PETSC_HAVE_MUMPS) && !defined(PETSC_USE_COMPLEX)
   ierr = EPSKrylovSchurSetDetectZeros(eps,PETSC_TRUE);CHKERRQ(ierr);  /* enforce zero detection */
   ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
+  ierr = PCFactorSetUpMatSolverType(pc);CHKERRQ(ierr);
   /*
      Add several MUMPS options (see ex43.c for a better way of setting them in program):
      '-st_mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
@@ -125,7 +125,10 @@ int main(int argc,char **argv)
      Note: depending on the interval, it may be necessary also to increase the workspace:
      '-st_mat_mumps_icntl_14 <percentage>': increase workspace with a percentage (50, 100 or more)
   */
-  ierr = PetscOptionsInsertString(NULL,"-st_mat_mumps_icntl_13 1 -st_mat_mumps_icntl_24 1 -st_mat_mumps_cntl_3 1e-12");CHKERRQ(ierr);
+  ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
+  ierr = MatMumpsSetIcntl(F,13,1);CHKERRQ(ierr);
+  ierr = MatMumpsSetIcntl(F,24,1);CHKERRQ(ierr);
+  ierr = MatMumpsSetCntl(F,3,1e-12);CHKERRQ(ierr);
 #endif
 
   /*
