@@ -1,14 +1,14 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2021, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2020, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
    SLEPc is distributed under a 2-clause BSD license (see LICENSE).
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Delay differential equation.\n\n"
+static char help[] = "Test the CISS solver with the problem of ex22.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"
   "  -tau <tau>, where <tau> is the delay parameter.\n\n";
@@ -34,13 +34,14 @@ static char help[] = "Delay differential equation.\n\n"
 
 int main(int argc,char **argv)
 {
-  NEP            nep;             /* nonlinear eigensolver context */
-  Mat            Id,A,B;          /* problem matrices */
-  FN             f1,f2,f3;        /* functions to define the nonlinear operator */
-  Mat            mats[3];
-  FN             funs[3];
+  NEP            nep;
+  Mat            Id,A,B,mats[3];
+  FN             f1,f2,f3,funs[3];
+  RG             rg;
+  KSP            *ksp;
+  PC             pc;
   PetscScalar    coeffs[2],b;
-  PetscInt       n=128,nev,Istart,Iend,i;
+  PetscInt       n=128,Istart,Iend,i,nsolve;
   PetscReal      tau=0.001,h,a=20,xi;
   PetscBool      terse;
   PetscErrorCode ierr;
@@ -57,13 +58,7 @@ int main(int argc,char **argv)
 
   ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-     Create problem matrices and coefficient functions. Pass them to NEP
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  /*
-     Identity matrix
-  */
+  /* Identity matrix */
   ierr = MatCreate(PETSC_COMM_WORLD,&Id);CHKERRQ(ierr);
   ierr = MatSetSizes(Id,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
@@ -76,9 +71,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatSetOption(Id,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
-  /*
-     A = 1/h^2*tridiag(1,-2,1) + a*I
-  */
+  /* A = 1/h^2*tridiag(1,-2,1) + a*I */
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
   ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
@@ -93,9 +86,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
-  /*
-     B = diag(b(xi))
-  */
+  /* B = diag(b(xi)) */
   ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
   ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(B);CHKERRQ(ierr);
@@ -104,15 +95,13 @@ int main(int argc,char **argv)
   for (i=Istart;i<Iend;i++) {
     xi = (i+1)*h;
     b = -4.1+xi*(1.0-PetscExpReal(xi-PETSC_PI));
-    ierr = MatSetValue(B,i,i,b,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValues(B,1,&i,1,&i,&b,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatSetOption(B,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
-  /*
-     Functions: f1=-lambda, f2=1.0, f3=exp(-tau*lambda)
-  */
+  /* Functions: f1=-lambda, f2=1.0, f3=exp(-tau*lambda) */
   ierr = FNCreate(PETSC_COMM_WORLD,&f1);CHKERRQ(ierr);
   ierr = FNSetType(f1,FNRATIONAL);CHKERRQ(ierr);
   coeffs[0] = -1.0; coeffs[1] = 0.0;
@@ -127,35 +116,35 @@ int main(int argc,char **argv)
   ierr = FNSetType(f3,FNEXP);CHKERRQ(ierr);
   ierr = FNSetScale(f3,-tau,1.0);CHKERRQ(ierr);
 
-  /*
-     Set the split operator. Note that A is passed first so that
-     SUBSET_NONZERO_PATTERN can be used
-  */
+  /* Set the split operator */
   mats[0] = A;  funs[0] = f2;
   mats[1] = Id; funs[1] = f1;
   mats[2] = B;  funs[2] = f3;
   ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-             Customize nonlinear solver; set runtime options
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
+  /* Customize nonlinear solver; set runtime options */
+  ierr = NEPSetType(nep,NEPCISS);CHKERRQ(ierr);
+  ierr = NEPSetDimensions(nep,1,24,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = NEPSetTolerances(nep,1e-9,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = NEPSetDimensions(nep,1,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = NEPRIISetLagPreconditioner(nep,0);CHKERRQ(ierr);
-
-  /*
-     Set solver parameters at runtime
-  */
+  ierr = NEPGetRG(nep,&rg);CHKERRQ(ierr);
+  ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
+  ierr = RGEllipseSetParameters(rg,10.0,9.5,0.1);CHKERRQ(ierr);
+  ierr = NEPCISSSetSizes(nep,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,1,PETSC_DEFAULT,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = NEPCISSGetKSPs(nep,&nsolve,&ksp);CHKERRQ(ierr);
+  for (i=0;i<nsolve;i++) {
+    ierr = KSPSetTolerances(ksp[i],1e-12,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = KSPSetType(ksp[i],KSPBCGS);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp[i],&pc);CHKERRQ(ierr);
+    ierr = PCSetType(pc,PCSOR);CHKERRQ(ierr);
+  }
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Running CISS with %D KSP solvers\n",nsolve);CHKERRQ(ierr);
   ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -184,46 +173,13 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   testset:
-      suffix: 1
-      args: -nep_type {{rii slp narnoldi}} -terse
-      filter: sed -e "s/[+-]0\.0*i//g"
-      requires: !single
+   build:
+      requires: complex
 
    test:
-      suffix: 1_ciss
-      args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -nep_ncv 24 -terse
+      suffix: 1
+      args: -terse
       requires: complex !single
 
-   test:
-      suffix: 2
-      args: -nep_type interpol -nep_interpol_pep_extract {{none norm residual}} -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse
-      filter: sed -e "s/[+-]0\.0*i//g"
-      requires: !single
-
-   testset:
-      args: -n 512 -nep_target 10 -nep_nev 3 -terse
-      filter: sed -e "s/[+-]0\.0*i//g"
-      requires: !single
-      output_file: output/ex22_3.out
-      test:
-         suffix: 3
-         args: -nep_type {{rii slp narnoldi}}
-      test:
-         suffix: 3_simpleu
-         args: -nep_type {{rii slp narnoldi}} -nep_deflation_simpleu
-      test:
-         suffix: 3_slp_thres
-         args: -nep_type slp -nep_slp_deflation_threshold 1e-8
-      test:
-         suffix: 3_rii_thres
-         args: -nep_type rii -nep_rii_deflation_threshold 1e-8
-
-   test:
-      suffix: 4
-      args: -nep_type interpol -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse -nep_monitor draw::draw_lg
-      filter: sed -e "s/[+-]0\.0*i//g"
-      requires: x !single
-      output_file: output/ex22_2.out
-
 TEST*/
+

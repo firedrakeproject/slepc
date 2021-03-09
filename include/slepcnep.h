@@ -309,13 +309,13 @@ SLEPC_EXTERN PetscErrorCode NEPNArnoldiSetLagPreconditioner(NEP,PetscInt);
 SLEPC_EXTERN PetscErrorCode NEPNArnoldiGetLagPreconditioner(NEP,PetscInt*);
 
 #if defined(PETSC_USE_COMPLEX)
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetSizes(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt a,PETSC_UNUSED PetscInt b,PETSC_UNUSED PetscInt c,PETSC_UNUSED PetscInt d,PETSC_UNUSED PetscInt e,PETSC_UNUSED PetscBool f) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetSizes(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt *a,PETSC_UNUSED PetscInt *b,PETSC_UNUSED PetscInt *c,PETSC_UNUSED PetscInt *d,PETSC_UNUSED PetscInt *e,PETSC_UNUSED PetscBool f) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetThreshold(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscReal a,PETSC_UNUSED PetscReal b) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetThreshold(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscReal *a,PETSC_UNUSED PetscReal *b) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetRefinement(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt a,PETSC_UNUSED PetscInt b) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetRefinement(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt *a,PETSC_UNUSED PetscInt *b) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetKSPs(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt *a,PETSC_UNUSED KSP **b) {return 0;}
+SLEPC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetSizes(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
+SLEPC_EXTERN PetscErrorCode NEPCISSSetThreshold(NEP,PetscReal,PetscReal);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetThreshold(NEP,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode NEPCISSSetRefinement(NEP,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetRefinement(NEP,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetKSPs(NEP,PetscInt*,KSP**);
 #else
 #define SlepcNEPCISSUnavailable(nep) do { \
     PetscFunctionBegin; \
