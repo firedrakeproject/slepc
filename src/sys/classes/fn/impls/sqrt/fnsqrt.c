@@ -208,8 +208,8 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
   PetscScalar        *d_X,*d_M,*d_M2,*d_G,*d_work,alpha;
   const PetscScalar  szero=0.0,sone=1.0,smfive=-5.0,s15=15.0,s1d16=1.0/16.0;
   PetscReal          tol,Mres=0.0,nrm,sqrtnrm;
-  PetscInt           it,*piv,info,nb,lwork;
-  PetscBLASInt       N;
+  PetscInt           it,nb,lwork;
+  PetscBLASInt       info,*piv,N;
   const PetscBLASInt one=1,zero=0;
   PetscBool          converged=PETSC_FALSE;
   cublasHandle_t     cublasv2handle;

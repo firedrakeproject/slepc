@@ -995,7 +995,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
   cerr = cudaMalloc((void **)&d_As,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_A2,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_ipiv,sizeof(PetscBLASInt)*ld);CHKERRCUDA(cerr);
-  cerr = cudaMalloc((void **)&d_info,sizeof(PetscInt));CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_info,sizeof(PetscBLASInt));CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_ppP,sizeof(PetscScalar *));CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_ppQ,sizeof(PetscScalar *));CHKERRCUDA(cerr);
 
@@ -1053,7 +1053,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
     cerr = cudaMemcpy(d_ppP,ppP,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
 
     cberr = cublasXgetrfBatched(cublasv2handle,n,d_ppQ,ld,d_ipiv,d_info,one);CHKERRCUBLAS(cberr);
-    cerr = cudaMemcpy(&info,d_info,sizeof(PetscInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(&info,d_info,sizeof(PetscBLASInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
     if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
     if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
 #if defined (CUDA_VERSION) && CUDA_VERSION >= 5050
@@ -1077,7 +1077,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
     cerr = cudaMemcpy(d_ppP,ppP,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
 
     cberr = cublasXgetrfBatched(cublasv2handle,n,d_ppQ,ld,d_ipiv,d_info,one);CHKERRCUBLAS(cberr);
-    cerr = cudaMemcpy(&info,d_info,sizeof(PetscInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(&info,d_info,sizeof(PetscBLASInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
     if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
     if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
 #if defined (CUDA_VERSION) && CUDA_VERSION >= 5050

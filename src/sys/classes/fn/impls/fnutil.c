@@ -429,8 +429,8 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
 {
   PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
   PetscReal      tol,Mres=0.0,detM,g,reldiff,fnormdiff,fnormT,prod;
-  PetscInt       i,it,*piv=NULL,info,lwork,nb;
-  PetscBLASInt   N,one=1;
+  PetscInt       i,it,lwork,nb;
+  PetscBLASInt   N,one=1,info,*piv=NULL;
   PetscBool      converged=PETSC_FALSE,scale=PETSC_FALSE;
   cublasHandle_t cublasv2handle;
   PetscErrorCode ierr;
