@@ -527,7 +527,7 @@ intel-cxx-mkl:
     - compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++ --with-memalign=64
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 gnu-cxx-complex-int64:
@@ -609,4 +609,14 @@ gnu-c-complex-single:
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
+
+gnu-c-cuda-int64:
+  extends:
+    - .stage-3-sched
+    - .linux_test
+  tags:
+    - linux-ubuntu, gpu:nvidia
+  variables:
+    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --with-openmp --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.5.4
+    PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
 
