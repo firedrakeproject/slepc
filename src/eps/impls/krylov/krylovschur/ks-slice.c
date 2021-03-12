@@ -83,6 +83,21 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
   if (!ctx->global) PetscFunctionReturn(0);
   /* Destroy auxiliary EPS */
   ierr = EPSSliceResetSR(ctx->eps);CHKERRQ(ierr);
+  ierr = EPSReset(ctx->eps);CHKERRQ(ierr);
+  ierr = EPSSliceResetSR(eps);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+PetscErrorCode EPSDestroy_KrylovSchur_Slice(EPS eps)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  if (!ctx->global) PetscFunctionReturn(0);
+  /* Destroy auxiliary EPS */
+  ierr = EPSReset_KrylovSchur_Slice(eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   if (ctx->npart>1) {
     ierr = PetscSubcommDestroy(&ctx->subc);CHKERRQ(ierr);
@@ -90,18 +105,13 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
       ierr = MPI_Comm_free(&ctx->commrank);CHKERRMPI(ierr);
       ctx->commset = PETSC_FALSE;
     }
-  }
-  ierr = PetscFree(ctx->subintervals);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->nconv_loc);CHKERRQ(ierr);
-  ierr = EPSSliceResetSR(eps);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
-  if (ctx->npart>1) {
     ierr = ISDestroy(&ctx->isrow);CHKERRQ(ierr);
     ierr = ISDestroy(&ctx->iscol);CHKERRQ(ierr);
     ierr = MatDestroyMatrices(1,&ctx->submata);CHKERRQ(ierr);
     ierr = MatDestroyMatrices(1,&ctx->submatb);CHKERRQ(ierr);
   }
+  ierr = PetscFree(ctx->subintervals);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->nconv_loc);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

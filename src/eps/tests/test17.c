@@ -97,7 +97,10 @@ int main(int argc,char **argv)
   ierr = EPSSetInterval(eps,int0,int1);CHKERRQ(ierr);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
+  if (size>1) {
+    ierr = EPSKrylovSchurSetPartitions(eps,size);CHKERRQ(ierr);
+  }
+  ierr = EPSKrylovSchurGetKSP(eps,&ksp);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
@@ -130,7 +133,6 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to [%D,%D,%D]\n",nev,ncv,mpd);CHKERRQ(ierr);
 
   if (size>1) {
-    ierr = EPSKrylovSchurSetPartitions(eps,size);CHKERRQ(ierr);
     ierr = EPSKrylovSchurGetPartitions(eps,&npart);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Using %D partitions\n",npart);CHKERRQ(ierr);
 

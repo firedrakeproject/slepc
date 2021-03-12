@@ -14,11 +14,12 @@
 #if !defined(SLEPC_KRYLOVSCHUR_H)
 #define SLEPC_KRYLOVSCHUR_H
 
-SLEPC_INTERN PetscErrorCode EPSReset_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS);
+SLEPC_INTERN PetscErrorCode EPSReset_KrylovSchur_Slice(EPS);
+SLEPC_INTERN PetscErrorCode EPSDestroy_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
 SLEPC_INTERN PetscErrorCode EPSGetArbitraryValues(EPS,PetscScalar*,PetscScalar*);
 SLEPC_INTERN PetscErrorCode EPSKrylovSchurGetChildEPS(EPS,EPS*);

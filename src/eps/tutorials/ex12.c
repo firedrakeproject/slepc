@@ -83,11 +83,12 @@ int main(int argc,char **argv)
   /*
      Set first interval and other settings for spectrum slicing
   */
+  ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
   ierr = EPSSetInterval(eps,1.1,1.3);CHKERRQ(ierr);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
+  ierr = EPSKrylovSchurGetKSP(eps,&ksp);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
