@@ -1493,6 +1493,8 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscBool       isascii,isfilt;
+  KSP             ksp;
+  PetscViewer     sviewer;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -1509,6 +1511,23 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"  multi-communicator spectrum slicing with %D partitions\n",ctx->npart);CHKERRQ(ierr);
           if (ctx->detect) { ierr = PetscViewerASCIIPrintf(viewer,"  detecting zeros when factorizing at subinterval boundaries\n");CHKERRQ(ierr); }
         }
+        /* view child KSP */
+        ierr = EPSKrylovSchurGetKSP_KrylovSchur(eps,&ksp);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+        if (ctx->npart>1 && ctx->subc) {
+          ierr = PetscViewerGetSubViewer(viewer,ctx->subc->child,&sviewer);CHKERRQ(ierr);
+          if (!ctx->subc->color) {
+            ierr = KSPView(ksp,sviewer);CHKERRQ(ierr);
+          }
+          ierr = PetscViewerFlush(sviewer);CHKERRQ(ierr);
+          ierr = PetscViewerRestoreSubViewer(viewer,ctx->subc->child,&sviewer);CHKERRQ(ierr);
+          ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
+          /* extra call needed because of the two calls to PetscViewerASCIIPushSynchronized() in PetscViewerGetSubViewer() */
+          ierr = PetscViewerASCIIPopSynchronized(viewer);CHKERRQ(ierr);
+        } else {
+          ierr = KSPView(ksp,viewer);CHKERRQ(ierr);
+        }
+        ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
       }
     }
   }
