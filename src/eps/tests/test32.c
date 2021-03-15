@@ -132,6 +132,10 @@ int main(int argc,char **argv)
       args: -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky -eps_interval .8,1.1 -eps_krylovschur_partitions 2
       output_file: output/test32_5.out
       nsize: 3
+      filter: grep -v Using
+      test:
+         suffix: 5_redundant
+         args: -st_pc_type redundant -st_redundant_pc_type cholesky
       test:
          suffix: 5_mumps
          requires: mumps !complex
