@@ -1302,7 +1302,6 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
   PetscErrorCode   ierr;
   EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data,*ctx_local;
   Mat              A,B=NULL,Ar=NULL,Br=NULL;
-  PetscBool        asymm,bsymm,aherm,bherm;
   PetscMPIInt      rank;
   PetscObjectState Astate,Bstate=0;
   PetscObjectId    Aid,Bid=0;
@@ -1317,13 +1316,9 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
   } else {
     ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
     ierr = PetscObjectGetId((PetscObject)A,&Aid);CHKERRQ(ierr);
-    ierr = MatGetOption(A,MAT_SYMMETRIC,&asymm);CHKERRQ(ierr);
-    ierr = MatGetOption(A,MAT_HERMITIAN,&aherm);CHKERRQ(ierr);
     if (B) {
       ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr);
       ierr = PetscObjectGetId((PetscObject)B,&Bid);CHKERRQ(ierr);
-      ierr = MatGetOption(B,MAT_SYMMETRIC,&bsymm);CHKERRQ(ierr);
-      ierr = MatGetOption(B,MAT_HERMITIAN,&bherm);CHKERRQ(ierr);
     }
     if (!ctx->subc) {
       /* Create context for subcommunicators */
@@ -1336,14 +1331,12 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
       ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
       ctx->Astate = Astate;
       ctx->Aid = Aid;
-      ierr = MatSetOption(Ar,MAT_SYMMETRIC,asymm);CHKERRQ(ierr);
-      ierr = MatSetOption(Ar,MAT_HERMITIAN,aherm);CHKERRQ(ierr);
+      ierr = MatPropagateSymmetryOptions(A,Ar);CHKERRQ(ierr);
       if (B) {
         ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
         ctx->Bstate = Bstate;
         ctx->Bid = Bid;
-        ierr = MatSetOption(Br,MAT_SYMMETRIC,bsymm);CHKERRQ(ierr);
-        ierr = MatSetOption(Br,MAT_HERMITIAN,bherm);CHKERRQ(ierr);
+        ierr = MatPropagateSymmetryOptions(B,Br);CHKERRQ(ierr);
       }
     } else {
       if (ctx->Astate != Astate || (B && ctx->Bstate != Bstate) || ctx->Aid != Aid || (B && ctx->Bid != Bid)) {
@@ -1352,14 +1345,12 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
         ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
         ctx->Astate = Astate;
         ctx->Aid = Aid;
-        ierr = MatSetOption(Ar,MAT_SYMMETRIC,asymm);CHKERRQ(ierr);
-        ierr = MatSetOption(Ar,MAT_HERMITIAN,aherm);CHKERRQ(ierr);
+        ierr = MatPropagateSymmetryOptions(A,Ar);CHKERRQ(ierr);
         if (B) {
           ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
           ctx->Bstate = Bstate;
           ctx->Bid = Bid;
-          ierr = MatSetOption(Br,MAT_SYMMETRIC,bsymm);CHKERRQ(ierr);
-          ierr = MatSetOption(Br,MAT_HERMITIAN,bherm);CHKERRQ(ierr);
+          ierr = MatPropagateSymmetryOptions(B,Br);CHKERRQ(ierr);
         }
         ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
         ierr = MatDestroy(&Ar);CHKERRQ(ierr);
@@ -1396,14 +1387,14 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
 
 static PetscErrorCode EPSKrylovSchurGetKSP_KrylovSchur(EPS eps,KSP *ksp)
 {
-  PetscErrorCode ierr;
-  EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  ST               st;
-  PetscBool        isfilt;
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  ST              st;
+  PetscBool       isfilt;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt);CHKERRQ(ierr);
-  if (eps->which!=EPS_ALL || isfilt) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
+  if (eps->which!=EPS_ALL || isfilt) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations with spectrum slicing");
   ierr = EPSKrylovSchurGetChildEPS(eps,&ctx->eps);CHKERRQ(ierr);
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = STGetOperator(st,NULL);CHKERRQ(ierr);
@@ -1426,13 +1417,14 @@ static PetscErrorCode EPSKrylovSchurGetKSP_KrylovSchur(EPS eps,KSP *ksp)
    Notes:
    When invoked to compute all eigenvalues in an interval with spectrum
    slicing, EPSKRYLOVSCHUR creates another EPS object internally that is
-   used to compute eigenvalues by chunks near selected shift. This function
-   allows access the KSP object associated to this internal EPS object.
+   used to compute eigenvalues by chunks near selected shifts. This function
+   allows access to the KSP object associated to this internal EPS object.
 
    This function is only available for spectrum slicing runs. In case of
    having more than one partition, the returned KSP will be different
    in MPI processes belonging to different partitions. Hence, if required,
-   EPSKrylovSchurSetPartitions() must be called before this function.
+   EPSKrylovSchurSetPartitions() must be called BEFORE this function.
+
    Level: advanced
 
 .seealso: EPSSetInterval(), EPSKrylovSchurSetPartitions()
@@ -1481,10 +1473,12 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObjec
     if (f1 || f2 || f3) { ierr = EPSKrylovSchurSetDimensions(eps,i,j,k);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+  /* set options of child KSP in spectrum slicing */
   if (eps->which==EPS_ALL) {
     if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
     ierr = EPSSetDefaultST(eps);CHKERRQ(ierr);
-    ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
+    ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);  /* need to advance this to check ST type */
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt);CHKERRQ(ierr);
     if (!isfilt) {
       ierr = EPSKrylovSchurGetKSP_KrylovSchur(eps,&ksp);CHKERRQ(ierr);

@@ -81,7 +81,7 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
 
   PetscFunctionBegin;
   if (!ctx->global) PetscFunctionReturn(0);
-  /* Destroy auxiliary EPS */
+  /* Reset auxiliary EPS */
   ierr = EPSSliceResetSR(ctx->eps);CHKERRQ(ierr);
   ierr = EPSReset(ctx->eps);CHKERRQ(ierr);
   ierr = EPSSliceResetSR(eps);CHKERRQ(ierr);
@@ -89,6 +89,7 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
   ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
 PetscErrorCode EPSDestroy_KrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -180,8 +181,8 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   EPS_SR             sr=ctx->sr;
 
   PetscFunctionBegin;
+  if (!ctx->eps) { ierr = EPSKrylovSchurGetChildEPS(eps,&ctx->eps);CHKERRQ(ierr); }
 
-  if (!ctx->eps) {ierr = EPSKrylovSchurGetChildEPS(eps,&ctx->eps);CHKERRQ(ierr);}
   /* Determine subintervals */
   if (ctx->npart==1) {
     a = eps->inta; b = eps->intb;

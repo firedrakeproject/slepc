@@ -23,6 +23,7 @@ SLEPC_INTERN PetscErrorCode EPSDestroy_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
 SLEPC_INTERN PetscErrorCode EPSGetArbitraryValues(EPS,PetscScalar*,PetscScalar*);
 SLEPC_INTERN PetscErrorCode EPSKrylovSchurGetChildEPS(EPS,EPS*);
+
 /* Structure characterizing a shift in spectrum slicing */
 typedef struct _n_shift *EPS_shift;
 struct _n_shift {

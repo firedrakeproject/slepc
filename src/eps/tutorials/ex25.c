@@ -18,7 +18,7 @@ static char help[] = "Spectrum slicing on generalized symmetric eigenproblem.\n\
 
 int main(int argc,char **argv)
 {
-  Mat            A,B,F;       /* matrices */
+  Mat            A,B;         /* matrices */
   EPS            eps;         /* eigenproblem solver context */
   ST             st;          /* spectral transformation context */
   KSP            ksp;
@@ -28,6 +28,9 @@ int main(int argc,char **argv)
   PetscReal      inta,intb,*shifts;
   PetscBool      flag,show=PETSC_FALSE,terse;
   PetscErrorCode ierr;
+#if defined(PETSC_HAVE_MUMPS) && !defined(PETSC_USE_COMPLEX)
+  Mat            F;
+#endif
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
@@ -117,7 +120,7 @@ int main(int argc,char **argv)
   ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   ierr = PCFactorSetUpMatSolverType(pc);CHKERRQ(ierr);
   /*
-     Add several MUMPS options (see ex43.c for a better way of setting them in program):
+     Set several MUMPS options, the corresponding command-line options are:
      '-st_mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
      '-st_mat_mumps_icntl_24 1': detect null pivots in factorization (for the case that a shift is equal to an eigenvalue)
      '-st_mat_mumps_cntl_3 <tol>': a tolerance used for null pivot detection (must be larger than machine epsilon)
