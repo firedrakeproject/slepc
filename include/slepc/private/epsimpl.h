@@ -116,7 +116,6 @@ struct _p_EPS {
   /*----------------- Child objects and working data -------------------*/
   ST             st;               /* spectral transformation object */
   DS             ds;               /* direct solver object */
-  DS             dsts;             /* auxiliary direct solver object used in two-sided case */
   BV             V;                /* set of basis vectors and computed eigenvectors */
   BV             W;                /* left basis vectors (if left eigenvectors requested) */
   RG             rg;               /* optional region for filtering */

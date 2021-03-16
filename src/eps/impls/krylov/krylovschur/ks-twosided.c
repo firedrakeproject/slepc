@@ -65,10 +65,10 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n_,&one,A,&ncv_,p,w,&ncv_,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = BVMultColumn(eps->W,-1.0,1.0,nv,w);CHKERRQ(ierr);
-  ierr = DSGetArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
+  ierr = DSGetArray(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
   beta = T[(nv-1)*ld+nv];
   for (i=0;i<nv;i++) T[(nv-1)*ld+i] += beta*w[i];
-  ierr = DSRestoreArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
+  ierr = DSRestoreArray(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
   ierr = PetscFree3(p,A,w);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,l,nnv);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->W,l,nnv);CHKERRQ(ierr);
@@ -101,13 +101,13 @@ static PetscErrorCode EPSTwoSidedRQUpdate2(EPS eps,Mat M,PetscInt k)
   ierr = DSRestoreArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = BVOrthogonalizeColumn(eps->W,k,c,&norm,NULL);CHKERRQ(ierr);
   ierr = BVScaleColumn(eps->W,k,1.0/norm);CHKERRQ(ierr);
-  ierr = DSGetArray(eps->dsts,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSGetArray(eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
   /* H = H + V'*u*b' */
   for (j=l;j<k;j++) {
     for (i=0;i<k;i++) A[i+j*ld] += c[i]*A[k+j*ld];
     A[k+j*ld] *= norm;
   }
-  ierr = DSRestoreArray(eps->dsts,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = DSRestoreArray(eps->ds,DS_MAT_B,&A);CHKERRQ(ierr);
 
   /* M = Q'*M*Q */
   ierr = MatDenseGetArray(M,&pM);CHKERRQ(ierr);
@@ -117,9 +117,9 @@ static PetscErrorCode EPSTwoSidedRQUpdate2(EPS eps,Mat M,PetscInt k)
   ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,pM,&ncv_,Q,&ld_,&zero,w,&ncv_));
   ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-  ierr = DSGetArray(eps->dsts,DS_MAT_Q,&Q);CHKERRQ(ierr);
+  ierr = DSGetArray(eps->ds,DS_MAT_Z,&Q);CHKERRQ(ierr);
   PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n_,&n_,&n_,&sone,Q,&ld_,w,&ncv_,&zero,pM,&ncv_));
-  ierr = DSRestoreArray(eps->dsts,DS_MAT_Q,&Q);CHKERRQ(ierr);
+  ierr = DSRestoreArray(eps->ds,DS_MAT_Z,&Q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(M,&pM);CHKERRQ(ierr);
   ierr = PetscFree2(w,c);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,l,nv);CHKERRQ(ierr);
@@ -132,21 +132,17 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   Mat             M,U,Op,OpHT;
-  PetscReal       norm,norm2,beta,betat,s,t;
-  PetscScalar     *pM,*S,*T,*eigr,*eigi;
-  PetscInt        ld,l,nv,nvt,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,*idx2,id=0,dsn,dsk;
+  PetscReal       norm,norm2,beta,betat;
+  PetscScalar     *S,*T;
+  PetscInt        ld,l,nv,nvt,k,nconv,dsn,dsk;
   PetscBool       breakdownt,breakdown,breakdownl;
-#if defined(PETSC_USE_COMPLEX)
-  Mat             A;
-#endif
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = EPSGetLeftStartVector(eps,0,NULL);CHKERRQ(ierr);
   l = 0;
-  ierr = PetscMalloc6(ncv*ncv,&pM,ncv,&eigr,ncv,&eigi,ncv,&idx,ncv,&idx2,ncv,&p);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->ncv,eps->ncv,pM,&M);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->ncv,eps->ncv,NULL,&M);CHKERRQ(ierr);
 
   ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
   ierr = MatCreateHermitianTranspose(Op,&OpHT);CHKERRQ(ierr);
@@ -163,20 +159,17 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization for Op' */
     nvt = nv;
-    ierr = DSGetArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
     ierr = BVMatArnoldi(eps->W,OpHT,T,ld,eps->nconv+l,&nvt,&betat,&breakdownt);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = DSRestoreArray(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
 
     /* Make sure both factorizations have the same length */
     nv = PetscMin(nv,nvt);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->dsts,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-      ierr = DSSetState(eps->dsts,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-      ierr = DSSetState(eps->dsts,DS_STATE_RAW);CHKERRQ(ierr);
     }
     breakdown = (breakdown || breakdownt)? PETSC_TRUE: PETSC_FALSE;
 
@@ -191,44 +184,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = DSSolve(eps->dsts,eigr,eigi);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    ierr = DSGetMat(eps->dsts,DS_MAT_A,&A);CHKERRQ(ierr);
-    ierr = MatConjugate(A);CHKERRQ(ierr);
-    ierr = DSRestoreMat(eps->dsts,DS_MAT_A,&A);CHKERRQ(ierr);
-    ierr = DSGetMat(eps->dsts,DS_MAT_Q,&U);CHKERRQ(ierr);
-    ierr = MatConjugate(U);CHKERRQ(ierr);
-    ierr = DSRestoreMat(eps->dsts,DS_MAT_Q,&U);CHKERRQ(ierr);
-    for (i=0;i<nv;i++) eigr[i] = PetscConj(eigr[i]);
-#endif
-    ierr = DSSort(eps->dsts,eigr,eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-    /* check correct eigenvalue correspondence */
-    cont = 0;
-    for (i=0;i<nv;i++) {
-      if (SlepcAbsEigenvalue(eigr[i]-eps->eigr[i],eigi[i]-eps->eigi[i])>PETSC_SQRT_MACHINE_EPSILON) {idx2[cont] = i; idx[cont++] = i;}
-      p[i] = -1;
-    }
-    if (cont) {
-      for (i=0;i<cont;i++) {
-        t = PETSC_MAX_REAL;
-        for (j=0;j<cont;j++) if (idx2[j]!=-1 && (s=SlepcAbsEigenvalue(eigr[idx[j]]-eps->eigr[idx[i]],eigi[idx[j]]-eps->eigi[idx[i]]))<t) { id = j; t = s; }
-        p[idx[i]] = idx[id];
-        idx2[id] = -1;
-      }
-      for (i=0;i<nv;i++) if (p[i]==-1) p[i] = i;
-      ierr = DSSortWithPermutation(eps->dsts,p,eigr,eigi);CHKERRQ(ierr);
-    }
-#if defined(PETSC_USE_COMPLEX)
-    ierr = DSGetMat(eps->dsts,DS_MAT_A,&A);CHKERRQ(ierr);
-    ierr = MatConjugate(A);CHKERRQ(ierr);
-    ierr = DSRestoreMat(eps->dsts,DS_MAT_A,&A);CHKERRQ(ierr);
-    ierr = DSGetMat(eps->dsts,DS_MAT_Q,&U);CHKERRQ(ierr);
-    ierr = MatConjugate(U);CHKERRQ(ierr);
-    ierr = DSRestoreMat(eps->dsts,DS_MAT_Q,&U);CHKERRQ(ierr);
-#endif
     ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
-    ierr = DSUpdateExtraRow(eps->dsts);CHKERRQ(ierr);
-    ierr = DSSynchronize(eps->dsts,eigr,eigi);CHKERRQ(ierr);
 
     /* Check convergence */
     ierr = BVNormColumn(eps->V,nv,NORM_2,&norm);CHKERRQ(ierr);
@@ -252,7 +208,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
     ierr = BVMultInPlace(eps->V,U,eps->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
-    ierr = DSGetMat(eps->dsts,DS_MAT_Q,&U);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_Z,&U);CHKERRQ(ierr);
     ierr = BVMultInPlace(eps->W,U,eps->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
@@ -275,9 +231,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
       } else {
         ierr = DSGetDimensions(eps->ds,&dsn,NULL,NULL,&dsk,NULL);CHKERRQ(ierr);
         ierr = DSSetDimensions(eps->ds,dsn,0,k,dsk);CHKERRQ(ierr);
-        ierr = DSSetDimensions(eps->dsts,dsn,0,k,dsk);CHKERRQ(ierr);
         ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
-        ierr = DSTruncate(eps->dsts,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
       ierr = EPSTwoSidedRQUpdate2(eps,M,k+l);CHKERRQ(ierr);
     }
@@ -289,8 +243,6 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   ierr = MatDestroy(&OpHT);CHKERRQ(ierr);
 
   ierr = DSTruncate(eps->ds,eps->nconv,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = DSTruncate(eps->dsts,eps->nconv,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscFree6(pM,eigr,eigi,idx,idx2,p);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

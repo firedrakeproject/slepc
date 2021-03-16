@@ -9,6 +9,7 @@ class DSType(object):
     GHEP    = S_(DSGHEP)
     GHIEP   = S_(DSGHIEP)
     GNHEP   = S_(DSGNHEP)
+    NHEPTS  = S_(DSNHEPTS)
     SVD     = S_(DSSVD)
     PEP     = S_(DSPEP)
     NEP     = S_(DSNEP)

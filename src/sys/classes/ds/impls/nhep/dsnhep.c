@@ -558,7 +558,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
   if (n==1) { /* quick return */
     wr[0] = A[0];
-    wi[0] = 0.0;
+    if (wi) wi[0] = 0.0;
     PetscFunctionReturn(0);
   }
 

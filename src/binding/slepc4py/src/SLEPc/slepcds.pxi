@@ -6,6 +6,7 @@ cdef extern from * nogil:
     SlepcDSType DSGHEP
     SlepcDSType DSGHIEP
     SlepcDSType DSGNHEP
+    SlepcDSType DSNHEPTS
     SlepcDSType DSSVD
     SlepcDSType DSPEP
     SlepcDSType DSNEP

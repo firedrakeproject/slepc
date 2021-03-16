@@ -292,7 +292,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     if (marker==-1 && eps->errest[k] >= eps->tol) marker = k;
     if (eps->twosided) {
       newk2 = k;
-      ierr = DSVectors(eps->dsts,DS_MAT_X,&newk2,&resnorm);CHKERRQ(ierr);
+      ierr = DSVectors(eps->ds,DS_MAT_Y,&newk2,&resnorm);CHKERRQ(ierr);
       resnorm *= betat;
       ierr = (*eps->converged)(eps,re,im,resnorm,&lerrest,eps->convergedctx);CHKERRQ(ierr);
       eps->errest[k] = PetscMax(eps->errest[k],lerrest);
