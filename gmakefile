@@ -57,17 +57,6 @@ slepc_libs : $(libslepcall)
 # Test framework includes rules and variables relevant to both build and test
 include ./gmakefile.test        # This must be below the slepc_libs target because it includes rules
 
-ifneq ($(INSTALLED_PETSC),)
-  PETSC_ARCH_DIR=
-else
-  PETSC_ARCH_DIR=$(PETSC_ARCH)
-endif
-
-PETSCCONFIGDIR := $(PETSC_DIR)/config
-ifeq ($(wildcard $(PETSCCONFIGDIR)/gmakegen.py),)
-  PETSCCONFIGDIR := $(PETSC_DIR)/share/petsc/examples/config
-endif
-
 $(generated) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegen.py
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegen.py --petsc-arch=$(PETSC_ARCH_DIR) --pkg-dir=$(SLEPC_DIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH)
 
