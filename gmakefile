@@ -86,7 +86,7 @@ langs := F F90 cxx c
 ifneq ($(CUDAC),)
 langs += cu
 endif
-ifneq ($(HIPCC),)
+ifneq ($(HIPC),)
 langs += hip.cpp
 endif
 ifneq ($(SYCLCPP),)
@@ -125,19 +125,19 @@ endif
 
 $(libslepc_static) : obj := $(srcs.o)
 
+define ARCHIVE_RECIPE_WIN32FE_LIB
+  @$(RM) $@ $@.args
+  @cygpath -w $^ > $@.args
+  $(call quiet,AR) $(AR_FLAGS) $@ @$@.args
+  @$(RM) $@.args
+endef
+
 define ARCHIVE_RECIPE_ARGFILE
   @$(RM) $@
   $(file > $@.args,$^)
   $(call quiet,AR) $(AR_FLAGS) $@ @$@.args
   @$(RM) $@.args
   $(call quiet,RANLIB) $@
-endef
-
-define ARCHIVE_RECIPE_WIN32FE_LIB
-  @$(RM) $@ $@.args
-  @cygpath -w $^ > $@.args
-  $(call quiet,AR) $(AR_FLAGS) $@ @$@.args
-  @$(RM) $@.args
 endef
 
 define ARCHIVE_RECIPE_DEFAULT
@@ -197,6 +197,7 @@ $(OBJDIR)/%.o : src/%.kokkos.cxx | $$(@D)/.DIR
 $(OBJDIR)/%.o : src/%.cxx | $$(@D)/.DIR
 	$(SLEPC_COMPILE.cxx) $(abspath $<) -o $@
 
+#$(OBJDIR)/%.hip.o : src/%.hip.cpp | $$(@D)/.DIR
 $(OBJDIR)/%.o : src/%.hip.cpp | $$(@D)/.DIR
 	$(SLEPC_COMPILE.hip.cpp) $(abspath $<) -o $@
 
