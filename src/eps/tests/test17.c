@@ -211,10 +211,14 @@ int main(int argc,char **argv)
     }
     ierr = MatAssemblyBegin(Au,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(Au,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = EPSKrylovSchurUpdateSubcommMats(eps,1.0,-1.0,Au,0.0,0.0,NULL,DIFFERENT_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Updating internal matrices\n");CHKERRQ(ierr);
+    ierr = EPSKrylovSchurUpdateSubcommMats(eps,1.1,-5.0,Au,1.0,0.0,NULL,DIFFERENT_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
     ierr = MatDestroy(&Au);CHKERRQ(ierr);
+    ierr = EPSSolve(eps);CHKERRQ(ierr);
+    ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
+    ierr = EPSGetInterval(eps,&int0,&int1);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," After update, found %D eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
   }
-
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);

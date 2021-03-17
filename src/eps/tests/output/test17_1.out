@@ -26,3 +26,5 @@ Spectrum-slicing test, N=1225 (35x35 grid)
  Process 1 has worked in sub-interval 1, containing 30 eigenvalues: 1.206211 1.207382 1.208025 1.210407 1.221736 1.222523 1.233956 1.233956 1.234465 1.235051 1.235422 1.238330 1.241317 1.246812 1.253067 1.258343 1.262648 1.262674 1.267518 1.267549 1.268708 1.268895 1.270903 1.273834 1.274184 1.279187 1.292893 1.292893 1.293852 1.296801 
  Process 0 owns 613 rows of the global matrices, and 1225 rows in the subcommunicator
  Process 1 owns 612 rows of the global matrices, and 1225 rows in the subcommunicator
+ Updating internal matrices
+ After update, found 82 eigenvalues in interval [1.1,1.3]
