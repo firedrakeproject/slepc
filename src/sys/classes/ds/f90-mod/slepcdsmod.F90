@@ -15,6 +15,7 @@
 
         module slepcds
         use slepcdsdef
+        use slepcfn
 #include <../src/sys/classes/ds/f90-mod/slepcds.h90>
         interface
 #include <../src/sys/classes/ds/f90-mod/ftn-auto-interfaces/slepcds.h90>

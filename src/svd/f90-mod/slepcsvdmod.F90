@@ -8,13 +8,16 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcsvddef
+        use slepcsys
         use slepcbvdef
+        use slepcdsdef
         use slepcepsdef
 #include <../src/svd/f90-mod/slepcsvd.h>
         end module
 
         module slepcsvd
         use slepcsvddef
+        use slepceps
 #include <../src/svd/f90-mod/slepcsvd.h90>
         interface
 #include <../src/svd/f90-mod/ftn-auto-interfaces/slepcsvd.h90>

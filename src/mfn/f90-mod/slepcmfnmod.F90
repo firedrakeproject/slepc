@@ -8,10 +8,9 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcmfndef
+        use slepcsys
         use slepcbvdef
         use slepcfndef
-        use petscvecdef
-        use petscmatdef
 #include <../src/mfn/f90-mod/slepcmfn.h>
         end module
 
@@ -19,8 +18,6 @@
         use slepcmfndef
         use slepcbv
         use slepcfn
-        use petscvec
-        use petscmat
 #include <../src/mfn/f90-mod/slepcmfn.h90>
         interface
 #include <../src/mfn/f90-mod/ftn-auto-interfaces/slepcmfn.h90>

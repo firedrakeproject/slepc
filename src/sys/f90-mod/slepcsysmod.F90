@@ -8,7 +8,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcsysdef
-        use petscsysdef
         use petscmatdef
         use petscsys
 #include <../src/sys/f90-mod/slepcsys.h>
