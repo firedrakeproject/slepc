@@ -349,7 +349,7 @@ gnu-c-complex-multilib:
   tags:
     - linux-ubuntu, name:maat
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-fortran-bindings=0 --download-sowing --download-elemental --download-metis --download-parmetis --download-scalapack
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --download-sowing --download-elemental --download-metis --download-parmetis --download-scalapack
     SLEPC_CONFIG_OPTS: --download-elpa
 
 intel-c-complex-mkl:
@@ -617,6 +617,6 @@ gnu-c-cuda-int64:
   tags:
     - linux-ubuntu, gpu:nvidia
   variables:
-    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --with-openmp --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.5.4
+    PETSC_CONFIG_OPTS: --with-cuda --with-openmp --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.5.4
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
 
