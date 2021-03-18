@@ -8,6 +8,7 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcnepdef
+        use slepcsys
         use slepcbvdef
         use slepcrgdef
         use slepcdsdef
@@ -19,6 +20,7 @@
 
         module slepcnep
         use slepcnepdef
+        use slepcpep
 #include <../src/nep/f90-mod/slepcnep.h90>
         interface
 #include <../src/nep/f90-mod/ftn-auto-interfaces/slepcnep.h90>

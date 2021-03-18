@@ -9,7 +9,6 @@
 !
         module slepclmedef
         use slepcbvdef
-        use petscvecdef
         use petscmatdef
 #include <../src/lme/f90-mod/slepclme.h>
         end module
@@ -17,7 +16,6 @@
         module slepclme
         use slepclmedef
         use slepcbv
-        use petscvec
         use petscmat
 #include <../src/lme/f90-mod/slepclme.h90>
         interface

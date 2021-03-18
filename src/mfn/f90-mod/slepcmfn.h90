@@ -9,21 +9,21 @@
 !
       interface MFNGetTolerances
         subroutine MFNGetTolerances00(a,b,c,z)
-          use slepcmfndef
+          import tMFN
           MFN a
           PetscReal b
           PetscInt c
           PetscErrorCode z
         end subroutine
         subroutine MFNGetTolerances10(a,b,c,z)
-          use slepcmfndef
+          import tMFN
           MFN a
           PetscReal b(*)
           PetscInt c
           PetscErrorCode z
         end subroutine
         subroutine MFNGetTolerances01(a,b,c,z)
-          use slepcmfndef
+          import tMFN
           MFN a
           PetscReal b
           PetscInt c(*)

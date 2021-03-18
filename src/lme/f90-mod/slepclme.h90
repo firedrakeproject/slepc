@@ -9,21 +9,21 @@
 !
       interface LMEGetTolerances
         subroutine LMEGetTolerances00(a,b,c,z)
-          use slepclmedef
+          import tLME
           LME a
           PetscReal b
           PetscInt c
           PetscErrorCode z
         end subroutine
         subroutine LMEGetTolerances10(a,b,c,z)
-          use slepclmedef
+          import tLME
           LME a
           PetscReal b(*)
           PetscInt c
           PetscErrorCode z
         end subroutine
         subroutine LMEGetTolerances01(a,b,c,z)
-          use slepclmedef
+          import tLME
           LME a
           PetscReal b
           PetscInt c(*)

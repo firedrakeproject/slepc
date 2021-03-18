@@ -9,7 +9,7 @@
 !
       interface NEPGetDimensions
         subroutine NEPGetDimensions000(a,b,c,d,z)
-        use slepcnepdef
+          import tNEP
           NEP a
           PetscInt b
           PetscInt c
@@ -17,7 +17,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetDimensions100(a,b,c,d,z)
-        use slepcnepdef
+          import tNEP
           NEP a
           PetscInt b(*)
           PetscInt c
@@ -25,7 +25,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetDimensions010(a,b,c,d,z)
-        use slepcnepdef
+          import tNEP
           NEP a
           PetscInt b
           PetscInt c(*)
@@ -33,7 +33,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetDimensions001(a,b,c,d,z)
-        use slepcnepdef
+          import tNEP
           NEP a
           PetscInt b
           PetscInt c
@@ -41,7 +41,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetDimensions110(a,b,c,d,z)
-        use slepcnepdef
+          import tNEP
           NEP a
           PetscInt b(*)
           PetscInt c(*)
@@ -49,7 +49,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetDimensions011(a,b,c,d,z)
-        use slepcnepdef
+          import tNEP
           NEP a
           PetscInt b
           PetscInt c(*)
@@ -57,7 +57,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetDimensions101(a,b,c,d,z)
-        use slepcnepdef
+          import tNEP
           NEP a
           PetscInt b(*)
           PetscInt c
@@ -68,7 +68,7 @@
 
       interface NEPGetEigenpair
         subroutine NEPGetEigenpair00(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP,tVec
           NEP a
           PetscInt b
           PetscScalar c
@@ -78,7 +78,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetEigenpair10(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP,tVec
           NEP a
           PetscInt b
           PetscScalar c(*)
@@ -88,7 +88,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetEigenpair01(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP,tVec
           NEP a
           PetscInt b
           PetscScalar c
@@ -98,7 +98,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetEigenpair11(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP,tVec
           NEP a
           PetscInt b
           PetscScalar c(*)
@@ -111,21 +111,21 @@
 
       interface NEPGetTolerances
         subroutine NEPGetTolerances00(a,b,c,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           PetscReal b
           PetscInt c
           PetscErrorCode z
         end subroutine
         subroutine NEPGetTolerances10(a,b,c,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           PetscReal b(*)
           PetscInt c
           PetscErrorCode z
         end subroutine
         subroutine NEPGetTolerances01(a,b,c,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           PetscReal b
           PetscInt c(*)
@@ -135,7 +135,7 @@
 
       interface NEPGetRefine
         subroutine NEPGetRefine000(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           NEPRefine b
           PetscInt c
@@ -145,7 +145,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetRefine100(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           NEPRefine b
           PetscInt c(*)
@@ -155,7 +155,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetRefine010(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           NEPRefine b
           PetscInt c
@@ -165,7 +165,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetRefine001(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           NEPRefine b
           PetscInt c
@@ -175,7 +175,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetRefine110(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           NEPRefine b
           PetscInt c(*)
@@ -185,7 +185,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetRefine011(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           NEPRefine b
           PetscInt c
@@ -195,7 +195,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetRefine101(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           NEPRefine b
           PetscInt c(*)
@@ -205,7 +205,7 @@
           PetscErrorCode z
         end subroutine
         subroutine NEPGetRefine111(a,b,c,d,e,f,z)
-          use slepcnepdef
+          import tNEP
           NEP a
           NEPRefine b
           PetscInt c(*)
@@ -218,14 +218,14 @@
 
       interface NEPSetInitialSpace
         subroutine NEPSetInitialSpace0(a,b,c,z)
-          use slepcnepdef
+          import tNEP,tVec
           NEP a
           PetscInt b
           Vec c
           PetscErrorCode z
         end subroutine
         subroutine NEPSetInitialSpace1(a,b,c,z)
-          use slepcnepdef
+          import tNEP,tVec
           NEP a
           PetscInt b
           Vec c(*)

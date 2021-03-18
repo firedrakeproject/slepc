@@ -9,7 +9,7 @@
 !
       interface EPSGetDimensions
         subroutine EPSGetDimensions000(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b
           PetscInt c
@@ -17,7 +17,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions100(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b(*)
           PetscInt c
@@ -25,7 +25,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions010(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b
           PetscInt c(*)
@@ -33,7 +33,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions001(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b
           PetscInt c
@@ -41,7 +41,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions110(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b(*)
           PetscInt c(*)
@@ -49,7 +49,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions011(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b
           PetscInt c(*)
@@ -57,7 +57,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions101(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b(*)
           PetscInt c
@@ -68,7 +68,7 @@
 
       interface EPSGetEigenpair
         subroutine EPSGetEigenpair00(a,b,c,d,e,f,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           PetscScalar c
@@ -78,7 +78,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenpair10(a,b,c,d,e,f,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           PetscScalar c(*)
@@ -88,7 +88,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenpair01(a,b,c,d,e,f,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           PetscScalar c
@@ -98,7 +98,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenpair11(a,b,c,d,e,f,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           PetscScalar c(*)
@@ -111,7 +111,7 @@
 
       interface EPSGetEigenvalue
         subroutine EPSGetEigenvalue00(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b
           PetscScalar c
@@ -119,7 +119,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenvalue10(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b
           PetscScalar c(*)
@@ -127,7 +127,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenvalue01(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscInt b
           PetscScalar c
@@ -138,21 +138,21 @@
 
       interface EPSGetTolerances
         subroutine EPSGetTolerances00(a,b,c,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscReal b
           PetscInt c
           PetscErrorCode z
         end subroutine
         subroutine EPSGetTolerances10(a,b,c,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscReal b(*)
           PetscInt c
           PetscErrorCode z
         end subroutine
         subroutine EPSGetTolerances01(a,b,c,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           PetscReal b
           PetscInt c(*)
@@ -162,7 +162,7 @@
 
       interface EPSGetBalance
         subroutine EPSGetBalance000(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           EPSBalance b
           PetscInt c
@@ -170,7 +170,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance100(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           EPSBalance b(*)
           PetscInt c
@@ -178,7 +178,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance010(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           EPSBalance b
           PetscInt c(*)
@@ -186,7 +186,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance001(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           EPSBalance b
           PetscInt c
@@ -194,7 +194,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance110(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           EPSBalance b(*)
           PetscInt c(*)
@@ -202,7 +202,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance011(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           EPSBalance b
           PetscInt c(*)
@@ -210,7 +210,7 @@
           PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance101(a,b,c,d,z)
-          use slepcepsdef
+          import tEPS
           EPS a
           EPSBalance b(*)
           PetscInt c
@@ -221,14 +221,14 @@
 
       interface EPSSetDeflationSpace
         subroutine EPSSetDeflationSpace0(a,b,c,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           Vec c
           PetscErrorCode z
         end subroutine
         subroutine EPSSetDeflationSpace1(a,b,c,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           Vec c(*)
@@ -238,14 +238,14 @@
 
       interface EPSSetInitialSpace
         subroutine EPSSetInitialSpace0(a,b,c,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           Vec c
           PetscErrorCode z
         end subroutine
         subroutine EPSSetInitialSpace1(a,b,c,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           Vec c(*)
@@ -255,14 +255,14 @@
 
       interface EPSSetLeftInitialSpace
         subroutine EPSSetLeftInitialSpace0(a,b,c,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           Vec c
           PetscErrorCode z
         end subroutine
         subroutine EPSSetLeftInitialSpace1(a,b,c,z)
-          use slepcepsdef
+          import tEPS,tVec
           EPS a
           PetscInt b
           Vec c(*)

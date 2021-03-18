@@ -9,14 +9,14 @@
 !
       interface FNRationalSetNumerator
         subroutine FNRationalSetNumerator0(a,b,c,z)
-          use slepcfndef
+          import tFN
           FN a
           PetscInt b
           PetscScalar c
           PetscErrorCode z
         end subroutine
         subroutine FNRationalSetNumerator1(a,b,c,z)
-          use slepcfndef
+          import tFN
           FN a
           PetscInt b
           PetscScalar c(*)
@@ -26,14 +26,14 @@
 
       interface FNRationalSetDenominator
         subroutine FNRationalSetDenominator0(a,b,c,z)
-          use slepcfndef
+          import tFN
           FN a
           PetscInt b
           PetscScalar c
           PetscErrorCode z
         end subroutine
         subroutine FNRationalSetDenominator1(a,b,c,z)
-          use slepcfndef
+          import tFN
           FN a
           PetscInt b
           PetscScalar c(*)
@@ -43,14 +43,14 @@
 
       interface FNRationalGetNumerator
         subroutine FNRationalGetNumerator0(a,b,c,z)
-          use slepcfndef
+          import tFN
           FN a
           PetscInt b
           PetscScalar c(*)
           PetscErrorCode z
         end subroutine
         subroutine FNRationalGetNumerator1(a,b,c,z)
-          use slepcfndef
+          import tFN
           FN a
           PetscInt b(*)
           PetscScalar c(*)
@@ -60,14 +60,14 @@
 
       interface FNRationalGetDenominator
         subroutine FNRationalGetDenominator0(a,b,c,z)
-          use slepcfndef
+          import tFN
           FN a
           PetscInt b
           PetscScalar c(*)
           PetscErrorCode z
         end subroutine
         subroutine FNRationalGetDenominator1(a,b,c,z)
-          use slepcfndef
+          import tFN
           FN a
           PetscInt b(*)
           PetscScalar c(*)
