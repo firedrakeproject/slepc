@@ -858,6 +858,8 @@ PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
   if (!bv->rand) {
     ierr = PetscRandomCreate(PetscObjectComm((PetscObject)bv),&bv->rand);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->rand);CHKERRQ(ierr);
+    if (bv->cuda) { ierr = PetscRandomSetType(bv->rand,PETSCCURAND);CHKERRQ(ierr); }
+    if (bv->sfocalled) { ierr = PetscRandomSetFromOptions(bv->rand);CHKERRQ(ierr); }
     if (bv->rrandom) {
       ierr = PetscRandomSetSeed(bv->rand,0x12345678);CHKERRQ(ierr);
       ierr = PetscRandomSeed(bv->rand);CHKERRQ(ierr);
@@ -922,9 +924,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
     }
     ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
-
-  if (!bv->rand) { ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr); }
-  ierr = PetscRandomSetFromOptions(bv->rand);CHKERRQ(ierr);
+  bv->sfocalled = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -1546,6 +1546,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,BV W)
   W->deftol       = V->deftol;
   if (V->rand) { ierr = PetscObjectReference((PetscObject)V->rand);CHKERRQ(ierr); }
   W->rand         = V->rand;
+  W->sfocalled    = V->sfocalled;
   if (V->ops->duplicate) { ierr = (*V->ops->duplicate)(V,W);CHKERRQ(ierr); }
   ierr = PetscObjectStateIncrease((PetscObject)W);CHKERRQ(ierr);
   PetscFunctionReturn(0);

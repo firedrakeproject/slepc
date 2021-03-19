@@ -216,6 +216,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->Acreate      = NULL;
   bv->Aget         = NULL;
   bv->cuda         = PETSC_FALSE;
+  bv->sfocalled    = PETSC_FALSE;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = NULL;

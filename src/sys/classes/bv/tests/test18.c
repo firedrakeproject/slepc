@@ -142,12 +142,14 @@ int main(int argc,char **argv)
 #if !defined(PETSC_USE_COMPLEX)
   /* fill imaginary parts */
   ierr = PetscCalloc1(k,&eigi);CHKERRQ(ierr);
-  ierr = BVGetRandomContext(Z,&rand);CHKERRQ(ierr);
+  ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rand);CHKERRQ(ierr);
+  ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
   for (j=l+1;j<k-1;j+=5) {
     ierr = PetscRandomGetValue(rand,&alpha);CHKERRQ(ierr);
     eigi[j]   =  alpha;
     eigi[j+1] = -alpha;
   }
+  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
   if (verbose) {
     ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,k,eigi,&v);CHKERRQ(ierr);
     ierr = VecView(v,view);CHKERRQ(ierr);
