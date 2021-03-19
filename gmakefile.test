@@ -121,19 +121,23 @@ endif
 
 SLEPC_COMPILE.c = $(call quiet,$(cc_name)) -c $(PCC_FLAGS) $(PFLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(C_DEPFLAGS)
 SLEPC_COMPILE.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
-ifneq ($(KOKKOS_BIN),)
-# Kokkos requires nvcc to be in PATH and the C++ compiler to be given in an environmental variable
-SLEPC_COMPILE.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CXX_LINKER) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS)
-SLEPC_LINK.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CXX_LINKER) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda  $(CXX_LINKER_FLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(LDFLAGS)
-else
-SLEPC_COMPILE.kokkos.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(CXX_DEPFLAGS)
-SLEPC_LINK.kokkos.cxx = $(CXXLINKER) $(CXX_LINKER_FLAGS) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(LDFLAGS)
-endif
 SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
-SLEPC_COMPILE.hip.cpp = $(call quiet,HIPCC) -c $(HIPCC_FLAGS) $(HIPCCFLAGS) $(HIPCCPPFLAGS) $(HIPCC_DEPFLAGS)
-SLEPC_COMPILE.sycl.cpp = $(call quiet,SYCLCPP) -c $(SYCLCPP_FLAGS) $(SYCLCPPFLAGS) $(SYCLCPPCPPFLAGS) $(SYCLCPP_DEPFLAGS)
-SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
+SLEPC_COMPILE.hip.cpp = $(call quiet,HIPC) -c $(HIPC_FLAGS) $(HIPFLAGS) $(HIPPPFLAGS) $(HIPOPTFLAGS) $(HIPC_DEPFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
+SLEPC_COMPILE.sycl.cpp = $(call quiet,SYCLCPP) -c $(SYCLCPP_FLAGS) $(SYCLCPPFLAGS) $(SYCLCPPCPPFLAGS) $(SLEPC_CC_INCLUDES) $(SYCLCPP_DEPFLAGS)
+SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="${PETSC_CCPPFLAGS} $(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
 SLEPC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
+
+ifneq ($(KOKKOS_USE_CUDA_COMPILER),)
+  # Kokkos requires nvcc to be in PATH and the C++ compiler to be given in an environmental variable
+  SLEPC_COMPILE.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CXX_LINKER) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES)
+  SLEPC_LINK.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CXX_LINKER) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda  $(CXX_LINKER_FLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(SLEPC_CC_INCLUDES) $(LDFLAGS)
+else ifneq ($(KOKKOS_USE_HIP_COMPILER),)
+  SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.hip.cpp)
+  SLEPC_LINK.kokkos.cxx = MPICH_CXX="$(HIPC)" OMPI_CXX="$(HIPC)" $(CXXLINKER) $(HIPFLAGS) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(SLEPC_CC_INCLUDES) $(LDFLAGS)
+else
+  SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.cxx)
+  SLEPC_LINK.kokkos.cxx = $(CXXLINKER) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(SLEPC_CC_INCLUDES) $(LDFLAGS)
+endif
 
 testlangs := c cu cxx F F90 kokkos.cxx hip.cpp sycl.cpp
 $(foreach lang, $(testlangs), $(eval \
@@ -195,20 +199,38 @@ SLEPC_TEST_LIB = $(SLEPC_LIB)
 #SLEPC_TEST_LIB = $(SLEPC_LIB)
 #SLEPC_TEST_LIB = $(C_SH_LIB_PATH) $(SLEPC_EXTERNAL_LIB_BASIC)
 #endif
-# if configured --with-macos-firewall-rules, ensure mpiexec.hydra and test executable is on firewall list
-ifdef MACOS_FIREWALL_MPIEXEC
+
+# if run with MACOS_FIREWALL=1 or MACOS_FIREWALL_REFRESH=1, ensure mpiexec.hydra and test executable is on firewall list
+ifeq ($(MACOS_FIREWALL_REFRESH),1)
+# MACOS_FIREWALL_REFRESH=1 imply MACOS_FIREWALL=1
+MACOS_FIREWALL := 1
+endif
+
+ifeq ($(MACOS_FIREWALL),1)
+MACOS_FIREWALL_MPIEXEC := $(shell $(PYTHON) -c "import os; print(os.path.realpath('$(MPIEXEC)'))")
+FW := /usr/libexec/ApplicationFirewall/socketfilterfw
+ifeq ($(MACOS_FIREWALL_REFRESH),1)
 define macos-firewall-register
   @APP=$(call abspath, $(1)); \
-    FW=/usr/libexec/ApplicationFirewall/socketfilterfw; \
-    ANS=`$$FW --getappblocked $$APP`; \
+    echo "MACOS_FIREWALL_REFRESH set => refresh firewall rule"; \
+    if ! sudo -n true 2>/dev/null; then echo "Asking for sudo password to add new firewall rule for\n  $$APP:"; fi; \
+    sudo $(FW) --remove $$APP && \
+    sudo $(FW) --add $$APP && \
+    sudo $(FW) --blockapp $$APP
+endef
+else
+define macos-firewall-register
+  @APP=$(call abspath, $(1)); \
+    ANS=`$(FW) --getappblocked $$APP`; \
     if ! echo $$ANS | grep "$$APP" &> /dev/null; then \
       if ! sudo -n true 2>/dev/null; then echo "Asking for sudo password to add new firewall rule for\n  $$APP:"; fi; \
-      sudo $$FW --add $$APP && \
-      sudo $$FW --blockapp $$APP; \
+      sudo $(FW) --add $$APP && \
+      sudo $(FW) --blockapp $$APP; \
     else \
       echo $$ANS; \
     fi
 endef
+endif
 define macos-firewall-fix
   $(call macos-firewall-register, $(MACOS_FIREWALL_MPIEXEC))
   $(call macos-firewall-register, $(1))
@@ -423,6 +445,10 @@ help-test:
 	-@echo "  OPTIONS='<args>'  Override options to scripts (-a to test scripts)"
 	-@echo "  EXTRA_OPTIONS='<args>'  Add options to scripts (-e to test scripts)"
 	-@echo
+	-@echo "Special options for macOS:"
+	-@echo "  MACOS_FIREWALL=1          Add each built test to the macOS firewall list to prevent popups. Configure --with-macos-firewall-rules to make this default"
+	-@echo "  MACOS_FIREWALL_REFRESH=1  The same, but force re-addition to the list. You need to do cleantest first"
+	-@echo
 	-@echo "Tests can be generated by searching with multiple methods"
 	-@echo "  For general searching (using config/query_test.py):"
 	-@echo "    make -f ${makefile} test search='sys*ex2*'"
@@ -436,7 +462,7 @@ help-test:
 	-@echo "   or the shortcut using q and qv"
 	-@echo "    make -f ${makefile} test q='requires' qv='*MPI_PROCESS_SHARED_MEMORY*'"
 	-@echo "  To filter results from other searches, use searchin"
-	-@echo "    make -f ${makefile} test s='src/sys/tests/' searchin='*options*'" 
+	-@echo "    make -f ${makefile} test s='src/sys/tests/' searchin='*options*'"
 	-@echo
 	-@echo "  To re-run the last tests which failed:"
 	-@echo "    make -f ${makefile} test test-fail='1'"
