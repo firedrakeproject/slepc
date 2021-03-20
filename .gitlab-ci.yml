@@ -458,7 +458,7 @@ intel-cxx-mkl:
     - .stage-3
     - .linux_test
   tags:
-    - compiler:intel
+    - linux-ubuntu, compiler:intel
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++ --with-memalign=64
@@ -532,7 +532,7 @@ nvidia-c-nompi:
     - .stage-3
     - .linux_test
   tags:
-    - compiler:nvidia
+    - linux-debian, compiler:nvidia
   variables:
     MAKE_CFLAGS: ''
     MAKE_CXXFLAGS: ''
