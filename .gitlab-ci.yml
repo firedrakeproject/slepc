@@ -350,7 +350,7 @@ gnu-c-complex-multilib:
     - linux-ubuntu, name:maat
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --download-sowing --download-elemental --download-metis --download-parmetis --download-scalapack
-    SLEPC_CONFIG_OPTS: --download-elpa
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa
 
 intel-c-complex-mkl:
   extends:
