@@ -44,6 +44,7 @@ typedef const char* DSType;
 #define DSGHEP   "ghep"
 #define DSGHIEP  "ghiep"
 #define DSGNHEP  "gnhep"
+#define DSNHEPTS "nhepts"
 #define DSSVD    "svd"
 #define DSPEP    "pep"
 #define DSNEP    "nep"

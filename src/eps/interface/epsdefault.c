@@ -151,11 +151,11 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = BVNormalize(eps->V,eps->eigi);CHKERRQ(ierr);
   }
 
-  /* left eigenvectors from eps->dsts */
+  /* left eigenvectors */
   if (eps->twosided) {
-    ierr = DSVectors(eps->dsts,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
     /* W = W * Z */
-    ierr = DSGetMat(eps->dsts,DS_MAT_X,&Z);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
     ierr = BVMultInPlace(eps->W,Z,0,eps->nconv);CHKERRQ(ierr);
     ierr = MatDestroy(&Z);CHKERRQ(ierr);
     /* Fix left eigenvectors if balancing was used */

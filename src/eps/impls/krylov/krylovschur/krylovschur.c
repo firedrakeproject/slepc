@@ -222,12 +222,9 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     case EPS_KS_TWOSIDED:
       eps->ops->solve = EPSSolve_KrylovSchur_TwoSided;
       eps->ops->computevectors = EPSComputeVectors_Schur;
-      ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+      ierr = DSSetType(eps->ds,DSNHEPTS);CHKERRQ(ierr);
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
-      ierr = DSSetType(eps->dsts,DSNHEP);CHKERRQ(ierr);
-      ierr = DSAllocate(eps->dsts,eps->ncv+1);CHKERRQ(ierr);
       ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
-      ierr = DSSetExtraRow(eps->dsts,PETSC_TRUE);CHKERRQ(ierr);
       break;
     default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error");
   }

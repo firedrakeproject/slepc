@@ -127,6 +127,10 @@ SLEPC_INTERN PetscErrorCode DSSwitchFormat_GHIEP(DS,PetscBool);
 SLEPC_INTERN PetscErrorCode DSGHIEPRealBlocks(DS);
 SLEPC_INTERN PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
 
+SLEPC_INTERN PetscErrorCode DSSolve_NHEP_Private(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode DSSort_NHEP_Total(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode DSSortWithPermutation_NHEP_Private(DS,PetscInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+
 SLEPC_INTERN PetscErrorCode BDC_dibtdc_(const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt*,PetscReal*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscReal,PetscReal*,PetscReal*,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscBLASInt,PetscBLASInt*,PetscBLASInt);
 SLEPC_INTERN PetscErrorCode BDC_dlaed3m_(const char*,const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt,PetscReal*,PetscReal*,PetscBLASInt,PetscReal,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);
 SLEPC_INTERN PetscErrorCode BDC_dmerg2_(const char*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscReal,PetscBLASInt*,PetscBLASInt);

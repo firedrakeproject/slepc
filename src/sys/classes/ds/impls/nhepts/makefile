@@ -12,12 +12,12 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = dsutil.c
+SOURCEC  = dsnhepts.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = hep nhep ghep ghiep gnhep nhepts svd pep nep
-LOCDIR   = src/sys/classes/ds/impls/
+DIRS     =
 MANSEC   = DS
+LOCDIR   = src/sys/classes/ds/impls/nhepts/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

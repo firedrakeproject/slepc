@@ -93,7 +93,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->st              = NULL;
   eps->ds              = NULL;
-  eps->dsts            = NULL;
   eps->V               = NULL;
   eps->W               = NULL;
   eps->rg              = NULL;
@@ -354,7 +353,6 @@ PetscErrorCode EPSDestroy(EPS *eps)
   ierr = STDestroy(&(*eps)->st);CHKERRQ(ierr);
   ierr = RGDestroy(&(*eps)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);
-  ierr = DSDestroy(&(*eps)->dsts);CHKERRQ(ierr);
   ierr = PetscFree((*eps)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl);CHKERRQ(ierr);
