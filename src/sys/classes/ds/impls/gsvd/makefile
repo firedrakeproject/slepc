@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2021, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2020, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
@@ -12,12 +12,12 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = dsutil.c
+SOURCEC  = dsgsvd.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = hep nhep ghep ghiep gnhep nhepts svd gsvd pep nep
-LOCDIR   = src/sys/classes/ds/impls/
+DIRS     =
 MANSEC   = DS
+LOCDIR   = src/sys/classes/ds/impls/gsvd/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
