@@ -1307,11 +1307,14 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
   PetscObjectId    Aid,Bid=0;
   STType           sttype;
   PetscInt         nmat;
+  const char       *prefix;
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
   if (ctx->npart==1) {
     if (!ctx->eps) {ierr = EPSCreate(((PetscObject)eps)->comm,&ctx->eps);CHKERRQ(ierr);}
+    ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
+    ierr = EPSSetOptionsPrefix(ctx->eps,prefix);CHKERRQ(ierr);
     ierr = EPSSetOperators(ctx->eps,A,B);CHKERRQ(ierr);
   } else {
     ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
@@ -1361,6 +1364,8 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
     /* Create auxiliary EPS */
     if (!ctx->eps) {
       ierr = EPSCreate(PetscSubcommChild(ctx->subc),&ctx->eps);CHKERRQ(ierr);
+      ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
+      ierr = EPSSetOptionsPrefix(ctx->eps,prefix);CHKERRQ(ierr);
       ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
       ierr = MatDestroy(&Ar);CHKERRQ(ierr);
       ierr = MatDestroy(&Br);CHKERRQ(ierr);
