@@ -398,7 +398,7 @@ static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,Pet
   }
 
   /* solve Lyapunov equation (Hammarling) */
-  PetscStackCallBLAS("SLICOTsb03od",SLICOTsb03md_("C","X","F","N",&n,W,&n,Q,&n,X,&lx,&scal,&sep,&ferr,wr,wi,iwork,work,&lwork,&info));
+  PetscStackCallBLAS("SLICOTsb03md",SLICOTsb03md_("C","X","F","N",&n,W,&n,Q,&n,X,&lx,&scal,&sep,&ferr,wr,wi,iwork,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%d",(int)info);
   if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
 
