@@ -223,158 +223,6 @@ PetscErrorCode DSVectors_NHEPTS(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode DSSort_NHEPTS_Total(DS ds,PetscScalar *wr,PetscScalar *wi,PetscBool left)
-{
-  PetscErrorCode ierr;
-  PetscScalar    re;
-  PetscInt       i,j,pos,result;
-  PetscBLASInt   ifst,ilst,info,n,ld;
-  PetscScalar    *T,*Q;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *work,im;
-#endif
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  if (left) {
-    T = ds->mat[DS_MAT_B];
-    Q = ds->mat[DS_MAT_Z];
-  } else {
-    T = ds->mat[DS_MAT_A];
-    Q = ds->mat[DS_MAT_Q];
-  }
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = DSAllocateWork_Private(ds,ld,0,0);CHKERRQ(ierr);
-  work = ds->work;
-#endif
-  /* selection sort */
-  for (i=ds->l;i<n-1;i++) {
-    re = wr[i];
-#if !defined(PETSC_USE_COMPLEX)
-    im = wi[i];
-#endif
-    pos = 0;
-    j=i+1; /* j points to the next eigenvalue */
-#if !defined(PETSC_USE_COMPLEX)
-    if (im != 0) j=i+2;
-#endif
-    /* find minimum eigenvalue */
-    for (;j<n;j++) {
-#if !defined(PETSC_USE_COMPLEX)
-      ierr = SlepcSCCompare(ds->sc,re,im,wr[j],wi[j],&result);CHKERRQ(ierr);
-#else
-      ierr = SlepcSCCompare(ds->sc,re,0.0,wr[j],0.0,&result);CHKERRQ(ierr);
-#endif
-      if (result > 0) {
-        re = wr[j];
-#if !defined(PETSC_USE_COMPLEX)
-        im = wi[j];
-#endif
-        pos = j;
-      }
-#if !defined(PETSC_USE_COMPLEX)
-      if (wi[j] != 0) j++;
-#endif
-    }
-    if (pos) {
-      /* interchange blocks */
-      ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);
-      ierr = PetscBLASIntCast(i+1,&ilst);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-      PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info));
-#else
-      PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,&info));
-#endif
-      SlepcCheckLapackInfo("trexc",info);
-      /* recover original eigenvalues from T matrix */
-      for (j=i;j<n;j++) {
-        wr[j] = T[j+j*ld];
-#if !defined(PETSC_USE_COMPLEX)
-        if (j<n-1 && T[j+1+j*ld] != 0.0) {
-          /* complex conjugate eigenvalue */
-          wi[j] = PetscSqrtReal(PetscAbsReal(T[j+1+j*ld])) *
-                  PetscSqrtReal(PetscAbsReal(T[j+(j+1)*ld]));
-          wr[j+1] = wr[j];
-          wi[j+1] = -wi[j];
-          j++;
-        } else {
-          wi[j] = 0.0;
-        }
-#endif
-      }
-    }
-#if !defined(PETSC_USE_COMPLEX)
-    if (wi[i] != 0) i++;
-#endif
-  }
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode DSSortWithPermutation_NHEPTS_Private(DS ds,PetscInt *perm,PetscScalar *wr,PetscScalar *wi)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,j,pos,inc=1;
-  PetscBLASInt   ifst,ilst,info,n,ld;
-  PetscScalar    *T = ds->mat[DS_MAT_B];
-  PetscScalar    *Q = ds->mat[DS_MAT_Z];
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *work;
-#endif
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = DSAllocateWork_Private(ds,ld,0,0);CHKERRQ(ierr);
-  work = ds->work;
-#endif
-  for (i=ds->l;i<n-1;i++) {
-    pos = perm[i];
-#if !defined(PETSC_USE_COMPLEX)
-    inc = (pos<n-1 && T[pos+1+pos*ld] != 0.0)? 2: 1;
-#endif
-    if (pos!=i) {
-#if !defined(PETSC_USE_COMPLEX)
-      if ((T[pos+(pos-1)*ld] != 0.0 && perm[i+1]!=pos-1) || (T[pos+1+pos*ld] != 0.0 && perm[i+1]!=pos+1))
- SETERRQ1(PETSC_COMM_SELF,1,"Invalid permutation due to a 2x2 block at position %D",pos);
-#endif
-
-      /* interchange blocks */
-      ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);
-      ierr = PetscBLASIntCast(i+1,&ilst);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-      PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info));
-#else
-      PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,&info));
-#endif
-      SlepcCheckLapackInfo("trexc",info);
-      for (j=i+1;j<n;j++) {
-        if (perm[j]>=i && perm[j]<pos) perm[j]+=inc;
-      }
-      perm[i] = i;
-      if (inc==2) perm[i+1] = i+1;
-    }
-    if (inc==2) i++;
-  }
-  /* recover original eigenvalues from T matrix */
-  for (j=ds->l;j<n;j++) {
-    wr[j] = T[j+j*ld];
-#if !defined(PETSC_USE_COMPLEX)
-    if (j<n-1 && T[j+1+j*ld] != 0.0) {
-      /* complex conjugate eigenvalue */
-      wi[j] = PetscSqrtReal(PetscAbsReal(T[j+1+j*ld])) * PetscSqrtReal(PetscAbsReal(T[j+(j+1)*ld]));
-      wr[j+1] = wr[j];
-      wi[j+1] = -wi[j];
-      j++;
-    } else {
-      wi[j] = 0.0;
-    }
-#endif
-  }
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode DSSort_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
@@ -386,47 +234,44 @@ PetscErrorCode DSSort_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *
 #endif
 
   PetscFunctionBegin;
-  if (!rr || wr == rr) {
-    ierr = DSAllocateWork_Private(ds,0,0,3*ds->ld);CHKERRQ(ierr);
-    idx  = ds->iwork;
-    idx2 = ds->iwork+ds->ld;
-    p    = ds->iwork+2*ds->ld;
-    ierr = DSSort_NHEPTS_Total(ds,wr,wi,PETSC_FALSE);CHKERRQ(ierr);
+  if (rr && wr != rr) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
+  ierr = PetscMalloc3(ds->ld,&idx,ds->ld,&idx2,ds->ld,&p);CHKERRQ(ierr);
+  ierr = DSSort_NHEP_Total(ds,ds->mat[DS_MAT_A],ds->mat[DS_MAT_Q],wr,wi);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    ierr = DSGetMat(ds,DS_MAT_B,&A);CHKERRQ(ierr);
-    ierr = MatConjugate(A);CHKERRQ(ierr);
-    ierr = DSRestoreMat(ds,DS_MAT_B,&A);CHKERRQ(ierr);
-    ierr = DSGetMat(ds,DS_MAT_Z,&U);CHKERRQ(ierr);
-    ierr = MatConjugate(U);CHKERRQ(ierr);
-    ierr = DSRestoreMat(ds,DS_MAT_Z,&U);CHKERRQ(ierr);
-    for (i=0;i<ds->n;i++) ctx->wr[i] = PetscConj(ctx->wr[i]);
+  ierr = DSGetMat(ds,DS_MAT_B,&A);CHKERRQ(ierr);
+  ierr = MatConjugate(A);CHKERRQ(ierr);
+  ierr = DSRestoreMat(ds,DS_MAT_B,&A);CHKERRQ(ierr);
+  ierr = DSGetMat(ds,DS_MAT_Z,&U);CHKERRQ(ierr);
+  ierr = MatConjugate(U);CHKERRQ(ierr);
+  ierr = DSRestoreMat(ds,DS_MAT_Z,&U);CHKERRQ(ierr);
+  for (i=0;i<ds->n;i++) ctx->wr[i] = PetscConj(ctx->wr[i]);
 #endif
-    ierr = DSSort_NHEPTS_Total(ds,ctx->wr,ctx->wi,PETSC_TRUE);CHKERRQ(ierr);
-    /* check correct eigenvalue correspondence */
-    cont = 0;
-    for (i=0;i<ds->n;i++) {
-      if (SlepcAbsEigenvalue(ctx->wr[i]-wr[i],ctx->wi[i]-wi[i])>PETSC_SQRT_MACHINE_EPSILON) {idx2[cont] = i; idx[cont++] = i;}
-      p[i] = -1;
+  ierr = DSSort_NHEP_Total(ds,ds->mat[DS_MAT_B],ds->mat[DS_MAT_Z],ctx->wr,ctx->wi);CHKERRQ(ierr);
+  /* check correct eigenvalue correspondence */
+  cont = 0;
+  for (i=0;i<ds->n;i++) {
+    if (SlepcAbsEigenvalue(ctx->wr[i]-wr[i],ctx->wi[i]-wi[i])>PETSC_SQRT_MACHINE_EPSILON) {idx2[cont] = i; idx[cont++] = i;}
+    p[i] = -1;
+  }
+  if (cont) {
+    for (i=0;i<cont;i++) {
+      t = PETSC_MAX_REAL;
+      for (j=0;j<cont;j++) if (idx2[j]!=-1 && (s=SlepcAbsEigenvalue(ctx->wr[idx[j]]-wr[idx[i]],ctx->wi[idx[j]]-wi[idx[i]]))<t) { id = j; t = s; }
+      p[idx[i]] = idx[id];
+      idx2[id] = -1;
     }
-    if (cont) {
-      for (i=0;i<cont;i++) {
-        t = PETSC_MAX_REAL;
-        for (j=0;j<cont;j++) if (idx2[j]!=-1 && (s=SlepcAbsEigenvalue(ctx->wr[idx[j]]-wr[idx[i]],ctx->wi[idx[j]]-wi[idx[i]]))<t) { id = j; t = s; }
-        p[idx[i]] = idx[id];
-        idx2[id] = -1;
-      }
-      for (i=0;i<ds->n;i++) if (p[i]==-1) p[i] = i;
-      ierr = DSSortWithPermutation_NHEPTS_Private(ds,p,ctx->wr,ctx->wi);CHKERRQ(ierr);
-    }
+    for (i=0;i<ds->n;i++) if (p[i]==-1) p[i] = i;
+    ierr = DSSortWithPermutation_NHEP_Private(ds,p,ds->mat[DS_MAT_B],ds->mat[DS_MAT_Z],ctx->wr,ctx->wi);CHKERRQ(ierr);
+  }
 #if defined(PETSC_USE_COMPLEX)
-    ierr = DSGetMat(ds,DS_MAT_B,&A);CHKERRQ(ierr);
-    ierr = MatConjugate(A);CHKERRQ(ierr);
-    ierr = DSRestoreMat(ds,DS_MAT_B,&A);CHKERRQ(ierr);
-    ierr = DSGetMat(ds,DS_MAT_Z,&U);CHKERRQ(ierr);
-    ierr = MatConjugate(U);CHKERRQ(ierr);
-    ierr = DSRestoreMat(ds,DS_MAT_Z,&U);CHKERRQ(ierr);
+  ierr = DSGetMat(ds,DS_MAT_B,&A);CHKERRQ(ierr);
+  ierr = MatConjugate(A);CHKERRQ(ierr);
+  ierr = DSRestoreMat(ds,DS_MAT_B,&A);CHKERRQ(ierr);
+  ierr = DSGetMat(ds,DS_MAT_Z,&U);CHKERRQ(ierr);
+  ierr = MatConjugate(U);CHKERRQ(ierr);
+  ierr = DSRestoreMat(ds,DS_MAT_Z,&U);CHKERRQ(ierr);
 #endif
-  } else SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
+  ierr = PetscFree3(idx,idx2,p);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -457,91 +302,17 @@ PetscErrorCode DSUpdateExtraRow_NHEPTS(DS ds)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSSolve_NHEPTS_Private(DS ds,PetscScalar *wr,PetscScalar *wi,PetscBool left)
-{
-  PetscErrorCode ierr;
-  PetscScalar    *work,*tau;
-  PetscInt       i,j;
-  PetscBLASInt   ilo,lwork,info,n,k,ld;
-  PetscScalar    *A,*Q;
-
-  PetscFunctionBegin;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(wi,3);
-#endif
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->l+1,&ilo);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->k,&k);CHKERRQ(ierr);
-  if (left) {
-    A = ds->mat[DS_MAT_B];
-    Q = ds->mat[DS_MAT_Z];
-  } else {
-    A = ds->mat[DS_MAT_A];
-    Q = ds->mat[DS_MAT_Q];
-  }
-  ierr = DSAllocateWork_Private(ds,ld+6*ld,0,0);CHKERRQ(ierr);
-  tau  = ds->work;
-  work = ds->work+ld;
-  lwork = 6*ld;
-
-  /* initialize orthogonal matrix */
-  ierr = PetscArrayzero(Q,ld*ld);CHKERRQ(ierr);
-  for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
-  if (n==1) { /* quick return */
-    wr[0] = A[0];
-    if (wi) wi[0] = 0.0;
-    PetscFunctionReturn(0);
-  }
-
-  /* reduce to upper Hessenberg form */
-  if (ds->state<DS_STATE_INTERMEDIATE) {
-    PetscStackCallBLAS("LAPACKgehrd",LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info));
-    SlepcCheckLapackInfo("gehrd",info);
-    for (j=0;j<n-1;j++) {
-      for (i=j+2;i<n;i++) {
-        Q[i+j*ld] = A[i+j*ld];
-        A[i+j*ld] = 0.0;
-      }
-    }
-    PetscStackCallBLAS("LAPACKorghr",LAPACKorghr_(&n,&ilo,&n,Q,&ld,tau,work,&lwork,&info));
-    SlepcCheckLapackInfo("orghr",info);
-  }
-
-  /* compute the (real) Schur form */
-#if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,wi,Q,&ld,work,&lwork,&info));
-  for (j=0;j<ds->l;j++) {
-    if (j==n-1 || A[j+1+j*ld] == 0.0) {
-      /* real eigenvalue */
-      wr[j] = A[j+j*ld];
-      wi[j] = 0.0;
-    } else {
-      /* complex eigenvalue */
-      wr[j] = A[j+j*ld];
-      wr[j+1] = A[j+j*ld];
-      wi[j] = PetscSqrtReal(PetscAbsReal(A[j+1+j*ld])) *
-              PetscSqrtReal(PetscAbsReal(A[j+(j+1)*ld]));
-      wi[j+1] = -wi[j];
-      j++;
-    }
-  }
-#else
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,Q,&ld,work,&lwork,&info));
-  if (wi) for (i=ds->l;i<n;i++) wi[i] = 0.0;
-#endif
-  SlepcCheckLapackInfo("hseqr",info);
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode DSSolve_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   DS_NHEPTS      *ctx = (DS_NHEPTS*)ds->data;
 
   PetscFunctionBegin;
-  ierr = DSSolve_NHEPTS_Private(ds,wr,wi,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = DSSolve_NHEPTS_Private(ds,ctx->wr,ctx->wi,PETSC_TRUE);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  PetscValidScalarPointer(wi,3);
+#endif
+  ierr = DSSolve_NHEP_Private(ds,ds->mat[DS_MAT_A],ds->mat[DS_MAT_Q],wr,wi);CHKERRQ(ierr);
+  ierr = DSSolve_NHEP_Private(ds,ds->mat[DS_MAT_B],ds->mat[DS_MAT_Z],ctx->wr,ctx->wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

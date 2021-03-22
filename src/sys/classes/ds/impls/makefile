@@ -10,6 +10,11 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = dsutil.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     = hep nhep ghep ghiep gnhep nhepts svd pep nep
 LOCDIR   = src/sys/classes/ds/impls/
