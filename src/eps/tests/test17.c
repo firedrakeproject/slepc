@@ -97,7 +97,10 @@ int main(int argc,char **argv)
   ierr = EPSSetInterval(eps,int0,int1);CHKERRQ(ierr);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
+  if (size>1) {
+    ierr = EPSKrylovSchurSetPartitions(eps,size);CHKERRQ(ierr);
+  }
+  ierr = EPSKrylovSchurGetKSP(eps,&ksp);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
@@ -130,7 +133,6 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to [%D,%D,%D]\n",nev,ncv,mpd);CHKERRQ(ierr);
 
   if (size>1) {
-    ierr = EPSKrylovSchurSetPartitions(eps,size);CHKERRQ(ierr);
     ierr = EPSKrylovSchurGetPartitions(eps,&npart);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Using %D partitions\n",npart);CHKERRQ(ierr);
 
@@ -209,10 +211,14 @@ int main(int argc,char **argv)
     }
     ierr = MatAssemblyBegin(Au,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(Au,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = EPSKrylovSchurUpdateSubcommMats(eps,1.0,-1.0,Au,0.0,0.0,NULL,DIFFERENT_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Updating internal matrices\n");CHKERRQ(ierr);
+    ierr = EPSKrylovSchurUpdateSubcommMats(eps,1.1,-5.0,Au,1.0,0.0,NULL,DIFFERENT_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
     ierr = MatDestroy(&Au);CHKERRQ(ierr);
+    ierr = EPSSolve(eps);CHKERRQ(ierr);
+    ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
+    ierr = EPSGetInterval(eps,&int0,&int1);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," After update, found %D eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
   }
-
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);

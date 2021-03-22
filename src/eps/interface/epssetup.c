@@ -454,6 +454,9 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 +  A  - the matrix associated with the eigensystem
 -  B  - the second matrix in the case of generalized eigenproblems
 
+   Note:
+   Does not increase the reference count of the matrices, so you should not destroy them.
+
    Level: intermediate
 
 .seealso: EPSSolve(), EPSGetST(), STGetMatrix(), STSetMatrices()
@@ -467,10 +470,15 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  if (A) { ierr = STGetMatrix(st,0,A);CHKERRQ(ierr); }
+  ierr = STGetNumMatrices(st,&k);CHKERRQ(ierr);
+  if (A) {
+    if (k<1) *A = NULL;
+    else {
+      ierr = STGetMatrix(st,0,A);CHKERRQ(ierr);
+    }
+  }
   if (B) {
-    ierr = STGetNumMatrices(st,&k);CHKERRQ(ierr);
-    if (k==1) B = NULL;
+    if (k<2) *B = NULL;
     else {
       ierr = STGetMatrix(st,1,B);CHKERRQ(ierr);
     }

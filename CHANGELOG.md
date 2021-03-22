@@ -9,6 +9,8 @@
   been added such as `SVDSetProblemType()` and `SVDIsGeneralized()`.
 - New solver `SVDRANDOMIZED`.
 - Import SLEPc4py sources into SLEPc source tree.
+- New function `EPSKrylovSchurGetKSP()` to extract the `KSP` object used in the case
+  of spectrum slicing runs. This allows setting MUMPS options even with partitions.
 - New tolerance to check a definite inner product, see `BVSetDefiniteTolerance()`.
 - New function `STSetPreconditionerMat()` to pass the matrix for building the
   preconditioner.

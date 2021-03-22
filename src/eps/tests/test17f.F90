@@ -34,7 +34,7 @@
       PetscInt       row,col,nloc,nlocs,mlocs
       PetscInt       II,npart,inertias(MAXSHI)
       PetscBool      flg,lock
-      PetscMPIInt    size,rank
+      PetscMPIInt    nprc,rank
       PetscReal      int0,int1,keep,subint(MAXSUB)
       PetscReal      shifts(MAXSHI)
       PetscScalar    eval,one,mone,zero
@@ -50,7 +50,7 @@
         print*,'SlepcInitialize failed'
         stop
       endif
-      call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr);CHKERRA(ierr)
+      call MPI_Comm_size(PETSC_COMM_WORLD,nprc,ierr);CHKERRA(ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
       n = 35
       call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr);CHKERRA(ierr)
@@ -136,7 +136,11 @@
       call EPSSetInterval(eps,int0,int1,ierr);CHKERRA(ierr)
       call EPSGetST(eps,st,ierr);CHKERRA(ierr)
       call STSetType(st,STSINVERT,ierr);CHKERRA(ierr)
-      call STGetKSP(st,ksp,ierr);CHKERRA(ierr)
+      if (nprc>0) then
+        npart = nprc
+        call EPSKrylovSchurSetPartitions(eps,npart,ierr);CHKERRA(ierr)
+      endif
+      call EPSKrylovSchurGetKSP(eps,ksp,ierr);CHKERRA(ierr)
       call KSPGetPC(ksp,pc,ierr);CHKERRA(ierr)
       call KSPSetType(ksp,KSPPREONLY,ierr);CHKERRA(ierr)
       call PCSetType(pc,PCCHOLESKY,ierr);CHKERRA(ierr)
@@ -183,9 +187,7 @@
       endif
  160  format (' ... changed to: nev=',I2,', ncv=',I2,', mpd=',I2)
 
-      if (size>0) then
-        npart = size
-        call EPSKrylovSchurSetPartitions(eps,npart,ierr);CHKERRA(ierr)
+      if (nprc>0) then
         call EPSKrylovSchurGetPartitions(eps,npart,ierr);CHKERRA(ierr)
         if (rank .eq. 0) then
           write(*,170) npart
@@ -235,7 +237,7 @@
       endif
  190  format (' Found ',I2,' eigenvalues in interval [',f7.4,',',f7.4,']')
 
-      if (size>0) then
+      if (nprc>0) then
         call EPSKrylovSchurGetSubcommInfo(eps,k,nval,v,ierr);CHKERRA(ierr)
         if (rank .eq. 0) then
           write(*,200) rank,k,nval

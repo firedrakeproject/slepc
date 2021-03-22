@@ -50,7 +50,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscScalar       *array,*farray,*harray;
   const PetscScalar *garray;
   PetscReal         beta,betaold=0.0,nrm=1.0;
-  PetscBool         breakdown,set,flg,symm=PETSC_FALSE;
+  PetscBool         breakdown;
 
   PetscFunctionBegin;
   m  = mfn->ncv;
@@ -93,11 +93,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 
     if (mfn->its==1) {
       /* set symmetry flag of H from A */
-      ierr = MatIsHermitianKnown(mfn->A,&set,&flg);CHKERRQ(ierr);
-      symm = set? flg: PETSC_FALSE;
-      if (symm) {
-        ierr = MatSetOption(H,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
-      }
+      ierr = MatPropagateSymmetryOptions(mfn->A,H);CHKERRQ(ierr);
     }
 
     /* evaluate f(H) */
