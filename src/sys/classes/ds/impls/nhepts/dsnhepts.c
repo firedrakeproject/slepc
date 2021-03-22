@@ -611,12 +611,12 @@ PetscErrorCode DSSynchronize_NHEPTS(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 PetscErrorCode DSGetTruncateSize_NHEPTS(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 {
 #if !defined(PETSC_USE_COMPLEX)
-  PetscScalar *A = ds->mat[DS_MAT_A];
+  PetscScalar *A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B];
 #endif
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  if (A[l+(*k)+(l+(*k)-1)*ds->ld] != 0.0) {
+  if (A[l+(*k)+(l+(*k)-1)*ds->ld] != 0.0 || B[l+(*k)+(l+(*k)-1)*ds->ld] != 0.0) {
     if (l+(*k)<n-1) (*k)++;
     else (*k)--;
   }
