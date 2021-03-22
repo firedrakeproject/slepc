@@ -79,7 +79,8 @@ class Slepc4py(package.Package):
     rule =  'slepc4pyinstall:\n'
     rule += '\t@echo "*** Installing slepc4py ***"\n'
     rule += '\t@cd '+builddir+' && \\\n'
-    rule += '\t   %s ${PYTHON} setup.py install --install-lib=%s ' % (envvars,destdir)
+    rule += '\t   %s ${PYTHON} setup.py install --install-lib=%s \\\n' % (envvars,destdir)
+    rule += '\t      $(if $(DESTDIR),--root=\'$(DESTDIR)\')'
     rule += '\t   2>&1 || \\\n'
     rule += '\t   (echo "**************************ERROR*************************************" && \\\n'
     rule += '\t   echo "Error installing slepc4py" && \\\n'
