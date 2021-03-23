@@ -118,7 +118,7 @@ int main(int argc,char **argv)
          suffix: 1
       test:
          suffix: 2
-         args: -dynamic_library_preload
+         args: -library_preload
 
    testset:
       args: -n 30 -eps_type ciss -terse
