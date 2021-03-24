@@ -148,9 +148,17 @@ int main(int argc,char **argv)
          args: -eps_type feast -eps_interval 1.1,1.25 -eps_ncv 64
          requires: feast
 
-   test:
-      suffix: 3
-      args: -n 30 -m 30 -eps_interval 3.9,4.15 -st_type sinvert -st_pc_type cholesky -terse
-      requires: !single
+   testset:
+      args: -n 30 -m 30 -eps_interval 3.9,4.15 -terse
+      output_file: output/ex2_3.out
+      filter: grep -v Solution
+      test:
+         suffix: 3
+         args: -st_type sinvert -st_pc_type cholesky
+         requires: !single
+      test:
+         suffix: 3_evsl
+         args: -eps_type evsl -eps_evsl_slices 6
+         requires: evsl
 
 TEST*/

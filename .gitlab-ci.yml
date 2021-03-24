@@ -407,7 +407,7 @@ gnu-c-multilib:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --download-scalapack
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot --with-packages-download-dir=/var/local/downloads
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-evsl --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot --with-packages-download-dir=/var/local/downloads
 
 gnu-c-c99-nompi:
   extends:
@@ -449,7 +449,7 @@ gnu-c:
     - linux-ubuntu, name:maat
   variables:
     PETSC_CONFIG_OPTS: --download-superlu_dist --download-elemental --download-metis --download-parmetis --with-petsc4py --download-c2html
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --with-slepc4py
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --with-evsl-dir=/usr/local/opt/evsl-mar21 --download-blopex --with-slepc4py
     SLEPC4PY: 1
     BUILD_DOCS: 1
 
@@ -502,7 +502,7 @@ gnu-c-coverage:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-debugging=1 --with-gcov=1 --CXXFLAGS='-O -g -std=c++11' --with-cxx-dialect=C++11
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan=https://codeforge.lbl.gov/frs/download.php/210/trlan-201009.tar.gz --download-blopex --download-hpddm
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan=https://codeforge.lbl.gov/frs/download.php/210/trlan-201009.tar.gz --download-blopex --download-hpddm --download-evsl
     COVERAGE: 1
 
 gnu-c-complex-coverage:
