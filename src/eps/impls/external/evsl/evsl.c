@@ -20,6 +20,8 @@ typedef struct {
   Vec               x,y;         /* auxiliary vectors */
   PetscReal         *sli;        /* slice bounds */
   PetscInt          nev;         /* approximate number of wanted eigenvalues in each slice */
+  PetscLayout       map;         /* used to distribute slices among MPI processes */
+  PetscBool         estimrange;  /* the filter range was not set by the user */
   /* user parameters */
   PetscInt          nslices;     /* number of slices */
   PetscReal         lmin,lmax;   /* numerical range (min and max eigenvalue) */
@@ -51,26 +53,40 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
-  PetscMPIInt    size;
+  PetscMPIInt    size,rank;
   PetscBool      isshift;
   PetscScalar    *vinit;
   PetscReal      *mu,ecount,xintv[4],*xdos,*ydos;
   Vec            v0;
+  Mat            A;
   PetscRandom    rnd;
 
   PetscFunctionBegin;
   EPSCheckStandard(eps);
   EPSCheckHermitian(eps);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRMPI(ierr);
-  if (size>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This version of EVSL does not support MPI parallelism");
-  if (!ctx->nslices) ctx->nslices = size;
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift);CHKERRQ(ierr);
   if (!isshift) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support spectral transformations");
 
-  if (!ctx->initialized) EVSLStart();
+  if (ctx->initialized) EVSLFinish();
+  EVSLStart();
+  ctx->initialized=PETSC_TRUE;
+
+  /* get number of slices per process */
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank);CHKERRMPI(ierr);
+  if (!ctx->nslices) ctx->nslices = size;
+  ierr = PetscLayoutDestroy(&ctx->map);CHKERRQ(ierr);
+  ierr = PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)eps),PETSC_DECIDE,ctx->nslices,1,&ctx->map);CHKERRQ(ierr);
 
   /* get matrix and prepare auxiliary vectors */
-  ierr = STGetMatrix(eps->st,0,&ctx->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
+  if (size==1) {
+    ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+    ctx->A = A;
+  } else {
+    ierr = MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&ctx->A);CHKERRQ(ierr);
+  }
   SetAMatvec(eps->n,&AMatvec_EVSL,(void*)ctx);
   if (!ctx->x) {
     ierr = MatCreateVecsEmpty(ctx->A,&ctx->x,&ctx->y);CHKERRQ(ierr);
@@ -84,14 +100,16 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   if (eps->which!=EPS_ALL || eps->inta==eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires setting an interval with EPSSetInterval()");
 
   /* estimate numerical range */
-  if (ctx->lmin == PETSC_MIN_REAL || ctx->lmax == PETSC_MAX_REAL) {
-    ierr = STMatCreateVecs(eps->st,&v0,NULL);CHKERRQ(ierr);
+  if (ctx->estimrange || ctx->lmin == PETSC_MIN_REAL || ctx->lmax == PETSC_MAX_REAL) {
+    ierr = MatCreateVecs(ctx->A,&v0,NULL);CHKERRQ(ierr);
+    if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
     ierr = BVGetRandomContext(eps->V,&rnd);CHKERRQ(ierr);
     ierr = VecSetRandom(v0,rnd);CHKERRQ(ierr);
     ierr = VecGetArray(v0,&vinit);CHKERRQ(ierr);
     ierr = LanTrbounds(50,200,eps->tol,vinit,1,&ctx->lmin,&ctx->lmax,NULL);CHKERRQ(ierr);
     ierr = VecRestoreArray(v0,&vinit);CHKERRQ(ierr);
     ierr = VecDestroy(&v0);CHKERRQ(ierr);
+    ctx->estimrange = PETSC_TRUE;   /* estimate if called again with another matrix */
   }
   if (ctx->lmin > eps->inta || ctx->lmax < eps->intb) SETERRQ4(PetscObjectComm((PetscObject)eps),1,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)eps->inta,(double)eps->intb,(double)ctx->lmin,(double)ctx->lmax);
   xintv[0] = eps->inta;
@@ -102,16 +120,21 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   /* estimate number of eigenvalues in the interval */
   if (ctx->dos == EPS_EVSL_DOS_KPM) {
     ierr = PetscMalloc1(ctx->deg+1,&mu);CHKERRQ(ierr);
-    ierr = kpmdos(ctx->deg,(int)ctx->damping,ctx->nvec,xintv,mu,&ecount);CHKERRQ(ierr);
+    if (!rank) { ierr = kpmdos(ctx->deg,(int)ctx->damping,ctx->nvec,xintv,mu,&ecount);CHKERRQ(ierr); }
+    ierr = MPI_Bcast(mu,ctx->deg+1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
   } else if (ctx->dos == EPS_EVSL_DOS_LANCZOS) {
     ierr = PetscMalloc2(ctx->npoints,&xdos,ctx->npoints,&ydos);CHKERRQ(ierr);
-    ierr = LanDos(ctx->nvec,PetscMin(ctx->steps,eps->n/2),ctx->npoints,xdos,ydos,&ecount,xintv);CHKERRQ(ierr);
+    if (!rank) { ierr = LanDos(ctx->nvec,PetscMin(ctx->steps,eps->n/2),ctx->npoints,xdos,ydos,&ecount,xintv);CHKERRQ(ierr); }
+    ierr = MPI_Bcast(xdos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
+    ierr = MPI_Bcast(ydos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
   } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid DOS method");
+  ierr = MPI_Bcast(&ecount,1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
 
   ierr = PetscInfo1(eps,"Estimated eigenvalue count in the interval: %g\n",ecount);CHKERRQ(ierr);
   eps->ncv = (PetscInt)PetscCeilReal(1.5*ecount);
 
   /* slice the spectrum */
+  ierr = PetscFree(ctx->sli);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->nslices+1,&ctx->sli);CHKERRQ(ierr);
   if (ctx->dos == EPS_EVSL_DOS_KPM) {
     ierr = spslicer(ctx->sli,mu,ctx->deg,xintv,ctx->nslices,10*(PetscInt)ecount);CHKERRQ(ierr);
@@ -134,52 +157,46 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
-  PetscInt       i,k=0,sl,mlan,nevout,*ind;
-  PetscReal      *res,xintv[4];
-  PetscScalar    *lam,*Y,*vinit,*pV;
+  PetscInt       i,j,k=0,sl,mlan,nevout,*ind,nevmax,rstart,rend,*nevloc,*disp,N;
+  PetscReal      *res,xintv[4],*errest;
+  PetscScalar    *lam,*X,*Y,*vinit,*eigr;
+  PetscMPIInt    size,rank;
   PetscRandom    rnd;
-  Vec            v0;
+  Vec            v,w,v0,x;
+  VecScatter     vs;
+  IS             is;
   polparams      pol;
 
   PetscFunctionBegin;
-  ierr = BVCreateVec(eps->V,&v0);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank);CHKERRMPI(ierr);
+  ierr = PetscLayoutGetRange(ctx->map,&rstart,&rend);CHKERRQ(ierr);
+  nevmax = (rend-rstart)*ctx->nev;
+  ierr = MatCreateVecs(ctx->A,&v0,NULL);CHKERRQ(ierr);
   ierr = BVGetRandomContext(eps->V,&rnd);CHKERRQ(ierr);
   ierr = VecSetRandom(v0,rnd);CHKERRQ(ierr);
   ierr = VecGetArray(v0,&vinit);CHKERRQ(ierr);
-  ierr = BVGetArray(eps->V,&pV);CHKERRQ(ierr);
+  ierr = PetscMalloc5(size,&nevloc,size+1,&disp,nevmax,&eigr,nevmax,&errest,nevmax*eps->n,&X);CHKERRQ(ierr);
   mlan = PetscMin(PetscMax(5*ctx->nev,300),eps->n);
-  for (sl=0; sl<ctx->nslices; sl++) {
+  for (sl=rstart; sl<rend; sl++) {
     xintv[0] = ctx->sli[sl];
     xintv[1] = ctx->sli[sl+1];
     xintv[2] = ctx->lmin;
     xintv[3] = ctx->lmax;
-    ierr = PetscInfo3(eps,"Subinterval %D: [%.4e, %.4e]\n",sl+1,xintv[0],xintv[1]);CHKERRQ(ierr);
+    ierr = PetscInfo3(ctx->A,"Subinterval %D: [%.4e, %.4e]\n",sl+1,xintv[0],xintv[1]);CHKERRQ(ierr);
     set_pol_def(&pol);
-    /*
-    //-------------------- this is to show how you can reset some of the
-    //                     parameters to determine the filter polynomial
-    pol.damping = 2;
-    //-------------------- use a stricter requirement for polynomial
-    pol.thresh_int = 0.8;
-    pol.thresh_ext = 0.2;
-    pol.max_deg  = 3000;
-    // pol.deg = 20 //<< this will force this exact degree . not recommended
-    //                   it is better to change the values of the thresholds
-    //                   pol.thresh_ext and plot.thresh_int
-    //-------------------- Now determine polymomial to use
-    */
     find_pol(xintv,&pol);
-    ierr = PetscInfo4(eps,"Polynomial [type = %D], deg %D, bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam);CHKERRQ(ierr);
+    ierr = PetscInfo4(ctx->A,"Polynomial [type = %D], deg %D, bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam);CHKERRQ(ierr);
     ierr = ChebLanNr(xintv,mlan,eps->tol,vinit,&pol,&nevout,&lam,&Y,&res,NULL);CHKERRQ(ierr);
-    if (k+nevout>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
+    if (k+nevout>nevmax) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
     free_pol(&pol);
-    ierr = PetscInfo1(eps,"Computed %D eigenvalues\n",nevout);CHKERRQ(ierr);
+    ierr = PetscInfo1(ctx->A,"Computed %D eigenvalues\n",nevout);CHKERRQ(ierr);
     ierr = PetscMalloc1(nevout,&ind);CHKERRQ(ierr);
     sort_double(nevout,lam,ind);
     for (i=0;i<nevout;i++) {
-      eps->eigr[i+k]   = lam[i];
-      eps->errest[i+k] = res[ind[i]];
-      ierr = PetscArraycpy(pV+(i+k)*eps->nloc,Y+ind[i]*eps->nloc,eps->nloc);CHKERRQ(ierr);
+      eigr[i+k]   = lam[i];
+      errest[i+k] = res[ind[i]];
+      ierr = PetscArraycpy(X+(i+k)*eps->n,Y+ind[i]*eps->n,eps->n);CHKERRQ(ierr);
     }
     k += nevout;
     if (lam) evsl_Free(lam);
@@ -189,12 +206,45 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
   }
   ierr = VecRestoreArray(v0,&vinit);CHKERRQ(ierr);
   ierr = VecDestroy(&v0);CHKERRQ(ierr);
-  ierr = BVRestoreArray(eps->V,&pV);CHKERRQ(ierr);
 
-  eps->nev    = k;
-  eps->nconv  = k;
+  /* gather eigenvalues computed by each MPI process */
+  ierr = MPI_Allgather(&k,1,MPIU_INT,nevloc,1,MPIU_INT,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
+  eps->nev = nevloc[0];
+  disp[0]  = 0;
+  for (i=1;i<size;i++) {
+    eps->nev += nevloc[i];
+    disp[i]   = disp[i-1]+nevloc[i-1];
+  }
+  disp[size] = disp[size-1]+nevloc[size-1];
+  if (eps->nev>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
+  ierr = MPI_Allgatherv(eigr,k,MPIU_SCALAR,eps->eigr,nevloc,disp,MPIU_SCALAR,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
+  ierr = MPI_Allgatherv(errest,k,MPIU_REAL,eps->errest,nevloc,disp,MPIU_REAL,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
+  eps->nconv  = eps->nev;
   eps->its    = 1;
   eps->reason = EPS_CONVERGED_TOL;
+
+  /* scatter computed eigenvectors and store them in eps->V */
+  ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
+  for (i=0;i<size;i++) {
+    N = (rank==i)? eps->n: 0;
+    ierr = VecCreateSeq(PETSC_COMM_SELF,N,&x);CHKERRQ(ierr);
+    ierr = VecSetFromOptions(x);CHKERRQ(ierr);
+    ierr = ISCreateStride(PETSC_COMM_SELF,N,0,1,&is);CHKERRQ(ierr);
+    ierr = VecScatterCreate(x,is,w,is,&vs);CHKERRQ(ierr);
+    ierr = ISDestroy(&is);CHKERRQ(ierr);
+    for (j=disp[i];j<disp[i+1];j++) {
+      ierr = BVGetColumn(eps->V,j,&v);CHKERRQ(ierr);
+      if (rank==i) { ierr = VecPlaceArray(x,X+(j-disp[i])*eps->n);CHKERRQ(ierr); }
+      ierr = VecScatterBegin(vs,x,v,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+      ierr = VecScatterEnd(vs,x,v,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+      if (rank==i) { ierr = VecResetArray(x);CHKERRQ(ierr); }
+      ierr = BVRestoreColumn(eps->V,j,&v);CHKERRQ(ierr);
+    }
+    ierr = VecScatterDestroy(&vs);CHKERRQ(ierr);
+    ierr = VecDestroy(&x);CHKERRQ(ierr);
+  }
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
+  ierr = PetscFree5(nevloc,disp,eigr,errest,X);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -565,6 +615,7 @@ PetscErrorCode EPSDestroy_EVSL(EPS eps)
 
   PetscFunctionBegin;
   if (ctx->initialized) EVSLFinish();
+  ierr = PetscLayoutDestroy(&ctx->map);CHKERRQ(ierr);
   ierr = PetscFree(ctx->sli);CHKERRQ(ierr);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetRange_C",NULL);CHKERRQ(ierr);
@@ -582,6 +633,7 @@ PetscErrorCode EPSReset_EVSL(EPS eps)
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
 
   PetscFunctionBegin;
+  ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->x);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
