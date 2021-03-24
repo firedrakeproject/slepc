@@ -511,6 +511,8 @@ SLEPC_EXTERN const char *EPSEVSLKPMDampings[];
 
 SLEPC_EXTERN PetscErrorCode EPSEVSLSetRange(EPS,PetscReal,PetscReal);
 SLEPC_EXTERN PetscErrorCode EPSEVSLGetRange(EPS,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode EPSEVSLSetSlices(EPS,PetscInt);
+SLEPC_EXTERN PetscErrorCode EPSEVSLGetSlices(EPS,PetscInt*);
 SLEPC_EXTERN PetscErrorCode EPSEVSLSetDOSParameters(EPS,EPSEVSLDOSMethod,PetscInt,PetscInt,EPSEVSLKPMDamping,PetscInt,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSEVSLGetDOSParameters(EPS,EPSEVSLDOSMethod*,PetscInt*,PetscInt*,EPSEVSLKPMDamping*,PetscInt*,PetscInt*);
 

@@ -63,6 +63,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   EPSCheckHermitian(eps);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRMPI(ierr);
   if (size>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This version of EVSL does not support MPI parallelism");
+  if (!ctx->nslices) ctx->nslices = size;
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift);CHKERRQ(ierr);
   if (!isshift) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support spectral transformations");
 
@@ -181,9 +182,9 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
       ierr = PetscArraycpy(pV+(i+k)*eps->nloc,Y+ind[i]*eps->nloc,eps->nloc);CHKERRQ(ierr);
     }
     k += nevout;
-    if (lam) { evsl_Free(lam); }
-    if (Y) { evsl_Free_device(Y); }
-    if (res) { evsl_Free(res); }
+    if (lam) evsl_Free(lam);
+    if (Y)   evsl_Free_device(Y);
+    if (res) evsl_Free(res);
     ierr = PetscFree(ind);CHKERRQ(ierr);
   }
   ierr = VecRestoreArray(v0,&vinit);CHKERRQ(ierr);
@@ -194,6 +195,89 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
   eps->nconv  = k;
   eps->its    = 1;
   eps->reason = EPS_CONVERGED_TOL;
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSEVSLSetSlices_EVSL(EPS eps,PetscInt nslices)
+{
+  EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
+
+  PetscFunctionBegin;
+  if (nslices == PETSC_DECIDE || nslices == PETSC_DEFAULT) nslices = 0;
+  else if (nslices<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Number of slices must be 1 at least");
+  if (ctx->nslices != nslices) {
+    ctx->nslices = nslices;
+    eps->state   = EPS_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSEVSLSetSlices - Set the number of slices in which the interval must be
+   subdivided.
+
+   Logically Collective on eps
+
+   Input Parameters:
++  eps     - the eigensolver context
+-  nslices - the number of slices
+
+   Options Database Key:
+.  -eps_evsl_slices <n> - set the number of slices to n
+
+   Notes:
+   By default, one slice per MPI process is used. Depending on the number of
+   eigenvalues, using more slices may be beneficial, but very narrow subintervals
+   imply higher polynomial degree.
+
+   Level: intermediate
+
+.seealso: EPSEVSLGetSlices()
+@*/
+PetscErrorCode EPSEVSLSetSlices(EPS eps,PetscInt nslices)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,nslices,2);
+  ierr = PetscTryMethod(eps,"EPSEVSLSetSlices_C",(EPS,PetscInt),(eps,nslices));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSEVSLGetSlices_EVSL(EPS eps,PetscInt *nslices)
+{
+  EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
+
+  PetscFunctionBegin;
+  *nslices = ctx->nslices;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSEVSLGetSlices - Gets the number of slices in which the interval must be
+   subdivided.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+
+   Output Parameter:
+.  nslices - the number of slices
+
+   Level: intermediate
+
+.seealso: EPSEVSLSetSlices()
+@*/
+PetscErrorCode EPSEVSLGetSlices(EPS eps,PetscInt *nslices)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidIntPointer(nslices,2);
+  ierr = PetscUseMethod(eps,"EPSEVSLGetSlices_C",(EPS,PetscInt*),(eps,nslices));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -418,6 +502,7 @@ PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  numerical range = [%g,%g]\n",(double)ctx->lmin,(double)ctx->lmax);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of slices = %D\n",ctx->nslices);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  computing DOS with %s: nvec=%D, ",EPSEVSLDOSMethods[ctx->dos],ctx->nvec);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     switch (ctx->dos) {
@@ -453,6 +538,9 @@ PetscErrorCode EPSSetFromOptions_EVSL(PetscOptionItems *PetscOptionsObject,EPS e
       ierr = EPSEVSLSetRange(eps,array[0],array[1]);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsInt("-eps_evsl_slices","Number of slices","EPSEVSLSetSlices",ctx->nslices,&i1,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSEVSLSetSlices(eps,i1);CHKERRQ(ierr); }
+
     ierr = EPSEVSLGetDOSParameters(eps,&dos,&i1,&i2,&damping,&i3,&i4);CHKERRQ(ierr);
     ierr = PetscOptionsEnum("-eps_evsl_dos_method","Method to compute the DOS","EPSEVSLSetDOSParameters",EPSEVSLDOSMethods,(PetscEnum)ctx->dos,(PetscEnum*)&dos,&flg);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-eps_evsl_dos_nvec","Number of sample vectors for DOS","EPSEVSLSetDOSParameters",i1,&i1,&flg1);CHKERRQ(ierr);
@@ -481,6 +569,8 @@ PetscErrorCode EPSDestroy_EVSL(EPS eps)
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetRange_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetRange_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetSlices_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetSlices_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDOSParameters_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDOSParameters_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -506,7 +596,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
-  ctx->nslices = 1;
+  ctx->nslices = 0;
   ctx->lmin    = PETSC_MIN_REAL;
   ctx->lmax    = PETSC_MAX_REAL;
   ctx->dos     = EPS_EVSL_DOS_KPM;
@@ -530,6 +620,8 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetRange_C",EPSEVSLSetRange_EVSL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetRange_C",EPSEVSLGetRange_EVSL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetSlices_C",EPSEVSLSetSlices_EVSL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetSlices_C",EPSEVSLGetSlices_EVSL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDOSParameters_C",EPSEVSLSetDOSParameters_EVSL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDOSParameters_C",EPSEVSLGetDOSParameters_EVSL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
