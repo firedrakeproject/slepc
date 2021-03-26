@@ -22,6 +22,7 @@ int main(int argc,char **argv)
   PetscInt       N,n=20,m,Istart,Iend,II,i,j,nslice;
   PetscReal      a,b,ra,rb;
   PetscBool      flag;
+  EPSEVSLDamping damping;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -69,7 +70,9 @@ int main(int argc,char **argv)
   ierr = EPSSetInterval(eps,1.3,1.44);CHKERRQ(ierr);
   ierr = EPSEVSLSetRange(eps,0,8);CHKERRQ(ierr);
   ierr = EPSEVSLSetSlices(eps,3);CHKERRQ(ierr);
-  ierr = EPSEVSLSetDOSParameters(eps,EPS_EVSL_DOS_KPM,50,450,EPS_EVSL_KPM_SIGMA,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSEVSLSetDamping(eps,EPS_EVSL_DAMPING_SIGMA);CHKERRQ(ierr);
+  ierr = EPSEVSLSetDOSParameters(eps,EPS_EVSL_DOS_KPM,50,450,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSEVSLSetPolParameters(eps,4000,0.85);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -81,6 +84,8 @@ int main(int argc,char **argv)
   ierr = EPSGetInterval(eps,&a,&b);CHKERRQ(ierr);
   ierr = EPSEVSLGetRange(eps,&ra,&rb);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: solving interval [%g,%g] with %D slices (spectral range [%g,%g]\n",a,b,nslice,ra,rb);CHKERRQ(ierr);
+  ierr = EPSEVSLGetDamping(eps,&damping);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: damping type is %s\n",EPSEVSLDampings[damping]);CHKERRQ(ierr);
 
   ierr = EPSView(eps,NULL);CHKERRQ(ierr);
   ierr = EPSErrorView(eps,EPS_ERROR_ABSOLUTE,NULL);CHKERRQ(ierr);
@@ -98,6 +103,7 @@ int main(int argc,char **argv)
 
    test:
       requires: evsl
+      args: -eps_evsl_damping none
       filter: grep -v ncv
 
 TEST*/

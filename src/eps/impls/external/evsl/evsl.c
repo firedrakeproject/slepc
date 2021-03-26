@@ -28,9 +28,11 @@ typedef struct {
   EPSEVSLDOSMethod  dos;         /* DOS method, either KPM or Lanczos */
   PetscInt          nvec;        /* number of sample vectors used for DOS */
   PetscInt          deg;         /* polynomial degree used for DOS (KPM only) */
-  EPSEVSLKPMDamping damping;     /* type of damping used for DOS (KPM only) */
   PetscInt          steps;       /* number of Lanczos steps used for DOS (Lanczos only) */
   PetscInt          npoints;     /* number of sample points used for DOS (Lanczos only) */
+  PetscInt          max_deg;     /* maximum degree allowed for the polynomial */
+  PetscReal         thresh;      /* threshold for accepting polynomial */
+  EPSEVSLDamping    damping;     /* type of damping (for polynomial and for DOS-KPM) */
 } EPS_EVSL;
 
 static void AMatvec_EVSL(double *xa,double *ya,void *data)
@@ -185,6 +187,9 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
     xintv[3] = ctx->lmax;
     ierr = PetscInfo3(ctx->A,"Subinterval %D: [%.4e, %.4e]\n",sl+1,xintv[0],xintv[1]);CHKERRQ(ierr);
     set_pol_def(&pol);
+    pol.max_deg    = ctx->max_deg;
+    pol.damping    = (int)ctx->damping;
+    pol.thresh_int = ctx->thresh;
     find_pol(xintv,&pol);
     ierr = PetscInfo4(ctx->A,"Polynomial [type = %D], deg %D, bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam);CHKERRQ(ierr);
     ierr = ChebLanNr(xintv,mlan,eps->tol,vinit,&pol,&nevout,&lam,&Y,&res,NULL);CHKERRQ(ierr);
@@ -419,7 +424,7 @@ PetscErrorCode EPSEVSLGetRange(EPS eps,PetscReal *lmin,PetscReal *lmax)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,PetscInt nvec,PetscInt deg,EPSEVSLKPMDamping damping,PetscInt steps,PetscInt npoints)
+static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,PetscInt nvec,PetscInt deg,PetscInt steps,PetscInt npoints)
 {
   EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
 
@@ -433,7 +438,6 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
       if (deg == PETSC_DECIDE || deg == PETSC_DEFAULT) ctx->deg = 300;
       else if (deg<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The deg argument must be > 0");
       else ctx->deg = deg;
-      ctx->damping = damping;
       break;
     case EPS_EVSL_DOS_LANCZOS:
       if (steps == PETSC_DECIDE || steps == PETSC_DEFAULT) ctx->steps = 40;
@@ -459,7 +463,6 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
 .  dos     - DOS method, either KPM or Lanczos
 .  nvec    - number of sample vectors
 .  deg     - polynomial degree (KPM only)
-.  damping - type of damping (KPM only)
 .  steps   - number of Lanczos steps (Lanczos only)
 -  npoints - number of sample points (Lanczos only)
 
@@ -467,7 +470,6 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
 +  -eps_evsl_dos_method <dos> - set the DOS method, either kpm or lanczos
 .  -eps_evsl_dos_nvec <n> - set the number of sample vectors
 .  -eps_evsl_dos_degree <n> - set the polynomial degree
-.  -eps_evsl_dos_damping <d> - set the type of damping
 .  -eps_evsl_dos_steps <n> - set the number of Lanczos steps
 -  -eps_evsl_dos_npoints <n> - set the number of sample points
 
@@ -481,7 +483,7 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
 
 .seealso: EPSEVSLGetDOSParameters()
 @*/
-PetscErrorCode EPSEVSLSetDOSParameters(EPS eps,EPSEVSLDOSMethod dos,PetscInt nvec,PetscInt deg,EPSEVSLKPMDamping damping,PetscInt steps,PetscInt npoints)
+PetscErrorCode EPSEVSLSetDOSParameters(EPS eps,EPSEVSLDOSMethod dos,PetscInt nvec,PetscInt deg,PetscInt steps,PetscInt npoints)
 {
   PetscErrorCode ierr;
 
@@ -490,14 +492,13 @@ PetscErrorCode EPSEVSLSetDOSParameters(EPS eps,EPSEVSLDOSMethod dos,PetscInt nve
   PetscValidLogicalCollectiveEnum(eps,dos,2);
   PetscValidLogicalCollectiveInt(eps,nvec,3);
   PetscValidLogicalCollectiveInt(eps,deg,4);
-  PetscValidLogicalCollectiveEnum(eps,damping,5);
-  PetscValidLogicalCollectiveInt(eps,steps,6);
-  PetscValidLogicalCollectiveInt(eps,npoints,7);
-  ierr = PetscTryMethod(eps,"EPSEVSLSetDOSParameters_C",(EPS,EPSEVSLDOSMethod,PetscInt,PetscInt,EPSEVSLKPMDamping,PetscInt,PetscInt),(eps,dos,nvec,deg,damping,steps,npoints));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveInt(eps,steps,5);
+  PetscValidLogicalCollectiveInt(eps,npoints,6);
+  ierr = PetscTryMethod(eps,"EPSEVSLSetDOSParameters_C",(EPS,EPSEVSLDOSMethod,PetscInt,PetscInt,PetscInt,PetscInt),(eps,dos,nvec,deg,steps,npoints));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode EPSEVSLGetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod *dos,PetscInt *nvec,PetscInt *deg,EPSEVSLKPMDamping *damping,PetscInt *steps,PetscInt *npoints)
+static PetscErrorCode EPSEVSLGetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod *dos,PetscInt *nvec,PetscInt *deg,PetscInt *steps,PetscInt *npoints)
 {
   EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
 
@@ -505,7 +506,6 @@ static PetscErrorCode EPSEVSLGetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod *dos
   if (dos)     *dos     = ctx->dos;
   if (nvec)    *nvec    = ctx->nvec;
   if (deg)     *deg     = ctx->deg;
-  if (damping) *damping = ctx->damping;
   if (steps)   *steps   = ctx->steps;
   if (npoints) *npoints = ctx->npoints;
   PetscFunctionReturn(0);
@@ -524,7 +524,6 @@ static PetscErrorCode EPSEVSLGetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod *dos
 +  dos     - DOS method, either KPM or Lanczos
 .  nvec    - number of sample vectors
 .  deg     - polynomial degree (KPM only)
-.  damping - type of damping (KPM only)
 .  steps   - number of Lanczos steps (Lanczos only)
 -  npoints - number of sample points (Lanczos only)
 
@@ -532,13 +531,174 @@ static PetscErrorCode EPSEVSLGetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod *dos
 
 .seealso: EPSEVSLSetDOSParameters()
 @*/
-PetscErrorCode EPSEVSLGetDOSParameters(EPS eps,EPSEVSLDOSMethod *dos,PetscInt *nvec,PetscInt *deg,EPSEVSLKPMDamping *damping,PetscInt *steps,PetscInt *npoints)
+PetscErrorCode EPSEVSLGetDOSParameters(EPS eps,EPSEVSLDOSMethod *dos,PetscInt *nvec,PetscInt *deg,PetscInt *steps,PetscInt *npoints)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscUseMethod(eps,"EPSEVSLGetDOSParameters_C",(EPS,EPSEVSLDOSMethod*,PetscInt*,PetscInt*,EPSEVSLKPMDamping*,PetscInt*,PetscInt*),(eps,dos,nvec,deg,damping,steps,npoints));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSEVSLGetDOSParameters_C",(EPS,EPSEVSLDOSMethod*,PetscInt*,PetscInt*,PetscInt*,PetscInt*),(eps,dos,nvec,deg,steps,npoints));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSEVSLSetPolParameters_EVSL(EPS eps,PetscInt max_deg,PetscReal thresh)
+{
+  EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
+
+  PetscFunctionBegin;
+  if (max_deg == PETSC_DECIDE || max_deg == PETSC_DEFAULT) ctx->max_deg = 10000;
+  else if (max_deg<3) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The max_deg argument must be > 2");
+  else ctx->max_deg = max_deg;
+  if (thresh == PETSC_DECIDE || thresh == PETSC_DEFAULT) ctx->thresh = 0.8;
+  else if (thresh<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The thresh argument must be > 0.0");
+  else ctx->thresh = thresh;
+  eps->state = EPS_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSEVSLSetPolParameters - Defines the parameters used for building the
+   building the polynomial in the EVSL solver.
+
+   Logically Collective on eps
+
+   Input Parameters:
++  eps     - the eigensolver context
+.  max_deg - maximum degree allowed for the polynomial
+-  thresh  - threshold for accepting polynomial
+
+   Options Database Keys:
++  -eps_evsl_pol_max_deg <d> - set maximum polynomial degree
+-  -eps_evsl_pol_thresh <t> - set the threshold
+
+   Level: intermediate
+
+.seealso: EPSEVSLGetPolParameters()
+@*/
+PetscErrorCode EPSEVSLSetPolParameters(EPS eps,PetscInt max_deg,PetscReal thresh)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,max_deg,2);
+  PetscValidLogicalCollectiveReal(eps,thresh,3);
+  ierr = PetscTryMethod(eps,"EPSEVSLSetPolParameters_C",(EPS,PetscInt,PetscReal),(eps,max_deg,thresh));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSEVSLGetPolParameters_EVSL(EPS eps,PetscInt *max_deg,PetscReal *thresh)
+{
+  EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
+
+  PetscFunctionBegin;
+  if (max_deg) *max_deg = ctx->max_deg;
+  if (thresh)  *thresh  = ctx->thresh;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSEVSLGetPolParameters - Gets the parameters used for building the
+   polynomial in the EVSL solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+
+   Output Parameters:
++  max_deg - the maximum degree of the polynomial
+-  thresh  - the threshold
+
+   Level: intermediate
+
+.seealso: EPSEVSLSetPolParameters()
+@*/
+PetscErrorCode EPSEVSLGetPolParameters(EPS eps,PetscInt *max_deg,PetscReal *thresh)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscUseMethod(eps,"EPSEVSLGetPolParameters_C",(EPS,PetscInt*,PetscReal*),(eps,max_deg,thresh));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSEVSLSetDamping_EVSL(EPS eps,EPSEVSLDamping damping)
+{
+  EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
+
+  PetscFunctionBegin;
+  if (ctx->damping != damping) {
+    ctx->damping = damping;
+    eps->state   = EPS_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSEVSLSetDamping - Set the type of damping to be used in EVSL.
+
+   Logically Collective on eps
+
+   Input Parameters:
++  eps     - the eigensolver context
+-  damping - the type of damping
+
+   Options Database Key:
+.  -eps_evsl_damping <n> - set the type of damping
+
+   Notes:
+   Damping is applied when building the polynomial to be used when solving the
+   eigenproblem, and also during estimation of DOS with the KPM method.
+
+   Level: intermediate
+
+.seealso: EPSEVSLGetDamping(), EPSEVSLSetDOSParameters()
+@*/
+PetscErrorCode EPSEVSLSetDamping(EPS eps,EPSEVSLDamping damping)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,damping,2);
+  ierr = PetscTryMethod(eps,"EPSEVSLSetDamping_C",(EPS,EPSEVSLDamping),(eps,damping));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSEVSLGetDamping_EVSL(EPS eps,EPSEVSLDamping *damping)
+{
+  EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
+
+  PetscFunctionBegin;
+  *damping = ctx->damping;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSEVSLGetDamping - Gets the type of damping.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+
+   Output Parameter:
+.  damping - the type of damping
+
+   Level: intermediate
+
+.seealso: EPSEVSLSetDamping()
+@*/
+PetscErrorCode EPSEVSLGetDamping(EPS eps,EPSEVSLDamping *damping)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidIntPointer(damping,2);
+  ierr = PetscUseMethod(eps,"EPSEVSLGetDamping_C",(EPS,EPSEVSLDamping*),(eps,damping));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -553,16 +713,18 @@ PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  numerical range = [%g,%g]\n",(double)ctx->lmin,(double)ctx->lmax);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of slices = %D\n",ctx->nslices);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  type of damping = %s\n",EPSEVSLDampings[ctx->damping]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  computing DOS with %s: nvec=%D, ",EPSEVSLDOSMethods[ctx->dos],ctx->nvec);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     switch (ctx->dos) {
       case EPS_EVSL_DOS_KPM:
-        ierr = PetscViewerASCIIPrintf(viewer,"degree=%D, damping=%s\n",ctx->deg,EPSEVSLKPMDampings[ctx->damping]);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"degree=%D\n",ctx->deg);CHKERRQ(ierr);
         break;
       case EPS_EVSL_DOS_LANCZOS:
         ierr = PetscViewerASCIIPrintf(viewer,"steps=%D, npoints=%D\n",ctx->steps,ctx->npoints);CHKERRQ(ierr);
         break;
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial parameters: max degree = %D, threshold = %g\n",ctx->max_deg,(double)ctx->thresh);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -570,13 +732,13 @@ PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
 
 PetscErrorCode EPSSetFromOptions_EVSL(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
-  PetscErrorCode    ierr;
-  PetscReal         array[2]={0,0};
-  PetscInt          k,i1,i2,i3,i4;
-  PetscBool         flg,flg1;
-  EPSEVSLDOSMethod  dos;
-  EPSEVSLKPMDamping damping;
-  EPS_EVSL          *ctx = (EPS_EVSL*)eps->data;
+  PetscErrorCode   ierr;
+  PetscReal        array[2]={0,0},th;
+  PetscInt         k,i1,i2,i3,i4;
+  PetscBool        flg,flg1;
+  EPSEVSLDOSMethod dos;
+  EPSEVSLDamping   damping;
+  EPS_EVSL         *ctx = (EPS_EVSL*)eps->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS EVSL Options");CHKERRQ(ierr);
@@ -591,18 +753,24 @@ PetscErrorCode EPSSetFromOptions_EVSL(PetscOptionItems *PetscOptionsObject,EPS e
     ierr = PetscOptionsInt("-eps_evsl_slices","Number of slices","EPSEVSLSetSlices",ctx->nslices,&i1,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSEVSLSetSlices(eps,i1);CHKERRQ(ierr); }
 
-    ierr = EPSEVSLGetDOSParameters(eps,&dos,&i1,&i2,&damping,&i3,&i4);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-eps_evsl_damping","Type of damping","EPSEVSLSetDamping",EPSEVSLDampings,(PetscEnum)ctx->damping,(PetscEnum*)&damping,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSEVSLSetDamping(eps,damping);CHKERRQ(ierr); }
+
+    ierr = EPSEVSLGetDOSParameters(eps,&dos,&i1,&i2,&i3,&i4);CHKERRQ(ierr);
     ierr = PetscOptionsEnum("-eps_evsl_dos_method","Method to compute the DOS","EPSEVSLSetDOSParameters",EPSEVSLDOSMethods,(PetscEnum)ctx->dos,(PetscEnum*)&dos,&flg);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-eps_evsl_dos_nvec","Number of sample vectors for DOS","EPSEVSLSetDOSParameters",i1,&i1,&flg1);CHKERRQ(ierr);
     flg = flg || flg1;
     ierr = PetscOptionsInt("-eps_evsl_dos_degree","Polynomial degree used for DOS","EPSEVSLSetDOSParameters",i2,&i2,&flg1);CHKERRQ(ierr);
     flg = flg || flg1;
-    ierr = PetscOptionsEnum("-eps_evsl_dos_damping","Type of damping used for DOS","EPSEVSLSetDOSParameters",EPSEVSLKPMDampings,(PetscEnum)ctx->damping,(PetscEnum*)&damping,&flg1);CHKERRQ(ierr);
-    flg = flg || flg1;
     ierr = PetscOptionsInt("-eps_evsl_dos_steps","Number of Lanczos steps in DOS","EPSEVSLSetDOSParameters",i3,&i3,&flg1);CHKERRQ(ierr);
     flg = flg || flg1;
     ierr = PetscOptionsInt("-eps_evsl_dos_npoints","Number of sample points used for DOS","EPSEVSLSetDOSParameters",i4,&i4,&flg1);CHKERRQ(ierr);
-    if (flg || flg1) { ierr = EPSEVSLSetDOSParameters(eps,dos,i1,i2,damping,i3,i4);CHKERRQ(ierr); }
+    if (flg || flg1) { ierr = EPSEVSLSetDOSParameters(eps,dos,i1,i2,i3,i4);CHKERRQ(ierr); }
+
+    ierr = EPSEVSLGetPolParameters(eps,&i1,&th);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_evsl_pol_max_deg","Maximum degree allowed for the polynomial","EPSEVSLSetPolParameters",i1,&i1,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-eps_evsl_pol_threshold","Threshold for accepting polynomial","EPSEVSLSetPolParameters",th,&th,&flg1);CHKERRQ(ierr);
+    if (flg || flg1) { ierr = EPSEVSLSetPolParameters(eps,i1,th);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -624,6 +792,10 @@ PetscErrorCode EPSDestroy_EVSL(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetSlices_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDOSParameters_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDOSParameters_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetPolParameters_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetPolParameters_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDamping_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDamping_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -654,9 +826,11 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
   ctx->dos     = EPS_EVSL_DOS_KPM;
   ctx->nvec    = 80;
   ctx->deg     = 300;
-  ctx->damping = EPS_EVSL_KPM_SIGMA;
   ctx->steps   = 40;
   ctx->npoints = 200;
+  ctx->max_deg = 10000;
+  ctx->thresh  = 0.8;
+  ctx->damping = EPS_EVSL_DAMPING_SIGMA;
 
   eps->categ = EPS_CATEGORY_OTHER;
 
@@ -676,6 +850,10 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetSlices_C",EPSEVSLGetSlices_EVSL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDOSParameters_C",EPSEVSLSetDOSParameters_EVSL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDOSParameters_C",EPSEVSLGetDOSParameters_EVSL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetPolParameters_C",EPSEVSLSetPolParameters_EVSL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetPolParameters_C",EPSEVSLGetPolParameters_EVSL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDamping_C",EPSEVSLSetDamping_EVSL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDamping_C",EPSEVSLGetDamping_EVSL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

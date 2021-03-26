@@ -20,7 +20,7 @@ native EPSPRIMMEMethod
 native EPSCISSQuadRule
 native EPSCISSExtraction
 native EPSEVSLDOSMethod
-native EPSEVSLKPMDamping
+native EPSEVSLDamping
 native FNCombineType
 native FNParallelType
 native MFNConvergedReason

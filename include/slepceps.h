@@ -498,23 +498,27 @@ typedef enum { EPS_EVSL_DOS_KPM,
 SLEPC_EXTERN const char *EPSEVSLDOSMethods[];
 
 /*E
-    EPSEVSLKPMDamping - the damping type used in the KPM method to compute the DOS in the EVSL solver
+    EPSEVSLDamping - the damping type used in the EVSL solver
 
     Level: advanced
 
 .seealso: EPSEVSLSetDOSParameters(), EPSEVSLGetDOSParameters()
 E*/
-typedef enum { EPS_EVSL_KPM_NONE,
-               EPS_EVSL_KPM_JACKSON,
-               EPS_EVSL_KPM_SIGMA } EPSEVSLKPMDamping;
-SLEPC_EXTERN const char *EPSEVSLKPMDampings[];
+typedef enum { EPS_EVSL_DAMPING_NONE,
+               EPS_EVSL_DAMPING_JACKSON,
+               EPS_EVSL_DAMPING_SIGMA } EPSEVSLDamping;
+SLEPC_EXTERN const char *EPSEVSLDampings[];
 
 SLEPC_EXTERN PetscErrorCode EPSEVSLSetRange(EPS,PetscReal,PetscReal);
 SLEPC_EXTERN PetscErrorCode EPSEVSLGetRange(EPS,PetscReal*,PetscReal*);
 SLEPC_EXTERN PetscErrorCode EPSEVSLSetSlices(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSEVSLGetSlices(EPS,PetscInt*);
-SLEPC_EXTERN PetscErrorCode EPSEVSLSetDOSParameters(EPS,EPSEVSLDOSMethod,PetscInt,PetscInt,EPSEVSLKPMDamping,PetscInt,PetscInt);
-SLEPC_EXTERN PetscErrorCode EPSEVSLGetDOSParameters(EPS,EPSEVSLDOSMethod*,PetscInt*,PetscInt*,EPSEVSLKPMDamping*,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode EPSEVSLSetDOSParameters(EPS,EPSEVSLDOSMethod,PetscInt,PetscInt,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode EPSEVSLGetDOSParameters(EPS,EPSEVSLDOSMethod*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode EPSEVSLSetPolParameters(EPS,PetscInt,PetscReal);
+SLEPC_EXTERN PetscErrorCode EPSEVSLGetPolParameters(EPS,PetscInt*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode EPSEVSLSetDamping(EPS,EPSEVSLDamping);
+SLEPC_EXTERN PetscErrorCode EPSEVSLGetDamping(EPS,EPSEVSLDamping*);
 
 SLEPC_EXTERN PetscErrorCode EPSFEASTSetNumPoints(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSFEASTGetNumPoints(EPS,PetscInt*);

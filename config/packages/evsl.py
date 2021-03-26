@@ -17,7 +17,7 @@ class Evsl(package.Package):
     self.packagename    = 'evsl'
     self.installable    = True
     self.downloadable   = True
-    self.gitcommit      = '60414f0d8a49c19a9d035ca5b4232b40b02474f4'  #master 8-mar-2021
+    self.gitcommit      = '814fc8251c453b999b6f33ccff48c728104597aa'  #master 27-mar-2021
     self.url            = 'https://github.com/eigs/EVSL/archive/'+self.gitcommit+'.tar.gz'
     self.archive        = 'evsl-'+self.gitcommit+'.tar.gz'
     self.dirname        = 'evsl-'+self.gitcommit
