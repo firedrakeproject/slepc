@@ -442,6 +442,15 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 \primme also provides a solver for the singular value decomposition that is interfaced in \slepc's \ident{SVD}, see chapter \ref{cap:svd}.
 	\end{description}
 
+\subsection*{\underline{\evsl}}
+	\begin{description}
+	\setlength{\itemsep}{0pt}
+	\item[References.]\citep{Li:2019:EVS}.
+	\item[Website.] \url{https://www-users.cs.umn.edu/~saad/software/EVSL/}.
+	\item[Summary.] \evsl is a sequential library that implements methods for computing all eigenvalues located in a given interval for real symmetric (standard or generalized) eigenvalue problems. Currently SLEPc only supports standard problems.
+	\item[Installation.] The option \texttt{-{}-download-evsl} is available in \slepc's configure for easy installation. Alternatively, one can use an already installed version.
+	\end{description}
+
 \subsection*{\underline{\blzpack}}
 	\begin{description}
 	\setlength{\itemsep}{0pt}

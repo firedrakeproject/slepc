@@ -241,7 +241,7 @@ p(A)x=\theta x,
 \end{equation}
 where $p(\cdot)$ is a suitable high-degree polynomial. Once the polynomial is built, the eigensolver relies on \ident{STApply} to compute approximations of the eigenvalues $\theta$ of the transformed problem. These approximations must be processed in some way in order to recover the $\lambda$ eigenvalues. Note that in this case there is no \ident{STBackTransform} operation. Details of the method can be found in \citep{Fang:2012:FLP}.
 
-Polynomial filtering techiques are still under development in \slepc, and will be improved in future versions.
+Polynomial filtering techiques are still under development in \slepc, and will be improved in future versions. Note that the external package \evsl also implements polynomial filters to compute all eigenvalues in an interval.
 
 %---------------------------------------------------
 \section{Advanced Usage}
