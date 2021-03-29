@@ -129,6 +129,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBool      isprecond,flg;
+  PetscRandom    rand;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -149,6 +150,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   if (!pjd->keep) pjd->keep = 0.5;
   ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
   ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(pep->V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
   ierr = PEPSetWorkVecs(pep,5);CHKERRQ(ierr);
   pjd->ld = pep->nev;
 #if !defined (PETSC_USE_COMPLEX)

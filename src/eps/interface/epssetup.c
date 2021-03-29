@@ -662,6 +662,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   PetscErrorCode ierr;
   PetscInt       oldsize,newc,requested;
   PetscLogDouble cnt;
+  PetscRandom    rand;
   Vec            t;
 
   PetscFunctionBegin;
@@ -703,6 +704,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 
   /* allocate W */
   if (eps->twosided) {
+    ierr = BVGetRandomContext(eps->V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
     ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
     ierr = BVDuplicate(eps->V,&eps->W);CHKERRQ(ierr);
   }
