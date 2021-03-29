@@ -560,7 +560,7 @@ static PetscErrorCode SlepcNormEst1(PetscBLASInt n,PetscScalar *A,PetscInt m,Pet
 
   for (i=0;i<n;i++) {  /* X has columns of unit 1-norm */
     X[i] = 1.0/n;
-    PetscRandomGetValue(rand,&val);
+    ierr = PetscRandomGetValue(rand,&val);CHKERRQ(ierr);
     if (PetscRealPart(val) < 0.5) X[i+n] = -1.0/n;
     else X[i+n] = 1.0/n;
   }

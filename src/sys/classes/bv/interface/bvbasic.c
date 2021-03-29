@@ -1543,6 +1543,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,BV W)
   W->indef        = V->indef;
   W->vmm          = V->vmm;
   W->rrandom      = V->rrandom;
+  W->deftol       = V->deftol;
   if (V->rand) { ierr = PetscObjectReference((PetscObject)V->rand);CHKERRQ(ierr); }
   W->rand         = V->rand;
   if (V->ops->duplicate) { ierr = (*V->ops->duplicate)(V,W);CHKERRQ(ierr); }
