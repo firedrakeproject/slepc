@@ -107,8 +107,6 @@ static PetscErrorCode STFilterSetInterval_Filter(ST st,PetscReal inta,PetscReal 
    Options Database Key:
 .  -st_filter_interval <a,b> - set [a,b] as the interval of interest
 
-   Level: intermediate
-
    Notes:
    The filter will be configured to emphasize eigenvalues contained in the given
    interval, and damp out eigenvalues outside it. If the interval is open, then
@@ -118,6 +116,8 @@ static PetscErrorCode STFilterSetInterval_Filter(ST st,PetscReal inta,PetscReal 
 
    The interval must be contained within the numerical range of the matrix, see
    STFilterSetRange().
+
+   Level: intermediate
 
 .seealso: STFilterGetInterval(), STFilterSetRange(), EPSSetInterval()
 @*/
@@ -199,11 +199,11 @@ static PetscErrorCode STFilterSetRange_Filter(ST st,PetscReal left,PetscReal rig
    Options Database Key:
 .  -st_filter_range <a,b> - set [a,b] as the numerical range
 
-   Level: intermediate
-
    Notes:
    The filter will be most effective if the numerical range is tight, that is, left and right
    are good approximations to the leftmost and rightmost eigenvalues, respectively.
+
+   Level: intermediate
 
 .seealso: STFilterGetRange(), STFilterSetInterval()
 @*/

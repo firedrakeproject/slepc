@@ -1,4 +1,3 @@
-from __future__ import print_function
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -9,6 +8,7 @@ from __future__ import print_function
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+from __future__ import print_function
 import os, sys, tempfile, shutil, tarfile
 import log, argdb
 try:

@@ -61,6 +61,7 @@ typedef const char* EPSType;
 #define EPSSCALAPACK   "scalapack"
 #define EPSELPA        "elpa"
 #define EPSELEMENTAL   "elemental"
+#define EPSEVSL        "evsl"
 
 /* Logging support */
 SLEPC_EXTERN PetscClassId EPS_CLASSID;
@@ -484,6 +485,40 @@ SLEPC_EXTERN PetscErrorCode EPSLyapIIGetRanks(EPS,PetscInt*,PetscInt*);
 
 SLEPC_EXTERN PetscErrorCode EPSBLOPEXSetBlockSize(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSBLOPEXGetBlockSize(EPS,PetscInt*);
+
+/*E
+    EPSEVSLDOSMethod - the method to approximate the density of states (DOS) in the EVSL solver
+
+    Level: advanced
+
+.seealso: EPSEVSLSetDOSParameters(), EPSEVSLGetDOSParameters()
+E*/
+typedef enum { EPS_EVSL_DOS_KPM,
+               EPS_EVSL_DOS_LANCZOS } EPSEVSLDOSMethod;
+SLEPC_EXTERN const char *EPSEVSLDOSMethods[];
+
+/*E
+    EPSEVSLDamping - the damping type used in the EVSL solver
+
+    Level: advanced
+
+.seealso: EPSEVSLSetDOSParameters(), EPSEVSLGetDOSParameters()
+E*/
+typedef enum { EPS_EVSL_DAMPING_NONE,
+               EPS_EVSL_DAMPING_JACKSON,
+               EPS_EVSL_DAMPING_SIGMA } EPSEVSLDamping;
+SLEPC_EXTERN const char *EPSEVSLDampings[];
+
+SLEPC_EXTERN PetscErrorCode EPSEVSLSetRange(EPS,PetscReal,PetscReal);
+SLEPC_EXTERN PetscErrorCode EPSEVSLGetRange(EPS,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode EPSEVSLSetSlices(EPS,PetscInt);
+SLEPC_EXTERN PetscErrorCode EPSEVSLGetSlices(EPS,PetscInt*);
+SLEPC_EXTERN PetscErrorCode EPSEVSLSetDOSParameters(EPS,EPSEVSLDOSMethod,PetscInt,PetscInt,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode EPSEVSLGetDOSParameters(EPS,EPSEVSLDOSMethod*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode EPSEVSLSetPolParameters(EPS,PetscInt,PetscReal);
+SLEPC_EXTERN PetscErrorCode EPSEVSLGetPolParameters(EPS,PetscInt*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode EPSEVSLSetDamping(EPS,EPSEVSLDamping);
+SLEPC_EXTERN PetscErrorCode EPSEVSLGetDamping(EPS,EPSEVSLDamping*);
 
 SLEPC_EXTERN PetscErrorCode EPSFEASTSetNumPoints(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSFEASTGetNumPoints(EPS,PetscInt*);

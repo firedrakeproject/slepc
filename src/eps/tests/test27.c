@@ -125,10 +125,18 @@ int main(int argc,char **argv)
       suffix: 1
       args: -eps_type {{gd jd rqcg lobpcg}} -terse
 
-   test:
-      suffix: 2
-      args: -eps_interval .17,1.3 -st_type filter -st_filter_degree 150 -eps_nev 1 -terse
+   testset:
+      args: -eps_interval .17,1.3 -terse
       filter: grep -v "requested"
-      requires: !single
+      output_file: output/test27_2.out
+      test:
+         suffix: 2
+         args: -st_type filter -st_filter_degree 150 -eps_nev 1
+         requires: !single
+      test:
+         suffix: 2_evsl
+         nsize: {{1 2}}
+         args: -eps_type evsl
+         requires: evsl
 
 TEST*/

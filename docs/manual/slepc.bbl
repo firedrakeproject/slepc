@@ -185,6 +185,11 @@ Lehoucq, R.~B., D.~C. Sorensen, and C.~Yang (1998).
   Problems by Implicitly Restarted {A}rnoldi Methods\/}.
 \newblock SIAM, Philadelphia.
 
+\bibitem[{Li {\em et~al.\/}(2019)}]{Li:2019:EVS}
+Li, R., Xi, Y., Erlandson, L., and Y. Saad (2019).
+\newblock The eigenvalues slicing library (EVSL): Algorithms, implementation, and software.
+\newblock {\em {SIAM} J. Sci. Comput.\/}, 41(4):C393-C415.
+
 \bibitem[{Marques(1995)}]{Marques:1995:BDU}
 Marques, O.~A. (1995).
 \newblock {BLZPACK}: Description and User's Guide.

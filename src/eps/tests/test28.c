@@ -141,9 +141,17 @@ int main(int argc,char **argv)
       suffix: 2
       args: -eps_type {{power subspace}} -eps_target 8 -st_type sinvert -terse
 
-   test:
-      suffix: 3
-      args: -eps_interval 0.5,0.67 -st_type sinvert -st_pc_type cholesky -terse
-      requires: !single
+   testset:
+      args: -eps_interval 0.5,0.67 -terse
+      output_file: output/test28_3.out
+      test:
+         suffix: 3
+         args: -st_type sinvert -st_pc_type cholesky
+         requires: !single
+      test:
+         suffix: 3_evsl
+         nsize: {{1 2}}
+         args: -eps_type evsl -eps_evsl_dos_method lanczos
+         requires: evsl
 
 TEST*/
