@@ -450,7 +450,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetSize(bv->t,&N);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
-  tlocal  = bv->m*nloc;
+  tlocal = bv->m*nloc;
   ierr = PetscIntMultError(bv->m,N,&tglobal);CHKERRQ(ierr);
 
   if (bv->issplit) {
