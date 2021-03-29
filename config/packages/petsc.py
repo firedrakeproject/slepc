@@ -203,10 +203,16 @@ class PETSc(package.Package):
     if petsc.nversion > slepc.nversion:
       self.log.Warn('PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
     if slepc.release=='1' and not petsc.release=='1':
-      self.log.Exit('A release version of SLEPc requires a release version of PETSc, not a development version')
+      errmsg = 'A release version of SLEPc requires a release version of PETSc, not a development version'
+      if self.isrepo and slepc.isrepo:
+        errmsg += '\nType "git checkout release" (or "git checkout main") in both PETSc and SLEPc repositories'
+      self.log.Exit(errmsg)
     if slepc.release=='0' and petsc.release=='1':
       if not 'slepc' in petsc.packages:
-        self.log.Exit('A development version of SLEPc cannot be built with a release version of PETSc')
+        errmsg = 'A development version of SLEPc cannot be built with a release version of PETSc'
+        if self.isrepo and slepc.isrepo:
+          errmsg += '\nType "git checkout release" (or "git checkout main") in both PETSc and SLEPc repositories'
+        self.log.Exit(errmsg)
     if petsc.isinstall:
       if os.path.realpath(petsc.prefixdir) != os.path.realpath(petsc.dir):
         self.log.Warn('PETSC_DIR does not point to PETSc installation path')
