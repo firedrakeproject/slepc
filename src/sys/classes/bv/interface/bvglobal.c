@@ -87,7 +87,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
 PetscErrorCode BVDot(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
-  PetscBool      match;
   PetscInt       m,n;
 
   PetscFunctionBegin;
@@ -100,8 +99,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   BVCheckSizes(Y,2);
   PetscValidType(M,3);
   PetscCheckSameTypeAndComm(X,1,Y,2);
-  ierr = PetscObjectTypeCompare((PetscObject)M,MATSEQDENSE,&match);CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
+  PetscCheckTypeName(M,MATSEQDENSE);
 
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
   if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,Y->k);
@@ -1181,7 +1179,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marra
 PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
 {
   PetscErrorCode ierr;
-  PetscBool      match,set,flg,symm=PETSC_FALSE;
+  PetscBool      set,flg,symm=PETSC_FALSE;
   PetscInt       m,n;
   PetscScalar    *marray;
   Mat            Xmatrix,Ymatrix;
@@ -1202,8 +1200,7 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   BVCheckSizes(Y,3);
   PetscValidType(M,4);
   PetscCheckSameTypeAndComm(X,1,Y,3);
-  ierr = PetscObjectTypeCompare((PetscObject)M,MATSEQDENSE,&match);CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Matrix M must be of type seqdense");
+  PetscCheckTypeName(M,MATSEQDENSE);
 
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
   if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D rows, should have at least %D",m,Y->k);

@@ -249,13 +249,11 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
 {
   PetscErrorCode ierr;
-  PetscBool      match;
   PetscInt       n,N,k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(A,MAT_CLASSID,1);
-  ierr = PetscObjectTypeCompareAny((PetscObject)A,&match,MATSEQDENSE,MATMPIDENSE,"");CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_SUP,"Matrix must be of type dense");
+  PetscCheckTypeNames(A,MATSEQDENSE,MATMPIDENSE);
 
   ierr = MatGetSize(A,&N,&k);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&n,NULL);CHKERRQ(ierr);

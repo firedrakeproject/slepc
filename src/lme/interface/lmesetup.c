@@ -241,16 +241,14 @@ PetscErrorCode LMEGetCoefficients(LME lme,Mat *A,Mat *B,Mat *D,Mat *E)
 PetscErrorCode LMESetRHS(LME lme,Mat C)
 {
   PetscErrorCode ierr;
-  PetscBool      match;
   Mat            A;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidHeaderSpecific(C,MAT_CLASSID,2);
   PetscCheckSameComm(lme,1,C,2);
+  PetscCheckTypeName(C,MATLRC);
 
-  ierr = PetscObjectTypeCompare((PetscObject)C,MATLRC,&match);CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)C),PETSC_ERR_SUP,"Mat argument must have been created with MatCreateLRC");
   ierr = MatLRCGetMats(C,&A,NULL,NULL,NULL);CHKERRQ(ierr);
   if (A) SETERRQ(PetscObjectComm((PetscObject)C),PETSC_ERR_SUP,"The MatLRC must not have a sparse matrix term");
 
@@ -315,7 +313,6 @@ PetscErrorCode LMEGetRHS(LME lme,Mat *C)
 PetscErrorCode LMESetSolution(LME lme,Mat X)
 {
   PetscErrorCode ierr;
-  PetscBool      match;
   Mat            A;
 
   PetscFunctionBegin;
@@ -323,8 +320,7 @@ PetscErrorCode LMESetSolution(LME lme,Mat X)
   if (X) {
     PetscValidHeaderSpecific(X,MAT_CLASSID,2);
     PetscCheckSameComm(lme,1,X,2);
-    ierr = PetscObjectTypeCompare((PetscObject)X,MATLRC,&match);CHKERRQ(ierr);
-    if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Mat argument must have been created with MatCreateLRC");
+    PetscCheckTypeName(X,MATLRC);
     ierr = MatLRCGetMats(X,&A,NULL,NULL,NULL);CHKERRQ(ierr);
     if (A) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"The MatLRC must not have a sparse matrix term");
     ierr = PetscObjectReference((PetscObject)X);CHKERRQ(ierr);

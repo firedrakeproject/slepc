@@ -759,7 +759,6 @@ static PetscErrorCode BVOrthogonalize_SVQB(BV V,Mat Rin)
 PetscErrorCode BVOrthogonalize(BV V,Mat R)
 {
   PetscErrorCode ierr;
-  PetscBool      match;
   PetscInt       m,n;
 
   PetscFunctionBegin;
@@ -769,8 +768,7 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   if (R) {
     PetscValidHeaderSpecific(R,MAT_CLASSID,2);
     PetscValidType(R,2);
-    ierr = PetscObjectTypeCompare((PetscObject)R,MATSEQDENSE,&match);CHKERRQ(ierr);
-    if (!match) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
+    PetscCheckTypeName(R,MATSEQDENSE);
     ierr = MatGetSize(R,&m,&n);CHKERRQ(ierr);
     if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument is not square, it has %D rows and %D columns",m,n);
     if (n<V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat size %D is smaller than the number of BV active columns %D",n,V->k);
