@@ -289,6 +289,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
   PetscErrorCode ierr;
   PetscInt       oldsize,newc,requested;
   PetscLogDouble cnt;
+  PetscRandom    rand;
   Mat            T;
   Vec            t;
 
@@ -326,6 +327,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 
   /* allocate W */
   if (nep->twosided) {
+    ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
     ierr = BVDestroy(&nep->W);CHKERRQ(ierr);
     ierr = BVDuplicate(nep->V,&nep->W);CHKERRQ(ierr);
   }

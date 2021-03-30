@@ -101,6 +101,7 @@ struct _p_BV {
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */
   Mat                Aget;         /* matrix returned for BVGetMat() */
   PetscBool          cuda;         /* true if GPU must be used in SVEC */
+  PetscBool          sfocalled;    /* setfromoptions has been called */
   PetscScalar        *work;
   PetscInt           lwork;
   void               *data;

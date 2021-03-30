@@ -833,6 +833,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscBool      istrivial,isring,isellipse,isinterval,flg,useconj;
   PetscReal      c,d;
+  PetscRandom    rand;
   Mat            A;
 
   PetscFunctionBegin;
@@ -887,6 +888,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (!ctx->subcomm) { ierr = EPSCISSSetUpSubComm(eps,&ctx->num_solve_point);CHKERRQ(ierr); }
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(eps->V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
   if (ctx->weight) { ierr = PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma);CHKERRQ(ierr); }
   ierr = PetscMalloc4(ctx->N,&ctx->weight,ctx->N+1,&ctx->omega,ctx->N,&ctx->pp,ctx->L_max*ctx->M,&ctx->sigma);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,3*ctx->N*sizeof(PetscScalar)+ctx->L_max*ctx->N*sizeof(PetscReal));CHKERRQ(ierr);

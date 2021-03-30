@@ -258,6 +258,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
       suffix: 2_cuda
       args: -nep_type {{rii slp}} -nep_target 21 -mat_type aijcusparse -terse
       requires: cuda !single
+      filter: sed -e "s/[+-]0\.0*i//"
       output_file: output/test3_1.out
 
    test:

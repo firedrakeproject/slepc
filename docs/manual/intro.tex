@@ -150,7 +150,7 @@
 \label{sec:inst}
 
 	This section describes \slepc's installation procedure.
-	Previously to the installation of \slepc, the system must have an appropriate version of \petsc\ installed. Compatible versions of \petsc and \slepc are those with coincident major and minor version number, the third number (patch level) being irrelevant for this. For instance, \slepc 3.14.x may be built with \petsc 3.14.x.
+	Previously to the installation of \slepc, the system must have an appropriate version of \petsc\ installed. Compatible versions of \petsc and \slepc are those with coincident major and minor version number, the third number (patch level) being irrelevant for this. For instance, \slepc 3.14.x may be built with \petsc 3.14.x. Also note that, if using git repositories, both \petsc and \slepc must be either release versions or development versions, so make sure you select the appropriate branch in both repositories (\texttt{git checkout release} or \texttt{git checkout main}).
 
 	The installation process for \slepc is very similar to \petsc, with two stages: configuration and compilation. \slepc's configuration is much simpler because most of the configuration information is taken from \petsc, including compiler options and scalar type (real or complex). See \S\ref{sec:opt-inst} for a discussion of options that are most relevant for \slepc. Several configurations can coexist in the same directory tree, so that for instance one can have \slepc libraries compiled with real scalars as well as with complex scalars. This is explained in \S\ref{sec:mult-inst}. Also, system-based installation is also possible with the \Verb!--prefix! option, as discussed in \S\ref{sec:prefix-inst}.
 

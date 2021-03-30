@@ -689,7 +689,7 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
 PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBool      match,inplace=PETSC_FALSE;
+  PetscBool      inplace=PETSC_FALSE;
   PetscInt       m,n,n1;
 
   PetscFunctionBegin;
@@ -701,13 +701,11 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
     PetscValidHeaderSpecific(B,MAT_CLASSID,3);
     PetscValidType(B,3);
   } else inplace = PETSC_TRUE;
-  ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&match);CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat A must be of type seqdense");
+  PetscCheckTypeName(A,MATSEQDENSE);
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
   if (!inplace) {
-    ierr = PetscObjectTypeCompare((PetscObject)B,MATSEQDENSE,&match);CHKERRQ(ierr);
-    if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat B must be of type seqdense");
+    PetscCheckTypeName(B,MATSEQDENSE);
     n1 = n;
     ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
     if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %D rows, %D cols)",m,n);
@@ -839,7 +837,6 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
 PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
-  PetscBool      match;
   PetscInt       m,n;
 
   PetscFunctionBegin;
@@ -849,8 +846,7 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   PetscValidType(fn,1);
   PetscValidType(A,2);
   PetscValidType(v,3);
-  ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&match);CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat A must be of type seqdense");
+  PetscCheckTypeName(A,MATSEQDENSE);
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
   ierr = VecGetSize(v,&m);CHKERRQ(ierr);

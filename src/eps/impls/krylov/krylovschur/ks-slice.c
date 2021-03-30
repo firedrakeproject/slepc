@@ -178,6 +178,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   BVOrthogBlockType  ob_type;
   PetscInt           i;
   PetscReal          h,a,b;
+  PetscRandom        rand;
   EPS_SR             sr=ctx->sr;
 
   PetscFunctionBegin;
@@ -211,6 +212,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
 
   /* transfer options from eps->V */
   ierr = EPSGetBV(ctx->eps,&V);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
   if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   if (!((PetscObject)(eps->V))->type_name) {
     ierr = BVSetType(V,BVSVEC);CHKERRQ(ierr);

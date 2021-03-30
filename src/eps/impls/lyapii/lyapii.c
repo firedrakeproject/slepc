@@ -55,6 +55,7 @@ typedef struct {
 PetscErrorCode EPSSetUp_LyapII(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscRandom    rand;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
 
   PetscFunctionBegin;
@@ -85,6 +86,7 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(eps->V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
   ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
