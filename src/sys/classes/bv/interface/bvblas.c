@@ -205,14 +205,14 @@ PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pets
       if (k) PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&k,(PetscScalar*)B,&k,&zero,bv->work,&ldc));
       else { ierr = PetscArrayzero(bv->work,m*n);CHKERRQ(ierr); }
       ierr = PetscMPIIntCast(m*n,&len);CHKERRQ(ierr);
-      ierr = MPIU_Allreduce(bv->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRMPI(ierr);
+      ierr = MPIU_Allreduce(bv->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
     } else {
       ierr = BVAllocateWork_Private(bv,2*m*n);CHKERRQ(ierr);
       CC = bv->work+m*n;
       if (k) PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&k,(PetscScalar*)B,&k,&zero,bv->work,&m));
       else { ierr = PetscArrayzero(bv->work,m*n);CHKERRQ(ierr); }
       ierr = PetscMPIIntCast(m*n,&len);CHKERRQ(ierr);
-      ierr = MPIU_Allreduce(bv->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRMPI(ierr);
+      ierr = MPIU_Allreduce(bv->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
       for (j=0;j<n;j++) {
         ierr = PetscArraycpy(C+j*ldc,CC+j*m,m);CHKERRQ(ierr);
       }
@@ -247,7 +247,7 @@ PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscSc
       ierr = PetscArrayzero(bv->work,k);CHKERRQ(ierr);
     }
     ierr = PetscMPIIntCast(k,&len);CHKERRQ(ierr);
-    ierr = MPIU_Allreduce(bv->work,y,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRMPI(ierr);
+    ierr = MPIU_Allreduce(bv->work,y,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
   } else {
     if (n) PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,x,&one,&zero,y,&one));
   }
