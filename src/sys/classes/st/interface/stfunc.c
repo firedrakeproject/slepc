@@ -125,7 +125,7 @@ PetscErrorCode STReset(ST st)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    STDestroy - Destroys ST context that was created with STCreate().
 
    Collective on st

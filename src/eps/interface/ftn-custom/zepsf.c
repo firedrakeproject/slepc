@@ -13,6 +13,7 @@
 #include <slepc/private/epsimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
+#define epsdestroy_                       EPSDESTROY
 #define epsview_                          EPSVIEW
 #define epsviewfromoptions_               EPSVIEWFROMOPTIONS
 #define epserrorview_                     EPSERRORVIEW
@@ -68,6 +69,7 @@
 #define epssetleftinitialspace0_          EPSSETLEFTINITIALSPACE0
 #define epssetleftinitialspace1_          EPSSETLEFTINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define epsdestroy_                       epsdestroy
 #define epsview_                          epsview
 #define epsviewfromoptions_               epsviewfromoptions
 #define epserrorview_                     epserrorview
@@ -211,6 +213,13 @@ static PetscErrorCode ourarbitraryfunc(PetscScalar er,PetscScalar ei,Vec xr,Vec 
 {
   EPS eps = (EPS)ctx;
   PetscObjectUseFortranCallback(eps,_cb.arbitrary,(PetscScalar*,PetscScalar*,Vec*,Vec*,PetscScalar*,PetscScalar*,void*,PetscErrorCode*),(&er,&ei,&xr,&xi,rr,ri,_ctx,&ierr));
+}
+
+SLEPC_EXTERN void epsdestroy_(EPS *eps,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(eps);
+  *ierr = EPSDestroy(eps); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(eps);
 }
 
 SLEPC_EXTERN void epsview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)

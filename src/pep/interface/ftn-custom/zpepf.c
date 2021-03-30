@@ -13,6 +13,7 @@
 #include <slepc/private/pepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
+#define pepdestroy_                       PEPDESTROY
 #define pepview_                          PEPVIEW
 #define pepviewfromoptions_               PEPVIEWFROMOPTIONS
 #define peperrorview_                     PEPERRORVIEW
@@ -68,6 +69,7 @@
 #define pepsetinitialspace0_              PEPSETINITIALSPACE0
 #define pepsetinitialspace1_              PEPSETINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define pepdestroy_                       pepdestroy
 #define pepview_                          pepview
 #define pepviewfromoptions_               pepviewfromoptions
 #define peperrorview_                     peperrorview
@@ -204,6 +206,13 @@ static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,Pets
 {
   PEP pep = (PEP)ctx;
   PetscObjectUseFortranCallback(pep,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
+}
+
+SLEPC_EXTERN void pepdestroy_(PEP *pep,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(pep);
+  *ierr = PEPDestroy(pep); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(pep);
 }
 
 SLEPC_EXTERN void pepview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)

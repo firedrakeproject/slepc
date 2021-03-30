@@ -447,7 +447,7 @@ PetscErrorCode LMEReset(LME lme)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    LMEDestroy - Destroys the LME context.
 
    Collective on lme

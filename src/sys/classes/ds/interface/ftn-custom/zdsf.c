@@ -17,6 +17,7 @@
 #define dssetoptionsprefix_       DSSETOPTIONSPREFIX
 #define dsappendoptionsprefix_    DSAPPENDOPTIONSPREFIX
 #define dsgetoptionsprefix_       DSGETOPTIONSPREFIX
+#define dsdestroy_                DSDESTROY
 #define dsview_                   DSVIEW
 #define dsviewfromoptions_        DSVIEWFROMOPTIONS
 #define dsviewmat_                DSVIEWMAT
@@ -28,6 +29,7 @@
 #define dssetoptionsprefix_       dssetoptionsprefix
 #define dsappendoptionsprefix_    dsappendoptionsprefix
 #define dsgetoptionsprefix_       dsgetoptionsprefix
+#define dsdestroy_                dsdestroy
 #define dsview_                   dsview
 #define dsviewfromoptions_        dsviewfromoptions
 #define dsviewmat_                dsviewmat
@@ -78,6 +80,13 @@ SLEPC_EXTERN void dsgetoptionsprefix_(DS *ds,char *prefix,PetscErrorCode *ierr,P
   *ierr = DSGetOptionsPrefix(*ds,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
+}
+
+SLEPC_EXTERN void dsdestroy_(DS *ds,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(ds);
+  *ierr = DSDestroy(ds); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(ds);
 }
 
 SLEPC_EXTERN void dsview_(DS *ds,PetscViewer *viewer,PetscErrorCode *ierr)

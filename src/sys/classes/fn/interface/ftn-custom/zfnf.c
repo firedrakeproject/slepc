@@ -13,6 +13,7 @@
 #include <slepc/private/fnimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
+#define fndestroy_                 FNDESTROY
 #define fnview_                    FNVIEW
 #define fnviewfromoptions_         FNVIEWFROMOPTIONS
 #define fnsetoptionsprefix_        FNSETOPTIONSPREFIX
@@ -21,6 +22,7 @@
 #define fnsettype_                 FNSETTYPE
 #define fngettype_                 FNGETTYPE
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define fndestroy_                 fndestroy
 #define fnview_                    fnview
 #define fnviewfromoptions_         fnviewfromoptions
 #define fnsetoptionsprefix_        fnsetoptionsprefix
@@ -29,6 +31,13 @@
 #define fnsettype_                 fnsettype
 #define fngettype_                 fngettype
 #endif
+
+SLEPC_EXTERN void fndestroy_(FN *fn,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(fn);
+  *ierr = FNDestroy(fn); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(fn);
+}
 
 SLEPC_EXTERN void fnview_(FN *fn,PetscViewer *viewer,PetscErrorCode *ierr)
 {

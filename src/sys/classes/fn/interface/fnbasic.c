@@ -1035,7 +1035,7 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    FNDestroy - Destroys FN context that was created with FNCreate().
 
    Collective on fn

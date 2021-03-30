@@ -12,6 +12,7 @@
 #include <slepc/private/mfnimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
+#define mfndestroy_                       MFNDESTROY
 #define mfnview_                          MFNVIEW
 #define mfnviewfromoptions_               MFNVIEWFROMOPTIONS
 #define mfnconvergedreasonview_           MFNCONVERGEDREASONVIEW
@@ -26,6 +27,7 @@
 #define mfngettolerances10_               MFNGETTOLERANCES10
 #define mfngettolerances01_               MFNGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define mfndestroy_                       mfndestroy
 #define mfnview_                          mfnview
 #define mfnviewfromoptions_               mfnviewfromoptions
 #define mfnconvergedreasonview_           mfnconvergedreasonview
@@ -65,6 +67,13 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   MFN mfn = (MFN)*ctx;
   PetscObjectUseFortranCallback(mfn,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
+}
+
+SLEPC_EXTERN void mfndestroy_(MFN *mfn,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(mfn);
+  *ierr = MFNDestroy(mfn); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(mfn);
 }
 
 SLEPC_EXTERN void mfnview_(MFN *mfn,PetscViewer *viewer,PetscErrorCode *ierr)

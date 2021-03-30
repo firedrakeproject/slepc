@@ -151,7 +151,7 @@ PetscErrorCode SVDReset(SVD svd)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    SVDDestroy - Destroys the SVD context.
 
    Collective on svd

@@ -322,7 +322,7 @@ PetscErrorCode PEPReset(PEP pep)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    PEPDestroy - Destroys the PEP context.
 
    Collective on pep

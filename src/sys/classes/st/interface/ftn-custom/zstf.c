@@ -17,6 +17,7 @@
 #define stsetoptionsprefix_       STSETOPTIONSPREFIX
 #define stappendoptionsprefix_    STAPPENDOPTIONSPREFIX
 #define stgetoptionsprefix_       STGETOPTIONSPREFIX
+#define stdestroy_                STDESTROY
 #define stview_                   STVIEW
 #define stviewfromoptions_        STVIEWFROMOPTIONS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
@@ -25,6 +26,7 @@
 #define stsetoptionsprefix_       stsetoptionsprefix
 #define stappendoptionsprefix_    stappendoptionsprefix
 #define stgetoptionsprefix_       stgetoptionsprefix
+#define stdestroy_                stdestroy
 #define stview_                   stview
 #define stviewfromoptions_        stviewfromoptions
 #endif
@@ -72,6 +74,13 @@ SLEPC_EXTERN void stgetoptionsprefix_(ST *st,char *prefix,PetscErrorCode *ierr,P
   *ierr = STGetOptionsPrefix(*st,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
+}
+
+SLEPC_EXTERN void stdestroy_(ST *st,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(st);
+  *ierr = STDestroy(st); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(st);
 }
 
 SLEPC_EXTERN void stview_(ST *st,PetscViewer *viewer,PetscErrorCode *ierr)
