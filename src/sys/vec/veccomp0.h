@@ -252,7 +252,7 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
 PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar *nm)
 {
   PetscErrorCode    ierr;
-  PetscScalar       dp0,nm0,dp1,nm1;
+  PetscScalar       dp0=0.0,nm0=0.0,dp1=0.0,nm1=0.0;
   const PetscScalar *vx,*wx;
   Vec_Comp          *vs = (Vec_Comp*)v->data,*ws = (Vec_Comp*)w->data;
   PetscInt          i,n;
@@ -263,7 +263,6 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
 
   PetscFunctionBegin;
   /* Compute recursively the local part */
-  dp0 = nm0 = 0.0;
   ierr = PetscObjectTypeCompare((PetscObject)v,VECCOMP,&t0);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)w,VECCOMP,&t1);CHKERRQ(ierr);
   if (t0 && t1) {
