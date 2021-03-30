@@ -334,7 +334,7 @@ PetscErrorCode NEPReset(NEP nep)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    NEPDestroy - Destroys the NEP context.
 
    Collective on nep

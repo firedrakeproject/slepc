@@ -13,6 +13,7 @@
 #include <slepcsvd.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
+#define svddestroy_                       SVDDESTROY
 #define svdview_                          SVDVIEW
 #define svderrorview_                     SVDERRORVIEW
 #define svdconvergedreasonview_           SVDCONVERGEDREASONVIEW
@@ -51,6 +52,7 @@
 #define svdsetinitialspaces10_            SVDSETINITIALSPACES10
 #define svdsetinitialspaces11_            SVDSETINITIALSPACES11
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define svddestroy_                       svddestroy
 #define svdview_                          svdview
 #define svderrorview_                     svderrorview
 #define svdconvergedreasonview_           svdconvergedreasonview
@@ -163,6 +165,13 @@ static PetscErrorCode ourstopdestroy(void *ctx)
 {
   SVD svd = (SVD)ctx;
   PetscObjectUseFortranCallback(svd,_cb.stopdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
+}
+
+SLEPC_EXTERN void svddestroy_(SVD *svd,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(svd);
+  *ierr = SVDDestroy(svd); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(svd);
 }
 
 SLEPC_EXTERN void svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)

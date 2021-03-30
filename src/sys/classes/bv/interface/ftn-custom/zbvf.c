@@ -17,6 +17,7 @@
 #define bvsetoptionsprefix_       BVSETOPTIONSPREFIX
 #define bvappendoptionsprefix_    BVAPPENDOPTIONSPREFIX
 #define bvgetoptionsprefix_       BVGETOPTIONSPREFIX
+#define bvdestroy_                BVDESTROY
 #define bvview_                   BVVIEW
 #define bvviewfromoptions_        BVVIEWFROMOPTIONS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
@@ -25,6 +26,7 @@
 #define bvsetoptionsprefix_       bvsetoptionsprefix
 #define bvappendoptionsprefix_    bvappendoptionsprefix
 #define bvgetoptionsprefix_       bvgetoptionsprefix
+#define bvdestroy_                bvdestroy
 #define bvview_                   bvview
 #define bvviewfromoptions_        bvviewfromoptions
 #endif
@@ -72,6 +74,13 @@ SLEPC_EXTERN void bvgetoptionsprefix_(BV *bv,char *prefix,PetscErrorCode *ierr,P
   *ierr = BVGetOptionsPrefix(*bv,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
+}
+
+SLEPC_EXTERN void bvdestroy_(BV *bv,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(bv);
+  *ierr = BVDestroy(bv); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(bv);
 }
 
 SLEPC_EXTERN void bvview_(BV *bv,PetscViewer *viewer,PetscErrorCode *ierr)

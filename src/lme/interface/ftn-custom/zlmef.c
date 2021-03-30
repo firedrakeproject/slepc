@@ -12,6 +12,7 @@
 #include <slepc/private/lmeimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
+#define lmedestroy_                       LMEDESTROY
 #define lmeview_                          LMEVIEW
 #define lmeviewfromoptions_               LMEVIEWFROMOPTIONS
 #define lmeconvergedreasonview_           LMECONVERGEDREASONVIEW
@@ -26,6 +27,7 @@
 #define lmegettolerances10_               LMEGETTOLERANCES10
 #define lmegettolerances01_               LMEGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define lmedestroy_                       lmedestroy
 #define lmeview_                          lmeview
 #define lmeviewfromoptions_               lmeviewfromoptions
 #define lmeconvergedreasonview_           lmeconvergedreasonview
@@ -65,6 +67,13 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   LME lme = (LME)*ctx;
   PetscObjectUseFortranCallback(lme,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
+}
+
+SLEPC_EXTERN void lmedestroy_(LME *lme,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(lme);
+  *ierr = LMEDestroy(lme); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(lme);
 }
 
 SLEPC_EXTERN void lmeview_(LME *lme,PetscViewer *viewer,PetscErrorCode *ierr)

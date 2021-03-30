@@ -17,6 +17,7 @@
 #define rgsetoptionsprefix_       RGSETOPTIONSPREFIX
 #define rgappendoptionsprefix_    RGAPPENDOPTIONSPREFIX
 #define rggetoptionsprefix_       RGGETOPTIONSPREFIX
+#define rgdestroy_                RGDESTROY
 #define rgview_                   RGVIEW
 #define rgviewfromoptions_        RGVIEWFROMOPTIONS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
@@ -25,6 +26,7 @@
 #define rgsetoptionsprefix_       rgsetoptionsprefix
 #define rgappendoptionsprefix_    rgappendoptionsprefix
 #define rggetoptionsprefix_       rggetoptionsprefix
+#define rgdestroy_                rgdestroy
 #define rgview_                   rgview
 #define rgviewfromoptions_        rgviewfromoptions
 #endif
@@ -72,6 +74,13 @@ SLEPC_EXTERN void rggetoptionsprefix_(RG *rg,char *prefix,PetscErrorCode *ierr,P
   *ierr = RGGetOptionsPrefix(*rg,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
+}
+
+SLEPC_EXTERN void rgdestroy_(RG *rg,PetscErrorCode *ierr)
+{
+  PETSC_FORTRAN_OBJECT_F_DESTROYED_TO_C_NULL(rg);
+  *ierr = RGDestroy(rg); if (*ierr) return;
+  PETSC_FORTRAN_OBJECT_C_NULL_TO_F_DESTROYED(rg);
 }
 
 SLEPC_EXTERN void rgview_(RG *rg,PetscViewer *viewer,PetscErrorCode *ierr)
