@@ -17,7 +17,7 @@ __all__ = ['setup',
 import sys, os
 
 from conf.baseconf import PetscConfig
-from conf.baseconf import setup, Extension, log
+from conf.baseconf import setup, Extension, log, strip_prefix
 from conf.baseconf import config     as _config
 from conf.baseconf import build      as _build
 from conf.baseconf import build_src  as _build_src
@@ -35,19 +35,23 @@ from distutils.errors import DistutilsError
 
 class SlepcConfig(PetscConfig):
 
-    def __init__(self,  slepc_dir, petsc_dir, petsc_arch):
-        PetscConfig.__init__(self, petsc_dir, petsc_arch)
+    def __init__(self,  slepc_dir, petsc_dir, petsc_arch, dest_dir=None):
+        PetscConfig.__init__(self, petsc_dir, petsc_arch, dest_dir='')
+        if dest_dir is None:
+            dest_dir = os.environ.get('DESTDIR')
         if not slepc_dir:
             raise DistutilsError("SLEPc not found")
         if not os.path.isdir(slepc_dir):
             raise DistutilsError("invalid SLEPC_DIR")
         self.configdict['SLEPC_DIR'] = slepc_dir
         self.SLEPC_DIR = self['SLEPC_DIR']
+        self.SLEPC_DESTDIR = dest_dir
 
     def configure_extension(self, extension):
         PetscConfig.configure_extension(self, extension)
         SLEPC_DIR  = self.SLEPC_DIR
         PETSC_ARCH = self.PETSC_ARCH
+        SLEPC_DESTDIR = self.SLEPC_DESTDIR
         # includes and libraries
         SLEPC_INCLUDE = [
             os.path.join(SLEPC_DIR, PETSC_ARCH, 'include'),
@@ -66,7 +70,7 @@ class SlepcConfig(PetscConfig):
         else:
             slepc_libs = ['slepc']
         slepc_cfg['libraries'] = slepc_libs
-        slepc_cfg['runtime_library_dirs'] = slepc_cfg['library_dirs']
+        slepc_cfg['runtime_library_dirs'] = [strip_prefix(SLEPC_DESTDIR, d) for d in SLEPC_LIB_DIR]
         self._configure_ext(extension, slepc_cfg, preppend=True)
         if self['BUILDSHAREDLIB'] == 'no':
             from petsc4py.lib import ImportPETSc
@@ -172,7 +176,11 @@ SLEPC_DIR  = %(SLEPC_DIR)s
 PETSC_DIR  = %(PETSC_DIR)s
 PETSC_ARCH = %(PETSC_ARCH)s
 """
-        variables = {'SLEPC_DIR'  : self.slepc_dir,
+        SLEPC_DESTDIR = None
+        for arch in arch_list:
+            conf = self.get_config_arch(arch)
+            SLEPC_DESTDIR = conf.SLEPC_DESTDIR # all archs will have same value
+        variables = {'SLEPC_DIR'  : strip_prefix(SLEPC_DESTDIR, self.slepc_dir),
                      'PETSC_DIR'  : self.petsc_dir,
                      'PETSC_ARCH' : os.path.pathsep.join(arch_list)}
         return template, variables
