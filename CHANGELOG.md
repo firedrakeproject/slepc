@@ -5,7 +5,7 @@
 ### Added
 
 - `SVD`: support for the GSVD added. This implies changes in the interface, e.g.,
-  `SVDSetOperators()` should be used instead `SVDSetOperator()`. New functions have
+  `SVDSetOperators()` should be used instead of `SVDSetOperator()`. New functions have
   been added such as `SVDSetProblemType()` and `SVDIsGeneralized()`.
 - `SVD`: New solver `SVDRANDOMIZED`.
 - `EPS`: New interface to external package EVSL.
@@ -15,6 +15,8 @@
 - New tolerance to check a definite inner product, see `BVSetDefiniteTolerance()`.
 - New function `STSetPreconditionerMat()` to pass the matrix for building the
   preconditioner.
+- New function `BVSetRandomNorma()l` for random initial vectors with normal distribution.
+- New function `DSGetTruncateSize()` to be used with `DSTruncate()`.
 
 ### Changed
 
