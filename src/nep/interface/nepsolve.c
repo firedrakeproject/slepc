@@ -13,7 +13,8 @@
    References:
 
        [1] C. Campos and J.E. Roman, "NEP: a module for the parallel solution
-           of nonlinear eigenvalue problems in SLEPc", arXiv:1910.11712, 2019.
+           of nonlinear eigenvalue problems in SLEPc", ACM Trans. Math. Soft.
+           (to appear), arXiv:1910.11712, 2021.
 */
 
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
@@ -25,9 +26,10 @@ static const char citation[] =
   "@Article{slepc-nep,\n"
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"{NEP}: a module for the parallel solution of nonlinear eigenvalue problems in {SLEPc}\",\n"
-  "   journal = \"arXiv:1910.11712\",\n"
+  "   journal = \"{ACM} Trans. Math. Software\",\n"
+  "   note = \"To appear\",\n"
   "   url = \"https://arxiv.org/abs/1910.11712\",\n"
-  "   year = \"2019\"\n"
+  "   year = \"2021\"\n"
   "}\n";
 
 PetscErrorCode NEPComputeVectors(NEP nep)
