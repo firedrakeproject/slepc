@@ -28,7 +28,7 @@ Dependencies
 .. _SLEPc:    https://slepc.upv.es
 .. _PETSc:    http://www.mcs.anl.gov/petsc/
 .. _petsc4py: http://gitlab.com/petsc/petsc4py
-.. _Cython:   http://www.cython.org
+.. _Cython:   https://cython.org
 
 Documentation
 -------------
