@@ -125,7 +125,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
-  PetscInt       M,N,P,k,maxnsol;
+  PetscInt       M,N,P=0,k,maxnsol;
   SlepcSC        sc;
   Vec            *T;
   BV             bv;

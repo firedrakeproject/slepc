@@ -358,7 +358,7 @@ PetscErrorCode NEPMonitorConvergedDestroy(PetscViewerAndFormat **vf)
 
   PetscFunctionBegin;
   if (!*vf) PetscFunctionReturn(0);
-  ierr = PetscFree((*vf)->data);
+  ierr = PetscFree((*vf)->data);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(&(*vf)->viewer);CHKERRQ(ierr);
   ierr = PetscDrawLGDestroy(&(*vf)->lg);CHKERRQ(ierr);
   ierr = PetscFree(*vf);CHKERRQ(ierr);
