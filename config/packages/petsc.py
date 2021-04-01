@@ -219,7 +219,7 @@ class PETSc(package.Package):
     petsc.Check()
     if not petsc.havepackage:
       self.log.Exit('Unable to link with PETSc')
-    if slepc.isrepo and not petsc.isinstall and petsc.branch!='release' and slepc.branch!='release':
+    if slepc.isrepo and petsc.isrepo and not petsc.isinstall and petsc.branch!='release' and slepc.branch!='release':
       try:
         import dateutil.parser, datetime
         petscdate = dateutil.parser.parse(petsc.gitdate)
