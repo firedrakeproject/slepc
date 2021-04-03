@@ -124,7 +124,7 @@ gnu-cxx-complex-nofort:
 gnu-c-complex-nompi-int64:
   extends: .stage-1
   tags:
-    - linux-ubuntu, name:ahmes
+    - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-mpi=0 --with-fc=0 --with-scalar-type=complex --with-64-bit-indices
     DISABLE_TESTS: 1
@@ -368,7 +368,7 @@ gnu-cxx-int64:
     - .stage-2
     - .linux_test
   tags:
-    - compiler:intel, name:ahmes
+    - compiler:intel
   variables:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-3.2
