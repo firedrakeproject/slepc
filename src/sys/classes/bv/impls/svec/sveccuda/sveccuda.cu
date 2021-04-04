@@ -310,7 +310,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
         ierr = PetscArrayzero(X->work,m*n);CHKERRQ(ierr);
       }
       ierr = PetscMPIIntCast(m*n,&len);CHKERRQ(ierr);
-      ierr = MPIU_Allreduce(X->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
+      ierr = MPIU_Allreduce(X->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X));CHKERRMPI(ierr);
     } else {
       ierr = BVAllocateWork_Private(X,2*m*n);CHKERRQ(ierr);
       CC = X->work+m*n;
@@ -324,7 +324,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
         ierr = PetscArrayzero(X->work,m*n);CHKERRQ(ierr);
       }
       ierr = PetscMPIIntCast(m*n,&len);CHKERRQ(ierr);
-      ierr = MPIU_Allreduce(X->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
+      ierr = MPIU_Allreduce(X->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X));CHKERRMPI(ierr);
       for (j=0;j<n;j++) {
         ierr = PetscArraycpy(C+j*ldm,CC+j*m,m);CHKERRQ(ierr);
       }
@@ -434,7 +434,7 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
       cerr = cudaFree(d_work);CHKERRCUDA(cerr);
     }
     ierr = PetscMPIIntCast(k,&len);CHKERRQ(ierr);
-    ierr = MPIU_Allreduce(X->work,qq,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
+    ierr = MPIU_Allreduce(X->work,qq,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X));CHKERRMPI(ierr);
     if (!q) { ierr = VecRestoreArray(X->buffer,&qq);CHKERRQ(ierr); }
   } else {
     if (n) {
