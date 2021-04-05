@@ -46,16 +46,16 @@ typedef struct {
 static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_params *primme,int *ierr)
 {
   if (sendBuf == recvBuf) {
-    *ierr = MPIU_Allreduce(MPI_IN_PLACE,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
+    *ierr = MPI_Allreduce(MPI_IN_PLACE,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));
   } else {
-    *ierr = MPIU_Allreduce(sendBuf,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
+    *ierr = MPI_Allreduce(sendBuf,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));
   }
 }
 
 #if defined(SLEPC_HAVE_PRIMME3)
 static void par_broadcastReal(void *buf,int *count,primme_params *primme,int *ierr)
 {
-  *ierr = MPI_Bcast(buf,*count,MPIU_REAL,0/*root*/,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
+  *ierr = MPI_Bcast(buf,*count,MPIU_REAL,0/*root*/,PetscObjectComm((PetscObject)primme->commInfo));
 }
 #endif
 
@@ -67,10 +67,12 @@ static void convTestFun(double *eval,void *evec,double *resNorm,int *isconv,prim
   PetscScalar    eigvr = eval?*eval:0.0;
   PetscReal      r = resNorm?*resNorm:HUGE_VAL,errest;
 
-  *err = 1;
-  ierr = (*eps->converged)(eps,eigvr,0.0,r,&errest,eps->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
-  *isconv = (errest<=eps->tol?1:0);
-  *err = 0;
+  ierr = (*eps->converged)(eps,eigvr,0.0,r,&errest,eps->convergedctx);
+  if (ierr) *err = 1;
+  else {
+    *isconv = (errest<=eps->tol?1:0);
+    *err = 0;
+  }
 }
 
 static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblock,int *blockSize,void *basisNorms,int *numConverged,void *lockedEvals,int *numLocked,int *lockedFlags,void *lockedNorms,int *inner_its,void *LSRes,
@@ -79,11 +81,10 @@ static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblo
 #endif
                        primme_event *event,struct primme_params *primme,int *err)
 {
-  PetscErrorCode ierr;
+  PetscErrorCode ierr=0;
   EPS            eps = (EPS)primme->commInfo;
   PetscInt       i,k,nerrest;
 
-  *err = 1;
   switch (*event) {
     case primme_event_outer_iteration:
       /* Update EPS */
@@ -98,18 +99,18 @@ static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblo
       }
       if (basisEvals && basisSize) for (i=0; i<*basisSize && k<eps->ncv; i++) eps->eigr[k++] = ((PetscReal*)basisEvals)[i];
       /* Show progress */
-      ierr = EPSMonitor(eps,eps->its,numConverged?*numConverged:0,eps->eigr,eps->eigi,eps->errest,nerrest);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+      ierr = EPSMonitor(eps,eps->its,numConverged?*numConverged:0,eps->eigr,eps->eigi,eps->errest,nerrest);
       break;
 #if defined(SLEPC_HAVE_PRIMME3)
     case primme_event_message:
       /* Print PRIMME information messages */
-      ierr = PetscInfo(eps,msg);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+      ierr = PetscInfo(eps,msg);
       break;
 #endif
     default:
       break;
   }
-  *err = 0;
+  *err = (ierr!=0)? 1: 0;
 }
 #endif /* SLEPC_HAVE_PRIMME2p2 */
 

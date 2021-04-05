@@ -46,16 +46,16 @@ static void multMatvec_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,int*,stru
 static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_svds_params *primme,int *ierr)
 {
   if (sendBuf == recvBuf) {
-    *ierr = MPIU_Allreduce(MPI_IN_PLACE,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
+    *ierr = MPI_Allreduce(MPI_IN_PLACE,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));
   } else {
-    *ierr = MPIU_Allreduce(sendBuf,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
+    *ierr = MPI_Allreduce(sendBuf,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));
   }
 }
 
 #if defined(SLEPC_HAVE_PRIMME3)
 static void par_broadcastReal(void *buf,int *count,primme_svds_params *primme,int *ierr)
 {
-  *ierr = MPI_Bcast(buf,*count,MPIU_REAL,0/*root*/,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
+  *ierr = MPI_Bcast(buf,*count,MPIU_REAL,0/*root*/,PetscObjectComm((PetscObject)primme->commInfo));
 }
 #endif
 
@@ -71,10 +71,12 @@ static void convTestFun(double *sval,void *leftsvec,void *rightsvec,double *resN
   PetscReal      sigma = sval?*sval:0.0;
   PetscReal      r = resNorm?*resNorm:HUGE_VAL,errest;
 
-  *err = 1;
-  ierr = (*svd->converged)(svd,sigma,r,&errest,svd->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)svd),ierr);
-  *isconv = (errest<=svd->tol?1:0);
-  *err = 0;
+  ierr = (*svd->converged)(svd,sigma,r,&errest,svd->convergedctx);
+  if (ierr) *err = 1;
+  else {
+    *isconv = (errest<=svd->tol?1:0);
+    *err = 0;
+  }
 }
 
 static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblock,int *blockSize,void *basisNorms,int *numConverged,void *lockedSvals,int *numLocked,int *lockedFlags,void *lockedNorms,int *inner_its,void *LSRes,
@@ -84,7 +86,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
                        primme_event *event,int *stage,struct primme_svds_params *primme,int *err)
 {
 
-  PetscErrorCode ierr;
+  PetscErrorCode ierr=0;
   SVD            svd = (SVD)primme->commInfo;
   PetscInt       i,k,nerrest;
 
@@ -103,18 +105,18 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
       }
       if (basisSvals && basisSize) for (i=0; i<*basisSize && k<svd->ncv; i++) svd->sigma[k++] = ((PetscReal*)basisSvals)[i];
       /* Show progress */
-      ierr = SVDMonitor(svd,svd->its,numConverged?*numConverged:0,svd->sigma,svd->errest,nerrest);CHKERRABORT(PetscObjectComm((PetscObject)svd),ierr);
+      ierr = SVDMonitor(svd,svd->its,numConverged?*numConverged:0,svd->sigma,svd->errest,nerrest);
       break;
 #if defined(SLEPC_HAVE_PRIMME3)
     case primme_event_message:
       /* Print PRIMME information messages */
-      ierr = PetscInfo(svd,msg);CHKERRABORT(PetscObjectComm((PetscObject)svd),ierr);
+      ierr = PetscInfo(svd,msg);
       break;
 #endif
     default:
       break;
   }
-  *err = 0;
+  *err = (ierr!=0)? 1: 0;
 }
 #endif /* SLEPC_HAVE_PRIMME2p2 */
 
