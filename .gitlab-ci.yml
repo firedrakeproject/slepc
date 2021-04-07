@@ -83,7 +83,7 @@ variables:
       fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
-    - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror cleantest allgtests-tap TIMEOUT=${TIMEOUT} ${TEST_OPTS}; fi
+    - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror cleantest allgtests-tap TIMEOUT=${TIMEOUT} search="${TEST_SEARCH}"; fi
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   after_script:
     - date
@@ -110,7 +110,7 @@ gnu-c-single-nofort:
     - linux-ubuntu, name:athor
   variables:
     PETSC_CONFIG_OPTS: --with-fc=0 --with-precision=single --download-sowing
-    TEST_OPTS: search=eps_tests-test10_1
+    TEST_SEARCH: eps_tests-test10_1
 
 gnu-cxx-complex-nofort:
   extends: .stage-1
@@ -119,7 +119,7 @@ gnu-cxx-complex-nofort:
   variables:
     PYTHON: python3
     PETSC_CONFIG_OPTS: --with-fc=0 --with-clanguage=cxx --with-scalar-type=complex
-    TEST_OPTS: search=eps_tests-test10_1
+    TEST_SEARCH: eps_tests-test10_1
 
 gnu-c-complex-nompi-int64:
   extends: .stage-1
@@ -135,7 +135,7 @@ gnu-c99-mlib-static:
     - linux-fedora
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 --CFLAGS=-std=c99
-    TEST_OPTS: search=eps_tests-test10_1
+    TEST_SEARCH: eps_tests-test10_1
     CHECKSOURCE: 1
 
 #
