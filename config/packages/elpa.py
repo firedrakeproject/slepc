@@ -19,7 +19,7 @@ class Elpa(package.Package):
     self.downloadable   = True
     self.version        = '2020.11.001'
     self.archive        = 'elpa-'+self.version+'.tar.gz'
-    self.url            = 'https://elpa.mpcdf.mpg.de/html/Releases/'+self.version+'/'+self.archive
+    self.url            = 'https://elpa.mpcdf.mpg.de/software/tarball-archive/Releases/'+self.version+'/'+self.archive
     self.dirname        = 'elpa-'+self.version
     self.supportssingle = True
     self.fortran        = True
@@ -104,7 +104,7 @@ class Elpa(package.Package):
       confopt = confopt+' --with-mpi=no'
     if petsc.precision == 'single':
       confopt = confopt+' --enable-single-precision'
-    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
+    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
     if result:
       self.log.Exit('Installation of ELPA failed')
 
