@@ -63,15 +63,13 @@ class Slepc4py(package.Package):
     # add makefile rules
     envvars = 'PYTHONPATH=%s ' % pythonpath
     if slepc.isinstall:
-        envvars += 'PETSC_ARCH="" SLEPC_DIR=${DESTDIR}${SLEPC_INSTALLDIR} '
+      envvars += 'PETSC_ARCH="" SLEPC_DIR=${DESTDIR}${SLEPC_INSTALLDIR} '
     confdir = os.path.join(destdir,'slepc','conf')
     rule =  'slepc4pybuild:\n'
     rule += '\t@echo "*** Building slepc4py ***"\n'
     rule += '\t@${RM} -f '+os.path.join(confdir,'slepc4py.errorflg')+'\n'
     rule += '\t@cd '+builddir+' && \\\n'
-    rule += '\t   %s ${PYTHON} setup.py clean --all && \\\n' % envvars
-    rule += '\t   %s ${PYTHON} setup.py build  ' % envvars
-    rule += '\t   2>&1 || \\\n'
+    rule += '\t   %s ${PYTHON} setup.py build 2>&1 || \\\n' % envvars
     rule += '\t   (echo "**************************ERROR*************************************" && \\\n'
     rule += '\t   echo "Error building slepc4py." && \\\n'
     rule += '\t   echo "********************************************************************" && \\\n'
