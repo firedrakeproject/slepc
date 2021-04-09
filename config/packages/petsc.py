@@ -98,6 +98,8 @@ class PETSc(package.Package):
           self.precision = v
         elif k == 'MAKE':
           self.make = v
+        elif k == 'MAKE_NP':
+          self.make_np = v
         elif k == 'PREFIXDIR':
           self.prefixdir = v
         elif k == 'BFORT':
