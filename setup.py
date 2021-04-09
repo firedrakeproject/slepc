@@ -115,7 +115,7 @@ def config(prefix, dry_run=False):
     # Run SLEPc configure
     if dry_run: return
     os.environ['PETSC_DIR'] = get_petsc_dir()
-    python = find_executable('python2') or find_executable('python')
+    python = sys.executable
     command = [python, './configure', '--prefix='+prefix]
     status = os.system(" ".join(command))
     if status != 0: raise RuntimeError(status)
