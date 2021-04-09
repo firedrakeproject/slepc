@@ -515,7 +515,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   }
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] /= sub_size;
   ierr = PetscMPIIntCast(2*ctx->M*ctx->L*ctx->L,&len);CHKERRQ(ierr);
-  ierr = MPIU_Allreduce(temp2,Mu,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)eps));CHKERRQ(ierr);
+  ierr = MPIU_Allreduce(temp2,Mu,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
   ierr = PetscFree3(temp,temp2,ppk);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -655,7 +655,7 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
     }
     ierr = PetscArrayzero(temp2,ml*ml);CHKERRQ(ierr);
     ierr = PetscMPIIntCast(ml*ml,&len);CHKERRQ(ierr);
-    ierr = MPIU_Allreduce(temp,temp2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)S));CHKERRQ(ierr);
+    ierr = MPIU_Allreduce(temp,temp2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)S));CHKERRMPI(ierr);
 
     ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
     n = m; lda = m; lwork = 5*m, ldu = 1; ldvt = 1;
