@@ -149,8 +149,8 @@ PetscErrorCode STComputeOperator_Cayley(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   if (!ctx->nu_set) ctx->nu = st->sigma;
-  if (ctx->nu == 0.0 && st->sigma == 0.0) SETERRQ(PetscObjectComm((PetscObject)st),1,"Values of shift and antishift cannot be zero simultaneously");
-  if (ctx->nu == -st->sigma) SETERRQ(PetscObjectComm((PetscObject)st),1,"It is not allowed to set the antishift equal to minus the shift (the target)");
+  if (ctx->nu == 0.0 && st->sigma == 0.0) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER_INPUT,"Values of shift and antishift cannot be zero simultaneously");
+  if (ctx->nu == -st->sigma) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER_INPUT,"It is not allowed to set the antishift equal to minus the shift (the target)");
 
   /* T[0] = A+nu*B */
   if (st->matmode==ST_MATMODE_INPLACE) {
@@ -189,8 +189,8 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  if (newshift==0.0 && (!ctx->nu_set || (ctx->nu_set && ctx->nu==0.0))) SETERRQ(PetscObjectComm((PetscObject)st),1,"Values of shift and antishift cannot be zero simultaneously");
-  if (ctx->nu == -newshift) SETERRQ(PetscObjectComm((PetscObject)st),1,"It is not allowed to set the shift equal to minus the antishift");
+  if (newshift==0.0 && (!ctx->nu_set || (ctx->nu_set && ctx->nu==0.0))) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER_INPUT,"Values of shift and antishift cannot be zero simultaneously");
+  if (ctx->nu == -newshift) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER_INPUT,"It is not allowed to set the shift equal to minus the antishift");
 
   if (!ctx->nu_set) {
     if (st->matmode!=ST_MATMODE_INPLACE) {

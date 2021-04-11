@@ -54,7 +54,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   SVDCheckStandard(svd);
   ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
-  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must not be larger than nev+mpd");
+  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
   svd->leftbasis = PETSC_TRUE;
   ierr = SVDAllocateSolution(svd,1);CHKERRQ(ierr);
@@ -211,7 +211,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = BVMultColumn(V,-1.0,1.0/a,i,work);CHKERRQ(ierr);
     ierr = SVDOrthogonalizeCGS(V,i,work,a,refine,eta,&b);CHKERRQ(ierr);
     ierr = BVScaleColumn(V,i,1.0/b);CHKERRQ(ierr);
-    if (PetscAbsReal(b)<10*PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)svd),1,"Recurrence generated a zero vector; use a two-sided variant");
+    if (PetscAbsReal(b)<10*PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_PLIB,"Recurrence generated a zero vector; use a two-sided variant");
 
     ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVGetColumn(U,i,&ui);CHKERRQ(ierr);

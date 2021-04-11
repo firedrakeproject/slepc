@@ -25,10 +25,10 @@ PetscErrorCode STComputeOperator_Filter(ST st)
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
-  if (st->nmat>1) SETERRQ(PetscObjectComm((PetscObject)st),1,"Only implemented for standard eigenvalue problem");
-  if (ctx->intb >= PETSC_MAX_REAL && ctx->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an interval with STFilterSetInterval()");
-  if (ctx->right == 0.0 && ctx->left == 0.0) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an approximate numerical range with STFilterSetRange()");
-  if (ctx->left > ctx->inta || ctx->right < ctx->intb) SETERRQ4(PetscObjectComm((PetscObject)st),1,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)ctx->inta,(double)ctx->intb,(double)ctx->left,(double)ctx->right);
+  if (st->nmat>1) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Only implemented for standard eigenvalue problem");
+  if (ctx->intb >= PETSC_MAX_REAL && ctx->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"Must pass an interval with STFilterSetInterval()");
+  if (ctx->right == 0.0 && ctx->left == 0.0) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"Must pass an approximate numerical range with STFilterSetRange()");
+  if (ctx->left > ctx->inta || ctx->right < ctx->intb) SETERRQ4(PetscObjectComm((PetscObject)st),PETSC_ERR_USER_INPUT,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)ctx->inta,(double)ctx->intb,(double)ctx->left,(double)ctx->right);
   if (!ctx->polyDegree) ctx->polyDegree = 100;
   ctx->frame[0] = ctx->left;
   ctx->frame[1] = ctx->inta;

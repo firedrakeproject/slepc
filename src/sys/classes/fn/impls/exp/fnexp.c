@@ -413,7 +413,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 {
 #if !defined(PETSC_HAVE_COMPLEX)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,1,"This function requires C99 or C++ complex support");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This function requires C99 or C++ complex support");
 #else
   PetscInt          i,j,n_,s,k,m,mod;
   PetscBLASInt      n=0,n2=0,irsize=0,rsizediv2,ipsize=0,iremainsize=0,info,*piv,minlen,lwork=0,one=1;
@@ -1078,12 +1078,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 
     cberr = cublasXgetrfBatched(cublasv2handle,n,d_ppQ,ld,d_ipiv,d_info,one);CHKERRCUBLAS(cberr);
     cerr = cudaMemcpy(&info,d_info,sizeof(PetscBLASInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
 #if defined (CUDA_VERSION) && CUDA_VERSION >= 5050
     cberr = cublasXgetrsBatched(cublasv2handle,CUBLAS_OP_N,n,n,(const PetscScalar **)d_ppQ,ld,d_ipiv,d_ppP,ld,&info,one);CHKERRCUBLAS(cberr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
 #else
     SETERRQ(communicator,PETSC_ERR_LIB,"cublasXgetrsBatched needs CUDA >= 7");
 #endif

@@ -249,7 +249,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* process initial vectors */
   if (svd->nini<0) {
     k = -svd->nini;
-    if (k>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of initial vectors is larger than ncv");
+    if (k>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
     ierr = BVInsertVecs(svd->V,0,&k,svd->IS,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
     svd->nini = k;
@@ -258,7 +258,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     k = 0;
     if (svd->leftbasis) {
       k = -svd->ninil;
-      if (k>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The number of left initial vectors is larger than ncv");
+      if (k>svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The number of left initial vectors is larger than ncv");
       ierr = BVInsertVecs(svd->U,0,&k,svd->ISL,PETSC_TRUE);CHKERRQ(ierr);
     } else {
       ierr = PetscInfo(svd,"Ignoring initial left vectors\n");CHKERRQ(ierr);
@@ -339,7 +339,7 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
   PetscFunctionBegin;
   ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
   if (svd->ncv!=PETSC_DEFAULT) { /* ncv set */
-    if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),1,"The value of ncv must be at least nsv");
+    if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nsv");
   } else if (svd->mpd!=PETSC_DEFAULT) { /* mpd set */
     svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
   } else { /* neither set: defaults depend on nsv being small or large */

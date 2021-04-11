@@ -60,7 +60,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
   if (eps->ncv!=PETSC_DEFAULT) {
-    if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2)) SETERRQ(PetscObjectComm((PetscObject)eps),0,"Warning: BLZpack recommends that ncv be larger than min(nev+10,nev*2)");
+    if (eps->ncv < PetscMin(eps->nev+10,eps->nev*2)) { ierr = PetscInfo(eps,"BLZpack recommends that ncv be larger than min(nev+10,nev*2)"); }
   } else eps->ncv = PetscMin(eps->nev+10,eps->nev*2);
   if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000,eps->n);
@@ -76,7 +76,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 
   if (!blz->block_size) blz->block_size = 3;
   if (eps->which==EPS_ALL) {
-    if (eps->inta==eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Must define a computational interval when using EPS_ALL");
+    if (eps->inta==eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Must define a computational interval when using EPS_ALL");
     blz->slice = 1;
   }
   if (blz->slice || eps->isgeneralized) {
@@ -84,7 +84,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   }
   if (blz->slice) {
     if (eps->intb >= PETSC_MAX_REAL) { /* right-open interval */
-      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The defined computational interval should have at least one of their sides bounded");
+      if (eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The defined computational interval should have at least one of their sides bounded");
       ierr = STSetDefaultShift(eps->st,eps->inta);CHKERRQ(ierr);
     } else {
       ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);

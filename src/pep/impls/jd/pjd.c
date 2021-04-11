@@ -1479,7 +1479,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
         ierr = BVRestoreColumn(pjd->V,nv,&t[0]);CHKERRQ(ierr);
         ierr = BVOrthogonalizeColumn(pjd->V,nv,NULL,&norm,&lindep);CHKERRQ(ierr);
         if (lindep || norm==0.0) {
-          if (sz==1) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
+          if (sz==1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
           else off = 1;
         } else {
           off = 0;
@@ -1496,7 +1496,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
           }
           ierr = BVOrthogonalizeColumn(pjd->V,nv+1-off,NULL,&norm,&lindep);CHKERRQ(ierr);
           if (lindep || norm==0.0) {
-            if (off) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
+            if (off) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
             else off = 1;
           } else {
             ierr = BVScaleColumn(pjd->V,nv+1-off,1.0/norm);CHKERRQ(ierr);
@@ -1509,11 +1509,11 @@ PetscErrorCode PEPSolve_JD(PEP pep)
             ierr = BVInsertVec(pjd->W,nv+1,r[1]);CHKERRQ(ierr);
           }
           ierr = BVOrthogonalizeColumn(pjd->W,nv,NULL,&norm,&lindep);CHKERRQ(ierr);
-          if (lindep || norm==0.0) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
+          if (lindep || norm==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
           ierr = BVScaleColumn(pjd->W,nv,1.0/norm);CHKERRQ(ierr);
           if (sz==2 && !off) {
             ierr = BVOrthogonalizeColumn(pjd->W,nv+1,NULL,&norm,&lindep);CHKERRQ(ierr);
-            if (lindep || norm==0.0) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
+            if (lindep || norm==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
             ierr = BVScaleColumn(pjd->W,nv+1,1.0/norm);CHKERRQ(ierr);
           }
         }

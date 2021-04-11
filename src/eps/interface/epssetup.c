@@ -136,7 +136,7 @@ PetscErrorCode EPSCheckCompatibleST(EPS eps)
   /* make sure that the user does not specify smallest magnitude with shift-and-invert */
   if ((cayley || sinvert) && (eps->categ==EPS_CATEGORY_KRYLOV || eps->categ==EPS_CATEGORY_OTHER)) {
     ierr = PetscObjectTypeCompare((PetscObject)eps,EPSLYAPII,&lyapii);CHKERRQ(ierr);
-    if (!lyapii && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY && eps->which!=EPS_ALL && eps->which!=EPS_WHICH_USER) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
+    if (!lyapii && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY && eps->which!=EPS_ALL && eps->which!=EPS_WHICH_USER) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
   }
   PetscFunctionReturn(0);
 }
@@ -360,14 +360,14 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   if (eps->nini<0) {
     k = -eps->nini;
-    if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The number of initial vectors is larger than ncv");
+    if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
     ierr = BVInsertVecs(eps->V,0,&k,eps->IS,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&eps->nini,&eps->IS);CHKERRQ(ierr);
     eps->nini = k;
   }
   if (eps->twosided && eps->ninil<0) {
     k = -eps->ninil;
-    if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The number of left initial vectors is larger than ncv");
+    if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The number of left initial vectors is larger than ncv");
     ierr = BVInsertVecs(eps->W,0,&k,eps->ISL,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&eps->ninil,&eps->ISL);CHKERRQ(ierr);
     eps->ninil = k;
@@ -623,9 +623,9 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
     ierr = PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,"");CHKERRQ(ierr);
     if (krylov) {
-      if (*ncv<nev+1 && !(*ncv==nev && *ncv==eps->n)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev+1");
+      if (*ncv<nev+1 && !(*ncv==nev && *ncv==eps->n)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
     } else {
-      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
+      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
     }
   } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
     *ncv = PetscMin(eps->n,nev+(*mpd));

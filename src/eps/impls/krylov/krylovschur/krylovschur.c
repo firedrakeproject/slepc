@@ -119,7 +119,7 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   }
   if (eps->ncv==PETSC_DEFAULT && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   PetscFunctionReturn(0);
 }
@@ -144,7 +144,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     }
   } else {
     ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
-    if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
+    if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
     if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
     if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   }
@@ -226,7 +226,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
       break;
-    default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error");
+    default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unexpected error");
   }
   PetscFunctionReturn(0);
 }

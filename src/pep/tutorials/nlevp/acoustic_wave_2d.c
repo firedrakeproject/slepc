@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  if (m<2) SETERRQ(PETSC_COMM_WORLD,1,"m must be at least 2");
+  if (m<2) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"m must be at least 2");
   ierr = PetscOptionsGetScalar(NULL,NULL,"-z",&z,NULL);CHKERRQ(ierr);
   h = 1.0/m;
   n = m*(m-1);

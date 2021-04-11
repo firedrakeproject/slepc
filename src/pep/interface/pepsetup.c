@@ -243,7 +243,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* process initial vectors */
   if (pep->nini<0) {
     k = -pep->nini;
-    if (k>pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The number of initial vectors is larger than ncv");
+    if (k>pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
     ierr = BVInsertVecs(pep->V,0,&k,pep->IS,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
     pep->nini = k;
@@ -426,9 +426,9 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
   dim = (pep->nmat-1)*pep->n;
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
     if (krylov) {
-      if (*ncv<nev+1 && !(*ncv==nev && *ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev+1");
+      if (*ncv<nev+1 && !(*ncv==nev && *ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
     } else {
-      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev");
+      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
     }
   } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
     *ncv = PetscMin(dim,nev+(*mpd));

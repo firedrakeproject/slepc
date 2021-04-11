@@ -125,12 +125,12 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal
     ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscAbsReal(PetscImaginaryPart(alpha))>bv->deftol && PetscAbsReal(PetscImaginaryPart(alpha))/absal>10*bv->deftol) SETERRQ1(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
+  if (PetscAbsReal(PetscImaginaryPart(alpha))>bv->deftol && PetscAbsReal(PetscImaginaryPart(alpha))/absal>10*bv->deftol) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
 #endif
   if (bv->indef) {
     *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
   } else {
-    if (realp<-bv->deftol) SETERRQ(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: indefinite matrix");
+    if (realp<-bv->deftol) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: indefinite matrix");
     *res = (realp<0.0)? 0.0: PetscSqrtReal(realp);
   }
   PetscFunctionReturn(0);
@@ -207,7 +207,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
 #if defined(PETSC_HAVE_CUDA)
       ierr = VecCreateSeqCUDA(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
 #else
-      SETERRQ(PetscObjectComm((PetscObject)bv),1,"Something wrong happened");
+      SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
 #endif
     } else {
       ierr = VecCreateSeq(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
