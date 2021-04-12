@@ -52,13 +52,15 @@ class SlepcConfig(PetscConfig):
         SLEPC_DIR  = self.SLEPC_DIR
         PETSC_ARCH = self.PETSC_ARCH
         SLEPC_DESTDIR = self.SLEPC_DESTDIR
+        # take into account the case of prefix PETSc with non-prefix SLEPc
+        SLEPC_ARCH_DIR = PETSC_ARCH if PETSC_ARCH else os.environ.get('PETSC_ARCH', '')
         # includes and libraries
         SLEPC_INCLUDE = [
-            os.path.join(SLEPC_DIR, PETSC_ARCH, 'include'),
+            os.path.join(SLEPC_DIR, SLEPC_ARCH_DIR, 'include'),
             os.path.join(SLEPC_DIR, 'include'),
             ]
         SLEPC_LIB_DIR = [
-            os.path.join(SLEPC_DIR, PETSC_ARCH, 'lib'),
+            os.path.join(SLEPC_DIR, SLEPC_ARCH_DIR, 'lib'),
             os.path.join(SLEPC_DIR, 'lib'),
             ]
         slepc_cfg = { }
