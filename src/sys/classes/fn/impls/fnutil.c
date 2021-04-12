@@ -353,6 +353,8 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   cerr = cudaMalloc((void **)&d_Zold,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_M,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
 
+  ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
+
   /* Y = A; */
   cerr = cudaMemcpy(d_A,A,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   /* Z = I; */
@@ -367,7 +369,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   cberr = cublasXscal(cublasv2handle,N,&alpha,d_A,one);CHKERRCUBLAS(cberr);
   tol *= nrm;
   ierr = PetscInfo2(fn,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
-  ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
+  ierr = PetscLogGpuFlops(2.0*n*n);CHKERRQ(ierr);
 
   /* Z = I; */
   cerr = cudaMemset(d_Z,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
@@ -394,7 +396,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
     if (Yres<=tol) converged = PETSC_TRUE;
     ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
-    ierr = PetscLogFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
+    ierr = PetscLogGpuFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
 
   if (Yres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", NSMAXIT);
@@ -409,6 +411,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
     cerr = cudaMemcpy(A,d_A,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
   }
 
+  ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
   cerr = cudaFree(d_A);CHKERRCUDA(cerr);
   cerr = cudaFree(d_Yold);CHKERRCUDA(cerr);
   cerr = cudaFree(d_Z);CHKERRCUDA(cerr);
@@ -454,6 +457,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
   cerr = cudaMalloc((void **)&d_M,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_invM,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
 
+  ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
   cerr = cudaMemcpy(d_M,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   if (inv) {  /* start recurrence with I instead of A */
     cerr = cudaMemset(d_T,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
@@ -481,7 +485,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
       cberr = cublasXscal(cublasv2handle,N,&alpha,d_T,one);CHKERRCUBLAS(cberr);
       alpha = g*g;
       cberr = cublasXscal(cublasv2handle,N,&alpha,d_M,one);CHKERRCUBLAS(cberr);
-      ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n);CHKERRQ(ierr);
+      ierr = PetscLogGpuFlops(2.0*n*n*n/3.0+2.0*n*n);CHKERRQ(ierr);
     }
 
     cerr = cudaMemcpy(d_Told,d_T,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
@@ -493,7 +497,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     mierr = magma_xgetri_gpu(n,d_invM,ld,piv,d_work,lwork,&info);CHKERRMAGMA(mierr);
     if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
     if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
-    ierr = PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0);CHKERRQ(ierr);
+    ierr = PetscLogGpuFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0);CHKERRQ(ierr);
 
     ierr = shift_diagonal(n,d_invM,ld,sone);CHKERRQ(cerr);
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&spfive,d_Told,ld,d_invM,ld,&zero,d_T,ld);CHKERRCUBLAS(cberr);
@@ -502,7 +506,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     cberr = cublasXaxpy(cublasv2handle,N,&sone,d_invM,one,d_M,one);CHKERRCUBLAS(cberr);
     cberr = cublasXscal(cublasv2handle,N,&sp25,d_M,one);CHKERRCUBLAS(cberr);
     ierr = shift_diagonal(n,d_M,ld,sneg_pfive);CHKERRQ(cerr);
-    ierr = PetscLogFlops(2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
+    ierr = PetscLogGpuFlops(2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
 
     cberr = cublasXnrm2(cublasv2handle,N,d_M,one,&Mres);CHKERRCUBLAS(cberr);
     ierr = shift_diagonal(n,d_M,ld,sone);CHKERRQ(cerr);
@@ -512,7 +516,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
       cberr = cublasXaxpy(cublasv2handle,N,&smone,d_T,one,d_Told,one);CHKERRCUBLAS(cberr);
       cberr = cublasXnrm2(cublasv2handle,N,d_Told,one,&fnormdiff);CHKERRCUBLAS(cberr);
       cberr = cublasXnrm2(cublasv2handle,N,d_T,one,&fnormT);CHKERRCUBLAS(cberr);
-      ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
+      ierr = PetscLogGpuFlops(7.0*n*n);CHKERRQ(ierr);
       reldiff = fnormdiff/fnormT;
       ierr = PetscInfo4(fn,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
       if (reldiff<1e-2) scale = PETSC_FALSE; /* Switch to no scaling. */
@@ -524,6 +528,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
 
   if (Mres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", DBMAXIT);
   cerr = cudaMemcpy(T,d_T,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
   ierr = PetscFree(piv);CHKERRQ(ierr);
   cerr = cudaFree(d_work);CHKERRCUDA(cerr);
   cerr = cudaFree(d_T);CHKERRCUDA(cerr);
