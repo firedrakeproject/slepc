@@ -114,7 +114,8 @@ class ArgDB:
     while True:
       found = 0
       for i, s in enumerate(self.argdb):
-        if s.startswith('--h') or s.startswith('-h') or s.startswith('-?'):
+        s = s.strip()
+        if s in ['--help', '-h', '-?']:
           value = True
           found = 1
           numhits = numhits + 1
