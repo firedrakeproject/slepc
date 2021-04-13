@@ -82,7 +82,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv!=PETSC_DEFAULT) {
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
+    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
   } else eps->ncv = eps->nev;
   if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (eps->max_it==PETSC_DEFAULT) {
@@ -122,7 +122,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
 
     ierr = PetscObjectQueryFunction((PetscObject)A,"formFunction",&formFunctionA);CHKERRQ(ierr);
-    if (!formFunctionA) SETERRQ(PetscObjectComm((PetscObject)eps),1,"For nonlinear inverse iteration you must compose a callback function 'formFunction' in matrix A");
+    if (!formFunctionA) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER,"For nonlinear inverse iteration you must compose a callback function 'formFunction' in matrix A");
     ierr = PetscObjectQuery((PetscObject)A,"formFunctionCtx",(PetscObject*)&container);CHKERRQ(ierr);
     if (container) {
       ierr = PetscContainerGetPointer(container,&ctx);CHKERRQ(ierr);
@@ -139,7 +139,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     ierr = VecDestroy(&res);CHKERRQ(ierr);
 
     ierr = PetscObjectQueryFunction((PetscObject)A,"formJacobian",&formJacobianA);CHKERRQ(ierr);
-    if (!formJacobianA) SETERRQ(PetscObjectComm((PetscObject)eps),1,"For nonlinear inverse iteration you must compose a callback function 'formJacobian' in matrix A");
+    if (!formJacobianA) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER,"For nonlinear inverse iteration you must compose a callback function 'formJacobian' in matrix A");
     ierr = PetscObjectQuery((PetscObject)A,"formJacobianCtx",(PetscObject*)&container);CHKERRQ(ierr);
     if (container) {
       ierr = PetscContainerGetPointer(container,&ctx);CHKERRQ(ierr);
@@ -197,7 +197,7 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
   ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   if (i==last) i=N;
   ierr = MPIU_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x));CHKERRMPI(ierr);
-  if (*idx==N) SETERRQ(PetscObjectComm((PetscObject)x),1,"Zero vector found");CHKERRQ(ierr);
+  if (*idx==N) SETERRQ(PetscObjectComm((PetscObject)x),PETSC_ERR_PLIB,"Zero vector found");CHKERRQ(ierr);
   ierr = VecGetLayout(x,&map);CHKERRQ(ierr);
   ierr = PetscLayoutFindOwner(map,*idx,p);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -650,7 +650,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
     ierr = BVDotVec(eps->V,z,&alpha);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->W,k,&z);CHKERRQ(ierr);
     delta = PetscSqrtReal(PetscAbsScalar(alpha));
-    if (delta==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Breakdown in two-sided Power/RQI");
+    if (delta==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in two-sided Power/RQI");
     ierr = BVScaleColumn(eps->V,k,1.0/PetscConj(alpha/delta));CHKERRQ(ierr);
     ierr = BVScaleColumn(eps->W,k,1.0/delta);CHKERRQ(ierr);
     ierr = BVCopyVec(eps->V,k,v);CHKERRQ(ierr);

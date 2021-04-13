@@ -25,7 +25,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
   ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
-  if (size > 2) SETERRQ(PETSC_COMM_WORLD,1,"This test needs one or two processes");
+  if (size > 2) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This test needs one or two processes");
   ierr = PetscPrintf(PETSC_COMM_WORLD,"VecComp test\n");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -93,20 +93,20 @@ int main(int argc,char **argv)
   ierr = VecView(vc,NULL);CHKERRQ(ierr);
 
   ierr = VecGetSize(vc,&k);CHKERRQ(ierr);
-  if (k!=8) SETERRQ(PETSC_COMM_WORLD,1,"Vector global length should be 8");
+  if (k!=8) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Vector global length should be 8");
 
   /* create an empty veccomp vector with two subvectors */
   Nx[0] = 4;
   Nx[1] = 4;
   ierr = VecCreateComp(PETSC_COMM_WORLD,Nx,2,VECSTANDARD,vparent,&wc);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(wc,&n,&varray);CHKERRQ(ierr);
-  if (n!=2) SETERRQ(PETSC_COMM_WORLD,1,"n should be 2");
+  if (n!=2) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"n should be 2");
   for (i=0;i<2;i++) {
     ierr = VecSet(varray[i],1.0);CHKERRQ(ierr);
   }
 
   ierr = VecGetSize(wc,&k);CHKERRQ(ierr);
-  if (k!=8) SETERRQ(PETSC_COMM_WORLD,1,"Vector global length should be 8");
+  if (k!=8) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Vector global length should be 8");
 
   /* duplicate a veccomp */
   ierr = VecDuplicate(vc,&xc);CHKERRQ(ierr);
@@ -118,7 +118,7 @@ int main(int argc,char **argv)
   ierr = VecCompSetSubVecs(yc,2,NULL);CHKERRQ(ierr);
 
   ierr = VecCompGetSubVecs(yc,&n,&varray);CHKERRQ(ierr);
-  if (n!=2) SETERRQ(PETSC_COMM_WORLD,1,"n should be 2");
+  if (n!=2) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"n should be 2");
   if (!rank) {
     ierr = VecSetValue(varray[0],0,1.0,INSERT_VALUES);CHKERRQ(ierr);
   }
@@ -135,7 +135,7 @@ int main(int argc,char **argv)
   ierr = VecCopy(wc,xc);CHKERRQ(ierr);
   ierr = VecAXPBY(xc,1.0,-2.0,vc);CHKERRQ(ierr);
   ierr = VecNorm(xc,NORM_2,&normc);CHKERRQ(ierr);
-  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
   ierr = VecCopy(w,x);CHKERRQ(ierr);
   ierr = VecWAXPY(x,-2.0,w,v);CHKERRQ(ierr);
@@ -143,13 +143,13 @@ int main(int argc,char **argv)
   ierr = VecCopy(wc,xc);CHKERRQ(ierr);
   ierr = VecWAXPY(xc,-2.0,wc,vc);CHKERRQ(ierr);
   ierr = VecNorm(xc,NORM_2,&normc);CHKERRQ(ierr);
-  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
   ierr = VecAXPBYPCZ(y,3.0,-1.0,1.0,w,v);CHKERRQ(ierr);
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   ierr = VecAXPBYPCZ(yc,3.0,-1.0,1.0,wc,vc);CHKERRQ(ierr);
   ierr = VecNorm(yc,NORM_2,&normc);CHKERRQ(ierr);
-  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
   ierr = VecMax(xc,NULL,&vmax);CHKERRQ(ierr);
   ierr = VecMin(xc,NULL,&vmin);CHKERRQ(ierr);
@@ -160,26 +160,26 @@ int main(int argc,char **argv)
 
   ierr = VecDot(x,y,&dot[0]);CHKERRQ(ierr);
   ierr = VecDot(xc,yc,&dotc[0]);CHKERRQ(ierr);
-  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Dots are different");
+  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
   ierr = VecTDot(x,y,&dot[0]);CHKERRQ(ierr);
   ierr = VecTDot(xc,yc,&dotc[0]);CHKERRQ(ierr);
-  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Dots are different");
+  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
 
   vecs[0] = w; vecs[1] = y;
   ierr = VecMDot(x,2,vecs,dot);CHKERRQ(ierr);
   vecs[0] = wc; vecs[1] = yc;
   ierr = VecMDot(xc,2,vecs,dotc);CHKERRQ(ierr);
-  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON || PetscAbsScalar(dot[1]-dotc[1])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Dots are different");
+  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON || PetscAbsScalar(dot[1]-dotc[1])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
   vecs[0] = w; vecs[1] = y;
   ierr = VecMTDot(x,2,vecs,dot);CHKERRQ(ierr);
   vecs[0] = wc; vecs[1] = yc;
   ierr = VecMTDot(xc,2,vecs,dotc);CHKERRQ(ierr);
-  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON || PetscAbsScalar(dot[1]-dotc[1])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Dots are different");
+  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON || PetscAbsScalar(dot[1]-dotc[1])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
 
   ierr = VecDotNorm2(x,y,&dot[0],&norm);CHKERRQ(ierr);
   ierr = VecDotNorm2(xc,yc,&dotc[0],&normc);CHKERRQ(ierr);
-  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Dots are different");
-  if (PetscAbsReal(norm-normc)>100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+  if (PetscAbsScalar(dot[0]-dotc[0])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
+  if (PetscAbsReal(norm-normc)>100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
   ierr = VecAbs(w);CHKERRQ(ierr);
   ierr = VecAbs(wc);CHKERRQ(ierr);
@@ -195,19 +195,19 @@ int main(int argc,char **argv)
   ierr = VecLog(yc);CHKERRQ(ierr);
   ierr = VecNorm(y,NORM_1,&norm);CHKERRQ(ierr);
   ierr = VecNorm(yc,NORM_1,&normc);CHKERRQ(ierr);
-  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
   ierr = VecPointwiseMult(w,x,y);CHKERRQ(ierr);
   ierr = VecPointwiseMult(wc,xc,yc);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_INFINITY,&norm);CHKERRQ(ierr);
   ierr = VecNorm(wc,NORM_INFINITY,&normc);CHKERRQ(ierr);
-  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
   ierr = VecPointwiseMax(w,x,y);CHKERRQ(ierr);
   ierr = VecPointwiseMax(wc,xc,yc);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_INFINITY,&norm);CHKERRQ(ierr);
   ierr = VecNorm(wc,NORM_INFINITY,&normc);CHKERRQ(ierr);
-  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
   ierr = VecSwap(x,y);CHKERRQ(ierr);
   ierr = VecSwap(xc,yc);CHKERRQ(ierr);
@@ -219,7 +219,7 @@ int main(int argc,char **argv)
   ierr = VecSqrtAbs(wc);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_1_AND_2,norm12);CHKERRQ(ierr);
   ierr = VecNorm(wc,NORM_1_AND_2,norm12c);CHKERRQ(ierr);
-  if (PetscAbsReal(norm12[0]-norm12c[0])>10*PETSC_MACHINE_EPSILON || PetscAbsReal(norm12[1]-norm12c[1])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+  if (PetscAbsReal(norm12[0]-norm12c[0])>10*PETSC_MACHINE_EPSILON || PetscAbsReal(norm12[1]-norm12c[1])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
   ierr = VecPointwiseMin(w,x,y);CHKERRQ(ierr);
   ierr = VecPointwiseMin(wc,xc,yc);CHKERRQ(ierr);
@@ -227,7 +227,7 @@ int main(int argc,char **argv)
   ierr = VecPointwiseMaxAbs(xc,yc,wc);CHKERRQ(ierr);
   ierr = VecNorm(x,NORM_INFINITY,&norm);CHKERRQ(ierr);
   ierr = VecNorm(xc,NORM_INFINITY,&normc);CHKERRQ(ierr);
-  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
   ierr = VecSetRandom(wc,NULL);CHKERRQ(ierr);
 

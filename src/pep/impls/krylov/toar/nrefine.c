@@ -1072,7 +1072,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
       ierr = MatGetOwnershipRangeColumn(E[1],&n1_,&m1_);CHKERRQ(ierr);
       /* T12 and T21 are computed from V and V*, so,
          they must have the same column and row ranges */
-      if (m0_-n0_ != m0-n0) SETERRQ(PETSC_COMM_SELF,1,"Inconsistent dimensions");
+      if (m0_-n0_ != m0-n0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Inconsistent dimensions");
       ierr = MatCreateDense(comm,m0-n0,m1_-n1_,PETSC_DECIDE,PETSC_DECIDE,NULL,&B);CHKERRQ(ierr);
       ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -1369,7 +1369,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
-  if (k > pep->n) SETERRQ1(PetscObjectComm((PetscObject)pep),1,"Multiple Refinement available only for invariant pairs of dimension smaller than n=%D",pep->n);
+  if (k > pep->n) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Multiple Refinement available only for invariant pairs of dimension smaller than n=%D",pep->n);
   /* the input tolerance is not being taken into account (by the moment) */
   its = *maxits;
   ierr = PetscMalloc3(k*k,&dH,nmat*k*k,&fH,k,&work);CHKERRQ(ierr);
@@ -1429,13 +1429,13 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   for (i=0;i<k-1;i++) {
     if (H[i+1+i*ldh]!=0.0) {
 #if !defined(PETSC_USE_COMPLEX)
-      SETERRQ(PetscObjectComm((PetscObject)pep),1,"Iterative Refinement requires the complex Schur form of the projected matrix");
+      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Iterative Refinement requires the complex Schur form of the projected matrix");
 #else
-      SETERRQ(PetscObjectComm((PetscObject)pep),1,"Iterative Refinement requires an upper triangular projected matrix");
+      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Iterative Refinement requires an upper triangular projected matrix");
 #endif
     }
   }
-  if (nsubc>k) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Amount of subcommunicators should not be larger than the invariant pair dimension");
+  if (nsubc>k) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Amount of subcommunicators should not be larger than the invariant pair dimension");
   ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
   ierr = BVDuplicateResize(pep->V,k,&dV);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)dV);CHKERRQ(ierr);

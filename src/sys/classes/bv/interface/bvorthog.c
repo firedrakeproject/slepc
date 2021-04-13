@@ -557,7 +557,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
     } else {
       ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
     }
-    if (!norm) SETERRQ(PetscObjectComm((PetscObject)V),1,"Breakdown in BVOrthogonalize due to a linearly dependent column");
+    if (!norm) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_CONV_FAILED,"Breakdown in BVOrthogonalize due to a linearly dependent column");
     if (V->matrix && V->orthog_type==BV_ORTHOG_CGS) {  /* fill cached BV */
       ierr = BVGetColumn(V->cached,j,&v);CHKERRQ(ierr);
       ierr = VecCopy(V->Bx,v);CHKERRQ(ierr);

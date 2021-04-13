@@ -42,7 +42,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PetscOptionsGetString(NULL,NULL,"-file",filename,sizeof(filename),&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name with the -file option");
+  if (!flg) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name with the -file option");
 
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n");CHKERRQ(ierr);
@@ -88,7 +88,7 @@ int main(int argc,char **argv)
 
   ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
   ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
+  if (reason<0) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
 

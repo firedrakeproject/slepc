@@ -471,7 +471,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
   if (Bt) tmp = rB, rB = cB, cB = tmp, qB = T;
 
   /* Check size */
-  if (cA != rB) SETERRQ(PETSC_COMM_SELF,1,"Matrix dimensions do not match");
+  if (cA != rB) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Matrix dimensions do not match");
 
   /* Do stub */
   if ((rA == 1) && (cA == 1) && (cB == 1)) {
@@ -559,7 +559,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
       /* nr_o <- mynorm(A[i]'*m) */
       ierr = SlepcMatDenseMult(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
       nr = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbsScalar(nr0));
-      if (PetscAbs(nr) < PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Linear dependency detected");
+      if (PetscAbs(nr) < PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linear dependency detected");
       if (PetscAbs(nr) > 0.7*PetscAbs(nr_o)) break;
       nr_o = nr;
     }

@@ -43,7 +43,7 @@ static const char citation[] =
 
 #define InertiaMismatch(h,d) \
   do { \
-    SETERRQ1(PetscObjectComm((PetscObject)h),1,"Mismatch between number of values found and information from inertia%s",d?"":", consider using EPSKrylovSchurSetDetectZeros()"); \
+    SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",d?"":", consider using EPSKrylovSchurSetDetectZeros()"); \
   } while (0)
 
 static PetscErrorCode EPSSliceResetSR(EPS eps)
@@ -1058,7 +1058,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         *newS = sPres->value + 10*(sr->dir)*PetscAbsReal(sPres->value - sPres->neighb[0]->value);
         sr->nleap++;
         /* Stops when the interval is open and no values are found in the last 5 shifts (there might be infinite eigenvalues) */
-        if (!sr->hasEnd && sr->nleap > 5) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unable to compute the wanted eigenvalues with open interval");
+        if (!sr->hasEnd && sr->nleap > 5) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unable to compute the wanted eigenvalues with open interval");
       } else { /* First shift */
         if (eps->nconv != 0) {
           /* Unaccepted values give information for next shift */
@@ -1076,7 +1076,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
           }
           *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
         } else { /* No values found, no information for next shift */
-          SETERRQ(PetscObjectComm((PetscObject)eps),1,"First shift renders no information");
+          SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"First shift renders no information");
         }
       }
     } else { /* Accepted values found */
@@ -1157,7 +1157,7 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
     err = eps->errest[eps->perm[i]];
 
     if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
-      if (count>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error in Spectrum Slicing");
+      if (count>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unexpected error in Spectrum Slicing");
       sr->eigr[count] = lambda;
       sr->errest[count] = err;
       /* Explicit purification */

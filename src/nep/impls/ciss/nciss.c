@@ -38,6 +38,6 @@
 SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
 {
   PetscFunctionBegin;
-  SETERRQ(PetscObjectComm((PetscObject)nep),1,"The NEPCISS solver has been removed since version 3.14");
+  SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The NEPCISS solver has been removed since version 3.14");
 }
 

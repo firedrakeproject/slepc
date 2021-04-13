@@ -161,7 +161,7 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   if (isShell) { ierr = MFNDestroy(&mfn);CHKERRQ(ierr); }
 #else
-  SETERRQ(PETSC_COMM_WORLD,1,"This example requires C99 complex numbers");
+  SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires C99 complex numbers");
 #endif
   ierr = SlepcFinalize();
   return ierr;

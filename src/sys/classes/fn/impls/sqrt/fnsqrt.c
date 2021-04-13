@@ -18,7 +18,7 @@ PetscErrorCode FNEvaluateFunction_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  if (x<0.0) SETERRQ(PETSC_COMM_SELF,1,"Function not defined in the requested value");
+  if (x<0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
 #endif
   *y = PetscSqrtScalar(x);
   PetscFunctionReturn(0);
@@ -27,9 +27,9 @@ PetscErrorCode FNEvaluateFunction_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
-  if (x==0.0) SETERRQ(PETSC_COMM_SELF,1,"Derivative not defined in the requested value");
+  if (x==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
 #if !defined(PETSC_USE_COMPLEX)
-  if (x<0.0) SETERRQ(PETSC_COMM_SELF,1,"Derivative not defined in the requested value");
+  if (x<0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
 #endif
   *y = 1.0/(2.0*PetscSqrtScalar(x));
   PetscFunctionReturn(0);

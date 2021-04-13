@@ -18,7 +18,7 @@ PetscErrorCode FNEvaluateFunction_Log(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  if (x<0.0) SETERRQ(PETSC_COMM_SELF,1,"Function not defined in the requested value");
+  if (x<0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
 #endif
   *y = PetscLogScalar(x);
   PetscFunctionReturn(0);
@@ -27,9 +27,9 @@ PetscErrorCode FNEvaluateFunction_Log(FN fn,PetscScalar x,PetscScalar *y)
 PetscErrorCode FNEvaluateDerivative_Log(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
-  if (x==0.0) SETERRQ(PETSC_COMM_SELF,1,"Derivative not defined in the requested value");
+  if (x==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
 #if !defined(PETSC_USE_COMPLEX)
-  if (x<0.0) SETERRQ(PETSC_COMM_SELF,1,"Derivative not defined in the requested value");
+  if (x<0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
 #endif
   *y = 1.0/x;
   PetscFunctionReturn(0);
@@ -109,7 +109,7 @@ static PetscErrorCode FNlogm_params(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
       wr[i] = PetscRealPartComplex(z);
       wi[i] = PetscImaginaryPartComplex(z);
 #else
-      SETERRQ(PETSC_COMM_SELF,1,"This operation requires a compiler with C99 or C++ complex support");
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This operation requires a compiler with C99 or C++ complex support");
 #endif
 #endif
     }
@@ -236,7 +236,7 @@ static PetscErrorCode sqrtm_tbt(PetscScalar *T)
     /* Compute square root of 2x2 quasitriangular block */
     /* The algorithm assumes the special structure of real Schur form */
 #if defined(PETSC_USE_COMPLEX)
-    SETERRQ(PETSC_COMM_SELF,1,"Should not reach this line in complex scalars");
+    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Should not reach this line in complex scalars");
 #else
     mu = PetscSqrtReal(-t21*t12);
     if (t11 > 0.0) r11 = PetscSqrtReal((t11+SlepcAbsEigenvalue(t11,mu))/2.0);
@@ -550,7 +550,7 @@ static PetscErrorCode FNLogmPade(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASIn
 {
 #if !defined(PETSC_HAVE_COMPLEX)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,1,"This function requires C99 or C++ complex support");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This function requires C99 or C++ complex support");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   k,sdim,lwork,info;

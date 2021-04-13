@@ -45,10 +45,10 @@ PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
   PetscFunctionBegin;
   k = PetscMax(3*ctx->bs,((eps->nev-1)/ctx->bs+3)*ctx->bs);
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
-    if (*ncv<k) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv is not sufficiently large");
+    if (*ncv<k) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv is not sufficiently large");
   } else *ncv = k;
   if (*mpd==PETSC_DEFAULT) *mpd = 3*ctx->bs;
-  else if (*mpd!=3*ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),1,"This solver does not allow a value of mpd different from 3*blocksize");
+  else if (*mpd!=3*ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"This solver does not allow a value of mpd different from 3*blocksize");
   PetscFunctionReturn(0);
 }
 

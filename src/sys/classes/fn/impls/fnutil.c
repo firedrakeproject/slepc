@@ -35,7 +35,7 @@ static PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASI
 #else
     sj = (j==n-1 || T[j+1+j*ld] == 0.0)? 1: 2;
     if (sj==1) {
-      if (T[j+j*ld]<0.0) SETERRQ(PETSC_COMM_SELF,1,"Matrix has a real negative eigenvalue, no real primary square root exists");
+      if (T[j+j*ld]<0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_USER_INPUT,"Matrix has a real negative eigenvalue, no real primary square root exists");
       T[j+j*ld] = PetscSqrtReal(T[j+j*ld]);
     } else {
       /* square root of 2x2 block */
@@ -65,7 +65,7 @@ static PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASI
       if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&si,&sj,&r,&mone,T+i+(i+si)*ld,&ld,T+i+si+j*ld,&ld,&one,T+i+j*ld,&ld));
       PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,&si,&sj,T+i+i*ld,&ld,T+j+j*ld,&ld,T+i+j*ld,&ld,&scal,&info));
       SlepcCheckLapackInfo("trsyl",info);
-      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
+      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
     }
     if (sj==2) j++;
   }
@@ -131,7 +131,7 @@ PetscErrorCode FNSqrtmSchur(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
       if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",s+i,s+j,&r,&mone,T+p[i]+(p[i]+s[i])*ld,&ld,T+p[i]+s[i]+p[j]*ld,&ld,&one,T+p[i]+p[j]*ld,&ld));
       PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,s+i,s+j,T+p[i]+p[i]*ld,&ld,T+p[j]+p[j]*ld,&ld,T+p[i]+p[j]*ld,&ld,&scal,&info));
       SlepcCheckLapackInfo("trsyl",info);
-      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
+      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
     }
   }
 
@@ -467,8 +467,8 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     if (scale) { /* g = (abs(det(M)))^(-1/(2*n)); */
       cerr = cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
       mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKERRMAGMA(mierr);
-      if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
-      if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
+      if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
+      if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
 
       /* XXX pending */
 //      ierr = mult_diagonal(d_invM,n,ld,&detM);CHKERRQ(cerr);
@@ -488,11 +488,11 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     cerr = cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
 
     mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKERRMAGMA(mierr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
     mierr = magma_xgetri_gpu(n,d_invM,ld,piv,d_work,lwork,&info);CHKERRMAGMA(mierr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
     ierr = PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0);CHKERRQ(ierr);
 
     ierr = shift_diagonal(n,d_invM,ld,sone);CHKERRQ(cerr);

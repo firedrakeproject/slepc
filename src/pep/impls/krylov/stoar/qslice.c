@@ -436,7 +436,7 @@ PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt 
     if (omg<omgp) hyp = -1;
   }
   if (check==1) *xi = mut;
-  if (hyp==-1 && ptypehyp) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Problem does not satisfy hyperbolic test; consider removing the hyperbolicity flag");
+  if (hyp==-1 && ptypehyp) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Problem does not satisfy hyperbolic test; consider removing the hyperbolicity flag");
   if (check==1 && hyp==0) {
     ierr =  PEPQSliceMatGetInertia(pep,PETSC_MAX_REAL,&inertia,NULL);CHKERRQ(ierr);
     if (inertia == 0) hyp = 1;
@@ -718,7 +718,7 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
         *newS = sPres->value + 10*(sr->dir)*PetscAbsReal(sPres->value - sPres->neighb[0]->value);
         sr->nleap++;
         /* Stops when the interval is open and no values are found in the last 5 shifts (there might be infinite eigenvalues) */
-        if (!sr->hasEnd && sr->nleap > 5) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Unable to compute the wanted eigenvalues with open interval");
+        if (!sr->hasEnd && sr->nleap > 5) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_CONV_FAILED,"Unable to compute the wanted eigenvalues with open interval");
       } else { /* First shift */
         if (pep->nconv != 0) {
           /* Unaccepted values give information for next shift */
@@ -740,7 +740,7 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
           if (!sr->dirch) {
             sr->dirch = PETSC_TRUE;
             *newS = sr->int1;
-          } else SETERRQ(PetscObjectComm((PetscObject)pep),1,"First shift renders no information");
+          } else SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"First shift renders no information");
         }
       }
     } else { /* Accepted values found */
@@ -840,7 +840,7 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
       lambda = PetscRealPart(pep->eigr[pep->perm[i]]);
       err = pep->errest[pep->perm[i]];
       if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
-        if (sr->indexEig+count-ndef>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Unexpected error in Spectrum Slicing");
+        if (sr->indexEig+count-ndef>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Unexpected error in Spectrum Slicing");
         ierr = PEPQSliceCheckEigenvalueType(pep,lambda,PetscRealPart(omega[pep->perm[i]]),PETSC_FALSE);CHKERRQ(ierr);
         eigr[count] = lambda;
         errest[count] = err;
@@ -956,7 +956,7 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
   /* Check for completion */
   sPres->comp[0] = PetscNot(sPres->nconv[0] < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(sPres->nconv[1] < sPres->nsch[1]);
-  if (sPres->nconv[0] > sPres->nsch[0] || sPres->nconv[1] > sPres->nsch[1]) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia");
+  if (sPres->nconv[0] > sPres->nsch[0] || sPres->nconv[1] > sPres->nsch[1]) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia");
   if (divide) { ierr = BVDestroy(&tV);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
@@ -996,12 +996,12 @@ static PetscErrorCode PEPLookForDeflation(PEP pep)
   /* The number of values on each side are found */
   if (sPres->neighb[0]) {
     sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
-    if (sPres->nsch[0]<0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia");
+    if (sPres->nsch[0]<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia");
   } else sPres->nsch[0] = 0;
 
   if (sPres->neighb[1]) {
     sPres->nsch[1] = (sr->dir)*(sPres->neighb[1]->inertia - sPres->inertia) - count1;
-    if (sPres->nsch[1]<0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia");
+    if (sPres->nsch[1]<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia");
   } else sPres->nsch[1] = (sr->dir)*(sr->inertia1 - sPres->inertia);
 
   /* Completing vector of indexes for deflation */
@@ -1347,9 +1347,9 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
   ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
   ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
 
-  if (pep->reason == PEP_DIVERGED_SYMMETRY_LOST && nconv<sr->ndef0+sr->ndef1) SETERRQ1(PetscObjectComm((PetscObject)pep),1,"Symmetry lost at sigma=%g",(double)sr->sPres->value);
+  if (pep->reason == PEP_DIVERGED_SYMMETRY_LOST && nconv<sr->ndef0+sr->ndef1) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Symmetry lost at sigma=%g",(double)sr->sPres->value);
   if (pep->reason == PEP_DIVERGED_SYMMETRY_LOST && nconv==sr->ndef0+sr->ndef1) {
-    if (++sr->symmlost>10) SETERRQ1(PetscObjectComm((PetscObject)pep),1,"Symmetry lost at sigma=%g",(double)sr->sPres->value);
+    if (++sr->symmlost>10) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Symmetry lost at sigma=%g",(double)sr->sPres->value);
   } else sr->symmlost = 0;
 
   ierr = DSTruncate(pep->ds,pep->nconv,PETSC_TRUE);CHKERRQ(ierr);

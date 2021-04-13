@@ -204,7 +204,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
     ep = LAPACKlamch_("S");
     /* Compute eigenvalues of the block */
     PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
-    if (wi==0.0) SETERRQ(PETSC_COMM_SELF,1,"Real block in DSVectors_GHIEP");
+    if (wi==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Real block in DSVectors_GHIEP");
     else { /* Complex eigenvalues */
       if (scal1<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
       wr1 /= scal1;
@@ -668,7 +668,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Check signature */
   for (i=0;i<ds->n;i++) {
     PetscReal de = (ds->compact)?s[i]:PetscRealPart(B[i*ld+i]);
-    if (de != 1.0 && de != -1.0) SETERRQ(PETSC_COMM_SELF,1,"Diagonal elements of the signature matrix must be 1 or -1");
+    if (de != 1.0 && de != -1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Diagonal elements of the signature matrix must be 1 or -1");
   }
 #endif
   ierr = DSAllocateWork_Private(ds,ld*ld,2*ld,ld*2);CHKERRQ(ierr);
@@ -779,7 +779,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Check signature */
   for (i=0;i<ds->n;i++) {
     PetscReal de = (ds->compact)?s[i]:PetscRealPart(B[i*ld+i]);
-    if (de != 1.0 && de != -1.0) SETERRQ(PETSC_COMM_SELF,1,"Diagonal elements of the signature matrix must be 1 or -1");
+    if (de != 1.0 && de != -1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Diagonal elements of the signature matrix must be 1 or -1");
   }
 #endif
   lw = 14*ld+ld*ld;

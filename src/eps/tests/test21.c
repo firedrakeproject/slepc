@@ -111,7 +111,7 @@ int main(int argc,char **argv)
 #else
       eval = PetscCMPLX(kr,ki);
 #endif
-      if (eval!=eigs[i]) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalues in the file do not match");
+      if (eval!=eigs[i]) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_FILE_UNEXPECTED,"Eigenvalues in the file do not match");
     }
     ierr = PetscFree(eigs);CHKERRQ(ierr);
   }
@@ -121,7 +121,7 @@ int main(int argc,char **argv)
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
 #else
-  SETERRQ(PETSC_COMM_WORLD,1,"This example requires C99 complex numbers");
+  SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires C99 complex numbers");
 #endif
   ierr = SlepcFinalize();
   return ierr;

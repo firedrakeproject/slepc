@@ -821,8 +821,8 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
-    if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Initial vector is zero or belongs to the deflation space");
-    else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unable to generate more start vectors");
+    if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Initial vector is zero or belongs to the deflation space");
+    else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more start vectors");
   }
   ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -851,8 +851,8 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   ierr = BVOrthogonalizeColumn(eps->W,i,NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
-    if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Left initial vector is zero");
-    else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unable to generate more left start vectors");
+    if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Left initial vector is zero");
+    else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more left start vectors");
   }
   ierr = BVScaleColumn(eps->W,i,1.0/norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);

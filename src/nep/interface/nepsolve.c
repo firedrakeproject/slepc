@@ -665,7 +665,7 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
   /* compute residual norms */
   ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  if (ki) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented for complex eigenvalues with real scalars");
+  if (ki) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented for complex eigenvalues with real scalars");
 #endif
   ierr = NEPComputeResidualNorm_Private(nep,PETSC_FALSE,kr,xr,nep->work,error);CHKERRQ(ierr);
   ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
@@ -760,7 +760,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
       ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatAXPY(A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
-    if (A != B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
+    if (A != B) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented");
     break;
   }
   PetscFunctionReturn(0);

@@ -44,7 +44,7 @@ PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
       break;
     case FN_COMBINE_DIVIDE:
       ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
-      if (b==0.0) SETERRQ(PETSC_COMM_SELF,1,"Function not defined in the requested value");
+      if (b==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
       *y = a/b;
       break;
     case FN_COMBINE_COMPOSE:
@@ -79,7 +79,7 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
       ierr = FNEvaluateDerivative(ctx->f2,x,&bp);CHKERRQ(ierr);
       ierr = FNEvaluateFunction(ctx->f1,x,&a);CHKERRQ(ierr);
       ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
-      if (b==0.0) SETERRQ(PETSC_COMM_SELF,1,"Derivative not defined in the requested value");
+      if (b==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
       *yp = (ap*b-a*bp)/(b*b);
       break;
     case FN_COMBINE_COMPOSE:

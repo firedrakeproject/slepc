@@ -28,7 +28,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-condn",&condn,NULL);CHKERRQ(ierr);
-  if (condn<1.0) SETERRQ(PETSC_COMM_WORLD,1,"The condition number must be > 1");
+  if (condn<1.0) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The condition number must be > 1");
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV bi-orthogonalization with %D columns of length %D.\n",k,n);CHKERRQ(ierr);
   if (condn>1.0) {

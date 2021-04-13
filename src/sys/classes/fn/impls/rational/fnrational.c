@@ -39,7 +39,7 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
     q = ctx->qcoeff[0];
     for (i=1;i<ctx->nq;i++)
       q = ctx->qcoeff[i]+x*q;
-    if (q==0.0) SETERRQ(PETSC_COMM_SELF,1,"Function not defined in the requested value");
+    if (q==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
     *y = p/q;
   }
   PetscFunctionReturn(0);
@@ -160,7 +160,7 @@ PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp
       qp = q+x*qp;
       q = ctx->qcoeff[i]+x*q;
     }
-    if (q==0.0) SETERRQ(PETSC_COMM_SELF,1,"Derivative not defined in the requested value");
+    if (q==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
     *yp = (pp*q-p*qp)/(q*q);
   }
   PetscFunctionReturn(0);
