@@ -97,7 +97,7 @@ class ArgDB:
     while True:
       found = 0
       for i, s in enumerate(self.argdb):
-        if s.startswith('--'+keyword+'='):
+        if s == '--'+keyword or s.startswith('--'+keyword+'='):
           value = not s.endswith('=0')
           found = 1
           numhits = numhits + 1
