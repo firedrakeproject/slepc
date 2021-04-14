@@ -17,18 +17,20 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
-  PetscReal      sigma,rnorm,aux;
-  PetscScalar    *A,*B,*X,*w;
-  PetscInt       i,j,k,n=15,m=10,ld;
+  PetscReal      *T,*D,sigma,rnorm,aux;
+  PetscScalar    *X,*w;
+  PetscInt       i,j,n=10,m,l=0,k=0,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  k = PetscMin(n,m);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD - dimension %Dx%D.\n",n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD with compact storage - dimension %Dx%D.\n",n,n);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
+  if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Wrong value of dimensions");
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  m = n;
 
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
@@ -36,7 +38,8 @@ int main(int argc,char **argv)
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,m,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,m,l,k);CHKERRQ(ierr);
+  ierr = DSSetCompact(ds,PETSC_TRUE);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -44,41 +47,46 @@ int main(int argc,char **argv)
   ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
 
-  /* Fill A with a rectangular Toeplitz matrix */
-  ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  for (i=0;i<k;i++) A[i+i*ld]=1.0;
-  for (j=1;j<3;j++) {
-    for (i=0;i<n-j;i++) { if ((i+j)<m) A[i+(i+j)*ld]=(PetscScalar)(j+1); }
+  /* Fill A and B with upper arrow-bidiagonal matrices
+     verifying that [A;B] has orthonormal columns */
+  ierr = DSGetArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
+  ierr = DSGetArrayReal(ds,DS_MAT_D,&D);CHKERRQ(ierr);
+  for (i=0;i<n;i++) T[i] = (PetscReal)(i+1)/(n+1); /* diagonal of matrix A */
+  for (i=0;i<k;i++) D[i] = PetscSqrtReal(1.0-T[i]*T[i]);
+  for (i=l;i<k;i++) {
+    T[i+ld] = PetscSqrtReal((1.0-T[k]*T[k])/(1.0+T[i]*T[i]/(D[i]*D[i])))*0.5*(1.0/k); /* upper diagonal of matrix A */
+    T[i+2*ld] = -T[i+ld]*T[i]/D[i]; /* upper diagonal of matrix B */
   }
-  for (j=1;j<n/2;j++) {
-    for (i=0;i<n-j;i++) { if ((i+j)<n && i<m) A[(i+j)+i*ld]=-1.0; }
+  aux = 1.0-T[k]*T[k];
+  for (i=l;i<k;i++) aux -= T[i+ld]*T[i+ld]+T[i+2*ld]*T[i+2*ld];
+  D[k] = PetscSqrtReal(aux);
+  for (i=k;i<n-1;i++) {
+    T[i+ld] = PetscSqrtReal((1.0-T[i+1]*T[i+1])/(1.0+T[i]*T[i]/(D[i]*D[i])))*0.5; /* upper diagonal of matrix A */
+    T[i+2*ld] = -T[i+ld]*T[i]/D[i]; /* upper diagonal of matrix B */
+    D[i+1] = PetscSqrtReal(1.0-T[i+1]*T[i+1]-T[ld+i]*T[ld+i]-T[2*ld+i]*T[2*ld+i]); /* diagonal of matrix B */
   }
-  ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-
-  /* Fill B with a bidiagonal matrix */
-  ierr = DSGetArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
-  for (i=0;i<PetscMin(n,m);i++) {
-    B[i+i*ld]=2.0-1.0/(PetscScalar)(i+1);
-    if (i) B[i-1+i*ld]=1.0;
+  ierr = DSRestoreArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
+  ierr = DSRestoreArrayReal(ds,DS_MAT_D,&D);CHKERRQ(ierr);
+  if (l==0 && k==0) {
+    ierr = DSSetState(ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+  } else {
+    ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   }
-  ierr = DSRestoreArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
-
-  ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
-  ierr = DSView(ds,viewer);CHKERRQ(ierr);
 
   /* Solve */
-  ierr = PetscMalloc1(k,&w);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
   sc->comparison    = SlepcCompareLargestReal;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
-//  ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
@@ -86,7 +94,7 @@ int main(int argc,char **argv)
 
   /* Print singular values */
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed singular values =\n");CHKERRQ(ierr);
-  for (i=0;i<k;i++) {
+  for (i=0;i<n;i++) {
     sigma = PetscRealPart(w[i]);
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma);CHKERRQ(ierr);
   }
@@ -114,7 +122,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      TODO: Not implemented for dense
       requires: !single
 
 TEST*/
