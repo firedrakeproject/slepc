@@ -329,7 +329,7 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(eps->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   if (cos) *cos = 1.0;
   if (m > 100) {
     ierr = PetscMalloc1(m,&hwork);CHKERRQ(ierr);

@@ -588,7 +588,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   ierr = DSCreate(PetscObjectComm((PetscObject)bv),&ds);CHKERRQ(ierr);
   ierr = DSSetType(ds,DSHEP);CHKERRQ(ierr);
   ierr = DSAllocate(ds,bv->m);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,bv->k,0,bv->l,bv->k);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,bv->k,bv->l,bv->k);CHKERRQ(ierr);
   /* [V,S] = eig(B'*B) */
   ierr = DSGetMat(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = BVDot(bv,bv,A);CHKERRQ(ierr);

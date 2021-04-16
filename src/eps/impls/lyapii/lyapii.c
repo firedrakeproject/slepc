@@ -404,7 +404,8 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     ierr = MatDestroy(&Y);CHKERRQ(ierr);
 
     /* SVD of the solution: [Q,R]=qr(V); [U,Sigma,~]=svd(R) */
-    ierr = DSSetDimensions(ctx->ds,nv,nv,0,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(ctx->ds,nv,0,0);CHKERRQ(ierr);
+    ierr = DSSVDSetDimensions(ctx->ds,nv);CHKERRQ(ierr);
     ierr = DSGetMat(ctx->ds,DS_MAT_A,&R);CHKERRQ(ierr);
     ierr = BVOrthogonalize(V,R);CHKERRQ(ierr);
     ierr = DSRestoreMat(ctx->ds,DS_MAT_A,&R);CHKERRQ(ierr);
@@ -422,7 +423,8 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     ierr = MatDestroy(&U);CHKERRQ(ierr);
 
     /* Rank reduction */
-    ierr = DSSetDimensions(ctx->ds,rk,rk,0,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(ctx->ds,rk,0,0);CHKERRQ(ierr);
+    ierr = DSSVDSetDimensions(ctx->ds,rk);CHKERRQ(ierr);
     ierr = DSGetMat(ctx->ds,DS_MAT_A,&W);CHKERRQ(ierr);
     ierr = BVMatProject(V,S,V,W);CHKERRQ(ierr);
     ierr = LyapIIBuildEigenMat(ctx->lme,W,&Op,&v0);CHKERRQ(ierr); /* Op=A\B, A=kron(I,S)+kron(S,I), B=-2*kron(S,S) */
@@ -521,7 +523,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       eps->nconv += k;
       ierr = BVSetActiveColumns(eps->V,eps->nconv-rk,eps->nconv);CHKERRQ(ierr);
       ierr = BVOrthogonalize(eps->V,NULL);CHKERRQ(ierr);
-      ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
+      ierr = DSSetDimensions(eps->ds,eps->nconv,0,0);CHKERRQ(ierr);
       ierr = DSGetMat(eps->ds,DS_MAT_A,&W);CHKERRQ(ierr);
       ierr = BVMatProject(eps->V,matctx->S,eps->V,W);CHKERRQ(ierr);
       ierr = DSRestoreMat(eps->ds,DS_MAT_A,&W);CHKERRQ(ierr);

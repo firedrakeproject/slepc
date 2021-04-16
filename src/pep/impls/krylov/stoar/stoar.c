@@ -195,7 +195,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   offq = ld;
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
   *breakdown = PETSC_FALSE; /* ----- */
-  ierr = DSGetDimensions(pep->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(pep->ds,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(ctx->V,0,m);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pep->V,0,nqt);CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -391,7 +391,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     }
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-    ierr = DSSetDimensions(pep->ds,nv,0,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(pep->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -407,7 +407,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     /* Check convergence */
     /* ierr = PEPSTOARpreKConvergence(pep,nv,&norm,pep->work);CHKERRQ(ierr);*/
     norm = 1.0;
-    ierr = DSGetDimensions(pep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);
+    ierr = DSGetDimensions(pep->ds,NULL,NULL,NULL,&t);CHKERRQ(ierr);
     ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,t-pep->nconv,PetscAbsReal(beta)*norm,&k);CHKERRQ(ierr);
     ierr = (*pep->stopping)(pep,pep->its,pep->max_it,k,pep->nev,&pep->reason,pep->stoppingctx);CHKERRQ(ierr);
 

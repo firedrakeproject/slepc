@@ -1334,7 +1334,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   /* Restart loop */
   while (pep->reason == PEP_CONVERGED_ITERATING) {
     pep->its++;
-    ierr = DSSetDimensions(pep->ds,nv,0,0,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(pep->ds,nv,0,0);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pjd->V,bupdated,nv);CHKERRQ(ierr);
     ierr = PEPJDUpdateTV(pep,bupdated,nv,ww);CHKERRQ(ierr);
     if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) { ierr = BVSetActiveColumns(pjd->W,bupdated,nv);CHKERRQ(ierr); }
@@ -1432,7 +1432,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       if (nv+sz>=pep->ncv-1) {
         /* Basis full, force restart */
         minv = PetscMin(nv,(PetscInt)(pjd->keep*pep->ncv));
-        ierr = DSGetDimensions(pep->ds,&dim,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+        ierr = DSGetDimensions(pep->ds,&dim,NULL,NULL,NULL);CHKERRQ(ierr);
         ierr = DSGetArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
         ierr = PEPJDOrthogonalize(dim,minv,pX,ld,&minv,NULL,NULL,ld);CHKERRQ(ierr);
         ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);

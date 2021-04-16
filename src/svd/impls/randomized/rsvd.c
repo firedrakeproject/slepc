@@ -101,7 +101,8 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     /* Form B^*= AQ */
     ierr = BVMatMult(svd->U,svd->AT,svd->V);CHKERRQ(ierr);
 
-    ierr = DSSetDimensions(svd->ds,svd->ncv,svd->ncv,svd->nconv,svd->ncv);CHKERRQ(ierr);
+    ierr = DSSetDimensions(svd->ds,svd->ncv,svd->nconv,svd->ncv);CHKERRQ(ierr);
+    ierr = DSSVDSetDimensions(svd->ds,svd->ncv);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
     ierr = MatZeroEntries(A);CHKERRQ(ierr);
     ierr = BVOrthogonalize(svd->V,A);CHKERRQ(ierr);

@@ -258,7 +258,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   ierr = DSRestoreArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
   ierr = MatDenseRestoreArrayRead(H,&Hp);CHKERRQ(ierr);
   ierr = MatDestroy(&H);CHKERRQ(ierr);
-  ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,nep->nconv);CHKERRQ(ierr);
+  ierr = DSSetDimensions(nep->ds,nep->nconv,0,nep->nconv);CHKERRQ(ierr);
   ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
   ierr = NEPDeflationReset(extop);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);

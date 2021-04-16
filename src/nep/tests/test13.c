@@ -142,7 +142,7 @@ int main(int argc,char **argv)
   ierr = DSSetType(ds,DSNEP);CHKERRQ(ierr);
   ierr = DSNEPSetFN(ds,3,funs);CHKERRQ(ierr);
   ierr = DSAllocate(ds,nc);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,nc,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,nc,0,0);CHKERRQ(ierr);
   ierr = NEPProjectOperator(nep,0,nc);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -124,7 +124,6 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->ld            = 0;
   ds->l             = 0;
   ds->n             = 0;
-  ds->m             = 0;
   ds->k             = 0;
   ds->t             = 0;
   ds->bs            = 1;
@@ -793,7 +792,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 @*/
 PetscErrorCode DSView(DS ds,PetscViewer viewer)
 {
-  PetscBool         isascii,issvd;
+  PetscBool         isascii;
   PetscViewerFormat format;
   PetscErrorCode    ierr;
   PetscMPIInt       size;
@@ -815,12 +814,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
     }
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",DSStateTypes[ds->state]);CHKERRQ(ierr);
-      ierr = PetscObjectTypeCompare((PetscObject)ds,DSSVD,&issvd);CHKERRQ(ierr);
-      if (issvd) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, m=%D, l=%D, k=%D",ds->ld,ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
-      } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, l=%D, k=%D",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
-      }
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, l=%D, k=%D",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
       if (ds->state==DS_STATE_TRUNCATED) {
         ierr = PetscViewerASCIIPrintf(viewer,", t=%D\n",ds->t);CHKERRQ(ierr);
       } else {
@@ -925,7 +919,6 @@ PetscErrorCode DSReset(DS ds)
   ds->ld       = 0;
   ds->l        = 0;
   ds->n        = 0;
-  ds->m        = 0;
   ds->k        = 0;
   for (i=0;i<DS_NUM_MAT;i++) {
     ierr = PetscFree(ds->mat[i]);CHKERRQ(ierr);

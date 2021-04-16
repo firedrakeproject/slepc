@@ -799,8 +799,8 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
   }
   sr->nS = k;
   ierr = DSRestoreArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = DSGetDimensions(eps->ds,&nv,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->ds,nv,0,0,k);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&nv,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,nv,0,k);CHKERRQ(ierr);
   /* Append u to V */
   ierr = BVGetColumn(sr->Vnext,sr->nS,&v);CHKERRQ(ierr);
   ierr = BVCopyVec(eps->V,sr->nv,v);CHKERRQ(ierr);
@@ -879,8 +879,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   if (!sPres->rep && sr->nS > 0 && (sPres->neighb[0] == sr->sPrev || sPres->neighb[1] == sr->sPrev)) {
     /* Rational Krylov */
     ierr = DSTranslateRKS(eps->ds,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
-    ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,&l,NULL);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,l+1,0,0,0);CHKERRQ(ierr);
+    ierr = DSGetDimensions(eps->ds,NULL,NULL,&l,NULL);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,l+1,0,0);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,0,l+1);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
     ierr = BVMultInPlace(eps->V,U,0,l+1);CHKERRQ(ierr);
@@ -903,7 +903,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     sr->nv = nv;
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {

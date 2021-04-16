@@ -8,8 +8,12 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc/private/dsimpl.h>
+#include <slepc/private/dsimpl.h>       /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
+
+typedef struct {
+  PetscInt m;              /* number of columns */
+} DS_SVD;
 
 PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
 {
@@ -54,12 +58,13 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
 static PetscErrorCode DSSwitchFormat_SVD(DS ds)
 {
   PetscErrorCode ierr;
+  DS_SVD         *ctx = (DS_SVD*)ds->data;
   PetscReal      *T = ds->rmat[DS_MAT_T];
   PetscScalar    *A = ds->mat[DS_MAT_A];
-  PetscInt       i,m=ds->m,k=ds->k,ld=ds->ld;
+  PetscInt       i,m=ctx->m,k=ds->k,ld=ds->ld;
 
   PetscFunctionBegin;
-  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
+  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   /* switch from compact (arrow) to dense storage */
   ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
@@ -77,24 +82,29 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds)
 PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
+  DS_SVD            *ctx = (DS_SVD*)ds->data;
   PetscViewerFormat format;
-  PetscInt          i,j,r,c;
+  PetscInt          i,j,r,c,m=ctx->m;
   PetscReal         value;
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
+  if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
+    ierr = PetscViewerASCIIPrintf(viewer,"number of columns: %D\n",m);CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+  }
+  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   if (ds->compact) {
-    if (!ds->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ds->n,ds->m);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ds->n,m);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",2*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
-      for (i=0;i<PetscMin(ds->n,ds->m);i++) {
+      for (i=0;i<PetscMin(ds->n,m);i++) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
       }
-      for (i=0;i<PetscMin(ds->n,ds->m)-1;i++) {
+      for (i=0;i<PetscMin(ds->n,m)-1;i++) {
         r = PetscMax(i+2,ds->k+1);
         c = i+1;
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
@@ -102,7 +112,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]);CHKERRQ(ierr);
     } else {
       for (i=0;i<ds->n;i++) {
-        for (j=0;j<ds->m;j++) {
+        for (j=0;j<m;j++) {
           if (i==j) value = *(ds->rmat[DS_MAT_T]+i);
           else if (i<ds->k && j==ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+PetscMin(i,j));
           else if (i==j+1 && i>ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+i-1);
@@ -141,14 +151,16 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
+  DS_SVD         *ctx = (DS_SVD*)ds->data;
   PetscInt       n,l,i,*perm,ld=ds->ld;
   PetscScalar    *A;
   PetscReal      *d;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   l = ds->l;
-  n = PetscMin(ds->n,ds->m);
+  n = PetscMin(ds->n,ctx->m);
   A = ds->mat[DS_MAT_A];
   d = ds->rmat[DS_MAT_T];
   perm = ds->perm;
@@ -158,7 +170,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
     ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   }
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
-  ierr = DSPermuteBoth_Private(ds,l,n,DS_MAT_U,DS_MAT_VT,perm);CHKERRQ(ierr);
+  ierr = DSPermuteBoth_Private(ds,l,n,ds->n,ctx->m,DS_MAT_U,DS_MAT_VT,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   if (!ds->compact) {
     for (i=l;i<n;i++) A[i+i*ld] = wr[i];
@@ -169,6 +181,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
 PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
+  DS_SVD         *ctx = (DS_SVD*)ds->data;
   PetscInt       i;
   PetscBLASInt   n1,m1,info,l = 0,n = 0,m = 0,nm,ld,off,lwork;
   PetscScalar    *A,*U,*VT,qwork;
@@ -178,8 +191,9 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->m,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ctx->m,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
@@ -241,7 +255,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
     SlepcCheckLapackInfo("gesdd",info);
   }
-  for (i=l;i<PetscMin(ds->n,ds->m);i++) wr[i] = d[i];
+  for (i=l;i<PetscMin(ds->n,ctx->m);i++) wr[i] = d[i];
 
   /* create diagonal matrix as a result */
   if (ds->compact) {
@@ -306,20 +320,23 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
 PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
+  DS_SVD *ctx = (DS_SVD*)ds->data;
+
   PetscFunctionBegin;
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   switch (t) {
     case DS_MAT_A:
     case DS_MAT_T:
       *rows = ds->n;
-      *cols = ds->m;
+      *cols = ctx->m;
       break;
     case DS_MAT_U:
       *rows = ds->n;
       *cols = ds->n;
       break;
     case DS_MAT_VT:
-      *rows = ds->m;
-      *cols = ds->m;
+      *rows = ctx->m;
+      *cols = ctx->m;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid t parameter");
@@ -327,16 +344,114 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode DSSVDSetDimensions_SVD(DS ds,PetscInt m)
+{
+  DS_SVD *ctx = (DS_SVD*)ds->data;
+
+  PetscFunctionBegin;
+  DSCheckAlloc(ds,1);
+  if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
+    ctx->m = ds->ld;
+  } else {
+    if (m<1 || m>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
+    ctx->m = m;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSSVDSetDimensions - Sets the number of columns for a DSSVD.
+
+   Logically Collective on ds
+
+   Input Parameters:
++  ds - the direct solver context
+-  m  - the number of columns
+
+   Notes:
+   This call is complementary to DSSetDimensions(), to provide a dimension
+   that is specific to this DS type.
+
+   Level: intermediate
+
+.seealso: DSSVDGetDimensions(), DSSetDimensions()
+@*/
+PetscErrorCode DSSVDSetDimensions(DS ds,PetscInt m)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,m,2);
+  ierr = PetscTryMethod(ds,"DSSVDSetDimensions_C",(DS,PetscInt),(ds,m));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSSVDGetDimensions_SVD(DS ds,PetscInt *m)
+{
+  DS_SVD *ctx = (DS_SVD*)ds->data;
+
+  PetscFunctionBegin;
+  *m = ctx->m;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSSVDGetDimensions - Returns the number of columns for a DSSVD.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  m - the number of columns
+
+   Level: intermediate
+
+.seealso: DSSVDSetDimensions()
+@*/
+PetscErrorCode DSSVDGetDimensions(DS ds,PetscInt *m)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidIntPointer(m,2);
+  ierr = PetscUseMethod(ds,"DSSVDGetDimensions_C",(DS,PetscInt*),(ds,m));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode DSDestroy_SVD(DS ds)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(ds->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSSVDSetDimensions_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSSVDGetDimensions_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
 {
+  DS_SVD         *ctx;
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(ds,&ctx);CHKERRQ(ierr);
+  ds->data = (void*)ctx;
+
   ds->ops->allocate      = DSAllocate_SVD;
   ds->ops->view          = DSView_SVD;
   ds->ops->vectors       = DSVectors_SVD;
   ds->ops->solve[0]      = DSSolve_SVD_DC;
   ds->ops->sort          = DSSort_SVD;
   ds->ops->synchronize   = DSSynchronize_SVD;
+  ds->ops->destroy       = DSDestroy_SVD;
   ds->ops->matgetsize    = DSMatGetSize_SVD;
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSSVDSetDimensions_C",DSSVDSetDimensions_SVD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSSVDGetDimensions_C",DSSVDGetDimensions_SVD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

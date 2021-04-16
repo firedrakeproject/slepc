@@ -310,7 +310,8 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     ierr = BVScaleColumn(svd->V,nv,1.0/lastbeta);CHKERRQ(ierr);
 
     /* compute SVD of general matrix */
-    ierr = DSSetDimensions(svd->ds,nv,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(svd->ds,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
+    ierr = DSSVDSetDimensions(svd->ds,nv);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {

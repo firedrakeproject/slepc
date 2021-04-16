@@ -32,7 +32,7 @@ int main(int argc,char **argv)
   ierr = DSSetType(ds,DSGHIEP);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ierr = DSAllocate(ds,n);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);

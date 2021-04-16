@@ -95,7 +95,7 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   }
   for (i=l;i<n;i++) A[i+i*ld] = wr[perm[i]];
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
-  ierr = DSPermuteColumns_Private(ds,l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
+  ierr = DSPermuteColumns_Private(ds,l,n,n,DS_MAT_Q,perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

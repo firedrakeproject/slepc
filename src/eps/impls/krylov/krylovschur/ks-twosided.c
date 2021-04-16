@@ -165,7 +165,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
 
     /* Make sure both factorizations have the same length */
     nv = PetscMin(nv,nvt);
-    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -229,8 +229,8 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
           }
         }
       } else {
-        ierr = DSGetDimensions(eps->ds,&dsn,NULL,NULL,&dsk,NULL);CHKERRQ(ierr);
-        ierr = DSSetDimensions(eps->ds,dsn,0,k,dsk);CHKERRQ(ierr);
+        ierr = DSGetDimensions(eps->ds,&dsn,NULL,&dsk,NULL);CHKERRQ(ierr);
+        ierr = DSSetDimensions(eps->ds,dsn,k,dsk);CHKERRQ(ierr);
         ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
       ierr = EPSTwoSidedRQUpdate2(eps,M,k+l);CHKERRQ(ierr);

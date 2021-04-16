@@ -51,7 +51,8 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
   ierr = MatDestroy(&Ar);CHKERRQ(ierr);
   ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
-  ierr = DSSetDimensions(svd->ds,M,N,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(svd->ds,M,0,0);CHKERRQ(ierr);
+  ierr = DSSVDSetDimensions(svd->ds,N);CHKERRQ(ierr);
   ierr = MatDenseGetArrayRead(mat,&pmat);CHKERRQ(ierr);
   ierr = DSGetArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
   for (i=0;i<M;i++)

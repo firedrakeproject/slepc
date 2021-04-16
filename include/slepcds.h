@@ -152,8 +152,8 @@ SLEPC_EXTERN PetscErrorCode DSAllocate(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSGetLeadingDimension(DS,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSSetState(DS,DSStateType);
 SLEPC_EXTERN PetscErrorCode DSGetState(DS,DSStateType*);
-SLEPC_EXTERN PetscErrorCode DSSetDimensions(DS,PetscInt,PetscInt,PetscInt,PetscInt);
-SLEPC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSSetDimensions(DS,PetscInt,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSSetBlockSize(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSGetBlockSize(DS,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSGetTruncateSize(DS,PetscInt,PetscInt,PetscInt*);
@@ -193,6 +193,9 @@ SLEPC_EXTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
 
 /* --------- options specific to particular solvers -------- */
+
+SLEPC_EXTERN PetscErrorCode DSSVDSetDimensions(DS,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSSVDGetDimensions(DS,PetscInt*);
 
 SLEPC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);

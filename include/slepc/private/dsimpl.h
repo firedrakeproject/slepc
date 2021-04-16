@@ -51,7 +51,6 @@ struct _p_DS {
   PetscInt       ld;                 /* leading dimension */
   PetscInt       l;                  /* number of locked (inactive) leading columns */
   PetscInt       n;                  /* current dimension */
-  PetscInt       m;                  /* current column dimension (for SVD only) */
   PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
   PetscInt       t;                  /* length of decomposition when it was truncated */
   PetscInt       bs;                 /* block size */
@@ -113,9 +112,10 @@ PETSC_STATIC_INLINE PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m) 
 SLEPC_INTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
 SLEPC_INTERN PetscErrorCode DSSortEigenvalues_Private(DS,PetscScalar*,PetscScalar*,PetscInt*,PetscBool);
 SLEPC_INTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscReal*,PetscInt*);
-SLEPC_INTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
-SLEPC_INTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,DSMatType,PetscInt*);
-SLEPC_INTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
+SLEPC_INTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,PetscInt,DSMatType,PetscInt*);
+SLEPC_INTERN PetscErrorCode DSPermuteColumnsTwo_Private(DS,PetscInt,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
+SLEPC_INTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,PetscInt,DSMatType,PetscInt*);
+SLEPC_INTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
 SLEPC_INTERN PetscErrorCode DSCopyMatrix_Private(DS,DSMatType,DSMatType);
 SLEPC_INTERN PetscErrorCode DSGetTruncateSize_Default(DS,PetscInt,PetscInt,PetscInt*);
 

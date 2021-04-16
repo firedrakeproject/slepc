@@ -148,7 +148,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 
   /* 4. Compute initial Ritz vectors */
   ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,nv,0,0);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
   ierr = BVMatProject(AX,NULL,X,M);CHKERRQ(ierr);
   if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }
@@ -273,7 +273,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       /* compute initial Ritz vectors */
       nv = ctx->bs;
       ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
-      ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
+      ierr = DSSetDimensions(eps->ds,nv,0,0);CHKERRQ(ierr);
       ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
       ierr = BVMatProject(AX,NULL,X,M);CHKERRQ(ierr);
       if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }
@@ -366,7 +366,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     else nv = 2*ctx->bs-ini;
 
     ierr = BVSetActiveColumns(Z,0,nv);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,0,0);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = BVMatProject(Z,A,Z,M);CHKERRQ(ierr);
     if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }

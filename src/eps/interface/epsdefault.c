@@ -63,7 +63,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   Mat            X;
 
   PetscFunctionBegin;
-  ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   ierr = BVMultInPlace(eps->V,X,0,n);CHKERRQ(ierr);

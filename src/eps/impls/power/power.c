@@ -576,7 +576,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   if (power->nonlinear) {
     ierr = PetscObjectCompose((PetscObject)power->snes,"eps",NULL);CHKERRQ(ierr);
   } else {
-    ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,eps->nconv,0,0);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -705,7 +705,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
   }
 
-  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
