@@ -404,7 +404,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
     if (perm[i]<n-1) e[i] = *(ds->rwork+perm[i]);
   }
   if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr); }
-  ierr = DSPermuteColumns_Private(ds,ds->l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
+  ierr = DSPermuteColumns_Private(ds,ds->l,n,n,DS_MAT_Q,perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

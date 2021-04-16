@@ -113,14 +113,14 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
 {
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
-  PetscInt       n,l,i,j,k,p,*perm,told,ld=ds->ld;
-  PetscScalar    *A,*X,rtmp;
+  PetscInt       n,l,i,*perm,told,ld=ds->ld;
+  PetscScalar    *A;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
   n = ds->n;
   l = ds->l;
-  A  = ds->mat[DS_MAT_A];
+  A = ds->mat[DS_MAT_A];
   perm = ds->perm;
   for (i=0;i<ctx->neig;i++) perm[i] = i;
   told = ds->t;
@@ -133,20 +133,7 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   ds->t = told;  /* restore value of t */
   for (i=l;i<n;i++) A[i+i*ld] = wr[perm[i]];
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
-  /* cannot use DSPermuteColumns_Private() since not all columns are filled */
-  X  = ds->mat[DS_MAT_X];
-  for (i=0;i<ctx->neig;i++) {
-    p = perm[i];
-    if (p != i) {
-      j = i + 1;
-      while (perm[j] != i) j++;
-      perm[j] = p; perm[i] = i;
-      /* swap columns i and j */
-      for (k=0;k<n;k++) {
-        rtmp  = X[k+p*ld]; X[k+p*ld] = X[k+i*ld]; X[k+i*ld] = rtmp;
-      }
-    }
-  }
+  ierr = DSPermuteColumns_Private(ds,0,ctx->neig,n,DS_MAT_X,perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

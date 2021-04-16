@@ -72,13 +72,13 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
 {
   PetscErrorCode ierr;
   DS_PEP         *ctx = (DS_PEP*)ds->data;
-  PetscInt       n,i,j,k,p,*perm,told,ld;
-  PetscScalar    *A,*X,*Y,rtmp,rtmp2;
+  PetscInt       n,i,*perm,told;
+  PetscScalar    *A;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
   n = ds->n*ctx->d;
-  A  = ds->mat[DS_MAT_A];
+  A = ds->mat[DS_MAT_A];
   perm = ds->perm;
   for (i=0;i<n;i++) perm[i] = i;
   told = ds->t;
@@ -93,23 +93,7 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   for (i=0;i<n;i++) wr[i] = A[i];
   for (i=0;i<n;i++) A[i]  = wi[perm[i]];
   for (i=0;i<n;i++) wi[i] = A[i];
-  /* cannot use DSPermuteColumns_Private() since matrix is not square */
-  ld = ds->ld;
-  X  = ds->mat[DS_MAT_X];
-  Y  = ds->mat[DS_MAT_Y];
-  for (i=0;i<n;i++) {
-    p = perm[i];
-    if (p != i) {
-      j = i + 1;
-      while (perm[j] != i) j++;
-      perm[j] = p; perm[i] = i;
-      /* swap columns i and j */
-      for (k=0;k<ds->n;k++) {
-        rtmp  = X[k+p*ld]; X[k+p*ld] = X[k+i*ld]; X[k+i*ld] = rtmp;
-        rtmp2 = Y[k+p*ld]; Y[k+p*ld] = Y[k+i*ld]; Y[k+i*ld] = rtmp2;
-      }
-    }
-  }
+  ierr = DSPermuteColumnsTwo_Private(ds,0,n,ds->n,DS_MAT_X,DS_MAT_Y,perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

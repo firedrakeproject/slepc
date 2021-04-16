@@ -158,7 +158,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
     ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   }
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
-  ierr = DSPermuteBoth_Private(ds,l,n,DS_MAT_U,DS_MAT_VT,perm);CHKERRQ(ierr);
+  ierr = DSPermuteBoth_Private(ds,l,n,ds->n,ds->m,DS_MAT_U,DS_MAT_VT,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   if (!ds->compact) {
     for (i=l;i<n;i++) A[i+i*ld] = wr[i];

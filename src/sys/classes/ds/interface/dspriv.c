@@ -269,7 +269,10 @@ PetscErrorCode DSCopyMatrix_Private(DS ds,DSMatType dst,DSMatType src)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSPermuteColumns_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,PetscInt *perm)
+/*
+  Permute comumns [istart..iend-1] of [mat] according to perm. Columns have length n
+ */
+PetscErrorCode DSPermuteColumns_Private(DS ds,PetscInt istart,PetscInt iend,PetscInt n,DSMatType mat,PetscInt *perm)
 {
   PetscInt    i,j,k,p,ld;
   PetscScalar *Q,rtmp;
@@ -277,7 +280,7 @@ PetscErrorCode DSPermuteColumns_Private(DS ds,PetscInt l,PetscInt n,DSMatType ma
   PetscFunctionBegin;
   ld = ds->ld;
   Q  = ds->mat[mat];
-  for (i=l;i<n;i++) {
+  for (i=istart;i<iend;i++) {
     p = perm[i];
     if (p != i) {
       j = i + 1;
@@ -292,16 +295,46 @@ PetscErrorCode DSPermuteColumns_Private(DS ds,PetscInt l,PetscInt n,DSMatType ma
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,PetscInt *perm)
+/*
+  The same as DSPermuteColumns_Private but for two matrices [mat1] and [mat2]
+ */
+PetscErrorCode DSPermuteColumnsTwo_Private(DS ds,PetscInt istart,PetscInt iend,PetscInt n,DSMatType mat1,DSMatType mat2,PetscInt *perm)
 {
-  PetscInt    i,j,m=ds->m,k,p,ld;
+  PetscInt    i,j,k,p,ld;
+  PetscScalar *Q,*Z,rtmp,rtmp2;
+
+  PetscFunctionBegin;
+  ld = ds->ld;
+  Q  = ds->mat[mat1];
+  Z  = ds->mat[mat2];
+  for (i=istart;i<iend;i++) {
+    p = perm[i];
+    if (p != i) {
+      j = i + 1;
+      while (perm[j] != i) j++;
+      perm[j] = p; perm[i] = i;
+      /* swap columns i and j */
+      for (k=0;k<n;k++) {
+        rtmp  = Q[k+p*ld]; Q[k+p*ld] = Q[k+i*ld]; Q[k+i*ld] = rtmp;
+        rtmp2 = Z[k+p*ld]; Z[k+p*ld] = Z[k+i*ld]; Z[k+i*ld] = rtmp2;
+      }
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+/*
+  Permute rows [istart..iend-1] of [mat] according to perm. Rows have length m
+ */
+PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt istart,PetscInt iend,PetscInt m,DSMatType mat,PetscInt *perm)
+{
+  PetscInt    i,j,k,p,ld;
   PetscScalar *Q,rtmp;
 
   PetscFunctionBegin;
-  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
   ld = ds->ld;
   Q  = ds->mat[mat];
-  for (i=l;i<n;i++) {
+  for (i=istart;i<iend;i++) {
     p = perm[i];
     if (p != i) {
       j = i + 1;
@@ -316,17 +349,20 @@ PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,P
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,DSMatType mat2,PetscInt *perm)
+/*
+  Permute columns [istart..iend-1] of [mat1] and rows of [mat2] according to perm.
+  Columns have length n, rows have length m
+ */
+PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt istart,PetscInt iend,PetscInt n,PetscInt m,DSMatType mat1,DSMatType mat2,PetscInt *perm)
 {
-  PetscInt    i,j,m=ds->m,k,p,ld;
+  PetscInt    i,j,k,p,ld;
   PetscScalar *U,*VT,rtmp;
 
   PetscFunctionBegin;
-  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
   ld = ds->ld;
   U  = ds->mat[mat1];
   VT = ds->mat[mat2];
-  for (i=l;i<n;i++) {
+  for (i=istart;i<iend;i++) {
     p = perm[i];
     if (p != i) {
       j = i + 1;
