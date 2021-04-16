@@ -19,7 +19,7 @@ int main(int argc,char **argv)
   SlepcSC        sc;
   PetscReal      *T,*D,sigma,rnorm,aux;
   PetscScalar    *X,*w;
-  PetscInt       i,j,n=10,m,l=0,k=0,ld;
+  PetscInt       i,j,n=10,l=0,k=0,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
 
@@ -30,7 +30,6 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Wrong value of dimensions");
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  m = n;
 
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
@@ -38,7 +37,8 @@ int main(int argc,char **argv)
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,m,l,k);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,l,k);CHKERRQ(ierr);
+  ierr = DSGSVDSetDimensions(ds,n,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = DSSetCompact(ds,PETSC_TRUE);CHKERRQ(ierr);
 
   /* Set up viewer */
@@ -87,6 +87,7 @@ int main(int argc,char **argv)
   sc->mapobj        = NULL;
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSynchronize(ds,w,NULL);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);

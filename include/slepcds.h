@@ -197,6 +197,8 @@ SLEPC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscRea
 
 SLEPC_EXTERN PetscErrorCode DSSVDSetDimensions(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSSVDGetDimensions(DS,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSGSVDSetDimensions(DS,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSGSVDGetDimensions(DS,PetscInt*,PetscInt*);
 
 SLEPC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);
