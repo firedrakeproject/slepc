@@ -64,7 +64,7 @@ static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
   n = kV-lV;
-  ierr = DSSetDimensions(d->eps->ds,n,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(d->eps->ds,n,0,0);CHKERRQ(ierr);
   ierr = DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,lV,lV,n,n,PETSC_FALSE);CHKERRQ(ierr);
   if (d->G) {
     ierr = DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,lV,lV,n,n,PETSC_FALSE);CHKERRQ(ierr);
@@ -201,7 +201,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,B
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM);CHKERRQ(ierr);
   ierr = MatZeroEntries(auxM);CHKERRQ(ierr);
-  ierr = DSGetDimensions(d->eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(d->eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
   if (k-l!=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   ierr = DSCopyMat(d->eps->ds,mat,0,0,auxM,l,l,n,d->V_tra_e,PETSC_TRUE);CHKERRQ(ierr);
   ierr = BVMultInPlace(bv,auxM,l,l+d->V_tra_e);CHKERRQ(ierr);
@@ -422,7 +422,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   ierr = BVSetActiveColumns(d->eps->V,0,d->eps->nconv);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)d->eps->ds,DSHEP,&symm);CHKERRQ(ierr);
   if (symm) PetscFunctionReturn(0);
-  ierr = DSSetDimensions(d->eps->ds,d->eps->nconv,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(d->eps->ds,d->eps->nconv,0,0);CHKERRQ(ierr);
   ierr = DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE);CHKERRQ(ierr);
   if (d->G) {
     ierr = DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE);CHKERRQ(ierr);

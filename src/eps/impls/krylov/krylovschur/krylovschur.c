@@ -41,7 +41,7 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(eps->ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,&l,NULL,NULL);CHKERRQ(ierr);
   for (i=l;i<n;i++) {
     re = eps->eigr[i];
     im = eps->eigi[i];
@@ -304,7 +304,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     }
     ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -355,14 +355,14 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       } else {
         /* Undo translation of Krylov decomposition */
         if (harmonic) {
-          ierr = DSSetDimensions(eps->ds,nv,0,k,l);CHKERRQ(ierr);
+          ierr = DSSetDimensions(eps->ds,nv,k,l);CHKERRQ(ierr);
           ierr = DSTranslateHarmonic(eps->ds,0.0,beta,PETSC_TRUE,g,&gamma);CHKERRQ(ierr);
           /* gamma u^ = u - U*g~ */
           ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
           ierr = BVMultColumn(eps->V,-1.0,1.0,nv,g);CHKERRQ(ierr);
           ierr = BVScaleColumn(eps->V,nv,1.0/gamma);CHKERRQ(ierr);
           ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
-          ierr = DSSetDimensions(eps->ds,nv,0,k,nv);CHKERRQ(ierr);
+          ierr = DSSetDimensions(eps->ds,nv,k,nv);CHKERRQ(ierr);
         }
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);

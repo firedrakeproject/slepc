@@ -163,7 +163,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
-    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,0);CHKERRQ(ierr);
 
     /* Find group in previously computed eigenvalues */
     ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);

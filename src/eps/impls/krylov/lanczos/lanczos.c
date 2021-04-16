@@ -547,7 +547,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     ierr = EPSBasicLanczos(eps,d,e,nconv,&n,&breakdown,anorm);CHKERRQ(ierr);
     beta = e[n-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&d);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,n,0,nconv,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,n,nconv,0);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,nconv,n);CHKERRQ(ierr);
 

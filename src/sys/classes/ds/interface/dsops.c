@@ -113,32 +113,31 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
    Input Parameters:
 +  ds - the direct solver context
 .  n  - the new size
-.  m  - the new column size (only for DSSVD)
 .  l  - number of locked (inactive) leading columns
 -  k  - intermediate dimension (e.g., position of arrow)
 
    Notes:
    The internal arrays are not reallocated.
 
-   The value m is not used except in the case of DSSVD, pass 0 otherwise.
+   Some DS types have additional dimensions, e.g. the number of columns
+   in DSSVD. For these, you should call a specific interface function.
 
    Level: intermediate
 
-.seealso: DSGetDimensions(), DSAllocate()
+.seealso: DSGetDimensions(), DSAllocate(), DSSVDSetDimensions()
 @*/
-PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k)
+PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
 {
   PetscErrorCode ierr;
-  PetscInt       on,om,ol,ok;
+  PetscInt       on,ol,ok;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
-  PetscValidLogicalCollectiveInt(ds,m,3);
-  PetscValidLogicalCollectiveInt(ds,l,4);
-  PetscValidLogicalCollectiveInt(ds,k,5);
-  on = ds->n; om = ds->m; ol = ds->l; ok = ds->k;
+  PetscValidLogicalCollectiveInt(ds,l,3);
+  PetscValidLogicalCollectiveInt(ds,k,4);
+  on = ds->n; ol = ds->l; ok = ds->k;
   if (n==PETSC_DECIDE || n==PETSC_DEFAULT) {
     ds->n = ds->ld;
   } else {
@@ -147,14 +146,6 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
     ds->n = n;
   }
   ds->t = ds->n;   /* truncated length equal to the new dimension */
-  if (m) {
-    if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
-      ds->m = ds->ld;
-    } else {
-      if (m<0 || m>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 0 and ld");
-      ds->m = m;
-    }
-  }
   if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
     ds->l = 0;
   } else {
@@ -167,8 +158,8 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
     if (k<0 || k>ds->n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
     ds->k = k;
   }
-  if (on!=ds->n || om!=ds->m || ol!=ds->l || ok!=ds->k) {
-    ierr = PetscInfo4(ds,"New dimensions are: n=%D, m=%D, l=%D, k=%D\n",ds->n,ds->m,ds->l,ds->k);CHKERRQ(ierr);
+  if (on!=ds->n || ol!=ds->l || ok!=ds->k) {
+    ierr = PetscInfo3(ds,"New dimensions are: n=%D, l=%D, k=%D\n",ds->n,ds->l,ds->k);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -183,7 +174,6 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
 
    Output Parameter:
 +  n  - the current size
-.  m  - the current column size (only for DSSVD)
 .  l  - number of locked (inactive) leading columns
 .  k  - intermediate dimension (e.g., position of arrow)
 -  t  - truncated length
@@ -192,17 +182,19 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
    The t parameter makes sense only if DSTruncate() has been called.
    Otherwise its value equals n.
 
+   Some DS types have additional dimensions, e.g. the number of columns
+   in DSSVD. For these, you should call a specific interface function.
+
    Level: intermediate
 
-.seealso: DSSetDimensions(), DSTruncate()
+.seealso: DSSetDimensions(), DSTruncate(), DSSVDGetDimensions()
 @*/
-PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *m,PetscInt *l,PetscInt *k,PetscInt *t)
+PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *l,PetscInt *k,PetscInt *t)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   if (n) *n = ds->n;
-  if (m) *m = ds->m;
   if (l) *l = ds->l;
   if (k) *k = ds->k;
   if (t) *t = ds->t;

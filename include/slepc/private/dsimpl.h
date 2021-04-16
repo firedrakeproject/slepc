@@ -51,7 +51,6 @@ struct _p_DS {
   PetscInt       ld;                 /* leading dimension */
   PetscInt       l;                  /* number of locked (inactive) leading columns */
   PetscInt       n;                  /* current dimension */
-  PetscInt       m;                  /* current column dimension (for SVD only) */
   PetscInt       k;                  /* intermediate dimension (e.g. position of arrow) */
   PetscInt       t;                  /* length of decomposition when it was truncated */
   PetscInt       bs;                 /* block size */

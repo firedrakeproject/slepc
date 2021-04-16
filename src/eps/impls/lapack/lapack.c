@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->ds,eps->ncv,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(eps->ds,eps->ncv,0,0);CHKERRQ(ierr);
 
   if (denseok) {
     ierr = STGetShift(eps->st,&shift);CHKERRQ(ierr);

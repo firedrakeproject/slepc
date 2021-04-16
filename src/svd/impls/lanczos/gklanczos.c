@@ -206,7 +206,8 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
     /* compute SVD of bidiagonal matrix */
-    ierr = DSSetDimensions(svd->ds,nv,nv,svd->nconv,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(svd->ds,nv,svd->nconv,0);CHKERRQ(ierr);
+    ierr = DSSVDSetDimensions(svd->ds,nv);CHKERRQ(ierr);
     ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);

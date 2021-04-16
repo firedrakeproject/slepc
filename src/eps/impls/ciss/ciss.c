@@ -1091,7 +1091,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     eps->nconv = 0;
     if (nv == 0) eps->reason = EPS_CONVERGED_TOL;
     else {
-      ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
+      ierr = DSSetDimensions(eps->ds,nv,0,0);CHKERRQ(ierr);
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
@@ -1235,7 +1235,7 @@ PetscErrorCode EPSComputeVectors_CISS(EPS eps)
     }
     PetscFunctionReturn(0);
   }
-  ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,0,n);CHKERRQ(ierr);
 
   /* right eigenvectors */

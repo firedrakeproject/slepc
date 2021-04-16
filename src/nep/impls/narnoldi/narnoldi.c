@@ -103,7 +103,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
 
   /* build projected matrices for initial space */
-  ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
   ierr = NEPDeflationProjectOperator(extop,Vext,ds,0,n);CHKERRQ(ierr);
 
   ierr = PetscMalloc1(nep->ncv,&eigr);CHKERRQ(ierr);
@@ -113,7 +113,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
     nep->its++;
 
     /* solve projected problem */
-    ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
     ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(ds,eigr,NULL);CHKERRQ(ierr);
     ierr = DSSynchronize(ds,eigr,NULL);CHKERRQ(ierr);
@@ -175,7 +175,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
         }
 
         /* update projected matrices */
-        ierr = DSSetDimensions(ds,n+1,0,0,0);CHKERRQ(ierr);
+        ierr = DSSetDimensions(ds,n+1,0,0);CHKERRQ(ierr);
         ierr = NEPDeflationProjectOperator(extop,Vext,ds,n,n+1);CHKERRQ(ierr);
         n++;
       } else {
@@ -189,7 +189,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
         ierr = VecScale(f,1.0/nrm);CHKERRQ(ierr);
         ierr = BVRestoreColumn(Vext,0,&f);CHKERRQ(ierr);
         n = 1;
-        ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+        ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
         ierr = NEPDeflationProjectOperator(extop,Vext,ds,n-1,n);CHKERRQ(ierr);
         skip = PETSC_FALSE;
       }
@@ -208,7 +208,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   ierr = DSRestoreArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
   ierr = MatDenseRestoreArrayRead(H,&Hp);CHKERRQ(ierr);
   ierr = MatDestroy(&H);CHKERRQ(ierr);
-  ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,nep->nconv);CHKERRQ(ierr);
+  ierr = DSSetDimensions(nep->ds,nep->nconv,0,nep->nconv);CHKERRQ(ierr);
   ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
   ierr = NEPDeflationReset(extop);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);

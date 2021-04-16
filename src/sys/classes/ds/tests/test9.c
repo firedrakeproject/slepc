@@ -24,7 +24,7 @@ PetscErrorCode ComputeNorm(DS ds,DSMatType mat,PetscInt j,PetscReal *onrm)
 
   PetscFunctionBeginUser;
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&X);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     aux = PetscAbsScalar(X[i+j*ld]);
@@ -58,7 +58,7 @@ int main(int argc,char **argv)
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);

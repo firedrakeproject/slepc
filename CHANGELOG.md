@@ -2,6 +2,11 @@
 
 ## [unreleased]
 
+### Changed
+
+- `DSSetDimensions()` now has one argument less. Use `DSSVDSetDimensions()` to specify
+  the number of columns in `DSSVD`.
+
 ## [3.15] - 2021-03-31
 
 ### Added

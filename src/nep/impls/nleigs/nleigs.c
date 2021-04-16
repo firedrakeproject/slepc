@@ -1213,7 +1213,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       betak = K[(nv-1)*ldds+nv];
       ierr = DSRestoreArray(nep->ds,DS_MAT_A,&K);CHKERRQ(ierr);
     }
-    ierr = DSSetDimensions(nep->ds,nv,0,nep->nconv,nep->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(nep->ds,nv,nep->nconv,nep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(nep->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -1237,8 +1237,8 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       ierr = DSGetTruncateSize(nep->ds,k,nv,&l);CHKERRQ(ierr);
       if (!breakdown) {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSGetDimensions(nep->ds,&dsn,NULL,NULL,&dsk,NULL);CHKERRQ(ierr);
-        ierr = DSSetDimensions(nep->ds,dsn,0,k,dsk);CHKERRQ(ierr);
+        ierr = DSGetDimensions(nep->ds,&dsn,NULL,&dsk,NULL);CHKERRQ(ierr);
+        ierr = DSSetDimensions(nep->ds,dsn,k,dsk);CHKERRQ(ierr);
         ierr = DSTruncate(nep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
     }

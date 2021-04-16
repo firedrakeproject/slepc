@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ld = n+2;  /* test leading dimension larger than n */
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,l,k);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,l,k);CHKERRQ(ierr);
   ierr = DSSetCompact(ds,PETSC_TRUE);CHKERRQ(ierr);
 
   /* Set up viewer */

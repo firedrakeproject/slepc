@@ -404,7 +404,7 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   PetscValidLogicalCollectiveEnum(ds,mat,2);
   DSCheckValidMat(ds,mat,2);
 
-  ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,&l,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
@@ -446,7 +446,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
 
-  ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,&l,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
   if (cols > n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");
@@ -563,7 +563,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
   PetscValidRealPointer(s,4);
-  ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,&l,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
   if (cols > n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");

@@ -60,7 +60,7 @@ int main(int argc,char **argv)
   ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
   ierr = DSAllocate(ds,n);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
 
   /* Fill with Grcar matrix */
   ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);

@@ -68,7 +68,7 @@
       call DSSetFromOptions(ds,ierr);CHKERRA(ierr)
       ld = n
       call DSAllocate(ds,ld,ierr);CHKERRA(ierr)
-      call DSSetDimensions(ds,n,zero,zero,zero,ierr);CHKERRA(ierr)
+      call DSSetDimensions(ds,n,zero,zero,ierr);CHKERRA(ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Fill with Grcar matrix

@@ -37,7 +37,7 @@ static PetscErrorCode DSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deri
   if (ctx->computematrix) {
     ierr = (*ctx->computematrix)(ds,lambda,deriv,mat,ctx->computematrixctx);CHKERRQ(ierr);
   } else {
-    ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(ld*n,&k);CHKERRQ(ierr);
     ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);

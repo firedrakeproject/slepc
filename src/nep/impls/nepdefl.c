@@ -64,7 +64,7 @@ PetscErrorCode NEPDeflationExtractEigenpair(NEP_EXT_OP extop,PetscInt k,Vec u,Pe
   for (j=0;j<k1;j++)
     for (i=0;i<k1;i++) Ap[j*ldds+i] = extop->H[j*ldh+i];
   ierr = DSRestoreArray(ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,k1,0,0,k1);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,k1,0,k1);CHKERRQ(ierr);
   ierr = DSSolve(ds,eigr,eigi);CHKERRQ(ierr);
   ierr = DSVectors(ds,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(ds,DS_MAT_X,&Z);CHKERRQ(ierr);
@@ -802,7 +802,7 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
   PetscErrorCode    ierr;
 
   PetscFunctionBegin;
-  ierr = DSGetDimensions(ds,&nv,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&nv,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ldds);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);
   ierr = PetscArrayzero(T,ldds*nv);CHKERRQ(ierr);

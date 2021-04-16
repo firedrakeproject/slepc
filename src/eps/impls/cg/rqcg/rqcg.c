@@ -128,7 +128,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
-    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,0);CHKERRQ(ierr);
     for (;kini<nv;kini++) { /* Generate more initial vectors if necessary */
       ierr = BVSetRandomColumn(eps->V,kini);CHKERRQ(ierr);
       ierr = BVOrthonormalizeColumn(eps->V,kini,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);

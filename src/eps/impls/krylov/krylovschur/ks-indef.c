@@ -61,7 +61,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
@@ -76,7 +76,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);
+    ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,&t);CHKERRQ(ierr);
 #if 0
     /* take into account also left residual */
     ierr = BVGetColumn(eps->V,nv,&u);CHKERRQ(ierr);

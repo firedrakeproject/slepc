@@ -253,7 +253,7 @@ cdef class DS(Object):
         CHKERR( DSGetState(self.ds, &val) )
         return val
 
-    def setDimensions(self, n=None, m=None, l=None, k=None):
+    def setDimensions(self, n=None, l=None, k=None):
         """
         Resize the matrices in the DS object.
 
@@ -261,8 +261,6 @@ cdef class DS(Object):
         ----------
         n: int, optional
            The new size.
-        m: int, optional
-           The new column size (only for SVD).
         l: int, optional
            Number of locked (inactive) leading columns.
         k: int, optional
@@ -271,18 +269,14 @@ cdef class DS(Object):
         Notes
         -----
         The internal arrays are not reallocated.
-
-        The value `m` is not used except in the case of DS.SVD.
         """
         cdef PetscInt ival1 = PETSC_DEFAULT
-        cdef PetscInt ival2 = PETSC_DEFAULT
+        cdef PetscInt ival2 = 0
         cdef PetscInt ival3 = 0
-        cdef PetscInt ival4 = 0
         if n is not None: ival1 = asInt(n)
-        if m is not None: ival2 = asInt(m)
-        if l is not None: ival3 = asInt(l)
-        if k is not None: ival4 = asInt(k)
-        CHKERR( DSSetDimensions(self.ds, ival1, ival2, ival3, ival4) )
+        if l is not None: ival2 = asInt(l)
+        if k is not None: ival3 = asInt(k)
+        CHKERR( DSSetDimensions(self.ds, ival1, ival2, ival3) )
 
     def getDimensions(self):
         """
@@ -292,8 +286,6 @@ cdef class DS(Object):
         -------
         n: int
            The new size.
-        m: int
-           The new column size (only for SVD).
         l: int
            Number of locked (inactive) leading columns.
         k: int
@@ -305,9 +297,8 @@ cdef class DS(Object):
         cdef PetscInt ival2 = 0
         cdef PetscInt ival3 = 0
         cdef PetscInt ival4 = 0
-        cdef PetscInt ival5 = 0
-        CHKERR( DSGetDimensions(self.ds, &ival1, &ival2, &ival3, &ival4, &ival5) )
-        return (toInt(ival1), toInt(ival2), toInt(ival3), toInt(ival4), toInt(ival5))
+        CHKERR( DSGetDimensions(self.ds, &ival1, &ival2, &ival3, &ival4) )
+        return (toInt(ival1), toInt(ival2), toInt(ival3), toInt(ival4))
 
     def setMethod(self, meth):
         """

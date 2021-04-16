@@ -257,7 +257,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     ierr = DSGetArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     ierr = PEPQArnoldi(pep,S,ld,pep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
     ierr = DSRestoreArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = DSSetDimensions(pep->ds,nv,0,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
+    ierr = DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(pep->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
