@@ -236,6 +236,9 @@ SLEPC_EXTERN PetscErrorCode SVDLanczosGetOneSide(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
 
+SLEPC_EXTERN PetscErrorCode SVDTRLanczosSetKSP(SVD,KSP);
+SLEPC_EXTERN PetscErrorCode SVDTRLanczosGetKSP(SVD,KSP*);
+
 /*E
     SVDPRIMMEMethod - determines the SVD method selected in the PRIMME library
 
