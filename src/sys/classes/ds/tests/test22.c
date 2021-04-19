@@ -65,6 +65,9 @@ int main(int argc,char **argv)
     T[i+2*ld] = -T[i+ld]*T[i]/D[i]; /* upper diagonal of matrix B */
     D[i+1] = PetscSqrtReal(1.0-T[i+1]*T[i+1]-T[ld+i]*T[ld+i]-T[2*ld+i]*T[2*ld+i]); /* diagonal of matrix B */
   }
+  /* Fill loked eigenvalues */
+  ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);
+  for (i=0;i<l;i++) w[i] = T[i]/D[i];
   ierr = DSRestoreArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
   ierr = DSRestoreArrayReal(ds,DS_MAT_D,&D);CHKERRQ(ierr);
   if (l==0 && k==0) {
@@ -79,7 +82,6 @@ int main(int argc,char **argv)
   }
 
   /* Solve */
-  ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
   sc->comparison    = SlepcCompareLargestReal;
   sc->comparisonctx = NULL;

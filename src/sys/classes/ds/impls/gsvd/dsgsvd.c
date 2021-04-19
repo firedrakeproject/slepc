@@ -7,8 +7,7 @@
    SLEPc is distributed under a 2-clause BSD license (see LICENSE).
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-
-#include <slepc/private/dsimpl.h>
+#include <slepc/private/dsimpl.h>       /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
 typedef struct {
