@@ -640,7 +640,7 @@ PetscErrorCode NEPRIIGetDeflationThreshold(NEP nep,PetscReal *deftol)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidBoolPointer(deftol,2);
+  PetscValidRealPointer(deftol,2);
   ierr = PetscUseMethod(nep,"NEPRIIGetDeflationThreshold_C",(NEP,PetscReal*),(nep,deftol));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

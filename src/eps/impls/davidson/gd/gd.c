@@ -278,7 +278,7 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,minv,2);
-  PetscValidLogicalCollectiveInt(eps,plusk,2);
+  PetscValidLogicalCollectiveInt(eps,plusk,3);
   ierr = PetscTryMethod(eps,"EPSGDSetRestart_C",(EPS,PetscInt,PetscInt),(eps,minv,plusk));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

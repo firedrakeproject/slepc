@@ -67,7 +67,7 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
     if (!viewer) {
       ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)*V),&viewer);CHKERRQ(ierr);
     }
-    PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
+    PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,6);
     PetscCheckSameComm(*V,1,viewer,6);
     ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
     if (!isascii) PetscFunctionReturn(0);
@@ -296,7 +296,7 @@ PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
   PetscValidType(v,1);
   if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_CLASSID,2);
   if (w1) PetscValidHeaderSpecific(w1,VEC_CLASSID,3);
-  if (w2) PetscValidHeaderSpecific(w1,VEC_CLASSID,4);
+  if (w2) PetscValidHeaderSpecific(w2,VEC_CLASSID,4);
 
   if (!rctx) {
     ierr = PetscRandomCreate(PetscObjectComm((PetscObject)v),&rand);CHKERRQ(ierr);

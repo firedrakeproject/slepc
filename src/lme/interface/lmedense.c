@@ -347,7 +347,7 @@ PetscErrorCode LMEDenseHessLyapunovChol(LME lme,PetscInt m,PetscScalar *H,PetscI
   PetscValidLogicalCollectiveInt(lme,ldb,7);
   PetscValidPointer(U,8);
   PetscValidLogicalCollectiveInt(lme,ldu,9);
-  if (res) PetscValidLogicalCollectiveInt(lme,*res,10);
+  if (res) PetscValidLogicalCollectiveReal(lme,*res,10);
 
 #if defined(SLEPC_HAVE_SLICOT)
   ierr = HessLyapunovChol_SLICOT(m,H,ldh,k,B,ldb,U,ldu,res);CHKERRQ(ierr);

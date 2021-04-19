@@ -472,7 +472,7 @@ PetscErrorCode MatNormEstimate(Mat A,Vec vrn,Vec w,PetscReal *nrm)
   PetscValidType(A,1);
   if (vrn) PetscValidHeaderSpecific(vrn,VEC_CLASSID,2);
   if (w) PetscValidHeaderSpecific(w,VEC_CLASSID,3);
-  PetscValidScalarPointer(nrm,4);
+  PetscValidRealPointer(nrm,4);
 
   if (!vrn) {
     ierr = MatCreateVecs(A,&vv,NULL);CHKERRQ(ierr);
