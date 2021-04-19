@@ -80,6 +80,7 @@ variables:
       if [ ! -z ${CHECKSOURCE+x} ]; then
         make checkbadSource SHELL=bash;
         make -f gmakefile check_output SHELL=bash;
+        make lint_slepc LINTER_OPTIONS="--clang_lib=`llvm-config --libdir`/libclang.so.11"
       fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
