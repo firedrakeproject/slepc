@@ -73,5 +73,3 @@ GSYMS
 GTAGS
 CMakeLists.txt
 docs/manual/slepc.pdf
-include/slepc_ast_precompile.h.pch
-slepcLintPatches
