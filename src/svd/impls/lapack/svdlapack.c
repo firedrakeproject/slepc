@@ -17,7 +17,7 @@
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N,P;
+  PetscInt       M,N,P=0;
 
   PetscFunctionBegin;
   ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
@@ -31,8 +31,8 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
   ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
-  ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
-  ierr = DSAllocate(svd->ds,PetscMax(M,N));CHKERRQ(ierr);
+  ierr = DSSetType(svd->ds,svd->isgeneralized?DSGSVD:DSSVD);CHKERRQ(ierr);
+  ierr = DSAllocate(svd->ds,PetscMax(N,PetscMax(M,P)));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -106,21 +106,12 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
 
 PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
 {
-  PetscErrorCode ierr;
-  PetscInt       m,n,p,i,j,mlocal,plocal,ld,lowx,lowu,lowv,highx;
-  PetscBLASInt   m_,n_,p_,q_,r_,k,l,lda_,ldb_,ldu_,ldv_,ldq_,lwork,*iwork,info;
-  Mat            Ar,A,Br,B;
-  Vec            uv,x;
-  PetscScalar    *pA,*pB,*U,*V,*Q,*px,*puv,*work,sone=1.0,smone=-1.0;
-  PetscReal      *alpha,*beta;
-#if defined (PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
-#endif
-#if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
-  PetscScalar    a,dummy;
-  PetscReal      rdummy;
-  PetscBLASInt   idummy;
-#endif
+  PetscErrorCode    ierr;
+  PetscInt          nsv,m,n,p,i,j,mlocal,plocal,ld,lowx,lowu,lowv,highx;
+  Mat               Ar,A,Br,B;
+  Vec               uv,x;
+  PetscScalar       *Ads,*Bds,*U,*V,*X,*px,*puv,*w;
+  const PetscScalar *pA,*pB;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
@@ -134,96 +125,60 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   ierr = MatGetLocalSize(svd->OP,&mlocal,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->OPb,&plocal,NULL);CHKERRQ(ierr);
   ierr = MatGetSize(B,&p,NULL);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(p,&p_);CHKERRQ(ierr);
-  lda_ = m_; ldb_ = p_;
-  ldu_ = m_; ldv_ = p_; ldq_ = n_;
-
-  ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(B,&pB);CHKERRQ(ierr);
-
-#if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
-
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  /* workspace query and memory allocation */
-  lwork = -1;
-#if !defined (PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKggsvd3",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,&dummy,&lda_,&dummy,&ldb_,&rdummy,&rdummy,&dummy,&ldu_,&dummy,&ldv_,&dummy,&ldq_,&a,&lwork,&idummy,&info));
-  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
-#else
-  PetscStackCallBLAS("LAPACKggsvd3",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,&dummy,&lda_,&dummy,&ldb_,&rdummy,&rdummy,&dummy,&ldu_,&dummy,&ldv_,&dummy,&ldq_,&a,&lwork,&rdummy,&idummy,&info));
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
-#endif
-  ierr = PetscMalloc7(m*m,&U,p*p,&V,n*n,&Q,n,&alpha,n,&beta,lwork,&work,n,&iwork);CHKERRQ(ierr);
-
-#if !defined (PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKggsvd3",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,&lwork,iwork,&info));
-#else
-  ierr = PetscMalloc1(2*n,&rwork);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKggsvd3",LAPACKggsvd3_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,&lwork,rwork,iwork,&info));
-#endif
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  SlepcCheckLapackInfo("ggsvd3",info);
-
-#else  // defined(SLEPC_MISSING_LAPACK_GGSVD3)
-
-  lwork = PetscMax(PetscMax(3*n,m),p)+n;
-  ierr = PetscMalloc7(m*m,&U,p*p,&V,n*n,&Q,n,&alpha,n,&beta,lwork,&work,n,&iwork);CHKERRQ(ierr);
-
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-#if !defined (PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKggsvd",LAPACKggsvd_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,iwork,&info));
-#else
-  ierr = PetscMalloc1(2*n,&rwork);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKggsvd",LAPACKggsvd_("U","V","Q",&m_,&n_,&p_,&k,&l,pA,&lda_,pB,&ldb_,alpha,beta,U,&ldu_,V,&ldv_,Q,&ldq_,work,rwork,iwork,&info));
-#endif
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  SlepcCheckLapackInfo("ggsvd",info);
-
-#endif
-
-  if (k+l<n) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case k+l<n not supported yet");
-
-  /* X = Q*inv(R) */
-  q_ = PetscMin(m_,n_);
-  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n_,&q_,&sone,pA,&lda_,Q,&ldq_));
-  if (m<n) {
-    r_ = n_-m_;
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&r_,&m_,&sone,Q,&ldq_,pA,&lda_,&smone,Q+m_*ldq_,&ldq_));
-    PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n_,&r_,&sone,pB+m_*ldb_,&ldb_,Q+m_*ldq_,&ldq_));
+  ierr = DSSetDimensions(svd->ds,m,0,0);CHKERRQ(ierr);
+  ierr = DSGSVDSetDimensions(svd->ds,n,p);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(B,&pB);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_A,&Ads);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_B,&Bds);CHKERRQ(ierr);
+  for (j=0;j<n;j++) {
+    for (i=0;i<m;i++) Ads[i+j*ld] = pA[i+j*m];
+    for (i=0;i<p;i++) Bds[i+j*ld] = pB[i+j*p];
   }
-  ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(B,&pB);CHKERRQ(ierr);
+  ierr = DSRestoreArray(svd->ds,DS_MAT_B,&Bds);CHKERRQ(ierr);
+  ierr = DSRestoreArray(svd->ds,DS_MAT_A,&Ads);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(B,&pB);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(A,&pA);CHKERRQ(ierr);
+  ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
-  /* copy singular triplets */
-  for (j=k;j<PetscMin(m,k+l);j++) {
-    svd->sigma[j-k] = alpha[j]/beta[j];
-    ierr = BVGetColumn(svd->V,j-k,&x);CHKERRQ(ierr);
+  nsv  = PetscMin(n,PetscMin(p,m));
+  ierr = PetscMalloc1(nsv,&w);CHKERRQ(ierr);
+  ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
+  ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
+  ierr = DSGetDimensions(svd->ds,NULL,NULL,NULL,&nsv);CHKERRQ(ierr);
+
+  /* copy singular vectors */
+  ierr = MatGetOwnershipRange(svd->OP,&lowu,NULL);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(svd->OPb,&lowv,NULL);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_VT,&V);CHKERRQ(ierr);
+  for (j=0;j<nsv;j++) {
+    svd->sigma[j] = PetscRealPart(w[j]);
+    ierr = BVGetColumn(svd->V,j,&x);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(x,&lowx,&highx);CHKERRQ(ierr);
     ierr = VecGetArrayWrite(x,&px);CHKERRQ(ierr);
-    for (i=lowx;i<highx;i++) px[i-lowx] = Q[i+j*n];
+    for (i=lowx;i<highx;i++) px[i-lowx] = X[i+j*ld];
     ierr = VecRestoreArrayWrite(x,&px);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->V,j-k,&x);CHKERRQ(ierr);
-    ierr = BVGetColumn(svd->U,j-k,&uv);CHKERRQ(ierr);
-    ierr = MatGetOwnershipRange(svd->OP,&lowu,NULL);CHKERRQ(ierr);
-    ierr = MatGetOwnershipRange(svd->OPb,&lowv,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->V,j,&x);CHKERRQ(ierr);
+    ierr = BVGetColumn(svd->U,j,&uv);CHKERRQ(ierr);
     ierr = VecGetArrayWrite(uv,&puv);CHKERRQ(ierr);
-    for (i=0;i<mlocal;i++) puv[i] = U[i+lowu+j*m];
-    for (i=0;i<plocal;i++) puv[i+mlocal] = V[i+lowv+(j-k)*p];
+    for (i=0;i<mlocal;i++) puv[i] = U[i+lowu+j*ld];
+    for (i=0;i<plocal;i++) puv[i+mlocal] = V[i+lowv+j*ld];
     ierr = VecRestoreArrayWrite(uv,&puv);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->U,j-k,&uv);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(svd->U,j,&uv);CHKERRQ(ierr);
   }
+  ierr = DSRestoreArray(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = DSRestoreArray(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
+  ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&V);CHKERRQ(ierr);
 
-  svd->nconv = PetscMin(m,k+l)-k;
+  svd->nconv = nsv;
   svd->reason = SVD_CONVERGED_TOL;
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = PetscFree7(U,V,Q,alpha,beta,work,iwork);CHKERRQ(ierr);
-#if defined (PETSC_USE_COMPLEX)
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-#endif
+  ierr = PetscFree(w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

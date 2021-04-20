@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2020, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2021, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
    SLEPc is distributed under a 2-clause BSD license (see LICENSE).
@@ -44,7 +44,7 @@ int main(int argc,char **argv)
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
   ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
- 
+
   k = PetscMin(n,m);
   /* Fill A with a rectangular Toeplitz matrix */
   ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
@@ -107,7 +107,7 @@ int main(int argc,char **argv)
   ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
   rnorm = PetscSqrtReal(rnorm);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st X vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
-  
+
   ierr = PetscFree(w);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();

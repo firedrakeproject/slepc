@@ -10,10 +10,10 @@ Generalized singular value decomposition, (20+6)x10
 
           sigma           relative error
   --------------------- ------------------
-        7.262212          removed
-        5.385531          removed
-        3.167181          removed
-        1.381138          removed
-        0.385404          removed
-        0.040568          removed
+        7.616935          removed
+        6.168214          removed
+        3.973540          removed
+        1.873725          removed
+        0.536721          removed
+        0.045258          removed
 

@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2020, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2021, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
    SLEPc is distributed under a 2-clause BSD license (see LICENSE).
@@ -12,7 +12,7 @@
 
 typedef struct {
   PetscInt m;              /* number of columns */
-  PetscInt p;              /* number of rows */
+  PetscInt p;              /* number of rows of B */
 } DS_GSVD;
 
 PetscErrorCode DSAllocate_GSVD(DS ds,PetscInt ld)
@@ -133,8 +133,8 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscErrorCode ierr;
   DS_GSVD        *ctx = (DS_GSVD*)ds->data;
   PetscInt       t,l,ld=ds->ld,i,*perm,*perm2;
-  PetscReal      *T,*D,*eig;
-  PetscScalar    *A,*B;
+  PetscReal      *T=NULL,*D=NULL,*eig;
+  PetscScalar    *A=NULL,*B=NULL;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
@@ -162,7 +162,7 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   } else {
     for (i=l;i<t;i++) eig[i] = PetscRealPart(A[i*(1+ld)]);
     for (i=l;i<t;i++) A[i*(1+ld)] = eig[perm[i]];
-    for (i=l;i<t;i++) eig[i] =  PetscRealPart(B[i*(1+ld)]);
+    for (i=l;i<t;i++) eig[i] = PetscRealPart(B[i*(1+ld)]);
     for (i=l;i<t;i++) B[i*(1+ld)] = eig[perm[i]];
   }
   ierr = DSPermuteColumns_Private(ds,l,t,ds->n,DS_MAT_U,perm2);CHKERRQ(ierr);
@@ -176,10 +176,10 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
 static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
 {
   PetscErrorCode ierr;
-  PetscReal      *T   = ds->rmat[DS_MAT_T];
-  PetscReal      *D   = ds->rmat[DS_MAT_D];
-  PetscScalar    *A   = ds->mat[DS_MAT_A];
-  PetscScalar    *B   = ds->mat[DS_MAT_B];
+  PetscReal      *T = ds->rmat[DS_MAT_T];
+  PetscReal      *D = ds->rmat[DS_MAT_D];
+  PetscScalar    *A = ds->mat[DS_MAT_A];
+  PetscScalar    *B = ds->mat[DS_MAT_B];
   PetscInt       i,n=ds->n,k=ds->k,ld=ds->ld;
 
   PetscFunctionBegin;
@@ -214,7 +214,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   DS_GSVD        *ctx = (DS_GSVD*)ds->data;
   PetscInt       i,j;
-  PetscBLASInt   n1,m1,info,lc = 0,n = 0,m = 0,p,p1,l,k,q,ld,off,lwork,r;
+  PetscBLASInt   n1,m1,info,lc = 0,n = 0,m = 0,p = 0,p1,l,k,q,ld,off,lwork,r;
   PetscScalar    *A,*B,*X,*U,*VT,sone=1.0,smone=-1.0;
   PetscReal      *alpha,*beta,*T,*D;
 #if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
@@ -248,8 +248,8 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscArrayzero(VT,ld*ld);CHKERRQ(ierr);
   for (i=0;i<lc;i++) VT[i+i*ld] = 1.0;
   if (ds->compact) ierr = DSSwitchFormat_GSVD(ds);CHKERRQ(ierr);
-  T  = ds->rmat[DS_MAT_T];
-  D  = ds->rmat[DS_MAT_D];
+  T = ds->rmat[DS_MAT_T];
+  D = ds->rmat[DS_MAT_D];
 
 #if !defined(SLEPC_MISSING_LAPACK_GGSVD3)
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -299,7 +299,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   if (k+l<n1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"The case rank deficient not supported yet");
   if (ds->compact) {
-    /* R is the identity matrix (excep the sign) */
+    /* R is the identity matrix (except the sign) */
     for (i=lc;i<n;i++) {
       if (PetscRealPart(A[i+i*ld])<0.0) { /* scale column i */
         for (j=lc;j<n;j++) X[j+i*ld] = -X[j+i*ld];
@@ -337,7 +337,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
       B[(j-k)*(1+ld)] = beta[j];
       wr[j-k] = alpha[j]/beta[j];
     }
-    ds->t = PetscMin(m,k+l)-k; /* set numver of computed values */
+    ds->t = PetscMin(m,k+l)-k; /* set number of computed values */
   }
   PetscFunctionReturn(0);
 }
@@ -395,7 +395,7 @@ PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
 PetscErrorCode DSMatGetSize_GSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
-  DS_GSVD        *ctx = (DS_GSVD*)ds->data;
+  DS_GSVD *ctx = (DS_GSVD*)ds->data;
 
   PetscFunctionBegin;
   switch (t) {
@@ -442,7 +442,7 @@ static PetscErrorCode DSGSVDSetDimensions_GSVD(DS ds,PetscInt m,PetscInt p)
   } else {
     if (p<1 || p>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of p. Must be between 1 and ld");
     ctx->p = p;
-  }  
+  }
   PetscFunctionReturn(0);
 }
 

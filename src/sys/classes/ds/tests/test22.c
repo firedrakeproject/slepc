@@ -1,14 +1,14 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2020, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2021, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
    SLEPc is distributed under a 2-clause BSD license (see LICENSE).
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test DSGSVD.\n\n";
+static char help[] = "Test DSGSVD with compact storage.\n\n";
 
 #include <slepcds.h>
 
