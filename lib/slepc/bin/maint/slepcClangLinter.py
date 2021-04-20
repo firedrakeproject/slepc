@@ -35,7 +35,7 @@ P_CXTranslationUnit_VisitImplicitAttributes              = 0x2000
 P_CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles     = 0x4000
 P_CXTranslationUnit_RetainExcludedConditionalBlocks      = 0x8000
 
-slepcmansecs    = ["bv","ds","fn","rg","st","eps","pep","nep","svd","mfn","lme"]
+slepcmansecs    = ["eps","lme","mfn","nep","pep","svd","sys"]
 slepcClassIdMap = {
   "_p_BV *"     : "BV_CLASSID",
   "_p_DS *"     : "DS_CLASSID",
@@ -120,7 +120,7 @@ def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,m
     exceptionSignalQueue = mp.Queue()
     dataQueue = mp.Queue()
     fileProcessorLock = mp.Lock()
-    workerArgs = (clangLib,checkFunctionFilter,slepcDir,petscArch,compilerFlags,baseClangOptions,verbose,printWarnings,exceptionSignalQueue,dataQueue,fileProcessorQueue,fileProcessorLock,)
+    workerArgs = (clangLib,checkFunctionFilter,os.path.join(slepcDir,"include"),slepcClassIdMap,compilerFlags,baseClangOptions,verbose,printWarnings,exceptionSignalQueue,dataQueue,fileProcessorQueue,fileProcessorLock,)
     for i in range(maxWorkers):
       workerName = "[{}]".format(i)
       worker = mp.Process(target=petscClangLinter.queueMain,args=workerArgs,name=workerName,daemon=True)
@@ -142,10 +142,7 @@ def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,m
   allowFileSuffixes = (".c",".cpp",".cxx",".cu")
   warnings,errorsLeft,diffs = [],[],[]
   for mansec in slepcmansecs:
-    if mansec in ['bv','ds','fn','rg','st']:
-      workdir = os.path.join(slepcDir,'src','sys','classes',mansec)
-    else:
-      workdir = os.path.join(slepcDir,'src',mansec)
+    workdir = os.path.join(slepcDir,'src',mansec)
     for root,dirs,files in os.walk(workdir):
       if verbose: print(rootPrintPrefix,"Processing directory",root)
       dirs[:] = [d for d in dirs if d not in excludeDirs]
@@ -161,9 +158,9 @@ def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,m
           if tu.diagnostics and (verbose or printWarnings):
             diags = {" ".join([rootPrintPrefix,d]) for d in map(str,tu.diagnostics)}
             print("\n".join(diags))
-          with BadSource(rootPrintPrefix,printWarningMessages=printWarnings) as badSource:
-            for func,parent in findFunctionCallExpr(tu,checkFunctionMap.keys()):
-              checkFunctionMap[func.spelling](badSource,func,parent)
+          with petscClangLinter.BadSource(rootPrintPrefix,printWarningMessages=printWarnings) as badSource:
+            for func,parent in petscClangLinter.findFunctionCallExpr(tu,petscClangLinter.checkFunctionMap.keys()):
+              petscClangLinter.checkFunctionMap[func.spelling](badSource,func,parent)
             diffs.extend(badSource.coalesceDiffs())
             errorsLeft.append(badSource.getErrorsLeft())
             warnings.append(badSource.getAllWarnings())
