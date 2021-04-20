@@ -59,7 +59,7 @@ main_doc = 'index'
 
 # General information about the project.
 project = u'SLEPc for Python'
-copyright = u'2020, Lisandro Dalcin'
+copyright = u'2021, Lisandro Dalcin'
 author = u'Lisandro Dalcin'
 
 # The version info for the project you're documenting, acts as replacement for
