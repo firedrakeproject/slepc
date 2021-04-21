@@ -993,6 +993,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GHIEP(DS);
 SLEPC_EXTERN PetscErrorCode DSCreate_GNHEP(DS);
 SLEPC_EXTERN PetscErrorCode DSCreate_NHEPTS(DS);
 SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate_GSVD(DS);
 SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS);
 SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS);
 
@@ -1017,6 +1018,7 @@ PetscErrorCode DSRegisterAll(void)
   ierr = DSRegister(DSGNHEP,DSCreate_GNHEP);CHKERRQ(ierr);
   ierr = DSRegister(DSNHEPTS,DSCreate_NHEPTS);CHKERRQ(ierr);
   ierr = DSRegister(DSSVD,DSCreate_SVD);CHKERRQ(ierr);
+  ierr = DSRegister(DSGSVD,DSCreate_GSVD);CHKERRQ(ierr);
   ierr = DSRegister(DSPEP,DSCreate_PEP);CHKERRQ(ierr);
   ierr = DSRegister(DSNEP,DSCreate_NEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);

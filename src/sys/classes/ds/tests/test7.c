@@ -19,7 +19,7 @@ int main(int argc,char **argv)
   SlepcSC        sc;
   PetscReal      sigma,rnorm,aux;
   PetscScalar    *A,*U,*w;
-  PetscInt       i,j,k,n=15,m=10,ld;
+  PetscInt       i,j,k,n=15,m=10,m1,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
 
@@ -38,6 +38,8 @@ int main(int argc,char **argv)
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
   ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
   ierr = DSSVDSetDimensions(ds,m);CHKERRQ(ierr);
+  ierr = DSSVDGetDimensions(ds,&m1);CHKERRQ(ierr);
+  if (m1!=m) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension value");
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);

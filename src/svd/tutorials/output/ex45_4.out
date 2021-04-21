@@ -1,0 +1,28 @@
+
+Generalized singular value decomposition, (20+21)x15
+
+ Number of iterations of the method: 0
+ Solution method: lapack
+
+ Number of requested singular values: 1
+ Stopping condition: tol=1e-08, maxit=1
+ Number of converged approximate singular triplets: 15
+
+          sigma           relative error
+  --------------------- ------------------
+        7.881111          removed
+        7.533093          removed
+        6.981027          removed
+        6.263891          removed
+        5.430669          removed
+        4.535536          removed
+        3.632812          removed
+        2.772383          removed
+        1.996217          removed
+        1.336042          removed
+        0.811802          removed
+        0.430428          removed
+        0.185047          removed
+        0.054558          removed
+        0.005012          removed
+

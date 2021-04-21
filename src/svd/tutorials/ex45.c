@@ -24,7 +24,7 @@ int main(int argc,char **argv)
   SVDType        type;
   Vec            uv,aux[2];
   PetscReal      error,tol,sigma;
-  PetscInt       m=100,n,p=14,i,j,Istart,Iend,nsv,maxit,its,nconv;
+  PetscInt       m=100,n,p=14,i,j,d,Istart,Iend,nsv,maxit,its,nconv;
   PetscBool      flg;
   PetscErrorCode ierr;
 
@@ -61,9 +61,10 @@ int main(int argc,char **argv)
   ierr = MatSetUp(B);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
+  d = PetscMax(0,n-p);
   for (i=Istart;i<Iend;i++) {
     for (j=0;j<=PetscMin(i,n-1);j++) {
-      ierr = MatSetValue(B,i,j,1.0,INSERT_VALUES);CHKERRQ(ierr);
+      ierr = MatSetValue(B,i,j+d,1.0,INSERT_VALUES);CHKERRQ(ierr);
     }
   }
   ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -168,16 +169,21 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      args: -m 20 -n 10 -p 6 -svd_type lapack
-      suffix: 1
+   testset:
+      args: -svd_type lapack
       filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
-
-   test:
-      args: -m 15 -n 20 -p 20 -svd_type lapack
-      suffix: 2
-      filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
-      requires: double
+      test:
+         args: -m 20 -n 10 -p 6
+         suffix: 1
+      test:
+         args: -m 15 -n 20 -p 10 -svd_smallest
+         suffix: 2
+      test:
+         args: -m 15 -n 20 -p 21
+         suffix: 3
+      test:
+         args: -m 20 -n 15 -p 21
+         suffix: 4
 
 TEST*/

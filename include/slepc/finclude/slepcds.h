@@ -29,6 +29,7 @@
 #define DSGNHEP     'gnhep'
 #define DSNHEPTS    'nhepts'
 #define DSSVD       'svd'
+#define DSGSVD      'gsvd'
 #define DSPEP       'pep'
 #define DSNEP       'nep'
 
