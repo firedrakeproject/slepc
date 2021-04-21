@@ -23,16 +23,16 @@ Dependencies
 
 * To work with the in-development version, you need to install Cython_.
 
-.. _Python:   http://www.python.org
-.. _NumPy:    http://www.numpy.org
+.. _Python:   https://www.python.org
+.. _NumPy:    https://www.numpy.org
 .. _SLEPc:    https://slepc.upv.es
-.. _PETSc:    http://www.mcs.anl.gov/petsc/
-.. _petsc4py: http://gitlab.com/petsc/petsc4py
+.. _PETSc:    https://www.mcs.anl.gov/petsc/
+.. _petsc4py: https://gitlab.com/petsc/petsc4py
 .. _Cython:   https://cython.org
 
 Documentation
 -------------
 
-* http://slepc4py.readthedocs.org/, This does not contain the epydoc-generated API reference.
+* https://slepc4py.readthedocs.org/, This does not contain the epydoc-generated API reference.
 
 * https://slepc.upv.es/slepc4py-current/docs/, This is for the last release, not the in-development version.

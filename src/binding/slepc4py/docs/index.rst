@@ -17,7 +17,7 @@ Online Documentation
 .. _User Manual (PDF):  slepc4py.pdf
 .. _API Reference:      apiref/index.html
 
-.. _Sphinx:    http://sphinx.pocoo.org/
+.. _Sphinx:    https://www.sphinx-doc.org/
 .. _Epydoc:    http://epydoc.sourceforge.net/
 
 
