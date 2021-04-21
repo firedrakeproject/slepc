@@ -16,10 +16,12 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   DS             ds;
+  Mat            X;
+  Vec            x0;
   SlepcSC        sc;
   PetscReal      *T,*D,sigma,rnorm,aux;
-  PetscScalar    *X,*w;
-  PetscInt       i,j,n=10,l=0,k=0,ld;
+  PetscScalar    *w;
+  PetscInt       i,n=10,l=0,k=0,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
 
@@ -65,7 +67,7 @@ int main(int argc,char **argv)
     T[i+2*ld] = -T[i+ld]*T[i]/D[i]; /* upper diagonal of matrix B */
     D[i+1] = PetscSqrtReal(1.0-T[i+1]*T[i+1]-T[ld+i]*T[ld+i]-T[2*ld+i]*T[2*ld+i]); /* diagonal of matrix B */
   }
-  /* Fill loked eigenvalues */
+  /* Fill locked eigenvalues */
   ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);
   for (i=0;i<l;i++) w[i] = T[i]/D[i];
   ierr = DSRestoreArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
@@ -104,16 +106,33 @@ int main(int argc,char **argv)
 
   /* Singular vectors */
   ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all singular vectors */
-  j = 0;
-  rnorm = 0.0;
-  ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    aux = PetscAbsScalar(X[i+j*ld]);
-    rnorm += aux*aux;
-  }
-  ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  rnorm = PetscSqrtReal(rnorm);
+  ierr = DSGetMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
+  ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
+  ierr = VecDestroy(&x0);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st X vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+
+  ierr = DSGetMat(ds,DS_MAT_U,&X);CHKERRQ(ierr);
+  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
+  ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
+  ierr = VecDestroy(&x0);CHKERRQ(ierr);
+  if (PetscAbsScalar(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
+  }
+
+  ierr = DSGetMat(ds,DS_MAT_VT,&X);CHKERRQ(ierr);
+  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
+  ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
+  ierr = VecDestroy(&x0);CHKERRQ(ierr);
+  if (PetscAbsScalar(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
+  }
 
   ierr = PetscFree(w);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);

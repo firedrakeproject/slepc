@@ -1,5 +1,4 @@
 Solve a Dense System of type GSVD - dimension (15+10)x10.
-DS Object: 1 MPI processes
   type: gsvd
   current state: RAW
   dimensions: ld=17, n=15, l=0, k=0

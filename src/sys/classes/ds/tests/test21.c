@@ -17,9 +17,11 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
-  PetscReal      sigma,rnorm,aux;
-  PetscScalar    *A,*B,*X,*w;
-  PetscInt       i,j,k,n=15,m=10,p=10,ld;
+  Mat            X;
+  Vec            x0;
+  PetscReal      sigma,rnorm;
+  PetscScalar    *A,*B,*w;
+  PetscInt       i,j,k,n=15,m=10,p=10,m1,p1,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
 
@@ -38,6 +40,8 @@ int main(int argc,char **argv)
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
   ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
   ierr = DSGSVDSetDimensions(ds,m,p);CHKERRQ(ierr);
+  ierr = DSGSVDGetDimensions(ds,&m1,&p1);CHKERRQ(ierr);
+  if (m1!=m || p1!=p) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension values");
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -97,16 +101,33 @@ int main(int argc,char **argv)
 
   /* Singular vectors */
   ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all singular vectors */
-  j = 0;
-  rnorm = 0.0;
-  ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    aux = PetscAbsScalar(X[i+j*ld]);
-    rnorm += aux*aux;
-  }
-  ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  rnorm = PetscSqrtReal(rnorm);
+  ierr = DSGetMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
+  ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
+  ierr = VecDestroy(&x0);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st X vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+
+  ierr = DSGetMat(ds,DS_MAT_U,&X);CHKERRQ(ierr);
+  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
+  ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
+  ierr = VecDestroy(&x0);CHKERRQ(ierr);
+  if (PetscAbsScalar(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
+  }
+
+  ierr = DSGetMat(ds,DS_MAT_VT,&X);CHKERRQ(ierr);
+  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
+  ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
+  ierr = VecDestroy(&x0);CHKERRQ(ierr);
+  if (PetscAbsScalar(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
+  }
 
   ierr = PetscFree(w);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
@@ -116,8 +137,16 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
+      output_file: output/test21_1.out
       requires: !single
+      nsize: {{1 2 3}}
+      filter: grep -v "parallel operation mode" | grep -v "MPI processes"
+      test:
+         suffix: 1
+         args: -ds_parallel redundant
+      test:
+         suffix: 2
+         args: -ds_parallel synchronized
 
 TEST*/
