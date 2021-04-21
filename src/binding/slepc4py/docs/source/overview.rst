@@ -21,10 +21,10 @@ are harder to compute, so SLEPc provides different methodologies. One
 such method is to use a spectral transformation. Cheaper alternatives
 are also available.
 
-.. [1] J. E. Roman, C. Campos, E. Romero, A. Tomas.
-   SLEPc Users Manual. DSIC-II/24/02 - Revision 3.5
+.. [1] J. E. Roman, C. Campos, L. Dalcin, E. Romero, A. Tomas.
+   SLEPc Users Manual. DSIC-II/24/02 - Revision 3.15
    D. Sistemas Informaticos y Computacion, Universitat Politecnica de
-   Valencia. 2014.
+   Valencia. 2021.
 
 .. [2] Vicente Hernandez, Jose E. Roman and Vicente Vidal.
    SLEPc: A Scalable and Flexible Toolkit for the Solution of
@@ -82,11 +82,19 @@ used:
 
 For polynomial eigenvalue problems, the following methods are available:
 
-* Use an eigensolver to solve the generalized eigenvalue problem 
+* Use an eigensolver to solve the generalized eigenvalue problem
   obtained after linearization.
 
 * TOAR and Q-Arnoldi, memory efficient variants of Arnoldi for polynomial
   eigenproblems.
+
+For general nonlinear eigenvalue problems, the following methods can be used:
+
+* Solve a polynomial eigenproblem obtained via polynomial interpolation.
+
+* Rational interpolation and linearization (NLEIGS).
+
+* Newton-type methods such as SLP or RII.
 
 Computation of interior eigenvalues is supported by means of the
 following methodologies:
@@ -148,12 +156,13 @@ auxiliary object.
       problem belongs to a special type, e.g., symmetric or gyroscopic.
 
 :NEP: This component covers the case of general nonlinear eigenproblems,
-      T(lambda)x=0.
+      T(lambda)x=0. The user provides the parameter-dependent matrix T
+      via the split form or by means of callback functions.
 
 :MFN: This component provides the functionality for computing the action
       of a matrix function on a vector. Given a matrix A and a vector b,
       the call MFNSolve(mfn,b,x) computes x=f(A)b, where f is a function
-      such as the exponential. 
+      such as the exponential.
 
 :ST:  The Spectral Transformation is a component that provides
       convenient implementations of common spectral

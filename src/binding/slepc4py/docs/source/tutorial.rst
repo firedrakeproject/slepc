@@ -176,9 +176,9 @@ change the number of requested eigenvalues and the tolerance::
 
 The method used by the solver object can also be set at run time::
 
-    $ python demo/ex1.py -eps_type lanczos
+    $ python demo/ex1.py -eps_type subspace
 
-All the above settings can also be change within the source code by
+All the above settings can also be changed within the source code by
 making use of the appropriate slepc4py method. Since options can be
 set from within the code and the command-line, it is often useful to
 view the particular settings that are currently being used::
@@ -187,7 +187,8 @@ view the particular settings that are currently being used::
 
     EPS Object: 1 MPI processes
       type: krylovschur
-        Krylov-Schur: 50% of basis vectors kept after restart
+        50% of basis vectors kept after restart
+        using the locking variant
       problem type: symmetric eigenvalue problem
       selected portion of the spectrum: largest eigenvalues in magnitude
       number of eigenvalues (nev): 1
@@ -201,6 +202,8 @@ view the particular settings that are currently being used::
       17 columns of global length 30
       orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)
+      block orthogonalization method: GS
+      doing matmult as a single matrix-matrix product
     DS Object: 1 MPI processes
       type: hep
       solving the problem with: Implicit QR method (_steqr)
