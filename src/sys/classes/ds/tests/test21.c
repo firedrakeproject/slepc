@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
   ierr = MatDestroy(&X);CHKERRQ(ierr);
   ierr = VecDestroy(&x0);CHKERRQ(ierr);
-  if (PetscAbsScalar(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
   }
 
@@ -125,7 +125,7 @@ int main(int argc,char **argv)
   ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
   ierr = MatDestroy(&X);CHKERRQ(ierr);
   ierr = VecDestroy(&x0);CHKERRQ(ierr);
-  if (PetscAbsScalar(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
   }
 
