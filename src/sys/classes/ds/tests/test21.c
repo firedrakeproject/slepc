@@ -74,8 +74,8 @@ int main(int argc,char **argv)
   if (verbose) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
+  ierr = DSView(ds,viewer);CHKERRQ(ierr);
 
   /* Solve */
   ierr = PetscMalloc1(m,&w);CHKERRQ(ierr);
