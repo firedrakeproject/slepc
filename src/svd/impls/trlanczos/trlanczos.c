@@ -266,7 +266,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscReal      *alpha,*beta,lastbeta,resnorm;
   PetscScalar    *Q,*swork=NULL,*w;
   PetscInt       i,k,l,nv,ld;
-  Mat            U,VT;
+  Mat            U,V;
   PetscBool      conv;
   BVOrthogType   orthog;
 
@@ -347,9 +347,9 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     else l = PetscMax((nv-svd->nconv-k)/2,0);
 
     /* compute converged singular vectors and restart vectors */
-    ierr = DSGetMat(svd->ds,DS_MAT_VT,&VT);CHKERRQ(ierr);
-    ierr = BVMultInPlaceTranspose(svd->V,VT,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
-    ierr = MatDestroy(&VT);CHKERRQ(ierr);
+    ierr = DSGetMat(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
+    ierr = BVMultInPlace(svd->V,V,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = MatDestroy(&V);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     ierr = BVMultInPlace(svd->U,U,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);

@@ -42,7 +42,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscInt          M,N,n,i,j,k,ld,lowu,lowv,highu,highv;
   Mat               Ar,mat;
   Vec               u,v;
-  PetscScalar       *pU,*pVT,*pu,*pv,*A,*w;
+  PetscScalar       *pU,*pV,*pu,*pv,*A,*w;
   const PetscScalar *pmat;
 
   PetscFunctionBegin;
@@ -70,7 +70,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
 
   /* copy singular vectors */
   ierr = DSGetArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);
-  ierr = DSGetArray(svd->ds,DS_MAT_VT,&pVT);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_V,&pV);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     if (svd->which == SVD_SMALLEST) k = n - i - 1;
     else k = i;
@@ -83,9 +83,9 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
     ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
     if (M>=N) {
       for (j=lowu;j<highu;j++) pu[j-lowu] = pU[i*ld+j];
-      for (j=lowv;j<highv;j++) pv[j-lowv] = PetscConj(pVT[j*ld+i]);
+      for (j=lowv;j<highv;j++) pv[j-lowv] = pV[i*ld+j];
     } else {
-      for (j=lowu;j<highu;j++) pu[j-lowu] = PetscConj(pVT[j*ld+i]);
+      for (j=lowu;j<highu;j++) pu[j-lowu] = pV[i*ld+j];
       for (j=lowv;j<highv;j++) pv[j-lowv] = pU[i*ld+j];
     }
     ierr = VecRestoreArray(u,&pu);CHKERRQ(ierr);
@@ -94,7 +94,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
     ierr = BVRestoreColumn(svd->V,k,&v);CHKERRQ(ierr);
   }
   ierr = DSRestoreArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);
-  ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&pVT);CHKERRQ(ierr);
+  ierr = DSRestoreArray(svd->ds,DS_MAT_V,&pV);CHKERRQ(ierr);
 
   svd->nconv = n;
   svd->reason = SVD_CONVERGED_TOL;
@@ -153,7 +153,7 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   ierr = MatGetOwnershipRange(svd->OPb,&lowv,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   ierr = DSGetArray(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-  ierr = DSGetArray(svd->ds,DS_MAT_VT,&V);CHKERRQ(ierr);
+  ierr = DSGetArray(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
   for (j=0;j<nsv;j++) {
     svd->sigma[j] = PetscRealPart(w[j]);
     ierr = BVGetColumn(svd->V,j,&x);CHKERRQ(ierr);
@@ -171,7 +171,7 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   }
   ierr = DSRestoreArray(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   ierr = DSRestoreArray(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-  ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&V);CHKERRQ(ierr);
+  ierr = DSRestoreArray(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
 
   svd->nconv = nsv;
   svd->reason = SVD_CONVERGED_TOL;

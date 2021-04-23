@@ -33,7 +33,7 @@
       PetscEnum, parameter :: DS_MAT_X         =  8
       PetscEnum, parameter :: DS_MAT_Y         =  9
       PetscEnum, parameter :: DS_MAT_U         = 10
-      PetscEnum, parameter :: DS_MAT_VT        = 11
+      PetscEnum, parameter :: DS_MAT_V         = 11
       PetscEnum, parameter :: DS_MAT_W         = 12
       PetscEnum, parameter :: DS_MAT_E0        = 13
       PetscEnum, parameter :: DS_MAT_E1        = 14

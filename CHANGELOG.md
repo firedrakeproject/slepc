@@ -2,10 +2,16 @@
 
 ## [unreleased]
 
+### Added
+
+- New `DSGSVD` type for the generalized SVD.
+
 ### Changed
 
 - `DSSetDimensions()` now has one argument less. Use `DSSVDSetDimensions()` to specify
-  the number of columns in `DSSVD`.
+  the number of columns in `DSSVD`. And similarly for `DSGSVD`.
+- One of the `DS` matrices has been renamed from `DS_MAT_VT` to `DS_MAT_V` since it is
+  no longer transposed.
 
 ## [3.15] - 2021-03-31
 
@@ -22,7 +28,7 @@
 - New tolerance to check a definite inner product, see `BVSetDefiniteTolerance()`.
 - New function `STSetPreconditionerMat()` to pass the matrix for building the
   preconditioner.
-- New function `BVSetRandomNorma()l` for random initial vectors with normal distribution.
+- New function `BVSetRandomNormal()` for random initial vectors with normal distribution.
 - New function `DSGetTruncateSize()` to be used with `DSTruncate()`.
 
 ### Changed

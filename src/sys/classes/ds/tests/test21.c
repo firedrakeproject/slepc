@@ -119,7 +119,7 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
   }
 
-  ierr = DSGetMat(ds,DS_MAT_VT,&X);CHKERRQ(ierr);
+  ierr = DSGetMat(ds,DS_MAT_V,&X);CHKERRQ(ierr);
   ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
   ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
   ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);

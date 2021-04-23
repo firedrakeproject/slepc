@@ -81,7 +81,7 @@ SLEPC_EXTERN const char *DSStateTypes[];
 .   DS_MAT_X  - right eigenvectors
 .   DS_MAT_Y  - left eigenvectors
 .   DS_MAT_U  - left singular vectors
-.   DS_MAT_VT - right singular vectors
+.   DS_MAT_V  - right singular vectors
 .   DS_MAT_W  - workspace matrix
 -   DS_MAT_Ex - extra matrices (x=0,..,9)
 
@@ -106,7 +106,7 @@ typedef enum { DS_MAT_A,
                DS_MAT_X,
                DS_MAT_Y,
                DS_MAT_U,
-               DS_MAT_VT,
+               DS_MAT_V,
                DS_MAT_W,
                DS_MAT_E0,
                DS_MAT_E1,

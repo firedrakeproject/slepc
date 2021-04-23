@@ -29,7 +29,7 @@ cdef extern from * nogil:
         DS_MAT_X
         DS_MAT_Y
         DS_MAT_U
-        DS_MAT_VT
+        DS_MAT_V
         DS_MAT_W
         DS_NUM_MAT
 

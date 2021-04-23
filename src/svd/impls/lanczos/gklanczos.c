@@ -165,10 +165,10 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
   PetscReal      *alpha,*beta,lastbeta,norm,resnorm;
-  PetscScalar    *swork,*w,*Q,*PT;
+  PetscScalar    *swork,*w,*Q,*P;
   PetscInt       i,k,j,nv,ld;
   Vec            u=0,u_1=0;
-  Mat            U,VT;
+  Mat            U,V;
   PetscBool      conv;
 
   PetscFunctionBegin;
@@ -233,10 +233,11 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* compute restart vector */
-    ierr = DSGetArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (k<nv-svd->nconv) {
-        for (j=svd->nconv;j<nv;j++) swork[j-svd->nconv] = PT[k+svd->nconv+j*ld];
+        ierr = DSGetArray(svd->ds,DS_MAT_V,&P);CHKERRQ(ierr);
+        for (j=svd->nconv;j<nv;j++) swork[j-svd->nconv] = PetscConj(P[j+(k+svd->nconv)*ld]);
+        ierr = DSRestoreArray(svd->ds,DS_MAT_V,&P);CHKERRQ(ierr);
         ierr = BVMultColumn(svd->V,1.0,0.0,nv,swork);CHKERRQ(ierr);
       } else {
         /* all approximations have converged, generate a new initial vector */
@@ -245,12 +246,11 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
         ierr = BVScaleColumn(svd->V,nv,1.0/norm);CHKERRQ(ierr);
       }
     }
-    ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
 
     /* compute converged singular vectors */
-    ierr = DSGetMat(svd->ds,DS_MAT_VT,&VT);CHKERRQ(ierr);
-    ierr = BVMultInPlaceTranspose(svd->V,VT,svd->nconv,svd->nconv+k);CHKERRQ(ierr);
-    ierr = MatDestroy(&VT);CHKERRQ(ierr);
+    ierr = DSGetMat(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
+    ierr = BVMultInPlace(svd->V,V,svd->nconv,svd->nconv+k);CHKERRQ(ierr);
+    ierr = MatDestroy(&V);CHKERRQ(ierr);
     if (!lanczos->oneside) {
       ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
       ierr = BVMultInPlace(svd->U,U,svd->nconv,svd->nconv+k);CHKERRQ(ierr);

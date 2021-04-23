@@ -43,7 +43,7 @@ class DSMatType(object):
     - `X`:  right eigenvectors.
     - `Y`:  left eigenvectors.
     - `U`:  left singular vectors.
-    - `VT`: right singular vectors.
+    - `V`:  right singular vectors.
     - `W`:  workspace matrix.
     """
     A  = DS_MAT_A
@@ -56,7 +56,7 @@ class DSMatType(object):
     X  = DS_MAT_X
     Y  = DS_MAT_Y
     U  = DS_MAT_U
-    VT = DS_MAT_VT
+    V  = DS_MAT_V
     W  = DS_MAT_W
 
 # -----------------------------------------------------------------------------
