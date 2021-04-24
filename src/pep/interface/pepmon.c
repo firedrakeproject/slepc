@@ -214,12 +214,10 @@ PetscErrorCode PEPMonitorFirst(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *
 {
   PetscErrorCode ierr;
   PetscScalar    er,ei;
-  PetscViewer    viewer;
+  PetscViewer    viewer = vf->viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   if (its==1 && ((PetscObject)pep)->prefix) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)pep)->prefix);CHKERRQ(ierr);
@@ -273,12 +271,10 @@ PetscErrorCode PEPMonitorAll(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    er,ei;
-  PetscViewer    viewer;
+  PetscViewer    viewer = vf->viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
@@ -333,13 +329,11 @@ PetscErrorCode PEPMonitorConverged(PEP pep,PetscInt its,PetscInt nconv,PetscScal
   PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    er,ei;
-  PetscViewer    viewer;
+  PetscViewer    viewer = vf->viewer;
   SlepcConvMon   ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   ctx = (SlepcConvMon)vf->data;
   if (its==1 && ((PetscObject)pep)->prefix) {
@@ -423,16 +417,13 @@ PetscErrorCode PEPMonitorConvergedDestroy(PetscViewerAndFormat **vf)
 PetscErrorCode PEPMonitorFirstDrawLG(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer;
-  PetscDrawLG    lg;
+  PetscViewer    viewer = vf->viewer;
+  PetscDrawLG    lg = vf->lg;
   PetscReal      x,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
@@ -509,17 +500,14 @@ PetscErrorCode PEPMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
 PetscErrorCode PEPMonitorAllDrawLG(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer;
-  PetscDrawLG    lg;
+  PetscViewer    viewer = vf->viewer;
+  PetscDrawLG    lg = vf->lg;
   PetscInt       i,n = PetscMin(pep->nev,255);
   PetscReal      *x,*y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
@@ -598,16 +586,13 @@ PetscErrorCode PEPMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
 PetscErrorCode PEPMonitorConvergedDrawLG(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode   ierr;
-  PetscViewer      viewer;
-  PetscDrawLG      lg;
+  PetscViewer      viewer = vf->viewer;
+  PetscDrawLG      lg = vf->lg;
   PetscReal        x,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {

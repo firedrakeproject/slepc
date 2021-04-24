@@ -176,12 +176,10 @@ PetscErrorCode LMEGetMonitorContext(LME lme,void **ctx)
 PetscErrorCode LMEMonitorDefault(LME lme,PetscInt its,PetscReal errest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer;
+  PetscViewer    viewer = vf->viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(vf,4);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,4);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)lme)->tablevel);CHKERRQ(ierr);
@@ -216,16 +214,13 @@ PetscErrorCode LMEMonitorDefault(LME lme,PetscInt its,PetscReal errest,PetscView
 PetscErrorCode LMEMonitorDefaultDrawLG(LME lme,PetscInt its,PetscReal errest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer;
-  PetscDrawLG    lg;
+  PetscViewer    viewer = vf->viewer;
+  PetscDrawLG    lg = vf->lg;
   PetscReal      x,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(vf,4);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,4);
-  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,4);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
