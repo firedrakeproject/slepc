@@ -20,6 +20,14 @@ slepcClassIdMap = {
 
 def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,multiproc=True,maxWorkers=0,mansecs=slepcMansecs,checkFunctionFilter=None,applyPatches=False):
   extraCompilerFlags = [ '-I'+os.path.join(slepcDir,'include'), '-I'+os.path.join(slepcDir,petscArch,'include') ]
+  with open(os.path.join(slepcDir,petscArch,"lib","slepc","conf","slepcvariables"),"r") as sv:
+    line = sv.readline()
+    while line:
+      if line.find("INCLUDE")>-1:
+        for inc in line.split("=",1)[1].split():
+          extraCompilerFlags.append(inc)
+      line = sv.readline()
+
   extraHeaderIncludes = []
   mansecimpls = [m+"impl.h" for m in slepcMansecs]+["slepcimpl.h","vecimplslepc.h"]
   for headerFile in os.listdir(os.path.join(slepcDir,"include","slepc","private")):
