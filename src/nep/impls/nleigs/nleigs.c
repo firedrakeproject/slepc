@@ -1723,7 +1723,7 @@ PetscErrorCode NEPNLEIGSSetRKShifts(NEP nep,PetscInt ns,PetscScalar shifts[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,ns,2);
-  if (ns) PetscValidScalarPointer(nep,shifts);
+  if (ns) PetscValidScalarPointer(shifts,3);
   ierr = PetscTryMethod(nep,"NEPNLEIGSSetRKShifts_C",(NEP,PetscInt,PetscScalar*),(nep,ns,shifts));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1769,8 +1769,8 @@ PetscErrorCode NEPNLEIGSGetRKShifts(NEP nep,PetscInt *ns,PetscScalar *shifts[])
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidIntPointer(nep,ns);
-  PetscValidPointer(nep,shifts);
+  PetscValidIntPointer(ns,2);
+  PetscValidPointer(shifts,3);
   ierr = PetscTryMethod(nep,"NEPNLEIGSGetRKShifts_C",(NEP,PetscInt*,PetscScalar**),(nep,ns,shifts));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -20,7 +20,7 @@ __global__ void clean_offdiagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt l
   x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
 
   if (x<n) {
-    for (j=0;j<n;j++){
+    for (j=0;j<n;j++) {
       if (j != x) d_pa[x+j*ld] = 0.0;
       else d_pa[x+j*ld] = d_pa[x+j*ld]*v;
     }
