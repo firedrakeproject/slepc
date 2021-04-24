@@ -58,15 +58,14 @@ if __name__ == "__main__":
   grouppetsc.add_argument("--SLEPC_DIR",required=False,default=slepcDir,help="if this option is unused defaults to environment variable $SLEPC_DIR",dest="slepcdir")
   grouppetsc.add_argument("--PETSC_DIR",required=False,default=petscDir,help="if this option is unused defaults to environment variable $PETSC_DIR",dest="petscdir")
   grouppetsc.add_argument("--PETSC_ARCH",required=False,default=petscArch,help="if this option is unused defaults to environment variable $PETSC_ARCH",dest="petscarch")
-  parser.add_argument("--verbose",required=False,action="store_true",help="verbose progress printed to screen")
-  parser.add_argument("--show-warnings",required=False,action="store_true",help="show ast matching warnings",dest="warn")
+  parser.add_argument("-v","--verbose",required=False,action="store_true",help="verbose progress printed to screen")
   filterFuncChoices = ", ".join(list(petscClangLinter.checkFunctionMap.keys()))
-  parser.add_argument("--filter-functions",required=False,nargs="+",choices=list(petscClangLinter.checkFunctionMap.keys()),metavar="FUNCTIONNAME",help="filter to display errors only related to list of provided function names, default is all functions. Choose from available function names: "+filterFuncChoices,dest="filterfunc")
+  parser.add_argument("-f","--functions",required=False,nargs="+",choices=list(petscClangLinter.checkFunctionMap.keys()),metavar="FUNCTIONNAME",help="filter to display errors only related to list of provided function names, default is all functions. Choose from available function names: "+filterFuncChoices,dest="funcs")
   mansecChoices = ", ".join(slepcMansecs)
-  parser.add_argument("--filter-mansec",required=False,nargs="+",default=slepcMansecs,choices=slepcMansecs,metavar="MANSEC",help="run only over specified mansecs (defaults to all), choose from: "+mansecChoices,dest="filtermansec")
-  parser.add_argument("--no-multiprocessing",required=False,action="store_false",help="use multiprocessing",dest="multiproc")
-  parser.add_argument("--jobs",required=False,type=int,default=0,nargs="?",help="number of multiprocessing jobs, 0 defaults to number of processors on machine")
-  parser.add_argument("--apply-patches",required=False,action="store_true",help="apply patches automatically instead of saving to file",dest="apply")
+  parser.add_argument("-m","--mansecs",required=False,nargs="+",default=slepcMansecs,choices=slepcMansecs,metavar="MANSEC",help="run only over specified mansecs, choose from: "+mansecChoices,dest="mansecs")
+  parser.add_argument("-s","--no-multiprocessing",required=False,action="store_false",help="run linter in serial mode",dest="multiproc")
+  parser.add_argument("-j","--jobs",required=False,type=int,default=0,nargs="?",help="number of multiprocessing jobs, 0 means number of processors on machine")
+  parser.add_argument("-a","--apply-patches",required=False,action="store_true",help="automatically apply patches that are saved to file",dest="apply")
   args = parser.parse_args()
 
   if args.slepcdir is None:
@@ -79,7 +78,5 @@ if __name__ == "__main__":
   if args.clanglib:
     args.clangdir = None
 
-  if args.verbose:
-    args.warn = True
-  ret = main(args.slepcdir,args.petscdir,args.petscarch,clangDir=args.clangdir,clangLib=args.clanglib,verbose=args.verbose,multiproc=args.multiproc,maxWorkers=args.jobs,mansecs=args.filtermansec,checkFunctionFilter=args.filterfunc,applyPatches=args.apply)
+  ret = main(args.slepcdir,args.petscdir,args.petscarch,clangDir=args.clangdir,clangLib=args.clanglib,verbose=args.verbose,multiproc=args.multiproc,maxWorkers=args.jobs,mansecs=args.mansecs,checkFunctionFilter=args.funcs,applyPatches=args.apply)
   sys.exit(ret)
