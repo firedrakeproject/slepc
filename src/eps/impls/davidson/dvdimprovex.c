@@ -81,7 +81,6 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
   ierr = PetscBLASIntCast(cV,&cV_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(data->size_iXKZ,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(data->ldiXKZ,&ld);CHKERRQ(ierr);
-  PetscValidScalarPointer(data->iXKZ,0);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
@@ -134,7 +133,6 @@ static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscI
   ierr = PetscBLASIntCast(cV,&cV_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(data->size_iXKZ,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(data->ldiXKZ,&ld);CHKERRQ(ierr);
-  PetscValidScalarPointer(data->iXKZ,0);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
