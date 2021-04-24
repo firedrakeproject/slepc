@@ -276,13 +276,13 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscIn
 }
 
 /*MC
-   STSHELL - Creates a new spectral transformation class.
-          This is intended to provide a simple class to use with EPS.
-          You should not use this if you plan to make a complete class.
+   STSHELL - User-defined spectral transformation via callback functions
+   for the application of the operator to a vector and (optionally) the
+   backtransform operation.
 
-  Level: advanced
+   Level: advanced
 
-  Usage:
+   Usage:
 $             extern PetscErrorCode (*apply)(void*,Vec,Vec);
 $             extern PetscErrorCode (*applytrans)(void*,Vec,Vec);
 $             extern PetscErrorCode (*backtr)(void*,PetscScalar*,PetscScalar*);

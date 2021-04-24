@@ -297,7 +297,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
 
 #endif
 
-  if (k+l<n1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"The case rank deficient not supported yet");
+  if (k+l<n1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"The rank deficient case not supported yet");
   if (ds->compact) {
     /* R is the identity matrix (except the sign) */
     for (i=lc;i<n;i++) {
@@ -525,6 +525,47 @@ PetscErrorCode DSDestroy_GSVD(DS ds)
   PetscFunctionReturn(0);
 }
 
+/*MC
+   DSGSVD - Dense Generalized Singular Value Decomposition.
+
+   Level: beginner
+
+   Notes:
+   The problem is expressed as A*X = U*C, B*X = V*S, where A and B are
+   matrices with the same number of columns, m, U and V are orthogonal
+   (unitary), and X is an mxm invertible matrix. The DS object does not
+   expose matrices C and S, instead the singular values sigma, which are
+   the ratios c_i/s_i, are returned in the arguments of DSSolve().
+   Note that the number of columns of the returned X, U, V may be smaller
+   in the case that some c_i or s_i are zero.
+
+   The number of rows of A (and U) is the value n passed with DSSetDimensions().
+   The number of columns m and the number of rows of B (and V) must be
+   set via DSGSVDSetDimensions().
+
+   Internally, LAPACK's representation is used, U'*A*Q = C*[0 R], V'*B*Q = S*[0 R],
+   where X = Q*inv(R) is computed at the end of DSSolve().
+
+   If the compact storage format is selected, then a simplified problem is
+   solved, where A and B are square upper bidiagonal (possibly with an arrow),
+   and [A;B] is assumed to have orthonormal columns. In this case, R=I so it
+   corresponds to the CS decomposition. The first matrix is stored in two
+   diagonals of DS_MAT_T, while the second matrix is stored in DS_MAT_D
+   and the remaining diagonal of DS_MAT_T.
+
+   Allowed arguments of DSVectors() are DS_MAT_U, DS_MAT_V and DS_MAT_X.
+
+   Used DS matrices:
++  DS_MAT_A - first problem matrix
+.  DS_MAT_B - second problem matrix
+.  DS_MAT_T - first upper bidiagonal matrix (if compact storage is selected)
+-  DS_MAT_D - second upper bidiagonal matrix (if compact storage is selected)
+
+   Implemented methods:
+.  0 - Lapack (_ggsvd3 if available, or _ggsvd)
+
+.seealso: DSCreate(), DSSetType(), DSType, DSGSVDSetDimensions()
+M*/
 SLEPC_EXTERN PetscErrorCode DSCreate_GSVD(DS ds)
 {
   DS_GSVD        *ctx;

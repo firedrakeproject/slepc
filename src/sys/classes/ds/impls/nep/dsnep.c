@@ -64,7 +64,7 @@ PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!ctx->nf) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSNEP requires passing some functions via DSSetFN()");
+  if (!ctx->nf) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSNEP requires passing some functions via DSNEPSetFN()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
   for (i=0;i<ctx->nf;i++) {
     ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
@@ -500,6 +500,32 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   PetscFunctionReturn(0);
 }
 
+/*MC
+   DSNEP - Dense Nonlinear Eigenvalue Problem.
+
+   Level: beginner
+
+   Notes:
+   The problem is expressed as T(lambda)*x = 0, where T(lambda) is a
+   parameter-dependent matrix written as T(lambda) = sum_i E_i*f_i(lambda).
+   The eigenvalues lambda are the arguments returned by DSSolve()..
+
+   The coefficient matrices E_i are the extra matrices of the DS, and
+   the scalar functions f_i are passed via DSNEPSetFN(). Optionally, a
+   callback function to fill the E_i matrices can be set with
+   DSNEPSetComputeMatrixFunction().
+
+   Used DS matrices:
++  DS_MAT_Ex - coefficient matrices of the split form of T(lambda)
+.  DS_MAT_A  - (workspace) T(lambda) evaluated at a given lambda
+.  DS_MAT_B  - (workspace) T'(lambda) evaluated at a given lambda
+-  DS_MAT_W  - (workspace) eigenvectors of linearization in SLP
+
+   Implemented methods:
+.  0 - Successive Linear Problems (SLP), computes just one eigenpair
+
+.seealso: DSCreate(), DSSetType(), DSType, DSNEPSetFN(), DSNEPSetComputeMatrixFunction()
+M*/
 SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
 {
   DS_NEP         *ctx;

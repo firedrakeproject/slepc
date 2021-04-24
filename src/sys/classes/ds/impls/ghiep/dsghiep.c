@@ -689,7 +689,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Reduce to pseudotriadiagonal form */
   ierr = DSIntermediate_GHIEP(ds);CHKERRQ(ierr);
 
-  /* Compute Eigenvalues (QR)*/
+  /* Compute Eigenvalues (QR) */
   ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   H = ds->mat[DS_MAT_W];
   if (ds->compact) {
@@ -1002,6 +1002,43 @@ PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
   PetscFunctionReturn(0);
 }
 
+/*MC
+   DSGHIEP - Dense Generalized Hermitian Indefinite Eigenvalue Problem.
+
+   Level: beginner
+
+   Notes:
+   The problem is expressed as A*X = B*X*Lambda, where both A and B are
+   real symmetric (or complex Hermitian) and possibly indefinite. Lambda
+   is a diagonal matrix whose diagonal elements are the arguments of DSSolve().
+   After solve, A is overwritten with Lambda. Note that in the case of real
+   scalars, A is overwritten with a real representation of Lambda, i.e.,
+   complex conjugate eigenvalue pairs are stored as a 2x2 block in the
+   quasi-diagonal matrix.
+
+   In the intermediate state A is reduced to tridiagonal form and B is
+   transformed into a signature matrix. In compact storage format, these
+   matrices are stored in T and D, respectively.
+
+   Used DS matrices:
++  DS_MAT_A - first problem matrix
+.  DS_MAT_B - second problem matrix
+.  DS_MAT_T - symmetric tridiagonal matrix of the reduced pencil
+.  DS_MAT_D - diagonal matrix (signature) of the reduced pencil
+-  DS_MAT_Q - pseudo-orthogonal transformation that reduces (A,B) to
+   tridiagonal-diagonal form (intermediate step) or a real basis of eigenvectors
+
+   Implemented methods:
++  0 - QR iteration plus inverse iteration for the eigenvectors
+.  1 - HZ iteration
+-  2 - QR iteration plus pseudo-orthogonalization for the eigenvectors
+
+   References:
+.  1. - C. Campos and J. E. Roman, "Restarted Q-Arnoldi-type methods exploiting
+   symmetry in quadratic eigenvalue problems", BIT Numer. Math. 56(4):1213-1236, 2016.
+
+.seealso: DSCreate(), DSSetType(), DSType
+M*/
 SLEPC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
 {
   PetscFunctionBegin;

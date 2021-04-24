@@ -486,6 +486,37 @@ PetscErrorCode DSMatGetSize_PEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   PetscFunctionReturn(0);
 }
 
+/*MC
+   DSPEP - Dense Polynomial Eigenvalue Problem.
+
+   Level: beginner
+
+   Notes:
+   The problem is expressed as P(lambda)*x = 0, where P(.) is a matrix
+   polynomial of degree d. The eigenvalues lambda are the arguments
+   returned by DSSolve().
+
+   The degree of the polynomial, d, can be set with DSPEPSetDegree(), with
+   the first d+1 extra matrices of the DS defining the matrix polynomial. By
+   default, the polynomial is expressed in the monomial basis, but a
+   different basis can be used by setting the corresponding coefficients
+   via DSPEPSetCoefficients().
+
+   The problem is solved via linearization, by building a pencil (A,B) of
+   size p*n and solving the corresponding GNHEP.
+
+   Used DS matrices:
++  DS_MAT_Ex - coefficients of the matrix polynomial
+.  DS_MAT_A  - (workspace) first matrix of the linearization
+.  DS_MAT_B  - (workspace) second matrix of the linearization
+.  DS_MAT_W  - (workspace) right eigenvectors of the linearization
+-  DS_MAT_U  - (workspace) left eigenvectors of the linearization
+
+   Implemented methods:
+.  0 - QZ iteration on the linearization (_ggev)
+
+.seealso: DSCreate(), DSSetType(), DSType, DSPEPSetDegree(), DSPEPSetCoefficients()
+M*/
 SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
 {
   DS_PEP         *ctx;

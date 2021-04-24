@@ -436,6 +436,34 @@ PetscErrorCode DSDestroy_SVD(DS ds)
   PetscFunctionReturn(0);
 }
 
+/*MC
+   DSSVD - Dense Singular Value Decomposition.
+
+   Level: beginner
+
+   Notes:
+   The problem is expressed as A = U*Sigma*V', where A is rectangular in
+   general, with n rows and m columns. Sigma is a diagonal matrix whose diagonal
+   elements are the arguments of DSSolve(). After solve, A is overwritten
+   with Sigma.
+
+   The orthogonal (or unitary) matrices of left and right singular vectors, U
+   and V, have size n and m, respectively. The number of columns m must
+   be specified via DSSVDSetDimensions().
+
+   If the DS object is in the intermediate state, A is assumed to be in upper
+   bidiagonal form (possibly with an arrow) and is stored in compact format
+   on matrix T. Otherwise, no particular structure is assumed.
+
+   Used DS matrices:
++  DS_MAT_A - problem matrix
+-  DS_MAT_T - upper bidiagonal matrix
+
+   Implemented methods:
+.  0 - Divide and Conquer (_bdsdc or _gesdd)
+
+.seealso: DSCreate(), DSSetType(), DSType, DSSVDSetDimensions()
+M*/
 SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
 {
   DS_SVD         *ctx;
