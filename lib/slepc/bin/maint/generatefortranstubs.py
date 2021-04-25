@@ -164,10 +164,9 @@ def FixDir(petscdir,dir,verbose):
           basedir = os.path.join(petscdir,'src',mansec,'f90-mod','ftn-auto-interfaces')
         if not os.path.isdir(basedir): os.mkdir(basedir)
         if not os.path.isdir(os.path.join(basedir,submansec+'-tmpdir')): os.mkdir(os.path.join(basedir,submansec+'-tmpdir'))
-        fname =  os.path.join(basedir,submansec+'-tmpdir',parentdir.replace('/','_')+'.h90')
-        fd =open(fname,'a')
-        fd.write(txt)
-        fd.close()
+        fname = os.path.join(basedir,submansec+'-tmpdir',os.path.relpath(parentdir,petscdir).replace('/','_')+'.h90')
+        with open(fname,'a') as fd:
+          fd.write(txt)
       os.remove(modfile)
 
 def PrepFtnDir(dir):
