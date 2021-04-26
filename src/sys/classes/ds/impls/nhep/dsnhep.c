@@ -251,7 +251,7 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
       }
       break;
     case DS_MAT_U:
-    case DS_MAT_VT:
+    case DS_MAT_V:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
@@ -543,6 +543,32 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
   PetscFunctionReturn(0);
 }
 
+/*MC
+   DSNHEP - Dense Non-Hermitian Eigenvalue Problem.
+
+   Level: beginner
+
+   Notes:
+   The problem is expressed as A*X = X*Lambda, where A is the input matrix.
+   Lambda is a diagonal matrix whose diagonal elements are the arguments of
+   DSSolve(). After solve, A is overwritten with the upper quasi-triangular
+   matrix T of the (real) Schur form, A*Q = Q*T.
+
+   In the intermediate state A is reduced to upper Hessenberg form.
+
+   Computation of left eigenvectors is supported, but two-sided Krylov solvers
+   usually rely on the related DSNHEPTS.
+
+   Used DS matrices:
++  DS_MAT_A - problem matrix
+-  DS_MAT_Q - orthogonal/unitary transformation that reduces to Hessenberg form
+   (intermediate step) or matrix of orthogonal Schur vectors
+
+   Implemented methods:
+.  0 - Implicit QR (_hseqr)
+
+.seealso: DSCreate(), DSSetType(), DSType
+M*/
 SLEPC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
 {
   PetscFunctionBegin;

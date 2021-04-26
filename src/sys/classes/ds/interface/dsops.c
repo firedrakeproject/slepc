@@ -844,7 +844,7 @@ PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 .  rnorm - (optional) computed residual norm
 
    Notes:
-   Allowed values for mat are DS_MAT_X, DS_MAT_Y, DS_MAT_U and DS_MAT_VT, to
+   Allowed values for mat are DS_MAT_X, DS_MAT_Y, DS_MAT_U and DS_MAT_V, to
    compute right or left eigenvectors, or left or right singular vectors,
    respectively.
 

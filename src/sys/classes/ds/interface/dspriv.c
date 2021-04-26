@@ -350,18 +350,18 @@ PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt istart,PetscInt iend,PetscIn
 }
 
 /*
-  Permute columns [istart..iend-1] of [mat1] and rows of [mat2] according to perm.
-  Columns have length n, rows have length m
+  Permute columns [istart..iend-1] of [mat1] and [mat2] according to perm.
+  Columns of [mat1] have length n, columns of [mat2] have length m
  */
 PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt istart,PetscInt iend,PetscInt n,PetscInt m,DSMatType mat1,DSMatType mat2,PetscInt *perm)
 {
   PetscInt    i,j,k,p,ld;
-  PetscScalar *U,*VT,rtmp;
+  PetscScalar *U,*V,rtmp;
 
   PetscFunctionBegin;
   ld = ds->ld;
   U  = ds->mat[mat1];
-  VT = ds->mat[mat2];
+  V  = ds->mat[mat2];
   for (i=istart;i<iend;i++) {
     p = perm[i];
     if (p != i) {
@@ -372,9 +372,9 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt istart,PetscInt iend,PetscIn
       for (k=0;k<n;k++) {
         rtmp = U[k+p*ld]; U[k+p*ld] = U[k+i*ld]; U[k+i*ld] = rtmp;
       }
-      /* swap rows i and j of VT */
+      /* swap columns i and j of V */
       for (k=0;k<m;k++) {
-        rtmp = VT[p+k*ld]; VT[p+k*ld] = VT[i+k*ld]; VT[i+k*ld] = rtmp;
+        rtmp = V[k+p*ld]; V[k+p*ld] = V[k+i*ld]; V[k+i*ld] = rtmp;
       }
     }
   }

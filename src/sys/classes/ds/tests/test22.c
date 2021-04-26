@@ -80,8 +80,8 @@ int main(int argc,char **argv)
   if (verbose) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
+  ierr = DSView(ds,viewer);CHKERRQ(ierr);
 
   /* Solve */
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
@@ -124,7 +124,7 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
   }
 
-  ierr = DSGetMat(ds,DS_MAT_VT,&X);CHKERRQ(ierr);
+  ierr = DSGetMat(ds,DS_MAT_V,&X);CHKERRQ(ierr);
   ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
   ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
   ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
@@ -144,6 +144,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      requires: !single
+      requires: double
 
 TEST*/

@@ -22,7 +22,7 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
   PetscFunctionBegin;
   ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr);
   ierr = DSAllocateMat_Private(ds,DS_MAT_U);CHKERRQ(ierr);
-  ierr = DSAllocateMat_Private(ds,DS_MAT_VT);CHKERRQ(ierr);
+  ierr = DSAllocateMat_Private(ds,DS_MAT_V);CHKERRQ(ierr);
   ierr = DSAllocateMatReal_Private(ds,DS_MAT_T);CHKERRQ(ierr);
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&ds->perm);CHKERRQ(ierr);
@@ -129,7 +129,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
     ierr = DSViewMat(ds,viewer,DS_MAT_U);CHKERRQ(ierr);
-    ierr = DSViewMat(ds,viewer,DS_MAT_VT);CHKERRQ(ierr);
+    ierr = DSViewMat(ds,viewer,DS_MAT_V);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -139,7 +139,7 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_U:
-    case DS_MAT_VT:
+    case DS_MAT_V:
       if (rnorm) *rnorm = 0.0;
       break;
     default:
@@ -170,7 +170,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
     ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   }
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
-  ierr = DSPermuteBoth_Private(ds,l,n,ds->n,ctx->m,DS_MAT_U,DS_MAT_VT,perm);CHKERRQ(ierr);
+  ierr = DSPermuteBoth_Private(ds,l,n,ds->n,ctx->m,DS_MAT_U,DS_MAT_V,perm);CHKERRQ(ierr);
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   if (!ds->compact) {
     for (i=l;i<n;i++) A[i+i*ld] = wr[i];
@@ -182,13 +182,10 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   DS_SVD         *ctx = (DS_SVD*)ds->data;
-  PetscInt       i;
+  PetscInt       i,j;
   PetscBLASInt   n1,m1,info,l = 0,n = 0,m = 0,nm,ld,off,lwork;
-  PetscScalar    *A,*U,*VT,qwork;
-  PetscReal      *d,*e,*Ur,*VTr;
-#if defined(PETSC_USE_COMPLEX)
-  PetscInt       j;
-#endif
+  PetscScalar    *A,*U,*V,*W,qwork;
+  PetscReal      *d,*e,*Ur,*Vr;
 
   PetscFunctionBegin;
   if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
@@ -199,41 +196,44 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
   m1 = m-l;
   off = l+l*ld;
-  A  = ds->mat[DS_MAT_A];
-  U  = ds->mat[DS_MAT_U];
-  VT = ds->mat[DS_MAT_VT];
-  d  = ds->rmat[DS_MAT_T];
-  e  = ds->rmat[DS_MAT_T]+ld;
+  A = ds->mat[DS_MAT_A];
+  U = ds->mat[DS_MAT_U];
+  V = ds->mat[DS_MAT_V];
+  d = ds->rmat[DS_MAT_T];
+  e = ds->rmat[DS_MAT_T]+ld;
   ierr = PetscArrayzero(U,ld*ld);CHKERRQ(ierr);
   for (i=0;i<l;i++) U[i+i*ld] = 1.0;
-  ierr = PetscArrayzero(VT,ld*ld);CHKERRQ(ierr);
-  for (i=0;i<l;i++) VT[i+i*ld] = 1.0;
+  ierr = PetscArrayzero(V,ld*ld);CHKERRQ(ierr);
+  for (i=0;i<l;i++) V[i+i*ld] = 1.0;
 
   if (ds->state>DS_STATE_RAW) {
     /* solve bidiagonal SVD problem */
     for (i=0;i<l;i++) wr[i] = d[i];
-    ierr = DSAllocateWork_Private(ds,0,3*ld*ld+4*ld,8*ld);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
+    ierr = DSAllocateWork_Private(ds,0,3*n1*n1+4*n1,8*n1);CHKERRQ(ierr);
     ierr = DSAllocateMatReal_Private(ds,DS_MAT_U);CHKERRQ(ierr);
-    ierr = DSAllocateMatReal_Private(ds,DS_MAT_VT);CHKERRQ(ierr);
-    Ur  = ds->rmat[DS_MAT_U];
-    VTr = ds->rmat[DS_MAT_VT];
+    ierr = DSAllocateMatReal_Private(ds,DS_MAT_V);CHKERRQ(ierr);
+    Ur = ds->rmat[DS_MAT_U];
+    Vr = ds->rmat[DS_MAT_V];
 #else
-    Ur  = U;
-    VTr = VT;
+    ierr = DSAllocateWork_Private(ds,0,3*n1*n1+4*n1+ld*ld,8*n1);CHKERRQ(ierr);
+    Ur = U;
+    Vr = ds->rwork+3*n1*n1+4*n1;
 #endif
-    PetscStackCallBLAS("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n1,d+l,e+l,Ur+off,&ld,VTr+off,&ld,NULL,NULL,ds->rwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n1,d+l,e+l,Ur+off,&ld,Vr+off,&ld,NULL,NULL,ds->rwork,ds->iwork,&info));
     SlepcCheckLapackInfo("bdsdc",info);
-#if defined(PETSC_USE_COMPLEX)
     for (i=l;i<n;i++) {
-      for (j=0;j<n;j++) {
+      for (j=l;j<n;j++) {
+#if defined(PETSC_USE_COMPLEX)
         U[i+j*ld] = Ur[i+j*ld];
-        VT[i+j*ld] = VTr[i+j*ld];
+#endif
+        V[i+j*ld] = PetscConj(Vr[j+i*ld]);  /* transpose VT returned by Lapack */
       }
     }
-#endif
   } else {
     /* solve general rectangular SVD problem */
+    ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
+    W = ds->mat[DS_MAT_W];
     if (ds->compact) { ierr = DSSwitchFormat_SVD(ds);CHKERRQ(ierr); }
     for (i=0;i<l;i++) wr[i] = d[i];
     nm = PetscMin(n,m);
@@ -241,19 +241,22 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
     ierr = DSAllocateWork_Private(ds,0,5*nm*nm+7*nm,0);CHKERRQ(ierr);
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info));
 #else
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,&qwork,&lwork,ds->iwork,&info));
 #endif
     SlepcCheckLapackInfo("gesdd",info);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPart(qwork),&lwork);CHKERRQ(ierr);
     ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
 #else
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,ds->work,&lwork,ds->iwork,&info));
 #endif
     SlepcCheckLapackInfo("gesdd",info);
+    for (i=l;i<m;i++) {
+      for (j=l;j<m;j++) V[i+j*ld] = PetscConj(W[j+i*ld]);  /* transpose VT returned by Lapack */
+    }
   }
   for (i=l;i<PetscMin(ds->n,ctx->m);i++) wr[i] = d[i];
 
@@ -294,7 +297,7 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     }
     if (ds->state>DS_STATE_RAW) {
       ierr = MPI_Pack(ds->mat[DS_MAT_U]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-      ierr = MPI_Pack(ds->mat[DS_MAT_VT]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      ierr = MPI_Pack(ds->mat[DS_MAT_V]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
     }
     if (eigr) {
       ierr = MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
@@ -309,7 +312,7 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     }
     if (ds->state>DS_STATE_RAW) {
       ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_U]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_VT]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_V]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
     }
     if (eigr) {
       ierr = MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
@@ -334,7 +337,7 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
       *rows = ds->n;
       *cols = ds->n;
       break;
-    case DS_MAT_VT:
+    case DS_MAT_V:
       *rows = ctx->m;
       *cols = ctx->m;
       break;
@@ -433,6 +436,34 @@ PetscErrorCode DSDestroy_SVD(DS ds)
   PetscFunctionReturn(0);
 }
 
+/*MC
+   DSSVD - Dense Singular Value Decomposition.
+
+   Level: beginner
+
+   Notes:
+   The problem is expressed as A = U*Sigma*V', where A is rectangular in
+   general, with n rows and m columns. Sigma is a diagonal matrix whose diagonal
+   elements are the arguments of DSSolve(). After solve, A is overwritten
+   with Sigma.
+
+   The orthogonal (or unitary) matrices of left and right singular vectors, U
+   and V, have size n and m, respectively. The number of columns m must
+   be specified via DSSVDSetDimensions().
+
+   If the DS object is in the intermediate state, A is assumed to be in upper
+   bidiagonal form (possibly with an arrow) and is stored in compact format
+   on matrix T. Otherwise, no particular structure is assumed.
+
+   Used DS matrices:
++  DS_MAT_A - problem matrix
+-  DS_MAT_T - upper bidiagonal matrix
+
+   Implemented methods:
+.  0 - Divide and Conquer (_bdsdc or _gesdd)
+
+.seealso: DSCreate(), DSSetType(), DSType, DSSVDSetDimensions()
+M*/
 SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
 {
   DS_SVD         *ctx;

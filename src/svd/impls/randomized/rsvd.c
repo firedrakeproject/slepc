@@ -81,7 +81,7 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
   PetscScalar    *w;
   PetscReal      res=1.0;
   PetscInt       i,k=0;
-  Mat            A,U,Vt;
+  Mat            A,U,V;
 
   PetscFunctionBegin;
   /* Form random matrix, G. Complete the initial basis with random vectors */
@@ -112,11 +112,11 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-    ierr = DSGetMat(svd->ds,DS_MAT_VT,&Vt);CHKERRQ(ierr);
-    ierr = BVMultInPlaceTranspose(svd->U,Vt,svd->nconv,svd->ncv);CHKERRQ(ierr);
+    ierr = DSGetMat(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
+    ierr = BVMultInPlace(svd->U,V,svd->nconv,svd->ncv);CHKERRQ(ierr);
     ierr = BVMultInPlace(svd->V,U,svd->nconv,svd->ncv);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
-    ierr = MatDestroy(&Vt);CHKERRQ(ierr);
+    ierr = MatDestroy(&V);CHKERRQ(ierr);
     /* Check convergence */
     k = 0;
     for (i=svd->nconv;i<svd->ncv;i++) {

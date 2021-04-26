@@ -73,6 +73,8 @@ PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
    This function computes sqrt(x**2+y**2), taking care not to cause unnecessary
    overflow. It is based on LAPACK's DLAPY2.
 
+   In complex scalars, only the first argument is used.
+
    This function is not available from Fortran.
 
    Level: developer

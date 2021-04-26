@@ -67,7 +67,7 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
       }
       break;
     case DS_MAT_U:
-    case DS_MAT_VT:
+    case DS_MAT_V:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
@@ -197,6 +197,29 @@ PetscErrorCode DSHermitian_GHEP(DS ds,DSMatType m,PetscBool *flg)
   PetscFunctionReturn(0);
 }
 
+/*MC
+   DSGHEP - Dense Generalized Hermitian Eigenvalue Problem.
+
+   Level: beginner
+
+   Notes:
+   The problem is expressed as A*X = B*X*Lambda, where both A and B are
+   real symmetric (or complex Hermitian) and B is positive-definite. Lambda
+   is a diagonal matrix whose diagonal elements are the arguments of DSSolve().
+   After solve, A is overwritten with Lambda, and B is overwritten with I.
+
+   No intermediate state is implemented, nor compact storage.
+
+   Used DS matrices:
++  DS_MAT_A - first problem matrix
+.  DS_MAT_B - second problem matrix
+-  DS_MAT_Q - matrix of B-orthogonal eigenvectors, which is equal to X
+
+   Implemented methods:
+.  0 - Divide and Conquer (_sygvd)
+
+.seealso: DSCreate(), DSSetType(), DSType
+M*/
 SLEPC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
 {
   PetscFunctionBegin;
