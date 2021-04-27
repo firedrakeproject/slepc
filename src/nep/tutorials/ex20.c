@@ -434,13 +434,13 @@ PetscErrorCode FixSign(Vec x)
       test:
          suffix: 2
          filter: sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/0\.\([0-9]*\)/removed/g" -e "s/ Number of NEP iterations = \([0-9]*\)/ Number of NEP iterations = /"
-         args: -rg_interval_endpoints 4,900
+         args: -rg_interval_endpoints 4,200
          requires: !single !complex
       test:
          suffix: 2_complex
          filter: sed -e "s/[+-]0.[0-9]*i//" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/0\.\([0-9]*\)/removed/g" -e "s/ Number of NEP iterations = \([0-9]*\)/ Number of NEP iterations = /"
          output_file: output/ex20_2.out
-         args: -rg_interval_endpoints 4,900,-.1,.1 -nep_target_real
+         args: -rg_interval_endpoints 4,200,-.1,.1 -nep_target_real
          requires: !single complex
 
    testset:
@@ -449,13 +449,13 @@ PetscErrorCode FixSign(Vec x)
          suffix: 3
          filter: sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/0\.\([0-9]*\)/removed/g" -e "s/ Number of NEP iterations = \([0-9]*\)/ Number of NEP iterations = /"
          output_file: output/ex20_2.out
-         args: -rg_interval_endpoints 4,900
+         args: -rg_interval_endpoints 4,200
          requires: !single !complex
       test:
          suffix: 3_complex
          filter: sed -e "s/[+-]0.[0-9]*i//" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/0\.\([0-9]*\)/removed/g" -e "s/ Number of NEP iterations = \([0-9]*\)/ Number of NEP iterations = /"
          output_file: output/ex20_2.out
-         args: -rg_interval_endpoints 4,900,-.1,.1
+         args: -rg_interval_endpoints 4,200,-.1,.1
          requires: !single complex
 
    test:
