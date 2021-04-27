@@ -38,7 +38,7 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
   PetscErrorCode    ierr;
   DS_GSVD           *ctx = (DS_GSVD*)ds->data;
   PetscViewerFormat format;
-  PetscInt          i,j,c,r,n=ds->n,m=ctx->m,p=ctx->p;
+  PetscInt          i,j,r,n=ds->n,m=ctx->m,p=ctx->p;
   PetscReal         value;
 
   PetscFunctionBegin;
@@ -60,8 +60,7 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
       }
       for (i=0;i<PetscMin(ds->n,n)-1;i++) {
         r = PetscMax(i+2,ds->k+1);
-        c = i+1;
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,r,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
@@ -70,8 +69,7 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
       }
       for (i=0;i<PetscMin(ds->n,n)-1;i++) {
         r = PetscMax(i+2,ds->k+1);
-        c = i+1;
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,r,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_D]);CHKERRQ(ierr);
     } else {
