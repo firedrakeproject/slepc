@@ -200,7 +200,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
     }
   }
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLOPEX,EPSBLZPACK,EPSELEMENTAL,EPSFEAST,EPSPRIMME,EPSSCALAPACK,EPSELPA,EPSEVSL,EPSTRLAN,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLOPEX,EPSELEMENTAL,EPSFEAST,EPSPRIMME,EPSSCALAPACK,EPSELPA,EPSEVSL,EPSTRLAN,"");CHKERRQ(ierr);
   if (!isexternal) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
     if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }

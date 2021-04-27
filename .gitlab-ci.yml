@@ -407,7 +407,7 @@ gnu-c-multilib:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --download-scalapack
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-evsl --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot --with-packages-download-dir=/var/local/downloads
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-evsl --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot --with-packages-download-dir=/var/local/downloads
 
 gnu-c-c99-nompi:
   extends:

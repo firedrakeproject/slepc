@@ -25,9 +25,6 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS);
 #if defined(SLEPC_HAVE_ARPACK)
 SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS);
 #endif
-#if defined(SLEPC_HAVE_BLZPACK)
-SLEPC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS);
-#endif
 #if defined(SLEPC_HAVE_TRLAN)
 SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 #endif
@@ -83,9 +80,6 @@ PetscErrorCode EPSRegisterAll(void)
   ierr = EPSRegister(EPSLAPACK,EPSCreate_LAPACK);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSRegister(EPSARPACK,EPSCreate_ARPACK);CHKERRQ(ierr);
-#endif
-#if defined(SLEPC_HAVE_BLZPACK)
-  ierr = EPSRegister(EPSBLZPACK,EPSCreate_BLZPACK);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_TRLAN)
   ierr = EPSRegister(EPSTRLAN,EPSCreate_TRLAN);CHKERRQ(ierr);

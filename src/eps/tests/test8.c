@@ -216,10 +216,6 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
          args: -eps_type arpack -eps_ncv 6
          requires: arpack !single
       test:
-         suffix: 2_blzpack
-         args: -eps_type blzpack
-         requires: blzpack
-      test:
          suffix: 2_primme
          args: -eps_type primme -eps_conv_abs -eps_primme_method lobpcg_orthobasisw -eps_ncv 24
          requires: primme
