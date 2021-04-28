@@ -23,7 +23,7 @@ int main(int argc,char **argv)
   PetscScalar    *w;
   PetscInt       i,n=10,l=0,k=0,ld;
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      verbose,test_dsview;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -32,6 +32,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Wrong value of dimensions");
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-test_dsview",&test_dsview);CHKERRQ(ierr);
 
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
@@ -48,6 +49,17 @@ int main(int argc,char **argv)
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
   ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+
+  if (test_dsview) {
+    /* Fill A and B with dummy values to test DSView */
+    ierr = DSGetArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(ds,DS_MAT_D,&D);CHKERRQ(ierr);
+    for (i=0;i<n;i++) { T[i] = i+1; D[i] = -i-1; }
+    for (i=0;i<n-1;i++) { T[i+ld] = -1.0; T[i+2*ld] = 1.0; }
+    ierr = DSRestoreArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
+    ierr = DSRestoreArrayReal(ds,DS_MAT_D,&D);CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
+  }
 
   /* Fill A and B with upper arrow-bidiagonal matrices
      verifying that [A;B] has orthonormal columns */
@@ -81,7 +93,6 @@ int main(int argc,char **argv)
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
   }
-  ierr = DSView(ds,viewer);CHKERRQ(ierr);
 
   /* Solve */
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
@@ -144,6 +155,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
+      args: -test_dsview
       requires: double
 
 TEST*/
