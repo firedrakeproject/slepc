@@ -13,6 +13,10 @@
 - One of the `DS` matrices has been renamed from `DS_MAT_VT` to `DS_MAT_V` since it is
   no longer transposed.
 
+### Removed
+
+- The interface to BLZPACK has been removed since it is no longer available for download.
+
 ## [3.15] - 2021-03-31
 
 ### Added

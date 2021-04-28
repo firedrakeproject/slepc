@@ -53,7 +53,6 @@ typedef const char* EPSType;
 #define EPSLYAPII      "lyapii"
 #define EPSLAPACK      "lapack"
 #define EPSARPACK      "arpack"
-#define EPSBLZPACK     "blzpack"
 #define EPSTRLAN       "trlan"
 #define EPSBLOPEX      "blopex"
 #define EPSPRIMME      "primme"
@@ -369,11 +368,6 @@ SLEPC_EXTERN const char *EPSLanczosReorthogTypes[];
 
 SLEPC_EXTERN PetscErrorCode EPSLanczosSetReorthog(EPS,EPSLanczosReorthogType);
 SLEPC_EXTERN PetscErrorCode EPSLanczosGetReorthog(EPS,EPSLanczosReorthogType*);
-
-SLEPC_EXTERN PetscErrorCode EPSBlzpackSetBlockSize(EPS,PetscInt);
-SLEPC_EXTERN PetscErrorCode EPSBlzpackGetBlockSize(EPS,PetscInt*);
-SLEPC_EXTERN PetscErrorCode EPSBlzpackSetNSteps(EPS,PetscInt);
-SLEPC_EXTERN PetscErrorCode EPSBlzpackGetNSteps(EPS,PetscInt*);
 
 /*E
     EPSPRIMMEMethod - determines the method selected in the PRIMME library

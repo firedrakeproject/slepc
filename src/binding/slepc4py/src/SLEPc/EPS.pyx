@@ -23,7 +23,6 @@ class EPSType(object):
     (should be enabled during installation of SLEPc)
 
     - `ARPACK`:
-    - `BLZPACK`:
     - `TRLAN`:
     - `BLOPEX`:
     - `PRIMME`:
@@ -48,7 +47,6 @@ class EPSType(object):
     LAPACK       = S_(EPSLAPACK)
     # with external libraries
     ARPACK       = S_(EPSARPACK)
-    BLZPACK      = S_(EPSBLZPACK)
     TRLAN        = S_(EPSTRLAN)
     BLOPEX       = S_(EPSBLOPEX)
     PRIMME       = S_(EPSPRIMME)

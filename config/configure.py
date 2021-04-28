@@ -100,10 +100,9 @@ else:
   packagesinpetsc = ''
 
 # Load classes for packages and process their command-line options
-import arpack, blopex, blzpack, elemental, elpa, evsl, feast, hpddm, primme, scalapack, slepc4py, slicot, trlan, sowing, lapack
+import arpack, blopex, elemental, elpa, evsl, feast, hpddm, primme, scalapack, slepc4py, slicot, trlan, sowing, lapack
 arpack    = arpack.Arpack(argdb,log)
 blopex    = blopex.Blopex(argdb,log)
-blzpack   = blzpack.Blzpack(argdb,log)
 elemental = elemental.Elemental(argdb,log,packagesinpetsc)
 elpa      = elpa.Elpa(argdb,log)
 evsl      = evsl.Evsl(argdb,log)
@@ -117,7 +116,7 @@ slepc4py  = slepc4py.Slepc4py(argdb,log)
 slicot    = slicot.Slicot(argdb,log)
 hpddm     = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, elpa, evsl, hpddm, primme, slicot, trlan]
+externalpackages = [arpack, blopex, elpa, evsl, hpddm, primme, slicot, trlan]
 petscpackages    = [lapack, elemental, feast, scalapack]
 specialpackages  = [slepc, petsc, slepc4py, sowing]
 checkpackages    = specialpackages + petscpackages + externalpackages

@@ -143,10 +143,6 @@ int main(int argc,char **argv)
         args: -eps_type blopex
         requires: blopex
       test:
-        suffix: 2_blzpack
-        args: -eps_type blzpack
-        requires: blzpack
-      test:
         suffix: 2_trlan
         args: -eps_type trlan
         requires: trlan

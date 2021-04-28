@@ -129,14 +129,8 @@ int main(int argc,char **argv)
          args: -type trlan
          requires: trlan
 
-   testset:
-      output_file: output/test4_2.out
-      test:
-         suffix: 2
-         args: -type {{rqcg lobpcg}}
-      test:
-         suffix: 2_blzpack
-         args: -type blzpack
-         requires: blzpack
+   test:
+      suffix: 2
+      args: -type {{rqcg lobpcg}}
 
 TEST*/

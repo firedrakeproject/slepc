@@ -190,11 +190,6 @@ Li, R., Xi, Y., Erlandson, L., and Y. Saad (2019).
 \newblock The eigenvalues slicing library (EVSL): Algorithms, implementation, and software.
 \newblock {\em {SIAM} J. Sci. Comput.\/}, 41(4):C393-C415.
 
-\bibitem[{Marques(1995)}]{Marques:1995:BDU}
-Marques, O.~A. (1995).
-\newblock {BLZPACK}: Description and User's Guide.
-\newblock Technical Report TR/PA/95/30, CERFACS, Toulouse, France.
-
 \bibitem[{Maschhoff and Sorensen(1996)}]{Maschhoff:1996:PEP}
 Maschhoff, K.~J. and D.~C. Sorensen (1996).
 \newblock {PARPACK}: An efficient portable large scale eigenvalue package for

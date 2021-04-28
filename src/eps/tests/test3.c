@@ -136,10 +136,6 @@ int main(int argc,char **argv)
          args: -eps_type trlan
          requires: trlan
       test:
-         suffix: 1_blzpack
-         args: -eps_type blzpack -st_type sinvert -eps_target 2.7
-         requires: blzpack
-      test:
          suffix: 1_scalapack
          args: -eps_type scalapack
          requires: scalapack

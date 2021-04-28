@@ -52,7 +52,6 @@
 #define EPSLYAPII      'lyapii'
 #define EPSLAPACK      'lapack'
 #define EPSARPACK      'arpack'
-#define EPSBLZPACK     'blzpack'
 #define EPSTRLAN       'trlan'
 #define EPSBLOPEX      'blopex'
 #define EPSPRIMME      'primme'
