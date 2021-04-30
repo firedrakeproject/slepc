@@ -323,10 +323,12 @@ END SUBROUTINE ComputeSingularities
 !      suffix: 1
 !      args: -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse
 !      requires: !single
+!      filter: sed -e "s/[+-]0\.0*i//g"
 !
 !   test:
 !      suffix: 2
 !      args: -split 0 -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse
 !      requires: !single
+!      filter: sed -e "s/[+-]0\.0*i//g"
 !
 !TEST*/

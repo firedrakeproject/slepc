@@ -216,5 +216,6 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
       suffix: 1
       args: -eps_nev 4 -terse
       requires: !single
+      filter: sed -e "s/[+-]0\.0*i//g"
 
 TEST*/

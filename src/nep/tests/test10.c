@@ -288,6 +288,7 @@ int main(int argc,char **argv)
       args: -nep_nev 2 -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7
       requires: !single
       output_file: output/test10_2.out
+      filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 2_interpol
          args: -nep_type interpol -nep_interpol_pep_type jd -nep_interpol_st_pc_type sor

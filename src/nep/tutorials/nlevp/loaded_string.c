@@ -151,6 +151,7 @@ int main(int argc,char **argv)
       suffix: 1
       args: -nep_type rii -nep_target 4 -terse
       requires: !single
+      filter: sed -e "s/[+-]0\.0*i//g"
 
    testset:
       args: -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_interpolation_degree 12 -nep_refine simple -terse
@@ -187,6 +188,7 @@ int main(int argc,char **argv)
    test:
       suffix: 5
       args: -nep_type nleigs -rg_type interval -rg_interval_endpoints 4,700,-.1,.1 -nep_nev 8 -nep_target 5 -terse
+      filter: sed -e "s/[+-]0\.0*i//g"
       requires: !single
 
    test:
@@ -197,6 +199,7 @@ int main(int argc,char **argv)
    test:
       suffix: 6_complex
       args: -nep_type nleigs -rg_type interval -rg_interval_endpoints 100,700,-.1,.1 -nep_nev 5 -nep_tol 1e-9 -nep_target 140 -nep_nleigs_interpolation_degree 15 -nep_general -terse
+      filter: sed -e "s/[+-]0\.0*i//g"
       requires: complex !single
       output_file: output/loaded_string_6.out
 

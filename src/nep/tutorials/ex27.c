@@ -258,13 +258,13 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
       args: -nep_nev 3 -terse
       output_file: output/ex27_1.out
       requires: !single
+      filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 1
          args: -nep_nleigs_interpolation_degree 90
       test:
          suffix: 3
          args: -nep_tol 1e-8 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_conv_norm
-         filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 5
          args: -mat_type aijcusparse
@@ -273,6 +273,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
    testset:
       args: -split 0 -nep_nev 3 -terse
       output_file: output/ex27_2.out
+      filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 2
          args: -nep_nleigs_interpolation_degree 90
@@ -281,7 +282,6 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
          suffix: 4
          args: -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_nleigs_interpolation_degree 90
          requires: double
-         filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 6
          args: -mat_type aijcusparse
@@ -291,5 +291,6 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
       suffix: 9
       args: -nep_nev 4 -n 20 -terse
       requires: !single
+      filter: sed -e "s/[+-]0\.0*i//g"
 
 TEST*/

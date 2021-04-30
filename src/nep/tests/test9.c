@@ -155,6 +155,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -nep_type nleigs -rg_type interval -rg_interval_endpoints 4,700,-.1,.1 -nep_nev 8 -nep_target 5 -terse
+      filter: sed -e "s/[+-]0\.0*i//g"
       requires: !single
 
 TEST*/

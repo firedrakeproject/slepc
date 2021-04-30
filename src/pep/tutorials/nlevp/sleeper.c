@@ -148,6 +148,7 @@ int main(int argc,char **argv)
       args: -n 100 -pep_nev 4 -pep_ncv 24 -st_type sinvert -terse
       output_file: output/sleeper_1.out
       requires: !single
+      filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 1
          args: -pep_type {{toar linear}} -pep_ncv 20

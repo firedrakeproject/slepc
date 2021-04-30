@@ -105,7 +105,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -f1 ${DATAFILESPATH}/matrices/complex/mhd1280a.petsc -f2 ${DATAFILESPATH}/matrices/complex/mhd1280b.petsc -eps_smallest_real -eps_nev 4
-      requires: complex !single datafilespath !define(PETSC_USE_64BIT_INDICES)
+      requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
       output_file: output/test26_2.out
       test:
          suffix: 2

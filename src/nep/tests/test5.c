@@ -182,21 +182,20 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       args: -nep_nev 3 -nep_target 5 -terse
+      output_file: output/test5_1.out
+      filter: sed -e "s/[+-]0\.0*i//g"
       requires: !single
-
-   test:
-      suffix: 2_cuda
-      args: -nep_nev 3 -nep_target 5 -mat_type aijcusparse -terse
-      requires: cuda !single
-      output_file: output/test5_1.out
-
-   test:
-      suffix: 3
-      args: -nep_nev 3 -nep_target 5 -terse -nep_view_values draw
-      requires: x !single
-      output_file: output/test5_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 2_cuda
+         args: -mat_type aijcusparse
+         requires: cuda
+      test:
+         suffix: 3
+         args: -nep_view_values draw
+         requires: x
 
 TEST*/

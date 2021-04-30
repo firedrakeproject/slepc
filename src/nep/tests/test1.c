@@ -252,7 +252,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
       suffix: 1
       args: -nep_type {{rii slp}} -nep_target 21 -terse -nep_view_vectors ::ascii_info
       requires: !single
-      filter: sed -e "s/\(0x[0-9a-fA-F]*\)/objectid/"
+      filter: sed -e "s/\(0x[0-9a-fA-F]*\)/objectid/" | sed -e "s/[+-]0\.0*i//g"
 
    test:
       suffix: 2_cuda
