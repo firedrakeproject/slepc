@@ -208,6 +208,9 @@ SLEPC_EXTERN PetscErrorCode DSPEPGetCoefficients(DS,PetscReal**);
 SLEPC_EXTERN PetscErrorCode DSNEPSetFN(DS,PetscInt,FN*);
 SLEPC_EXTERN PetscErrorCode DSNEPGetFN(DS,PetscInt,FN*);
 SLEPC_EXTERN PetscErrorCode DSNEPGetNumFN(DS,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSNEPGetMinimality(DS,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSNEPSetMinimality(DS,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSNEPSetRG(DS,RG);
 SLEPC_EXTERN PetscErrorCode DSNEPSetComputeMatrixFunction(DS,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx);
 
 SLEPC_EXTERN PetscFunctionList DSList;

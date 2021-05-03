@@ -10,11 +10,14 @@
 
 #include <slepc/private/dsimpl.h>       /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
+#include <slepcrg.h>
 
 typedef struct {
   PetscInt       nf;                 /* number of functions in f[] */
   FN             f[DS_NUM_EXTRA];    /* functions defining the nonlinear operator */
-  PetscInt       neig;               /* number of available eigenpairs */
+  PetscInt       max_mid;            /* maxim minimality index */
+  PetscInt       nnod;               /* number of nodes for quadrature rules */
+  RG             rg;                 /* region for contour integral */
   void           *computematrixctx;
   PetscErrorCode (*computematrix)(DS,PetscScalar,PetscBool,DSMatType,void*);
 } DS_NEP;
@@ -115,7 +118,6 @@ PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *dummy)
 {
   PetscErrorCode ierr;
-  DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       n,l,i,*perm,told,ld=ds->ld;
   PetscScalar    *A;
 
@@ -125,9 +127,8 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   l = ds->l;
   A = ds->mat[DS_MAT_A];
   perm = ds->perm;
-  for (i=0;i<ctx->neig;i++) perm[i] = i;
+  for (i=0;i<ds->t;i++) perm[i] = i;
   told = ds->t;
-  ds->t = ctx->neig;  /* force the sorting routines to consider ctx->neig eigenvalues */
   if (rr) {
     ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   } else {
@@ -136,14 +137,13 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   ds->t = told;  /* restore value of t */
   for (i=l;i<n;i++) A[i+i*ld] = wr[perm[i]];
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
-  ierr = DSPermuteColumns_Private(ds,0,ctx->neig,n,DS_MAT_X,perm);CHKERRQ(ierr);
+  ierr = DSPermuteColumns_Private(ds,0,ds->t,n,DS_MAT_X,perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
-  DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
   PetscScalar    sigma,lambda,mu,re,re2,sone=1.0,szero=0.0;
   PetscBLASInt   info,n,ld,lrwork=0,lwork,one=1,zero=0;
@@ -256,11 +256,213 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 
   if (it==maxit) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"DSNEP did not converge");
-  ctx->neig = 1;
+  ds->t = 1;
   wr[0] = lambda;
   if (wi) wi[0] = 0.0;
   PetscFunctionReturn(0);
 }
+
+#if defined(PETSC_USE_COMPLEX)
+PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
+{
+  PetscErrorCode ierr;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,*w,*w2,*S,*A0,*U,*VT;
+  PetscScalar    sone=1.0,szero=0.0,center,*z;
+  PetscReal      *rwork,norm,radius,vscale,rgscale,theta,*sigma;
+  PetscBLASInt   info,n,*perm,p,ld,lrwork=0,lwork,k_,rk_,colA,rowA,one=1,n1;
+  PetscInt       mid,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,nwi,*inside;
+  PetscBool      isellipse;
+  PetscRandom    rand;
+
+  PetscFunctionBegin;
+  if (!ctx->rg) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"The contour solver requires a ellipse region");
+  /* Contour parameters */
+  ierr = PetscObjectTypeCompare((PetscObject)ctx->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  if (isellipse) {
+    ierr = RGEllipseGetParameters(ctx->rg,&center,&radius,&vscale);CHKERRQ(ierr);
+  } else SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Region must be Ellipse");
+  ierr = RGGetScale(ctx->rg,&rgscale);CHKERRQ(ierr);
+
+  if (!ds->mat[DS_MAT_A]) {
+    ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr);
+  }
+  if (!ds->mat[DS_MAT_B]) {
+    ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr);
+  }
+  if (!ds->mat[DS_MAT_W]) {
+    ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
+  }
+  if (!ds->mat[DS_MAT_X]) {
+    ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
+  }
+  A = ds->mat[DS_MAT_A];
+  B = ds->mat[DS_MAT_B];
+  W = ds->mat[DS_MAT_W];
+  X = ds->mat[DS_MAT_X];
+  mid  = ctx->max_mid;
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  p    = n; /* number of columns for the probing matrix */
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(5*ds->n,&lrwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(mid*p,&colA);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(mid*n,&rowA);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(5*rowA,&lwork);CHKERRQ(ierr);
+  nw   = (2*mid+(mid+1)*(mid+1)+2*mid*mid)*n*p+3*nnod+6*mid*n+2*n;
+  nwi  = n+1; /* also fo be used in Newton */
+  lrwork = mid*n*6+8*n;
+  ierr = DSAllocateWork_Private(ds,nw,lrwork,nwi);CHKERRQ(ierr);
+  sigma = ds->rwork;
+  rwork = ds->rwork+mid*n;
+  perm  = ds->iwork;
+  S    = ds->work+nwu; /* moments */
+  nwu += 2*mid*n*p;
+  z    = ds->work+nwu; /* integration points */
+  nwu += nnod;
+  w    = ds->work+nwu; /* quadrature weights */
+  nwu += nnod;
+  w2   = ds->work+nwu;
+  nwu += nnod;
+  A0   = ds->work+nwu; /**/
+  nwu += (mid+1)*n*(mid+1)*p;
+  U    = ds->work+nwu;
+  nwu += mid*n*mid*p;
+  VT   = ds->work+nwu;
+  nwu += mid*p*mid*p;
+  alpha= ds->work+nwu;
+  nwu += n;
+  beta = ds->work+nwu;
+  nwu += n;
+  work = ds->work+nwu;
+  nwu += mid*n*5;
+
+  /* Set random matrix */
+  Rc   = A0;
+  R    = Rc+n*p; /* random probing matrix */
+  ierr = PetscRandomCreate(PetscObjectComm((PetscObject)ds),&rand);CHKERRQ(ierr);
+  ierr = PetscRandomSetSeed(rand,0x12345678);CHKERRQ(ierr);
+  ierr = PetscRandomSeed(rand);CHKERRQ(ierr);
+  for (j=0;j<p;j++)
+    for (i=0;i<n;i++) { ierr = PetscRandomGetValue(rand,Rc+i+j*n);CHKERRQ(ierr); }
+  for (k=0;k<nnod;k++) {
+    theta = (2*PETSC_PI*k)/nnod;
+    w[k]  = rgscale*radius*PETSC_i*PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta))/nnod; /* derivative */
+    w2[k] = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta)); /* nodes unit ellipse */
+    z[k]  = rgscale*(center+radius*w2[k]); /* nodes  */
+  }
+  ierr = PetscArrayzero(S,2*mid*n*p);CHKERRQ(ierr);
+  for (k=0;k<nnod;k++) {
+    ierr = PetscArraycpy(R,Rc,p*n);CHKERRQ(ierr);
+    ierr = DSNEPComputeMatrix(ds,z[k],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
+    /*LU factorization */
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,W,&ld,perm,&info));
+    SlepcCheckLapackInfo("getrf",info);
+    PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n,&p,W,&ld,perm,R,&n,&info));
+    SlepcCheckLapackInfo("getrs",info);
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
+    /* Moments computation */
+    for (s=0;s<2*ctx->max_mid;s++) {
+      off = s*n*p;
+      for (j=0;j<p;j++)
+        for (i=0;i<n;i++) S[off+i+j*n] += w[k]*R[j*n+i];
+      w[k] *= w2[k];
+    }
+  } /* R and Rc in A0 are no longer used */
+
+  /* Auxiliar matrix for SVD */
+  for (jj=0;jj<mid;jj++) {
+    for (ii=0;ii<mid;ii++) {
+      off = jj*p*rowA+ii*n;
+      for (j=0;j<p;j++)
+        for (i=0;i<n;i++) A0[off+j*rowA+i] = S[((jj+ii)*p+j)*n+i];
+    }
+  }
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&rowA,&colA,A0,&rowA,sigma,U,&rowA,VT,&colA,work,&lwork,rwork,&info));
+  SlepcCheckLapackInfo("gesvd",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  /* Matrix for the eigenvalue problem */
+  for (jj=0;jj<mid;jj++) {
+    for (ii=0;ii<mid;ii++) {
+      off = jj*p*rowA+ii*n;
+      for (j=0;j<p;j++)
+        for (i=0;i<n;i++) A0[off+j*rowA+i] = S[((jj+ii+1)*p+j)*n+i];
+    }
+  }
+  rk = n;
+  for (i=1;i<n;i++)
+    if (sigma[i]/sigma[0]<PETSC_MACHINE_EPSILON*1e4) {rk = i; break;}
+  if (rk) {
+    ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&rowA,&rk_,&colA,&sone,A0,&rowA,VT,&colA,&szero,S,&rowA));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rowA,&sone,U,&rowA,S,&rowA,&szero,A,&ld));
+    ierr = PetscArrayzero(B,ld*ld);CHKERRQ(ierr);
+    for (j=0;j<rk;j++) B[j+j*ld] = sigma[j];
+    PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&rk_,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
+    for (i=0;i<rk;i++) wr[i] = (center+radius*alpha[i]/beta[i])*rgscale;
+    ierr = PetscMalloc1(rk,&inside);CHKERRQ(ierr);
+    ierr = RGCheckInside(ctx->rg,rk,wr,wi,inside);CHKERRQ(ierr);
+    k=0;
+    for (i=0;i<rk;i++)
+      if (inside[i]==1) inside[k++] = i;
+    ierr = PetscArrayzero(A,ld*ld);
+    /* Discard out of region values */
+    for (i=0;i<k;i++) A[i+i*ld] = (center*beta[inside[i]]+radius*alpha[inside[i]])*rgscale;
+    for (i=0;i<k;i++) B[i+i*ld] = beta[inside[i]];
+    for (i=0;i<k;i++) wr[i] = A[i+i*ld]/B[i+i*ld];
+    for (j=0;j<k;j++) for (i=0;i<rk;i++) W[j*ld+i] = sigma[i]*W[inside[j]*ld+i];
+    ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k_,&rk_,&sone,U,&rowA,W,&ld,&szero,X,&ld));
+
+    /* Normalize */
+    for (j=0;j<k;j++) {
+      norm = BLASnrm2_(&n,X+ld*j,&one);
+      for (i=0;i<n;i++) X[ld*j+i] /= norm;
+    }
+    ierr = PetscFree(inside);CHKERRQ(ierr);
+    ierr = DSAllocateWork_Private(ds,(n+2)*(n+1),0,0);CHKERRQ(ierr);
+    /* Newton refinement */
+    PetscInt Nit=0;
+    PetscOptionsGetInt(NULL,NULL,"-newton_it",&Nit,NULL);
+    nwu  =0; /* reset work space */
+    U    = ds->work+nwu;
+    nwu += (n+1)*(n+1);
+    R    = ds->work+nwu;
+    nwu += n+1;
+    ierr = PetscBLASIntCast(n+1,&n1);CHKERRQ(ierr);
+   for (ii=0;ii<Nit;ii++) {
+    for (j=0;j<k;j++) {
+      ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_TRUE,DS_MAT_W);CHKERRQ(ierr);
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,U+n*(n+1),&one));
+      ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
+      for (i=0;i<n;i++) {
+        ierr = PetscArraycpy(U+i*n1,W+i*ld,n);CHKERRQ(ierr);
+        U[n+i*n1] = PetscConj(X[j*ld+i]);
+      }
+      U[n+n*n1] = 0.0;
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
+      R[n] = 0.0;
+      /* solve system  */
+      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+      PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n1,&n1,U,&n1,perm,&info));
+      SlepcCheckLapackInfo("getrf",info);
+      PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n1,&one,U,&n1,perm,R,&n1,&info));
+      SlepcCheckLapackInfo("getrs",info);
+      ierr = PetscFPTrapPop();CHKERRQ(ierr);
+      wr[j] -= R[n];
+      for (i=0;i<n;i++) X[j*ld+i] -= R[i];
+      /* normalization */
+      norm = BLASnrm2_(&n,X+ld*j,&one);
+      for (i=0;i<n;i++) X[ld*j+i] /= norm;
+    }
+   }
+  }
+  ds->t = k;
+  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+#endif
 
 PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
@@ -436,6 +638,79 @@ PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode DSNEPSetMinimality_NEP(DS ds,PetscInt n)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  ctx->max_mid = n;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPSetMinimality - Sets the maxim minimality index stored internally by
+   the DS.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  n - the maxim minimality index
+
+   Level: advanced
+
+.seealso: DSNEPGetMinimality()
+@*/
+PetscErrorCode DSNEPSetMinimality(DS ds,PetscInt n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,n,2);
+  ierr = PetscUseMethod(ds,"DSNEPSetMinimality_C",(DS,PetscInt),(ds,n));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+
+static PetscErrorCode DSNEPGetMinimality_NEP(DS ds,PetscInt *n)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  *n = ctx->max_mid;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPGetMinimality - Returns the maxim minimality index stored internally by
+   the DS.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  n - the maxim minimality index passed in DSNEPSetMinimality()
+
+   Level: advanced
+
+.seealso: DSNEPSetMinimality()
+@*/
+PetscErrorCode DSNEPGetMinimality(DS ds,PetscInt *n)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidIntPointer(n,2);
+  ierr = PetscUseMethod(ds,"DSNEPGetMinimality_C",(DS,PetscInt*),(ds,n));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx)
 {
   DS_NEP *dsctx = (DS_NEP*)ds->data;
@@ -482,6 +757,37 @@ PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS,Pets
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode DSNEPSetRG_NEP(DS ds,RG rg)
+{
+  DS_NEP *dsctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  dsctx->rg = rg;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPSetRG - Sets a RG
+
+   Logically Collective on ds
+
+   Input Parameters:
++  ds  - the direct solver context
+-  rg  - the region context
+
+   Level: developer
+@*/
+PetscErrorCode DSNEPSetRG(DS ds,RG rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(rg,2);
+  ierr = PetscTryMethod(ds,"DSNEPSetRG_C",(DS,RG),(ds,rg));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSDestroy_NEP(DS ds)
 {
   PetscErrorCode ierr;
@@ -496,6 +802,9 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -534,17 +843,25 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   PetscFunctionBegin;
   ierr = PetscNewLog(ds,&ctx);CHKERRQ(ierr);
   ds->data = (void*)ctx;
+  ctx->max_mid = 1;
+  ctx->nnod    = 32;
 
   ds->ops->allocate      = DSAllocate_NEP;
   ds->ops->view          = DSView_NEP;
   ds->ops->vectors       = DSVectors_NEP;
   ds->ops->solve[0]      = DSSolve_NEP_SLP;
+#if defined(PETSC_USE_COMPLEX)
+  ds->ops->solve[1]      = DSSolve_NEP_Contour;
+#endif
   ds->ops->sort          = DSSort_NEP;
   ds->ops->synchronize   = DSSynchronize_NEP;
   ds->ops->destroy       = DSDestroy_NEP;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",DSNEPGetMinimality_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",DSNEPSetMinimality_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",DSNEPSetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",DSNEPSetComputeMatrixFunction_NEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

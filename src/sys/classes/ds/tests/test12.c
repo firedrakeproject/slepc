@@ -11,6 +11,7 @@
 static char help[] = "Test DSNEP.\n\n";
 
 #include <slepcds.h>
+#include <slepcrg.h>
 
 int main(int argc,char **argv)
 {
@@ -18,17 +19,20 @@ int main(int argc,char **argv)
   DS             ds;
   FN             f1,f2,f3,funs[3],qfun;
   SlepcSC        sc;
-  PetscScalar    *Id,*A,*B,*wr,*wi,*X,coeffs[2];
-  PetscReal      tau=0.001,h,a=20,xi,re,im,nrm,aux;
-  PetscInt       i,j,n=10,ld,nev,nfun;
+  PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,auxi,alpha;
+  PetscReal      tau=0.001,radius=10,h,a=20,xi,re,im,nrm,aux;
+  PetscInt       i,j,ii,jj,k,inc=0,n=10,ld,nev,nfun;
   PetscViewer    viewer;
   PetscBool      verbose;
+  RG             rg;
+  DSMatType      mat[3]={DS_MAT_E0,DS_MAT_E1,DS_MAT_E2};
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NEP - dimension %D, tau=%g.\n",n,(double)tau);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(NULL,NULL,"-radius",&radius,NULL);CHKERRQ(ierr);
 
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
@@ -59,6 +63,12 @@ int main(int argc,char **argv)
   ld = n+2;  /* test leading dimension larger than n */
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
   ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
+
+  /* Set region */
+  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
+  ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
+  ierr = RGEllipseSetParameters(rg,0.0,radius,1.0);CHKERRQ(ierr);
+  ierr = DSNEPSetRG(ds,rg);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -115,10 +125,12 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
-
-  /* Print first eigenvalue */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalue =\n");CHKERRQ(ierr);
-  nev = 1;
+  ierr = DSGetDimensions(ds,NULL,NULL,NULL,&nev);CHKERRQ(ierr);
+  /* Print residual of computed eigenvalues */
+  ierr = PetscMalloc1(ld*ld,&W);CHKERRQ(ierr);
+  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n");CHKERRQ(ierr);
   for (i=0;i<nev;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(wr[i]);
@@ -127,40 +139,46 @@ int main(int argc,char **argv)
     re = wr[i];
     im = wi[i];
 #endif
-    if (PetscAbs(im)<1e-10) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
+    /* Residual */
+    ierr = PetscArrayzero(W,ld*ld);CHKERRQ(ierr);
+    for (k=0;k<nfun;k++) {
+      ierr = FNEvaluateFunction(funs[k],wr[i],&alpha);CHKERRQ(ierr);
+      ierr = DSGetArray(ds,mat[k],&A);CHKERRQ(ierr);
+      for (jj=0;jj<n;jj++) for (ii=0;ii<n;ii++) W[jj*ld+ii] += alpha*A[jj*ld+ii];
+      ierr = DSRestoreArray(ds,mat[k],&A);CHKERRQ(ierr);
     }
-  }
-
-  /* Eigenvectors */
-  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  j = 0;
-  nrm = 0.0;
-  ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-#if defined(PETSC_USE_COMPLEX)
-    aux = PetscAbsScalar(X[i+j*ld]);
-#else
-    if (PetscAbs(wi[j])==0.0) aux = PetscAbsScalar(X[i+j*ld]);
-    else aux = SlepcAbsEigenvalue(X[i+j*ld],X[i+(j+1)*ld]);
+    nrm = 0.0;
+    for (k=0;k<n;k++) {
+      auxr = 0.0; auxi = 0.0;
+      for (j=0;j<n;j++) {
+        auxr += W[k+j*ld]*X[i*ld+j];
+#if !defined(PETSC_USE_COMPLEX)
+        if (PetscAbs(wi[j])!=0.0) auxi += W[k+j*ld]*X[(i+1)*ld+j];
 #endif
-    nrm += aux*aux;
+      }
+#if !defined(PETSC_USE_COMPLEX)
+      inc = (PetscAbs(wi[j])!=0.0)?1:0;
+#endif
+      aux = SlepcAbsEigenvalue(auxr,auxi);
+      nrm += aux*aux;
+    }
+    nrm = PetscSqrtReal(nrm);
+    if (PetscAbs(im)<1e-10) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f      %12g\n",(double)re,(double)nrm);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi           %12g\n",(double)re,(double)im,(double)nrm);CHKERRQ(ierr);
+    }
+    k +=inc;
   }
+  ierr = PetscFree(W);CHKERRQ(ierr);
   ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  nrm = PetscSqrtReal(nrm);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of eigenvector = %.3f\n",(double)nrm);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
-  }
-
+  ierr = DSRestoreArray(ds,DS_MAT_W,&W);CHKERRQ(ierr);
   ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
   ierr = FNDestroy(&f1);CHKERRQ(ierr);
   ierr = FNDestroy(&f2);CHKERRQ(ierr);
   ierr = FNDestroy(&f3);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
+  ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }
