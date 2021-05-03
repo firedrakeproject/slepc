@@ -10,12 +10,11 @@
 
 #include <slepc/private/dsimpl.h>       /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
-#include <slepcrg.h>
 
 typedef struct {
   PetscInt       nf;                 /* number of functions in f[] */
   FN             f[DS_NUM_EXTRA];    /* functions defining the nonlinear operator */
-  PetscInt       max_mid;            /* maxim minimality index */
+  PetscInt       max_mid;            /* maximum minimality index */
   PetscInt       nnod;               /* number of nodes for quadrature rules */
   RG             rg;                 /* region for contour integral */
   void           *computematrixctx;
@@ -270,13 +269,13 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,*w,*w2,*S,*A0,*U,*VT;
   PetscScalar    sone=1.0,szero=0.0,center,*z;
   PetscReal      *rwork,norm,radius,vscale,rgscale,theta,*sigma;
-  PetscBLASInt   info,n,*perm,p,ld,lrwork=0,lwork,k_,rk_,colA,rowA,one=1,n1;
-  PetscInt       mid,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,nwi,*inside;
+  PetscBLASInt   info,n,*perm,p,ld,lwork,k_,rk_,colA,rowA,one=1,n1;
+  PetscInt       mid,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,nwi,lrwork,*inside;
   PetscBool      isellipse;
   PetscRandom    rand;
 
   PetscFunctionBegin;
-  if (!ctx->rg) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"The contour solver requires a ellipse region");
+  if (!ctx->rg) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"The contour solver requires a region passed with DSNEPSetRG()");
   /* Contour parameters */
   ierr = PetscObjectTypeCompare((PetscObject)ctx->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
@@ -293,9 +292,6 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (!ds->mat[DS_MAT_W]) {
     ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   }
-  if (!ds->mat[DS_MAT_X]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
-  }
   A = ds->mat[DS_MAT_A];
   B = ds->mat[DS_MAT_B];
   W = ds->mat[DS_MAT_W];
@@ -304,12 +300,11 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   p    = n; /* number of columns for the probing matrix */
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(5*ds->n,&lrwork);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(mid*p,&colA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(mid*n,&rowA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(5*rowA,&lwork);CHKERRQ(ierr);
   nw   = (2*mid+(mid+1)*(mid+1)+2*mid*mid)*n*p+3*nnod+6*mid*n+2*n;
-  nwi  = n+1; /* also fo be used in Newton */
+  nwi  = n+1; /* also to be used in Newton */
   lrwork = mid*n*6+8*n;
   ierr = DSAllocateWork_Private(ds,nw,lrwork,nwi);CHKERRQ(ierr);
   sigma = ds->rwork;
@@ -323,7 +318,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   nwu += nnod;
   w2   = ds->work+nwu;
   nwu += nnod;
-  A0   = ds->work+nwu; /**/
+  A0   = ds->work+nwu;
   nwu += (mid+1)*n*(mid+1)*p;
   U    = ds->work+nwu;
   nwu += mid*n*mid*p;
@@ -348,13 +343,13 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     theta = (2*PETSC_PI*k)/nnod;
     w[k]  = rgscale*radius*PETSC_i*PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta))/nnod; /* derivative */
     w2[k] = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta)); /* nodes unit ellipse */
-    z[k]  = rgscale*(center+radius*w2[k]); /* nodes  */
+    z[k]  = rgscale*(center+radius*w2[k]); /* nodes */
   }
   ierr = PetscArrayzero(S,2*mid*n*p);CHKERRQ(ierr);
   for (k=0;k<nnod;k++) {
     ierr = PetscArraycpy(R,Rc,p*n);CHKERRQ(ierr);
     ierr = DSNEPComputeMatrix(ds,z[k],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
-    /*LU factorization */
+    /* LU factorization */
     ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
     PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,W,&ld,perm,&info));
     SlepcCheckLapackInfo("getrf",info);
@@ -370,7 +365,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
   } /* R and Rc in A0 are no longer used */
 
-  /* Auxiliar matrix for SVD */
+  /* Auxiliary matrix for SVD */
   for (jj=0;jj<mid;jj++) {
     for (ii=0;ii<mid;ii++) {
       off = jj*p*rowA+ii*n;
@@ -406,8 +401,8 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     k=0;
     for (i=0;i<rk;i++)
       if (inside[i]==1) inside[k++] = i;
-    ierr = PetscArrayzero(A,ld*ld);
-    /* Discard out of region values */
+    ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
+    /* Discard values outside region */
     for (i=0;i<k;i++) A[i+i*ld] = (center*beta[inside[i]]+radius*alpha[inside[i]])*rgscale;
     for (i=0;i<k;i++) B[i+i*ld] = beta[inside[i]];
     for (i=0;i<k;i++) wr[i] = A[i+i*ld]/B[i+i*ld];
@@ -648,16 +643,20 @@ static PetscErrorCode DSNEPSetMinimality_NEP(DS ds,PetscInt n)
 }
 
 /*@
-   DSNEPSetMinimality - Sets the maxim minimality index stored internally by
-   the DS.
+   DSNEPSetMinimality - Sets the maximum minimality index used internally by
+   the DSNEP.
 
-   Not collective
+   Logically Collective on ds
 
-   Input Parameter:
-.  ds - the direct solver context
+   Input Parameters:
++  ds - the direct solver context
+-  n  - the maximum minimality index
 
-   Output Parameters:
-.  n - the maxim minimality index
+   Notes:
+   The maximum minimality index is used only in the contour integral method,
+   and is related to the highest momemts used in the method. The default
+   value is 1, an larger value might give better accuracy in some cases, but
+   at a higher cost.
 
    Level: advanced
 
@@ -670,10 +669,9 @@ PetscErrorCode DSNEPSetMinimality(DS ds,PetscInt n)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
-  ierr = PetscUseMethod(ds,"DSNEPSetMinimality_C",(DS,PetscInt),(ds,n));CHKERRQ(ierr);
+  ierr = PetscTryMethod(ds,"DSNEPSetMinimality_C",(DS,PetscInt),(ds,n));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 
 static PetscErrorCode DSNEPGetMinimality_NEP(DS ds,PetscInt *n)
 {
@@ -685,8 +683,8 @@ static PetscErrorCode DSNEPGetMinimality_NEP(DS ds,PetscInt *n)
 }
 
 /*@
-   DSNEPGetMinimality - Returns the maxim minimality index stored internally by
-   the DS.
+   DSNEPGetMinimality - Returns the maximum minimality index used internally by
+   the DSNEP.
 
    Not collective
 
@@ -694,7 +692,7 @@ static PetscErrorCode DSNEPGetMinimality_NEP(DS ds,PetscInt *n)
 .  ds - the direct solver context
 
    Output Parameters:
-.  n - the maxim minimality index passed in DSNEPSetMinimality()
+.  n - the maximum minimality index passed in DSNEPSetMinimality()
 
    Level: advanced
 
@@ -759,15 +757,19 @@ PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS,Pets
 
 static PetscErrorCode DSNEPSetRG_NEP(DS ds,RG rg)
 {
-  DS_NEP *dsctx = (DS_NEP*)ds->data;
+  PetscErrorCode ierr;
+  DS_NEP         *dsctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
+  ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
+  ierr = RGDestroy(&dsctx->rg);CHKERRQ(ierr);
   dsctx->rg = rg;
+  ierr = PetscLogObjectParent((PetscObject)ds,(PetscObject)dsctx->rg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 /*@
-   DSNEPSetRG - Sets a RG
+   DSNEPSetRG - Associates a region object to the DSNEP solver.
 
    Logically Collective on ds
 
@@ -775,7 +777,13 @@ static PetscErrorCode DSNEPSetRG_NEP(DS ds,RG rg)
 +  ds  - the direct solver context
 -  rg  - the region context
 
+   Notes:
+   The region is used only in the contour integral method, and
+   should enclose the wanted eigenvalues.
+
    Level: developer
+
+.seealso: DSNEPGetRG()
 @*/
 PetscErrorCode DSNEPSetRG(DS ds,RG rg)
 {
@@ -783,8 +791,53 @@ PetscErrorCode DSNEPSetRG(DS ds,RG rg)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(rg,2);
+  PetscValidHeaderSpecific(rg,RG_CLASSID,2);
+  PetscCheckSameComm(ds,1,rg,2);
   ierr = PetscTryMethod(ds,"DSNEPSetRG_C",(DS,RG),(ds,rg));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSNEPGetRG_NEP(DS ds,RG *rg)
+{
+  PetscErrorCode ierr;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  if (!ctx->rg) {
+    ierr = RGCreate(PetscObjectComm((PetscObject)ds),&ctx->rg);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->rg,(PetscObject)ds,1);CHKERRQ(ierr);
+    ierr = RGSetOptionsPrefix(ctx->rg,((PetscObject)ds)->prefix);CHKERRQ(ierr);
+    ierr = RGAppendOptionsPrefix(ctx->rg,"ds_nep_");CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)ds,(PetscObject)ctx->rg);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)ctx->rg,((PetscObject)ds)->options);CHKERRQ(ierr);
+  }
+  *rg = ctx->rg;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPGetRG - Obtain the region object associated to the DSNEP solver.
+
+   Not Collective
+
+   Input Parameter:
+.  ds  - the direct solver context
+
+   Output Parameter:
+.  rg  - the region context
+
+   Level: developer
+
+.seealso: DSNEPSetRG()
+@*/
+PetscErrorCode DSNEPGetRG(DS ds,RG *rg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(rg,2);
+  ierr = PetscUseMethod(ds,"DSNEPGetRG_C",(DS,RG*),(ds,rg));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -798,6 +851,7 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   for (i=0;i<ctx->nf;i++) {
     ierr = FNDestroy(&ctx->f[i]);CHKERRQ(ierr);
   }
+  ierr = RGDestroy(&ctx->rg);CHKERRQ(ierr);
   ierr = PetscFree(ds->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",NULL);CHKERRQ(ierr);
@@ -805,6 +859,7 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -862,6 +917,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",DSNEPGetMinimality_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",DSNEPSetMinimality_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",DSNEPSetRG_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",DSNEPGetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",DSNEPSetComputeMatrixFunction_NEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

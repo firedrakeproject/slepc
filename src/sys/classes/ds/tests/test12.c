@@ -11,7 +11,6 @@
 static char help[] = "Test DSNEP.\n\n";
 
 #include <slepcds.h>
-#include <slepcrg.h>
 
 int main(int argc,char **argv)
 {
@@ -21,7 +20,7 @@ int main(int argc,char **argv)
   SlepcSC        sc;
   PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,auxi,alpha;
   PetscReal      tau=0.001,radius=10,h,a=20,xi,re,im,nrm,aux;
-  PetscInt       i,j,ii,jj,k,inc=0,n=10,ld,nev,nfun;
+  PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun,meth;
   PetscViewer    viewer;
   PetscBool      verbose;
   RG             rg;
@@ -65,10 +64,14 @@ int main(int argc,char **argv)
   ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
 
   /* Set region */
-  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
-  ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
-  ierr = RGEllipseSetParameters(rg,0.0,radius,1.0);CHKERRQ(ierr);
-  ierr = DSNEPSetRG(ds,rg);CHKERRQ(ierr);
+  ierr = DSGetMethod(ds,&meth);CHKERRQ(ierr);
+  if (meth==1) {
+    ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
+    ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
+    ierr = RGEllipseSetParameters(rg,0.0,radius,1.0);CHKERRQ(ierr);
+    ierr = DSNEPSetRG(ds,rg);CHKERRQ(ierr);
+    ierr = RGDestroy(&rg);CHKERRQ(ierr);
+  }
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -156,19 +159,18 @@ int main(int argc,char **argv)
         if (PetscAbs(wi[j])!=0.0) auxi += W[k+j*ld]*X[(i+1)*ld+j];
 #endif
       }
-#if !defined(PETSC_USE_COMPLEX)
-      inc = (PetscAbs(wi[j])!=0.0)?1:0;
-#endif
       aux = SlepcAbsEigenvalue(auxr,auxi);
       nrm += aux*aux;
     }
     nrm = PetscSqrtReal(nrm);
-    if (PetscAbs(im)<1e-10) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f      %12g\n",(double)re,(double)nrm);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi           %12g\n",(double)re,(double)im,(double)nrm);CHKERRQ(ierr);
+    if (nrm>1000*n*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %D-th computed eigenpair %g\n",i,(double)nrm);CHKERRQ(ierr);
     }
-    k +=inc;
+    if (PetscAbs(im)<1e-10) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
+    }
   }
   ierr = PetscFree(W);CHKERRQ(ierr);
   ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -178,7 +180,6 @@ int main(int argc,char **argv)
   ierr = FNDestroy(&f2);CHKERRQ(ierr);
   ierr = FNDestroy(&f3);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
-  ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }
