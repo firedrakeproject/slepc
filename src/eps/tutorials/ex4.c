@@ -115,6 +115,6 @@ int main(int argc,char **argv)
    test:
       suffix: ciss_1
       args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -eps_type ciss -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05 -terse
-      requires: complex !single datafilespath !define(PETSC_USE_64BIT_INDICES)
+      requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
 
 TEST*/

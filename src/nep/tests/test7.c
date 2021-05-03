@@ -363,14 +363,15 @@ PetscErrorCode MatDestroy_F(Mat A)
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -nep_nev 3 -nep_tol 1e-8 -nep_nleigs_locking 0 -nep_nleigs_interpolation_degree 90 -nep_nleigs_interpolation_tol 1e-8 -nep_nleigs_restart 0.4 -terse
+   testset:
+      args: -nep_nev 3 -nep_tol 1e-8 -terse
+      filter: sed -e "s/[+-]0\.0*i//g"
       requires: !single
-
-   test:
-      suffix: 2
-      args: -split 0 -nep_nev 3 -nep_tol 1e-8 -terse
-      requires: !single
+      test:
+         suffix: 1
+         args: -nep_nleigs_locking 0 -nep_nleigs_interpolation_degree 90 -nep_nleigs_interpolation_tol 1e-8 -nep_nleigs_restart 0.4
+      test:
+         suffix: 2
+         args: -split 0
 
 TEST*/

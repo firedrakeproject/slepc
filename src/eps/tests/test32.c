@@ -144,5 +144,6 @@ int main(int argc,char **argv)
          suffix: 5_superlu
          requires: superlu_dist
          args: -st_pc_factor_mat_solver_type superlu_dist -st_mat_superlu_dist_rowperm NOROWPERM
+         timeoutfactor: 10
 
 TEST*/

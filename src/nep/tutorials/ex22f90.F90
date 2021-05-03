@@ -236,5 +236,6 @@
 !      suffix: 1
 !      args: -terse
 !      requires: !single
+!      filter: sed -e "s/[+-]0\.0*i//g"
 !
 !TEST*/

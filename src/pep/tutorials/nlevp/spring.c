@@ -141,6 +141,7 @@ int main(int argc,char **argv)
    testset:
       args: -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 -st_type sinvert -pep_scale diagonal -terse
       output_file: output/spring_1.out
+      filter: sed -e "s/[+-]0\.0*i//g"
       test:
          suffix: 1
          args: -pep_type {{toar linear}} -pep_conv_norm
@@ -159,6 +160,7 @@ int main(int argc,char **argv)
       suffix: 2
       args: -pep_type jd -pep_jd_minimality_index 1 -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -50 -terse
       requires: !single
+      filter: sed -e "s/[+-]0\.0*i//g"
 
    test:
       suffix: 3
