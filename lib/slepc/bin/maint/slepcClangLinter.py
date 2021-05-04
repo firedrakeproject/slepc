@@ -18,7 +18,7 @@ slepcClassIdMap = {
   "_p_LME *"    : "LME_CLASSID",
 }
 
-def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,multiproc=True,maxWorkers=0,mansecs=slepcMansecs,checkFunctionFilter=None,applyPatches=False):
+def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,maxWorkers=-1,checkFunctionFilter=None,applyPatches=False):
   extraCompilerFlags = [ '-I'+os.path.join(slepcDir,'include'), '-I'+os.path.join(slepcDir,petscArch,'include') ]
   with open(os.path.join(slepcDir,petscArch,"lib","slepc","conf","slepcvariables"),"r") as sv:
     line = sv.readline()
@@ -33,7 +33,7 @@ def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,m
   for headerFile in os.listdir(os.path.join(slepcDir,"include","slepc","private")):
     if headerFile in mansecimpls:
       extraHeaderIncludes.append("#include <slepc/private/{}>".format(headerFile))
-  petscClangLinter.main(petscDir,petscArch,altBaseDir=slepcDir,clangDir=clangDir,clangLib=clangLib,verbose=verbose,multiproc=multiproc,maxWorkers=maxWorkers,mansecs=mansecs,checkFunctionFilter=checkFunctionFilter,applyPatches=applyPatches,extraCompilerFlags=extraCompilerFlags,extraHeaderIncludes=extraHeaderIncludes)
+  petscClangLinter.main(petscDir,petscArch,srcDir=os.path.join(slepcDir,"src"),clangDir=clangDir,clangLib=clangLib,verbose=verbose,workers=maxWorkers,checkFunctionFilter=checkFunctionFilter,applyPatches=applyPatches,extraCompilerFlags=extraCompilerFlags,extraHeaderIncludes=extraHeaderIncludes)
 
 
 if __name__ == "__main__":
@@ -70,9 +70,7 @@ if __name__ == "__main__":
   filterFuncChoices = ", ".join(list(petscClangLinter.checkFunctionMap.keys()))
   parser.add_argument("-f","--functions",required=False,nargs="+",choices=list(petscClangLinter.checkFunctionMap.keys()),metavar="FUNCTIONNAME",help="filter to display errors only related to list of provided function names, default is all functions. Choose from available function names: "+filterFuncChoices,dest="funcs")
   mansecChoices = ", ".join(slepcMansecs)
-  parser.add_argument("-m","--mansecs",required=False,nargs="+",default=slepcMansecs,choices=slepcMansecs,metavar="MANSEC",help="run only over specified mansecs, choose from: "+mansecChoices,dest="mansecs")
-  parser.add_argument("-s","--no-multiprocessing",required=False,action="store_false",help="run linter in serial mode",dest="multiproc")
-  parser.add_argument("-j","--jobs",required=False,type=int,default=0,nargs="?",help="number of multiprocessing jobs, 0 means number of processors on machine")
+  parser.add_argument("-j","--jobs",required=False,type=int,default=-1,nargs="?",help="number of multiprocessing jobs, -1 means number of processors on machine")
   parser.add_argument("-a","--apply-patches",required=False,action="store_true",help="automatically apply patches that are saved to file",dest="apply")
   args = parser.parse_args()
 
@@ -86,5 +84,5 @@ if __name__ == "__main__":
   if args.clanglib:
     args.clangdir = None
 
-  ret = main(args.slepcdir,args.petscdir,args.petscarch,clangDir=args.clangdir,clangLib=args.clanglib,verbose=args.verbose,multiproc=args.multiproc,maxWorkers=args.jobs,mansecs=args.mansecs,checkFunctionFilter=args.funcs,applyPatches=args.apply)
+  ret = main(args.slepcdir,args.petscdir,args.petscarch,clangDir=args.clangdir,clangLib=args.clanglib,verbose=args.verbose,maxWorkers=args.jobs,checkFunctionFilter=args.funcs,applyPatches=args.apply)
   sys.exit(ret)
