@@ -209,12 +209,12 @@ if archdirexisted:
 if not slepc.prefixdir:
   slepc.prefixdir = archdir
 includedir = slepc.CreateDir(archdir,'include')
-with slepc.CreateFile(confdir,'slepcvariables') as slepcvars, \
-     slepc.CreateFile(confdir,'slepcrules') as slepcrules, \
-     slepc.CreateFile(includedir,'slepcconf.h') as slepcconf:
-  for pkg in checkpackages:
-    pkg.Process(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir)
-  slepcconf.write('\n#endif\n')
+with slepc.CreateFile(confdir,'slepcvariables') as slepcvars:
+  with slepc.CreateFile(confdir,'slepcrules') as slepcrules:
+    with slepc.CreateFile(includedir,'slepcconf.h') as slepcconf:
+      for pkg in checkpackages:
+        pkg.Process(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir)
+      slepcconf.write('\n#endif\n')
 
 log.NewSection('Writing various configuration files...')
 
