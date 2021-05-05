@@ -90,6 +90,12 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
   if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
   if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     ierr = PetscViewerASCIIPrintf(viewer,"number of functions: %D\n",ctx->nf);CHKERRQ(ierr);
+    if (ds->method==1) {  /* contour integral method */
+      ierr = PetscViewerASCIIPrintf(viewer,"number of integration points: %D\n",ctx->nnod);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"maximum minimality index: %D\n",ctx->max_mid);CHKERRQ(ierr);
+      if (ctx->Nit) { ierr = PetscViewerASCIIPrintf(viewer,"doing iterative refinement (%D its)\n",ctx->Nit);CHKERRQ(ierr); }
+      ierr = RGView(ctx->rg,viewer);CHKERRQ(ierr);
+    }
     PetscFunctionReturn(0);
   }
   for (i=0;i<ctx->nf;i++) {
@@ -665,6 +671,9 @@ static PetscErrorCode DSNEPSetMinimality_NEP(DS ds,PetscInt n)
 +  ds - the direct solver context
 -  n  - the maximum minimality index
 
+   Options Database Key:
+.  -ds_nep_minimality <n> - sets the maximum minimality index
+
    Notes:
    The maximum minimality index is used only in the contour integral method,
    and is related to the highest momemts used in the method. The default
@@ -745,6 +754,9 @@ static PetscErrorCode DSNEPSetRefineIts_NEP(DS ds,PetscInt its)
 +  ds  - the direct solver context
 -  its - the number of iterations
 
+   Options Database Key:
+.  -ds_nep_refine_its <its> - sets the number of Newton iterations
+
    Notes:
    Iterative refinement of eigenpairs is currently used only in the contour
    integral method.
@@ -822,6 +834,9 @@ static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
    Input Parameters:
 +  ds - the direct solver context
 -  ip - the number of integration points
+
+   Options Database Key:
+.  -ds_nep_integration_points <ip> - sets the number of integration points
 
    Notes:
    This parameter is relevant only in the contour integral method.
@@ -1009,6 +1024,34 @@ PetscErrorCode DSNEPGetRG(DS ds,RG *rg)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
+{
+  PetscErrorCode ierr;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscInt       k;
+  PetscBool      flg;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"DS NEP Options");CHKERRQ(ierr);
+
+    ierr = PetscOptionsInt("-ds_nep_minimality","Maximum minimality index","DSNEPSetMinimality",1,&k,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = DSNEPSetMinimality(ds,k);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsInt("-ds_nep_integration_points","Number of integration points","DSNEPSetIntegrationPoints",32,&k,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = DSNEPSetIntegrationPoints(ds,k);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsInt("-ds_nep_refine_its","Number of iterative refinement iterations","DSNEPSetRefineIts",0,&k,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = DSNEPSetRefineIts(ds,k);CHKERRQ(ierr); }
+
+    if (ds->method==1) {
+      if (!ctx->rg) { ierr = DSNEPGetRG(ds,&ctx->rg);CHKERRQ(ierr); }
+      ierr = RGSetFromOptions(ctx->rg);CHKERRQ(ierr);
+    }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSDestroy_NEP(DS ds)
 {
   PetscErrorCode ierr;
@@ -1074,16 +1117,17 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ctx->nnod    = 32;
   ctx->Nit     = 0;
 
-  ds->ops->allocate      = DSAllocate_NEP;
-  ds->ops->view          = DSView_NEP;
-  ds->ops->vectors       = DSVectors_NEP;
-  ds->ops->solve[0]      = DSSolve_NEP_SLP;
+  ds->ops->allocate       = DSAllocate_NEP;
+  ds->ops->setfromoptions = DSSetFromOptions_NEP;
+  ds->ops->view           = DSView_NEP;
+  ds->ops->vectors        = DSVectors_NEP;
+  ds->ops->solve[0]       = DSSolve_NEP_SLP;
 #if defined(PETSC_USE_COMPLEX)
-  ds->ops->solve[1]      = DSSolve_NEP_Contour;
+  ds->ops->solve[1]       = DSSolve_NEP_Contour;
 #endif
-  ds->ops->sort          = DSSort_NEP;
-  ds->ops->synchronize   = DSSynchronize_NEP;
-  ds->ops->destroy       = DSDestroy_NEP;
+  ds->ops->sort           = DSSort_NEP;
+  ds->ops->synchronize    = DSSynchronize_NEP;
+  ds->ops->destroy        = DSDestroy_NEP;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP);CHKERRQ(ierr);
