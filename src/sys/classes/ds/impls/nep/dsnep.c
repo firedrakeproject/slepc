@@ -67,7 +67,6 @@ PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!ctx->nf) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSNEP requires passing some functions via DSNEPSetFN()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
   for (i=0;i<ctx->nf;i++) {
     ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
