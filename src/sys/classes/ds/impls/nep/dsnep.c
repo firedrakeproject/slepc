@@ -800,6 +800,83 @@ PetscErrorCode DSNEPGetRefineIts(DS ds,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) ctx->nnod = 32;
+  else {
+    if (ip<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of integration points must be > 0");
+    ctx->nnod = ip;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPSetIntegrationPoints - Sets the number of integration points to be
+   used in the contour integral method.
+
+   Logically Collective on ds
+
+   Input Parameters:
++  ds - the direct solver context
+-  ip - the number of integration points
+
+   Notes:
+   This parameter is relevant only in the contour integral method.
+
+   Level: advanced
+
+.seealso: DSNEPGetIntegrationPoints()
+@*/
+PetscErrorCode DSNEPSetIntegrationPoints(DS ds,PetscInt ip)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,ip,2);
+  ierr = PetscTryMethod(ds,"DSNEPSetIntegrationPoints_C",(DS,PetscInt),(ds,ip));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSNEPGetIntegrationPoints_NEP(DS ds,PetscInt *ip)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  *ip = ctx->nnod;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPGetIntegrationPoints - Returns the number of integration points used
+   in the contour integral method.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  ip - the number of integration points
+
+   Level: advanced
+
+.seealso: DSNEPSetIntegrationPoints()
+@*/
+PetscErrorCode DSNEPGetIntegrationPoints(DS ds,PetscInt *ip)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidIntPointer(ip,2);
+  ierr = PetscUseMethod(ds,"DSNEPGetIntegrationPoints_C",(DS,PetscInt*),(ds,ip));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx)
 {
   DS_NEP *dsctx = (DS_NEP*)ds->data;
@@ -951,6 +1028,8 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefineIts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefineIts_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
@@ -1012,6 +1091,8 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",DSNEPSetMinimality_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefineIts_C",DSNEPGetRefineIts_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefineIts_C",DSNEPSetRefineIts_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",DSNEPGetIntegrationPoints_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",DSNEPSetIntegrationPoints_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",DSNEPSetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",DSNEPGetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",DSNEPSetComputeMatrixFunction_NEP);CHKERRQ(ierr);
