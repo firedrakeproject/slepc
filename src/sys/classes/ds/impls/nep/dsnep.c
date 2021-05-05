@@ -16,6 +16,7 @@ typedef struct {
   FN             f[DS_NUM_EXTRA];    /* functions defining the nonlinear operator */
   PetscInt       max_mid;            /* maximum minimality index */
   PetscInt       nnod;               /* number of nodes for quadrature rules */
+  PetscInt       Nit;                /* number of refinement iterations */
   RG             rg;                 /* region for contour integral */
   void           *computematrixctx;
   PetscErrorCode (*computematrix)(DS,PetscScalar,PetscBool,DSMatType,void*);
@@ -262,6 +263,59 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #if defined(PETSC_USE_COMPLEX)
+/*
+  Newton refinement for eigenpairs computed with contour integral.
+  k  - number of eigenpairs to refine
+  wr - eigenvalues (eigenvectors are stored in DS_MAT_X)
+*/
+static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
+{
+  PetscErrorCode ierr;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscScalar    *X,*W,*U,*R,sone=1.0,szero=0.0;
+  PetscReal      norm;
+  PetscInt       i,j,ii,nwu=0;
+  PetscBLASInt   n,*perm,info,ld,one=1,n1;
+
+  PetscFunctionBegin;
+  X = ds->mat[DS_MAT_X];
+  W = ds->mat[DS_MAT_W];
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  n1 = n+1;
+  ierr = DSAllocateWork_Private(ds,(n+2)*(n+1),0,n+1);CHKERRQ(ierr);
+  U    = ds->work+nwu;    nwu += (n+1)*(n+1);
+  R    = ds->work+nwu;    nwu += n+1;
+  perm = ds->iwork;
+  for (ii=0;ii<ctx->Nit;ii++) {
+    for (j=0;j<k;j++) {
+      ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_TRUE,DS_MAT_W);CHKERRQ(ierr);
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,U+n*(n+1),&one));
+      ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
+      for (i=0;i<n;i++) {
+        ierr = PetscArraycpy(U+i*n1,W+i*ld,n);CHKERRQ(ierr);
+        U[n+i*n1] = PetscConj(X[j*ld+i]);
+      }
+      U[n+n*n1] = 0.0;
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
+      R[n] = 0.0;
+      /* solve system  */
+      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+      PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n1,&n1,U,&n1,perm,&info));
+      SlepcCheckLapackInfo("getrf",info);
+      PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n1,&one,U,&n1,perm,R,&n1,&info));
+      SlepcCheckLapackInfo("getrs",info);
+      ierr = PetscFPTrapPop();CHKERRQ(ierr);
+      wr[j] -= R[n];
+      for (i=0;i<n;i++) X[j*ld+i] -= R[i];
+      /* normalization */
+      norm = BLASnrm2_(&n,X+ld*j,&one);
+      for (i=0;i<n;i++) X[ld*j+i] /= norm;
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
@@ -269,8 +323,8 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,*w,*w2,*S,*A0,*U,*VT;
   PetscScalar    sone=1.0,szero=0.0,center,*z;
   PetscReal      *rwork,norm,radius,vscale,rgscale,theta,*sigma;
-  PetscBLASInt   info,n,*perm,p,ld,lwork,k_,rk_,colA,rowA,one=1,n1;
-  PetscInt       mid,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,nwi,lrwork,*inside;
+  PetscBLASInt   info,n,*perm,p,ld,lwork,k_,rk_,colA,rowA,one=1;
+  PetscInt       mid,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,lrwork,*inside;
   PetscBool      isellipse;
   PetscRandom    rand;
 
@@ -304,32 +358,21 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(mid*n,&rowA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(5*rowA,&lwork);CHKERRQ(ierr);
   nw   = (2*mid+(mid+1)*(mid+1)+2*mid*mid)*n*p+3*nnod+6*mid*n+2*n;
-  nwi  = n+1; /* also to be used in Newton */
   lrwork = mid*n*6+8*n;
-  ierr = DSAllocateWork_Private(ds,nw,lrwork,nwi);CHKERRQ(ierr);
+  ierr = DSAllocateWork_Private(ds,nw,lrwork,n+1);CHKERRQ(ierr);
   sigma = ds->rwork;
   rwork = ds->rwork+mid*n;
   perm  = ds->iwork;
-  S    = ds->work+nwu; /* moments */
-  nwu += 2*mid*n*p;
-  z    = ds->work+nwu; /* integration points */
-  nwu += nnod;
-  w    = ds->work+nwu; /* quadrature weights */
-  nwu += nnod;
-  w2   = ds->work+nwu;
-  nwu += nnod;
-  A0   = ds->work+nwu;
-  nwu += (mid+1)*n*(mid+1)*p;
-  U    = ds->work+nwu;
-  nwu += mid*n*mid*p;
-  VT   = ds->work+nwu;
-  nwu += mid*p*mid*p;
-  alpha= ds->work+nwu;
-  nwu += n;
-  beta = ds->work+nwu;
-  nwu += n;
-  work = ds->work+nwu;
-  nwu += mid*n*5;
+  S     = ds->work+nwu;    nwu += 2*mid*n*p;    /* moments */
+  z     = ds->work+nwu;    nwu += nnod;         /* integration points */
+  w     = ds->work+nwu;    nwu += nnod;         /* quadrature weights */
+  w2    = ds->work+nwu;    nwu += nnod;
+  A0    = ds->work+nwu;    nwu += (mid+1)*n*(mid+1)*p;
+  U     = ds->work+nwu;    nwu += mid*n*mid*p;
+  VT    = ds->work+nwu;    nwu += mid*p*mid*p;
+  alpha = ds->work+nwu;    nwu += n;
+  beta  = ds->work+nwu;    nwu += n;
+  work  = ds->work+nwu;    nwu += mid*n*5;
 
   /* Set random matrix */
   Rc   = A0;
@@ -416,42 +459,8 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
       for (i=0;i<n;i++) X[ld*j+i] /= norm;
     }
     ierr = PetscFree(inside);CHKERRQ(ierr);
-    ierr = DSAllocateWork_Private(ds,(n+2)*(n+1),0,0);CHKERRQ(ierr);
     /* Newton refinement */
-    PetscInt Nit=0;
-    PetscOptionsGetInt(NULL,NULL,"-newton_it",&Nit,NULL);
-    nwu  =0; /* reset work space */
-    U    = ds->work+nwu;
-    nwu += (n+1)*(n+1);
-    R    = ds->work+nwu;
-    nwu += n+1;
-    ierr = PetscBLASIntCast(n+1,&n1);CHKERRQ(ierr);
-   for (ii=0;ii<Nit;ii++) {
-    for (j=0;j<k;j++) {
-      ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_TRUE,DS_MAT_W);CHKERRQ(ierr);
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,U+n*(n+1),&one));
-      ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
-      for (i=0;i<n;i++) {
-        ierr = PetscArraycpy(U+i*n1,W+i*ld,n);CHKERRQ(ierr);
-        U[n+i*n1] = PetscConj(X[j*ld+i]);
-      }
-      U[n+n*n1] = 0.0;
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
-      R[n] = 0.0;
-      /* solve system  */
-      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-      PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n1,&n1,U,&n1,perm,&info));
-      SlepcCheckLapackInfo("getrf",info);
-      PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n1,&one,U,&n1,perm,R,&n1,&info));
-      SlepcCheckLapackInfo("getrs",info);
-      ierr = PetscFPTrapPop();CHKERRQ(ierr);
-      wr[j] -= R[n];
-      for (i=0;i<n;i++) X[j*ld+i] -= R[i];
-      /* normalization */
-      norm = BLASnrm2_(&n,X+ld*j,&one);
-      for (i=0;i<n;i++) X[ld*j+i] /= norm;
-    }
-   }
+    ierr = DSNEPNewtonRefine(ds,k,wr);CHKERRQ(ierr);
   }
   ds->t = k;
   ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
@@ -638,7 +647,11 @@ static PetscErrorCode DSNEPSetMinimality_NEP(DS ds,PetscInt n)
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  ctx->max_mid = n;
+  if (n == PETSC_DECIDE || n == PETSC_DEFAULT) ctx->max_mid = 1;
+  else {
+    if (n<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The minimality value must be > 0");
+    ctx->max_mid = n;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -706,6 +719,84 @@ PetscErrorCode DSNEPGetMinimality(DS ds,PetscInt *n)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(n,2);
   ierr = PetscUseMethod(ds,"DSNEPGetMinimality_C",(DS,PetscInt*),(ds,n));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSNEPSetRefineIts_NEP(DS ds,PetscInt its)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  if (its == PETSC_DECIDE || its == PETSC_DEFAULT) ctx->Nit = 0;
+  else {
+    if (its<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
+    ctx->Nit = its;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPSetRefineIts - Sets the number of iterations of Newton iterative
+   refinement for eigenpairs.
+
+   Logically Collective on ds
+
+   Input Parameters:
++  ds  - the direct solver context
+-  its - the number of iterations
+
+   Notes:
+   Iterative refinement of eigenpairs is currently used only in the contour
+   integral method.
+
+   Level: advanced
+
+.seealso: DSNEPGetRefineIts()
+@*/
+PetscErrorCode DSNEPSetRefineIts(DS ds,PetscInt its)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,its,2);
+  ierr = PetscTryMethod(ds,"DSNEPSetRefineIts_C",(DS,PetscInt),(ds,its));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSNEPGetRefineIts_NEP(DS ds,PetscInt *its)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  *its = ctx->Nit;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPGetRefineIts - Returns the number of iterations of Newton iterative
+   refinement for eigenpairs.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  its - the number of iterations
+
+   Level: advanced
+
+.seealso: DSNEPSetRefineIts()
+@*/
+PetscErrorCode DSNEPGetRefineIts(DS ds,PetscInt *its)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidIntPointer(its,2);
+  ierr = PetscUseMethod(ds,"DSNEPGetRefineIts_C",(DS,PetscInt*),(ds,its));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -858,6 +949,8 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefineIts_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefineIts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
@@ -900,6 +993,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ds->data = (void*)ctx;
   ctx->max_mid = 1;
   ctx->nnod    = 32;
+  ctx->Nit     = 0;
 
   ds->ops->allocate      = DSAllocate_NEP;
   ds->ops->view          = DSView_NEP;
@@ -916,6 +1010,8 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",DSNEPGetMinimality_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",DSNEPSetMinimality_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefineIts_C",DSNEPGetRefineIts_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefineIts_C",DSNEPSetRefineIts_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",DSNEPSetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",DSNEPGetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",DSNEPSetComputeMatrixFunction_NEP);CHKERRQ(ierr);
