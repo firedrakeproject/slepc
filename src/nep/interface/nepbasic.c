@@ -462,8 +462,10 @@ PetscErrorCode NEPSetRG(NEP nep,RG rg)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidHeaderSpecific(rg,RG_CLASSID,2);
-  PetscCheckSameComm(nep,1,rg,2);
+  if (rg) {
+    PetscValidHeaderSpecific(rg,RG_CLASSID,2);
+    PetscCheckSameComm(nep,1,rg,2);
+  }
   ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
   ierr = RGDestroy(&nep->rg);CHKERRQ(ierr);
   nep->rg = rg;

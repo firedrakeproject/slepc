@@ -1020,8 +1020,10 @@ PetscErrorCode DSNEPSetRG(DS ds,RG rg)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidHeaderSpecific(rg,RG_CLASSID,2);
-  PetscCheckSameComm(ds,1,rg,2);
+  if (rg) {
+    PetscValidHeaderSpecific(rg,RG_CLASSID,2);
+    PetscCheckSameComm(ds,1,rg,2);
+  }
   ierr = PetscTryMethod(ds,"DSNEPSetRG_C",(DS,RG),(ds,rg));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
