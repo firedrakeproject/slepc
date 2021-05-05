@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test DSNEP.\n\n";
+static char help[] = "Test interface functions of DSNEP.\n\n";
 
 #include <slepcds.h>
 
@@ -16,13 +16,13 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   DS             ds;
-  FN             f1,f2,f3,funs[3],qfun;
+  FN             f1,f2,f3,funs[3];
   SlepcSC        sc;
   PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,auxi,alpha;
-  PetscReal      tau=0.001,radius=10,h,a=20,xi,re,im,nrm,aux;
-  PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun,meth;
+  PetscReal      tau=0.001,h,a=20,xi,re,im,nrm,aux;
+  PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun,midx,ip,rits,meth;
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      flg,verbose;
   RG             rg;
   DSMatType      mat[3]={DS_MAT_E0,DS_MAT_E1,DS_MAT_E2};
 
@@ -31,12 +31,31 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NEP - dimension %D, tau=%g.\n",n,(double)tau);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-radius",&radius,NULL);CHKERRQ(ierr);
 
-  /* Create DS object */
+  /* Create DS object and set options */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
   ierr = DSSetType(ds,DSNEP);CHKERRQ(ierr);
+  ierr = DSSetMethod(ds,1);CHKERRQ(ierr);  /* contour integral */
+  ierr = DSNEPGetRG(ds,&rg);CHKERRQ(ierr);
+  ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
+  ierr = DSNEPSetMinimality(ds,1);CHKERRQ(ierr);
+  ierr = DSNEPSetIntegrationPoints(ds,16);CHKERRQ(ierr);
+  ierr = DSNEPSetRefineIts(ds,2);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
+
+  /* Print current options */
+  ierr = DSGetMethod(ds,&meth);CHKERRQ(ierr);
+  if (meth!=1) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"This example requires ds_method=1");
+  ierr = RGIsTrivial(rg,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must at least set the radius of the ellipse");
+
+  ierr = DSNEPGetMinimality(ds,&midx);CHKERRQ(ierr);
+  ierr = DSNEPGetIntegrationPoints(ds,&ip);CHKERRQ(ierr);
+  ierr = DSNEPGetRefineIts(ds,&rits);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour integral method with %D integration points and minimality index %D\n",ip,midx);CHKERRQ(ierr);
+  if (rits) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Doing %D iterations of Newton refinement\n",rits);CHKERRQ(ierr);
+  }
 
   /* Set functions (prior to DSAllocate) */
   ierr = FNCreate(PETSC_COMM_WORLD,&f1);CHKERRQ(ierr);
@@ -59,35 +78,16 @@ int main(int argc,char **argv)
   ierr = DSNEPSetFN(ds,3,funs);CHKERRQ(ierr);
 
   /* Set dimensions */
-  ld = n+2;  /* test leading dimension larger than n */
+  ld = n;
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
   ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
-
-  /* Set region */
-  ierr = DSGetMethod(ds,&meth);CHKERRQ(ierr);
-  if (meth==1) {
-    ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
-    ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
-    ierr = RGEllipseSetParameters(rg,0.0,radius,1.0);CHKERRQ(ierr);
-    ierr = DSNEPSetRG(ds,rg);CHKERRQ(ierr);
-    ierr = RGDestroy(&rg);CHKERRQ(ierr);
-  }
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-  }
-
-  /* Show info about functions */
-  ierr = DSNEPGetNumFN(ds,&nfun);CHKERRQ(ierr);
-  for (i=0;i<nfun;i++) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Function %D:\n",i);CHKERRQ(ierr);
-    ierr = DSNEPGetFN(ds,i,&qfun);CHKERRQ(ierr);
-    ierr = FNView(qfun,NULL);CHKERRQ(ierr);
   }
 
   /* Fill matrices */
@@ -130,6 +130,7 @@ int main(int argc,char **argv)
   }
   ierr = DSGetDimensions(ds,NULL,NULL,NULL,&nev);CHKERRQ(ierr);
   /* Print residual of computed eigenvalues */
+  ierr = DSNEPGetNumFN(ds,&nfun);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld*ld,&W);CHKERRQ(ierr);
   ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -188,10 +189,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-
-   test:
-      suffix: 2
-      args: -ds_method 1 -radius 10 -ds_nep_refine_its 1
+      args: -ds_nep_rg_ellipse_radius 10
       requires: complex
 
 TEST*/
