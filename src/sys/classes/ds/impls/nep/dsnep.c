@@ -901,7 +901,7 @@ static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*f
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    DSNEPSetComputeMatrixFunction - Sets a user-provided subroutine to compute
    the matrices T(lambda) or T'(lambda).
 
@@ -926,6 +926,8 @@ $   fun(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
    for the derivative.
 
    Level: developer
+
+.seealso: DSNEPGetComputeMatrixFunction()
 @*/
 PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx)
 {
@@ -934,6 +936,43 @@ PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS,Pets
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   ierr = PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*),(ds,fun,ctx));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSNEPGetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (**fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void **ctx)
+{
+  DS_NEP *dsctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  if (fun) *fun = dsctx->computematrix;
+  if (ctx) *ctx = dsctx->computematrixctx;
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   DSNEPGetComputeMatrixFunction - Returns the user-provided callback function
+   set in DSNEPSetComputeMatrixFunction().
+
+   Not Collective
+
+   Input Parameter:
+.  ds  - the direct solver context
+
+   Output Parameters:
++  fun - the pointer to the user function
+-  ctx - the context pointer
+
+   Level: developer
+
+.seealso: DSNEPSetComputeMatrixFunction()
+@*/
+PetscErrorCode DSNEPGetComputeMatrixFunction(DS ds,PetscErrorCode (**fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void **ctx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  ierr = PetscUseMethod(ds,"DSNEPGetComputeMatrixFunction_C",(DS,PetscErrorCode (**)(DS,PetscScalar,PetscBool,DSMatType,void*),void**),(ds,fun,ctx));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1075,6 +1114,7 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1139,6 +1179,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",DSNEPSetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",DSNEPGetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",DSNEPSetComputeMatrixFunction_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetComputeMatrixFunction_C",DSNEPGetComputeMatrixFunction_NEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
