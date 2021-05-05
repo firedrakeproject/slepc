@@ -26,10 +26,13 @@ class Slepc4py(package.Package):
     value,found = argdb.PopBool('with-'+self.packagename)
     if found:
       self.requested = value
+    have_petsc4py, have_petsc4py_cnt = argdb.PopBool('have-petsc4py')
+    self.have_petsc4py = have_petsc4py if have_petsc4py_cnt > 0 else None
 
   def ShowHelp(self):
     wd = package.Package.wd
     print('  --with-slepc4py=<bool>'.ljust(wd)+': Build Python bindings (default: no)')
+    print('  --have-petsc4py=<bool>'.ljust(wd)+': Whether petsc4py is installed (default: autodetect)')
 
   def ShowInfo(self):
     if self.havepackage:
@@ -41,16 +44,18 @@ class Slepc4py(package.Package):
       return
     self.log.NewSection('Processing slepc4py...')
 
-    # Check petsc4py module
-    try:
-      if not 'PYTHONPATH' in os.environ:
-        pythonpath = os.path.join(petsc.dir,'lib') if petsc.isinstall else os.path.join(petsc.dir,petsc.arch,'lib')
-        sys.path.insert(0,pythonpath)
-      else:
-        pythonpath = os.environ['PYTHONPATH']
-      from petsc4py import PETSc
-    except ImportError:
-      self.log.Exit('Cannot import petsc4py, make sure your PYTHONPATH is set correctly')
+    pythonpath = get_python_path(petsc)
+    sys.path.insert(0,pythonpath)
+
+    # Check for pestc4py unless user suppressed this
+    if self.have_petsc4py is None:
+      try:
+        from petsc4py import PETSc
+      except ImportError:
+        self.log.Exit('Cannot import petsc4py, make sure your PYTHONPATH is set correctly')
+    elif not self.have_petsc4py:
+      self.log.Exit('petsc4py is required but had been marked as not installed')
+
     # Check for cython
     try:
       import Cython
@@ -116,3 +121,12 @@ class Slepc4py(package.Package):
     slepcrules.write('slepc4py-install:\n')
     slepcrules.write('slepc4pytest:\n')
 
+def get_python_path(petsc):
+  """Return the path to python packages from environment or PETSc"""
+  if 'PYTHONPATH' in os.environ:
+    return os.environ['PYTHONPATH']
+  else:
+    if petsc.isinstall:
+      return os.path.join(petsc.dir,'lib')
+    else:
+      return os.path.join(petsc.dir,petsc.arch,'lib')
