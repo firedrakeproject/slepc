@@ -14,6 +14,7 @@
 
 #include "petsc/finclude/petscmat.h"
 #include "slepc/finclude/slepcfn.h"
+#include "slepc/finclude/slepcrg.h"
 
 #define DS type(tDS)
 
