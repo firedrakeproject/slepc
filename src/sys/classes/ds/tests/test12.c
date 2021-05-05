@@ -186,12 +186,13 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-
-   test:
-      suffix: 2
-      args: -ds_method 1 -radius 10 -ds_nep_refine_its 1
-      requires: complex
+   testset:
+      filter: grep -v "solving the problem"
+      test:
+         suffix: 1
+      test:
+         suffix: 2
+         args: -ds_method 1 -radius 10 -ds_nep_refine_its 1
+         requires: complex
 
 TEST*/

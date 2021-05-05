@@ -83,12 +83,20 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
   DS_NEP            *ctx = (DS_NEP*)ds->data;
   PetscViewerFormat format;
   PetscInt          i;
+  const char        *methodname[] = {
+                     "Successive Linear Problems",
+                     "Contour integral"
+  };
+  const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
   if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     ierr = PetscViewerASCIIPrintf(viewer,"number of functions: %D\n",ctx->nf);CHKERRQ(ierr);
+    if (ds->method<nmeth) {
+      ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]);CHKERRQ(ierr);
+    }
     if (ds->method==1) {  /* contour integral method */
       ierr = PetscViewerASCIIPrintf(viewer,"number of integration points: %D\n",ctx->nnod);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"maximum minimality index: %D\n",ctx->max_mid);CHKERRQ(ierr);
@@ -1140,7 +1148,8 @@ PetscErrorCode DSDestroy_NEP(DS ds)
 -  DS_MAT_W  - (workspace) eigenvectors of linearization in SLP
 
    Implemented methods:
-.  0 - Successive Linear Problems (SLP), computes just one eigenpair
++  0 - Successive Linear Problems (SLP), computes just one eigenpair
+-  1 - Contour integral, computes all eigenvalues inside a region
 
 .seealso: DSCreate(), DSSetType(), DSType, DSNEPSetFN(), DSNEPSetComputeMatrixFunction()
 M*/
