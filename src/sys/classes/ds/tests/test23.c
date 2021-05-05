@@ -18,13 +18,18 @@ int main(int argc,char **argv)
   DS             ds;
   FN             f1,f2,f3,funs[3];
   SlepcSC        sc;
-  PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,auxi,alpha;
+  PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,alpha;
   PetscReal      tau=0.001,h,a=20,xi,re,im,nrm,aux;
   PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun,midx,ip,rits,meth;
   PetscViewer    viewer;
-  PetscBool      flg,verbose;
+  PetscBool      verbose;
   RG             rg;
   DSMatType      mat[3]={DS_MAT_E0,DS_MAT_E1,DS_MAT_E2};
+#if defined(PETSC_USE_COMPLEX)
+  PetscBool      flg;
+#else
+  PetscScalar    auxi;
+#endif
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -35,7 +40,9 @@ int main(int argc,char **argv)
   /* Create DS object and set options */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
   ierr = DSSetType(ds,DSNEP);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
   ierr = DSSetMethod(ds,1);CHKERRQ(ierr);  /* contour integral */
+#endif
   ierr = DSNEPGetRG(ds,&rg);CHKERRQ(ierr);
   ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
   ierr = DSNEPSetMinimality(ds,1);CHKERRQ(ierr);
@@ -45,16 +52,20 @@ int main(int argc,char **argv)
 
   /* Print current options */
   ierr = DSGetMethod(ds,&meth);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
   if (meth!=1) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"This example requires ds_method=1");
   ierr = RGIsTrivial(rg,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must at least set the radius of the ellipse");
+#endif
 
   ierr = DSNEPGetMinimality(ds,&midx);CHKERRQ(ierr);
   ierr = DSNEPGetIntegrationPoints(ds,&ip);CHKERRQ(ierr);
   ierr = DSNEPGetRefineIts(ds,&rits);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour integral method with %D integration points and minimality index %D\n",ip,midx);CHKERRQ(ierr);
-  if (rits) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Doing %D iterations of Newton refinement\n",rits);CHKERRQ(ierr);
+  if (meth==1) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour integral method with %D integration points and minimality index %D\n",ip,midx);CHKERRQ(ierr);
+    if (rits) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Doing %D iterations of Newton refinement\n",rits);CHKERRQ(ierr);
+    }
   }
 
   /* Set functions (prior to DSAllocate) */
@@ -115,7 +126,7 @@ int main(int argc,char **argv)
   }
 
   /* Solve */
-  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
+  ierr = PetscCalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
@@ -129,7 +140,8 @@ int main(int argc,char **argv)
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
   ierr = DSGetDimensions(ds,NULL,NULL,NULL,&nev);CHKERRQ(ierr);
-  /* Print residual of computed eigenvalues */
+
+  /* Print computed eigenvalues */
   ierr = DSNEPGetNumFN(ds,&nfun);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld*ld,&W);CHKERRQ(ierr);
   ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
@@ -153,7 +165,10 @@ int main(int argc,char **argv)
     }
     nrm = 0.0;
     for (k=0;k<n;k++) {
-      auxr = 0.0; auxi = 0.0;
+      auxr = 0.0;
+#if !defined(PETSC_USE_COMPLEX)
+      auxi = 0.0;
+#endif
       for (j=0;j<n;j++) {
         auxr += W[k+j*ld]*X[i*ld+j];
 #if !defined(PETSC_USE_COMPLEX)
@@ -187,9 +202,13 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -ds_nep_rg_ellipse_radius 10
-      requires: complex
+   testset:
+      test:
+         suffix: 1
+         requires: !complex
+      test:
+         suffix: 2
+         args: -ds_nep_rg_ellipse_radius 10
+         requires: complex
 
 TEST*/

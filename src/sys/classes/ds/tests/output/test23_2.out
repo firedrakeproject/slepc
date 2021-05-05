@@ -1,0 +1,7 @@
+Solve a Dense System of type NEP - dimension 10, tau=0.001.
+Contour integral method with 16 integration points and minimality index 1
+Doing 2 iterations of Newton refinement
+Computed eigenvalues =
+  8.37410
+  -4.25076
+  2.47136

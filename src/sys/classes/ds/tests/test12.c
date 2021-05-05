@@ -18,13 +18,16 @@ int main(int argc,char **argv)
   DS             ds;
   FN             f1,f2,f3,funs[3],qfun;
   SlepcSC        sc;
-  PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,auxi,alpha;
+  PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,alpha;
   PetscReal      tau=0.001,radius=10,h,a=20,xi,re,im,nrm,aux;
   PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun,meth;
   PetscViewer    viewer;
   PetscBool      verbose;
   RG             rg;
   DSMatType      mat[3]={DS_MAT_E0,DS_MAT_E1,DS_MAT_E2};
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    auxi;
+#endif
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -115,7 +118,7 @@ int main(int argc,char **argv)
   }
 
   /* Solve */
-  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
+  ierr = PetscCalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
@@ -129,7 +132,8 @@ int main(int argc,char **argv)
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
   ierr = DSGetDimensions(ds,NULL,NULL,NULL,&nev);CHKERRQ(ierr);
-  /* Print residual of computed eigenvalues */
+
+  /* Print computed eigenvalues */
   ierr = PetscMalloc1(ld*ld,&W);CHKERRQ(ierr);
   ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -152,7 +156,10 @@ int main(int argc,char **argv)
     }
     nrm = 0.0;
     for (k=0;k<n;k++) {
-      auxr = 0.0; auxi = 0.0;
+      auxr = 0.0;
+#if !defined(PETSC_USE_COMPLEX)
+      auxi = 0.0;
+#endif
       for (j=0;j<n;j++) {
         auxr += W[k+j*ld]*X[i*ld+j];
 #if !defined(PETSC_USE_COMPLEX)
