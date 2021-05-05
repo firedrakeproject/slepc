@@ -12,6 +12,10 @@
 from __future__ import print_function
 import os, sys, time, shutil
 
+# Check python version
+if not hasattr(sys, 'version_info') or sys.version_info < (2,6):
+  sys.exit('ERROR: Python version 2.6 or higher is required')
+
 def WriteModulesFile(modules,version,sdir):
   ''' Write the contents of the Modules file '''
   modules.write('#%Module\n\n')
@@ -209,12 +213,12 @@ if archdirexisted:
 if not slepc.prefixdir:
   slepc.prefixdir = archdir
 includedir = slepc.CreateDir(archdir,'include')
-with slepc.CreateFile(confdir,'slepcvariables') as slepcvars, \
-     slepc.CreateFile(confdir,'slepcrules') as slepcrules, \
-     slepc.CreateFile(includedir,'slepcconf.h') as slepcconf:
-  for pkg in checkpackages:
-    pkg.Process(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir)
-  slepcconf.write('\n#endif\n')
+with slepc.CreateFile(confdir,'slepcvariables') as slepcvars:
+  with slepc.CreateFile(confdir,'slepcrules') as slepcrules:
+    with slepc.CreateFile(includedir,'slepcconf.h') as slepcconf:
+      for pkg in checkpackages:
+        pkg.Process(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir)
+      slepcconf.write('\n#endif\n')
 
 log.NewSection('Writing various configuration files...')
 
