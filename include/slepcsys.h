@@ -95,6 +95,12 @@ SLEPC_EXTERN PetscBool SlepcInitializeCalled;
 #define SlepcLogFlopsComplex(a) PetscLogFlops((4.0*a))
 #endif
 
+#if defined(PETSC_USE_COMPLEX)
+#define SlepcLogGpuFlopsComplex(a) PetscLogGpuFlops((a))
+#else
+#define SlepcLogGpuFlopsComplex(a) PetscLogGpuFlops((4.0*a))
+#endif
+
 /*
     Developer routines to be used with a debugger
 */
