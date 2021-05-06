@@ -44,11 +44,7 @@ PETSC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarg
   *ierr = PetscInitialized(&flg);
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialized failed");return; }
   if (!flg) {
-#if defined(PETSC_HAVE_FORTRAN_MIXED_STR_ARG)
-    petscinitializef_(filename,len,help,helplen,readarguments,ierr);
-#else
     petscinitializef_(filename,help,readarguments,ierr,len,helplen);
-#endif
     if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialize failed");return; }
     SlepcBeganPetsc = PETSC_TRUE;
   }
