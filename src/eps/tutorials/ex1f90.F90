@@ -21,6 +21,7 @@
       program main
 #include <slepc/finclude/slepceps.h>
       use slepceps
+      use iso_c_binding
       implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,7 +50,7 @@
       one = 1
       two = 2
       three = 3
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
+      call SlepcInitialize(PETSC_NULL_CHARACTER,"ex1f90 test"//c_new_line,ierr)
       if (ierr .ne. 0) then
         print*,'SlepcInitialize failed'
         stop
@@ -159,8 +160,10 @@
 
 !/*TEST
 !
+!   build:
+!      requires: define(PETSC_USING_F2003) define(PETSC_USING_F90FREEFORM)
+!
 !   test:
-!      suffix: 1
 !      args: -eps_nev 4 -terse
 !
 !TEST*/
