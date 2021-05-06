@@ -218,7 +218,7 @@ endif
 $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o : $(OBJDIR)/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o : $(OBJDIR)/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/sys/classes/rg/f90-mod/slepcrgmod.o : $(OBJDIR)/sys/f90-mod/slepcsysmod.o
-$(OBJDIR)/sys/classes/ds/f90-mod/slepcdsmod.o : $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o
+$(OBJDIR)/sys/classes/ds/f90-mod/slepcdsmod.o : $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/sys/classes/rg/f90-mod/slepcrgmod.o
 $(OBJDIR)/sys/classes/st/f90-mod/slepcstmod.o : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o
 $(OBJDIR)/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o
 $(OBJDIR)/lme/f90-mod/slepclmemod.o   : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o

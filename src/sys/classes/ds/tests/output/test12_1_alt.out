@@ -18,6 +18,5 @@ FN Object: 1 MPI processes
   type: exp
     Exponential: exp(-0.001*x)
     computing matrix functions with: scaling & squaring, [m/m] Pade approximant (Higham)
-Computed eigenvalue =
+Computed eigenvalues =
   2.47137
-Norm of eigenvector = 1.000

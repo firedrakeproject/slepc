@@ -5,6 +5,12 @@ DS Object: 1 MPI processes
   dimensions: ld=12, n=10, l=0, k=0
   flags:
   number of functions: 3
+  number of integration points: 32
+  maximum minimality index: 1
+  doing iterative refinement (1 its)
+  RG Object: 1 MPI processes
+    type: ellipse
+      center: 0., radius: 10., vscale: 1.
 Function 0:
 FN Object: 1 MPI processes
   type: rational
@@ -19,4 +25,6 @@ FN Object: 1 MPI processes
     Exponential: exp(-0.001*x)
     computing matrix functions with: scaling & squaring, [m/m] Pade approximant (Higham)
 Computed eigenvalues =
+  8.37410
+  -4.25076
   2.47136

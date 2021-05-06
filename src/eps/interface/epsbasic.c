@@ -649,8 +649,10 @@ PetscErrorCode EPSSetRG(EPS eps,RG rg)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidHeaderSpecific(rg,RG_CLASSID,2);
-  PetscCheckSameComm(eps,1,rg,2);
+  if (rg) {
+    PetscValidHeaderSpecific(rg,RG_CLASSID,2);
+    PetscCheckSameComm(eps,1,rg,2);
+  }
   ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
   ierr = RGDestroy(&eps->rg);CHKERRQ(ierr);
   eps->rg = rg;
