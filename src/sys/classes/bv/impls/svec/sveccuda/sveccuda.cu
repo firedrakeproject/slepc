@@ -360,7 +360,6 @@ struct conjugate
 
 PetscErrorCode ConjugateCudaArray(PetscScalar *a, PetscInt n)
 {
-  cudaError_t                     cerr;
   thrust::device_ptr<PetscScalar> ptr;
 
   PetscFunctionBegin;
