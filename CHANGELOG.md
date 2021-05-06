@@ -4,6 +4,8 @@
 
 ### Added
 
+- Add support for ``SlepcInitialize(filename,help,ierr)``, ``SlepcInitialize(ierr)`` in
+  addition to current ``SlepcInitialize(filename,ierr)``
 - New `DSGSVD` type for the generalized SVD.
 
 ### Changed

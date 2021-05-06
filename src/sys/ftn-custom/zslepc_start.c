@@ -15,23 +15,18 @@
 #include <petsc/private/fortranimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define petscinitialize_              PETSCINITIALIZE
-#define petscinitializenoarguments_   PETSCINITIALIZENOARGUMENTS
+#define petscinitializef_             PETSCINITIALIZEF
 #define petscfinalize_                PETSCFINALIZE
-#define slepcinitialize_              SLEPCINITIALIZE
-#define slepcinitializenoarguments_   SLEPCINITIALIZENOARGUMENTS
+#define slepcinitializef_             SLEPCINITIALIZEF
 #define slepcfinalize_                SLEPCFINALIZE
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define petscinitialize_              petscinitialize
-#define petscinitializenoarguments_   petscinitializenoarguments
+#define petscinitializef_             petscinitializef
 #define petscfinalize_                petscfinalize
-#define slepcinitialize_              slepcinitialize
-#define slepcinitializenoarguments_   slepcinitializenoarguments
+#define slepcinitializef_             slepcinitializef
 #define slepcfinalize_                slepcfinalize
 #endif
 
-SLEPC_EXTERN void petscinitialize_(char *filename,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len);
-SLEPC_EXTERN void petscinitializenoarguments_(PetscErrorCode *ierr);
+SLEPC_EXTERN void petscinitializef_(char *filename,char* help,PetscBool *readarguments,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len,PETSC_FORTRAN_CHARLEN_T helplen);
 SLEPC_EXTERN void petscfinalize_(PetscErrorCode *ierr);
 
 /*
@@ -40,7 +35,7 @@ SLEPC_EXTERN void petscfinalize_(PetscErrorCode *ierr);
     Notes:
     Since this routine is called from Fortran it does not return error codes.
 */
-static void slepcinitialize_internal(char *filename,PetscInt len,PetscBool arguments,PetscErrorCode *ierr)
+PETSC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarguments,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len,PETSC_FORTRAN_CHARLEN_T helplen)
 {
   PetscBool flg;
   *ierr = 1;
@@ -49,15 +44,11 @@ static void slepcinitialize_internal(char *filename,PetscInt len,PetscBool argum
   *ierr = PetscInitialized(&flg);
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialized failed");return; }
   if (!flg) {
-    if (arguments) {
 #if defined(PETSC_HAVE_FORTRAN_MIXED_STR_ARG)
-      petscinitialize_(filename,len,ierr);
+    petscinitializef_(filename,len,help,helplen,readarguments,ierr);
 #else
-      petscinitialize_(filename,ierr,len);
+    petscinitializef_(filename,help,readarguments,ierr,len,helplen);
 #endif
-    } else {
-      petscinitializenoarguments_(ierr);
-    }
     if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialize failed");return; }
     SlepcBeganPetsc = PETSC_TRUE;
   }
@@ -72,16 +63,6 @@ static void slepcinitialize_internal(char *filename,PetscInt len,PetscBool argum
   SlepcInitializeCalled = PETSC_TRUE;
   *ierr = PetscInfo(0,"SLEPc successfully started from Fortran\n");
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return; }
-}
-
-SLEPC_EXTERN void slepcinitialize_(char *filename,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
-{
-  slepcinitialize_internal(filename,len,PETSC_TRUE,ierr);
-}
-
-SLEPC_EXTERN void slepcinitializenoarguments_(PetscErrorCode *ierr)
-{
-  slepcinitialize_internal(NULL,(PetscInt)0,PETSC_FALSE,ierr);
 }
 
 SLEPC_EXTERN void slepcfinalize_(PetscErrorCode *ierr)
