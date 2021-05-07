@@ -194,12 +194,13 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      filter: grep -v "solving the problem"
       test:
+         filter: grep -v "solving the problem"
          suffix: 1
       test:
          suffix: 2
          args: -ds_method 1 -radius 10 -ds_nep_refine_its 1
+         filter: grep -v "solving the problem" | sed -e "s/[+-]0\.0*i//g" | sed -e "s/37411/37410/"
          requires: complex
 
 TEST*/

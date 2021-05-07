@@ -209,6 +209,7 @@ int main(int argc,char **argv)
       test:
          suffix: 2
          args: -ds_nep_rg_ellipse_radius 10
+         filter: sed -e "s/[+-]0\.0*i//g" | sed -e "s/37411/37410/"
          requires: complex
 
 TEST*/
