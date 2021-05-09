@@ -98,12 +98,14 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
     if (ds->method<nmeth) {
       ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]);CHKERRQ(ierr);
     }
+#if defined(PETSC_USE_COMPLEX)
     if (ds->method==1) {  /* contour integral method */
       ierr = PetscViewerASCIIPrintf(viewer,"number of integration points: %D\n",ctx->nnod);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"maximum minimality index: %D\n",ctx->max_mid);CHKERRQ(ierr);
       if (ctx->Nit) { ierr = PetscViewerASCIIPrintf(viewer,"doing iterative refinement (%D its)\n",ctx->Nit);CHKERRQ(ierr); }
       ierr = RGView(ctx->rg,viewer);CHKERRQ(ierr);
     }
+#endif
     PetscFunctionReturn(0);
   }
   for (i=0;i<ctx->nf;i++) {
@@ -503,9 +505,11 @@ PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     if (eigr) {
       ierr = MPI_Pack(eigr,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
     }
+#if !defined(PETSC_USE_COMPLEX)
     if (eigi) {
       ierr = MPI_Pack(eigi,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
     }
+#endif
   }
   ierr = MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
   if (rank) {
@@ -515,9 +519,11 @@ PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
     if (eigr) {
       ierr = MPI_Unpack(ds->work,size,&off,eigr,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
     }
+#if !defined(PETSC_USE_COMPLEX)
     if (eigi) {
       ierr = MPI_Unpack(ds->work,size,&off,eigi,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
     }
+#endif
   }
   PetscFunctionReturn(0);
 }
@@ -1076,9 +1082,11 @@ PetscErrorCode DSNEPGetRG(DS ds,RG *rg)
 PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
 {
   PetscErrorCode ierr;
-  DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       k;
   PetscBool      flg;
+#if defined(PETSC_USE_COMPLEX)
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+#endif
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"DS NEP Options");CHKERRQ(ierr);
@@ -1092,10 +1100,12 @@ PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
     ierr = PetscOptionsInt("-ds_nep_refine_its","Number of iterative refinement iterations","DSNEPSetRefineIts",0,&k,&flg);CHKERRQ(ierr);
     if (flg) { ierr = DSNEPSetRefineIts(ds,k);CHKERRQ(ierr); }
 
+#if defined(PETSC_USE_COMPLEX)
     if (ds->method==1) {
       if (!ctx->rg) { ierr = DSNEPGetRG(ds,&ctx->rg);CHKERRQ(ierr); }
       ierr = RGSetFromOptions(ctx->rg);CHKERRQ(ierr);
     }
+#endif
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
