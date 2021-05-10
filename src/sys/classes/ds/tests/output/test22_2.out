@@ -1,0 +1,20 @@
+Solve a Dense System of type GSVD with compact storage - dimension 10x10.
+DS Object: 1 MPI processes
+  type: gsvd
+  current state: RAW
+  dimensions: ld=12, n=10, l=1, k=4
+  flags: compact
+  number of columns: 10
+  number of rows of B: 10
+Computed singular values =
+  0.09129
+  3.02085
+  1.93557
+  1.40782
+  1.02476
+  0.69664
+  0.42967
+  0.34322
+  0.25938
+  0.17254
+Norm of 1st X vector = 1.000

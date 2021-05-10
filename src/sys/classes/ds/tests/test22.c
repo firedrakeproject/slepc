@@ -153,9 +153,13 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -test_dsview
+   testset:
       requires: double
+      test:
+         suffix: 1
+         args: -test_dsview
+      test:
+         suffix: 2
+         args: -l 1 -k 4
 
 TEST*/
