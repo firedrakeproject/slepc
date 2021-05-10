@@ -20,7 +20,7 @@ int main(int argc,char **argv)
   SlepcSC        sc;
   PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,alpha;
   PetscReal      tau=0.001,radius=10,h,a=20,xi,re,im,nrm,aux;
-  PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun,meth;
+  PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun;
   PetscViewer    viewer;
   PetscBool      verbose;
   RG             rg;
@@ -66,15 +66,12 @@ int main(int argc,char **argv)
   ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
   ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
 
-  /* Set region */
-  ierr = DSGetMethod(ds,&meth);CHKERRQ(ierr);
-  if (meth==1) {
-    ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
-    ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
-    ierr = RGEllipseSetParameters(rg,0.0,radius,1.0);CHKERRQ(ierr);
-    ierr = DSNEPSetRG(ds,rg);CHKERRQ(ierr);
-    ierr = RGDestroy(&rg);CHKERRQ(ierr);
-  }
+  /* Set region (used only in method=1) */
+  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
+  ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
+  ierr = RGEllipseSetParameters(rg,0.0,radius,1.0);CHKERRQ(ierr);
+  ierr = DSNEPSetRG(ds,rg);CHKERRQ(ierr);
+  ierr = RGDestroy(&rg);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
