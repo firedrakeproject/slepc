@@ -48,7 +48,7 @@ PetscErrorCode BV_AddCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscScal
   PetscErrorCode ierr;
   PetscScalar    *d_h,*d_c,sone=1.0;
   PetscInt       i;
-  PetscBLASInt   idx=0,one=1;
+  PetscCuBLASInt idx=0,one=1;
   cublasStatus_t cberr;
   cublasHandle_t cublasv2handle;
 
@@ -57,7 +57,7 @@ PetscErrorCode BV_AddCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscScal
     ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
     ierr = VecCUDAGetArray(bv->buffer,&d_c);CHKERRQ(ierr);
     d_h = d_c + j*(bv->nc+bv->m);
-    ierr = PetscBLASIntCast(bv->nc+j,&idx);CHKERRQ(ierr);
+    ierr = PetscCuBLASIntCast(bv->nc+j,&idx);CHKERRQ(ierr);
     ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
     cberr = cublasXaxpy(cublasv2handle,idx,&sone,d_c,one,d_h,one);CHKERRCUBLAS(cberr);
     ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
@@ -105,7 +105,7 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
   const PetscScalar *d_h;
   PetscScalar       dot;
   PetscInt          i;
-  PetscBLASInt      idx=0,one=1;
+  PetscCuBLASInt    idx=0,one=1;
   cublasStatus_t    cberr;
   cublasHandle_t    cublasv2handle;
 
@@ -113,7 +113,7 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
   if (!h) {
     ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
     ierr = VecCUDAGetArrayRead(bv->buffer,&d_h);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(bv->nc+j,&idx);CHKERRQ(ierr);
+    ierr = PetscCuBLASIntCast(bv->nc+j,&idx);CHKERRQ(ierr);
     ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
     cberr = cublasXdotc(cublasv2handle,idx,d_h,one,d_h,one,&dot);CHKERRCUBLAS(cberr);
     ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
