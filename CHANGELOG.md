@@ -15,6 +15,7 @@
   the number of columns in `DSSVD`. And similarly for `DSGSVD`.
 - One of the `DS` matrices has been renamed from `DS_MAT_VT` to `DS_MAT_V` since it is
   no longer transposed.
+- Interface of `BVMatArnoldi()` changed to receive a `Mat` instead of a pointer.
 
 ### Removed
 

@@ -79,6 +79,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
 
       /* compute Arnoldi factorization */
       ierr = BVMatArnoldi(lme->V,lme->A,H,0,&m,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(lme->V,0,m);CHKERRQ(ierr);
 
       if (pass==0) {
         /* glue together the previous H and the new H obtained with Arnoldi */

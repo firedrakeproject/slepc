@@ -55,7 +55,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscFunctionBegin;
   m  = mfn->ncv;
   ld = m+1;
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ld,ld,NULL,&M);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ld,m,NULL,&M);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
 
   /* set initial vector to b/||b|| */

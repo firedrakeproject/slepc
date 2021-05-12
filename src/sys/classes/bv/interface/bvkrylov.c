@@ -87,7 +87,6 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
     if (cols<*m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %D columns, should have at least %D",cols,*m);
   }
 
-  ierr = BVSetActiveColumns(V,0,*m);CHKERRQ(ierr);
   for (j=k;j<*m;j++) {
     ierr = BVMatMultColumn(V,A,j);CHKERRQ(ierr);
     if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
@@ -195,7 +194,6 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
   if (*m<1 || *m>V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m has wrong value %D, should be between 1 and %D",*m,V->m);
   if (*m<=k) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m should be at least equal to k+1");
 
-  ierr = BVSetActiveColumns(V,0,*m);CHKERRQ(ierr);
   for (j=k;j<*m;j++) {
     ierr = BVMatMultColumn(V,A,j);CHKERRQ(ierr);
     if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
