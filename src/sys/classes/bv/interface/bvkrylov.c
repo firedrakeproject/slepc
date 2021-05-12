@@ -21,8 +21,7 @@
    Input Parameters:
 +  V - basis vectors context
 .  A - the matrix
-.  H - the upper Hessenberg matrix
-.  ldh - leading dimension of H
+.  H - (optional) the upper Hessenberg matrix
 .  k - number of locked columns
 -  m - dimension of the Arnoldi basis
 
@@ -55,20 +54,21 @@
 
 .seealso: BVMatLanczos(), BVSetActiveColumns(), BVOrthonormalizeColumn()
 @*/
-PetscErrorCode BVMatArnoldi(BV V,Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *m,PetscReal *beta,PetscBool *breakdown)
+PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *beta,PetscBool *breakdown)
 {
-  PetscErrorCode ierr;
-  PetscScalar    *a;
-  PetscInt       j;
-  PetscBool      lindep=PETSC_FALSE;
-  Vec            buf;
+  PetscErrorCode    ierr;
+  PetscScalar       *h;
+  const PetscScalar *a;
+  PetscInt          j,ldh,rows,cols;
+  PetscBool         lindep=PETSC_FALSE;
+  Vec               buf;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
-  PetscValidLogicalCollectiveInt(V,k,5);
-  PetscValidIntPointer(m,6);
-  PetscValidLogicalCollectiveInt(V,*m,6);
+  PetscValidLogicalCollectiveInt(V,k,4);
+  PetscValidIntPointer(m,5);
+  PetscValidLogicalCollectiveInt(V,*m,5);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidType(A,2);
@@ -77,8 +77,16 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
   if (k<0 || k>V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument k has wrong value %D, should be between 0 and %D",k,V->m);
   if (*m<1 || *m>V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m has wrong value %D, should be between 1 and %D",*m,V->m);
   if (*m<=k) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m should be at least equal to k+1");
+  if (H) {
+    PetscValidHeaderSpecific(H,MAT_CLASSID,3);
+    PetscValidType(H,3);
+    PetscCheckTypeName(H,MATSEQDENSE);
+    ierr = MatGetSize(H,&rows,&cols);CHKERRQ(ierr);
+    ierr = MatDenseGetLDA(H,&ldh);CHKERRQ(ierr);
+    if (rows<*m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %D rows, should have at least %D",rows,*m);
+    if (cols<*m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %D columns, should have at least %D",cols,*m);
+  }
 
-  ierr = BVSetActiveColumns(V,0,*m);CHKERRQ(ierr);
   for (j=k;j<*m;j++) {
     ierr = BVMatMultColumn(V,A,j);CHKERRQ(ierr);
     if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
@@ -93,13 +101,19 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
   }
   if (breakdown) *breakdown = lindep;
   if (lindep) { ierr = PetscInfo1(V,"Arnoldi finished early at m=%D\n",*m);CHKERRQ(ierr); }
-  /* extract Hessenberg matrix from the BV object */
-  ierr = BVGetBufferVec(V,&buf);CHKERRQ(ierr);
-  ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
-  for (j=k;j<*m;j++) {
-    ierr = PetscArraycpy(H+j*ldh,a+V->nc+(j+1)*(V->nc+V->m),j+2);CHKERRQ(ierr);
+
+  if (H) {
+    ierr = MatDenseGetArray(H,&h);CHKERRQ(ierr);
+    ierr = BVGetBufferVec(V,&buf);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(buf,&a);CHKERRQ(ierr);
+    for (j=k;j<*m-1;j++) {
+      ierr = PetscArraycpy(h+j*ldh,a+V->nc+(j+1)*(V->nc+V->m),j+2);CHKERRQ(ierr);
+    }
+    ierr = PetscArraycpy(h+(*m-1)*ldh,a+V->nc+(*m)*(V->nc+V->m),*m);CHKERRQ(ierr);
+    if (ldh>*m) h[(*m)+(*m-1)*ldh] = a[V->nc+(*m)+(*m)*(V->nc+V->m)];
+    ierr = VecRestoreArrayRead(buf,&a);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(H,&h);CHKERRQ(ierr);
   }
-  ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
 
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -180,7 +194,6 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
   if (*m<1 || *m>V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m has wrong value %D, should be between 1 and %D",*m,V->m);
   if (*m<=k) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m should be at least equal to k+1");
 
-  ierr = BVSetActiveColumns(V,0,*m);CHKERRQ(ierr);
   for (j=k;j<*m;j++) {
     ierr = BVMatMultColumn(V,A,j);CHKERRQ(ierr);
     if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
