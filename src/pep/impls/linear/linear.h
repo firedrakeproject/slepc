@@ -23,7 +23,7 @@ typedef struct {
   PetscBool  usereps;          /* eps provided by user */
   Mat        M,C,K;            /* copy of PEP coefficient matrices */
   Vec        w[6];             /* work vectors */
-  PetscReal   alpha,beta;      /* coefficients defining the linearization */
+  PetscReal  alpha,beta;       /* coefficients defining the linearization */
   PetscBool  setfromoptionscalled;
 } PEP_LINEAR;
 

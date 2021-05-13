@@ -109,14 +109,32 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -svd_type {{lanczos trlanczos cross cyclic lapack}} -svd_nsv 3
+   testset:
+      args: -svd_nsv 3
       requires: !single
+      output_file: output/test14_1.out
+      test:
+         suffix: 1
+         args: -svd_type {{lanczos trlanczos lapack}}
+      test:
+         suffix: 1_cross
+         args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
+      test:
+         suffix: 1_cyclic
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
 
-   test:
-      suffix: 2
-      args: -n 18 -svd_type {{lanczos trlanczos cross cyclic lapack}} -svd_nsv 3
+   testset:
+      args: -n 18 -svd_nsv 3
       requires: !single
+      output_file: output/test14_2.out
+      test:
+         suffix: 2
+         args: -svd_type {{lanczos trlanczos lapack}}
+      test:
+         suffix: 2_cross
+         args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
+      test:
+         suffix: 2_cyclic
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
 
 TEST*/
