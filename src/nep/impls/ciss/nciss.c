@@ -32,6 +32,7 @@
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
 #include <slepcblaslapack.h>
+
 typedef struct _n_nep_ciss_project *NEP_CISS_PROJECT;
 typedef struct {
   /* parameters */
@@ -45,6 +46,7 @@ typedef struct {
   PetscInt     npart;      /* number of partitions */
   PetscInt     refine_inner;
   PetscInt     refine_blocksize;
+  NEPCISSExtraction extraction;
   /* private data */
   PetscReal    *sigma;     /* threshold for numerical rank */
   PetscInt     subcomm_id;
@@ -826,7 +828,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
    Logically Collective on nep
 
    Input Parameters:
-+  nep   - the eigenproblem solver context
++  nep   - the nonlinear eigensolver context
 .  ip    - number of integration points
 .  bs    - block size
 .  ms    - moment size
@@ -842,7 +844,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 .  -nep_ciss_maxblocksize - Sets the maximum block size
 -  -nep_ciss_realmats - T(z) is real for real z
 
-   Note:
+   Notes:
    The default number of partitions is 1. This means the internal KSP object is shared
    among all processes of the NEP communicator. Otherwise, the communicator is split
    into npart communicators, so that npart KSP solves proceed simultaneously.
@@ -891,7 +893,7 @@ static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,Pet
    Not Collective
 
    Input Parameter:
-.  nep - the eigenproblem solver context
+.  nep - the nonlinear eigensolver context
 
    Output Parameters:
 +  ip    - number of integration points
@@ -942,7 +944,7 @@ static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal
    Logically Collective on nep
 
    Input Parameters:
-+  nep   - the eigenproblem solver context
++  nep   - the nonlinear eigensolver context
 .  delta - threshold for numerical rank
 -  spur  - spurious threshold (to discard spurious eigenpairs)
 
@@ -983,7 +985,7 @@ static PetscErrorCode NEPCISSGetThreshold_CISS(NEP nep,PetscReal *delta,PetscRea
    Not Collective
 
    Input Parameter:
-.  nep - the eigenproblem solver context
+.  nep - the nonlinear eigensolver context
 
    Output Parameters:
 +  delta - threshold for numerical rank
@@ -1030,7 +1032,7 @@ static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt 
    Logically Collective on nep
 
    Input Parameters:
-+  nep    - the eigenproblem solver context
++  nep    - the nonlinear eigensolver context
 .  inner  - number of iterative refinement iterations (inner loop)
 -  blsize - number of iterative refinement iterations (blocksize loop)
 
@@ -1071,7 +1073,7 @@ static PetscErrorCode NEPCISSGetRefinement_CISS(NEP nep,PetscInt *inner,PetscInt
    Not Collective
 
    Input Parameter:
-.  nep - the eigenproblem solver context
+.  nep - the nonlinear eigensolver context
 
    Output Parameters:
 +  inner  - number of iterative refinement iterations (inner loop)
@@ -1088,6 +1090,83 @@ PetscErrorCode NEPCISSGetRefinement(NEP nep, PetscInt *inner, PetscInt *blsize)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   ierr = PetscUseMethod(nep,"NEPCISSGetRefinement_C",(NEP,PetscInt*,PetscInt*),(nep,inner,blsize));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPCISSSetExtraction_CISS(NEP nep,NEPCISSExtraction extraction)
+{
+  NEP_CISS *ctx = (NEP_CISS*)nep->data;
+
+  PetscFunctionBegin;
+  ctx->extraction = extraction;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPCISSSetExtraction - Sets the extraction technique used in the CISS solver.
+
+   Logically Collective on nep
+
+   Input Parameters:
++  nep        - the nonlinear eigensolver context
+-  extraction - the extraction technique
+
+   Options Database Key:
+.  -nep_ciss_extraction - Sets the extraction technique (either 'ritz' or 'hankel')
+
+   Notes:
+   By default, the Rayleigh-Ritz extraction is used (NEP_CISS_EXTRACTION_RITZ).
+
+   If the 'hankel' option is specified (NEP_CISS_EXTRACTION_HANKEL), then
+   the Block Hankel method is used for extracting eigenpairs.
+
+   Level: advanced
+
+.seealso: NEPCISSGetExtraction(), NEPCISSExtraction
+@*/
+PetscErrorCode NEPCISSSetExtraction(NEP nep,NEPCISSExtraction extraction)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(nep,extraction,2);
+  ierr = PetscTryMethod(nep,"NEPCISSSetExtraction_C",(NEP,NEPCISSExtraction),(nep,extraction));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPCISSGetExtraction_CISS(NEP nep,NEPCISSExtraction *extraction)
+{
+  NEP_CISS *ctx = (NEP_CISS*)nep->data;
+
+  PetscFunctionBegin;
+  *extraction = ctx->extraction;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPCISSGetExtraction - Gets the extraction technique used in the CISS solver.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameters:
+.  extraction - extraction technique
+
+   Level: advanced
+
+.seealso: NEPCISSSetExtraction() NEPCISSExtraction
+@*/
+PetscErrorCode NEPCISSGetExtraction(NEP nep,NEPCISSExtraction *extraction)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(extraction,2);
+  ierr = PetscUseMethod(nep,"NEPCISSGetExtraction_C",(NEP,NEPCISSExtraction*),(nep,extraction));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1174,11 +1253,12 @@ PetscErrorCode NEPReset_CISS(NEP nep)
 
 PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscReal      r1,r2;
-  PetscInt       i,i1,i2,i3,i4,i5,i6,i7;
-  PetscBool      b1;
+  PetscErrorCode    ierr;
+  NEP_CISS          *ctx = (NEP_CISS*)nep->data;
+  PetscReal         r1,r2;
+  PetscInt          i,i1,i2,i3,i4,i5,i6,i7;
+  PetscBool         b1,flg;
+  NEPCISSExtraction extraction;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP CISS Options");CHKERRQ(ierr);
@@ -1201,6 +1281,9 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
     ierr = PetscOptionsInt("-nep_ciss_refine_inner","Number of inner iterative refinement iterations","NEPCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-nep_ciss_refine_blocksize","Number of blocksize iterative refinement iterations","NEPCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
     ierr = NEPCISSSetRefinement(nep,i6,i7);CHKERRQ(ierr);
+
+    ierr = PetscOptionsEnum("-nep_ciss_extraction","Extraction technique","NEPCISSSetExtraction",NEPCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPCISSSetExtraction(nep,extraction);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
@@ -1229,6 +1312,8 @@ PetscErrorCode NEPDestroy_CISS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetThreshold_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetRefinement_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetRefinement_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetExtraction_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetExtraction_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetKSPs_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1248,6 +1333,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement  { inner: %D, blocksize: %D }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",NEPCISSExtractions[ctx->extraction]);CHKERRQ(ierr);
     if (!ctx->ksp) { ierr = NEPCISSGetKSPs(nep,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
@@ -1289,6 +1375,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetThreshold_C",NEPCISSGetThreshold_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetRefinement_C",NEPCISSSetRefinement_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetRefinement_C",NEPCISSGetRefinement_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetExtraction_C",NEPCISSSetExtraction_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetExtraction_C",NEPCISSGetExtraction_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetKSPs_C",NEPCISSGetKSPs_CISS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

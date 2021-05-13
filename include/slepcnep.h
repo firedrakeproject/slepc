@@ -308,7 +308,20 @@ SLEPC_EXTERN PetscErrorCode NEPNArnoldiGetKSP(NEP,KSP*);
 SLEPC_EXTERN PetscErrorCode NEPNArnoldiSetLagPreconditioner(NEP,PetscInt);
 SLEPC_EXTERN PetscErrorCode NEPNArnoldiGetLagPreconditioner(NEP,PetscInt*);
 
+/*E
+    NEPCISSExtraction - determines the extraction technique in the CISS solver
+
+    Level: advanced
+
+.seealso: NEPCISSSetExtraction(), NEPCISSGetExtraction()
+E*/
+typedef enum { NEP_CISS_EXTRACTION_RITZ,
+               NEP_CISS_EXTRACTION_HANKEL } NEPCISSExtraction;
+SLEPC_EXTERN const char *NEPCISSExtractions[];
+
 #if defined(PETSC_USE_COMPLEX)
+SLEPC_EXTERN PetscErrorCode NEPCISSSetExtraction(NEP,NEPCISSExtraction);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetExtraction(NEP,NEPCISSExtraction*);
 SLEPC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPCISSGetSizes(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
 SLEPC_EXTERN PetscErrorCode NEPCISSSetThreshold(NEP,PetscReal,PetscReal);
@@ -321,6 +334,8 @@ SLEPC_EXTERN PetscErrorCode NEPCISSGetKSPs(NEP,PetscInt*,KSP**);
     PetscFunctionBegin; \
     SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"%s() not available with real scalars",PETSC_FUNCTION_NAME); \
     } while (0)
+PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetExtraction(NEP nep,PETSC_UNUSED NEPCISSExtraction ex) {SlepcNEPCISSUnavailable(nep);}
+PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetExtraction(NEP nep,PETSC_UNUSED NEPCISSExtraction *ex) {SlepcNEPCISSUnavailable(nep);}
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetSizes(NEP nep,PETSC_UNUSED PetscInt ip,PETSC_UNUSED PetscInt bs,PETSC_UNUSED PetscInt ms,PETSC_UNUSED PetscInt npart,PETSC_UNUSED PetscInt bsmax,PETSC_UNUSED PetscBool realmats) {SlepcNEPCISSUnavailable(nep);}
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetSizes(NEP nep,PETSC_UNUSED PetscInt *ip,PETSC_UNUSED PetscInt *bs,PETSC_UNUSED PetscInt *ms,PETSC_UNUSED PetscInt *npart,PETSC_UNUSED PetscInt *bsmak,PETSC_UNUSED PetscBool *realmats) {SlepcNEPCISSUnavailable(nep);}
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetThreshold(NEP nep,PETSC_UNUSED PetscReal delta,PETSC_UNUSED PetscReal spur) {SlepcNEPCISSUnavailable(nep);}
