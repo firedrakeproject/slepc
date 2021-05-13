@@ -234,9 +234,6 @@ def run_cython(source, target=None,
 
 def build_sources(cmd):
     from os.path import exists, isdir, join
-    if (exists(join('src', 'slepc4py.SLEPc.c')) and
-        not (isdir('.hg') or isdir('.git')) and
-        not cmd.force): return
 
     # slepc4py.SLEPc
     source = 'slepc4py.SLEPc.pyx'
