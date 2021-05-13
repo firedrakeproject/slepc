@@ -4,6 +4,7 @@
 import os
 
 slepcMansecs    = ["eps","lme","mfn","nep","pep","svd","sys"]
+slepcAuxMansecs = ["bv","ds","fn","rg","st"]
 slepcClassIdMap = {
   "_p_BV *"     : "BV_CLASSID",
   "_p_DS *"     : "DS_CLASSID",
@@ -29,7 +30,7 @@ def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,m
       line = sv.readline()
 
   extraHeaderIncludes = []
-  mansecimpls = [m+"impl.h" for m in slepcMansecs]+["slepcimpl.h","vecimplslepc.h"]
+  mansecimpls = [m+"impl.h" for m in slepcMansecs+slepcAuxMansecs]+["slepcimpl.h","vecimplslepc.h"]
   for headerFile in os.listdir(os.path.join(slepcDir,"include","slepc","private")):
     if headerFile in mansecimpls:
       extraHeaderIncludes.append("#include <slepc/private/{}>".format(headerFile))
@@ -69,7 +70,6 @@ if __name__ == "__main__":
   parser.add_argument("-v","--verbose",required=False,action="store_true",help="verbose progress printed to screen")
   filterFuncChoices = ", ".join(list(petscClangLinter.checkFunctionMap.keys()))
   parser.add_argument("-f","--functions",required=False,nargs="+",choices=list(petscClangLinter.checkFunctionMap.keys()),metavar="FUNCTIONNAME",help="filter to display errors only related to list of provided function names, default is all functions. Choose from available function names: "+filterFuncChoices,dest="funcs")
-  mansecChoices = ", ".join(slepcMansecs)
   parser.add_argument("-j","--jobs",required=False,type=int,default=-1,nargs="?",help="number of multiprocessing jobs, -1 means number of processors on machine")
   parser.add_argument("-a","--apply-patches",required=False,action="store_true",help="automatically apply patches that are saved to file",dest="apply")
   args = parser.parse_args()
