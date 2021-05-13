@@ -112,38 +112,38 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
 
   PetscFunctionBegin;
   SVDCheckStandard(svd);
-  if (!cross->mat) {
-    if (cross->explicitmatrix) {
-      if (svd->expltrans) {  /* explicit transpose */
-        ierr = MatProductCreate(svd->AT,svd->A,NULL,&cross->mat);CHKERRQ(ierr);
-        ierr = MatProductSetType(cross->mat,MATPRODUCT_AB);CHKERRQ(ierr);
-      } else {  /* implicit transpose */
+  ierr = MatDestroy(&cross->mat);CHKERRQ(ierr);
+  ierr = VecDestroy(&cross->w);CHKERRQ(ierr);
+  if (cross->explicitmatrix) {
+    if (svd->expltrans) {  /* explicit transpose */
+      ierr = MatProductCreate(svd->AT,svd->A,NULL,&cross->mat);CHKERRQ(ierr);
+      ierr = MatProductSetType(cross->mat,MATPRODUCT_AB);CHKERRQ(ierr);
+    } else {  /* implicit transpose */
 #if defined(PETSC_USE_COMPLEX)
-        SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Must use explicit transpose with complex scalars");
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Must use explicit transpose with complex scalars");
 #else
-        if (!svd->swapped) {
-          ierr = MatProductCreate(svd->A,svd->A,NULL,&cross->mat);CHKERRQ(ierr);
-          ierr = MatProductSetType(cross->mat,MATPRODUCT_AtB);CHKERRQ(ierr);
-        } else {
-          ierr = MatProductCreate(svd->AT,svd->AT,NULL,&cross->mat);CHKERRQ(ierr);
-          ierr = MatProductSetType(cross->mat,MATPRODUCT_ABt);CHKERRQ(ierr);
-        }
-#endif
+      if (!svd->swapped) {
+        ierr = MatProductCreate(svd->A,svd->A,NULL,&cross->mat);CHKERRQ(ierr);
+        ierr = MatProductSetType(cross->mat,MATPRODUCT_AtB);CHKERRQ(ierr);
+      } else {
+        ierr = MatProductCreate(svd->AT,svd->AT,NULL,&cross->mat);CHKERRQ(ierr);
+        ierr = MatProductSetType(cross->mat,MATPRODUCT_ABt);CHKERRQ(ierr);
       }
-      ierr = MatProductSetFromOptions(cross->mat);CHKERRQ(ierr);
-      ierr = MatProductSymbolic(cross->mat);CHKERRQ(ierr);
-      ierr = MatProductNumeric(cross->mat);CHKERRQ(ierr);
-    } else {
-      ierr = MatGetLocalSize(svd->A,NULL,&n);CHKERRQ(ierr);
-      ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(cross->mat,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Cross);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
-      ierr = MatCreateVecs(svd->A,NULL,&cross->w);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->w);CHKERRQ(ierr);
+#endif
     }
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->mat);CHKERRQ(ierr);
+    ierr = MatProductSetFromOptions(cross->mat);CHKERRQ(ierr);
+    ierr = MatProductSymbolic(cross->mat);CHKERRQ(ierr);
+    ierr = MatProductNumeric(cross->mat);CHKERRQ(ierr);
+  } else {
+    ierr = MatGetLocalSize(svd->A,NULL,&n);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(cross->mat,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Cross);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
+    ierr = MatCreateVecs(svd->A,NULL,&cross->w);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->w);CHKERRQ(ierr);
   }
+  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->mat);CHKERRQ(ierr);
 
   if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
   ierr = EPSSetOperators(cross->eps,cross->mat,NULL);CHKERRQ(ierr);
