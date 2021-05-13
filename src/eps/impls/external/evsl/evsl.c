@@ -759,11 +759,11 @@ PetscErrorCode EPSSetFromOptions_EVSL(PetscOptionItems *PetscOptionsObject,EPS e
     ierr = EPSEVSLGetDOSParameters(eps,&dos,&i1,&i2,&i3,&i4);CHKERRQ(ierr);
     ierr = PetscOptionsEnum("-eps_evsl_dos_method","Method to compute the DOS","EPSEVSLSetDOSParameters",EPSEVSLDOSMethods,(PetscEnum)ctx->dos,(PetscEnum*)&dos,&flg);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-eps_evsl_dos_nvec","Number of sample vectors for DOS","EPSEVSLSetDOSParameters",i1,&i1,&flg1);CHKERRQ(ierr);
-    flg = flg || flg1;
+    if (flg1) flg = PETSC_TRUE;
     ierr = PetscOptionsInt("-eps_evsl_dos_degree","Polynomial degree used for DOS","EPSEVSLSetDOSParameters",i2,&i2,&flg1);CHKERRQ(ierr);
-    flg = flg || flg1;
+    if (flg1) flg = PETSC_TRUE;
     ierr = PetscOptionsInt("-eps_evsl_dos_steps","Number of Lanczos steps in DOS","EPSEVSLSetDOSParameters",i3,&i3,&flg1);CHKERRQ(ierr);
-    flg = flg || flg1;
+    if (flg1) flg = PETSC_TRUE;
     ierr = PetscOptionsInt("-eps_evsl_dos_npoints","Number of sample points used for DOS","EPSEVSLSetDOSParameters",i4,&i4,&flg1);CHKERRQ(ierr);
     if (flg || flg1) { ierr = EPSEVSLSetDOSParameters(eps,dos,i1,i2,i3,i4);CHKERRQ(ierr); }
 

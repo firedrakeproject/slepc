@@ -434,8 +434,8 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
   if (!viewer) {
     ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)pep),&viewer);CHKERRQ(ierr);
   }
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
-  PetscCheckSameComm(pep,1,viewer,2);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,3);
+  PetscCheckSameComm(pep,1,viewer,3);
   PEPCheckSolved(pep,1);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (!isascii) PetscFunctionReturn(0);

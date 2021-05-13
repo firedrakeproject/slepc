@@ -1104,7 +1104,7 @@ PetscErrorCode BVGetMatMultMethod(BV bv,BVMatMultType *method)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(bv,method);
+  PetscValidPointer(method,2);
   *method = bv->vmm;
   PetscFunctionReturn(0);
 }

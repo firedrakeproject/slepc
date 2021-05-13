@@ -299,7 +299,7 @@ PetscErrorCode FNSetScale(FN fn,PetscScalar alpha,PetscScalar beta)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,alpha,2);
-  PetscValidLogicalCollectiveScalar(fn,beta,2);
+  PetscValidLogicalCollectiveScalar(fn,beta,3);
   if (PetscAbsScalar(alpha)==0.0 || PetscAbsScalar(beta)==0.0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_WRONG,"Scaling factors must be nonzero");
   fn->alpha = alpha;
   fn->beta  = beta;

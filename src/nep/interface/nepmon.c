@@ -191,12 +191,10 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void **ctx)
 PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer;
+  PetscViewer    viewer = vf->viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   if (its==1 && ((PetscObject)nep)->prefix) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)nep)->prefix);CHKERRQ(ierr);
@@ -247,12 +245,10 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscViewer    viewer;
+  PetscViewer    viewer = vf->viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
@@ -304,13 +300,11 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscViewer    viewer;
+  PetscViewer    viewer = vf->viewer;
   SlepcConvMon   ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   ctx = (SlepcConvMon)vf->data;
   if (its==1 && ((PetscObject)nep)->prefix) {
@@ -392,16 +386,13 @@ PetscErrorCode NEPMonitorConvergedDestroy(PetscViewerAndFormat **vf)
 PetscErrorCode NEPMonitorFirstDrawLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer;
-  PetscDrawLG    lg;
+  PetscViewer    viewer = vf->viewer;
+  PetscDrawLG    lg = vf->lg;
   PetscReal      x,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
@@ -478,17 +469,14 @@ PetscErrorCode NEPMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
 PetscErrorCode NEPMonitorAllDrawLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer;
-  PetscDrawLG    lg;
+  PetscViewer    viewer = vf->viewer;
+  PetscDrawLG    lg = vf->lg;
   PetscInt       i,n = PetscMin(nep->nev,255);
   PetscReal      *x,*y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {
@@ -567,16 +555,13 @@ PetscErrorCode NEPMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
 PetscErrorCode NEPMonitorConvergedDrawLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode   ierr;
-  PetscViewer      viewer;
-  PetscDrawLG      lg;
+  PetscViewer      viewer = vf->viewer;
+  PetscDrawLG      lg = vf->lg;
   PetscReal        x,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(vf,8);
-  viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  lg = vf->lg;
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   if (its==1) {

@@ -126,5 +126,17 @@ getlinklibs_slepc:
 getincludedirs_slepc:
 	-@echo ${SLEPC_CC_INCLUDES}
 
+lint_slepc:
+	${PYTHON3} ${SLEPC_DIR}/lib/slepc/bin/maint/slepcClangLinter.py $(LINTER_OPTIONS)
+
+help-lint_slepc:
+	@${PYTHON3} ${SLEPC_DIR}/lib/slepc/bin/maint/slepcClangLinter.py --help
+	-@echo "Basic usage:"
+	-@echo "   make lint_slepc <options>"
+	-@echo
+	-@echo "Options:"
+	-@echo "  LINTER_OPTIONS=\"--linter_options ...\"  See above for available options"
+	-@echo
+
 include ${PETSC_DIR}/lib/petsc/conf/rules
 include ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/slepcrules

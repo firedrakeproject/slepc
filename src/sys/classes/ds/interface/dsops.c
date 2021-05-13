@@ -534,7 +534,7 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
-  PetscValidPointer(a,2);
+  PetscValidPointer(a,3);
   *a = ds->mat[m];
   CHKMEMQ;
   PetscFunctionReturn(0);
@@ -562,7 +562,7 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
-  PetscValidPointer(a,2);
+  PetscValidPointer(a,3);
   CHKMEMQ;
   *a = 0;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
@@ -593,7 +593,7 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMatReal(ds,m,2);
-  PetscValidPointer(a,2);
+  PetscValidPointer(a,3);
   *a = ds->rmat[m];
   CHKMEMQ;
   PetscFunctionReturn(0);
@@ -621,7 +621,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMatReal(ds,m,2);
-  PetscValidPointer(a,2);
+  PetscValidPointer(a,3);
   CHKMEMQ;
   *a = 0;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);

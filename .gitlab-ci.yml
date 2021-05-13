@@ -81,6 +81,7 @@ variables:
         make checkbadSource SHELL=bash;
         make -f gmakefile check_output SHELL=bash;
       fi
+    - if [ ! -z ${RUN_LINT+x} ]; then make lint_slepc LINTER_OPTIONS="--clang_lib=`llvm-config --libdir`/libclang.so.11"; fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror cleantest allgtests-tap TIMEOUT=${TIMEOUT} search="${TEST_SEARCH}"; fi
@@ -137,6 +138,15 @@ gnu-c99-mlib-static:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 --CFLAGS=-std=c99
     TEST_SEARCH: eps_tests-test10_1
     CHECKSOURCE: 1
+
+gnu-lint:
+  extends: .stage-1
+  tags:
+    - linux-fedora
+  variables:
+    PETSC_CONFIG_OPTS: --with-debugging=1
+    TEST_SEARCH: eps_tests-test10_1
+    RUN_LINT: 1
 
 #
 # This provides the basic order of operations and options template for stage-2,3 tests.
