@@ -96,7 +96,8 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   ierr = DSRestoreArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);
   ierr = DSRestoreArray(svd->ds,DS_MAT_V,&pV);CHKERRQ(ierr);
 
-  svd->nconv = n;
+  svd->nconv  = n;
+  svd->its    = 1;
   svd->reason = SVD_CONVERGED_TOL;
 
   ierr = MatDestroy(&mat);CHKERRQ(ierr);
@@ -173,7 +174,8 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   ierr = DSRestoreArray(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
   ierr = DSRestoreArray(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
 
-  svd->nconv = nsv;
+  svd->nconv  = nsv;
+  svd->its    = 1;
   svd->reason = SVD_CONVERGED_TOL;
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);

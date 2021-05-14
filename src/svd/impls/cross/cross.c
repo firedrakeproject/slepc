@@ -20,7 +20,7 @@ typedef struct {
   PetscBool explicitmatrix;
   EPS       eps;
   PetscBool usereps;
-  Mat       C;
+  Mat       C,D;
 } SVD_CROSS;
 
 typedef struct {
@@ -63,25 +63,23 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
       ierr = MatGetOwnershipRange(ctx->AT,&start,&end);CHKERRQ(ierr);
       for (i=start;i<end;i++) {
         ierr = MatGetRow(ctx->AT,i,&ncols,NULL,&vals);CHKERRQ(ierr);
-        for (j=0;j<ncols;j++)
-          work1[i] += vals[j]*vals[j];
+        for (j=0;j<ncols;j++) work1[i] += vals[j]*vals[j];
         ierr = MatRestoreRow(ctx->AT,i,&ncols,NULL,&vals);CHKERRQ(ierr);
       }
     } else {
       ierr = MatGetOwnershipRange(ctx->A,&start,&end);CHKERRQ(ierr);
       for (i=start;i<end;i++) {
         ierr = MatGetRow(ctx->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-        for (j=0;j<ncols;j++)
-          work1[cols[j]] += vals[j]*vals[j];
+        for (j=0;j<ncols;j++) work1[cols[j]] += vals[j]*vals[j];
         ierr = MatRestoreRow(ctx->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
       }
     }
     ierr = PetscMPIIntCast(N,&len);CHKERRQ(ierr);
     ierr = MPIU_Allreduce(work1,work2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)B));CHKERRMPI(ierr);
     ierr = VecGetOwnershipRange(ctx->diag,&start,&end);CHKERRQ(ierr);
-    ierr = VecGetArray(ctx->diag,&diag);CHKERRQ(ierr);
+    ierr = VecGetArrayWrite(ctx->diag,&diag);CHKERRQ(ierr);
     for (i=start;i<end;i++) diag[i-start] = work2[i];
-    ierr = VecRestoreArray(ctx->diag,&diag);CHKERRQ(ierr);
+    ierr = VecRestoreArrayWrite(ctx->diag,&diag);CHKERRQ(ierr);
     ierr = PetscFree2(work1,work2);CHKERRQ(ierr);
   }
   ierr = VecCopy(ctx->diag,d);CHKERRQ(ierr);
@@ -156,12 +154,18 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   PetscBool      trackall;
 
   PetscFunctionBegin;
-  SVDCheckStandard(svd);
-  ierr = MatDestroy(&cross->C);CHKERRQ(ierr);
-  ierr = SVDCrossGetProductMat(svd,svd->A,svd->AT,&cross->C);CHKERRQ(ierr);
   if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
-  ierr = EPSSetOperators(cross->eps,cross->C,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = MatDestroy(&cross->C);CHKERRQ(ierr);
+  ierr = MatDestroy(&cross->D);CHKERRQ(ierr);
+  ierr = SVDCrossGetProductMat(svd,svd->A,svd->AT,&cross->C);CHKERRQ(ierr);
+  if (svd->isgeneralized) {
+    ierr = SVDCrossGetProductMat(svd,svd->B,svd->BT,&cross->D);CHKERRQ(ierr);
+    ierr = EPSSetOperators(cross->eps,cross->C,cross->D);CHKERRQ(ierr);
+    ierr = EPSSetProblemType(cross->eps,EPS_GHEP);CHKERRQ(ierr);
+  } else {
+    ierr = EPSSetOperators(cross->eps,cross->C,NULL);CHKERRQ(ierr);
+    ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
+  }
   if (!cross->usereps) {
     ierr = EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL);CHKERRQ(ierr);
     ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
@@ -224,18 +228,52 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
 
 PetscErrorCode SVDComputeVectors_Cross(SVD svd)
 {
-  PetscErrorCode ierr;
-  SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
-  PetscInt       i;
-  Vec            v;
+  PetscErrorCode    ierr;
+  SVD_CROSS         *cross = (SVD_CROSS*)svd->data;
+  PetscInt          i,mloc,ploc;
+  Vec               u,v,x,uv;
+  PetscScalar       *dst,alpha,lambda;
+  const PetscScalar *src;
+  PetscReal         nrm;
 
   PetscFunctionBegin;
-  for (i=0;i<svd->nconv;i++) {
-    ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
-    ierr = EPSGetEigenvector(cross->eps,i,v,NULL);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
+  if (svd->isgeneralized) {
+    ierr = MatCreateVecs(svd->A,NULL,&u);CHKERRQ(ierr);
+    ierr = VecGetLocalSize(u,&mloc);CHKERRQ(ierr);
+    ierr = MatCreateVecs(svd->B,NULL,&v);CHKERRQ(ierr);
+    ierr = VecGetLocalSize(v,&ploc);CHKERRQ(ierr);
+    for (i=0;i<svd->nconv;i++) {
+      ierr = BVGetColumn(svd->V,i,&x);CHKERRQ(ierr);
+      ierr = EPSGetEigenpair(cross->eps,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
+      ierr = MatMult(svd->A,x,u);CHKERRQ(ierr);     /* u_i*c_i/alpha = A*x_i */
+      ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
+      ierr = MatMult(svd->B,x,v);CHKERRQ(ierr);     /* v_i*s_i/alpha = B*x_i */
+      ierr = VecNormalize(v,&nrm);CHKERRQ(ierr);    /* ||v||_2 = s_i/alpha   */
+      alpha = 1.0/(PetscSqrtReal(1.0+PetscRealPart(lambda))*nrm);    /* alpha=s_i/||v||_2 */
+      ierr = VecScale(x,alpha);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(svd->V,i,&x);CHKERRQ(ierr);
+      /* copy [u;v] to U[i] */
+      ierr = BVGetColumn(svd->U,i,&uv);CHKERRQ(ierr);
+      ierr = VecGetArrayWrite(uv,&dst);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(u,&src);CHKERRQ(ierr);
+      ierr = PetscArraycpy(dst,src,mloc);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(u,&src);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(v,&src);CHKERRQ(ierr);
+      ierr = PetscArraycpy(dst+mloc,src,ploc);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(v,&src);CHKERRQ(ierr);
+      ierr = VecRestoreArrayWrite(uv,&dst);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(svd->U,i,&uv);CHKERRQ(ierr);
+    }
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+    ierr = VecDestroy(&u);CHKERRQ(ierr);
+  } else {
+    for (i=0;i<svd->nconv;i++) {
+      ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
+      ierr = EPSGetEigenvector(cross->eps,i,v,NULL);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
+    }
+    ierr = SVDComputeVectors_Left(svd);CHKERRQ(ierr);
   }
-  ierr = SVDComputeVectors_Left(svd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -471,6 +509,7 @@ PetscErrorCode SVDReset_Cross(SVD svd)
   PetscFunctionBegin;
   ierr = EPSReset(cross->eps);CHKERRQ(ierr);
   ierr = MatDestroy(&cross->C);CHKERRQ(ierr);
+  ierr = MatDestroy(&cross->D);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -499,6 +538,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   svd->data = (void*)cross;
 
   svd->ops->solve          = SVDSolve_Cross;
+  svd->ops->solveg         = SVDSolve_Cross;
   svd->ops->setup          = SVDSetUp_Cross;
   svd->ops->setfromoptions = SVDSetFromOptions_Cross;
   svd->ops->destroy        = SVDDestroy_Cross;

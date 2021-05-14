@@ -170,20 +170,19 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      args: -svd_type lapack
-      filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      filter: grep -v "Solution method" | sed -e "s/, maxit=1[0]*$//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
       test:
-         args: -m 20 -n 10 -p 6
+         args: -svd_type lapack -m 20 -n 10 -p 6
          suffix: 1
       test:
-         args: -m 15 -n 20 -p 10 -svd_smallest
+         args: -svd_type lapack -m 15 -n 20 -p 10 -svd_smallest
          suffix: 2
       test:
-         args: -m 15 -n 20 -p 21
+         args: -svd_type {{lapack cross}} -m 15 -n 20 -p 21
          suffix: 3
       test:
-         args: -m 20 -n 15 -p 21
+         args: -svd_type {{lapack cross}} -m 20 -n 15 -p 21
          suffix: 4
 
 TEST*/
