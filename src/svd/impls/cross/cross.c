@@ -41,22 +41,6 @@ static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode MatCreateVecs_Cross(Mat B,Vec *right,Vec *left)
-{
-  PetscErrorCode  ierr;
-  SVD_CROSS_SHELL *ctx;
-
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
-  if (right) {
-    ierr = MatCreateVecs(ctx->A,right,NULL);CHKERRQ(ierr);
-    if (left) { ierr = VecDuplicate(*right,left);CHKERRQ(ierr); }
-  } else {
-    ierr = MatCreateVecs(ctx->A,left,NULL);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
 {
   PetscErrorCode    ierr;
@@ -104,25 +88,26 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode MatDestroy_Cross(Mat A)
+static PetscErrorCode MatDestroy_Cross(Mat B)
 {
   PetscErrorCode  ierr;
   SVD_CROSS_SHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->diag);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
+static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
 {
   PetscErrorCode  ierr;
   SVD_CROSS       *cross = (SVD_CROSS*)svd->data;
   SVD_CROSS_SHELL *ctx;
   PetscInt        n;
+  VecType         vtype;
 
   PetscFunctionBegin;
   if (cross->explicitmatrix) {
@@ -155,9 +140,10 @@ PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
     ierr = MatGetLocalSize(A,NULL,&n);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,(void*)ctx,C);CHKERRQ(ierr);
     ierr = MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(*C,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Cross);CHKERRQ(ierr);
     ierr = MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
     ierr = MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_Cross);CHKERRQ(ierr);
+    ierr = MatGetVecType(A,&vtype);CHKERRQ(ierr);
+    ierr = MatSetVecType(*C,vtype);CHKERRQ(ierr);
   }
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)*C);CHKERRQ(ierr);
   PetscFunctionReturn(0);
