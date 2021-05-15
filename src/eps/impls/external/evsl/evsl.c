@@ -724,8 +724,8 @@ PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"steps=%D, npoints=%D\n",ctx->steps,ctx->npoints);CHKERRQ(ierr);
         break;
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial parameters: max degree = %D, threshold = %g\n",ctx->max_deg,(double)ctx->thresh);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial parameters: max degree = %D, threshold = %g\n",ctx->max_deg,(double)ctx->thresh);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
