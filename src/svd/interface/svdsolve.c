@@ -354,7 +354,7 @@ static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigm
   ierr = MatCreateVecs(svd->OPb,NULL,&v);CHKERRQ(ierr);
   aux[0] = u;
   aux[1] = v;
-  ierr = VecCreateNest(PETSC_COMM_WORLD,2,NULL,aux,&nest);CHKERRQ(ierr);
+  ierr = VecCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,aux,&nest);CHKERRQ(ierr);
   ierr = VecCopy(uv,nest);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&ax);CHKERRQ(ierr);
   ierr = VecDuplicate(v,&bx);CHKERRQ(ierr);

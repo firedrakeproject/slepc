@@ -249,7 +249,7 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
     }
     ierr = VecScale(u,PETSC_SQRT2);CHKERRQ(ierr);
     ierr = VecGetArray(u,&uu);CHKERRQ(ierr);
-    ierr = PetscMemcpy(array,uu,nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(array,uu,nloc);CHKERRQ(ierr);
     ierr = VecRestoreArray(u,&uu);CHKERRQ(ierr);
     ierr = MatDenseRestoreColumn(U,&array);CHKERRQ(ierr);
   }
@@ -435,7 +435,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     ierr = BVGetArray(epsrr->V,&xx);CHKERRQ(ierr);
     ierr = DSGetArray(ctx->ds,DS_MAT_A,&aa);CHKERRQ(ierr);
     for (i=0;i<rk;i++) {
-      ierr = PetscMemcpy(aa+i*ldds,xx+i*rk,rk*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(aa+i*ldds,xx+i*rk,rk);CHKERRQ(ierr);
     }
     ierr = DSRestoreArray(ctx->ds,DS_MAT_A,&aa);CHKERRQ(ierr);
     ierr = BVRestoreArray(epsrr->V,&xx);CHKERRQ(ierr);
@@ -455,7 +455,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       ierr = BVGetColumn(V,i,&v);CHKERRQ(ierr);
       ierr = VecGetArray(v,&uu);CHKERRQ(ierr);
       ierr = MatDenseGetColumn(Ux[idx],i,&array);CHKERRQ(ierr);
-      ierr = PetscMemcpy(array,uu,eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(array,uu,eps->nloc);CHKERRQ(ierr);
       ierr = MatDenseRestoreColumn(Ux[idx],&array);CHKERRQ(ierr);
       ierr = VecRestoreArray(v,&uu);CHKERRQ(ierr);
       ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
