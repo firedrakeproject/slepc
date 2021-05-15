@@ -634,7 +634,7 @@ static PetscErrorCode PEPCreateShift(PEP pep,PetscReal val,PEP_shift neighb0,PEP
   if (sr->nPend >= sr->maxPend) {
     sr->maxPend *= 2;
     ierr = PetscMalloc1(sr->maxPend,&pending2);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PEP_shift));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)pep,sr->maxPend*sizeof(PEP_shift*));CHKERRQ(ierr);
     for (i=0;i<sr->nPend;i++) pending2[i] = sr->pending[i];
     ierr = PetscFree(sr->pending);CHKERRQ(ierr);
     sr->pending = pending2;
@@ -1440,7 +1440,7 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   sr->maxPend = 100; /* Initial size */
   sr->nPend = 0;
   ierr = PetscMalloc1(sr->maxPend,&sr->pending);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)pep,(sr->maxPend)*sizeof(PEP_shift));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)pep,sr->maxPend*sizeof(PEP_shift*));CHKERRQ(ierr);
   ierr = PEPCreateShift(pep,sr->int0,NULL,NULL);CHKERRQ(ierr);
   /* extract first shift */
   sr->sPrev = NULL;
@@ -1450,8 +1450,6 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   sr->s0 = sr->sPres;
   sr->indexEig = 0;
 
-  /* Memory reservation for auxiliary variables */
-  ierr = PetscLogObjectMemory((PetscObject)pep,(sr->numEigs+2*pep->ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<sr->numEigs;i++) {
     sr->eigr[i]   = 0.0;
     sr->eigi[i]   = 0.0;
@@ -1460,7 +1458,7 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   }
   /* Vectors for deflation */
   ierr = PetscMalloc2(sr->numEigs,&sr->idxDef0,sr->numEigs,&sr->idxDef1);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)pep,sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)pep,2*sr->numEigs*sizeof(PetscInt));CHKERRQ(ierr);
   sr->indexEig = 0;
   while (sr->sPres) {
     /* Search for deflation */
