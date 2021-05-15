@@ -996,11 +996,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
   cerr = cudaMalloc((void **)&d_A2,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_ipiv,sizeof(PetscBLASInt)*ld);CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_info,sizeof(PetscBLASInt));CHKERRCUDA(cerr);
-  cerr = cudaMalloc((void **)&d_ppP,sizeof(PetscScalar *));CHKERRCUDA(cerr);
-  cerr = cudaMalloc((void **)&d_ppQ,sizeof(PetscScalar *));CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_ppP,sizeof(PetscScalar*));CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_ppQ,sizeof(PetscScalar*));CHKERRCUDA(cerr);
 
-  ierr = PetscMalloc(sizeof(PetscScalar *),&ppP);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar *),&ppQ);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar*),&ppP);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar*),&ppQ);CHKERRQ(ierr);
 
   cerr = cudaMemcpy(d_As,Aa,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   cerr = cudaMemcpy(d_Ba,Ba,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
@@ -1049,8 +1049,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 
     ppQ[0] = d_Q;
     ppP[0] = d_P;
-    cerr = cudaMemcpy(d_ppQ,ppQ,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
-    cerr = cudaMemcpy(d_ppP,ppP,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(d_ppQ,ppQ,sizeof(PetscScalar*),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(d_ppP,ppP,sizeof(PetscScalar*),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
 
     cberr = cublasXgetrfBatched(cublasv2handle,n,d_ppQ,ld,d_ipiv,d_info,one);CHKERRCUBLAS(cberr);
     cerr = cudaMemcpy(&info,d_info,sizeof(PetscBLASInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
@@ -1073,8 +1073,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 
     ppQ[0] = d_Q;
     ppP[0] = d_P;
-    cerr = cudaMemcpy(d_ppQ,ppQ,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
-    cerr = cudaMemcpy(d_ppP,ppP,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(d_ppQ,ppQ,sizeof(PetscScalar*),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(d_ppP,ppP,sizeof(PetscScalar*),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
 
     cberr = cublasXgetrfBatched(cublasv2handle,n,d_ppQ,ld,d_ipiv,d_info,one);CHKERRCUBLAS(cberr);
     cerr = cudaMemcpy(&info,d_info,sizeof(PetscBLASInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
