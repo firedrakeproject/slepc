@@ -289,7 +289,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
 
    test:
       suffix: 7
-      args: -split 0 -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse
+      args: -split 0 -nep_type ciss -nep_ciss_extraction {{ritz hankel}} -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse
       requires: complex !single
 
    testset:

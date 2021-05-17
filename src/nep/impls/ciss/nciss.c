@@ -36,36 +36,36 @@
 typedef struct _n_nep_ciss_project *NEP_CISS_PROJECT;
 typedef struct {
   /* parameters */
-  PetscInt     N;             /* number of integration points (32) */
-  PetscInt     L;             /* block size (16) */
-  PetscInt     M;             /* moment degree (N/4 = 4) */
-  PetscReal    delta;         /* threshold of singular value (1e-12) */
-  PetscInt     L_max;         /* maximum number of columns of the source matrix V */
-  PetscReal    spurious_threshold; /* discard spurious eigenpairs */
-  PetscBool    isreal;        /* T(z) is real for real z */
-  PetscInt     npart;         /* number of partitions */
-  PetscInt     refine_inner;
-  PetscInt     refine_blocksize;
+  PetscInt          N;             /* number of integration points (32) */
+  PetscInt          L;             /* block size (16) */
+  PetscInt          M;             /* moment degree (N/4 = 4) */
+  PetscReal         delta;         /* threshold of singular value (1e-12) */
+  PetscInt          L_max;         /* maximum number of columns of the source matrix V */
+  PetscReal         spurious_threshold; /* discard spurious eigenpairs */
+  PetscBool         isreal;        /* T(z) is real for real z */
+  PetscInt          npart;         /* number of partitions */
+  PetscInt          refine_inner;
+  PetscInt          refine_blocksize;
   NEPCISSExtraction extraction;
   /* private data */
-  PetscReal    *sigma;        /* threshold for numerical rank */
-  PetscInt     subcomm_id;
-  PetscInt     num_solve_point;
-  PetscScalar  *weight;
-  PetscScalar  *omega;
-  PetscScalar  *pp;
-  BV           V;
-  BV           S;
-  BV           Y;
-  KSP          *ksp;           /* ksp array for storing factorizations at integration points */
-  PetscBool    useconj;
-  PetscReal    est_eig;
-  PetscSubcomm subcomm;
-  VecScatter   scatterin;
-  Mat          *pA,T,J;        /* auxiliary matrices when using subcomm */
-  BV           pV;
-  Vec          xsub,xdup;
-  NEP_CISS_PROJECT dsctxf;
+  PetscReal         *sigma;        /* threshold for numerical rank */
+  PetscInt          subcomm_id;
+  PetscInt          num_solve_point;
+  PetscScalar       *weight;
+  PetscScalar       *omega;
+  PetscScalar       *pp;
+  BV                V;
+  BV                S;
+  BV                Y;
+  KSP               *ksp;           /* ksp array for storing factorizations at integration points */
+  PetscBool         useconj;
+  PetscReal         est_eig;
+  PetscSubcomm      subcomm;
+  VecScatter        scatterin;
+  Mat               *pA,T,J;        /* auxiliary matrices when using subcomm */
+  BV                pV;
+  Vec               xsub,xdup;
+  NEP_CISS_PROJECT  dsctxf;
 } NEP_CISS;
 
 struct _n_nep_ciss_project {
@@ -73,7 +73,8 @@ struct _n_nep_ciss_project {
   BV   Q;
 };
 
-static PetscErrorCode NEPContourDSComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx) {
+static PetscErrorCode NEPContourDSComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
+{
   NEP_CISS_PROJECT proj = (NEP_CISS_PROJECT)ctx;
   PetscErrorCode   ierr;
   Mat              M,fun;
@@ -92,7 +93,9 @@ static PetscErrorCode NEPContourDSComputeMatrix(DS ds,PetscScalar lambda,PetscBo
   PetscFunctionReturn(0);
 }
 
-/* destroy KSP objects when the number of solve points changes */
+/*
+  Destroy KSP objects when the number of solve points changes
+*/
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSResetSolvers(NEP nep)
 {
   PetscErrorCode ierr;
@@ -109,7 +112,9 @@ PETSC_STATIC_INLINE PetscErrorCode NEPCISSResetSolvers(NEP nep)
   PetscFunctionReturn(0);
 }
 
-/* clean PetscSubcomm object when the number of partitions changes */
+/*
+  Clean PetscSubcomm object when the number of partitions changes
+*/
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSResetSubcomm(NEP nep)
 {
   PetscErrorCode ierr;
@@ -121,8 +126,10 @@ PETSC_STATIC_INLINE PetscErrorCode NEPCISSResetSubcomm(NEP nep)
   PetscFunctionReturn(0);
 }
 
-/* determine whether half of integration points can be avoided (use its conjugates);
-   depends on isreal and the center of the region */
+/*
+  Determine whether half of integration points can be avoided (use their conjugates);
+  depends on isreal and the center of the region
+*/
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUseConj(NEP nep,PetscBool *useconj)
 {
   PetscErrorCode ierr;
@@ -140,7 +147,9 @@ PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUseConj(NEP nep,PetscBool *useconj)
   PetscFunctionReturn(0);
 }
 
-/* create PetscSubcomm object and determine num_solve_point (depends on npart, N, useconj) */
+/*
+  Create PetscSubcomm object and determine num_solve_point (depends on npart, N, useconj)
+*/
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUpSubComm(NEP nep,PetscInt *num_solve_point)
 {
   PetscErrorCode ierr;
@@ -181,9 +190,7 @@ static PetscErrorCode CISSRedundantMat(NEP nep)
       ierr = MatDuplicate(ctx->pA[0],MAT_DO_NOT_COPY_VALUES,&ctx->J);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->J);CHKERRQ(ierr);
     }
-  } else {
-    ctx->pA = NULL;
-  }
+  } else ctx->pA = NULL;
   PetscFunctionReturn(0);
 }
 
@@ -251,7 +258,7 @@ static PetscErrorCode SetPathParameter(NEP nep)
 }
 
 /*
-  Uniform distributed random vectors with +-1 values
+  Uniformly distributed random vectors with +-1 values
 */
 static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
 {
@@ -379,7 +386,7 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
 /*
   N = 1/(2*pi*i)*integral(trace(F(z)^{-1}Fp(z))dz)=Sum_i( w_i * Sum_j(v_j^*  F(z_i)^{-1}Fp(z_i)v_j)/L)
   N= 1/L Sum_j(v_j^* Sum_i w_i*Y_i(j))
-  Estimation of L_add which is added tho the basis L, without exceeder L_max
+  Estimation of L_add which is added to the basis L, without exceeding L_max
 */
 static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
 {
@@ -441,7 +448,7 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
 
   PetscFunctionBegin;
   V = (ctx->pA)?ctx->pV:ctx->V;
-  ierr = MPI_Comm_size(PetscSubcommChild(ctx->subcomm),&sub_size);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscSubcommChild(ctx->subcomm),&sub_size);CHKERRMPI(ierr);
   ierr = PetscMalloc3(ctx->num_solve_point*ctx->L*(ctx->L+1),&temp,2*ctx->M*ctx->L*ctx->L,&temp2,ctx->num_solve_point,&ppk);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,ctx->L,ctx->L_max*ctx->num_solve_point,NULL,&M);CHKERRQ(ierr);
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] = 0;
@@ -473,7 +480,7 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
   }
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] /= sub_size;
   ierr = PetscMPIIntCast(2*ctx->M*ctx->L*ctx->L,&len);CHKERRQ(ierr);
-  ierr = MPIU_Allreduce(temp2,Mu,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)nep));CHKERRQ(ierr);
+  ierr = MPIU_Allreduce(temp2,Mu,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)nep));CHKERRMPI(ierr);
   ierr = PetscFree3(temp,temp2,ppk);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -482,7 +489,7 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
 static PetscErrorCode BlockHankel(NEP nep,PetscScalar *Mu,PetscInt s,PetscScalar *H)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
-  PetscInt  i,j,k,L=ctx->L,M=ctx->M;
+  PetscInt i,j,k,L=ctx->L,M=ctx->M;
 
   PetscFunctionBegin;
   for (k=0;k<L*M;k++)
@@ -539,7 +546,7 @@ static PetscErrorCode SVD_S(NEP nep,BV S,PetscScalar *pA,PetscInt *K)
   ierr = MatCreateDense(PETSC_COMM_SELF,n,n,PETSC_DECIDE,PETSC_DECIDE,pA,&A);CHKERRQ(ierr);
   ierr = BVOrthogonalize(S,A);CHKERRQ(ierr);
   if (n<ml) {
-  /* the rest of the factorization */
+    /* the rest of the factorization */
     for (i=n;i<ml;i++) {
       ierr = BVGetColumn(S,i,&v);CHKERRQ(ierr);
       ierr = BVOrthogonalizeVec(S,v,pA+i*n,NULL,NULL);CHKERRQ(ierr);
@@ -653,10 +660,10 @@ static PetscErrorCode isGhost(NEP nep,PetscInt ld,PetscInt nv,PetscBool *fl)
 
 PetscErrorCode NEPSetUp_CISS(NEP nep)
 {
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       nwork;
-  PetscBool      istrivial,isellipse,flg,useconj;
+  PetscErrorCode   ierr;
+  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  PetscInt         nwork;
+  PetscBool        istrivial,isellipse,flg,useconj;
   NEP_CISS_PROJECT dsctxf;
 
   PetscFunctionBegin;
@@ -682,6 +689,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (!isellipse) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
+
   /* if useconj has changed, then reset subcomm data */
   ierr = NEPCISSSetUseConj(nep,&useconj);CHKERRQ(ierr);
   if (useconj!=ctx->useconj) { ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr); }
@@ -735,7 +743,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
       ierr = PetscNew(&dsctxf);CHKERRQ(ierr);
       ierr = DSNEPSetComputeMatrixFunction(nep->ds,NEPContourDSComputeMatrix,dsctxf);CHKERRQ(ierr);
       dsctxf->nep = nep;
-      ctx->dsctxf =dsctxf;
+      ctx->dsctxf = dsctxf;
     }
   }
   ierr = DSAllocate(nep->ds,nep->ncv);CHKERRQ(ierr);
@@ -787,7 +795,6 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     }
     ctx->L += L_add;
   }
-
 
   ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
   for (i=0;i<ctx->refine_blocksize;i++) {
@@ -841,7 +848,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       } else break;
     }
     nep->nconv = 0;
-    if (nv == 0) { nep->reason = NEP_CONVERGED_TOL; break;}
+    if (nv == 0) { nep->reason = NEP_CONVERGED_TOL; break; }
     else {
       /* Extracting eigenpairs */
       ierr = DSSetDimensions(nep->ds,nv,0,0);CHKERRQ(ierr);
@@ -873,7 +880,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
       ierr = DSGetDimensions(nep->ds,NULL,NULL,NULL,&nv);CHKERRQ(ierr);
       if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
-        for (i=0;i<nv;i++){
+        for (i=0;i<nv;i++) {
           nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
         }
       }
@@ -892,7 +899,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = DSSort(nep->ds,nep->eigr,nep->eigi,rr,NULL,&nep->nconv);CHKERRQ(ierr);
     ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
     if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
-      for (i=0;i<nv;i++) { nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale; }
+      for (i=0;i<nv;i++) nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
     }
     ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(nep->V,0,nv);CHKERRQ(ierr);
@@ -1438,7 +1445,9 @@ PetscErrorCode NEPReset_CISS(NEP nep)
     ierr = MatDestroy(&ctx->J);CHKERRQ(ierr);
     ierr = BVDestroy(&ctx->pV);CHKERRQ(ierr);
   }
-  if (ctx->extraction == NEP_CISS_EXTRACTION_RITZ && nep->fui==NEP_USER_INTERFACE_CALLBACK) { ierr = PetscFree(ctx->dsctxf);CHKERRQ(ierr);}
+  if (ctx->extraction == NEP_CISS_EXTRACTION_RITZ && nep->fui==NEP_USER_INTERFACE_CALLBACK) {
+    ierr = PetscFree(ctx->dsctxf);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

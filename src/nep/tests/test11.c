@@ -178,7 +178,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -terse
+      args: -nep_ciss_extraction {{ritz hankel}} -terse
       requires: complex !single
 
 TEST*/
