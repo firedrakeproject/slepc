@@ -18,6 +18,7 @@ typedef struct {
   PetscInt       max_mid;            /* maximum minimality index */
   PetscInt       nnod;               /* number of nodes for quadrature rules */
   PetscInt       Nit;                /* number of refinement iterations */
+  PetscReal      rtol;               /* tolerance of Newton refinement */
   RG             rg;                 /* region for contour integral */
   void           *computematrixctx;
   PetscErrorCode (*computematrix)(DS,PetscScalar,PetscBool,DSMatType,void*);
@@ -102,7 +103,7 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
     if (ds->method==1) {  /* contour integral method */
       ierr = PetscViewerASCIIPrintf(viewer,"number of integration points: %D\n",ctx->nnod);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"maximum minimality index: %D\n",ctx->max_mid);CHKERRQ(ierr);
-      if (ctx->Nit) { ierr = PetscViewerASCIIPrintf(viewer,"doing iterative refinement (%D its)\n",ctx->Nit);CHKERRQ(ierr); }
+      if (ctx->Nit) { ierr = PetscViewerASCIIPrintf(viewer,"doing iterative refinement (%D its, tolerance %g)\n",ctx->Nit,(double)ctx->rtol);CHKERRQ(ierr); }
       ierr = RGView(ctx->rg,viewer);CHKERRQ(ierr);
     }
 #endif
@@ -289,12 +290,11 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *X,*W,*U,*R,sone=1.0,szero=0.0;
-  PetscReal      norm,tol;
+  PetscReal      norm;
   PetscInt       i,j,ii,nwu=0,*p;
   PetscBLASInt   n,*perm,info,ld,one=1,n1;
 
   PetscFunctionBegin;
-  tol = ds->n*PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
   X = ds->mat[DS_MAT_X];
   W = ds->mat[DS_MAT_W];
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
@@ -312,7 +312,7 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
         ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
         PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
         norm = BLASnrm2_(&n,R,&one);
-        if (norm/PetscAbsScalar(wr[j]) > tol) {
+        if (norm/PetscAbsScalar(wr[j]) > ctx->rtol) {
           R[n] = 0.0;
           for (i=0;i<n;i++) {
             ierr = PetscArraycpy(U+i*n1,W+i*ld,n);CHKERRQ(ierr);
@@ -753,11 +753,16 @@ PetscErrorCode DSNEPGetMinimality(DS ds,PetscInt *n)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode DSNEPSetRefineIts_NEP(DS ds,PetscInt its)
+static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
 {
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
+  if (tol == PETSC_DEFAULT) ctx->rtol = PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
+  else {
+    if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The tolerance must be > 0");
+    ctx->rtol = tol;
+  }
   if (its == PETSC_DECIDE || its == PETSC_DEFAULT) ctx->Nit = 3;
   else {
     if (its<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
@@ -767,17 +772,19 @@ static PetscErrorCode DSNEPSetRefineIts_NEP(DS ds,PetscInt its)
 }
 
 /*@
-   DSNEPSetRefineIts - Sets the number of iterations of Newton iterative
+   DSNEPSetRefine - Sets the tolerance and the number of iterations of Newton iterative
    refinement for eigenpairs.
 
    Logically Collective on ds
 
    Input Parameters:
 +  ds  - the direct solver context
+.  tol - the tolerance
 -  its - the number of iterations
 
    Options Database Key:
-.  -ds_nep_refine_its <its> - sets the number of Newton iterations
++  -ds_nep_refine_tol <tol> - sets the tolerance
+-  -ds_nep_refine_its <its> - sets the number of Newton iterations
 
    Notes:
    Iterative refinement of eigenpairs is currently used only in the contour
@@ -785,30 +792,32 @@ static PetscErrorCode DSNEPSetRefineIts_NEP(DS ds,PetscInt its)
 
    Level: advanced
 
-.seealso: DSNEPGetRefineIts()
+.seealso: DSNEPGetRefine()
 @*/
-PetscErrorCode DSNEPSetRefineIts(DS ds,PetscInt its)
+PetscErrorCode DSNEPSetRefine(DS ds,PetscReal tol,PetscInt its)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(ds,its,2);
-  ierr = PetscTryMethod(ds,"DSNEPSetRefineIts_C",(DS,PetscInt),(ds,its));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveReal(ds,tol,2);
+  PetscValidLogicalCollectiveInt(ds,its,3);
+  ierr = PetscTryMethod(ds,"DSNEPSetRefine_C",(DS,PetscReal,PetscInt),(ds,tol,its));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode DSNEPGetRefineIts_NEP(DS ds,PetscInt *its)
+static PetscErrorCode DSNEPGetRefine_NEP(DS ds,PetscReal *tol,PetscInt *its)
 {
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  *its = ctx->Nit;
+  if (tol) *tol = ctx->rtol;
+  if (its) *its = ctx->Nit;
   PetscFunctionReturn(0);
 }
 
 /*@
-   DSNEPGetRefineIts - Returns the number of iterations of Newton iterative
+   DSNEPGetRefine - Returns the tolerance and the number of iterations of Newton iterative
    refinement for eigenpairs.
 
    Not collective
@@ -817,20 +826,20 @@ static PetscErrorCode DSNEPGetRefineIts_NEP(DS ds,PetscInt *its)
 .  ds - the direct solver context
 
    Output Parameters:
-.  its - the number of iterations
++  tol - the tolerance
+-  its - the number of iterations
 
    Level: advanced
 
-.seealso: DSNEPSetRefineIts()
+.seealso: DSNEPSetRefine()
 @*/
-PetscErrorCode DSNEPGetRefineIts(DS ds,PetscInt *its)
+PetscErrorCode DSNEPGetRefine(DS ds,PetscReal *tol,PetscInt *its)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(its,2);
-  ierr = PetscUseMethod(ds,"DSNEPGetRefineIts_C",(DS,PetscInt*),(ds,its));CHKERRQ(ierr);
+  ierr = PetscUseMethod(ds,"DSNEPGetRefine_C",(DS,PetscReal*,PetscInt*),(ds,tol,its));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1093,6 +1102,8 @@ PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
   PetscInt       k;
   PetscBool      flg;
 #if defined(PETSC_USE_COMPLEX)
+  PetscReal      r;
+  PetscBool      flg1;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
 #endif
 
@@ -1105,10 +1116,13 @@ PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
     ierr = PetscOptionsInt("-ds_nep_integration_points","Number of integration points","DSNEPSetIntegrationPoints",32,&k,&flg);CHKERRQ(ierr);
     if (flg) { ierr = DSNEPSetIntegrationPoints(ds,k);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsInt("-ds_nep_refine_its","Number of iterative refinement iterations","DSNEPSetRefineIts",0,&k,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = DSNEPSetRefineIts(ds,k);CHKERRQ(ierr); }
-
 #if defined(PETSC_USE_COMPLEX)
+    r = ctx->rtol;
+    ierr = PetscOptionsReal("-ds_nep_refine_tol","Refinement tolerance","DSNEPSetRefine",ctx->rtol,&r,&flg1);CHKERRQ(ierr);
+    k = ctx->Nit;
+    ierr = PetscOptionsInt("-ds_nep_refine_its","Number of iterative refinement iterations","DSNEPSetRefine",ctx->Nit,&k,&flg);CHKERRQ(ierr);
+    if (flg1||flg) { ierr = DSNEPSetRefine(ds,r,k);CHKERRQ(ierr); }
+
     if (ds->method==1) {
       if (!ctx->rg) { ierr = DSNEPGetRG(ds,&ctx->rg);CHKERRQ(ierr); }
       ierr = RGSetFromOptions(ctx->rg);CHKERRQ(ierr);
@@ -1136,8 +1150,8 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefineIts_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefineIts_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefine_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefine_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",NULL);CHKERRQ(ierr);
@@ -1185,6 +1199,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ctx->max_mid = 1;
   ctx->nnod    = 32;
   ctx->Nit     = 3;
+  ctx->rtol    = PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
 
   ds->ops->allocate       = DSAllocate_NEP;
   ds->ops->setfromoptions = DSSetFromOptions_NEP;
@@ -1202,8 +1217,8 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",DSNEPGetMinimality_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",DSNEPSetMinimality_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefineIts_C",DSNEPGetRefineIts_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefineIts_C",DSNEPSetRefineIts_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefine_C",DSNEPGetRefine_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefine_C",DSNEPSetRefine_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",DSNEPGetIntegrationPoints_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",DSNEPSetIntegrationPoints_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",DSNEPSetRG_NEP);CHKERRQ(ierr);

@@ -19,7 +19,7 @@ int main(int argc,char **argv)
   FN             f1,f2,f3,funs[3],qfun;
   SlepcSC        sc;
   PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,alpha;
-  PetscReal      tau=0.001,radius=10,h,a=20,xi,re,im,nrm,aux;
+  PetscReal      tol,tau=0.001,radius=10,h,a=20,xi,re,im,nrm,aux;
   PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun;
   PetscViewer    viewer;
   PetscBool      verbose;
@@ -39,6 +39,8 @@ int main(int argc,char **argv)
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
   ierr = DSSetType(ds,DSNEP);CHKERRQ(ierr);
+  tol  = 1000*n*PETSC_MACHINE_EPSILON;
+  ierr = DSNEPSetRefine(ds,tol,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
 
   /* Set functions (prior to DSAllocate) */
@@ -167,7 +169,7 @@ int main(int argc,char **argv)
       nrm += aux*aux;
     }
     nrm = PetscSqrtReal(nrm);
-    if (nrm>1000*n*PETSC_MACHINE_EPSILON) {
+    if (nrm/SlepcAbsEigenvalue(wr[i],wi[i])>tol) {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %D-th computed eigenpair %g\n",i,(double)nrm);CHKERRQ(ierr);
     }
     if (PetscAbs(im)<1e-10) {
@@ -197,7 +199,7 @@ int main(int argc,char **argv)
       test:
          suffix: 2
          args: -ds_method 1 -radius 10 -ds_nep_refine_its 1
-         filter: grep -v "solving the problem" | sed -e "s/[+-]0\.0*i//g" | sed -e "s/37411/37410/"
+         filter: grep -v "solving the problem" | sed -e "s/[+-]0\.0*i//g" | sed -e "s/37411/37410/" | sed -e "s/tolerance [0-9]\.[0-9]*e[+-]\([0-9]*\)/tolerance removed/"
          requires: complex
 
 TEST*/

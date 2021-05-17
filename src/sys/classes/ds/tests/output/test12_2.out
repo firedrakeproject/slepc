@@ -7,7 +7,7 @@ DS Object: 1 MPI processes
   number of functions: 3
   number of integration points: 32
   maximum minimality index: 1
-  doing iterative refinement (1 its)
+  doing iterative refinement (1 its, tolerance removed)
   RG Object: 1 MPI processes
     type: ellipse
       center: 0., radius: 10., vscale: 1.
