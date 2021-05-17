@@ -208,7 +208,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   sigma = 0.0;
   if (ds->sc->comparison==SlepcCompareTargetMagnitude || ds->sc->comparison==SlepcCompareTargetReal) sigma = *(PetscScalar*)ds->sc->comparisonctx;
   lambda = sigma;
-  tol = 1000*n*PETSC_MACHINE_EPSILON;
+  tol = n*PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
 
   for (it=0;it<maxit;it++) {
 
@@ -289,44 +289,52 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *X,*W,*U,*R,sone=1.0,szero=0.0;
-  PetscReal      norm;
-  PetscInt       i,j,ii,nwu=0;
+  PetscReal      norm,tol;
+  PetscInt       i,j,ii,nwu=0,*p;
   PetscBLASInt   n,*perm,info,ld,one=1,n1;
 
   PetscFunctionBegin;
+  tol = ds->n*PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
   X = ds->mat[DS_MAT_X];
   W = ds->mat[DS_MAT_W];
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   n1 = n+1;
+  p  = ds->perm;
+  ierr = PetscArrayzero(p,k);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,(n+2)*(n+1),0,n+1);CHKERRQ(ierr);
   U    = ds->work+nwu;    nwu += (n+1)*(n+1);
   R    = ds->work+nwu;    nwu += n+1;
   perm = ds->iwork;
   for (ii=0;ii<ctx->Nit;ii++) {
     for (j=0;j<k;j++) {
-      ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_TRUE,DS_MAT_W);CHKERRQ(ierr);
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,U+n*(n+1),&one));
-      ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
-      for (i=0;i<n;i++) {
-        ierr = PetscArraycpy(U+i*n1,W+i*ld,n);CHKERRQ(ierr);
-        U[n+i*n1] = PetscConj(X[j*ld+i]);
+      if (!p[j]) {
+        ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
+        PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
+        norm = BLASnrm2_(&n,R,&one);
+        if (norm/PetscAbsScalar(wr[j]) > tol) {
+          R[n] = 0.0;
+          for (i=0;i<n;i++) {
+            ierr = PetscArraycpy(U+i*n1,W+i*ld,n);CHKERRQ(ierr);
+            U[n+i*n1] = PetscConj(X[j*ld+i]);
+          }
+          U[n+n*n1] = 0.0;
+          ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_TRUE,DS_MAT_W);CHKERRQ(ierr);
+          PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,U+n*(n+1),&one));
+          /* solve system  */
+          ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+          PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n1,&n1,U,&n1,perm,&info));
+          SlepcCheckLapackInfo("getrf",info);
+          PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n1,&one,U,&n1,perm,R,&n1,&info));
+          SlepcCheckLapackInfo("getrs",info);
+          ierr = PetscFPTrapPop();CHKERRQ(ierr);
+          wr[j] -= R[n];
+          for (i=0;i<n;i++) X[j*ld+i] -= R[i];
+          /* normalization */
+          norm = BLASnrm2_(&n,X+ld*j,&one);
+          for (i=0;i<n;i++) X[ld*j+i] /= norm;
+        } else p[j] = 1;
       }
-      U[n+n*n1] = 0.0;
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
-      R[n] = 0.0;
-      /* solve system  */
-      ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-      PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n1,&n1,U,&n1,perm,&info));
-      SlepcCheckLapackInfo("getrf",info);
-      PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n1,&one,U,&n1,perm,R,&n1,&info));
-      SlepcCheckLapackInfo("getrs",info);
-      ierr = PetscFPTrapPop();CHKERRQ(ierr);
-      wr[j] -= R[n];
-      for (i=0;i<n;i++) X[j*ld+i] -= R[i];
-      /* normalization */
-      norm = BLASnrm2_(&n,X+ld*j,&one);
-      for (i=0;i<n;i++) X[ld*j+i] /= norm;
     }
   }
   PetscFunctionReturn(0);
@@ -750,7 +758,7 @@ static PetscErrorCode DSNEPSetRefineIts_NEP(DS ds,PetscInt its)
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  if (its == PETSC_DECIDE || its == PETSC_DEFAULT) ctx->Nit = 0;
+  if (its == PETSC_DECIDE || its == PETSC_DEFAULT) ctx->Nit = 3;
   else {
     if (its<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
     ctx->Nit = its;
@@ -1176,7 +1184,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ds->data = (void*)ctx;
   ctx->max_mid = 1;
   ctx->nnod    = 32;
-  ctx->Nit     = 0;
+  ctx->Nit     = 3;
 
   ds->ops->allocate       = DSAllocate_NEP;
   ds->ops->setfromoptions = DSSetFromOptions_NEP;
