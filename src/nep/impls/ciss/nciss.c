@@ -80,7 +80,7 @@ static PetscErrorCode NEPContourDSComputeMatrix(DS ds,PetscScalar lambda,PetscBo
 
   PetscFunctionBegin;
   if (!deriv) {
-    ierr = NEPComputeFunction(proj->nep,lambda,proj->nep->function,NULL);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(proj->nep,lambda,proj->nep->function,proj->nep->function);CHKERRQ(ierr);
     fun = proj->nep->function;
   } else {
     ierr = NEPComputeJacobian(proj->nep,lambda,proj->nep->jacobian);CHKERRQ(ierr);
@@ -1438,6 +1438,7 @@ PetscErrorCode NEPReset_CISS(NEP nep)
     ierr = MatDestroy(&ctx->J);CHKERRQ(ierr);
     ierr = BVDestroy(&ctx->pV);CHKERRQ(ierr);
   }
+  if (ctx->extraction == NEP_CISS_EXTRACTION_RITZ && nep->fui==NEP_USER_INTERFACE_CALLBACK) { ierr = PetscFree(ctx->dsctxf);CHKERRQ(ierr);}
   PetscFunctionReturn(0);
 }
 
