@@ -151,6 +151,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
+  ST             st;
   PetscBool      trackall;
 
   PetscFunctionBegin;
@@ -167,7 +168,14 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
   }
   if (!cross->usereps) {
-    ierr = EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL);CHKERRQ(ierr);
+    if (svd->isgeneralized && svd->which==SVD_SMALLEST) {
+      ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
+      ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+      ierr = EPSSetTarget(cross->eps,0.0);CHKERRQ(ierr);
+      ierr = EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_REAL);CHKERRQ(ierr);
+    } else {
+      ierr = EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL);CHKERRQ(ierr);
+    }
     ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
     ierr = EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it);CHKERRQ(ierr);
     switch (svd->conv) {

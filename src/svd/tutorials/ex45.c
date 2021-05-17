@@ -184,5 +184,8 @@ int main(int argc,char **argv)
       test:
          args: -svd_type {{lapack cross}} -m 20 -n 15 -p 21
          suffix: 4
+      test:
+         args: -svd_type cross -svd_nsv 4 -svd_ncv 12 -m 25 -n 20 -p 21 -svd_smallest
+         suffix: 5
 
 TEST*/
