@@ -15,9 +15,13 @@ typedef struct {
   PetscBool explicitmatrix;
   EPS       eps;
   PetscBool usereps;
-  Mat       mat;
-  Vec       x1,x2,y1,y2;
+  Mat       C;
 } SVD_CYCLIC;
+
+typedef struct {
+  Mat       A,AT;
+  Vec       x1,x2,y1,y2;
+} SVD_CYCLIC_SHELL;
 
 SLEPC_INTERN PetscErrorCode MatMult_Cyclic_CUDA(Mat,Vec,Vec);
 
