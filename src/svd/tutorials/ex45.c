@@ -185,7 +185,13 @@ int main(int argc,char **argv)
          args: -svd_type {{lapack cross}} -m 20 -n 15 -p 21
          suffix: 4
       test:
-         args: -svd_type cross -svd_nsv 4 -svd_ncv 12 -m 25 -n 20 -p 21 -svd_smallest
+         args: -svd_type cross -svd_nsv 4 -svd_ncv 12 -m 25 -n 20 -p 21 -svd_smallest -svd_cross_explicittranspose {{0 1}}
          suffix: 5
+      test:
+         args: -svd_type cyclic -m 15 -n 20 -p 21 -svd_cyclic_explicittranspose {{0 1}}
+         suffix: 6
+      test:
+         args: -svd_type cyclic -m 20 -n 15 -p 21 -svd_cyclic_explicittranspose {{0 1}}
+         suffix: 7
 
 TEST*/

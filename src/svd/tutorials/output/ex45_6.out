@@ -1,0 +1,15 @@
+
+Generalized singular value decomposition, (15+21)x20
+
+ Number of iterations of the method: 3
+
+ Number of requested singular values: 1
+ Stopping condition: tol=1e-08
+ Number of converged approximate singular triplets: 3
+
+          sigma           relative error
+  --------------------- ------------------
+        7.884968          removed
+        7.547750          removed
+        7.011289          removed
+

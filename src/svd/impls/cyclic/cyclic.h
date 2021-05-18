@@ -15,14 +15,17 @@ typedef struct {
   PetscBool explicitmatrix;
   EPS       eps;
   PetscBool usereps;
-  Mat       C;
+  Mat       C,D;
 } SVD_CYCLIC;
 
 typedef struct {
   Mat       A,AT;
   Vec       x1,x2,y1,y2;
+  Vec       diag,w;         /* used only in extended cross matrix */
+  PetscBool swapped;
 } SVD_CYCLIC_SHELL;
 
 SLEPC_INTERN PetscErrorCode MatMult_Cyclic_CUDA(Mat,Vec,Vec);
+SLEPC_INTERN PetscErrorCode MatMult_ECross_CUDA(Mat,Vec,Vec);
 
 #endif
