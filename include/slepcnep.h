@@ -308,19 +308,34 @@ SLEPC_EXTERN PetscErrorCode NEPNArnoldiGetKSP(NEP,KSP*);
 SLEPC_EXTERN PetscErrorCode NEPNArnoldiSetLagPreconditioner(NEP,PetscInt);
 SLEPC_EXTERN PetscErrorCode NEPNArnoldiGetLagPreconditioner(NEP,PetscInt*);
 
+/*E
+    NEPCISSExtraction - determines the extraction technique in the CISS solver
+
+    Level: advanced
+
+.seealso: NEPCISSSetExtraction(), NEPCISSGetExtraction()
+E*/
+typedef enum { NEP_CISS_EXTRACTION_RITZ,
+               NEP_CISS_EXTRACTION_HANKEL } NEPCISSExtraction;
+SLEPC_EXTERN const char *NEPCISSExtractions[];
+
 #if defined(PETSC_USE_COMPLEX)
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetSizes(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt a,PETSC_UNUSED PetscInt b,PETSC_UNUSED PetscInt c,PETSC_UNUSED PetscInt d,PETSC_UNUSED PetscInt e,PETSC_UNUSED PetscBool f) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetSizes(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt *a,PETSC_UNUSED PetscInt *b,PETSC_UNUSED PetscInt *c,PETSC_UNUSED PetscInt *d,PETSC_UNUSED PetscInt *e,PETSC_UNUSED PetscBool f) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetThreshold(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscReal a,PETSC_UNUSED PetscReal b) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetThreshold(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscReal *a,PETSC_UNUSED PetscReal *b) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetRefinement(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt a,PETSC_UNUSED PetscInt b) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetRefinement(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt *a,PETSC_UNUSED PetscInt *b) {return 0;}
-PETSC_DEPRECATED_FUNCTION("The NEPCISS solver has been deprecated since 3.14") PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetKSPs(PETSC_UNUSED NEP nep,PETSC_UNUSED PetscInt *a,PETSC_UNUSED KSP **b) {return 0;}
+SLEPC_EXTERN PetscErrorCode NEPCISSSetExtraction(NEP,NEPCISSExtraction);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetExtraction(NEP,NEPCISSExtraction*);
+SLEPC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetSizes(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
+SLEPC_EXTERN PetscErrorCode NEPCISSSetThreshold(NEP,PetscReal,PetscReal);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetThreshold(NEP,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode NEPCISSSetRefinement(NEP,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetRefinement(NEP,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode NEPCISSGetKSPs(NEP,PetscInt*,KSP**);
 #else
 #define SlepcNEPCISSUnavailable(nep) do { \
     PetscFunctionBegin; \
     SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"%s() not available with real scalars",PETSC_FUNCTION_NAME); \
     } while (0)
+PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetExtraction(NEP nep,PETSC_UNUSED NEPCISSExtraction ex) {SlepcNEPCISSUnavailable(nep);}
+PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetExtraction(NEP nep,PETSC_UNUSED NEPCISSExtraction *ex) {SlepcNEPCISSUnavailable(nep);}
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetSizes(NEP nep,PETSC_UNUSED PetscInt ip,PETSC_UNUSED PetscInt bs,PETSC_UNUSED PetscInt ms,PETSC_UNUSED PetscInt npart,PETSC_UNUSED PetscInt bsmax,PETSC_UNUSED PetscBool realmats) {SlepcNEPCISSUnavailable(nep);}
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetSizes(NEP nep,PETSC_UNUSED PetscInt *ip,PETSC_UNUSED PetscInt *bs,PETSC_UNUSED PetscInt *ms,PETSC_UNUSED PetscInt *npart,PETSC_UNUSED PetscInt *bsmak,PETSC_UNUSED PetscBool *realmats) {SlepcNEPCISSUnavailable(nep);}
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetThreshold(NEP nep,PETSC_UNUSED PetscReal delta,PETSC_UNUSED PetscReal spur) {SlepcNEPCISSUnavailable(nep);}

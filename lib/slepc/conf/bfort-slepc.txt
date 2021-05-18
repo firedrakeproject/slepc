@@ -34,6 +34,7 @@ native NEPRefineScheme
 native NEPConv
 native NEPStop
 native NEPConvergedReason
+native NEPCISSExtraction
 native PEPProblemType
 native PEPWhich
 native PEPBasis

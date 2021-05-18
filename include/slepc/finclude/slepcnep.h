@@ -30,6 +30,7 @@
 #define NEPStop            PetscEnum
 #define NEPRefine          PetscEnum
 #define NEPRefineScheme    PetscEnum
+#define NEPCISSExtraction  PetscEnum
 
 #define NEPRII       'rii'
 #define NEPSLP       'slp'

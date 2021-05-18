@@ -47,7 +47,7 @@ int main(int argc,char **argv)
   ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
   ierr = DSNEPSetMinimality(ds,1);CHKERRQ(ierr);
   ierr = DSNEPSetIntegrationPoints(ds,16);CHKERRQ(ierr);
-  ierr = DSNEPSetRefineIts(ds,2);CHKERRQ(ierr);
+  ierr = DSNEPSetRefine(ds,PETSC_DEFAULT,2);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
 
   /* Print current options */
@@ -60,7 +60,7 @@ int main(int argc,char **argv)
 
   ierr = DSNEPGetMinimality(ds,&midx);CHKERRQ(ierr);
   ierr = DSNEPGetIntegrationPoints(ds,&ip);CHKERRQ(ierr);
-  ierr = DSNEPGetRefineIts(ds,&rits);CHKERRQ(ierr);
+  ierr = DSNEPGetRefine(ds,NULL,&rits);CHKERRQ(ierr);
   if (meth==1) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour integral method with %D integration points and minimality index %D\n",ip,midx);CHKERRQ(ierr);
     if (rits) {

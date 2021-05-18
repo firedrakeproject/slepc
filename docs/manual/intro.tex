@@ -93,12 +93,12 @@
                 rectangle node {\dots} ++(1.1,1);
   \node[above,text centered,font=\sffamily\bfseries\Large] at (15.1,5*\levsep) {SLEPc};
   \draw[interface] (11,4*\levsep+\himp) rectangle node {Nonlinear Eigensolver} +(6.5,\hint);
-  \draw[implem] (11,4*\levsep) rectangle node {SLP} ++(1.1,1) ++(0,-1)
-                rectangle node {RII} ++(1.0,1) ++(0,-1)
-                rectangle node[text width=1.4cm] {N-Arnoldi} ++(1.7,1) ++(0,-1)
-                rectangle node[text width=1.2cm] {Interp.} ++(1.3,1) ++(0,-1)
-                %rectangle node {CISS} ++(1.1,1) ++(0,-1)
-                rectangle node[text width=1.2cm] {NLEIGS} ++(1.4,1);
+  \draw[implem] (11,4*\levsep) rectangle node {SLP} ++(1,1) ++(0,-1)
+                rectangle node {RII} ++(.9,1) ++(0,-1)
+                rectangle node[text width=1.2cm] {N\-Arnoldi} ++(1.2,1) ++(0,-1)
+                rectangle node[text width=1.2cm] {Interp.} ++(1.1,1) ++(0,-1)
+                rectangle node {CISS} ++(1.1,1) ++(0,-1)
+                rectangle node[text width=1.2cm] {NLEIGS} ++(1.2,1);
   \draw[interface] (17.8,4*\levsep+\himp) rectangle node {M.~Function} +(2.6,\hint);
   \draw[implem] (17.8,4*\levsep) rectangle node {Krylov} ++(1.2,1) ++(0,-1)
                 rectangle node {Expokit} ++(1.4,1);
