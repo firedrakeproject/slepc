@@ -169,7 +169,8 @@
       if (rank .eq. 0) then
         write(*,190) refine,tol,its,rscheme
       endif
- 190  format (' Refinement: ',I2,', tol=',F7.4,', its=',I2', schem=',I2)
+ 190  format (' Refinement: ',I2,', tol=',F7.4,', its=',I2,', schem=',  &
+     &        I2)
 
       tget = 4.8
       call PEPSetTarget(pep,tget,ierr)
