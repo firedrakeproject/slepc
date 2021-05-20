@@ -155,7 +155,7 @@
       if (rank .eq. 0) then
         write(*,190) refine,tol,its,rscheme
       endif
- 190  format (' Refinement: ',I2,', tol=',F12.9,', its=',I2', scheme=', &
+ 190  format (' Refinement: ',I2,', tol=',F12.9,', its=',I2,', scheme=',&
      &   I2)
 
       tget = 1.1

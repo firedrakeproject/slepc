@@ -755,7 +755,7 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS
   if (sr->nPend >= sr->maxPend) {
     sr->maxPend *= 2;
     ierr = PetscMalloc1(sr->maxPend,&pending2);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(EPS_shift));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,sr->maxPend*sizeof(EPS_shift*));CHKERRQ(ierr);
     for (i=0;i<sr->nPend;i++) pending2[i] = sr->pending[i];
     ierr = PetscFree(sr->pending);CHKERRQ(ierr);
     sr->pending = pending2;
@@ -1305,7 +1305,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     sr->maxPend = 100; /* Initial size */
     sr->nPend = 0;
     ierr = PetscMalloc1(sr->maxPend,&sr->pending);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,(sr->maxPend)*sizeof(EPS_shift));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,sr->maxPend*sizeof(EPS_shift*));CHKERRQ(ierr);
     ierr = EPSCreateShift(eps,sr->int0,NULL,NULL);CHKERRQ(ierr);
     /* extract first shift */
     sr->sPrev = NULL;
@@ -1318,7 +1318,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     lds = PetscMin(eps->mpd,eps->ncv);
     ierr = PetscCalloc1(lds*lds,&sr->S);CHKERRQ(ierr);
     ierr = PetscMalloc1(eps->ncv,&sr->back);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,(sr->numEigs+2*eps->ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)eps,(lds*lds+eps->ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<sr->numEigs;i++) {
       sr->eigr[i]   = 0.0;
       sr->eigi[i]   = 0.0;

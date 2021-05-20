@@ -83,7 +83,7 @@ int main(int argc,char **argv)
   ierr = EPSEVSLGetSlices(eps,&nslice);CHKERRQ(ierr);
   ierr = EPSGetInterval(eps,&a,&b);CHKERRQ(ierr);
   ierr = EPSEVSLGetRange(eps,&ra,&rb);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: solving interval [%g,%g] with %D slices (spectral range [%g,%g]\n",a,b,nslice,ra,rb);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: solving interval [%g,%g] with %D slices (spectral range [%g,%g])\n",a,b,nslice,ra,rb);CHKERRQ(ierr);
   ierr = EPSEVSLGetDamping(eps,&damping);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: damping type is %s\n",EPSEVSLDampings[damping]);CHKERRQ(ierr);
 
