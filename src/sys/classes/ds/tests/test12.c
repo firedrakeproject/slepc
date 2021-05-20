@@ -199,7 +199,7 @@ int main(int argc,char **argv)
       test:
          suffix: 2
          args: -ds_method 1 -radius 10 -ds_nep_refine_its 1
-         filter: grep -v "solving the problem" | sed -e "s/[+-]0\.0*i//g" | sed -e "s/37411/37410/" | sed -e "s/tolerance [0-9]\.[0-9]*e[+-]\([0-9]*\)/tolerance removed/"
+         filter: grep -v "solving the problem" | sed -e "s/[+-]0\.0*i//g" | sed -e "s/37411/37410/" | sed -e "s/tolerance [0-9]\.[0-9]*e[+-]\([0-9]*\)/tolerance removed/" | sed -e "s/tolerance [0-9]\.\([0-9]*\)/tolerance removed/"
          requires: complex
 
 TEST*/

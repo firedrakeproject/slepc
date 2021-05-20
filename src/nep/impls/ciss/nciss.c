@@ -555,21 +555,19 @@ static PetscErrorCode SVD_S(NEP nep,BV S,PetscScalar *pA,PetscInt *K)
   }
   ierr = PetscBLASIntCast(n,&lda);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
-  ierr = PetscMalloc1(5*ml,&work);CHKERRQ(ierr);
-  ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc2(5*ml,&work,5*ml,&rwork);CHKERRQ(ierr);
   lwork = 5*m;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&lda,&m,pA,&lda,ctx->sigma,NULL,&lda,NULL,&lda,work,&lwork,rwork,&info));
   SlepcCheckLapackInfo("gesvd",info);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   (*K) = 0;
-  for (i=0;i<ml;i++) {
+  for (i=0;i<n;i++) {
     if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
   }
   /* n first columns of A have the left singular vectors */
   ierr = BVMultInPlace(S,A,0,*K);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
+  ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
