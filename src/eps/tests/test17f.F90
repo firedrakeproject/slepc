@@ -164,13 +164,13 @@
       if (rank .eq. 0) then
         write(*,130) lock
       endif
- 130  format (' Locking flag before changing = ',L)
+ 130  format (' Locking flag before changing = ',L4)
       call EPSKrylovSchurSetLocking(eps,PETSC_FALSE,ierr);CHKERRA(ierr)
       call EPSKrylovSchurGetLocking(eps,lock,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
         write(*,140) lock
       endif
- 140  format (' ... changed to ',L)
+ 140  format (' ... changed to ',L4)
 
       call EPSKrylovSchurGetDimensions(eps,nev,ncv,mpd,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then

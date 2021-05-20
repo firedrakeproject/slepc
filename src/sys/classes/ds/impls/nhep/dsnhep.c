@@ -265,6 +265,7 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
   PetscInt       i;
   PetscBLASInt   info,n,ld,mout,lwork,*selection;
   PetscScalar    *T = ds->mat[DS_MAT_A],*Q = ds->mat[DS_MAT_Q],*work;
+  PetscReal      dummy;
 #if !defined(PETSC_USE_COMPLEX)
   PetscBLASInt   *iwork,liwork;
 #endif
@@ -293,9 +294,9 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
   ierr = PetscArrayzero(selection,n);CHKERRQ(ierr);
   for (i=0;i<*k;i++) selection[ds->perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,wi,&mout,NULL,NULL,work,&lwork,iwork,&liwork,&info));
+  PetscStackCallBLAS("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,wi,&mout,&dummy,&dummy,work,&lwork,iwork,&liwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,&mout,NULL,NULL,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,&mout,&dummy,&dummy,work,&lwork,&info));
 #endif
   SlepcCheckLapackInfo("trsen",info);
   *k = mout;

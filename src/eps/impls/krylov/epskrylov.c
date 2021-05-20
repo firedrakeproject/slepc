@@ -324,7 +324,7 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
   PetscInt       j,m = *M,i,ld,l;
   Vec            vj,vj1;
   PetscScalar    *hwork,lhwork[100];
-  PetscReal      norm,norm1,norm2,t,*f,sym=0.0,fro=0.0;
+  PetscReal      norm,norm1,norm2,t,sym=0.0,fro=0.0;
   PetscBLASInt   j_,one=1;
 
   PetscFunctionBegin;
@@ -345,12 +345,14 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
     ierr = BVOrthogonalizeColumn(eps->V,j+1,hwork,&norm,breakdown);CHKERRQ(ierr);
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = PetscAbsReal(norm);
-    ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&f);CHKERRQ(ierr);
     if (j==k) {
-      for (i=l;i<j-1;i++) hwork[i]-= f[2*ld+i];
-      for (i=0;i<l;i++) hwork[i] = 0.0;
+      PetscReal *f;
+
+      ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&f);CHKERRQ(ierr);
+      for (i=0;i<l;i++) hwork[i]  = 0.0;
+      for (;i<j-1;i++)  hwork[i] -= f[2*ld+i];
+      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&f);CHKERRQ(ierr);
     }
-    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&f);CHKERRQ(ierr);
     hwork[j-1] -= beta[j-1];
     ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
     sym = SlepcAbs(BLASnrm2_(&j_,hwork,&one),sym);
