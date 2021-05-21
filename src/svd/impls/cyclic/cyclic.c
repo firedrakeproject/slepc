@@ -249,9 +249,9 @@ PetscErrorCode SVDComputeVectors_Cyclic(SVD svd)
       ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
       ierr = BVInsertVec(svd->U,j,x1);CHKERRQ(ierr);
-      ierr = BVScaleColumn(svd->U,j,1.0/PETSC_SQRT2);CHKERRQ(ierr);
+      ierr = BVScaleColumn(svd->U,j,PETSC_SQRT2);CHKERRQ(ierr);
       ierr = BVInsertVec(svd->V,j,x2);CHKERRQ(ierr);
-      ierr = BVScaleColumn(svd->V,j,1.0/PETSC_SQRT2);CHKERRQ(ierr);
+      ierr = BVScaleColumn(svd->V,j,PETSC_SQRT2);CHKERRQ(ierr);
       ierr = VecResetArray(x1);CHKERRQ(ierr);
       ierr = VecResetArray(x2);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
