@@ -523,6 +523,7 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
       requires: double
       args: -petscspace_degree 1 -petscspace_poly_tensor
       output_file: output/ex34_1.out
+      TODO: broken after a change in PETSc, see issue 38
       test:
          suffix: 1
       test:
