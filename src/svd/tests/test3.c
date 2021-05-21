@@ -33,14 +33,18 @@ int main(int argc,char **argv)
   Mat            A;               /* Grcar matrix */
   SVD            svd;             /* singular value solver context */
   Vec            v0,w0;           /* initial vectors */
-  PetscInt       N=35,M=30,Istart,Iend,i,col[5];
+  Vec            *U,*V;
+  PetscInt       N=35,M=30,Istart,Iend,i,col[5],nconv;
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
+  PetscReal      lev1=0.0,lev2=0.0,tol=PETSC_SMALL;
+  PetscBool      skiporth=PETSC_FALSE;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&M,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD of a rectangular Grcar matrix, %Dx%D\n\n",N,M);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
@@ -87,6 +91,29 @@ int main(int argc,char **argv)
   ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   /*
+     Check orthonormality of computed singular vectors
+  */
+  ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
+  if (nconv>1) {
+    ierr = VecDuplicateVecs(w0,nconv,&U);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(v0,nconv,&V);CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
+      ierr = SVDGetSingularTriplet(svd,i,NULL,U[i],V[i]);CHKERRQ(ierr);
+    }
+    if (!skiporth) {
+      ierr = VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1);CHKERRQ(ierr);
+      ierr = VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2);CHKERRQ(ierr);
+    }
+    if (lev1+lev2<20*tol) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2);CHKERRQ(ierr);
+    }
+    ierr = VecDestroyVecs(nconv,&U);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(nconv,&V);CHKERRQ(ierr);
+  }
+
+  /*
      Free work space
   */
   ierr = VecDestroy(&v0);CHKERRQ(ierr);
@@ -130,9 +157,11 @@ int main(int argc,char **argv)
       test:
          suffix: 1_cyclic
          args: -svd_type cyclic
+         requires: !__float128
       test:
          suffix: 1_cyclic_exp
          args: -svd_type cyclic -svd_cyclic_explicitmatrix
+         requires: !__float128
       test:
          suffix: 1_lapack
          args: -svd_type lapack
@@ -175,7 +204,8 @@ int main(int argc,char **argv)
          requires: !complex
       test:
          suffix: 2_cyclic
-         args: -svd_type cyclic
+         args: -svd_type cyclic -svd_tol 1e-8
+         requires: double
       test:
          suffix: 2_lapack
          args: -svd_type lapack
