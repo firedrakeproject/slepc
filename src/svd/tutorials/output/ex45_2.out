@@ -1,7 +1,6 @@
 
 Generalized singular value decomposition, (15+10)x20
 
- Number of iterations of the method: 1
 
  Number of requested singular values: 1
  Stopping condition: tol=1e-08
@@ -15,3 +14,4 @@ Generalized singular value decomposition, (15+10)x20
         4.852652          removed
         7.087175          removed
 
+ Level of orthogonality below the tolerance

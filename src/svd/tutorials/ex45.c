@@ -22,10 +22,10 @@ int main(int argc,char **argv)
   Vec            u,v,x;           /* singular vectors */
   SVD            svd;             /* singular value problem solver context */
   SVDType        type;
-  Vec            uv,aux[2];
-  PetscReal      error,tol,sigma;
+  Vec            uv,aux[2],*U,*V;
+  PetscReal      error,tol,sigma,lev1=0.0,lev2=0.0;
   PetscInt       m=100,n,p=14,i,j,d,Istart,Iend,nsv,maxit,its,nconv;
-  PetscBool      flg;
+  PetscBool      flg,skiporth=PETSC_FALSE;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -35,6 +35,7 @@ int main(int argc,char **argv)
   if (!flg) n = m;
   ierr = PetscOptionsGetInt(NULL,NULL,"-p",&p,&flg);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%D+%D)x%D\n\n",m,p,n);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                           Build the matrices
@@ -129,6 +130,9 @@ int main(int argc,char **argv)
     aux[1] = v;
     ierr = VecCreateNest(PETSC_COMM_WORLD,2,NULL,aux,&uv);CHKERRQ(ierr);
 
+    ierr = VecDuplicateVecs(u,nconv,&U);CHKERRQ(ierr);
+    ierr = VecDuplicateVecs(v,nconv,&V);CHKERRQ(ierr);
+
     /*
        Display singular values and relative errors
     */
@@ -140,7 +144,10 @@ int main(int argc,char **argv)
          Get converged singular triplets: i-th singular value is stored in sigma
       */
       ierr = SVDGetSingularTriplet(svd,i,&sigma,uv,x);CHKERRQ(ierr);
+
       /* at this point, u and v can be used normally as individual vectors */
+      ierr = VecCopy(u,U[i]);CHKERRQ(ierr);
+      ierr = VecCopy(v,V[i]);CHKERRQ(ierr);
 
       /*
          Compute the error associated to each singular triplet
@@ -151,6 +158,18 @@ int main(int argc,char **argv)
       ierr = PetscPrintf(PETSC_COMM_WORLD,"   % 12g\n",(double)error);CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+
+    if (!skiporth) {
+      ierr = VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1);CHKERRQ(ierr);
+      ierr = VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2);CHKERRQ(ierr);
+    }
+    if (lev1+lev2<20*tol) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2);CHKERRQ(ierr);
+    }
+    ierr = VecDestroyVecs(nconv,&U);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(nconv,&V);CHKERRQ(ierr);
     ierr = VecDestroy(&x);CHKERRQ(ierr);
     ierr = VecDestroy(&u);CHKERRQ(ierr);
     ierr = VecDestroy(&v);CHKERRQ(ierr);
@@ -170,7 +189,7 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      filter: grep -v "Solution method" | sed -e "s/, maxit=1[0]*$//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      filter: grep -v "Solution method" | grep -v "Number of iterations" | sed -e "s/, maxit=1[0]*$//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
       test:
          args: -svd_type lapack -m 20 -n 10 -p 6
@@ -179,19 +198,27 @@ int main(int argc,char **argv)
          args: -svd_type lapack -m 15 -n 20 -p 10 -svd_smallest
          suffix: 2
       test:
-         args: -svd_type {{lapack cross}} -m 15 -n 20 -p 21
+         args: -svd_type lapack -m 15 -n 20 -p 21
          suffix: 3
       test:
-         args: -svd_type {{lapack cross}} -m 20 -n 15 -p 21
+         args: -svd_type lapack -m 20 -n 15 -p 21
          suffix: 4
       test:
-         args: -svd_type cross -svd_nsv 4 -svd_ncv 12 -m 25 -n 20 -p 21 -svd_smallest -svd_cross_explicittranspose {{0 1}}
+         args: -svd_type cross -svd_nsv 4 -svd_ncv 12 -m 25 -n 20 -p 21 -svd_smallest -svd_cross_explicitmatrix {{0 1}}
          suffix: 5
       test:
-         args: -svd_type cyclic -m 15 -n 20 -p 21 -svd_cyclic_explicittranspose {{0 1}}
+         args: -svd_type cross -m 15 -n 20 -p 21 -svd_cross_explicitmatrix {{0 1}} -svd_nsv 4 -svd_ncv 9
          suffix: 6
       test:
-         args: -svd_type cyclic -m 20 -n 15 -p 21 -svd_cyclic_explicittranspose {{0 1}}
+         args: -svd_type cyclic -m 15 -n 20 -p 21 -svd_cyclic_explicitmatrix {{0 1}} -svd_nsv 4 -svd_ncv 9
+         suffix: 6_cyclic
+         output_file: output/ex45_6.out
+      test:
+         args: -svd_type cross -m 20 -n 15 -p 21 -svd_cross_explicitmatrix {{0 1}} -svd_nsv 4 -svd_ncv 9
          suffix: 7
+      test:
+         args: -svd_type cyclic -m 20 -n 15 -p 21 -svd_cyclic_explicitmatrix {{0 1}} -svd_nsv 4 -svd_ncv 9
+         suffix: 7_cyclic
+         output_file: output/ex45_7.out
 
 TEST*/
