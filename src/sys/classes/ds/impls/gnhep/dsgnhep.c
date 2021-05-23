@@ -27,7 +27,6 @@
   2) Moreover, P and Q are assumed to be the identity in DS_STATE_INTERMEDIATE.
 */
 
-
 static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY);
 
 PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)

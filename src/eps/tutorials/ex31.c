@@ -54,7 +54,6 @@ package to calculate the eigenvalues for small signal stability analysis\n\n";
    We are interested in the eigenvalues of the Schur complement of A
      \hat{A} = f_x - g_x*inv(g_y)*f_y
 
-
    Example contributed by: Shrirang Abhyankar
 */
 
@@ -314,7 +313,6 @@ PetscErrorCode ResidualJacobian(Vec X,Mat J,void *ctx)
   PetscScalar dPD_dVr,dPD_dVi,dQD_dVr,dQD_dVi;
   PetscScalar dIDr_dVr,dIDr_dVi,dIDi_dVr,dIDi_dVi;
 
-
   PetscFunctionBegin;
   ierr = MatZeroEntries(J);CHKERRQ(ierr);
   ierr = DMCompositeGetLocalVectors(user->dmpgrid,&Xgen,&Xnet);CHKERRQ(ierr);
@@ -491,7 +489,6 @@ PetscErrorCode ResidualJacobian(Vec X,Mat J,void *ctx)
 
     dIDi_dVr = (-dQD_dVr*Vr + dPD_dVr*Vi - QD)/Vm2 - ((-QD*Vr + PD*Vi)*2*Vr)/Vm4;
     dIDi_dVi = (-dQD_dVi*Vr + dPD_dVi*Vi + PD)/Vm2 - ((-QD*Vr + PD*Vi)*2*Vi)/Vm4;
-
 
     /*    fnet[2*lbus[i]]   += IDi; */
     row[0] = net_start + 2*lbus[i];

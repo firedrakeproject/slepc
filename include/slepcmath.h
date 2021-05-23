@@ -87,7 +87,6 @@ M*/
 
 #endif
 
-
 /*
    SlepcSetFlushToZero - Set the FTZ flag in floating-point arithmetic.
 */

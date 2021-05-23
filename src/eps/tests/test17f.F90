@@ -258,7 +258,6 @@
         endif
  220    format (' Process ',I2,' owns ',I5,', rows of the global',' matrices, and ',I5,' rows in the subcommunicator')
 
-
 !       modify A on subcommunicators
         call PetscObjectGetComm(As,comm,ierr);CHKERRA(ierr)
         call MatCreate(comm,Au,ierr);CHKERRA(ierr)

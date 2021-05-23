@@ -710,7 +710,6 @@ L200:
 
   /* note that from here on the entire workspace is available again */
 
-
   /* Perform all the merging operations. */
 
   vstrt = 0;

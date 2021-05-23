@@ -113,7 +113,6 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetEigenvalueComparison(eps,MyEigenSort,&origin);CHKERRQ(ierr);
 
-
   /*
      Set solver parameters at runtime
   */

@@ -23,11 +23,9 @@
                      A = [-bK      aI    ]     B = [ aI+bC   bM    ]
                          [-aK     -aC+bI ]         [ bI      aM    ]
 
-
             S:
                      A = [ bK      aK    ]     B = [ aK-bC  -bM    ]
                          [ aK      aC-bM ]         [-bM     -aM    ]
-
 
             H:
                      A = [ aK     -bK    ]     B = [ bM      aK+bC ]

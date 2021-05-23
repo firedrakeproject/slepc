@@ -1183,7 +1183,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   } else { eigr = nep->eigr; eigi = nep->eigi; }
   ierr = BVDuplicateResize(nep->V,PetscMax(nep->nt-1,ctx->nmat-1),&W);CHKERRQ(ierr);
 
-
   /* clean projected matrix (including the extra-arrow) */
   ierr = DSGetArray(nep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
   ierr = PetscArrayzero(H,ldds*ldds);CHKERRQ(ierr);

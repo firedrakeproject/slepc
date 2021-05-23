@@ -30,8 +30,7 @@ static char help[] = "Solves a problem associated to the Brusselator wave model 
         h = 1/(n+1)
         tau1 = delta1/(h*L)^2
         tau2 = delta2/(h*L)^2
- */
-
+*/
 
 /*
    Matrix operations

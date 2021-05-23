@@ -194,7 +194,6 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*          Note that this should also suffice for the call of DSYEVD on a */
 /*          diagonal block which requires (5*KMAX + 3). */
 
-
 /*  MINGAP  (output) DOUBLE PRECISION */
 /*          The minimum "gap" between the approximate eigenvalues */
 /*          computed, i.e., MIN( ABS(EV(I+1)-EV(I)) for I=1,2,..., N-1 */

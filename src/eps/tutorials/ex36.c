@@ -33,8 +33,7 @@ static char help[] = "Use the matrix exponential to compute rightmost eigenvalue
         tau2 = delta2/(h*L)^2
 
    but it builds A explicitly, as opposed to ex9.c
- */
-
+*/
 
 /* Routines for shell spectral transformation */
 PetscErrorCode STApply_Exp(ST,Vec,Vec);
@@ -259,6 +258,5 @@ PetscErrorCode STApply_Exp(ST st,Vec x,Vec y)
       args: -n 100 -st_type sinvert -eps_type ciss -rg_type ellipse -rg_ellipse_center 0 -rg_ellipse_radius 6 -eps_all -eps_tol 1e-6 -terse
       requires: c99_complex !single
       filter: sed -e "s/-3.37036-3.55528i, -3.37036+3.55528i/-3.37036+3.55528i, -3.37036-3.55528i/" -e "s/-1.79853-3.03216i, -1.79853+3.03216i/-1.79853+3.03216i, -1.79853-3.03216i/" -e "s/-0.67471-2.52856i, -0.67471+2.52856i/-0.67471+2.52856i, -0.67471-2.52856i/" -e "s/0.00002-2.13950i, 0.00002+2.13950i/0.00002+2.13950i, 0.00002-2.13950i/"
-
 
 TEST*/

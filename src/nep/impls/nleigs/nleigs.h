@@ -14,7 +14,6 @@
 #if !defined(SLEPC_NLEIGS_H)
 #define SLEPC_NLEIGS_H
 
-
 #define  LBPOINTS  100   /* default value of the maximum number of Leja-Bagby points */
 #define  NDPOINTS  1e4   /* number of discretization points */
 

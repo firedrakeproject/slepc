@@ -85,7 +85,6 @@ int main(int argc,char **argv)
   ierr = STSetTransform(st,PETSC_TRUE);CHKERRQ(ierr);
   ierr = STSetFromOptions(st);CHKERRQ(ierr);
 
-
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Apply the transformed operator for several ST's
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

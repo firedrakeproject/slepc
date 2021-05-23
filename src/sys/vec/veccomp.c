@@ -698,7 +698,6 @@ PetscErrorCode VecMaxPointwiseDivide_Comp(Vec v,Vec w,PetscReal *m)
   PetscFunctionReturn(0);
 }
 
-
 #define __QUOTEME__(x) #x
 #define __COMPOSE2__(A,B) A##B
 #define __COMPOSE3__(A,B,C) A##B##C
