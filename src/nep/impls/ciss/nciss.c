@@ -1521,6 +1521,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscBool      isascii;
+  PetscViewer    sviewer;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -1534,7 +1535,19 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",NEPCISSExtractions[ctx->extraction]);CHKERRQ(ierr);
     if (!ctx->ksp) { ierr = NEPCISSGetKSPs(nep,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+    if (ctx->npart>1 && ctx->subcomm) {
+      ierr = PetscViewerGetSubViewer(viewer,ctx->subcomm->child,&sviewer);CHKERRQ(ierr);
+      if (!ctx->subcomm->color) {
+        ierr = KSPView(ctx->ksp[0],sviewer);CHKERRQ(ierr);
+      }
+      ierr = PetscViewerFlush(sviewer);CHKERRQ(ierr);
+      ierr = PetscViewerRestoreSubViewer(viewer,ctx->subcomm->child,&sviewer);CHKERRQ(ierr);
+      ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
+      /* extra call needed because of the two calls to PetscViewerASCIIPushSynchronized() in PetscViewerGetSubViewer() */
+      ierr = PetscViewerASCIIPopSynchronized(viewer);CHKERRQ(ierr);
+    } else {
+      ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

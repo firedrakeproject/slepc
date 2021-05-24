@@ -1979,6 +1979,7 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscBool      isascii;
+  PetscViewer    sviewer;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -1996,7 +1997,19 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     } else {
       if (!ctx->ksp) { ierr = EPSCISSGetKSPs(eps,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+      if (ctx->npart>1 && ctx->subcomm) {
+        ierr = PetscViewerGetSubViewer(viewer,ctx->subcomm->child,&sviewer);CHKERRQ(ierr);
+        if (!ctx->subcomm->color) {
+          ierr = KSPView(ctx->ksp[0],sviewer);CHKERRQ(ierr);
+        }
+        ierr = PetscViewerFlush(sviewer);CHKERRQ(ierr);
+        ierr = PetscViewerRestoreSubViewer(viewer,ctx->subcomm->child,&sviewer);CHKERRQ(ierr);
+        ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
+        /* extra call needed because of the two calls to PetscViewerASCIIPushSynchronized() in PetscViewerGetSubViewer() */
+        ierr = PetscViewerASCIIPopSynchronized(viewer);CHKERRQ(ierr);
+      } else {
+        ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+      }
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
   }

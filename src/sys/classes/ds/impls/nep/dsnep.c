@@ -87,15 +87,13 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
   PetscInt          i;
   const char        *methodname[] = {
                      "Successive Linear Problems",
-                     "Contour integral"
+                     "Contour Integral"
   };
   const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
-  if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-    ierr = PetscViewerASCIIPrintf(viewer,"number of functions: %D\n",ctx->nf);CHKERRQ(ierr);
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     if (ds->method<nmeth) {
       ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]);CHKERRQ(ierr);
     }
@@ -107,6 +105,9 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
       ierr = RGView(ctx->rg,viewer);CHKERRQ(ierr);
     }
 #endif
+    if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
+      ierr = PetscViewerASCIIPrintf(viewer,"number of functions: %D\n",ctx->nf);CHKERRQ(ierr);
+    }
     PetscFunctionReturn(0);
   }
   for (i=0;i<ctx->nf;i++) {

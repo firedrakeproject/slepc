@@ -34,17 +34,18 @@ static char help[] = "Test the CISS solver with the problem of ex22.\n\n"
 
 int main(int argc,char **argv)
 {
-  NEP            nep;
-  Mat            Id,A,B,mats[3];
-  FN             f1,f2,f3,funs[3];
-  RG             rg;
-  KSP            *ksp;
-  PC             pc;
-  PetscScalar    coeffs[2],b;
-  PetscInt       n=128,Istart,Iend,i,nsolve;
-  PetscReal      tau=0.001,h,a=20,xi;
-  PetscBool      terse;
-  PetscErrorCode ierr;
+  NEP               nep;
+  Mat               Id,A,B,mats[3];
+  FN                f1,f2,f3,funs[3];
+  RG                rg;
+  KSP               *ksp;
+  PC                pc;
+  NEPCISSExtraction ext;
+  PetscScalar       coeffs[2],b;
+  PetscInt          n=128,Istart,Iend,i,nsolve;
+  PetscReal         tau=0.001,h,a=20,xi;
+  PetscBool         flg,terse;
+  PetscErrorCode    ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -143,7 +144,11 @@ int main(int argc,char **argv)
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Running CISS with %D KSP solvers\n",nsolve);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPCISS,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = NEPCISSGetExtraction(nep,&ext);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Running CISS with %D KSP solvers (%s extraction)\n",nsolve,NEPCISSExtractions[ext]);CHKERRQ(ierr);
+  }
   ierr = NEPSolve(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -176,10 +181,17 @@ int main(int argc,char **argv)
    build:
       requires: complex
 
-   test:
-      suffix: 1
+   testset:
       args: -nep_ciss_extraction {{ritz hankel}} -terse
       requires: complex !single
+      output_file: output/test11_1.out
+      filter: sed -e "s/([A-Z]* extraction)//"
+      test:
+         suffix: 1
+      test:
+         suffix: 2
+         nsize: 2
+         args: -nep_ciss_partitions 2
 
 TEST*/
 
