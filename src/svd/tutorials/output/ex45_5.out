@@ -1,0 +1,16 @@
+
+Generalized singular value decomposition, (25+21)x20
+
+
+ Number of requested singular values: 4
+ Stopping condition: tol=1e-08
+ Number of converged approximate singular triplets: 4
+
+          sigma           relative error
+  --------------------- ------------------
+        0.002828          removed
+        0.026571          removed
+        0.088678          removed
+        0.206332          removed
+
+ Level of orthogonality below the tolerance

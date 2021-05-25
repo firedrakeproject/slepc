@@ -4,6 +4,7 @@
 
 ### Added
 
+- `SVD`: support for the GSVD in `SVDCROSS` and `SVDCYCLIC` solvers.
 - `NEP`: the `NEPCISS` solver (that was deprecated in version 3.14) has been recovered
   and enriched with a new Rayleigh-Ritz variant that is used by default now, see
   `NEPCISSSetExtraction()`. It now also supports subcommunicators.

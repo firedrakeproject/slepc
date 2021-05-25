@@ -148,10 +148,24 @@ The columns of $X$, $x_i$, are called the (right) generalized singular vectors. 
 \paragraph{Equivalent Eigenvalue Problems.}
 In the GSVD it is also possible to formulate the problem as an eigenvalue problem, which opens the door to approach its solution via \ident{EPS}. The columns of $X$ satisfy
 \begin{equation}
-\label{eq:gsvdeig}
+\label{eq:gsvdeigcross}
 s_i^2A^*Ax_i=c_i^2B^*Bx_i,
 \end{equation}
-and so if $s_i\neq 0$ then $A^*Ax_i=\sigma_i^2B^*Bx_i$, a generalized eigenvalue problem for the matrix pair $(A^*A,B^*B)$.
+and so if $s_i\neq 0$ then $A^*Ax_i=\sigma_i^2B^*Bx_i$, a generalized eigenvalue problem for the matrix pair $(A^*A,B^*B)$. This is the analog of the cross product matrix eigenproblem of~\eqref{eq:eigleft}.
+
+The formulation that is analog to the eigenproblem associated with the cyclic matrix~\eqref{eq:cyclic} is to solve the generalized eigenvalue problem defined by any of the matrix pairs
+\begin{equation}
+\label{eq:gsvdeigcyclic}
+\left(
+\begin{bmatrix}0&A\\A^*&0\end{bmatrix},
+\begin{bmatrix}I&0\\0&B^*B\end{bmatrix}
+\right),
+\qquad\text{or}\qquad
+\left(
+\begin{bmatrix}0&B\\B^*&0\end{bmatrix},
+\begin{bmatrix}I&0\\0&A^*A\end{bmatrix}
+\right).
+\end{equation}
 
 %---------------------------------------------------
 \section{Basic Usage}

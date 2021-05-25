@@ -292,8 +292,8 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
     if (!svd->isgeneralized) {
       ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
       if (M<N) { w = u; u = v; v = w; }
-      ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
     }
+    ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
     if (u) { ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr); }
     if (v) { ierr = BVCopyVec(svd->V,svd->perm[i],v);CHKERRQ(ierr); }
   }

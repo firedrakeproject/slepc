@@ -20,30 +20,28 @@
 static PetscErrorCode MatMult_Cyclic(Mat B,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
-  SVD               svd;
-  SVD_CYCLIC        *cyclic;
+  SVD_CYCLIC_SHELL  *ctx;
   const PetscScalar *px;
   PetscScalar       *py;
   PetscInt          m;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
-  cyclic = (SVD_CYCLIC*)svd->data;
-  ierr = MatGetLocalSize(svd->A,&m,NULL);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->A,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(cyclic->x1,px);CHKERRQ(ierr);
-  ierr = VecPlaceArray(cyclic->x2,px+m);CHKERRQ(ierr);
-  ierr = VecPlaceArray(cyclic->y1,py);CHKERRQ(ierr);
-  ierr = VecPlaceArray(cyclic->y2,py+m);CHKERRQ(ierr);
-  ierr = MatMult(svd->A,cyclic->x2,cyclic->y1);CHKERRQ(ierr);
-  ierr = MatMult(svd->AT,cyclic->x1,cyclic->y2);CHKERRQ(ierr);
-  ierr = VecResetArray(cyclic->x1);CHKERRQ(ierr);
-  ierr = VecResetArray(cyclic->x2);CHKERRQ(ierr);
-  ierr = VecResetArray(cyclic->y1);CHKERRQ(ierr);
-  ierr = VecResetArray(cyclic->y2);CHKERRQ(ierr);
+  ierr = VecGetArrayWrite(y,&py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = MatMult(ctx->A,ctx->x2,ctx->y1);CHKERRQ(ierr);
+  ierr = MatMult(ctx->AT,ctx->x1,ctx->y2);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  ierr = VecRestoreArrayWrite(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -56,26 +54,41 @@ static PetscErrorCode MatGetDiagonal_Cyclic(Mat B,Vec diag)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDSetUp_Cyclic(SVD svd)
+static PetscErrorCode MatDestroy_Cyclic(Mat B)
 {
-  PetscErrorCode    ierr;
-  SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          M,N,m,n,i,isl,Istart,Iend;
-  const PetscScalar *isa;
-  PetscScalar       *va;
-  PetscBool         trackall,issinv;
-  Vec               v;
-  Mat               Zm,Zn;
-  ST                st;
+  PetscErrorCode   ierr;
+  SVD_CYCLIC_SHELL *ctx;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr);
+  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
+   Builds cyclic matrix   C = | 0   A |
+                              | AT  0 |
+*/
+static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
+{
+  PetscErrorCode   ierr;
+  SVD_CYCLIC       *cyclic = (SVD_CYCLIC*)svd->data;
+  SVD_CYCLIC_SHELL *ctx;
+  PetscInt         i,M,N,m,n,Istart,Iend;
+  VecType          vtype;
+  Mat              Zm,Zn;
 #if defined(PETSC_HAVE_CUDA)
-  PetscBool         cuda;
+  PetscBool        cuda;
 #endif
 
   PetscFunctionBegin;
-  SVDCheckStandard(svd);
-  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
-  ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
+
   if (cyclic->explicitmatrix) {
     if (!svd->expltrans) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
     ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zm);CHKERRQ(ierr);
@@ -98,39 +111,275 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     }
     ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatCreateTile(1.0,Zm,1.0,svd->A,1.0,svd->AT,1.0,Zn,&cyclic->mat);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->mat);CHKERRQ(ierr);
+    ierr = MatCreateTile(1.0,Zm,1.0,A,1.0,AT,1.0,Zn,C);CHKERRQ(ierr);
     ierr = MatDestroy(&Zm);CHKERRQ(ierr);
     ierr = MatDestroy(&Zn);CHKERRQ(ierr);
   } else {
-    ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr);
-    ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr);
-    ierr = VecDestroy(&cyclic->y1);CHKERRQ(ierr);
-    ierr = VecDestroy(&cyclic->y2);CHKERRQ(ierr);
-    ierr = MatCreateVecsEmpty(svd->A,&cyclic->x2,&cyclic->x1);CHKERRQ(ierr);
-    ierr = MatCreateVecsEmpty(svd->A,&cyclic->y2,&cyclic->y1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->x1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->x2);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->y1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->y2);CHKERRQ(ierr);
-    ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cyclic);CHKERRQ(ierr);
+    ierr = PetscNew(&ctx);CHKERRQ(ierr);
+    ctx->A       = A;
+    ctx->AT      = AT;
+    ctx->swapped = svd->swapped;
+    ierr = MatCreateVecsEmpty(A,&ctx->x2,&ctx->x1);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(A,&ctx->y2,&ctx->y1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->x1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->x2);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->y1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->y2);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,ctx,C);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cyclic);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_Cyclic);CHKERRQ(ierr);
 #if defined(PETSC_HAVE_CUDA)
-    ierr = PetscObjectTypeCompareAny((PetscObject)(svd->A?svd->A:svd->AT),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
     if (cuda) {
-      ierr = MatShellSetVecType(cyclic->mat,VECCUDA);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))MatMult_Cyclic_CUDA);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cyclic_CUDA);CHKERRQ(ierr);
     } else
 #endif
     {
-      ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))MatMult_Cyclic);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cyclic);CHKERRQ(ierr);
     }
+    ierr = MatGetVecType(A,&vtype);CHKERRQ(ierr);
+    ierr = MatSetVecType(*C,vtype);CHKERRQ(ierr);
   }
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->mat);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)*C);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
+static PetscErrorCode MatMult_ECross(Mat B,Vec x,Vec y)
+{
+  PetscErrorCode    ierr;
+  SVD_CYCLIC_SHELL  *ctx;
+  const PetscScalar *px;
+  PetscScalar       *py;
+  PetscInt          mn,m,n;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->A,NULL,&n);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(y,&mn);CHKERRQ(ierr);
+  m = mn-n;
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArrayWrite(y,&py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->x2,px+m);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->y2,py+m);CHKERRQ(ierr);
+  ierr = VecCopy(ctx->x1,ctx->y1);CHKERRQ(ierr);
+  ierr = MatMult(ctx->A,ctx->x2,ctx->w);CHKERRQ(ierr);
+  ierr = MatMult(ctx->AT,ctx->w,ctx->y2);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArrayWrite(y,&py);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode MatGetDiagonal_ECross(Mat B,Vec d)
+{
+  PetscErrorCode    ierr;
+  SVD_CYCLIC_SHELL  *ctx;
+  PetscScalar       *pd;
+  PetscMPIInt       len;
+  PetscInt          mn,m,n,N,i,j,start,end,ncols;
+  PetscScalar       *work1,*work2,*diag;
+  const PetscInt    *cols;
+  const PetscScalar *vals;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->A,NULL,&n);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(d,&mn);CHKERRQ(ierr);
+  m = mn-n;
+  ierr = VecGetArrayWrite(d,&pd);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->y1,pd);CHKERRQ(ierr);
+  ierr = VecSet(ctx->y1,1.0);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->y2,pd+m);CHKERRQ(ierr);
+  if (!ctx->diag) {
+    /* compute diagonal from rows and store in ctx->diag */
+    ierr = VecDuplicate(ctx->y2,&ctx->diag);CHKERRQ(ierr);
+    ierr = MatGetSize(ctx->A,NULL,&N);CHKERRQ(ierr);
+    ierr = PetscCalloc2(N,&work1,N,&work2);CHKERRQ(ierr);
+    if (ctx->swapped) {
+      ierr = MatGetOwnershipRange(ctx->AT,&start,&end);CHKERRQ(ierr);
+      for (i=start;i<end;i++) {
+        ierr = MatGetRow(ctx->AT,i,&ncols,NULL,&vals);CHKERRQ(ierr);
+        for (j=0;j<ncols;j++) work1[i] += vals[j]*vals[j];
+        ierr = MatRestoreRow(ctx->AT,i,&ncols,NULL,&vals);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = MatGetOwnershipRange(ctx->A,&start,&end);CHKERRQ(ierr);
+      for (i=start;i<end;i++) {
+        ierr = MatGetRow(ctx->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
+        for (j=0;j<ncols;j++) work1[cols[j]] += vals[j]*vals[j];
+        ierr = MatRestoreRow(ctx->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
+      }
+    }
+    ierr = PetscMPIIntCast(N,&len);CHKERRQ(ierr);
+    ierr = MPIU_Allreduce(work1,work2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)B));CHKERRMPI(ierr);
+    ierr = VecGetOwnershipRange(ctx->diag,&start,&end);CHKERRQ(ierr);
+    ierr = VecGetArrayWrite(ctx->diag,&diag);CHKERRQ(ierr);
+    for (i=start;i<end;i++) diag[i-start] = work2[i];
+    ierr = VecRestoreArrayWrite(ctx->diag,&diag);CHKERRQ(ierr);
+    ierr = PetscFree2(work1,work2);CHKERRQ(ierr);
+  }
+  ierr = VecCopy(ctx->diag,ctx->y2);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  ierr = VecRestoreArrayWrite(d,&pd);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode MatDestroy_ECross(Mat B)
+{
+  PetscErrorCode   ierr;
+  SVD_CYCLIC_SHELL *ctx;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->y2);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->diag);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
+  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
+   Builds extended cross product matrix   C = | I_m   0  |
+                                              |  0  AT*A |
+   t is an auxiliary Vec used to take the dimensions of the upper block
+*/
+static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
+{
+  PetscErrorCode   ierr;
+  SVD_CYCLIC       *cyclic = (SVD_CYCLIC*)svd->data;
+  SVD_CYCLIC_SHELL *ctx;
+  PetscInt         i,M,N,m,n,Istart,Iend;
+  VecType          vtype;
+  Mat              Id,Zm,Zn,ATA;
+#if defined(PETSC_HAVE_CUDA)
+  PetscBool        cuda;
+#endif
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(A,NULL,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,NULL,&n);CHKERRQ(ierr);
+  ierr = VecGetSize(t,&M);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(t,&m);CHKERRQ(ierr);
+
+  if (cyclic->explicitmatrix) {
+    if (!svd->expltrans) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
+    ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Id);CHKERRQ(ierr);
+    ierr = MatSetSizes(Id,m,m,M,M);CHKERRQ(ierr);
+    ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
+    ierr = MatSetUp(Id);CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
+    for (i=Istart;i<Iend;i++) {
+      ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    }
+    ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zm);CHKERRQ(ierr);
+    ierr = MatSetSizes(Zm,m,n,M,N);CHKERRQ(ierr);
+    ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
+    ierr = MatSetUp(Zm);CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(Zm,&Istart,&Iend);CHKERRQ(ierr);
+    for (i=Istart;i<Iend;i++) {
+      if (i<N) { ierr = MatSetValue(Zm,i,i,0.0,INSERT_VALUES);CHKERRQ(ierr); }
+    }
+    ierr = MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zn);CHKERRQ(ierr);
+    ierr = MatSetSizes(Zn,n,m,N,M);CHKERRQ(ierr);
+    ierr = MatSetFromOptions(Zn);CHKERRQ(ierr);
+    ierr = MatSetUp(Zn);CHKERRQ(ierr);
+    ierr = MatGetOwnershipRange(Zn,&Istart,&Iend);CHKERRQ(ierr);
+    for (i=Istart;i<Iend;i++) {
+      if (i<m) { ierr = MatSetValue(Zn,i,i,0.0,INSERT_VALUES);CHKERRQ(ierr); }
+    }
+    ierr = MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatProductCreate(AT,A,NULL,&ATA);CHKERRQ(ierr);
+    ierr = MatProductSetType(ATA,MATPRODUCT_AB);CHKERRQ(ierr);
+    ierr = MatProductSetFromOptions(ATA);CHKERRQ(ierr);
+    ierr = MatProductSymbolic(ATA);CHKERRQ(ierr);
+    ierr = MatProductNumeric(ATA);CHKERRQ(ierr);
+    ierr = MatCreateTile(1.0,Id,1.0,Zm,1.0,Zn,1.0,ATA,C);CHKERRQ(ierr);
+    ierr = MatDestroy(&Id);CHKERRQ(ierr);
+    ierr = MatDestroy(&Zm);CHKERRQ(ierr);
+    ierr = MatDestroy(&Zn);CHKERRQ(ierr);
+    ierr = MatDestroy(&ATA);CHKERRQ(ierr);
+  } else {
+    ierr = PetscNew(&ctx);CHKERRQ(ierr);
+    ctx->A       = A;
+    ctx->AT      = AT;
+    ctx->swapped = svd->swapped;
+    ierr = VecDuplicateEmpty(t,&ctx->x1);CHKERRQ(ierr);
+    ierr = VecDuplicateEmpty(t,&ctx->y1);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(A,&ctx->x2,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(A,&ctx->y2,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(A,NULL,&ctx->w);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->x1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->x2);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->y1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->y2);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,ctx,C);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_ECross);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_ECross);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_CUDA)
+    ierr = PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
+    if (cuda) {
+      ierr = MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_ECross_CUDA);CHKERRQ(ierr);
+    } else
+#endif
+    {
+      ierr = MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_ECross);CHKERRQ(ierr);
+    }
+    ierr = MatGetVecType(A,&vtype);CHKERRQ(ierr);
+    ierr = MatSetVecType(*C,vtype);CHKERRQ(ierr);
+  }
+  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)*C);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDSetUp_Cyclic(SVD svd)
+{
+  PetscErrorCode    ierr;
+  SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
+  PetscInt          M,N,m,n,i,isl;
+  const PetscScalar *isa;
+  PetscScalar       *va;
+  PetscBool         trackall,issinv;
+  Vec               v,t;
+  ST                st;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
   if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
-  ierr = EPSSetOperators(cyclic->eps,cyclic->mat,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(cyclic->eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = MatDestroy(&cyclic->C);CHKERRQ(ierr);
+  ierr = MatDestroy(&cyclic->D);CHKERRQ(ierr);
+  if (svd->isgeneralized) {
+    if (svd->which==SVD_SMALLEST) {  /* alternative pencil */
+      ierr = MatCreateVecs(svd->B,NULL,&t);CHKERRQ(ierr);
+      ierr = SVDCyclicGetCyclicMat(svd,svd->B,svd->BT,&cyclic->C);CHKERRQ(ierr);
+      ierr = SVDCyclicGetECrossMat(svd,svd->A,svd->AT,&cyclic->D,t);CHKERRQ(ierr);
+    } else {
+      ierr = MatCreateVecs(svd->A,NULL,&t);CHKERRQ(ierr);
+      ierr = SVDCyclicGetCyclicMat(svd,svd->A,svd->AT,&cyclic->C);CHKERRQ(ierr);
+      ierr = SVDCyclicGetECrossMat(svd,svd->B,svd->BT,&cyclic->D,t);CHKERRQ(ierr);
+    }
+    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    ierr = EPSSetOperators(cyclic->eps,cyclic->C,cyclic->D);CHKERRQ(ierr);
+    ierr = EPSSetProblemType(cyclic->eps,EPS_GHEP);CHKERRQ(ierr);
+  } else {
+    ierr = SVDCyclicGetCyclicMat(svd,svd->A,svd->AT,&cyclic->C);CHKERRQ(ierr);
+    ierr = EPSSetOperators(cyclic->eps,cyclic->C,NULL);CHKERRQ(ierr);
+    ierr = EPSSetProblemType(cyclic->eps,EPS_HEP);CHKERRQ(ierr);
+  }
   if (!cyclic->usereps) {
     if (svd->which == SVD_LARGEST) {
       ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
@@ -141,8 +390,12 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
         ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
       }
     } else {
-      ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL);CHKERRQ(ierr);
-      ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
+      if (svd->isgeneralized) {  /* computes sigma^{-1} via alternative pencil */
+        ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+      } else {
+        ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL);CHKERRQ(ierr);
+        ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
+      }
     }
     ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
     ierr = EPSSetTolerances(cyclic->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it);CHKERRQ(ierr);
@@ -164,8 +417,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   /* Transfer the initial subspace from svd to eps */
   if (svd->nini<0 || svd->ninil<0) {
     for (i=0;i<-PetscMin(svd->nini,svd->ninil);i++) {
-      ierr = MatCreateVecs(cyclic->mat,&v,NULL);CHKERRQ(ierr);
-      ierr = VecGetArray(v,&va);CHKERRQ(ierr);
+      ierr = MatCreateVecs(cyclic->C,&v,NULL);CHKERRQ(ierr);
+      ierr = VecGetArrayWrite(v,&va);CHKERRQ(ierr);
       if (i<-svd->ninil) {
         ierr = VecGetSize(svd->ISL[i],&isl);CHKERRQ(ierr);
         if (isl!=m) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for left initial vector");
@@ -184,7 +437,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       } else {
         ierr = PetscArrayzero(va+m,n);CHKERRQ(ierr);
       }
-      ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
+      ierr = VecRestoreArrayWrite(v,&va);CHKERRQ(ierr);
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);
       svd->IS[i] = v;
     }
@@ -219,7 +472,8 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   for (i=0,j=0;i<nconv;i++) {
     ierr = EPSGetEigenvalue(cyclic->eps,i,&sigma,NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma) > 0.0) {
-      svd->sigma[j] = PetscRealPart(sigma);
+      if (svd->isgeneralized && svd->which==SVD_SMALLEST) svd->sigma[j] = 1.0/PetscRealPart(sigma);
+      else svd->sigma[j] = PetscRealPart(sigma);
       j++;
     }
   }
@@ -231,36 +485,91 @@ PetscErrorCode SVDComputeVectors_Cyclic(SVD svd)
 {
   PetscErrorCode    ierr;
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          i,j,M,N,m,n,nconv;
-  PetscScalar       sigma;
-  const PetscScalar *px;
-  Vec               x,x1,x2;
+  PetscInt          i,j,m,p,nconv;
+  PetscScalar       *dst,sigma;
+  const PetscScalar *src,*px;
+  Vec               u,v,x,x1,x2,uv;
 
   PetscFunctionBegin;
   ierr = EPSGetConverged(cyclic->eps,&nconv);CHKERRQ(ierr);
-  ierr = MatCreateVecs(cyclic->mat,&x,NULL);CHKERRQ(ierr);
-  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
-  ierr = MatCreateVecsEmpty(svd->A,&x2,&x1);CHKERRQ(ierr);
+  ierr = MatCreateVecs(cyclic->C,&x,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(svd->A,&m,NULL);CHKERRQ(ierr);
+  if (svd->isgeneralized && svd->which==SVD_SMALLEST) {
+    ierr = MatCreateVecsEmpty(svd->B,&x1,&x2);CHKERRQ(ierr);
+  } else {
+    ierr = MatCreateVecsEmpty(svd->A,&x2,&x1);CHKERRQ(ierr);
+  }
+  if (svd->isgeneralized) {
+    ierr = MatCreateVecs(svd->A,NULL,&u);CHKERRQ(ierr);
+    ierr = MatCreateVecs(svd->B,NULL,&v);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(svd->B,&p,NULL);CHKERRQ(ierr);
+  }
   for (i=0,j=0;i<nconv;i++) {
     ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,NULL,x,NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma) > 0.0) {
-      ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
-      ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
-      ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
-      ierr = BVInsertVec(svd->U,j,x1);CHKERRQ(ierr);
-      ierr = BVScaleColumn(svd->U,j,PETSC_SQRT2);CHKERRQ(ierr);
-      ierr = BVInsertVec(svd->V,j,x2);CHKERRQ(ierr);
-      ierr = BVScaleColumn(svd->V,j,PETSC_SQRT2);CHKERRQ(ierr);
-      ierr = VecResetArray(x1);CHKERRQ(ierr);
-      ierr = VecResetArray(x2);CHKERRQ(ierr);
-      ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+      if (svd->isgeneralized) {
+        if (svd->which==SVD_SMALLEST) {
+          /* evec_i = 1/sqrt(2)*[ v_i; w_i ],  w_i = x_i/c_i */
+          ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+          ierr = VecPlaceArray(x2,px);CHKERRQ(ierr);
+          ierr = VecPlaceArray(x1,px+p);CHKERRQ(ierr);
+          ierr = VecCopy(x2,v);CHKERRQ(ierr);
+          ierr = VecScale(v,PETSC_SQRT2);CHKERRQ(ierr);  /* v_i = sqrt(2)*evec_i_1 */
+          ierr = VecScale(x1,PETSC_SQRT2);CHKERRQ(ierr); /* w_i = sqrt(2)*evec_i_2 */
+          ierr = MatMult(svd->A,x1,u);CHKERRQ(ierr);     /* A*w_i = u_i */
+          ierr = VecScale(x1,1.0/PetscSqrtReal(1.0+sigma*sigma));CHKERRQ(ierr);  /* x_i = w_i*c_i */
+          ierr = BVInsertVec(svd->V,j,x1);CHKERRQ(ierr);
+          ierr = VecResetArray(x2);CHKERRQ(ierr);
+          ierr = VecResetArray(x1);CHKERRQ(ierr);
+          ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+        } else {
+          /* evec_i = 1/sqrt(2)*[ u_i; w_i ],  w_i = x_i/s_i */
+          ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+          ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+          ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+          ierr = VecCopy(x1,u);CHKERRQ(ierr);
+          ierr = VecScale(u,PETSC_SQRT2);CHKERRQ(ierr);  /* u_i = sqrt(2)*evec_i_1 */
+          ierr = VecScale(x2,PETSC_SQRT2);CHKERRQ(ierr); /* w_i = sqrt(2)*evec_i_2 */
+          ierr = MatMult(svd->B,x2,v);CHKERRQ(ierr);     /* B*w_i = v_i */
+          ierr = VecScale(x2,1.0/PetscSqrtReal(1.0+sigma*sigma));CHKERRQ(ierr);  /* x_i = w_i*s_i */
+          ierr = BVInsertVec(svd->V,j,x2);CHKERRQ(ierr);
+          ierr = VecResetArray(x1);CHKERRQ(ierr);
+          ierr = VecResetArray(x2);CHKERRQ(ierr);
+          ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+        }
+        /* copy [u;v] to U[j] */
+        ierr = BVGetColumn(svd->U,j,&uv);CHKERRQ(ierr);
+        ierr = VecGetArrayWrite(uv,&dst);CHKERRQ(ierr);
+        ierr = VecGetArrayRead(u,&src);CHKERRQ(ierr);
+        ierr = PetscArraycpy(dst,src,m);CHKERRQ(ierr);
+        ierr = VecRestoreArrayRead(u,&src);CHKERRQ(ierr);
+        ierr = VecGetArrayRead(v,&src);CHKERRQ(ierr);
+        ierr = PetscArraycpy(dst+m,src,p);CHKERRQ(ierr);
+        ierr = VecRestoreArrayRead(v,&src);CHKERRQ(ierr);
+        ierr = VecRestoreArrayWrite(uv,&dst);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(svd->U,j,&uv);CHKERRQ(ierr);
+      } else {
+        ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+        ierr = VecPlaceArray(x1,px);CHKERRQ(ierr);
+        ierr = VecPlaceArray(x2,px+m);CHKERRQ(ierr);
+        ierr = BVInsertVec(svd->U,j,x1);CHKERRQ(ierr);
+        ierr = BVScaleColumn(svd->U,j,PETSC_SQRT2);CHKERRQ(ierr);
+        ierr = BVInsertVec(svd->V,j,x2);CHKERRQ(ierr);
+        ierr = BVScaleColumn(svd->V,j,PETSC_SQRT2);CHKERRQ(ierr);
+        ierr = VecResetArray(x1);CHKERRQ(ierr);
+        ierr = VecResetArray(x2);CHKERRQ(ierr);
+        ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+      }
       j++;
     }
   }
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&x1);CHKERRQ(ierr);
   ierr = VecDestroy(&x2);CHKERRQ(ierr);
+  if (svd->isgeneralized) {
+    ierr = VecDestroy(&u);CHKERRQ(ierr);
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -501,11 +810,8 @@ PetscErrorCode SVDReset_Cyclic(SVD svd)
 
   PetscFunctionBegin;
   ierr = EPSReset(cyclic->eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
-  ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr);
-  ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr);
-  ierr = VecDestroy(&cyclic->y1);CHKERRQ(ierr);
-  ierr = VecDestroy(&cyclic->y2);CHKERRQ(ierr);
+  ierr = MatDestroy(&cyclic->C);CHKERRQ(ierr);
+  ierr = MatDestroy(&cyclic->D);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -533,6 +839,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
   ierr = PetscNewLog(svd,&cyclic);CHKERRQ(ierr);
   svd->data                = (void*)cyclic;
   svd->ops->solve          = SVDSolve_Cyclic;
+  svd->ops->solveg         = SVDSolve_Cyclic;
   svd->ops->setup          = SVDSetUp_Cyclic;
   svd->ops->setfromoptions = SVDSetFromOptions_Cyclic;
   svd->ops->destroy        = SVDDestroy_Cyclic;
