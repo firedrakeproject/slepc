@@ -864,7 +864,6 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
   PetscFunctionReturn(0);
 }
 
-
 /*@C
    SVDSetOptionsPrefix - Sets the prefix used for searching for all
    SVD options in the database.
