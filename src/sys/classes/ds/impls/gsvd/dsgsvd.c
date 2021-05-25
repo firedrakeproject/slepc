@@ -38,8 +38,9 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
   PetscErrorCode    ierr;
   DS_GSVD           *ctx = (DS_GSVD*)ds->data;
   PetscViewerFormat format;
-  PetscInt          i,j,r,n=ds->n,m=ctx->m,p=ctx->p;
+  PetscInt          i,j,r,k=ds->k,n=ds->n,m=ctx->m,p=ctx->p;
   PetscReal         value;
+  PetscBool         lu;
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
@@ -50,24 +51,33 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
     PetscFunctionReturn(0);
   }
   if (ds->compact) {
+    lu = n>m?PETSC_TRUE:PETSC_FALSE;
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",n,n);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",n,m);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",2*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
-      for (i=0;i<PetscMin(ds->n,n);i++) {
+      for (i=0;i<m;i++) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
       }
-      for (i=0;i<PetscMin(ds->n,n)-1;i++) {
-        r = PetscMax(i+2,ds->k+1);
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,r,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+      for (i=0;i<k;i++) {
+        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+      }
+      if (lu) {
+        for (i=k;i<m;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+2,i+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+        }
+      } else {
+        for (i=k;i<m-1;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+2,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+        }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
-      for (i=0;i<PetscMin(ds->n,n);i++) {
+      for (i=0;i<m;i++) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_D]+i));CHKERRQ(ierr);
       }
-      for (i=0;i<PetscMin(ds->n,n)-1;i++) {
+      for (i=0;i<m-1;i++) {
         r = PetscMax(i+2,ds->k+1);
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,r,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
       }
@@ -174,11 +184,13 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
 static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
 {
   PetscErrorCode ierr;
+  DS_GSVD        *ctx = (DS_GSVD*)ds->data;
   PetscReal      *T = ds->rmat[DS_MAT_T];
   PetscReal      *D = ds->rmat[DS_MAT_D];
   PetscScalar    *A = ds->mat[DS_MAT_A];
   PetscScalar    *B = ds->mat[DS_MAT_B];
-  PetscInt       i,n=ds->n,k=ds->k,ld=ds->ld;
+  PetscInt       i,n=ds->n,k=ds->k,ld=ds->ld,m=ctx->m;
+  PetscBool      lu;
 
   PetscFunctionBegin;
   /* switch from compact (arrow) to dense storage */
@@ -191,14 +203,16 @@ static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
     B[i+i*ld] = D[i];
     B[i+k*ld] = T[i+2*ld];
   }
-  A[k+k*ld] = T[k];
+  /* B is upper bidiagonal and A can be upper or lower bidiagonal */
+  lu = n>m?PETSC_TRUE:PETSC_FALSE;
   B[k+k*ld] = D[k];
-  for (i=k+1;i<n;i++) {
-    A[i+i*ld]   = T[i];
-    A[i-1+i*ld] = T[i-1+ld];
+  for (i=k+1;i<m;i++) {
     B[i+i*ld]   = D[i];
     B[i-1+i*ld] = T[i-1+2*ld];
   }
+  for (i=k;i<m;i++) A[i+i*ld]   = T[i];
+  if (lu) for (i=k;i<m;i++) A[i+1+i*ld] = T[i+ld];
+  else for (i=k+1;i<m;i++) A[i-1+i*ld] = T[i-1+ld];
   PetscFunctionReturn(0);
 }
 
@@ -226,9 +240,10 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ctx->m,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ctx->p,&p);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&lc);CHKERRQ(ierr);
+  /* In compact storage B is always nxn and A can be either nxn or (n+1)xn */
   if (!ds->compact) {
     if (lc!=0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DSGSVD with non-compact format does not support locking");
-  } else if (m!=n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"The case m!=n not supported in compact format");
+  } else if (p!=n || (m!=p && m!=p+1)) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Dimensions not supported in compact format");
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   n1 = n-lc;     /* n1 = size of leading block, excl. locked + size of trailing block */
   m1 = m-lc;
@@ -545,8 +560,10 @@ PetscErrorCode DSDestroy_GSVD(DS ds)
    where X = Q*inv(R) is computed at the end of DSSolve().
 
    If the compact storage format is selected, then a simplified problem is
-   solved, where A and B are square upper bidiagonal (possibly with an arrow),
-   and [A;B] is assumed to have orthonormal columns. In this case, R=I so it
+   solved, where A and B are bidiagonal (possibly with an arrow), and [A;B]
+   is assumed to have orthonormal columns. We consider two cases: (1) A and B
+   are square mxm upper bidiagonal, and (2) A is lower bidiagonal with m+1
+   rows and B is square upper bidiagonal. In these cases, R=I so it
    corresponds to the CS decomposition. The first matrix is stored in two
    diagonals of DS_MAT_T, while the second matrix is stored in DS_MAT_D
    and the remaining diagonal of DS_MAT_T.
