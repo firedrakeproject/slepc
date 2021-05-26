@@ -293,8 +293,11 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *X,*W,*U,*R,sone=1.0,szero=0.0;
   PetscReal      norm;
-  PetscInt       i,j,ii,nwu=0,*p;
+  PetscInt       i,j,ii,nwu=0,*p,jstart=0,jend=k;
+  const PetscInt *range;
   PetscBLASInt   n,*perm,info,ld,one=1,n1;
+  PetscMPIInt    len,size,root;
+  PetscLayout    map;
 
   PetscFunctionBegin;
   X = ds->mat[DS_MAT_X];
@@ -308,13 +311,18 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   U    = ds->work+nwu;    nwu += (n+1)*(n+1);
   R    = ds->work+nwu;    nwu += n+1;
   perm = ds->iwork;
+  if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {
+    ierr = PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,k,1,&map);CHKERRQ(ierr);
+    ierr = PetscLayoutGetRange(map,&jstart,&jend);CHKERRQ(ierr);
+  }
   for (ii=0;ii<ctx->Nit;ii++) {
-    for (j=0;j<k;j++) {
-      if (!p[j]) {
+    for (j=jstart;j<jend;j++) {
+      if (p[j]<2) {
         ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
         PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
         norm = BLASnrm2_(&n,R,&one);
         if (norm/PetscAbsScalar(wr[j]) > ctx->rtol) {
+          p[j] = 1;
           R[n] = 0.0;
           for (i=0;i<n;i++) {
             ierr = PetscArraycpy(U+i*n1,W+i*ld,n);CHKERRQ(ierr);
@@ -335,9 +343,25 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
           /* normalization */
           norm = BLASnrm2_(&n,X+ld*j,&one);
           for (i=0;i<n;i++) X[ld*j+i] /= norm;
-        } else p[j] = 1;
+        } else p[j] = 2;
       }
     }
+  }
+  if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* communicate results */
+    ierr = PetscMPIIntCast(k,&len);CHKERRQ(ierr);
+    ierr = MPIU_Allreduce(MPI_IN_PLACE,p,len,MPIU_INT,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRMPI(ierr);
+    ierr = PetscLayoutGetRanges(map,&range);CHKERRQ(ierr);
+    for (j=0;j<k;j++) {
+      if (p[j]) {  /* j-th eigenpair has been refined */
+        for (root=0;root<size;root++) if (range[root+1]>j) break;
+        ierr = PetscMPIIntCast(1,&len);CHKERRQ(ierr);
+        ierr = MPI_Bcast(wr+j,len,MPIU_SCALAR,root,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+        ierr = PetscMPIIntCast(n,&len);CHKERRQ(ierr);
+        ierr = MPI_Bcast(X+ld*j,len,MPIU_SCALAR,root,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      }
+    }
+    ierr = PetscLayoutDestroy(&map);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
