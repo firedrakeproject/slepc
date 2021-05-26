@@ -49,4 +49,5 @@
 
       PetscEnum, parameter :: DS_PARALLEL_REDUNDANT    = 0
       PetscEnum, parameter :: DS_PARALLEL_SYNCHRONIZED = 1
+      PetscEnum, parameter :: DS_PARALLEL_DISTRIBUTED  = 2
 

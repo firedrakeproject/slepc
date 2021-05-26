@@ -56,7 +56,7 @@ struct _p_DS {
   PetscInt       t;                  /* length of decomposition when it was truncated */
   PetscInt       bs;                 /* block size */
   SlepcSC        sc;                 /* sorting criterion */
-  DSParallelType pmode;              /* parallel mode (redundant or synchronized) */
+  DSParallelType pmode;              /* parallel mode (redundant, synchronized, distributed) */
 
   /*----------------- Status variables and working data ----------------*/
   PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */

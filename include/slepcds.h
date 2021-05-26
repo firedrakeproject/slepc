@@ -133,7 +133,8 @@ SLEPC_EXTERN DSMatType DSMatExtra[];
 .seealso: DSSetParallel()
 E*/
 typedef enum { DS_PARALLEL_REDUNDANT,
-               DS_PARALLEL_SYNCHRONIZED } DSParallelType;
+               DS_PARALLEL_SYNCHRONIZED,
+               DS_PARALLEL_DISTRIBUTED } DSParallelType;
 SLEPC_EXTERN const char *DSParallelTypes[];
 
 SLEPC_EXTERN PetscErrorCode DSCreate(MPI_Comm,DS*);
