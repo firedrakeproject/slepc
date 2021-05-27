@@ -299,7 +299,10 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
       output_file: output/ex27_7.out
       test:
          suffix: 8
-         args:
+      test:
+         suffix: 8_parallel
+         nsize: 4
+         args: -nep_ciss_partitions 4
       test:
          suffix: 8_hpddm
          args: -nep_ciss_ksp_type hpddm

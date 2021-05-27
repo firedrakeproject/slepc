@@ -734,6 +734,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   } else {
     ierr = DSSetType(nep->ds,DSNEP);CHKERRQ(ierr);
     ierr = DSSetMethod(nep->ds,1);CHKERRQ(ierr);
+    ierr = DSSetParallel(nep->ds,DS_PARALLEL_DISTRIBUTED);CHKERRQ(ierr);
     ierr = DSNEPSetRG(nep->ds,nep->rg);CHKERRQ(ierr);
     if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
       ierr = DSNEPSetFN(nep->ds,nep->nt,nep->f);CHKERRQ(ierr);

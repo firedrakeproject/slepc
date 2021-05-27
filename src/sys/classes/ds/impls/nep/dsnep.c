@@ -20,6 +20,7 @@ typedef struct {
   PetscInt       Nit;                /* number of refinement iterations */
   PetscReal      rtol;               /* tolerance of Newton refinement */
   RG             rg;                 /* region for contour integral */
+  PetscLayout    map;                /* used to distribute work among MPI processes */
   void           *computematrixctx;
   PetscErrorCode (*computematrix)(DS,PetscScalar,PetscBool,DSMatType,void*);
 } DS_NEP;
@@ -292,8 +293,11 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *X,*W,*U,*R,sone=1.0,szero=0.0;
   PetscReal      norm;
-  PetscInt       i,j,ii,nwu=0,*p;
+  PetscInt       i,j,ii,nwu=0,*p,jstart=0,jend=k;
+  const PetscInt *range;
   PetscBLASInt   n,*perm,info,ld,one=1,n1;
+  PetscMPIInt    len,size,root;
+  PetscLayout    map;
 
   PetscFunctionBegin;
   X = ds->mat[DS_MAT_X];
@@ -307,13 +311,18 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   U    = ds->work+nwu;    nwu += (n+1)*(n+1);
   R    = ds->work+nwu;    nwu += n+1;
   perm = ds->iwork;
+  if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {
+    ierr = PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,k,1,&map);CHKERRQ(ierr);
+    ierr = PetscLayoutGetRange(map,&jstart,&jend);CHKERRQ(ierr);
+  }
   for (ii=0;ii<ctx->Nit;ii++) {
-    for (j=0;j<k;j++) {
-      if (!p[j]) {
+    for (j=jstart;j<jend;j++) {
+      if (p[j]<2) {
         ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
         PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
         norm = BLASnrm2_(&n,R,&one);
         if (norm/PetscAbsScalar(wr[j]) > ctx->rtol) {
+          p[j] = 1;
           R[n] = 0.0;
           for (i=0;i<n;i++) {
             ierr = PetscArraycpy(U+i*n1,W+i*ld,n);CHKERRQ(ierr);
@@ -334,9 +343,25 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
           /* normalization */
           norm = BLASnrm2_(&n,X+ld*j,&one);
           for (i=0;i<n;i++) X[ld*j+i] /= norm;
-        } else p[j] = 1;
+        } else p[j] = 2;
       }
     }
+  }
+  if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* communicate results */
+    ierr = PetscMPIIntCast(k,&len);CHKERRQ(ierr);
+    ierr = MPIU_Allreduce(MPI_IN_PLACE,p,len,MPIU_INT,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRMPI(ierr);
+    ierr = PetscLayoutGetRanges(map,&range);CHKERRQ(ierr);
+    for (j=0;j<k;j++) {
+      if (p[j]) {  /* j-th eigenpair has been refined */
+        for (root=0;root<size;root++) if (range[root+1]>j) break;
+        ierr = PetscMPIIntCast(1,&len);CHKERRQ(ierr);
+        ierr = MPI_Bcast(wr+j,len,MPIU_SCALAR,root,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+        ierr = PetscMPIIntCast(n,&len);CHKERRQ(ierr);
+        ierr = MPI_Bcast(X+ld*j,len,MPIU_SCALAR,root,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      }
+    }
+    ierr = PetscLayoutDestroy(&map);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -345,11 +370,12 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
-  PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,*w,*w2,*S,*A0,*U,*VT;
-  PetscScalar    sone=1.0,szero=0.0,center,*z;
+  PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,w,w2,*S,*A0,*U,*VT;
+  PetscScalar    sone=1.0,szero=0.0,center,z;
   PetscReal      *rwork,norm,radius,vscale,rgscale,theta,*sigma;
   PetscBLASInt   info,n,*perm,p,ld,lwork,k_,rk_,colA,rowA,one=1;
-  PetscInt       mid,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,lrwork,*inside;
+  PetscInt       mid,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,lrwork,*inside,kstart=0,kend=nnod;
+  PetscMPIInt    len;
   PetscBool      isellipse;
   PetscRandom    rand;
 
@@ -361,6 +387,10 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     ierr = RGEllipseGetParameters(ctx->rg,&center,&radius,&vscale);CHKERRQ(ierr);
   } else SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Region must be Ellipse");
   ierr = RGGetScale(ctx->rg,&rgscale);CHKERRQ(ierr);
+  if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {
+    if (!ctx->map) { ierr = PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,ctx->nnod,1,&ctx->map);CHKERRQ(ierr); }
+    ierr = PetscLayoutGetRange(ctx->map,&kstart,&kend);CHKERRQ(ierr);
+  }
 
   if (!ds->mat[DS_MAT_A]) {
     ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr);
@@ -382,16 +412,13 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(mid*p,&colA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(mid*n,&rowA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(5*rowA,&lwork);CHKERRQ(ierr);
-  nw   = (2*mid+(mid+1)*(mid+1)+2*mid*mid)*n*p+3*nnod+6*mid*n+2*n;
+  nw   = (2*mid+(mid+1)*(mid+1)+2*mid*mid)*n*p+6*mid*n+2*n;
   lrwork = mid*n*6+8*n;
   ierr = DSAllocateWork_Private(ds,nw,lrwork,n+1);CHKERRQ(ierr);
   sigma = ds->rwork;
   rwork = ds->rwork+mid*n;
   perm  = ds->iwork;
   S     = ds->work+nwu;    nwu += 2*mid*n*p;    /* moments */
-  z     = ds->work+nwu;    nwu += nnod;         /* integration points */
-  w     = ds->work+nwu;    nwu += nnod;         /* quadrature weights */
-  w2    = ds->work+nwu;    nwu += nnod;
   A0    = ds->work+nwu;    nwu += (mid+1)*n*(mid+1)*p;
   U     = ds->work+nwu;    nwu += mid*n*mid*p;
   VT    = ds->work+nwu;    nwu += mid*p*mid*p;
@@ -407,16 +434,18 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscRandomSeed(rand);CHKERRQ(ierr);
   for (j=0;j<p;j++)
     for (i=0;i<n;i++) { ierr = PetscRandomGetValue(rand,Rc+i+j*n);CHKERRQ(ierr); }
-  for (k=0;k<nnod;k++) {
-    theta = (2*PETSC_PI*k)/nnod;
-    w[k]  = rgscale*radius*PETSC_i*PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta))/nnod; /* derivative */
-    w2[k] = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta)); /* nodes unit ellipse */
-    z[k]  = rgscale*(center+radius*w2[k]); /* nodes */
-  }
   ierr = PetscArrayzero(S,2*mid*n*p);CHKERRQ(ierr);
-  for (k=0;k<nnod;k++) {
+
+  /* Loop of integration points */
+  for (k=kstart;k<kend;k++) {
+    theta = (2*PETSC_PI*k)/nnod;
+    w  = rgscale*radius*PETSC_i*PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta))/nnod; /* derivative */
+    w2 = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta)); /* nodes unit ellipse */
+    z  = rgscale*(center+radius*w2); /* nodes */
+
     ierr = PetscArraycpy(R,Rc,p*n);CHKERRQ(ierr);
-    ierr = DSNEPComputeMatrix(ds,z[k],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
+    ierr = DSNEPComputeMatrix(ds,z,PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
+
     /* LU factorization */
     ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
     PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,W,&ld,perm,&info));
@@ -424,14 +453,20 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n,&p,W,&ld,perm,R,&n,&info));
     SlepcCheckLapackInfo("getrs",info);
     ierr = PetscFPTrapPop();CHKERRQ(ierr);
+
     /* Moments computation */
     for (s=0;s<2*ctx->max_mid;s++) {
       off = s*n*p;
       for (j=0;j<p;j++)
-        for (i=0;i<n;i++) S[off+i+j*n] += w[k]*R[j*n+i];
-      w[k] *= w2[k];
+        for (i=0;i<n;i++) S[off+i+j*n] += w*R[j*n+i];
+      w *= w2;
     }
   } /* R and Rc in A0 are no longer used */
+
+  if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* compute final S via reduction */
+    ierr = PetscMPIIntCast(2*mid*n*p,&len);CHKERRQ(ierr);
+    ierr = MPIU_Allreduce(MPI_IN_PLACE,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+  }
 
   /* Auxiliary matrix for SVD */
   for (jj=0;jj<mid;jj++) {
@@ -846,7 +881,8 @@ PetscErrorCode DSNEPGetRefine(DS ds,PetscReal *tol,PetscInt *its)
 
 static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
 {
-  DS_NEP *ctx = (DS_NEP*)ds->data;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) ctx->nnod = 32;
@@ -854,6 +890,7 @@ static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
     if (ip<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of integration points must be > 0");
     ctx->nnod = ip;
   }
+  ierr = PetscLayoutDestroy(&ctx->map);CHKERRQ(ierr);  /* need to redistribute at next solve */
   PetscFunctionReturn(0);
 }
 
@@ -1145,6 +1182,7 @@ PetscErrorCode DSDestroy_NEP(DS ds)
     ierr = FNDestroy(&ctx->f[i]);CHKERRQ(ierr);
   }
   ierr = RGDestroy(&ctx->rg);CHKERRQ(ierr);
+  ierr = PetscLayoutDestroy(&ctx->map);CHKERRQ(ierr);
   ierr = PetscFree(ds->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",NULL);CHKERRQ(ierr);
@@ -1213,6 +1251,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ds->ops->sort           = DSSort_NEP;
   ds->ops->synchronize    = DSSynchronize_NEP;
   ds->ops->destroy        = DSDestroy_NEP;
+
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP);CHKERRQ(ierr);

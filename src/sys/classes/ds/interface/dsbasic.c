@@ -20,7 +20,7 @@ PetscLogEvent     DS_Solve = 0,DS_Vectors = 0,DS_Synchronize = 0,DS_Other = 0;
 static PetscBool  DSPackageInitialized = PETSC_FALSE;
 
 const char *DSStateTypes[] = {"RAW","INTERMEDIATE","CONDENSED","TRUNCATED","DSStateType","DS_STATE_",0};
-const char *DSParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","DSParallelType","DS_PARALLEL_",0};
+const char *DSParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","DISTRIBUTED","DSParallelType","DS_PARALLEL_",0};
 const char *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
 DSMatType  DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9};
 
@@ -399,7 +399,8 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
 -  pmode - the parallel mode
 
    Options Database Key:
-.  -ds_parallel <mode> - Sets the parallel mode, either 'redundant' or 'synchronized'
+.  -ds_parallel <mode> - Sets the parallel mode, 'redundant', 'synchronized'
+   or 'distributed'
 
    Notes:
    In the 'redundant' parallel mode, all processes will make the computation
@@ -411,6 +412,10 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
    computation and then the computed quantities are broadcast to the other
    processes in the communicator. This communication is not done automatically,
    an explicit call to DSSynchronize() is required.
+
+   The 'distributed' parallel mode can be used in some DS types only, such
+   as the contour integral method of DSNEP. In this case, every MPI process
+   will be in charge of part of the computation.
 
    Level: advanced
 
