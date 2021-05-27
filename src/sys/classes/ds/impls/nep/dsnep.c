@@ -440,7 +440,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (k=kstart;k<kend;k++) {
     ierr = PetscInfo1(NULL,"Solving integration point %D\n",k);CHKERRQ(ierr);
     theta = (2*PETSC_PI*k)/nnod;
-    w  = rgscale*radius*PETSC_i*PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta))/nnod; /* derivative */
+    w  = rgscale*radius*PETSC_i*PetscCMPLX(vscale*PetscCosReal(theta),PetscSinReal(theta))/nnod; /* derivative */
     w2 = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta)); /* nodes unit ellipse */
     z  = rgscale*(center+radius*w2); /* nodes */
 
@@ -486,9 +486,9 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     SlepcCheckLapackInfo("gesvd",info);
     ierr = PetscFPTrapPop();CHKERRQ(ierr);
 
-    rk = colA;
-    for (i=1;i<colA;i++) if (sigma[i]/sigma[0]<PETSC_MACHINE_EPSILON*1e4) {rk = i; break;}
-    if (rk<colA || p==n) break;
+    rk = n;
+    for (i=1;i<n;i++) if (sigma[i]/sigma[0]<PETSC_MACHINE_EPSILON*1e4) {rk = i; break;}
+    if (rk<n || p==n) break;
   }
 
   ierr = PetscInfo1(ds,"Solving generalized eigenproblem of size %D\n",rk);CHKERRQ(ierr);
@@ -505,7 +505,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscArrayzero(B,ld*ld);CHKERRQ(ierr);
   for (j=0;j<rk;j++) B[j+j*ld] = sigma[j];
   PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&rk_,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
-  for (i=0;i<rk;i++) wr[i] = (center+radius*alpha[i]/beta[i])*rgscale;
+  for (i=0;i<rk;i++) wr[i] = (center+radius*PetscCMPLX(PetscRealPart(alpha[i]),vscale*PetscImaginaryPart(alpha[i]))/beta[i])*rgscale;
   ierr = PetscMalloc1(rk,&inside);CHKERRQ(ierr);
   ierr = RGCheckInside(ctx->rg,rk,wr,wi,inside);CHKERRQ(ierr);
   k=0;
@@ -513,7 +513,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (inside[i]==1) inside[k++] = i;
   ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
   /* Discard values outside region */
-  for (i=0;i<k;i++) A[i+i*ld] = (center*beta[inside[i]]+radius*alpha[inside[i]])*rgscale;
+  for (i=0;i<k;i++) A[i+i*ld] = (center*beta[inside[i]]+radius*PetscCMPLX(PetscRealPart(alpha[inside[i]]),vscale*PetscImaginaryPart(alpha[inside[i]])))*rgscale;
   for (i=0;i<k;i++) B[i+i*ld] = beta[inside[i]];
   for (i=0;i<k;i++) wr[i] = A[i+i*ld]/B[i+i*ld];
   for (j=0;j<k;j++) for (i=0;i<rk;i++) W[j*ld+i] = sigma[i]*W[inside[j]*ld+i];
