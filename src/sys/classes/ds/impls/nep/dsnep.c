@@ -717,7 +717,7 @@ static PetscErrorCode DSNEPSetMinimality_NEP(DS ds,PetscInt n)
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  if (n == PETSC_DECIDE || n == PETSC_DEFAULT) ctx->max_mid = 1;
+  if (n == PETSC_DECIDE || n == PETSC_DEFAULT) ctx->max_mid = 4;
   else {
     if (n<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The minimality value must be > 0");
     ctx->max_mid = n;
@@ -891,7 +891,7 @@ static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) ctx->nnod = 32;
+  if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) ctx->nnod = 64;
   else {
     if (ip<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of integration points must be > 0");
     ctx->nnod = ip;
@@ -1241,8 +1241,8 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   PetscFunctionBegin;
   ierr = PetscNewLog(ds,&ctx);CHKERRQ(ierr);
   ds->data = (void*)ctx;
-  ctx->max_mid = 1;
-  ctx->nnod    = 32;
+  ctx->max_mid = 4;
+  ctx->nnod    = 64;
   ctx->Nit     = 3;
   ctx->rtol    = PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
 
