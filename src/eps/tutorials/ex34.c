@@ -22,7 +22,6 @@
 
 static char help[] = "Nonlinear inverse iteration for A(x)*x=lambda*B(x)*x.\n\n";
 
-
 #include <slepceps.h>
 #include <petscdmplex.h>
 #include <petscds.h>
@@ -404,7 +403,6 @@ PetscErrorCode FormFunctionAB(SNES snes,Vec x,Vec Ax,Vec Bx,void *ctx)
   ierr = FormFunctionB(snes,x,Bx,ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 
 static PetscErrorCode FormFunction(SNES snes,Vec X,Vec F,void *ctx)
 {
