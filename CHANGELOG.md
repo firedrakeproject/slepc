@@ -12,6 +12,7 @@
   in addition to current ``SlepcInitialize(filename,ierr)``.
 - New `DSGSVD` type for the generalized SVD.
 - New contour integral method in `DSNEP`.
+- New function `BVSetRandomSign()` for random values equal to -1 or 1 with equal probability.
 
 ### Changed
 

@@ -42,6 +42,7 @@ cdef extern from * nogil:
 
     int BVSetRandom(SlepcBV)
     int BVSetRandomNormal(SlepcBV)
+    int BVSetRandomSign(SlepcBV)
 
     int BVSetMatrix(SlepcBV,PetscMat,PetscBool)
     int BVGetMatrix(SlepcBV,PetscMat*,PetscBool*)

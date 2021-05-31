@@ -257,33 +257,6 @@ static PetscErrorCode SetPathParameter(NEP nep)
   PetscFunctionReturn(0);
 }
 
-/*
-  Uniformly distributed random vectors with +-1 values
-*/
-static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,j,nlocal;
-  PetscScalar    *vdata;
-  Vec            x;
-
-  PetscFunctionBegin;
-  ierr = BVGetSizes(V,&nlocal,NULL,NULL);CHKERRQ(ierr);
-  for (i=i0;i<i1;i++) {
-    ierr = BVSetRandomColumn(V,i);CHKERRQ(ierr);
-    ierr = BVGetColumn(V,i,&x);CHKERRQ(ierr);
-    ierr = VecGetArray(x,&vdata);CHKERRQ(ierr);
-    for (j=0;j<nlocal;j++) {
-      vdata[j] = PetscRealPart(vdata[j]);
-      if (PetscRealPart(vdata[j]) < 0.5) vdata[j] = -1.0;
-      else vdata[j] = 1.0;
-    }
-    ierr = VecRestoreArray(x,&vdata);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,i,&x);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode VecScatterVecs(NEP nep,BV Vin,PetscInt n)
 {
   PetscErrorCode    ierr;
@@ -825,7 +798,8 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   sc->mapobj        = NULL;
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
   ierr = SetPathParameter(nep);CHKERRQ(ierr);
-  ierr = CISSVecSetRandom(ctx->V,0,ctx->L);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
+  ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
   ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
   if (ctx->pA) {
     ierr = VecScatterVecs(nep,ctx->V,ctx->L);CHKERRQ(ierr);
@@ -837,7 +811,8 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   /* Updates L after estimate the number of eigenvalue */
   if (L_add>0) {
     ierr = PetscInfo2(nep,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(nep,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
       ierr = SolveLinearSystem(nep,ctx->T,ctx->J,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
@@ -856,7 +831,8 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
     ierr = PetscInfo2(nep,"Changing L %D -> %D by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(nep,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
       ierr = SolveLinearSystem(nep,ctx->T,ctx->J,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);

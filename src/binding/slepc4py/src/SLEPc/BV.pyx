@@ -832,6 +832,16 @@ cdef class BV(Object):
         """
         CHKERR( BVSetRandomNormal(self.bv) )
 
+    def setRandomSign(self):
+        """
+        Set the entries of a BV to values 1 or -1 with equal probability.
+
+        Notes
+        -----
+        All active columns (except the leading ones) are modified.
+        """
+        CHKERR( BVSetRandomSign(self.bv) )
+
     def orthogonalizeVec(self, Vec v):
         """
         Orthogonalize a vector with respect to a set of vectors.

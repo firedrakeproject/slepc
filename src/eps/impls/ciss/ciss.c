@@ -234,7 +234,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
   ierr = RGGetScale(eps->rg,&rgscale);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ctx->N+1l,&omegai);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->N+1,&omegai);CHKERRQ(ierr);
   ierr = RGComputeContour(eps->rg,ctx->N,ctx->omega,omegai);CHKERRQ(ierr);
   if (isellipse) {
     ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
@@ -302,30 +302,6 @@ static PetscErrorCode SetPathParameter(EPS eps)
     for (i=0;i<ctx->N;i++) ctx->weight[i] /= (PetscScalar)max_w;
   }
   ierr = PetscFree(omegai);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,j,nlocal;
-  PetscScalar    *vdata;
-  Vec            x;
-
-  PetscFunctionBegin;
-  ierr = BVGetSizes(V,&nlocal,NULL,NULL);CHKERRQ(ierr);
-  for (i=i0;i<i1;i++) {
-    ierr = BVSetRandomColumn(V,i);CHKERRQ(ierr);
-    ierr = BVGetColumn(V,i,&x);CHKERRQ(ierr);
-    ierr = VecGetArray(x,&vdata);CHKERRQ(ierr);
-    for (j=0;j<nlocal;j++) {
-      vdata[j] = PetscRealPart(vdata[j]);
-      if (PetscRealPart(vdata[j]) < 0.5) vdata[j] = -1.0;
-      else vdata[j] = 1.0;
-    }
-    ierr = VecRestoreArray(x,&vdata);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,i,&x);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -1011,7 +987,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
   ierr = SetPathParameter(eps);CHKERRQ(ierr);
-  ierr = CISSVecSetRandom(ctx->V,0,ctx->L);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
+  ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
   ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
 
   if (ctx->pA) {
@@ -1032,7 +1009,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 #endif
   if (L_add>0) {
     ierr = PetscInfo2(eps,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
       ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
@@ -1050,7 +1028,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
     ierr = PetscInfo2(eps,"Changing L %D -> %D by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
       ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);

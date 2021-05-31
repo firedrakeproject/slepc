@@ -429,6 +429,35 @@ PETSC_STATIC_INLINE PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscIn
   PetscFunctionReturn(0);
 }
 
+PETSC_STATIC_INLINE PetscErrorCode BVSetRandomSignColumn_Private(BV bv,PetscInt k)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,low,high;
+  PetscScalar    *px,t;
+  Vec            x;
+
+  PetscFunctionBegin;
+  ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
+  if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
+    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+    for (i=0;i<bv->N;i++) {
+      ierr = PetscRandomGetValue(bv->rand,&t);CHKERRQ(ierr);
+      if (i>=low && i<high) px[i-low] = (PetscRealPart(t)<0.5)? -1.0: 1.0;
+    }
+    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  } else {
+    ierr = VecSetRandom(x,bv->rand);CHKERRQ(ierr);
+    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+    for (i=low;i<high;i++) {
+      px[i-low] = (PetscRealPart(px[i-low])<0.5)? -1.0: 1.0;
+    }
+    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  }
+  ierr = BVRestoreColumn(bv,k,&x);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*@
    BVSetRandom - Set the columns of a BV to random numbers.
 
@@ -442,7 +471,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscIn
 
    Level: advanced
 
-.seealso: BVSetRandomContext(), BVSetRandomColumn(), BVSetRandomNormal(), BVSetRandomCond(), BVSetActiveColumns()
+.seealso: BVSetRandomContext(), BVSetRandomColumn(), BVSetRandomNormal(), BVSetRandomSign(), BVSetRandomCond(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVSetRandom(BV bv)
 {
@@ -502,7 +531,7 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
 
    Logically Collective on bv
 
-   Input Parameters:
+   Input Parameter:
 .  bv - basis vectors
 
    Notes:
@@ -545,6 +574,53 @@ PetscErrorCode BVSetRandomNormal(BV bv)
     ierr = VecDestroy(&w1);CHKERRQ(ierr);
     ierr = VecDestroy(&w2);CHKERRQ(ierr);
   }
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVSetRandomSign - Set the entries of a BV to values 1 or -1 with equal
+   probability.
+
+   Logically Collective on bv
+
+   Input Parameter:
+.  bv - basis vectors
+
+   Notes:
+   All active columns (except the leading ones) are modified.
+
+   This function is used, e.g., in contour integral methods when estimating
+   the number of eigenvalues enclosed by the contour via an unbiased
+   estimator of tr(f(A)) [Bai et al., JCAM 1996].
+
+   Developer Notes:
+   The current implementation obtains random numbers and then replaces them
+   with -1 or 1 depending on the value being less than 0.5 or not.
+
+   Level: advanced
+
+.seealso: BVSetRandomContext(), BVSetRandom(), BVSetRandomColumn(), BVSetActiveColumns()
+@*/
+PetscErrorCode BVSetRandomSign(BV bv)
+{
+  PetscErrorCode ierr;
+  PetscScalar    low,high;
+  PetscInt       k;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr);
+  ierr = PetscRandomGetInterval(bv->rand,&low,&high);CHKERRQ(ierr);
+  if (PetscRealPart(low)!=0.0 || PetscRealPart(high)!=1.0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"The PetscRandom object in the BV must have interval [0,1]");
+  ierr = PetscLogEventBegin(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
+  for (k=bv->l;k<bv->k;k++) {
+    ierr = BVSetRandomSignColumn_Private(bv,k);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
