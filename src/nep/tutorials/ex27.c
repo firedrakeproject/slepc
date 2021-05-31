@@ -302,7 +302,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
       test:
          suffix: 8_parallel
          nsize: 4
-         args: -nep_ciss_partitions 4
+         args: -nep_ciss_partitions 4 -ds_parallel distributed
       test:
          suffix: 8_hpddm
          args: -nep_ciss_ksp_type hpddm

@@ -4,8 +4,8 @@ DS Object: 1 MPI processes
   current state: RAW
   dimensions: ld=12, n=10, l=0, k=0
   flags:
-  number of integration points: 32
-  maximum minimality index: 1
+  number of integration points: 64
+  maximum minimality index: 4
   doing iterative refinement (1 its, tolerance removed)
   RG Object: 1 MPI processes
     type: ellipse

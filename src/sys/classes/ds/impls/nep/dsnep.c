@@ -17,6 +17,7 @@ typedef struct {
   FN             f[DS_NUM_EXTRA];    /* functions defining the nonlinear operator */
   PetscInt       max_mid;            /* maximum minimality index */
   PetscInt       nnod;               /* number of nodes for quadrature rules */
+  PetscInt       spls;               /* number of sampling columns for quadrature rules */
   PetscInt       Nit;                /* number of refinement iterations */
   PetscReal      rtol;               /* tolerance of Newton refinement */
   RG             rg;                 /* region for contour integral */
@@ -322,6 +323,7 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
         PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
         norm = BLASnrm2_(&n,R,&one);
         if (norm/PetscAbsScalar(wr[j]) > ctx->rtol) {
+          ierr = PetscInfo2(NULL,"Refining eigenpair %D, residual=%g\n",j,(double)norm/PetscAbsScalar(wr[j]));CHKERRQ(ierr);
           p[j] = 1;
           R[n] = 0.0;
           for (i=0;i<n;i++) {
@@ -373,7 +375,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,w,w2,*S,*A0,*U,*VT;
   PetscScalar    sone=1.0,szero=0.0,center,z;
   PetscReal      *rwork,norm,radius,vscale,rgscale,theta,*sigma;
-  PetscBLASInt   info,n,*perm,p,ld,lwork,k_,rk_,colA,rowA,one=1;
+  PetscBLASInt   info,n,*perm,p,pp,ld,lwork,k_,rk_,colA,rowA,one=1;
   PetscInt       mid,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,lrwork,*inside,kstart=0,kend=nnod;
   PetscMPIInt    len;
   PetscBool      isellipse;
@@ -407,9 +409,8 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   X = ds->mat[DS_MAT_X];
   mid  = ctx->max_mid;
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  p    = n; /* number of columns for the probing matrix */
+  p    = n;   /* maximum number of columns for the probing matrix */
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(mid*p,&colA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(mid*n,&rowA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(5*rowA,&lwork);CHKERRQ(ierr);
   nw   = (2*mid+(mid+1)*(mid+1)+2*mid*mid)*n*p+6*mid*n+2*n;
@@ -438,8 +439,9 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* Loop of integration points */
   for (k=kstart;k<kend;k++) {
+    ierr = PetscInfo1(NULL,"Solving integration point %D\n",k);CHKERRQ(ierr);
     theta = (2*PETSC_PI*k)/nnod;
-    w  = rgscale*radius*PETSC_i*PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta))/nnod; /* derivative */
+    w  = rgscale*radius*PETSC_i*PetscCMPLX(vscale*PetscCosReal(theta),PetscSinReal(theta))/nnod; /* derivative */
     w2 = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta)); /* nodes unit ellipse */
     z  = rgscale*(center+radius*w2); /* nodes */
 
@@ -467,61 +469,68 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     ierr = PetscMPIIntCast(2*mid*n*p,&len);CHKERRQ(ierr);
     ierr = MPIU_Allreduce(MPI_IN_PLACE,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
   }
+  p = ctx->spls?PetscMin(ctx->spls,n):n;
+  pp = p;
+  do {
+    p = pp;
+    ierr = PetscBLASIntCast(mid*p,&colA);CHKERRQ(ierr);
 
-  /* Auxiliary matrix for SVD */
+    ierr = PetscInfo2(ds,"Computing SVD of size %Dx%D\n",rowA,colA);CHKERRQ(ierr);
+    for (jj=0;jj<mid;jj++) {
+      for (ii=0;ii<mid;ii++) {
+        off = jj*p*rowA+ii*n;
+        for (j=0;j<p;j++)
+          for (i=0;i<n;i++) A0[off+j*rowA+i] = S[((jj+ii)*n+j)*n+i];
+      }
+    }
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&rowA,&colA,A0,&rowA,sigma,U,&rowA,VT,&colA,work,&lwork,rwork,&info));
+    SlepcCheckLapackInfo("gesvd",info);
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
+
+    rk = n;
+    for (i=1;i<n;i++) if (sigma[i]/sigma[0]<PETSC_MACHINE_EPSILON*1e4) {rk = i; break;}
+    if (rk<n || p==n) break;
+    pp *= 2;
+  } while (pp<=n);
+
+  ierr = PetscInfo1(ds,"Solving generalized eigenproblem of size %D\n",rk);CHKERRQ(ierr);
   for (jj=0;jj<mid;jj++) {
     for (ii=0;ii<mid;ii++) {
       off = jj*p*rowA+ii*n;
       for (j=0;j<p;j++)
-        for (i=0;i<n;i++) A0[off+j*rowA+i] = S[((jj+ii)*p+j)*n+i];
+        for (i=0;i<n;i++) A0[off+j*rowA+i] = S[((jj+ii+1)*n+j)*n+i];
     }
   }
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&rowA,&colA,A0,&rowA,sigma,U,&rowA,VT,&colA,work,&lwork,rwork,&info));
-  SlepcCheckLapackInfo("gesvd",info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  /* Matrix for the eigenvalue problem */
-  for (jj=0;jj<mid;jj++) {
-    for (ii=0;ii<mid;ii++) {
-      off = jj*p*rowA+ii*n;
-      for (j=0;j<p;j++)
-        for (i=0;i<n;i++) A0[off+j*rowA+i] = S[((jj+ii+1)*p+j)*n+i];
-    }
-  }
-  rk = n;
-  for (i=1;i<n;i++)
-    if (sigma[i]/sigma[0]<PETSC_MACHINE_EPSILON*1e4) {rk = i; break;}
-  if (rk) {
-    ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&rowA,&rk_,&colA,&sone,A0,&rowA,VT,&colA,&szero,S,&rowA));
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rowA,&sone,U,&rowA,S,&rowA,&szero,A,&ld));
-    ierr = PetscArrayzero(B,ld*ld);CHKERRQ(ierr);
-    for (j=0;j<rk;j++) B[j+j*ld] = sigma[j];
-    PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&rk_,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
-    for (i=0;i<rk;i++) wr[i] = (center+radius*alpha[i]/beta[i])*rgscale;
-    ierr = PetscMalloc1(rk,&inside);CHKERRQ(ierr);
-    ierr = RGCheckInside(ctx->rg,rk,wr,wi,inside);CHKERRQ(ierr);
-    k=0;
-    for (i=0;i<rk;i++)
-      if (inside[i]==1) inside[k++] = i;
-    ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
-    /* Discard values outside region */
-    for (i=0;i<k;i++) A[i+i*ld] = (center*beta[inside[i]]+radius*alpha[inside[i]])*rgscale;
-    for (i=0;i<k;i++) B[i+i*ld] = beta[inside[i]];
-    for (i=0;i<k;i++) wr[i] = A[i+i*ld]/B[i+i*ld];
-    for (j=0;j<k;j++) for (i=0;i<rk;i++) W[j*ld+i] = sigma[i]*W[inside[j]*ld+i];
-    ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k_,&rk_,&sone,U,&rowA,W,&ld,&szero,X,&ld));
+  ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&rowA,&rk_,&colA,&sone,A0,&rowA,VT,&colA,&szero,S,&rowA));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rowA,&sone,U,&rowA,S,&rowA,&szero,A,&ld));
+  ierr = PetscArrayzero(B,ld*ld);CHKERRQ(ierr);
+  for (j=0;j<rk;j++) B[j+j*ld] = sigma[j];
+  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&rk_,A,&ld,B,&ld,alpha,beta,NULL,&ld,W,&ld,work,&lwork,rwork,&info));
+  for (i=0;i<rk;i++) wr[i] = (center+radius*PetscCMPLX(PetscRealPart(alpha[i]),vscale*PetscImaginaryPart(alpha[i]))/beta[i])*rgscale;
+  ierr = PetscMalloc1(rk,&inside);CHKERRQ(ierr);
+  ierr = RGCheckInside(ctx->rg,rk,wr,wi,inside);CHKERRQ(ierr);
+  k=0;
+  for (i=0;i<rk;i++)
+    if (inside[i]==1) inside[k++] = i;
+  ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
+  /* Discard values outside region */
+  for (i=0;i<k;i++) A[i+i*ld] = (center*beta[inside[i]]+radius*PetscCMPLX(PetscRealPart(alpha[inside[i]]),vscale*PetscImaginaryPart(alpha[inside[i]])))*rgscale;
+  for (i=0;i<k;i++) B[i+i*ld] = beta[inside[i]];
+  for (i=0;i<k;i++) wr[i] = A[i+i*ld]/B[i+i*ld];
+  for (j=0;j<k;j++) for (i=0;i<rk;i++) W[j*ld+i] = sigma[i]*W[inside[j]*ld+i];
+  ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k_,&rk_,&sone,U,&rowA,W,&ld,&szero,X,&ld));
 
-    /* Normalize */
-    for (j=0;j<k;j++) {
-      norm = BLASnrm2_(&n,X+ld*j,&one);
-      for (i=0;i<n;i++) X[ld*j+i] /= norm;
-    }
-    ierr = PetscFree(inside);CHKERRQ(ierr);
-    /* Newton refinement */
-    ierr = DSNEPNewtonRefine(ds,k,wr);CHKERRQ(ierr);
+  /* Normalize */
+  for (j=0;j<k;j++) {
+    norm = BLASnrm2_(&n,X+ld*j,&one);
+    for (i=0;i<n;i++) X[ld*j+i] /= norm;
   }
+  ierr = PetscFree(inside);CHKERRQ(ierr);
+  /* Newton refinement */
+  ierr = DSNEPNewtonRefine(ds,k,wr);CHKERRQ(ierr);
   ds->t = k;
   ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -711,7 +720,7 @@ static PetscErrorCode DSNEPSetMinimality_NEP(DS ds,PetscInt n)
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  if (n == PETSC_DECIDE || n == PETSC_DEFAULT) ctx->max_mid = 1;
+  if (n == PETSC_DECIDE || n == PETSC_DEFAULT) ctx->max_mid = 4;
   else {
     if (n<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The minimality value must be > 0");
     ctx->max_mid = n;
@@ -885,7 +894,7 @@ static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) ctx->nnod = 32;
+  if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) ctx->nnod = 64;
   else {
     if (ip<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of integration points must be > 0");
     ctx->nnod = ip;
@@ -958,6 +967,86 @@ PetscErrorCode DSNEPGetIntegrationPoints(DS ds,PetscInt *ip)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(ip,2);
   ierr = PetscUseMethod(ds,"DSNEPGetIntegrationPoints_C",(DS,PetscInt*),(ds,ip));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSNEPSetSamplingSize_NEP(DS ds,PetscInt p)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  if (p == PETSC_DECIDE || p == PETSC_DEFAULT) ctx->spls = 0;
+  else {
+    if (p<20) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The sample size can not be smaller than 20");
+    ctx->spls = p;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPSetSamplingSize - Sets the number of sampling columns to be
+   used in the contour integral method.
+
+   Logically Collective on ds
+
+   Input Parameters:
++  ds - the direct solver context
+-  p - the number of columns for the sampling matrix
+
+   Options Database Key:
+.  -ds_nep_sampling_size <p> - sets the number of sampling columns
+
+   Notes:
+   This parameter is relevant only in the contour integral method.
+
+   Level: advanced
+
+.seealso: DSNEPGetSamplingSize()
+@*/
+PetscErrorCode DSNEPSetSamplingSize(DS ds,PetscInt p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(ds,p,2);
+  ierr = PetscTryMethod(ds,"DSNEPSetSamplingSize_C",(DS,PetscInt),(ds,p));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSNEPGetSamplingSize_NEP(DS ds,PetscInt *p)
+{
+  DS_NEP *ctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  *p = ctx->spls;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPGetSamplingSize - Returns the number of sampling columns used
+   in the contour integral method.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  p -  the number of columns for the sampling matrix
+
+   Level: advanced
+
+.seealso: DSNEPSetSamplingSize()
+@*/
+PetscErrorCode DSNEPGetSamplingSize(DS ds,PetscInt *p)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidIntPointer(p,2);
+  ierr = PetscUseMethod(ds,"DSNEPGetSamplingSize_C",(DS,PetscInt*),(ds,p));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1148,11 +1237,14 @@ PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"DS NEP Options");CHKERRQ(ierr);
 
-    ierr = PetscOptionsInt("-ds_nep_minimality","Maximum minimality index","DSNEPSetMinimality",1,&k,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-ds_nep_minimality","Maximum minimality index","DSNEPSetMinimality",4,&k,&flg);CHKERRQ(ierr);
     if (flg) { ierr = DSNEPSetMinimality(ds,k);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsInt("-ds_nep_integration_points","Number of integration points","DSNEPSetIntegrationPoints",32,&k,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-ds_nep_integration_points","Number of integration points","DSNEPSetIntegrationPoints",64,&k,&flg);CHKERRQ(ierr);
     if (flg) { ierr = DSNEPSetIntegrationPoints(ds,k);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsInt("-ds_nep_sampling_size","Number of sampling columns","DSNEPSetSamplingSize",0,&k,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = DSNEPSetSamplingSize(ds,k);CHKERRQ(ierr); }
 
 #if defined(PETSC_USE_COMPLEX)
     r = ctx->rtol;
@@ -1193,6 +1285,8 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefine_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetSamplingSize_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetSamplingSize_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
@@ -1235,8 +1329,8 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   PetscFunctionBegin;
   ierr = PetscNewLog(ds,&ctx);CHKERRQ(ierr);
   ds->data = (void*)ctx;
-  ctx->max_mid = 1;
-  ctx->nnod    = 32;
+  ctx->max_mid = 4;
+  ctx->nnod    = 64;
   ctx->Nit     = 3;
   ctx->rtol    = PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
 
@@ -1261,6 +1355,8 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefine_C",DSNEPSetRefine_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",DSNEPGetIntegrationPoints_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",DSNEPSetIntegrationPoints_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetSamplingSize_C",DSNEPGetSamplingSize_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetSamplingSize_C",DSNEPSetSamplingSize_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",DSNEPSetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",DSNEPGetRG_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",DSNEPSetComputeMatrixFunction_NEP);CHKERRQ(ierr);
