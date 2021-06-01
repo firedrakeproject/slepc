@@ -353,13 +353,16 @@ PetscErrorCode FormJacobianA(SNES snes,Vec X,Mat A,Mat B,void *ctx)
   PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
+  PetscWeakForm  wf;
   AppCtx         *userctx = (AppCtx *)ctx;
 
   PetscFunctionBegin;
   ierr = MatSetOption(B,MAT_KEEP_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
   ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
-  ierr = PetscDSSetJacobian(prob,0,0,NULL,NULL,NULL,g3_uu);CHKERRQ(ierr);
+  ierr = PetscDSGetWeakForm(prob, &wf);CHKERRQ(ierr);
+  ierr = PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_G3, 0);CHKERRQ(ierr);
+  ierr = PetscWeakFormSetIndexJacobian(wf, NULL, 0, 0, 0, 0, 0, NULL, 0, NULL, 0, NULL, 0, g3_uu);CHKERRQ(ierr);
   ierr = FormJacobian(snes,X,A,B,ctx);CHKERRQ(ierr);
   ierr = MatZeroRowsIS(B,userctx->bdis,1.0,NULL,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -370,13 +373,16 @@ PetscErrorCode FormJacobianB(SNES snes,Vec X,Mat A,Mat B,void *ctx)
   PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
+  PetscWeakForm  wf;
   AppCtx         *userctx = (AppCtx *)ctx;
 
   PetscFunctionBegin;
   ierr = MatSetOption(B,MAT_KEEP_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
   ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
-  ierr = PetscDSSetJacobian(prob,0,0,g0_uu,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = PetscDSGetWeakForm(prob, &wf);CHKERRQ(ierr);
+  ierr = PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_G3, 0);CHKERRQ(ierr);
+  ierr = PetscWeakFormSetIndexJacobian(wf, NULL, 0, 0, 0, 0, 0, g0_uu, 0, NULL, 0, NULL, 0, NULL);CHKERRQ(ierr);
   ierr = FormJacobian(snes,X,A,B,ctx);CHKERRQ(ierr);
   ierr = MatZeroRowsIS(B,userctx->bdis,0.0,NULL,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -428,6 +434,7 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
+  PetscWeakForm  wf;
   PetscInt       nindices,iStart,iEnd,i;
   AppCtx         *userctx = (AppCtx *)ctx;
   PetscScalar    *array,value;
@@ -438,7 +445,9 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
   ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
   /* hook functions */
-  ierr = PetscDSSetResidual(prob,0,NULL,f1_u);CHKERRQ(ierr);
+  ierr = PetscDSGetWeakForm(prob, &wf);CHKERRQ(ierr);
+  ierr = PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_F0, 0);CHKERRQ(ierr);
+  ierr = PetscWeakFormSetIndexResidual(wf, NULL, 0, 0, 0, 0, NULL, 0, f1_u);CHKERRQ(ierr);
   ierr = FormFunction(snes,X,F,ctx);CHKERRQ(ierr);
   /* Boundary condition */
   ierr = VecLockGet(X,&vecstate);CHKERRQ(ierr);
@@ -479,6 +488,7 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
   PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
+  PetscWeakForm  wf;
   PetscInt       nindices,iStart,iEnd,i;
   AppCtx         *userctx = (AppCtx *)ctx;
   PetscScalar    value;
@@ -488,7 +498,9 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
   ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
   /* hook functions */
-  ierr = PetscDSSetResidual(prob,0,f0_u,NULL);CHKERRQ(ierr);
+  ierr = PetscDSGetWeakForm(prob, &wf);CHKERRQ(ierr);
+  ierr = PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_F1, 0);CHKERRQ(ierr);
+  ierr = PetscWeakFormSetIndexResidual(wf, NULL, 0, 0, 0, 0, f0_u, 0, NULL);CHKERRQ(ierr);
   ierr = FormFunction(snes,X,F,ctx);CHKERRQ(ierr);
   /* Boundary condition */
   ierr = VecGetOwnershipRange(F,&iStart,&iEnd);CHKERRQ(ierr);
@@ -521,7 +533,6 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
       requires: double
       args: -petscspace_degree 1 -petscspace_poly_tensor
       output_file: output/ex34_1.out
-      TODO: broken after a change in PETSc, see issue 38
       test:
          suffix: 1
       test:
