@@ -480,6 +480,11 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
 +  cr - location to store real parts
 -  ci - location to store imaginary parts
 
+   Notes:
+   In real scalars, either cr or ci can be NULL (but not both). In complex
+   scalars, the coordinates are stored in cr, which cannot be NULL (ci is
+   not referenced).
+
    Level: intermediate
 @*/
 PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci[])
@@ -490,15 +495,16 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
+#if defined(PETSC_USE_COMPLEX)
   PetscValidScalarPointer(cr,3);
-#if !defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(ci,4);
+#else
+  if (!cr && !ci) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"cr and ci cannot be NULL simultaneously");
 #endif
   if (rg->complement) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Cannot compute contour of region with complement flag set");
   ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
-    cr[i] *= rg->sfactor;
-    ci[i] *= rg->sfactor;
+    if (cr) cr[i] *= rg->sfactor;
+    if (ci) ci[i] *= rg->sfactor;
   }
   PetscFunctionReturn(0);
 }

@@ -222,7 +222,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j;
-  PetscScalar    center=0.0,tmp,tmp2,*omegai;
+  PetscScalar    center=0.0,tmp,tmp2;
   PetscReal      theta,radius=1.0,vscale,a,b,c,d,max_w=0.0,rgscale;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      start_ang,end_ang;
@@ -234,8 +234,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
   ierr = RGGetScale(eps->rg,&rgscale);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ctx->N+1,&omegai);CHKERRQ(ierr);
-  ierr = RGComputeContour(eps->rg,ctx->N,ctx->omega,omegai);CHKERRQ(ierr);
+  ierr = RGComputeContour(eps->rg,ctx->N,ctx->omega,NULL);CHKERRQ(ierr);
   if (isellipse) {
     ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
     for (i=0;i<ctx->N;i++) {
@@ -301,7 +300,6 @@ static PetscErrorCode SetPathParameter(EPS eps)
     }
     for (i=0;i<ctx->N;i++) ctx->weight[i] /= (PetscScalar)max_w;
   }
-  ierr = PetscFree(omegai);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

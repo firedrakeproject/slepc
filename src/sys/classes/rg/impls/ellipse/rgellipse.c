@@ -181,8 +181,8 @@ PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscSc
 #if defined(PETSC_USE_COMPLEX)
     cr[i] = ctx->center + ctx->radius*PetscCMPLX(PetscCosReal(theta),ctx->vscale*PetscSinReal(theta));
 #else
-    cr[i] = ctx->center + ctx->radius*PetscCosReal(theta);
-    ci[i] = ctx->radius*ctx->vscale*PetscSinReal(theta);
+    if (cr) cr[i] = ctx->center + ctx->radius*PetscCosReal(theta);
+    if (ci) ci[i] = ctx->radius*ctx->vscale*PetscSinReal(theta);
 #endif
   }
   PetscFunctionReturn(0);

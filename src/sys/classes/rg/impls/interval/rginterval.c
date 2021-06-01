@@ -189,7 +189,8 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
 #if defined(PETSC_USE_COMPLEX)
       cr[i] = PetscCMPLX(ctx->a+hr[0]*i,ctx->c+hi[0]*i);
 #else
-      cr[i] = ctx->a+hr[0]*i; ci[i] = ctx->c+hi[0]*i;
+      if (cr) cr[i] = ctx->a+hr[0]*i;
+      if (ci) ci[i] = ctx->c+hi[0]*i;
 #endif
     }
   } else {
@@ -204,7 +205,8 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
 #if defined(PETSC_USE_COMPLEX)
       cr[idx] = PetscCMPLX(vr[i]+off*(hr[i]/h),vi[i]+off*(hi[i]/h));
 #else
-      cr[idx] = vr[i]+off*(hr[i]/h); ci[idx] = vi[i]+off*(hi[i]/h);
+      if (cr) cr[idx] = vr[i]+off*(hr[i]/h);
+      if (ci) ci[idx] = vi[i]+off*(hi[i]/h);
 #endif
       idx++;
       pt = (PetscInt)((d[i]-off)/h)+1;
@@ -212,7 +214,8 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
 #if defined(PETSC_USE_COMPLEX)
         cr[idx] = cr[idx-1]+PetscCMPLX(hr[i],hi[i]);
 #else
-        cr[idx] = cr[idx-1]+hr[i]; ci[idx] = ci[idx-1]+hi[i];
+        if (cr) cr[idx] = cr[idx-1]+hr[i];
+        if (ci) ci[idx] = ci[idx-1]+hi[i];
 #endif
         idx++;
       }
