@@ -557,6 +557,51 @@ PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c
 }
 
 /*@
+   RGComputeQuadrature - Computes the values of the parameters used in a
+   quadrature rule for a contour integral around the boundary of the region.
+
+   Not Collective
+
+   Input Parameters:
++  rg   - the region context
+.  quad - the type of quadrature
+-  n    - number of quadrature points to compute
+
+   Output Parameters:
++  z  - quadrature points
+.  zn - normalized quadrature points
+-  w  - quadrature weights
+
+   Notes:
+   In complex scalars, the values returned in z are often the same as those
+   computed by RGComputeContour(), but this is not the case in real scalars
+   where all output arguments are real.
+
+   The computed values change for different quadrature rules (trapezoidal
+   or Chebyshev).
+
+   Level: intermediate
+
+.seealso: RGComputeContour()
+@*/
+PetscErrorCode RGComputeQuadrature(RG rg,RGQuadRule quad,PetscInt n,PetscScalar z[],PetscScalar zn[],PetscScalar w[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+  PetscValidScalarPointer(z,4);
+  PetscValidScalarPointer(zn,5);
+  PetscValidScalarPointer(w,6);
+
+  ierr = RGComputeContour(rg,n,z,NULL);CHKERRQ(ierr);
+  if (!rg->ops->computequadrature) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Quadrature rules not implemented for this region type");
+  ierr = (*rg->ops->computequadrature)(rg,quad,n,z,zn,w);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
    RGSetComplement - Sets a flag to indicate that the region is the complement
    of the specified one.
 

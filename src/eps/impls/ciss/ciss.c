@@ -217,92 +217,6 @@ static PetscErrorCode CISSScatterVec(EPS eps)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SetPathParameter(EPS eps)
-{
-  PetscErrorCode ierr;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j;
-  PetscScalar    center=0.0,tmp,tmp2;
-  PetscReal      theta,radius=1.0,vscale,a,b,c,d,max_w=0.0,rgscale;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      start_ang,end_ang;
-#endif
-  PetscBool      isring=PETSC_FALSE,isellipse=PETSC_FALSE,isinterval=PETSC_FALSE;
-
-  PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
-  ierr = RGGetScale(eps->rg,&rgscale);CHKERRQ(ierr);
-  ierr = RGComputeContour(eps->rg,ctx->N,ctx->omega,NULL);CHKERRQ(ierr);
-  if (isellipse) {
-    ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
-    for (i=0;i<ctx->N;i++) {
-#if defined(PETSC_USE_COMPLEX)
-      theta = 2.0*PETSC_PI*(i+0.5)/ctx->N;
-      ctx->pp[i] = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta));
-      ctx->weight[i] = rgscale*radius*(PetscCMPLX(vscale*PetscCosReal(theta),PetscSinReal(theta)))/(PetscReal)ctx->N;
-#else
-      theta = (PETSC_PI/ctx->N)*(i+0.5);
-      ctx->pp[i] = PetscCosReal(theta);
-      ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
-      ctx->omega[i] = rgscale*(center + radius*ctx->pp[i]);
-#endif
-    }
-  } else if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
-    for (i=0;i<ctx->N;i++) {
-      theta = (PETSC_PI/ctx->N)*(i+0.5);
-      ctx->pp[i] = PetscCosReal(theta);
-      ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
-    }
-    if (isinterval) {
-      ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-      if ((c!=d || c!=0.0) && (a!=b || a!=0.0)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Endpoints of the imaginary axis or the real axis must be both zero");
-      for (i=0;i<ctx->N;i++) {
-        if (c==d) ctx->omega[i] = ((b-a)*(ctx->pp[i]+1.0)/2.0+a)*rgscale;
-        if (a==b) {
-#if defined(PETSC_USE_COMPLEX)
-          ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2.0+c)*rgscale*PETSC_i;
-#else
-          SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
-#endif
-        }
-      }
-    }
-    if (isring) {  /* only supported in complex scalars */
-#if defined(PETSC_USE_COMPLEX)
-      ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL);CHKERRQ(ierr);
-      for (i=0;i<ctx->N;i++) {
-        theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(ctx->pp[i])+1.0))*PETSC_PI;
-        ctx->omega[i] = rgscale*(center + radius*PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta)));
-      }
-#endif
-    }
-  } else {
-    if (isinterval) {
-      ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-      center = rgscale*((b+a)/2.0+(d+c)/2.0*PETSC_PI);
-      radius = PetscSqrtReal(PetscPowRealInt(rgscale*(b-a)/2.0,2)+PetscPowRealInt(rgscale*(d-c)/2.0,2));
-    } else if (isring) {
-      ierr = RGRingGetParameters(eps->rg,&center,&radius,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-      center *= rgscale;
-      radius *= rgscale;
-    }
-    for (i=0;i<ctx->N;i++) {
-      ctx->pp[i] = (ctx->omega[i]-center)/radius;
-      tmp = 1; tmp2 = 1;
-      for (j=0;j<ctx->N;j++) {
-        tmp *= ctx->omega[j];
-        if (i != j) tmp2 *= ctx->omega[j]-ctx->omega[i];
-      }
-      ctx->weight[i] = tmp/tmp2;
-      max_w = PetscMax(PetscAbsScalar(ctx->weight[i]),max_w);
-    }
-    for (i=0;i<ctx->N;i++) ctx->weight[i] /= (PetscScalar)max_w;
-  }
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode VecScatterVecs(EPS eps,BV Vin,PetscInt n)
 {
   PetscErrorCode    ierr;
@@ -984,7 +898,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
-  ierr = SetPathParameter(eps);CHKERRQ(ierr);
+  ierr = RGComputeQuadrature(eps->rg,ctx->quad==EPS_CISS_QUADRULE_CHEBYSHEV?RG_QUADRULE_CHEBYSHEV:RG_QUADRULE_TRAPEZOIDAL,ctx->N,ctx->omega,ctx->pp,ctx->weight);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
   ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
   ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);

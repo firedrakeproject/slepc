@@ -45,6 +45,16 @@ SLEPC_EXTERN PetscErrorCode RGView(RG,PetscViewer);
 SLEPC_EXTERN PetscErrorCode RGViewFromOptions(RG,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode RGDestroy(RG*);
 
+/*E
+    RGQuadRule - determines how to compute the quadrature parameters
+
+    Level: advanced
+
+.seealso: RGComputeQuadrature()
+E*/
+typedef enum { RG_QUADRULE_TRAPEZOIDAL=1,
+               RG_QUADRULE_CHEBYSHEV } RGQuadRule;
+
 SLEPC_EXTERN PetscErrorCode RGIsTrivial(RG,PetscBool*);
 SLEPC_EXTERN PetscErrorCode RGSetComplement(RG,PetscBool);
 SLEPC_EXTERN PetscErrorCode RGGetComplement(RG,PetscBool*);
@@ -55,6 +65,7 @@ SLEPC_EXTERN PetscErrorCode RGPopScale(RG);
 SLEPC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode RGComputeBoundingBox(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode RGComputeQuadrature(RG,RGQuadRule,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
 
 SLEPC_EXTERN PetscFunctionList RGList;
 SLEPC_EXTERN PetscErrorCode RGRegister(const char[],PetscErrorCode(*)(RG));

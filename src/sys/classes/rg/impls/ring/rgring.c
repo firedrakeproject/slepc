@@ -287,6 +287,42 @@ PetscErrorCode RGComputeBoundingBox_Ring(RG rg,PetscReal *a,PetscReal *b,PetscRe
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGComputeQuadrature_Ring(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
+{
+  RG_RING     *ctx = (RG_RING*)rg->data;
+  PetscReal   theta,max_w=0.0;
+  PetscScalar tmp,tmp2;
+  PetscInt    i,j;
+
+  PetscFunctionBegin;
+  if (quad == RG_QUADRULE_CHEBYSHEV) {
+    for (i=0;i<n;i++) {
+      theta = PETSC_PI*(i+0.5)/n;
+      zn[i] = PetscCosReal(theta);
+      w[i]  = PetscCosReal((n-1)*theta)/n;
+#if defined(PETSC_USE_COMPLEX)
+      theta = (ctx->start_ang*2.0+(ctx->end_ang-ctx->start_ang)*(PetscRealPart(zn[i])+1.0))*PETSC_PI;
+      z[i] = rg->sfactor*(ctx->center + ctx->radius*PetscCMPLX(PetscCosReal(theta),ctx->vscale*PetscSinReal(theta)));
+#else
+      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
+#endif
+    }
+  } else {  /* RG_QUADRULE_TRAPEZOIDAL */
+    for (i=0;i<n;i++) {
+      zn[i] = (z[i]-rg->sfactor*ctx->center)/(rg->sfactor*ctx->radius);
+      tmp = 1.0; tmp2 = 1.0;
+      for (j=0;j<n;j++) {
+        tmp *= z[j];
+        if (i != j) tmp2 *= z[j]-z[i];
+      }
+      w[i] = tmp/tmp2;
+      max_w = PetscMax(PetscAbsScalar(w[i]),max_w);
+    }
+    for (i=0;i<n;i++) w[i] /= (PetscScalar)max_w;
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
   RG_RING   *ctx = (RG_RING*)rg->data;
@@ -388,13 +424,14 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
   ring->width     = 0.1;
   rg->data = (void*)ring;
 
-  rg->ops->istrivial      = RGIsTrivial_Ring;
-  rg->ops->computecontour = RGComputeContour_Ring;
-  rg->ops->computebbox    = RGComputeBoundingBox_Ring;
-  rg->ops->checkinside    = RGCheckInside_Ring;
-  rg->ops->setfromoptions = RGSetFromOptions_Ring;
-  rg->ops->view           = RGView_Ring;
-  rg->ops->destroy        = RGDestroy_Ring;
+  rg->ops->istrivial         = RGIsTrivial_Ring;
+  rg->ops->computecontour    = RGComputeContour_Ring;
+  rg->ops->computebbox       = RGComputeBoundingBox_Ring;
+  rg->ops->computequadrature = RGComputeQuadrature_Ring;
+  rg->ops->checkinside       = RGCheckInside_Ring;
+  rg->ops->setfromoptions    = RGSetFromOptions_Ring;
+  rg->ops->view              = RGView_Ring;
+  rg->ops->destroy           = RGDestroy_Ring;
   ierr = PetscObjectComposeFunction((PetscObject)rg,"RGRingSetParameters_C",RGRingSetParameters_Ring);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)rg,"RGRingGetParameters_C",RGRingGetParameters_Ring);CHKERRQ(ierr);
   PetscFunctionReturn(0);

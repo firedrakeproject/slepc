@@ -238,6 +238,47 @@ PetscErrorCode RGComputeBoundingBox_Interval(RG rg,PetscReal *a,PetscReal *b,Pet
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGComputeQuadrature_Interval(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
+{
+  RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
+  PetscReal   theta,max_w=0.0,radius=1.0;
+  PetscScalar tmp,tmp2,center=0.0;
+  PetscInt    i,j;
+
+  PetscFunctionBegin;
+  if (quad == RG_QUADRULE_CHEBYSHEV) {
+    if ((ctx->c!=ctx->d || ctx->c!=0.0) && (ctx->a!=ctx->b || ctx->a!=0.0)) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Endpoints of the imaginary axis or the real axis must be both zero");
+    for (i=0;i<n;i++) {
+      theta = PETSC_PI*(i+0.5)/n;
+      zn[i] = PetscCosReal(theta);
+      w[i]  = PetscCosReal((n-1)*theta)/n;
+      if (ctx->c==ctx->d) z[i] = ((ctx->b-ctx->a)*(zn[i]+1.0)/2.0+ctx->a)*rg->sfactor;
+      else if (ctx->a==ctx->b) {
+#if defined(PETSC_USE_COMPLEX)
+        z[i] = ((ctx->d-ctx->c)*(zn[i]+1.0)/2.0+ctx->c)*rg->sfactor*PETSC_i;
+#else
+        SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
+#endif
+      }
+    }
+  } else {  /* RG_QUADRULE_TRAPEZOIDAL */
+    center = rg->sfactor*((ctx->b+ctx->a)/2.0+(ctx->d+ctx->c)/2.0*PETSC_PI);
+    radius = PetscSqrtReal(PetscPowRealInt(rg->sfactor*(ctx->b-ctx->a)/2.0,2)+PetscPowRealInt(rg->sfactor*(ctx->d-ctx->c)/2.0,2));
+    for (i=0;i<n;i++) {
+      zn[i] = (z[i]-center)/radius;
+      tmp = 1.0; tmp2 = 1.0;
+      for (j=0;j<n;j++) {
+        tmp *= z[j];
+        if (i != j) tmp2 *= z[j]-z[i];
+      }
+      w[i] = tmp/tmp2;
+      max_w = PetscMax(PetscAbsScalar(w[i]),max_w);
+    }
+    for (i=0;i<n;i++) w[i] /= (PetscScalar)max_w;
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *inside)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
@@ -299,13 +340,14 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
   interval->d = PETSC_MAX_REAL;
   rg->data = (void*)interval;
 
-  rg->ops->istrivial      = RGIsTrivial_Interval;
-  rg->ops->computecontour = RGComputeContour_Interval;
-  rg->ops->computebbox    = RGComputeBoundingBox_Interval;
-  rg->ops->checkinside    = RGCheckInside_Interval;
-  rg->ops->setfromoptions = RGSetFromOptions_Interval;
-  rg->ops->view           = RGView_Interval;
-  rg->ops->destroy        = RGDestroy_Interval;
+  rg->ops->istrivial         = RGIsTrivial_Interval;
+  rg->ops->computecontour    = RGComputeContour_Interval;
+  rg->ops->computebbox       = RGComputeBoundingBox_Interval;
+  rg->ops->computequadrature = RGComputeQuadrature_Interval;
+  rg->ops->checkinside       = RGCheckInside_Interval;
+  rg->ops->setfromoptions    = RGSetFromOptions_Interval;
+  rg->ops->view              = RGView_Interval;
+  rg->ops->destroy           = RGDestroy_Interval;
   ierr = PetscObjectComposeFunction((PetscObject)rg,"RGIntervalSetEndpoints_C",RGIntervalSetEndpoints_Interval);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)rg,"RGIntervalGetEndpoints_C",RGIntervalGetEndpoints_Interval);CHKERRQ(ierr);
   PetscFunctionReturn(0);

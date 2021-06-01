@@ -233,30 +233,6 @@ static PetscErrorCode CISSScatterVec(NEP nep)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SetPathParameter(NEP nep)
-{
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i;
-  PetscScalar    center;
-  PetscReal      theta,radius,vscale,rgscale;
-  PetscBool      isellipse=PETSC_FALSE;
-
-  PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  ierr = RGGetScale(nep->rg,&rgscale);CHKERRQ(ierr);
-  if (isellipse) {
-    ierr = RGEllipseGetParameters(nep->rg,&center,&radius,&vscale);CHKERRQ(ierr);
-  } else SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Region must be Ellipse");
-  for (i=0;i<ctx->N;i++) {
-    theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
-    ctx->pp[i] = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta));
-    ctx->weight[i] = radius*PetscCMPLX(vscale*PetscCosReal(theta),PetscSinReal(theta))/(PetscReal)ctx->N;
-    ctx->omega[i] = rgscale*(center + radius*ctx->pp[i]);
-  }
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode VecScatterVecs(NEP nep,BV Vin,PetscInt n)
 {
   PetscErrorCode    ierr;
@@ -797,7 +773,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   sc->map           = NULL;
   sc->mapobj        = NULL;
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
-  ierr = SetPathParameter(nep);CHKERRQ(ierr);
+  ierr = RGComputeQuadrature(nep->rg,RG_QUADRULE_TRAPEZOIDAL,ctx->N,ctx->omega,ctx->pp,ctx->weight);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
   ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
   ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
