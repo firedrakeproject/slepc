@@ -20,7 +20,7 @@ int main(int argc,char **argv)
   SlepcSC        sc;
   PetscScalar    *Id,*A,*B,*wr,*wi,*X,*W,coeffs[2],auxr,alpha;
   PetscReal      tau=0.001,h,a=20,xi,re,im,nrm,aux;
-  PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun,midx,ip,rits,meth;
+  PetscInt       i,j,ii,jj,k,n=10,ld,nev,nfun,midx,ip,rits,meth,spls;
   PetscViewer    viewer;
   PetscBool      verbose;
   RG             rg;
@@ -48,6 +48,7 @@ int main(int argc,char **argv)
   ierr = DSNEPSetMinimality(ds,1);CHKERRQ(ierr);
   ierr = DSNEPSetIntegrationPoints(ds,16);CHKERRQ(ierr);
   ierr = DSNEPSetRefine(ds,PETSC_DEFAULT,2);CHKERRQ(ierr);
+  ierr = DSNEPSetSamplingSize(ds,25);CHKERRQ(ierr);
   ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
 
   /* Print current options */
@@ -61,8 +62,9 @@ int main(int argc,char **argv)
   ierr = DSNEPGetMinimality(ds,&midx);CHKERRQ(ierr);
   ierr = DSNEPGetIntegrationPoints(ds,&ip);CHKERRQ(ierr);
   ierr = DSNEPGetRefine(ds,NULL,&rits);CHKERRQ(ierr);
+  ierr = DSNEPGetSamplingSize(ds,&spls);CHKERRQ(ierr);
   if (meth==1) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour integral method with %D integration points and minimality index %D\n",ip,midx);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour integral method with %D integration points, minimality index %D, and sampling size %D\n",ip,midx,spls);CHKERRQ(ierr);
     if (rits) {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Doing %D iterations of Newton refinement\n",rits);CHKERRQ(ierr);
     }

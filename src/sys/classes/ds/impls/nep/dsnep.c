@@ -103,6 +103,7 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
     if (ds->method==1) {  /* contour integral method */
       ierr = PetscViewerASCIIPrintf(viewer,"number of integration points: %D\n",ctx->nnod);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"maximum minimality index: %D\n",ctx->max_mid);CHKERRQ(ierr);
+      if (ctx->spls) { ierr = PetscViewerASCIIPrintf(viewer,"number of sampling columns for quadrature: %D\n",ctx->spls);CHKERRQ(ierr); }
       if (ctx->Nit) { ierr = PetscViewerASCIIPrintf(viewer,"doing iterative refinement (%D its, tolerance %g)\n",ctx->Nit,(double)ctx->rtol);CHKERRQ(ierr); }
       ierr = RGView(ctx->rg,viewer);CHKERRQ(ierr);
     }
