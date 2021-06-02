@@ -66,6 +66,8 @@ typedef struct {
   BV                pV;
   Vec               xsub,xdup;
   NEP_CISS_PROJECT  dsctxf;
+  PetscObjectId     rgid;
+  PetscObjectState  rgstate;
 } NEP_CISS;
 
 struct _n_nep_ciss_project {
@@ -127,27 +129,6 @@ PETSC_STATIC_INLINE PetscErrorCode NEPCISSResetSubcomm(NEP nep)
 }
 
 /*
-  Determine whether half of integration points can be avoided (use their conjugates);
-  depends on isreal and the center of the region
-*/
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUseConj(NEP nep,PetscBool *useconj)
-{
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscScalar    center;
-  PetscBool      isellipse=PETSC_FALSE;
-
-  PetscFunctionBegin;
-  *useconj = PETSC_FALSE;
-  ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  if (isellipse) {
-    ierr = RGEllipseGetParameters(nep->rg,&center,NULL,NULL);CHKERRQ(ierr);
-    *useconj = (ctx->isreal && PetscImaginaryPart(center) == 0.0)? PETSC_TRUE: PETSC_FALSE;
-  }
-  PetscFunctionReturn(0);
-}
-
-/*
   Create PetscSubcomm object and determine num_solve_point (depends on npart, N, useconj)
 */
 PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUpSubComm(NEP nep,PetscInt *num_solve_point)
@@ -155,6 +136,10 @@ PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUpSubComm(NEP nep,PetscInt *num_sol
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscInt       N = ctx->N;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      c,d;
+  PetscBool      isaxisymm;
+#endif
 
   PetscFunctionBegin;
   ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&ctx->subcomm);CHKERRQ(ierr);
@@ -162,7 +147,15 @@ PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUpSubComm(NEP nep,PetscInt *num_sol
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm));CHKERRQ(ierr);
   ctx->subcomm_id = ctx->subcomm->color;
-  ierr = NEPCISSSetUseConj(nep,&ctx->useconj);CHKERRQ(ierr);
+  /* determine whether half of integration points can be avoided (use their conjugates);
+     depends on isreal and the symmetry of the region */
+#if defined(PETSC_USE_COMPLEX)
+  ierr = RGIsAxisymmetric(nep->rg,PETSC_FALSE,&isaxisymm);CHKERRQ(ierr);
+  ierr = RGComputeBoundingBox(nep->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
+  ctx->useconj = (ctx->isreal && isaxisymm && c!=d)? PETSC_TRUE: PETSC_FALSE;
+#else
+  ctx->useconj = PETSC_FALSE;
+#endif
   if (ctx->useconj) N = N/2;
   *num_solve_point = N / ctx->npart;
   if (N%ctx->npart > ctx->subcomm_id) (*num_solve_point)++;
@@ -661,8 +654,10 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscErrorCode   ierr;
   NEP_CISS         *ctx = (NEP_CISS*)nep->data;
   PetscInt         nwork;
-  PetscBool        istrivial,isellipse,flg,useconj;
+  PetscBool        istrivial,isellipse,flg;
   NEP_CISS_PROJECT dsctxf;
+  PetscObjectId    id;
+  PetscObjectState state;
 
   PetscFunctionBegin;
   if (nep->ncv==PETSC_DEFAULT) nep->ncv = ctx->L_max*ctx->M;
@@ -688,9 +683,13 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (!isellipse) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
 
-  /* if useconj has changed, then reset subcomm data */
-  ierr = NEPCISSSetUseConj(nep,&useconj);CHKERRQ(ierr);
-  if (useconj!=ctx->useconj) { ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr); }
+  /* if the region has changed, then reset subcomm data */
+  ierr = PetscObjectGetId((PetscObject)nep->rg,&id);CHKERRQ(ierr);
+  ierr = PetscObjectStateGet((PetscObject)nep->rg,&state);CHKERRQ(ierr);
+  if (id != ctx->rgid || state != ctx->rgstate) {
+    ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr);
+    ctx->rgid = id; ctx->rgstate = state;
+  }
 
   /* create split comm */
   if (!ctx->subcomm) { ierr = NEPCISSSetUpSubComm(nep,&ctx->num_solve_point);CHKERRQ(ierr); }
@@ -1383,7 +1382,6 @@ static PetscErrorCode NEPCISSGetKSPs_CISS(NEP nep,PetscInt *nsolve,KSP **ksp)
   PetscFunctionBegin;
   if (!ctx->ksp) {
     if (!ctx->subcomm) {  /* initialize subcomm first */
-      ierr = NEPCISSSetUseConj(nep,&ctx->useconj);CHKERRQ(ierr);
       ierr = NEPCISSSetUpSubComm(nep,&ctx->num_solve_point);CHKERRQ(ierr);
     }
     ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);

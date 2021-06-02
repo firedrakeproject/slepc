@@ -70,6 +70,8 @@ typedef struct {
   PetscBool         usest_set;  /* whether the user set the usest flag or not */
   EPSCISSQuadRule   quad;
   EPSCISSExtraction extraction;
+  PetscObjectId     rgid;
+  PetscObjectState  rgstate;
 } EPS_CISS;
 
 /* destroy KSP objects when the number of solve points changes */
@@ -101,44 +103,16 @@ PETSC_STATIC_INLINE PetscErrorCode EPSCISSResetSubcomm(EPS eps)
   PetscFunctionReturn(0);
 }
 
-/* determine whether half of integration points can be avoided (use its conjugates);
-   depends on isreal and the center of the region */
-PETSC_STATIC_INLINE PetscErrorCode EPSCISSSetUseConj(EPS eps,PetscBool *useconj)
-{
-  PetscErrorCode ierr;
-  PetscScalar    center;
-  PetscReal      c,d;
-  PetscBool      isellipse,isinterval;
-#if defined(PETSC_USE_COMPLEX)
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-#endif
-
-  PetscFunctionBegin;
-  *useconj = PETSC_FALSE;
-  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  if (isellipse) {
-    ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    *useconj = (ctx->isreal && PetscImaginaryPart(center) == 0.0)? PETSC_TRUE: PETSC_FALSE;
-#endif
-  } else {
-    ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
-    if (isinterval) {
-      ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      *useconj = (ctx->isreal && c==d)? PETSC_TRUE: PETSC_FALSE;
-#endif
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
 /* create PetscSubcomm object and determine num_solve_point (depends on npart, N, useconj) */
 PETSC_STATIC_INLINE PetscErrorCode EPSCISSSetUpSubComm(EPS eps,PetscInt *num_solve_point)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       N = ctx->N;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      c,d;
+  PetscBool      isaxisymm;
+#endif
 
   PetscFunctionBegin;
   ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)eps),&ctx->subcomm);CHKERRQ(ierr);
@@ -146,7 +120,15 @@ PETSC_STATIC_INLINE PetscErrorCode EPSCISSSetUpSubComm(EPS eps,PetscInt *num_sol
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
   ctx->subcomm_id = ctx->subcomm->color;
-  ierr = EPSCISSSetUseConj(eps,&ctx->useconj);CHKERRQ(ierr);
+  /* determine whether half of integration points can be avoided (use their conjugates);
+     depends on isreal and the symmetry of the region */
+#if defined(PETSC_USE_COMPLEX)
+  ierr = RGIsAxisymmetric(eps->rg,PETSC_FALSE,&isaxisymm);CHKERRQ(ierr);
+  ierr = RGComputeBoundingBox(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
+  ctx->useconj = (ctx->isreal && isaxisymm && c!=d)? PETSC_TRUE: PETSC_FALSE;
+#else
+  ctx->useconj = PETSC_FALSE;
+#endif
   if (ctx->useconj) N = N/2;
   *num_solve_point = N / ctx->npart;
   if (N%ctx->npart > ctx->subcomm_id) (*num_solve_point)++;
@@ -717,12 +699,14 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
 
 PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
-  PetscErrorCode ierr;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscBool      istrivial,isring,isellipse,isinterval,flg,useconj;
-  PetscReal      c,d;
-  PetscRandom    rand;
-  Mat            A;
+  PetscErrorCode   ierr;
+  EPS_CISS         *ctx = (EPS_CISS*)eps->data;
+  PetscBool        istrivial,isring,isellipse,isinterval,flg;
+  PetscReal        c,d;
+  PetscRandom      rand;
+  PetscObjectId    id;
+  PetscObjectState state;
+  Mat              A;
 
   PetscFunctionBegin;
   if (eps->ncv==PETSC_DEFAULT) {
@@ -756,9 +740,14 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
   if (!isellipse && !isring && !isinterval) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for interval, elliptic or ring regions");
-  /* if useconj has changed, then reset subcomm data */
-  ierr = EPSCISSSetUseConj(eps,&useconj);CHKERRQ(ierr);
-  if (useconj!=ctx->useconj) { ierr = EPSCISSResetSubcomm(eps);CHKERRQ(ierr); }
+
+  /* if the region has changed, then reset subcomm data */
+  ierr = PetscObjectGetId((PetscObject)eps->rg,&id);CHKERRQ(ierr);
+  ierr = PetscObjectStateGet((PetscObject)eps->rg,&state);CHKERRQ(ierr);
+  if (id != ctx->rgid || state != ctx->rgstate) {
+    ierr = EPSCISSResetSubcomm(eps);CHKERRQ(ierr);
+    ctx->rgid = id; ctx->rgstate = state;
+  }
 
 #if !defined(PETSC_USE_COMPLEX)
   if (isring) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Ring region only supported for complex scalars");
@@ -1705,7 +1694,6 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
   PetscFunctionBegin;
   if (!ctx->ksp) {
     if (!ctx->subcomm) {  /* initialize subcomm first */
-      ierr = EPSCISSSetUseConj(eps,&ctx->useconj);CHKERRQ(ierr);
       ierr = EPSCISSSetUpSubComm(eps,&ctx->num_solve_point);CHKERRQ(ierr);
     }
     ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);
