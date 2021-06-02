@@ -373,9 +373,9 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
-  PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,w,w2,*S,*A0,*U,*VT;
-  PetscScalar    sone=1.0,szero=0.0,center,z;
-  PetscReal      *rwork,norm,radius,vscale,rgscale,theta,*sigma;
+  PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,*w,*z,*zn,*S,*A0,*U,*VT;
+  PetscScalar    sone=1.0,szero=0.0,center;
+  PetscReal      *rwork,norm,radius,vscale,rgscale,*sigma;
   PetscBLASInt   info,n,*perm,p,pp,ld,lwork,k_,rk_,colA,rowA,one=1;
   PetscInt       mid,nnod=ctx->nnod,k,i,ii,jj,j,s,off,rk,nwu=0,nw,lrwork,*inside,kstart=0,kend=nnod;
   PetscMPIInt    len;
@@ -414,19 +414,25 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(mid*n,&rowA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(5*rowA,&lwork);CHKERRQ(ierr);
-  nw   = (2*mid+(mid+1)*(mid+1)+2*mid*mid)*n*p+6*mid*n+2*n;
+  nw   = (2*mid+(mid+1)*(mid+1)+2*mid*mid)*n*p+3*nnod+6*mid*n+2*n;
   lrwork = mid*n*6+8*n;
   ierr = DSAllocateWork_Private(ds,nw,lrwork,n+1);CHKERRQ(ierr);
   sigma = ds->rwork;
   rwork = ds->rwork+mid*n;
   perm  = ds->iwork;
   S     = ds->work+nwu;    nwu += 2*mid*n*p;    /* moments */
+  z     = ds->work+nwu;    nwu += nnod;         /* quadrature points */
+  zn    = ds->work+nwu;    nwu += nnod;         /* normalized quadrature points */
+  w     = ds->work+nwu;    nwu += nnod;         /* quadrature weights */
   A0    = ds->work+nwu;    nwu += (mid+1)*n*(mid+1)*p;
   U     = ds->work+nwu;    nwu += mid*n*mid*p;
   VT    = ds->work+nwu;    nwu += mid*p*mid*p;
   alpha = ds->work+nwu;    nwu += n;
   beta  = ds->work+nwu;    nwu += n;
   work  = ds->work+nwu;    nwu += mid*n*5;
+
+  /* Compute quadrature parameters */
+  ierr = RGComputeQuadrature(ctx->rg,RG_QUADRULE_TRAPEZOIDAL,nnod,z,zn,w);CHKERRQ(ierr);
 
   /* Set random matrix */
   Rc   = A0;
@@ -441,13 +447,8 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Loop of integration points */
   for (k=kstart;k<kend;k++) {
     ierr = PetscInfo1(NULL,"Solving integration point %D\n",k);CHKERRQ(ierr);
-    theta = (2*PETSC_PI*k)/nnod;
-    w  = rgscale*radius*PETSC_i*PetscCMPLX(vscale*PetscCosReal(theta),PetscSinReal(theta))/nnod; /* derivative */
-    w2 = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta)); /* nodes unit ellipse */
-    z  = rgscale*(center+radius*w2); /* nodes */
-
     ierr = PetscArraycpy(R,Rc,p*n);CHKERRQ(ierr);
-    ierr = DSNEPComputeMatrix(ds,z,PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
+    ierr = DSNEPComputeMatrix(ds,z[k],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
 
     /* LU factorization */
     ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -461,8 +462,8 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (s=0;s<2*ctx->max_mid;s++) {
       off = s*n*p;
       for (j=0;j<p;j++)
-        for (i=0;i<n;i++) S[off+i+j*n] += w*R[j*n+i];
-      w *= w2;
+        for (i=0;i<n;i++) S[off+i+j*n] += w[k]*R[j*n+i];
+      w[k] *= zn[k];
     }
   } /* R and Rc in A0 are no longer used */
 
