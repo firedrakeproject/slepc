@@ -34,7 +34,7 @@ def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,m
   for headerFile in os.listdir(os.path.join(slepcDir,"include","slepc","private")):
     if headerFile in mansecimpls:
       extraHeaderIncludes.append("#include <slepc/private/{}>".format(headerFile))
-  ret = petscClangLinter.main(petscDir,petscArch,srcDir=os.path.join(slepcDir,"src"),clangDir=clangDir,clangLib=clangLib,verbose=verbose,workers=maxWorkers,checkFunctionFilter=checkFunctionFilter,applyPatches=applyPatches,extraCompilerFlags=extraCompilerFlags,extraHeaderIncludes=extraHeaderIncludes)
+  ret = petscClangLinter.main(petscDir,petscArch,srcDir=os.path.join(slepcDir,"src"),clangDir=clangDir,clangLib=clangLib,verbose=verbose,workers=maxWorkers,checkFunctionFilter=checkFunctionFilter,patchDir=os.path.join(slepcDir,"slepcLintPatches"),applyPatches=applyPatches,extraCompilerFlags=extraCompilerFlags,extraHeaderIncludes=extraHeaderIncludes)
   return ret
 
 
