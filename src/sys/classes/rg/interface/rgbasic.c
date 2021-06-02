@@ -467,6 +467,40 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
 }
 
 /*@
+   RGIsAxisymmetric - Determines if the region is symmetric with respect
+   to the real or imaginary axis.
+
+   Not Collective
+
+   Input Parameters:
++  rg       - the region context
+-  vertical - true if symmetry must be checked against the vertical axis
+
+   Output Parameter:
+.  symm - true if the region is axisymmetric
+
+   Note:
+   If the vertical argument is true, symmetry is checked with respect to
+   the vertical axis, otherwise with respect to the horizontal axis.
+
+   Level: intermediate
+@*/
+PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+  PetscValidBoolPointer(symm,3);
+
+  if (rg->ops->isaxisymmetric) {
+    ierr = (*rg->ops->isaxisymmetric)(rg,vertical,symm);CHKERRQ(ierr);
+  } else *symm = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+/*@
    RGComputeContour - Computes the coordinates of several points lying on the
    contour of the region.
 

@@ -375,6 +375,16 @@ PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *insi
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGIsAxisymmetric_Ring(RG rg,PetscBool vertical,PetscBool *symm)
+{
+  RG_RING *ctx = (RG_RING*)rg->data;
+
+  PetscFunctionBegin;
+  if (vertical) *symm = (PetscRealPart(ctx->center) == 0.0 && PetscAbsReal(ctx->start_ang+ctx->end_ang-1.0) == 0.5)? PETSC_TRUE: PETSC_FALSE;
+  else *symm = (PetscImaginaryPart(ctx->center) == 0.0 && ctx->start_ang+ctx->end_ang == 1.0)? PETSC_TRUE: PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGSetFromOptions_Ring(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
@@ -429,6 +439,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
   rg->ops->computebbox       = RGComputeBoundingBox_Ring;
   rg->ops->computequadrature = RGComputeQuadrature_Ring;
   rg->ops->checkinside       = RGCheckInside_Ring;
+  rg->ops->isaxisymmetric    = RGIsAxisymmetric_Ring;
   rg->ops->setfromoptions    = RGSetFromOptions_Ring;
   rg->ops->view              = RGView_Ring;
   rg->ops->destroy           = RGDestroy_Ring;

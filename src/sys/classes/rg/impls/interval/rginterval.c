@@ -295,6 +295,16 @@ PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGIsAxisymmetric_Interval(RG rg,PetscBool vertical,PetscBool *symm)
+{
+  RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
+
+  PetscFunctionBegin;
+  if (vertical) *symm = (ctx->a == -ctx->b)? PETSC_TRUE: PETSC_FALSE;
+  else *symm = (ctx->c == -ctx->d)? PETSC_TRUE: PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGSetFromOptions_Interval(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
@@ -345,6 +355,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
   rg->ops->computebbox       = RGComputeBoundingBox_Interval;
   rg->ops->computequadrature = RGComputeQuadrature_Interval;
   rg->ops->checkinside       = RGCheckInside_Interval;
+  rg->ops->isaxisymmetric    = RGIsAxisymmetric_Interval;
   rg->ops->setfromoptions    = RGSetFromOptions_Interval;
   rg->ops->view              = RGView_Interval;
   rg->ops->destroy           = RGDestroy_Interval;

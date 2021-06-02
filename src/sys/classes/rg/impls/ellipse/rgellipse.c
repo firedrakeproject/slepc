@@ -240,6 +240,16 @@ PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *i
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGIsAxisymmetric_Ellipse(RG rg,PetscBool vertical,PetscBool *symm)
+{
+  RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
+
+  PetscFunctionBegin;
+  if (vertical) *symm = (PetscRealPart(ctx->center) == 0.0)? PETSC_TRUE: PETSC_FALSE;
+  else *symm = (PetscImaginaryPart(ctx->center) == 0.0)? PETSC_TRUE: PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGSetFromOptions_Ellipse(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
@@ -288,6 +298,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
   rg->ops->computebbox       = RGComputeBoundingBox_Ellipse;
   rg->ops->computequadrature = RGComputeQuadrature_Ellipse;
   rg->ops->checkinside       = RGCheckInside_Ellipse;
+  rg->ops->isaxisymmetric    = RGIsAxisymmetric_Ellipse;
   rg->ops->setfromoptions    = RGSetFromOptions_Ellipse;
   rg->ops->view              = RGView_Ellipse;
   rg->ops->destroy           = RGDestroy_Ellipse;
