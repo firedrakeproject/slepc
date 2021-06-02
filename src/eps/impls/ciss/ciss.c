@@ -569,7 +569,7 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
     m = l; n = l; lda = l; ldb = m; ldc = l;
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,B,&lda,temp2,&ldb,&beta,tempB,&ldc));
     for (i=0;i<ml;i++) {
-      sigma[i] = sqrt(sigma[i]);
+      sigma[i] = PetscSqrtReal(sigma[i]);
       for (j=0;j<local_size;j++) {
         if ((k%2)==1) Q2[j+i*local_size]/=sigma[i];
         else Q1[j+i*local_size]/=sigma[i];
