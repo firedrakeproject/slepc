@@ -49,7 +49,6 @@ typedef struct {
   PetscInt          refine_blocksize;
   /* private data */
   PetscReal         *sigma;     /* threshold for numerical rank */
-  PetscInt          subcomm_id;
   PetscInt          num_solve_point;
   PetscScalar       *weight;
   PetscScalar       *omega;
@@ -119,7 +118,6 @@ PETSC_STATIC_INLINE PetscErrorCode EPSCISSSetUpSubComm(EPS eps,PetscInt *num_sol
   ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
-  ctx->subcomm_id = ctx->subcomm->color;
   /* determine whether half of integration points can be avoided (use their conjugates);
      depends on isreal and the symmetry of the region */
 #if defined(PETSC_USE_COMPLEX)
@@ -131,7 +129,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPSCISSSetUpSubComm(EPS eps,PetscInt *num_sol
 #endif
   if (ctx->useconj) N = N/2;
   *num_solve_point = N / ctx->npart;
-  if (N%ctx->npart > ctx->subcomm_id) (*num_solve_point)++;
+  if (N%ctx->npart > ctx->subcomm->color) (*num_solve_point)++;
   PetscFunctionReturn(0);
 }
 
@@ -247,7 +245,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
     ierr = MatProductSymbolic(BMV);CHKERRQ(ierr);
   }
   for (i=0;i<ctx->num_solve_point;i++) {
-    p_id = i*ctx->subcomm->n + ctx->subcomm_id;
+    p_id = i*ctx->subcomm->n + ctx->subcomm->color;
     if (!ctx->usest && initksp) {
       ierr = MatDuplicate(A,MAT_COPY_VALUES,&kspMat);CHKERRQ(ierr);
       if (B) {
@@ -305,7 +303,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
   for (j=0;j<ctx->L;j++) {
     ierr = VecSet(v,0);CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point; i++) {
-      p_id = i*ctx->subcomm->n + ctx->subcomm_id;
+      p_id = i*ctx->subcomm->n + ctx->subcomm->color;
       ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
       ierr = BVMultVec(ctx->Y,ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
     }
@@ -373,7 +371,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   for (k=0;k<2*ctx->M;k++) {
     for (j=0;j<ctx->L;j++) {
       for (i=0;i<ctx->num_solve_point;i++) {
-        alp = ppk[i]*ctx->weight[i*ctx->subcomm->n + ctx->subcomm_id];
+        alp = ppk[i]*ctx->weight[i*ctx->subcomm->n + ctx->subcomm->color];
         for (s=0;s<ctx->L;s++) {
           if (ctx->useconj) temp2[s+(j+k*ctx->L)*ctx->L] += PetscRealPart(alp*temp[s+(j+i*ctx->L)*ctx->L])*2;
           else temp2[s+(j+k*ctx->L)*ctx->L] += alp*temp[s+(j+i*ctx->L)*ctx->L];
@@ -381,7 +379,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
       }
     }
     for (i=0;i<ctx->num_solve_point;i++)
-      ppk[i] *= ctx->pp[i*ctx->subcomm->n + ctx->subcomm_id];
+      ppk[i] *= ctx->pp[i*ctx->subcomm->n + ctx->subcomm->color];
   }
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] /= sub_size;
   ierr = PetscMPIIntCast(2*ctx->M*ctx->L*ctx->L,&len);CHKERRQ(ierr);
@@ -460,7 +458,7 @@ static PetscErrorCode ConstructS(EPS eps)
     for (j=0;j<ctx->L;j++) {
       ierr = VecSet(v,0);CHKERRQ(ierr);
       for (i=0;i<ctx->num_solve_point;i++) {
-        p_id = i*ctx->subcomm->n + ctx->subcomm_id;
+        p_id = i*ctx->subcomm->n + ctx->subcomm->color;
         ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
         ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1.0,v,&m);CHKERRQ(ierr);
       }
@@ -480,7 +478,7 @@ static PetscErrorCode ConstructS(EPS eps)
       ierr = BVRestoreColumn(ctx->S,k*ctx->L+j,&sj);CHKERRQ(ierr);
     }
     for (i=0;i<ctx->num_solve_point;i++) {
-      p_id = i*ctx->subcomm->n + ctx->subcomm_id;
+      p_id = i*ctx->subcomm->n + ctx->subcomm->color;
       ppk[i] *= ctx->pp[p_id];
     }
   }
