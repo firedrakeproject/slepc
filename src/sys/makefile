@@ -12,7 +12,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = slepcinit.c slepcutil.c slepcsc.c dlregisslepc.c
+SOURCEC  = slepcinit.c slepcutil.c slepcsc.c slepccontour.c dlregisslepc.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys

@@ -31,6 +31,7 @@
 */
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
+#include <slepc/private/slepccontour.h>
 #include <slepcblaslapack.h>
 
 typedef struct _n_nep_ciss_project *NEP_CISS_PROJECT;
@@ -48,18 +49,16 @@ typedef struct {
   PetscInt          refine_blocksize;
   NEPCISSExtraction extraction;
   /* private data */
+  SlepcContourData  contour;
   PetscReal         *sigma;        /* threshold for numerical rank */
-  PetscInt          num_solve_point;
   PetscScalar       *weight;
   PetscScalar       *omega;
   PetscScalar       *pp;
   BV                V;
   BV                S;
   BV                Y;
-  KSP               *ksp;           /* ksp array for storing factorizations at integration points */
   PetscBool         useconj;
   PetscReal         est_eig;
-  PetscSubcomm      subcomm;
   VecScatter        scatterin;
   Mat               *pA,T,J;        /* auxiliary matrices when using subcomm */
   BV                pV;
@@ -94,71 +93,19 @@ static PetscErrorCode NEPContourDSComputeMatrix(DS ds,PetscScalar lambda,PetscBo
   PetscFunctionReturn(0);
 }
 
-/*
-  Destroy KSP objects when the number of solve points changes
-*/
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSResetSolvers(NEP nep)
-{
-  PetscErrorCode ierr;
-  PetscInt       i;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-
-  PetscFunctionBegin;
-  if (ctx->ksp) {
-    for (i=0;i<ctx->num_solve_point;i++) {
-      ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-/*
-  Clean PetscSubcomm object when the number of partitions changes
-*/
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSResetSubcomm(NEP nep)
-{
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-
-  PetscFunctionBegin;
-  ierr = NEPCISSResetSolvers(nep);CHKERRQ(ierr);
-  ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-/*
-  Create PetscSubcomm object and determine num_solve_point (depends on npart, N, useconj)
-*/
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUpSubComm(NEP nep,PetscInt *num_solve_point)
-{
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       N = ctx->N;
-
-  PetscFunctionBegin;
-  ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&ctx->subcomm);CHKERRQ(ierr);
-  ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
-  ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm));CHKERRQ(ierr);
-  if (ctx->useconj) N = N/2;
-  *num_solve_point = N / ctx->npart;
-  if (N%ctx->npart > ctx->subcomm->color) (*num_solve_point)++;
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode CISSRedundantMat(NEP nep)
 {
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i;
+  PetscErrorCode   ierr;
+  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData contour = ctx->contour;
+  PetscInt         i;
 
   PetscFunctionBegin;
-  if (ctx->subcomm->n != 1) {
+  if (contour->subcomm->n != 1) {
     if (!ctx->pA) {ierr = PetscCalloc1(nep->nt,&ctx->pA);CHKERRQ(ierr);}
     for (i=0;i<nep->nt;i++) {
       ierr = MatDestroy(&ctx->pA[i]);CHKERRQ(ierr);
-      ierr = MatCreateRedundantMatrix(nep->A[i],ctx->subcomm->n,PetscSubcommChild(ctx->subcomm),MAT_INITIAL_MATRIX,&ctx->pA[i]);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(nep->A[i],contour->subcomm->n,PetscSubcommChild(contour->subcomm),MAT_INITIAL_MATRIX,&ctx->pA[i]);CHKERRQ(ierr);
     }
     if (!ctx->T) {
       ierr = MatDuplicate(ctx->pA[0],MAT_DO_NOT_COPY_VALUES,&ctx->T);CHKERRQ(ierr);
@@ -174,12 +121,13 @@ static PetscErrorCode CISSRedundantMat(NEP nep)
 
 static PetscErrorCode CISSScatterVec(NEP nep)
 {
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  IS             is1,is2;
-  Vec            v0;
-  PetscInt       i,j,k,mstart,mend,mlocal;
-  PetscInt       *idx1,*idx2,mloc_sub;
+  PetscErrorCode   ierr;
+  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData contour = ctx->contour;
+  IS               is1,is2;
+  Vec              v0;
+  PetscInt         i,j,k,mstart,mend,mlocal;
+  PetscInt         *idx1,*idx2,mloc_sub;
 
   PetscFunctionBegin;
   ierr = VecDestroy(&ctx->xsub);CHKERRQ(ierr);
@@ -187,22 +135,22 @@ static PetscErrorCode CISSScatterVec(NEP nep)
 
   ierr = VecDestroy(&ctx->xdup);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->pA[0],&mloc_sub,NULL);CHKERRQ(ierr);
-  ierr = VecCreateMPI(PetscSubcommContiguousParent(ctx->subcomm),mloc_sub,PETSC_DECIDE,&ctx->xdup);CHKERRQ(ierr);
+  ierr = VecCreateMPI(PetscSubcommContiguousParent(contour->subcomm),mloc_sub,PETSC_DECIDE,&ctx->xdup);CHKERRQ(ierr);
 
   ierr = VecScatterDestroy(&ctx->scatterin);CHKERRQ(ierr);
   ierr = BVGetColumn(ctx->V,0,&v0);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(v0,&mstart,&mend);CHKERRQ(ierr);
   mlocal = mend - mstart;
-  ierr = PetscMalloc2(ctx->subcomm->n*mlocal,&idx1,ctx->subcomm->n*mlocal,&idx2);CHKERRQ(ierr);
+  ierr = PetscMalloc2(contour->subcomm->n*mlocal,&idx1,contour->subcomm->n*mlocal,&idx2);CHKERRQ(ierr);
   j = 0;
-  for (k=0;k<ctx->subcomm->n;k++) {
+  for (k=0;k<contour->subcomm->n;k++) {
     for (i=mstart;i<mend;i++) {
       idx1[j]   = i;
       idx2[j++] = i + nep->n*k;
     }
   }
-  ierr = ISCreateGeneral(PetscObjectComm((PetscObject)nep),ctx->subcomm->n*mlocal,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
-  ierr = ISCreateGeneral(PetscObjectComm((PetscObject)nep),ctx->subcomm->n*mlocal,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
+  ierr = ISCreateGeneral(PetscObjectComm((PetscObject)nep),contour->subcomm->n*mlocal,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
+  ierr = ISCreateGeneral(PetscObjectComm((PetscObject)nep),contour->subcomm->n*mlocal,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
   ierr = VecScatterCreate(v0,is1,ctx->xdup,is2,&ctx->scatterin);CHKERRQ(ierr);
   ierr = ISDestroy(&is1);CHKERRQ(ierr);
   ierr = ISDestroy(&is2);CHKERRQ(ierr);
@@ -267,28 +215,29 @@ static PetscErrorCode NEPComputeFunctionSubcomm(NEP nep,PetscScalar lambda,Mat T
 */
 static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_start,PetscInt L_end,PetscBool initksp)
 {
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i,p_id;
-  Mat            kspMat,MV,BMV=NULL,MC;
+  PetscErrorCode   ierr;
+  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData contour = ctx->contour;
+  PetscInt         i,p_id;
+  Mat              kspMat,MV,BMV=NULL,MC;
 
   PetscFunctionBegin;
-  if (!ctx->ksp) { ierr = NEPCISSGetKSPs(nep,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
+  if (!ctx->contour || !ctx->contour->ksp) { ierr = NEPCISSGetKSPs(nep,NULL,NULL);CHKERRQ(ierr); }
   ierr = BVSetActiveColumns(V,L_start,L_end);CHKERRQ(ierr);
   ierr = BVGetMat(V,&MV);CHKERRQ(ierr);
-  for (i=0;i<ctx->num_solve_point;i++) {
-    p_id = i*ctx->subcomm->n + ctx->subcomm->color;
+  for (i=0;i<contour->npoints;i++) {
+    p_id = i*contour->subcomm->n + contour->subcomm->color;
     if (initksp) {
-      if (ctx->subcomm->n == 1) {
+      if (contour->subcomm->n == 1) {
         ierr = NEPComputeFunction(nep,ctx->omega[p_id],T,T);CHKERRQ(ierr);
       } else {
         ierr = NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],T,PETSC_FALSE);CHKERRQ(ierr);
       }
       ierr = MatDuplicate(T,MAT_COPY_VALUES,&kspMat);CHKERRQ(ierr);
-      ierr = KSPSetOperators(ctx->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
+      ierr = KSPSetOperators(contour->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
       ierr = MatDestroy(&kspMat);CHKERRQ(ierr);
     }
-    if (ctx->subcomm->n==1) {
+    if (contour->subcomm->n==1) {
       ierr = NEPComputeJacobian(nep,ctx->omega[p_id],dT);CHKERRQ(ierr);
     } else {
       ierr = NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],dT,PETSC_TRUE);CHKERRQ(ierr);
@@ -302,7 +251,7 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
       ierr = MatProductSymbolic(BMV);CHKERRQ(ierr);
     }
     ierr = MatProductNumeric(BMV);CHKERRQ(ierr);
-    ierr = KSPMatSolve(ctx->ksp[i],BMV,MC);CHKERRQ(ierr);
+    ierr = KSPMatSolve(contour->ksp[i],BMV,MC);CHKERRQ(ierr);
     ierr = BVRestoreMat(ctx->Y,&MC);CHKERRQ(ierr);
   }
   ierr = MatDestroy(&BMV);CHKERRQ(ierr);
@@ -317,12 +266,13 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
 */
 static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
 {
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i,j,p_id;
-  PetscScalar    tmp,m = 1,sum = 0.0;
-  PetscReal      eta;
-  Vec            v,vtemp,vj,yj;
+  PetscErrorCode   ierr;
+  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData contour = ctx->contour;
+  PetscInt         i,j,p_id;
+  PetscScalar      tmp,m = 1,sum = 0.0;
+  PetscReal        eta;
+  Vec              v,vtemp,vj,yj;
 
   PetscFunctionBegin;
   ierr = BVGetColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
@@ -331,8 +281,8 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
   ierr = BVCreateVec(ctx->V,&vtemp);CHKERRQ(ierr);
   for (j=0;j<ctx->L;j++) {
     ierr = VecSet(v,0);CHKERRQ(ierr);
-    for (i=0;i<ctx->num_solve_point; i++) {
-      p_id = i*ctx->subcomm->n + ctx->subcomm->color;
+    for (i=0;i<contour->npoints; i++) {
+      p_id = i*contour->subcomm->n + contour->subcomm->color;
       ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
       ierr = BVMultVec(ctx->Y,ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
     }
@@ -365,25 +315,26 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
 
 static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
 {
-  PetscErrorCode ierr;
-  PetscMPIInt    sub_size,len;
-  PetscInt       i,j,k,s;
-  PetscScalar    *m,*temp,*temp2,*ppk,alp;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  Mat            M;
-  BV             V;
+  PetscErrorCode   ierr;
+  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData contour = ctx->contour;
+  PetscMPIInt      sub_size,len;
+  PetscInt         i,j,k,s;
+  PetscScalar      *m,*temp,*temp2,*ppk,alp;
+  Mat              M;
+  BV               V;
 
   PetscFunctionBegin;
   V = (ctx->pA)?ctx->pV:ctx->V;
-  ierr = MPI_Comm_size(PetscSubcommChild(ctx->subcomm),&sub_size);CHKERRMPI(ierr);
-  ierr = PetscMalloc3(ctx->num_solve_point*ctx->L*(ctx->L+1),&temp,2*ctx->M*ctx->L*ctx->L,&temp2,ctx->num_solve_point,&ppk);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ctx->L,ctx->L_max*ctx->num_solve_point,NULL,&M);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscSubcommChild(contour->subcomm),&sub_size);CHKERRMPI(ierr);
+  ierr = PetscMalloc3(contour->npoints*ctx->L*(ctx->L+1),&temp,2*ctx->M*ctx->L*ctx->L,&temp2,contour->npoints,&ppk);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ctx->L,ctx->L_max*contour->npoints,NULL,&M);CHKERRQ(ierr);
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] = 0;
-  ierr = BVSetActiveColumns(ctx->Y,0,ctx->L_max*ctx->num_solve_point);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(ctx->Y,0,ctx->L_max*contour->npoints);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(V,0,ctx->L);CHKERRQ(ierr);
   ierr = BVDot(ctx->Y,V,M);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
-  for (i=0;i<ctx->num_solve_point;i++) {
+  for (i=0;i<contour->npoints;i++) {
     for (j=0;j<ctx->L;j++) {
       for (k=0;k<ctx->L;k++) {
         temp[k+j*ctx->L+i*ctx->L*ctx->L]=m[k+j*ctx->L+i*ctx->L*ctx->L_max];
@@ -391,19 +342,19 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
     }
   }
   ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
-  for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
+  for (i=0;i<contour->npoints;i++) ppk[i] = 1;
   for (k=0;k<2*ctx->M;k++) {
     for (j=0;j<ctx->L;j++) {
-      for (i=0;i<ctx->num_solve_point;i++) {
-        alp = ppk[i]*ctx->weight[i*ctx->subcomm->n + ctx->subcomm->color];
+      for (i=0;i<contour->npoints;i++) {
+        alp = ppk[i]*ctx->weight[i*contour->subcomm->n + contour->subcomm->color];
         for (s=0;s<ctx->L;s++) {
           if (ctx->useconj) temp2[s+(j+k*ctx->L)*ctx->L] += PetscRealPart(alp*temp[s+(j+i*ctx->L)*ctx->L])*2;
           else temp2[s+(j+k*ctx->L)*ctx->L] += alp*temp[s+(j+i*ctx->L)*ctx->L];
         }
       }
     }
-    for (i=0;i<ctx->num_solve_point;i++)
-      ppk[i] *= ctx->pp[i*ctx->subcomm->n + ctx->subcomm->color];
+    for (i=0;i<contour->npoints;i++)
+      ppk[i] *= ctx->pp[i*contour->subcomm->n + contour->subcomm->color];
   }
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] /= sub_size;
   ierr = PetscMPIIntCast(2*ctx->M*ctx->L*ctx->L,&len);CHKERRQ(ierr);
@@ -552,24 +503,25 @@ static PetscErrorCode SVD_S_CAA(NEP nep,BV S,PetscScalar *pA,PetscInt *K)
 
 static PetscErrorCode ConstructS(NEP nep)
 {
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i,j,k,vec_local_size,p_id;
-  Vec            v,sj,yj;
-  PetscScalar    *ppk, *v_data, m = 1;
+  PetscErrorCode   ierr;
+  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData contour = ctx->contour;
+  PetscInt         i,j,k,vec_local_size,p_id;
+  Vec              v,sj,yj;
+  PetscScalar      *ppk, *v_data, m = 1;
 
   PetscFunctionBegin;
   ierr = BVGetSizes(ctx->Y,&vec_local_size,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ctx->num_solve_point,&ppk);CHKERRQ(ierr);
-  for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
+  ierr = PetscMalloc1(contour->npoints,&ppk);CHKERRQ(ierr);
+  for (i=0;i<contour->npoints;i++) ppk[i] = 1;
   ierr = BVGetColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
   ierr = VecDuplicate(yj,&v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
   for (k=0;k<ctx->M;k++) {
     for (j=0;j<ctx->L;j++) {
       ierr = VecSet(v,0);CHKERRQ(ierr);
-      for (i=0;i<ctx->num_solve_point;i++) {
-        p_id = i*ctx->subcomm->n + ctx->subcomm->color;
+      for (i=0;i<contour->npoints;i++) {
+        p_id = i*contour->subcomm->n + contour->subcomm->color;
         ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
         ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
       }
@@ -588,8 +540,8 @@ static PetscErrorCode ConstructS(NEP nep)
       }
       ierr = BVRestoreColumn(ctx->S,k*ctx->L+j,&sj);CHKERRQ(ierr);
     }
-    for (i=0;i<ctx->num_solve_point;i++) {
-      p_id = i*ctx->subcomm->n + ctx->subcomm->color;
+    for (i=0;i<contour->npoints;i++) {
+      p_id = i*contour->subcomm->n + contour->subcomm->color;
       ppk[i] *= ctx->pp[p_id];
     }
   }
@@ -638,6 +590,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 {
   PetscErrorCode   ierr;
   NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData contour = ctx->contour;
   PetscInt         nwork;
   PetscBool        istrivial,isellipse,flg;
   NEP_CISS_PROJECT dsctxf;
@@ -668,18 +621,19 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (!isellipse) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
 
-  /* if the region has changed, then reset subcomm data */
+  /* if the region has changed, then reset contour data */
   ierr = PetscObjectGetId((PetscObject)nep->rg,&id);CHKERRQ(ierr);
   ierr = PetscObjectStateGet((PetscObject)nep->rg,&state);CHKERRQ(ierr);
-  if (id != ctx->rgid || state != ctx->rgstate) {
-    ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr);
+  if (ctx->rgid && (id != ctx->rgid || state != ctx->rgstate)) {
+    ierr = SlepcContourDataDestroy(&ctx->contour);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Resetting the contour data structure due to a change of region\n");CHKERRQ(ierr);
     ctx->rgid = id; ctx->rgstate = state;
   }
 
-  /* create split comm */
-  if (!ctx->subcomm) {
+  /* create contour data structure */
+  if (!ctx->contour) {
     ierr = RGCanUseConjugates(nep->rg,ctx->isreal,&ctx->useconj);CHKERRQ(ierr);
-    ierr = NEPCISSSetUpSubComm(nep,&ctx->num_solve_point);CHKERRQ(ierr);
+    ierr = SlepcContourDataCreate(ctx->useconj?ctx->N/2:ctx->N,ctx->npart,(PetscObject)nep,&ctx->contour);CHKERRQ(ierr);
   }
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
@@ -711,9 +665,9 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
     ierr = BVCreate(PetscObjectComm((PetscObject)ctx->xsub),&ctx->Y);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(ctx->Y,ctx->xsub,nep->n);CHKERRQ(ierr);
     ierr = BVSetFromOptions(ctx->Y);CHKERRQ(ierr);
-    ierr = BVResize(ctx->Y,ctx->num_solve_point*ctx->L_max,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVResize(ctx->Y,contour->npoints*ctx->L_max,PETSC_FALSE);CHKERRQ(ierr);
   } else {
-    ierr = BVDuplicateResize(nep->V,ctx->num_solve_point*ctx->L_max,&ctx->Y);CHKERRQ(ierr);
+    ierr = BVDuplicateResize(nep->V,contour->npoints*ctx->L_max,&ctx->Y);CHKERRQ(ierr);
   }
 
   if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
@@ -1005,7 +959,10 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
     if (bsmax<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
     ctx->L_max = PetscMax(bsmax,ctx->L);
   }
-  if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) { ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr); }
+  if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) {
+    ierr = SlepcContourDataDestroy(&ctx->contour);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Resetting the contour data structure due to a change of parameters\n");CHKERRQ(ierr);
+  }
   ctx->isreal = realmats;
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -1362,34 +1319,36 @@ PetscErrorCode NEPCISSGetExtraction(NEP nep,NEPCISSExtraction *extraction)
 
 static PetscErrorCode NEPCISSGetKSPs_CISS(NEP nep,PetscInt *nsolve,KSP **ksp)
 {
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i;
-  PC             pc;
+  PetscErrorCode   ierr;
+  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData contour;
+  PetscInt         i;
+  PC               pc;
 
   PetscFunctionBegin;
-  if (!ctx->ksp) {
-    if (!ctx->subcomm) {  /* initialize subcomm first */
-      ierr = RGCanUseConjugates(nep->rg,ctx->isreal,&ctx->useconj);CHKERRQ(ierr);
-      ierr = NEPCISSSetUpSubComm(nep,&ctx->num_solve_point);CHKERRQ(ierr);
-    }
-    ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);
-    for (i=0;i<ctx->num_solve_point;i++) {
-      ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
-      ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
-      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
-      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_ciss_");CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
-      ierr = PetscObjectSetOptions((PetscObject)ctx->ksp[i],((PetscObject)nep)->options);CHKERRQ(ierr);
-      ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-      ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
-      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
+  if (!ctx->contour) {  /* initialize contour data structure first */
+    ierr = RGCanUseConjugates(nep->rg,ctx->isreal,&ctx->useconj);CHKERRQ(ierr);
+    ierr = SlepcContourDataCreate(ctx->useconj?ctx->N/2:ctx->N,ctx->npart,(PetscObject)nep,&ctx->contour);CHKERRQ(ierr);
+  }
+  contour = ctx->contour;
+  if (!contour->ksp) {
+    ierr = PetscMalloc1(contour->npoints,&contour->ksp);CHKERRQ(ierr);
+    for (i=0;i<contour->npoints;i++) {
+      ierr = KSPCreate(PetscSubcommChild(contour->subcomm),&contour->ksp[i]);CHKERRQ(ierr);
+      ierr = PetscObjectIncrementTabLevel((PetscObject)contour->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
+      ierr = KSPSetOptionsPrefix(contour->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
+      ierr = KSPAppendOptionsPrefix(contour->ksp[i],"nep_ciss_");CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)contour->ksp[i]);CHKERRQ(ierr);
+      ierr = PetscObjectSetOptions((PetscObject)contour->ksp[i],((PetscObject)nep)->options);CHKERRQ(ierr);
+      ierr = KSPSetErrorIfNotConverged(contour->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(contour->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+      ierr = KSPGetPC(contour->ksp[i],&pc);CHKERRQ(ierr);
+      ierr = KSPSetType(contour->ksp[i],KSPPREONLY);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
   }
-  if (nsolve) *nsolve = ctx->num_solve_point;
-  if (ksp)    *ksp    = ctx->ksp;
+  if (nsolve) *nsolve = contour->npoints;
+  if (ksp)    *ksp    = contour->ksp;
   PetscFunctionReturn(0);
 }
 
@@ -1435,9 +1394,7 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   ierr = BVDestroy(&ctx->S);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
-  for (i=0;i<ctx->num_solve_point;i++) {
-    ierr = KSPReset(ctx->ksp[i]);CHKERRQ(ierr);
-  }
+  ierr = SlepcContourDataReset(ctx->contour);CHKERRQ(ierr);
   ierr = VecScatterDestroy(&ctx->scatterin);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->xsub);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->xdup);CHKERRQ(ierr);
@@ -1494,11 +1451,11 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
 
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   ierr = RGSetFromOptions(nep->rg);CHKERRQ(ierr); /* this is necessary here to set useconj */
-  if (!ctx->ksp) { ierr = NEPCISSGetKSPs(nep,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
-  for (i=0;i<ctx->num_solve_point;i++) {
-    ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
+  if (!ctx->contour || !ctx->contour->ksp) { ierr = NEPCISSGetKSPs(nep,NULL,NULL);CHKERRQ(ierr); }
+  for (i=0;i<ctx->contour->npoints;i++) {
+    ierr = KSPSetFromOptions(ctx->contour->ksp[i]);CHKERRQ(ierr);
   }
-  ierr = PetscSubcommSetFromOptions(ctx->subcomm);CHKERRQ(ierr);
+  ierr = PetscSubcommSetFromOptions(ctx->contour->subcomm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1508,7 +1465,7 @@ PetscErrorCode NEPDestroy_CISS(NEP nep)
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
-  ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr);
+  ierr = SlepcContourDataDestroy(&ctx->contour);CHKERRQ(ierr);
   ierr = PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma);CHKERRQ(ierr);
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetSizes_C",NULL);CHKERRQ(ierr);
@@ -1540,20 +1497,20 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement  { inner: %D, blocksize: %D }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",NEPCISSExtractions[ctx->extraction]);CHKERRQ(ierr);
-    if (!ctx->ksp) { ierr = NEPCISSGetKSPs(nep,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
+    if (!ctx->contour || !ctx->contour->ksp) { ierr = NEPCISSGetKSPs(nep,NULL,NULL);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    if (ctx->npart>1 && ctx->subcomm) {
-      ierr = PetscViewerGetSubViewer(viewer,ctx->subcomm->child,&sviewer);CHKERRQ(ierr);
-      if (!ctx->subcomm->color) {
-        ierr = KSPView(ctx->ksp[0],sviewer);CHKERRQ(ierr);
+    if (ctx->npart>1 && ctx->contour->subcomm) {
+      ierr = PetscViewerGetSubViewer(viewer,ctx->contour->subcomm->child,&sviewer);CHKERRQ(ierr);
+      if (!ctx->contour->subcomm->color) {
+        ierr = KSPView(ctx->contour->ksp[0],sviewer);CHKERRQ(ierr);
       }
       ierr = PetscViewerFlush(sviewer);CHKERRQ(ierr);
-      ierr = PetscViewerRestoreSubViewer(viewer,ctx->subcomm->child,&sviewer);CHKERRQ(ierr);
+      ierr = PetscViewerRestoreSubViewer(viewer,ctx->contour->subcomm->child,&sviewer);CHKERRQ(ierr);
       ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
       /* extra call needed because of the two calls to PetscViewerASCIIPushSynchronized() in PetscViewerGetSubViewer() */
       ierr = PetscViewerASCIIPopSynchronized(viewer);CHKERRQ(ierr);
     } else {
-      ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+      ierr = KSPView(ctx->contour->ksp[0],viewer);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
