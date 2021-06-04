@@ -27,7 +27,7 @@ SLEPC_EXTERN PetscErrorCode PCCreate_HPDDM(PC);
     Output Parameter:
 .   version - version string
 
-    Level: developer
+    Level: intermediate
 
 .seealso: SlepcGetVersionNumber()
 @*/
@@ -64,7 +64,7 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
 
     This function can be called before SlepcInitialize().
 
-    Level: developer
+    Level: intermediate
 
 .seealso: SlepcGetVersion(), SlepcInitialize()
 @*/
