@@ -108,25 +108,12 @@ PETSC_STATIC_INLINE PetscErrorCode EPSCISSSetUpSubComm(EPS eps,PetscInt *num_sol
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       N = ctx->N;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      c,d;
-  PetscBool      isaxisymm;
-#endif
 
   PetscFunctionBegin;
   ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)eps),&ctx->subcomm);CHKERRQ(ierr);
   ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
-  /* determine whether half of integration points can be avoided (use their conjugates);
-     depends on isreal and the symmetry of the region */
-#if defined(PETSC_USE_COMPLEX)
-  ierr = RGIsAxisymmetric(eps->rg,PETSC_FALSE,&isaxisymm);CHKERRQ(ierr);
-  ierr = RGComputeBoundingBox(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
-  ctx->useconj = (ctx->isreal && isaxisymm && c!=d)? PETSC_TRUE: PETSC_FALSE;
-#else
-  ctx->useconj = PETSC_FALSE;
-#endif
   if (ctx->useconj) N = N/2;
   *num_solve_point = N / ctx->npart;
   if (N%ctx->npart > ctx->subcomm->color) (*num_solve_point)++;
@@ -760,7 +747,10 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (!ctx->quad) ctx->quad = EPS_CISS_QUADRULE_TRAPEZOIDAL;
 
   /* create split comm */
-  if (!ctx->subcomm) { ierr = EPSCISSSetUpSubComm(eps,&ctx->num_solve_point);CHKERRQ(ierr); }
+  if (!ctx->subcomm) {
+    ierr = RGCanUseConjugates(eps->rg,ctx->isreal,&ctx->useconj);CHKERRQ(ierr);
+    ierr = EPSCISSSetUpSubComm(eps,&ctx->num_solve_point);CHKERRQ(ierr);
+  }
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = BVGetRandomContext(eps->V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
@@ -1692,6 +1682,7 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
   PetscFunctionBegin;
   if (!ctx->ksp) {
     if (!ctx->subcomm) {  /* initialize subcomm first */
+      ierr = RGCanUseConjugates(eps->rg,ctx->isreal,&ctx->useconj);CHKERRQ(ierr);
       ierr = EPSCISSSetUpSubComm(eps,&ctx->num_solve_point);CHKERRQ(ierr);
     }
     ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);

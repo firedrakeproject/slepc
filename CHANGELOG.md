@@ -13,7 +13,7 @@
 - New `DSGSVD` type for the generalized SVD.
 - New contour integral method in `DSNEP`.
 - New function `BVSetRandomSign()` for random values equal to -1 or 1 with equal probability.
-- New functions `RGIsAxisymmetric()` and `RGComputeQuadrature()`.
+- New functions `RGIsAxisymmetric()`, `RGCanUseConjugates()` and `RGComputeQuadrature()`.
 
 ### Changed
 

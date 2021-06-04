@@ -64,6 +64,7 @@ SLEPC_EXTERN PetscErrorCode RGPushScale(RG,PetscReal);
 SLEPC_EXTERN PetscErrorCode RGPopScale(RG);
 SLEPC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode RGIsAxisymmetric(RG,PetscBool,PetscBool*);
+SLEPC_EXTERN PetscErrorCode RGCanUseConjugates(RG,PetscBool,PetscBool*);
 SLEPC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode RGComputeBoundingBox(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 SLEPC_EXTERN PetscErrorCode RGComputeQuadrature(RG,RGQuadRule,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);

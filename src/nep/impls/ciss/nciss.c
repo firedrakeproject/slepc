@@ -135,25 +135,12 @@ PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUpSubComm(NEP nep,PetscInt *num_sol
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscInt       N = ctx->N;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      c,d;
-  PetscBool      isaxisymm;
-#endif
 
   PetscFunctionBegin;
   ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&ctx->subcomm);CHKERRQ(ierr);
   ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm));CHKERRQ(ierr);
-  /* determine whether half of integration points can be avoided (use their conjugates);
-     depends on isreal and the symmetry of the region */
-#if defined(PETSC_USE_COMPLEX)
-  ierr = RGIsAxisymmetric(nep->rg,PETSC_FALSE,&isaxisymm);CHKERRQ(ierr);
-  ierr = RGComputeBoundingBox(nep->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
-  ctx->useconj = (ctx->isreal && isaxisymm && c!=d)? PETSC_TRUE: PETSC_FALSE;
-#else
-  ctx->useconj = PETSC_FALSE;
-#endif
   if (ctx->useconj) N = N/2;
   *num_solve_point = N / ctx->npart;
   if (N%ctx->npart > ctx->subcomm->color) (*num_solve_point)++;
@@ -690,7 +677,10 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   }
 
   /* create split comm */
-  if (!ctx->subcomm) { ierr = NEPCISSSetUpSubComm(nep,&ctx->num_solve_point);CHKERRQ(ierr); }
+  if (!ctx->subcomm) {
+    ierr = RGCanUseConjugates(nep->rg,ctx->isreal,&ctx->useconj);CHKERRQ(ierr);
+    ierr = NEPCISSSetUpSubComm(nep,&ctx->num_solve_point);CHKERRQ(ierr);
+  }
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   if (ctx->weight) { ierr = PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma);CHKERRQ(ierr); }
@@ -1380,6 +1370,7 @@ static PetscErrorCode NEPCISSGetKSPs_CISS(NEP nep,PetscInt *nsolve,KSP **ksp)
   PetscFunctionBegin;
   if (!ctx->ksp) {
     if (!ctx->subcomm) {  /* initialize subcomm first */
+      ierr = RGCanUseConjugates(nep->rg,ctx->isreal,&ctx->useconj);CHKERRQ(ierr);
       ierr = NEPCISSSetUpSubComm(nep,&ctx->num_solve_point);CHKERRQ(ierr);
     }
     ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);

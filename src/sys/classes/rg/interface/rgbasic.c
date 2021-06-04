@@ -501,6 +501,50 @@ PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
 }
 
 /*@
+   RGCanUseConjugates - Used in contour integral methods to determine whether
+   half of integration points can be avoided (use their conjugates).
+
+   Not Collective
+
+   Input Parameters:
++  rg       - the region context
+-  realmats - true if the problem matrices are real
+
+   Output Parameter:
+.  useconj  - whether it is possible to use conjugates
+
+   Notes:
+   If some integration points are the conjugates of other points, then the
+   associated computational cost can be saved. This depends on the problem
+   matrices being real and also the region being symmetric with respect to
+   the horizontal axis. The result is false if using real arithmetic or
+   in the case of a flat region (height equal to zero).
+
+   Level: developer
+@*/
+PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
+{
+#if defined(PETSC_USE_COMPLEX)
+  PetscErrorCode ierr;
+  PetscReal      c,d;
+  PetscBool      isaxisymm;
+#endif
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+  PetscValidBoolPointer(useconj,3);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = RGIsAxisymmetric(rg,PETSC_FALSE,&isaxisymm);CHKERRQ(ierr);
+  ierr = RGComputeBoundingBox(rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
+  *useconj = (realmats && isaxisymm && c!=d)? PETSC_TRUE: PETSC_FALSE;
+#else
+  *useconj = PETSC_FALSE;
+#endif
+  PetscFunctionReturn(0);
+}
+
+/*@
    RGComputeContour - Computes the coordinates of several points lying on the
    contour of the region.
 
