@@ -615,7 +615,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
         pep->eigi[j] *= pep->sfactor;
       }
       /* restore original values */
-      for (i=0;i<pep->nmat;i++){
+      for (i=0;i<pep->nmat;i++) {
         pep->pbc[pep->nmat+i] *= pep->sfactor;
         pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
       }

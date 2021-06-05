@@ -705,7 +705,7 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   }
   if (pep->sfactor!=1.0) {
     /* Restore original values */
-    for (i=0;i<pep->nmat;i++){
+    for (i=0;i<pep->nmat;i++) {
       pep->pbc[pep->nmat+i] *= pep->sfactor;
       pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
     }

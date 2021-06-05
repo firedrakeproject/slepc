@@ -1409,7 +1409,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
     ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     if (!flg) {
       /* Restore original values */
-      for (i=0;i<pep->nmat;i++){
+      for (i=0;i<pep->nmat;i++) {
         pep->pbc[pep->nmat+i] *= pep->sfactor;
         pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
       }

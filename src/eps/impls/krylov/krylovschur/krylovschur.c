@@ -160,7 +160,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   if (eps->arbitrary) {
     ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
-  } else if (eps->ishermitian && !eps->ispositive){
+  } else if (eps->ishermitian && !eps->ispositive) {
     ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   }
 

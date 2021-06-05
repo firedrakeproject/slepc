@@ -209,7 +209,7 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
   t2 = w[1];
   ierr = PetscBLASIntCast(pjd->nlock,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(pjd->ld,&ld_);CHKERRQ(ierr);
-  if (nconv){
+  if (nconv) {
     for (i=0;i<nconv;i++) {
       ierr = PetscArraycpy(pT+i*nconv,pjd->T+i*pep->ncv,nconv);CHKERRQ(ierr);
     }
@@ -894,7 +894,7 @@ static PetscErrorCode MatCreateVecs_PEPJD(Mat A,Vec *right,Vec *left)
 #if !defined (PETSC_USE_COMPLEX)
   kspsf = 2;
 #endif
-  for (i=0;i<kspsf;i++){
+  for (i=0;i<kspsf;i++) {
     ierr = BVCreateVec(pjd->V,v+i);CHKERRQ(ierr);
   }
   if (right) {

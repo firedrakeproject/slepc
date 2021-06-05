@@ -91,7 +91,7 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
     }
     ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
   }
-  if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT){
+  if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT) {
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ctx->A[0]),&rank);CHKERRMPI(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ctx->A[0]),&size);CHKERRMPI(ierr);
     if (size>1) {

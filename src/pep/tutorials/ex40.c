@@ -425,7 +425,7 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
           ierr = MatMult(A[i],xr,w);CHKERRQ(ierr);
         }
       }
-      if (ivals[i]!=0){
+      if (ivals[i]!=0) {
         ierr = VecAXPY(u,-ivals[i],wi);CHKERRQ(ierr);
         ierr = VecAXPY(ui,ivals[i],w);CHKERRQ(ierr);
       }
