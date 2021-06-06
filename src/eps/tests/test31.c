@@ -125,6 +125,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -terse
+      filter: sed -e "s/0.161982,7.83797/0.162007,7.83897/"
       requires: !single
 
    test:
@@ -135,6 +136,7 @@ int main(int argc,char **argv)
    test:
       suffix: 3
       args: -modify -terse
+      filter: sed -e "s/0.161982,7.83797/0.162007,7.83897/"
       requires: !single
 
 TEST*/
