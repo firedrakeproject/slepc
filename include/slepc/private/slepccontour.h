@@ -19,11 +19,15 @@ struct _n_SlepcContourData {
   PetscSubcomm subcomm;    /* subcommunicator for top level parallelization */
   PetscInt     npoints;    /* number of integration points assigned to the local subcomm */
   KSP          *ksp;       /* ksp array for storing factorizations at integration points */
+  Mat          *pA;        /* redundant copies of the matrices in the local subcomm */
+  PetscInt     nmat;       /* number of matrices in pA */
 };
 typedef struct _n_SlepcContourData* SlepcContourData;
 
 SLEPC_EXTERN PetscErrorCode SlepcContourDataCreate(PetscInt,PetscInt,PetscObject,SlepcContourData*);
 SLEPC_EXTERN PetscErrorCode SlepcContourDataReset(SlepcContourData);
 SLEPC_EXTERN PetscErrorCode SlepcContourDataDestroy(SlepcContourData*);
+
+SLEPC_EXTERN PetscErrorCode SlepcContourRedundantMat(SlepcContourData,PetscInt,Mat*);
 
 #endif

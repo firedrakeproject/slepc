@@ -34,7 +34,7 @@ PetscErrorCode SlepcContourDataCreate(PetscInt n,PetscInt npart,PetscObject pare
 }
 
 /*
-   SlepcContourDataReset - Resets the KSP objects in a contour data structure.
+   SlepcContourDataReset - Resets the KSP and Mat objects in a contour data structure.
 */
 PetscErrorCode SlepcContourDataReset(SlepcContourData contour)
 {
@@ -46,6 +46,14 @@ PetscErrorCode SlepcContourDataReset(SlepcContourData contour)
     for (i=0;i<contour->npoints;i++) {
       ierr = KSPReset(contour->ksp[i]);CHKERRQ(ierr);
     }
+  }
+  if (contour->pA) {
+    for (i=0;i<contour->nmat;i++) {
+      ierr = MatDestroy(&contour->pA[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(contour->pA);CHKERRQ(ierr);
+    contour->pA = NULL;
+    contour->nmat = 0;
   }
   PetscFunctionReturn(0);
 }
@@ -69,6 +77,37 @@ PetscErrorCode SlepcContourDataDestroy(SlepcContourData *contour)
   ierr = PetscSubcommDestroy(&(*contour)->subcomm);CHKERRQ(ierr);
   ierr = PetscFree((*contour));CHKERRQ(ierr);
   *contour = NULL;
+  PetscFunctionReturn(0);
+}
+
+/*
+   SlepcContourRedundantMat - Creates redundant copies of the passed matrices in the subcomm.
+
+   Input Parameters:
+   nmat - the number of matrices
+   A    - array of matrices
+*/
+PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,Mat *A)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (contour->pA) {
+    for (i=0;i<contour->nmat;i++) {
+      ierr = MatDestroy(&contour->pA[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(contour->pA);CHKERRQ(ierr);
+    contour->pA = NULL;
+    contour->nmat = 0;
+  }
+  if (contour->subcomm && contour->subcomm->n != 1) {
+    ierr = PetscCalloc1(nmat,&contour->pA);CHKERRQ(ierr);
+    for (i=0;i<nmat;i++) {
+      ierr = MatCreateRedundantMatrix(A[i],contour->subcomm->n,PetscSubcommChild(contour->subcomm),MAT_INITIAL_MATRIX,&contour->pA[i]);CHKERRQ(ierr);
+    }
+    contour->nmat = nmat;
+  }
   PetscFunctionReturn(0);
 }
 

@@ -66,37 +66,10 @@ typedef struct {
   PetscBool         useconj;
   PetscReal         est_eig;
   VecScatter        scatterin;
-  Mat               pA,pB;
   PetscBool         usest_set;  /* whether the user set the usest flag or not */
   PetscObjectId     rgid;
   PetscObjectState  rgstate;
 } EPS_CISS;
-
-static PetscErrorCode CISSRedundantMat(EPS eps)
-{
-  PetscErrorCode   ierr;
-  EPS_CISS         *ctx = (EPS_CISS*)eps->data;
-  SlepcContourData contour = ctx->contour;
-  Mat              A,B;
-  PetscInt         nmat;
-
-  PetscFunctionBegin;
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  if (contour->subcomm->n != 1) {
-    ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-    ierr = MatDestroy(&ctx->pA);CHKERRQ(ierr);
-    ierr = MatCreateRedundantMatrix(A,contour->subcomm->n,PetscSubcommChild(contour->subcomm),MAT_INITIAL_MATRIX,&ctx->pA);CHKERRQ(ierr);
-    if (nmat>1) {
-      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = MatDestroy(&ctx->pB);CHKERRQ(ierr);
-      ierr = MatCreateRedundantMatrix(B,contour->subcomm->n,PetscSubcommChild(contour->subcomm),MAT_INITIAL_MATRIX,&ctx->pB);CHKERRQ(ierr);
-    } else ctx->pB = NULL;
-  } else {
-    ctx->pA = NULL;
-    ctx->pB = NULL;
-  }
-  PetscFunctionReturn(0);
-}
 
 static PetscErrorCode CISSScatterVec(EPS eps)
 {
@@ -110,10 +83,10 @@ static PetscErrorCode CISSScatterVec(EPS eps)
 
   PetscFunctionBegin;
   ierr = VecDestroy(&ctx->xsub);CHKERRQ(ierr);
-  ierr = MatCreateVecs(ctx->pA,&ctx->xsub,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(contour->pA[0],&ctx->xsub,NULL);CHKERRQ(ierr);
 
   ierr = VecDestroy(&ctx->xdup);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->pA,&mloc_sub,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(contour->pA[0],&mloc_sub,NULL);CHKERRQ(ierr);
   ierr = VecCreateMPI(PetscSubcommContiguousParent(contour->subcomm),mloc_sub,PETSC_DECIDE,&ctx->xdup);CHKERRQ(ierr);
 
   ierr = VecScatterDestroy(&ctx->scatterin);CHKERRQ(ierr);
@@ -251,7 +224,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
       ierr = BVMultVec(ctx->Y,ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
     }
     ierr = BVGetColumn(ctx->V,j,&vj);CHKERRQ(ierr);
-    if (ctx->pA) {
+    if (contour->pA) {
       ierr = VecSet(vtemp,0);CHKERRQ(ierr);
       ierr = VecScatterBegin(ctx->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       ierr = VecScatterEnd(ctx->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
@@ -295,7 +268,7 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,ctx->L,ctx->L_max*contour->npoints,NULL,&M);CHKERRQ(ierr);
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] = 0;
   ierr = BVSetActiveColumns(ctx->Y,0,ctx->L_max*contour->npoints);CHKERRQ(ierr);
-  if (ctx->pA) {
+  if (contour->pA) {
     ierr = BVSetActiveColumns(ctx->pV,0,ctx->L);CHKERRQ(ierr);
     ierr = BVDot(ctx->Y,ctx->pV,M);CHKERRQ(ierr);
   } else {
@@ -413,7 +386,7 @@ static PetscErrorCode ConstructS(EPS eps)
         ierr = VecRestoreArray(v,&v_data);CHKERRQ(ierr);
       }
       ierr = BVGetColumn(ctx->S,k*ctx->L+j,&sj);CHKERRQ(ierr);
-      if (ctx->pA) {
+      if (contour->pA) {
         ierr = VecSet(sj,0);CHKERRQ(ierr);
         ierr = VecScatterBegin(ctx->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
         ierr = VecScatterEnd(ctx->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
@@ -650,7 +623,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscRandom      rand;
   PetscObjectId    id;
   PetscObjectState state;
-  Mat              A;
+  Mat              A[2];
 
   PetscFunctionBegin;
   if (eps->ncv==PETSC_DEFAULT) {
@@ -726,15 +699,16 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = BVDuplicateResize(eps->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->V);CHKERRQ(ierr);
 
-  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = MatIsShell(A,&flg);CHKERRQ(ierr);
+  ierr = STGetMatrix(eps->st,0,&A[0]);CHKERRQ(ierr);
+  ierr = MatIsShell(A[0],&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell is not supported in this solver");
+  if (eps->isgeneralized) { ierr = STGetMatrix(eps->st,0,&A[1]);CHKERRQ(ierr); }
 
   if (!ctx->usest_set) ctx->usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;
   if (ctx->usest && ctx->npart>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
 
-  ierr = CISSRedundantMat(eps);CHKERRQ(ierr);
-  if (ctx->pA) {
+  ierr = SlepcContourRedundantMat(contour,eps->isgeneralized?2:1,A);CHKERRQ(ierr);
+  if (contour->pA) {
     ierr = CISSScatterVec(eps);CHKERRQ(ierr);
     ierr = BVDestroy(&ctx->pV);CHKERRQ(ierr);
     ierr = BVCreate(PetscObjectComm((PetscObject)ctx->xsub),&ctx->pV);CHKERRQ(ierr);
@@ -747,7 +721,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPSCheckSinvertCondition(eps,ctx->usest," (with the usest flag set)");
 
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
-  if (ctx->pA) {
+  if (contour->pA) {
     ierr = BVCreate(PetscObjectComm((PetscObject)ctx->xsub),&ctx->Y);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(ctx->Y,ctx->xsub,eps->n);CHKERRQ(ierr);
     ierr = BVSetFromOptions(ctx->Y);CHKERRQ(ierr);
@@ -806,19 +780,20 @@ PetscErrorCode EPSSetUpSort_CISS(EPS eps)
 
 PetscErrorCode EPSSolve_CISS(EPS eps)
 {
-  PetscErrorCode ierr;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  Mat            A,B,X,M,pA,pB;
-  PetscInt       i,j,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,nlocal,*inside;
-  PetscScalar    *Mu,*H0,*H1=NULL,*rr,*temp;
-  PetscReal      error,max_error,norm;
-  PetscBool      *fl1;
-  Vec            si,si1=NULL,w[3];
-  PetscRandom    rand;
+  PetscErrorCode   ierr;
+  EPS_CISS         *ctx = (EPS_CISS*)eps->data;
+  SlepcContourData contour = ctx->contour;
+  Mat              A,B,X,M,pA,pB;
+  PetscInt         i,j,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,nlocal,*inside;
+  PetscScalar      *Mu,*H0,*H1=NULL,*rr,*temp;
+  PetscReal        error,max_error,norm;
+  PetscBool        *fl1;
+  Vec              si,si1=NULL,w[3];
+  PetscRandom      rand;
 #if defined(PETSC_USE_COMPLEX)
-  PetscBool      isellipse;
+  PetscBool        isellipse;
 #else
-  PetscReal      normi;
+  PetscReal        normi;
 #endif
 
   PetscFunctionBegin;
@@ -840,9 +815,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
   ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
 
-  if (ctx->pA) {
+  if (contour->pA) {
     ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
-    ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   } else {
     ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   }
@@ -860,9 +835,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscInfo2(eps,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
-    if (ctx->pA) {
+    if (contour->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
-      ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     } else {
       ierr = SolveLinearSystem(eps,A,B,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     }
@@ -879,9 +854,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscInfo2(eps,"Changing L %D -> %D by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
-    if (ctx->pA) {
+    if (contour->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
-      ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     } else {
       ierr = SolveLinearSystem(eps,A,B,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     }
@@ -907,9 +882,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         ierr = SVD_S(ctx->S,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
         ierr = PetscLogEventEnd(EPS_CISS_SVD,eps,0,0,0);CHKERRQ(ierr);
         if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
-          if (ctx->pA) {
+          if (contour->pA) {
             ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
-            ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+            ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
           } else {
             ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
           }
@@ -1031,9 +1006,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
           ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
           ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
         }
-        if (ctx->pA) {
+        if (contour->pA) {
           ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
-          ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+          ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
         } else {
           ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
         }
@@ -1717,11 +1692,7 @@ PetscErrorCode EPSReset_CISS(EPS eps)
   ierr = VecScatterDestroy(&ctx->scatterin);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->xsub);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->xdup);CHKERRQ(ierr);
-  if (ctx->pA) {
-    ierr = MatDestroy(&ctx->pA);CHKERRQ(ierr);
-    ierr = MatDestroy(&ctx->pB);CHKERRQ(ierr);
-    ierr = BVDestroy(&ctx->pV);CHKERRQ(ierr);
-  }
+  ierr = BVDestroy(&ctx->pV);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
