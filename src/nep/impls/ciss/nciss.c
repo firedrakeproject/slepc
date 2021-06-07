@@ -59,10 +59,8 @@ typedef struct {
   BV                Y;
   PetscBool         useconj;
   PetscReal         est_eig;
-  VecScatter        scatterin;
   Mat               T,J;           /* auxiliary matrices when using subcomm */
   BV                pV;
-  Vec               xsub,xdup;
   NEP_CISS_PROJECT  dsctxf;
   PetscObjectId     rgid;
   PetscObjectState  rgstate;
@@ -93,50 +91,11 @@ static PetscErrorCode NEPContourDSComputeMatrix(DS ds,PetscScalar lambda,PetscBo
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode CISSScatterVec(NEP nep)
-{
-  PetscErrorCode   ierr;
-  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
-  SlepcContourData contour = ctx->contour;
-  IS               is1,is2;
-  Vec              v0;
-  PetscInt         i,j,k,mstart,mend,mlocal;
-  PetscInt         *idx1,*idx2,mloc_sub;
-
-  PetscFunctionBegin;
-  ierr = VecDestroy(&ctx->xsub);CHKERRQ(ierr);
-  ierr = MatCreateVecs(contour->pA[0],&ctx->xsub,NULL);CHKERRQ(ierr);
-
-  ierr = VecDestroy(&ctx->xdup);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(contour->pA[0],&mloc_sub,NULL);CHKERRQ(ierr);
-  ierr = VecCreateMPI(PetscSubcommContiguousParent(contour->subcomm),mloc_sub,PETSC_DECIDE,&ctx->xdup);CHKERRQ(ierr);
-
-  ierr = VecScatterDestroy(&ctx->scatterin);CHKERRQ(ierr);
-  ierr = BVGetColumn(ctx->V,0,&v0);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRange(v0,&mstart,&mend);CHKERRQ(ierr);
-  mlocal = mend - mstart;
-  ierr = PetscMalloc2(contour->subcomm->n*mlocal,&idx1,contour->subcomm->n*mlocal,&idx2);CHKERRQ(ierr);
-  j = 0;
-  for (k=0;k<contour->subcomm->n;k++) {
-    for (i=mstart;i<mend;i++) {
-      idx1[j]   = i;
-      idx2[j++] = i + nep->n*k;
-    }
-  }
-  ierr = ISCreateGeneral(PetscObjectComm((PetscObject)nep),contour->subcomm->n*mlocal,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
-  ierr = ISCreateGeneral(PetscObjectComm((PetscObject)nep),contour->subcomm->n*mlocal,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
-  ierr = VecScatterCreate(v0,is1,ctx->xdup,is2,&ctx->scatterin);CHKERRQ(ierr);
-  ierr = ISDestroy(&is1);CHKERRQ(ierr);
-  ierr = ISDestroy(&is2);CHKERRQ(ierr);
-  ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(ctx->V,0,&v0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode VecScatterVecs(NEP nep,BV Vin,PetscInt n)
 {
   PetscErrorCode    ierr;
   NEP_CISS          *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData  contour = ctx->contour;
   PetscInt          i;
   Vec               vi,pvi;
   const PetscScalar *array;
@@ -144,16 +103,16 @@ static PetscErrorCode VecScatterVecs(NEP nep,BV Vin,PetscInt n)
   PetscFunctionBegin;
   for (i=0;i<n;i++) {
     ierr = BVGetColumn(Vin,i,&vi);CHKERRQ(ierr);
-    ierr = VecScatterBegin(ctx->scatterin,vi,ctx->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = VecScatterEnd(ctx->scatterin,vi,ctx->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = VecScatterBegin(contour->scatterin,vi,contour->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = VecScatterEnd(contour->scatterin,vi,contour->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = BVRestoreColumn(Vin,i,&vi);CHKERRQ(ierr);
-    ierr = VecGetArrayRead(ctx->xdup,&array);CHKERRQ(ierr);
-    ierr = VecPlaceArray(ctx->xsub,array);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(contour->xdup,&array);CHKERRQ(ierr);
+    ierr = VecPlaceArray(contour->xsub,array);CHKERRQ(ierr);
     ierr = BVGetColumn(ctx->pV,i,&pvi);CHKERRQ(ierr);
-    ierr = VecCopy(ctx->xsub,pvi);CHKERRQ(ierr);
+    ierr = VecCopy(contour->xsub,pvi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(ctx->pV,i,&pvi);CHKERRQ(ierr);
-    ierr = VecResetArray(ctx->xsub);CHKERRQ(ierr);
-    ierr = VecRestoreArrayRead(ctx->xdup,&array);CHKERRQ(ierr);
+    ierr = VecResetArray(contour->xsub);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(contour->xdup,&array);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -263,8 +222,8 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
     ierr = BVGetColumn(ctx->V,j,&vj);CHKERRQ(ierr);
     if (contour->pA) {
       ierr = VecSet(vtemp,0);CHKERRQ(ierr);
-      ierr = VecScatterBegin(ctx->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecScatterEnd(ctx->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+      ierr = VecScatterBegin(contour->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+      ierr = VecScatterEnd(contour->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       ierr = VecDot(vj,vtemp,&tmp);CHKERRQ(ierr);
     } else {
       ierr = VecDot(vj,v,&tmp);CHKERRQ(ierr);
@@ -507,8 +466,8 @@ static PetscErrorCode ConstructS(NEP nep)
       ierr = BVGetColumn(ctx->S,k*ctx->L+j,&sj);CHKERRQ(ierr);
       if (contour->pA) {
         ierr = VecSet(sj,0);CHKERRQ(ierr);
-        ierr = VecScatterBegin(ctx->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-        ierr = VecScatterEnd(ctx->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+        ierr = VecScatterBegin(contour->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+        ierr = VecScatterEnd(contour->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       } else {
         ierr = VecCopy(v,sj);CHKERRQ(ierr);
       }
@@ -570,6 +529,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   NEP_CISS_PROJECT dsctxf;
   PetscObjectId    id;
   PetscObjectState state;
+  Vec              v0;
 
   PetscFunctionBegin;
   if (nep->ncv==PETSC_DEFAULT) nep->ncv = ctx->L_max*ctx->M;
@@ -633,10 +593,12 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
       ierr = MatDuplicate(contour->pA[0],MAT_DO_NOT_COPY_VALUES,&ctx->J);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->J);CHKERRQ(ierr);
     }
-    ierr = CISSScatterVec(nep);CHKERRQ(ierr);
+    ierr = BVGetColumn(ctx->V,0,&v0);CHKERRQ(ierr);
+    ierr = SlepcContourScatterCreate(contour,v0);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(ctx->V,0,&v0);CHKERRQ(ierr);
     ierr = BVDestroy(&ctx->pV);CHKERRQ(ierr);
-    ierr = BVCreate(PetscObjectComm((PetscObject)ctx->xsub),&ctx->pV);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(ctx->pV,ctx->xsub,nep->n);CHKERRQ(ierr);
+    ierr = BVCreate(PetscObjectComm((PetscObject)contour->xsub),&ctx->pV);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(ctx->pV,contour->xsub,nep->n);CHKERRQ(ierr);
     ierr = BVSetFromOptions(ctx->pV);CHKERRQ(ierr);
     ierr = BVResize(ctx->pV,ctx->L_max,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pV);CHKERRQ(ierr);
@@ -644,8 +606,8 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
   if (contour->pA) {
-    ierr = BVCreate(PetscObjectComm((PetscObject)ctx->xsub),&ctx->Y);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(ctx->Y,ctx->xsub,nep->n);CHKERRQ(ierr);
+    ierr = BVCreate(PetscObjectComm((PetscObject)contour->xsub),&ctx->Y);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(ctx->Y,contour->xsub,nep->n);CHKERRQ(ierr);
     ierr = BVSetFromOptions(ctx->Y);CHKERRQ(ierr);
     ierr = BVResize(ctx->Y,contour->npoints*ctx->L_max,PETSC_FALSE);CHKERRQ(ierr);
   } else {
@@ -1377,9 +1339,6 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
   ierr = SlepcContourDataReset(ctx->contour);CHKERRQ(ierr);
-  ierr = VecScatterDestroy(&ctx->scatterin);CHKERRQ(ierr);
-  ierr = VecDestroy(&ctx->xsub);CHKERRQ(ierr);
-  ierr = VecDestroy(&ctx->xdup);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->J);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->pV);CHKERRQ(ierr);
