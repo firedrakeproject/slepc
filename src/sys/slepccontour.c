@@ -117,12 +117,12 @@ PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,M
 
 /*
    SlepcContourScatterCreate - Creates a scatter context to communicate between a
-   regular vector and a vector xdup that has similar layout but in the contiguous
-   communicator. Also creates auxiliary vectors xdup and xsub (with the same layout
-   as the redundant matrices).
+   regular vector and a vector xdup that can hold one duplicate per each subcommunicator
+   on the contiguous parent communicator. Also creates auxiliary vectors xdup and xsub
+   (the latter with the same layout as the redundant matrices in the subcommunicator).
 
    Input Parameters:
-   v0 - the regular vector from which dimensions are taken
+   v - the regular vector from which dimensions are taken
 */
 PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
 {
@@ -133,7 +133,7 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
 
   PetscFunctionBegin;
   ierr = VecDestroy(&contour->xsub);CHKERRQ(ierr);
-  ierr = MatCreateVecs(contour->pA[0],&contour->xsub,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecsEmpty(contour->pA[0],&contour->xsub,NULL);CHKERRQ(ierr);
 
   ierr = VecDestroy(&contour->xdup);CHKERRQ(ierr);
   ierr = MatGetLocalSize(contour->pA[0],&mloc_sub,NULL);CHKERRQ(ierr);

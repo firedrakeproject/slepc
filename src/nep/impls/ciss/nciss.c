@@ -91,32 +91,6 @@ static PetscErrorCode NEPContourDSComputeMatrix(DS ds,PetscScalar lambda,PetscBo
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode VecScatterVecs(NEP nep,BV Vin,PetscInt n)
-{
-  PetscErrorCode    ierr;
-  NEP_CISS          *ctx = (NEP_CISS*)nep->data;
-  SlepcContourData  contour = ctx->contour;
-  PetscInt          i;
-  Vec               vi,pvi;
-  const PetscScalar *array;
-
-  PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    ierr = BVGetColumn(Vin,i,&vi);CHKERRQ(ierr);
-    ierr = VecScatterBegin(contour->scatterin,vi,contour->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = VecScatterEnd(contour->scatterin,vi,contour->xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(Vin,i,&vi);CHKERRQ(ierr);
-    ierr = VecGetArrayRead(contour->xdup,&array);CHKERRQ(ierr);
-    ierr = VecPlaceArray(contour->xsub,array);CHKERRQ(ierr);
-    ierr = BVGetColumn(ctx->pV,i,&pvi);CHKERRQ(ierr);
-    ierr = VecCopy(contour->xsub,pvi);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(ctx->pV,i,&pvi);CHKERRQ(ierr);
-    ierr = VecResetArray(contour->xsub);CHKERRQ(ierr);
-    ierr = VecRestoreArrayRead(contour->xdup,&array);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode NEPComputeFunctionSubcomm(NEP nep,PetscScalar lambda,Mat T,PetscBool deriv)
 {
   PetscErrorCode ierr;
@@ -664,7 +638,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
   ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
   if (contour->pA) {
-    ierr = VecScatterVecs(nep,ctx->V,ctx->L);CHKERRQ(ierr);
+    ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
     ierr = SolveLinearSystem(nep,ctx->T,ctx->J,ctx->pV,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   } else {
     ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
@@ -676,7 +650,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) {
-      ierr = VecScatterVecs(nep,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
+      ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
       ierr = SolveLinearSystem(nep,ctx->T,ctx->J,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     } else {
       ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
@@ -696,7 +670,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) {
-      ierr = VecScatterVecs(nep,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
+      ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
       ierr = SolveLinearSystem(nep,ctx->T,ctx->J,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     } else {
       ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
@@ -732,9 +706,10 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
         ierr = ConstructS(nep);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
         if (contour->pA) {
-          ierr = VecScatterVecs(nep,ctx->V,ctx->L);CHKERRQ(ierr);
+          ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
           ierr = SolveLinearSystem(nep,ctx->T,ctx->J,ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
         } else {
           ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
@@ -849,7 +824,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
       ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
       if (contour->pA) {
-        ierr = VecScatterVecs(nep,ctx->V,ctx->L);CHKERRQ(ierr);
+        ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
         ierr = SolveLinearSystem(nep,ctx->T,ctx->J,ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
       } else {
         ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);

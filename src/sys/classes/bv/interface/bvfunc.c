@@ -444,6 +444,56 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscFunctionReturn(0);
 }
 
+/*@
+   BVScatter - Scatters the columns of a BV to another BV created in a
+   subcommunicator.
+
+   Collective on Vin
+
+   Input Parameters:
++  Vin  - input basis vectors (defined on the whole communicator)
+.  scat - VecScatter object that contains the info for the communication
+-  xdup - an auxiliary vector
+
+   Output Parameter:
+.  Vout - output basis vectors (defined on the subcommunicator)
+
+   Notes:
+   Currently implemented as a loop for each the active column, where each
+   column is scattered independently. The vector xdup is defined on the
+   contiguous parent communicator and have enough space to store one
+   duplicate of the original vector per each subcommunicator.
+
+   Level: developer
+
+.seealso: BVGetColumn()
+@*/
+PetscErrorCode BVScatter(BV Vin,BV Vout,VecScatter scat,Vec xdup)
+{
+  PetscErrorCode    ierr;
+  PetscInt          i;
+  Vec               v;
+  const PetscScalar *array;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(Vin,BV_CLASSID,1);
+  PetscValidHeaderSpecific(Vout,BV_CLASSID,2);
+  PetscValidHeaderSpecific(scat,PETSCSF_CLASSID,3);
+  PetscValidHeaderSpecific(xdup,VEC_CLASSID,4);
+  for (i=Vin->l;i<Vin->k;i++) {
+    ierr = BVGetColumn(Vin,i,&v);CHKERRQ(ierr);
+    ierr = VecScatterBegin(scat,v,xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = VecScatterEnd(scat,v,xdup,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(Vin,i,&v);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(xdup,&array);CHKERRQ(ierr);
+    ierr = VecPlaceArray(Vout->t,array);CHKERRQ(ierr);
+    ierr = BVInsertVec(Vout,i,Vout->t);CHKERRQ(ierr);
+    ierr = VecResetArray(Vout->t);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(xdup,&array);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@C
    BVSetOptionsPrefix - Sets the prefix used for searching for all
    BV options in the database.

@@ -131,6 +131,7 @@ SLEPC_EXTERN PetscErrorCode BVGetActiveColumns(BV,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode BVInsertVec(BV,PetscInt,Vec);
 SLEPC_EXTERN PetscErrorCode BVInsertVecs(BV,PetscInt,PetscInt*,Vec*,PetscBool);
 SLEPC_EXTERN PetscErrorCode BVInsertConstraints(BV,PetscInt*,Vec*);
+SLEPC_EXTERN PetscErrorCode BVScatter(BV,BV,VecScatter,Vec);
 SLEPC_EXTERN PetscErrorCode BVSetNumConstraints(BV,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVGetNumConstraints(BV,PetscInt*);
 SLEPC_EXTERN PetscErrorCode BVSetDefiniteTolerance(BV,PetscReal);
