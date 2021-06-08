@@ -24,6 +24,7 @@ PetscErrorCode SlepcContourDataCreate(PetscInt n,PetscInt npart,PetscObject pare
 
   PetscFunctionBegin;
   ierr = PetscNew(contour);CHKERRQ(ierr);
+  (*contour)->parent = parent;
   ierr = PetscSubcommCreate(PetscObjectComm(parent),&(*contour)->subcomm);CHKERRQ(ierr);
   ierr = PetscSubcommSetNumber((*contour)->subcomm,npart);CHKERRQ(ierr);CHKERRQ(ierr);
   ierr = PetscSubcommSetType((*contour)->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
@@ -109,6 +110,7 @@ PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,M
     ierr = PetscCalloc1(nmat,&contour->pA);CHKERRQ(ierr);
     for (i=0;i<nmat;i++) {
       ierr = MatCreateRedundantMatrix(A[i],contour->subcomm->n,PetscSubcommChild(contour->subcomm),MAT_INITIAL_MATRIX,&contour->pA[i]);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent(contour->parent,(PetscObject)contour->pA[i]);CHKERRQ(ierr);
     }
     contour->nmat = nmat;
   }

@@ -16,6 +16,7 @@
 
 /* Data structures and functions for contour integral methods (used in several classes) */
 struct _n_SlepcContourData {
+  PetscObject  parent;     /* parent object */
   PetscSubcomm subcomm;    /* subcommunicator for top level parallelization */
   PetscInt     npoints;    /* number of integration points assigned to the local subcomm */
   KSP          *ksp;       /* ksp array for storing factorizations at integration points */

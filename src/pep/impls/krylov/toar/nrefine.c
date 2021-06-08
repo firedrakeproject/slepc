@@ -1259,6 +1259,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,PEP_REFINE_EXPLICIT *m
   ierr = PetscMalloc3(pep->nmat,&matctx->A,nsubc,&matctx->scatter_id,nsubc,&matctx->scatterp_id);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
     ierr = MatCreateRedundantMatrix(A[i],0,PetscSubcommChild(matctx->subc),MAT_INITIAL_MATRIX,&matctx->A[i]);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)matctx->A[i]);CHKERRQ(ierr);
   }
 
   /* Create Scatter */
