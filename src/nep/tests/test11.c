@@ -182,7 +182,7 @@ int main(int argc,char **argv)
       requires: complex
 
    testset:
-      args: -nep_ciss_extraction {{ritz hankel}} -terse
+      args: -nep_ciss_extraction {{ritz hankel caa}} -terse
       requires: complex !single
       output_file: output/test11_1.out
       filter: sed -e "s/([A-Z]* extraction)//"

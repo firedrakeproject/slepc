@@ -316,7 +316,8 @@ SLEPC_EXTERN PetscErrorCode NEPNArnoldiGetLagPreconditioner(NEP,PetscInt*);
 .seealso: NEPCISSSetExtraction(), NEPCISSGetExtraction()
 E*/
 typedef enum { NEP_CISS_EXTRACTION_RITZ,
-               NEP_CISS_EXTRACTION_HANKEL } NEPCISSExtraction;
+               NEP_CISS_EXTRACTION_HANKEL,
+               NEP_CISS_EXTRACTION_CAA    } NEPCISSExtraction;
 SLEPC_EXTERN const char *NEPCISSExtractions[];
 
 #if defined(PETSC_USE_COMPLEX)

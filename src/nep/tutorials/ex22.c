@@ -192,7 +192,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1_ciss
-      args: -nep_type ciss -nep_ciss_extraction {{ritz hankel}} -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -nep_ncv 24 -terse
+      args: -nep_type ciss -nep_ciss_extraction {{ritz hankel caa}} -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -nep_ncv 24 -terse
       requires: complex !single
 
    test:

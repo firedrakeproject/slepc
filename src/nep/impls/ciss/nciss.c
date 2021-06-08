@@ -572,6 +572,57 @@ static PetscErrorCode SVD_S(NEP nep,BV S,PetscScalar *pA,PetscInt *K)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode SVD_S_CAA(NEP nep,BV S,PetscScalar *pA,PetscInt *K)
+{
+  PetscErrorCode ierr;
+  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
+  PetscInt       i,j,n,ml=ctx->L*ctx->M;
+  PetscBLASInt   m,k_,lda,lwork,info;
+  PetscScalar    *work,*T,*U,*R,sone=1.0,zero=0.0;
+  PetscReal      *rwork;
+  Mat            A;
+
+  PetscFunctionBegin;
+  /* Compute QR factorizaton of S */
+  ierr = BVGetSizes(S,NULL,&n,NULL);CHKERRQ(ierr);
+  if (n<ml) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This extraction strategy does not support problem size n < m*L");
+  ierr = BVSetActiveColumns(S,0,ml);CHKERRQ(ierr);
+  ierr = PetscArrayzero(pA,ml*ml);CHKERRQ(ierr);
+  ierr = MatCreateDense(PETSC_COMM_SELF,ml,ml,PETSC_DECIDE,PETSC_DECIDE,pA,&A);CHKERRQ(ierr);
+  ierr = BVOrthogonalize(S,A);CHKERRQ(ierr);
+  ierr = MatDestroy(&A);CHKERRQ(ierr);
+
+  /* SVD of first (m-1)*L diagonal block */
+  ierr = PetscBLASIntCast((ctx->M-1)*ctx->L,&m);CHKERRQ(ierr);
+  ierr = PetscMalloc5(m*m,&T,m*m,&R,m*m,&U,5*ml,&work,5*ml,&rwork);CHKERRQ(ierr);
+  for (j=0;j<m;j++) {
+    ierr = PetscArraycpy(R+j*m,pA+j*ml,m);CHKERRQ(ierr);
+  }
+  lwork = 5*m;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&m,&m,R,&m,ctx->sigma,U,&m,NULL,&m,work,&lwork,rwork,&info));
+  SlepcCheckLapackInfo("gesvd",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  (*K) = 0;
+  for (i=0;i<m;i++) {
+    if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
+  }
+  ierr = MatCreateDense(PETSC_COMM_SELF,m,m,PETSC_DECIDE,PETSC_DECIDE,U,&A);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(S,0,m);CHKERRQ(ierr);
+  ierr = BVMultInPlace(S,A,0,*K);CHKERRQ(ierr);
+  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  /* Projected linear sistem */
+  /* m first columns of A have the right singular vectors */
+  ierr = PetscBLASIntCast(*K,&k_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ml,&lda);CHKERRQ(ierr);
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&m,&k_,&m,&sone,pA+ctx->L*lda,&lda,R,&m,&zero,T,&m));
+  ierr = PetscArrayzero(pA,ml*ml);CHKERRQ(ierr);
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&k_,&k_,&m,&sone,U,&m,T,&m,&zero,pA,&k_));
+  for (j=0;j<k_;j++) for (i=0;i<k_;i++) pA[j*k_+i] /= ctx->sigma[j];
+  ierr = PetscFree5(T,R,U,work,rwork);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode ConstructS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -731,6 +782,8 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 
   if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
     ierr = DSSetType(nep->ds,DSGNHEP);CHKERRQ(ierr);
+  } else if (ctx->extraction == NEP_CISS_EXTRACTION_CAA) {
+    ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
   } else {
     ierr = DSSetType(nep->ds,DSNEP);CHKERRQ(ierr);
     ierr = DSSetMethod(nep->ds,1);CHKERRQ(ierr);
@@ -831,7 +884,12 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
         ierr = SVD_H0(nep,H0,&nv);CHKERRQ(ierr);
       } else {
         ierr = ConstructS(nep);CHKERRQ(ierr);
-        ierr = SVD_S(nep,ctx->S,H0,&nv);CHKERRQ(ierr);
+        if (ctx->extraction == NEP_CISS_EXTRACTION_CAA) {
+          /* compute svd of S and projected matrix problem */
+          ierr = SVD_S_CAA(nep,ctx->S,H0,&nv);CHKERRQ(ierr);
+        } else {
+          ierr = SVD_S(nep,ctx->S,H0,&nv);CHKERRQ(ierr);
+        }
       }
       if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
         ierr = ConstructS(nep);CHKERRQ(ierr);
@@ -864,7 +922,16 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
           for (i=0;i<nv;i++)
             temp[i+j*ld] = H0[i+j*ctx->L*ctx->M];
         ierr = DSRestoreArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
+      } else if (ctx->extraction == NEP_CISS_EXTRACTION_CAA) {
+        ierr = DSSetDimensions(nep->ds,nv,0,0);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+        ierr = DSGetArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
+        for (i=0;i<nv;i++) {
+          ierr = PetscArraycpy(temp+i*ld,H0+i*nv,nv);CHKERRQ(ierr);
+        }
+        ierr = DSRestoreArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
       } else {
+        ierr = DSSetDimensions(nep->ds,nv,0,0);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
         if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
           for (i=0;i<nep->nt;i++) {
@@ -877,7 +944,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
       ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
       ierr = DSGetDimensions(nep->ds,NULL,NULL,NULL,&nv);CHKERRQ(ierr);
-      if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
+      if (ctx->extraction == NEP_CISS_EXTRACTION_CAA || ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
         for (i=0;i<nv;i++) {
           nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
         }
@@ -896,16 +963,16 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     }
     ierr = DSSort(nep->ds,nep->eigr,nep->eigi,rr,NULL,&nep->nconv);CHKERRQ(ierr);
     ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
-    if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
+    if (ctx->extraction == NEP_CISS_EXTRACTION_CAA || ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
       for (i=0;i<nv;i++) nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
     }
     ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(nep->V,0,nv);CHKERRQ(ierr);
+    ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
       ierr = ConstructS(nep);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
       ierr = BVCopy(ctx->S,nep->V);CHKERRQ(ierr);
-      ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = BVMultInPlace(ctx->S,X,0,nep->nconv);CHKERRQ(ierr);
       ierr = BVMultInPlace(nep->V,X,0,nep->nconv);CHKERRQ(ierr);
@@ -1300,8 +1367,9 @@ static PetscErrorCode NEPCISSSetExtraction_CISS(NEP nep,NEPCISSExtraction extrac
    Notes:
    By default, the Rayleigh-Ritz extraction is used (NEP_CISS_EXTRACTION_RITZ).
 
-   If the 'hankel' option is specified (NEP_CISS_EXTRACTION_HANKEL), then
-   the Block Hankel method is used for extracting eigenpairs.
+   If the 'hankel' or the 'caa' option is specified (NEP_CISS_EXTRACTION_HANKEL or
+   NEP_CISS_EXTRACTION_CAA), then the Block Hankel method, or the Communication-avoiding
+   Arnoldi method, respectively, is used for extracting eigenpairs.
 
    Level: advanced
 
