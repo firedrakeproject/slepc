@@ -191,11 +191,10 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
     for (i=0;i<contour->npoints; i++) {
       p_id = i*contour->subcomm->n + contour->subcomm->color;
       ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
-      ierr = BVMultVec(ctx->Y,ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
+      ierr = BVMultVec(ctx->Y,ctx->weight[p_id],1.0,v,&m);CHKERRQ(ierr);
     }
     ierr = BVGetColumn(ctx->V,j,&vj);CHKERRQ(ierr);
     if (contour->pA) {
-      ierr = VecSet(vtemp,0);CHKERRQ(ierr);
       ierr = VecScatterBegin(contour->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       ierr = VecScatterEnd(contour->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       ierr = VecDot(vj,vtemp,&tmp);CHKERRQ(ierr);
@@ -430,7 +429,7 @@ static PetscErrorCode ConstructS(NEP nep)
       for (i=0;i<contour->npoints;i++) {
         p_id = i*contour->subcomm->n + contour->subcomm->color;
         ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
-        ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
+        ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1.0,v,&m);CHKERRQ(ierr);
       }
       if (ctx->useconj) {
         ierr = VecGetArray(v,&v_data);CHKERRQ(ierr);
@@ -439,7 +438,6 @@ static PetscErrorCode ConstructS(NEP nep)
       }
       ierr = BVGetColumn(ctx->S,k*ctx->L+j,&sj);CHKERRQ(ierr);
       if (contour->pA) {
-        ierr = VecSet(sj,0);CHKERRQ(ierr);
         ierr = VecScatterBegin(contour->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
         ierr = VecScatterEnd(contour->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       } else {
