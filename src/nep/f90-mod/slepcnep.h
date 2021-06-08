@@ -63,6 +63,10 @@
       PetscEnum, parameter :: NEP_ERROR_RELATIVE         =  1
       PetscEnum, parameter :: NEP_ERROR_BACKWARD         =  2
 
+      PetscEnum, parameter :: NEP_CISS_EXTRACTION_RITZ   =  0
+      PetscEnum, parameter :: NEP_CISS_EXTRACTION_HANKEL =  1
+      PetscEnum, parameter :: NEP_CISS_EXTRACTION_CAA    =  2
+
 !
 !   Possible arguments to NEPMonitorSet()
 !

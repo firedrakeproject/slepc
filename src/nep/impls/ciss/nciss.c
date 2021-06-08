@@ -782,7 +782,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 
   if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
     ierr = DSSetType(nep->ds,DSGNHEP);CHKERRQ(ierr);
-  } else if (ctx->extraction == NEP_CISS_EXTRACTION_CAA){
+  } else if (ctx->extraction == NEP_CISS_EXTRACTION_CAA) {
     ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
   } else {
     ierr = DSSetType(nep->ds,DSNEP);CHKERRQ(ierr);
@@ -927,7 +927,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
         ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
         ierr = DSGetArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
         for (i=0;i<nv;i++) {
-          ierr = PetscArraycpy(temp+i*ld,H0+i*nv,nv);
+          ierr = PetscArraycpy(temp+i*ld,H0+i*nv,nv);CHKERRQ(ierr);
         }
         ierr = DSRestoreArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
       } else {
@@ -944,7 +944,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
       ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
       ierr = DSGetDimensions(nep->ds,NULL,NULL,NULL,&nv);CHKERRQ(ierr);
-      if (ctx->extraction == NEP_CISS_EXTRACTION_CAA||ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
+      if (ctx->extraction == NEP_CISS_EXTRACTION_CAA || ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
         for (i=0;i<nv;i++) {
           nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
         }
@@ -963,22 +963,21 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     }
     ierr = DSSort(nep->ds,nep->eigr,nep->eigi,rr,NULL,&nep->nconv);CHKERRQ(ierr);
     ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
-    if (ctx->extraction == NEP_CISS_EXTRACTION_CAA||ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
+    if (ctx->extraction == NEP_CISS_EXTRACTION_CAA || ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
       for (i=0;i<nv;i++) nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
     }
     ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(nep->V,0,nv);CHKERRQ(ierr);
+    ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
       ierr = ConstructS(nep);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
       ierr = BVCopy(ctx->S,nep->V);CHKERRQ(ierr);
-      ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = BVMultInPlace(ctx->S,X,0,nep->nconv);CHKERRQ(ierr);
       ierr = BVMultInPlace(nep->V,X,0,nep->nconv);CHKERRQ(ierr);
       ierr = MatDestroy(&X);CHKERRQ(ierr);
     } else {
-      ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = BVMultInPlace(ctx->S,X,0,nep->nconv);CHKERRQ(ierr);
       ierr = MatDestroy(&X);CHKERRQ(ierr);
