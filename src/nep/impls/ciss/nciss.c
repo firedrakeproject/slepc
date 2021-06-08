@@ -179,12 +179,10 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
   PetscInt         i,j,p_id;
   PetscScalar      tmp,m = 1,sum = 0.0;
   PetscReal        eta;
-  Vec              v,vtemp,vj,yj;
+  Vec              v,vtemp,vj;
 
   PetscFunctionBegin;
-  ierr = BVGetColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
-  ierr = VecDuplicate(yj,&v);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
+  ierr = BVCreateVec(ctx->Y,&v);CHKERRQ(ierr);
   ierr = BVCreateVec(ctx->V,&vtemp);CHKERRQ(ierr);
   for (j=0;j<ctx->L;j++) {
     ierr = VecSet(v,0);CHKERRQ(ierr);
@@ -206,7 +204,7 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
     else sum += tmp;
   }
   ctx->est_eig = PetscAbsScalar(sum/(PetscReal)ctx->L);
-  eta = PetscPowReal(10,-PetscLog10Real(nep->tol)/ctx->N);
+  eta = PetscPowReal(10.0,-PetscLog10Real(nep->tol)/ctx->N);
   ierr = PetscInfo1(nep,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
   *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
@@ -221,14 +219,15 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
 
 static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
 {
-  PetscErrorCode   ierr;
-  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
-  SlepcContourData contour = ctx->contour;
-  PetscMPIInt      sub_size,len;
-  PetscInt         i,j,k,s;
-  PetscScalar      *m,*temp,*temp2,*ppk,alp;
-  Mat              M;
-  BV               V;
+  PetscErrorCode    ierr;
+  NEP_CISS          *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData  contour = ctx->contour;
+  PetscMPIInt       sub_size,len;
+  PetscInt          i,j,k,s;
+  PetscScalar       *temp,*temp2,*ppk,alp;
+  Mat               M;
+  BV                V;
+  const PetscScalar *pM;
 
   PetscFunctionBegin;
   V = (contour->pA)?ctx->pV:ctx->V;
@@ -239,15 +238,15 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
   ierr = BVSetActiveColumns(ctx->Y,0,ctx->L_max*contour->npoints);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(V,0,ctx->L);CHKERRQ(ierr);
   ierr = BVDot(ctx->Y,V,M);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(M,&pM);CHKERRQ(ierr);
   for (i=0;i<contour->npoints;i++) {
     for (j=0;j<ctx->L;j++) {
       for (k=0;k<ctx->L;k++) {
-        temp[k+j*ctx->L+i*ctx->L*ctx->L]=m[k+j*ctx->L+i*ctx->L*ctx->L_max];
+        temp[k+j*ctx->L+i*ctx->L*ctx->L]=pM[k+j*ctx->L+i*ctx->L*ctx->L_max];
       }
     }
   }
-  ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArrayRead(M,&pM);CHKERRQ(ierr);
   for (i=0;i<contour->npoints;i++) ppk[i] = 1;
   for (k=0;k<2*ctx->M;k++) {
     for (j=0;j<ctx->L;j++) {
@@ -267,19 +266,6 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
   ierr = MPIU_Allreduce(temp2,Mu,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)nep));CHKERRMPI(ierr);
   ierr = PetscFree3(temp,temp2,ppk);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode BlockHankel(NEP nep,PetscScalar *Mu,PetscInt s,PetscScalar *H)
-{
-  NEP_CISS *ctx = (NEP_CISS*)nep->data;
-  PetscInt i,j,k,L=ctx->L,M=ctx->M;
-
-  PetscFunctionBegin;
-  for (k=0;k<L*M;k++)
-    for (j=0;j<M;j++)
-      for (i=0;i<L;i++)
-        H[j*L+i+k*L*M] = Mu[i+k*L+(j+s)*L*L];
   PetscFunctionReturn(0);
 }
 
@@ -659,7 +645,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
   for (i=0;i<ctx->refine_blocksize;i++) {
     ierr = CalcMu(nep,Mu);CHKERRQ(ierr);
-    ierr = BlockHankel(nep,Mu,0,H0);CHKERRQ(ierr);
+    ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
     ierr = SVD_H0(nep,H0,&nv);CHKERRQ(ierr);
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
@@ -690,7 +676,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     for (inner=0;inner<=ctx->refine_inner;inner++) {
       if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
         ierr = CalcMu(nep,Mu);CHKERRQ(ierr);
-        ierr = BlockHankel(nep,Mu,0,H0);CHKERRQ(ierr);
+        ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
         ierr = SVD_H0(nep,H0,&nv);CHKERRQ(ierr);
       } else {
         ierr = ConstructS(nep);CHKERRQ(ierr);
@@ -721,8 +707,8 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = DSSetDimensions(nep->ds,nv,0,0);CHKERRQ(ierr);
       ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
       if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
-        ierr = BlockHankel(nep,Mu,0,H0);CHKERRQ(ierr);
-        ierr = BlockHankel(nep,Mu,1,H1);CHKERRQ(ierr);
+        ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
+        ierr = CISS_BlockHankel(Mu,1,ctx->L,ctx->M,H1);CHKERRQ(ierr);
         ierr = DSGetArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
         for (j=0;j<nv;j++)
           for (i=0;i<nv;i++)

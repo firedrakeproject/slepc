@@ -190,22 +190,19 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   PetscMPIInt       sub_size,len;
   PetscInt          i,j,k,s;
   PetscScalar       *temp,*temp2,*ppk,alp;
-  const PetscScalar *pM;
   Mat               M;
+  BV                V;
+  const PetscScalar *pM;
 
   PetscFunctionBegin;
+  V = (contour->pA)?ctx->pV:ctx->V;
   ierr = MPI_Comm_size(PetscSubcommChild(contour->subcomm),&sub_size);CHKERRMPI(ierr);
   ierr = PetscMalloc3(contour->npoints*ctx->L*(ctx->L+1),&temp,2*ctx->M*ctx->L*ctx->L,&temp2,contour->npoints,&ppk);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,ctx->L,ctx->L_max*contour->npoints,NULL,&M);CHKERRQ(ierr);
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] = 0;
   ierr = BVSetActiveColumns(ctx->Y,0,ctx->L_max*contour->npoints);CHKERRQ(ierr);
-  if (contour->pA) {
-    ierr = BVSetActiveColumns(ctx->pV,0,ctx->L);CHKERRQ(ierr);
-    ierr = BVDot(ctx->Y,ctx->pV,M);CHKERRQ(ierr);
-  } else {
-    ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
-    ierr = BVDot(ctx->Y,ctx->V,M);CHKERRQ(ierr);
-  }
+  ierr = BVSetActiveColumns(V,0,ctx->L);CHKERRQ(ierr);
+  ierr = BVDot(ctx->Y,V,M);CHKERRQ(ierr);
   ierr = MatDenseGetArrayRead(M,&pM);CHKERRQ(ierr);
   for (i=0;i<contour->npoints;i++) {
     for (j=0;j<ctx->L;j++) {
@@ -234,19 +231,6 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   ierr = MPIU_Allreduce(temp2,Mu,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
   ierr = PetscFree3(temp,temp2,ppk);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode BlockHankel(EPS eps,PetscScalar *Mu,PetscInt s,PetscScalar *H)
-{
-  EPS_CISS *ctx = (EPS_CISS*)eps->data;
-  PetscInt i,j,k,L=ctx->L,M=ctx->M;
-
-  PetscFunctionBegin;
-  for (k=0;k<L*M;k++)
-    for (j=0;j<M;j++)
-      for (i=0;i<L;i++)
-        H[j*L+i+k*L*M] = Mu[i+k*L+(j+s)*L*L];
   PetscFunctionReturn(0);
 }
 
@@ -779,7 +763,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
   for (i=0;i<ctx->refine_blocksize;i++) {
     ierr = CalcMu(eps,Mu);CHKERRQ(ierr);
-    ierr = BlockHankel(eps,Mu,0,H0);CHKERRQ(ierr);
+    ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
     ierr = SVD_H0(eps,H0,&nv);CHKERRQ(ierr);
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
@@ -804,7 +788,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     for (inner=0;inner<=ctx->refine_inner;inner++) {
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
         ierr = CalcMu(eps,Mu);CHKERRQ(ierr);
-        ierr = BlockHankel(eps,Mu,0,H0);CHKERRQ(ierr);
+        ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
         ierr = SVD_H0(eps,H0,&nv);CHKERRQ(ierr);
         break;
       } else {
@@ -832,8 +816,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-        ierr = BlockHankel(eps,Mu,0,H0);CHKERRQ(ierr);
-        ierr = BlockHankel(eps,Mu,1,H1);CHKERRQ(ierr);
+        ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
+        ierr = CISS_BlockHankel(Mu,1,ctx->L,ctx->M,H1);CHKERRQ(ierr);
         ierr = DSGetArray(eps->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
         for (j=0;j<nv;j++) {
           for (i=0;i<nv;i++) {

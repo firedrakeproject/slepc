@@ -14,6 +14,21 @@
 #include <slepc/private/slepcimpl.h>
 #include <petscksp.h>
 
+/*
+  CISS_BlockHankel - Builds a block Hankel matrix from the contents of Mu.
+*/
+PETSC_STATIC_INLINE PetscErrorCode CISS_BlockHankel(PetscScalar *Mu,PetscInt s,PetscInt L,PetscInt M,PetscScalar *H)
+{
+  PetscInt i,j,k;
+
+  PetscFunctionBegin;
+  for (k=0;k<L*M;k++)
+    for (j=0;j<M;j++)
+      for (i=0;i<L;i++)
+        H[j*L+i+k*L*M] = Mu[i+k*L+(j+s)*L*L];
+  PetscFunctionReturn(0);
+}
+
 /* Data structures and functions for contour integral methods (used in several classes) */
 struct _n_SlepcContourData {
   PetscObject  parent;     /* parent object */
