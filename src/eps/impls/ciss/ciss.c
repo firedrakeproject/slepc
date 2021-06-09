@@ -424,41 +424,6 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
-{
-  PetscErrorCode ierr;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j;
-  PetscScalar    *pX;
-  PetscReal      *tau,s1,s2,tau_max=0.0;
-
-  PetscFunctionBegin;
-  ierr = PetscMalloc1(nv,&tau);CHKERRQ(ierr);
-  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-
-  for (i=0;i<nv;i++) {
-    s1 = 0;
-    s2 = 0;
-    for (j=0;j<nv;j++) {
-      s1 += PetscAbsScalar(PetscPowScalarInt(pX[i*ld+j],2));
-      s2 += PetscPowRealInt(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
-    }
-    tau[i] = s1/s2;
-    tau_max = PetscMax(tau_max,tau[i]);
-  }
-  ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-  for (i=0;i<nv;i++) {
-    tau[i] /= tau_max;
-  }
-  for (i=0;i<nv;i++) {
-    if (tau[i]>=ctx->spurious_threshold) fl[i] = PETSC_TRUE;
-    else fl[i] = PETSC_FALSE;
-  }
-  ierr = PetscFree(tau);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
 {
   PetscErrorCode ierr;
@@ -851,7 +816,10 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 
       ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
       ierr = rescale_eig(eps,nv);CHKERRQ(ierr);
-      ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
+      ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+      ierr = CISS_isGhost(X,nv,ctx->sigma,ctx->spurious_threshold,fl1);CHKERRQ(ierr);
+      ierr = MatDestroy(&X);CHKERRQ(ierr);
       ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
       for (i=0;i<nv;i++) {
         if (fl1[i] && inside[i]>=0) {

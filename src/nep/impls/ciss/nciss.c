@@ -442,41 +442,6 @@ static PetscErrorCode ConstructS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode isGhost(NEP nep,PetscInt ld,PetscInt nv,PetscBool *fl)
-{
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i,j;
-  PetscScalar    *pX;
-  PetscReal      *tau,s1,s2,tau_max=0.0;
-
-  PetscFunctionBegin;
-  ierr = PetscMalloc1(nv,&tau);CHKERRQ(ierr);
-  ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetArray(nep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-
-  for (i=0;i<nv;i++) {
-    s1 = 0;
-    s2 = 0;
-    for (j=0;j<nv;j++) {
-      s1 += PetscAbsScalar(PetscPowScalarInt(pX[i*ld+j],2));
-      s2 += PetscPowRealInt(PetscAbsScalar(pX[i*ld+j]),2)/ctx->sigma[j];
-    }
-    tau[i] = s1/s2;
-    tau_max = PetscMax(tau_max,tau[i]);
-  }
-  ierr = DSRestoreArray(nep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-  for (i=0;i<nv;i++) {
-    tau[i] /= tau_max;
-  }
-  for (i=0;i<nv;i++) {
-    if (tau[i]>=ctx->spurious_threshold) fl[i] = PETSC_TRUE;
-    else fl[i] = PETSC_FALSE;
-  }
-  ierr = PetscFree(tau);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode NEPSetUp_CISS(NEP nep)
 {
   PetscErrorCode   ierr;
@@ -748,7 +713,10 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       }
     }
     ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
-    ierr = isGhost(nep,ld,nv,fl1);CHKERRQ(ierr);
+    ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSGetMat(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+    ierr = CISS_isGhost(X,nv,ctx->sigma,ctx->spurious_threshold,fl1);CHKERRQ(ierr);
+    ierr = MatDestroy(&X);CHKERRQ(ierr);
     if (nv) {
       ierr = RGCheckInside(nep->rg,nv,nep->eigr,nep->eigi,inside);CHKERRQ(ierr);
     }

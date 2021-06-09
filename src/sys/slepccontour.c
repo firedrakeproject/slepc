@@ -164,3 +164,43 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
   PetscFunctionReturn(0);
 }
 
+/*
+   CISS_isGhost - Determine if any of the computed eigenpairs are spurious.
+
+   Input Parameters:
+   X - the matrix of eigenvectors (MATSEQDENSE)
+   n - the number of columns to consider
+   sigma - the singular values
+   thresh - threshold to decide whether a value is spurious
+
+   Output Parameter:
+   fl - array of n booleans
+*/
+PetscErrorCode CISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thresh,PetscBool *fl)
+{
+  PetscErrorCode    ierr;
+  const PetscScalar *pX;
+  PetscInt          i,j,m,ld;
+  PetscReal         *tau,s1,s2,tau_max=0.0;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(X,&m,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetLDA(X,&ld);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&tau);CHKERRQ(ierr);
+  ierr = MatDenseGetArrayRead(X,&pX);CHKERRQ(ierr);
+  for (j=0;j<n;j++) {
+    s1 = 0.0;
+    s2 = 0.0;
+    for (i=0;i<m;i++) {
+      s1 += PetscAbsScalar(PetscPowScalarInt(pX[i+j*ld],2));
+      s2 += PetscPowRealInt(PetscAbsScalar(pX[i+j*ld]),2)/sigma[i];
+    }
+    tau[j] = s1/s2;
+    tau_max = PetscMax(tau_max,tau[j]);
+  }
+  ierr = MatDenseRestoreArrayRead(X,&pX);CHKERRQ(ierr);
+  for (j=0;j<n;j++) fl[j] = (tau[j]>=thresh*tau_max)? PETSC_TRUE: PETSC_FALSE;
+  ierr = PetscFree(tau);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
