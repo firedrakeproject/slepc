@@ -279,7 +279,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
    Collective on svd
 
-   Input Parameter:
+   Input Parameters:
 +  svd   - the singular value solver context
 .  nr    - number of right vectors
 .  isr   - set of basis vectors of the right initial space

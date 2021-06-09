@@ -321,7 +321,7 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Output Parameter:
+   Output Parameters:
 +  minv - number of vectors of the searching subspace after restarting
 -  plusk - number of vectors saved from the previous iteration
 

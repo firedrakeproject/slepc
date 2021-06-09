@@ -19,7 +19,7 @@
 
    Collective on lme
 
-   Input Parameters:
+   Input Parameter:
 .  lme - linear matrix equation solver context obtained from LMECreate()
 
    Options Database Keys:

@@ -392,10 +392,10 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
 
    Not Collective
 
-   Input Parameters:
+   Input Parameter:
 .  svd - singular value solver context obtained from SVDCreate()
 
-   Output Parameter:
+   Output Parameters:
 +  V - basis vectors context for right singular vectors
 -  U - basis vectors context for left singular vectors
 

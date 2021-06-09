@@ -658,7 +658,7 @@ static PetscErrorCode DSNEPGetFN_NEP(DS ds,PetscInt k,FN *fn)
 
    Not collective, though parallel FNs are returned if the DS is parallel
 
-   Input Parameter:
+   Input Parameters:
 +  ds - the direct solver context
 -  k  - the index of the requested function (starting in 0)
 

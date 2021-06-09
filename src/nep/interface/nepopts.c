@@ -1065,7 +1065,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
 +  refine - refinement type
 .  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
--  its    - maximum number of refinement iterations
+.  its    - maximum number of refinement iterations
 -  scheme - the scheme used for solving linear systems
 
    Level: intermediate

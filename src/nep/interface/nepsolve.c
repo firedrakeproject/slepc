@@ -554,7 +554,7 @@ PetscErrorCode NEPGetLeftEigenvector(NEP nep,PetscInt i,Vec Wr,Vec Wi)
 
    Not Collective
 
-   Input Parameter:
+   Input Parameters:
 +  nep - nonlinear eigensolver context
 -  i   - index of eigenpair
 
@@ -613,7 +613,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscBool adj,PetscScalar 
 
    Collective on nep
 
-   Input Parameter:
+   Input Parameters:
 +  nep  - the nonlinear eigensolver context
 .  i    - the solution index
 -  type - the type of error to compute

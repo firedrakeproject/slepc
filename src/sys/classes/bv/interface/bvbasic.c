@@ -21,7 +21,7 @@ PetscFunctionList BVList = 0;
 
    Logically Collective on bv
 
-   Input Parameter:
+   Input Parameters:
 +  bv   - the basis vectors context
 -  type - a known type
 
@@ -440,7 +440,7 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
    Input Parameter:
 .  bv - the basis vectors context
 
-   Output Parameter:
+   Output Parameters:
 +  l  - number of leading columns
 -  k  - number of active columns
 
@@ -520,7 +520,7 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
    Input Parameter:
 .  bv    - the basis vectors context
 
-   Output Parameter:
+   Output Parameters:
 +  B     - the matrix of the inner product (may be NULL)
 -  indef - the flag indicating if the matrix is indefinite
 
@@ -543,7 +543,7 @@ PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
 
    Neighbor-wise Collective on bv
 
-   Input Parameter:
+   Input Parameters:
 +  bv - the basis vectors context
 -  x  - the vector
 
@@ -621,7 +621,7 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
 
    Logically Collective on bv
 
-   Input Parameter:
+   Input Parameters:
 +  bv    - the basis vectors context
 -  omega - a vector representing the diagonal of the signature matrix
 
@@ -1018,7 +1018,7 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
    Input Parameter:
 .  bv - basis vectors context
 
-   Output Parameter:
+   Output Parameters:
 +  type   - the method of vector orthogonalization
 .  refine - type of refinement
 .  eta    - parameter for selective refinement
@@ -1597,7 +1597,7 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
 
    Collective on V
 
-   Input Parameter:
+   Input Parameters:
 +  V - basis vectors context
 -  m - the new number of columns
 
@@ -1726,7 +1726,7 @@ PetscErrorCode BVCopy(BV V,BV W)
 
    Logically Collective on V
 
-   Input Parameter:
+   Input Parameters:
 +  V - basis vectors context
 -  j - the column number to be copied
 
@@ -1771,7 +1771,7 @@ PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
 
    Logically Collective on V
 
-   Input Parameter:
+   Input Parameters:
 +  V - basis vectors context
 .  j - the number of the source column
 -  i - the number of the destination column
@@ -1853,7 +1853,7 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
 
    Logically Collective on bv
 
-   Input Parameters:
+   Input Parameter:
 .  bv - the basis vectors context
 
    Output Parameters:

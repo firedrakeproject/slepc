@@ -319,7 +319,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
 
    Not collective, though parallel Mats are returned if the ST is parallel
 
-   Input Parameter:
+   Input Parameters:
 +  st - the spectral transformation context
 -  k  - the index of the requested matrix (starting in 0)
 
@@ -348,7 +348,7 @@ PetscErrorCode STGetMatrix(ST st,PetscInt k,Mat *A)
 
    Not collective, though parallel Mats are returned if the ST is parallel
 
-   Input Parameter:
+   Input Parameters:
 +  st - the spectral transformation context
 -  k  - the index of the requested matrix (starting in 0)
 
@@ -429,7 +429,7 @@ PetscErrorCode STResetMatrixState(ST st)
 
    Collective on st
 
-   Input Parameter:
+   Input Parameters:
 +  st  - the spectral transformation context
 -  mat - the matrix that will be used in constructing the preconditioner
 

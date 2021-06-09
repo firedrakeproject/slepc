@@ -1646,7 +1646,7 @@ static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,Pe
    Input Parameter:
 .  nep - the nonlinear eigensolver context
 
-   Output Parameter:
+   Output Parameters:
 +  tol    - tolerance to stop computing divided differences
 -  degree - maximum degree of interpolation
 
@@ -1751,7 +1751,7 @@ static PetscErrorCode NEPNLEIGSGetRKShifts_NLEIGS(NEP nep,PetscInt *ns,PetscScal
    Input Parameter:
 .  nep - the nonlinear eigensolver context
 
-   Output Parameter:
+   Output Parameters:
 +  ns     - number of shifts
 -  shifts - array of shifts
 

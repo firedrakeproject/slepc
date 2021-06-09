@@ -201,7 +201,7 @@ PetscErrorCode RGGetOptionsPrefix(RG rg,const char *prefix[])
 
    Logically Collective on rg
 
-   Input Parameter:
+   Input Parameters:
 +  rg   - the region context
 -  type - a known type
 
@@ -509,12 +509,14 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
 
    Not Collective
 
-   Input Parameters:
+   Input Parameter:
 .  rg - the region context
 
    Output Parameters:
-+  a,b - endpoints of the bounding box in the real axis
--  c,d - endpoints of the bounding box in the imaginary axis
++  a - left endpoint of the bounding box in the real axis
+.  b - right endpoint of the bounding box in the real axis
+.  c - bottom endpoint of the bounding box in the imaginary axis
+-  d - top endpoint of the bounding box in the imaginary axis
 
    Notes:
    The bounding box is defined as [a,b]x[c,d]. In regions that are not bounded (e.g. an

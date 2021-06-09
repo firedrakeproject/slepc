@@ -47,8 +47,10 @@ static PetscErrorCode RGIntervalSetEndpoints_Interval(RG rg,PetscReal a,PetscRea
 
    Input Parameters:
 +  rg  - the region context
-.  a,b - endpoints of the interval in the real axis
--  c,d - endpoints of the interval in the imaginary axis
+.  a - left endpoint of the interval in the real axis
+.  b - right endpoint of the interval in the real axis
+.  c - bottom endpoint of the interval in the imaginary axis
+-  d - top endpoint of the interval in the imaginary axis
 
    Options Database Keys:
 .  -rg_interval_endpoints - the four endpoints
@@ -100,8 +102,10 @@ static PetscErrorCode RGIntervalGetEndpoints_Interval(RG rg,PetscReal *a,PetscRe
 .  rg - the region context
 
    Output Parameters:
-+  a,b - endpoints of the interval in the real axis
--  c,d - endpoints of the interval in the imaginary axis
++  a - left endpoint of the interval in the real axis
+.  b - right endpoint of the interval in the real axis
+.  c - bottom endpoint of the interval in the imaginary axis
+-  d - top endpoint of the interval in the imaginary axis
 
    Level: advanced
 

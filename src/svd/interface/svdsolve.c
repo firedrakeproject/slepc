@@ -389,7 +389,7 @@ static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigm
 
    Collective on svd
 
-   Input Parameter:
+   Input Parameters:
 +  svd  - the singular value solver context
 .  i    - the solution index
 -  type - the type of error to compute

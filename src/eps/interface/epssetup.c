@@ -488,7 +488,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 
    Collective on eps
 
-   Input Parameter:
+   Input Parameters:
 +  eps - the eigenproblem solver context
 .  n   - number of vectors
 -  v   - set of basis vectors of the deflation space
@@ -532,7 +532,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
 
    Collective on eps
 
-   Input Parameter:
+   Input Parameters:
 +  eps - the eigenproblem solver context
 .  n   - number of vectors
 -  is  - set of basis vectors of the initial space
@@ -577,7 +577,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
 
    Collective on eps
 
-   Input Parameter:
+   Input Parameters:
 +  eps - the eigenproblem solver context
 .  n   - number of vectors
 -  isl - set of basis vectors of the left initial space

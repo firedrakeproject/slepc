@@ -319,7 +319,7 @@ static PetscErrorCode EPSFEASTGetNumPoints_FEAST(EPS eps,PetscInt *npoints)
 .  eps     - the eigenproblem solver context
 
    Output Parameter:
--  npoints - number of contour integration points
+.  npoints - number of contour integration points
 
    Level: advanced
 

@@ -151,7 +151,7 @@ static PetscErrorCode STFilterGetInterval_Filter(ST st,PetscReal *inta,PetscReal
    Input Parameter:
 .  st  - the spectral transformation context
 
-   Output Parameter:
+   Output Parameters:
 +  inta - left end of the interval
 -  intb - right end of the interval
 
@@ -237,7 +237,7 @@ static PetscErrorCode STFilterGetRange_Filter(ST st,PetscReal *left,PetscReal *r
    Input Parameter:
 .  st  - the spectral transformation context
 
-   Output Parameter:
+   Output Parameters:
 +  left  - left end of the interval
 -  right - right end of the interval
 

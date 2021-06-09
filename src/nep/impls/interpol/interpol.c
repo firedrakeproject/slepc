@@ -331,7 +331,7 @@ static PetscErrorCode NEPInterpolGetInterpolation_Interpol(NEP nep,PetscReal *to
    Input Parameter:
 .  nep - nonlinear eigenvalue solver
 
-   Output Parameter:
+   Output Parameters:
 +  tol - tolerance to stop computing polynomial coefficients
 -  deg - maximum degree of interpolation
 

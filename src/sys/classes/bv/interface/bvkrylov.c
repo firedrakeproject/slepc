@@ -23,11 +23,10 @@
 .  A - the matrix
 .  H - (optional) the upper Hessenberg matrix
 .  k - number of locked columns
--  m - dimension of the Arnoldi basis
+-  m - dimension of the Arnoldi basis, may be modified
 
    Output Parameters:
-+  m - the modified dimension
-.  beta - (optional) norm of last vector before normalization
++  beta - (optional) norm of last vector before normalization
 -  breakdown - (optional) flag indicating that breakdown occurred
 
    Notes:
@@ -129,12 +128,13 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
 .  A - the matrix
 .  alpha - diagonal entries of tridiagonal matrix
 .  beta - subdiagonal entries of tridiagonal matrix
-.  k - number of locked columns
--  m - dimension of the Lanczos basis
+-  k - number of locked columns
 
-   Output Parameters:
-+  m - the modified dimension
--  breakdown - (optional) flag indicating that breakdown occurred
+   Input/Output Parameter:
+.  m - dimension of the Lanczos basis, may be modified
+
+   Output Parameter:
+.  breakdown - (optional) flag indicating that breakdown occurred
 
    Notes:
    Computes an m-step Lanczos factorization for matrix A, with full

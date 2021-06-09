@@ -931,7 +931,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructu
 
    Not collective, though parallel Mats and FNs are returned if the NEP is parallel
 
-   Input Parameter:
+   Input Parameters:
 +  nep - the nonlinear eigensolver context
 -  k   - the index of the requested term (starting in 0)
 

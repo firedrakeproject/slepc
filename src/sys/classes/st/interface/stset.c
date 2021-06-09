@@ -21,7 +21,7 @@ PetscFunctionList STList = 0;
 
    Logically Collective on st
 
-   Input Parameter:
+   Input Parameters:
 +  st   - the spectral transformation context.
 -  type - a known type
 

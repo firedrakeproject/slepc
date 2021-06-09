@@ -172,7 +172,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
    Input Parameter:
 .  ds - the direct solver context
 
-   Output Parameter:
+   Output Parameters:
 +  n  - the current size
 .  l  - number of locked (inactive) leading columns
 .  k  - intermediate dimension (e.g., position of arrow)

@@ -575,7 +575,7 @@ PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
 
    Not Collective
 
-   Input Parameter:
+   Input Parameters:
 +  eps - eigensolver context
 -  i   - index of eigenpair
 
@@ -673,7 +673,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
 
    Collective on eps
 
-   Input Parameter:
+   Input Parameters:
 +  eps  - the eigensolver context
 .  i    - the solution index
 -  type - the type of error to compute

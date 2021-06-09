@@ -242,7 +242,7 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
 
    Logically Collective on ds
 
-   Input Parameter:
+   Input Parameters:
 +  ds   - the direct solver context
 -  type - a known type
 
@@ -343,7 +343,7 @@ PetscErrorCode DSDuplicate(DS ds,DS *dsnew)
 
    Logically Collective on ds
 
-   Input Parameter:
+   Input Parameters:
 +  ds   - the direct solver context
 -  meth - an index indentifying the method
 
@@ -394,7 +394,7 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
 
    Logically Collective on ds
 
-   Input Parameter:
+   Input Parameters:
 +  ds    - the direct solver context
 -  pmode - the parallel mode
 
@@ -459,7 +459,7 @@ PetscErrorCode DSGetParallel(DS ds,DSParallelType *pmode)
 
    Logically Collective on ds
 
-   Input Parameter:
+   Input Parameters:
 +  ds   - the direct solver context
 -  comp - a boolean flag
 
@@ -514,7 +514,7 @@ PetscErrorCode DSGetCompact(DS ds,PetscBool *comp)
 
    Logically Collective on ds
 
-   Input Parameter:
+   Input Parameters:
 +  ds  - the direct solver context
 -  ext - a boolean flag
 
@@ -570,7 +570,7 @@ PetscErrorCode DSGetExtraRow(DS ds,PetscBool *ext)
 
    Logically Collective on ds
 
-   Input Parameter:
+   Input Parameters:
 +  ds  - the direct solver context
 -  ref - a boolean flag
 
@@ -626,7 +626,7 @@ PetscErrorCode DSGetRefined(DS ds,PetscBool *ref)
 
    Logically Collective on ds
 
-   Input Parameter:
+   Input Parameters:
 +  ds - the direct solver context
 -  bs - the block size
 

@@ -150,7 +150,7 @@ static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool ksphasmat)
 
    Collective on st
 
-   Input Parameter:
+   Input Parameters:
 +  st - the spectral transformation context
 -  ksphasmat - the flag
 

@@ -211,7 +211,7 @@ PetscErrorCode FNGetOptionsPrefix(FN fn,const char *prefix[])
 
    Logically Collective on fn
 
-   Input Parameter:
+   Input Parameters:
 +  fn   - the math function context
 -  type - a known type
 
@@ -336,7 +336,7 @@ PetscErrorCode FNGetScale(FN fn,PetscScalar *alpha,PetscScalar *beta)
 
    Logically Collective on fn
 
-   Input Parameter:
+   Input Parameters:
 +  fn   - the math function context
 -  meth - an index indentifying the method
 
@@ -395,7 +395,7 @@ PetscErrorCode FNGetMethod(FN fn,PetscInt *meth)
 
    Logically Collective on fn
 
-   Input Parameter:
+   Input Parameters:
 +  fn    - the math function context
 -  pmode - the parallel mode
 

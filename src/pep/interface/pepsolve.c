@@ -341,7 +341,7 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
 
    Not Collective
 
-   Input Parameter:
+   Input Parameters:
 +  pep - polynomial eigensolver context
 -  i   - index of eigenpair
 
@@ -458,7 +458,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 
    Collective on pep
 
-   Input Parameter:
+   Input Parameters:
 +  pep  - the polynomial eigensolver context
 .  i    - the solution index
 -  type - the type of error to compute

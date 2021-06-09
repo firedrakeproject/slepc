@@ -352,7 +352,7 @@ static PetscErrorCode NEPRIISetLagPreconditioner_RII(NEP nep,PetscInt lag)
           the Jacobian is built, etc.
 
    Options Database Keys:
-.  -nep_rii_lag_preconditioner <lag>
+.  -nep_rii_lag_preconditioner <lag> - the lag value
 
    Notes:
    The default is 1.

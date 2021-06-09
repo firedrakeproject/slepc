@@ -374,7 +374,7 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
 
    Collective on pep
 
-   Input Parameter:
+   Input Parameters:
 +  pep   - the polynomial eigensolver context
 .  n     - number of vectors
 -  is    - set of basis vectors of the initial space

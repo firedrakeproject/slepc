@@ -1111,7 +1111,7 @@ static PetscErrorCode EPSKrylovSchurGetSubcommPairs_KrylovSchur(EPS eps,PetscInt
 
    Collective on the subcommunicator (if v is given)
 
-   Input Parameter:
+   Input Parameters:
 +  eps - the eigenproblem solver context
 -  i   - index of the solution
 

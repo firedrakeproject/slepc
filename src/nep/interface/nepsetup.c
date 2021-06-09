@@ -208,7 +208,7 @@ PetscErrorCode NEPSetUp(NEP nep)
 
    Collective on nep
 
-   Input Parameter:
+   Input Parameters:
 +  nep   - the nonlinear eigensolver context
 .  n     - number of vectors
 -  is    - set of basis vectors of the initial space
