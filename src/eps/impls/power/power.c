@@ -197,7 +197,7 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
   ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   if (i==last) i=N;
   ierr = MPIU_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x));CHKERRMPI(ierr);
-  if (*idx==N) SETERRQ(PetscObjectComm((PetscObject)x),PETSC_ERR_PLIB,"Zero vector found");CHKERRQ(ierr);
+  if (*idx==N) SETERRQ(PetscObjectComm((PetscObject)x),PETSC_ERR_PLIB,"Zero vector found");
   ierr = VecGetLayout(x,&map);CHKERRQ(ierr);
   ierr = PetscLayoutFindOwner(map,*idx,p);CHKERRQ(ierr);
   PetscFunctionReturn(0);
