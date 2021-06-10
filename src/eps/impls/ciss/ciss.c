@@ -273,52 +273,6 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode ConstructS(EPS eps)
-{
-  PetscErrorCode   ierr;
-  EPS_CISS         *ctx = (EPS_CISS*)eps->data;
-  SlepcContourData contour = ctx->contour;
-  PetscInt         i,j,k,vec_local_size,p_id;
-  Vec              v,sj;
-  PetscScalar      *ppk, *v_data, m = 1;
-
-  PetscFunctionBegin;
-  ierr = BVGetSizes(ctx->Y,&vec_local_size,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscMalloc1(contour->npoints,&ppk);CHKERRQ(ierr);
-  for (i=0;i<contour->npoints;i++) ppk[i] = 1;
-  ierr = BVCreateVec(ctx->Y,&v);CHKERRQ(ierr);
-  for (k=0;k<ctx->M;k++) {
-    for (j=0;j<ctx->L;j++) {
-      ierr = VecSet(v,0);CHKERRQ(ierr);
-      for (i=0;i<contour->npoints;i++) {
-        p_id = i*contour->subcomm->n + contour->subcomm->color;
-        ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
-        ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1.0,v,&m);CHKERRQ(ierr);
-      }
-      if (ctx->useconj) {
-        ierr = VecGetArray(v,&v_data);CHKERRQ(ierr);
-        for (i=0;i<vec_local_size;i++) v_data[i] = PetscRealPart(v_data[i])*2;
-        ierr = VecRestoreArray(v,&v_data);CHKERRQ(ierr);
-      }
-      ierr = BVGetColumn(ctx->S,k*ctx->L+j,&sj);CHKERRQ(ierr);
-      if (contour->pA) {
-        ierr = VecScatterBegin(contour->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-        ierr = VecScatterEnd(contour->scatterin,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      } else {
-        ierr = VecCopy(v,sj);CHKERRQ(ierr);
-      }
-      ierr = BVRestoreColumn(ctx->S,k*ctx->L+j,&sj);CHKERRQ(ierr);
-    }
-    for (i=0;i<contour->npoints;i++) {
-      p_id = i*contour->subcomm->n + contour->subcomm->color;
-      ppk[i] *= ctx->pp[p_id];
-    }
-  }
-  ierr = PetscFree(ppk);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *K)
 {
   PetscErrorCode ierr;
@@ -757,7 +711,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         ierr = SVD_H0(eps,H0,&nv);CHKERRQ(ierr);
         break;
       } else {
-        ierr = ConstructS(eps);CHKERRQ(ierr);
+        ierr = BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
@@ -833,7 +787,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-        ierr = ConstructS(eps);CHKERRQ(ierr);
+        ierr = BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
