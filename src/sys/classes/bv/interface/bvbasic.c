@@ -420,13 +420,13 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
   if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
     bv->k = bv->m;
   } else {
-    if (k<0 || k>bv->m) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and m");
+    if (k<0 || k>bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k (%D). Must be between 0 and m (%D)",k,bv->m);
     bv->k = k;
   }
   if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
     bv->l = 0;
   } else {
-    if (l<0 || l>bv->k) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l. Must be between 0 and k");
+    if (l<0 || l>bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l (%D). Must be between 0 and k (%D)",l,bv->k);
     bv->l = l;
   }
   PetscFunctionReturn(0);

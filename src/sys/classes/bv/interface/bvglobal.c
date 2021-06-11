@@ -58,11 +58,11 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
    Collective on X
 
    Input Parameters:
-+  X, Y - basis vectors
--  M    - Mat object where the result must be placed
++  X - first basis vectors
+-  Y - second basis vectors
 
    Output Parameter:
-.  M    - the resulting matrix
+.  M - the resulting matrix
 
    Notes:
    This is the generalization of VecDot() for a collection of vectors, M = Y^H*X.
