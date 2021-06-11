@@ -2,6 +2,17 @@
 
 .SUFFIXES: .F  .F90 .f90 ${SUFFIXES} .PETSc .C .cc .cpp .cxx .r .rm .so .html .ad .m .tex .mtex .make  .fig .svg .eps .pdf .jpg .png .dvi .ps .F95 .f95 .fiat .cu .kokkos.cxx
 
+ifneq ($(INSTALLED_PETSC),)
+  PETSC_ARCH_DIR=
+else
+  PETSC_ARCH_DIR=$(PETSC_ARCH)
+endif
+
+PETSCCONFIGDIR ?= $(PETSC_DIR)/config
+ifeq ($(wildcard $(PETSCCONFIGDIR)/gmakegentest.py),)
+  PETSCCONFIGDIR := $(PETSC_DIR)/share/petsc/examples/config
+endif
+
 # TESTSRCDIR is always relative to gmakefile.test
 #  This must be before includes
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -95,21 +106,10 @@ ifdef TIMEOUT
   TESTFLAGS += -t $(TIMEOUT)  # Override the default timeout
 endif
 
-ifneq ($(INSTALLED_PETSC),)
-  PETSC_ARCH_DIR=
-else
-  PETSC_ARCH_DIR=$(PETSC_ARCH)
-endif
-
-PETSCCONFIGDIR ?= $(PETSC_DIR)/config
-ifeq ($(wildcard $(PETSCCONFIGDIR)/gmakegentest.py),)
-  PETSCCONFIGDIR := $(PETSC_DIR)/share/petsc/examples/config
-endif
-
 $(generatedtest) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH_DIR) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
-ifneq ($(filter-out clean check,$(MAKECMDGOALS:clean%=clean)),)
+ifneq ($(filter-out clean check info,$(MAKECMDGOALS:clean%=clean)),)
 include $(generatedtest)
 endif
 
@@ -121,16 +121,16 @@ endif
 
 SLEPC_COMPILE.c = $(call quiet,$(cc_name)) -c $(PCC_FLAGS) $(PFLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(C_DEPFLAGS)
 SLEPC_COMPILE.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
-SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
-SLEPC_COMPILE.hip.cpp = $(call quiet,HIPC) -c $(HIPC_FLAGS) $(HIPFLAGS) $(HIPPPFLAGS) $(HIPOPTFLAGS) $(HIPC_DEPFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
-SLEPC_COMPILE.sycl.cpp = $(call quiet,SYCLCPP) -c $(SYCLCPP_FLAGS) $(SYCLCPPFLAGS) $(SYCLCPPCPPFLAGS) $(SLEPC_CC_INCLUDES) $(SYCLCPP_DEPFLAGS)
-SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="${PETSC_CCPPFLAGS} $(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
+SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(MPICXX_INCLUDES) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(SLEPC_CC_INCLUDES) ${PETSC_CCPPFLAGS} $(CUDACPPFLAGS) $(CUDA_CXXFLAGS)"
+SLEPC_COMPILE.hip.cpp = $(call quiet,HIPC) -c $(MPICXX_INCLUDES) $(HIPC_FLAGS) $(HIPFLAGS) $(HIPPPFLAGS) $(HIPOPTFLAGS) $(HIPC_DEPFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
+SLEPC_COMPILE.sycl.cpp = $(call quiet,SYCLCPP) -c $(MPICXX_INCLUDES) $(SYCLCPP_FLAGS) $(SYCLCPPFLAGS) $(SYCLCPPCPPFLAGS) $(SLEPC_CC_INCLUDES) $(SYCLCPP_DEPFLAGS)
+SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(MPICXX_INCLUDES) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="${PETSC_CCPPFLAGS} $(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
 SLEPC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
 
 ifneq ($(KOKKOS_USE_CUDA_COMPILER),)
   # Kokkos requires nvcc to be in PATH and the C++ compiler to be given in an environmental variable
-  SLEPC_COMPILE.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CXX_LINKER) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES)
-  SLEPC_LINK.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CXX_LINKER) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda  $(CXX_LINKER_FLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(SLEPC_CC_INCLUDES) $(LDFLAGS)
+  SLEPC_COMPILE.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CUDA_CXX) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda -c $(CUDAC_FLAGS) ${PETSC_CCPPFLAGS} $(CUDACPPFLAGS) $(CUDA_CXXFLAGS) $(MPICXX_INCLUDE) $(SLEPC_CC_INCLUDES)
+  SLEPC_LINK.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CUDA_CXX) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda  $(CUDAC_FLAGS) $(MPICXX_INCLUDES) ${PETSC_CCPPFLAGS} $(CUDA_CXXFLAGS) $(CXX_LINKER_FLAGS) $(CUDA_CXXLIBS) $(MPICXX_LIBS) $(SLEPC_CC_INCLUDES) $(LDFLAGS)
 else ifneq ($(KOKKOS_USE_HIP_COMPILER),)
   SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.hip.cpp)
   SLEPC_LINK.kokkos.cxx = MPICH_CXX="$(HIPC)" OMPI_CXX="$(HIPC)" $(CXXLINKER) $(HIPFLAGS) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(SLEPC_CC_INCLUDES) $(LDFLAGS)
@@ -207,13 +207,12 @@ MACOS_FIREWALL := 1
 endif
 
 ifeq ($(MACOS_FIREWALL),1)
-MACOS_FIREWALL_MPIEXEC := $(shell $(PYTHON) -c "import os; print(os.path.realpath('$(MPIEXEC)'))")
 FW := /usr/libexec/ApplicationFirewall/socketfilterfw
 ifeq ($(MACOS_FIREWALL_REFRESH),1)
 define macos-firewall-register
   @APP=$(call abspath, $(1)); \
     echo "MACOS_FIREWALL_REFRESH set => refresh firewall rule"; \
-    if ! sudo -n true 2>/dev/null; then echo "Asking for sudo password to add new firewall rule for\n  $$APP:"; fi; \
+    if ! sudo -n true 2>/dev/null; then printf "Asking for sudo password to add new firewall rule for\n  $$APP\n"; fi; \
     sudo $(FW) --remove $$APP && \
     sudo $(FW) --add $$APP && \
     sudo $(FW) --blockapp $$APP
@@ -223,7 +222,7 @@ define macos-firewall-register
   @APP=$(call abspath, $(1)); \
     ANS=`$(FW) --getappblocked $$APP`; \
     if ! echo $$ANS | grep "$$APP" &> /dev/null; then \
-      if ! sudo -n true 2>/dev/null; then echo "Asking for sudo password to add new firewall rule for\n  $$APP:"; fi; \
+      if ! sudo -n true 2>/dev/null; then printf "Asking for sudo password to add new firewall rule for\n  $$APP\n"; fi; \
       sudo $(FW) --add $$APP && \
       sudo $(FW) --blockapp $$APP; \
     else \
@@ -232,7 +231,7 @@ define macos-firewall-register
 endef
 endif
 define macos-firewall-fix
-  $(call macos-firewall-register, $(MACOS_FIREWALL_MPIEXEC))
+  $(call macos-firewall-register, $(MPIEXECEXECUTABLE))
   $(call macos-firewall-register, $(1))
 endef
 endif
