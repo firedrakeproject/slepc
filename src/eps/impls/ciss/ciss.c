@@ -67,7 +67,7 @@ typedef struct {
   PetscObjectState  rgstate;
 } EPS_CISS;
 
-static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_start,PetscInt L_end,PetscBool initksp)
+static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_start,PetscInt L_end,PetscBool initksp)
 {
   PetscErrorCode   ierr;
   EPS_CISS         *ctx = (EPS_CISS*)eps->data;
@@ -553,9 +553,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 
   if (contour->pA) {
     ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-    ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   } else {
-    ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
@@ -576,9 +576,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) {
       ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-      ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     } else {
-      ierr = SolveLinearSystem(eps,A,B,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     }
     ctx->L += L_add;
   }
@@ -595,9 +595,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) {
       ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-      ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     } else {
-      ierr = SolveLinearSystem(eps,A,B,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     }
     ctx->L += L_add;
   }
@@ -624,9 +624,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
           if (contour->pA) {
             ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-            ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+            ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
           } else {
-            ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+            ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
           }
         } else break;
       }
@@ -752,9 +752,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         }
         if (contour->pA) {
           ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-          ierr = SolveLinearSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+          ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
         } else {
-          ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+          ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
         }
       }
     }
