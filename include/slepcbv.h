@@ -209,6 +209,7 @@ SLEPC_EXTERN PetscErrorCode BVRestoreMat(BV,Mat*);
 
 SLEPC_EXTERN PetscErrorCode BVScatter(BV,BV,VecScatter,Vec);
 SLEPC_EXTERN PetscErrorCode BVSumQuadrature(BV,BV,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,VecScatter,PetscSubcomm,PetscInt,PetscBool);
+SLEPC_EXTERN PetscErrorCode BVDotQuadrature(BV,BV,PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscSubcomm,PetscInt,PetscBool);
 
 SLEPC_EXTERN PetscErrorCode BVCreateTensor(BV,PetscInt,BV*);
 SLEPC_EXTERN PetscErrorCode BVTensorBuildFirstColumn(BV,PetscInt);
