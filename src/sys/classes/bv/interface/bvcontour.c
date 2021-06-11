@@ -121,7 +121,7 @@ PetscErrorCode BVSumQuadrature(BV S,BV Y,PetscInt M,PetscInt L,PetscInt L_max,Pe
   ierr = BVCreateVec(Y,&v);CHKERRQ(ierr);
   for (k=0;k<M;k++) {
     for (j=0;j<L;j++) {
-      ierr = VecSet(v,0);CHKERRQ(ierr);
+      ierr = VecSet(v,0.0);CHKERRQ(ierr);
       for (i=0;i<npoints;i++) {
         ierr = BVSetActiveColumns(Y,i*L_max+j,i*L_max+j+1);CHKERRQ(ierr);
         ierr = BVMultVec(Y,ppk[i]*w[p_id(i)],1.0,v,&one);CHKERRQ(ierr);
@@ -148,7 +148,7 @@ PetscErrorCode BVSumQuadrature(BV S,BV Y,PetscInt M,PetscInt L,PetscInt L_max,Pe
 }
 
 /*@
-   BVDotQuadrature - Computes the sum of terms required in the quadrature
+   BVDotQuadrature - Computes the projection terms required in the quadrature
    rule to approximate the contour integral.
 
    Collective on S
@@ -232,6 +232,80 @@ PetscErrorCode BVDotQuadrature(BV Y,BV V,PetscScalar *Mu,PetscInt M,PetscInt L,P
   ierr = MPIU_Allreduce(temp2,Mu,count,MPIU_SCALAR,MPIU_SUM,PetscSubcommParent(subcomm));CHKERRMPI(ierr);
   ierr = PetscFree3(temp,temp2,ppk);CHKERRQ(ierr);
   ierr = MatDestroy(&H);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVTraceQuadrature - Computes an estimate of the number of eigenvalues
+   inside a region via quantities computed in the quadrature rule of
+   contour integral methods.
+
+   Collective on S
+
+   Input Parameters:
++  Y       - first basis vectors
+.  V       - second basis vectors
+.  L       - block size
+.  L_max   - maximum block size
+.  w       - quadrature weights
+.  scat    - (optional) VecScatter object to communicate between subcommunicators
+.  subcomm - subcommunicator layout
+.  npoints - number of points to process by the subcommunicator
+-  useconj - whether conjugate points can be used or not
+
+   Output Parameter:
+.  est_eig - estimated eigenvalue count
+
+   Notes:
+   This function returns an estimation of the number of eigenvalues in the
+   region, computed as trace(V'*S_0), where S_0 is the first panel of S
+   computed by BVSumQuadrature().
+
+   When using subcommunicators, Y is stored in the subcommunicators for a subset
+   of intergration points. In that case, the computation is done in the subcomm
+   and then scattered to the whole communicator in S using the VecScatter scat.
+   The value npoints is the number of points to be processed in this subcomm
+   and the flag useconj indicates whether symmetric points can be reused.
+
+   Level: developer
+
+.seealso: BVScatter(), BVDotQuadrature(), BVSumQuadrature(), RGComputeQuadrature(), RGCanUseConjugates()
+@*/
+PetscErrorCode BVTraceQuadrature(BV Y,BV V,PetscInt L,PetscInt L_max,PetscScalar *w,VecScatter scat,PetscSubcomm subcomm,PetscInt npoints,PetscBool useconj,PetscReal *est_eig)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j;
+  Vec            y,yall,vj;
+  PetscScalar    dot,sum=0.0,one=1.0;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(Y,BV_CLASSID,1);
+  PetscValidHeaderSpecific(V,BV_CLASSID,2);
+  if (scat) PetscValidHeaderSpecific(scat,PETSCSF_CLASSID,6);
+
+  ierr = BVCreateVec(Y,&y);CHKERRQ(ierr);
+  ierr = BVCreateVec(V,&yall);CHKERRQ(ierr);
+  for (j=0;j<L;j++) {
+    ierr = VecSet(y,0.0);CHKERRQ(ierr);
+    for (i=0;i<npoints;i++) {
+      ierr = BVSetActiveColumns(Y,i*L_max+j,i*L_max+j+1);CHKERRQ(ierr);
+      ierr = BVMultVec(Y,w[p_id(i)],1.0,y,&one);CHKERRQ(ierr);
+    }
+    ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
+    if (scat) {
+      ierr = VecScatterBegin(scat,y,yall,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+      ierr = VecScatterEnd(scat,y,yall,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+      ierr = VecDot(vj,yall,&dot);CHKERRQ(ierr);
+    } else {
+      ierr = VecDot(vj,y,&dot);CHKERRQ(ierr);
+    }
+    ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
+    if (useconj) sum += 2.0*PetscRealPart(dot);
+    else sum += dot;
+  }
+  *est_eig = PetscAbsScalar(sum)/(PetscReal)L;
+  ierr = VecDestroy(&y);CHKERRQ(ierr);
+  ierr = VecDestroy(&yall);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

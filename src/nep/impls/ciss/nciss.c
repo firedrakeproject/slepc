@@ -58,7 +58,6 @@ typedef struct {
   BV                S;
   BV                Y;
   PetscBool         useconj;
-  PetscReal         est_eig;
   Mat               T,J;           /* auxiliary matrices when using subcomm */
   BV                pV;
   NEP_CISS_PROJECT  dsctxf;
@@ -163,57 +162,6 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
   }
   ierr = MatDestroy(&BMV);CHKERRQ(ierr);
   ierr = BVRestoreMat(V,&MV);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-/*
-  N = 1/(2*pi*i)*integral(trace(F(z)^{-1}Fp(z))dz)=Sum_i( w_i * Sum_j(v_j^*  F(z_i)^{-1}Fp(z_i)v_j)/L)
-  N= 1/L Sum_j(v_j^* Sum_i w_i*Y_i(j))
-  Estimation of L_add which is added to the basis L, without exceeding L_max
-*/
-static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
-{
-  PetscErrorCode   ierr;
-  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
-  SlepcContourData contour = ctx->contour;
-  PetscInt         i,j,p_id;
-  PetscScalar      tmp,m = 1,sum = 0.0;
-  PetscReal        eta;
-  Vec              v,vtemp,vj;
-
-  PetscFunctionBegin;
-  ierr = BVCreateVec(ctx->Y,&v);CHKERRQ(ierr);
-  ierr = BVCreateVec(ctx->V,&vtemp);CHKERRQ(ierr);
-  for (j=0;j<ctx->L;j++) {
-    ierr = VecSet(v,0);CHKERRQ(ierr);
-    for (i=0;i<contour->npoints; i++) {
-      p_id = i*contour->subcomm->n + contour->subcomm->color;
-      ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
-      ierr = BVMultVec(ctx->Y,ctx->weight[p_id],1.0,v,&m);CHKERRQ(ierr);
-    }
-    ierr = BVGetColumn(ctx->V,j,&vj);CHKERRQ(ierr);
-    if (contour->pA) {
-      ierr = VecScatterBegin(contour->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecScatterEnd(contour->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecDot(vj,vtemp,&tmp);CHKERRQ(ierr);
-    } else {
-      ierr = VecDot(vj,v,&tmp);CHKERRQ(ierr);
-    }
-    ierr = BVRestoreColumn(ctx->V,j,&vj);CHKERRQ(ierr);
-    if (ctx->useconj) sum += PetscRealPart(tmp)*2;
-    else sum += tmp;
-  }
-  ctx->est_eig = PetscAbsScalar(sum/(PetscReal)ctx->L);
-  eta = PetscPowReal(10.0,-PetscLog10Real(nep->tol)/ctx->N);
-  ierr = PetscInfo1(nep,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
-  *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
-  if (*L_add < 0) *L_add = 0;
-  if (*L_add>ctx->L_max-ctx->L) {
-    ierr = PetscInfo(nep,"Number of eigenvalues around the contour path may be too large\n");CHKERRQ(ierr);
-    *L_add = ctx->L_max-ctx->L;
-  }
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&vtemp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -467,8 +415,8 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   Mat              X,M,E;
   PetscInt         i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,*inside;
   PetscScalar      *Mu,*H0,*H1,*rr,*temp,center;
-  PetscReal        error,max_error,radius,rgscale;
-  PetscBool        *fl1;
+  PetscReal        error,max_error,radius,rgscale,est_eig,eta;
+  PetscBool        isellipse,*fl1;
   Vec              si;
   SlepcSC          sc;
   PetscRandom      rand;
@@ -491,7 +439,17 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   } else {
     ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   }
-  ierr = EstimateNumberEigs(nep,&L_add);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  if (isellipse) {
+    ierr = BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L_max,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig);CHKERRQ(ierr);
+    ierr = PetscInfo1(nep,"Estimated eigenvalue count: %f\n",(double)est_eig);CHKERRQ(ierr);
+    eta = PetscPowReal(10.0,-PetscLog10Real(nep->tol)/ctx->N);
+    L_add = PetscMax(0,(PetscInt)PetscCeilReal((est_eig*eta)/ctx->M)-ctx->L);
+    if (L_add>ctx->L_max-ctx->L) {
+      ierr = PetscInfo(nep,"Number of eigenvalues inside the contour path may be too large\n");CHKERRQ(ierr);
+      L_add = ctx->L_max-ctx->L;
+    }
+  }
   /* Updates L after estimate the number of eigenvalue */
   if (L_add>0) {
     ierr = PetscInfo2(nep,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);

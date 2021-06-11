@@ -62,7 +62,6 @@ typedef struct {
   BV                pV;
   BV                Y;
   PetscBool         useconj;
-  PetscReal         est_eig;
   PetscBool         usest_set;  /* whether the user set the usest flag or not */
   PetscObjectId     rgid;
   PetscObjectState  rgstate;
@@ -133,54 +132,6 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
   if (ctx->usest) { ierr = MatDestroy(&Fz);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
-
-#if defined(PETSC_USE_COMPLEX)
-static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
-{
-  PetscErrorCode   ierr;
-  EPS_CISS         *ctx = (EPS_CISS*)eps->data;
-  SlepcContourData contour = ctx->contour;
-  PetscInt         i,j,p_id;
-  PetscScalar      tmp,m = 1,sum = 0.0;
-  PetscReal        eta;
-  Vec              v,vtemp,vj;
-
-  PetscFunctionBegin;
-  ierr = BVCreateVec(ctx->Y,&v);CHKERRQ(ierr);
-  ierr = BVCreateVec(ctx->V,&vtemp);CHKERRQ(ierr);
-  for (j=0;j<ctx->L;j++) {
-    ierr = VecSet(v,0);CHKERRQ(ierr);
-    for (i=0;i<contour->npoints; i++) {
-      p_id = i*contour->subcomm->n + contour->subcomm->color;
-      ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
-      ierr = BVMultVec(ctx->Y,ctx->weight[p_id],1.0,v,&m);CHKERRQ(ierr);
-    }
-    ierr = BVGetColumn(ctx->V,j,&vj);CHKERRQ(ierr);
-    if (contour->pA) {
-      ierr = VecScatterBegin(contour->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecScatterEnd(contour->scatterin,v,vtemp,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecDot(vj,vtemp,&tmp);CHKERRQ(ierr);
-    } else {
-      ierr = VecDot(vj,v,&tmp);CHKERRQ(ierr);
-    }
-    ierr = BVRestoreColumn(ctx->V,j,&vj);CHKERRQ(ierr);
-    if (ctx->useconj) sum += PetscRealPart(tmp)*2;
-    else sum += tmp;
-  }
-  ctx->est_eig = PetscAbsScalar(sum/(PetscReal)ctx->L);
-  eta = PetscPowReal(10.0,-PetscLog10Real(eps->tol)/ctx->N);
-  ierr = PetscInfo1(eps,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
-  *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
-  if (*L_add < 0) *L_add = 0;
-  if (*L_add>ctx->L_max-ctx->L) {
-    ierr = PetscInfo(eps,"Number of eigenvalues around the contour path may be too large\n");CHKERRQ(ierr);
-    *L_add = ctx->L_max-ctx->L;
-  }
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&vtemp);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-#endif
 
 static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
 {
@@ -576,6 +527,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscRandom      rand;
 #if defined(PETSC_USE_COMPLEX)
   PetscBool        isellipse;
+  PetscReal        est_eig,eta;
 #else
   PetscReal        normi;
 #endif
@@ -608,12 +560,15 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
-    ierr = EstimateNumberEigs(eps,&L_add);CHKERRQ(ierr);
-  } else {
-    L_add = 0;
+    ierr = BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L_max,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig);CHKERRQ(ierr);
+    ierr = PetscInfo1(eps,"Estimated eigenvalue count: %f\n",(double)est_eig);CHKERRQ(ierr);
+    eta = PetscPowReal(10.0,-PetscLog10Real(eps->tol)/ctx->N);
+    L_add = PetscMax(0,(PetscInt)PetscCeilReal((est_eig*eta)/ctx->M)-ctx->L);
+    if (L_add>ctx->L_max-ctx->L) {
+      ierr = PetscInfo(eps,"Number of eigenvalues inside the contour path may be too large\n");CHKERRQ(ierr);
+      L_add = ctx->L_max-ctx->L;
+    }
   }
-#else
-  L_add = 0;
 #endif
   if (L_add>0) {
     ierr = PetscInfo2(eps,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
