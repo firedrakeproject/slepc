@@ -467,6 +467,84 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
 }
 
 /*@
+   RGIsAxisymmetric - Determines if the region is symmetric with respect
+   to the real or imaginary axis.
+
+   Not Collective
+
+   Input Parameters:
++  rg       - the region context
+-  vertical - true if symmetry must be checked against the vertical axis
+
+   Output Parameter:
+.  symm - true if the region is axisymmetric
+
+   Note:
+   If the vertical argument is true, symmetry is checked with respect to
+   the vertical axis, otherwise with respect to the horizontal axis.
+
+   Level: intermediate
+@*/
+PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+  PetscValidBoolPointer(symm,3);
+
+  if (rg->ops->isaxisymmetric) {
+    ierr = (*rg->ops->isaxisymmetric)(rg,vertical,symm);CHKERRQ(ierr);
+  } else *symm = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   RGCanUseConjugates - Used in contour integral methods to determine whether
+   half of integration points can be avoided (use their conjugates).
+
+   Not Collective
+
+   Input Parameters:
++  rg       - the region context
+-  realmats - true if the problem matrices are real
+
+   Output Parameter:
+.  useconj  - whether it is possible to use conjugates
+
+   Notes:
+   If some integration points are the conjugates of other points, then the
+   associated computational cost can be saved. This depends on the problem
+   matrices being real and also the region being symmetric with respect to
+   the horizontal axis. The result is false if using real arithmetic or
+   in the case of a flat region (height equal to zero).
+
+   Level: developer
+@*/
+PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
+{
+#if defined(PETSC_USE_COMPLEX)
+  PetscErrorCode ierr;
+  PetscReal      c,d;
+  PetscBool      isaxisymm;
+#endif
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+  PetscValidBoolPointer(useconj,3);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = RGIsAxisymmetric(rg,PETSC_FALSE,&isaxisymm);CHKERRQ(ierr);
+  ierr = RGComputeBoundingBox(rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
+  *useconj = (realmats && isaxisymm && c!=d)? PETSC_TRUE: PETSC_FALSE;
+#else
+  *useconj = PETSC_FALSE;
+#endif
+  PetscFunctionReturn(0);
+}
+
+/*@
    RGComputeContour - Computes the coordinates of several points lying on the
    contour of the region.
 
@@ -480,6 +558,11 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
 +  cr - location to store real parts
 -  ci - location to store imaginary parts
 
+   Notes:
+   In real scalars, either cr or ci can be NULL (but not both). In complex
+   scalars, the coordinates are stored in cr, which cannot be NULL (ci is
+   not referenced).
+
    Level: intermediate
 @*/
 PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci[])
@@ -490,15 +573,16 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
+#if defined(PETSC_USE_COMPLEX)
   PetscValidScalarPointer(cr,3);
-#if !defined(PETSC_USE_COMPLEX)
-  PetscValidScalarPointer(ci,4);
+#else
+  if (!cr && !ci) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"cr and ci cannot be NULL simultaneously");
 #endif
   if (rg->complement) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Cannot compute contour of region with complement flag set");
   ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
-    cr[i] *= rg->sfactor;
-    ci[i] *= rg->sfactor;
+    if (cr) cr[i] *= rg->sfactor;
+    if (ci) ci[i] *= rg->sfactor;
   }
   PetscFunctionReturn(0);
 }
@@ -547,6 +631,51 @@ PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c
     if (c && *c!=-PETSC_MAX_REAL) *c *= rg->sfactor;
     if (d && *d!= PETSC_MAX_REAL) *d *= rg->sfactor;
   }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   RGComputeQuadrature - Computes the values of the parameters used in a
+   quadrature rule for a contour integral around the boundary of the region.
+
+   Not Collective
+
+   Input Parameters:
++  rg   - the region context
+.  quad - the type of quadrature
+-  n    - number of quadrature points to compute
+
+   Output Parameters:
++  z  - quadrature points
+.  zn - normalized quadrature points
+-  w  - quadrature weights
+
+   Notes:
+   In complex scalars, the values returned in z are often the same as those
+   computed by RGComputeContour(), but this is not the case in real scalars
+   where all output arguments are real.
+
+   The computed values change for different quadrature rules (trapezoidal
+   or Chebyshev).
+
+   Level: intermediate
+
+.seealso: RGComputeContour()
+@*/
+PetscErrorCode RGComputeQuadrature(RG rg,RGQuadRule quad,PetscInt n,PetscScalar z[],PetscScalar zn[],PetscScalar w[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+  PetscValidScalarPointer(z,4);
+  PetscValidScalarPointer(zn,5);
+  PetscValidScalarPointer(w,6);
+
+  ierr = RGComputeContour(rg,n,z,NULL);CHKERRQ(ierr);
+  if (!rg->ops->computequadrature) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Quadrature rules not implemented for this region type");
+  ierr = (*rg->ops->computequadrature)(rg,quad,n,z,zn,w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

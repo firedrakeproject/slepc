@@ -17,3 +17,6 @@
 
       RG, parameter :: SLEPC_NULL_RG = tRG(0)
 
+      PetscEnum, parameter :: RG_QUADRULE_TRAPEZOIDAL = 1
+      PetscEnum, parameter :: RG_QUADRULE_CHEBYSHEV   = 2
+

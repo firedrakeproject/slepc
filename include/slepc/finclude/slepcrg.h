@@ -17,6 +17,7 @@
 #define RG type(tRG)
 
 #define RGType      character*(80)
+#define RGQuadRule  PetscEnum
 
 #define RGINTERVAL  'interval'
 #define RGPOLYGON   'polygon'

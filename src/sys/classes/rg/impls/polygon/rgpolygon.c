@@ -269,15 +269,16 @@ PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
+PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscScalar *uci)
 {
-  RG_POLYGON  *ctx = (RG_POLYGON*)rg->data;
-  PetscReal   length,h,d,rem=0.0;
-  PetscInt    k=1,idx=ctx->n-1,i;
-  PetscBool   ini=PETSC_FALSE;
-  PetscScalar incr;
+  PetscErrorCode ierr;
+  RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
+  PetscReal      length,h,d,rem=0.0;
+  PetscInt       k=1,idx=ctx->n-1,i;
+  PetscBool      ini=PETSC_FALSE;
+  PetscScalar    incr,*cr=ucr,*ci=uci;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscScalar inci;
+  PetscScalar    inci;
 #endif
 
   PetscFunctionBegin;
@@ -285,6 +286,8 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *cr,PetscSc
   length = SlepcAbsEigenvalue(ctx->vr[0]-ctx->vr[ctx->n-1],ctx->vi[0]-ctx->vi[ctx->n-1]);
   for (i=0;i<ctx->n-1;i++) length += SlepcAbsEigenvalue(ctx->vr[i]-ctx->vr[i+1],ctx->vi[i]-ctx->vi[i+1]);
   h = length/n;
+  if (!ucr) { ierr = PetscMalloc1(n,&cr);CHKERRQ(ierr); }
+  if (!uci) { ierr = PetscMalloc1(n,&ci);CHKERRQ(ierr); }
   cr[0] = ctx->vr[0];
 #if !defined(PETSC_USE_COMPLEX)
   ci[0] = ctx->vi[0];
@@ -332,6 +335,8 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *cr,PetscSc
       } else {ini = PETSC_TRUE; idx--;}
     }
   }
+  if (!ucr) { ierr = PetscFree(cr);CHKERRQ(ierr); }
+  if (!uci) { ierr = PetscFree(ci);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

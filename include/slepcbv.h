@@ -184,6 +184,7 @@ SLEPC_EXTERN PetscErrorCode BVNormColumnEnd(BV,PetscInt,NormType,PetscReal*);
 SLEPC_EXTERN PetscErrorCode BVNormalize(BV,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode BVSetRandom(BV);
 SLEPC_EXTERN PetscErrorCode BVSetRandomNormal(BV);
+SLEPC_EXTERN PetscErrorCode BVSetRandomSign(BV);
 SLEPC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVSetRandomCond(BV,PetscReal);
 SLEPC_EXTERN PetscErrorCode BVSetRandomContext(BV,PetscRandom);
@@ -205,6 +206,11 @@ SLEPC_EXTERN PetscErrorCode BVCreateFromMat(Mat,BV*);
 SLEPC_EXTERN PetscErrorCode BVCreateMat(BV,Mat*);
 SLEPC_EXTERN PetscErrorCode BVGetMat(BV,Mat*);
 SLEPC_EXTERN PetscErrorCode BVRestoreMat(BV,Mat*);
+
+SLEPC_EXTERN PetscErrorCode BVScatter(BV,BV,VecScatter,Vec);
+SLEPC_EXTERN PetscErrorCode BVSumQuadrature(BV,BV,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,VecScatter,PetscSubcomm,PetscInt,PetscBool);
+SLEPC_EXTERN PetscErrorCode BVDotQuadrature(BV,BV,PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscSubcomm,PetscInt,PetscBool);
+SLEPC_EXTERN PetscErrorCode BVTraceQuadrature(BV,BV,PetscInt,PetscInt,PetscScalar*,VecScatter,PetscSubcomm,PetscInt,PetscBool,PetscReal*);
 
 SLEPC_EXTERN PetscErrorCode BVCreateTensor(BV,PetscInt,BV*);
 SLEPC_EXTERN PetscErrorCode BVTensorBuildFirstColumn(BV,PetscInt);

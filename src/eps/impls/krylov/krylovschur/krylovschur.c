@@ -1334,11 +1334,13 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
 
       /* Duplicate matrices */
       ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)Ar);CHKERRQ(ierr);
       ctx->Astate = Astate;
       ctx->Aid = Aid;
       ierr = MatPropagateSymmetryOptions(A,Ar);CHKERRQ(ierr);
       if (B) {
         ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
+        ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)Br);CHKERRQ(ierr);
         ctx->Bstate = Bstate;
         ctx->Bid = Bid;
         ierr = MatPropagateSymmetryOptions(B,Br);CHKERRQ(ierr);

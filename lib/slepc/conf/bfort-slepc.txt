@@ -6,6 +6,10 @@ native BVMatMultType
 native DSStateType
 native DSMatType
 native DSParallelType
+native FNCombineType
+native FNParallelType
+native RGQuadRule
+native STMatMode
 native EPSProblemType
 native EPSExtraction
 native EPSWhich
@@ -21,11 +25,9 @@ native EPSCISSQuadRule
 native EPSCISSExtraction
 native EPSEVSLDOSMethod
 native EPSEVSLDamping
-native FNCombineType
-native FNParallelType
-native MFNConvergedReason
 native LMEProblemType
 native LMEConvergedReason
+native MFNConvergedReason
 native NEPProblemType
 native NEPWhich
 native NEPErrorType
@@ -47,7 +49,6 @@ native PEPConv
 native PEPStop
 native PEPConvergedReason
 native PEPJDProjection
-native STMatMode
 native SVDProblemType
 native SVDWhich
 native SVDErrorType

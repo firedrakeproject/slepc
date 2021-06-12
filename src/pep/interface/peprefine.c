@@ -65,8 +65,10 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
     /* Duplicate matrices */
     for (i=0;i<pep->nmat;i++) {
       ierr = MatCreateRedundantMatrix(pep->A[i],0,PetscSubcommChild(pep->refinesubc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->v);CHKERRQ(ierr);
 
     /* Create scatters for sending vectors to each subcommucator */
     ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);

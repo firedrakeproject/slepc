@@ -139,6 +139,10 @@ int main(int argc,char **argv)
          nsize: 2
          args: -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2
       test:
+         suffix: ciss_2_block
+         args: -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_blocksize 3 -eps_ciss_moments 2
+         requires: complex
+      test:
          suffix: ciss_2_hpddm
          nsize: 2
          args: -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2 -eps_ciss_ksp_type hpddm

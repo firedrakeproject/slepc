@@ -23,7 +23,9 @@ struct _RGOps {
   PetscErrorCode (*istrivial)(RG,PetscBool*);
   PetscErrorCode (*computecontour)(RG,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*computebbox)(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+  PetscErrorCode (*computequadrature)(RG,RGQuadRule,PetscInt,PetscScalar*,PetscScalar*,PetscScalar*);
   PetscErrorCode (*checkinside)(RG,PetscReal,PetscReal,PetscInt*);
+  PetscErrorCode (*isaxisymmetric)(RG,PetscBool,PetscBool*);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,RG);
   PetscErrorCode (*view)(RG,PetscViewer);
   PetscErrorCode (*destroy)(RG);

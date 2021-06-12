@@ -88,6 +88,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
     ctx->A = A;
   } else {
     ierr = MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&ctx->A);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->A);CHKERRQ(ierr);
   }
   SetAMatvec(eps->n,&AMatvec_EVSL,(void*)ctx);
   if (!ctx->x) {
