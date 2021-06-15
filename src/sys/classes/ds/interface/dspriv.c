@@ -18,16 +18,21 @@ PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
 {
   size_t         sz;
   PetscInt       n,d,nelem;
-  PetscBool      ispep;
+  PetscBool      ispep,isnep;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)ds,DSNEP,&isnep);CHKERRQ(ierr);
   if (ispep) {
     ierr = DSPEPGetDegree(ds,&d);CHKERRQ(ierr);
   }
-  if (ispep && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_U || m==DS_MAT_X || m==DS_MAT_Y)) n = d*ds->ld;
+  if (isnep) {
+    ierr = DSNEPGetMinimality(ds,&d);CHKERRQ(ierr);
+  }
+  if ((ispep || isnep) && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_U || m==DS_MAT_X || m==DS_MAT_Y)) n = d*ds->ld;
   else n = ds->ld;
+
   switch (m) {
     case DS_MAT_T:
       nelem = 3*ds->ld;
