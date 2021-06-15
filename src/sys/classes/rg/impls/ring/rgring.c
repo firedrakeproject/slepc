@@ -380,7 +380,7 @@ PetscErrorCode RGIsAxisymmetric_Ring(RG rg,PetscBool vertical,PetscBool *symm)
   RG_RING *ctx = (RG_RING*)rg->data;
 
   PetscFunctionBegin;
-  if (vertical) *symm = (PetscRealPart(ctx->center) == 0.0 && PetscAbsReal(ctx->start_ang+ctx->end_ang-1.0) == 0.5)? PETSC_TRUE: PETSC_FALSE;
+  if (vertical) *symm = (PetscRealPart(ctx->center) == 0.0 && PetscAbs(ctx->start_ang+ctx->end_ang-PetscRealConstant(1.0)) == 0.5)? PETSC_TRUE: PETSC_FALSE;
   else *symm = (PetscImaginaryPart(ctx->center) == 0.0 && ctx->start_ang+ctx->end_ang == 1.0)? PETSC_TRUE: PETSC_FALSE;
   PetscFunctionReturn(0);
 }
