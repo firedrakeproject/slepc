@@ -1,0 +1,6 @@
+
+Butterfly problem, n=64 (m=8)
+
+ Found 7 eigenvalues, all of them computed up to the required tolerance:
+     0.85322+0.51710i, 0.91009+0.38428i, 0.93091+0.48036i, 0.94763+0.36077i, 0.95385+0.61144i, 0.96724+0.43016i, 0.99413+0.53514i
+

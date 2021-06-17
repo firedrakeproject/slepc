@@ -11,12 +11,14 @@ class PEPType(object):
     - `TOAR`:         Two-level orthogonal Arnoldi.
     - `STOAR`:        Symmetric TOAR.
     - `JD`:           Polynomial Jacobi-Davidson.
+    - `CISS`:     Contour integral spectrum slice.
     """
     LINEAR   = S_(PEPLINEAR)
     QARNOLDI = S_(PEPQARNOLDI)
     TOAR     = S_(PEPTOAR)
     STOAR    = S_(PEPSTOAR)
     JD       = S_(PEPJD)
+    CISS     = S_(PEPCISS)
 
 class PEPProblemType(object):
     """

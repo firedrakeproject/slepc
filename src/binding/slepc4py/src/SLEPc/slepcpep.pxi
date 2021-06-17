@@ -6,6 +6,7 @@ cdef extern from * nogil:
     SlepcPEPType PEPTOAR
     SlepcPEPType PEPSTOAR
     SlepcPEPType PEPJD
+    SlepcPEPType PEPCISS
 
     ctypedef enum SlepcPEPProblemType "PEPProblemType":
         PEP_GENERAL

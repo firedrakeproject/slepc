@@ -163,4 +163,9 @@ int main(int argc,char **argv)
       args: -pep_type {{toar linear}} -pep_nev 4 -terse
       requires: double
 
+   test:
+      suffix: ciss
+      args: -pep_type ciss  -rg_type ellipse -rg_ellipse_center 1+.5i -rg_ellipse_radius .15 -terse
+      requires: complex
+
 TEST*/
