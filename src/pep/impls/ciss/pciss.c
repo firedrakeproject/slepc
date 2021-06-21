@@ -22,12 +22,9 @@
 
    References:
 
-       [1] T. Sakurai and H. Sugiura, "A projection method for generalized
-           eigenvalue problems", J. Comput. Appl. Math. 159:119-128, 2003.
-
-       [2] T. Sakurai and H. Tadano, "CIRR: a Rayleigh-Ritz type method with
-           contour integral for generalized eigenvalue problems", Hokkaido
-           Math. J. 36:745-757, 2007.
+       [1] J. Asakura, T. Sakurai, H. Tadano, T. Ikegami, K. Kimura, "A
+           numerical method for polynomial eigenvalue problems using contour
+           integral", Japan J. Indust. Appl. Math. 27:73-90, 2010.
 */
 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
@@ -67,7 +64,7 @@ static PetscErrorCode PEPComputeFunction(PEP pep,PetscScalar lambda,Mat T,PetscB
 {
   PetscErrorCode   ierr;
   PetscInt         i;
-  PetscScalar      alpha,*coeff;
+  PetscScalar      *coeff;
   Mat              *A;
   MatStructure     str;
   PEP_CISS         *ctx = (PEP_CISS*)pep->data;

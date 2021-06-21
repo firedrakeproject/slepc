@@ -22,12 +22,13 @@
 
    References:
 
-       [1] T. Sakurai and H. Sugiura, "A projection method for generalized
-           eigenvalue problems", J. Comput. Appl. Math. 159:119-128, 2003.
+       [1] J. Asakura, T. Sakurai, H. Tadano, T. Ikegami, K. Kimura, "A
+           numerical method for nonlinear eigenvalue problems using contour
+           integrals", JSIAM Lett. 1:52-55, 2009.
 
-       [2] T. Sakurai and H. Tadano, "CIRR: a Rayleigh-Ritz type method with
-           contour integral for generalized eigenvalue problems", Hokkaido
-           Math. J. 36:745-757, 2007.
+       [2] S. Yokota and T. Sakurai, "A projection method for nonlinear
+           eigenvalue problems using contour integrals", JSIAM Lett.
+           5:41-44, 2013.
 */
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/

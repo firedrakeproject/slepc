@@ -163,9 +163,15 @@ int main(int argc,char **argv)
       args: -pep_type {{toar linear}} -pep_nev 4 -terse
       requires: double
 
-   test:
-      suffix: ciss
-      args: -pep_type ciss  -rg_type ellipse -rg_ellipse_center 1+.5i -rg_ellipse_radius .15 -terse
+   testset:
+      args: -pep_type ciss -rg_type ellipse -rg_ellipse_center 1+.5i -rg_ellipse_radius .15 -terse
       requires: complex
+      output_file: output/butterfly_ciss.out
+      test:
+         suffix: ciss_hankel
+         args: -pep_ciss_extraction hankel -pep_ciss_integration_points 40
+      test:
+         suffix: ciss_ritz
+         args: -pep_ciss_extraction ritz
 
 TEST*/
