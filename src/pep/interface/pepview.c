@@ -334,7 +334,7 @@ static PetscErrorCode PEPErrorView_ASCII(PEP pep,PEPErrorType etype,PetscViewer 
   } else {
     ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
   }
-  for (i=0;i<=nvals/8;i++) {
+  for (i=0;i<=(nvals-1)/8;i++) {
     ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
     for (j=0;j<PetscMin(8,nvals-8*i);j++) {
       k = pep->perm[8*i+j];
