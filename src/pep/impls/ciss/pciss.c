@@ -506,7 +506,7 @@ PetscErrorCode PEPSolve_CISS(PEP pep)
       }
       ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
       ierr = DSSynchronize(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
-      if (ctx->extraction == PEP_CISS_EXTRACTION_HANKEL) {
+      if (ctx->extraction == PEP_CISS_EXTRACTION_CAA || ctx->extraction == PEP_CISS_EXTRACTION_HANKEL) {
         for (i=0;i<nv;i++) {
           pep->eigr[i] = (pep->eigr[i]*radius+center)*rgscale;
         }

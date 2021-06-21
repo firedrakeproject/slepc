@@ -173,5 +173,8 @@ int main(int argc,char **argv)
       test:
          suffix: ciss_ritz
          args: -pep_ciss_extraction ritz
+      test:
+         suffix: ciss_caa
+         args: -pep_ciss_extraction caa -pep_ciss_moments 4
 
 TEST*/
