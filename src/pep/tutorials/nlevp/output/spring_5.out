@@ -1,7 +1,7 @@
 
 Damped mass-spring system, n=300 mu=1. tau=10. kappa=5.
 
- All requested eigenvalues computed up to the required tolerance:
+ Found 84 eigenvalues, all of them computed up to the required tolerance:
      -0.50598, -0.50596, -0.50594, -0.50592, -0.50589, -0.50587, -0.50585, -0.50583, 
      -0.50581, -0.50579, -0.50577, -0.50575, -0.50573, -0.50571, -0.50570, -0.50568, 
      -0.50566, -0.50564, -0.50563, -0.50561, -0.50559, -0.50558, -0.50556, -0.50555, 

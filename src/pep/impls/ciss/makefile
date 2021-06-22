@@ -10,15 +10,17 @@
 
 ALL: lib
 
+#requiresscalar    complex
+
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = peputils.c
+SOURCEC  = pciss.c
 SOURCEF  =
-SOURCEH  = 
+SOURCEH  =
 LIBBASE  = libslepcpep
-DIRS     = linear krylov jd ciss
-LOCDIR   = src/pep/impls/
+DIRS     =
 MANSEC   = PEP
+LOCDIR   = src/pep/impls/ciss/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

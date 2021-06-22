@@ -80,6 +80,10 @@
       PetscEnum, parameter :: PEP_STOP_BASIC             =  0
       PetscEnum, parameter :: PEP_STOP_USER              =  1
 
+      PetscEnum, parameter :: PEP_CISS_EXTRACTION_RITZ   =  0
+      PetscEnum, parameter :: PEP_CISS_EXTRACTION_HANKEL =  1
+      PetscEnum, parameter :: PEP_CISS_EXTRACTION_CAA    =  2
+
 !
 !   Possible arguments to PEPMonitorSet()
 !

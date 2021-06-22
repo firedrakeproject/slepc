@@ -433,7 +433,7 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     PEP_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     PEP_TARGET_REAL - eigenvalues with real part closest to target
 .     PEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
-.     PEP_ALL - all eigenvalues contained in a given interval
+.     PEP_ALL - all eigenvalues contained in a given interval or region
 -     PEP_WHICH_USER - user defined ordering set with PEPSetEigenvalueComparison()
 
    Options Database Keys:
@@ -446,7 +446,7 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -pep_target_magnitude - Sets eigenvalues closest to target
 .   -pep_target_real - Sets real parts closest to target
 .   -pep_target_imaginary - Sets imaginary parts closest to target
--   -pep_all - Sets all eigenvalues in an interval
+-   -pep_all - Sets all eigenvalues in an interval or region
 
    Notes:
    Not all eigensolvers implemented in PEP account for all the possible values
@@ -460,8 +460,9 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
    SLEPc have been built with complex scalars.
 
    PEP_ALL is intended for use in combination with an interval (see
-   PEPSetInterval()), when all eigenvalues within the interval are requested.
-   In that case, the number of eigenvalues is unknown, so the nev parameter
+   PEPSetInterval()), when all eigenvalues within the interval are requested,
+   and also for computing all eigenvalues in a region with the CISS solver.
+   In both cases, the number of eigenvalues is unknown, so the nev parameter
    has a different sense, see PEPSetDimensions().
 
    Level: intermediate

@@ -40,6 +40,7 @@ typedef const char* PEPType;
 #define PEPTOAR      "toar"
 #define PEPSTOAR     "stoar"
 #define PEPJD        "jd"
+#define PEPCISS      "ciss"
 
 /* Logging support */
 SLEPC_EXTERN PetscClassId PEP_CLASSID;
@@ -364,5 +365,42 @@ SLEPC_EXTERN PetscErrorCode PEPJDGetMinimalityIndex(PEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode PEPJDSetProjection(PEP,PEPJDProjection);
 SLEPC_EXTERN PetscErrorCode PEPJDGetProjection(PEP,PEPJDProjection*);
 
-#endif
+/*E
+    PEPCISSExtraction - determines the extraction technique in the CISS solver
 
+    Level: advanced
+
+.seealso: PEPCISSSetExtraction(), PEPCISSGetExtraction()
+E*/
+typedef enum { PEP_CISS_EXTRACTION_RITZ,
+               PEP_CISS_EXTRACTION_HANKEL,
+               PEP_CISS_EXTRACTION_CAA    } PEPCISSExtraction;
+SLEPC_EXTERN const char *PEPCISSExtractions[];
+
+#if defined(PETSC_USE_COMPLEX)
+SLEPC_EXTERN PetscErrorCode PEPCISSSetExtraction(PEP,PEPCISSExtraction);
+SLEPC_EXTERN PetscErrorCode PEPCISSGetExtraction(PEP,PEPCISSExtraction*);
+SLEPC_EXTERN PetscErrorCode PEPCISSSetSizes(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
+SLEPC_EXTERN PetscErrorCode PEPCISSGetSizes(PEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
+SLEPC_EXTERN PetscErrorCode PEPCISSSetThreshold(PEP,PetscReal,PetscReal);
+SLEPC_EXTERN PetscErrorCode PEPCISSGetThreshold(PEP,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode PEPCISSSetRefinement(PEP,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode PEPCISSGetRefinement(PEP,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode PEPCISSGetKSPs(PEP,PetscInt*,KSP**);
+#else
+#define SlepcPEPCISSUnavailable(pep) do { \
+    PetscFunctionBegin; \
+    SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"%s() not available with real scalars",PETSC_FUNCTION_NAME); \
+    } while (0)
+PETSC_STATIC_INLINE PetscErrorCode PEPCISSSetExtraction(PEP pep,PETSC_UNUSED PEPCISSExtraction ex) {SlepcPEPCISSUnavailable(pep);}
+PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetExtraction(PEP pep,PETSC_UNUSED PEPCISSExtraction *ex) {SlepcPEPCISSUnavailable(pep);}
+PETSC_STATIC_INLINE PetscErrorCode PEPCISSSetSizes(PEP pep,PETSC_UNUSED PetscInt ip,PETSC_UNUSED PetscInt bs,PETSC_UNUSED PetscInt ms,PETSC_UNUSED PetscInt npart,PETSC_UNUSED PetscInt bsmax,PETSC_UNUSED PetscBool realmats) {SlepcPEPCISSUnavailable(pep);}
+PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetSizes(PEP pep,PETSC_UNUSED PetscInt *ip,PETSC_UNUSED PetscInt *bs,PETSC_UNUSED PetscInt *ms,PETSC_UNUSED PetscInt *npart,PETSC_UNUSED PetscInt *bsmak,PETSC_UNUSED PetscBool *realmats) {SlepcPEPCISSUnavailable(pep);}
+PETSC_STATIC_INLINE PetscErrorCode PEPCISSSetThreshold(PEP pep,PETSC_UNUSED PetscReal delta,PETSC_UNUSED PetscReal spur) {SlepcPEPCISSUnavailable(pep);}
+PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetThreshold(PEP pep,PETSC_UNUSED PetscReal *delta,PETSC_UNUSED PetscReal *spur) {SlepcPEPCISSUnavailable(pep);}
+PETSC_STATIC_INLINE PetscErrorCode PEPCISSSetRefinement(PEP pep,PETSC_UNUSED PetscInt inner,PETSC_UNUSED PetscInt blsize) {SlepcPEPCISSUnavailable(pep);}
+PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetRefinement(PEP pep,PETSC_UNUSED PetscInt *inner,PETSC_UNUSED PetscInt *blsize) {SlepcPEPCISSUnavailable(pep);}
+PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetKSPs(PEP pep,PETSC_UNUSED PetscInt *nsolve,PETSC_UNUSED KSP **ksp) {SlepcPEPCISSUnavailable(pep);}
+#undef SlepcPEPCISSUnavailable
+#endif
+#endif

@@ -8,6 +8,7 @@
 - `NEP`: the `NEPCISS` solver (that was deprecated in version 3.14) has been recovered
   and enriched with a new Rayleigh-Ritz variant that is used by default now, see
   `NEPCISSSetExtraction()`. It now also supports subcommunicators.
+- `PEP`: new solver `PEPCISS` with similar functionality as `NEPCISS`.
 - Fortran: add support for ``SlepcInitialize(filename,help,ierr)``, ``SlepcInitialize(ierr)``
   in addition to current ``SlepcInitialize(filename,ierr)``.
 - New `DSGSVD` type for the generalized SVD.

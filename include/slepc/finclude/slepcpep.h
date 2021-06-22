@@ -33,12 +33,14 @@
 #define PEPErrorType       PetscEnum
 #define PEPConvergedReason PetscEnum
 #define PEPJDProjection    PetscEnum
+#define PEPCISSExtraction  PetscEnum
 
 #define PEPLINEAR    'linear'
 #define PEPQARNOLDI  'qarnoldi'
 #define PEPTOAR      'toar'
 #define PEPSTOAR     'stoar'
 #define PEPJD        'jd'
+#define PEPCISS      'ciss'
 
 #endif
 
