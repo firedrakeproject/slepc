@@ -140,7 +140,7 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
 {
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
-  PetscInt       n,l,i,*perm,told,lds;
+  PetscInt       n,l,i,*perm,lds;
   PetscScalar    *A;
 
   PetscFunctionBegin;
@@ -151,15 +151,13 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   A = ds->mat[DS_MAT_A];
   perm = ds->perm;
   for (i=0;i<n;i++) perm[i] = i;
-  told = ds->t;
   if (rr) {
     ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE);CHKERRQ(ierr);
   }
-  ds->t = told;  /* restore value of t */
-  for (i=l;i<n;i++) A[i+i*lds] = wr[perm[i]];
-  for (i=l;i<n;i++) wr[i] = A[i+i*lds];
+  for (i=l;i<ds->t;i++) A[i+i*lds] = wr[perm[i]];
+  for (i=l;i<ds->t;i++) wr[i] = A[i+i*lds];
   /* n != ds->n */
   ierr = DSPermuteColumns_Private(ds,0,ds->t,ds->n,DS_MAT_X,perm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -376,7 +374,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
-  PetscScalar    *alpha,*beta,*A,*X,*W,*work,*Rc,*R,*w,*z,*zn,*S,*U,*V;
+  PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,*w,*z,*zn,*S,*U,*V;
   PetscScalar    sone=1.0,szero=0.0,center;
   PetscReal      *rwork,norm,radius,vscale,rgscale,*sigma;
   PetscBLASInt   info,n,*perm,p,pp,ld,lwork,k_,rk_,colA,rowA,one=1;
@@ -414,7 +412,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     ierr = DSAllocateMat_Private(ds,DS_MAT_V);CHKERRQ(ierr);
   } /* size n */
   A = ds->mat[DS_MAT_A];
-  S = ds->mat[DS_MAT_B];
+  B = ds->mat[DS_MAT_B];
   W = ds->mat[DS_MAT_W];
   U = ds->mat[DS_MAT_U];
   V = ds->mat[DS_MAT_V];
@@ -425,7 +423,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(mid*n,&rowA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(5*rowA,&lwork);CHKERRQ(ierr);
-  nw   = n*(2*p+7*mid)+3*nnod; 
+  nw   = n*(2*p+7*mid)+3*nnod+2*mid*n*p;
   lrwork = mid*n*6+8*n;
   ierr = DSAllocateWork_Private(ds,nw,lrwork,n+1);CHKERRQ(ierr);
 
@@ -439,6 +437,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   R     = ds->work+nwu;    nwu += n*p;
   alpha = ds->work+nwu;    nwu += mid*n;
   beta  = ds->work+nwu;    nwu += mid*n;
+  S     = ds->work+nwu;    nwu += 2*mid*n*p;
   work  = ds->work+nwu;    nwu += mid*n*5;
 
   /* Compute quadrature parameters */
@@ -511,12 +510,12 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
   }
   ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&rowA,&rk_,&colA,&sone,A,&rowA,W,&colA,&szero,S,&rowA));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rowA,&sone,U,&rowA,S,&rowA,&szero,A,&rk_));
-  ierr = PetscArrayzero(S,n*mid*n*mid);CHKERRQ(ierr);
-  for (j=0;j<rk;j++) S[j+j*rk_] = sigma[j];
-  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&rk_,A,&rk_,S,&rk_,alpha,beta,NULL,&ld,W,&rk_,work,&lwork,rwork,&info));
-  for (i=0;i<rk;i++) wr[i] = (center+radius*PetscCMPLX(PetscRealPart(alpha[i]),vscale*PetscImaginaryPart(alpha[i]))/beta[i])*rgscale;
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&rowA,&rk_,&colA,&sone,A,&rowA,W,&colA,&szero,B,&rowA));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rowA,&sone,U,&rowA,B,&rowA,&szero,A,&rk_));
+  ierr = PetscArrayzero(B,n*mid*n*mid);CHKERRQ(ierr);
+  for (j=0;j<rk;j++) B[j+j*rk_] = sigma[j];
+  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&rk_,A,&rk_,B,&rk_,alpha,beta,NULL,&ld,W,&rk_,work,&lwork,rwork,&info));
+  for (i=0;i<rk;i++) wr[i] = (center+radius*alpha[i]/beta[i])*rgscale;
   ierr = PetscMalloc1(rk,&inside);CHKERRQ(ierr);
   ierr = RGCheckInside(ctx->rg,rk,wr,wi,inside);CHKERRQ(ierr);
   k=0;
@@ -525,13 +524,13 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Discard values outside region */
   lds = ld*mid;
   ierr = PetscArrayzero(A,lds*lds);CHKERRQ(ierr);
-  ierr = PetscArrayzero(S,lds*lds);CHKERRQ(ierr);
-  for (i=0;i<k;i++) A[i+i*lds] = (center*beta[inside[i]]+radius*PetscCMPLX(PetscRealPart(alpha[inside[i]]),vscale*PetscImaginaryPart(alpha[inside[i]])))*rgscale;
-  for (i=0;i<k;i++) S[i+i*lds] = beta[inside[i]];
-  for (i=0;i<k;i++) wr[i] = A[i+i*lds]/S[i+i*lds];
+  ierr = PetscArrayzero(B,lds*lds);CHKERRQ(ierr);
+  for (i=0;i<k;i++) A[i+i*lds] = (center*beta[inside[i]]+radius*alpha[inside[i]])*rgscale;
+  for (i=0;i<k;i++) B[i+i*lds] = beta[inside[i]];
+  for (i=0;i<k;i++) wr[i] = A[i+i*lds]/B[i+i*lds];
   for (j=0;j<k;j++) for (i=0;i<rk;i++) W[j*rk+i] = sigma[i]*W[inside[j]*rk+i];
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k_,&rk_,&sone,U,&rowA,W,&rk,&szero,X,&ld));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k_,&rk_,&sone,U,&rowA,W,&rk_,&szero,X,&ld));
 
   /* Normalize */
   for (j=0;j<k;j++) {
@@ -1367,6 +1366,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ds->ops->synchronize    = DSSynchronize_NEP;
   ds->ops->destroy        = DSDestroy_NEP;
   ds->ops->matgetsize     = DSMatGetSize_NEP;
+
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP);CHKERRQ(ierr);
