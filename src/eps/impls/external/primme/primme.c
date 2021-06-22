@@ -81,7 +81,7 @@ static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblo
 #endif
                        primme_event *event,struct primme_params *primme,int *err)
 {
-  PetscErrorCode ierr=0;
+  PetscErrorCode ierr = 0;
   EPS            eps = (EPS)primme->commInfo;
   PetscInt       i,k,nerrest;
 

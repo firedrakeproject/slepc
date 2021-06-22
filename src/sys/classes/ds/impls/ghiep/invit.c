@@ -262,7 +262,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
     s[n-1] = ss[0];
     d[n-1] = PetscRealPart(A[0]);
     for (i=0;i<n;i++) {
-      ierr=PetscArraycpy(work+i*n,Q+i*ldq,n);CHKERRQ(ierr);
+      ierr = PetscArraycpy(work+i*n,Q+i*ldq,n);CHKERRQ(ierr);
     }
     for (i=0;i<n;i++)
       for (j=0;j<n;j++)

@@ -86,7 +86,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
                        primme_event *event,int *stage,struct primme_svds_params *primme,int *err)
 {
 
-  PetscErrorCode ierr=0;
+  PetscErrorCode ierr = 0;
   SVD            svd = (SVD)primme->commInfo;
   PetscInt       i,k,nerrest;
 
