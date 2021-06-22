@@ -984,7 +984,7 @@ static PetscErrorCode NEPCISSSetExtraction_CISS(NEP nep,NEPCISSExtraction extrac
 -  extraction - the extraction technique
 
    Options Database Key:
-.  -nep_ciss_extraction - Sets the extraction technique (either 'ritz' or 'hankel')
+.  -nep_ciss_extraction - Sets the extraction technique (either 'ritz', 'hankel' or 'caa')
 
    Notes:
    By default, the Rayleigh-Ritz extraction is used (NEP_CISS_EXTRACTION_RITZ).

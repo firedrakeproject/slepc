@@ -643,13 +643,13 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
    Logically Collective on pep
 
    Input Parameters:
-+  pep   - the nonlinear eigensolver context
++  pep   - the polynomial eigensolver context
 .  ip    - number of integration points
 .  bs    - block size
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  realmats - T(z) is real for real z
+-  realmats - all coefficient matrices of P(.) are real
 
    Options Database Keys:
 +  -pep_ciss_integration_points - Sets the number of integration points
@@ -657,16 +657,12 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
 .  -pep_ciss_moments - Sets the moment size
 .  -pep_ciss_partitions - Sets the number of partitions
 .  -pep_ciss_maxblocksize - Sets the maximum block size
--  -pep_ciss_realmats - T(z) is real for real z
+-  -pep_ciss_realmats - all coefficient matrices of P(.) are real
 
    Notes:
    The default number of partitions is 1. This means the internal KSP object is shared
    among all processes of the PEP communicator. Otherwise, the communicator is split
    into npart communicators, so that npart KSP solves proceed simultaneously.
-
-   The realmats flag can be set to true when T(.) is guaranteed to be real
-   when the argument is a real value, for example, when all matrices in
-   the split form are real. When set to true, the solver avoids some computations.
 
    Level: advanced
 
@@ -708,7 +704,7 @@ static PetscErrorCode PEPCISSGetSizes_CISS(PEP pep,PetscInt *ip,PetscInt *bs,Pet
    Not Collective
 
    Input Parameter:
-.  pep - the nonlinear eigensolver context
+.  pep - the polynomial eigensolver context
 
    Output Parameters:
 +  ip    - number of integration points
@@ -716,7 +712,7 @@ static PetscErrorCode PEPCISSGetSizes_CISS(PEP pep,PetscInt *ip,PetscInt *bs,Pet
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  realmats - T(z) is real for real z
+-  realmats - all coefficient matrices of P(.) are real
 
    Level: advanced
 
@@ -759,7 +755,7 @@ static PetscErrorCode PEPCISSSetThreshold_CISS(PEP pep,PetscReal delta,PetscReal
    Logically Collective on pep
 
    Input Parameters:
-+  pep   - the nonlinear eigensolver context
++  pep   - the polynomial eigensolver context
 .  delta - threshold for numerical rank
 -  spur  - spurious threshold (to discard spurious eigenpairs)
 
@@ -800,7 +796,7 @@ static PetscErrorCode PEPCISSGetThreshold_CISS(PEP pep,PetscReal *delta,PetscRea
    Not Collective
 
    Input Parameter:
-.  pep - the nonlinear eigensolver context
+.  pep - the polynomial eigensolver context
 
    Output Parameters:
 +  delta - threshold for numerical rank
@@ -847,7 +843,7 @@ static PetscErrorCode PEPCISSSetRefinement_CISS(PEP pep,PetscInt inner,PetscInt 
    Logically Collective on pep
 
    Input Parameters:
-+  pep    - the nonlinear eigensolver context
++  pep    - the polynomial eigensolver context
 .  inner  - number of iterative refinement iterations (inner loop)
 -  blsize - number of iterative refinement iterations (blocksize loop)
 
@@ -888,7 +884,7 @@ static PetscErrorCode PEPCISSGetRefinement_CISS(PEP pep,PetscInt *inner,PetscInt
    Not Collective
 
    Input Parameter:
-.  pep - the nonlinear eigensolver context
+.  pep - the polynomial eigensolver context
 
    Output Parameters:
 +  inner  - number of iterative refinement iterations (inner loop)
@@ -923,11 +919,11 @@ static PetscErrorCode PEPCISSSetExtraction_CISS(PEP pep,PEPCISSExtraction extrac
    Logically Collective on pep
 
    Input Parameters:
-+  pep        - the nonlinear eigensolver context
++  pep        - the polynomial eigensolver context
 -  extraction - the extraction technique
 
    Options Database Key:
-.  -pep_ciss_extraction - Sets the extraction technique (either 'ritz' or 'hankel')
+.  -pep_ciss_extraction - Sets the extraction technique (either 'ritz', 'hankel' or 'caa')
 
    Notes:
    By default, the Rayleigh-Ritz extraction is used (PEP_CISS_EXTRACTION_RITZ).
@@ -966,7 +962,7 @@ static PetscErrorCode PEPCISSGetExtraction_CISS(PEP pep,PEPCISSExtraction *extra
    Not Collective
 
    Input Parameter:
-.  pep - the nonlinear eigensolver context
+.  pep - the polynomial eigensolver context
 
    Output Parameters:
 .  extraction - extraction technique
@@ -1028,7 +1024,7 @@ static PetscErrorCode PEPCISSGetKSPs_CISS(PEP pep,PetscInt *nsolve,KSP **ksp)
    Not Collective
 
    Input Parameter:
-.  pep - nonlinear eigenvalue solver
+.  pep - polynomial eigenvalue solver
 
    Output Parameters:
 +  nsolve - number of solver objects
@@ -1087,7 +1083,7 @@ PetscErrorCode PEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,PEP p
     ierr = PetscOptionsInt("-pep_ciss_moments","Moment size","PEPCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-pep_ciss_partitions","Number of partitions","PEPCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsInt("-pep_ciss_maxblocksize","Maximum block size","PEPCISSSetSizes",i5,&i5,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsBool("-pep_ciss_realmats","True if T(z) is real for real z","PEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-pep_ciss_realmats","True if all coefficient matrices of P(.) are real","PEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
     ierr = PEPCISSSetSizes(pep,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr);
 
     ierr = PEPCISSGetThreshold(pep,&r1,&r2);CHKERRQ(ierr);
