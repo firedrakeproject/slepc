@@ -569,6 +569,53 @@ static PetscErrorCode PEPValuesView_BINARY(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_HAVE_HDF5)
+static PetscErrorCode PEPValuesView_HDF5(PEP pep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,k,n,N;
+  PetscMPIInt    rank;
+  Vec            v;
+  char           vname[30];
+  const char     *ename;
+
+  PetscFunctionBegin;
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)pep),&rank);CHKERRMPI(ierr);
+  N = pep->nconv;
+  n = rank? 0: N;
+  /* create a vector containing the eigenvalues */
+  ierr = VecCreateMPI(PetscObjectComm((PetscObject)pep),n,N,&v);CHKERRQ(ierr);
+  ierr = PetscObjectGetName((PetscObject)pep,&ename);CHKERRQ(ierr);
+  ierr = PetscSNPrintf(vname,sizeof(vname),"eigr_%s",ename);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)v,vname);CHKERRQ(ierr);
+  if (!rank) {
+    for (i=0;i<pep->nconv;i++) {
+      k = pep->perm[i];
+      ierr = VecSetValue(v,i,pep->eigr[k],INSERT_VALUES);CHKERRQ(ierr);
+    }
+  }
+  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+  ierr = VecView(v,viewer);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  /* in real scalars write the imaginary part as a separate vector */
+  ierr = PetscSNPrintf(vname,sizeof(vname),"eigi_%s",ename);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)v,vname);CHKERRQ(ierr);
+  if (!rank) {
+    for (i=0;i<pep->nconv;i++) {
+      k = pep->perm[i];
+      ierr = VecSetValue(v,i,pep->eigi[k],INSERT_VALUES);CHKERRQ(ierr);
+    }
+  }
+  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+  ierr = VecView(v,viewer);CHKERRQ(ierr);
+#endif
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+#endif
+
 static PetscErrorCode PEPValuesView_ASCII(PEP pep,PetscViewer viewer)
 {
   PetscInt       i,k;
@@ -636,6 +683,9 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
   PetscBool         isascii,isdraw,isbinary;
   PetscViewerFormat format;
   PetscErrorCode    ierr;
+#if defined(PETSC_HAVE_HDF5)
+  PetscBool         ishdf5;
+#endif
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -647,11 +697,18 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
   PEPCheckSolved(pep,1);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERBINARY,&isbinary);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_HDF5)
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5);CHKERRQ(ierr);
+#endif
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isdraw) {
     ierr = PEPValuesView_DRAW(pep,viewer);CHKERRQ(ierr);
   } else if (isbinary) {
     ierr = PEPValuesView_BINARY(pep,viewer);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_HDF5)
+  } else if (ishdf5) {
+    ierr = PEPValuesView_HDF5(pep,viewer);CHKERRQ(ierr);
+#endif
   } else if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     switch (format) {
