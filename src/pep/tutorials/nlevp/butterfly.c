@@ -176,5 +176,9 @@ int main(int argc,char **argv)
       test:
          suffix: ciss_caa
          args: -pep_ciss_extraction caa -pep_ciss_moments 4
+      test:
+         suffix: ciss_part
+         nsize: 2
+         args: -pep_ciss_partitions 2
 
 TEST*/
