@@ -713,7 +713,7 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSGetTwoSided(self.eps, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setTwoSided(self, twosided):
         """
@@ -769,7 +769,7 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSGetTrueResidual(self.eps, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setTrueResidual(self, trueres):
         """
@@ -796,7 +796,7 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSGetTrackAll(self.eps, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setTrackAll(self, trackall):
         """
@@ -1592,7 +1592,7 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSKrylovSchurGetLocking(self.eps, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setKrylovSchurPartitions(self, npart):
         """
@@ -1663,7 +1663,7 @@ cdef class EPS(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( EPSKrylovSchurGetDetectZeros(self.eps, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setKrylovSchurDimensions(self, nev=None, ncv=None, mpd=None):
         """

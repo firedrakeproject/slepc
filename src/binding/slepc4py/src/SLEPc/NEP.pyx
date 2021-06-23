@@ -315,7 +315,7 @@ cdef class NEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( NEPGetTrackAll(self.nep, &tval) )
-        return <bint>tval
+        return toBool(tval)
 
     def setTrackAll(self, trackall):
         """
@@ -711,7 +711,7 @@ cdef class NEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( NEPGetTwoSided(self.nep, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setTwoSided(self, twosided):
         """

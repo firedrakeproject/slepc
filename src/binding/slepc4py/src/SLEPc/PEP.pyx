@@ -595,7 +595,7 @@ cdef class PEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( PEPGetTrackAll(self.pep, &tval) )
-        return <bint>tval
+        return toBool(tval)
 
     def setTrackAll(self, trackall):
         """
@@ -1178,7 +1178,7 @@ cdef class PEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( PEPTOARGetLocking(self.pep, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     #
 
@@ -1213,7 +1213,7 @@ cdef class PEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( PEPSTOARGetLocking(self.pep, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setSTOARDetectZeros(self, detect):
         """
@@ -1248,7 +1248,7 @@ cdef class PEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( PEPSTOARGetDetectZeros(self.pep, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setSTOARDimensions(self, nev=None, ncv=None, mpd=None):
         """
