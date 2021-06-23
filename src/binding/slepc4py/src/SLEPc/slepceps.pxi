@@ -250,14 +250,26 @@ cdef extern from * nogil:
     int EPSRQCGSetReset(SlepcEPS,PetscInt)
     int EPSRQCGGetReset(SlepcEPS,PetscInt*)
 
-    int EPSCISSSetRegion(SlepcEPS,PetscScalar,PetscReal,PetscReal)
-    int EPSCISSGetRegion(SlepcEPS,PetscScalar*,PetscReal*,PetscReal*)
+    ctypedef enum SlepcEPSCISSQuadRule "EPSCISSQuadRule":
+        EPS_CISS_QUADRULE_TRAPEZOIDAL
+        EPS_CISS_QUADRULE_CHEBYSHEV
+
+    ctypedef enum SlepcEPSCISSExtraction "EPSCISSExtraction":
+        EPS_CISS_EXTRACTION_RITZ
+        EPS_CISS_EXTRACTION_HANKEL
+
+    int EPSCISSSetExtraction(SlepcEPS,SlepcEPSCISSExtraction)
+    int EPSCISSGetExtraction(SlepcEPS,SlepcEPSCISSExtraction*)
+    int EPSCISSSetQuadRule(SlepcEPS,SlepcEPSCISSQuadRule)
+    int EPSCISSGetQuadRule(SlepcEPS,SlepcEPSCISSQuadRule*)
     int EPSCISSSetSizes(SlepcEPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool)
     int EPSCISSGetSizes(SlepcEPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*)
     int EPSCISSSetThreshold(SlepcEPS,PetscReal,PetscReal)
     int EPSCISSGetThreshold(SlepcEPS,PetscReal*,PetscReal*)
-    int EPSCISSSetRefinement(SlepcEPS,PetscInt,PetscInt,PetscInt)
-    int EPSCISSGetRefinement(SlepcEPS,PetscInt*,PetscInt*,PetscInt*)
+    int EPSCISSSetRefinement(SlepcEPS,PetscInt,PetscInt)
+    int EPSCISSGetRefinement(SlepcEPS,PetscInt*,PetscInt*)
+    int EPSCISSSetUseST(SlepcEPS,PetscBool)
+    int EPSCISSGetUseST(SlepcEPS,PetscBool*)
 
 cdef extern from * nogil:
     int VecDuplicate(PetscVec,PetscVec*)

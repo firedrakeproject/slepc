@@ -160,6 +160,20 @@ cdef extern from * nogil:
     int PEPJDSetFix(SlepcPEP,PetscReal);
     int PEPJDGetFix(SlepcPEP,PetscReal*);
 
+    ctypedef enum SlepcPEPCISSExtraction "PEPCISSExtraction":
+        PEP_CISS_EXTRACTION_RITZ
+        PEP_CISS_EXTRACTION_HANKEL
+        PEP_CISS_EXTRACTION_CAA
+
+    int PEPCISSSetExtraction(SlepcPEP,SlepcPEPCISSExtraction)
+    int PEPCISSGetExtraction(SlepcPEP,SlepcPEPCISSExtraction*)
+    int PEPCISSSetSizes(SlepcPEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool)
+    int PEPCISSGetSizes(SlepcPEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*)
+    int PEPCISSSetThreshold(SlepcPEP,PetscReal,PetscReal)
+    int PEPCISSGetThreshold(SlepcPEP,PetscReal*,PetscReal*)
+    int PEPCISSSetRefinement(SlepcPEP,PetscInt,PetscInt)
+    int PEPCISSGetRefinement(SlepcPEP,PetscInt*,PetscInt*)
+
 cdef extern from * nogil:
     int VecCopy(PetscVec,PetscVec)
     int VecSet(PetscVec,PetscScalar)

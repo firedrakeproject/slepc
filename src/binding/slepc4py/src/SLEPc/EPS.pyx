@@ -212,6 +212,26 @@ class EPSLanczosReorthogType(object):
     PARTIAL   =  EPS_LANCZOS_REORTHOG_PARTIAL
     DELAYED   =  EPS_LANCZOS_REORTHOG_DELAYED
 
+class EPSCISSQuadRule(object):
+    """
+    EPS CISS quadrature rule
+
+    - `TRAPEZOIDAL`:
+    - `CHEBYSHEV`:
+    """
+    TRAPEZOIDAL =  EPS_CISS_QUADRULE_TRAPEZOIDAL
+    CHEBYSHEV   =  EPS_CISS_QUADRULE_CHEBYSHEV
+
+class EPSCISSExtraction(object):
+    """
+    EPS CISS extraction technique
+
+    - `RITZ`:
+    - `HANKEL`:
+    """
+    RITZ   =  EPS_CISS_EXTRACTION_RITZ
+    HANKEL =  EPS_CISS_EXTRACTION_HANKEL
+
 # -----------------------------------------------------------------------------
 
 cdef class EPS(Object):
@@ -231,6 +251,8 @@ cdef class EPS(Object):
 
     PowerShiftType      = EPSPowerShiftType
     LanczosReorthogType = EPSLanczosReorthogType
+    CISSQuadRule        = EPSCISSQuadRule
+    CISSExtraction      = EPSCISSExtraction
 
     def __cinit__(self):
         self.obj = <PetscObject*> &self.eps
@@ -1898,6 +1920,215 @@ cdef class EPS(Object):
         CHKERR( EPSRQCGGetReset(self.eps, &val) )
         return toInt(val)
 
+    def setCISSExtraction(self, extraction):
+        """
+        Sets the extraction technique used in the CISS solver.
+
+        Parameters
+        ----------
+        extraction: `EPS.CISSExtraction` enumerate
+               The extraction technique.
+        """
+        cdef SlepcEPSCISSExtraction val = extraction
+        CHKERR( EPSCISSSetExtraction(self.eps, val) )
+
+    def getCISSExtraction(self):
+        """
+        Gets the extraction technique used in the CISS solver.
+
+        Returns
+        -------
+        extraction: `EPS.CISSExtraction` enumerate
+               The extraction technique.
+        """
+        cdef SlepcEPSCISSExtraction val = EPS_CISS_EXTRACTION_RITZ
+        CHKERR( EPSCISSGetExtraction(self.eps, &val) )
+        return val
+
+    def setCISSQuadRule(self, quad):
+        """
+        Sets the quadrature rule used in the CISS solver.
+
+        Parameters
+        ----------
+        quad: `EPS.CISSQuadRule` enumerate
+               The quadrature rule.
+        """
+        cdef SlepcEPSCISSQuadRule val = quad
+        CHKERR( EPSCISSSetQuadRule(self.eps, val) )
+
+    def getCISSQuadRule(self):
+        """
+        Gets the quadrature rule used in the CISS solver.
+
+        Returns
+        -------
+        quad: `EPS.CISSQuadRule` enumerate
+               The quadrature rule.
+        """
+        cdef SlepcEPSCISSQuadRule val = EPS_CISS_QUADRULE_TRAPEZOIDAL
+        CHKERR( EPSCISSGetQuadRule(self.eps, &val) )
+        return val
+
+    def setCISSSizes(self, ip=None, bs=None, ms=None, npart=None, bsmax=None, realmats=False):
+        """
+        Sets the values of various size parameters in the CISS solver.
+
+        Parameters
+        ----------
+        ip: int, optional
+             Number of integration points.
+        bs: int, optional
+             Block size.
+        ms: int, optional
+             Moment size.
+        npart: int, optional
+             Number of partitions when splitting the communicator.
+        bsmax: int, optional
+             Maximum block size.
+        realmats: boolean, optional
+             True if A and B are real.
+
+        Notes
+        -----
+        The default number of partitions is 1. This means the internal `KSP` object
+        is shared among all processes of the `EPS` communicator. Otherwise, the
+        communicator is split into npart communicators, so that `npart` `KSP` solves
+        proceed simultaneously.
+        """
+        cdef PetscInt  ival1 = PETSC_DEFAULT
+        cdef PetscInt  ival2 = PETSC_DEFAULT
+        cdef PetscInt  ival3 = PETSC_DEFAULT
+        cdef PetscInt  ival4 = PETSC_DEFAULT
+        cdef PetscInt  ival5 = PETSC_DEFAULT
+        cdef PetscBool bval  = asBool(realmats)
+        if ip    is not None: ival1 = asInt(ip)
+        if bs    is not None: ival2 = asInt(bs)
+        if ms    is not None: ival3 = asInt(ms)
+        if npart is not None: ival4 = asInt(npart)
+        if bsmax is not None: ival5 = asInt(bsmax)
+        CHKERR( EPSCISSSetSizes(self.eps, ival1, ival2, ival3, ival4, ival5, bval) )
+
+    def getCISSSizes(self):
+        """
+        Gets the values of various size parameters in the CISS solver.
+
+        Returns
+        -------
+        ip: int
+             Number of integration points.
+        bs: int
+             Block size.
+        ms: int
+             Moment size.
+        npart: int
+             Number of partitions when splitting the communicator.
+        bsmax: int
+             Maximum block size.
+        realmats: boolean
+             True if A and B are real.
+        """
+        cdef PetscInt  ival1 = 0
+        cdef PetscInt  ival2 = 0
+        cdef PetscInt  ival3 = 0
+        cdef PetscInt  ival4 = 0
+        cdef PetscInt  ival5 = 0
+        cdef PetscBool bval  = PETSC_FALSE
+        CHKERR( EPSCISSGetSizes(self.eps, &ival1, &ival2, &ival3, &ival4, &ival5, &bval) )
+        return (toInt(ival1), toInt(ival2), toInt(ival3), toInt(ival4), toInt(ival5), toBool(bval))
+
+    def setCISSThreshold(self, delta=None, spur=None):
+        """
+        Sets the values of various threshold parameters in the CISS solver.
+
+        Parameters
+        ----------
+        delta: float
+                Threshold for numerical rank.
+        spur: float
+                Spurious threshold (to discard spurious eigenpairs).
+        """
+        cdef PetscReal rval1 = PETSC_DEFAULT
+        cdef PetscReal rval2 = PETSC_DEFAULT
+        if delta is not None: rval1 = asReal(delta)
+        if spur  is not None: rval2 = asReal(spur)
+        CHKERR( EPSCISSSetThreshold(self.eps, rval1, rval2) )
+
+    def getCISSThreshold(self):
+        """
+        Gets the values of various threshold parameters in the CISS solver.
+
+        Returns
+        -------
+        delta: float
+                Threshold for numerical rank.
+        spur: float
+                Spurious threshold (to discard spurious eigenpairs.
+        """
+        cdef PetscReal delta = 0
+        cdef PetscReal spur  = 0
+        CHKERR( EPSCISSGetThreshold(self.eps, &delta, &spur) )
+        return (toReal(delta), toReal(spur))
+
+    def setCISSRefinement(self, inner=None, blsize=None):
+        """
+        Sets the values of various refinement parameters in the CISS solver.
+
+        Parameters
+        ----------
+        inner: int, optional
+             Number of iterative refinement iterations (inner loop).
+        blsize: int, optional
+             Number of iterative refinement iterations (blocksize loop).
+        """
+        cdef PetscInt ival1 = PETSC_DEFAULT
+        cdef PetscInt ival2 = PETSC_DEFAULT
+        if inner  is not None: ival1 = asInt(inner)
+        if blsize is not None: ival2 = asInt(blsize)
+        CHKERR( EPSCISSSetRefinement(self.eps, ival1, ival2) )
+
+    def getCISSRefinement(self):
+        """
+        Gets the values of various refinement parameters in the CISS solver.
+
+        Returns
+        -------
+        inner: int
+             Number of iterative refinement iterations (inner loop).
+        blsize: int
+             Number of iterative refinement iterations (blocksize loop).
+        """
+        cdef PetscInt ival1 = 0
+        cdef PetscInt ival2 = 0
+        CHKERR( EPSCISSGetRefinement(self.eps, &ival1, &ival2) )
+        return (toInt(ival1), toInt(ival2))
+
+    def setCISSUseST(self, usest):
+        """
+        Sets a flag indicating that the CISS solver will use the `ST`
+        object for the linear solves.
+
+        Parameters
+        ----------
+        usest: bool
+            Whether to use the `ST` object or not.
+        """
+        cdef PetscBool tval = usest
+        CHKERR( EPSCISSSetUseST(self.eps, tval) )
+
+    def getCISSUseST(self):
+        """
+        Gets the flag for using the `ST` object in the CISS solver.
+
+        Returns
+        -------
+        usest: bool
+            Whether to use the `ST` object or not.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSCISSGetUseST(self.eps, &tval) )
+        return toBool(tval)
+
     #
     property problem_type:
         def __get__(self):
@@ -1959,5 +2190,7 @@ del EPSConv
 del EPSConvergedReason
 del EPSPowerShiftType
 del EPSLanczosReorthogType
+del EPSCISSQuadRule
+del EPSCISSExtraction
 
 # -----------------------------------------------------------------------------
