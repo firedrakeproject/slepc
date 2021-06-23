@@ -205,9 +205,9 @@ int main(int argc,char **argv)
     re = wr[inside[i]];
     im = wi[inside[i]];
 #endif
-     ierr = PetscArrayzero(r,n);CHKERRQ(ierr);
+    ierr = PetscArrayzero(r,n);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-     ierr = PetscArrayzero(ri,n);CHKERRQ(ierr);
+    ierr = PetscArrayzero(ri,n);CHKERRQ(ierr);
 #endif
     /* Residual */
     alpha = 1.0;
@@ -251,7 +251,7 @@ int main(int argc,char **argv)
 #endif
     }
     nrm = PetscSqrtReal(nrm);
-    if (nrm/SlepcAbsEigenvalue(re,im)>tol) {
+    if (nrm/SlepcAbsEigenvalue(wr[inside[i]],wi[inside[i]])>tol) {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %D-th computed eigenpair %g\n",i,(double)nrm);CHKERRQ(ierr);
     }
     if (PetscAbs(im)<1e-10) {
