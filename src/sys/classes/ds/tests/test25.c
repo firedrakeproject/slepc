@@ -288,13 +288,13 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/" | sed -e "s/56808/56807/"
+      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/" | sed -e "s/56808/56807/" | sed -e "s/34719/34720/"
       output_file: output/test25_1.out
       test:
          suffix: 1
       test:
          suffix: 2
          args: -isnep
-         requires: complex
+         requires: complex !single
 
 TEST*/
