@@ -270,6 +270,7 @@ cdef extern from * nogil:
     int EPSCISSGetRefinement(SlepcEPS,PetscInt*,PetscInt*)
     int EPSCISSSetUseST(SlepcEPS,PetscBool)
     int EPSCISSGetUseST(SlepcEPS,PetscBool*)
+    int EPSCISSGetKSPs(SlepcEPS,PetscInt*,PetscKSP**)
 
 cdef extern from * nogil:
     int VecDuplicate(PetscVec,PetscVec*)

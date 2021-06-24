@@ -66,3 +66,10 @@ cdef inline int SlepcCLEAR(PetscObject* obj):
 
 cdef inline PetscViewer def_Viewer(Viewer viewer):
    return viewer.vwr if viewer is not None else <PetscViewer>NULL
+
+cdef inline KSP ref_KSP(PetscKSP ksp):
+    cdef KSP ob = <KSP> KSP()
+    ob.ksp = ksp
+    PetscINCREF(ob.obj)
+    return ob
+

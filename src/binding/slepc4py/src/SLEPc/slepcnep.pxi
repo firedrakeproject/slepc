@@ -128,6 +128,7 @@ cdef extern from * nogil:
     int NEPCISSGetThreshold(SlepcNEP,PetscReal*,PetscReal*)
     int NEPCISSSetRefinement(SlepcNEP,PetscInt,PetscInt)
     int NEPCISSGetRefinement(SlepcNEP,PetscInt*,PetscInt*)
+    int NEPCISSGetKSPs(SlepcNEP,PetscInt*,PetscKSP**)
 
 # -----------------------------------------------------------------------------
 

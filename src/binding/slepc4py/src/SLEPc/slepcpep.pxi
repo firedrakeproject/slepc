@@ -173,6 +173,7 @@ cdef extern from * nogil:
     int PEPCISSGetThreshold(SlepcPEP,PetscReal*,PetscReal*)
     int PEPCISSSetRefinement(SlepcPEP,PetscInt,PetscInt)
     int PEPCISSGetRefinement(SlepcPEP,PetscInt*,PetscInt*)
+    int PEPCISSGetKSPs(SlepcPEP,PetscInt*,PetscKSP**)
 
 cdef extern from * nogil:
     int VecCopy(PetscVec,PetscVec)

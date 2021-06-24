@@ -2129,6 +2129,27 @@ cdef class EPS(Object):
         CHKERR( EPSCISSGetUseST(self.eps, &tval) )
         return toBool(tval)
 
+    def getCISSKSPs(self):
+        """
+        Retrieve the array of linear solver objects associated with
+        the CISS solver.
+
+        Returns
+        -------
+        ksp: list of `KSP`
+             The linear solver objects.
+
+        Notes
+        -----
+        The number of `KSP` solvers is equal to the number of integration
+        points divided by the number of partitions. This value is halved in
+        the case of real matrices with a region centered at the real axis.
+        """
+        cdef PetscInt i = 0, n = 0
+        cdef PetscKSP *p = NULL
+        CHKERR( EPSCISSGetKSPs(self.eps, &n, &p) )
+        return [ref_KSP(p[i]) for i from 0 <= i <n]
+
     #
     property problem_type:
         def __get__(self):
