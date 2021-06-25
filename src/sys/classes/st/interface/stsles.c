@@ -379,12 +379,14 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
     ierr = BVGetColumn(V,-nc+i,&vi);CHKERRQ(ierr);
     ierr = MatMult(A,vi,w);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
-    if (norm < 1e-8) {
-      ierr = PetscInfo2(st,"Vector %D norm=%g\n",i,(double)norm);CHKERRQ(ierr);
+    if (norm < 10.0*PETSC_SQRT_MACHINE_EPSILON) {
+      ierr = PetscInfo2(st,"Vector %D included in the nullspace of OP, norm=%g\n",i,(double)norm);CHKERRQ(ierr);
       ierr = BVCreateVec(V,T+c);CHKERRQ(ierr);
       ierr = VecCopy(vi,T[c]);CHKERRQ(ierr);
       ierr = VecNormalize(T[c],NULL);CHKERRQ(ierr);
       c++;
+    } else {
+      ierr = PetscInfo2(st,"Vector %D discarded as possible nullspace of OP, norm=%g\n",i,(double)norm);CHKERRQ(ierr);
     }
     ierr = BVRestoreColumn(V,-nc+i,&vi);CHKERRQ(ierr);
   }
@@ -430,7 +432,7 @@ PetscErrorCode STCheckNullSpace(ST st,BV V)
   PetscValidHeaderSpecific(V,BV_CLASSID,2);
   PetscValidType(st,1);
   PetscCheckSameComm(st,1,V,2);
-  if (!st->state) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must call STSolve() first");
+  if (!st->state) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must call STSetUp() first");
 
   ierr = BVGetNumConstraints(V,&nc);CHKERRQ(ierr);
   if (nc && st->ops->checknullspace) {
