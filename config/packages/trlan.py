@@ -19,7 +19,7 @@ class Trlan(package.Package):
     self.downloadable   = True
     self.version        = '201009'
     self.archive        = 'trlan-'+self.version+'.tar.gz'
-    self.url            = 'https://codeforge.lbl.gov/frs/download.php/210/'+self.archive
+    self.url            = 'http://slepc.upv.es/download/external/'+self.archive
     self.dirname        = 'trlan-'+self.version
     self.supportsscalar = ['real']
     self.fortran        = True
