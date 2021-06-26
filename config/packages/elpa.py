@@ -17,7 +17,7 @@ class Elpa(package.Package):
     self.packagename    = 'elpa'
     self.installable    = True
     self.downloadable   = True
-    self.version        = '2020.11.001'
+    self.version        = '2021.05.001'
     self.archive        = 'elpa-'+self.version+'.tar.gz'
     self.url            = 'https://elpa.mpcdf.mpg.de/software/tarball-archive/Releases/'+self.version+'/'+self.archive
     self.dirname        = 'elpa-'+self.version
