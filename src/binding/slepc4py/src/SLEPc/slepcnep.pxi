@@ -115,6 +115,21 @@ cdef extern from * nogil:
 
     int NEPGetConvergedReason(SlepcNEP,SlepcNEPConvergedReason*)
 
+    ctypedef enum SlepcNEPCISSExtraction "NEPCISSExtraction":
+        NEP_CISS_EXTRACTION_RITZ
+        NEP_CISS_EXTRACTION_HANKEL
+        NEP_CISS_EXTRACTION_CAA
+
+    int NEPCISSSetExtraction(SlepcNEP,SlepcNEPCISSExtraction)
+    int NEPCISSGetExtraction(SlepcNEP,SlepcNEPCISSExtraction*)
+    int NEPCISSSetSizes(SlepcNEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool)
+    int NEPCISSGetSizes(SlepcNEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*)
+    int NEPCISSSetThreshold(SlepcNEP,PetscReal,PetscReal)
+    int NEPCISSGetThreshold(SlepcNEP,PetscReal*,PetscReal*)
+    int NEPCISSSetRefinement(SlepcNEP,PetscInt,PetscInt)
+    int NEPCISSGetRefinement(SlepcNEP,PetscInt*,PetscInt*)
+    int NEPCISSGetKSPs(SlepcNEP,PetscInt*,PetscKSP**)
+
 # -----------------------------------------------------------------------------
 
 cdef inline Mat ref_Mat(PetscMat mat):

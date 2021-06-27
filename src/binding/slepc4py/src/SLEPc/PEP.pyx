@@ -11,7 +11,7 @@ class PEPType(object):
     - `TOAR`:         Two-level orthogonal Arnoldi.
     - `STOAR`:        Symmetric TOAR.
     - `JD`:           Polynomial Jacobi-Davidson.
-    - `CISS`:     Contour integral spectrum slice.
+    - `CISS`:         Contour integral spectrum slice.
     """
     LINEAR   = S_(PEPLINEAR)
     QARNOLDI = S_(PEPQARNOLDI)
@@ -166,6 +166,18 @@ class PEPConvergedReason(object):
     CONVERGED_ITERATING    = PEP_CONVERGED_ITERATING
     ITERATING              = PEP_CONVERGED_ITERATING
 
+class PEPCISSExtraction(object):
+    """
+    PEP CISS extraction technique
+
+    - `RITZ`:
+    - `HANKEL`:
+    - `CAA`:
+    """
+    RITZ   =  PEP_CISS_EXTRACTION_RITZ
+    HANKEL =  PEP_CISS_EXTRACTION_HANKEL
+    CAA    =  PEP_CISS_EXTRACTION_CAA
+
 # -----------------------------------------------------------------------------
 
 cdef class PEP(Object):
@@ -185,6 +197,8 @@ cdef class PEP(Object):
     ErrorType       = PEPErrorType
     Conv            = PEPConv
     ConvergedReason = PEPConvergedReason
+
+    CISSExtraction  = PEPCISSExtraction
 
     def __cinit__(self):
         self.obj = <PetscObject*> &self.pep
@@ -595,7 +609,7 @@ cdef class PEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( PEPGetTrackAll(self.pep, &tval) )
-        return <bint>tval
+        return toBool(tval)
 
     def setTrackAll(self, trackall):
         """
@@ -1178,7 +1192,7 @@ cdef class PEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( PEPTOARGetLocking(self.pep, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     #
 
@@ -1213,7 +1227,7 @@ cdef class PEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( PEPSTOARGetLocking(self.pep, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setSTOARDetectZeros(self, detect):
         """
@@ -1248,7 +1262,7 @@ cdef class PEP(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( PEPSTOARGetDetectZeros(self.pep, &tval) )
-        return <bint> tval
+        return toBool(tval)
 
     def setSTOARDimensions(self, nev=None, ncv=None, mpd=None):
         """
@@ -1358,6 +1372,185 @@ cdef class PEP(Object):
         CHKERR( PEPJDGetFix(self.pep, &val) )
         return val
 
+    def setCISSExtraction(self, extraction):
+        """
+        Sets the extraction technique used in the CISS solver.
+
+        Parameters
+        ----------
+        extraction: `PEP.CISSExtraction` enumerate
+               The extraction technique.
+        """
+        cdef SlepcPEPCISSExtraction val = extraction
+        CHKERR( PEPCISSSetExtraction(self.pep, val) )
+
+    def getCISSExtraction(self):
+        """
+        Gets the extraction technique used in the CISS solver.
+
+        Returns
+        -------
+        extraction: `PEP.CISSExtraction` enumerate
+               The extraction technique.
+        """
+        cdef SlepcPEPCISSExtraction val = PEP_CISS_EXTRACTION_RITZ
+        CHKERR( PEPCISSGetExtraction(self.pep, &val) )
+        return val
+
+    def setCISSSizes(self, ip=None, bs=None, ms=None, npart=None, bsmax=None, realmats=False):
+        """
+        Sets the values of various size parameters in the CISS solver.
+
+        Parameters
+        ----------
+        ip: int, optional
+             Number of integration points.
+        bs: int, optional
+             Block size.
+        ms: int, optional
+             Moment size.
+        npart: int, optional
+             Number of partitions when splitting the communicator.
+        bsmax: int, optional
+             Maximum block size.
+        realmats: boolean, optional
+             True if A and B are real.
+
+        Notes
+        -----
+        The default number of partitions is 1. This means the internal `KSP` object
+        is shared among all processes of the `PEP` communicator. Otherwise, the
+        communicator is split into npart communicators, so that `npart` `KSP` solves
+        proceed simultaneously.
+        """
+        cdef PetscInt  ival1 = PETSC_DEFAULT
+        cdef PetscInt  ival2 = PETSC_DEFAULT
+        cdef PetscInt  ival3 = PETSC_DEFAULT
+        cdef PetscInt  ival4 = PETSC_DEFAULT
+        cdef PetscInt  ival5 = PETSC_DEFAULT
+        cdef PetscBool bval  = asBool(realmats)
+        if ip    is not None: ival1 = asInt(ip)
+        if bs    is not None: ival2 = asInt(bs)
+        if ms    is not None: ival3 = asInt(ms)
+        if npart is not None: ival4 = asInt(npart)
+        if bsmax is not None: ival5 = asInt(bsmax)
+        CHKERR( PEPCISSSetSizes(self.pep, ival1, ival2, ival3, ival4, ival5, bval) )
+
+    def getCISSSizes(self):
+        """
+        Gets the values of various size parameters in the CISS solver.
+
+        Returns
+        -------
+        ip: int
+             Number of integration points.
+        bs: int
+             Block size.
+        ms: int
+             Moment size.
+        npart: int
+             Number of partitions when splitting the communicator.
+        bsmax: int
+             Maximum block size.
+        realmats: boolean
+             True if A and B are real.
+        """
+        cdef PetscInt  ival1 = 0
+        cdef PetscInt  ival2 = 0
+        cdef PetscInt  ival3 = 0
+        cdef PetscInt  ival4 = 0
+        cdef PetscInt  ival5 = 0
+        cdef PetscBool bval  = PETSC_FALSE
+        CHKERR( PEPCISSGetSizes(self.pep, &ival1, &ival2, &ival3, &ival4, &ival5, &bval) )
+        return (toInt(ival1), toInt(ival2), toInt(ival3), toInt(ival4), toInt(ival5), toBool(bval))
+
+    def setCISSThreshold(self, delta=None, spur=None):
+        """
+        Sets the values of various threshold parameters in the CISS solver.
+
+        Parameters
+        ----------
+        delta: float
+                Threshold for numerical rank.
+        spur: float
+                Spurious threshold (to discard spurious eigenpairs).
+        """
+        cdef PetscReal rval1 = PETSC_DEFAULT
+        cdef PetscReal rval2 = PETSC_DEFAULT
+        if delta is not None: rval1 = asReal(delta)
+        if spur  is not None: rval2 = asReal(spur)
+        CHKERR( PEPCISSSetThreshold(self.pep, rval1, rval2) )
+
+    def getCISSThreshold(self):
+        """
+        Gets the values of various threshold parameters in the CISS solver.
+
+        Returns
+        -------
+        delta: float
+                Threshold for numerical rank.
+        spur: float
+                Spurious threshold (to discard spurious eigenpairs.
+        """
+        cdef PetscReal delta = 0
+        cdef PetscReal spur  = 0
+        CHKERR( PEPCISSGetThreshold(self.pep, &delta, &spur) )
+        return (toReal(delta), toReal(spur))
+
+    def setCISSRefinement(self, inner=None, blsize=None):
+        """
+        Sets the values of various refinement parameters in the CISS solver.
+
+        Parameters
+        ----------
+        inner: int, optional
+             Number of iterative refinement iterations (inner loop).
+        blsize: int, optional
+             Number of iterative refinement iterations (blocksize loop).
+        """
+        cdef PetscInt ival1 = PETSC_DEFAULT
+        cdef PetscInt ival2 = PETSC_DEFAULT
+        if inner  is not None: ival1 = asInt(inner)
+        if blsize is not None: ival2 = asInt(blsize)
+        CHKERR( PEPCISSSetRefinement(self.pep, ival1, ival2) )
+
+    def getCISSRefinement(self):
+        """
+        Gets the values of various refinement parameters in the CISS solver.
+
+        Returns
+        -------
+        inner: int
+             Number of iterative refinement iterations (inner loop).
+        blsize: int
+             Number of iterative refinement iterations (blocksize loop).
+        """
+        cdef PetscInt ival1 = 0
+        cdef PetscInt ival2 = 0
+        CHKERR( PEPCISSGetRefinement(self.pep, &ival1, &ival2) )
+        return (toInt(ival1), toInt(ival2))
+
+    def getCISSKSPs(self):
+        """
+        Retrieve the array of linear solver objects associated with
+        the CISS solver.
+
+        Returns
+        -------
+        ksp: list of `KSP`
+             The linear solver objects.
+
+        Notes
+        -----
+        The number of `KSP` solvers is equal to the number of integration
+        points divided by the number of partitions. This value is halved in
+        the case of real matrices with a region centered at the real axis.
+        """
+        cdef PetscInt i = 0, n = 0
+        cdef PetscKSP *p = NULL
+        CHKERR( PEPCISSGetKSPs(self.pep, &n, &p) )
+        return [ref_KSP(p[i]) for i from 0 <= i <n]
+
 # -----------------------------------------------------------------------------
 
 del PEPType
@@ -1371,5 +1564,6 @@ del PEPExtract
 del PEPErrorType
 del PEPConv
 del PEPConvergedReason
+del PEPCISSExtraction
 
 # -----------------------------------------------------------------------------

@@ -160,7 +160,7 @@ cdef class RG(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( RGGetComplement(self.rg, &tval) )
-        return <bint>tval
+        return toBool(tval)
 
     def setComplement(self, comp):
         """

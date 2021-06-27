@@ -333,7 +333,7 @@ cdef class BV(Object):
         cdef PetscBool indef = PETSC_FALSE
         CHKERR( BVGetMatrix(self.bv, &mat.mat, &indef) )
         PetscINCREF(mat.obj)
-        return mat, <bint>indef
+        return (mat, toBool(indef))
 
     def setMatrix(self, Mat mat or None, bint indef):
         """
