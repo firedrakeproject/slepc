@@ -27,9 +27,11 @@ static const char citation[] =
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"{NEP}: a module for the parallel solution of nonlinear eigenvalue problems in {SLEPc}\",\n"
   "   journal = \"{ACM} Trans. Math. Software\",\n"
-  "   note = \"To appear\",\n"
-  "   url = \"https://arxiv.org/abs/1910.11712\",\n"
-  "   year = \"2021\"\n"
+  "   volume = \"47\",\n"
+  "   number = \"3\",\n"
+  "   pages = \"23:1--23:29\",\n"
+  "   year = \"2021\",\n"
+  "   doi = \"10.1145/3447544\"\n"
   "}\n";
 
 PetscErrorCode NEPComputeVectors(NEP nep)

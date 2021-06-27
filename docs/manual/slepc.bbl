@@ -85,11 +85,6 @@ Campos, C. and J.~E. Roman (2016{\natexlab{b}}).
   {SLEPc}.
 \newblock {\em {SIAM} J. Sci. Comput.\/}, 38(5):S385--S411.
 
-\bibitem[{Campos and Roman(2019)}]{Campos:2019:NEP}
-Campos, C. and J.~E. Roman (2019).
-\newblock NEP: a module for the parallel solution of nonlinear eigenvalue problems in SLEPc.
-\newblock Tech.\ Rep.\ arXiv:1910.11712.
-
 \bibitem[{Campos and Roman(2020{\natexlab{a}})}]{Campos:2020:PJS}
 Campos, C. and J.~E. Roman (2020{\natexlab{a}}).
 \newblock A polynomial {Jacobi--Davidson} solver with support for non-monomial
@@ -100,6 +95,11 @@ Campos, C. and J.~E. Roman (2020{\natexlab{a}}).
 Campos, C. and J.~E. Roman (2020{\natexlab{b}}).
 \newblock Inertia-based spectrum slicing for symmetric quadratic eigenvalue problems.
 \newblock {\em Numer. Linear Algebra Appl.\/}, 27(4):e2293.
+
+\bibitem[{Campos and Roman(2021)}]{Campos:2021:NEP}
+Campos, C. and J.~E. Roman (2021).
+\newblock NEP: a module for the parallel solution of nonlinear eigenvalue problems in SLEPc.
+\newblock {\em {ACM} Trans. Math. Software}, 47(3):23:1--23:29.
 
 \bibitem[{Canning {\em et~al.\/}(2000)Canning, Wang, Williamson, and
   Zunger}]{Canning:2000:PEP}
