@@ -15,7 +15,7 @@
 
 /* Logging support */
 PetscClassId      PEP_CLASSID = 0;
-PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Refine = 0;
+PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Refine = 0,PEP_CISS_SVD = 0;
 
 /* List of registered PEP routines */
 PetscFunctionList PEPList = 0;

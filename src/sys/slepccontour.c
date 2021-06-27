@@ -9,6 +9,7 @@
 */
 
 #include <slepc/private/slepccontour.h>
+#include <slepcblaslapack.h>
 
 /*
    SlepcContourDataCreate - Create a contour data structure.
@@ -201,6 +202,54 @@ PetscErrorCode CISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thresh,P
   ierr = MatDenseRestoreArrayRead(X,&pX);CHKERRQ(ierr);
   for (j=0;j<n;j++) fl[j] = (tau[j]>=thresh*tau_max)? PETSC_TRUE: PETSC_FALSE;
   ierr = PetscFree(tau);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
+   CISS_BH_SVD - Compute SVD of block Hankel matrix and its rank.
+
+   Input Parameters:
+   H  - block Hankel matrix obtained via CISS_BlockHankel()
+   ml - dimension of rows and columns, equal to M*L
+   delta - the tolerance used to determine the rank
+
+   Output Parameters:
+   sigma - computed singular values
+   rank  - the rank of H
+*/
+PetscErrorCode CISS_BH_SVD(PetscScalar *H,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *rank)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBLASInt   m,n,lda,ldu,ldvt,lwork,info;
+  PetscScalar    *work;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
+
+  PetscFunctionBegin;
+  ierr = PetscMalloc1(5*ml,&work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
+#endif
+  ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
+  n = m; lda = m; ldu = m; ldvt = m; lwork = 5*m;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,H,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,H,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
+#endif
+  SlepcCheckLapackInfo("gesvd",info);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  (*rank) = 0;
+  for (i=0;i<ml;i++) {
+    if (sigma[i]/PetscMax(sigma[0],1.0)>delta) (*rank)++;
+  }
+  ierr = PetscFree(work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 

@@ -75,6 +75,7 @@ PetscErrorCode EPSInitializePackage()
   /* Register Events */
   ierr = PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("EPSCISS_SVD",EPS_CLASSID,&EPS_CISS_SVD);CHKERRQ(ierr);
   /* Process Info */
   classids[0] = EPS_CLASSID;
   ierr = PetscInfoProcessClass("eps",1,&classids[0]);CHKERRQ(ierr);

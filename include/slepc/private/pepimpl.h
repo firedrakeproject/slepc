@@ -18,7 +18,7 @@ SLEPC_EXTERN PetscBool PEPRegisterAllCalled;
 SLEPC_EXTERN PetscBool PEPMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode PEPRegisterAll(void);
 SLEPC_EXTERN PetscErrorCode PEPMonitorRegisterAll(void);
-SLEPC_EXTERN PetscLogEvent PEP_SetUp,PEP_Solve,PEP_Refine;
+SLEPC_EXTERN PetscLogEvent PEP_SetUp,PEP_Solve,PEP_Refine,PEP_CISS_SVD;
 
 typedef struct _PEPOps *PEPOps;
 
