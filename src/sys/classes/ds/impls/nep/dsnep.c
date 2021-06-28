@@ -353,7 +353,17 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   }
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* communicate results */
     ierr = PetscMPIIntCast(k,&len);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_MPI_IN_PLACE)
     ierr = MPIU_Allreduce(MPI_IN_PLACE,p,len,MPIU_INT,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+#else
+    {
+      PetscInt *buffer;
+      ierr = PetscMalloc1(len,&buffer);CHKERRQ(ierr);
+      ierr = PetscArraycpy(buffer,p,len);CHKERRQ(ierr);
+      ierr = MPIU_Allreduce(buffer,p,len,MPIU_INT,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      ierr = PetscFree(buffer);CHKERRQ(ierr);
+    }
+#endif
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRMPI(ierr);
     ierr = PetscLayoutGetRanges(map,&range);CHKERRQ(ierr);
     for (j=0;j<k;j++) {
@@ -475,7 +485,17 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* compute final S via reduction */
     ierr = PetscMPIIntCast(2*mid*n*p,&len);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_MPI_IN_PLACE)
     ierr = MPIU_Allreduce(MPI_IN_PLACE,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+#else
+    {
+      PetscScalar *buffer;
+      ierr = PetscMalloc1(len,&buffer);CHKERRQ(ierr);
+      ierr = PetscArraycpy(buffer,S,len);CHKERRQ(ierr);
+      ierr = MPIU_Allreduce(buffer,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      ierr = PetscFree(buffer);CHKERRQ(ierr);
+    }
+#endif
   }
   p = ctx->spls?PetscMin(ctx->spls,n):n;
   pp = p;
