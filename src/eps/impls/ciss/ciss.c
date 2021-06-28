@@ -131,111 +131,6 @@ static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_sta
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *K)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,j,k,local_size;
-  PetscMPIInt    len;
-  PetscScalar    *work,*temp,*B,*tempB,*s_data,*Q1,*Q2,*temp2,alpha=1,beta=0;
-  PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
-#endif
-
-  PetscFunctionBegin;
-  ierr = BVGetSizes(S,&local_size,NULL,NULL);CHKERRQ(ierr);
-  ierr = BVGetArray(S,&s_data);CHKERRQ(ierr);
-  ierr = PetscMalloc7(ml*ml,&temp,ml*ml,&temp2,local_size*ml,&Q1,local_size*ml,&Q2,ml*ml,&B,ml*ml,&tempB,5*ml,&work);CHKERRQ(ierr);
-  ierr = PetscArrayzero(B,ml*ml);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
-#endif
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-
-  for (i=0;i<ml;i++) B[i*ml+i]=1;
-
-  for (k=0;k<2;k++) {
-    ierr = PetscBLASIntCast(local_size,&m);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(ml,&l);CHKERRQ(ierr);
-    n = l; lda = m; ldb = m; ldc = l;
-    if (k == 0) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,s_data,&lda,s_data,&ldb,&beta,temp,&ldc));
-    } else if ((k%2)==1) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,Q1,&lda,Q1,&ldb,&beta,temp,&ldc));
-    } else {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,Q2,&lda,Q2,&ldb,&beta,temp,&ldc));
-    }
-    ierr = PetscArrayzero(temp2,ml*ml);CHKERRQ(ierr);
-    ierr = PetscMPIIntCast(ml*ml,&len);CHKERRQ(ierr);
-    ierr = MPIU_Allreduce(temp,temp2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)S));CHKERRMPI(ierr);
-
-    ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
-    n = m; lda = m; lwork = 5*m, ldu = 1; ldvt = 1;
-#if defined(PETSC_USE_COMPLEX)
-    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
-#else
-    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
-#endif
-    SlepcCheckLapackInfo("gesvd",info);
-
-    ierr = PetscBLASIntCast(local_size,&l);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(ml,&n);CHKERRQ(ierr);
-    m = n; lda = l; ldb = m; ldc = l;
-    if (k==0) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,s_data,&lda,temp2,&ldb,&beta,Q1,&ldc));
-    } else if ((k%2)==1) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,Q1,&lda,temp2,&ldb,&beta,Q2,&ldc));
-    } else {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,Q2,&lda,temp2,&ldb,&beta,Q1,&ldc));
-    }
-
-    ierr = PetscBLASIntCast(ml,&l);CHKERRQ(ierr);
-    m = l; n = l; lda = l; ldb = m; ldc = l;
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,B,&lda,temp2,&ldb,&beta,tempB,&ldc));
-    for (i=0;i<ml;i++) {
-      sigma[i] = PetscSqrtReal(sigma[i]);
-      for (j=0;j<local_size;j++) {
-        if ((k%2)==1) Q2[j+i*local_size]/=sigma[i];
-        else Q1[j+i*local_size]/=sigma[i];
-      }
-      for (j=0;j<ml;j++) {
-        B[j+i*ml]=tempB[j+i*ml]*sigma[i];
-      }
-    }
-  }
-
-  ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
-  n = m; lda = m; ldu=1; ldvt=1;
-#if defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
-#else
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
-#endif
-  SlepcCheckLapackInfo("gesvd",info);
-
-  ierr = PetscBLASIntCast(local_size,&l);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ml,&n);CHKERRQ(ierr);
-  m = n; lda = l; ldb = m; ldc = l;
-  if ((k%2)==1) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q1,&lda,B,&ldb,&beta,s_data,&ldc));
-  } else {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q2,&lda,B,&ldb,&beta,s_data,&ldc));
-  }
-
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = BVRestoreArray(S,&s_data);CHKERRQ(ierr);
-
-  (*K) = 0;
-  for (i=0;i<ml;i++) {
-    if (sigma[i]/PetscMax(sigma[0],1)>delta) (*K)++;
-  }
-  ierr = PetscFree7(temp,temp2,Q1,Q2,B,tempB,work);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-#endif
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
 {
   PetscErrorCode ierr;
@@ -587,7 +482,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-        ierr = SVD_S(ctx->S,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,ctx->L*ctx->M);CHKERRQ(ierr);
+        ierr = BVSVDAndRank(ctx->S,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
         if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
           if (contour->pA) {
             ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);

@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/bvimpl.h>            /*I "slepcbv.h" I*/
+#include <slepcblaslapack.h>
 
 #define p_id(i) (i*subcomm->n + subcomm->color)
 
@@ -151,7 +152,7 @@ PetscErrorCode BVSumQuadrature(BV S,BV Y,PetscInt M,PetscInt L,PetscInt L_max,Pe
    BVDotQuadrature - Computes the projection terms required in the quadrature
    rule to approximate the contour integral.
 
-   Collective on S
+   Collective on Y
 
    Input Parameters:
 +  Y       - first basis vectors
@@ -240,7 +241,7 @@ PetscErrorCode BVDotQuadrature(BV Y,BV V,PetscScalar *Mu,PetscInt M,PetscInt L,P
    inside a region via quantities computed in the quadrature rule of
    contour integral methods.
 
-   Collective on S
+   Collective on Y
 
    Input Parameters:
 +  Y       - first basis vectors
@@ -306,6 +307,138 @@ PetscErrorCode BVTraceQuadrature(BV Y,BV V,PetscInt L,PetscInt L_max,PetscScalar
   *est_eig = PetscAbsScalar(sum)/(PetscReal)L;
   ierr = VecDestroy(&y);CHKERRQ(ierr);
   ierr = VecDestroy(&yall);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+/*@
+   BVSVDAndRank - Compute the SVD (left singular vectors only, and singular
+   values) and determine the numerical rank according to a tolerance.
+
+   Collective on S
+
+   Input Parameters:
++  S     - the basis vectors
+-  delta - the tolerance used to determine the rank
+
+   Output Parameters:
++  sigma - computed singular values
+-  rank  - estimated rank (optional)
+
+   Notes:
+   This function computes [U,Sigma,V] = svd(S) and replaces S with U.
+   The current implementation computes this via S'*S, and it may include
+   some kind of iterative refinement to improve accuracy in some cases.
+   All columns up to k are modified, see BVSetActiveColumns().
+
+   Once the decomposition is computed, the numerical rank is estimated
+   by counting the number of singular values that are larger than the
+   tolerance delta, relative to the first singular value.
+
+   Level: developer
+
+.seealso: BVSetActiveColumns()
+@*/
+
+PetscErrorCode BVSVDAndRank(BV S,PetscReal delta,PetscReal *sigma,PetscInt *rank)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,k,ml=S->k;
+  PetscMPIInt    len;
+  PetscScalar    *work,*temp,*B,*tempB,*sarray,*Q1,*Q2,*temp2,alpha=1.0,beta=0.0;
+  PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(S,BV_CLASSID,1);
+  PetscValidLogicalCollectiveReal(S,delta,2);
+  PetscValidPointer(sigma,3);
+
+  ierr = BVGetArray(S,&sarray);CHKERRQ(ierr);
+  ierr = PetscMalloc7(ml*ml,&temp,ml*ml,&temp2,S->n*ml,&Q1,S->n*ml,&Q2,ml*ml,&B,ml*ml,&tempB,5*ml,&work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
+#endif
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+
+  ierr = PetscArrayzero(B,ml*ml);CHKERRQ(ierr);
+  for (i=0;i<ml;i++) B[i*ml+i]=1;
+
+  for (k=0;k<2;k++) {
+    ierr = PetscBLASIntCast(S->n,&m);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(ml,&l);CHKERRQ(ierr);
+    n = l; lda = m; ldb = m; ldc = l;
+    if (!k) {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,sarray,&lda,sarray,&ldb,&beta,temp,&ldc));
+    } else {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,Q1,&lda,Q1,&ldb,&beta,temp,&ldc));
+    }
+    ierr = PetscArrayzero(temp2,ml*ml);CHKERRQ(ierr);
+    ierr = PetscMPIIntCast(ml*ml,&len);CHKERRQ(ierr);
+    ierr = MPIU_Allreduce(temp,temp2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)S));CHKERRMPI(ierr);
+
+    ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
+    n = m; lda = m; lwork = 5*m, ldu = 1; ldvt = 1;
+#if defined(PETSC_USE_COMPLEX)
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
+#else
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&m,&n,temp2,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
+#endif
+    SlepcCheckLapackInfo("gesvd",info);
+
+    ierr = PetscBLASIntCast(S->n,&l);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(ml,&n);CHKERRQ(ierr);
+    m = n; lda = l; ldb = m; ldc = l;
+    if (!k) {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,sarray,&lda,temp2,&ldb,&beta,Q1,&ldc));
+    } else {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,Q1,&lda,temp2,&ldb,&beta,Q2,&ldc));
+    }
+
+    ierr = PetscBLASIntCast(ml,&l);CHKERRQ(ierr);
+    m = l; n = l; lda = l; ldb = m; ldc = l;
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&m,&alpha,B,&lda,temp2,&ldb,&beta,tempB,&ldc));
+    for (i=0;i<ml;i++) {
+      sigma[i] = PetscSqrtReal(sigma[i]);
+      for (j=0;j<S->n;j++) {
+        if (k%2) Q2[j+i*S->n] /= sigma[i];
+        else Q1[j+i*S->n] /= sigma[i];
+      }
+      for (j=0;j<ml;j++) B[j+i*ml] = tempB[j+i*ml]*sigma[i];
+    }
+  }
+
+  ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
+  n = m; lda = m; ldu=1; ldvt=1;
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&m,&n,B,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
+#endif
+  SlepcCheckLapackInfo("gesvd",info);
+
+  ierr = PetscBLASIntCast(S->n,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ml,&n);CHKERRQ(ierr);
+  m = n; lda = l; ldb = m; ldc = l;
+  if (k%2) {
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q1,&lda,B,&ldb,&beta,sarray,&ldc));
+  } else {
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&l,&n,&m,&alpha,Q2,&lda,B,&ldb,&beta,sarray,&ldc));
+  }
+
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = BVRestoreArray(S,&sarray);CHKERRQ(ierr);
+
+  if (rank) {
+    (*rank) = 0;
+    for (i=0;i<ml;i++) {
+      if (sigma[i]/PetscMax(sigma[0],1.0)>delta) (*rank)++;
+    }
+  }
+  ierr = PetscFree7(temp,temp2,Q1,Q2,B,tempB,work);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 
