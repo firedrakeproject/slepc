@@ -1,0 +1,7 @@
+
+Quadratic Eigenproblem, N=100 (10x10 grid)
+
+ Running CISS with 24 KSP solvers (RITZ extraction)
+ Found 8 eigenvalues, all of them computed up to the required tolerance:
+     -0.03303+0.31796i, -0.03044+0.30190i, -0.02977+0.30732i, -0.02823+0.29277i, -0.02551+0.29367i, -0.02509+0.30574i, -0.01624+0.29902i, -0.00609+0.30549i
+
