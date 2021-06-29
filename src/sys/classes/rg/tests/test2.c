@@ -38,7 +38,7 @@ int main(int argc,char **argv)
   RGType         rtype;
   PetscInt       i;
   PetscBool      triv;
-  PetscReal      re,im,radius,vscale,start_ang,end_ang,width;
+  PetscReal      re,im,radius,vscale,start_ang,end_ang,width,a,b,c,d;
   PetscScalar    center,cr[NPOINTS],ci[NPOINTS];
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -61,7 +61,10 @@ int main(int argc,char **argv)
   ierr = CheckPoint(rg,3.0,0.3);CHKERRQ(ierr);
   ierr = CheckPoint(rg,1.1747,0.28253);CHKERRQ(ierr);
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nContour points: ");
+  ierr = RGComputeBoundingBox(rg,&a,&b,&c,&d);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
+
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
   ierr = RGComputeContour(rg,NPOINTS,cr,ci);CHKERRQ(ierr);
   for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)

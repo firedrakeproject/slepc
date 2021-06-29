@@ -12,6 +12,9 @@ static char help[] = "Test RG interface functions.\n\n";
 
 #include <slepcrg.h>
 
+#define NPOINTS 10
+#define NVERTEX 7
+
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
@@ -19,7 +22,7 @@ int main(int argc,char **argv)
   PetscInt       i,inside,nv;
   PetscBool      triv;
   PetscReal      re,im,a,b,c,d;
-  PetscScalar    ar,ai,cr[10],ci[10],vr[7],vi[7],*pr,*pi;
+  PetscScalar    ar,ai,cr[NPOINTS],ci[NPOINTS],vr[NVERTEX],vi[NVERTEX],*pr,*pi;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
@@ -47,8 +50,8 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
-  ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
-  for (i=0;i<10;i++) {
+  ierr = RGComputeContour(rg,NPOINTS,cr,ci);CHKERRQ(ierr);
+  for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
     im = PetscImaginaryPart(cr[i]);
@@ -83,8 +86,8 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
-  ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
-  for (i=0;i<10;i++) {
+  ierr = RGComputeContour(rg,NPOINTS,cr,ci);CHKERRQ(ierr);
+  for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
     im = PetscImaginaryPart(cr[i]);
@@ -117,7 +120,7 @@ int main(int argc,char **argv)
   ierr = RGSetType(rg,RGPOLYGON);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (!triv) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be trivial before setting parameters");
-  ierr = RGPolygonSetVertices(rg,7,vr,vi);CHKERRQ(ierr);
+  ierr = RGPolygonSetVertices(rg,NVERTEX,vr,vi);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be non-trivial after setting parameters");
@@ -136,8 +139,8 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
-  ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
-  for (i=0;i<10;i++) {
+  ierr = RGComputeContour(rg,NPOINTS,cr,ci);CHKERRQ(ierr);
+  for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
     im = PetscImaginaryPart(cr[i]);
@@ -151,7 +154,7 @@ int main(int argc,char **argv)
 
   /* check vertices */
   ierr = RGPolygonGetVertices(rg,&nv,&pr,&pi);CHKERRQ(ierr);
-  if (nv!=7) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong number of vertices: %D",nv);
+  if (nv!=NVERTEX) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong number of vertices: %D",nv);
   for (i=0;i<nv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (pr[i]!=vr[i] || pi[i]!=vi[i])
