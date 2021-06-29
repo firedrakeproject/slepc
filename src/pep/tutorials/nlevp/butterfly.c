@@ -180,5 +180,13 @@ int main(int argc,char **argv)
          suffix: ciss_part
          nsize: 2
          args: -pep_ciss_partitions 2
+      test:
+         suffix: ciss_refine
+         args: -pep_ciss_refine_inner 1 -pep_ciss_refine_blocksize 1
+
+   test:
+      suffix: 4
+      args: -pep_type ciss -rg_type ellipse -rg_ellipse_center .5+.5i -rg_ellipse_radius .25 -pep_ciss_moments 4 -pep_ciss_blocksize 5 -pep_ciss_refine_blocksize 1 -terse
+      requires: complex !single
 
 TEST*/

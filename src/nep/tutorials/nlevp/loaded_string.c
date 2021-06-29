@@ -232,4 +232,10 @@ int main(int argc,char **argv)
       test:
          suffix: 8_slp_two_thres
          args: -nep_type slp -nep_slp_deflation_threshold 5e-10 -nep_two_sided
+
+   test:
+      suffix: 9
+      args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 500 -rg_ellipse_radius 500 -rg_ellipse_vscale .1 -nep_ciss_moments 4 -nep_ciss_blocksize 5 -terse
+      requires: complex double
+
 TEST*/

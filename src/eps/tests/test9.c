@@ -289,6 +289,12 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
          args: -eps_ciss_realmats -eps_ciss_ksp_type bcgs -eps_ciss_pc_type sor -eps_ciss_integration_points 12
 
    test:
+      suffix: 6_cheby_interval
+      args: -eps_type ciss -eps_tol 1e-9 -rg_type interval -rg_interval_endpoints 0.5,0.6 -eps_ciss_quadrule chebyshev -eps_ciss_usest 0 -eps_all
+      requires: double
+      output_file: output/test9_6.out
+
+   test:
       suffix: 7
       args: -eps_nev 4 -eps_two_sided -eps_view_vectors ::ascii_info -eps_view_values
       requires: !single

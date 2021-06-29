@@ -192,6 +192,9 @@ int main(int argc,char **argv)
          suffix: 2
          nsize: 2
          args: -nep_ciss_partitions 2
+      test:
+         suffix: 3
+         args: -nep_ciss_refine_inner 1 -nep_ciss_refine_blocksize 1
 
 TEST*/
 
