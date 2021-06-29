@@ -177,57 +177,51 @@ PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
 PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
-  PetscInt    i,N;
-  PetscReal   theta,pr,pi,y,crt,cit,s,d;
-  PetscScalar center;
+  PetscInt    i,N,Nv,Nh;
+  PetscReal   hv,hh,t;
 
   PetscFunctionBegin;
   if (!(ctx->a>-PETSC_MAX_REAL && ctx->b<PETSC_MAX_REAL && ctx->c>-PETSC_MAX_REAL && ctx->d<PETSC_MAX_REAL)) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Contour not defined in unbounded regions");
-#if defined(PETSC_USE_COMPLEX)
-  center = PetscCMPLX((ctx->a+ctx->b)/2.0,(ctx->c+ctx->d)/2.0);
-#else
-  center = (ctx->a+ctx->b)/2.0;
-#endif
   if (ctx->a==ctx->b || ctx->c==ctx->d) {
-    d = (ctx->a==ctx->b)?ctx->d-ctx->c:ctx->b-ctx->a;
+    if (ctx->a==ctx->b) {hv = (ctx->d-ctx->c)/(n-1); hh = 0.0;}
+    else {hh = (ctx->b-ctx->a)/(n-1); hv = 0.0;}
     for (i=0;i<n;i++) {
-      theta = (i+.5)*PETSC_PI/n;
-      y = .5*d*PetscCosReal(theta);
-      if (ctx->a==ctx->b) {cit = y; crt = 0.0;}
-      else {cit = 0.0; crt = y;}
 #if defined(PETSC_USE_COMPLEX)
-      cr[i] = center+PetscCMPLX(crt,cit);
+      cr[i] = PetscCMPLX(ctx->a+hh*i,ctx->c+hv*i);
 #else
-      if (cr) cr[i] = center+crt;
-      if (ci) ci[i] = cit;
+      if (cr) cr[i] = ctx->a+hh*i;
+      if (ci) ci[i] = ctx->c+hv*i;
 #endif
     }
   } else {
+    if (n<4) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Minimum number of contour points: 4");
     N = n/2;
-    for (i=0;i<N;i++) {
-      theta = (i+.5)*PETSC_PI/N;
-      pr = .5*(ctx->b-ctx->a)*PetscCosReal(theta);
-      pi = PetscSinReal(theta)*(ctx->d-ctx->c)*.5;
-      y =(pr!=0.0)?(ctx->b-ctx->a)*.5*pi/pr:PETSC_MAX_REAL;
-      if (PetscAbsReal(y)<(ctx->d-ctx->c)*.5) {
-        s = (y>=0.0)?1.0:-1.0;
-        crt = s*(ctx->b-ctx->a)*.5;
-        cit = s*y;
-      } else {
-        crt = (ctx->d-ctx->c)*.5*pr/pi;
-        cit = .5*(ctx->d-ctx->c);
-      }
+    t = ((ctx->d-ctx->c)/(ctx->d-ctx->c+ctx->b-ctx->a))*N;
+    Nv = t-floor(t)>0.5?PetscCeilReal(t):PetscFloorReal(t);
+    if (Nv==0) Nv++;
+    else if (Nv==N) Nv--;
+    Nh = N-Nv;
+
+    hh = (ctx->b-ctx->a)/Nh;
+    for (i=0;i<Nh;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      cr[i] = PetscCMPLX(crt,cit);
-      cr[N+i] = -cr[i];
-      if (ci) { ci[i] = 0.0; ci[N+i] = 0.0;}
+      cr[i]   = PetscCMPLX(ctx->a+i*hh,ctx->c);
+      cr[i+N] = PetscCMPLX(ctx->b-i*hh,ctx->d);
 #else
-      cr[i] = crt; ci[i] = cit;
-      cr[N+i] = -cr[i];
-      ci[N+i] = -ci[i];
+      if (cr) {cr[i] = ctx->a+i*hh; cr[i+N] = ctx->b-i*hh;}
+      if (ci) {ci[i] = ctx->c; ci[i+N] = ctx->d;}
 #endif
     }
-    for (i=0;i<2*N;i++) cr[i] += center;
+    hv = (ctx->d-ctx->c)/Nv;
+    for (i=0;i<Nv;i++) {
+#if defined(PETSC_USE_COMPLEX)
+      cr[Nh+i]   = PetscCMPLX(ctx->b,ctx->c+i*hv);
+      cr[i+Nh+N] = PetscCMPLX(ctx->a,ctx->d-i*hv);
+#else
+      if (cr) {cr[Nh+i] = ctx->b; cr[i+Nh+N] = ctx->a;}
+      if (ci) {ci[Nh+i] = ctx->c+i*hv; ci[i+Nh+N] = ctx->d-i*hv;}
+#endif
+    }
   }
   PetscFunctionReturn(0);
 }
