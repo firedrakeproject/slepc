@@ -418,7 +418,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   PetscInt          i,j,n_,s,k,m,mod;
   PetscBLASInt      n=0,n2=0,irsize=0,rsizediv2,ipsize=0,iremainsize=0,info,*piv,minlen,lwork=0,one=1;
   PetscReal         nrm,shift=0.0;
-#if defined(PETSC_USE_COMPLEX) || defined(PETSC_HAVE_ESSL)
+#if defined(PETSC_USE_COMPLEX)
   PetscReal         *rwork=NULL;
 #endif
   PetscComplex      *As,*RR,*RR2,*expmA,*expmA2,*Maux,*Maux2,rsize,*r,psize,*p,remainsize,*remainterm,*rootp,*rootq,mult=0.0,scale,cone=1.0,czero=0.0,*aux;
@@ -426,13 +426,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   const PetscScalar *Aa;
   PetscErrorCode    ierr;
   PetscBool         isreal,flg;
-#if defined(PETSC_HAVE_ESSL)
-  PetscScalar       sdummy,*wri;
-  PetscBLASInt      idummy,io=0;
-#else
   PetscBLASInt      query=-1;
   PetscScalar       work1,*work;
-#endif
 
   PetscFunctionBegin;
   ierr = MatGetSize(A,&n_,NULL);CHKERRQ(ierr);
@@ -449,7 +444,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
     ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
     /* estimate rightmost eigenvalue and shift A with it */
-#if !defined(PETSC_HAVE_ESSL)
 #if !defined(PETSC_USE_COMPLEX)
     PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,&work1,&query,&info));
     SlepcCheckLapackInfo("geev",info);
@@ -467,21 +461,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     ierr = PetscFree2(rwork,work);CHKERRQ(ierr);
 #endif
     SlepcCheckLapackInfo("geev",info);
-#else /* defined(PETSC_HAVE_ESSL) */
-    ierr = PetscBLASIntCast(4*n,&lwork);CHKERRQ(ierr);
-    ierr = PetscMalloc2(lwork,&rwork,2*n,&wri);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,sMaux,&n,wri,&sdummy,&idummy,&idummy,&n,rwork,&lwork));
-    for (i=0;i<n;i++) {
-      wr[i] = wri[2*i];
-      wi[i] = wri[2*i+1];
-    }
-#else
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,Maux,&n,wri,&sdummy,&idummy,&idummy,&n,rwork,&lwork));
-    for (i=0;i<n;i++) wr[i] = wri[i];
-#endif
-    ierr = PetscFree2(rwork,wri);CHKERRQ(ierr);
-#endif
     ierr = PetscLogFlops(25.0*n*n*n+(n*n*n)/3.0+1.0*n*n*n);CHKERRQ(ierr);
 
     shift = PetscRealPart(wr[0]);
