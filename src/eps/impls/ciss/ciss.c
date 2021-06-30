@@ -349,7 +349,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
   PetscErrorCode   ierr;
   EPS_CISS         *ctx = (EPS_CISS*)eps->data;
-  SlepcContourData contour = ctx->contour;
+  SlepcContourData contour;
   PetscBool        istrivial,isring,isellipse,isinterval,flg;
   PetscReal        c,d;
   PetscRandom      rand;
@@ -440,6 +440,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (!ctx->usest_set) ctx->usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;
   if (ctx->usest && ctx->npart>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
 
+  contour = ctx->contour;
   ierr = SlepcContourRedundantMat(contour,eps->isgeneralized?2:1,A);CHKERRQ(ierr);
   if (contour->pA) {
     ierr = BVGetColumn(ctx->V,0,&v0);CHKERRQ(ierr);

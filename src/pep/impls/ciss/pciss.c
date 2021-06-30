@@ -257,7 +257,7 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
 {
   PetscErrorCode   ierr;
   PEP_CISS         *ctx = (PEP_CISS*)pep->data;
-  SlepcContourData contour = ctx->contour;
+  SlepcContourData contour;
   PetscInt         nwork;
   PetscBool        istrivial,isellipse,flg;
   PetscObjectId    id;
@@ -316,6 +316,7 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
   ierr = BVDuplicateResize(pep->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->V);CHKERRQ(ierr);
 
+  contour = ctx->contour;
   ierr = SlepcContourRedundantMat(contour,pep->nmat,pep->A);CHKERRQ(ierr);
   if (!ctx->T) {
     ierr = MatDuplicate(contour->pA?contour->pA[0]:pep->A[0],MAT_DO_NOT_COPY_VALUES,&ctx->T);CHKERRQ(ierr);
