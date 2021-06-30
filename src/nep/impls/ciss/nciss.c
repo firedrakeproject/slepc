@@ -294,7 +294,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 {
   PetscErrorCode   ierr;
   NEP_CISS         *ctx = (NEP_CISS*)nep->data;
-  SlepcContourData contour = ctx->contour;
+  SlepcContourData contour;
   PetscInt         nwork;
   PetscBool        istrivial,isellipse,flg;
   NEP_CISS_PROJECT dsctxf;
@@ -354,6 +354,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = BVDuplicateResize(nep->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->V);CHKERRQ(ierr);
 
+  contour = ctx->contour;
   ierr = SlepcContourRedundantMat(contour,nep->nt,nep->A);CHKERRQ(ierr);
   if (contour->pA) {
     if (!ctx->T) {
@@ -483,13 +484,15 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = NEPCISSSolveSystem(nep,nep->function,nep->jacobian,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     }
     ctx->L += L_add;
+    if (L_add) {
+      ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
+      ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
+    }
   }
-  ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
 
   ierr = RGGetScale(nep->rg,&rgscale);CHKERRQ(ierr);
   ierr = RGEllipseGetParameters(nep->rg,&center,&radius,NULL);CHKERRQ(ierr);
 
-  ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
   if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
     ierr = PetscMalloc1(ctx->L*ctx->M*ctx->L*ctx->M,&H1);CHKERRQ(ierr);
   }
