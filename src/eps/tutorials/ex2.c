@@ -121,14 +121,15 @@ int main(int argc,char **argv)
          args: -library_preload
 
    testset:
-      args: -n 30 -eps_type ciss -terse
+      args: -n 30 -eps_type ciss -eps_ciss_realmats -terse
       requires: double
       output_file: output/ex2_ciss.out
       filter: grep -v method
       test:
          suffix: ciss_1
          nsize: 1
-         args: -rg_type interval -rg_interval_endpoints 1.1,1.25
+         args: -rg_type interval -rg_interval_endpoints 1.1,1.25,-.1,.1
+         requires: complex
       test:
          suffix: ciss_1_hpddm
          nsize: 1
