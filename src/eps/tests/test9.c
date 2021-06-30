@@ -283,7 +283,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
          args: -eps_ciss_extraction hankel -eps_ciss_quadrule chebyshev -eps_ncv 64
       test:
          suffix: 6_refine
-         args: -eps_ciss_refine_inner 1 -eps_ciss_refine_blocksize 1
+         args: -eps_ciss_moments 4 -eps_ciss_blocksize 5 -eps_ciss_refine_inner 1 -eps_ciss_refine_blocksize 2
       test:
          suffix: 6_bcgs
          args: -eps_ciss_realmats -eps_ciss_ksp_type bcgs -eps_ciss_pc_type sor -eps_ciss_integration_points 12

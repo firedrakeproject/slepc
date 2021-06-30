@@ -431,13 +431,15 @@ PetscErrorCode PEPSolve_CISS(PEP pep)
     }
     ierr = PEPCISSSolveSystem(pep,ctx->T,ctx->J,(contour->pA)?ctx->pV:ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     ctx->L += L_add;
+    if (L_add) {
+      ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
+      ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
+    }
   }
-  ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
 
   ierr = RGGetScale(pep->rg,&rgscale);CHKERRQ(ierr);
   ierr = RGEllipseGetParameters(pep->rg,&center,&radius,NULL);CHKERRQ(ierr);
 
-  ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
   if (ctx->extraction == PEP_CISS_EXTRACTION_HANKEL) {
     ierr = PetscMalloc1(ctx->L*ctx->M*ctx->L*ctx->M,&H1);CHKERRQ(ierr);
   }
