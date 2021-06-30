@@ -274,7 +274,11 @@ PetscErrorCode RGComputeQuadrature_Interval(RG rg,RGQuadRule quad,PetscInt n,Pet
       }
     }
   } else {  /* RG_QUADRULE_TRAPEZOIDAL */
-    center = rg->sfactor*((ctx->b+ctx->a)/2.0+(ctx->d+ctx->c)/2.0*PETSC_PI);
+#if defined(PETSC_USE_COMPLEX)
+    center = rg->sfactor*PetscCMPLX(ctx->b+ctx->a,ctx->d+ctx->c)/2.0;
+#else
+    center = rg->sfactor*(ctx->b+ctx->a)/2.0;
+#endif
     radius = PetscSqrtReal(PetscPowRealInt(rg->sfactor*(ctx->b-ctx->a)/2.0,2)+PetscPowRealInt(rg->sfactor*(ctx->d-ctx->c)/2.0,2));
     for (i=0;i<n;i++) {
       zn[i] = (z[i]-center)/radius;
