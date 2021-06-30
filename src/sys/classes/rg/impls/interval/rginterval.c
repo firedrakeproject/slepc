@@ -177,7 +177,7 @@ PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
 PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
-  PetscInt    i,N,Nv,Nh;
+  PetscInt    i,N,Nv,Nh,k1,k0;
   PetscReal   hv,hh,t;
 
   PetscFunctionBegin;
@@ -201,25 +201,37 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
     if (Nv==0) Nv++;
     else if (Nv==N) Nv--;
     Nh = N-Nv;
-
     hh = (ctx->b-ctx->a)/Nh;
-    for (i=0;i<Nh;i++) {
+    hv = (ctx->d-ctx->c)/Nv;
+    /* positive imaginary part first */
+    k1 = Nv/2+1;
+    k0 = Nv-k1;
+
+    for (i=k1;i<Nv;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      cr[i]   = PetscCMPLX(ctx->a+i*hh,ctx->c);
-      cr[i+N] = PetscCMPLX(ctx->b-i*hh,ctx->d);
+      cr[i-k1]   = PetscCMPLX(ctx->b,ctx->c+i*hv);
+      cr[i-k1+N] = PetscCMPLX(ctx->a,ctx->d-i*hv);
 #else
-      if (cr) {cr[i] = ctx->a+i*hh; cr[i+N] = ctx->b-i*hh;}
-      if (ci) {ci[i] = ctx->c; ci[i+N] = ctx->d;}
+      if (cr) {cr[i-k1] = ctx->b;      cr[i-k1+N] = ctx->a;}
+      if (ci) {ci[i-k1] = ctx->c+i*hv; ci[i-k1+N] = ctx->d-i*hv;}
 #endif
     }
-    hv = (ctx->d-ctx->c)/Nv;
-    for (i=0;i<Nv;i++) {
+    for (i=0;i<Nh;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      cr[Nh+i]   = PetscCMPLX(ctx->b,ctx->c+i*hv);
-      cr[i+Nh+N] = PetscCMPLX(ctx->a,ctx->d-i*hv);
+      cr[i+k0]   = PetscCMPLX(ctx->b-i*hh,ctx->d);
+      cr[i+k0+N] = PetscCMPLX(ctx->a+i*hh,ctx->c);
 #else
-      if (cr) {cr[Nh+i] = ctx->b; cr[i+Nh+N] = ctx->a;}
-      if (ci) {ci[Nh+i] = ctx->c+i*hv; ci[i+Nh+N] = ctx->d-i*hv;}
+      if (cr) {cr[i+k0] = ctx->b-i*hh; cr[i+k0+N] = ctx->a+i*hh;}
+      if (ci) {ci[i+k0] = ctx->d;      ci[i+k0+N] = ctx->c;}
+#endif
+    }
+    for (i=0;i<k1;i++) {
+#if defined(PETSC_USE_COMPLEX)
+      cr[i+k0+Nh]   = PetscCMPLX(ctx->a,ctx->d-i*hv);
+      cr[i+k0+Nh+N] = PetscCMPLX(ctx->b,ctx->c+i*hv);
+#else
+      if (cr) {cr[i+k0+Nh] = ctx->a; cr[i+k0+Nh+N] = ctx->b;}
+      if (ci) {ci[i+k0+Nh] = ctx->d+i*hv; ci[i+k0+Nh+N] = ctx->c-i*hv;}
 #endif
     }
   }

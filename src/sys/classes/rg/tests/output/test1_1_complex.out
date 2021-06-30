@@ -9,7 +9,7 @@ RG Object: 1 MPI processes
     region: [-1.,1.]x[-0.1,0.1]
 Point (0.2,0.) is inside the region
 The bounding box is [-1.,1.]x[-0.1,0.1]
-Contour points: (-1,-0.1) (-0.5,-0.1) (0,-0.1) (0.5,-0.1) (1,-0.1) (1,0.1) (0.5,0.1) (0,0.1) (-0.5,0.1) (-1,0.1) 
+Contour points: (1,0.1) (0.5,0.1) (0,0.1) (-0.5,0.1) (-1,0.1) (-1,-0.1) (-0.5,-0.1) (0,-0.1) (0.5,-0.1) (1,-0.1) 
 RG Object: 1 MPI processes
   type: polygon
     vertices: 0.+2i, 1.+4i, 2.+5i, 4.+3i, 5.+4i, 6.+1i, 2.
