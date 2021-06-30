@@ -112,9 +112,14 @@ int main(int argc,char **argv)
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -eps_nev 4 -terse
       requires: double !complex !define(PETSC_USE_64BIT_INDICES)
 
-   test:
-      suffix: ciss_1
-      args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -eps_type ciss -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05 -terse
+   testset:
+      args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -eps_type ciss -terse
       requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      test:
+         suffix: ciss_1
+         args: -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05
+      test:
+         suffix: ciss_2
+         args: -rg_type interval -rg_interval_endpoints -0.062,.038,-.13,-.03
 
 TEST*/
