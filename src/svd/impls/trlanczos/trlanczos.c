@@ -41,20 +41,11 @@ static const char citation[] =
   "   year = \"2008\"\n"
   "}\n";
 
-/* Bidiagonalization choice for the Generalized problem*/
-typedef enum {
-  GBIDIAG_S,    /* single bidiagonalization (Qa) */
-  GBIDIAG_JU,   /* joint bidiagonalization, both Qa and Qb in upper bidiagonal form */
-  GBIDIAG_JL    /* joint bidiagonalization, Qa lower bidiagonal, Qb upper bidiagonal */
-} GBidiag;
-
-static const char *GBidiags[] = {"S","JU","JL","GBidiag","",0};
-
 typedef struct {
   PetscBool oneside;
   KSP       ksp;
   Mat       Z;
-  GBidiag   bidiag;
+  SVDTRLanczosGBidiag   bidiag;
 } SVD_TRLANCZOS;
 
 /* Context for shell matrix [A; B] */
@@ -68,7 +59,7 @@ PetscErrorCode SVDSolve_TRLanczosGS(SVD svd);
 PetscErrorCode SVDSolve_TRLanczosGJU(SVD svd);
 PetscErrorCode SVDSolve_TRLanczosGJL(SVD svd);
 
-static PetscErrorCode MatZCreateContext(MatZData **zdata,SVD svd)
+static PetscErrorCode MatZCreateContext(SVD svd,MatZData **zdata)
 {
   PetscErrorCode ierr;
 
@@ -176,14 +167,14 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   ld = svd->ncv;
   if (svd->isgeneralized) {
     switch (lanczos->bidiag) {
-      case GBIDIAG_S:
+      case SVD_TRLANCZOS_GBIDIAG_S:
         svd->ops->solveg = SVDSolve_TRLanczosGS;
         break;
-      case GBIDIAG_JU:
+      case SVD_TRLANCZOS_GBIDIAG_JUU:
         svd->ops->solveg = SVDSolve_TRLanczosGJU;
         dstype = DSGSVD;
         break;
-      case GBIDIAG_JL:
+      case SVD_TRLANCZOS_GBIDIAG_JLU:
         svd->ops->solveg = SVDSolve_TRLanczosGJL;
         dstype = DSGSVD;
         ld = svd->ncv+1;
@@ -192,18 +183,20 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     ierr = SVDSetWorkVecs(svd,1,1);CHKERRQ(ierr);
 
     /* Create the matrix Z=[A;B] */
+    ierr = MatDestroy(&lanczos->Z);CHKERRQ(ierr);
     ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
     ierr = MatGetLocalSize(svd->B,&p,NULL);CHKERRQ(ierr);
-    ierr = MatZCreateContext(&zdata,svd);CHKERRQ(ierr);
+    ierr = MatZCreateContext(svd,&zdata);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+p,n,PETSC_DECIDE,PETSC_DECIDE,zdata,&lanczos->Z);CHKERRQ(ierr);
     ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT,(void(*)(void))MatMult_Z);CHKERRQ(ierr);
     ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Z);CHKERRQ(ierr);
     ierr = MatShellSetOperation(lanczos->Z,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Z);CHKERRQ(ierr);
     ierr = MatShellSetOperation(lanczos->Z,MATOP_DESTROY,(void(*)(void))MatDestroy_Z);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z);CHKERRQ(ierr);
 
     if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(lanczos->ksp,lanczos->Z,lanczos->Z);CHKERRQ(ierr);
-    KSPSetUp(lanczos->ksp);
+    ierr = KSPSetUp(lanczos->ksp);CHKERRQ(ierr);
   }
   ierr = DSSetType(svd->ds,dstype);CHKERRQ(ierr);
   ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -781,8 +774,7 @@ PetscErrorCode SVDSolve_TRLanczosGS(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDTwoSideLanczos_GJU(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,
-                                      Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
+PetscErrorCode SVDTwoSideLanczos_GJU(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,m,p;
@@ -1030,8 +1022,7 @@ PetscErrorCode SVDSolve_TRLanczosGJU(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDTwoSideLanczos_GJL(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,
-                                      Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
+PetscErrorCode SVDTwoSideLanczos_GJL(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,m,p;
@@ -1305,22 +1296,25 @@ PetscErrorCode SVDSolve_TRLanczosGJL(SVD svd)
 
 PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptionItems *PetscOptionsObject,SVD svd)
 {
-  PetscErrorCode ierr;
-  PetscBool      set,val;
-  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
+  PetscErrorCode      ierr;
+  PetscBool           set,val;
+  SVD_TRLANCZOS       *lanczos = (SVD_TRLANCZOS*)svd->data;
+  SVDTRLanczosGBidiag bidiag;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"SVD TRLanczos Options");CHKERRQ(ierr);
 
     ierr = PetscOptionsBool("-svd_trlanczos_oneside","Use one-side reorthogonalization","SVDTRLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
     if (set) { ierr = SVDTRLanczosSetOneSide(svd,val);CHKERRQ(ierr); }
-    if (svd->isgeneralized) {
-      if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
-      ierr = KSPSetFromOptions(lanczos->ksp);CHKERRQ(ierr);
-      ierr = PetscOptionsEnum("-svd_trlanczos_gbd","Bidiagonalization choice for Generalized Problem",NULL,GBidiags,(PetscEnum)lanczos->bidiag,(PetscEnum*)&lanczos->bidiag,&set);CHKERRQ(ierr);
-    }
+    ierr = PetscOptionsEnum("-svd_trlanczos_gbidiag","Bidiagonalization choice for Generalized Problem","SVDTRLanczosSetGBidiag",SVDTRLanczosGBidiags,(PetscEnum)lanczos->bidiag,(PetscEnum*)&bidiag,&set);CHKERRQ(ierr);
+    if (set) { ierr = SVDTRLanczosSetGBidiag(svd,bidiag);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+  if (svd->isgeneralized) {
+    if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
+    ierr = KSPSetFromOptions(lanczos->ksp);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1405,6 +1399,91 @@ PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscBool *oneside)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode SVDTRLanczosSetGBidiag_TRLanczos(SVD svd,SVDTRLanczosGBidiag bidiag)
+{
+  SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  switch (bidiag) {
+    case SVD_TRLANCZOS_GBIDIAG_S:
+    case SVD_TRLANCZOS_GBIDIAG_JUU:
+    case SVD_TRLANCZOS_GBIDIAG_JLU:
+      if (lanczos->bidiag != bidiag) {
+        lanczos->bidiag = bidiag;
+        svd->state = SVD_STATE_INITIAL;
+      }
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid bidiagonalization choice");
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosSetGBidiag - Sets the bidiagonalization choice to use in
+   the GSVD TRLanczos solver.
+
+   Logically Collective on svd
+
+   Input Parameters:
++  svd - the singular value solver
+-  bidiag - the bidiagonalization choice
+
+   Options Database Key:
+.  -svd_trlanczos_gbidiag - Sets the bidiagonalization choice (either 's' or 'ju'
+   or 'jl')
+
+   Level: advanced
+
+.seealso: SVDTRLanczosGetGBidiag(), SVDTRLanczosGBidiag
+@*/
+PetscErrorCode SVDTRLanczosSetGBidiag(SVD svd,SVDTRLanczosGBidiag bidiag)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(svd,bidiag,2);
+  ierr = PetscTryMethod(svd,"SVDTRLanczosSetGBidiag_C",(SVD,SVDTRLanczosGBidiag),(svd,bidiag));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode SVDTRLanczosGetGBidiag_TRLanczos(SVD svd,SVDTRLanczosGBidiag *bidiag)
+{
+  SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  *bidiag = lanczos->bidiag;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosGetGBidiag - Gets the bidiagonalization choice used in the GSVD
+   TRLanczos solver.
+
+   Not Collective
+
+   Input Parameter:
+.  svd - the singular value solver
+
+   Output Parameter:
+.  bidiag - the bidiagonalization choice
+
+   Level: advanced
+
+.seealso: SVDTRLanczosSetGBidiag(), SVDTRLanczosGBidiag
+@*/
+PetscErrorCode SVDTRLanczosGetGBidiag(SVD svd,SVDTRLanczosGBidiag *bidiag)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(bidiag,2);
+  ierr = PetscUseMethod(svd,"SVDTRLanczosGetGBidiag_C",(SVD,SVDTRLanczosGBidiag*),(svd,bidiag));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode SVDTRLanczosSetKSP_TRLanczos(SVD svd,KSP ksp)
 {
   PetscErrorCode ierr;
@@ -1427,6 +1506,9 @@ static PetscErrorCode SVDTRLanczosSetKSP_TRLanczos(SVD svd,KSP ksp)
    Input Parameters:
 +  svd - SVD solver
 -  ksp - the linear solver object
+
+   Note:
+   Only used for the GSVD problem
 
    Level: advanced
 
@@ -1495,6 +1577,19 @@ PetscErrorCode SVDTRLanczosGetKSP(SVD svd,KSP *ksp)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode SVDReset_TRLanczos(SVD svd)
+{
+  PetscErrorCode ierr;
+  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  if (svd->isgeneralized) {
+    ierr = KSPReset(lanczos->ksp);CHKERRQ(ierr);
+    ierr = MatDestroy(&lanczos->Z);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
@@ -1503,11 +1598,12 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   PetscFunctionBegin;
   if (svd->isgeneralized) {
     ierr = KSPDestroy(&lanczos->ksp);CHKERRQ(ierr);
-    MatDestroy(&lanczos->Z);
   }
   ierr = PetscFree(svd->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetOneSide_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetOneSide_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetGBidiag_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetGBidiag_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetKSP_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetKSP_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1523,18 +1619,20 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);
     if (svd->isgeneralized) {
       const char *bidiag="";
 
       switch (lanczos->bidiag) {
-        case GBIDIAG_S:  bidiag = "single"; break;
-        case GBIDIAG_JU: bidiag = "joint upper-upper"; break;
-        case GBIDIAG_JL: bidiag = "joint lower-upper"; break;
+        case SVD_TRLANCZOS_GBIDIAG_S:  bidiag = "single"; break;
+        case SVD_TRLANCZOS_GBIDIAG_JUU: bidiag = "joint upper-upper"; break;
+        case SVD_TRLANCZOS_GBIDIAG_JLU: bidiag = "joint lower-upper"; break;
       }
       ierr = PetscViewerASCIIPrintf(viewer,"bidiagonalization choice: %s\n",bidiag);CHKERRQ(ierr);
       if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
       ierr = KSPView(lanczos->ksp,viewer);CHKERRQ(ierr);
+    }
+    else {
+      ierr = PetscViewerASCIIPrintf(viewer,"%s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
@@ -1553,15 +1651,16 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   svd->ops->setup          = SVDSetUp_TRLanczos;
   svd->ops->solve          = SVDSolve_TRLanczos;
   svd->ops->destroy        = SVDDestroy_TRLanczos;
+  svd->ops->reset          = SVDReset_TRLanczos;
   svd->ops->setfromoptions = SVDSetFromOptions_TRLanczos;
   svd->ops->view           = SVDView_TRLanczos;
-  ctx->bidiag              = GBIDIAG_JL;
+  ctx->bidiag              = SVD_TRLANCZOS_GBIDIAG_JLU;
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetOneSide_C",SVDTRLanczosSetOneSide_TRLanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetOneSide_C",SVDTRLanczosGetOneSide_TRLanczos);CHKERRQ(ierr);
-  if (svd->isgeneralized) {
-    ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetKSP_C",SVDTRLanczosSetKSP_TRLanczos);CHKERRQ(ierr);
-    ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetKSP_C",SVDTRLanczosGetKSP_TRLanczos);CHKERRQ(ierr);
-  }
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetGBidiag_C",SVDTRLanczosSetGBidiag_TRLanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetGBidiag_C",SVDTRLanczosGetGBidiag_TRLanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetKSP_C",SVDTRLanczosSetKSP_TRLanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetKSP_C",SVDTRLanczosGetKSP_TRLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

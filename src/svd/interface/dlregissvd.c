@@ -12,6 +12,7 @@
 
 static PetscBool SVDPackageInitialized = PETSC_FALSE;
 
+const char *SVDTRLanczosGBidiags[] = {"S","JUU","JLU","SVDTRLanczosGBidiag","SVD_TRLANCZOS_GBIDIAG_",0};
 const char *SVDErrorTypes[] = {"ABSOLUTE","RELATIVE","SVDErrorType","SVD_ERROR_",0};
 const char *SVDPRIMMEMethods[] = {"","HYBRID","NORMALEQUATIONS","AUGMENTED","SVDPRIMMEMethod","SVD_PRIMME_",0};
 const char *const SVDConvergedReasons_Shifted[] = {"","","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","CONVERGED_MAXIT","SVDConvergedReason","SVD_",0};

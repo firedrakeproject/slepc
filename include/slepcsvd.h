@@ -233,9 +233,25 @@ SLEPC_EXTERN PetscErrorCode SVDCyclicGetEPS(SVD,EPS*);
 SLEPC_EXTERN PetscErrorCode SVDLanczosSetOneSide(SVD,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDLanczosGetOneSide(SVD,PetscBool*);
 
+/*E
+    SVDTRLanczosGBidiag - determines the bidiagonalization choice for the
+    TRLanczos GSVD solver
+
+    Level: advanced
+
+.seealso: SVDTRLanczosSetGBidiag(), SVDTRLanczosGetGBidiag()
+E*/
+typedef enum {
+  SVD_TRLANCZOS_GBIDIAG_S,    /* single bidiagonalization (Qa) */
+  SVD_TRLANCZOS_GBIDIAG_JUU,  /* joint bidiagonalization, both Qa and Qb in upper bidiagonal form */
+  SVD_TRLANCZOS_GBIDIAG_JLU   /* joint bidiagonalization, Qa lower bidiagonal, Qb upper bidiagonal */
+} SVDTRLanczosGBidiag;
+SLEPC_EXTERN const char *SVDTRLanczosGBidiags[];
+
+SLEPC_EXTERN PetscErrorCode SVDTRLanczosSetGBidiag(SVD,SVDTRLanczosGBidiag);
+SLEPC_EXTERN PetscErrorCode SVDTRLanczosGetGBidiag(SVD,SVDTRLanczosGBidiag*);
 SLEPC_EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
-
 SLEPC_EXTERN PetscErrorCode SVDTRLanczosSetKSP(SVD,KSP);
 SLEPC_EXTERN PetscErrorCode SVDTRLanczosGetKSP(SVD,KSP*);
 
