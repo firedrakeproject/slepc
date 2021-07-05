@@ -1430,8 +1430,8 @@ static PetscErrorCode SVDTRLanczosSetGBidiag_TRLanczos(SVD svd,SVDTRLanczosGBidi
 -  bidiag - the bidiagonalization choice
 
    Options Database Key:
-.  -svd_trlanczos_gbidiag - Sets the bidiagonalization choice (either 's' or 'ju'
-   or 'jl')
+.  -svd_trlanczos_gbidiag - Sets the bidiagonalization choice (either 's' or 'juu'
+   or 'jlu')
 
    Level: advanced
 
