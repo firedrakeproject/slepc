@@ -76,7 +76,7 @@ int main(int argc,char **argv)
   ierr = SVDSetDimensions(svd,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
 
   ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);
-  ierr = SVDTRLanczosSetGBidiag(svd,SVD_TRLANCZOS_GBIDIAG_JUU);CHKERRQ(ierr);
+  ierr = SVDTRLanczosSetGBidiag(svd,SVD_TRLANCZOS_GBIDIAG_UPPER);CHKERRQ(ierr);
 
   /* create a standalone KSP with appropriate settings */
   ierr = KSPCreate(PETSC_COMM_WORLD,&ksp);CHKERRQ(ierr);

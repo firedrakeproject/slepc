@@ -242,9 +242,9 @@ SLEPC_EXTERN PetscErrorCode SVDLanczosGetOneSide(SVD,PetscBool*);
 .seealso: SVDTRLanczosSetGBidiag(), SVDTRLanczosGetGBidiag()
 E*/
 typedef enum {
-  SVD_TRLANCZOS_GBIDIAG_S,    /* single bidiagonalization (Qa) */
-  SVD_TRLANCZOS_GBIDIAG_JUU,  /* joint bidiagonalization, both Qa and Qb in upper bidiagonal form */
-  SVD_TRLANCZOS_GBIDIAG_JLU   /* joint bidiagonalization, Qa lower bidiagonal, Qb upper bidiagonal */
+  SVD_TRLANCZOS_GBIDIAG_SINGLE, /* single bidiagonalization (Qa) */
+  SVD_TRLANCZOS_GBIDIAG_UPPER,  /* joint bidiagonalization, both Qa and Qb in upper bidiagonal form */
+  SVD_TRLANCZOS_GBIDIAG_LOWER   /* joint bidiagonalization, Qa lower bidiagonal, Qb upper bidiagonal */
 } SVDTRLanczosGBidiag;
 SLEPC_EXTERN const char *SVDTRLanczosGBidiags[];
 

@@ -55,9 +55,9 @@ typedef struct {
   PetscInt m;
 } MatZData;
 
-PetscErrorCode SVDSolve_TRLanczosGS(SVD svd);
-PetscErrorCode SVDSolve_TRLanczosGJU(SVD svd);
-PetscErrorCode SVDSolve_TRLanczosGJL(SVD svd);
+PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd);
+PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd);
+PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd);
 
 static PetscErrorCode MatZCreateContext(SVD svd,MatZData **zdata)
 {
@@ -167,15 +167,15 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   ld = svd->ncv;
   if (svd->isgeneralized) {
     switch (lanczos->bidiag) {
-      case SVD_TRLANCZOS_GBIDIAG_S:
-        svd->ops->solveg = SVDSolve_TRLanczosGS;
+      case SVD_TRLANCZOS_GBIDIAG_SINGLE:
+        svd->ops->solveg = SVDSolve_TRLanczosGSingle;
         break;
-      case SVD_TRLANCZOS_GBIDIAG_JUU:
-        svd->ops->solveg = SVDSolve_TRLanczosGJU;
+      case SVD_TRLANCZOS_GBIDIAG_UPPER:
+        svd->ops->solveg = SVDSolve_TRLanczosGUpper;
         dstype = DSGSVD;
         break;
-      case SVD_TRLANCZOS_GBIDIAG_JLU:
-        svd->ops->solveg = SVDSolve_TRLanczosGJL;
+      case SVD_TRLANCZOS_GBIDIAG_LOWER:
+        svd->ops->solveg = SVDSolve_TRLanczosGLower;
         dstype = DSGSVD;
         ld = svd->ncv+1;
         break;
@@ -197,6 +197,8 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
     ierr = KSPSetOperators(lanczos->ksp,lanczos->Z,lanczos->Z);CHKERRQ(ierr);
     ierr = KSPSetUp(lanczos->ksp);CHKERRQ(ierr);
+
+    if (lanczos->oneside) { ierr = PetscInfo(svd,"Warning: one-side option is ignored in GSVD\n");CHKERRQ(ierr); }
   }
   ierr = DSSetType(svd->ds,dstype);CHKERRQ(ierr);
   ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -516,7 +518,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDTwoSideLanczos_GS(SVD svd,PetscReal *alpha,PetscReal *beta,Mat Z,BV V,BV U,KSP ksp,PetscInt k,PetscInt n)
+static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta,Mat Z,BV V,BV U,KSP ksp,PetscInt k,PetscInt n)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,m;
@@ -545,8 +547,7 @@ PetscErrorCode SVDTwoSideLanczos_GS(SVD svd,PetscReal *alpha,PetscReal *beta,Mat
 
   ierr = BVRestoreColumn(U,k,&u);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,k,&v);CHKERRQ(ierr);
-  ierr = BVOrthogonalizeColumn(V,k,NULL,alpha+k,NULL);CHKERRQ(ierr);
-  ierr = BVScaleColumn(V,k,1.0/alpha[k]);CHKERRQ(ierr);
+  ierr = BVOrthonormalizeColumn(V,k,PETSC_FALSE,alpha+k,NULL);CHKERRQ(ierr);
 
   for (i=k+1; i<n; i++) {
 
@@ -558,8 +559,7 @@ PetscErrorCode SVDTwoSideLanczos_GS(SVD svd,PetscReal *alpha,PetscReal *beta,Mat
     ierr = BVRestoreColumn(V,i-1,&v);CHKERRQ(ierr);
     ierr = BVInsertVec(U,i,v1);CHKERRQ(ierr);
     ierr = VecResetArray(v1);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(U,i,NULL,beta+i-1,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(U,i,1.0/beta[i-1]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U,i,PETSC_FALSE,beta+i-1,NULL);CHKERRQ(ierr);
 
     /* Compute vector i of BV V */
 
@@ -580,8 +580,7 @@ PetscErrorCode SVDTwoSideLanczos_GS(SVD svd,PetscReal *alpha,PetscReal *beta,Mat
 
     ierr = BVRestoreColumn(U,i,&u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(V,i,NULL,alpha+i,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(V,i,1.0/alpha[i]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(V,i,PETSC_FALSE,alpha+i,NULL);CHKERRQ(ierr);
   }
 
   /* Compute vector n of BV U */
@@ -592,14 +591,14 @@ PetscErrorCode SVDTwoSideLanczos_GS(SVD svd,PetscReal *alpha,PetscReal *beta,Mat
   ierr = BVRestoreColumn(V,n-1,&v);CHKERRQ(ierr);
   ierr = BVInsertVec(U,n,v1);CHKERRQ(ierr);
   ierr = VecResetArray(v1);CHKERRQ(ierr);
-  ierr = BVOrthogonalizeColumn(U,n,NULL,beta+n-1,NULL);CHKERRQ(ierr);
+  ierr = BVOrthonormalizeColumn(U,n,PETSC_FALSE,beta+n-1,NULL);CHKERRQ(ierr);
 
   ierr = VecDestroy(&v1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 /* solve generalized problem with single bidiagonalization of Q_A */
-PetscErrorCode SVDSolve_TRLanczosGS(SVD svd)
+PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
@@ -610,24 +609,18 @@ PetscErrorCode SVDSolve_TRLanczosGS(SVD svd)
   BV             U1,U2,V;
   BVType         type;
   PetscBool      conv;
-  BVOrthogType   orthog;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
-  if (lanczos->oneside) {
-    ierr = PetscMalloc1(svd->ncv+1,&swork);CHKERRQ(ierr);
-  }
 
   ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->B,&p,NULL);CHKERRQ(ierr);
 
   /* Create BV for U1 */
   ierr = BVCreate(PetscObjectComm((PetscObject)svd),&U1);CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)U1,(PetscObject)svd,0);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U1);CHKERRQ(ierr);
   ierr = BVGetType(svd->U,&type);CHKERRQ(ierr);
   ierr = BVSetType(U1,type);CHKERRQ(ierr);
@@ -652,14 +645,9 @@ PetscErrorCode SVDSolve_TRLanczosGS(SVD svd)
     ierr = BVSetActiveColumns(U1,svd->nconv,nv);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
-    if (lanczos->oneside) {
-      SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"One-side reorthogonalization not yet supported for GSVD");
-    } else {
-      ierr = SVDTwoSideLanczos_GS(svd,alpha,beta,lanczos->Z,V,U1,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
-    }
+    ierr = SVDTwoSideLanczosGSingle(svd,alpha,beta,lanczos->Z,V,U1,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
     lastbeta = beta[nv-1];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    ierr = BVScaleColumn(U1,nv,1.0/lastbeta);CHKERRQ(ierr);
 
     /* compute SVD of general matrix */
     ierr = DSSetDimensions(svd->ds,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
@@ -726,7 +714,6 @@ PetscErrorCode SVDSolve_TRLanczosGS(SVD svd)
 
   /* Create BV for U2 */
   ierr = BVCreate(PetscObjectComm((PetscObject)svd),&U2);CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)U2,(PetscObject)svd,0);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U2);CHKERRQ(ierr);
   ierr = BVGetType(svd->U,&type);CHKERRQ(ierr);
   ierr = BVSetType(U2,type);CHKERRQ(ierr);
@@ -774,7 +761,7 @@ PetscErrorCode SVDSolve_TRLanczosGS(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDTwoSideLanczos_GJU(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
+static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,m,p;
@@ -794,22 +781,21 @@ PetscErrorCode SVDTwoSideLanczos_GJU(SVD svd,PetscReal *alpha,PetscReal *beta,Pe
     ierr = VecPlaceArray(v1,carr);CHKERRQ(ierr);
     ierr = BVInsertVec(U1,i,v1);CHKERRQ(ierr);
     ierr = VecResetArray(v1);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(U1,i,NULL,alpha+i,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(U1,i,1.0/alpha[i]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U1,i,PETSC_FALSE,alpha+i,NULL);CHKERRQ(ierr);
 
     /* Compute vector i of BV U2 */
     ierr = BVGetColumn(U2,i,&u2);CHKERRQ(ierr);
     ierr = VecGetArray(u2,&u2arr);CHKERRQ(ierr);
-    if (i%2)
+    if (i%2) {
       for (j=0; j<p; j++) u2arr[j] = -carr[m+j];
-    else
+    } else {
       for (j=0; j<p; j++) u2arr[j] = carr[m+j];
+    }
     ierr = VecRestoreArray(u2,&u2arr);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U2,i,&u2);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(v,&carr);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(U2,i,NULL,alphah+i,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(U2,i,1.0/alphah[i]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,NULL);CHKERRQ(ierr);
     if (i%2) alphah[i] = -alphah[i];
 
     /* Compute vector i+1 of BV V */
@@ -827,8 +813,7 @@ PetscErrorCode SVDTwoSideLanczos_GJU(SVD svd,PetscReal *alpha,PetscReal *beta,Pe
     ierr = MatMult(Z,x,v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U1,i,&u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i+1,&v);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(V,i+1,NULL,beta+i,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(V,i+1,1.0/beta[i]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,beta+i,NULL);CHKERRQ(ierr);
     betah[i] = -alpha[i]*beta[i]/alphah[i];
   }
 
@@ -837,7 +822,7 @@ PetscErrorCode SVDTwoSideLanczos_GJU(SVD svd,PetscReal *alpha,PetscReal *beta,Pe
 }
 
 /* solve generalized problem with joint upper-upper bidiagonalization */
-PetscErrorCode SVDSolve_TRLanczosGJU(SVD svd)
+PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
@@ -848,24 +833,18 @@ PetscErrorCode SVDSolve_TRLanczosGJU(SVD svd)
   BV             U1,U2,V;
   BVType         type;
   PetscBool      conv;
-  BVOrthogType   orthog;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
-  if (lanczos->oneside) {
-    ierr = PetscMalloc1(svd->ncv+1,&swork);CHKERRQ(ierr);
-  }
 
   ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->B,&p,NULL);CHKERRQ(ierr);
 
   /* Create BV for U1 */
   ierr = BVCreate(PetscObjectComm((PetscObject)svd),&U1);CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)U1,(PetscObject)svd,0);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U1);CHKERRQ(ierr);
   ierr = BVGetType(svd->U,&type);CHKERRQ(ierr);
   ierr = BVSetType(U1,type);CHKERRQ(ierr);
@@ -874,7 +853,6 @@ PetscErrorCode SVDSolve_TRLanczosGJU(SVD svd)
 
   /* Create BV for U2 */
   ierr = BVCreate(PetscObjectComm((PetscObject)svd),&U2);CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)U2,(PetscObject)svd,0);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U2);CHKERRQ(ierr);
   ierr = BVSetType(U2,type);CHKERRQ(ierr);
   ierr = BVSetSizes(U2,p,PETSC_DECIDE,i);CHKERRQ(ierr);
@@ -908,11 +886,7 @@ PetscErrorCode SVDSolve_TRLanczosGJU(SVD svd)
     ierr = DSGetArrayReal(svd->ds,DS_MAT_D,&alphah);CHKERRQ(ierr);
     beta = alpha + ld;
     betah = alpha + 2*ld;
-    if (lanczos->oneside) {
-      SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"One-side reorthogonalization not yet supported for GSVD");
-    } else {
-      ierr = SVDTwoSideLanczos_GJU(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
-    }
+    ierr = SVDTwoSideLanczosGUpper(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
     lastbeta = beta[nv-1];
     lastbetah = betah[nv-1];
     lastalpha = alpha[nv-1];
@@ -1022,7 +996,7 @@ PetscErrorCode SVDSolve_TRLanczosGJU(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDTwoSideLanczos_GJL(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
+static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,m,p;
@@ -1051,8 +1025,7 @@ PetscErrorCode SVDTwoSideLanczos_GJL(SVD svd,PetscReal *alpha,PetscReal *beta,Pe
     ierr = MatMult(Z,x,v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U1,0,&u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,0,&v);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(V,0,NULL,alpha,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(V,0,1.0/alpha[0]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(V,0,PETSC_FALSE,alpha,NULL);CHKERRQ(ierr);
   }
 
   for (i=k; i<n; i++) {
@@ -1061,22 +1034,21 @@ PetscErrorCode SVDTwoSideLanczos_GJL(SVD svd,PetscReal *alpha,PetscReal *beta,Pe
     ierr = VecGetArrayRead(v,&carr);CHKERRQ(ierr);
     ierr = BVGetColumn(U2,i,&u2);CHKERRQ(ierr);
     ierr = VecGetArray(u2,&u2arr);CHKERRQ(ierr);
-    if (i%2)
+    if (i%2) {
       for (j=0; j<p; j++) u2arr[j] = -carr[m+j];
-    else
+    } else {
       for (j=0; j<p; j++) u2arr[j] = carr[m+j];
+    }
     ierr = VecRestoreArray(u2,&u2arr);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U2,i,&u2);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(U2,i,NULL,alphah+i,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(U2,i,1.0/alphah[i]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,NULL);CHKERRQ(ierr);
     if (i%2) alphah[i] = -alphah[i];
 
     /* Compute vector i+1 of BV U1 */
     ierr = VecPlaceArray(v1,carr);CHKERRQ(ierr);
     ierr = BVInsertVec(U1,i+1,v1);CHKERRQ(ierr);
     ierr = VecResetArray(v1);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(U1,i+1,NULL,beta+i,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(U1,i+1,1.0/beta[i]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U1,i+1,PETSC_FALSE,beta+i,NULL);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(v,&carr);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
 
@@ -1095,8 +1067,7 @@ PetscErrorCode SVDTwoSideLanczos_GJL(SVD svd,PetscReal *alpha,PetscReal *beta,Pe
     ierr = MatMult(Z,x,v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U1,i+1,&u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i+1,&v);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(V,i+1,NULL,alpha+i+1,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(V,i+1,1.0/alpha[i+1]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,alpha+i+1,NULL);CHKERRQ(ierr);
 
     betah[i] = -alpha[i+1]*beta[i]/alphah[i];
   }
@@ -1106,7 +1077,7 @@ PetscErrorCode SVDTwoSideLanczos_GJL(SVD svd,PetscReal *alpha,PetscReal *beta,Pe
 }
 
 /* solve generalized problem with joint lower-upper bidiagonalization */
-PetscErrorCode SVDSolve_TRLanczosGJL(SVD svd)
+PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
@@ -1117,25 +1088,19 @@ PetscErrorCode SVDSolve_TRLanczosGJL(SVD svd)
   BV             U1,U2,V;
   BVType         type;
   PetscBool      conv;
-  BVOrthogType   orthog;
 
   PetscFunctionBegin;
 
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
-  if (lanczos->oneside) {
-    ierr = PetscMalloc1(svd->ncv+1,&swork);CHKERRQ(ierr);
-  }
 
   ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->B,&p,NULL);CHKERRQ(ierr);
 
   /* Create BV for U1 */
   ierr = BVCreate(PetscObjectComm((PetscObject)svd),&U1);CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)U1,(PetscObject)svd,0);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U1);CHKERRQ(ierr);
   ierr = BVGetType(svd->U,&type);CHKERRQ(ierr);
   ierr = BVSetType(U1,type);CHKERRQ(ierr);
@@ -1144,7 +1109,6 @@ PetscErrorCode SVDSolve_TRLanczosGJL(SVD svd)
 
   /* Create BV for U2 */
   ierr = BVCreate(PetscObjectComm((PetscObject)svd),&U2);CHKERRQ(ierr);
-  ierr = PetscObjectIncrementTabLevel((PetscObject)U2,(PetscObject)svd,0);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U2);CHKERRQ(ierr);
   ierr = BVSetType(U2,type);CHKERRQ(ierr);
   ierr = BVSetSizes(U2,p,PETSC_DECIDE,i);CHKERRQ(ierr);
@@ -1170,11 +1134,7 @@ PetscErrorCode SVDSolve_TRLanczosGJL(SVD svd)
     ierr = DSGetArrayReal(svd->ds,DS_MAT_D,&alphah);CHKERRQ(ierr);
     beta = alpha + ld;
     betah = alpha + 2*ld;
-    if (lanczos->oneside) {
-      SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"One-side reorthogonalization not yet supported for GSVD");
-    } else {
-      ierr = SVDTwoSideLanczos_GJL(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
-    }
+    ierr = SVDTwoSideLanczosGLower(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
     lastbeta = beta[nv-1];
     lastbetah = betah[nv-1];
     lastalpha = alpha[nv];
@@ -1233,9 +1193,7 @@ PetscErrorCode SVDSolve_TRLanczosGJL(SVD svd)
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     /* copy last column so that it updates the next initial vector of U1 */
     ierr = MatDenseGetArray(U,&arr);CHKERRQ(ierr);
-    for (i=0; i<=nv; i++) {
-      arr[i+(svd->nconv+k+l)*ld] = arr[i+nv*ld];
-    }
+    for (i=0; i<=nv; i++) arr[i+(svd->nconv+k+l)*ld] = arr[i+nv*ld];
     ierr = MatDenseRestoreArray(U,&arr);CHKERRQ(ierr);
     ierr = BVMultInPlace(U1,U,svd->nconv,svd->nconv+k+l+1);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
@@ -1405,9 +1363,9 @@ static PetscErrorCode SVDTRLanczosSetGBidiag_TRLanczos(SVD svd,SVDTRLanczosGBidi
 
   PetscFunctionBegin;
   switch (bidiag) {
-    case SVD_TRLANCZOS_GBIDIAG_S:
-    case SVD_TRLANCZOS_GBIDIAG_JUU:
-    case SVD_TRLANCZOS_GBIDIAG_JLU:
+    case SVD_TRLANCZOS_GBIDIAG_SINGLE:
+    case SVD_TRLANCZOS_GBIDIAG_UPPER:
+    case SVD_TRLANCZOS_GBIDIAG_LOWER:
       if (lanczos->bidiag != bidiag) {
         lanczos->bidiag = bidiag;
         svd->state = SVD_STATE_INITIAL;
@@ -1623,9 +1581,9 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
       const char *bidiag="";
 
       switch (lanczos->bidiag) {
-        case SVD_TRLANCZOS_GBIDIAG_S:  bidiag = "single"; break;
-        case SVD_TRLANCZOS_GBIDIAG_JUU: bidiag = "joint upper-upper"; break;
-        case SVD_TRLANCZOS_GBIDIAG_JLU: bidiag = "joint lower-upper"; break;
+        case SVD_TRLANCZOS_GBIDIAG_SINGLE: bidiag = "single"; break;
+        case SVD_TRLANCZOS_GBIDIAG_UPPER:  bidiag = "joint upper-upper"; break;
+        case SVD_TRLANCZOS_GBIDIAG_LOWER:  bidiag = "joint lower-upper"; break;
       }
       ierr = PetscViewerASCIIPrintf(viewer,"bidiagonalization choice: %s\n",bidiag);CHKERRQ(ierr);
       if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
@@ -1648,13 +1606,14 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   ierr = PetscNewLog(svd,&ctx);CHKERRQ(ierr);
   svd->data = (void*)ctx;
 
+  ctx->bidiag              = SVD_TRLANCZOS_GBIDIAG_LOWER;
+
   svd->ops->setup          = SVDSetUp_TRLanczos;
   svd->ops->solve          = SVDSolve_TRLanczos;
   svd->ops->destroy        = SVDDestroy_TRLanczos;
   svd->ops->reset          = SVDReset_TRLanczos;
   svd->ops->setfromoptions = SVDSetFromOptions_TRLanczos;
   svd->ops->view           = SVDView_TRLanczos;
-  ctx->bidiag              = SVD_TRLANCZOS_GBIDIAG_JLU;
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetOneSide_C",SVDTRLanczosSetOneSide_TRLanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetOneSide_C",SVDTRLanczosGetOneSide_TRLanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetGBidiag_C",SVDTRLanczosSetGBidiag_TRLanczos);CHKERRQ(ierr);

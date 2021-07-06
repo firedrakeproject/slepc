@@ -210,7 +210,7 @@ int main(int argc,char **argv)
       requires: double
       output_file: output/ex45_5.out
       test:
-         args: -svd_type trlanczos -svd_ncv 8 -svd_trlanczos_gbidiag {{juu jlu}}
+         args: -svd_type trlanczos -svd_ncv 8 -svd_trlanczos_gbidiag {{upper lower}}
          suffix: 5
       test:
          args: -svd_type cross -svd_ncv 10 -svd_cross_explicitmatrix {{0 1}}
@@ -226,7 +226,7 @@ int main(int argc,char **argv)
       requires: double
       output_file: output/ex45_6.out
       test:
-         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{s juu jlu}}
+         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}}
          suffix: 6
       test:
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
@@ -241,7 +241,7 @@ int main(int argc,char **argv)
       requires: double
       output_file: output/ex45_7.out
       test:
-         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{s juu jlu}}
+         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}}
          suffix: 7
       test:
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
