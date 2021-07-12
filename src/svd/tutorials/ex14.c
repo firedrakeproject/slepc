@@ -127,6 +127,10 @@ int main(int argc,char **argv)
          suffix: 2
          args: -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -svd_view
          filter: grep -v tolerance
+      test:
+         suffix: 2_cross
+         args: -svd_nsv 2 -svd_type cross -svd_cross_explicitmatrix -svd_cross_st_type sinvert -svd_cross_eps_target 100.0
+         filter: grep -v tolerance
 
    testset:
       requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
