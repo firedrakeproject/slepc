@@ -233,8 +233,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = MatMult(svd->AT,ui1,vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U,i-1,&ui1);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(V,i,NULL,&b,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(V,i,1.0/b);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(V,i,PETSC_FALSE,&b,NULL);CHKERRQ(ierr);
     beta[i-1] = b;
 
     ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
