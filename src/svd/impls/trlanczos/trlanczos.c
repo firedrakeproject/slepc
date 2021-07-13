@@ -169,6 +169,8 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     switch (lanczos->bidiag) {
       case SVD_TRLANCZOS_GBIDIAG_SINGLE:
         svd->ops->solveg = SVDSolve_TRLanczosGSingle;
+        ierr = DSSetExtraRow(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
+        ld = svd->ncv+1;
         break;
       case SVD_TRLANCZOS_GBIDIAG_UPPER:
         svd->ops->solveg = SVDSolve_TRLanczosGUpper;
@@ -199,6 +201,9 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     ierr = KSPSetUp(lanczos->ksp);CHKERRQ(ierr);
 
     if (lanczos->oneside) { ierr = PetscInfo(svd,"Warning: one-side option is ignored in GSVD\n");CHKERRQ(ierr); }
+  } else {
+    ierr = DSSetExtraRow(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
+    ld = svd->ncv+1;
   }
   ierr = DSSetType(svd->ds,dstype);CHKERRQ(ierr);
   ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -405,7 +410,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscReal      *alpha,*beta,lastbeta,resnorm;
-  PetscScalar    *Q,*swork=NULL,*w;
+  PetscScalar    *swork=NULL,*w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,V;
   PetscBool      conv;
@@ -460,17 +465,16 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     }
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
 
     /* compute error estimates */
     k = 0;
     conv = PETSC_TRUE;
-    ierr = DSGetArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
     for (i=svd->nconv;i<nv;i++) {
       svd->sigma[i] = PetscRealPart(w[i]);
-      beta[i] = PetscRealPart(Q[nv-1+i*ld])*lastbeta;
       resnorm = PetscAbsReal(beta[i]);
       ierr = (*svd->converged)(svd,svd->sigma[i],resnorm,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
       if (conv) {
@@ -479,7 +483,6 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
       }
     }
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
     if (svd->conv == SVD_CONV_MAXIT && svd->its >= svd->max_it) k = svd->nsv;
 
     /* check convergence and update l */
@@ -601,8 +604,8 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,lastbeta,resnorm;
-  PetscScalar    *Q,*swork=NULL,*w;
+  PetscReal      *alpha,*beta,resnorm;
+  PetscScalar    *swork=NULL,*w;
   PetscInt       i,k,l,nv,ld,m,n,p;
   Mat            U,VV;
   BV             U1,U2,V;
@@ -645,7 +648,6 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
     ierr = SVDTwoSideLanczosGSingle(svd,alpha,beta,lanczos->Z,V,U1,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
-    lastbeta = beta[nv-1];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
     /* compute SVD of general matrix */
@@ -658,17 +660,16 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
     }
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
 
     /* compute error estimates */
     k = 0;
     conv = PETSC_TRUE;
-    ierr = DSGetArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
     for (i=svd->nconv; i<nv; i++) {
       svd->sigma[i] = PetscRealPart(w[i]);
-      beta[i] = PetscRealPart(Q[nv-1+i*ld])*lastbeta;
       resnorm = PetscAbsReal(beta[i]);
       ierr = (*svd->converged)(svd,svd->sigma[i],resnorm,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
       if (conv) {
@@ -677,7 +678,6 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
       }
     }
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
 
     /* check convergence and update l */
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);

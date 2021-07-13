@@ -84,7 +84,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
   PetscErrorCode    ierr;
   DS_SVD            *ctx = (DS_SVD*)ds->data;
   PetscViewerFormat format;
-  PetscInt          i,j,r,c,m=ctx->m;
+  PetscInt          i,j,r,c,m=ctx->m,rows,cols;
   PetscReal         value;
 
   PetscFunctionBegin;
@@ -97,25 +97,27 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
   if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   if (ds->compact) {
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    rows = ds->n;
+    cols = ds->extrarow? m+1: m;
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ds->n,m);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rows,cols);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",2*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
       for (i=0;i<PetscMin(ds->n,m);i++) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
       }
-      for (i=0;i<PetscMin(ds->n,m)-1;i++) {
+      for (i=0;i<cols-1;i++) {
         r = PetscMax(i+2,ds->k+1);
         c = i+1;
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]);CHKERRQ(ierr);
     } else {
-      for (i=0;i<ds->n;i++) {
-        for (j=0;j<m;j++) {
+      for (i=0;i<rows;i++) {
+        for (j=0;j<cols;j++) {
           if (i==j) value = *(ds->rmat[DS_MAT_T]+i);
           else if (i<ds->k && j==ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+PetscMin(i,j));
-          else if (i==j+1 && i>ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+i-1);
+          else if (i+1==j && i>=ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+i);
           else value = 0.0;
           ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",(double)value);CHKERRQ(ierr);
         }
@@ -174,6 +176,40 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   if (!ds->compact) {
     for (i=l;i<n;i++) A[i+i*ld] = wr[i];
+  }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
+{
+  PetscErrorCode ierr;
+  DS_SVD         *ctx = (DS_SVD*)ds->data;
+  PetscInt       i;
+  PetscBLASInt   n=0,m,ld,incx=1;
+  PetscScalar    *A,*U,*x,*y,one=1.0,zero=0.0;
+  PetscReal      *e,beta;
+
+  PetscFunctionBegin;
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ctx->m,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  A = ds->mat[DS_MAT_A];
+  U = ds->mat[DS_MAT_U];
+  e = ds->rmat[DS_MAT_T]+ld;
+
+  if (ds->compact) {
+    beta = e[m-1];   /* in compact, we assume all entries are zero except the last one */
+    for (i=0;i<m;i++) e[i] = PetscRealPart(beta*U[m-1+i*ld]);
+    ds->k = m;
+  } else {
+    ierr = DSAllocateWork_Private(ds,2*ld,0,0);CHKERRQ(ierr);
+    x = ds->work;
+    y = ds->work+ld;
+    for (i=0;i<m;i++) x[i] = PetscConj(A[n+i*ld]);
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&m,&m,&one,U,&ld,x,&incx,&zero,y,&incx));
+    for (i=0;i<m;i++) A[n+i*ld] = PetscConj(y[i]);
+    ds->k = m;
   }
   PetscFunctionReturn(0);
 }
@@ -330,7 +366,7 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   switch (t) {
     case DS_MAT_A:
     case DS_MAT_T:
-      *rows = ds->n;
+      *rows = ds->extrarow? ds->n+1: ds->n;
       *cols = ctx->m;
       break;
     case DS_MAT_U:
@@ -453,7 +489,9 @@ PetscErrorCode DSDestroy_SVD(DS ds)
 
    If the DS object is in the intermediate state, A is assumed to be in upper
    bidiagonal form (possibly with an arrow) and is stored in compact format
-   on matrix T. Otherwise, no particular structure is assumed.
+   on matrix T. Otherwise, no particular structure is assumed. The compact
+   storage is implemented for the square case only, m=n. The extra row should
+   be interpreted in this case as an extra column.
 
    Used DS matrices:
 +  DS_MAT_A - problem matrix
@@ -479,6 +517,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->solve[0]      = DSSolve_SVD_DC;
   ds->ops->sort          = DSSort_SVD;
   ds->ops->synchronize   = DSSynchronize_SVD;
+  ds->ops->update        = DSUpdateExtraRow_SVD;
   ds->ops->destroy       = DSDestroy_SVD;
   ds->ops->matgetsize    = DSMatGetSize_SVD;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSSVDSetDimensions_C",DSSVDSetDimensions_SVD);CHKERRQ(ierr);

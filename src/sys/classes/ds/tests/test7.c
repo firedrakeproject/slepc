@@ -18,10 +18,10 @@ int main(int argc,char **argv)
   DS             ds;
   SlepcSC        sc;
   PetscReal      sigma,rnorm,aux;
-  PetscScalar    *A,*U,*w;
+  PetscScalar    *A,*U,*w,d;
   PetscInt       i,j,k,n=15,m=10,m1,ld;
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      verbose,extrarow;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -29,6 +29,7 @@ int main(int argc,char **argv)
   k = PetscMin(n,m);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type SVD - dimension %Dx%D.\n",n,m);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-extrarow",&extrarow);CHKERRQ(ierr);
 
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
@@ -40,6 +41,7 @@ int main(int argc,char **argv)
   ierr = DSSVDSetDimensions(ds,m);CHKERRQ(ierr);
   ierr = DSSVDGetDimensions(ds,&m1);CHKERRQ(ierr);
   if (m1!=m) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension value");
+  ierr = DSSetExtraRow(ds,extrarow);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -56,6 +58,7 @@ int main(int argc,char **argv)
   for (j=1;j<n/2;j++) {
     for (i=0;i<n-j;i++) { if ((i+j)<n && i<m) A[(i+j)+i*ld]=-1.0; }
   }
+  if (extrarow) { A[n+(m-2)*ld]=1.0; A[n+(m-1)*ld]=1.0; }
   ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   if (verbose) {
@@ -73,6 +76,7 @@ int main(int argc,char **argv)
   sc->mapobj        = NULL;
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  if (extrarow) { ierr = DSUpdateExtraRow(ds);CHKERRQ(ierr); }
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
@@ -83,6 +87,19 @@ int main(int argc,char **argv)
   for (i=0;i<k;i++) {
     sigma = PetscRealPart(w[i]);
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma);CHKERRQ(ierr);
+  }
+
+  if (extrarow) {
+    /* Check that extra row is correct */
+    ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+    ierr = DSGetArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
+    d = 0.0;
+    for (i=0;i<m;i++) d += A[n+i*ld]-U[m-2+i*ld]-U[m-1+i*ld];
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d));CHKERRQ(ierr);
+    }
+    ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+    ierr = DSRestoreArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
   }
 
   /* Singular vectors */
@@ -108,6 +125,11 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
+      requires: !single
+
+   test:
+      suffix: 2
+      args: -extrarow
       requires: !single
 
 TEST*/
