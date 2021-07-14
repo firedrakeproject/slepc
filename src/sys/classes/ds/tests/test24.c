@@ -20,10 +20,10 @@ int main(int argc,char **argv)
   Vec            x0;
   SlepcSC        sc;
   PetscReal      *T,*D,sigma,rnorm,aux;
-  PetscScalar    *w;
+  PetscScalar    *U,*V,*w,d;
   PetscInt       i,n=10,m,l=0,k=0,ld;
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      verbose,extrarow;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -32,6 +32,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   if (l>n || k>n || l>k) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Wrong value of dimensions");
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-extrarow",&extrarow);CHKERRQ(ierr);
   m = n+1;
 
   /* Create DS object */
@@ -43,6 +44,7 @@ int main(int argc,char **argv)
   ierr = DSSetDimensions(ds,m,l,k);CHKERRQ(ierr);
   ierr = DSGSVDSetDimensions(ds,n,n);CHKERRQ(ierr);
   ierr = DSSetCompact(ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSSetExtraRow(ds,extrarow);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
@@ -71,6 +73,7 @@ int main(int argc,char **argv)
     T[i+ld] = PetscSqrtReal(aux)*.1; /* upper diagonal of matrix A */
     D[i] = PetscSqrtReal(aux-T[i+ld]*T[i+ld]);
   }
+  if (extrarow) { T[n]=-1.0; T[n-1+2*ld]=1.0; }
   /* Fill locked eigenvalues */
   ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);
   for (i=0;i<l;i++) w[i] = T[i]/D[i];
@@ -95,6 +98,7 @@ int main(int argc,char **argv)
   sc->mapobj        = NULL;
   ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  if (extrarow) { ierr = DSUpdateExtraRow(ds);CHKERRQ(ierr); }
   ierr = DSSynchronize(ds,w,NULL);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
@@ -106,6 +110,26 @@ int main(int argc,char **argv)
   for (i=0;i<n;i++) {
     sigma = PetscRealPart(w[i]);
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma);CHKERRQ(ierr);
+  }
+
+  if (extrarow) {
+    /* Check that extra row is correct */
+    ierr = DSGetArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
+    ierr = DSGetArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
+    ierr = DSGetArray(ds,DS_MAT_V,&V);CHKERRQ(ierr);
+    d = 0.0;
+    for (i=0;i<n;i++) d += T[i+ld]+U[n+i*ld];
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in A's extra row of %g\n",(double)PetscAbsScalar(d));CHKERRQ(ierr);
+    }
+    d = 0.0;
+    for (i=0;i<n;i++) d += T[i+2*ld]-V[n-1+i*ld];
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in B's extra row of %g\n",(double)PetscAbsScalar(d));CHKERRQ(ierr);
+    }
+    ierr = DSRestoreArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
+    ierr = DSRestoreArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
+    ierr = DSRestoreArray(ds,DS_MAT_V,&V);CHKERRQ(ierr);
   }
 
   /* Singular vectors */
@@ -146,9 +170,15 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
+   testset:
       requires: double
-      suffix: 1
-      args: -l 1 -k 4
+      output_file: output/test24_1.out
+      test:
+         suffix: 1
+         args: -l 1 -k 4
+      test:
+         suffix: 1_extrarow
+         filter: sed -e "s/extrarow//"
+         args: -l 1 -k 4 -extrarow
 
 TEST*/

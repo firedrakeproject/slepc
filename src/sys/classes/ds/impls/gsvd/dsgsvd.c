@@ -33,14 +33,69 @@ PetscErrorCode DSAllocate_GSVD(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
+/*
+  In compact form, A is either in form (a) or (b):
+
+                     (a)                                            (b)
+    lower bidiagonal with upper arrow (n=m+1)         square upper bidiagonal with upper arrow (n=m)
+     0       l           k                 m-1
+    -----------------------------------------         0     l           k                   m-1
+    |*                   .                  |        -----------------------------------------
+    |  *                 .                  |        |*                 .                    |
+    |    *               .                  |        |  *               .                    |
+    |      *             .                  |        |    *             .                    |
+  l |. . . . o           o                  |      l |. . . o           o                    |
+    |          o         o                  |        |        o         o                    |
+    |            o       o                  |        |          o       o                    |
+    |              o     o                  |        |            o     o                    |
+    |                o   o                  |        |              o   o                    |
+    |                  o o                  |        |                o o                    |
+  k |. . . . . . . . . . o                  |      k |. . . . . . . . . o x                  |
+    |                    x x                |        |                    x x                |
+    |                      x x              |        |                      x x              |
+    |                        x x            |        |                        x x            |
+    |                          x x          |        |                          x x          |
+    |                            x x        |        |                            x x        |
+    |                              x x      |        |                              x x      |
+    |                                x x    |        |                                x x    |
+    |                                  x x  |        |                                  x x  |
+    |                                    x x|        |                                    x x|
+n-1 |                                      x|    n-1 |                                      x|
+    -----------------------------------------        -----------------------------------------
+
+  and B is square bidiagonal with upper arrow (p=m)
+
+     0       l           k                 m-1
+    -----------------------------------------
+    |*                   .                  |
+    |  *                 .                  |
+    |    *               .                  |
+    |      *             .                  |
+  l |. . . . o           o                  |
+    |          o         o                  |
+    |            o       o                  |
+    |              o     o                  |
+    |                o   o                  |
+    |                  o o                  |
+  k |. . . . . . . . . . o x                |
+    |                      x x              |
+    |                        x x            |
+    |                          x x          |
+    |                            x x        |
+    |                              x x      |
+    |                                x x    |
+    |                                  x x  |
+    |                                    x x|
+p-1 |                                      x|
+     ----------------------------------------
+*/
 PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
   DS_GSVD           *ctx = (DS_GSVD*)ds->data;
   PetscViewerFormat format;
-  PetscInt          i,j,r,k=ds->k,n=ds->n,m=ctx->m,p=ctx->p;
+  PetscInt          i,j,r,k=ds->k,n=ds->n,m=ctx->m,p=ctx->p,rowsa,rowsb,colsa,colsb;
   PetscReal         value;
-  PetscBool         lu;
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
@@ -50,56 +105,66 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"number of rows of B: %D\n",p);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   if (ds->compact) {
-    lu = n>m?PETSC_TRUE:PETSC_FALSE;
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    rowsa = n;
+    colsa = ds->extrarow? m+1: m;
+    rowsb = p;
+    colsb = ds->extrarow? m+1: m;
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",n,m);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rowsa,colsa);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",2*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
-      for (i=0;i<m;i++) {
+      for (i=0;i<colsa;i++) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
       }
-      for (i=0;i<k;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
-      }
-      if (lu) {
-        for (i=k;i<m;i++) {
+      if (n>m) { /* A lower bidiagonal */
+        for (i=0;i<k;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+        }
+        for (i=k;i<colsa-1;i++) {
           ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+2,i+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
         }
-      } else {
-        for (i=k;i<m-1;i++) {
+      } else { /* A (square) upper bidiagonal */
+        for (i=0;i<k;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+        }
+        for (i=k;i<colsa-1;i++) {
           ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+2,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rowsb,colsb);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",2*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
-      for (i=0;i<m;i++) {
+      for (i=0;i<rowsb;i++) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_D]+i));CHKERRQ(ierr);
       }
-      for (i=0;i<m-1;i++) {
+      for (i=0;i<colsb-1;i++) {
         r = PetscMax(i+2,ds->k+1);
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,r,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_D]);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",DSMatName[DS_MAT_T]);CHKERRQ(ierr);
-      for (i=0;i<ds->n;i++) {
-        for (j=0;j<n;j++) {
+      for (i=0;i<rowsa;i++) {
+        for (j=0;j<colsa;j++) {
           if (i==j) value = *(ds->rmat[DS_MAT_T]+i);
           else if (i<ds->k && j==ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+PetscMin(i,j));
-          else if (i==j+1 && i>ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+i-1);
+          else if (n>m && i==j+1 && i>ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+j);
+          else if (n<=m && i+1==j && i>=ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+i);
           else value = 0.0;
           ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",(double)value);CHKERRQ(ierr);
         }
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",DSMatName[DS_MAT_D]);CHKERRQ(ierr);
-      for (i=0;i<ds->n;i++) {
-        for (j=0;j<n;j++) {
+      for (i=0;i<rowsb;i++) {
+        for (j=0;j<colsb;j++) {
           if (i==j) value = *(ds->rmat[DS_MAT_D]+i);
           else if (i<ds->k && j==ds->k) value = *(ds->rmat[DS_MAT_T]+2*ds->ld+PetscMin(i,j));
-          else if (i==j+1 && i>ds->k) value = *(ds->rmat[DS_MAT_T]+2*ds->ld+i-1);
+          else if (i+1==j && i>=ds->k) value = *(ds->rmat[DS_MAT_T]+2*ds->ld+i);
           else value = 0.0;
           ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",(double)value);CHKERRQ(ierr);
         }
@@ -146,6 +211,7 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   l = ds->l;
   t = ds->t;
   perm = ds->perm;
@@ -181,6 +247,47 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSUpdateExtraRow_GSVD(DS ds)
+{
+  PetscErrorCode ierr;
+  DS_GSVD        *ctx = (DS_GSVD*)ds->data;
+  PetscInt       i;
+  PetscBLASInt   n=0,m=0,ld=0;
+  PetscScalar    *U,*V;
+  PetscReal      *T,*e,*f,alpha,beta,betah;
+
+  PetscFunctionBegin;
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ctx->m,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  U = ds->mat[DS_MAT_U];
+  V = ds->mat[DS_MAT_V];
+  T = ds->rmat[DS_MAT_T];
+  e = ds->rmat[DS_MAT_T]+ld;
+  f = ds->rmat[DS_MAT_T]+2*ld;
+
+  if (ds->compact) {
+    if (n<=m) {   /* upper variant, A is square upper bidiagonal */
+      beta  = e[m-1];   /* in compact, we assume all entries are zero except the last one */
+      betah = f[m-1];
+      for (i=0;i<m;i++) {
+        e[i] = PetscRealPart(beta*U[m-1+i*ld]);
+        f[i] = PetscRealPart(betah*V[m-1+i*ld]);
+      }
+    } else {   /* lower variant, A is (m+1)xm lower bidiagonal */
+      alpha = T[m];
+      betah = f[m-1];
+      for (i=0;i<m;i++) {
+        e[i] = PetscRealPart(alpha*U[m+i*ld]);
+        f[i] = PetscRealPart(betah*V[m-1+i*ld]);
+      }
+    }
+    ds->k = m;
+  } else SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non-compact storage");
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
 {
   PetscErrorCode ierr;
@@ -190,9 +297,9 @@ static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
   PetscScalar    *A = ds->mat[DS_MAT_A];
   PetscScalar    *B = ds->mat[DS_MAT_B];
   PetscInt       i,n=ds->n,k=ds->k,ld=ds->ld,m=ctx->m;
-  PetscBool      lu;
 
   PetscFunctionBegin;
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   /* switch from compact (arrow) to dense storage */
   /* bidiagonal associated to B is stored in D and T+2*ld */
   ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
@@ -203,15 +310,15 @@ static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
     B[i+i*ld] = D[i];
     B[i+k*ld] = T[i+2*ld];
   }
-  /* B is upper bidiagonal and A can be upper or lower bidiagonal */
-  lu = n>m?PETSC_TRUE:PETSC_FALSE;
+  /* B is upper bidiagonal */
   B[k+k*ld] = D[k];
   for (i=k+1;i<m;i++) {
     B[i+i*ld]   = D[i];
     B[i-1+i*ld] = T[i-1+2*ld];
   }
-  for (i=k;i<m;i++) A[i+i*ld]   = T[i];
-  if (lu) for (i=k;i<m;i++) A[i+1+i*ld] = T[i+ld];
+  /* A can be upper (square) or lower bidiagonal */
+  for (i=k;i<m;i++) A[i+i*ld] = T[i];
+  if (n>m) for (i=k;i<m;i++) A[i+1+i*ld] = T[i+ld];
   else for (i=k+1;i<m;i++) A[i-1+i*ld] = T[i-1+ld];
   PetscFunctionReturn(0);
 }
@@ -220,7 +327,6 @@ static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
   Compact format is used when [A;B] has orthonormal columns.
   In this case R=I and the GSVD of (A,B) is the CS decomposition
 */
-
 PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
@@ -236,6 +342,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   ierr = PetscBLASIntCast(ds->n,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ctx->m,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ctx->p,&p);CHKERRQ(ierr);
@@ -260,7 +367,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (i=0;i<lc;i++) U[i+i*ld] = 1.0;
   ierr = PetscArrayzero(V,ld*ld);CHKERRQ(ierr);
   for (i=0;i<lc;i++) V[i+i*ld] = 1.0;
-  if (ds->compact) ierr = DSSwitchFormat_GSVD(ds);CHKERRQ(ierr);
+  if (ds->compact) { ierr = DSSwitchFormat_GSVD(ds);CHKERRQ(ierr); }
   T = ds->rmat[DS_MAT_T];
   D = ds->rmat[DS_MAT_D];
 
@@ -318,8 +425,8 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
         for (j=lc;j<n;j++) X[j+i*ld] = -X[j+i*ld];
       }
     }
-    ierr = PetscArrayzero(T+lc,3*ld-lc);CHKERRQ(ierr);
-    ierr = PetscArrayzero(D+lc,ld-lc);CHKERRQ(ierr);
+    ierr = PetscArrayzero(T+ld,n-1);CHKERRQ(ierr);
+    ierr = PetscArrayzero(T+2*ld,n-1);CHKERRQ(ierr);
     for (i=lc;i<n;i++) {
       T[i] = alpha[i-lc];
       D[i] = beta[i-lc];
@@ -411,14 +518,15 @@ PetscErrorCode DSMatGetSize_GSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols
   DS_GSVD *ctx = (DS_GSVD*)ds->data;
 
   PetscFunctionBegin;
+  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   switch (t) {
     case DS_MAT_A:
       *rows = ds->n;
-      *cols = ctx->m;
+      *cols = ds->extrarow? ctx->m+1: ctx->m;
       break;
     case DS_MAT_B:
       *rows = ctx->p;
-      *cols = ctx->m;
+      *cols = ds->extrarow? ctx->m+1: ctx->m;
       break;
     case DS_MAT_U:
       *rows = ds->n;
@@ -485,6 +593,7 @@ PetscErrorCode DSGSVDSetDimensions(DS ds,PetscInt m,PetscInt p)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,m,2);
+  PetscValidLogicalCollectiveInt(ds,p,3);
   ierr = PetscTryMethod(ds,"DSGSVDSetDimensions_C",(DS,PetscInt,PetscInt),(ds,m,p));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -494,8 +603,8 @@ static PetscErrorCode DSGSVDGetDimensions_GSVD(DS ds,PetscInt *m,PetscInt *p)
   DS_GSVD *ctx = (DS_GSVD*)ds->data;
 
   PetscFunctionBegin;
-  *m = ctx->m;
-  *p = ctx->p;
+  if (m) *m = ctx->m;
+  if (p) *p = ctx->p;
   PetscFunctionReturn(0);
 }
 
@@ -521,8 +630,6 @@ PetscErrorCode DSGSVDGetDimensions(DS ds,PetscInt *m,PetscInt *p)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidIntPointer(m,2);
-  PetscValidIntPointer(p,3);
   ierr = PetscUseMethod(ds,"DSGSVDGetDimensions_C",(DS,PetscInt*,PetscInt*),(ds,m,p));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -596,6 +703,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GSVD(DS ds)
   ds->ops->sort          = DSSort_GSVD;
   ds->ops->solve[0]      = DSSolve_GSVD;
   ds->ops->synchronize   = DSSynchronize_GSVD;
+  ds->ops->update        = DSUpdateExtraRow_GSVD;
   ds->ops->matgetsize    = DSMatGetSize_GSVD;
   ds->ops->destroy       = DSDestroy_GSVD;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSGSVDSetDimensions_C",DSGSVDSetDimensions_GSVD);CHKERRQ(ierr);
