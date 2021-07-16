@@ -1477,6 +1477,7 @@ static PetscErrorCode SVDTRLanczosGetKSP_TRLanczos(SVD svd,KSP *ksp)
     ierr = KSPSetOptionsPrefix(ctx->ksp,((PetscObject)svd)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(ctx->ksp,"svd_trlanczos_");CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->ksp);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)svd)->options);CHKERRQ(ierr);
     ierr = KSPSetType(ctx->ksp,KSPLSQR);CHKERRQ(ierr);
     ierr = KSPGetPC(ctx->ksp,&pc);CHKERRQ(ierr);
     ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
