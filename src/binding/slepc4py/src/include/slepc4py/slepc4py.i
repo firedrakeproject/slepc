@@ -10,16 +10,16 @@
 %header %{#include "slepc4py/slepc4py.h"%}
 %init   %{import_slepc4py();%}
 
-%define SWIG_TYPECHECK_SLEPC_ST  550 %enddef
-%define SWIG_TYPECHECK_SLEPC_BV  551 %enddef
-%define SWIG_TYPECHECK_SLEPC_DS  552 %enddef
-%define SWIG_TYPECHECK_SLEPC_FN  553 %enddef
-%define SWIG_TYPECHECK_SLEPC_RG  554 %enddef
-%define SWIG_TYPECHECK_SLEPC_EPS 555 %enddef
-%define SWIG_TYPECHECK_SLEPC_SVD 556 %enddef
-%define SWIG_TYPECHECK_SLEPC_PEP 557 %enddef
-%define SWIG_TYPECHECK_SLEPC_NEP 558 %enddef
-%define SWIG_TYPECHECK_SLEPC_MFN 559 %enddef
+%define SWIG_TYPECHECK_SLEPC_ST  650 %enddef
+%define SWIG_TYPECHECK_SLEPC_BV  651 %enddef
+%define SWIG_TYPECHECK_SLEPC_DS  652 %enddef
+%define SWIG_TYPECHECK_SLEPC_FN  653 %enddef
+%define SWIG_TYPECHECK_SLEPC_RG  654 %enddef
+%define SWIG_TYPECHECK_SLEPC_EPS 655 %enddef
+%define SWIG_TYPECHECK_SLEPC_SVD 656 %enddef
+%define SWIG_TYPECHECK_SLEPC_PEP 657 %enddef
+%define SWIG_TYPECHECK_SLEPC_NEP 658 %enddef
+%define SWIG_TYPECHECK_SLEPC_MFN 659 %enddef
 
 %define %slepc4py_objt(Pkg, PyType, Type, CODE)
 %petsc4py_objt(Pkg, PyType, Type, CODE)
