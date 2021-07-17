@@ -185,7 +185,7 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
   PetscErrorCode ierr;
   DS_SVD         *ctx = (DS_SVD*)ds->data;
   PetscInt       i;
-  PetscBLASInt   n=0,m,ld,incx=1;
+  PetscBLASInt   n=0,m=0,ld,incx=1;
   PetscScalar    *A,*U,*x,*y,one=1.0,zero=0.0;
   PetscReal      *e,beta;
 
@@ -200,15 +200,15 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
 
   if (ds->compact) {
     beta = e[m-1];   /* in compact, we assume all entries are zero except the last one */
-    for (i=0;i<m;i++) e[i] = PetscRealPart(beta*U[m-1+i*ld]);
+    for (i=0;i<n;i++) e[i] = PetscRealPart(beta*U[n-1+i*ld]);
     ds->k = m;
   } else {
     ierr = DSAllocateWork_Private(ds,2*ld,0,0);CHKERRQ(ierr);
     x = ds->work;
     y = ds->work+ld;
-    for (i=0;i<m;i++) x[i] = PetscConj(A[n+i*ld]);
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&m,&m,&one,U,&ld,x,&incx,&zero,y,&incx));
-    for (i=0;i<m;i++) A[n+i*ld] = PetscConj(y[i]);
+    for (i=0;i<n;i++) x[i] = PetscConj(A[i+m*ld]);
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,U,&ld,x,&incx,&zero,y,&incx));
+    for (i=0;i<n;i++) A[i+m*ld] = PetscConj(y[i]);
     ds->k = m;
   }
   PetscFunctionReturn(0);
@@ -300,7 +300,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (ds->compact) {
     ierr = PetscArrayzero(e,n-1);CHKERRQ(ierr);
   } else {
-    for (i=l;i<n;i++) {
+    for (i=l;i<m;i++) {
       ierr = PetscArrayzero(A+l+i*ld,n-l);CHKERRQ(ierr);
     }
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
@@ -366,8 +366,8 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   switch (t) {
     case DS_MAT_A:
     case DS_MAT_T:
-      *rows = ds->extrarow? ds->n+1: ds->n;
-      *cols = ctx->m;
+      *rows = ds->n;
+      *cols = ds->extrarow? ctx->m+1: ctx->m;
       break;
     case DS_MAT_U:
       *rows = ds->n;

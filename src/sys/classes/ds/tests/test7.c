@@ -58,7 +58,7 @@ int main(int argc,char **argv)
   for (j=1;j<n/2;j++) {
     for (i=0;i<n-j;i++) { if ((i+j)<n && i<m) A[(i+j)+i*ld]=-1.0; }
   }
-  if (extrarow) { A[n+(m-2)*ld]=1.0; A[n+(m-1)*ld]=1.0; }
+  if (extrarow) { A[n-2+m*ld]=1.0; A[n-1+m*ld]=1.0; }  /* really an extra column */
   ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   if (verbose) {
@@ -90,11 +90,11 @@ int main(int argc,char **argv)
   }
 
   if (extrarow) {
-    /* Check that extra row is correct */
+    /* Check that extra column is correct */
     ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
     ierr = DSGetArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
     d = 0.0;
-    for (i=0;i<m;i++) d += A[n+i*ld]-U[m-2+i*ld]-U[m-1+i*ld];
+    for (i=0;i<n;i++) d += A[i+m*ld]-U[n-2+i*ld]-U[n-1+i*ld];
     if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d));CHKERRQ(ierr);
     }
