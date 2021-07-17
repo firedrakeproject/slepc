@@ -145,9 +145,9 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   if (eps->converged == EPSConvergedRelative) {
     blopex->tol.absolute = 0.0;
-    blopex->tol.relative = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
+    blopex->tol.relative = SlepcDefaultTol(eps->tol);
   } else if (eps->converged == EPSConvergedAbsolute) {
-    blopex->tol.absolute = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
+    blopex->tol.absolute = SlepcDefaultTol(eps->tol);
     blopex->tol.relative = 0.0;
   } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Convergence test not supported in this solver");
 

@@ -141,7 +141,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     i = eps->max_it;
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,&flg1);CHKERRQ(ierr);
     r = eps->tol;
-    ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",SlepcDefaultTol(eps->tol),&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) { ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBoolGroupBegin("-eps_conv_rel","Relative error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);

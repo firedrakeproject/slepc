@@ -100,7 +100,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,&flg1);CHKERRQ(ierr);
     if (!flg1) i = PETSC_DEFAULT;
     r = mfn->tol;
-    ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",mfn->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:mfn->tol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",SlepcDefaultTol(mfn->tol),&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) { ierr = MFNSetTolerances(mfn,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,&flg);CHKERRQ(ierr);

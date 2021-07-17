@@ -55,7 +55,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"SLP does not support spectral transformation");
   ierr = EPSSetDimensions(ctx->eps,1,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(ctx->eps,SlepcDefaultTol(nep->tol)/10.0,nep->max_it);CHKERRQ(ierr);
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
   if (ctx->deftol==PETSC_DEFAULT) ctx->deftol = nep->tol;
 
@@ -68,7 +68,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
     if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"SLP does not support spectral transformation");
     ierr = EPSSetDimensions(ctx->epsts,1,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(ctx->epsts,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
-    ierr = EPSSetTolerances(ctx->epsts,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it);CHKERRQ(ierr);
+    ierr = EPSSetTolerances(ctx->epsts,SlepcDefaultTol(nep->tol)/10.0,nep->max_it);CHKERRQ(ierr);
   } else {
     nep->ops->solve = NEPSolve_SLP;
     nep->ops->computevectors = NEPComputeVectors_Schur;
@@ -605,7 +605,7 @@ static PetscErrorCode NEPSLPGetKSP_SLP(NEP nep,KSP *ksp)
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp);CHKERRQ(ierr);
     ierr = PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)nep)->options);CHKERRQ(ierr);
     ierr = KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = KSPSetTolerances(ctx->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   }
   *ksp = ctx->ksp;
   PetscFunctionReturn(0);

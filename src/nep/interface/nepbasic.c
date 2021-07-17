@@ -608,7 +608,7 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
     ierr = PetscObjectSetOptions((PetscObject)nep->refineksp,((PetscObject)nep)->options);CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(*ksp,"nep_refine_");CHKERRQ(ierr);
-    ierr = KSPSetTolerances(nep->refineksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(nep->refineksp,SlepcDefaultTol(nep->rtol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   }
   *ksp = nep->refineksp;
   PetscFunctionReturn(0);

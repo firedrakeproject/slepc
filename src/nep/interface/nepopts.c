@@ -123,7 +123,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     i = nep->max_it;
     ierr = PetscOptionsInt("-nep_max_it","Maximum number of iterations","NEPSetTolerances",nep->max_it,&i,&flg1);CHKERRQ(ierr);
     r = nep->tol;
-    ierr = PetscOptionsReal("-nep_tol","Tolerance","NEPSetTolerances",nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->tol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_tol","Tolerance","NEPSetTolerances",SlepcDefaultTol(nep->tol),&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) { ierr = NEPSetTolerances(nep,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBoolGroupBegin("-nep_conv_rel","Relative error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);

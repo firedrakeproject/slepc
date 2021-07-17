@@ -131,7 +131,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported value of option 'which'");
   }
-  dvd->tol = (eps->tol==PETSC_DEFAULT)? SLEPC_DEFAULT_TOL: eps->tol;
+  dvd->tol = SlepcDefaultTol(eps->tol);
   dvd->eps = eps;
 
   /* Setup the extraction technique */

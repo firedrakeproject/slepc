@@ -655,7 +655,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     i = svd->max_it;
     ierr = PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,&flg1);CHKERRQ(ierr);
     r = svd->tol;
-    ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",SlepcDefaultTol(svd->tol),&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) { ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBoolGroupBegin("-svd_conv_abs","Absolute error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);

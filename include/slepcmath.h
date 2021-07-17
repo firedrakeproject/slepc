@@ -28,6 +28,8 @@
 #  define SLEPC_DEFAULT_TOL   1e-2
 #endif
 
+#define SlepcDefaultTol(tol) (((tol)==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL:(tol))
+
 /*@C
    SlepcAbs - Returns sqrt(x**2+y**2), taking care not to cause unnecessary
    overflow. It is based on LAPACK's DLAPY2.
