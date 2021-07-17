@@ -130,6 +130,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
 {
   PetscErrorCode ierr;
   PetscInt       on,ol,ok;
+  PetscBool      issvd;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -142,7 +143,8 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
     ds->n = ds->ld;
   } else {
     if (n<0 || n>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 0 and ld");
-    if (ds->extrarow && n+1>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"A value of n equal to ld leaves no room for extra row");
+    ierr = PetscObjectTypeCompareAny((PetscObject)ds,&issvd,DSSVD,DSGSVD,"");CHKERRQ(ierr);  /* SVD and GSVD have extra column instead of extra row */
+    if (ds->extrarow && n+1>ds->ld && !issvd) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"A value of n equal to ld leaves no room for extra row");
     ds->n = n;
   }
   ds->t = ds->n;   /* truncated length equal to the new dimension */

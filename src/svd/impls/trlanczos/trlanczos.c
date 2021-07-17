@@ -177,7 +177,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
       case SVD_TRLANCZOS_GBIDIAG_LOWER:
         svd->ops->solveg = SVDSolve_TRLanczosGLower;
         dstype = DSGSVD;
-        ld = svd->ncv+2;
         break;
     }
     ierr = SVDSetWorkVecs(svd,1,1);CHKERRQ(ierr);
