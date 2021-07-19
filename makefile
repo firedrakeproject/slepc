@@ -103,7 +103,7 @@ info:
 # Simple test examples for checking a correct installation
 check_install: check
 check:
-	+@(${OMAKE_SELF} PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check_build 2>&1; echo $$? > ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log) | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log; ecode=`cat ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log`; rm ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log; exit $${ecode}
+	+@(${OMAKE_SELF} PETSC_OPTIONS="${PETSC_OPTIONS} ${PETSC_TEST_OPTIONS}" PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check_build 2>&1; echo $$? > ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log) | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log; ecode=`cat ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log`; rm ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log; exit $${ecode}
 check_build:
 	-@echo "Running test examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
