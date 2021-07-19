@@ -116,21 +116,16 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rowsa,colsa);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",2*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
-      for (i=0;i<colsa;i++) {
+      for (i=0;i<PetscMin(rowsa,colsa);i++) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
       }
-      if (n>m) { /* A lower bidiagonal */
-        for (i=0;i<k;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
-        }
-        for (i=k;i<colsa-1;i++) {
+      for (i=0;i<k;i++) {
+        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+      }
+      for (i=k;i<colsa-1;i++) {
+        if (n>m) { /* A lower bidiagonal */
           ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+2,i+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
-        }
-      } else { /* A (square) upper bidiagonal */
-        for (i=0;i<k;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
-        }
-        for (i=k;i<colsa-1;i++) {
+        } else { /* A (square) upper bidiagonal */
           ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+2,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
         }
       }
@@ -151,7 +146,7 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
       for (i=0;i<rowsa;i++) {
         for (j=0;j<colsa;j++) {
           if (i==j) value = *(ds->rmat[DS_MAT_T]+i);
-          else if (i<ds->k && j==ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+PetscMin(i,j));
+          else if (i<ds->k && j==ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+i);
           else if (n>m && i==j+1 && i>ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+j);
           else if (n<=m && i+1==j && i>=ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+i);
           else value = 0.0;
