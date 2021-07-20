@@ -277,6 +277,7 @@ PetscErrorCode DSUpdateExtraRow_GSVD(DS ds)
         e[i] = PetscRealPart(alpha*U[m+i*ld]);
         f[i] = PetscRealPart(betah*V[m-1+i*ld]);
       }
+      T[m] = PetscRealPart(alpha*U[m+m*ld]);
     }
     ds->k = m;
   } else SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non-compact storage");

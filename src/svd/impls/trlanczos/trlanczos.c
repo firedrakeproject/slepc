@@ -1068,8 +1068,8 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,*alphah,*betah,lastbeta,lastalpha,resnorm;
-  PetscScalar    *Q,*swork=NULL,*w,*arr;
+  PetscReal      *alpha,*beta,*alphah,*betah,lastbeta,resnorm;
+  PetscScalar    *swork=NULL,*w,*arr;
   PetscInt       i,k,l,nv,ld,m,n,p;
   Mat            U,Vmat,X;
   BV             U1,U2,V;
@@ -1123,7 +1123,6 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     betah = alpha + 2*ld;
     ierr = SVDTwoSideLanczosGLower(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
     lastbeta = beta[nv-1];
-    lastalpha = alpha[nv];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_D,&alphah);CHKERRQ(ierr);
 
@@ -1162,10 +1161,8 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
     else l = PetscMax((nv-svd->nconv-k)/2,0);
 
-    /* set value of diagonal element of DS arrow */
-    ierr = DSGetArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
-    alpha[svd->nconv+k+l] = PetscRealPart(Q[nv+nv*ld])*lastalpha;
-    ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
+    /* move value of diagonal element of DS arrow */
+    alpha[svd->nconv+k+l] = alpha[nv];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
     /* compute converged singular vectors and restart vectors */
