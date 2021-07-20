@@ -122,10 +122,12 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
       for (i=0;i<k;i++) {
         ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
       }
-      for (i=k;i<colsa-1;i++) {
-        if (n>m) { /* A lower bidiagonal */
+      if (n>m) { /* A lower bidiagonal */
+        for (i=k;i<rowsa-1;i++) {
           ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+2,i+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
-        } else { /* A (square) upper bidiagonal */
+        }
+      } else { /* A (square) upper bidiagonal */
+        for (i=k;i<colsa-1;i++) {
           ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+2,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
         }
       }
@@ -421,7 +423,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
         for (j=lc;j<n;j++) X[j+i*ld] = -X[j+i*ld];
       }
     }
-    ierr = PetscArrayzero(T+ld,n-1);CHKERRQ(ierr);
+    ierr = PetscArrayzero(T+ld,m-1);CHKERRQ(ierr);
     ierr = PetscArrayzero(T+2*ld,n-1);CHKERRQ(ierr);
     for (i=lc;i<n;i++) {
       T[i] = alpha[i-lc];
