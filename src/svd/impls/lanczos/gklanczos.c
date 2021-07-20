@@ -66,8 +66,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
   ierr = MatMult(svd->A,v,u);CHKERRQ(ierr);
   ierr = BVRestoreColumn(svd->V,k,&v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(svd->U,k,&u);CHKERRQ(ierr);
-  ierr = BVOrthogonalizeColumn(svd->U,k,NULL,alpha+k,NULL);CHKERRQ(ierr);
-  ierr = BVScaleColumn(U,k,1.0/alpha[k]);CHKERRQ(ierr);
+  ierr = BVOrthonormalizeColumn(svd->U,k,PETSC_FALSE,alpha+k,NULL);CHKERRQ(ierr);
 
   for (i=k+1;i<n;i++) {
     ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
@@ -75,16 +74,14 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
     ierr = MatMult(svd->AT,u,v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->U,i-1,&u);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(svd->V,i,NULL,beta+i-1,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(V,i,1.0/beta[i-1]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(svd->V,i,PETSC_FALSE,beta+i-1,NULL);CHKERRQ(ierr);
 
     ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVGetColumn(svd->U,i,&u);CHKERRQ(ierr);
     ierr = MatMult(svd->A,v,u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->U,i,&u);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(svd->U,i,NULL,alpha+i,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(U,i,1.0/alpha[i]);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(svd->U,i,PETSC_FALSE,alpha+i,NULL);CHKERRQ(ierr);
   }
 
   ierr = BVGetColumn(svd->V,n,&v);CHKERRQ(ierr);
@@ -164,7 +161,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,lastbeta,norm,resnorm;
+  PetscReal      *alpha,*beta,lastbeta,resnorm;
   PetscScalar    *swork,*w,*Q,*P;
   PetscInt       i,k,j,nv,ld;
   Vec            u=0,u_1=0;
@@ -184,8 +181,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   /* normalize start vector */
   if (!svd->nini) {
     ierr = BVSetRandomColumn(svd->V,0);CHKERRQ(ierr);
-    ierr = BVNormColumn(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
-    ierr = BVScaleColumn(svd->V,0,1.0/norm);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(svd->V,0,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
   }
 
   while (svd->reason == SVD_CONVERGED_ITERATING) {
@@ -242,8 +238,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
       } else {
         /* all approximations have converged, generate a new initial vector */
         ierr = BVSetRandomColumn(svd->V,nv);CHKERRQ(ierr);
-        ierr = BVOrthogonalizeColumn(svd->V,nv,NULL,&norm,NULL);CHKERRQ(ierr);
-        ierr = BVScaleColumn(svd->V,nv,1.0/norm);CHKERRQ(ierr);
+        ierr = BVOrthonormalizeColumn(svd->V,nv,PETSC_FALSE,NULL,NULL);CHKERRQ(ierr);
       }
     }
 

@@ -21,7 +21,7 @@ static PetscBool  DSPackageInitialized = PETSC_FALSE;
 
 const char *DSStateTypes[] = {"RAW","INTERMEDIATE","CONDENSED","TRUNCATED","DSStateType","DS_STATE_",0};
 const char *DSParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","DISTRIBUTED","DSParallelType","DS_PARALLEL_",0};
-const char *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
+const char *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","V","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
 DSMatType  DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9};
 
 /*@C
