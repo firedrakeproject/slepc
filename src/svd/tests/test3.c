@@ -138,7 +138,7 @@ int main(int argc,char **argv)
          args: -svd_type lanczos -svd_lanczos_oneside
       test:
          suffix: 1_trlanczos
-         args: -svd_type trlanczos
+         args: -svd_type trlanczos -svd_trlanczos_locking {{0 1}}
       test:
          suffix: 1_trlanczos_one
          args: -svd_type trlanczos -svd_trlanczos_oneside

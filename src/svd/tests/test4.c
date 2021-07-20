@@ -136,7 +136,7 @@ int main(int argc,char **argv)
          args: -svd_type randomized
       test:
          suffix: 1_trlanczos
-         args: -svd_type trlanczos -svd_ncv 12
+         args: -svd_type trlanczos -svd_ncv 12 -svd_trlanczos_restart 0.6
       test:
          suffix: 1_cross
          args: -svd_type cross

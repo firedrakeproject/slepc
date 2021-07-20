@@ -226,7 +226,7 @@ int main(int argc,char **argv)
       requires: double
       output_file: output/ex45_6.out
       test:
-         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}}
+         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}} -svd_trlanczos_locking {{0 1}}
          suffix: 6
       test:
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
@@ -241,7 +241,7 @@ int main(int argc,char **argv)
       requires: double
       output_file: output/ex45_7.out
       test:
-         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}}
+         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}} -svd_trlanczos_restart 0.4
          suffix: 7
       test:
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}

@@ -23,7 +23,8 @@ int main(int argc,char **argv)
   KSP                 ksp;
   PC                  pc;
   PetscInt            m=15,n=20,p=21,i,j,d,Istart,Iend;
-  PetscBool           flg;
+  PetscReal           keep;
+  PetscBool           flg,lock;
   SVDTRLanczosGBidiag bidiag;
   PetscErrorCode      ierr;
 
@@ -86,6 +87,8 @@ int main(int argc,char **argv)
   ierr = KSPSetTolerances(ksp,PETSC_SMALL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
   ierr = SVDTRLanczosSetKSP(svd,ksp);CHKERRQ(ierr);
+  ierr = SVDTRLanczosSetRestart(svd,0.4);CHKERRQ(ierr);
+  ierr = SVDTRLanczosSetLocking(svd,PETSC_TRUE);CHKERRQ(ierr);
 
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
@@ -93,6 +96,9 @@ int main(int argc,char **argv)
   if (flg) {
     ierr = SVDTRLanczosGetGBidiag(svd,&bidiag);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: using %s bidiagonalization\n",SVDTRLanczosGBidiags[bidiag]);CHKERRQ(ierr);
+    ierr = SVDTRLanczosGetRestart(svd,&keep);CHKERRQ(ierr);
+    ierr = SVDTRLanczosGetLocking(svd,&lock);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: restarting parameter %.2f %s\n",(double)keep,lock?"(locking)":"");CHKERRQ(ierr);
   }
 
   ierr = SVDSolve(svd);CHKERRQ(ierr);
