@@ -501,7 +501,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = BVSetRandomColumn(svd->V,k);CHKERRQ(ierr);
           ierr = BVOrthonormalizeColumn(svd->V,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
@@ -734,7 +734,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
           ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
@@ -994,7 +994,6 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
     conv = PETSC_TRUE;
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
-    betah = alpha + 2*ld;
     for (i=svd->nconv; i<nv; i++) {
       svd->sigma[i] = PetscRealPart(w[i]);
       resnorm = PetscAbsReal(beta[i])*lastalpha;
@@ -1019,7 +1018,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = SVDInitialVectorGUpper(V,k,lanczos->Z,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
@@ -1272,7 +1271,6 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     conv = PETSC_TRUE;
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
-    betah = alpha + 2*ld;
     for (i=svd->nconv; i<nv; i++) {
       svd->sigma[i] = PetscRealPart(w[i]);
       resnorm = PetscAbsReal(beta[i])*lastbeta;
@@ -1297,7 +1295,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
           ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
