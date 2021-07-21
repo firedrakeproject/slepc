@@ -207,6 +207,7 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
     }
   }
   if (breakdown) *breakdown = lindep;
+  if (lindep) { ierr = PetscInfo1(V,"Lanczos finished early at m=%D\n",*m);CHKERRQ(ierr); }
 
   /* extract Hessenberg matrix from the BV buffer */
   ierr = BVGetBufferVec(V,&buf);CHKERRQ(ierr);

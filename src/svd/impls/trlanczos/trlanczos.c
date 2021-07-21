@@ -414,7 +414,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscScalar    *swork=NULL,*w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,V;
-  PetscBool      conv;
+  PetscBool      conv,breakdown=PETSC_FALSE;
   BVOrthogType   orthog;
 
   PetscFunctionBegin;
@@ -450,13 +450,15 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
         ierr = SVDOneSideTRLanczosCGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv,swork);CHKERRQ(ierr);
       }
     } else {
-      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,svd->U,svd->nconv+l,nv);CHKERRQ(ierr);
+      ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,svd->U,svd->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
     }
     lastbeta = beta[nv-1];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     ierr = BVScaleColumn(svd->V,nv,1.0/lastbeta);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(svd->V,svd->nconv,nv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(svd->U,svd->nconv,nv);CHKERRQ(ierr);
 
-    /* compute SVD of general matrix */
+    /* solve projected problem */
     ierr = DSSetDimensions(svd->ds,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     ierr = DSSVDSetDimensions(svd->ds,nv);CHKERRQ(ierr);
     if (l==0) {
@@ -491,10 +493,23 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* update l */
-    if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
+    if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+
+    if (svd->reason == SVD_CONVERGED_ITERATING && (breakdown || k==nv)) {
+      /* Start a new bidiagonalization */
+      ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+      if (k<svd->nsv) {
+        ierr = BVSetRandomColumn(svd->V,k);CHKERRQ(ierr);
+        ierr = BVOrthonormalizeColumn(svd->V,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
+        if (breakdown) {
+          svd->reason = SVD_DIVERGED_BREAKDOWN;
+          ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+        }
+      }
+    }
 
     /* compute converged singular vectors and restart vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
@@ -505,7 +520,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     ierr = MatDestroy(&U);CHKERRQ(ierr);
 
     /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING) {
+    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) {
       ierr = BVCopyColumn(svd->V,nv,k+l);CHKERRQ(ierr);
     }
 
@@ -526,13 +541,14 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta,Mat Z,BV V,BV U,KSP ksp,PetscInt k,PetscInt n)
+static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta,Mat Z,BV V,BV U,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,m;
   const PetscScalar *carr;
   PetscScalar       *arr;
   Vec               u,v,ut=svd->workl[0],x=svd->workr[0],v1;
+  PetscBool         lindep=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = MatCreateVecsEmpty(svd->A,NULL,&v1);CHKERRQ(ierr);
@@ -555,9 +571,14 @@ static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscRea
 
   ierr = BVRestoreColumn(U,k,&u);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,k,&v);CHKERRQ(ierr);
-  ierr = BVOrthonormalizeColumn(V,k,PETSC_FALSE,alpha+k,NULL);CHKERRQ(ierr);
+  ierr = BVOrthonormalizeColumn(V,k,PETSC_FALSE,alpha+k,&lindep);CHKERRQ(ierr);
+  if (lindep) {
+    *n = k;
+    if (breakdown) *breakdown = lindep;
+    PetscFunctionReturn(0);
+  }
 
-  for (i=k+1; i<n; i++) {
+  for (i=k+1; i<*n; i++) {
 
     /* Compute vector i of BV U */
     ierr = BVGetColumn(V,i-1,&v);CHKERRQ(ierr);
@@ -567,7 +588,11 @@ static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscRea
     ierr = BVRestoreColumn(V,i-1,&v);CHKERRQ(ierr);
     ierr = BVInsertVec(U,i,v1);CHKERRQ(ierr);
     ierr = VecResetArray(v1);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(U,i,PETSC_FALSE,beta+i-1,NULL);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U,i,PETSC_FALSE,beta+i-1,&lindep);CHKERRQ(ierr);
+    if (lindep) {
+      *n = i;
+      break;
+    }
 
     /* Compute vector i of BV V */
 
@@ -588,19 +613,25 @@ static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscRea
 
     ierr = BVRestoreColumn(U,i,&u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(V,i,PETSC_FALSE,alpha+i,NULL);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(V,i,PETSC_FALSE,alpha+i,&lindep);CHKERRQ(ierr);
+    if (lindep) {
+      *n = i;
+      break;
+    }
   }
 
   /* Compute vector n of BV U */
-  ierr = BVGetColumn(V,n-1,&v);CHKERRQ(ierr);
-  ierr = VecGetArray(v,&arr);CHKERRQ(ierr);
-  ierr = VecPlaceArray(v1,arr);CHKERRQ(ierr);
-  ierr = VecRestoreArray(v,&arr);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(V,n-1,&v);CHKERRQ(ierr);
-  ierr = BVInsertVec(U,n,v1);CHKERRQ(ierr);
-  ierr = VecResetArray(v1);CHKERRQ(ierr);
-  ierr = BVOrthonormalizeColumn(U,n,PETSC_FALSE,beta+n-1,NULL);CHKERRQ(ierr);
-
+  if (!lindep) {
+    ierr = BVGetColumn(V,*n-1,&v);CHKERRQ(ierr);
+    ierr = VecGetArray(v,&arr);CHKERRQ(ierr);
+    ierr = VecPlaceArray(v1,arr);CHKERRQ(ierr);
+    ierr = VecRestoreArray(v,&arr);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,*n-1,&v);CHKERRQ(ierr);
+    ierr = BVInsertVec(U,*n,v1);CHKERRQ(ierr);
+    ierr = VecResetArray(v1);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U,*n,PETSC_FALSE,beta+*n-1,&lindep);CHKERRQ(ierr);
+  }
+  if (breakdown) *breakdown = lindep;
   ierr = VecDestroy(&v1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -616,7 +647,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
   Mat            U,VV;
   BV             U1,U2,V;
   BVType         type;
-  PetscBool      conv;
+  PetscBool      conv,breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
@@ -649,14 +680,14 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
 
     /* inner loop */
     nv = PetscMin(svd->nconv+svd->mpd,svd->ncv);
-    ierr = BVSetActiveColumns(V,svd->nconv,nv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(U1,svd->nconv,nv);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
-    ierr = SVDTwoSideLanczosGSingle(svd,alpha,beta,lanczos->Z,V,U1,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
+    ierr = SVDTwoSideLanczosGSingle(svd,alpha,beta,lanczos->Z,V,U1,lanczos->ksp,svd->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(V,svd->nconv,nv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(U1,svd->nconv,nv);CHKERRQ(ierr);
 
-    /* compute SVD of general matrix */
+    /* solve projected problem */
     ierr = DSSetDimensions(svd->ds,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     ierr = DSSVDSetDimensions(svd->ds,nv);CHKERRQ(ierr);
     if (l==0) {
@@ -690,10 +721,23 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* update l */
-    if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
+    if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+
+    if (svd->reason == SVD_CONVERGED_ITERATING && (breakdown || k==nv)) {
+      /* Start a new bidiagonalization */
+      ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+      if (k<svd->nsv) {
+        ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
+        ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
+        if (breakdown) {
+          svd->reason = SVD_DIVERGED_BREAKDOWN;
+          ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+        }
+      }
+    }
 
     /* compute converged singular vectors and restart vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
@@ -704,7 +748,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
     ierr = MatDestroy(&VV);CHKERRQ(ierr);
 
     /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING) {
+    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) {
       ierr = BVCopyColumn(U1,nv,k+l);CHKERRQ(ierr);
     }
 
@@ -771,27 +815,28 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
+static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,m,p;
   const PetscScalar *carr;
   PetscScalar       *arr,*u2arr;
   Vec               u,v,ut=svd->workl[0],x=svd->workr[0],v1,u2;
+  PetscBool         lindep=PETSC_FALSE,lindep1=PETSC_FALSE,lindep2=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = MatCreateVecsEmpty(svd->A,NULL,&v1);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->A,&m,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->B,&p,NULL);CHKERRQ(ierr);
 
-  for (i=k; i<n; i++) {
+  for (i=k; i<*n; i++) {
     /* Compute vector i of BV U1 */
     ierr = BVGetColumn(V,i,&v);CHKERRQ(ierr);
     ierr = VecGetArrayRead(v,&carr);CHKERRQ(ierr);
     ierr = VecPlaceArray(v1,carr);CHKERRQ(ierr);
     ierr = BVInsertVec(U1,i,v1);CHKERRQ(ierr);
     ierr = VecResetArray(v1);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(U1,i,PETSC_FALSE,alpha+i,NULL);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U1,i,PETSC_FALSE,alpha+i,&lindep1);CHKERRQ(ierr);
 
     /* Compute vector i of BV U2 */
     ierr = BVGetColumn(U2,i,&u2);CHKERRQ(ierr);
@@ -805,8 +850,13 @@ static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal
     ierr = BVRestoreColumn(U2,i,&u2);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(v,&carr);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,NULL);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,&lindep2);CHKERRQ(ierr);
     if (i%2) alphah[i] = -alphah[i];
+    if (lindep1 || lindep2) {
+      lindep = PETSC_TRUE;
+      *n = i;
+      break;
+    }
 
     /* Compute vector i+1 of BV V */
     ierr = BVGetColumn(V,i+1,&v);CHKERRQ(ierr);
@@ -823,11 +873,35 @@ static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal
     ierr = MatMult(Z,x,v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U1,i,&u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i+1,&v);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,beta+i,NULL);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,beta+i,&lindep);CHKERRQ(ierr);
     betah[i] = -alpha[i]*beta[i]/alphah[i];
+    if (lindep) {
+      *n = i;
+      break;
+    }
   }
-
+  if (breakdown) *breakdown = lindep;
   ierr = VecDestroy(&v1);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* generate random initial vector in column k for joint upper-upper bidiagonalization */
+PETSC_STATIC_INLINE PetscErrorCode SVDInitialVectorGUpper(BV V,PetscInt k,Mat Z,PetscBool *breakdown)
+{
+  PetscErrorCode ierr;
+  Vec            u,v;
+  PetscRandom    rand;
+
+  PetscFunctionBegin;
+  ierr = BVGetRandomContext(V,&rand);CHKERRQ(ierr);
+  ierr = MatCreateVecs(Z,&u,NULL);CHKERRQ(ierr);
+  ierr = VecSetRandom(u,rand);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,k,&v);CHKERRQ(ierr);
+  ierr = MatMult(Z,u,v);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,k,&v);CHKERRQ(ierr);
+  if (breakdown) { ierr = BVOrthonormalizeColumn(V,k,PETSC_FALSE,NULL,breakdown);CHKERRQ(ierr); }
+  else { ierr = BVOrthonormalizeColumn(V,k,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr); }
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -842,7 +916,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
   Mat            U,Vmat,X;
   BV             U1,U2,V;
   BVType         type;
-  PetscBool      conv;
+  PetscBool      conv,breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
@@ -871,16 +945,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
 
   /* normalize start vector */
   if (!svd->nini) {
-    Vec u,v;
-    PetscRandom rand;
-    ierr = BVGetRandomContext(V,&rand);
-    ierr = MatCreateVecs(lanczos->Z,&u,NULL);CHKERRQ(ierr);
-    ierr = VecSetRandom(u,rand);CHKERRQ(ierr);
-    ierr = BVGetColumn(V,0,&v);CHKERRQ(ierr);
-    ierr = MatMult(lanczos->Z,u,v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,0,&v);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(V,0,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
-    ierr = VecDestroy(&u);CHKERRQ(ierr);
+    ierr = SVDInitialVectorGUpper(V,0,lanczos->Z,NULL);CHKERRQ(ierr);
   }
 
   l = 0;
@@ -889,19 +954,19 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
 
     /* inner loop */
     nv = PetscMin(svd->nconv+svd->mpd,svd->ncv);
-    ierr = BVSetActiveColumns(V,svd->nconv,nv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(U1,svd->nconv,nv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(U2,svd->nconv,nv);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_D,&alphah);CHKERRQ(ierr);
     beta = alpha + ld;
     betah = alpha + 2*ld;
-    ierr = SVDTwoSideLanczosGUpper(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
+    ierr = SVDTwoSideLanczosGUpper(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
     lastalpha = alpha[nv-1];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_D,&alphah);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(V,svd->nconv,nv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(U1,svd->nconv,nv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(U2,svd->nconv,nv);CHKERRQ(ierr);
 
-    /* compute GSVD of small dense matrix pair */
+    /* solve projected problem */
     ierr = DSSetDimensions(svd->ds,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     ierr = DSGSVDSetDimensions(svd->ds,nv,nv);CHKERRQ(ierr);
     if (l==0) {
@@ -909,7 +974,6 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
     } else {
       ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
-
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
@@ -937,11 +1001,22 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* update l */
-    if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
+    if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
+    if (svd->reason == SVD_CONVERGED_ITERATING && (breakdown || k==nv)) {
+      /* Start a new bidiagonalization */
+      ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+      if (k<svd->nsv) {
+        ierr = SVDInitialVectorGUpper(V,k,lanczos->Z,&breakdown);CHKERRQ(ierr);
+        if (breakdown) {
+          svd->reason = SVD_DIVERGED_BREAKDOWN;
+          ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+        }
+      }
+    }
     /* compute converged singular vectors and restart vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
     ierr = BVMultInPlace(V,X,svd->nconv,k+l);CHKERRQ(ierr);
@@ -954,7 +1029,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
     ierr = MatDestroy(&Vmat);CHKERRQ(ierr);
 
     /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING) {
+    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) {
       ierr = BVCopyColumn(V,nv,k+l);CHKERRQ(ierr);
     }
 
@@ -1004,13 +1079,14 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt n)
+static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,m,p;
   const PetscScalar *carr;
   PetscScalar       *arr,*u2arr;
   Vec               u,v,ut=svd->workl[0],x=svd->workr[0],v1,u2;
+  PetscBool         lindep=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = MatCreateVecsEmpty(svd->A,NULL,&v1);CHKERRQ(ierr);
@@ -1033,10 +1109,15 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
     ierr = MatMult(Z,x,v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U1,0,&u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,0,&v);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(V,0,PETSC_FALSE,alpha,NULL);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(V,0,PETSC_FALSE,alpha,&lindep);CHKERRQ(ierr);
+    if (lindep) {
+      *n = k;
+      if (breakdown) *breakdown = lindep;
+      PetscFunctionReturn(0);
+    }
   }
 
-  for (i=k; i<n; i++) {
+  for (i=k; i<*n; i++) {
     /* Compute vector i of BV U2 */
     ierr = BVGetColumn(V,i,&v);CHKERRQ(ierr);
     ierr = VecGetArrayRead(v,&carr);CHKERRQ(ierr);
@@ -1049,16 +1130,25 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
     }
     ierr = VecRestoreArray(u2,&u2arr);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U2,i,&u2);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,NULL);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,&lindep);CHKERRQ(ierr);
     if (i%2) alphah[i] = -alphah[i];
+    if (lindep) {
+      ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
+      *n = i;
+      break;
+    }
 
     /* Compute vector i+1 of BV U1 */
     ierr = VecPlaceArray(v1,carr);CHKERRQ(ierr);
     ierr = BVInsertVec(U1,i+1,v1);CHKERRQ(ierr);
     ierr = VecResetArray(v1);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(U1,i+1,PETSC_FALSE,beta+i,NULL);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U1,i+1,PETSC_FALSE,beta+i,&lindep);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(v,&carr);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
+    if (lindep) {
+      *n = i+1;
+      break;
+    }
 
     /* Compute vector i+1 of BV V */
     ierr = BVGetColumn(V,i+1,&v);CHKERRQ(ierr);
@@ -1075,11 +1165,14 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
     ierr = MatMult(Z,x,v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(U1,i+1,&u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i+1,&v);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,alpha+i+1,NULL);CHKERRQ(ierr);
-
+    ierr = BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,alpha+i+1,&lindep);CHKERRQ(ierr);
     betah[i] = -alpha[i+1]*beta[i]/alphah[i];
+    if (lindep) {
+      *n = i+1;
+      break;
+    }
   }
-
+  if (breakdown) *breakdown = lindep;
   ierr = VecDestroy(&v1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1095,7 +1188,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
   Mat            U,Vmat,X;
   BV             U1,U2,V;
   BVType         type;
-  PetscBool      conv;
+  PetscBool      conv,breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
 
@@ -1135,19 +1228,19 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
 
     /* inner loop */
     nv = PetscMin(svd->nconv+svd->mpd,svd->ncv);
-    ierr = BVSetActiveColumns(V,svd->nconv,nv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(U1,svd->nconv,nv+1);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(U2,svd->nconv,nv);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_D,&alphah);CHKERRQ(ierr);
     beta = alpha + ld;
     betah = alpha + 2*ld;
-    ierr = SVDTwoSideLanczosGLower(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,nv);CHKERRQ(ierr);
+    ierr = SVDTwoSideLanczosGLower(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
     lastbeta = beta[nv-1];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_D,&alphah);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(V,svd->nconv,nv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(U1,svd->nconv,nv+1);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(U2,svd->nconv,nv);CHKERRQ(ierr);
 
-    /* compute GSVD of small dense matrix pair */
+    /* solve projected problem */
     ierr = DSSetDimensions(svd->ds,nv+1,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     ierr = DSGSVDSetDimensions(svd->ds,nv,nv);CHKERRQ(ierr);
     if (l==0) {
@@ -1155,7 +1248,6 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     } else {
       ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
-
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
@@ -1182,7 +1274,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* update l */
-    if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
+    if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
@@ -1191,6 +1283,18 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     alpha[k+l] = alpha[nv];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
+    if (svd->reason == SVD_CONVERGED_ITERATING && (breakdown || k==nv)) {
+      /* Start a new bidiagonalization */
+      ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+      if (k<svd->nsv) {
+        ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
+        ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
+        if (breakdown) {
+          svd->reason = SVD_DIVERGED_BREAKDOWN;
+          ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+        }
+      }
+    }
     /* compute converged singular vectors and restart vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
     ierr = BVMultInPlace(V,X,svd->nconv,k+l);CHKERRQ(ierr);
@@ -1207,7 +1311,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     ierr = MatDestroy(&Vmat);CHKERRQ(ierr);
 
     /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING) {
+    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) {
       ierr = BVCopyColumn(V,nv,k+l);CHKERRQ(ierr);
     }
 
