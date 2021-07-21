@@ -184,7 +184,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   primme->commInfo      = svd;
   primme->maxMatvecs    = svd->max_it;
 #if !defined(SLEPC_HAVE_PRIMME2p2)
-  primme->eps           = svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol;
+  primme->eps           = SlepcDefaultTol(svd->tol);
 #endif
   primme->numProcs      = numProcs;
   primme->procID        = procID;

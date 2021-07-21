@@ -113,7 +113,7 @@ PetscErrorCode LMESetFromOptions(LME lme)
     ierr = PetscOptionsInt("-lme_max_it","Maximum number of iterations","LMESetTolerances",lme->max_it,&i,&flg1);CHKERRQ(ierr);
     if (!flg1) i = PETSC_DEFAULT;
     r = lme->tol;
-    ierr = PetscOptionsReal("-lme_tol","Tolerance","LMESetTolerances",lme->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:lme->tol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-lme_tol","Tolerance","LMESetTolerances",SlepcDefaultTol(lme->tol),&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) { ierr = LMESetTolerances(lme,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsInt("-lme_ncv","Number of basis vectors","LMESetDimensions",lme->ncv,&i,&flg);CHKERRQ(ierr);

@@ -1383,7 +1383,7 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)contour->ksp[i]);CHKERRQ(ierr);
       ierr = PetscObjectSetOptions((PetscObject)contour->ksp[i],((PetscObject)eps)->options);CHKERRQ(ierr);
       ierr = KSPSetErrorIfNotConverged(contour->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = KSPSetTolerances(contour->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(contour->ksp[i],SlepcDefaultTol(eps->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
       ierr = KSPGetPC(contour->ksp[i],&pc);CHKERRQ(ierr);
       ierr = KSPSetType(contour->ksp[i],KSPPREONLY);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);

@@ -141,7 +141,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     i = pep->max_it;
     ierr = PetscOptionsInt("-pep_max_it","Maximum number of iterations","PEPSetTolerances",pep->max_it,&i,&flg1);CHKERRQ(ierr);
     r = pep->tol;
-    ierr = PetscOptionsReal("-pep_tol","Tolerance","PEPSetTolerances",pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-pep_tol","Tolerance","PEPSetTolerances",SlepcDefaultTol(pep->tol),&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) { ierr = PEPSetTolerances(pep,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBoolGroupBegin("-pep_conv_rel","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);

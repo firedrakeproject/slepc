@@ -222,7 +222,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   primme->commInfo                      = eps;
   primme->maxOuterIterations            = eps->max_it;
 #if !defined(SLEPC_HAVE_PRIMME2p2)
-  primme->eps                           = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
+  primme->eps                           = SlepcDefaultTol(eps->tol);
 #endif
   primme->numProcs                      = numProcs;
   primme->procID                        = procID;

@@ -63,7 +63,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   }
   ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv,nep->mpd);CHKERRQ(ierr);
   ierr = PEPGetTolerances(ctx->pep,&tol,&its);CHKERRQ(ierr);
-  if (tol==PETSC_DEFAULT) tol = (nep->tol==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL:nep->tol;
+  if (tol==PETSC_DEFAULT) tol = SlepcDefaultTol(nep->tol);
   if (ctx->tol==PETSC_DEFAULT) ctx->tol = tol;
   if (its==PETSC_DEFAULT) its = nep->max_it;
   ierr = PEPSetTolerances(ctx->pep,tol,its);CHKERRQ(ierr);
