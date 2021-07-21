@@ -1016,15 +1016,19 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
-    if (svd->reason == SVD_CONVERGED_ITERATING && (breakdown || k==nv)) {
-      /* Start a new bidiagonalization */
-      ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
-      if (k<svd->nsv) {
-        ierr = SVDInitialVectorGUpper(V,k,lanczos->Z,&breakdown);CHKERRQ(ierr);
-        if (breakdown) {
-          svd->reason = SVD_DIVERGED_BREAKDOWN;
-          ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+    if (svd->reason == SVD_CONVERGED_ITERATING) {
+      if (breakdown || k==nv) {
+        /* Start a new bidiagonalization */
+        ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+        if (k<svd->nsv) {
+          ierr = SVDInitialVectorGUpper(V,k,lanczos->Z,&breakdown);CHKERRQ(ierr);
+          if (breakdown) {
+            svd->reason = SVD_DIVERGED_BREAKDOWN;
+            ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+          }
         }
+      } else {
+        ierr = DSTruncate(svd->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
     /* compute converged singular vectors and restart vectors */
@@ -1086,6 +1090,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
   ierr = BVDestroy(&U1);CHKERRQ(ierr);
   ierr = PetscFree(w);CHKERRQ(ierr);
   if (swork) { ierr = PetscFree(swork);CHKERRQ(ierr); }
+  ierr = DSTruncate(svd->ds,svd->nconv,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1193,7 +1198,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscReal      *alpha,*beta,*alphah,*betah,lastbeta,resnorm;
-  PetscScalar    *swork=NULL,*w,*arr;
+  PetscScalar    *swork=NULL,*w;
   PetscInt       i,k,l,nv,ld,m,n,p;
   Mat            U,Vmat,X;
   BV             U1,U2,V;
@@ -1201,7 +1206,6 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
   PetscBool      conv,breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
-
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
@@ -1278,6 +1282,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
         else conv = PETSC_FALSE;
       }
     }
+    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
     /* check convergence */
     k = svd->nconv + k;
@@ -1289,31 +1294,28 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
-    /* move value of diagonal element of DS arrow */
-    alpha[k+l] = alpha[nv];
-    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-
-    if (svd->reason == SVD_CONVERGED_ITERATING && (breakdown || k==nv)) {
-      /* Start a new bidiagonalization */
-      ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
-      if (k<svd->nsv) {
-        ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
-        ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
-        if (breakdown) {
-          svd->reason = SVD_DIVERGED_BREAKDOWN;
-          ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+    if (svd->reason == SVD_CONVERGED_ITERATING) {
+      if (breakdown || k==nv) {
+        /* Start a new bidiagonalization */
+        ierr = PetscInfo2(svd,"Breakdown in bidiagonalization (it=%D norm=%g)\n",svd->its,(double)beta[nv-1]);CHKERRQ(ierr);
+        if (k<svd->nsv) {
+          ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
+          ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
+          if (breakdown) {
+            svd->reason = SVD_DIVERGED_BREAKDOWN;
+            ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+          }
         }
+      } else {
+        ierr = DSTruncate(svd->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
+
     /* compute converged singular vectors and restart vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
     ierr = BVMultInPlace(V,X,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&X);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-    /* copy last column so that it updates the next initial vector of U1 */
-    ierr = MatDenseGetArray(U,&arr);CHKERRQ(ierr);
-    for (i=0; i<=nv; i++) arr[i+(k+l)*(nv+1)] = arr[i+nv*(nv+1)];
-    ierr = MatDenseRestoreArray(U,&arr);CHKERRQ(ierr);
     ierr = BVMultInPlace(U1,U,svd->nconv,k+l+1);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_V,&Vmat);CHKERRQ(ierr);
@@ -1368,6 +1370,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
   ierr = BVDestroy(&U1);CHKERRQ(ierr);
   ierr = PetscFree(w);CHKERRQ(ierr);
   if (swork) { ierr = PetscFree(swork);CHKERRQ(ierr); }
+  ierr = DSTruncate(svd->ds,svd->nconv,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

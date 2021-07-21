@@ -13,6 +13,8 @@
 typedef struct {
   PetscInt m;              /* number of columns */
   PetscInt p;              /* number of rows of B */
+  PetscInt tm;             /* number of rows of X after truncating */
+  PetscInt tp;             /* number of rows of V after truncating */
 } DS_GSVD;
 
 PetscErrorCode DSAllocate_GSVD(DS ds,PetscInt ld)
@@ -286,6 +288,43 @@ PetscErrorCode DSUpdateExtraRow_GSVD(DS ds)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSTruncate_GSVD(DS ds,PetscInt n,PetscBool trim)
+{
+  DS_GSVD     *ctx = (DS_GSVD*)ds->data;
+  PetscScalar *U = ds->mat[DS_MAT_U];
+  PetscReal   *T = ds->rmat[DS_MAT_T];
+  PetscInt    i,m=ctx->m,ld=ds->ld;
+  PetscBool   lower=(ds->n>ctx->m)?PETSC_TRUE:PETSC_FALSE;
+
+  PetscFunctionBegin;
+  if (!ds->compact) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non-compact storage");
+  if (trim) {
+    ds->l   = 0;
+    ds->k   = 0;
+    ds->n   = lower? n+1: n;
+    ctx->m  = n;
+    ctx->p  = n;
+    ds->t   = ds->n;   /* truncated length equal to the new dimension */
+    ctx->tm = ctx->m;  /* must also keep the previous dimension of X */
+    ctx->tp = ctx->p;  /* must also keep the previous dimension of V */
+  } else {
+    if (lower) {
+      /* move value of diagonal element of arrow (alpha) */
+      T[n] = T[m];
+      /* copy last column of U so that it updates the next initial vector of U1 */
+      for (i=0;i<=m;i++) U[i+n*ld] = U[i+m*ld];
+    }
+    ds->k   = (ds->extrarow)? n: 0;
+    ds->t   = ds->n;   /* truncated length equal to previous dimension */
+    ctx->tm = ctx->m;  /* must also keep the previous dimension of X */
+    ctx->tp = ctx->p;  /* must also keep the previous dimension of V */
+    ds->n   = lower? n+1: n;
+    ctx->m  = n;
+    ctx->p  = n;
+  }
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
 {
   PetscErrorCode ierr;
@@ -527,15 +566,15 @@ PetscErrorCode DSMatGetSize_GSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols
       *cols = ds->extrarow? ctx->m+1: ctx->m;
       break;
     case DS_MAT_U:
-      *rows = ds->n;
+      *rows = ds->state==DS_STATE_TRUNCATED? ds->t: ds->n;
       *cols = ds->n;
       break;
     case DS_MAT_V:
-      *rows = ctx->p;
+      *rows = ds->state==DS_STATE_TRUNCATED? ctx->tp: ctx->p;
       *cols = ctx->p;
       break;
     case DS_MAT_X:
-      *rows = ctx->m;
+      *rows = ds->state==DS_STATE_TRUNCATED? ctx->tm: ctx->m;
       *cols = ctx->m;
       break;
     default:
@@ -701,6 +740,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GSVD(DS ds)
   ds->ops->sort          = DSSort_GSVD;
   ds->ops->solve[0]      = DSSolve_GSVD;
   ds->ops->synchronize   = DSSynchronize_GSVD;
+  ds->ops->truncate      = DSTruncate_GSVD;
   ds->ops->update        = DSUpdateExtraRow_GSVD;
   ds->ops->matgetsize    = DSMatGetSize_GSVD;
   ds->ops->destroy       = DSDestroy_GSVD;
