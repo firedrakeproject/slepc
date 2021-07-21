@@ -42,10 +42,14 @@ static const char citation[] =
   "}\n";
 
 typedef struct {
-  PetscBool oneside;
-  KSP       ksp;
-  Mat       Z;
-  SVDTRLanczosGBidiag   bidiag;
+  /* user parameters */
+  PetscBool           oneside;   /* one-sided variant */
+  PetscReal           keep;      /* restart parameter */
+  PetscBool           lock;      /* locking/non-locking variant */
+  KSP                 ksp;       /* solver for least-squares problem in GSVD */
+  SVDTRLanczosGBidiag bidiag;    /* bidiagonalization variant for GSVD */
+  /* auxiliary variables */
+  Mat                 Z;         /* aux matrix for GSVD, Z=[A;B] */
 } SVD_TRLANCZOS;
 
 /* Context for shell matrix [A; B] */
@@ -159,8 +163,10 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscFunctionBegin;
   ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
-  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
+  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nsv+mpd");
+  if (!lanczos->lock && svd->mpd<svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
+  if (!lanczos->keep) lanczos->keep = 0.5;
   svd->leftbasis = PETSC_TRUE;
   ierr = SVDAllocateSolution(svd,1);CHKERRQ(ierr);
   dstype = DSSVD;
@@ -480,25 +486,30 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     if (svd->conv == SVD_CONV_MAXIT && svd->its >= svd->max_it) k = svd->nsv;
 
-    /* check convergence and update l */
-    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
+    /* check convergence */
+    k = svd->nconv + k;
+    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
+
+    /* update l */
     if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
-    else l = PetscMax((nv-svd->nconv-k)/2,0);
+    else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
+    if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
+    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     /* compute converged singular vectors and restart vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
-    ierr = BVMultInPlace(svd->V,V,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(svd->V,V,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&V);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-    ierr = BVMultInPlace(svd->U,U,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(svd->U,U,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
 
     /* copy the last vector to be the next initial vector */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      ierr = BVCopyColumn(svd->V,nv,svd->nconv+k+l);CHKERRQ(ierr);
+      ierr = BVCopyColumn(svd->V,nv,k+l);CHKERRQ(ierr);
     }
 
-    svd->nconv += k;
+    svd->nconv = k;
     ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);CHKERRQ(ierr);
   }
 
@@ -674,26 +685,31 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
     }
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
-    /* check convergence and update l */
-    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
+    /* check convergence */
+    k = svd->nconv + k;
+    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
+
+    /* update l */
     if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
-    else l = PetscMax((nv-svd->nconv-k)/2,0);
+    else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
+    if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
+    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     /* compute converged singular vectors and restart vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-    ierr = BVMultInPlace(V,U,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(V,U,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_V,&VV);CHKERRQ(ierr);
-    ierr = BVMultInPlace(U1,VV,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(U1,VV,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&VV);CHKERRQ(ierr);
 
     /* copy the last vector to be the next initial vector */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      ierr = BVCopyColumn(U1,nv,svd->nconv+k+l);CHKERRQ(ierr);
+      ierr = BVCopyColumn(U1,nv,k+l);CHKERRQ(ierr);
     }
 
     /* Compute converged right singular vectors */
-    for (i=svd->nconv;i<svd->nconv+k;i++) {
+    for (i=svd->nconv;i<k;i++) {
       Vec vt,v;
       ierr = BVGetColumn(V,i,&vt);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
@@ -702,7 +718,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
       ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     }
 
-    svd->nconv += k;
+    svd->nconv = k;
     ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);CHKERRQ(ierr);
   }
 
@@ -916,29 +932,34 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
     }
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
-    /* check convergence and update l */
-    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
+    /* check convergence */
+    k = svd->nconv + k;
+    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
+
+    /* update l */
     if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
-    else l = PetscMax((nv-svd->nconv-k)/2,0);
+    else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
+    if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
+    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     /* compute converged singular vectors and restart vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-    ierr = BVMultInPlace(V,X,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(V,X,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&X);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-    ierr = BVMultInPlace(U1,U,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(U1,U,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_V,&Vmat);CHKERRQ(ierr);
-    ierr = BVMultInPlace(U2,Vmat,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(U2,Vmat,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&Vmat);CHKERRQ(ierr);
 
     /* copy the last vector to be the next initial vector */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      ierr = BVCopyColumn(V,nv,svd->nconv+k+l);CHKERRQ(ierr);
+      ierr = BVCopyColumn(V,nv,k+l);CHKERRQ(ierr);
     }
 
     /* Compute converged right singular vectors and move them from V to svd->V */
-    for (i=svd->nconv; i<svd->nconv+k; i++) {
+    for (i=svd->nconv; i<k; i++) {
       Vec vt,v;
       ierr = BVGetColumn(V,i,&vt);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
@@ -947,7 +968,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
       ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     }
 
-    svd->nconv += k;
+    svd->nconv = k;
     ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);CHKERRQ(ierr);
   }
 
@@ -1156,37 +1177,42 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
       }
     }
 
-    /* check convergence and update l */
-    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
+    /* check convergence */
+    k = svd->nconv + k;
+    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
+
+    /* update l */
     if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
-    else l = PetscMax((nv-svd->nconv-k)/2,0);
+    else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
+    if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
+    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     /* move value of diagonal element of DS arrow */
-    alpha[svd->nconv+k+l] = alpha[nv];
+    alpha[k+l] = alpha[nv];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
     /* compute converged singular vectors and restart vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-    ierr = BVMultInPlace(V,X,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(V,X,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&X);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     /* copy last column so that it updates the next initial vector of U1 */
     ierr = MatDenseGetArray(U,&arr);CHKERRQ(ierr);
-    for (i=0; i<=nv; i++) arr[i+(svd->nconv+k+l)*(nv+1)] = arr[i+nv*(nv+1)];
+    for (i=0; i<=nv; i++) arr[i+(k+l)*(nv+1)] = arr[i+nv*(nv+1)];
     ierr = MatDenseRestoreArray(U,&arr);CHKERRQ(ierr);
-    ierr = BVMultInPlace(U1,U,svd->nconv,svd->nconv+k+l+1);CHKERRQ(ierr);
+    ierr = BVMultInPlace(U1,U,svd->nconv,k+l+1);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
     ierr = DSGetMat(svd->ds,DS_MAT_V,&Vmat);CHKERRQ(ierr);
-    ierr = BVMultInPlace(U2,Vmat,svd->nconv,svd->nconv+k+l);CHKERRQ(ierr);
+    ierr = BVMultInPlace(U2,Vmat,svd->nconv,k+l);CHKERRQ(ierr);
     ierr = MatDestroy(&Vmat);CHKERRQ(ierr);
 
     /* copy the last vector to be the next initial vector */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      ierr = BVCopyColumn(V,nv,svd->nconv+k+l);CHKERRQ(ierr);
+      ierr = BVCopyColumn(V,nv,k+l);CHKERRQ(ierr);
     }
 
     /* compute converged right singular vectors and move them from V to svd->V */
-    for (i=svd->nconv; i<svd->nconv+k; i++) {
+    for (i=svd->nconv; i<k; i++) {
       Vec vt,v;
       ierr = BVGetColumn(V,i,&vt);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
@@ -1195,7 +1221,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
       ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     }
 
-    svd->nconv += k;
+    svd->nconv = k;
     ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);CHKERRQ(ierr);
   }
 
@@ -1234,17 +1260,25 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
 PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptionItems *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode      ierr;
-  PetscBool           set,val;
   SVD_TRLANCZOS       *lanczos = (SVD_TRLANCZOS*)svd->data;
+  PetscBool           flg,val,lock;
+  PetscReal           keep;
   SVDTRLanczosGBidiag bidiag;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"SVD TRLanczos Options");CHKERRQ(ierr);
 
-    ierr = PetscOptionsBool("-svd_trlanczos_oneside","Use one-side reorthogonalization","SVDTRLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
-    if (set) { ierr = SVDTRLanczosSetOneSide(svd,val);CHKERRQ(ierr); }
-    ierr = PetscOptionsEnum("-svd_trlanczos_gbidiag","Bidiagonalization choice for Generalized Problem","SVDTRLanczosSetGBidiag",SVDTRLanczosGBidiags,(PetscEnum)lanczos->bidiag,(PetscEnum*)&bidiag,&set);CHKERRQ(ierr);
-    if (set) { ierr = SVDTRLanczosSetGBidiag(svd,bidiag);CHKERRQ(ierr); }
+    ierr = PetscOptionsBool("-svd_trlanczos_oneside","Use one-side reorthogonalization","SVDTRLanczosSetOneSide",lanczos->oneside,&val,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDTRLanczosSetOneSide(svd,val);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsReal("-svd_trlanczos_restart","Proportion of vectors kept after restart","SVDTRLanczosSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDTRLanczosSetRestart(svd,keep);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBool("-svd_trlanczos_locking","Choose between locking and non-locking variants","SVDTRLanczosSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDTRLanczosSetLocking(svd,lock);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsEnum("-svd_trlanczos_gbidiag","Bidiagonalization choice for Generalized Problem","SVDTRLanczosSetGBidiag",SVDTRLanczosGBidiags,(PetscEnum)lanczos->bidiag,(PetscEnum*)&bidiag,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDTRLanczosSetGBidiag(svd,bidiag);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
@@ -1515,6 +1549,166 @@ PetscErrorCode SVDTRLanczosGetKSP(SVD svd,KSP *ksp)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode SVDTRLanczosSetRestart_TRLanczos(SVD svd,PetscReal keep)
+{
+  SVD_TRLANCZOS *ctx = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
+  else {
+    if (keep<0.1 || keep>0.9) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",keep);
+    ctx->keep = keep;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosSetRestart - Sets the restart parameter for the thick-restart
+   Lanczos method, in particular the proportion of basis vectors that must be
+   kept after restart.
+
+   Logically Collective on svd
+
+   Input Parameters:
++  svd  - the singular value solver
+-  keep - the number of vectors to be kept at restart
+
+   Options Database Key:
+.  -svd_trlanczos_restart - Sets the restart parameter
+
+   Notes:
+   Allowed values are in the range [0.1,0.9]. The default is 0.5.
+
+   Level: advanced
+
+.seealso: SVDTRLanczosGetRestart()
+@*/
+PetscErrorCode SVDTRLanczosSetRestart(SVD svd,PetscReal keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveReal(svd,keep,2);
+  ierr = PetscTryMethod(svd,"SVDTRLanczosSetRestart_C",(SVD,PetscReal),(svd,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode SVDTRLanczosGetRestart_TRLanczos(SVD svd,PetscReal *keep)
+{
+  SVD_TRLANCZOS *ctx = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  *keep = ctx->keep;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosGetRestart - Gets the restart parameter used in the thick-restart
+   Lanczos method.
+
+   Not Collective
+
+   Input Parameter:
+.  svd - the singular value solver
+
+   Output Parameter:
+.  keep - the restart parameter
+
+   Level: advanced
+
+.seealso: SVDTRLanczosSetRestart()
+@*/
+PetscErrorCode SVDTRLanczosGetRestart(SVD svd,PetscReal *keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidRealPointer(keep,2);
+  ierr = PetscUseMethod(svd,"SVDTRLanczosGetRestart_C",(SVD,PetscReal*),(svd,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode SVDTRLanczosSetLocking_TRLanczos(SVD svd,PetscBool lock)
+{
+  SVD_TRLANCZOS *ctx = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  ctx->lock = lock;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosSetLocking - Choose between locking and non-locking variants of
+   the thick-restart Lanczos method.
+
+   Logically Collective on svd
+
+   Input Parameters:
++  svd  - the singular value solver
+-  lock - true if the locking variant must be selected
+
+   Options Database Key:
+.  -svd_trlanczos_locking - Sets the locking flag
+
+   Notes:
+   The default is to lock converged singular triplets when the method restarts.
+   This behaviour can be changed so that all directions are kept in the
+   working subspace even if already converged to working accuracy (the
+   non-locking variant).
+
+   Level: advanced
+
+.seealso: SVDTRLanczosGetLocking()
+@*/
+PetscErrorCode SVDTRLanczosSetLocking(SVD svd,PetscBool lock)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveBool(svd,lock,2);
+  ierr = PetscTryMethod(svd,"SVDTRLanczosSetLocking_C",(SVD,PetscBool),(svd,lock));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode SVDTRLanczosGetLocking_TRLanczos(SVD svd,PetscBool *lock)
+{
+  SVD_TRLANCZOS *ctx = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  *lock = ctx->lock;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosGetLocking - Gets the locking flag used in the thick-restart
+   Lanczos method.
+
+   Not Collective
+
+   Input Parameter:
+.  svd - the singular value solver
+
+   Output Parameter:
+.  lock - the locking flag
+
+   Level: advanced
+
+.seealso: SVDTRLanczosSetLocking()
+@*/
+PetscErrorCode SVDTRLanczosGetLocking(SVD svd,PetscBool *lock)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidBoolPointer(lock,2);
+  ierr = PetscUseMethod(svd,"SVDTRLanczosGetLocking_C",(SVD,PetscBool*),(svd,lock));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode SVDReset_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
@@ -1544,6 +1738,10 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetGBidiag_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetKSP_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetKSP_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetLocking_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetLocking_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1556,7 +1754,8 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*lanczos->keep));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",lanczos->lock?"":"non-");CHKERRQ(ierr);
     if (svd->isgeneralized) {
       const char *bidiag="";
 
@@ -1565,14 +1764,14 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
         case SVD_TRLANCZOS_GBIDIAG_UPPER:  bidiag = "joint upper-upper"; break;
         case SVD_TRLANCZOS_GBIDIAG_LOWER:  bidiag = "joint lower-upper"; break;
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"bidiagonalization choice: %s\n",bidiag);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  bidiagonalization choice: %s\n",bidiag);CHKERRQ(ierr);
       if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = KSPView(lanczos->ksp,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  %s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);
     }
-    else {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1586,7 +1785,8 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   ierr = PetscNewLog(svd,&ctx);CHKERRQ(ierr);
   svd->data = (void*)ctx;
 
-  ctx->bidiag              = SVD_TRLANCZOS_GBIDIAG_LOWER;
+  ctx->lock   = PETSC_TRUE;
+  ctx->bidiag = SVD_TRLANCZOS_GBIDIAG_LOWER;
 
   svd->ops->setup          = SVDSetUp_TRLanczos;
   svd->ops->solve          = SVDSolve_TRLanczos;
@@ -1600,6 +1800,10 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetGBidiag_C",SVDTRLanczosGetGBidiag_TRLanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetKSP_C",SVDTRLanczosSetKSP_TRLanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetKSP_C",SVDTRLanczosGetKSP_TRLanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetRestart_C",SVDTRLanczosSetRestart_TRLanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetRestart_C",SVDTRLanczosGetRestart_TRLanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetLocking_C",SVDTRLanczosSetLocking_TRLanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetLocking_C",SVDTRLanczosGetLocking_TRLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

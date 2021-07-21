@@ -10,6 +10,8 @@ SVD of diagonal matrix, n=6
   1 SVD converged value (error) #5 1. (removed)
 SVD Object: svd 1 MPI processes
   type: trlanczos
+    50% of basis vectors kept after restart
+    using the locking variant
     two-sided reorthogonalization
   transpose mode: explicit
   selected portion of the spectrum: largest
