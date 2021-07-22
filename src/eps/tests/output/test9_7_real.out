@@ -1,0 +1,61 @@
+
+Markov Model, N=120 (m=15)
+
+Eigenvalues = 
+   1.00000
+   -1.00000
+   0.97137
+   -0.97137
+
+Vec Object: Xr0_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Xi0_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Yr0_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Yi0_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Xr1_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Xi1_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Yr1_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Yi1_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Xr2_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Xi2_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Yr2_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Yi2_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Xr3_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Xi3_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Yr3_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+Vec Object: Yi3_EPS_objectid_0 1 MPI processes
+  type: seq
+  length=120
+ Number of requested eigenvalues: 4
+ All requested eigenvalues computed up to the required tolerance:
+     1.00000, -1.00000, 0.97137, -0.97137
+

@@ -77,6 +77,33 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,
   PetscFunctionReturn(0);
 }
 
+/*
+  SlepcViewEigenvector - Outputs an eigenvector xr,xi to a viewer.
+  In complex scalars only xr is written.
+  The name of xr,xi is set before writting, based on the label, the index, and the name of obj.
+*/
+PETSC_STATIC_INLINE PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec xi,const char *label,PetscInt index,PetscObject obj)
+{
+  PetscErrorCode ierr;
+  size_t         count;
+  char           vname[30];
+  const char     *pname;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectGetName(obj,&pname);CHKERRQ(ierr);
+  ierr = PetscSNPrintfCount(vname,sizeof(vname),"%s%s",&count,label,PetscDefined(USE_COMPLEX)?"":"r");CHKERRQ(ierr);
+  count--;
+  ierr = PetscSNPrintf(vname+count,sizeof(vname)-count,"%d_%s",(int)index,pname);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)xr,vname);CHKERRQ(ierr);
+  ierr = VecView(xr,viewer);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  vname[count-1] = 'i';
+  ierr = PetscObjectSetName((PetscObject)xi,vname);CHKERRQ(ierr);
+  ierr = VecView(xi,viewer);CHKERRQ(ierr);
+#endif
+  PetscFunctionReturn(0);
+}
+
 /* Macros for strings with different value in real and complex */
 #if defined(PETSC_USE_COMPLEX)
 #define SLEPC_STRING_HERMITIAN "hermitian"

@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
+#include <slepc/private/bvimpl.h>       /*I "slepcbv.h" I*/
 #include <petscdraw.h>
 
 /*@C
@@ -780,9 +781,7 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscInt       i,k;
-  Vec            x;
-  char           vname[30];
-  const char     *ename;
+  Vec            xr,xi=NULL;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -793,23 +792,24 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
   PetscCheckSameComm(nep,1,viewer,2);
   NEPCheckSolved(nep,1);
   if (nep->nconv) {
-    ierr = PetscObjectGetName((PetscObject)nep,&ename);CHKERRQ(ierr);
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
+    ierr = BVCreateVec(nep->V,&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = BVCreateVec(nep->V,&xi);CHKERRQ(ierr);
+#endif
     for (i=0;i<nep->nconv;i++) {
       k = nep->perm[i];
-      ierr = PetscSNPrintf(vname,sizeof(vname),"X%d_%s",(int)i,ename);CHKERRQ(ierr);
-      ierr = BVGetColumn(nep->V,k,&x);CHKERRQ(ierr);
-      ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
-      ierr = VecView(x,viewer);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(nep->V,k,&x);CHKERRQ(ierr);
+      ierr = BV_GetEigenvector(nep->V,k,nep->eigi[k],xr,xi);CHKERRQ(ierr);
+      ierr = SlepcViewEigenvector(viewer,xr,xi,"X",i,(PetscObject)nep);CHKERRQ(ierr);
       if (nep->twosided) {
-        ierr = PetscSNPrintf(vname,sizeof(vname),"Y%d_%s",(int)i,ename);CHKERRQ(ierr);
-        ierr = BVGetColumn(nep->W,k,&x);CHKERRQ(ierr);
-        ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
-        ierr = VecView(x,viewer);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(nep->W,k,&x);CHKERRQ(ierr);
+        ierr = BV_GetEigenvector(nep->W,k,nep->eigi[k],xr,xi);CHKERRQ(ierr);
+        ierr = SlepcViewEigenvector(viewer,xr,xi,"Y",i,(PetscObject)nep);CHKERRQ(ierr);
       }
     }
+    ierr = VecDestroy(&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = VecDestroy(&xi);CHKERRQ(ierr);
+#endif
   }
   PetscFunctionReturn(0);
 }

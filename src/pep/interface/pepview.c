@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/pepimpl.h>      /*I "slepcpep.h" I*/
+#include <slepc/private/bvimpl.h>       /*I "slepcbv.h" I*/
 #include <petscdraw.h>
 
 /*@C
@@ -785,9 +786,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscInt       i,k;
-  Vec            x;
-  char           vname[30];
-  const char     *ename;
+  Vec            xr,xi=NULL;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -798,16 +797,20 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
   PetscCheckSameComm(pep,1,viewer,2);
   PEPCheckSolved(pep,1);
   if (pep->nconv) {
-    ierr = PetscObjectGetName((PetscObject)pep,&ename);CHKERRQ(ierr);
     ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
+    ierr = BVCreateVec(pep->V,&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = BVCreateVec(pep->V,&xi);CHKERRQ(ierr);
+#endif
     for (i=0;i<pep->nconv;i++) {
       k = pep->perm[i];
-      ierr = PetscSNPrintf(vname,sizeof(vname),"V%d_%s",(int)i,ename);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,k,&x);CHKERRQ(ierr);
-      ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
-      ierr = VecView(x,viewer);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,k,&x);CHKERRQ(ierr);
+      ierr = BV_GetEigenvector(pep->V,k,pep->eigi[k],xr,xi);CHKERRQ(ierr);
+      ierr = SlepcViewEigenvector(viewer,xr,xi,"X",i,(PetscObject)pep);CHKERRQ(ierr);
     }
+    ierr = VecDestroy(&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = VecDestroy(&xi);CHKERRQ(ierr);
+#endif
   }
   PetscFunctionReturn(0);
 }

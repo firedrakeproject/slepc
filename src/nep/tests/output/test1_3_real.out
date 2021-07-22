@@ -1,0 +1,18 @@
+
+1-D Nonlinear Eigenproblem, n=128
+
+Vec Object: Xr0_NEP_objectid_0 1 MPI processes
+  type: seq
+  length=128
+Vec Object: Xi0_NEP_objectid_0 1 MPI processes
+  type: seq
+  length=128
+Vec Object: Yr0_NEP_objectid_0 1 MPI processes
+  type: seq
+  length=128
+Vec Object: Yi0_NEP_objectid_0 1 MPI processes
+  type: seq
+  length=128
+ All requested eigenvalues computed up to the required tolerance:
+     24.22167
+
