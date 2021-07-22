@@ -35,8 +35,9 @@
 
       PetscEnum, parameter :: SVD_CONV_ABS               =  0
       PetscEnum, parameter :: SVD_CONV_REL               =  1
-      PetscEnum, parameter :: SVD_CONV_MAXIT             =  2
-      PetscEnum, parameter :: SVD_CONV_USER              =  3
+      PetscEnum, parameter :: SVD_CONV_NORM              =  2
+      PetscEnum, parameter :: SVD_CONV_MAXIT             =  3
+      PetscEnum, parameter :: SVD_CONV_USER              =  4
 
       PetscEnum, parameter :: SVD_STOP_BASIC             =  0
       PetscEnum, parameter :: SVD_STOP_USER              =  1

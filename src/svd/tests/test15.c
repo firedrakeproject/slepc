@@ -75,6 +75,7 @@ int main(int argc,char **argv)
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
   ierr = SVDSetOperators(svd,A,B);CHKERRQ(ierr);
   ierr = SVDSetDimensions(svd,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = SVDSetConvergenceTest(svd,SVD_CONV_NORM);CHKERRQ(ierr);
 
   ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);
   ierr = SVDTRLanczosSetGBidiag(svd,SVD_TRLANCZOS_GBIDIAG_UPPER);CHKERRQ(ierr);

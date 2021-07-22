@@ -72,8 +72,10 @@ PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
     ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
     ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
   }
-  svd->OP  = A;
-  svd->OPb = B;
+  svd->nrma = 0.0;
+  svd->nrmb = 0.0;
+  svd->OP   = A;
+  svd->OPb  = B;
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -232,6 +234,16 @@ PetscErrorCode SVDSetUp(SVD svd)
   svd->ncv = PetscMin(svd->ncv,maxnsol);
   svd->nsv = PetscMin(svd->nsv,maxnsol);
   if (svd->ncv!=PETSC_DEFAULT && svd->nsv > svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
+
+  /* initialization of matrix norms */
+  if (svd->conv==SVD_CONV_NORM) {
+    if (!svd->nrma) {
+      ierr = MatNorm(svd->OP,NORM_INFINITY,&svd->nrma);CHKERRQ(ierr);
+    }
+    if (svd->isgeneralized && !svd->nrmb) {
+      ierr = MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb);CHKERRQ(ierr);
+    }
+  }
 
   /* call specific solver setup */
   ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);

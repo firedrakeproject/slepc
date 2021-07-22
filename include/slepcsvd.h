@@ -92,6 +92,7 @@ SLEPC_EXTERN const char *SVDErrorTypes[];
 E*/
 typedef enum { SVD_CONV_ABS,
                SVD_CONV_REL,
+               SVD_CONV_NORM,
                SVD_CONV_MAXIT,
                SVD_CONV_USER } SVDConv;
 
@@ -160,6 +161,7 @@ SLEPC_EXTERN PetscErrorCode SVDSetConvergenceTest(SVD,SVDConv);
 SLEPC_EXTERN PetscErrorCode SVDGetConvergenceTest(SVD,SVDConv*);
 SLEPC_EXTERN PetscErrorCode SVDConvergedAbsolute(SVD,PetscReal,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode SVDConvergedRelative(SVD,PetscReal,PetscReal,PetscReal*,void*);
+SLEPC_EXTERN PetscErrorCode SVDConvergedNorm(SVD,PetscReal,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode SVDConvergedMaxIt(SVD,PetscReal,PetscReal,PetscReal*,void*);
 SLEPC_EXTERN PetscErrorCode SVDSetStoppingTestFunction(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
 SLEPC_EXTERN PetscErrorCode SVDSetStoppingTest(SVD,SVDStop);

@@ -106,6 +106,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->leftbasis        = PETSC_FALSE;
   svd->swapped          = PETSC_FALSE;
   svd->expltrans        = PETSC_FALSE;
+  svd->nrma             = 0.0;
+  svd->nrmb             = 0.0;
   svd->isgeneralized    = PETSC_FALSE;
   svd->reason           = SVD_CONVERGED_ITERATING;
 

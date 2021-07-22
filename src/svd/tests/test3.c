@@ -179,7 +179,7 @@ int main(int argc,char **argv)
       filter: sed -e "s/22176/22175/" | sed -e "s/21798/21797/" | sed -e "s/16826/16825/" | sed -e "s/15129/15128/"
       test:
          suffix: 2_lanczos
-         args: -svd_type lanczos
+         args: -svd_type lanczos -svd_conv_norm
       test:
          suffix: 2_lanczos_one
          args: -svd_type lanczos -svd_lanczos_oneside
