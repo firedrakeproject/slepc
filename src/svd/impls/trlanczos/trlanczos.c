@@ -155,7 +155,7 @@ static PetscErrorCode MatCreateVecs_Z(Mat Z,Vec *right,Vec *left)
 PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       N,ld,m,n,p;
+  PetscInt       N,m,n,p;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   DSType         dstype;
   MatZData       *zdata;
@@ -170,7 +170,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   svd->leftbasis = PETSC_TRUE;
   ierr = SVDAllocateSolution(svd,1);CHKERRQ(ierr);
   dstype = DSSVD;
-  ld = svd->ncv+1;
   if (svd->isgeneralized) {
     switch (lanczos->bidiag) {
       case SVD_TRLANCZOS_GBIDIAG_SINGLE:
@@ -208,7 +207,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   ierr = DSSetType(svd->ds,dstype);CHKERRQ(ierr);
   ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSSetExtraRow(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = DSAllocate(svd->ds,ld);CHKERRQ(ierr);
+  ierr = DSAllocate(svd->ds,svd->ncv+1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -410,11 +409,11 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,lastbeta,resnorm;
+  PetscReal      *alpha,*beta;
   PetscScalar    *swork=NULL,*w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,V;
-  PetscBool      conv,breakdown=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE;
   BVOrthogType   orthog;
 
   PetscFunctionBegin;
@@ -452,9 +451,8 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     } else {
       ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,svd->U,svd->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
     }
-    lastbeta = beta[nv-1];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    ierr = BVScaleColumn(svd->V,nv,1.0/lastbeta);CHKERRQ(ierr);
+    ierr = BVScaleColumn(svd->V,nv,1.0/beta[nv-1]);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(svd->V,svd->nconv,nv);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(svd->U,svd->nconv,nv);CHKERRQ(ierr);
 
@@ -470,26 +468,10 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
-
-    /* compute error estimates */
-    k = 0;
-    conv = PETSC_TRUE;
-    ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    beta = alpha + ld;
-    for (i=svd->nconv;i<nv;i++) {
-      svd->sigma[i] = PetscRealPart(w[i]);
-      resnorm = PetscAbsReal(beta[i]);
-      ierr = (*svd->converged)(svd,svd->sigma[i],resnorm,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
-      if (conv) {
-        if (svd->errest[i] < svd->tol) k++;
-        else conv = PETSC_FALSE;
-      }
-    }
-    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    if (svd->conv == SVD_CONV_MAXIT && svd->its >= svd->max_it) k = svd->nsv;
+    for (i=svd->nconv;i<nv;i++) svd->sigma[i] = PetscRealPart(w[i]);
 
     /* check convergence */
-    k = svd->nconv + k;
+    ierr = SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,1.0,&k);CHKERRQ(ierr);
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* update l */
@@ -646,13 +628,13 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,resnorm;
+  PetscReal      *alpha,*beta;
   PetscScalar    *swork=NULL,*w;
   PetscInt       i,k,l,nv,ld,m,n,p;
   Mat            U,VV;
   BV             U1,U2,V;
   BVType         type;
-  PetscBool      conv,breakdown=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
@@ -704,25 +686,10 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
-
-    /* compute error estimates */
-    k = 0;
-    conv = PETSC_TRUE;
-    ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    beta = alpha + ld;
-    for (i=svd->nconv; i<nv; i++) {
-      svd->sigma[i] = PetscRealPart(w[i]);
-      resnorm = PetscAbsReal(beta[i]);
-      ierr = (*svd->converged)(svd,svd->sigma[i],resnorm,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
-      if (conv) {
-        if (svd->errest[i] < svd->tol) k++;
-        else conv = PETSC_FALSE;
-      }
-    }
-    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
+    for (i=svd->nconv;i<nv;i++) svd->sigma[i] = PetscRealPart(w[i]);
 
     /* check convergence */
-    k = svd->nconv + k;
+    ierr = SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,1.0,&k);CHKERRQ(ierr);
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* update l */
@@ -920,13 +887,13 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,*alphah,*betah,lastalpha,resnorm;
+  PetscReal      *alpha,*beta,*alphah,*betah,lastalpha;
   PetscScalar    *swork=NULL,*w;
   PetscInt       i,k,l,nv,ld,m,n,p;
   Mat            U,Vmat,X;
   BV             U1,U2,V;
   BVType         type;
-  PetscBool      conv,breakdown=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
@@ -988,25 +955,10 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
-
-    /* compute error estimates */
-    k = 0;
-    conv = PETSC_TRUE;
-    ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    beta = alpha + ld;
-    for (i=svd->nconv; i<nv; i++) {
-      svd->sigma[i] = PetscRealPart(w[i]);
-      resnorm = PetscAbsReal(beta[i])*lastalpha;
-      ierr = (*svd->converged)(svd,svd->sigma[i],resnorm,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
-      if (conv) {
-        if (svd->errest[i] < svd->tol) k++;
-        else conv = PETSC_FALSE;
-      }
-    }
-    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
+    for (i=svd->nconv;i<nv;i++) svd->sigma[i] = PetscRealPart(w[i]);
 
     /* check convergence */
-    k = svd->nconv + k;
+    ierr = SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,lastalpha,&k);CHKERRQ(ierr);
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* update l */
@@ -1196,13 +1148,13 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,*alphah,*betah,lastbeta,resnorm;
+  PetscReal      *alpha,*beta,*alphah,*betah,lastbeta;
   PetscScalar    *swork=NULL,*w;
   PetscInt       i,k,l,nv,ld,m,n,p;
   Mat            U,Vmat,X;
   BV             U1,U2,V;
   BVType         type;
-  PetscBool      conv,breakdown=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
@@ -1265,25 +1217,10 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
-
-    /* compute error estimates */
-    k = 0;
-    conv = PETSC_TRUE;
-    ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
-    beta = alpha + ld;
-    for (i=svd->nconv; i<nv; i++) {
-      svd->sigma[i] = PetscRealPart(w[i]);
-      resnorm = PetscAbsReal(beta[i])*lastbeta;
-      ierr = (*svd->converged)(svd,svd->sigma[i],resnorm,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
-      if (conv) {
-        if (svd->errest[i] < svd->tol) k++;
-        else conv = PETSC_FALSE;
-      }
-    }
-    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
+    for (i=svd->nconv;i<nv;i++) svd->sigma[i] = PetscRealPart(w[i]);
 
     /* check convergence */
-    k = svd->nconv + k;
+    ierr = SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,lastbeta,&k);CHKERRQ(ierr);
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* update l */

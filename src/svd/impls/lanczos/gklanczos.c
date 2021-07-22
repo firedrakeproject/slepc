@@ -50,7 +50,8 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   ierr = SVDAllocateSolution(svd,1);CHKERRQ(ierr);
   ierr = DSSetType(svd->ds,DSSVD);CHKERRQ(ierr);
   ierr = DSSetCompact(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = DSAllocate(svd->ds,svd->ncv);CHKERRQ(ierr);
+  ierr = DSSetExtraRow(svd->ds,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = DSAllocate(svd->ds,svd->ncv+1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -173,16 +174,59 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
   PetscFunctionReturn(0);
 }
 
+/*
+   SVDKrylovConvergence - Implements the loop that checks for convergence
+   in Krylov methods.
+
+   Input Parameters:
+     svd     - the solver; some error estimates are updated in svd->errest
+     getall  - whether all residuals must be computed
+     kini    - initial value of k (the loop variable)
+     nits    - number of iterations of the loop
+     sfactor - scaling factor for the residuals
+
+   Output Parameter:
+     kout  - the first index where the convergence test failed
+*/
+PetscErrorCode SVDKrylovConvergence(SVD svd,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal sfactor,PetscInt *kout)
+{
+  PetscErrorCode ierr;
+  PetscInt       k,marker,ld;
+  PetscReal      *alpha,*beta,resnorm;
+  PetscBool      extra;
+
+  PetscFunctionBegin;
+  if (svd->conv == SVD_CONV_MAXIT && svd->its >= svd->max_it) *kout = svd->nsv;
+  else {
+    ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
+    ierr = DSGetExtraRow(svd->ds,&extra);CHKERRQ(ierr);
+    if (!extra) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Only implemented for DS with extra row");
+    marker = -1;
+    if (svd->trackall) getall = PETSC_TRUE;
+    ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
+    beta = alpha + ld;
+    for (k=kini;k<kini+nits;k++) {
+      resnorm = PetscAbsReal(beta[k])*sfactor;
+      ierr = (*svd->converged)(svd,svd->sigma[k],resnorm,&svd->errest[k],svd->convergedctx);CHKERRQ(ierr);
+      if (marker==-1 && svd->errest[k] >= svd->tol) marker = k;
+      if (marker!=-1 && !getall) break;
+    }
+    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
+    if (marker!=-1) k = marker;
+    *kout = k;
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode SVDSolve_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,lastbeta,resnorm;
-  PetscScalar    *swork,*w,*Q,*P;
+  PetscReal      *alpha,*beta;
+  PetscScalar    *swork,*w,*P;
   PetscInt       i,k,j,nv,ld;
   Vec            u=0,u_1=0;
   Mat            U,V;
-  PetscBool      conv;
 
   PetscFunctionBegin;
   /* allocate working space */
@@ -214,7 +258,6 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
       ierr = BVSetActiveColumns(svd->U,svd->nconv,nv);CHKERRQ(ierr);
       ierr = SVDTwoSideLanczos(svd,alpha,beta,svd->V,svd->U,svd->nconv,&nv,NULL);CHKERRQ(ierr);
     }
-    lastbeta = beta[nv-1];
     ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
 
     /* compute SVD of bidiagonal matrix */
@@ -223,32 +266,19 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
     ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
-
-    /* compute error estimates */
-    k = 0;
-    conv = PETSC_TRUE;
-    ierr = DSGetArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
-    for (i=svd->nconv;i<nv;i++) {
-      svd->sigma[i] = PetscRealPart(w[i]);
-      resnorm = PetscAbsScalar(Q[nv-1+i*ld])*lastbeta;
-      ierr = (*svd->converged)(svd,svd->sigma[i],resnorm,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
-      if (conv) {
-        if (svd->errest[i] < svd->tol) k++;
-        else conv = PETSC_FALSE;
-      }
-    }
-    ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
-    if (svd->conv == SVD_CONV_MAXIT && svd->its >= svd->max_it) k = svd->nsv;
+    for (i=svd->nconv;i<nv;i++) svd->sigma[i] = PetscRealPart(w[i]);
 
     /* check convergence */
-    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
+    ierr = SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,1.0,&k);CHKERRQ(ierr);
+    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* compute restart vector */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      if (k<nv-svd->nconv) {
+      if (k<nv) {
         ierr = DSGetArray(svd->ds,DS_MAT_V,&P);CHKERRQ(ierr);
-        for (j=svd->nconv;j<nv;j++) swork[j-svd->nconv] = PetscConj(P[j+(k+svd->nconv)*ld]);
+        for (j=svd->nconv;j<nv;j++) swork[j-svd->nconv] = PetscConj(P[j+k*ld]);
         ierr = DSRestoreArray(svd->ds,DS_MAT_V,&P);CHKERRQ(ierr);
         ierr = BVMultColumn(svd->V,1.0,0.0,nv,swork);CHKERRQ(ierr);
       } else {
@@ -260,20 +290,20 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 
     /* compute converged singular vectors */
     ierr = DSGetMat(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
-    ierr = BVMultInPlace(svd->V,V,svd->nconv,svd->nconv+k);CHKERRQ(ierr);
+    ierr = BVMultInPlace(svd->V,V,svd->nconv,k);CHKERRQ(ierr);
     ierr = MatDestroy(&V);CHKERRQ(ierr);
     if (!lanczos->oneside) {
       ierr = DSGetMat(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-      ierr = BVMultInPlace(svd->U,U,svd->nconv,svd->nconv+k);CHKERRQ(ierr);
+      ierr = BVMultInPlace(svd->U,U,svd->nconv,k);CHKERRQ(ierr);
       ierr = MatDestroy(&U);CHKERRQ(ierr);
     }
 
     /* copy restart vector from the last column */
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      ierr = BVCopyColumn(svd->V,nv,svd->nconv+k);CHKERRQ(ierr);
+      ierr = BVCopyColumn(svd->V,nv,k);CHKERRQ(ierr);
     }
 
-    svd->nconv += k;
+    svd->nconv = k;
     ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv);CHKERRQ(ierr);
   }
 
