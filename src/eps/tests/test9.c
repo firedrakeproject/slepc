@@ -294,11 +294,15 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
       requires: double
       output_file: output/test9_6.out
 
-   test:
-      suffix: 7
+   testset:
       args: -eps_nev 4 -eps_two_sided -eps_view_vectors ::ascii_info -eps_view_values
-      requires: !single
       filter: sed -e "s/\(0x[0-9a-fA-F]*\)/objectid/"
+      test:
+         suffix: 7_real
+         requires: !single !complex
+      test:
+         suffix: 7
+         requires: !single complex
 
    test:
       suffix: 8

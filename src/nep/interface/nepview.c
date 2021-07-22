@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
+#include <slepc/private/bvimpl.h>       /*I "slepcbv.h" I*/
 #include <petscdraw.h>
 
 /*@C
@@ -560,6 +561,53 @@ static PetscErrorCode NEPValuesView_BINARY(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_HAVE_HDF5)
+static PetscErrorCode NEPValuesView_HDF5(NEP nep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,k,n,N;
+  PetscMPIInt    rank;
+  Vec            v;
+  char           vname[30];
+  const char     *ename;
+
+  PetscFunctionBegin;
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)nep),&rank);CHKERRMPI(ierr);
+  N = nep->nconv;
+  n = rank? 0: N;
+  /* create a vector containing the eigenvalues */
+  ierr = VecCreateMPI(PetscObjectComm((PetscObject)nep),n,N,&v);CHKERRQ(ierr);
+  ierr = PetscObjectGetName((PetscObject)nep,&ename);CHKERRQ(ierr);
+  ierr = PetscSNPrintf(vname,sizeof(vname),"eigr_%s",ename);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)v,vname);CHKERRQ(ierr);
+  if (!rank) {
+    for (i=0;i<nep->nconv;i++) {
+      k = nep->perm[i];
+      ierr = VecSetValue(v,i,nep->eigr[k],INSERT_VALUES);CHKERRQ(ierr);
+    }
+  }
+  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+  ierr = VecView(v,viewer);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  /* in real scalars write the imaginary part as a separate vector */
+  ierr = PetscSNPrintf(vname,sizeof(vname),"eigi_%s",ename);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)v,vname);CHKERRQ(ierr);
+  if (!rank) {
+    for (i=0;i<nep->nconv;i++) {
+      k = nep->perm[i];
+      ierr = VecSetValue(v,i,nep->eigi[k],INSERT_VALUES);CHKERRQ(ierr);
+    }
+  }
+  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+  ierr = VecView(v,viewer);CHKERRQ(ierr);
+#endif
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+#endif
+
 static PetscErrorCode NEPValuesView_ASCII(NEP nep,PetscViewer viewer)
 {
   PetscInt       i,k;
@@ -627,6 +675,9 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
   PetscBool         isascii,isdraw,isbinary;
   PetscViewerFormat format;
   PetscErrorCode    ierr;
+#if defined(PETSC_HAVE_HDF5)
+  PetscBool         ishdf5;
+#endif
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -638,11 +689,18 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
   NEPCheckSolved(nep,1);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERBINARY,&isbinary);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_HDF5)
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5);CHKERRQ(ierr);
+#endif
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isdraw) {
     ierr = NEPValuesView_DRAW(nep,viewer);CHKERRQ(ierr);
   } else if (isbinary) {
     ierr = NEPValuesView_BINARY(nep,viewer);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_HDF5)
+  } else if (ishdf5) {
+    ierr = NEPValuesView_HDF5(nep,viewer);CHKERRQ(ierr);
+#endif
   } else if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     switch (format) {
@@ -723,9 +781,7 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscInt       i,k;
-  Vec            x;
-  char           vname[30];
-  const char     *ename;
+  Vec            xr,xi=NULL;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -736,23 +792,24 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
   PetscCheckSameComm(nep,1,viewer,2);
   NEPCheckSolved(nep,1);
   if (nep->nconv) {
-    ierr = PetscObjectGetName((PetscObject)nep,&ename);CHKERRQ(ierr);
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
+    ierr = BVCreateVec(nep->V,&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = BVCreateVec(nep->V,&xi);CHKERRQ(ierr);
+#endif
     for (i=0;i<nep->nconv;i++) {
       k = nep->perm[i];
-      ierr = PetscSNPrintf(vname,sizeof(vname),"X%d_%s",(int)i,ename);CHKERRQ(ierr);
-      ierr = BVGetColumn(nep->V,k,&x);CHKERRQ(ierr);
-      ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
-      ierr = VecView(x,viewer);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(nep->V,k,&x);CHKERRQ(ierr);
+      ierr = BV_GetEigenvector(nep->V,k,nep->eigi[k],xr,xi);CHKERRQ(ierr);
+      ierr = SlepcViewEigenvector(viewer,xr,xi,"X",i,(PetscObject)nep);CHKERRQ(ierr);
       if (nep->twosided) {
-        ierr = PetscSNPrintf(vname,sizeof(vname),"Y%d_%s",(int)i,ename);CHKERRQ(ierr);
-        ierr = BVGetColumn(nep->W,k,&x);CHKERRQ(ierr);
-        ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
-        ierr = VecView(x,viewer);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(nep->W,k,&x);CHKERRQ(ierr);
+        ierr = BV_GetEigenvector(nep->W,k,nep->eigi[k],xr,xi);CHKERRQ(ierr);
+        ierr = SlepcViewEigenvector(viewer,xr,xi,"Y",i,(PetscObject)nep);CHKERRQ(ierr);
       }
     }
+    ierr = VecDestroy(&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = VecDestroy(&xi);CHKERRQ(ierr);
+#endif
   }
   PetscFunctionReturn(0);
 }

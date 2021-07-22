@@ -434,6 +434,39 @@ static PetscErrorCode SVDValuesView_BINARY(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_HAVE_HDF5)
+static PetscErrorCode SVDValuesView_HDF5(SVD svd,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,k,n,N;
+  PetscMPIInt    rank;
+  Vec            v;
+  char           vname[30];
+  const char     *ename;
+
+  PetscFunctionBegin;
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&rank);CHKERRMPI(ierr);
+  N = svd->nconv;
+  n = rank? 0: N;
+  /* create a vector containing the singular values */
+  ierr = VecCreateMPI(PetscObjectComm((PetscObject)svd),n,N,&v);CHKERRQ(ierr);
+  ierr = PetscObjectGetName((PetscObject)svd,&ename);CHKERRQ(ierr);
+  ierr = PetscSNPrintf(vname,sizeof(vname),"sigma_%s",ename);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)v,vname);CHKERRQ(ierr);
+  if (!rank) {
+    for (i=0;i<svd->nconv;i++) {
+      k = svd->perm[i];
+      ierr = VecSetValue(v,i,svd->sigma[k],INSERT_VALUES);CHKERRQ(ierr);
+    }
+  }
+  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+  ierr = VecView(v,viewer);CHKERRQ(ierr);
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+#endif
+
 static PetscErrorCode SVDValuesView_ASCII(SVD svd,PetscViewer viewer)
 {
   PetscInt       i;
@@ -485,6 +518,9 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
   PetscBool         isascii,isdraw,isbinary;
   PetscViewerFormat format;
   PetscErrorCode    ierr;
+#if defined(PETSC_HAVE_HDF5)
+  PetscBool         ishdf5;
+#endif
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -496,11 +532,18 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
   SVDCheckSolved(svd,1);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERBINARY,&isbinary);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_HDF5)
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5);CHKERRQ(ierr);
+#endif
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isdraw) {
     ierr = SVDValuesView_DRAW(svd,viewer);CHKERRQ(ierr);
   } else if (isbinary) {
     ierr = SVDValuesView_BINARY(svd,viewer);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_HDF5)
+  } else if (ishdf5) {
+    ierr = SVDValuesView_HDF5(svd,viewer);CHKERRQ(ierr);
+#endif
   } else if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     switch (format) {

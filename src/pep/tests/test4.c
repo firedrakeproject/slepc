@@ -137,9 +137,13 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       args: -pep_linear_explicitmatrix -pep_view_vectors ::ascii_info
-      requires: !single
+      test:
+         suffix: 1_real
+         requires: !single !complex
+      test:
+         suffix: 1
+         requires: !single complex
 
 TEST*/
