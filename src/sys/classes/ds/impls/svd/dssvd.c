@@ -13,6 +13,7 @@
 
 typedef struct {
   PetscInt m;              /* number of columns */
+  PetscInt t;              /* number of rows of V after truncating */
 } DS_SVD;
 
 PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
@@ -214,6 +215,38 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
+{
+  PetscInt    i,ld=ds->ld,l=ds->l;
+  PetscScalar *A = ds->mat[DS_MAT_A];
+  DS_SVD      *ctx = (DS_SVD*)ds->data;
+
+  PetscFunctionBegin;
+  if (trim) {
+    if (!ds->compact && ds->extrarow) {   /* clean extra column */
+      for (i=l;i<ds->n;i++) A[i+ctx->m*ld] = 0.0;
+    }
+    ds->l  = 0;
+    ds->k  = 0;
+    ds->n  = n;
+    ctx->m = n;
+    ds->t  = ds->n;   /* truncated length equal to the new dimension */
+    ctx->t = ctx->m;  /* must also keep the previous dimension of V */
+  } else {
+    if (!ds->compact && ds->extrarow && ds->k==ds->n) {
+      /* copy entries of extra column to the new position, then clean last row */
+      for (i=l;i<n;i++) A[i+n*ld] = A[i+ctx->m*ld];
+      for (i=l;i<ds->n;i++) A[i+ctx->m*ld] = 0.0;
+    }
+    ds->k  = (ds->extrarow)? n: 0;
+    ds->t  = ds->n;   /* truncated length equal to previous dimension */
+    ctx->t = ctx->m;  /* must also keep the previous dimension of V */
+    ds->n  = n;
+    ctx->m = n;
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
@@ -370,11 +403,11 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
       *cols = ds->extrarow? ctx->m+1: ctx->m;
       break;
     case DS_MAT_U:
-      *rows = ds->n;
+      *rows = ds->state==DS_STATE_TRUNCATED? ds->t: ds->n;
       *cols = ds->n;
       break;
     case DS_MAT_V:
-      *rows = ctx->m;
+      *rows = ds->state==DS_STATE_TRUNCATED? ctx->t: ctx->m;
       *cols = ctx->m;
       break;
     default:
@@ -517,6 +550,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->solve[0]      = DSSolve_SVD_DC;
   ds->ops->sort          = DSSort_SVD;
   ds->ops->synchronize   = DSSynchronize_SVD;
+  ds->ops->truncate      = DSTruncate_SVD;
   ds->ops->update        = DSUpdateExtraRow_SVD;
   ds->ops->destroy       = DSDestroy_SVD;
   ds->ops->matgetsize    = DSMatGetSize_SVD;
