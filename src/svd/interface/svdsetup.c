@@ -334,19 +334,24 @@ PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec isr[],PetscInt nl,Vec
 PetscErrorCode SVDSetDimensions_Default(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       N;
+  PetscInt       N,M,P,maxnsol;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
+  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+  maxnsol = PetscMin(M,N);
+  if (svd->isgeneralized) {
+    ierr = MatGetSize(svd->OPb,&P,NULL);CHKERRQ(ierr);
+    maxnsol = PetscMin(maxnsol,P);
+  }
   if (svd->ncv!=PETSC_DEFAULT) { /* ncv set */
     if (svd->ncv<svd->nsv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nsv");
   } else if (svd->mpd!=PETSC_DEFAULT) { /* mpd set */
-    svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
+    svd->ncv = PetscMin(maxnsol,svd->nsv+svd->mpd);
   } else { /* neither set: defaults depend on nsv being small or large */
-    if (svd->nsv<500) svd->ncv = PetscMin(N,PetscMax(2*svd->nsv,10));
+    if (svd->nsv<500) svd->ncv = PetscMin(maxnsol,PetscMax(2*svd->nsv,10));
     else {
       svd->mpd = 500;
-      svd->ncv = PetscMin(N,svd->nsv+svd->mpd);
+      svd->ncv = PetscMin(maxnsol,svd->nsv+svd->mpd);
     }
   }
   if (svd->mpd==PETSC_DEFAULT) svd->mpd = svd->ncv;
