@@ -120,4 +120,10 @@ int main(int argc,char **argv)
       suffix: 1
       requires: !single
 
+   test:
+      suffix: 2
+      args: -m 6 -n 12 -p 12 -svd_trlanczos_gbidiag {{single upper lower}}
+      filter: grep -v "TRLANCZOS: using"
+      requires: !single
+
 TEST*/
