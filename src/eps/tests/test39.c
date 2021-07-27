@@ -82,7 +82,7 @@ int main(int argc,char **argv)
   ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(eps,nev,PETSC_DEFAULT,PETSC_DEFAULT);
+  ierr = EPSSetDimensions(eps,nev,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);

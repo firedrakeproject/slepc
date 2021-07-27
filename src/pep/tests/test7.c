@@ -146,7 +146,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PEPSetUp(pep);CHKERRQ(ierr);
-  ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);
+  ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Inertias (after setup):\n");CHKERRQ(ierr);
   for (i=0;i<ns;i++) {
     ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
@@ -160,7 +160,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Found %D eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
 
   if (showinertia) {
-    ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);
+    ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Used %D shifts (inertia):\n",ns);CHKERRQ(ierr);
     for (i=0;i<ns;i++) {
       ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);

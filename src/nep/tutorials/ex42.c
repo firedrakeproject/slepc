@@ -153,7 +153,7 @@ int main(int argc,char **argv)
     ierr = NEPApplyAdjoint(nep,lambda,v,w,r,NULL,NULL);CHKERRQ(ierr);
     ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
     if (nrm>tol*PetscAbsScalar(lambda)) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Left residual i=%D is above tolerance --> %g\n",i,nrm/PetscAbsScalar(lambda));
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Left residual i=%D is above tolerance --> %g\n",i,nrm/PetscAbsScalar(lambda));CHKERRQ(ierr);
     }
   }
 

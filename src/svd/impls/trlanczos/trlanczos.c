@@ -668,7 +668,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U1);CHKERRQ(ierr);
   ierr = BVGetType(svd->U,&type);CHKERRQ(ierr);
   ierr = BVSetType(U1,type);CHKERRQ(ierr);
-  ierr = BVGetSizes(svd->U,NULL,NULL,&i);
+  ierr = BVGetSizes(svd->U,NULL,NULL,&i);CHKERRQ(ierr);
   ierr = BVSetSizes(U1,m,PETSC_DECIDE,i);CHKERRQ(ierr);
 
   V = svd->U;
@@ -780,7 +780,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U2);CHKERRQ(ierr);
   ierr = BVGetType(svd->U,&type);CHKERRQ(ierr);
   ierr = BVSetType(U2,type);CHKERRQ(ierr);
-  ierr = BVGetSizes(svd->U,NULL,NULL,&i);
+  ierr = BVGetSizes(svd->U,NULL,NULL,&i);CHKERRQ(ierr);
   ierr = BVSetSizes(U2,p,PETSC_DECIDE,i);CHKERRQ(ierr);
 
   /* Finish computing left vectors and move them to its place */
@@ -942,7 +942,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U1);CHKERRQ(ierr);
   ierr = BVGetType(svd->U,&type);CHKERRQ(ierr);
   ierr = BVSetType(U1,type);CHKERRQ(ierr);
-  ierr = BVGetSizes(svd->U,NULL,NULL,&i);
+  ierr = BVGetSizes(svd->U,NULL,NULL,&i);CHKERRQ(ierr);
   ierr = BVSetSizes(U1,m,PETSC_DECIDE,i);CHKERRQ(ierr);
 
   /* Create BV for U2 */
@@ -1218,7 +1218,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)U1);CHKERRQ(ierr);
   ierr = BVGetType(svd->U,&type);CHKERRQ(ierr);
   ierr = BVSetType(U1,type);CHKERRQ(ierr);
-  ierr = BVGetSizes(svd->U,NULL,NULL,&i);
+  ierr = BVGetSizes(svd->U,NULL,NULL,&i);CHKERRQ(ierr);
   ierr = BVSetSizes(U1,m,PETSC_DECIDE,i);CHKERRQ(ierr);
 
   /* Create BV for U2 */
