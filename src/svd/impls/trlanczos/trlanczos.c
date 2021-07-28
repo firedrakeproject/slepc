@@ -863,22 +863,36 @@ static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal
 }
 
 /* generate random initial vector in column k for joint upper-upper bidiagonalization */
-PETSC_STATIC_INLINE PetscErrorCode SVDInitialVectorGUpper(BV V,PetscInt k,Mat Z,PetscBool *breakdown)
+PETSC_STATIC_INLINE PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
 {
-  PetscErrorCode ierr;
-  Vec            u,v;
-  PetscRandom    rand;
+  PetscErrorCode    ierr;
+  SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
+  Vec               u,v,ut=svd->workl[0],x=svd->workr[0];
+  PetscInt          m,j;
+  PetscRandom       rand;
+  PetscScalar       *arr;
+  const PetscScalar *carr;
 
   PetscFunctionBegin;
-  ierr = BVGetRandomContext(V,&rand);CHKERRQ(ierr);
-  ierr = MatCreateVecs(Z,&u,NULL);CHKERRQ(ierr);
+  ierr = BVCreateVec(U1,&u);
+  ierr = VecGetLocalSize(u,&m);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(U1,&rand);CHKERRQ(ierr);
   ierr = VecSetRandom(u,rand);CHKERRQ(ierr);
+  /* Form ut=[u;0] */
+  ierr = VecZeroEntries(ut);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(u,&carr);CHKERRQ(ierr);
+  ierr = VecGetArray(ut,&arr);CHKERRQ(ierr);
+  for (j=0; j<m; j++) arr[j] = carr[j];
+  ierr = VecRestoreArrayRead(u,&carr);CHKERRQ(ierr);
+  ierr = VecRestoreArray(ut,&arr);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  /* Solve least squares problem and premultiply the result by Z */
+  ierr = KSPSolve(lanczos->ksp,ut,x);CHKERRQ(ierr);
   ierr = BVGetColumn(V,k,&v);CHKERRQ(ierr);
-  ierr = MatMult(Z,u,v);CHKERRQ(ierr);
+  ierr = MatMult(lanczos->Z,x,v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,k,&v);CHKERRQ(ierr);
   if (breakdown) { ierr = BVOrthonormalizeColumn(V,k,PETSC_FALSE,NULL,breakdown);CHKERRQ(ierr); }
   else { ierr = BVOrthonormalizeColumn(V,k,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr); }
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -922,7 +936,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
 
   /* normalize start vector */
   if (!svd->nini) {
-    ierr = SVDInitialVectorGUpper(V,0,lanczos->Z,NULL);CHKERRQ(ierr);
+    ierr = SVDInitialVectorGUpper(svd,V,U1,0,NULL);CHKERRQ(ierr);
   }
 
   l = 0;
@@ -971,7 +985,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
         /* Start a new bidiagonalization */
         ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
-          ierr = SVDInitialVectorGUpper(V,k,lanczos->Z,&breakdown);CHKERRQ(ierr);
+          ierr = SVDInitialVectorGUpper(svd,V,U1,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
             svd->reason = SVD_DIVERGED_BREAKDOWN;
             ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
@@ -1058,30 +1072,6 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
   ierr = MatGetLocalSize(svd->A,&m,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->B,&p,NULL);CHKERRQ(ierr);
 
-  if (k==0) {
-    /* Compute first vector of BV V */
-    ierr = BVGetColumn(V,0,&v);CHKERRQ(ierr);
-    /* Form ut=[u;0] where u is the 1st column of U1 */
-    ierr = BVGetColumn(U1,0,&u);CHKERRQ(ierr);
-    ierr = VecZeroEntries(ut);CHKERRQ(ierr);
-    ierr = VecGetArrayRead(u,&carr);CHKERRQ(ierr);
-    ierr = VecGetArray(ut,&arr);CHKERRQ(ierr);
-    for (j=0; j<m; j++) arr[j] = carr[j];
-    ierr = VecRestoreArrayRead(u,&carr);CHKERRQ(ierr);
-    ierr = VecRestoreArray(ut,&arr);CHKERRQ(ierr);
-    /* Solve least squares problem */
-    ierr = KSPSolve(ksp,ut,x);CHKERRQ(ierr);
-    ierr = MatMult(Z,x,v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(U1,0,&u);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,0,&v);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(V,0,PETSC_FALSE,alpha,&lindep);CHKERRQ(ierr);
-    if (lindep) {
-      *n = k;
-      if (breakdown) *breakdown = lindep;
-      PetscFunctionReturn(0);
-    }
-  }
-
   for (i=k; i<*n; i++) {
     /* Compute vector i of BV U2 */
     ierr = BVGetColumn(V,i,&v);CHKERRQ(ierr);
@@ -1142,6 +1132,47 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
   PetscFunctionReturn(0);
 }
 
+/* generate random initial vector in column k for joint lower-upper bidiagonalization */
+PETSC_STATIC_INLINE PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
+{
+  PetscErrorCode    ierr;
+  SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
+  const PetscScalar *carr;
+  PetscScalar       *arr;
+  PetscReal         *alpha;
+  PetscInt          j,m;
+  Vec               u,v,ut=svd->workl[0],x=svd->workr[0];
+
+  PetscFunctionBegin;
+  ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
+  if (breakdown) { ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,breakdown);CHKERRQ(ierr); }
+  else { ierr = BVOrthonormalizeColumn(U1,k,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr); }
+
+  if (!breakdown || !*breakdown) {
+    ierr = MatGetLocalSize(svd->A,&m,NULL);CHKERRQ(ierr);
+    /* Compute k-th vector of BV V */
+    ierr = BVGetColumn(V,k,&v);CHKERRQ(ierr);
+    /* Form ut=[u;0] where u is the 1st column of U1 */
+    ierr = BVGetColumn(U1,k,&u);CHKERRQ(ierr);
+    ierr = VecZeroEntries(ut);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(u,&carr);CHKERRQ(ierr);
+    ierr = VecGetArray(ut,&arr);CHKERRQ(ierr);
+    for (j=0; j<m; j++) arr[j] = carr[j];
+    ierr = VecRestoreArrayRead(u,&carr);CHKERRQ(ierr);
+    ierr = VecRestoreArray(ut,&arr);CHKERRQ(ierr);
+    /* Solve least squares problem */
+    ierr = KSPSolve(lanczos->ksp,ut,x);CHKERRQ(ierr);
+    ierr = MatMult(lanczos->Z,x,v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(U1,k,&u);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,k,&v);CHKERRQ(ierr);
+    ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
+    if (breakdown) { ierr = BVOrthonormalizeColumn(V,k,PETSC_FALSE,alpha+k,breakdown);CHKERRQ(ierr); }
+    else { ierr = BVOrthonormalizeColumn(V,k,PETSC_TRUE,alpha+k,NULL);CHKERRQ(ierr); }
+    ierr = DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /* solve generalized problem with joint lower-upper bidiagonalization */
 PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
 {
@@ -1182,8 +1213,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
 
   /* normalize start vector */
   if (!svd->nini) {
-    ierr = BVSetRandomColumn(U1,0);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(U1,0,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
+    ierr = SVDInitialVectorGLower(svd,V,U1,0,NULL);CHKERRQ(ierr);
   }
 
   l = 0;
@@ -1232,8 +1262,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
         /* Start a new bidiagonalization */
         ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
-          ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
-          ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
+          ierr = SVDInitialVectorGLower(svd,V,U1,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
             svd->reason = SVD_DIVERGED_BREAKDOWN;
             ierr = PetscInfo(svd,"Unable to generate more start vectors\n");CHKERRQ(ierr);
