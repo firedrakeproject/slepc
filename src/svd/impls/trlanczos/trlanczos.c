@@ -216,6 +216,7 @@ static PetscErrorCode SVDOneSideTRLanczosMGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
+    ierr = BVSetActiveColumns(U,nconv,n);CHKERRQ(ierr);
     for (i=0;i<l;i++) work[i]=beta[i+nconv];
     ierr = BVMultColumn(U,-1.0,1.0,k,work);CHKERRQ(ierr);
   }
@@ -314,6 +315,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   ierr = BVRestoreColumn(V,k,&vi);CHKERRQ(ierr);
   ierr = BVRestoreColumn(U,k,&ui);CHKERRQ(ierr);
   if (l>0) {
+    ierr = BVSetActiveColumns(U,nconv,n);CHKERRQ(ierr);
     for (i=0;i<l;i++) work[i]=beta[i+nconv];
     ierr = BVMultColumn(U,-1.0,1.0,k,work);CHKERRQ(ierr);
   }
@@ -429,8 +431,6 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 
     /* inner loop */
     nv = PetscMin(svd->nconv+svd->mpd,svd->ncv);
-    ierr = BVSetActiveColumns(svd->V,svd->nconv,nv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(svd->U,svd->nconv,nv);CHKERRQ(ierr);
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
     beta = alpha + ld;
     if (lanczos->oneside) {
