@@ -30,7 +30,7 @@
 
 #include <slepc/private/svdimpl.h>          /*I "slepcsvd.h" I*/
 
-static PetscBool  cited = PETSC_FALSE;
+static PetscBool  cited = PETSC_FALSE,citedg = PETSC_FALSE;
 static const char citation[] =
   "@Article{slepc-svd,\n"
   "   author = \"V. Hern{\\'a}ndez and J. E. Rom{\\'a}n and A. Tom{\\'a}s\",\n"
@@ -39,6 +39,13 @@ static const char citation[] =
   "   volume = \"31\",\n"
   "   pages = \"68--85\",\n"
   "   year = \"2008\"\n"
+  "}\n";
+static const char citationg[] =
+  "@Article{slepc-gsvd,\n"
+  "   author = \"F. Alvarruiz and C. Campos and J. E. Roman\",\n"
+  "   title = \"Thick-restarted {Lanczos} bidigonalization methods for the {GSVD}\",\n"
+  "   note = \"In preparation\",\n"
+  "   year = \"2021\"\n"
   "}\n";
 
 typedef struct {
@@ -58,10 +65,6 @@ typedef struct {
   Vec      y1,y2,y;
   PetscInt m;
 } MatZData;
-
-PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd);
-PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd);
-PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd);
 
 static PetscErrorCode MatZCreateContext(SVD svd,MatZData **zdata)
 {
@@ -171,19 +174,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   ierr = SVDAllocateSolution(svd,1);CHKERRQ(ierr);
   dstype = DSSVD;
   if (svd->isgeneralized) {
-    switch (lanczos->bidiag) {
-      case SVD_TRLANCZOS_GBIDIAG_SINGLE:
-        svd->ops->solveg = SVDSolve_TRLanczosGSingle;
-        break;
-      case SVD_TRLANCZOS_GBIDIAG_UPPER:
-        svd->ops->solveg = SVDSolve_TRLanczosGUpper;
-        dstype = DSGSVD;
-        break;
-      case SVD_TRLANCZOS_GBIDIAG_LOWER:
-        svd->ops->solveg = SVDSolve_TRLanczosGLower;
-        dstype = DSGSVD;
-        break;
-    }
+    if (lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_UPPER || lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_LOWER) dstype = DSGSVD;
     ierr = SVDSetWorkVecs(svd,1,1);CHKERRQ(ierr);
 
     /* Create the matrix Z=[A;B] */
@@ -637,7 +628,6 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd)
   PetscBool      breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
-  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
@@ -910,7 +900,6 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd)
   PetscBool      breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
-  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
@@ -1187,7 +1176,6 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
   PetscBool      breakdown=PETSC_FALSE;
 
   PetscFunctionBegin;
-  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc1(ld,&w);CHKERRQ(ierr);
@@ -1333,6 +1321,27 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd)
   ierr = PetscFree(w);CHKERRQ(ierr);
   if (swork) { ierr = PetscFree(swork);CHKERRQ(ierr); }
   ierr = DSTruncate(svd->ds,svd->nconv,PETSC_TRUE);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
+{
+  PetscErrorCode ierr;
+  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citationg,&citedg);CHKERRQ(ierr);
+  switch (lanczos->bidiag) {
+    case SVD_TRLANCZOS_GBIDIAG_SINGLE:
+      ierr = SVDSolve_TRLanczosGSingle(svd);CHKERRQ(ierr);
+      break;
+    case SVD_TRLANCZOS_GBIDIAG_UPPER:
+      ierr = SVDSolve_TRLanczosGUpper(svd);CHKERRQ(ierr);
+      break;
+    case SVD_TRLANCZOS_GBIDIAG_LOWER:
+      ierr = SVDSolve_TRLanczosGLower(svd);CHKERRQ(ierr);
+      break;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1869,6 +1878,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
 
   svd->ops->setup          = SVDSetUp_TRLanczos;
   svd->ops->solve          = SVDSolve_TRLanczos;
+  svd->ops->solveg         = SVDSolve_TRLanczos_GSVD;
   svd->ops->destroy        = SVDDestroy_TRLanczos;
   svd->ops->reset          = SVDReset_TRLanczos;
   svd->ops->setfromoptions = SVDSetFromOptions_TRLanczos;
