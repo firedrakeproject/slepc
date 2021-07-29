@@ -1,9 +1,9 @@
 
-Rectangular bidiagonal matrix, m=20 n=22
+Generalized singular value decomposition, (15+21)x20
 
  All requested singular values computed up to the required tolerance:
-     2.99254, 2.97023, 2.93324
+     3.14081, 3.13546, 3.02084
 
  All requested singular values computed up to the required tolerance:
-     2.99205, 2.96825, 2.92879
+     3.13317, 3.13182, 2.99259
 

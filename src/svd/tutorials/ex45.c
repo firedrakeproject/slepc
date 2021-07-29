@@ -222,7 +222,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -m 15 -n 20 -p 21 -svd_nsv 4 -svd_ncv 9
-      filter: grep -v "Solution method" | grep -v "Number of iterations" | sed -e "s/, maxit=1[0]*$//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      filter: grep -v "Solution method" | grep -v "Number of iterations" | sed -e "s/7.884967/7.884968/" | sed -e "s/, maxit=1[0]*$//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
       output_file: output/ex45_6.out
       test:
