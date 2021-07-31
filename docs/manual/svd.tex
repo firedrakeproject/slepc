@@ -398,6 +398,7 @@ Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations c
 Convergence criterion      & \texttt{SVDConv}          & Command line key           & Error bound \\\hline
 Absolute                   & \texttt{SVD\_CONV\_ABS}   & \texttt{-svd\_conv\_abs}   & $\|r\|$ \\
 Relative to eigenvalue     & \texttt{SVD\_CONV\_REL}   & \texttt{-svd\_conv\_rel}   & $\|r\|/|\lambda|$ \\
+Relative to matrix norms   & \texttt{SVD\_CONV\_NORM}  & \texttt{-svd\_conv\_norm}  & $\|r\|/\|A\|$ \\
 Fixed number of iterations & \texttt{SVD\_CONV\_MAXIT} & \texttt{-svd\_conv\_maxit} & $\infty$ \\
 User-defined               & \texttt{SVD\_CONV\_USER}  & \texttt{-svd\_conv\_user}  & user function \\
 \hline

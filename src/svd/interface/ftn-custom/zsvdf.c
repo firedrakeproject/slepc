@@ -32,6 +32,7 @@
 #define svdgetoptionsprefix_              SVDGETOPTIONSPREFIX
 #define svdconvergedabsolute_             SVDCONVERGEDABSOLUTE
 #define svdconvergedrelative_             SVDCONVERGEDRELATIVE
+#define svdconvergednorm_                 SVDCONVERGEDNORM
 #define svdconvergedmaxit_                SVDCONVERGEDMAXIT
 #define svdsetconvergencetestfunction_    SVDSETCONVERGENCETESTFUNCTION
 #define svdsetstoppingtestfunction_       SVDSETSTOPPINGTESTFUNCTION
@@ -71,6 +72,7 @@
 #define svdgetoptionsprefix_              svdgetoptionsprefix
 #define svdconvergedabsolute_             svdconvergedabsolute
 #define svdconvergedrelative_             svdconvergedrelative
+#define svdconvergednorm_                 svdconvergednorm
 #define svdconvergedmaxit_                svdconvergedmaxit
 #define svdsetconvergencetestfunction_    svdsetconvergencetestfunction
 #define svdsetstoppingtestfunction_       svdsetstoppingtestfunction
@@ -281,6 +283,11 @@ SLEPC_EXTERN void svdconvergedrelative_(SVD *svd,PetscReal *sigma,PetscReal *res
   *ierr = SVDConvergedRelative(*svd,*sigma,*res,errest,ctx);
 }
 
+SLEPC_EXTERN void svdconvergednorm_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = SVDConvergedNorm(*svd,*sigma,*res,errest,ctx);
+}
+
 SLEPC_EXTERN void svdconvergedmaxit_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDConvergedMaxIt(*svd,*sigma,*res,errest,ctx);
@@ -294,6 +301,8 @@ SLEPC_EXTERN void svdsetconvergencetestfunction_(SVD *svd,void (*func)(SVD*,Pets
     *ierr = SVDSetConvergenceTest(*svd,SVD_CONV_ABS);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)svdconvergedrelative_) {
     *ierr = SVDSetConvergenceTest(*svd,SVD_CONV_REL);
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)svdconvergednorm_) {
+    *ierr = SVDSetConvergenceTest(*svd,SVD_CONV_NORM);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)svdconvergedmaxit_) {
     *ierr = SVDSetConvergenceTest(*svd,SVD_CONV_MAXIT);
   } else {

@@ -30,8 +30,8 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-p",&p,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%D+%D)x%D\n\n",m,p,n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -75,6 +75,7 @@ int main(int argc,char **argv)
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
   ierr = SVDSetOperators(svd,A,B);CHKERRQ(ierr);
   ierr = SVDSetDimensions(svd,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = SVDSetConvergenceTest(svd,SVD_CONV_NORM);CHKERRQ(ierr);
 
   ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);
   ierr = SVDTRLanczosSetGBidiag(svd,SVD_TRLANCZOS_GBIDIAG_UPPER);CHKERRQ(ierr);
@@ -117,6 +118,12 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
+      requires: !single
+
+   test:
+      suffix: 2
+      args: -m 6 -n 12 -p 12 -svd_trlanczos_gbidiag {{single upper lower}}
+      filter: grep -v "TRLANCZOS: using"
       requires: !single
 
 TEST*/
