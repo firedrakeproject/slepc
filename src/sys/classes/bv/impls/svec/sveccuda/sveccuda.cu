@@ -160,7 +160,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscScalar       *d_pv,*d_q,*d_A,*d_B,*d_work,sone=1.0,szero=0.0;
   const PetscScalar *q;
   PetscInt          j,ldq,nq;
-  PetscCuBLASInt    m=0,n=0,k=0,l,ldq_=0,bs=BLOCKSIZE;
+  PetscCuBLASInt    m=0,n=0,k=0,l=0,ldq_=0,bs=BLOCKSIZE;
   cublasStatus_t    cberr;
   size_t            freemem,totmem;
   cublasHandle_t    cublasv2handle;

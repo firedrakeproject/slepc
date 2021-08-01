@@ -17,7 +17,7 @@
 #include <slepcsys.h>
 
 #if defined(PETSC_HAVE_CUDA)
-#include <petsccublas.h>
+#include <slepccublas.h>
 
 #define X_AXIS 0
 #define Y_AXIS 1
