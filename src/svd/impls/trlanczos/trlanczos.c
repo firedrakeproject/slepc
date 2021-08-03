@@ -184,7 +184,11 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     ierr = MatZCreateContext(svd,&zdata);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+p,n,PETSC_DECIDE,PETSC_DECIDE,zdata,&lanczos->Z);CHKERRQ(ierr);
     ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT,(void(*)(void))MatMult_Z);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultTranspose_Z);CHKERRQ(ierr);
+#else
     ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Z);CHKERRQ(ierr);
+#endif
     ierr = MatShellSetOperation(lanczos->Z,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Z);CHKERRQ(ierr);
     ierr = MatShellSetOperation(lanczos->Z,MATOP_DESTROY,(void(*)(void))MatDestroy_Z);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z);CHKERRQ(ierr);
