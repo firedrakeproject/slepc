@@ -1301,7 +1301,7 @@ PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptionItems *PetscOptionsObject,
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
-  if (svd->isgeneralized) {
+  if (svd->OPb) {
     if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
     ierr = KSPSetFromOptions(lanczos->ksp);CHKERRQ(ierr);
   }
