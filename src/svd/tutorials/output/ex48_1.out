@@ -1,0 +1,7 @@
+
+Generalized singular value problem stored in file.
+
+ Reading REAL matrix from a binary file...
+ All requested singular values computed up to the required tolerance:
+     313590.43340, 287959.69610, 225770.83348
+
