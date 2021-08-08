@@ -127,6 +127,48 @@ PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBoo
   PetscFunctionReturn(0);
 }
 
+/*@C
+   SlepcHasExternalPackage - Determine whether SLEPc has been configured with the
+   given package.
+
+   Not Collective
+
+   Input Parameter:
+.  pkg - external package name
+
+   Output Parameter:
+.  has - PETSC_TRUE if SLEPc is configured with the given package, else PETSC_FALSE
+
+   Level: intermediate
+
+   Notes:
+   This is basically an alternative for SLEPC_HAVE_XXX whenever a preprocessor macro
+   is not available/desirable, e.g. in Python.
+
+   The external package name pkg is e.g. "arpack", "primme".
+   It should correspond to the name listed in  ./configure --help
+
+   The lookup is case insensitive, i.e. looking for "ARPACK" or "arpack" is the same.
+@*/
+PetscErrorCode SlepcHasExternalPackage(const char pkg[], PetscBool *has)
+{
+  char           pkgstr[128],*loc;
+  size_t         cnt;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscSNPrintfCount(pkgstr,sizeof(pkgstr),":%s:",&cnt,pkg);CHKERRQ(ierr);
+  if (cnt >= sizeof(pkgstr)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Package name is too long: \"%s\"",pkg);
+  ierr = PetscStrtolower(pkgstr);CHKERRQ(ierr);
+#if defined(SLEPC_HAVE_PACKAGES)
+  ierr = PetscStrstr(SLEPC_HAVE_PACKAGES,pkgstr,&loc);CHKERRQ(ierr);
+#else
+#error "SLEPC_HAVE_PACKAGES macro undefined. Please reconfigure"
+#endif
+  *has = loc? PETSC_TRUE: PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
 /*
    SlepcDebugViewMatrix - prints an array as a matrix, to be used from within a debugger.
    Output can be pasted to Matlab.

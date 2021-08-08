@@ -217,7 +217,10 @@ with slepc.CreateFile(confdir,'slepcvariables') as slepcvars:
     with slepc.CreateFile(includedir,'slepcconf.h') as slepcconf:
       for pkg in checkpackages:
         pkg.Process(slepcconf,slepcvars,slepcrules,slepc,petsc,archdir)
-      slepcconf.write('\n#endif\n')
+      slepcconf.write('#define SLEPC_HAVE_PACKAGES ":')
+      for pkg in petscpackages + externalpackages:
+        if hasattr(pkg,'havepackage') and pkg.havepackage: slepcconf.write(pkg.packagename+':')
+      slepcconf.write('"\n#endif\n')
 
 log.NewSection('Writing various configuration files...')
 

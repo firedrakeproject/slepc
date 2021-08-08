@@ -84,6 +84,7 @@ SLEPC_EXTERN PetscErrorCode SlepcInitializeFortran(void);
 SLEPC_EXTERN PetscErrorCode SlepcInitialized(PetscBool*);
 SLEPC_EXTERN PetscErrorCode SlepcGetVersion(char[],size_t);
 SLEPC_EXTERN PetscErrorCode SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode SlepcHasExternalPackage(const char[],PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode SlepcSNPrintfScalar(char*,size_t,PetscScalar,PetscBool);
 
