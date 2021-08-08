@@ -33,6 +33,11 @@ cdef extern from * nogil:
         DS_MAT_W
         DS_NUM_MAT
 
+    ctypedef enum SlepcDSParallelType "DSParallelType":
+        DS_PARALLEL_REDUNDANT
+        DS_PARALLEL_SYNCHRONIZED
+        DS_PARALLEL_DISTRIBUTED
+
     int DSCreate(MPI_Comm,SlepcDS*)
     int DSView(SlepcDS,PetscViewer)
     int DSDestroy(SlepcDS*)

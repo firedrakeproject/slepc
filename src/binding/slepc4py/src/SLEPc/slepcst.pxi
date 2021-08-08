@@ -6,6 +6,7 @@ cdef extern from * nogil:
     SlepcSTType STSINVERT
     SlepcSTType STCAYLEY
     SlepcSTType STPRECOND
+    SlepcSTType STFILTER
 
     ctypedef enum SlepcSTMatMode "STMatMode":
         ST_MATMODE_COPY

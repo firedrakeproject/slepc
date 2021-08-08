@@ -5,6 +5,7 @@ cdef extern from * nogil:
     SlepcBVType BVSVEC
     SlepcBVType BVVECS
     SlepcBVType BVCONTIGUOUS
+    SlepcBVType BVTENSOR
 
     ctypedef enum SlepcBVOrthogType "BVOrthogType":
         BV_ORTHOG_CGS
@@ -18,6 +19,13 @@ cdef extern from * nogil:
     ctypedef enum SlepcBVOrthogBlockType "BVOrthogBlockType":
         BV_ORTHOG_BLOCK_GS
         BV_ORTHOG_BLOCK_CHOL
+        BV_ORTHOG_BLOCK_TSQR
+        BV_ORTHOG_BLOCK_TSQRCHOL
+        BV_ORTHOG_BLOCK_SVQB
+
+    ctypedef enum SlepcBVMatMultType "BVMatMultType":
+        BV_MATMULT_VECS
+        BV_MATMULT_MAT
 
     int BVCreate(MPI_Comm,SlepcBV*)
     int BVCreateMat(SlepcBV,PetscMat*)

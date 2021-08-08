@@ -6,6 +6,10 @@ cdef extern from * nogil:
     SlepcRGType RGELLIPSE
     SlepcRGType RGRING
 
+    ctypedef enum SlepcRGQuadRule "RGQuadRule":
+        RG_QUADRULE_TRAPEZOIDAL
+        RG_QUADRULE_CHEBYSHEV
+
     int RGCreate(MPI_Comm,SlepcRG*)
     int RGView(SlepcRG,PetscViewer)
     int RGDestroy(SlepcRG*)

@@ -11,6 +11,7 @@ cdef extern from * nogil:
     ctypedef enum SlepcPEPProblemType "PEPProblemType":
         PEP_GENERAL
         PEP_HERMITIAN
+        PEP_HYPERBOLIC
         PEP_GYROSCOPIC
 
     ctypedef enum SlepcPEPRefine "PEPRefine":
@@ -66,6 +67,10 @@ cdef extern from * nogil:
         PEP_CONV_REL
         PEP_CONV_NORM
         PEP_CONV_USER
+
+    ctypedef enum SlepcPEPStop "PEPStop":
+        PEP_STOP_BASIC
+        PEP_STOP_USER
 
     ctypedef enum SlepcPEPConvergedReason "PEPConvergedReason":
         PEP_CONVERGED_TOL
@@ -154,6 +159,10 @@ cdef extern from * nogil:
     int PEPSTOARGetDetectZeros(SlepcPEP,PetscBool*);
     int PEPSTOARSetDimensions(SlepcPEP,PetscInt,PetscInt,PetscInt);
     int PEPSTOARGetDimensions(SlepcPEP,PetscInt*,PetscInt*,PetscInt*);
+
+    ctypedef enum SlepcPEPJDProjection "PEPJDProjection":
+        PEP_JD_PROJECTION_HARMONIC
+        PEP_JD_PROJECTION_ORTHOGONAL
 
     int PEPJDSetRestart(SlepcPEP,PetscReal);
     int PEPJDGetRestart(SlepcPEP,PetscReal*);

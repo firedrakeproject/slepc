@@ -20,19 +20,44 @@ class NEPType(object):
     INTERPOL = S_(NEPINTERPOL)
     NLEIGS   = S_(NEPNLEIGS)
 
+class NEPProblemType(object):
+    """
+    NEP problem type
+
+    - `GENERAL`:  General nonlinear eigenproblem.
+    - `RATIONAL`: NEP defined in split form with all f_i rational.
+    """
+    GENERAL  = NEP_GENERAL
+    RATIONAL = NEP_RATIONAL
+
 class NEPErrorType(object):
     """
     NEP error type to assess accuracy of computed solutions
 
-    - `ABSOLUTE`:  Absolute error.
-    - `RELATIVE`:  Relative error.
-    - `BACKWARD`:  Backward error.
+    - `ABSOLUTE`: Absolute error.
+    - `RELATIVE`: Relative error.
+    - `BACKWARD`: Backward error.
     """
     ABSOLUTE = NEP_ERROR_ABSOLUTE
     RELATIVE = NEP_ERROR_RELATIVE
     BACKWARD = NEP_ERROR_BACKWARD
 
 class NEPWhich(object):
+    """
+    NEP desired part of spectrum
+
+    - `LARGEST_MAGNITUDE`:  Largest magnitude (default).
+    - `SMALLEST_MAGNITUDE`: Smallest magnitude.
+    - `LARGEST_REAL`:       Largest real parts.
+    - `SMALLEST_REAL`:      Smallest real parts.
+    - `LARGEST_IMAGINARY`:  Largest imaginary parts in magnitude.
+    - `SMALLEST_IMAGINARY`: Smallest imaginary parts in magnitude.
+    - `TARGET_MAGNITUDE`:   Closest to target (in magnitude).
+    - `TARGET_REAL`:        Real part closest to target.
+    - `TARGET_IMAGINARY`:   Imaginary part closest to target.
+    - `ALL`:                All eigenvalues in a region.
+    - `USER`:               User defined selection.
+    """
     LARGEST_MAGNITUDE  = NEP_LARGEST_MAGNITUDE
     SMALLEST_MAGNITUDE = NEP_SMALLEST_MAGNITUDE
     LARGEST_REAL       = NEP_LARGEST_REAL
@@ -46,13 +71,25 @@ class NEPWhich(object):
     USER               = NEP_WHICH_USER
 
 class NEPConvergedReason(object):
-    CONVERGED_TOL          = NEP_CONVERGED_TOL
-    CONVERGED_USER         = NEP_CONVERGED_USER
-    DIVERGED_ITS           = NEP_DIVERGED_ITS
-    DIVERGED_BREAKDOWN     = NEP_DIVERGED_BREAKDOWN
-    DIVERGED_LINEAR_SOLVE  = NEP_DIVERGED_LINEAR_SOLVE
-    CONVERGED_ITERATING    = NEP_CONVERGED_ITERATING
-    ITERATING              = NEP_CONVERGED_ITERATING
+    """
+    NEP convergence reasons
+
+    - `CONVERGED_TOL`:               All eigenpairs converged to requested tolerance.
+    - `CONVERGED_USER`:              User-defined convergence criterion satisfied.
+    - `DIVERGED_ITS`:                Maximum number of iterations exceeded.
+    - `DIVERGED_BREAKDOWN`:          Solver failed due to breakdown.
+    - `DIVERGED_LINEAR_SOLVE`:       Inner linear solve failed.
+    - `DIVERGED_SUBSPACE_EXHAUSTED`: Run out of space for the basis in an unrestarted solver.
+    - `CONVERGED_ITERATING`:         Iteration not finished yet.
+    """
+    CONVERGED_TOL               = NEP_CONVERGED_TOL
+    CONVERGED_USER              = NEP_CONVERGED_USER
+    DIVERGED_ITS                = NEP_DIVERGED_ITS
+    DIVERGED_BREAKDOWN          = NEP_DIVERGED_BREAKDOWN
+    DIVERGED_LINEAR_SOLVE       = NEP_DIVERGED_LINEAR_SOLVE
+    DIVERGED_SUBSPACE_EXHAUSTED = NEP_DIVERGED_SUBSPACE_EXHAUSTED
+    CONVERGED_ITERATING         = NEP_CONVERGED_ITERATING
+    ITERATING                   = NEP_CONVERGED_ITERATING
 
 class NEPRefine(object):
     """
@@ -68,7 +105,7 @@ class NEPRefine(object):
 
 class NEPRefineScheme(object):
     """
-    Scheme for solving linear systems during iterative refinement
+    NEP scheme for solving linear systems during iterative refinement
 
     - `SCHUR`:    Schur complement.
     - `MBE`:      Mixed block elimination.
@@ -78,17 +115,41 @@ class NEPRefineScheme(object):
     MBE      = NEP_REFINE_SCHEME_MBE
     EXPLICIT = NEP_REFINE_SCHEME_EXPLICIT
 
+class NEPConv(object):
+    """
+    NEP convergence test
+
+    - `ABS`:  Absolute convergence test.
+    - `REL`:  Convergence test relative to the eigenvalue.
+    - `NORM`: Convergence test relative to the matrix norms.
+    - `USER`: User-defined convergence test.
+    """
+    ABS  = NEP_CONV_ABS
+    REL  = NEP_CONV_REL
+    NORM = NEP_CONV_NORM
+    USER = NEP_CONV_USER
+
+class NEPStop(object):
+    """
+    NEP stopping test
+
+    - `BASIC`: Default stopping test.
+    - `USER`:  User-defined stopping test.
+    """
+    BASIC = NEP_STOP_BASIC
+    USER  = NEP_STOP_USER
+
 class NEPCISSExtraction(object):
     """
     NEP CISS extraction technique
 
-    - `RITZ`:
-    - `HANKEL`:
-    - `CAA`:
+    - `RITZ`:   Ritz extraction.
+    - `HANKEL`: Extraction via Hankel eigenproblem.
+    - `CAA`:    Communication-avoiding Arnoldi.
     """
-    RITZ   =  NEP_CISS_EXTRACTION_RITZ
-    HANKEL =  NEP_CISS_EXTRACTION_HANKEL
-    CAA    =  NEP_CISS_EXTRACTION_CAA
+    RITZ   = NEP_CISS_EXTRACTION_RITZ
+    HANKEL = NEP_CISS_EXTRACTION_HANKEL
+    CAA    = NEP_CISS_EXTRACTION_CAA
 
 # -----------------------------------------------------------------------------
 
@@ -99,11 +160,14 @@ cdef class NEP(Object):
     """
 
     Type            = NEPType
+    ProblemType     = NEPProblemType
     ErrorType       = NEPErrorType
     Which           = NEPWhich
     ConvergedReason = NEPConvergedReason
     Refine          = NEPRefine
     RefineScheme    = NEPRefineScheme
+    Conv            = NEPConv
+    Stop            = NEPStop
 
     CISSExtraction  = NEPCISSExtraction
 
@@ -922,11 +986,14 @@ cdef class NEP(Object):
 # -----------------------------------------------------------------------------
 
 del NEPType
+del NEPProblemType
 del NEPErrorType
 del NEPWhich
 del NEPConvergedReason
 del NEPRefine
 del NEPRefineScheme
+del NEPConv
+del NEPStop
 del NEPCISSExtraction
 
 # -----------------------------------------------------------------------------

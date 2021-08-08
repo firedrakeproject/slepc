@@ -19,10 +19,10 @@ class DSStateType(object):
     """
     DS state types
 
-    - `RAW`: Not processed yet.
+    - `RAW`:          Not processed yet.
     - `INTERMEDIATE`: Reduced to Hessenberg or tridiagonal form (or equivalent).
-    - `CONDENSED`: Reduced to Schur or diagonal form (or equivalent).
-    - `TRUNCATED`: Condensed form truncated to a smaller size.
+    - `CONDENSED`:    Reduced to Schur or diagonal form (or equivalent).
+    - `TRUNCATED`:    Condensed form truncated to a smaller size.
     """
     RAW          = DS_STATE_RAW
     INTERMEDIATE = DS_STATE_INTERMEDIATE
@@ -59,6 +59,18 @@ class DSMatType(object):
     V  = DS_MAT_V
     W  = DS_MAT_W
 
+class DSParallelType(object):
+    """
+    DS parallel types
+
+    - `REDUNDANT`:    Every process performs the computation redundantly.
+    - `SYNCHRONIZED`: The first process sends the result to the rest.
+    - `DISTRIBUTED`:  Used in some cases to distribute the computation among processes.
+    """
+    REDUNDANT    = DS_PARALLEL_REDUNDANT
+    SYNCHRONIZED = DS_PARALLEL_SYNCHRONIZED
+    DISTRIBUTED  = DS_PARALLEL_DISTRIBUTED
+
 # -----------------------------------------------------------------------------
 
 cdef class DS(Object):
@@ -67,9 +79,10 @@ cdef class DS(Object):
     DS
     """
 
-    Type      = DSType
-    StateType = DSStateType
-    MatType   = DSMatType
+    Type         = DSType
+    StateType    = DSStateType
+    MatType      = DSMatType
+    ParallelType = DSParallelType
 
     def __cinit__(self):
         self.obj = <PetscObject*> &self.ds
@@ -474,5 +487,6 @@ cdef class DS(Object):
 del DSType
 del DSStateType
 del DSMatType
+del DSParallelType
 
 # -----------------------------------------------------------------------------

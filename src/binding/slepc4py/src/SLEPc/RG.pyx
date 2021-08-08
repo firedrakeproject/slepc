@@ -9,6 +9,16 @@ class RGType(object):
     ELLIPSE    = S_(RGELLIPSE)
     RING       = S_(RGRING)
 
+class RGQuadRule(object):
+    """
+    RG quadrature rule for contour integral methods
+
+    - `TRAPEZOIDAL`: Trapezoidal rule.
+    - `CHEBYSHEV`:   Chebyshev points.
+    """
+    TRAPEZOIDAL = EPS_CISS_QUADRULE_TRAPEZOIDAL
+    CHEBYSHEV   = EPS_CISS_QUADRULE_CHEBYSHEV
+
 # -----------------------------------------------------------------------------
 
 cdef class RG(Object):
@@ -17,7 +27,8 @@ cdef class RG(Object):
     RG
     """
 
-    Type             = RGType
+    Type     = RGType
+    QuadRule = RGQuadRule
 
     def __cinit__(self):
         self.obj = <PetscObject*> &self.rg
@@ -260,5 +271,6 @@ cdef class RG(Object):
 # -----------------------------------------------------------------------------
 
 del RGType
+del RGQuadRule
 
 # -----------------------------------------------------------------------------

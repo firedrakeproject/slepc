@@ -8,6 +8,7 @@ class BVType(object):
     SVEC       = S_(BVSVEC)
     VECS       = S_(BVVECS)
     CONTIGUOUS = S_(BVCONTIGUOUS)
+    TENSOR     = S_(BVTENSOR)
 
 class BVOrthogType(object):
     """
@@ -35,11 +36,27 @@ class BVOrthogBlockType(object):
     """
     BV block-orthogonalization types
 
-    - `GS`:   Gram-Schmidt.
-    - `CHOL`: Cholesky.
+    - `GS`:       Gram-Schmidt.
+    - `CHOL`:     Cholesky.
+    - `TSQR`:     Tall-skinny QR.
+    - `TSQRCHOL`: Tall-skinny QR with Cholesky.
+    - `SVQB`:     SVQB.
     """
-    GS   = BV_ORTHOG_BLOCK_GS
-    CHOL = BV_ORTHOG_BLOCK_CHOL
+    GS       = BV_ORTHOG_BLOCK_GS
+    CHOL     = BV_ORTHOG_BLOCK_CHOL
+    TSQR     = BV_ORTHOG_BLOCK_TSQR
+    TSQRCHOL = BV_ORTHOG_BLOCK_TSQRCHOL
+    SVQB     = BV_ORTHOG_BLOCK_SVQB
+
+class BVMatMultType(object):
+    """
+    BV mat-mult types
+
+    - `VECS`: Perform a matrix-vector multiply per each column.
+    - `MAT`:  Carry out a Mat-Mat product with a dense matrix.
+    """
+    VECS     = BV_MATMULT_VECS
+    MAT      = BV_MATMULT_MAT
 
 # -----------------------------------------------------------------------------
 
@@ -55,6 +72,7 @@ cdef class BV(Object):
     RefineType       = BVOrthogRefineType
     OrthogBlockType  = BVOrthogBlockType
     BlockType        = BVOrthogBlockType
+    MatMultType      = BVMatMultType
 
     def __cinit__(self):
         self.obj = <PetscObject*> &self.bv
@@ -896,5 +914,6 @@ del BVType
 del BVOrthogType
 del BVOrthogRefineType
 del BVOrthogBlockType
+del BVMatMultType
 
 # -----------------------------------------------------------------------------

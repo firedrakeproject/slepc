@@ -100,9 +100,9 @@ class EPSBalance(object):
     EPS type of balancing used for non-Hermitian problems
 
     - `NONE`:     None.
-    - `ONESIDE`:  One-sided eigensolver, only right eigenvectors.
-    - `TWOSIDE`:  Two-sided eigensolver, right and left eigenvectors.
-    - `USER`:     User-defined.
+    - `ONESIDE`:  One-sided balancing.
+    - `TWOSIDE`:  Two-sided balancing.
+    - `USER`:     User-provided balancing matrices.
     """
     NONE    = EPS_BALANCE_NONE
     ONESIDE = EPS_BALANCE_ONESIDE
@@ -113,9 +113,9 @@ class EPSErrorType(object):
     """
     EPS error type to assess accuracy of computed solutions
 
-    - `ABSOLUTE`:  Absolute error.
-    - `RELATIVE`:  Relative error.
-    - `BACKWARD`:  Backward error.
+    - `ABSOLUTE`: Absolute error.
+    - `RELATIVE`: Relative error.
+    - `BACKWARD`: Backward error.
     """
     ABSOLUTE = EPS_ERROR_ABSOLUTE
     RELATIVE = EPS_ERROR_RELATIVE
@@ -123,25 +123,25 @@ class EPSErrorType(object):
 
 class EPSWhich(object):
     """
-    EPS desired piece of spectrum
+    EPS desired part of spectrum
 
     - `LARGEST_MAGNITUDE`:  Largest magnitude (default).
-    - `LARGEST_REAL`:       Largest real parts.
-    - `LARGEST_IMAGINARY`:  Largest imaginary parts in magnitude.
     - `SMALLEST_MAGNITUDE`: Smallest magnitude.
+    - `LARGEST_REAL`:       Largest real parts.
     - `SMALLEST_REAL`:      Smallest real parts.
+    - `LARGEST_IMAGINARY`:  Largest imaginary parts in magnitude.
     - `SMALLEST_IMAGINARY`: Smallest imaginary parts in magnitude.
     - `TARGET_MAGNITUDE`:   Closest to target (in magnitude).
     - `TARGET_REAL`:        Real part closest to target.
     - `TARGET_IMAGINARY`:   Imaginary part closest to target.
     - `ALL`:                All eigenvalues in an interval.
-    - `USER`:               User defined ordering.
+    - `USER`:               User defined selection.
     """
     LARGEST_MAGNITUDE  = EPS_LARGEST_MAGNITUDE
-    LARGEST_REAL       = EPS_LARGEST_REAL
-    LARGEST_IMAGINARY  = EPS_LARGEST_IMAGINARY
     SMALLEST_MAGNITUDE = EPS_SMALLEST_MAGNITUDE
+    LARGEST_REAL       = EPS_LARGEST_REAL
     SMALLEST_REAL      = EPS_SMALLEST_REAL
+    LARGEST_IMAGINARY  = EPS_LARGEST_IMAGINARY
     SMALLEST_IMAGINARY = EPS_SMALLEST_IMAGINARY
     TARGET_MAGNITUDE   = EPS_TARGET_MAGNITUDE
     TARGET_REAL        = EPS_TARGET_REAL
@@ -153,26 +153,36 @@ class EPSConv(object):
     """
     EPS convergence test
 
-    - `ABS`:
-    - `REL`:
-    - `NORM`:
-    - `USER`:
+    - `ABS`:  Absolute convergence test.
+    - `REL`:  Convergence test relative to the eigenvalue.
+    - `NORM`: Convergence test relative to the matrix norms.
+    - `USER`: User-defined convergence test.
     """
     ABS  = EPS_CONV_ABS
     REL  = EPS_CONV_REL
     NORM = EPS_CONV_NORM
     USER = EPS_CONV_USER
 
+class EPSStop(object):
+    """
+    EPS stopping test
+
+    - `BASIC`: Default stopping test.
+    - `USER`:  User-defined stopping test.
+    """
+    BASIC = EPS_STOP_BASIC
+    USER  = EPS_STOP_USER
+
 class EPSConvergedReason(object):
     """
     EPS convergence reasons
 
-    - `CONVERGED_TOL`:
-    - `CONVERGED_USER`:
-    - `DIVERGED_ITS`:
-    - `DIVERGED_BREAKDOWN`:
-    - `DIVERGED_SYMMETRY_LOST`:
-    - `CONVERGED_ITERATING`:
+    - `CONVERGED_TOL`:          All eigenpairs converged to requested tolerance.
+    - `CONVERGED_USER`:         User-defined convergence criterion satisfied.
+    - `DIVERGED_ITS`:           Maximum number of iterations exceeded.
+    - `DIVERGED_BREAKDOWN`:     Solver failed due to breakdown.
+    - `DIVERGED_SYMMETRY_LOST`: Lanczos-type method could not preserve symmetry.
+    - `CONVERGED_ITERATING`:    Iteration not finished yet.
     """
     CONVERGED_TOL          = EPS_CONVERGED_TOL
     CONVERGED_USER         = EPS_CONVERGED_USER
@@ -186,9 +196,9 @@ class EPSPowerShiftType(object):
     """
     EPS Power shift type.
 
-    - `CONSTANT`:
-    - `RAYLEIGH`:
-    - `WILKINSON`:
+    - `CONSTANT`:  Constant shift.
+    - `RAYLEIGH`:  Rayleigh quotient.
+    - `WILKINSON`: Wilkinson shift.
     """
     CONSTANT  = EPS_POWER_SHIFT_CONSTANT
     RAYLEIGH  = EPS_POWER_SHIFT_RAYLEIGH
@@ -198,39 +208,39 @@ class EPSLanczosReorthogType(object):
     """
     EPS Lanczos reorthogonalization type
 
-    - `LOCAL`:
-    - `FULL`:
-    - `SELECTIVE`:
-    - `PERIODIC`:
-    - `PARTIAL`:
-    - `DELAYED`:
+    - `LOCAL`:     Local reorthogonalization only.
+    - `FULL`:      Full reorthogonalization.
+    - `SELECTIVE`: Selective reorthogonalization.
+    - `PERIODIC`:  Periodic reorthogonalization.
+    - `PARTIAL`:   Partial reorthogonalization.
+    - `DELAYED`:   Delayed reorthogonalization.
     """
-    LOCAL     =  EPS_LANCZOS_REORTHOG_LOCAL
-    FULL      =  EPS_LANCZOS_REORTHOG_FULL
-    SELECTIVE =  EPS_LANCZOS_REORTHOG_SELECTIVE
-    PERIODIC  =  EPS_LANCZOS_REORTHOG_PERIODIC
-    PARTIAL   =  EPS_LANCZOS_REORTHOG_PARTIAL
-    DELAYED   =  EPS_LANCZOS_REORTHOG_DELAYED
+    LOCAL     = EPS_LANCZOS_REORTHOG_LOCAL
+    FULL      = EPS_LANCZOS_REORTHOG_FULL
+    SELECTIVE = EPS_LANCZOS_REORTHOG_SELECTIVE
+    PERIODIC  = EPS_LANCZOS_REORTHOG_PERIODIC
+    PARTIAL   = EPS_LANCZOS_REORTHOG_PARTIAL
+    DELAYED   = EPS_LANCZOS_REORTHOG_DELAYED
 
 class EPSCISSQuadRule(object):
     """
     EPS CISS quadrature rule
 
-    - `TRAPEZOIDAL`:
-    - `CHEBYSHEV`:
+    - `TRAPEZOIDAL`: Trapezoidal rule.
+    - `CHEBYSHEV`:   Chebyshev points.
     """
-    TRAPEZOIDAL =  EPS_CISS_QUADRULE_TRAPEZOIDAL
-    CHEBYSHEV   =  EPS_CISS_QUADRULE_CHEBYSHEV
+    TRAPEZOIDAL = EPS_CISS_QUADRULE_TRAPEZOIDAL
+    CHEBYSHEV   = EPS_CISS_QUADRULE_CHEBYSHEV
 
 class EPSCISSExtraction(object):
     """
     EPS CISS extraction technique
 
-    - `RITZ`:
-    - `HANKEL`:
+    - `RITZ`:   Ritz extraction.
+    - `HANKEL`: Extraction via Hankel eigenproblem.
     """
-    RITZ   =  EPS_CISS_EXTRACTION_RITZ
-    HANKEL =  EPS_CISS_EXTRACTION_HANKEL
+    RITZ   = EPS_CISS_EXTRACTION_RITZ
+    HANKEL = EPS_CISS_EXTRACTION_HANKEL
 
 # -----------------------------------------------------------------------------
 
@@ -247,6 +257,7 @@ cdef class EPS(Object):
     ErrorType       = EPSErrorType
     Which           = EPSWhich
     Conv            = EPSConv
+    Stop            = EPSStop
     ConvergedReason = EPSConvergedReason
 
     PowerShiftType      = EPSPowerShiftType
@@ -2208,6 +2219,7 @@ del EPSBalance
 del EPSErrorType
 del EPSWhich
 del EPSConv
+del EPSStop
 del EPSConvergedReason
 del EPSPowerShiftType
 del EPSLanczosReorthogType

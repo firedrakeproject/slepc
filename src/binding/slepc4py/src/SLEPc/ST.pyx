@@ -4,17 +4,19 @@ class STType(object):
     """
     ST types
 
-    - `SHELL`:  User-defined.
-    - `SHIFT`:  Shift from origin.
+    - `SHELL`:   User-defined.
+    - `SHIFT`:   Shift from origin.
     - `SINVERT`: Shift-and-invert.
-    - `CAYLEY`: Cayley transform.
+    - `CAYLEY`:  Cayley transform.
     - `PRECOND`: Preconditioner.
+    - `FILTER`:  Polynomial filter.
     """
     SHELL   = S_(STSHELL)
     SHIFT   = S_(STSHIFT)
     SINVERT = S_(STSINVERT)
     CAYLEY  = S_(STCAYLEY)
     PRECOND = S_(STPRECOND)
+    FILTER  = S_(STFILTER)
 
 class STMatMode(object):
     """

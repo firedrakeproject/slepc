@@ -15,6 +15,10 @@ cdef extern from * nogil:
         FN_COMBINE_DIVIDE
         FN_COMBINE_COMPOSE
 
+    ctypedef enum SlepcFNParallelType "FNParallelType":
+        FN_PARALLEL_REDUNDANT
+        FN_PARALLEL_SYNCHRONIZED
+
     int FNCreate(MPI_Comm,SlepcFN*)
     int FNView(SlepcFN,PetscViewer)
     int FNDestroy(SlepcFN*)

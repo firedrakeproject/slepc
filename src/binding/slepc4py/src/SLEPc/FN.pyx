@@ -26,6 +26,16 @@ class FNCombineType(object):
     DIVIDE   = FN_COMBINE_DIVIDE
     COMPOSE  = FN_COMBINE_COMPOSE
 
+class FNParallelType(object):
+    """
+    FN parallel types
+
+    - `REDUNDANT`:    Every process performs the computation redundantly.
+    - `SYNCHRONIZED`: The first process sends the result to the rest.
+    """
+    REDUNDANT    = FN_PARALLEL_REDUNDANT
+    SYNCHRONIZED = FN_PARALLEL_SYNCHRONIZED
+
 # -----------------------------------------------------------------------------
 
 cdef class FN(Object):
@@ -34,8 +44,9 @@ cdef class FN(Object):
     FN
     """
 
-    Type        = FNType
-    CombineType = FNCombineType
+    Type         = FNType
+    CombineType  = FNCombineType
+    ParallelType = FNParallelType
 
     def __cinit__(self):
         self.obj = <PetscObject*> &self.fn
@@ -271,5 +282,6 @@ cdef class FN(Object):
 
 del FNType
 del FNCombineType
+del FNParallelType
 
 # -----------------------------------------------------------------------------
