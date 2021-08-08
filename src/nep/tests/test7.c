@@ -186,7 +186,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   MatCtx         *ctxF;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(fun,(void**)&ctxF);CHKERRQ(ierr);
+  ierr = MatShellGetContext(fun,&ctxF);CHKERRQ(ierr);
   ctxF->t = PetscSqrtScalar(lambda);
   PetscFunctionReturn(0);
 }
@@ -304,7 +304,7 @@ PetscErrorCode MatMult_F(Mat A,Vec x,Vec y)
   MatCtx            *ctx;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecGetSize(x,&n);CHKERRQ(ierr);
@@ -323,7 +323,7 @@ PetscErrorCode MatGetDiagonal_F(Mat A,Vec diag)
   MatCtx         *ctx;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecSet(diag,-2.0+ctx->t);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -336,7 +336,7 @@ PetscErrorCode MatDuplicate_F(Mat A,MatDuplicateOption op,Mat *B)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&actx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&actx);CHKERRQ(ierr);
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = PetscNew(&bctx);CHKERRQ(ierr);
   bctx->t = actx->t;
@@ -356,7 +356,7 @@ PetscErrorCode MatDestroy_F(Mat A)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

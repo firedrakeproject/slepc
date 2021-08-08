@@ -45,7 +45,7 @@ static PetscErrorCode MatMult_SLPTS_Right(Mat M,Vec x,Vec y)
   NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   ierr = MatMult(ctx->Jt,x,ctx->w);CHKERRQ(ierr);
   ierr = MatSolve(ctx->Ft,ctx->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -57,7 +57,7 @@ static PetscErrorCode MatMult_SLPTS_Left(Mat M,Vec x,Vec y)
   NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   ierr = MatMultTranspose(ctx->Jt,x,ctx->w);CHKERRQ(ierr);
   ierr = MatSolveTranspose(ctx->Ft,ctx->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -69,7 +69,7 @@ static PetscErrorCode MatDestroy_SLPTS(Mat M)
   NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -82,7 +82,7 @@ static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
   NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   if (right) {
     ierr = VecDuplicate(ctx->w,right);CHKERRQ(ierr);
   }
@@ -157,7 +157,7 @@ static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar la
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   if (lambda==matctx->lambda) PetscFunctionReturn(0);
   ierr = NEPComputeFunction(nep,lambda,matctx->F,matctx->F);CHKERRQ(ierr);
   if (matctx->isJ) {ierr = NEPComputeJacobian(nep,lambda,matctx->J);CHKERRQ(ierr);}
@@ -175,7 +175,7 @@ static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   if (matctx->defctx->n && !matctx->defctx->ref) {
     k = matctx->defctx->n;
     lambda = matctx->lambda;
@@ -211,7 +211,7 @@ static PetscErrorCode MatMultTranspose_NEPDeflationNE(Mat M,Vec x,Vec r)
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   t    = matctx->w[0];
   ierr = VecCopy(x,t);CHKERRQ(ierr);
   if (matctx->defctx->n && !matctx->defctx->ref) {
@@ -249,7 +249,7 @@ static PetscErrorCode MatSolve_NEPDeflationNE(Mat M,Vec b,Vec x)
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   if (!matctx->ksp) {
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
@@ -277,7 +277,7 @@ static PetscErrorCode MatSolveTranspose_NEPDeflationNE(Mat M,Vec b,Vec x)
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   if (!matctx->ksp) {
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
@@ -305,7 +305,7 @@ static PetscErrorCode MatDestroy_NEPDeflationNE(Mat M)
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->w[0]);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->w[1]);CHKERRQ(ierr);
   ierr = PetscFree(matctx);CHKERRQ(ierr);
@@ -318,7 +318,7 @@ static PetscErrorCode MatCreateVecs_NEPDeflationNE(Mat M,Vec *right,Vec *left)
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   ierr = MatCreateVecs(matctx->F,right,left);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

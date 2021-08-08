@@ -26,7 +26,7 @@ static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
   PetscScalar    nu;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&st);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&st);CHKERRQ(ierr);
   ctx = (ST_CAYLEY*)st->data;
   nu = ctx->nu;
 
@@ -53,7 +53,7 @@ static PetscErrorCode MatMultTranspose_Cayley(Mat B,Vec x,Vec y)
   PetscScalar    nu;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&st);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&st);CHKERRQ(ierr);
   ctx = (ST_CAYLEY*)st->data;
   nu = ctx->nu;
 

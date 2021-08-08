@@ -29,7 +29,7 @@ PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
   ST_MATSHELL    *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ctx->alpha = alpha;
   ierr = PetscObjectStateIncrease((PetscObject)A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -48,7 +48,7 @@ static PetscErrorCode MatMult_Shell(Mat A,Vec x,Vec y)
   PetscScalar    t=1.0,c;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   st = ctx->st;
   ierr = MatMult(st->A[ctx->matIdx[0]],x,y);CHKERRQ(ierr);
   if (ctx->coeffs && ctx->coeffs[0]!=1.0) {
@@ -77,7 +77,7 @@ static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
   PetscScalar    t=1.0,c;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   st = ctx->st;
   ierr = MatMultTranspose(st->A[ctx->matIdx[0]],x,y);CHKERRQ(ierr);
   if (ctx->coeffs && ctx->coeffs[0]!=1.0) {
@@ -107,7 +107,7 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
   PetscScalar    t=1.0,c;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   st = ctx->st;
   ierr = MatGetDiagonal(st->A[ctx->matIdx[0]],diag);CHKERRQ(ierr);
   if (ctx->coeffs && ctx->coeffs[0]!=1.0) {
@@ -136,7 +136,7 @@ static PetscErrorCode MatDestroy_Shell(Mat A)
   ST_MATSHELL    *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->z);CHKERRQ(ierr);
   ierr = PetscFree(ctx->matIdx);CHKERRQ(ierr);
   ierr = PetscFree(ctx->coeffs);CHKERRQ(ierr);

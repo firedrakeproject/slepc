@@ -438,7 +438,7 @@ static PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
   PetscInt            i;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = MatMult(ctx->A[0],x,y);CHKERRQ(ierr);
   if (ctx->coeff[0]!=1.0) { ierr = VecScale(y,ctx->coeff[0]);CHKERRQ(ierr); }
   for (i=1;i<ctx->nmat;i++) {
@@ -455,7 +455,7 @@ static PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
   PetscInt            i;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = MatMultTranspose(ctx->A[0],x,y);CHKERRQ(ierr);
   if (ctx->coeff[0]!=1.0) { ierr = VecScale(y,ctx->coeff[0]);CHKERRQ(ierr); }
   for (i=1;i<ctx->nmat;i++) {
@@ -472,7 +472,7 @@ static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
   PetscInt            i;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = MatGetDiagonal(ctx->A[0],diag);CHKERRQ(ierr);
   if (ctx->coeff[0]!=1.0) { ierr = VecScale(diag,ctx->coeff[0]);CHKERRQ(ierr); }
   for (i=1;i<ctx->nmat;i++) {
@@ -490,7 +490,7 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   PetscErrorCode      ierr;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = PetscNew(&ctxnew);CHKERRQ(ierr);
   ctxnew->nmat = ctx->nmat;
   ctxnew->maxnmat = ctx->maxnmat;
@@ -527,7 +527,7 @@ static PetscErrorCode MatDestroy_Fun(Mat A)
 
   PetscFunctionBeginUser;
   if (A) {
-    ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+    ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
     for (i=0;i<ctx->nmat;i++) {
       ierr = MatDestroy(&ctx->A[i]);CHKERRQ(ierr);
     }
@@ -546,8 +546,8 @@ static PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
   PetscBool           found;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(Y,(void**)&ctxY);CHKERRQ(ierr);
-  ierr = MatShellGetContext(X,(void**)&ctxX);CHKERRQ(ierr);
+  ierr = MatShellGetContext(Y,&ctxY);CHKERRQ(ierr);
+  ierr = MatShellGetContext(X,&ctxX);CHKERRQ(ierr);
   for (i=0;i<ctxX->nmat;i++) {
     found = PETSC_FALSE;
     for (j=0;!found&&j<ctxY->nmat;j++) {
@@ -572,7 +572,7 @@ static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
   PetscInt            i;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   for (i=0;i<ctx->nmat;i++) ctx->coeff[i] *= a;
   PetscFunctionReturn(0);
 }

@@ -146,11 +146,11 @@ PetscErrorCode MFNMonitorCancel(MFN mfn)
 
 .seealso: MFNMonitorSet()
 @*/
-PetscErrorCode MFNGetMonitorContext(MFN mfn,void **ctx)
+PetscErrorCode MFNGetMonitorContext(MFN mfn,void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  *ctx = mfn->monitorcontext[0];
+  *(void**)ctx = mfn->monitorcontext[0];
   PetscFunctionReturn(0);
 }
 

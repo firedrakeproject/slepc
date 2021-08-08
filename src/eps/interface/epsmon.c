@@ -157,11 +157,11 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
 
 .seealso: EPSMonitorSet()
 @*/
-PetscErrorCode EPSGetMonitorContext(EPS eps,void **ctx)
+PetscErrorCode EPSGetMonitorContext(EPS eps,void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  *ctx = eps->monitorcontext[0];
+  *(void**)ctx = eps->monitorcontext[0];
   PetscFunctionReturn(0);
 }
 

@@ -220,8 +220,8 @@ SLEPC_EXTERN PetscErrorCode DSNEPSetSamplingSize(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSNEPGetSamplingSize(DS,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSNEPSetRG(DS,RG);
 SLEPC_EXTERN PetscErrorCode DSNEPGetRG(DS,RG*);
-SLEPC_EXTERN PetscErrorCode DSNEPSetComputeMatrixFunction(DS,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx);
-SLEPC_EXTERN PetscErrorCode DSNEPGetComputeMatrixFunction(DS,PetscErrorCode (**fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void **ctx);
+SLEPC_EXTERN PetscErrorCode DSNEPSetComputeMatrixFunction(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*);
+SLEPC_EXTERN PetscErrorCode DSNEPGetComputeMatrixFunction(DS,PetscErrorCode (**)(DS,PetscScalar,PetscBool,DSMatType,void*),void**);
 
 SLEPC_EXTERN PetscFunctionList DSList;
 SLEPC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));

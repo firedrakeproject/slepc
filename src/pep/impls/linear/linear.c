@@ -27,7 +27,7 @@ static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
   PetscBool         flg;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   pep = ctx->pep;
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
@@ -108,7 +108,7 @@ static PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
   PetscReal         *ca,*cb,*cg;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   pep = ctx->pep;
   nmat = pep->nmat;
   deg = nmat-1;
@@ -217,7 +217,7 @@ static PetscErrorCode BackTransform_Linear(ST st,PetscInt n,PetscScalar *eigr,Pe
   ST             stctx;
 
   PetscFunctionBegin;
-  ierr = STShellGetContext(st,(void**)&ctx);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&ctx);CHKERRQ(ierr);
   ierr = PEPGetST(ctx->pep,&stctx);CHKERRQ(ierr);
   ierr = STBackTransform(stctx,n,eigr,eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -238,7 +238,7 @@ static PetscErrorCode Apply_Linear(ST st,Vec x,Vec y)
   PEP_LINEAR     *ctx;
 
   PetscFunctionBegin;
-  ierr = STShellGetContext(st,(void**)&ctx);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&ctx);CHKERRQ(ierr);
   ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -319,7 +319,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     }
     if (ctx->alpha!=1.0 || ctx->beta!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option does not support changing alpha,beta parameters of the linearization");
     ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
-    ierr = STShellSetContext(st,(PetscObject)ctx);CHKERRQ(ierr);
+    ierr = STShellSetContext(st,ctx);CHKERRQ(ierr);
     if (!transf) { ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr); }
     else { ierr = STShellSetBackTransform(st,BackTransform_Skip);CHKERRQ(ierr); }
     ierr = MatCreateVecsEmpty(pep->A[0],&ctx->w[0],&ctx->w[1]);CHKERRQ(ierr);

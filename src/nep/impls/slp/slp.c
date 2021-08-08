@@ -83,7 +83,7 @@ static PetscErrorCode MatMult_SLP(Mat M,Vec x,Vec y)
   NEP_SLP_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   ierr = MatMult(ctx->extop->MJ,x,ctx->w);CHKERRQ(ierr);
   ierr = NEPDeflationFunctionSolve(ctx->extop,ctx->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -95,7 +95,7 @@ static PetscErrorCode MatDestroy_SLP(Mat M)
   NEP_SLP_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -108,7 +108,7 @@ static PetscErrorCode MatCreateVecs_SLP(Mat M,Vec *left,Vec *right)
   NEP_SLP_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   if (right) {
     ierr = VecDuplicate(ctx->w,right);CHKERRQ(ierr);
   }

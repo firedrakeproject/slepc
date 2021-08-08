@@ -279,7 +279,7 @@ SLEPC_EXTERN PetscErrorCode PEPGetTrackAll(PEP,PetscBool*);
 SLEPC_EXTERN PetscErrorCode PEPMonitor(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
 SLEPC_EXTERN PetscErrorCode PEPMonitorSet(PEP,PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 SLEPC_EXTERN PetscErrorCode PEPMonitorCancel(PEP);
-SLEPC_EXTERN PetscErrorCode PEPGetMonitorContext(PEP,void **);
+SLEPC_EXTERN PetscErrorCode PEPGetMonitorContext(PEP,void*);
 
 SLEPC_EXTERN PetscErrorCode PEPMonitorSetFromOptions(PEP,const char[],const char[],void*,PetscBool);
 SLEPC_EXTERN PetscErrorCode PEPMonitorLGCreate(MPI_Comm,const char[],const char[],const char[],PetscInt,const char*[],int,int,int,int,PetscDrawLG*);

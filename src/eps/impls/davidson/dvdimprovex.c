@@ -282,7 +282,7 @@ static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
 
   PetscFunctionBegin;
   ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(w,NULL,&wx);CHKERRQ(ierr);
@@ -340,7 +340,7 @@ static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
 
   PetscFunctionBegin;
   ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
@@ -364,7 +364,7 @@ static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
 
   PetscFunctionBegin;
   ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
@@ -392,7 +392,7 @@ static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
   PCSide         side;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
@@ -416,7 +416,7 @@ static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
   PCSide         side;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&data);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(in,NULL,&inx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(out,NULL,&outx);CHKERRQ(ierr);
   n = data->r_e - data->r_s;
@@ -447,7 +447,7 @@ static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left)
   PetscInt       n,i;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&data);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&data);CHKERRQ(ierr);
   n = data->ksp_max_size;
   if (right) {
     ierr = PetscMalloc1(n,&r);CHKERRQ(ierr);

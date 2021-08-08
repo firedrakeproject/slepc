@@ -141,11 +141,11 @@ SLEPC_EXTERN PetscErrorCode STRegister(const char[],PetscErrorCode(*)(ST));
 
 /* --------- options specific to particular spectral transformations-------- */
 
-SLEPC_EXTERN PetscErrorCode STShellGetContext(ST st,void **ctx);
-SLEPC_EXTERN PetscErrorCode STShellSetContext(ST st,void *ctx);
-SLEPC_EXTERN PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec));
-SLEPC_EXTERN PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec));
-SLEPC_EXTERN PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*));
+SLEPC_EXTERN PetscErrorCode STShellGetContext(ST,void*);
+SLEPC_EXTERN PetscErrorCode STShellSetContext(ST,void*);
+SLEPC_EXTERN PetscErrorCode STShellSetApply(ST,PetscErrorCode (*)(ST,Vec,Vec));
+SLEPC_EXTERN PetscErrorCode STShellSetApplyTranspose(ST,PetscErrorCode (*)(ST,Vec,Vec));
+SLEPC_EXTERN PetscErrorCode STShellSetBackTransform(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*));
 
 SLEPC_EXTERN PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);

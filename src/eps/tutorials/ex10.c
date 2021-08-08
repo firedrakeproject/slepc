@@ -226,7 +226,7 @@ PetscErrorCode STApply_User(ST st,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,(void**)&shell);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&shell);CHKERRQ(ierr);
   ierr = KSPSolve(shell->ksp,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -248,7 +248,7 @@ PetscErrorCode STApplyTranspose_User(ST st,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,(void**)&shell);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&shell);CHKERRQ(ierr);
   ierr = KSPSolveTranspose(shell->ksp,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

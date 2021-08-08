@@ -969,7 +969,7 @@ PetscErrorCode MatMult_FILTLAN(Mat A,Vec x,Vec y)
   PetscInt       npoints;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&st);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&st);CHKERRQ(ierr);
   ctx = (ST_FILTER*)st->data;
   npoints = (ctx->filterInfo->filterType == 2)? 6: 4;
   ierr = FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProduct(ctx->T,x,y,ctx->baseFilter,2*ctx->baseDegree+2,ctx->intervals,npoints-1,ctx->opts->intervalWeights,ctx->polyDegree,st->work);CHKERRQ(ierr);

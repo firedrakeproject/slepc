@@ -249,7 +249,7 @@ SLEPC_EXTERN PetscErrorCode NEPGetConvergedReason(NEP,NEPConvergedReason*);
 SLEPC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
 SLEPC_EXTERN PetscErrorCode NEPMonitorSet(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 SLEPC_EXTERN PetscErrorCode NEPMonitorCancel(NEP);
-SLEPC_EXTERN PetscErrorCode NEPGetMonitorContext(NEP,void **);
+SLEPC_EXTERN PetscErrorCode NEPGetMonitorContext(NEP,void*);
 
 SLEPC_EXTERN PetscErrorCode NEPMonitorSetFromOptions(NEP,const char[],const char[],void*,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPMonitorLGCreate(MPI_Comm,const char[],const char[],const char[],PetscInt,const char*[],int,int,int,int,PetscDrawLG*);
@@ -353,7 +353,7 @@ SLEPC_EXTERN PetscErrorCode NEPInterpolSetInterpolation(NEP,PetscReal,PetscInt);
 SLEPC_EXTERN PetscErrorCode NEPInterpolGetInterpolation(NEP,PetscReal*,PetscInt*);
 
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP,PetscErrorCode (*)(NEP,PetscInt*,PetscScalar*,void*),void*);
-SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP,PetscErrorCode (**)(NEP,PetscInt*,PetscScalar*,void*),void **);
+SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP,PetscErrorCode (**)(NEP,PetscInt*,PetscScalar*,void*),void**);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetRestart(NEP,PetscReal);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetRestart(NEP,PetscReal*);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetLocking(NEP,PetscBool);

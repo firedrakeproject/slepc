@@ -26,7 +26,7 @@ static PetscErrorCode MatMult_Cyclic(Mat B,Vec x,Vec y)
   PetscInt          m;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->A,&m,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArrayWrite(y,&py);CHKERRQ(ierr);
@@ -60,7 +60,7 @@ static PetscErrorCode MatDestroy_Cyclic(Mat B)
   SVD_CYCLIC_SHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);
@@ -153,7 +153,7 @@ static PetscErrorCode MatMult_ECross(Mat B,Vec x,Vec y)
   PetscInt          mn,m,n;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->A,NULL,&n);CHKERRQ(ierr);
   ierr = VecGetLocalSize(y,&mn);CHKERRQ(ierr);
   m = mn-n;
@@ -187,7 +187,7 @@ static PetscErrorCode MatGetDiagonal_ECross(Mat B,Vec d)
   const PetscScalar *vals;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->A,NULL,&n);CHKERRQ(ierr);
   ierr = VecGetLocalSize(d,&mn);CHKERRQ(ierr);
   m = mn-n;
@@ -236,7 +236,7 @@ static PetscErrorCode MatDestroy_ECross(Mat B)
   SVD_CYCLIC_SHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->x1);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->x2);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->y1);CHKERRQ(ierr);

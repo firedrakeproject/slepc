@@ -39,7 +39,7 @@ typedef struct {
 
 .seealso: STShellSetContext()
 @*/
-PetscErrorCode STShellGetContext(ST st,void **ctx)
+PetscErrorCode STShellGetContext(ST st,void *ctx)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
@@ -48,8 +48,8 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(ctx,2);
   ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
-  if (!flg) *ctx = 0;
-  else      *ctx = ((ST_SHELL*)(st->data))->ctx;
+  if (!flg) *(void**)ctx = NULL;
+  else      *(void**)ctx = ((ST_SHELL*)(st->data))->ctx;
   PetscFunctionReturn(0);
 }
 

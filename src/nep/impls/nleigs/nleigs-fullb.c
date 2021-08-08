@@ -25,7 +25,7 @@ static PetscErrorCode MatMult_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   Vec               xx,xxx,yy,yyy,w,ww,www;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&nep);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&nep);CHKERRQ(ierr);
   ctx = (NEP_NLEIGS*)nep->data;
   beta = ctx->beta; s = ctx->s; xi = ctx->xi;
   sigma = ctx->shifts[0];
@@ -114,7 +114,7 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   Vec               xx,yy,yyy,w,z0;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&nep);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&nep);CHKERRQ(ierr);
   ctx = (NEP_NLEIGS*)nep->data;
   beta = ctx->beta; s = ctx->s; xi = ctx->xi;
   sigma = ctx->shifts[0];
@@ -209,7 +209,7 @@ static PetscErrorCode BackTransform_FullBasis(ST st,PetscInt n,PetscScalar *eigr
   NEP            nep;
 
   PetscFunctionBegin;
-  ierr = STShellGetContext(st,(void**)&nep);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&nep);CHKERRQ(ierr);
   ierr = NEPNLEIGSBackTransform((PetscObject)nep,n,eigr,eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -221,7 +221,7 @@ static PetscErrorCode Apply_FullBasis(ST st,Vec x,Vec y)
   NEP_NLEIGS     *ctx;
 
   PetscFunctionBegin;
-  ierr = STShellGetContext(st,(void**)&nep);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&nep);CHKERRQ(ierr);
   ctx = (NEP_NLEIGS*)nep->data;
   ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -234,7 +234,7 @@ static PetscErrorCode ApplyTranspose_FullBasis(ST st,Vec x,Vec y)
   NEP_NLEIGS     *ctx;
 
   PetscFunctionBegin;
-  ierr = STShellGetContext(st,(void**)&nep);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&nep);CHKERRQ(ierr);
   ctx = (NEP_NLEIGS*)nep->data;
   ierr = MatMultTranspose(ctx->A,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -265,7 +265,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
     if (!ks) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Full-basis option only implemented for Krylov-Schur");
   }
   ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
-  ierr = STShellSetContext(st,(PetscObject)nep);CHKERRQ(ierr);
+  ierr = STShellSetContext(st,nep);CHKERRQ(ierr);
   ierr = STShellSetBackTransform(st,BackTransform_FullBasis);CHKERRQ(ierr);
   ierr = KSPGetOperators(ctx->ksp[0],&Q,NULL);CHKERRQ(ierr);
   ierr = MatCreateVecsEmpty(Q,&ctx->w[0],&ctx->w[1]);CHKERRQ(ierr);
