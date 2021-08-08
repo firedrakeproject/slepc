@@ -157,11 +157,11 @@ PetscErrorCode PEPMonitorCancel(PEP pep)
 
 .seealso: PEPMonitorSet(), PEPDefaultMonitor()
 @*/
-PetscErrorCode PEPGetMonitorContext(PEP pep,void **ctx)
+PetscErrorCode PEPGetMonitorContext(PEP pep,void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  *ctx = pep->monitorcontext[0];
+  *(void**)ctx = pep->monitorcontext[0];
   PetscFunctionReturn(0);
 }
 

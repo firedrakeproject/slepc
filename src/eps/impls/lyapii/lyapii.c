@@ -97,7 +97,7 @@ static PetscErrorCode MatMult_EPSLyapIIOperator(Mat M,Vec x,Vec r)
   EPS_LYAPII_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   ierr = MatMult(matctx->S,x,r);CHKERRQ(ierr);
   ierr = BVOrthogonalizeVec(matctx->Q,r,NULL,NULL,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -109,7 +109,7 @@ static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
   EPS_LYAPII_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   ierr = MatDestroy(&matctx->S);CHKERRQ(ierr);
   ierr = PetscFree(matctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -127,7 +127,7 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 #endif
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
   ierr = MatMult(matctx->B,x,matctx->w);CHKERRQ(ierr);
@@ -162,7 +162,7 @@ static PetscErrorCode MatDestroy_EigOperator(Mat M)
   EPS_EIG_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = MatDestroy(&matctx->A);CHKERRQ(ierr);
   ierr = MatDestroy(&matctx->B);CHKERRQ(ierr);
@@ -277,7 +277,7 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
     ierr = MatShellSetOperation(*Op,MATOP_DESTROY,(void(*)(void))MatDestroy_EigOperator);CHKERRQ(ierr);
     ierr = MatCreateVecs(*Op,NULL,v0);CHKERRQ(ierr);
   } else {
-    ierr = MatShellGetContext(*Op,(void**)&matctx);CHKERRQ(ierr);
+    ierr = MatShellGetContext(*Op,&matctx);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     ierr = MatZeroEntries(matctx->A);CHKERRQ(ierr);
 #endif

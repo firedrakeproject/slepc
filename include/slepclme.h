@@ -97,7 +97,7 @@ PETSC_DEPRECATED_FUNCTION("Use LMEDenseHessLyapunovChol()") PETSC_STATIC_INLINE 
 SLEPC_EXTERN PetscErrorCode LMEMonitor(LME,PetscInt,PetscReal);
 SLEPC_EXTERN PetscErrorCode LMEMonitorSet(LME,PetscErrorCode (*)(LME,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
 SLEPC_EXTERN PetscErrorCode LMEMonitorCancel(LME);
-SLEPC_EXTERN PetscErrorCode LMEGetMonitorContext(LME,void **);
+SLEPC_EXTERN PetscErrorCode LMEGetMonitorContext(LME,void*);
 
 SLEPC_EXTERN PetscErrorCode LMEMonitorSetFromOptions(LME,const char[],const char[],void*);
 SLEPC_EXTERN PetscErrorCode LMEMonitorLGCreate(MPI_Comm,const char[],const char[],const char[],PetscInt,const char*[],int,int,int,int,PetscDrawLG*);

@@ -176,7 +176,7 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,(void**)&fold);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&fold);CHKERRQ(ierr);
   sigma = -fold->target;
   ierr = MatMult(fold->A,x,fold->w);CHKERRQ(ierr);
   ierr = VecAXPY(fold->w,sigma,x);CHKERRQ(ierr);

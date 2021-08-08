@@ -326,7 +326,7 @@ static PetscErrorCode MatMult_NEPDeflation(Mat M,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)M),&np);CHKERRMPI(ierr);
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   extop = matctx->extop;
   if (extop->ref) {
     ierr = VecZeroEntries(y);CHKERRQ(ierr);
@@ -366,7 +366,7 @@ static PetscErrorCode MatCreateVecs_NEPDeflation(Mat M,Vec *right,Vec *left)
   NEP_DEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   if (right) {
     ierr = VecDuplicate(matctx->w[0],right);CHKERRQ(ierr);
   }
@@ -382,7 +382,7 @@ static PetscErrorCode MatDestroy_NEPDeflation(Mat M)
   NEP_DEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   if (matctx->extop->szd) {
     ierr = BVDestroy(&matctx->U);CHKERRQ(ierr);
     ierr = PetscFree2(matctx->hfj,matctx->work);CHKERRQ(ierr);
@@ -457,7 +457,7 @@ static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar l
       ierr = PetscMalloc2(szd*szd,&matctx->A,szd*szd,&matctx->B);CHKERRQ(ierr);
     }
   } else {
-    ierr = MatShellGetContext(Mshell,(void**)&matctx);CHKERRQ(ierr);
+    ierr = MatShellGetContext(Mshell,&matctx);CHKERRQ(ierr);
   }
   if (ini || matctx->theta != lambda || matctx->n != extop->n) {
     if (ini || matctx->theta != lambda) {
@@ -472,7 +472,7 @@ static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar l
       if (!extop->simpU) {
         /* likely hfjp has been already computed */
         if (Mcomp) {
-          ierr = MatShellGetContext(Mcomp,(void**)&matctxC);CHKERRQ(ierr);
+          ierr = MatShellGetContext(Mcomp,&matctxC);CHKERRQ(ierr);
           if (matctxC->hfjset && matctxC->theta == lambda && matctxC->n == extop->n) {
             ierr = PetscArraycpy(matctx->hfj,matctxC->hfj,2*extop->szd*extop->szd*extop->nep->nt);CHKERRQ(ierr);
             matctx->hfjset = PETSC_TRUE;
@@ -513,7 +513,7 @@ static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar l
         ierr = BVMultInPlace(matctx->U,F,0,n);CHKERRQ(ierr);
         if (jacobian) {
           ierr = NEPDeflationComputeFunction(extop,lambda,NULL);CHKERRQ(ierr);
-          ierr = MatShellGetContext(extop->MF,(void**)&matctxC);CHKERRQ(ierr);
+          ierr = MatShellGetContext(extop->MF,&matctxC);CHKERRQ(ierr);
           ierr = BVMult(matctx->U,-1.0,1.0,matctxC->U,F);CHKERRQ(ierr);
         }
         ierr = MatDestroy(&F);CHKERRQ(ierr);
@@ -581,7 +581,7 @@ PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP extop,PetscScalar lambda)
   if (lambda!=solve->theta || n!=solve->n) {
     ierr = NEPDeflationComputeShellMat(extop,lambda,PETSC_FALSE,solve->sincf?NULL:&solve->T);CHKERRQ(ierr);
     Mshell = (solve->sincf)?extop->MF:solve->T;
-    ierr = MatShellGetContext(Mshell,(void**)&matctx);CHKERRQ(ierr);
+    ierr = MatShellGetContext(Mshell,&matctx);CHKERRQ(ierr);
     ierr = KSPSetOperators(solve->ksp,matctx->T,matctx->T);CHKERRQ(ierr);
     if (!extop->ref && n) {
       ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
@@ -657,7 +657,7 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)b),&np);CHKERRMPI(ierr);
     for (i=0;i<extop->n;i++) b2[i] = bb[nloc+i]*PetscSqrtReal(np);
     w = solve->work; w2 = solve->work+extop->n;
-    ierr = MatShellGetContext(solve->sincf?extop->MF:solve->T,(void**)&matctx);CHKERRQ(ierr);
+    ierr = MatShellGetContext(solve->sincf?extop->MF:solve->T,&matctx);CHKERRQ(ierr);
     ierr = PetscArraycpy(w2,b2,extop->n);CHKERRQ(ierr);
     ierr = BVDotVec(extop->X,x1,w);CHKERRQ(ierr);
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&snone,matctx->A,&szd_,w,&one,&sone,w2,&one));

@@ -156,11 +156,11 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
 
 .seealso: SVDMonitorSet()
 @*/
-PetscErrorCode SVDGetMonitorContext(SVD svd,void **ctx)
+PetscErrorCode SVDGetMonitorContext(SVD svd,void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  *ctx = svd->monitorcontext[0];
+  *(void**)ctx = svd->monitorcontext[0];
   PetscFunctionReturn(0);
 }
 

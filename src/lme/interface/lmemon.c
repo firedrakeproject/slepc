@@ -146,11 +146,11 @@ PetscErrorCode LMEMonitorCancel(LME lme)
 
 .seealso: LMEMonitorSet()
 @*/
-PetscErrorCode LMEGetMonitorContext(LME lme,void **ctx)
+PetscErrorCode LMEGetMonitorContext(LME lme,void *ctx)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  *ctx = lme->monitorcontext[0];
+  *(void**)ctx = lme->monitorcontext[0];
   PetscFunctionReturn(0);
 }
 

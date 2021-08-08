@@ -181,7 +181,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   MatCtx         *ctxF;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(fun,(void**)&ctxF);CHKERRQ(ierr);
+  ierr = MatShellGetContext(fun,&ctxF);CHKERRQ(ierr);
   ctxF->lambda = lambda;
   PetscFunctionReturn(0);
 }
@@ -204,7 +204,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   MatCtx         *ctxJ;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(jac,(void**)&ctxJ);CHKERRQ(ierr);
+  ierr = MatShellGetContext(jac,&ctxJ);CHKERRQ(ierr);
   ctxJ->lambda = lambda;
   PetscFunctionReturn(0);
 }
@@ -220,7 +220,7 @@ PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
   PetscReal         h;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
 
@@ -250,7 +250,7 @@ PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
   PetscReal      h;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
@@ -269,7 +269,7 @@ PetscErrorCode MatDestroy_Fun(Mat A)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -283,7 +283,7 @@ PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&actx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&actx);CHKERRQ(ierr);
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
 
   ierr = PetscNew(&bctx);CHKERRQ(ierr);
@@ -311,7 +311,7 @@ PetscErrorCode MatMult_Jac(Mat A,Vec x,Vec y)
   PetscReal         h;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
 
@@ -340,7 +340,7 @@ PetscErrorCode MatGetDiagonal_Jac(Mat A,Vec diag)
   PetscReal      h;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
@@ -358,7 +358,7 @@ PetscErrorCode MatDestroy_Jac(Mat A)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

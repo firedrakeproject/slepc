@@ -358,7 +358,7 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&np);CHKERRMPI(ierr);
-  ierr = PCShellGetContext(pc,(void**)&ctx);CHKERRQ(ierr);
+  ierr = PCShellGetContext(pc,&ctx);CHKERRQ(ierr);
   n  = ctx->n;
   if (n) {
     pjd = (PEP_JD*)ctx->pep->data;
@@ -425,7 +425,7 @@ static PetscErrorCode PCShellApply_PEPJD(PC pc,Vec x,Vec y)
 #endif
 
   PetscFunctionBegin;
-  ierr = PCShellGetContext(pc,(void**)&ctx);CHKERRQ(ierr);
+  ierr = PCShellGetContext(pc,&ctx);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(x,&sz,&xs);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(y,NULL,&ys);CHKERRQ(ierr);
   /* y = B\x apply extended PC */
@@ -756,7 +756,7 @@ static PetscErrorCode MatMult_PEPJD(Mat P,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)P),&np);CHKERRMPI(ierr);
-  ierr  = MatShellGetContext(P,(void**)&matctx);CHKERRQ(ierr);
+  ierr  = MatShellGetContext(P,&matctx);CHKERRQ(ierr);
   pjd   = (PEP_JD*)(matctx->pep->data);
   nconv = pjd->nlock;
   nmat  = matctx->pep->nmat;
@@ -889,7 +889,7 @@ static PetscErrorCode MatCreateVecs_PEPJD(Mat A,Vec *right,Vec *left)
   Vec             v[2];
 
   PetscFunctionBegin;
-  ierr  = MatShellGetContext(A,(void**)&matctx);CHKERRQ(ierr);
+  ierr  = MatShellGetContext(A,&matctx);CHKERRQ(ierr);
   pjd   = (PEP_JD*)(matctx->pep->data);
 #if !defined (PETSC_USE_COMPLEX)
   kspsf = 2;
@@ -921,7 +921,7 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
 
   PetscFunctionBegin;
   if (n) {
-    ierr = PCShellGetContext(pjd->pcshell,(void**)&pcctx);CHKERRQ(ierr);
+    ierr = PCShellGetContext(pjd->pcshell,&pcctx);CHKERRQ(ierr);
     pcctx->theta = theta;
     pcctx->n = n;
     M  = pcctx->M;
@@ -1000,8 +1000,8 @@ static PetscErrorCode PEPJDMatSetUp(PEP pep,PetscInt sz,PetscScalar *theta)
 
   PetscFunctionBegin;
   if (sz==2 && theta[1]==0.0) sz = 1;
-  ierr = MatShellGetContext(pjd->Pshell,(void**)&matctx);CHKERRQ(ierr);
-  ierr = PCShellGetContext(pjd->pcshell,(void**)&pcctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(pjd->Pshell,&matctx);CHKERRQ(ierr);
+  ierr = PCShellGetContext(pjd->pcshell,&pcctx);CHKERRQ(ierr);
   if (matctx->Pr && matctx->theta[0]==theta[0] && ((!matctx->Pi && sz==1) || (sz==2 && matctx->theta[1]==theta[1]))) {
     if (pcctx->n == pjd->nlock) PetscFunctionReturn(0);
     skipmat = PETSC_TRUE;
@@ -1260,7 +1260,7 @@ PetscErrorCode PEPJDSystemSetUp(PEP pep,PetscInt sz,PetscScalar *theta,Vec *u,Ve
 #endif
 
   PetscFunctionBegin;
-  ierr = PCShellGetContext(pjd->pcshell,(void**)&pcctx);CHKERRQ(ierr);
+  ierr = PCShellGetContext(pjd->pcshell,&pcctx);CHKERRQ(ierr);
   ierr = PEPJDMatSetUp(pep,sz,theta);CHKERRQ(ierr);
   pcctx->u[0] = u[0]; pcctx->u[1] = u[1];
   /* Compute r'. p is a work space vector */
@@ -1319,7 +1319,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
 
   /* Replace preconditioner with one containing projectors */
   ierr = PEPJDCreateShellPC(pep,ww);CHKERRQ(ierr);
-  ierr = PCShellGetContext(pjd->pcshell,(void**)&pcctx);CHKERRQ(ierr);
+  ierr = PCShellGetContext(pjd->pcshell,&pcctx);CHKERRQ(ierr);
 
   /* Create auxiliar vectors */
   ierr = BVCreateVec(pjd->V,&u[0]);CHKERRQ(ierr);
@@ -1549,7 +1549,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   ierr = KSPSetPC(ksp,pcctx->pc);CHKERRQ(ierr);
   ierr = VecDestroy(&pcctx->Bp[0]);CHKERRQ(ierr);
   ierr = VecDestroy(&pcctx->Bp[1]);CHKERRQ(ierr);
-  ierr = MatShellGetContext(pjd->Pshell,(void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(pjd->Pshell,&matctx);CHKERRQ(ierr);
   ierr = MatDestroy(&matctx->Pr);CHKERRQ(ierr);
   ierr = MatDestroy(&matctx->Pi);CHKERRQ(ierr);
   ierr = MatDestroy(&pjd->Pshell);CHKERRQ(ierr);

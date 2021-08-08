@@ -36,7 +36,7 @@ PetscErrorCode MatMult_Sinvert0(Mat S,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(S,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(S,&ctx);CHKERRQ(ierr);
   ierr = MatMult(ctx->B,x,ctx->w);CHKERRQ(ierr);
   ierr = KSPSolve(ctx->ksp,ctx->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);

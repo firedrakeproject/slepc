@@ -261,7 +261,7 @@ static PetscErrorCode MatMult_STOperator(Mat Op,Vec x,Vec y)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = MatShellGetContext(Op,&st);CHKERRQ(ierr);
   ierr = STSetUp(st);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   if (st->D) { /* with balancing */
@@ -281,7 +281,7 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = MatShellGetContext(Op,&st);CHKERRQ(ierr);
   ierr = STSetUp(st);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   if (st->D) { /* with balancing */
@@ -302,7 +302,7 @@ static PetscErrorCode MatMultHermitianTranspose_STOperator(Mat Op,Vec x,Vec y)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = MatShellGetContext(Op,&st);CHKERRQ(ierr);
   ierr = STSetUp(st);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   if (!st->wht) {
@@ -330,7 +330,7 @@ static PetscErrorCode MatMatMult_STOperator(Mat Op,Mat B,Mat C,void *ctx)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = MatShellGetContext(Op,&st);CHKERRQ(ierr);
   ierr = STSetUp(st);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_Apply,st,B,C,0);CHKERRQ(ierr);
   ierr = STApplyMat_Generic(st,B,C);CHKERRQ(ierr);

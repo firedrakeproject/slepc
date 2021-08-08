@@ -68,7 +68,7 @@ static PetscErrorCode MatDestroy_STOAR(Mat A)
   PetscErrorCode     ierr;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->t);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);

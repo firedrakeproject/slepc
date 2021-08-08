@@ -195,7 +195,7 @@ SLEPC_EXTERN PetscErrorCode SVDGetTrackAll(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDMonitor(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt);
 SLEPC_EXTERN PetscErrorCode SVDMonitorSet(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
 SLEPC_EXTERN PetscErrorCode SVDMonitorCancel(SVD);
-SLEPC_EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void **);
+SLEPC_EXTERN PetscErrorCode SVDGetMonitorContext(SVD,void*);
 
 SLEPC_EXTERN PetscErrorCode SVDMonitorSetFromOptions(SVD,const char[],const char[],void*,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDMonitorLGCreate(MPI_Comm,const char[],const char[],const char[],PetscInt,const char*[],int,int,int,int,PetscDrawLG*);

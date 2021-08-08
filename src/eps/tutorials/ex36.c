@@ -191,7 +191,7 @@ PetscErrorCode STBackTransform_Exp(ST st,PetscInt n,PetscScalar *eigr,PetscScala
 #endif
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,(void**)&mfn);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&mfn);CHKERRQ(ierr);
   ierr = MFNGetFN(mfn,&fn);CHKERRQ(ierr);
   ierr = FNGetScale(fn,&tau,&eta);CHKERRQ(ierr);
   for (j=0;j<n;j++) {
@@ -226,7 +226,7 @@ PetscErrorCode STApply_Exp(ST st,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,(void**)&mfn);CHKERRQ(ierr);
+  ierr = STShellGetContext(st,&mfn);CHKERRQ(ierr);
   ierr = MFNSolve(mfn,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

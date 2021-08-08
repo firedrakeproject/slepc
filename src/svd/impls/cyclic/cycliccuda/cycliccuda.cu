@@ -22,7 +22,7 @@ PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)
   PetscInt          m;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->A,&m,NULL);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayRead(x,&d_px);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayWrite(y,&d_py);CHKERRQ(ierr);
@@ -50,7 +50,7 @@ PetscErrorCode MatMult_ECross_CUDA(Mat B,Vec x,Vec y)
   PetscInt          mn,m,n;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->A,NULL,&n);CHKERRQ(ierr);
   ierr = VecGetLocalSize(y,&mn);CHKERRQ(ierr);
   m = mn-n;

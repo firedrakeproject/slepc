@@ -35,7 +35,7 @@ static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
   SVD_CROSS_SHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   ierr = MatMult(ctx->A,x,ctx->w);CHKERRQ(ierr);
   ierr = MatMult(ctx->AT,ctx->w,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -52,7 +52,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
   const PetscScalar *vals;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   if (!ctx->diag) {
     /* compute diagonal from rows and store in ctx->diag */
     ierr = VecDuplicate(d,&ctx->diag);CHKERRQ(ierr);
@@ -92,7 +92,7 @@ static PetscErrorCode MatDestroy_Cross(Mat B)
   SVD_CROSS_SHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->diag);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);

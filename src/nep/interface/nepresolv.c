@@ -35,7 +35,7 @@ static PetscErrorCode MatMult_Resolvent(Mat M,Vec v,Vec r)
   Vec                    x,y,z,w;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   nep = ctx->nep;
   w = nep->work[0];
   z = nep->work[1];
@@ -77,7 +77,7 @@ static PetscErrorCode MatDestroy_Resolvent(Mat M)
 
   PetscFunctionBegin;
   if (M) {
-    ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+    ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
     ierr = PetscFree4(ctx->nfactor,ctx->nfactor_avail,ctx->dots,ctx->dots_avail);CHKERRQ(ierr);
     ierr = PetscFree(ctx);CHKERRQ(ierr);
   }
@@ -131,7 +131,7 @@ PetscErrorCode NEPApplyResolvent(NEP nep,RG rg,PetscScalar omega,Vec v,Vec r)
     ierr = MatShellSetOperation(nep->resolvent,MATOP_MULT,(void(*)(void))MatMult_Resolvent);CHKERRQ(ierr);
     ierr = MatShellSetOperation(nep->resolvent,MATOP_DESTROY,(void(*)(void))MatDestroy_Resolvent);CHKERRQ(ierr);
   } else {
-    ierr = MatShellGetContext(nep->resolvent,(void**)&ctx);CHKERRQ(ierr);
+    ierr = MatShellGetContext(nep->resolvent,&ctx);CHKERRQ(ierr);
   }
   ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
