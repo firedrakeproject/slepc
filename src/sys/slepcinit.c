@@ -267,10 +267,9 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   PetscErrorCode ierr;
   PetscBool      flg;
 
-  PetscFunctionBegin;
-  if (SlepcInitializeCalled) PetscFunctionReturn(0);
-  ierr = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);CHKERRQ(ierr);
-  ierr = PetscInitialized(&flg);CHKERRQ(ierr);
+  if (SlepcInitializeCalled) return 0;
+  ierr = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);if (ierr) return ierr;
+  ierr = PetscInitialized(&flg);if (ierr) return ierr;
   if (!flg) {
     ierr = PetscInitialize(argc,args,file,help);CHKERRQ(ierr);
     SlepcBeganPetsc = PETSC_TRUE;
@@ -283,7 +282,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 
   SlepcInitializeCalled = PETSC_TRUE;
   ierr = PetscInfo(0,"SLEPc successfully started\n");CHKERRQ(ierr);
-  PetscFunctionReturn(0);
+  return 0;
 }
 
 /*@C
@@ -339,10 +338,8 @@ PetscErrorCode SlepcInitializeNoArguments(void)
 @*/
 PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
 {
-  PetscFunctionBegin;
-  PetscValidBoolPointer(isInitialized,1);
   *isInitialized = SlepcInitializeCalled;
-  PetscFunctionReturn(0);
+  return 0;
 }
 
 PETSC_EXTERN PetscBool PetscBeganMPI;
