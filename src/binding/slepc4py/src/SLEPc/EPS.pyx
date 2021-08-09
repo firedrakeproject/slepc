@@ -454,7 +454,7 @@ cdef class EPS(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
               True if two matrices were set with `setOperators()`.
         """
         cdef PetscBool tval = PETSC_FALSE
@@ -468,7 +468,7 @@ cdef class EPS(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
               True if the problem type set with `setProblemType()` was
               Hermitian.
         """
@@ -483,7 +483,7 @@ cdef class EPS(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
               True if the problem type set with `setProblemType()` was
               positive.
         """
@@ -500,7 +500,7 @@ cdef class EPS(Object):
         -------
         balance: `EPS.Balance` enumerate
                  The balancing method
-        iterations: integer
+        iterations: int
                     Number of iterations of the balancing algorithm
         cutoff: real
                 Cutoff value
@@ -520,7 +520,7 @@ cdef class EPS(Object):
         ----------
         balance: `EPS.Balance` enumerate
                  The balancing method
-        iterations: integer
+        iterations: int
                     Number of iterations of the balancing algorithm
         cutoff: real
                 Cutoff value
@@ -1345,7 +1345,7 @@ cdef class EPS(Object):
         CHKERR( EPSGetOperators(self.eps, &A, NULL) )
         CHKERR( MatCreateVecs(A, &v, NULL) )
         cdef Vec V = None
-        cdef object tmp = allocate(ncv*sizeof(Vec),<void**>&isp)
+        cdef object tmp = allocate(<size_t>ncv*sizeof(Vec),<void**>&isp)
         for i in range(ncv):
             if i == 0: isp[0] = v
             if i >= 1: CHKERR( VecDuplicate(v, &isp[i]) )
@@ -1487,7 +1487,7 @@ cdef class EPS(Object):
 
         Parameters
         ----------
-        delayed: boolean
+        delayed: bool
                  True if delayed reorthogonalization is to be used.
 
         Notes
@@ -1510,7 +1510,7 @@ cdef class EPS(Object):
 
         Returns
         -------
-        delayed: boolean
+        delayed: bool
                  True if delayed reorthogonalization is to be used.
         """
         cdef PetscBool tval = PETSC_FALSE
@@ -1890,7 +1890,7 @@ cdef class EPS(Object):
         cdef PetscInt nparts = 0
         CHKERR( EPSKrylovSchurGetPartitions(self.eps, &nparts) )
         assert n >= nparts
-        cdef tmp = allocate(n*sizeof(PetscReal),<void**>&subintarray)
+        cdef tmp = allocate(<size_t>n*sizeof(PetscReal),<void**>&subintarray)
         for i in range(n): subintarray[i] = asReal(subint[i])
         CHKERR(EPSKrylovSchurSetSubintervals(self.eps, subintarray))
         
@@ -1901,7 +1901,7 @@ cdef class EPS(Object):
 
         Parameters
         ----------
-        nrest: integer
+        nrest: int
                The number of iterations between resets.
         """
         cdef PetscInt val = asInt(nrest)
@@ -1913,7 +1913,7 @@ cdef class EPS(Object):
 
         Returns
         -------
-        nrest: integer
+        nrest: int
                The number of iterations between resets.
         """
         cdef PetscInt val = 0
@@ -1986,7 +1986,7 @@ cdef class EPS(Object):
              Number of partitions when splitting the communicator.
         bsmax: int, optional
              Maximum block size.
-        realmats: boolean, optional
+        realmats: bool, optional
              True if A and B are real.
 
         Notes
@@ -2025,7 +2025,7 @@ cdef class EPS(Object):
              Number of partitions when splitting the communicator.
         bsmax: int
              Maximum block size.
-        realmats: boolean
+        realmats: bool
              True if A and B are real.
         """
         cdef PetscInt  ival1 = 0

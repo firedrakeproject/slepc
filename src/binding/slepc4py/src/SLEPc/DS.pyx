@@ -332,8 +332,8 @@ cdef class DS(Object):
 
         Parameters
         ----------
-        comp: boolean
-              A boolean flag.
+        comp: bool
+              True means compact storage.
 
         Notes
         -----
@@ -354,7 +354,7 @@ cdef class DS(Object):
 
         Returns
         -------
-        comp: boolean
+        comp: bool
               The flag.
         """
         cdef PetscBool val = PETSC_FALSE
@@ -367,8 +367,8 @@ cdef class DS(Object):
 
         Parameters
         ----------
-        ext: boolean
-             A boolean flag.
+        ext: bool
+             True if the matrix has extra row.
 
         Notes
         -----
@@ -390,7 +390,7 @@ cdef class DS(Object):
 
         Returns
         -------
-        comp: boolean
+        comp: bool
               The flag.
         """
         cdef PetscBool val = PETSC_FALSE
@@ -403,8 +403,8 @@ cdef class DS(Object):
 
         Parameters
         ----------
-        ref: boolean
-             A boolean flag.
+        ref: bool
+             True if refined vectors must be used.
 
         Notes
         -----
@@ -426,7 +426,7 @@ cdef class DS(Object):
 
         Returns
         -------
-        comp: boolean
+        comp: bool
               The flag.
         """
         cdef PetscBool val = PETSC_FALSE
@@ -441,7 +441,7 @@ cdef class DS(Object):
         ----------
         n: integer
            The new size.
-        trim: boolean
+        trim: bool, optional
               A flag to indicate if the factorization must be trimmed.
         """
         cdef PetscInt val = asInt(n)

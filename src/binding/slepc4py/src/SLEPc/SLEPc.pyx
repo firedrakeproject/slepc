@@ -53,7 +53,7 @@ include "allocate.pxi"
 # Vile hack for raising a exception and not contaminating traceback
 
 cdef extern from *:
-    enum: PETSC_ERR_PYTHON "(-1)"
+    enum: PETSC_ERR_PYTHON
 
 cdef extern from *:
     void PyErr_SetObject(object, object)
@@ -141,9 +141,8 @@ include "slepcmfn.pxi"
 
 # -----------------------------------------------------------------------------
 
-__doc__ = \
-"""
-Scalable Library for Eigenvalue Problem Computations.
+__doc__ = u"""
+Scalable Library for Eigenvalue Problem Computations
 """
 
 DECIDE    = PETSC_DECIDE

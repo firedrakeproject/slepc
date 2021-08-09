@@ -711,7 +711,7 @@ cdef class PEP(Object):
             The scaling strategy.
         alpha: real
             The scaling factor.
-        its: integer
+        its: int
             The number of iteration of diagonal scaling.
         lbda: real
             Approximation of the wanted eigenvalues (modulus).
@@ -752,7 +752,7 @@ cdef class PEP(Object):
             The left diagonal matrix.
         Dr: Vec, optional
             The right diagonal matrix.
-        its: integer, optional
+        its: int, optional
             The number of iteration of diagonal scaling.
         lbda: real, optional
             Approximation of the wanted eigenvalues (modulus).
@@ -1109,8 +1109,8 @@ cdef class PEP(Object):
 
         Parameters
         ----------
-        flag: boolean
-            boolean flag indicating if the matrices are built explicitly .
+        flag: bool
+            Boolean flag indicating if the matrices are built explicitly .
         """
         cdef PetscBool sval = asBool(flag)
         CHKERR( PEPLinearSetExplicitMatrix(self.pep, sval) )
@@ -1122,7 +1122,7 @@ cdef class PEP(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
         """
         cdef PetscBool sval = PETSC_FALSE
         CHKERR( PEPLinearGetExplicitMatrix(self.pep, &sval) )
@@ -1413,7 +1413,7 @@ cdef class PEP(Object):
              Number of partitions when splitting the communicator.
         bsmax: int, optional
              Maximum block size.
-        realmats: boolean, optional
+        realmats: bool, optional
              True if A and B are real.
 
         Notes
@@ -1452,7 +1452,7 @@ cdef class PEP(Object):
              Number of partitions when splitting the communicator.
         bsmax: int
              Maximum block size.
-        realmats: boolean
+        realmats: bool
              True if A and B are real.
         """
         cdef PetscInt  ival1 = 0

@@ -271,7 +271,7 @@ cdef class SVD(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
               True if two matrices were set with `setOperators()`.
         """
         cdef PetscBool tval = PETSC_FALSE
@@ -287,7 +287,7 @@ cdef class SVD(Object):
 
         Returns
         -------
-        impl: boolean
+        impl: bool
               How to handle the transpose (implicitly or not).
         """
         cdef PetscBool val = PETSC_FALSE
@@ -301,7 +301,7 @@ cdef class SVD(Object):
 
         Parameters
         ----------
-        impl: boolean
+        impl: bool
               How to handle the transpose (implicitly or not).
 
         Notes
@@ -820,7 +820,7 @@ cdef class SVD(Object):
 
         Parameters
         ----------
-        flag: boolean
+        flag: bool
               True if ``H(A)`` is built explicitly.
         """
         cdef PetscBool tval = asBool(flag)
@@ -833,7 +833,7 @@ cdef class SVD(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
               True if ``H(A)`` is built explicitly.
         """
         cdef PetscBool tval = PETSC_FALSE
@@ -847,7 +847,7 @@ cdef class SVD(Object):
 
         Parameters
         ----------
-        flag: boolean
+        flag: bool
               True if the method is one-sided.
 
         Notes
@@ -868,7 +868,7 @@ cdef class SVD(Object):
 
         Parameters
         ----------
-        flag: boolean
+        flag: bool
               True if the method is one-sided.
 
         Notes

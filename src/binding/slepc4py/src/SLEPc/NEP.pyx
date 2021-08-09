@@ -781,7 +781,7 @@ cdef class NEP(Object):
              Number of partitions when splitting the communicator.
         bsmax: int, optional
              Maximum block size.
-        realmats: boolean, optional
+        realmats: bool, optional
              True if A and B are real.
 
         Notes
@@ -820,7 +820,7 @@ cdef class NEP(Object):
              Number of partitions when splitting the communicator.
         bsmax: int
              Maximum block size.
-        realmats: boolean
+        realmats: bool
              True if A and B are real.
         """
         cdef PetscInt  ival1 = 0

@@ -855,7 +855,7 @@ cdef class BV(Object):
         -------
         norm: float
             The norm of the resulting vector.
-        lindep: boolean
+        lindep: bool
             Flag indicating that refinement did not improve the
             quality of orthogonalization.
 
