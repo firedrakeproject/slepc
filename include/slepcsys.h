@@ -82,6 +82,7 @@ SLEPC_EXTERN PetscErrorCode SlepcInitializeNoArguments(void);
 SLEPC_EXTERN PetscErrorCode SlepcFinalize(void);
 SLEPC_EXTERN PetscErrorCode SlepcInitializeFortran(void);
 SLEPC_EXTERN PetscErrorCode SlepcInitialized(PetscBool*);
+SLEPC_EXTERN PetscErrorCode SlepcFinalized(PetscBool*);
 SLEPC_EXTERN PetscErrorCode SlepcGetVersion(char[],size_t);
 SLEPC_EXTERN PetscErrorCode SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode SlepcHasExternalPackage(const char[],PetscBool*);
@@ -89,6 +90,7 @@ SLEPC_EXTERN PetscErrorCode SlepcHasExternalPackage(const char[],PetscBool*);
 SLEPC_EXTERN PetscErrorCode SlepcSNPrintfScalar(char*,size_t,PetscScalar,PetscBool);
 
 SLEPC_EXTERN PetscBool SlepcInitializeCalled;
+SLEPC_EXTERN PetscBool SlepcFinalizeCalled;
 
 #if defined(PETSC_USE_COMPLEX)
 #define SlepcLogFlopsComplex(a) PetscLogFlops((a))

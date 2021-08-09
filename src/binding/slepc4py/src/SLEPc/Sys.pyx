@@ -36,4 +36,14 @@ cdef class Sys:
                     date       = date,
                     authorinfo = author)
 
+    # --- xxx ---
+
+    @classmethod
+    def isInitialized(cls):
+        return toBool(SlepcInitializeCalled)
+
+    @classmethod
+    def isFinalized(cls):
+        return toBool(SlepcFinalizeCalled)
+
 # -----------------------------------------------------------------------------
