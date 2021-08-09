@@ -34,9 +34,14 @@ cdef extern from * nogil:
 
     int FNSetScale(SlepcFN,PetscScalar,PetscScalar)
     int FNGetScale(SlepcFN,PetscScalar*,PetscScalar*)
+    int FNSetMethod(SlepcFN,PetscInt)
+    int FNGetMethod(SlepcFN,PetscInt*)
+    int FNSetParallel(SlepcFN,SlepcFNParallelType)
+    int FNGetParallel(SlepcFN,SlepcFNParallelType*)
     int FNEvaluateFunction(SlepcFN,PetscScalar,PetscScalar*)
     int FNEvaluateDerivative(SlepcFN,PetscScalar,PetscScalar*)
-    int FNEvaluateFunctionMat(SlepcFN,PetscMat,PetscMat*)
+    int FNEvaluateFunctionMat(SlepcFN,PetscMat,PetscMat)
+    int FNEvaluateFunctionMatVec(SlepcFN,PetscMat,PetscVec)
 
     int FNRationalSetNumerator(SlepcFN,PetscInt,PetscScalar[])
     int FNRationalGetNumerator(SlepcFN,PetscInt*,PetscScalar*[])
