@@ -179,6 +179,7 @@ cdef extern from "stdio.h" nogil:
 
 cdef int initialize(object args) except -1:
     if (<int>SlepcInitializeCalled): return 1
+    if (<int>SlepcFinalizeCalled):   return 0
     # initialize SLEPC
     CHKERR( SlepcInitialize(NULL, NULL, NULL, NULL) )
     # register finalization function
@@ -220,8 +221,11 @@ cdef int register(char path[]) except -1:
     return 0
 
 cdef void finalize() nogil:
-    # finalize SLEPc
     cdef int ierr = 0
+    # manage SLEPc finalization
+    if not (<int>SlepcInitializeCalled): return
+    if (<int>SlepcFinalizeCalled): return
+    # finalize SLEPc
     ierr = SlepcFinalize()
     if ierr != 0:
         fprintf(stderr, "SlepcFinalize() failed "

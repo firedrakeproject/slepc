@@ -117,8 +117,9 @@ static PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
    Indicates whether SLEPc started PETSc, or whether it was
    already started before SLEPc was initialized.
 */
-PetscBool SlepcBeganPetsc = PETSC_FALSE;
+PetscBool SlepcBeganPetsc       = PETSC_FALSE;
 PetscBool SlepcInitializeCalled = PETSC_FALSE;
+PetscBool SlepcFinalizeCalled   = PETSC_FALSE;
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES)
 static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
@@ -281,6 +282,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);
 
   SlepcInitializeCalled = PETSC_TRUE;
+  SlepcFinalizeCalled   = PETSC_FALSE;
   ierr = PetscInfo(0,"SLEPc successfully started\n");CHKERRQ(ierr);
   return 0;
 }
@@ -305,6 +307,7 @@ PetscErrorCode SlepcFinalize(void)
     ierr = PetscFinalize();
   }
   SlepcInitializeCalled = PETSC_FALSE;
+  SlepcFinalizeCalled   = PETSC_TRUE;
   PetscFunctionReturn(ierr);
 }
 
@@ -339,6 +342,19 @@ PetscErrorCode SlepcInitializeNoArguments(void)
 PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
 {
   *isInitialized = SlepcInitializeCalled;
+  return 0;
+}
+
+/*@
+   SlepcFinalized - Determine whether SlepcFinalize() has been called.
+
+   Level: developer
+
+.seealso: SlepcFinalize()
+@*/
+PetscErrorCode SlepcFinalized(PetscBool *isFinalized)
+{
+  *isFinalized = SlepcFinalizeCalled;
   return 0;
 }
 

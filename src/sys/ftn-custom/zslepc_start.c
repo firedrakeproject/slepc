@@ -57,6 +57,7 @@ PETSC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarg
 #endif
 
   SlepcInitializeCalled = PETSC_TRUE;
+  SlepcFinalizeCalled   = PETSC_FALSE;
   *ierr = PetscInfo(0,"SLEPc successfully started from Fortran\n");
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return; }
 }
@@ -71,5 +72,6 @@ SLEPC_EXTERN void slepcfinalize_(PetscErrorCode *ierr)
     if (*ierr) { (*PetscErrorPrintf)("SlepcFinalize:Calling petscfinalize_()");return; }
   }
   SlepcInitializeCalled = PETSC_FALSE;
+  SlepcFinalizeCalled   = PETSC_TRUE;
 }
 

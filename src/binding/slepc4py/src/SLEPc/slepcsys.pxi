@@ -44,6 +44,7 @@ cdef extern from * nogil:
     int SlepcInitialize(int*,char***,char[],char[])
     int SlepcFinalize()
     PetscBool SlepcInitializeCalled
+    PetscBool SlepcFinalizeCalled
 
 cdef inline PetscMatStructure matstructure(object structure) \
     except <PetscMatStructure>(-1):
