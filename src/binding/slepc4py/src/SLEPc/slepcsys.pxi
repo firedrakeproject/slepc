@@ -46,6 +46,8 @@ cdef extern from * nogil:
     PetscBool SlepcInitializeCalled
     PetscBool SlepcFinalizeCalled
 
+    int SlepcHasExternalPackage(const char[],PetscBool*)
+
 cdef inline PetscMatStructure matstructure(object structure) \
     except <PetscMatStructure>(-1):
     if   structure is None:  return MAT_DIFFERENT_NONZERO_PATTERN
