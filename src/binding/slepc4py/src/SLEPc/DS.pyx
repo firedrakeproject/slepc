@@ -203,6 +203,14 @@ cdef class DS(Object):
         """
         CHKERR( DSSetFromOptions(self.ds) )
 
+    def duplicate(self):
+        """
+        Duplicate the DS object with the same type and dimensions.
+        """
+        cdef DS ds = type(self)()
+        CHKERR( DSDuplicate(self.ds, &ds.ds) )
+        return ds
+
     #
 
     def allocate(self, ld):

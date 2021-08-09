@@ -30,6 +30,7 @@ cdef extern from * nogil:
     int BVCreate(MPI_Comm,SlepcBV*)
     int BVCreateMat(SlepcBV,PetscMat*)
     int BVDuplicate(SlepcBV,SlepcBV*)
+    int BVDuplicateResize(SlepcBV,PetscInt,SlepcBV*)
     int BVCopy(SlepcBV,SlepcBV)
     int BVView(SlepcBV,PetscViewer)
     int BVDestroy(SlepcBV*)

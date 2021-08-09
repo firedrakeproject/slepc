@@ -30,6 +30,7 @@ cdef extern from * nogil:
     int FNGetOptionsPrefix(SlepcFN,char*[])
     int FNAppendOptionsPrefix(SlepcFN,char[])
     int FNSetFromOptions(SlepcFN)
+    int FNDuplicate(SlepcFN,MPI_Comm,SlepcFN*)
 
     int FNSetScale(SlepcFN,PetscScalar,PetscScalar)
     int FNGetScale(SlepcFN,PetscScalar*,PetscScalar*)

@@ -136,6 +136,21 @@ cdef class BV(Object):
         CHKERR( BVDuplicate(self.bv, &bv.bv) )
         return bv
 
+    def duplicateResize(self, m):
+        """
+        Creates a new BV object of the same type and dimensions as
+        an existing one, but with possibly different number of columns.
+
+        Parameters
+        ----------
+        m: int
+            The number of columns.
+        """
+        cdef BV bv = type(self)()
+        cdef PetscInt ival = asInt(m)
+        CHKERR( BVDuplicateResize(self.bv, ival, &bv.bv) )
+        return bv
+
     def copy(self, BV result=None):
         if result is None:
             result = type(self)()

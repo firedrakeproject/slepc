@@ -161,6 +161,22 @@ cdef class FN(Object):
         """
         CHKERR( FNSetFromOptions(self.fn) )
 
+    def duplicate(self, comm=None):
+        """
+        Duplicate the FN object copying all parameters, possibly with a
+        different communicator.
+
+        Parameters
+        ----------
+        comm: Comm, optional
+              MPI communicator; if not provided, it defaults to the
+              object's communicator.
+        """
+        cdef MPI_Comm ccomm = def_Comm(comm, PetscObjectComm(<PetscObject>self.fn))
+        cdef FN fn = type(self)()
+        CHKERR( FNDuplicate(self.fn, ccomm, &fn.fn) )
+        return fn
+
     #
 
     def evaluateFunction(self, x):

@@ -49,6 +49,7 @@ cdef extern from * nogil:
     int DSGetOptionsPrefix(SlepcDS,char*[])
     int DSAppendOptionsPrefix(SlepcDS,char[])
     int DSSetFromOptions(SlepcDS)
+    int DSDuplicate(SlepcDS,SlepcDS*)
 
     int DSAllocate(SlepcDS,PetscInt)
     int DSGetLeadingDimension(SlepcDS,PetscInt*)
