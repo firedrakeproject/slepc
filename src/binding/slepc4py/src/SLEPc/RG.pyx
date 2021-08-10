@@ -151,13 +151,33 @@ cdef class RG(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
              True if the region is equal to the whole complex plane, e.g.,
              an interval region with all four endpoints unbounded or an
              ellipse with infinite radius.
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( RGIsTrivial(self.rg, &tval) )
+        return toBool(tval)
+
+    def isAxisymmetric(self, vertical=False):
+        """
+        Determines if the region is symmetric with respect to the real
+        or imaginary axis.
+
+        Parameters
+        ----------
+        vertical: bool, optional
+            True if symmetry must be checked against the vertical axis.
+
+        Returns
+        -------
+        symm: bool
+             True if the region is axisymmetric.
+        """
+        cdef PetscBool val = asBool(vertical)
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( RGIsAxisymmetric(self.rg, val, &tval) )
         return toBool(tval)
 
     def getComplement(self):
@@ -173,22 +193,176 @@ cdef class RG(Object):
         CHKERR( RGGetComplement(self.rg, &tval) )
         return toBool(tval)
 
-    def setComplement(self, comp):
+    def setComplement(self, comp=True):
         """
         Sets a flag to indicate that the region is the complement
         of the specified one.
 
         Parameters
         ----------
-        comp: bool
+        comp: bool, optional
             Activate/deactivate the complementation of the region.
         """
-        cdef PetscBool tval = comp
+        cdef PetscBool tval = asBool(comp)
         CHKERR( RGSetComplement(self.rg, tval) )
+
+    def setScale(self, sfactor=None):
+        """
+        Sets the scaling factor to be used when checking that a
+        point is inside the region and when computing the contour.
+
+        Parameters
+        ----------
+        sfactor: float, optional
+                 The scaling factor (default=1).
+        """
+        cdef PetscReal rval = 1.0
+        if sfactor is not None: rval = asReal(sfactor)
+        CHKERR( RGSetScale(self.rg, rval) )
+
+    def getScale(self):
+        """
+        Gets the scaling factor.
+
+        Returns
+        -------
+        sfactor: float
+                 The scaling factor.
+        """
+        cdef PetscReal rval = 0
+        CHKERR( RGGetScale(self.rg, &rval) )
+        return toReal(rval)
+
+    def checkInside(self, a):
+        """
+        Determines if a set of given points are inside the region or not.
+
+        Parameters
+        ----------
+        a: list of float (complex)
+           The coordinates of the points.
+
+        Returns
+        -------
+        inside: list of int
+                Computed result for each point (1=inside, 0=on the contour, -1=outside).
+        """
+        cdef Py_ssize_t i = 0, n = len(a)
+        cdef PetscScalar *ar = NULL, *ai = NULL
+        cdef PetscInt *inside = NULL
+        cdef tmp1 = allocate(<size_t>n*sizeof(PetscScalar),<void**>&ar)
+        cdef tmp2
+        if sizeof(PetscScalar) == sizeof(PetscReal):
+            tmp2 = allocate(<size_t>n*sizeof(PetscScalar),<void**>&ai)
+            for i in range(n):
+                ar[i] = asComplexReal(a[i])
+                ai[i] = asComplexImag(a[i])
+        else:
+            for i in range(n): ar[i] = asScalar(a[i])
+        cdef tmp3 = allocate(<size_t>n*sizeof(PetscInt),<void**>&inside)
+        CHKERR( RGCheckInside(self.rg, <PetscInt>n, ar, ai, inside) )
+        return array_i(n, inside)
+
+    def computeContour(self, n):
+        """
+        Computes the coordinates of several points lying on the contour
+        of the region.
+
+        Parameters
+        ----------
+        n: int
+           The number of points to compute.
+
+        Returns
+        -------
+        x: list of float (complex)
+           Computed points.
+        """
+        cdef PetscInt k = asInt(n), i = 0
+        cdef PetscScalar *cr = NULL, *ci = NULL
+        cdef tmp1 = allocate(<size_t>k*sizeof(PetscScalar),<void**>&cr)
+        cdef tmp2
+        if sizeof(PetscScalar) == sizeof(PetscReal):
+            tmp2 = allocate(<size_t>k*sizeof(PetscScalar),<void**>&ci)
+        CHKERR( RGComputeContour(self.rg, k, cr, ci) )
+        if sizeof(PetscScalar) == sizeof(PetscReal):
+            return [toComplex(cr[i],ci[i]) for i from 0 <= i <k]
+        else:
+            return [toScalar(cr[i]) for i from 0 <= i <k]
+
+    def computeBoundingBox(self):
+        """
+        Determines the endpoints of a rectangle in the complex plane that
+        contains the region.
+
+        Returns
+        -------
+        a: float
+           The left endpoint of the bounding box in the real axis
+        b: float
+           The right endpoint of the bounding box in the real axis
+        c: float
+           The left endpoint of the bounding box in the imaginary axis
+        d: float
+           The right endpoint of the bounding box in the imaginary axis
+        """
+        cdef PetscReal a = 0, b = 0, c = 0, d = 0
+        CHKERR( RGComputeBoundingBox(self.rg, &a, &b, &c, &d) )
+        return (toReal(a), toReal(b), toReal(c), toReal(d))
+
+    def canUseConjugates(self, realmats=True):
+        """
+        Used in contour integral methods to determine whether half of
+        integration points can be avoided (use their conjugates).
+
+        Parameters
+        ----------
+        realmats: bool, optional
+             True if the problem matrices are real.
+
+        Returns
+        -------
+        useconj: bool
+             Whether it is possible to use conjugates.
+        """
+        cdef PetscBool bval = asBool(realmats)
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( RGCanUseConjugates(self.rg, bval, &tval) )
+        return toBool(tval)
+
+    def computeQuadrature(self, quad, n):
+        """
+        Computes the values of the parameters used in a quadrature rule
+        for a contour integral around the boundary of the region.
+
+        Parameters
+        ----------
+        quad: `RG.QuadRule` enumerate
+           The type of quadrature.
+        n: int
+           The number of quadrature points to compute.
+
+        Returns
+        -------
+        z: list of float (real or complex)
+           Quadrature points.
+        zn: list of float (real or complex)
+           Normalized quadrature points.
+        w: list of float (real or complex)
+           Quadrature weights.
+        """
+        cdef SlepcRGQuadRule val = quad
+        cdef PetscInt k = asInt(n), i = 0
+        cdef PetscScalar *z = NULL, *zn = NULL, *w = NULL
+        cdef tmp1 = allocate(<size_t>k*sizeof(PetscScalar),<void**>&z)
+        cdef tmp2 = allocate(<size_t>k*sizeof(PetscScalar),<void**>&zn)
+        cdef tmp3 = allocate(<size_t>k*sizeof(PetscScalar),<void**>&w)
+        CHKERR( RGComputeQuadrature(self.rg, val, k, z, zn, w) )
+        return (array_s(k, z), array_s(k, zn), array_s(k, w))
 
     #
 
-    def setEllipseParameters(self, center, radius, vscale):
+    def setEllipseParameters(self, center, radius, vscale=None):
         """
         Sets the parameters defining the ellipse region.
 
@@ -198,12 +372,13 @@ cdef class RG(Object):
               The center.
         radius: float
               The radius.
-        vscale: float
+        vscale: float, optional
               The vertical scale.
         """
         cdef PetscScalar sval = asScalar(center)
-        cdef PetscReal val1 = radius
-        cdef PetscReal val2 = vscale
+        cdef PetscReal val1 = asReal(radius)
+        cdef PetscReal val2 = 1.0
+        if vscale is not None: val2 = asReal(vscale)
         CHKERR( RGEllipseSetParameters(self.rg, sval, val1, val2) )
 
     def getEllipseParameters(self):
@@ -240,10 +415,10 @@ cdef class RG(Object):
         d: float
               The lower endpoint in the imaginary axis.
         """
-        cdef PetscReal va = a
-        cdef PetscReal vb = b
-        cdef PetscReal vc = c
-        cdef PetscReal vd = d
+        cdef PetscReal va = asReal(a)
+        cdef PetscReal vb = asReal(b)
+        cdef PetscReal vc = asReal(c)
+        cdef PetscReal vd = asReal(d)
         CHKERR( RGIntervalSetEndpoints(self.rg, va, vb, vc, vd) )
 
     def getIntervalEndpoints(self):
@@ -267,6 +442,117 @@ cdef class RG(Object):
         cdef PetscReal vd = 0
         CHKERR( RGIntervalGetEndpoints(self.rg, &va, &vb, &vc, &vd) )
         return (toReal(va), toReal(vb), toReal(vc), toReal(vd))
+
+    def setPolygonVertices(self, v):
+        """
+        Sets the vertices that define the polygon region.
+
+        Parameters
+        ----------
+        v: list of float (complex)
+           The vertices.
+        """
+        cdef Py_ssize_t i = 0, n = len(v)
+        cdef PetscScalar *vr = NULL, *vi = NULL
+        cdef tmp1 = allocate(<size_t>n*sizeof(PetscScalar),<void**>&vr)
+        cdef tmp2
+        if sizeof(PetscScalar) == sizeof(PetscReal):
+            tmp2 = allocate(<size_t>n*sizeof(PetscScalar),<void**>&vi)
+            for i in range(n):
+                vr[i] = asComplexReal(v[i])
+                vi[i] = asComplexImag(v[i])
+        else:
+            for i in range(n): vr[i] = asScalar(v[i])
+        CHKERR( RGPolygonSetVertices(self.rg, <PetscInt>n, vr, vi) )
+
+    def getPolygonVertices(self):
+        """
+        Gets the parameters that define the interval region.
+
+        Returns
+        -------
+        v: list of float (complex)
+           The vertices.
+        """
+        cdef PetscInt n = 0
+        cdef PetscScalar *vr = NULL, *vi = NULL
+        CHKERR( RGPolygonGetVertices(self.rg, &n, &vr, &vi) )
+        if sizeof(PetscScalar) == sizeof(PetscReal):
+            v = [toComplex(vr[i],vi[i]) for i from 0 <= i <n]
+            CHKERR( PetscFree(vi) )
+        else:
+            v = [toScalar(vr[i]) for i from 0 <= i <n]
+        CHKERR( PetscFree(vr) )
+        return v
+
+    def setRingParameters(self, center, radius, vscale, start_ang, end_ang, width):
+        """
+        Sets the parameters defining the ring region.
+
+        Parameters
+        ----------
+        center: float (real or complex)
+              The center.
+        radius: float
+              The radius.
+        vscale: float
+              The vertical scale.
+        start_ang: float
+              The right-hand side angle.
+        end_ang: float
+              The left-hand side angle.
+        width: float
+              The width of the ring.
+        """
+        cdef PetscScalar sval = asScalar(center)
+        cdef PetscReal val1 = asReal(radius)
+        cdef PetscReal val2 = asReal(vscale)
+        cdef PetscReal val3 = asReal(start_ang)
+        cdef PetscReal val4 = asReal(end_ang)
+        cdef PetscReal val5 = asReal(width)
+        CHKERR( RGRingSetParameters(self.rg, sval, val1, val2, val3, val4, val5) )
+
+    def getRingParameters(self):
+        """
+        Gets the parameters that define the ring region.
+
+        Returns
+        -------
+        center: float (real or complex)
+              The center.
+        radius: float
+              The radius.
+        vscale: float
+              The vertical scale.
+        start_ang: float
+              The right-hand side angle.
+        end_ang: float
+              The left-hand side angle.
+        width: float
+              The width of the ring.
+        """
+        cdef PetscScalar sval = 0
+        cdef PetscReal val1 = 0
+        cdef PetscReal val2 = 0
+        cdef PetscReal val3 = 0
+        cdef PetscReal val4 = 0
+        cdef PetscReal val5 = 0
+        CHKERR( RGRingGetParameters(self.rg, &sval, &val1, &val2, &val3, &val4, &val5) )
+        return (toScalar(sval), toReal(val1), toReal(val2), toReal(val3), toReal(val4), toReal(val5))
+
+    #
+
+    property complement:
+        def __get__(self):
+            return self.getComplement()
+        def __set__(self, value):
+            self.setComplement(value)
+
+    property scale:
+        def __get__(self):
+            return self.getScale()
+        def __set__(self, value):
+            self.setScale(value)
 
 # -----------------------------------------------------------------------------
 
