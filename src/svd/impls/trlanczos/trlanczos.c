@@ -163,7 +163,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   DSType         dstype;
   MatZData       *zdata;
-  Mat            mats[2],nest;
+  Mat            mats[2],nest,normal;
   MatType        Atype;
   PetscBool      sametype;
 
@@ -208,9 +208,13 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     }
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z);CHKERRQ(ierr);
 
+    /* create normal equations matrix, to build the preconditioner in LSQR */
+    ierr = MatCreateNormalHermitian(lanczos->Z,&normal);CHKERRQ(ierr);
+
     if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(lanczos->ksp,lanczos->Z,lanczos->Z);CHKERRQ(ierr);
+    ierr = KSPSetOperators(lanczos->ksp,lanczos->Z,normal);CHKERRQ(ierr);
     ierr = KSPSetUp(lanczos->ksp);CHKERRQ(ierr);
+    ierr = MatDestroy(&normal);CHKERRQ(ierr);
 
     if (lanczos->oneside) { ierr = PetscInfo(svd,"Warning: one-side option is ignored in GSVD\n");CHKERRQ(ierr); }
   }

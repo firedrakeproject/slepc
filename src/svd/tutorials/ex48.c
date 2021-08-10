@@ -127,7 +127,12 @@ int main(int argc,char **argv)
       output_file: output/ex48_1.out
       test:
          suffix: 1
-         args: -svd_type trlanczos
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}}
+         TODO: does not work for largest singular values
+      test:
+         suffix: 1_spqr
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr
+         requires: suitesparse
          TODO: does not work for largest singular values
       test:
          suffix: 1_cross
@@ -142,7 +147,11 @@ int main(int argc,char **argv)
       output_file: output/ex48_2.out
       test:
          suffix: 2
-         args: -svd_type trlanczos -svd_tol 1e-10
+         args: -svd_type trlanczos -svd_tol 1e-10 -svd_trlanczos_explicitmatrix {{0 1}}
+      test:
+         suffix: 2_spqr
+         args: -svd_type trlanczos -svd_tol 1e-10 -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr
+         requires: suitesparse
       test:
          suffix: 2_cross
          args: -svd_type cross -svd_cross_explicitmatrix
