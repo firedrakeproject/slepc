@@ -29,6 +29,7 @@ cdef extern from * nogil:
 cdef extern from * nogil:
     MPI_Comm PetscObjectComm(PetscObject)
     int PetscObjectReference(PetscObject)
+    int PetscObjectDereference(PetscObject)
     int PetscObjectDestroy(PetscObject*)
     int PetscObjectTypeCompare(PetscObject,char[],PetscBool*)
 
