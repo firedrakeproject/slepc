@@ -163,7 +163,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   DSType         dstype;
   MatZData       *zdata;
-  Mat            mats[2],nest,normal;
+  Mat            mats[2],normal;
   MatType        Atype;
   PetscBool      sametype;
 
@@ -188,12 +188,11 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     if (lanczos->explicitmatrix) {
       mats[0] = svd->A;
       mats[1] = svd->B;
-      ierr = MatCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,1,NULL,mats,&nest);CHKERRQ(ierr);
+      ierr = MatCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,1,NULL,mats,&lanczos->Z);CHKERRQ(ierr);
       ierr = MatGetType(svd->A,&Atype);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)svd->B,Atype,&sametype);CHKERRQ(ierr);
       if (!sametype) Atype = MATAIJ;
-      ierr = MatConvert(nest,Atype,MAT_INITIAL_MATRIX,&lanczos->Z);CHKERRQ(ierr);
-      ierr = MatDestroy(&nest);CHKERRQ(ierr);
+      ierr = MatConvert(lanczos->Z,Atype,MAT_INPLACE_MATRIX,&lanczos->Z);CHKERRQ(ierr);
     } else {
       ierr = MatZCreateContext(svd,&zdata);CHKERRQ(ierr);
       ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+p,n,PETSC_DECIDE,PETSC_DECIDE,zdata,&lanczos->Z);CHKERRQ(ierr);
@@ -1770,7 +1769,7 @@ static PetscErrorCode SVDTRLanczosSetExplicitMatrix_TRLanczos(SVD svd,PetscBool 
 
    Input Parameters:
 +  svd      - singular value solver
--  explicit - boolean flag indicating if Z=[A;B] is built explicitly
+-  explicit - Boolean flag indicating if Z=[A;B] is built explicitly
 
    Options Database Key:
 .  -svd_trlanczos_explicitmatrix <boolean> - Indicates the boolean flag
