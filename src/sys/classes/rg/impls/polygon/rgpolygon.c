@@ -341,10 +341,10 @@ PetscErrorCode RGComputeBoundingBox_Polygon(RG rg,PetscReal *a,PetscReal *b,Pets
   PetscInt   i;
 
   PetscFunctionBegin;
-  *a =  PETSC_MAX_REAL;
-  *b = -PETSC_MAX_REAL;
-  *c =  PETSC_MAX_REAL;
-  *d = -PETSC_MAX_REAL;
+  if (a) *a =  PETSC_MAX_REAL;
+  if (b) *b = -PETSC_MAX_REAL;
+  if (c) *c =  PETSC_MAX_REAL;
+  if (d) *d = -PETSC_MAX_REAL;
   for (i=0;i<ctx->n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     if (a) *a = PetscMin(*a,PetscRealPart(ctx->vr[i]));
