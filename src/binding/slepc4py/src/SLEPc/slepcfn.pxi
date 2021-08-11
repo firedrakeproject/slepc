@@ -44,11 +44,3 @@ cdef extern from * nogil:
     int FNPhiSetIndex(SlepcFN,PetscInt)
     int FNPhiGetIndex(SlepcFN,PetscInt*)
 
-cdef object iarray_s(object array, PetscInt* size, PetscScalar** data):
-    cdef Py_ssize_t i = 0, n = len(array)
-    cdef PetscScalar *a = NULL
-    cdef object mem = allocate(n*sizeof(PetscScalar),<void**>&a)
-    for i from 0 <= i < n: a[i] = asScalar(array[i])
-    if size != NULL: size[0] = <PetscInt> n
-    if data != NULL: data[0] = a
-    return mem

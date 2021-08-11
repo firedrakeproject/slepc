@@ -117,6 +117,20 @@ cdef inline PetscScalar asScalar(object value) except? <PetscScalar>-1.0:
 cdef inline object toComplex(PetscScalar rvalue, PetscScalar ivalue):
     return complex(toScalar(rvalue),toScalar(ivalue))
 
+# --------------------------------------------------------------------
+
+# NumPy support
+# -------------
+
+include "arraynpy.pxi"
+
+import_array()
+
+IntType     = PyArray_TypeObjectFromType(NPY_PETSC_INT)
+RealType    = PyArray_TypeObjectFromType(NPY_PETSC_REAL)
+ScalarType  = PyArray_TypeObjectFromType(NPY_PETSC_SCALAR)
+ComplexType = PyArray_TypeObjectFromType(NPY_PETSC_COMPLEX)
+
 # -----------------------------------------------------------------------------
 
 cdef extern from "string.h"  nogil:
