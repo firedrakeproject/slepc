@@ -501,6 +501,31 @@ cdef class NEP(Object):
         """
         CHKERR( NEPSetRG(self.nep, rg.rg) )
 
+    def getDS(self):
+        """
+        Obtain the direct solver associated to the eigensolver.
+
+        Returns
+        -------
+        ds: DS
+            The direct solver context.
+        """
+        cdef DS ds = DS()
+        CHKERR( NEPGetDS(self.nep, &ds.ds) )
+        PetscINCREF(ds.obj)
+        return ds
+
+    def setDS(self, DS ds):
+        """
+        Associates a direct solver object to the eigensolver.
+
+        Parameters
+        ----------
+        ds: DS
+            The direct solver context.
+        """
+        CHKERR( NEPSetDS(self.nep, ds.ds) )
+
     #
 
     def setInitialSpace(self, space):

@@ -854,6 +854,31 @@ cdef class PEP(Object):
         """
         CHKERR( PEPSetRG(self.pep, rg.rg) )
 
+    def getDS(self):
+        """
+        Obtain the direct solver associated to the eigensolver.
+
+        Returns
+        -------
+        ds: DS
+            The direct solver context.
+        """
+        cdef DS ds = DS()
+        CHKERR( PEPGetDS(self.pep, &ds.ds) )
+        PetscINCREF(ds.obj)
+        return ds
+
+    def setDS(self, DS ds):
+        """
+        Associates a direct solver object to the eigensolver.
+
+        Parameters
+        ----------
+        ds: DS
+            The direct solver context.
+        """
+        CHKERR( PEPSetDS(self.pep, ds.ds) )
+
     def getOperators(self):
         """
         Gets the matrices associated with the eigenvalue problem.

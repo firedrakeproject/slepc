@@ -58,6 +58,8 @@ cdef extern from * nogil:
     int SVDIsGeneralized(SlepcSVD,PetscBool*)
     int SVDSetBV(SlepcSVD,SlepcBV,SlepcBV)
     int SVDGetBV(SlepcSVD,SlepcBV*,SlepcBV*)
+    int SVDSetDS(SlepcSVD,SlepcDS)
+    int SVDGetDS(SlepcSVD,SlepcDS*)
 
     int SVDSetOperators(SlepcSVD,PetscMat,PetscMat)
     int SVDGetOperators(SlepcSVD,PetscMat*,PetscMat*)

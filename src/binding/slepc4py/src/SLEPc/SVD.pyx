@@ -522,6 +522,31 @@ cdef class SVD(Object):
         cdef SlepcBV UBV = U.bv if U is not None else <SlepcBV>NULL
         CHKERR( SVDSetBV(self.svd, VBV, UBV) )
 
+    def getDS(self):
+        """
+        Obtain the direct solver associated to the singular value solver.
+
+        Returns
+        -------
+        ds: DS
+            The direct solver context.
+        """
+        cdef DS ds = DS()
+        CHKERR( SVDGetDS(self.svd, &ds.ds) )
+        PetscINCREF(ds.obj)
+        return ds
+
+    def setDS(self, DS ds):
+        """
+        Associates a direct solver object to the singular value solver.
+
+        Parameters
+        ----------
+        ds: DS
+            The direct solver context.
+        """
+        CHKERR( SVDSetDS(self.svd, ds.ds) )
+
     def getOperators(self):
         """
         Gets the matrices associated with the singular value problem.

@@ -98,6 +98,8 @@ cdef extern from * nogil:
     int NEPGetBV(SlepcNEP,SlepcBV*)
     int NEPSetRG(SlepcNEP,SlepcRG)
     int NEPGetRG(SlepcNEP,SlepcRG*)
+    int NEPSetDS(SlepcNEP,SlepcDS)
+    int NEPGetDS(SlepcNEP,SlepcDS*)
     int NEPSetTolerances(SlepcNEP,PetscReal,PetscInt)
     int NEPGetTolerances(SlepcNEP,PetscReal*,PetscInt*)
 
