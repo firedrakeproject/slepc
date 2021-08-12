@@ -171,8 +171,7 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
   PetscErrorCode ierr;
   KSP            ksp;
   Mat            P;
-  PetscReal      nzshift=0.0;
-  PetscScalar    dot;
+  PetscReal      nzshift=0.0,dot;
   PetscRandom    rand;
   PetscInt       nconv;
   PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
@@ -221,8 +220,8 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
         ierr = MatMult(pep->A[1],sr->v[0],sr->v[1]);CHKERRQ(ierr);
         ierr = MatMult(pep->A[2],sr->v[0],sr->v[2]);CHKERRQ(ierr);
         ierr = VecAXPY(sr->v[1],2*nzshift,sr->v[2]);CHKERRQ(ierr);
-        ierr = VecDot(sr->v[1],sr->v[0],&dot);CHKERRQ(ierr);
-        if (PetscRealPart(dot)>0.0) *inertia = 2*pep->n-*inertia;
+        ierr = VecDotRealPart(sr->v[1],sr->v[0],&dot);CHKERRQ(ierr);
+        if (dot>0.0) *inertia = 2*pep->n-*inertia;
       }
     }
   } else if (correction<0) *inertia = 2*pep->n-*inertia;
@@ -241,7 +240,8 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
   PEP            pep2;
   ST             st;
   PetscInt       nconv;
-  PetscScalar    lambda,dot;
+  PetscScalar    lambda;
+  PetscReal      dot;
   PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PEP_SR         sr=ctx->sr;
 
@@ -273,11 +273,11 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
       ierr = MatMult(pep->A[1],pep2->work[0],pep2->work[1]);CHKERRQ(ierr);
       ierr = MatMult(pep->A[2],pep2->work[0],pep2->work[2]);CHKERRQ(ierr);
       ierr = VecAXPY(pep2->work[1],2.0*lambda*pep->sfactor,pep2->work[2]);CHKERRQ(ierr);
-      ierr = VecDot(pep2->work[1],pep2->work[0],&dot);CHKERRQ(ierr);
-      ierr = PetscInfo2(pep,"lambda=%g, %s type\n",(double)PetscRealPart(lambda),(PetscRealPart(dot)>0.0)?"positive":"negative");CHKERRQ(ierr);
-      if (!sr->type) sr->type = (PetscRealPart(dot)>0.0)?1:-1;
+      ierr = VecDotRealPart(pep2->work[1],pep2->work[0],&dot);CHKERRQ(ierr);
+      ierr = PetscInfo2(pep,"lambda=%g, %s type\n",(double)PetscRealPart(lambda),(dot>0.0)?"positive":"negative");CHKERRQ(ierr);
+      if (!sr->type) sr->type = (dot>0.0)?1:-1;
       else {
-        if (sr->type*PetscRealPart(dot)<0.0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)PetscRealPart(lambda));
+        if (sr->type*dot<0.0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)PetscRealPart(lambda));
       }
     }
     pep2->st = st;
@@ -289,19 +289,15 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
 PETSC_STATIC_INLINE PetscErrorCode PEPQSliceDiscriminant(PEP pep,Vec u,Vec w,PetscReal *d,PetscReal *smas,PetscReal *smenos)
 {
   PetscReal      ap,bp,cp,dis;
-  PetscScalar    ts;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = MatMult(pep->A[0],u,w);CHKERRQ(ierr);
-  ierr = VecDot(w,u,&ts);CHKERRQ(ierr);
-  cp = PetscRealPart(ts);
+  ierr = VecDotRealPart(w,u,&cp);CHKERRQ(ierr);
   ierr = MatMult(pep->A[1],u,w);CHKERRQ(ierr);
-  ierr = VecDot(w,u,&ts);CHKERRQ(ierr);
-  bp = PetscRealPart(ts);
+  ierr = VecDotRealPart(w,u,&bp);CHKERRQ(ierr);
   ierr = MatMult(pep->A[2],u,w);CHKERRQ(ierr);
-  ierr = VecDot(w,u,&ts);CHKERRQ(ierr);
-  ap = PetscRealPart(ts);
+  ierr = VecDotRealPart(w,u,&ap);CHKERRQ(ierr);
   dis = bp*bp-4*ap*cp;
   if (dis>=0.0 && smas) {
     if (ap>0) *smas = (-bp+PetscSqrtReal(dis))/(2*ap);
