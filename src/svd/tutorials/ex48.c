@@ -147,10 +147,10 @@ int main(int argc,char **argv)
       output_file: output/ex48_2.out
       test:
          suffix: 2
-         args: -svd_type trlanczos -svd_tol 1e-10 -svd_trlanczos_explicitmatrix {{0 1}}
+         args: -svd_type trlanczos -svd_tol 1e-10 -svd_trlanczos_explicitmatrix {{0 1}} -svd_trlanczos_ksp_rtol 1e-11
       test:
          suffix: 2_spqr
-         args: -svd_type trlanczos -svd_tol 1e-10 -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr
+         args: -svd_type trlanczos -svd_tol 1e-10 -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr -svd_trlanczos_ksp_rtol 1e-11
          requires: suitesparse
       test:
          suffix: 2_cross
