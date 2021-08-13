@@ -6,12 +6,12 @@ class PEPType(object):
 
     Polynomial eigensolvers.
 
-    - `LINEAR`:       Linearization via EPS.
-    - `QARNOLDI`:     Q-Arnoldi for quadratic problems.
-    - `TOAR`:         Two-level orthogonal Arnoldi.
-    - `STOAR`:        Symmetric TOAR.
-    - `JD`:           Polynomial Jacobi-Davidson.
-    - `CISS`:         Contour integral spectrum slice.
+    - `LINEAR`:   Linearization via EPS.
+    - `QARNOLDI`: Q-Arnoldi for quadratic problems.
+    - `TOAR`:     Two-level orthogonal Arnoldi.
+    - `STOAR`:    Symmetric TOAR.
+    - `JD`:       Polynomial Jacobi-Davidson.
+    - `CISS`:     Contour integral spectrum slice.
     """
     LINEAR   = S_(PEPLINEAR)
     QARNOLDI = S_(PEPQARNOLDI)
@@ -24,12 +24,14 @@ class PEPProblemType(object):
     """
     PEP problem type
 
-    - `GENERAL`:      No structure.
-    - `HERMITIAN`:    Hermitian structure.
-    - `GYROSCOPIC`:   Hamiltonian structure.
+    - `GENERAL`:    No structure.
+    - `HERMITIAN`:  Hermitian structure.
+    - `HYPERBOLIC`: QEP with Hermitian matrices, M>0, (x'Cx)^2 > 4(x'Mx)(x'Kx).
+    - `GYROSCOPIC`: QEP with M, K  Hermitian, M>0, C skew-Hermitian.
     """
     GENERAL    = PEP_GENERAL
     HERMITIAN  = PEP_HERMITIAN
+    HYPERBOLIC = PEP_HYPERBOLIC
     GYROSCOPIC = PEP_GYROSCOPIC
 
 class PEPWhich(object):
@@ -37,10 +39,10 @@ class PEPWhich(object):
     PEP desired part of spectrum
 
     - `LARGEST_MAGNITUDE`:  Largest magnitude (default).
-    - `LARGEST_REAL`:       Largest real parts.
-    - `LARGEST_IMAGINARY`:  Largest imaginary parts in magnitude.
     - `SMALLEST_MAGNITUDE`: Smallest magnitude.
+    - `LARGEST_REAL`:       Largest real parts.
     - `SMALLEST_REAL`:      Smallest real parts.
+    - `LARGEST_IMAGINARY`:  Largest imaginary parts in magnitude.
     - `SMALLEST_IMAGINARY`: Smallest imaginary parts in magnitude.
     - `TARGET_MAGNITUDE`:   Closest to target (in magnitude).
     - `TARGET_REAL`:        Real part closest to target.
@@ -61,6 +63,16 @@ class PEPWhich(object):
     USER               = PEP_WHICH_USER
 
 class PEPBasis(object):
+    """
+    PEP basis type for the representation of the polynomial
+
+    - `MONOMIAL`:   Monomials (default).
+    - `CHEBYSHEV1`: Chebyshev polynomials of the 1st kind.
+    - `CHEBYSHEV2`: Chebyshev polynomials of the 2nd kind.
+    - `LEGENDRE`:   Legendre polynomials.
+    - `LAGUERRE`:   Laguerre polynomials.
+    - `HERMITE`:    Hermite polynomials.
+    """
     MONOMIAL   = PEP_BASIS_MONOMIAL
     CHEBYSHEV1 = PEP_BASIS_CHEBYSHEV1
     CHEBYSHEV2 = PEP_BASIS_CHEBYSHEV2
@@ -96,7 +108,7 @@ class PEPRefine(object):
 
 class PEPRefineScheme(object):
     """
-    Scheme for solving linear systems during iterative refinement
+    PEP scheme for solving linear systems during iterative refinement
 
     - `SCHUR`:    Schur complement.
     - `MBE`:      Mixed block elimination.
@@ -108,7 +120,7 @@ class PEPRefineScheme(object):
 
 class PEPExtract(object):
     """
-    Extraction strategy used to obtain eigenvectors of the PEP from the
+    PEP extraction strategy used to obtain eigenvectors of the PEP from the
     eigenvectors of the linearization
 
     - `NONE`:       Use the first block.
@@ -125,9 +137,9 @@ class PEPErrorType(object):
     """
     PEP error type to assess accuracy of computed solutions
 
-    - `ABSOLUTE`:  Absolute error.
-    - `RELATIVE`:  Relative error.
-    - `BACKWARD`:  Backward error.
+    - `ABSOLUTE`: Absolute error.
+    - `RELATIVE`: Relative error.
+    - `BACKWARD`: Backward error.
     """
     ABSOLUTE = PEP_ERROR_ABSOLUTE
     RELATIVE = PEP_ERROR_RELATIVE
@@ -137,26 +149,36 @@ class PEPConv(object):
     """
     PEP convergence test
 
-    - `ABS`:
-    - `REL`:
-    - `NORM`:
-    - `USER`:
+    - `ABS`:  Absolute convergence test.
+    - `REL`:  Convergence test relative to the eigenvalue.
+    - `NORM`: Convergence test relative to the matrix norms.
+    - `USER`: User-defined convergence test.
     """
     ABS  = PEP_CONV_ABS
     REL  = PEP_CONV_REL
     NORM = PEP_CONV_NORM
     USER = PEP_CONV_USER
 
+class PEPStop(object):
+    """
+    PEP stopping test
+
+    - `BASIC`: Default stopping test.
+    - `USER`:  User-defined stopping test.
+    """
+    BASIC = PEP_STOP_BASIC
+    USER  = PEP_STOP_USER
+
 class PEPConvergedReason(object):
     """
     PEP convergence reasons
 
-    - `CONVERGED_TOL`:
-    - `CONVERGED_USER`:
-    - `DIVERGED_ITS`:
-    - `DIVERGED_BREAKDOWN`:
-    - `DIVERGED_SYMMETRY_LOST`:
-    - `CONVERGED_ITERATING`:
+    - `CONVERGED_TOL`:          All eigenpairs converged to requested tolerance.
+    - `CONVERGED_USER`:         User-defined convergence criterion satisfied.
+    - `DIVERGED_ITS`:           Maximum number of iterations exceeded.
+    - `DIVERGED_BREAKDOWN`:     Solver failed due to breakdown.
+    - `DIVERGED_SYMMETRY_LOST`: Lanczos-type method could not preserve symmetry.
+    - `CONVERGED_ITERATING`:    Iteration not finished yet.
     """
     CONVERGED_TOL          = PEP_CONVERGED_TOL
     CONVERGED_USER         = PEP_CONVERGED_USER
@@ -166,17 +188,27 @@ class PEPConvergedReason(object):
     CONVERGED_ITERATING    = PEP_CONVERGED_ITERATING
     ITERATING              = PEP_CONVERGED_ITERATING
 
+class PEPJDProjection(object):
+    """
+    PEP type of projection to be used in the Jacobi-Davidson solver
+
+    - `HARMONIC`:   Harmonic projection.
+    - `ORTHOGONAL`: Orthogonal projection.
+    """
+    HARMONIC   = PEP_JD_PROJECTION_HARMONIC
+    ORTHOGONAL = PEP_JD_PROJECTION_ORTHOGONAL
+
 class PEPCISSExtraction(object):
     """
     PEP CISS extraction technique
 
-    - `RITZ`:
-    - `HANKEL`:
-    - `CAA`:
+    - `RITZ`:   Ritz extraction.
+    - `HANKEL`: Extraction via Hankel eigenproblem.
+    - `CAA`:    Communication-avoiding Arnoldi.
     """
-    RITZ   =  PEP_CISS_EXTRACTION_RITZ
-    HANKEL =  PEP_CISS_EXTRACTION_HANKEL
-    CAA    =  PEP_CISS_EXTRACTION_CAA
+    RITZ   = PEP_CISS_EXTRACTION_RITZ
+    HANKEL = PEP_CISS_EXTRACTION_HANKEL
+    CAA    = PEP_CISS_EXTRACTION_CAA
 
 # -----------------------------------------------------------------------------
 
@@ -196,8 +228,10 @@ cdef class PEP(Object):
     Extract         = PEPExtract
     ErrorType       = PEPErrorType
     Conv            = PEPConv
+    Stop            = PEPStop
     ConvergedReason = PEPConvergedReason
 
+    JDProjection    = PEPJDProjection
     CISSExtraction  = PEPCISSExtraction
 
     def __cinit__(self):
@@ -711,7 +745,7 @@ cdef class PEP(Object):
             The scaling strategy.
         alpha: real
             The scaling factor.
-        its: integer
+        its: int
             The number of iteration of diagonal scaling.
         lbda: real
             Approximation of the wanted eigenvalues (modulus).
@@ -752,7 +786,7 @@ cdef class PEP(Object):
             The left diagonal matrix.
         Dr: Vec, optional
             The right diagonal matrix.
-        its: integer, optional
+        its: int, optional
             The number of iteration of diagonal scaling.
         lbda: real, optional
             Approximation of the wanted eigenvalues (modulus).
@@ -819,6 +853,31 @@ cdef class PEP(Object):
             The region context.
         """
         CHKERR( PEPSetRG(self.pep, rg.rg) )
+
+    def getDS(self):
+        """
+        Obtain the direct solver associated to the eigensolver.
+
+        Returns
+        -------
+        ds: DS
+            The direct solver context.
+        """
+        cdef DS ds = DS()
+        CHKERR( PEPGetDS(self.pep, &ds.ds) )
+        PetscINCREF(ds.obj)
+        return ds
+
+    def setDS(self, DS ds):
+        """
+        Associates a direct solver object to the eigensolver.
+
+        Parameters
+        ----------
+        ds: DS
+            The direct solver context.
+        """
+        CHKERR( PEPSetDS(self.pep, ds.ds) )
 
     def getOperators(self):
         """
@@ -1109,8 +1168,8 @@ cdef class PEP(Object):
 
         Parameters
         ----------
-        flag: boolean
-            boolean flag indicating if the matrices are built explicitly .
+        flag: bool
+            Boolean flag indicating if the matrices are built explicitly .
         """
         cdef PetscBool sval = asBool(flag)
         CHKERR( PEPLinearSetExplicitMatrix(self.pep, sval) )
@@ -1122,7 +1181,7 @@ cdef class PEP(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
         """
         cdef PetscBool sval = PETSC_FALSE
         CHKERR( PEPLinearGetExplicitMatrix(self.pep, &sval) )
@@ -1413,7 +1472,7 @@ cdef class PEP(Object):
              Number of partitions when splitting the communicator.
         bsmax: int, optional
              Maximum block size.
-        realmats: boolean, optional
+        realmats: bool, optional
              True if A and B are real.
 
         Notes
@@ -1452,7 +1511,7 @@ cdef class PEP(Object):
              Number of partitions when splitting the communicator.
         bsmax: int
              Maximum block size.
-        realmats: boolean
+        realmats: bool
              True if A and B are real.
         """
         cdef PetscInt  ival1 = 0
@@ -1563,7 +1622,9 @@ del PEPRefineScheme
 del PEPExtract
 del PEPErrorType
 del PEPConv
+del PEPStop
 del PEPConvergedReason
+del PEPJDProjection
 del PEPCISSExtraction
 
 # -----------------------------------------------------------------------------

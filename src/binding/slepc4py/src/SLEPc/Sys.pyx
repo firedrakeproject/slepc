@@ -46,4 +46,14 @@ cdef class Sys:
     def isFinalized(cls):
         return toBool(SlepcFinalizeCalled)
 
+    # --- xxx ---
+
+    @classmethod
+    def hasExternalPackage(cls, package):
+        cdef const char *cpackage = NULL
+        package = str2bytes(package, &cpackage)
+        cdef PetscBool has = PETSC_FALSE
+        CHKERR( SlepcHasExternalPackage(cpackage, &has) )
+        return toBool(has)
+
 # -----------------------------------------------------------------------------

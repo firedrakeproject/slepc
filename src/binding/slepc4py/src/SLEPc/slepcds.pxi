@@ -33,6 +33,11 @@ cdef extern from * nogil:
         DS_MAT_W
         DS_NUM_MAT
 
+    ctypedef enum SlepcDSParallelType "DSParallelType":
+        DS_PARALLEL_REDUNDANT
+        DS_PARALLEL_SYNCHRONIZED
+        DS_PARALLEL_DISTRIBUTED
+
     int DSCreate(MPI_Comm,SlepcDS*)
     int DSView(SlepcDS,PetscViewer)
     int DSDestroy(SlepcDS*)
@@ -44,6 +49,7 @@ cdef extern from * nogil:
     int DSGetOptionsPrefix(SlepcDS,char*[])
     int DSAppendOptionsPrefix(SlepcDS,char[])
     int DSSetFromOptions(SlepcDS)
+    int DSDuplicate(SlepcDS,SlepcDS*)
 
     int DSAllocate(SlepcDS,PetscInt)
     int DSGetLeadingDimension(SlepcDS,PetscInt*)
@@ -52,8 +58,12 @@ cdef extern from * nogil:
     int DSSetDimensions(SlepcDS,PetscInt,PetscInt,PetscInt)
     int DSGetDimensions(SlepcDS,PetscInt*,PetscInt*,PetscInt*,PetscInt*)
     int DSTruncate(SlepcDS,PetscInt,PetscBool)
+    int DSSetBlockSize(SlepcDS,PetscInt)
+    int DSGetBlockSize(SlepcDS,PetscInt*)
     int DSSetMethod(SlepcDS,PetscInt)
     int DSGetMethod(SlepcDS,PetscInt*)
+    int DSSetParallel(SlepcDS,SlepcDSParallelType)
+    int DSGetParallel(SlepcDS,SlepcDSParallelType*)
     int DSSetCompact(SlepcDS,PetscBool)
     int DSGetCompact(SlepcDS,PetscBool*)
     int DSSetExtraRow(SlepcDS,PetscBool)
@@ -62,10 +72,7 @@ cdef extern from * nogil:
     int DSGetRefined(SlepcDS,PetscBool*)
     int DSGetMat(SlepcDS,SlepcDSMatType,PetscMat*)
     int DSRestoreMat(SlepcDS,SlepcDSMatType,PetscMat*)
-    int DSGetArray(SlepcDS,SlepcDSMatType,PetscScalar *a[])
-    int DSRestoreArray(SlepcDS,SlepcDSMatType,PetscScalar *a[])
-    int DSGetArrayReal(SlepcDS,SlepcDSMatType,PetscReal *a[])
-    int DSRestoreArrayReal(SlepcDS,SlepcDSMatType,PetscReal *a[])
+    int DSSetIdentity(SlepcDS,SlepcDSMatType)
     int DSVectors(SlepcDS,SlepcDSMatType,PetscInt*,PetscReal*)
     int DSSolve(SlepcDS,PetscScalar*,PetscScalar*)
     int DSSort(SlepcDS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*)
@@ -73,4 +80,16 @@ cdef extern from * nogil:
     int DSCond(SlepcDS,PetscReal*)
     int DSTranslateHarmonic(SlepcDS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*)
     int DSTranslateRKS(SlepcDS,PetscScalar)
+    int DSCond(SlepcDS,PetscReal*)
     int DSNormalize(SlepcDS,SlepcDSMatType,PetscInt)
+
+    int DSSVDSetDimensions(SlepcDS,PetscInt)
+    int DSSVDGetDimensions(SlepcDS,PetscInt*)
+    int DSGSVDSetDimensions(SlepcDS,PetscInt,PetscInt)
+    int DSGSVDGetDimensions(SlepcDS,PetscInt*,PetscInt*)
+
+    int DSPEPSetDegree(SlepcDS,PetscInt)
+    int DSPEPGetDegree(SlepcDS,PetscInt*)
+    int DSPEPSetCoefficients(SlepcDS,PetscReal*)
+    int DSPEPGetCoefficients(SlepcDS,PetscReal**)
+

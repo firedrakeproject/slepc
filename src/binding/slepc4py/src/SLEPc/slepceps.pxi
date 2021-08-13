@@ -70,6 +70,10 @@ cdef extern from * nogil:
         EPS_CONV_NORM
         EPS_CONV_USER
 
+    ctypedef enum SlepcEPSStop "EPSStop":
+        EPS_STOP_BASIC
+        EPS_STOP_USER
+
     ctypedef enum SlepcEPSConvergedReason "EPSConvergedReason":
         EPS_CONVERGED_TOL
         EPS_CONVERGED_USER

@@ -8,6 +8,10 @@ cdef extern from * nogil:
     SlepcNEPType NEPINTERPOL
     SlepcNEPType NEPNLEIGS
 
+    ctypedef enum SlepcNEPProblemType "NEPProblemType":
+        NEP_GENERAL
+        NEP_RATIONAL
+
     ctypedef enum SlepcNEPWhich "NEPWhich":
         NEP_LARGEST_MAGNITUDE
         NEP_SMALLEST_MAGNITUDE
@@ -36,12 +40,23 @@ cdef extern from * nogil:
         NEP_REFINE_SCHEME_MBE
         NEP_REFINE_SCHEME_EXPLICIT
 
+    ctypedef enum SlepcNEPConv "NEPConv":
+        NEP_CONV_ABS
+        NEP_CONV_REL
+        NEP_CONV_NORM
+        NEP_CONV_USER
+
+    ctypedef enum SlepcNEPStop "NEPStop":
+        NEP_STOP_BASIC
+        NEP_STOP_USER
+
     ctypedef enum SlepcNEPConvergedReason "NEPConvergedReason":
         NEP_CONVERGED_TOL
         NEP_CONVERGED_USER
         NEP_DIVERGED_ITS
         NEP_DIVERGED_BREAKDOWN
         NEP_DIVERGED_LINEAR_SOLVE
+        NEP_DIVERGED_SUBSPACE_EXHAUSTED
         NEP_CONVERGED_ITERATING
 
     ctypedef int (*SlepcNEPFunction)(SlepcNEP,
@@ -83,6 +98,8 @@ cdef extern from * nogil:
     int NEPGetBV(SlepcNEP,SlepcBV*)
     int NEPSetRG(SlepcNEP,SlepcRG)
     int NEPGetRG(SlepcNEP,SlepcRG*)
+    int NEPSetDS(SlepcNEP,SlepcDS)
+    int NEPGetDS(SlepcNEP,SlepcDS*)
     int NEPSetTolerances(SlepcNEP,PetscReal,PetscInt)
     int NEPGetTolerances(SlepcNEP,PetscReal*,PetscInt*)
 

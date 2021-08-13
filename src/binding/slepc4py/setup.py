@@ -95,10 +95,19 @@ def get_ext_modules(Extension):
         petsc4py_includes = [petsc4py.get_include()]
     except ImportError:
         petsc4py_includes = []
+    numpy_include = os.environ.get('NUMPY_INCLUDE')
+    if numpy_include is not None:
+        numpy_includes = [numpy_include]
+    else:
+        try:
+            import numpy
+            numpy_includes = [numpy.get_include()]
+        except ImportError:
+            numpy_includes = []
     return [Extension('slepc4py.lib.SLEPc',
                       sources=['src/SLEPc.c',],
                       include_dirs=['src/include',
-                                    ] + petsc4py_includes,
+                                    ] + petsc4py_includes + numpy_includes,
                       depends=depends)]
 
 # --------------------------------------------------------------------

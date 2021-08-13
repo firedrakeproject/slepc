@@ -23,6 +23,17 @@ cdef extern from * nogil:
         SVD_ERROR_ABSOLUTE
         SVD_ERROR_RELATIVE
 
+    ctypedef enum SlepcSVDConv "SVDConv":
+        SVD_CONV_ABS
+        SVD_CONV_REL
+        SVD_CONV_NORM
+        SVD_CONV_MAXIT
+        SVD_CONV_USER
+
+    ctypedef enum SlepcSVDStop "SVDStop":
+        SVD_STOP_BASIC
+        SVD_STOP_USER
+
     ctypedef enum SlepcSVDConvergedReason "SVDConvergedReason":
         SVD_CONVERGED_TOL
         SVD_CONVERGED_USER
@@ -47,6 +58,8 @@ cdef extern from * nogil:
     int SVDIsGeneralized(SlepcSVD,PetscBool*)
     int SVDSetBV(SlepcSVD,SlepcBV,SlepcBV)
     int SVDGetBV(SlepcSVD,SlepcBV*,SlepcBV*)
+    int SVDSetDS(SlepcSVD,SlepcDS)
+    int SVDGetDS(SlepcSVD,SlepcDS*)
 
     int SVDSetOperators(SlepcSVD,PetscMat,PetscMat)
     int SVDGetOperators(SlepcSVD,PetscMat*,PetscMat*)
@@ -84,3 +97,9 @@ cdef extern from * nogil:
     int SVDLanczosSetOneSide(SlepcSVD,PetscBool)
 
     int SVDTRLanczosSetOneSide(SlepcSVD,PetscBool)
+
+    ctypedef enum SlepcSVDTRLanczosGBidiag "SVDTRLanczosGBidiag":
+        SVD_TRLANCZOS_GBIDIAG_SINGLE
+        SVD_TRLANCZOS_GBIDIAG_UPPER
+        SVD_TRLANCZOS_GBIDIAG_LOWER
+

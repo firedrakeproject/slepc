@@ -4,11 +4,12 @@ class SVDType(object):
     """
     SVD types
 
-    - `CROSS`:     Eigenproblem with the cross-product matrix.
-    - `CYCLIC`:    Eigenproblem with the cyclic matrix.
-    - `LAPACK`:    Wrappers to dense SVD solvers in Lapack.
-    - `LANCZOS`:   Lanczos.
-    - `TRLANCZOS`: Thick-restart Lanczos.
+    - `CROSS`:      Eigenproblem with the cross-product matrix.
+    - `CYCLIC`:     Eigenproblem with the cyclic matrix.
+    - `LAPACK`:     Wrappers to dense SVD solvers in Lapack.
+    - `LANCZOS`:    Lanczos.
+    - `TRLANCZOS`:  Thick-restart Lanczos.
+    - `RANDOMIZED`: Iterative RSVD for low-rank matrices.
 
     Wrappers to external SVD solvers
     (should be enabled during installation of SLEPc)
@@ -41,31 +42,58 @@ class SVDErrorType(object):
     """
     SVD error type to assess accuracy of computed solutions
 
-    - `ABSOLUTE`:  Absolute error.
-    - `RELATIVE`:  Relative error.
+    - `ABSOLUTE`: Absolute error.
+    - `RELATIVE`: Relative error.
     """
     ABSOLUTE = SVD_ERROR_ABSOLUTE
     RELATIVE = SVD_ERROR_RELATIVE
 
 class SVDWhich(object):
     """
-    SVD desired piece of spectrum
+    SVD desired part of spectrum
 
-    - `LARGEST`:  largest singular values.
-    - `SMALLEST`: smallest singular values.
+    - `LARGEST`:  Largest singular values.
+    - `SMALLEST`: Smallest singular values.
     """
     LARGEST  = SVD_LARGEST
     SMALLEST = SVD_SMALLEST
+
+class SVDConv(object):
+    """
+    SVD convergence test
+
+    - `ABS`:   Absolute convergence test.
+    - `REL`:   Convergence test relative to the singular value.
+    - `NORM`:  Convergence test relative to the matrix norms.
+    - `MAXIT`: No convergence until maximum number of iterations has been reached.
+    - `USER`:  User-defined convergence test.
+    """
+    ABS   = SVD_CONV_ABS
+    REL   = SVD_CONV_REL
+    NORM  = SVD_CONV_NORM
+    MAXIT = SVD_CONV_MAXIT
+    USER  = SVD_CONV_USER
+
+class SVDStop(object):
+    """
+    SVD stopping test
+
+    - `BASIC`: Default stopping test.
+    - `USER`:  User-defined stopping test.
+    """
+    BASIC = SVD_STOP_BASIC
+    USER  = SVD_STOP_USER
 
 class SVDConvergedReason(object):
     """
     SVD convergence reasons
 
-    - `CONVERGED_TOL`:
-    - `CONVERGED_USER`:
-    - `DIVERGED_ITS`:
-    - `DIVERGED_BREAKDOWN`:
-    - `CONVERGED_ITERATING`:
+    - `CONVERGED_TOL`:       All eigenpairs converged to requested tolerance.
+    - `CONVERGED_USER`:      User-defined convergence criterion satisfied.
+    - `CONVERGED_MAXIT`:     Maximum iterations completed in case MAXIT convergence criterion.
+    - `DIVERGED_ITS`:        Maximum number of iterations exceeded.
+    - `DIVERGED_BREAKDOWN`:  Solver failed due to breakdown.
+    - `CONVERGED_ITERATING`: Iteration not finished yet.
     """
     CONVERGED_TOL       = SVD_CONVERGED_TOL
     CONVERGED_USER      = SVD_CONVERGED_USER
@@ -74,6 +102,18 @@ class SVDConvergedReason(object):
     DIVERGED_BREAKDOWN  = SVD_DIVERGED_BREAKDOWN
     CONVERGED_ITERATING = SVD_CONVERGED_ITERATING
     ITERATING           = SVD_CONVERGED_ITERATING
+
+class SVDTRLanczosGBidiag(object):
+    """
+    SVD TRLanczos bidiagonalization choices for the GSVD case
+
+    - `SINGLE`: Single bidiagonalization (Qa).
+    - `UPPER`:  Joint bidiagonalization, both Qa and Qb in upper bidiagonal form.
+    - `LOWER`:  Joint bidiagonalization, Qa lower bidiagonal, Qb upper bidiagonal.
+    """
+    SINGLE = SVD_TRLANCZOS_GBIDIAG_SINGLE
+    UPPER  = SVD_TRLANCZOS_GBIDIAG_UPPER
+    LOWER  = SVD_TRLANCZOS_GBIDIAG_LOWER
 
 # -----------------------------------------------------------------------------
 
@@ -87,7 +127,11 @@ cdef class SVD(Object):
     ProblemType     = SVDProblemType
     ErrorType       = SVDErrorType
     Which           = SVDWhich
+    Conv            = SVDConv
+    Stop            = SVDStop
     ConvergedReason = SVDConvergedReason
+
+    TRLanczosGBidiag = SVDTRLanczosGBidiag
 
     def __cinit__(self):
         self.obj = <PetscObject*> &self.svd
@@ -271,7 +315,7 @@ cdef class SVD(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
               True if two matrices were set with `setOperators()`.
         """
         cdef PetscBool tval = PETSC_FALSE
@@ -287,7 +331,7 @@ cdef class SVD(Object):
 
         Returns
         -------
-        impl: boolean
+        impl: bool
               How to handle the transpose (implicitly or not).
         """
         cdef PetscBool val = PETSC_FALSE
@@ -301,7 +345,7 @@ cdef class SVD(Object):
 
         Parameters
         ----------
-        impl: boolean
+        impl: bool
               How to handle the transpose (implicitly or not).
 
         Notes
@@ -477,6 +521,31 @@ cdef class SVD(Object):
         cdef SlepcBV VBV = V.bv
         cdef SlepcBV UBV = U.bv if U is not None else <SlepcBV>NULL
         CHKERR( SVDSetBV(self.svd, VBV, UBV) )
+
+    def getDS(self):
+        """
+        Obtain the direct solver associated to the singular value solver.
+
+        Returns
+        -------
+        ds: DS
+            The direct solver context.
+        """
+        cdef DS ds = DS()
+        CHKERR( SVDGetDS(self.svd, &ds.ds) )
+        PetscINCREF(ds.obj)
+        return ds
+
+    def setDS(self, DS ds):
+        """
+        Associates a direct solver object to the singular value solver.
+
+        Parameters
+        ----------
+        ds: DS
+            The direct solver context.
+        """
+        CHKERR( SVDSetDS(self.svd, ds.ds) )
 
     def getOperators(self):
         """
@@ -820,7 +889,7 @@ cdef class SVD(Object):
 
         Parameters
         ----------
-        flag: boolean
+        flag: bool
               True if ``H(A)`` is built explicitly.
         """
         cdef PetscBool tval = asBool(flag)
@@ -833,7 +902,7 @@ cdef class SVD(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
               True if ``H(A)`` is built explicitly.
         """
         cdef PetscBool tval = PETSC_FALSE
@@ -847,7 +916,7 @@ cdef class SVD(Object):
 
         Parameters
         ----------
-        flag: boolean
+        flag: bool
               True if the method is one-sided.
 
         Notes
@@ -868,7 +937,7 @@ cdef class SVD(Object):
 
         Parameters
         ----------
-        flag: boolean
+        flag: bool
               True if the method is one-sided.
 
         Notes
@@ -921,6 +990,9 @@ del SVDType
 del SVDProblemType
 del SVDErrorType
 del SVDWhich
+del SVDConv
+del SVDStop
 del SVDConvergedReason
+del SVDTRLanczosGBidiag
 
 # -----------------------------------------------------------------------------

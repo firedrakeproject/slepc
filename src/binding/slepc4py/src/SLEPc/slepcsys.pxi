@@ -29,6 +29,7 @@ cdef extern from * nogil:
 cdef extern from * nogil:
     MPI_Comm PetscObjectComm(PetscObject)
     int PetscObjectReference(PetscObject)
+    int PetscObjectDereference(PetscObject)
     int PetscObjectDestroy(PetscObject*)
     int PetscObjectTypeCompare(PetscObject,char[],PetscBool*)
 
@@ -45,6 +46,8 @@ cdef extern from * nogil:
     int SlepcFinalize()
     PetscBool SlepcInitializeCalled
     PetscBool SlepcFinalizeCalled
+
+    int SlepcHasExternalPackage(const char[],PetscBool*)
 
 cdef inline PetscMatStructure matstructure(object structure) \
     except <PetscMatStructure>(-1):

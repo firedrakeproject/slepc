@@ -344,7 +344,7 @@ SLEPC_EXTERN PetscErrorCode PEPSTOARGetCheckEigenvalueType(PEP,PetscBool*);
 SLEPC_EXTERN PetscErrorCode PEPCheckDefiniteQEP(PEP,PetscReal*,PetscReal*,PetscInt*,PetscInt*);
 
 /*E
-    PEPJDProjection - The scheme used for solving linear systems during iterative refinement
+    PEPJDProjection - The type of projection to be used in the Jacobi-Davidson solver
 
     Level: intermediate
 

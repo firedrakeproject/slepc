@@ -4,17 +4,19 @@ class STType(object):
     """
     ST types
 
-    - `SHELL`:  User-defined.
-    - `SHIFT`:  Shift from origin.
+    - `SHELL`:   User-defined.
+    - `SHIFT`:   Shift from origin.
     - `SINVERT`: Shift-and-invert.
-    - `CAYLEY`: Cayley transform.
+    - `CAYLEY`:  Cayley transform.
     - `PRECOND`: Preconditioner.
+    - `FILTER`:  Polynomial filter.
     """
     SHELL   = S_(STSHELL)
     SHIFT   = S_(STSHIFT)
     SINVERT = S_(STSINVERT)
     CAYLEY  = S_(STCAYLEY)
     PRECOND = S_(STPRECOND)
+    FILTER  = S_(STFILTER)
 
 class STMatMode(object):
     """
@@ -202,14 +204,14 @@ cdef class ST(Object):
         CHKERR( STGetShift(self.st, &sval) )
         return toScalar(sval)
 
-    def setTransform(self, flag):
+    def setTransform(self, flag=True):
         """
         Sets a flag to indicate whether the transformed matrices
         are computed or not.
 
         Parameters
         ----------
-        flag: boolean
+        flag: bool, optional
               This flag is intended for the case of polynomial
               eigenproblems solved via linearization.
               If this flag is False (default) the spectral transformation
@@ -226,7 +228,7 @@ cdef class ST(Object):
 
         Returns
         -------
-        flag: boolean
+        flag: bool
                This flag is intended for the case of polynomial
                eigenproblems solved via linearization.
                If this flag is False (default) the spectral transformation
@@ -349,6 +351,20 @@ cdef class ST(Object):
         cdef PetscMatStructure val = matstructure(structure)
         CHKERR( STSetMatStructure(self.st, val) )
 
+    def getMatStructure(self):
+        """
+        Gets the internal Mat.Structure attribute to indicate which is
+        the relation of the sparsity pattern of the matrices.
+
+        Returns
+        -------
+        structure: `PETSc.Mat.Structure` enumerate
+                   The structure flag.
+        """
+        cdef PetscMatStructure val
+        CHKERR( STGetMatStructure(self.st, &val) )
+        return val
+
     def setKSP(self, KSP ksp):
         """
         Sets the KSP object associated with the spectral
@@ -446,6 +462,63 @@ cdef class ST(Object):
         """
         CHKERR( STApplyTranspose(self.st, x.vec, y.vec) )
 
+    def applyHermitianTranspose(self, Vec x, Vec y):
+        """
+        Applies the hermitian-transpose of the operator to a vector, for
+        instance ``B^H(A - sB)^-H`` in the case of the
+        shift-and-invert tranformation and generalized eigenproblem.
+
+        Parameters
+        ----------
+        x: Vec
+           The input vector.
+        y: Vec
+           The result vector.
+        """
+        CHKERR( STApplyHermitianTranspose(self.st, x.vec, y.vec) )
+
+    def applyMat(self, Mat x, Mat y):
+        """
+        Applies the spectral transformation operator to a matrix, for
+        instance ``(A - sB)^-1 B`` in the case of the shift-and-invert
+        tranformation and generalized eigenproblem.
+
+        Parameters
+        ----------
+        x: Mat
+           The input matrix.
+        y: Mat
+           The result matrix.
+        """
+        CHKERR( STApplyMat(self.st, x.mat, y.mat) )
+
+    def getOperator(self):
+        """
+        Returns a shell matrix that represents the operator of the
+        spectral transformation.
+
+        Returns
+        -------
+        op: Mat
+            Operator matrix.
+        """
+        cdef Mat op = Mat()
+        CHKERR( STGetOperator(self.st, &op.mat) )
+        PetscINCREF(op.obj)
+        return op
+
+    def restoreOperator(self, Mat op):
+        """
+        Restore the previously seized operator matrix.
+
+        Parameters
+        ----------
+        op: Mat
+            Operator matrix previously obtained with getOperator().
+        """
+        CHKERR( PetscObjectDereference(<PetscObject>op.mat) )
+        CHKERR( STRestoreOperator(self.st, &op.mat) )
+
     #
 
     def setCayleyAntishift(self, tau):
@@ -460,7 +533,6 @@ cdef class ST(Object):
 
         Notes
         -----
-
         In the generalized Cayley transform, the operator can be
         expressed as ``OP = inv(A - sigma B)*(A + tau B)``. This
         function sets the value of `tau`.  Use `setShift()` for
@@ -468,6 +540,126 @@ cdef class ST(Object):
         """
         cdef PetscScalar sval = asScalar(tau)
         CHKERR( STCayleySetAntishift(self.st, sval) )
+
+    def getCayleyAntishift(self):
+        """
+        Gets the value of the anti-shift for the Cayley spectral
+        transformation.
+
+        Returns
+        -------
+        tau: scalar (possibly complex)
+             The anti-shift.
+        """
+        cdef PetscScalar sval = 0
+        CHKERR( STCayleyGetAntishift(self.st, &sval) )
+        return toScalar(sval)
+
+    def setFilterInterval(self, inta, intb):
+        """
+        Defines the interval containing the desired eigenvalues.
+
+        Parameters
+        ----------
+        inta: float
+              The left end of the interval.
+        intb: float
+              The right end of the interval.
+
+        Notes
+        -----
+        The filter will be configured to emphasize eigenvalues contained
+        in the given interval, and damp out eigenvalues outside it. If the
+        interval is open, then the filter is low- or high-pass, otherwise
+        it is mid-pass.
+
+        Common usage is to set the interval in `EPS` with `EPS.setInterval()`.
+
+        The interval must be contained within the numerical range of the
+        matrix, see `ST.setFilterRange()`.
+        """
+        cdef PetscReal rval1 = asReal(inta)
+        cdef PetscReal rval2 = asReal(intb)
+        CHKERR( STFilterSetInterval(self.st, rval1, rval2) )
+
+    def getFilterInterval(self):
+        """
+        Gets the interval containing the desired eigenvalues.
+
+        Returns
+        -------
+        inta: float
+              The left end of the interval.
+        intb: float
+              The right end of the interval.
+        """
+        cdef PetscReal inta = 0
+        cdef PetscReal intb = 0
+        CHKERR( STFilterGetInterval(self.st, &inta, &intb) )
+        return (toReal(inta), toReal(intb))
+
+    def setFilterRange(self, left, right):
+        """
+        Defines the numerical range (or field of values) of the matrix, that is,
+        the interval containing all eigenvalues.
+
+        Parameters
+        ----------
+        left: float
+              The left end of the interval.
+        right: float
+              The right end of the interval.
+
+        Notes
+        -----
+        The filter will be most effective if the numerical range is tight,
+        that is, left and right are good approximations to the leftmost and
+        rightmost eigenvalues, respectively.
+        """
+        cdef PetscReal rval1 = asReal(left)
+        cdef PetscReal rval2 = asReal(right)
+        CHKERR( STFilterSetRange(self.st, rval1, rval2) )
+
+    def getFilterRange(self):
+        """
+        Gets the interval containing all eigenvalues.
+
+        Returns
+        -------
+        left: float
+              The left end of the interval.
+        right: float
+              The right end of the interval.
+        """
+        cdef PetscReal left = 0
+        cdef PetscReal right = 0
+        CHKERR( STFilterGetRange(self.st, &left, &right) )
+        return (toReal(left), toReal(right))
+
+    def setFilterDegree(self, deg):
+        """
+        Sets the degree of the filter polynomial.
+
+        Parameters
+        ----------
+        deg: int
+             The polynomial degree.
+        """
+        cdef PetscInt val = asInt(deg)
+        CHKERR( STFilterSetDegree(self.st, val) )
+
+    def getFilterDegree(self):
+        """
+        Gets the degree of the filter polynomial.
+
+        Returns
+        -------
+        deg: int
+             The polynomial degree.
+        """
+        cdef PetscInt val = 0
+        CHKERR( STFilterGetDegree(self.st, &val) )
+        return toInt(val)
 
     #
 
@@ -477,11 +669,23 @@ cdef class ST(Object):
         def __set__(self, value):
             self.setShift(value)
 
+    property transform:
+        def __get__(self):
+            return self.getTransform()
+        def __set__(self, value):
+            self.setTransform(value)
+
     property mat_mode:
         def __get__(self):
             return self.getMatMode()
         def __set__(self, value):
             self.setMatMode(value)
+
+    property mat_structure:
+        def __get__(self):
+            return self.getMatStructure()
+        def __set__(self, value):
+            self.setMatStructure(value)
 
     property ksp:
         def __get__(self):

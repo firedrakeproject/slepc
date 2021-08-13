@@ -53,7 +53,7 @@ include "allocate.pxi"
 # Vile hack for raising a exception and not contaminating traceback
 
 cdef extern from *:
-    enum: PETSC_ERR_PYTHON "(-1)"
+    enum: PETSC_ERR_PYTHON
 
 cdef extern from *:
     void PyErr_SetObject(object, object)
@@ -93,6 +93,8 @@ cdef extern from *:
 cdef extern from "scalar.h":
     object      PyPetscScalar_FromPetscScalar(PetscScalar)
     PetscScalar PyPetscScalar_AsPetscScalar(object) except? <PetscScalar>-1.0
+    PetscReal   PyPetscScalar_AsPetscComplexReal(object) except? <PetscScalar>-1.0
+    PetscReal   PyPetscScalar_AsPetscComplexImag(object) except? <PetscScalar>-1.0
 
 cdef inline object toBool(PetscBool value):
     return True if value else False
@@ -116,6 +118,24 @@ cdef inline PetscScalar asScalar(object value) except? <PetscScalar>-1.0:
 
 cdef inline object toComplex(PetscScalar rvalue, PetscScalar ivalue):
     return complex(toScalar(rvalue),toScalar(ivalue))
+cdef inline PetscReal asComplexReal(object value) except? <PetscScalar>-1.0:
+    return PyPetscScalar_AsPetscComplexReal(value)
+cdef inline PetscReal asComplexImag(object value) except? <PetscScalar>-1.0:
+    return PyPetscScalar_AsPetscComplexImag(value)
+
+# --------------------------------------------------------------------
+
+# NumPy support
+# -------------
+
+include "arraynpy.pxi"
+
+import_array()
+
+IntType     = PyArray_TypeObjectFromType(NPY_PETSC_INT)
+RealType    = PyArray_TypeObjectFromType(NPY_PETSC_REAL)
+ScalarType  = PyArray_TypeObjectFromType(NPY_PETSC_SCALAR)
+ComplexType = PyArray_TypeObjectFromType(NPY_PETSC_COMPLEX)
 
 # -----------------------------------------------------------------------------
 
@@ -141,9 +161,8 @@ include "slepcmfn.pxi"
 
 # -----------------------------------------------------------------------------
 
-__doc__ = \
-"""
-Scalable Library for Eigenvalue Problem Computations.
+__doc__ = u"""
+Scalable Library for Eigenvalue Problem Computations
 """
 
 DECIDE    = PETSC_DECIDE

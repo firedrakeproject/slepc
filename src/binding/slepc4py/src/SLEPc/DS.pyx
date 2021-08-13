@@ -19,10 +19,10 @@ class DSStateType(object):
     """
     DS state types
 
-    - `RAW`: Not processed yet.
+    - `RAW`:          Not processed yet.
     - `INTERMEDIATE`: Reduced to Hessenberg or tridiagonal form (or equivalent).
-    - `CONDENSED`: Reduced to Schur or diagonal form (or equivalent).
-    - `TRUNCATED`: Condensed form truncated to a smaller size.
+    - `CONDENSED`:    Reduced to Schur or diagonal form (or equivalent).
+    - `TRUNCATED`:    Condensed form truncated to a smaller size.
     """
     RAW          = DS_STATE_RAW
     INTERMEDIATE = DS_STATE_INTERMEDIATE
@@ -59,6 +59,18 @@ class DSMatType(object):
     V  = DS_MAT_V
     W  = DS_MAT_W
 
+class DSParallelType(object):
+    """
+    DS parallel types
+
+    - `REDUNDANT`:    Every process performs the computation redundantly.
+    - `SYNCHRONIZED`: The first process sends the result to the rest.
+    - `DISTRIBUTED`:  Used in some cases to distribute the computation among processes.
+    """
+    REDUNDANT    = DS_PARALLEL_REDUNDANT
+    SYNCHRONIZED = DS_PARALLEL_SYNCHRONIZED
+    DISTRIBUTED  = DS_PARALLEL_DISTRIBUTED
+
 # -----------------------------------------------------------------------------
 
 cdef class DS(Object):
@@ -67,9 +79,10 @@ cdef class DS(Object):
     DS
     """
 
-    Type      = DSType
-    StateType = DSStateType
-    MatType   = DSMatType
+    Type         = DSType
+    StateType    = DSStateType
+    MatType      = DSMatType
+    ParallelType = DSParallelType
 
     def __cinit__(self):
         self.obj = <PetscObject*> &self.ds
@@ -190,6 +203,14 @@ cdef class DS(Object):
         """
         CHKERR( DSSetFromOptions(self.ds) )
 
+    def duplicate(self):
+        """
+        Duplicate the DS object with the same type and dimensions.
+        """
+        cdef DS ds = type(self)()
+        CHKERR( DSDuplicate(self.ds, &ds.ds) )
+        return ds
+
     #
 
     def allocate(self, ld):
@@ -198,7 +219,7 @@ cdef class DS(Object):
 
         Parameters
         ----------
-        ld: integer
+        ld: int
             Leading dimension (maximum allowed dimension for the
             matrices, including the extra row if present).
         """
@@ -211,7 +232,7 @@ cdef class DS(Object):
 
         Returns
         -------
-        ld: integer
+        ld: int
             Leading dimension (maximum allowed dimension for the matrices).
         """
         cdef PetscInt val = 0
@@ -252,6 +273,31 @@ cdef class DS(Object):
         """
         cdef SlepcDSStateType val = DS_STATE_RAW
         CHKERR( DSGetState(self.ds, &val) )
+        return val
+
+    def setParallel(self, pmode):
+        """
+        Selects the mode of operation in parallel runs.
+
+        Parameters
+        ----------
+        pmode: `DS.ParallelType` enumerate
+               The parallel mode.
+        """
+        cdef SlepcDSParallelType val = pmode
+        CHKERR( DSSetParallel(self.ds, val) )
+
+    def getParallel(self):
+        """
+        Gets the mode of operation in parallel runs.
+
+        Returns
+        -------
+        pmode: `DS.ParallelType` enumerate
+               The parallel mode.
+        """
+        cdef SlepcDSParallelType val = DS_PARALLEL_REDUNDANT
+        CHKERR( DSGetParallel(self.ds, &val) )
         return val
 
     def setDimensions(self, n=None, l=None, k=None):
@@ -301,6 +347,31 @@ cdef class DS(Object):
         CHKERR( DSGetDimensions(self.ds, &ival1, &ival2, &ival3, &ival4) )
         return (toInt(ival1), toInt(ival2), toInt(ival3), toInt(ival4))
 
+    def setBlockSize(self, bs):
+        """
+        Selects the block size.
+
+        Parameters
+        ----------
+        bs: int
+            The block size.
+        """
+        cdef PetscInt val = bs
+        CHKERR( DSSetBlockSize(self.ds, val) )
+
+    def getBlockSize(self):
+        """
+        Gets the block size.
+
+        Returns
+        -------
+        bs: int
+            The block size.
+        """
+        cdef PetscInt val = 0
+        CHKERR( DSGetBlockSize(self.ds, &val) )
+        return val
+
     def setMethod(self, meth):
         """
         Selects the method to be used to solve the problem.
@@ -332,8 +403,8 @@ cdef class DS(Object):
 
         Parameters
         ----------
-        comp: boolean
-              A boolean flag.
+        comp: bool
+              True means compact storage.
 
         Notes
         -----
@@ -354,7 +425,7 @@ cdef class DS(Object):
 
         Returns
         -------
-        comp: boolean
+        comp: bool
               The flag.
         """
         cdef PetscBool val = PETSC_FALSE
@@ -367,8 +438,8 @@ cdef class DS(Object):
 
         Parameters
         ----------
-        ext: boolean
-             A boolean flag.
+        ext: bool
+             True if the matrix has extra row.
 
         Notes
         -----
@@ -390,7 +461,7 @@ cdef class DS(Object):
 
         Returns
         -------
-        comp: boolean
+        comp: bool
               The flag.
         """
         cdef PetscBool val = PETSC_FALSE
@@ -403,8 +474,8 @@ cdef class DS(Object):
 
         Parameters
         ----------
-        ref: boolean
-             A boolean flag.
+        ref: bool
+             True if refined vectors must be used.
 
         Notes
         -----
@@ -426,7 +497,7 @@ cdef class DS(Object):
 
         Returns
         -------
-        comp: boolean
+        comp: bool
               The flag.
         """
         cdef PetscBool val = PETSC_FALSE
@@ -439,9 +510,9 @@ cdef class DS(Object):
 
         Parameters
         ----------
-        n: integer
+        n: int
            The new size.
-        trim: boolean
+        trim: bool, optional
               A flag to indicate if the factorization must be trimmed.
         """
         cdef PetscInt val = asInt(n)
@@ -467,12 +538,217 @@ cdef class DS(Object):
         cdef SlepcDSMatType mname = matname
         cdef Mat mat = Mat()
         CHKERR( DSGetMat(self.ds, mname, &mat.mat) )
+        PetscINCREF(mat.obj)
         return mat
+
+    def restoreMat(self, matname, Mat mat):
+        """
+        Restore the previously seized matrix.
+
+        Parameters
+        ----------
+        matname: `DS.MatType` enumerate
+           The selected matrix.
+        mat: Mat
+           The matrix previously obtained with `getMat()`.
+        """
+        cdef SlepcDSMatType mname = matname
+        CHKERR( PetscObjectDereference(<PetscObject>mat.mat) )
+        CHKERR( DSRestoreMat(self.ds, mname, &mat.mat) )
+
+    def setIdentity(self, matname):
+        """
+        Copy the identity on the active part of a matrix.
+
+        Parameters
+        ----------
+        matname: `DS.MatType` enumerate
+           The requested matrix.
+        """
+        cdef SlepcDSMatType mname = matname
+        CHKERR( DSSetIdentity(self.ds, mname) )
+
+    #
+
+    def cond(self):
+        """
+        Compute the inf-norm condition number of the first matrix.
+
+        Returns
+        -------
+        cond: real
+            Condition number.
+        """
+        cdef PetscReal rval = 0
+        CHKERR( DSCond(self.ds, &rval) )
+        return toReal(rval)
+
+    #
+
+    def setSVDDimensions(self, m):
+        """
+        Sets the number of columns of a `DS` of type `SVD`.
+
+        Parameters
+        ----------
+        m: int
+           The number of columns.
+        """
+        cdef PetscInt val = asInt(m)
+        CHKERR( DSSVDSetDimensions(self.ds, val) )
+
+    def getSVDDimensions(self):
+        """
+        Gets the number of columns of a `DS` of type `SVD`.
+
+        Returns
+        -------
+        m: int
+           The number of columns.
+        """
+        cdef PetscInt val = 0
+        CHKERR( DSSVDGetDimensions(self.ds, &val) )
+        return toInt(val)
+
+    def setGSVDDimensions(self, m, p):
+        """
+        Sets the number of columns and rows of a `DS` of type `GSVD`.
+
+        Parameters
+        ----------
+        m: int
+           The number of columns.
+        p: int
+           The number of rows for the second matrix.
+        """
+        cdef PetscInt val1 = asInt(m)
+        cdef PetscInt val2 = asInt(p)
+        CHKERR( DSGSVDSetDimensions(self.ds, val1, val2) )
+
+    def getGSVDDimensions(self):
+        """
+        Gets the number of columns and rows of a `DS` of type `GSVD`.
+
+        Returns
+        -------
+        m: int
+           The number of columns.
+        p: int
+           The number of rows for the second matrix.
+        """
+        cdef PetscInt val1 = 0
+        cdef PetscInt val2 = 0
+        CHKERR( DSGSVDGetDimensions(self.ds, &val1, &val2) )
+        return (toInt(val1), toInt(val2))
+
+    def setPEPDegree(self, deg):
+        """
+        Sets the polynomial degree of a `DS` of type `PEP`.
+
+        Parameters
+        ----------
+        deg: int
+             The polynomial degree.
+        """
+        cdef PetscInt val = asInt(deg)
+        CHKERR( DSPEPSetDegree(self.ds, val) )
+
+    def getPEPDegree(self):
+        """
+        Gets the polynomial degree of a `DS` of type `PEP`.
+
+        Returns
+        -------
+        deg: int
+             The polynomial degree.
+        """
+        cdef PetscInt val = 0
+        CHKERR( DSPEPGetDegree(self.ds, &val) )
+        return toInt(val)
+
+    def setPEPCoefficients(self, pbc):
+        """
+        Sets the polynomial basis coefficients of a `DS` of type `PEP`.
+
+        Parameters
+        ----------
+        pbc: array of float
+             Coefficients.
+        """
+        cdef PetscInt na = 0
+        cdef PetscReal *a = NULL
+        cdef object tmp1 = iarray_r(pbc, &na, &a)
+        CHKERR( DSPEPSetCoefficients(self.ds, a) )
+
+    def getPEPCoefficients(self):
+        """
+        Gets the polynomial basis coefficients of a `DS` of type `PEP`.
+
+        Returns
+        -------
+        pbc: array of float
+             Coefficients.
+        """
+        cdef PetscInt np = 0
+        cdef PetscReal *coeff = NULL
+        CHKERR( DSPEPGetDegree(self.ds, &np) )
+        CHKERR( DSPEPGetCoefficients(self.ds, &coeff) )
+        cdef object ocoeff = None
+        try:
+            ocoeff = array_r(3*(np+1), coeff)
+        finally:
+            CHKERR( PetscFree(coeff) )
+        return ocoeff
+
+    #
+
+    property state:
+        def __get__(self):
+            return self.getState()
+        def __set__(self, value):
+            self.setState(value)
+
+    property parallel:
+        def __get__(self):
+            return self.getParallel()
+        def __set__(self, value):
+            self.setParallel(value)
+
+    property block_size:
+        def __get__(self):
+            return self.getBlockSize()
+        def __set__(self, value):
+            self.setBlockSize(value)
+
+    property method:
+        def __get__(self):
+            return self.getMethod()
+        def __set__(self, value):
+            self.setMethod(value)
+
+    property compact:
+        def __get__(self):
+            return self.getCompact()
+        def __set__(self, value):
+            self.setCompact(value)
+
+    property extra_row:
+        def __get__(self):
+            return self.getExtraRow()
+        def __set__(self, value):
+            self.setExtraRow(value)
+
+    property refined:
+        def __get__(self):
+            return self.getRefined()
+        def __set__(self, value):
+            self.setRefined(value)
 
 # -----------------------------------------------------------------------------
 
 del DSType
 del DSStateType
 del DSMatType
+del DSParallelType
 
 # -----------------------------------------------------------------------------
