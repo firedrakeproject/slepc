@@ -55,6 +55,7 @@ typedef struct {
   PetscBool           lock;      /* locking/non-locking variant */
   KSP                 ksp;       /* solver for least-squares problem in GSVD */
   SVDTRLanczosGBidiag bidiag;    /* bidiagonalization variant for GSVD */
+  PetscBool           explicitmatrix;
   /* auxiliary variables */
   Mat                 Z;         /* aux matrix for GSVD, Z=[A;B] */
 } SVD_TRLANCZOS;
@@ -162,6 +163,9 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   DSType         dstype;
   MatZData       *zdata;
+  Mat            mats[2],normal;
+  MatType        Atype;
+  PetscBool      sametype;
 
   PetscFunctionBegin;
   ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
@@ -181,17 +185,35 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     ierr = MatDestroy(&lanczos->Z);CHKERRQ(ierr);
     ierr = MatGetLocalSize(svd->A,&m,&n);CHKERRQ(ierr);
     ierr = MatGetLocalSize(svd->B,&p,NULL);CHKERRQ(ierr);
-    ierr = MatZCreateContext(svd,&zdata);CHKERRQ(ierr);
-    ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+p,n,PETSC_DECIDE,PETSC_DECIDE,zdata,&lanczos->Z);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT,(void(*)(void))MatMult_Z);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Z);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(lanczos->Z,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Z);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(lanczos->Z,MATOP_DESTROY,(void(*)(void))MatDestroy_Z);CHKERRQ(ierr);
+    if (lanczos->explicitmatrix) {
+      mats[0] = svd->A;
+      mats[1] = svd->B;
+      ierr = MatCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,1,NULL,mats,&lanczos->Z);CHKERRQ(ierr);
+      ierr = MatGetType(svd->A,&Atype);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)svd->B,Atype,&sametype);CHKERRQ(ierr);
+      if (!sametype) Atype = MATAIJ;
+      ierr = MatConvert(lanczos->Z,Atype,MAT_INPLACE_MATRIX,&lanczos->Z);CHKERRQ(ierr);
+    } else {
+      ierr = MatZCreateContext(svd,&zdata);CHKERRQ(ierr);
+      ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+p,n,PETSC_DECIDE,PETSC_DECIDE,zdata,&lanczos->Z);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT,(void(*)(void))MatMult_Z);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+      ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultTranspose_Z);CHKERRQ(ierr);
+#else
+      ierr = MatShellSetOperation(lanczos->Z,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Z);CHKERRQ(ierr);
+#endif
+      ierr = MatShellSetOperation(lanczos->Z,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Z);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(lanczos->Z,MATOP_DESTROY,(void(*)(void))MatDestroy_Z);CHKERRQ(ierr);
+    }
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z);CHKERRQ(ierr);
 
+    /* create normal equations matrix, to build the preconditioner in LSQR */
+    ierr = MatCreateNormalHermitian(lanczos->Z,&normal);CHKERRQ(ierr);
+
     if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(lanczos->ksp,lanczos->Z,lanczos->Z);CHKERRQ(ierr);
+    ierr = KSPSetOperators(lanczos->ksp,lanczos->Z,normal);CHKERRQ(ierr);
     ierr = KSPSetUp(lanczos->ksp);CHKERRQ(ierr);
+    ierr = MatDestroy(&normal);CHKERRQ(ierr);
 
     if (lanczos->oneside) { ierr = PetscInfo(svd,"Warning: one-side option is ignored in GSVD\n");CHKERRQ(ierr); }
   }
@@ -1295,9 +1317,12 @@ PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptionItems *PetscOptionsObject,
     ierr = PetscOptionsEnum("-svd_trlanczos_gbidiag","Bidiagonalization choice for Generalized Problem","SVDTRLanczosSetGBidiag",SVDTRLanczosGBidiags,(PetscEnum)lanczos->bidiag,(PetscEnum*)&bidiag,&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDTRLanczosSetGBidiag(svd,bidiag);CHKERRQ(ierr); }
 
+    ierr = PetscOptionsBool("-svd_trlanczos_explicitmatrix","Build explicit matrix for KSP solver","SVDTRLanczosSetExplicitMatrix",lanczos->explicitmatrix,&val,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDTRLanczosSetExplicitMatrix(svd,val);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
-  if (svd->isgeneralized) {
+  if (svd->OPb) {
     if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
     ierr = KSPSetFromOptions(lanczos->ksp);CHKERRQ(ierr);
   }
@@ -1494,7 +1519,7 @@ static PetscErrorCode SVDTRLanczosSetKSP_TRLanczos(SVD svd,KSP ksp)
 -  ksp - the linear solver object
 
    Note:
-   Only used for the GSVD problem
+   Only used for the GSVD problem.
 
    Level: advanced
 
@@ -1724,6 +1749,85 @@ PetscErrorCode SVDTRLanczosGetLocking(SVD svd,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode SVDTRLanczosSetExplicitMatrix_TRLanczos(SVD svd,PetscBool explicitmatrix)
+{
+  SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  if (lanczos->explicitmatrix != explicitmatrix) {
+    lanczos->explicitmatrix = explicitmatrix;
+    svd->state = SVD_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosSetExplicitMatrix - Indicate if the matrix Z=[A;B] must
+   be built explicitly.
+
+   Logically Collective on svd
+
+   Input Parameters:
++  svd      - singular value solver
+-  explicit - Boolean flag indicating if Z=[A;B] is built explicitly
+
+   Options Database Key:
+.  -svd_trlanczos_explicitmatrix <boolean> - Indicates the boolean flag
+
+   Notes:
+   This option is relevant for the GSVD case only.
+   Z is the coefficient matrix of the KSP solver used internally.
+
+   Level: advanced
+
+.seealso: SVDTRLanczosGetExplicitMatrix()
+@*/
+PetscErrorCode SVDTRLanczosSetExplicitMatrix(SVD svd,PetscBool explicitmatrix)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveBool(svd,explicitmatrix,2);
+  ierr = PetscTryMethod(svd,"SVDTRLanczosSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmatrix));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode SVDTRLanczosGetExplicitMatrix_TRLanczos(SVD svd,PetscBool *explicitmatrix)
+{
+  SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  *explicitmatrix = lanczos->explicitmatrix;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosGetExplicitMatrix - Returns the flag indicating if Z=[A;B] is built explicitly.
+
+   Not Collective
+
+   Input Parameter:
+.  svd  - singular value solver
+
+   Output Parameter:
+.  explicit - the mode flag
+
+   Level: advanced
+
+.seealso: SVDTRLanczosSetExplicitMatrix()
+@*/
+PetscErrorCode SVDTRLanczosGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidBoolPointer(explicitmatrix,2);
+  ierr = PetscUseMethod(svd,"SVDTRLanczosGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmatrix));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode SVDReset_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
@@ -1757,6 +1861,8 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetLocking_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetExplicitMatrix_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetExplicitMatrix_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1780,6 +1886,7 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
         case SVD_TRLANCZOS_GBIDIAG_LOWER:  bidiag = "joint lower-upper"; break;
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  bidiagonalization choice: %s\n",bidiag);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  %s matrix\n",lanczos->explicitmatrix?"explicit":"implicit");CHKERRQ(ierr);
       if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = KSPView(lanczos->ksp,viewer);CHKERRQ(ierr);
@@ -1820,6 +1927,8 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetRestart_C",SVDTRLanczosGetRestart_TRLanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetLocking_C",SVDTRLanczosSetLocking_TRLanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetLocking_C",SVDTRLanczosGetLocking_TRLanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetExplicitMatrix_C",SVDTRLanczosSetExplicitMatrix_TRLanczos);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetExplicitMatrix_C",SVDTRLanczosGetExplicitMatrix_TRLanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

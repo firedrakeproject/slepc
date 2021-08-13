@@ -340,7 +340,7 @@ gnu-c-cuda:
   tags:
     - linux-ubuntu, gpu:nvidia
   variables:
-    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --with-cuda-gencodearch=35 --with-openmp --download-mumps --download-scalapack --download-metis --download-parmetis --with-magma-dir=/usr/local/opt/magma-2.6.0
+    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --with-cuda-gencodearch=35 --with-openmp --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse --with-magma-dir=/usr/local/opt/magma-2.6.0
     PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
 
 clang-c:
@@ -492,7 +492,7 @@ gnu-cxx-complex-int64:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps --download-suitesparse
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-hpddm
 
 gnu-c-single:
@@ -573,7 +573,7 @@ intel-c-mkl:
     - compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa
 
 nvidia-c-complex-nompi:
