@@ -34,6 +34,11 @@ cdef extern from * nogil:
     int PetscObjectTypeCompare(PetscObject,char[],PetscBool*)
 
 cdef extern from * nogil:
+    int VecCopy(PetscVec,PetscVec)
+    int VecSet(PetscVec,PetscScalar)
+    int VecDestroy(PetscVec*)
+
+cdef extern from * nogil:
     int MatGetSize(PetscMat,PetscInt*,PetscInt*)
     int MatGetLocalSize(PetscMat,PetscInt*,PetscInt*)
 
