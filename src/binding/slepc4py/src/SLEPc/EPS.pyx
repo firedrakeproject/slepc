@@ -758,19 +758,45 @@ cdef class EPS(Object):
         twosided: bool
             Whether the two-sided variant is to be used or not.
         """
-        cdef PetscBool tval = twosided
+        cdef PetscBool tval = asBool(twosided)
         CHKERR( EPSSetTwoSided(self.eps, tval) )
+
+    def getPurify(self):
+        """
+        Returns the flag indicating whether purification is activated
+        or not.
+
+        Returns
+        -------
+        purify: bool
+            Whether purification is activated or not.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSGetPurify(self.eps, &tval) )
+        return toBool(tval)
+
+    def setPurify(self, purify=True):
+        """
+        Activate or deactivate eigenvector purification.
+
+        Parameters
+        ----------
+        purify: bool, optional
+            True to activate purification (default).
+        """
+        cdef PetscBool tval = asBool(purify)
+        CHKERR( EPSSetPurify(self.eps, tval) )
 
     def getConvergenceTest(self):
         """
-        Return the method used to compute the error estimate 
-        used in the convergence test. 
+        Return the method used to compute the error estimate
+        used in the convergence test.
 
         Returns
         -------
         conv: EPS.Conv
-            The method used to compute the error estimate 
-            used in the convergence test. 
+            The method used to compute the error estimate
+            used in the convergence test.
         """
         cdef SlepcEPSConv conv = EPS_CONV_REL
         CHKERR( EPSGetConvergenceTest(self.eps, &conv) )
@@ -778,13 +804,13 @@ cdef class EPS(Object):
 
     def setConvergenceTest(self, conv):
         """
-        Specifies how to compute the error estimate 
-        used in the convergence test. 
+        Specifies how to compute the error estimate
+        used in the convergence test.
 
         Parameters
         ----------
         conv: EPS.Conv
-            The method used to compute the error estimate 
+            The method used to compute the error estimate
             used in the convergence test.
         """
         cdef SlepcEPSConv tconv = conv
@@ -806,7 +832,7 @@ cdef class EPS(Object):
 
     def setTrueResidual(self, trueres):
         """
-        Specifies if the solver must compute the true residual 
+        Specifies if the solver must compute the true residual
         explicitly or not.
 
         Parameters
@@ -814,7 +840,7 @@ cdef class EPS(Object):
         trueres: bool
             Whether compute the true residual or not.
         """
-        cdef PetscBool tval = trueres
+        cdef PetscBool tval = asBool(trueres)
         CHKERR( EPSSetTrueResidual(self.eps, tval) )
 
     def getTrackAll(self):
@@ -841,7 +867,7 @@ cdef class EPS(Object):
         trackall: bool
             Whether compute all residuals or not.
         """
-        cdef PetscBool tval = trackall
+        cdef PetscBool tval = asBool(trackall)
         CHKERR( EPSSetTrackAll(self.eps, tval) )
 
     def getDimensions(self):
@@ -1069,7 +1095,7 @@ cdef class EPS(Object):
         if isinstance(space, Vec): space = [space]
         cdef PetscVec* vs = NULL
         cdef Py_ssize_t i = 0, ns = len(space)
-        cdef tmp = allocate(<size_t>ns*sizeof(Vec),<void**>&vs)
+        cdef tmp = allocate(<size_t>ns*sizeof(PetscVec),<void**>&vs)
         for i in range(ns): vs[i] = (<Vec?>space[i]).vec
         CHKERR( EPSSetDeflationSpace(self.eps, <PetscInt>ns, vs) )
 
@@ -1103,11 +1129,36 @@ cdef class EPS(Object):
         if isinstance(space, Vec): space = [space]
         cdef PetscVec *vs = NULL
         cdef Py_ssize_t i = 0, ns = len(space)
-        cdef tmp = allocate(<size_t>ns*sizeof(Vec),<void**>&vs)
+        cdef tmp = allocate(<size_t>ns*sizeof(PetscVec),<void**>&vs)
         for i in range(ns): vs[i] = (<Vec?>space[i]).vec
         CHKERR( EPSSetInitialSpace(self.eps, <PetscInt>ns, vs) )
 
-    # --- convergence ---
+    def setLeftInitialSpace(self, space):
+        """
+        Sets the left initial space from which the eigensolver starts to
+        iterate.
+
+        Parameters
+        ----------
+        space: Vec or sequence of Vec
+           The left initial space
+
+        Notes
+        -----
+        Left initial vectors are used to initiate the left search space
+        in two-sided eigensolvers. Users should pass here an approximation
+        of the left eigenspace, if available.
+
+        The same comments in `setInitialSpace()` are applicable here.
+        """
+        if isinstance(space, Vec): space = [space]
+        cdef PetscVec *vs = NULL
+        cdef Py_ssize_t i = 0, ns = len(space)
+        cdef tmp = allocate(<size_t>ns*sizeof(PetscVec),<void**>&vs)
+        for i in range(ns): vs[i] = (<Vec?>space[i]).vec
+        CHKERR( EPSSetLeftInitialSpace(self.eps, <PetscInt>ns, vs) )
+
+    #
 
     def setStoppingTest(self, stopping, args=None, kargs=None):
         """
@@ -1122,7 +1173,13 @@ cdef class EPS(Object):
             self.set_attr('__stopping__', None)
             CHKERR( EPSSetStoppingTestFunction(self.eps, EPSStoppingBasic, NULL, NULL) )
 
-    # --- monitoring ---
+    def getStoppingTest(self):
+        """
+        Gets the stopping function.
+        """
+        return self.get_attr('__stopping__')
+
+    #
 
     def setMonitor(self, monitor, args=None, kargs=None):
         """
@@ -1146,7 +1203,7 @@ cdef class EPS(Object):
 
     def cancelMonitor(self):
         """
-        Clears all monitors for an EPS object.
+        Clears all monitors for an `EPS` object.
         """
         CHKERR( EPSMonitorCancel(self.eps) )
         self.set_attr('__monitor__', None)
@@ -1356,7 +1413,7 @@ cdef class EPS(Object):
         CHKERR( EPSGetOperators(self.eps, &A, NULL) )
         CHKERR( MatCreateVecs(A, &v, NULL) )
         cdef Vec V = None
-        cdef object tmp = allocate(<size_t>ncv*sizeof(Vec),<void**>&isp)
+        cdef object tmp = allocate(<size_t>ncv*sizeof(PetscVec),<void**>&isp)
         for i in range(ncv):
             if i == 0: isp[0] = v
             if i >= 1: CHKERR( VecDuplicate(v, &isp[i]) )
@@ -1440,12 +1497,37 @@ cdef class EPS(Object):
         the eigenvalues if all of them are below the requested tolerance.
         If the viewer has format ``ASCII_INFO_DETAIL`` then a table with
         eigenvalues and corresponding errors is printed.
-
         """
         cdef SlepcEPSErrorType et = EPS_ERROR_RELATIVE
         if etype is not None: et = etype
         cdef PetscViewer vwr = def_Viewer(viewer)
         CHKERR( EPSErrorView(self.eps, et, vwr) )
+
+    def valuesView(self, Viewer viewer=None):
+        """
+        Displays the computed eigenvalues in a viewer.
+
+        Parameters
+        ----------
+        viewer: Viewer, optional.
+                Visualization context; if not provided, the standard
+                output is used.
+        """
+        cdef PetscViewer vwr = def_Viewer(viewer)
+        CHKERR( EPSValuesView(self.eps, vwr) )
+
+    def vectorsView(self, Viewer viewer=None):
+        """
+        Outputs computed eigenvectors to a viewer.
+
+        Parameters
+        ----------
+        viewer: Viewer, optional.
+                Visualization context; if not provided, the standard
+                output is used.
+        """
+        cdef PetscViewer vwr = def_Viewer(viewer)
+        CHKERR( EPSVectorsView(self.eps, vwr) )
 
     #
 
@@ -1578,7 +1660,7 @@ cdef class EPS(Object):
         -----
         Allowed values are in the range [0.1,0.9]. The default is 0.5.
         """
-        cdef PetscReal val = keep
+        cdef PetscReal val = asReal(keep)
         CHKERR( EPSKrylovSchurSetRestart(self.eps, val) )
 
     def getKrylovSchurRestart(self):
@@ -1592,7 +1674,7 @@ cdef class EPS(Object):
         """
         cdef PetscReal val = 0
         CHKERR( EPSKrylovSchurGetRestart(self.eps, &val) )
-        return val
+        return toReal(val)
 
     def setKrylovSchurLocking(self, lock):
         """
@@ -1611,7 +1693,7 @@ cdef class EPS(Object):
         working subspace even if already converged to working accuracy (the
         non-locking variant).
         """
-        cdef PetscBool val = lock
+        cdef PetscBool val = asBool(lock)
         CHKERR( EPSKrylovSchurSetLocking(self.eps, val) )
 
     def getKrylovSchurLocking(self):
@@ -1645,7 +1727,7 @@ cdef class EPS(Object):
         divided into npart subintervals, each of them being processed by a
         subset of processes.
         """
-        cdef PetscInt val = npart
+        cdef PetscInt val = asInt(npart)
         CHKERR( EPSKrylovSchurSetPartitions(self.eps, val) )
 
     def getKrylovSchurPartitions(self):
@@ -1660,7 +1742,7 @@ cdef class EPS(Object):
         """
         cdef PetscInt val = 0
         CHKERR( EPSKrylovSchurGetPartitions(self.eps, &val) )
-        return val
+        return toInt(val)
 
     def setKrylovSchurDetectZeros(self, detect):
         """
@@ -1682,7 +1764,7 @@ cdef class EPS(Object):
         requires an external package for factorizations with support for zero
         detection, e.g. MUMPS.
         """
-        cdef PetscBool val = detect
+        cdef PetscBool val = asBool(detect)
         CHKERR( EPSKrylovSchurSetDetectZeros(self.eps, val) )
 
     def getKrylovSchurDetectZeros(self):
@@ -1764,8 +1846,7 @@ cdef class EPS(Object):
         """
         cdef PetscInt ival1 = 0
         cdef PetscInt ival2 = 0
-        cdef Vec vec
-        vec = Vec()
+        cdef Vec vec = Vec()
         CHKERR( EPSKrylovSchurGetSubcommInfo(self.eps, &ival1, &ival2, &vec.vec) )
         return (toInt(ival1), toInt(ival2), vec)
 
@@ -1876,21 +1957,22 @@ cdef class EPS(Object):
     def setKrylovSchurSubintervals(self, subint):
         """
         Sets the subinterval boundaries for spectrum slicing with a computational interval.
-        
+
         Parameters
         ----------
-        subint: list of real values specifying subintervals
+        subint: list of float
+            Real values specifying subintervals
 
         Notes
         -----
         Logically Collective on EPS
-        This function must be called after setKrylovSchurPartitions(). 
-        For npart partitions, the argument subint must contain npart+1 
-        real values sorted in ascending order: 
-        subint_0, subint_1, ..., subint_npart, 
-        where the first and last values must coincide with the interval 
+        This function must be called after setKrylovSchurPartitions().
+        For npart partitions, the argument subint must contain npart+1
+        real values sorted in ascending order:
+        subint_0, subint_1, ..., subint_npart,
+        where the first and last values must coincide with the interval
         endpoints set with EPSSetInterval().
-        The subintervals are then defined by two consecutive points: 
+        The subintervals are then defined by two consecutive points:
         [subint_0,subint_1], [subint_1,subint_2], and so on.
         """
         cdef PetscBool match = PETSC_FALSE
@@ -1903,8 +1985,446 @@ cdef class EPS(Object):
         assert n >= nparts
         cdef tmp = allocate(<size_t>n*sizeof(PetscReal),<void**>&subintarray)
         for i in range(n): subintarray[i] = asReal(subint[i])
-        CHKERR(EPSKrylovSchurSetSubintervals(self.eps, subintarray))
-        
+        CHKERR( EPSKrylovSchurSetSubintervals(self.eps, subintarray) )
+
+    def getKrylovSchurSubintervals(self):
+        """
+        Returns the points that delimit the subintervals used
+        in spectrum slicing with several partitions.
+
+        Returns
+        -------
+        subint: list of float
+            Real values specifying subintervals
+        """
+        cdef PetscReal *subintarray = NULL
+        cdef PetscInt nparts = 0
+        CHKERR( EPSKrylovSchurGetPartitions(self.eps, &nparts) )
+        CHKERR( EPSKrylovSchurGetSubintervals(self.eps, &subintarray) )
+        cdef object subint = None
+        try:
+            subint = array_r(nparts+1, subintarray)
+        finally:
+            CHKERR( PetscFree(subintarray) )
+        return subint
+
+    def getKrylovSchurInertias(self):
+        """
+        Gets the values of the shifts and their corresponding inertias
+        in case of doing spectrum slicing for a computational interval.
+
+        Returns
+        -------
+        shifts: list of float
+             The values of the shifts used internally in the solver.
+        inertias: list of int
+             The values of the inertia in each shift.
+        """
+        cdef PetscReal *shiftsarray = NULL
+        cdef PetscInt *inertiasarray = NULL
+        cdef PetscInt n = 0
+        CHKERR(EPSKrylovSchurGetInertias(self.eps, &n, &shiftsarray, &inertiasarray))
+        cdef object shifts = None
+        cdef object inertias = None
+        try:
+            shifts = array_r(n, shiftsarray)
+            inertias = array_i(n, inertiasarray)
+        finally:
+            CHKERR( PetscFree(shiftsarray) )
+            CHKERR( PetscFree(inertiasarray) )
+        return (shifts, inertias)
+
+    def getKrylovSchurKSP(self):
+        """
+        Retrieve the linear solver object associated with the internal `EPS`
+        object in case of doing spectrum slicing for a computational interval.
+
+        Returns
+        -------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        cdef KSP ksp = KSP()
+        CHKERR( EPSKrylovSchurGetKSP(self.eps, &ksp.ksp) )
+        PetscINCREF(ksp.obj)
+        return ksp
+
+    #
+
+    def setGDKrylovStart(self, krylovstart=True):
+        """
+        Activates or deactivates starting the search subspace
+        with a Krylov basis.
+
+        Parameters
+        ----------
+        krylovstart: bool
+              True if starting the search subspace with a Krylov basis.
+        """
+        cdef PetscBool val = asBool(krylovstart)
+        CHKERR( EPSGDSetKrylovStart(self.eps, val) )
+
+    def getGDKrylovStart(self):
+        """
+        Gets a flag indicating if the search subspace is started with a
+        Krylov basis.
+
+        Returns
+        -------
+        krylovstart: bool
+              True if starting the search subspace with a Krylov basis.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSGDGetKrylovStart(self.eps, &tval) )
+        return toBool(tval)
+
+    def setGDBlockSize(self, bs):
+        """
+        Sets the number of vectors to be added to the searching space
+        in every iteration.
+
+        Parameters
+        ----------
+        bs: int
+            The number of vectors added to the search space in every iteration.
+        """
+        cdef PetscInt ival = asInt(bs)
+        CHKERR( EPSGDSetBlockSize(self.eps, ival) )
+
+    def getGDBlockSize(self):
+        """
+        Gets the number of vectors to be added to the searching space
+        in every iteration.
+
+        Returns
+        -------
+        bs: int
+            The number of vectors added to the search space in every iteration.
+        """
+        cdef PetscInt ival = 0
+        CHKERR( EPSGDGetBlockSize(self.eps, &ival) )
+        return toInt(ival)
+
+    def setGDRestart(self, minv=None, plusk=None):
+        """
+        Sets the number of vectors of the search space after restart and
+        the number of vectors saved from the previous iteration.
+
+        Parameters
+        ----------
+        minv: int, optional
+              The number of vectors of the search subspace after restart.
+        plusk: int, optional
+              The number of vectors saved from the previous iteration.
+        """
+        cdef PetscInt ival1 = PETSC_DEFAULT
+        cdef PetscInt ival2 = PETSC_DEFAULT
+        if minv  is not None: ival1 = asInt(minv)
+        if plusk is not None: ival2 = asInt(plusk)
+        CHKERR( EPSGDSetRestart(self.eps, ival1, ival2) )
+
+    def getGDRestart(self):
+        """
+        Gets the number of vectors of the search space after restart and
+        the number of vectors saved from the previous iteration.
+
+        Returns
+        -------
+        minv: int
+              The number of vectors of the search subspace after restart.
+        plusk: int
+              The number of vectors saved from the previous iteration.
+        """
+        cdef PetscInt ival1 = 0
+        cdef PetscInt ival2 = 0
+        CHKERR( EPSGDGetRestart(self.eps, &ival1, &ival2) )
+        return (toInt(ival1), toInt(ival2))
+
+    def setGDInitialSize(self, initialsize):
+        """
+        Sets the initial size of the searching space.
+
+        Parameters
+        ----------
+        initialsize: int
+            The number of vectors of the initial searching subspace.
+        """
+        cdef PetscInt ival = asInt(initialsize)
+        CHKERR( EPSGDSetInitialSize(self.eps, ival) )
+
+    def getGDInitialSize(self):
+        """
+        Gets the initial size of the searching space.
+
+        Returns
+        -------
+        initialsize: int
+            The number of vectors of the initial searching subspace.
+        """
+        cdef PetscInt ival = 0
+        CHKERR( EPSGDGetInitialSize(self.eps, &ival) )
+        return toInt(ival)
+
+    def setGDBOrth(self, borth):
+        """
+        Selects the orthogonalization that will be used in the search
+        subspace in case of generalized Hermitian problems.
+
+        Parameters
+        ----------
+        borth: bool
+              Whether to B-orthogonalize the search subspace.
+        """
+        cdef PetscBool tval = asBool(borth)
+        CHKERR( EPSGDSetBOrth(self.eps, tval) )
+
+    def getGDBOrth(self):
+        """
+        Returns the orthogonalization used in the search subspace in
+        case of generalized Hermitian problems.
+
+        Returns
+        -------
+        borth: bool
+              Whether to B-orthogonalize the search subspace.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSGDGetBOrth(self.eps, &tval) )
+        return toBool(tval)
+
+    def setGDDoubleExpansion(self, doubleexp):
+        """
+        Activate a variant where the search subspace is expanded  with
+        K*[A*x B*x] (double expansion) instead of the classic K*r, where
+        K is the preconditioner, x the selected approximate eigenvector
+        and r its associated residual vector.
+
+        Parameters
+        ----------
+        doubleexp: bool
+              True if using double expansion.
+        """
+        cdef PetscBool val = asBool(doubleexp)
+        CHKERR( EPSGDSetDoubleExpansion(self.eps, val) )
+
+    def getGDDoubleExpansion(self):
+        """
+        Gets a flag indicating whether the double expansion variant
+        has been activated or not.
+
+        Returns
+        -------
+        doubleexp: bool
+              True if using double expansion.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSGDGetDoubleExpansion(self.eps, &tval) )
+        return toBool(tval)
+
+    #
+
+    def setJDKrylovStart(self, krylovstart=True):
+        """
+        Activates or deactivates starting the search subspace
+        with a Krylov basis.
+
+        Parameters
+        ----------
+        krylovstart: bool
+              True if starting the search subspace with a Krylov basis.
+        """
+        cdef PetscBool val = asBool(krylovstart)
+        CHKERR( EPSJDSetKrylovStart(self.eps, val) )
+
+    def getJDKrylovStart(self):
+        """
+        Gets a flag indicating if the search subspace is started with a
+        Krylov basis.
+
+        Returns
+        -------
+        krylovstart: bool
+              True if starting the search subspace with a Krylov basis.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSJDGetKrylovStart(self.eps, &tval) )
+        return toBool(tval)
+
+    def setJDBlockSize(self, bs):
+        """
+        Sets the number of vectors to be added to the searching space
+        in every iteration.
+
+        Parameters
+        ----------
+        bs: int
+            The number of vectors added to the search space in every iteration.
+        """
+        cdef PetscInt ival = asInt(bs)
+        CHKERR( EPSJDSetBlockSize(self.eps, ival) )
+
+    def getJDBlockSize(self):
+        """
+        Gets the number of vectors to be added to the searching space
+        in every iteration.
+
+        Returns
+        -------
+        bs: int
+            The number of vectors added to the search space in every iteration.
+        """
+        cdef PetscInt ival = 0
+        CHKERR( EPSJDGetBlockSize(self.eps, &ival) )
+        return toInt(ival)
+
+    def setJDRestart(self, minv=None, plusk=None):
+        """
+        Sets the number of vectors of the search space after restart and
+        the number of vectors saved from the previous iteration.
+
+        Parameters
+        ----------
+        minv: int, optional
+              The number of vectors of the search subspace after restart.
+        plusk: int, optional
+              The number of vectors saved from the previous iteration.
+        """
+        cdef PetscInt ival1 = PETSC_DEFAULT
+        cdef PetscInt ival2 = PETSC_DEFAULT
+        if minv  is not None: ival1 = asInt(minv)
+        if plusk is not None: ival2 = asInt(plusk)
+        CHKERR( EPSJDSetRestart(self.eps, ival1, ival2) )
+
+    def getJDRestart(self):
+        """
+        Gets the number of vectors of the search space after restart and
+        the number of vectors saved from the previous iteration.
+
+        Returns
+        -------
+        minv: int
+              The number of vectors of the search subspace after restart.
+        plusk: int
+              The number of vectors saved from the previous iteration.
+        """
+        cdef PetscInt ival1 = 0
+        cdef PetscInt ival2 = 0
+        CHKERR( EPSJDGetRestart(self.eps, &ival1, &ival2) )
+        return (toInt(ival1), toInt(ival2))
+
+    def setJDInitialSize(self, initialsize):
+        """
+        Sets the initial size of the searching space.
+
+        Parameters
+        ----------
+        initialsize: int
+            The number of vectors of the initial searching subspace.
+        """
+        cdef PetscInt ival = asInt(initialsize)
+        CHKERR( EPSJDSetInitialSize(self.eps, ival) )
+
+    def getJDInitialSize(self):
+        """
+        Gets the initial size of the searching space.
+
+        Returns
+        -------
+        initialsize: int
+            The number of vectors of the initial searching subspace.
+        """
+        cdef PetscInt ival = 0
+        CHKERR( EPSJDGetInitialSize(self.eps, &ival) )
+        return toInt(ival)
+
+    def setJDFix(self, fix):
+        """
+        Sets the threshold for changing the target in the correction equation.
+
+        Parameters
+        ----------
+        fix: float
+             The threshold for changing the target.
+
+        Notes
+        -----
+        The target in the correction equation is fixed at the first iterations.
+        When the norm of the residual vector is lower than the fix value,
+        the target is set to the corresponding eigenvalue.
+        """
+        cdef PetscReal val = asReal(fix)
+        CHKERR( EPSJDSetFix(self.eps, val) )
+
+    def getJDFix(self):
+        """
+        Gets the threshold for changing the target in the correction equation.
+
+        Returns
+        -------
+        fix: float
+             The threshold for changing the target.
+        """
+        cdef PetscReal val = 0
+        CHKERR( EPSJDGetFix(self.eps, &val) )
+        return toReal(val)
+
+    def setJDConstCorrectionTol(self, constant):
+        """
+        Deactivates the dynamic stopping criterion that sets the
+        `KSP` relative tolerance to `0.5**i`, where `i` is the number
+        of `EPS` iterations from the last converged value.
+
+        Parameters
+        ----------
+        constant: bool
+              If False, the `KSP` relative tolerance is set to `0.5**i`.
+        """
+        cdef PetscBool tval = asBool(constant)
+        CHKERR( EPSJDSetConstCorrectionTol(self.eps, tval) )
+
+    def getJDConstCorrectionTol(self):
+        """
+        Returns the flag indicating if the dynamic stopping is being used for
+        solving the correction equation.
+
+        Returns
+        -------
+        constant: bool
+              Flag indicating if the dynamic stopping criterion is not being used.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSJDGetConstCorrectionTol(self.eps, &tval) )
+        return toBool(tval)
+
+    def setJDBOrth(self, borth):
+        """
+        Selects the orthogonalization that will be used in the search
+        subspace in case of generalized Hermitian problems.
+
+        Parameters
+        ----------
+        borth: bool
+              Whether to B-orthogonalize the search subspace.
+        """
+        cdef PetscBool tval = asBool(borth)
+        CHKERR( EPSJDSetBOrth(self.eps, tval) )
+
+    def getJDBOrth(self):
+        """
+        Returns the orthogonalization used in the search subspace in
+        case of generalized Hermitian problems.
+
+        Returns
+        -------
+        borth: bool
+              Whether to B-orthogonalize the search subspace.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSJDGetBOrth(self.eps, &tval) )
+        return toBool(tval)
+
+    #
+
     def setRQCGReset(self, nrest):
         """
         Sets the reset parameter of the RQCG iteration. Every nrest iterations,
@@ -1930,6 +2450,130 @@ cdef class EPS(Object):
         cdef PetscInt val = 0
         CHKERR( EPSRQCGGetReset(self.eps, &val) )
         return toInt(val)
+
+    def setLOBPCGBlockSize(self, bs):
+        """
+        Sets the block size of the LOBPCG method.
+
+        Parameters
+        ----------
+        bs: int
+            The block size.
+        """
+        cdef PetscInt ival = asInt(bs)
+        CHKERR( EPSLOBPCGSetBlockSize(self.eps, ival) )
+
+    def getLOBPCGBlockSize(self):
+        """
+        Gets the block size used in the LOBPCG method.
+
+        Returns
+        -------
+        bs: int
+            The block size.
+        """
+        cdef PetscInt ival = 0
+        CHKERR( EPSLOBPCGGetBlockSize(self.eps, &ival) )
+        return toInt(ival)
+
+    def setLOBPCGRestart(self, restart):
+        """
+        Sets the restart parameter for the LOBPCG method. The meaning
+        of this parameter is the proportion of vectors within the
+        current block iterate that must have converged in order to force
+        a restart with hard locking.
+
+        Parameters
+        ----------
+        restart: float
+              The percentage of the block of vectors to force a restart.
+
+        Notes
+        -----
+        Allowed values are in the range [0.1,1.0]. The default is 0.9.
+        """
+        cdef PetscReal val = asReal(restart)
+        CHKERR( EPSLOBPCGSetRestart(self.eps, val) )
+
+    def getLOBPCGRestart(self):
+        """
+        Gets the restart parameter used in the LOBPCG method.
+
+        Returns
+        -------
+        restart: float
+              The restart parameter.
+        """
+        cdef PetscReal val = 0
+        CHKERR( EPSLOBPCGGetRestart(self.eps, &val) )
+        return toReal(val)
+
+    def setLOBPCGLocking(self, lock):
+        """
+        Choose between locking and non-locking variants of the
+        LOBPCG method.
+
+        Parameters
+        ----------
+        lock: bool
+              True if the locking variant must be selected.
+
+        Notes
+        -----
+        This flag refers to soft locking (converged vectors within the current
+        block iterate), since hard locking is always used (when nev is larger
+        than the block size).
+        """
+        cdef PetscBool val = asBool(lock)
+        CHKERR( EPSLOBPCGSetLocking(self.eps, val) )
+
+    def getLOBPCGLocking(self):
+        """
+        Gets the locking flag used in the LOBPCG method.
+
+        Returns
+        -------
+        lock: bool
+              The locking flag.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSLOBPCGGetLocking(self.eps, &tval) )
+        return toBool(tval)
+
+    def setLyapIIRanks(self, rkc=None, rkl=None):
+        """
+        Set the ranks used in the solution of the Lyapunov equation.
+
+        Parameters
+        ----------
+        rkc: int, optional
+             The compressed rank.
+        rkl: int, optional
+             The Lyapunov rank.
+        """
+        cdef PetscInt ival1 = PETSC_DEFAULT
+        cdef PetscInt ival2 = PETSC_DEFAULT
+        if rkc  is not None: ival1 = asInt(rkc)
+        if rkl is not None: ival2 = asInt(rkl)
+        CHKERR( EPSLyapIISetRanks(self.eps, ival1, ival2) )
+
+    def getLyapIIRanks(self):
+        """
+        Return the rank values used for the Lyapunov step.
+
+        Returns
+        -------
+        rkc: int
+             The compressed rank.
+        rkl: int
+             The Lyapunov rank.
+        """
+        cdef PetscInt ival1 = 0
+        cdef PetscInt ival2 = 0
+        CHKERR( EPSLyapIIGetRanks(self.eps, &ival1, &ival2) )
+        return (toInt(ival1), toInt(ival2))
+
+    #
 
     def setCISSExtraction(self, extraction):
         """
@@ -2124,7 +2768,7 @@ cdef class EPS(Object):
         usest: bool
             Whether to use the `ST` object or not.
         """
-        cdef PetscBool tval = usest
+        cdef PetscBool tval = asBool(usest)
         CHKERR( EPSCISSSetUseST(self.eps, tval) )
 
     def getCISSUseST(self):
@@ -2198,6 +2842,30 @@ cdef class EPS(Object):
         def __set__(self, value):
             self.setTolerances(max_it=value)
 
+    property two_sided:
+        def __get__(self):
+            return self.getTwoSided()
+        def __set__(self, value):
+            self.setTwoSided(value)
+
+    property true_residual:
+        def __get__(self):
+            return self.getTrueResidual()
+        def __set__(self, value):
+            self.setTrueResidual(value)
+
+    property purify:
+        def __get__(self):
+            return self.getPurify()
+        def __set__(self, value):
+            self.setPurify(value)
+
+    property track_all:
+        def __get__(self):
+            return self.getTrackAll()
+        def __set__(self, value):
+            self.setTrackAll(value)
+
     property st:
         def __get__(self):
             return self.getST()
@@ -2209,6 +2877,18 @@ cdef class EPS(Object):
             return self.getBV()
         def __set__(self, value):
             self.setBV(value)
+
+    property rg:
+        def __get__(self):
+            return self.getRG()
+        def __set__(self, value):
+            self.setRG(value)
+
+    property ds:
+        def __get__(self):
+            return self.getDS()
+        def __set__(self, value):
+            self.setDS(value)
 
 # -----------------------------------------------------------------------------
 

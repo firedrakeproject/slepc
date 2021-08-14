@@ -269,7 +269,7 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
 
    Level: advanced
 
-.seealso: EPSGDSetRestart()
+.seealso: EPSGDGetRestart()
 @*/
 PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 {

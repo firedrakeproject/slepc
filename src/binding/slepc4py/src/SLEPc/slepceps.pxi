@@ -83,7 +83,6 @@ cdef extern from * nogil:
         EPS_CONVERGED_ITERATING
 
     ctypedef int (*SlepcEPSCtxDel)(void*)
-
     ctypedef int (*SlepcEPSStoppingFunction)(SlepcEPS,
                                              PetscInt,
                                              PetscInt,
@@ -145,6 +144,8 @@ cdef extern from * nogil:
 
     int EPSSetTwoSided(SlepcEPS,PetscBool)
     int EPSGetTwoSided(SlepcEPS,PetscBool*)
+    int EPSSetPurify(SlepcEPS,PetscBool)
+    int EPSGetPurify(SlepcEPS,PetscBool*)
 
     int EPSSetConvergenceTest(SlepcEPS,SlepcEPSConv)
     int EPSGetConvergenceTest(SlepcEPS,SlepcEPSConv*)
@@ -157,8 +158,7 @@ cdef extern from * nogil:
 
     int EPSSetDeflationSpace(SlepcEPS,PetscInt,PetscVec*)
     int EPSSetInitialSpace(SlepcEPS,PetscInt,PetscVec*)
-
-    int EPSMonitorCancel(SlepcEPS)
+    int EPSSetLeftInitialSpace(SlepcEPS,PetscInt,PetscVec*)
 
     int EPSSetUp(SlepcEPS)
     int EPSSolve(SlepcEPS)
@@ -172,16 +172,17 @@ cdef extern from * nogil:
     int EPSGetEigenpair(SlepcEPS,PetscInt,PetscScalar*,PetscScalar*,PetscVec,PetscVec)
     int EPSGetInvariantSubspace(SlepcEPS,PetscVec*)
 
-    int EPSSetStoppingTestFunction(SlepcEPS,SlepcEPSStoppingFunction,void*,SlepcEPSCtxDel);
+    int EPSSetStoppingTestFunction(SlepcEPS,SlepcEPSStoppingFunction,void*,SlepcEPSCtxDel)
     int EPSStoppingBasic(SlepcEPS,PetscInt,PetscInt,PetscInt,PetscInt,SlepcEPSConvergedReason*,void*) except PETSC_ERR_PYTHON
 
     int EPSGetErrorEstimate(SlepcEPS,PetscInt,PetscReal*)
     int EPSComputeError(SlepcEPS,PetscInt,SlepcEPSErrorType,PetscReal*)
     int EPSErrorView(SlepcEPS,SlepcEPSErrorType,PetscViewer)
+    int EPSValuesView(SlepcEPS,PetscViewer)
+    int EPSVectorsView(SlepcEPS,PetscViewer)
 
     int EPSMonitorSet(SlepcEPS,SlepcEPSMonitorFunction,void*,SlepcEPSCtxDel)
     int EPSMonitorCancel(SlepcEPS)
-    int EPSMonitor(SlepcEPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt)
 
     ctypedef enum SlepcEPSPowerShiftType "EPSPowerShiftType":
         EPS_POWER_SHIFT_CONSTANT
@@ -195,19 +196,22 @@ cdef extern from * nogil:
 
     int EPSKrylovSchurSetRestart(SlepcEPS,PetscReal)
     int EPSKrylovSchurGetRestart(SlepcEPS,PetscReal*)
-    int EPSKrylovSchurSetLocking(SlepcEPS,PetscBool);
-    int EPSKrylovSchurGetLocking(SlepcEPS,PetscBool*);
-    int EPSKrylovSchurSetPartitions(SlepcEPS,PetscInt);
-    int EPSKrylovSchurGetPartitions(SlepcEPS,PetscInt*);
-    int EPSKrylovSchurSetDetectZeros(SlepcEPS,PetscBool);
-    int EPSKrylovSchurGetDetectZeros(SlepcEPS,PetscBool*);
-    int EPSKrylovSchurSetDimensions(SlepcEPS,PetscInt,PetscInt,PetscInt);
-    int EPSKrylovSchurGetDimensions(SlepcEPS,PetscInt*,PetscInt*,PetscInt*);
-    int EPSKrylovSchurGetSubcommInfo(SlepcEPS,PetscInt*,PetscInt*,PetscVec*);
-    int EPSKrylovSchurGetSubcommPairs(SlepcEPS,PetscInt,PetscScalar*,PetscVec);
-    int EPSKrylovSchurGetSubcommMats(SlepcEPS,PetscMat*,PetscMat*);
-    int EPSKrylovSchurUpdateSubcommMats(SlepcEPS,PetscScalar,PetscScalar,PetscMat,PetscScalar,PetscScalar,PetscMat,PetscMatStructure,PetscBool);
-    int EPSKrylovSchurSetSubintervals(SlepcEPS,PetscReal*);
+    int EPSKrylovSchurSetLocking(SlepcEPS,PetscBool)
+    int EPSKrylovSchurGetLocking(SlepcEPS,PetscBool*)
+    int EPSKrylovSchurSetPartitions(SlepcEPS,PetscInt)
+    int EPSKrylovSchurGetPartitions(SlepcEPS,PetscInt*)
+    int EPSKrylovSchurSetDetectZeros(SlepcEPS,PetscBool)
+    int EPSKrylovSchurGetDetectZeros(SlepcEPS,PetscBool*)
+    int EPSKrylovSchurSetDimensions(SlepcEPS,PetscInt,PetscInt,PetscInt)
+    int EPSKrylovSchurGetDimensions(SlepcEPS,PetscInt*,PetscInt*,PetscInt*)
+    int EPSKrylovSchurGetSubcommInfo(SlepcEPS,PetscInt*,PetscInt*,PetscVec*)
+    int EPSKrylovSchurGetSubcommPairs(SlepcEPS,PetscInt,PetscScalar*,PetscVec)
+    int EPSKrylovSchurGetSubcommMats(SlepcEPS,PetscMat*,PetscMat*)
+    int EPSKrylovSchurUpdateSubcommMats(SlepcEPS,PetscScalar,PetscScalar,PetscMat,PetscScalar,PetscScalar,PetscMat,PetscMatStructure,PetscBool)
+    int EPSKrylovSchurSetSubintervals(SlepcEPS,PetscReal*)
+    int EPSKrylovSchurGetSubintervals(SlepcEPS,PetscReal**)
+    int EPSKrylovSchurGetInertias(SlepcEPS,PetscInt*,PetscReal**,PetscInt**)
+    int EPSKrylovSchurGetKSP(SlepcEPS,PetscKSP*)
 
     ctypedef enum SlepcEPSLanczosReorthogType "EPSLanczosReorthogType":
         EPS_LANCZOS_REORTHOG_LOCAL
@@ -229,8 +233,6 @@ cdef extern from * nogil:
     int EPSGDGetInitialSize(SlepcEPS,PetscInt*)
     int EPSGDSetBOrth(SlepcEPS,PetscBool)
     int EPSGDGetBOrth(SlepcEPS,PetscBool*)
-    int EPSGDSetWindowSizes(SlepcEPS,PetscInt,PetscInt)
-    int EPSGDGetWindowSizes(SlepcEPS,PetscInt*,PetscInt*)
     int EPSGDSetDoubleExpansion(SlepcEPS,PetscBool)
     int EPSGDGetDoubleExpansion(SlepcEPS,PetscBool*)
 
@@ -244,15 +246,23 @@ cdef extern from * nogil:
     int EPSJDGetInitialSize(SlepcEPS,PetscInt*)
     int EPSJDSetFix(SlepcEPS,PetscReal)
     int EPSJDGetFix(SlepcEPS,PetscReal*)
-    int EPSJDSetConstantCorrectionTolerance(SlepcEPS,PetscBool)
-    int EPSJDGetConstantCorrectionTolerance(SlepcEPS,PetscBool*)
+    int EPSJDSetConstCorrectionTol(SlepcEPS,PetscBool)
+    int EPSJDGetConstCorrectionTol(SlepcEPS,PetscBool*)
     int EPSJDSetBOrth(SlepcEPS,PetscBool)
     int EPSJDGetBOrth(SlepcEPS,PetscBool*)
-    int EPSJDGetWindowSizes(SlepcEPS,PetscInt*,PetscInt*)
-    int EPSJDSetWindowSizes(SlepcEPS,PetscInt,PetscInt)
 
     int EPSRQCGSetReset(SlepcEPS,PetscInt)
     int EPSRQCGGetReset(SlepcEPS,PetscInt*)
+
+    int EPSLOBPCGSetBlockSize(SlepcEPS,PetscInt)
+    int EPSLOBPCGGetBlockSize(SlepcEPS,PetscInt*)
+    int EPSLOBPCGSetRestart(SlepcEPS,PetscReal)
+    int EPSLOBPCGGetRestart(SlepcEPS,PetscReal*)
+    int EPSLOBPCGSetLocking(SlepcEPS,PetscBool)
+    int EPSLOBPCGGetLocking(SlepcEPS,PetscBool*)
+
+    int EPSLyapIISetRanks(SlepcEPS,PetscInt,PetscInt)
+    int EPSLyapIIGetRanks(SlepcEPS,PetscInt*,PetscInt*)
 
     ctypedef enum SlepcEPSCISSQuadRule "EPSCISSQuadRule":
         EPS_CISS_QUADRULE_TRAPEZOIDAL
