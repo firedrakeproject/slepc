@@ -42,6 +42,22 @@ cdef extern from * nogil:
         SVD_DIVERGED_BREAKDOWN
         SVD_CONVERGED_ITERATING
 
+    ctypedef int (*SlepcSVDCtxDel)(void*)
+    ctypedef int (*SlepcSVDStoppingFunction)(SlepcSVD,
+                                             PetscInt,
+                                             PetscInt,
+                                             PetscInt,
+                                             PetscInt,
+                                             SlepcSVDConvergedReason*,
+                                             void*) except PETSC_ERR_PYTHON
+    ctypedef int (*SlepcSVDMonitorFunction)(SlepcSVD,
+                                            PetscInt,
+                                            PetscInt,
+                                            PetscReal*,
+                                            PetscReal*,
+                                            PetscInt,
+                                            void*) except PETSC_ERR_PYTHON
+
     int SVDCreate(MPI_Comm,SlepcSVD*)
     int SVDView(SlepcSVD,PetscViewer)
     int SVDDestroy(SlepcSVD*)
@@ -74,8 +90,17 @@ cdef extern from * nogil:
     int SVDGetTolerances(SlepcSVD,PetscReal*,PetscInt*)
     int SVDSetWhichSingularTriplets(SlepcSVD,SlepcSVDWhich)
     int SVDGetWhichSingularTriplets(SlepcSVD,SlepcSVDWhich*)
+    int SVDSetConvergenceTest(SlepcSVD,SlepcSVDConv)
+    int SVDGetConvergenceTest(SlepcSVD,SlepcSVDConv*)
 
+    int SVDMonitorSet(SlepcSVD,SlepcSVDMonitorFunction,void*,SlepcSVDCtxDel)
     int SVDMonitorCancel(SlepcSVD)
+
+    int SVDSetStoppingTestFunction(SlepcSVD,SlepcSVDStoppingFunction,void*,SlepcSVDCtxDel)
+    int SVDStoppingBasic(SlepcSVD,PetscInt,PetscInt,PetscInt,PetscInt,SlepcSVDConvergedReason*,void*) except PETSC_ERR_PYTHON
+
+    int SVDSetTrackAll(SlepcSVD,PetscBool)
+    int SVDGetTrackAll(SlepcSVD,PetscBool*)
 
     int SVDSetUp(SlepcSVD)
     int SVDSolve(SlepcSVD)
@@ -85,7 +110,11 @@ cdef extern from * nogil:
     int SVDGetSingularTriplet(SlepcSVD,PetscInt,PetscReal*,PetscVec,PetscVec)
     int SVDComputeError(SlepcSVD,PetscInt,SlepcSVDErrorType,PetscReal*)
     int SVDErrorView(SlepcSVD,SlepcSVDErrorType,PetscViewer)
+    int SVDValuesView(SlepcSVD,PetscViewer)
+    int SVDVectorsView(SlepcSVD,PetscViewer)
 
+    int SVDCrossSetExplicitMatrix(SlepcSVD,PetscBool)
+    int SVDCrossGetExplicitMatrix(SlepcSVD,PetscBool*)
     int SVDCrossSetEPS(SlepcSVD,SlepcEPS)
     int SVDCrossGetEPS(SlepcSVD,SlepcEPS*)
 
@@ -95,11 +124,71 @@ cdef extern from * nogil:
     int SVDCyclicGetEPS(SlepcSVD,SlepcEPS*)
 
     int SVDLanczosSetOneSide(SlepcSVD,PetscBool)
+    int SVDLanczosGetOneSide(SlepcSVD,PetscBool*)
 
     int SVDTRLanczosSetOneSide(SlepcSVD,PetscBool)
+    int SVDTRLanczosGetOneSide(SlepcSVD,PetscBool*)
+    int SVDTRLanczosSetGBidiag(SlepcSVD,SlepcSVDTRLanczosGBidiag)
+    int SVDTRLanczosGetGBidiag(SlepcSVD,SlepcSVDTRLanczosGBidiag*)
+    int SVDTRLanczosSetKSP(SlepcSVD,PetscKSP)
+    int SVDTRLanczosGetKSP(SlepcSVD,PetscKSP*)
+    int SVDTRLanczosSetRestart(SlepcSVD,PetscReal)
+    int SVDTRLanczosGetRestart(SlepcSVD,PetscReal*)
+    int SVDTRLanczosSetLocking(SlepcSVD,PetscBool)
+    int SVDTRLanczosGetLocking(SlepcSVD,PetscBool*)
+    int SVDTRLanczosSetExplicitMatrix(SlepcSVD,PetscBool)
+    int SVDTRLanczosGetExplicitMatrix(SlepcSVD,PetscBool*)
 
     ctypedef enum SlepcSVDTRLanczosGBidiag "SVDTRLanczosGBidiag":
         SVD_TRLANCZOS_GBIDIAG_SINGLE
         SVD_TRLANCZOS_GBIDIAG_UPPER
         SVD_TRLANCZOS_GBIDIAG_LOWER
 
+# -----------------------------------------------------------------------------
+
+cdef inline SVD ref_SVD(SlepcSVD svd):
+    cdef SVD ob = <SVD> SVD()
+    ob.svd = svd
+    PetscINCREF(ob.obj)
+    return ob
+
+# -----------------------------------------------------------------------------
+
+cdef int SVD_Stopping(
+    SlepcSVD                svd,
+    PetscInt                its,
+    PetscInt                max_it,
+    PetscInt                nconv,
+    PetscInt                nev,
+    SlepcSVDConvergedReason *r,
+    void                    *ctx,
+    ) except PETSC_ERR_PYTHON with gil:
+    cdef SVD Svd = ref_SVD(svd)
+    (stopping, args, kargs) = Svd.get_attr('__stopping__')
+    reason = stopping(Svd, toInt(its), toInt(max_it), toInt(nconv), toInt(nev), *args, **kargs)
+    if   reason is None:  r[0] = SVD_CONVERGED_ITERATING
+    elif reason is False: r[0] = SVD_CONVERGED_ITERATING
+    elif reason is True:  r[0] = SVD_CONVERGED_USER
+    else:                 r[0] = reason
+
+# -----------------------------------------------------------------------------
+
+cdef int SVD_Monitor(
+    SlepcSVD    svd,
+    PetscInt    its,
+    PetscInt    nconv,
+    PetscReal   *sigma,
+    PetscReal   *errest,
+    PetscInt    nest,
+    void        *ctx,
+    ) except PETSC_ERR_PYTHON with gil:
+    cdef SVD Svd = ref_SVD(svd)
+    cdef object monitorlist = Svd.get_attr('__monitor__')
+    if monitorlist is None: return 0
+    cdef object eig = [toReal(sigma[i]) for i in range(nest)]
+    cdef object err = [toReal(errest[i]) for i in range(nest)]
+    for (monitor, args, kargs) in monitorlist:
+        monitor(Svd, toInt(its), toInt(nconv), eig, err, *args, **kargs)
+    return 0
+
+# -----------------------------------------------------------------------------
