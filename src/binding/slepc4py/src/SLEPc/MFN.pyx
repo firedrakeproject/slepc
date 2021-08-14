@@ -292,11 +292,32 @@ cdef class MFN(Object):
 
     #
 
+    def setMonitor(self, monitor, args=None, kargs=None):
+        """
+        Appends a monitor function to the list of monitors.
+        """
+        if monitor is None: return
+        cdef object monitorlist = self.get_attr('__monitor__')
+        if monitorlist is None:
+            monitorlist = []
+            self.set_attr('__monitor__', monitorlist)
+            CHKERR( MFNMonitorSet(self.mfn, MFN_Monitor, NULL, NULL) )
+        if args is None: args = ()
+        if kargs is None: kargs = {}
+        monitorlist.append((monitor, args, kargs))
+
+    def getMonitor(self):
+        """
+        Gets the list of monitor functions.
+        """
+        return self.get_attr('__monitor__')
+
     def cancelMonitor(self):
         """
-        Clears all monitors for a MFN object.
+        Clears all monitors for an `MFN` object.
         """
         CHKERR( MFNMonitorCancel(self.mfn) )
+        self.set_attr('__monitor__', None)
 
     #
 
@@ -310,7 +331,7 @@ cdef class MFN(Object):
     def solve(self, Vec b, Vec x):
         """
         Solves the matrix function problem. Given a vector b, the
-        vector x = f(alpha*A)*b is returned.
+        vector x = f(A)*b is returned.
 
         Parameters
         ----------
@@ -320,6 +341,20 @@ cdef class MFN(Object):
             The solution.
         """
         CHKERR( MFNSolve(self.mfn, b.vec, x.vec) )
+
+    def solveTranspose(self, Vec b, Vec x):
+        """
+        Solves the transpose matrix function problem. Given a vector b, the
+        vector x = f(A^T)*b is returned.
+
+        Parameters
+        ----------
+        b: Vec
+            The right hand side vector.
+        x: Vec
+            The solution.
+        """
+        CHKERR( MFNSolveTranspose(self.mfn, b.vec, x.vec) )
 
     def getIterationNumber(self):
         """
@@ -350,6 +385,57 @@ cdef class MFN(Object):
         CHKERR( MFNGetConvergedReason(self.mfn, &val) )
         return val
 
+    def setErrorIfNotConverged(self, flg=True):
+        """
+        Causes `solve()` to generate an error if the solver has not converged.
+
+        Parameters
+        ----------
+        flg: bool
+            True indicates you want the error generated.
+        """
+        cdef PetscBool tval = flg
+        CHKERR( MFNSetErrorIfNotConverged(self.mfn, tval) )
+
+    def getErrorIfNotConverged(self):
+        """
+        Return a flag indicating whether `solve()` will generate an
+        error if the solver does not converge.
+
+        Returns
+        -------
+        flg: bool
+            True indicates you want the error generated.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( MFNGetErrorIfNotConverged(self.mfn, &tval) )
+        return toBool(tval)
+
+    #
+
+    property tol:
+        def __get__(self):
+            return self.getTolerances()[0]
+        def __set__(self, value):
+            self.setTolerances(tol=value)
+
+    property max_it:
+        def __get__(self):
+            return self.getTolerances()[1]
+        def __set__(self, value):
+            self.setTolerances(max_it=value)
+
+    property fn:
+        def __get__(self):
+            return self.getFN()
+        def __set__(self, value):
+            self.setBV(value)
+
+    property bv:
+        def __get__(self):
+            return self.getFN()
+        def __set__(self, value):
+            self.setBV(value)
 
 # -----------------------------------------------------------------------------
 
