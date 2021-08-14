@@ -294,6 +294,31 @@ cdef class NEP(Object):
         """
         CHKERR( NEPSetFromOptions(self.nep) )
 
+    def getProblemType(self):
+        """
+        Gets the problem type from the `NEP` object.
+
+        Returns
+        -------
+        problem_type: `NEP.ProblemType` enumerate
+            The problem type that was previously set.
+        """
+        cdef SlepcNEPProblemType val = NEP_GENERAL
+        CHKERR( NEPGetProblemType(self.nep, &val) )
+        return val
+
+    def setProblemType(self, problem_type):
+        """
+        Specifies the type of the eigenvalue problem.
+
+        Parameters
+        ----------
+        problem_type: `NEP.ProblemType` enumerate
+            The problem type to be set.
+        """
+        cdef SlepcNEPProblemType val = problem_type
+        CHKERR( NEPSetProblemType(self.nep, val) )
+
     def getWhichEigenpairs(self):
         """
         Returns which portion of the spectrum is to be sought.
@@ -318,6 +343,41 @@ cdef class NEP(Object):
         """
         cdef SlepcNEPWhich val = which
         CHKERR( NEPSetWhichEigenpairs(self.nep, val) )
+
+    def getTarget(self):
+        """
+        Gets the value of the target.
+
+        Returns
+        -------
+        target: float (real or complex)
+                The value of the target.
+
+        Notes
+        -----
+        If the target was not set by the user, then zero is returned.
+        """
+        cdef PetscScalar sval = 0
+        CHKERR( NEPGetTarget(self.nep, &sval) )
+        return toScalar(sval)
+
+    def setTarget(self, target):
+        """
+        Sets the value of the target.
+
+        Parameters
+        ----------
+        target: float (real or complex)
+                The value of the target.
+
+        Notes
+        -----
+        The target is a scalar value used to determine the portion of
+        the spectrum of interest. It is used in combination with
+        `setWhichEigenpairs()`.
+        """
+        cdef PetscScalar sval = asScalar(target)
+        CHKERR( NEPSetTarget(self.nep, sval) )
 
     def getTolerances(self):
         """
@@ -353,33 +413,104 @@ cdef class NEP(Object):
         if maxit is not None: ival = asInt(maxit)
         CHKERR( NEPSetTolerances(self.nep, rval, ival) )
 
-    def getRIILagPreconditioner(self):
+    def getConvergenceTest(self):
         """
-        Indicates how often the preconditioner is rebuilt.
+        Return the method used to compute the error estimate
+        used in the convergence test.
 
         Returns
         -------
-        lag: int
-            The lag parameter.
+        conv: NEP.Conv
+            The method used to compute the error estimate
+            used in the convergence test.
         """
-        cdef PetscInt ival = 0
-        CHKERR( NEPRIIGetLagPreconditioner(self.nep, &ival) )
-        return ival
+        cdef SlepcNEPConv conv = NEP_CONV_REL
+        CHKERR( NEPGetConvergenceTest(self.nep, &conv) )
+        return conv
 
-    def setRIILagPreconditioner(self, lag):
+    def setConvergenceTest(self, conv):
         """
-        Determines when the preconditioner is rebuilt in the
-        nonlinear solve.
+        Specifies how to compute the error estimate
+        used in the convergence test.
 
         Parameters
         ----------
-        lag: int
-            0 indicates NEVER rebuild, 1 means rebuild every time the Jacobian is
-            computed within the nonlinear iteration, 2 means every second time
-            the Jacobian is built, etc.
+        conv: NEP.Conv
+            The method used to compute the error estimate
+            used in the convergence test.
         """
-        cdef PetscInt ival = lag
-        CHKERR( NEPRIISetLagPreconditioner(self.nep, ival) )
+        cdef SlepcNEPConv tconv = conv
+        CHKERR( NEPSetConvergenceTest(self.nep, tconv) )
+
+    def getRefine(self):
+        """
+        Gets the refinement strategy used by the NEP object,
+        and the associated parameters.
+
+        Returns
+        -------
+        ref: NEP.Refine
+            The refinement type.
+        npart: int
+            The number of partitions of the communicator.
+        tol: real
+            The convergence tolerance.
+        its: int
+            The maximum number of refinement iterations.
+        scheme: NEP.RefineScheme
+            Scheme for solving linear systems
+        """
+        cdef SlepcNEPRefine ref = NEP_REFINE_NONE
+        cdef PetscInt npart = 1
+        cdef PetscReal tol = PETSC_DEFAULT
+        cdef PetscInt its = PETSC_DEFAULT
+        cdef SlepcNEPRefineScheme scheme = NEP_REFINE_SCHEME_MBE
+        CHKERR( NEPGetRefine(self.nep, &ref, &npart, &tol, &its, &scheme) )
+        return (ref, toInt(npart), toReal(tol), toInt(its), scheme)
+
+    def setRefine(self, ref, npart=None, tol=None, its=None, scheme=None):
+        """
+        Sets the refinement strategy used by the NEP object,
+        and the associated parameters.
+
+        Parameters
+        ----------
+        ref: NEP.Refine
+            The refinement type.
+        npart: int, optional
+            The number of partitions of the communicator.
+        tol: real, optional
+            The convergence tolerance.
+        its: int, optional
+            The maximum number of refinement iterations.
+        scheme: NEP.RefineScheme, optional
+            Scheme for linear system solves
+        """
+        cdef SlepcNEPRefine tref = ref
+        cdef PetscInt tnpart = 1
+        cdef PetscReal ttol = PETSC_DEFAULT
+        cdef PetscInt tits = PETSC_DEFAULT
+        cdef SlepcNEPRefineScheme tscheme = NEP_REFINE_SCHEME_MBE
+        if npart is not None: tnpart = asInt(npart)
+        if tol is not None: ttol = asReal(tol)
+        if its is not None: tits = asInt(its)
+        if scheme is not None: tscheme = scheme
+        CHKERR( NEPSetRefine(self.nep, tref, tnpart, ttol, tits, tscheme) )
+
+    def getRefineKSP(self):
+        """
+        Obtain the `KSP` object used by the eigensolver in the
+        refinement phase.
+
+        Returns
+        -------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        cdef KSP ksp = KSP()
+        CHKERR( NEPRefineGetKSP(self.nep, &ksp.ksp) )
+        PetscINCREF(ksp.obj)
+        return ksp
 
     def getTrackAll(self):
         """
@@ -541,17 +672,59 @@ cdef class NEP(Object):
         if isinstance(space, Vec): space = [space]
         cdef PetscVec *vs = NULL
         cdef Py_ssize_t i = 0, ns = len(space)
-        cdef tmp = allocate(<size_t>ns*sizeof(Vec),<void**>&vs)
+        cdef tmp = allocate(<size_t>ns*sizeof(PetscVec),<void**>&vs)
         for i in range(ns): vs[i] = (<Vec?>space[i]).vec
         CHKERR( NEPSetInitialSpace(self.nep, <PetscInt>ns, vs) )
 
     #
 
+    def setStoppingTest(self, stopping, args=None, kargs=None):
+        """
+        Sets a function to decide when to stop the outer iteration of the eigensolver.
+        """
+        if stopping is not None:
+            if args is None: args = ()
+            if kargs is None: kargs = {}
+            self.set_attr('__stopping__', (stopping, args, kargs))
+            CHKERR( NEPSetStoppingTestFunction(self.nep, NEP_Stopping, NULL, NULL) )
+        else:
+            self.set_attr('__stopping__', None)
+            CHKERR( NEPSetStoppingTestFunction(self.nep, NEPStoppingBasic, NULL, NULL) )
+
+    def getStoppingTest(self):
+        """
+        Gets the stopping function.
+        """
+        return self.get_attr('__stopping__')
+
+    #
+
+    def setMonitor(self, monitor, args=None, kargs=None):
+        """
+        Appends a monitor function to the list of monitors.
+        """
+        if monitor is None: return
+        cdef object monitorlist = self.get_attr('__monitor__')
+        if monitorlist is None:
+            monitorlist = []
+            self.set_attr('__monitor__', monitorlist)
+            CHKERR( NEPMonitorSet(self.nep, NEP_Monitor, NULL, NULL) )
+        if args is None: args = ()
+        if kargs is None: kargs = {}
+        monitorlist.append((monitor, args, kargs))
+
+    def getMonitor(self):
+        """
+        Gets the list of monitor functions.
+        """
+        return self.get_attr('__monitor__')
+
     def cancelMonitor(self):
         """
-        Clears all monitors for a NEP object.
+        Clears all monitors for a `NEP` object.
         """
         CHKERR( NEPMonitorCancel(self.nep) )
+        self.set_attr('__monitor__', None)
 
     #
 
@@ -596,7 +769,6 @@ cdef class NEP(Object):
         cdef SlepcNEPConvergedReason val = NEP_CONVERGED_ITERATING
         CHKERR( NEPGetConvergedReason(self.nep, &val) )
         return val
-
 
     def getConverged(self):
         """
@@ -735,7 +907,35 @@ cdef class NEP(Object):
         cdef PetscViewer vwr = def_Viewer(viewer)
         CHKERR( NEPErrorView(self.nep, et, vwr) )
 
-    def setFunction(self, function, Mat F, Mat P=None, args=None, kargs=None):
+    def valuesView(self, Viewer viewer=None):
+        """
+        Displays the computed eigenvalues in a viewer.
+
+        Parameters
+        ----------
+        viewer: Viewer, optional.
+                Visualization context; if not provided, the standard
+                output is used.
+        """
+        cdef PetscViewer vwr = def_Viewer(viewer)
+        CHKERR( NEPValuesView(self.nep, vwr) )
+
+    def vectorsView(self, Viewer viewer=None):
+        """
+        Outputs computed eigenvectors to a viewer.
+
+        Parameters
+        ----------
+        viewer: Viewer, optional.
+                Visualization context; if not provided, the standard
+                output is used.
+        """
+        cdef PetscViewer vwr = def_Viewer(viewer)
+        CHKERR( NEPVectorsView(self.nep, vwr) )
+
+    #
+
+    def setFunction(self, function, Mat F=None, Mat P=None, args=None, kargs=None):
         """
         Sets the function to compute the nonlinear Function T(lambda)
         as well as the location to store the matrix.
@@ -747,18 +947,43 @@ cdef class NEP(Object):
         F: Mat
             Function matrix
         P: Mat
-            preconditioner matrix (usually same as the Function)
+            preconditioner matrix (usually the same as F)
         """
         cdef PetscMat Fmat = F.mat if F is not None else <PetscMat>NULL
         cdef PetscMat Pmat = P.mat if P is not None else Fmat
-        CHKERR( NEPSetFunction(self.nep, Fmat, Pmat, NEP_Function, NULL) )
-        if args is None: args = ()
-        if kargs is None: kargs = {}
-        self.set_attr('__function__', (function, args, kargs))
+        if function is not None:
+            if args is None: args = ()
+            if kargs is None: kargs = {}
+            context = (function, args, kargs)
+            self.set_attr('__function__', context)
+            CHKERR( NEPSetFunction(self.nep, Fmat, Pmat, NEP_Function, <void*>context) )
+        else:
+            CHKERR( NEPSetFunction(self.nep, Fmat, Pmat, NULL, NULL) )
 
-    def setJacobian(self, jacobian, Mat J, args=None, kargs=None):
+    def getFunction(self):
         """
-        Sets the function to compute Jacobian T'(lambda) as well
+        Returns the function to compute the nonlinear Function T(lambda) and the matrix.
+
+        Parameters
+        ----------
+        F: Mat
+            Function matrix
+        P: Mat
+            preconditioner matrix (usually the same as the F)
+        function:
+            Function evaluation routine
+        """
+        cdef Mat F = Mat()
+        cdef Mat P = Mat()
+        CHKERR( NEPGetFunction(self.nep, &F.mat, &P.mat, NULL, NULL) )
+        PetscINCREF(F.obj)
+        PetscINCREF(P.obj)
+        cdef object function = self.get_attr('__function__')
+        return (F, P, function)
+
+    def setJacobian(self, jacobian, Mat J=None, args=None, kargs=None):
+        """
+        Sets the function to compute the Jacobian T'(lambda) as well
         as the location to store the matrix.
 
         Parameters
@@ -769,10 +994,31 @@ cdef class NEP(Object):
             Jacobian matrix
         """
         cdef PetscMat Jmat = J.mat if J is not None else <PetscMat>NULL
-        CHKERR( NEPSetJacobian(self.nep, Jmat, NEP_Jacobian, NULL) )
-        if args is None: args = ()
-        if kargs is None: kargs = {}
-        self.set_attr('__jacobian__', (jacobian, args, kargs))
+        if jacobian is not None:
+            if args is None: args = ()
+            if kargs is None: kargs = {}
+            context = (jacobian, args, kargs)
+            self.set_attr('__jacobian__', context)
+            CHKERR( NEPSetJacobian(self.nep, Jmat, NEP_Jacobian, <void*>context) )
+        else:
+            CHKERR( NEPSetJacobian(self.nep, Jmat, NULL, NULL) )
+
+    def getJacobian(self):
+        """
+        Returns the function to compute the Jacobian T'(lambda) and the matrix.
+
+        Parameters
+        ----------
+        J: Mat
+            Jacobian matrix
+        jacobian:
+            Jacobian evaluation routine
+        """
+        cdef Mat J = Mat()
+        CHKERR( NEPGetJacobian(self.nep, &J.mat, NULL, NULL) )
+        PetscINCREF(J.obj)
+        cdef object jacobian = self.get_attr('__jacobian__')
+        return (J, jacobian)
 
     def setSplitOperator(self, A, f, structure=None):
         """
@@ -795,12 +1041,43 @@ cdef class NEP(Object):
         cdef Py_ssize_t i = 0, n = len(A)
         cdef PetscMatStructure mstr = matstructure(structure)
         assert n == len(f)
-        cdef tmp1 = allocate(<size_t>n*sizeof(Mat),<void**>&As)
-        cdef tmp2 = allocate(<size_t>n*sizeof(FN),<void**>&Fs)
+        cdef tmp1 = allocate(<size_t>n*sizeof(PetscMat),<void**>&As)
+        cdef tmp2 = allocate(<size_t>n*sizeof(SlepcFN),<void**>&Fs)
         for i in range(n):
             As[i] = (<Mat?>A[i]).mat
             Fs[i] = (<FN?>f[i]).fn
         CHKERR( NEPSetSplitOperator(self.nep, <PetscInt>n, As, Fs, mstr) )
+
+    def getSplitOperator(self):
+        """
+        Returns the operator of the nonlinear eigenvalue problem
+        in split form.
+
+        Returns
+        -------
+        A: sequence of Mat
+            Coefficient matrices of the split form.
+        f: sequence of FN
+            Scalar functions of the split form.
+        structure: `PETSc.Mat.Structure` enumerate
+            Structure flag for matrices.
+        """
+        cdef Mat A
+        cdef FN  f
+        cdef PetscMat mat = NULL
+        cdef SlepcFN  fn  = NULL
+        cdef PetscInt i=0, n=0
+        cdef PetscMatStructure mstr
+        CHKERR( NEPGetSplitOperatorInfo(self.nep, &n, &mstr) )
+        cdef object matrices = []
+        cdef object functions = []
+        for i in range(n):
+            CHKERR( NEPGetSplitOperatorTerm(self.nep, i, &mat, &fn) )
+            A = Mat(); A.mat = mat; PetscINCREF(A.obj)
+            f = FN();  f.fn = fn;   PetscINCREF(f.obj)
+            matrices.append(A)
+            functions.append(f)
+        return (matrices, functions, mstr)
 
     def getTwoSided(self):
         """
@@ -826,8 +1103,619 @@ cdef class NEP(Object):
         twosided: bool
             Whether the two-sided variant is to be used or not.
         """
-        cdef PetscBool tval = twosided
+        cdef PetscBool tval = asBool(twosided)
         CHKERR( NEPSetTwoSided(self.nep, tval) )
+
+    def applyResolvent(self, omega, Vec v, Vec r, RG rg=None):
+        """
+        Applies the resolvent T^{-1}(z) to a given vector.
+
+        Parameters
+        ----------
+        omega: scalar
+            Value where the resolvent must be evaluated.
+        v: Vec
+            Input vector.
+        r: Vec
+            Placeholder for the result vector.
+        rg: `RG` object, optional
+            Region.
+        """
+        cdef PetscScalar sval = asScalar(omega)
+        cdef SlepcRG region = rg.rg if rg is not None else <SlepcRG>NULL
+        CHKERR( NEPApplyResolvent(self.nep, region, sval, v.vec, r.vec) )
+
+    #
+
+    def setRIILagPreconditioner(self, lag):
+        """
+        Determines when the preconditioner is rebuilt in the
+        nonlinear solve.
+
+        Parameters
+        ----------
+        lag: int
+            0 indicates NEVER rebuild, 1 means rebuild every time the Jacobian is
+            computed within the nonlinear iteration, 2 means every second time
+            the Jacobian is built, etc.
+        """
+        cdef PetscInt ival = asInt(lag)
+        CHKERR( NEPRIISetLagPreconditioner(self.nep, ival) )
+
+    def getRIILagPreconditioner(self):
+        """
+        Indicates how often the preconditioner is rebuilt.
+
+        Returns
+        -------
+        lag: int
+            The lag parameter.
+        """
+        cdef PetscInt ival = 0
+        CHKERR( NEPRIIGetLagPreconditioner(self.nep, &ival) )
+        return toInt(ival)
+
+    def setRIIConstCorrectionTol(self, cct):
+        """
+        Sets a flag to keep the tolerance used in the linear solver constant.
+
+        Parameters
+        ----------
+        cct: bool
+             If True, the `KSP` relative tolerance is constant.
+        """
+        cdef PetscBool val = asBool(cct)
+        CHKERR( NEPRIISetConstCorrectionTol(self.nep, val) )
+
+    def getRIIConstCorrectionTol(self):
+        """
+        Returns the constant tolerance flag.
+
+        Returns
+        -------
+        cct: bool
+             If True, the `KSP` relative tolerance is constant.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( NEPRIIGetConstCorrectionTol(self.nep, &tval) )
+        return toBool(tval)
+
+    def setRIIMaximumIterations(self, its):
+        """
+        Sets the maximum number of inner iterations to be used in
+        the RII solver. These are the Newton iterations related to the
+        computation of the nonlinear Rayleigh functional.
+
+        Parameters
+        ----------
+        its: int
+             Maximum inner iterations.
+        """
+        cdef PetscInt ival = asInt(its)
+        CHKERR( NEPRIISetMaximumIterations(self.nep, ival) )
+
+    def getRIIMaximumIterations(self):
+        """
+        Gets the maximum number of inner iterations of RII.
+
+        Returns
+        -------
+        its: int
+             Maximum inner iterations.
+        """
+        cdef PetscInt ival = 0
+        CHKERR( NEPRIIGetMaximumIterations(self.nep, &ival) )
+        return toInt(ival)
+
+    def setRIIHermitian(self, herm):
+        """
+        Sets a flag to indicate if the Hermitian version of the scalar
+        nonlinear equation must be used by the solver.
+
+        Parameters
+        ----------
+        herm: bool
+              If True, the Hermitian version is used.
+        """
+        cdef PetscBool val = asBool(herm)
+        CHKERR( NEPRIISetHermitian(self.nep, val) )
+
+    def getRIIHermitian(self):
+        """
+        Returns the flag about using the Hermitian version of the scalar
+        nonlinear equation.
+
+        Returns
+        -------
+        herm: bool
+              If True, the Hermitian version is used.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( NEPRIIGetHermitian(self.nep, &tval) )
+        return toBool(tval)
+
+    def setRIIDeflationThreshold(self, deftol):
+        """
+        Sets the threshold value used to switch between deflated and
+        non-deflated iteration.
+
+        Parameters
+        ----------
+        deftol: float
+                The threshold value.
+        """
+        cdef PetscReal val = asReal(deftol)
+        CHKERR( NEPRIISetDeflationThreshold(self.nep, val) )
+
+    def getRIIDeflationThreshold(self):
+        """
+        Returns the threshold value that controls deflation.
+
+        Returns
+        -------
+        deftol: float
+                The threshold value.
+        """
+        cdef PetscReal rval = 0.0
+        CHKERR( NEPRIIGetDeflationThreshold(self.nep, &rval) )
+        return toReal(rval)
+
+    def setRIIKSP(self, KSP ksp):
+        """
+        Associate a linear solver object to the nonlinear eigensolver.
+
+        Parameters
+        ----------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        CHKERR( NEPRIISetKSP(self.nep, ksp.ksp) )
+
+    def getRIIKSP(self):
+        """
+        Retrieve the linear solver object associated with the nonlinear eigensolver.
+
+        Returns
+        -------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        cdef KSP ksp = KSP()
+        CHKERR( NEPRIIGetKSP(self.nep, &ksp.ksp) )
+        PetscINCREF(ksp.obj)
+        return ksp
+
+    #
+
+    def setSLPDeflationThreshold(self, deftol):
+        """
+        Sets the threshold value used to switch between deflated and
+        non-deflated iteration.
+
+        Parameters
+        ----------
+        deftol: float
+                The threshold value.
+        """
+        cdef PetscReal val = asReal(deftol)
+        CHKERR( NEPSLPSetDeflationThreshold(self.nep, val) )
+
+    def getSLPDeflationThreshold(self):
+        """
+        Returns the threshold value that controls deflation.
+
+        Returns
+        -------
+        deftol: float
+                The threshold value.
+        """
+        cdef PetscReal rval = 0.0
+        CHKERR( NEPSLPGetDeflationThreshold(self.nep, &rval) )
+        return toReal(rval)
+
+    def setSLPEPS(self, EPS eps):
+        """
+        Associate a linear eigensolver object to the nonlinear eigensolver.
+
+        Parameters
+        ----------
+        eps: `EPS`
+             The linear eigensolver.
+        """
+        CHKERR( NEPSLPSetEPS(self.nep, eps.eps) )
+
+    def getSLPEPS(self):
+        """
+        Retrieve the linear eigensolver object associated with the nonlinear eigensolver.
+
+        Returns
+        -------
+        eps: `EPS`
+             The linear eigensolver.
+        """
+        cdef EPS eps = EPS()
+        CHKERR( NEPSLPGetEPS(self.nep, &eps.eps) )
+        PetscINCREF(eps.obj)
+        return eps
+
+    def setSLPEPSLeft(self, EPS eps):
+        """
+        Associate a linear eigensolver object to the nonlinear eigensolver,
+        used to compute left eigenvectors in the two-sided variant of SLP.
+
+        Parameters
+        ----------
+        eps: `EPS`
+             The linear eigensolver.
+        """
+        CHKERR( NEPSLPSetEPSLeft(self.nep, eps.eps) )
+
+    def getSLPEPSLeft(self):
+        """
+        Retrieve the left eigensolver.
+
+        Returns
+        -------
+        eps: `EPS`
+             The linear eigensolver.
+        """
+        cdef EPS eps = EPS()
+        CHKERR( NEPSLPGetEPSLeft(self.nep, &eps.eps) )
+        PetscINCREF(eps.obj)
+        return eps
+
+    def setSLPKSP(self, KSP ksp):
+        """
+        Associate a linear solver object to the nonlinear eigensolver.
+
+        Parameters
+        ----------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        CHKERR( NEPSLPSetKSP(self.nep, ksp.ksp) )
+
+    def getSLPKSP(self):
+        """
+        Retrieve the linear solver object associated with the nonlinear eigensolver.
+
+        Returns
+        -------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        cdef KSP ksp = KSP()
+        CHKERR( NEPSLPGetKSP(self.nep, &ksp.ksp) )
+        PetscINCREF(ksp.obj)
+        return ksp
+
+    #
+
+    def setNArnoldiKSP(self, KSP ksp):
+        """
+        Associate a linear solver object to the nonlinear eigensolver.
+
+        Parameters
+        ----------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        CHKERR( NEPNArnoldiSetKSP(self.nep, ksp.ksp) )
+
+    def getNArnoldiKSP(self):
+        """
+        Retrieve the linear solver object associated with the nonlinear eigensolver.
+
+        Returns
+        -------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        cdef KSP ksp = KSP()
+        CHKERR( NEPNArnoldiGetKSP(self.nep, &ksp.ksp) )
+        PetscINCREF(ksp.obj)
+        return ksp
+
+    def setNArnoldiLagPreconditioner(self, lag):
+        """
+        Determines when the preconditioner is rebuilt in the nonlinear solve.
+
+        Parameters
+        ----------
+        lag: int
+             0 indicates NEVER rebuild, 1 means rebuild every time the Jacobian is
+             computed within the nonlinear iteration, 2 means every second time
+             the Jacobian is built, etc.
+
+        Notes
+        -----
+        The default is 1. The preconditioner is ALWAYS built in the first
+        iteration of a nonlinear solve.
+        """
+        cdef PetscInt ival = asInt(lag)
+        CHKERR( NEPNArnoldiSetLagPreconditioner(self.nep, ival) )
+
+    def getNArnoldiLagPreconditioner(self):
+        """
+        Indicates how often the preconditioner is rebuilt.
+
+        Returns
+        -------
+        lag: int
+             The lag parameter.
+        """
+        cdef PetscInt ival = 0
+        CHKERR( NEPNArnoldiGetLagPreconditioner(self.nep, &ival) )
+        return toInt(ival)
+
+    #
+
+    def setInterpolPEP(self, PEP pep):
+        """
+        Associate a polynomial eigensolver object to the nonlinear eigensolver.
+
+        Parameters
+        ----------
+        pep: `PEP`
+             The polynomial eigensolver.
+        """
+        CHKERR( NEPInterpolSetPEP(self.nep, pep.pep) )
+
+    def getInterpolPEP(self):
+        """
+        Retrieve the polynomial eigensolver object associated with the nonlinear eigensolver.
+
+        Returns
+        -------
+        pep: `PEP`
+             The polynomial eigensolver.
+        """
+        cdef PEP pep = PEP()
+        CHKERR( NEPInterpolGetPEP(self.nep, &pep.pep) )
+        PetscINCREF(pep.obj)
+        return pep
+
+    def setInterpolInterpolation(self, tol=None, deg=None):
+        """
+        Sets the tolerance and maximum degree when building the
+        interpolation polynomial.
+
+        Parameters
+        ----------
+        tol: float, optional
+            The tolerance to stop computing polynomial coefficients.
+        deg: int, optional
+            The maximum degree of interpolation.
+        """
+        cdef PetscReal rval = PETSC_DEFAULT
+        cdef PetscInt  ival = PETSC_DEFAULT
+        if tol is not None: rval = asReal(tol)
+        if deg is not None: ival = asInt(deg)
+        CHKERR( NEPInterpolSetInterpolation(self.nep, rval, ival) )
+
+    def getInterpolInterpolation(self):
+        """
+        Gets the tolerance and maximum degree when building the
+        interpolation polynomial.
+
+        Returns
+        -------
+        tol: float
+            The tolerance to stop computing polynomial coefficients.
+        deg: int
+            The maximum degree of interpolation.
+        """
+        cdef PetscReal rval = 0
+        cdef PetscInt  ival = 0
+        CHKERR( NEPInterpolGetInterpolation(self.nep, &rval, &ival) )
+        return (toReal(rval), toInt(ival))
+
+    #
+
+    def setNLEIGSRestart(self, keep):
+        """
+        Sets the restart parameter for the NLEIGS method, in
+        particular the proportion of basis vectors that must be kept
+        after restart.
+
+        Parameters
+        ----------
+        keep: float
+              The number of vectors to be kept at restart.
+
+        Notes
+        -----
+        Allowed values are in the range [0.1,0.9]. The default is 0.5.
+        """
+        cdef PetscReal val = asReal(keep)
+        CHKERR( NEPNLEIGSSetRestart(self.nep, val) )
+
+    def getNLEIGSRestart(self):
+        """
+        Gets the restart parameter used in the NLEIGS method.
+
+        Returns
+        -------
+        keep: float
+              The number of vectors to be kept at restart.
+        """
+        cdef PetscReal val = 0
+        CHKERR( NEPNLEIGSGetRestart(self.nep, &val) )
+        return toReal(val)
+
+    def setNLEIGSLocking(self, lock):
+        """
+        Choose between locking and non-locking variants of the
+        NLEIGS method.
+
+        Parameters
+        ----------
+        lock: bool
+              True if the locking variant must be selected.
+
+        Notes
+        -----
+        The default is to lock converged eigenpairs when the method restarts.
+        This behaviour can be changed so that all directions are kept in the
+        working subspace even if already converged to working accuracy (the
+        non-locking variant).
+        """
+        cdef PetscBool val = asBool(lock)
+        CHKERR( NEPNLEIGSSetLocking(self.nep, val) )
+
+    def getNLEIGSLocking(self):
+        """
+        Gets the locking flag used in the NLEIGS method.
+
+        Returns
+        -------
+        lock: bool
+              The locking flag.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( NEPNLEIGSGetLocking(self.nep, &tval) )
+        return toBool(tval)
+
+    def setNLEIGSInterpolation(self, tol=None, deg=None):
+        """
+        Sets the tolerance and maximum degree when building the
+        interpolation via divided differences.
+
+        Parameters
+        ----------
+        tol: float, optional
+            The tolerance to stop computing divided differences.
+        deg: int, optional
+            The maximum degree of interpolation.
+        """
+        cdef PetscReal rval = PETSC_DEFAULT
+        cdef PetscInt  ival = PETSC_DEFAULT
+        if tol is not None: rval = asReal(tol)
+        if deg is not None: ival = asInt(deg)
+        CHKERR( NEPNLEIGSSetInterpolation(self.nep, rval, ival) )
+
+    def getNLEIGSInterpolation(self):
+        """
+        Gets the tolerance and maximum degree when building the
+        interpolation via divided differences.
+
+        Returns
+        -------
+        tol: float
+            The tolerance to stop computing divided differences.
+        deg: int
+            The maximum degree of interpolation.
+        """
+        cdef PetscReal rval = 0
+        cdef PetscInt  ival = 0
+        CHKERR( NEPNLEIGSGetInterpolation(self.nep, &rval, &ival) )
+        return (toReal(rval), toInt(ival))
+
+    def setNLEIGSFullBasis(self, fullbasis=True):
+        """
+        Choose between TOAR-basis (default) and full-basis variants
+        of the NLEIGS method.
+
+        Parameters
+        ----------
+        fullbasis: bool
+              True if the full-basis variant must be selected.
+        """
+        cdef PetscBool val = asBool(fullbasis)
+        CHKERR( NEPNLEIGSSetFullBasis(self.nep, val) )
+
+    def getNLEIGSFullBasis(self):
+        """
+        Gets the flag that indicates if NLEIGS is using the full-basis variant.
+
+        Returns
+        -------
+        fullbasis: bool
+              True if the full-basis variant must be selected.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( NEPNLEIGSGetFullBasis(self.nep, &tval) )
+        return toBool(tval)
+
+    def setNLEIGSEPS(self, EPS eps):
+        """
+        Associate a linear eigensolver object to the nonlinear eigensolver.
+
+        Parameters
+        ----------
+        eps: `EPS`
+             The linear eigensolver.
+        """
+        CHKERR( NEPNLEIGSSetEPS(self.nep, eps.eps) )
+
+    def getNLEIGSEPS(self):
+        """
+        Retrieve the linear eigensolver object associated with the nonlinear eigensolver.
+
+        Returns
+        -------
+        eps: `EPS`
+             The linear eigensolver.
+        """
+        cdef EPS eps = EPS()
+        CHKERR( NEPNLEIGSGetEPS(self.nep, &eps.eps) )
+        PetscINCREF(eps.obj)
+        return eps
+
+    def setNLEIGSRKShifts(self, shifts):
+        """
+        Sets a list of shifts to be used in the Rational Krylov method.
+
+        Parameters
+        ----------
+        shifts: array of scalars
+            Values specifying the shifts.
+        """
+        cdef PetscInt na = 0
+        cdef PetscScalar *a = NULL
+        cdef object tmp1 = iarray_s(shifts, &na, &a)
+        CHKERR( NEPNLEIGSSetRKShifts(self.nep, na, a) )
+
+    def getNLEIGSRKShifts(self):
+        """
+        Gets the list of shifts used in the Rational Krylov method.
+
+        Returns
+        -------
+        shifts: array of scalars
+            The shift values.
+        """
+        cdef PetscInt np = 0
+        cdef PetscScalar *coeff = NULL
+        CHKERR( NEPNLEIGSGetRKShifts(self.nep, &np, &coeff) )
+        cdef object ocoeff = None
+        try:
+            ocoeff = array_s(np, coeff)
+        finally:
+            CHKERR( PetscFree(coeff) )
+        return ocoeff
+
+    def getNLEIGSKSPs(self):
+        """
+        Retrieve the array of linear solver objects associated with
+        the NLEIGS solver.
+
+        Returns
+        -------
+        ksp: list of `KSP`
+             The linear solver objects.
+
+        Notes
+        -----
+        The number of `KSP` solvers is equal to the number of shifts provided
+        by the user, or 1 if the user did not provide shifts.
+        """
+        cdef PetscInt i = 0, n = 0
+        cdef PetscKSP *p = NULL
+        CHKERR( NEPNLEIGSGetKSPs(self.nep, &n, &p) )
+        return [ref_KSP(p[i]) for i from 0 <= i <n]
+
+    #
 
     def setCISSExtraction(self, extraction):
         """
@@ -1007,6 +1895,60 @@ cdef class NEP(Object):
         cdef PetscKSP *p = NULL
         CHKERR( NEPCISSGetKSPs(self.nep, &n, &p) )
         return [ref_KSP(p[i]) for i from 0 <= i <n]
+
+    property problem_type:
+        def __get__(self):
+            return self.getProblemType()
+        def __set__(self, value):
+            self.setProblemType(value)
+
+    property which:
+        def __get__(self):
+            return self.getWhichEigenpairs()
+        def __set__(self, value):
+            self.setWhichEigenpairs(value)
+
+    property target:
+        def __get__(self):
+            return self.getTarget()
+        def __set__(self, value):
+            self.setTarget(value)
+
+    property tol:
+        def __get__(self):
+            return self.getTolerances()[0]
+        def __set__(self, value):
+            self.setTolerances(tol=value)
+
+    property max_it:
+        def __get__(self):
+            return self.getTolerances()[1]
+        def __set__(self, value):
+            self.setTolerances(max_it=value)
+
+    property track_all:
+        def __get__(self):
+            return self.getTrackAll()
+        def __set__(self, value):
+            self.setTrackAll(value)
+
+    property bv:
+        def __get__(self):
+            return self.getBV()
+        def __set__(self, value):
+            self.setBV(value)
+
+    property rg:
+        def __get__(self):
+            return self.getRG()
+        def __set__(self, value):
+            self.setRG(value)
+
+    property ds:
+        def __get__(self):
+            return self.getDS()
+        def __set__(self, value):
+            self.setDS(value)
 
 # -----------------------------------------------------------------------------
 

@@ -683,7 +683,7 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
    Input Parameters:
 +  nep - the NEP context
 .  A   - Function matrix
-.  B   - preconditioner matrix (usually same as the Function)
+.  B   - preconditioner matrix (usually same as A)
 .  fun - Function evaluation routine (if NULL then NEP retains any
          previously set value)
 -  ctx - [optional] user-defined context for private data for the Function
@@ -766,7 +766,7 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
 }
 
 /*@C
-   NEPSetJacobian - Sets the function to compute Jacobian T'(lambda) as well
+   NEPSetJacobian - Sets the function to compute the Jacobian T'(lambda) as well
    as the location to store the matrix.
 
    Logically Collective on nep

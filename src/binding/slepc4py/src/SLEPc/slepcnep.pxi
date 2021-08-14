@@ -70,6 +70,23 @@ cdef extern from * nogil:
                                      PetscMat,
                                      void*) except PETSC_ERR_PYTHON
 
+    ctypedef int (*SlepcNEPCtxDel)(void*)
+    ctypedef int (*SlepcNEPStoppingFunction)(SlepcNEP,
+                                             PetscInt,
+                                             PetscInt,
+                                             PetscInt,
+                                             PetscInt,
+                                             SlepcNEPConvergedReason*,
+                                             void*) except PETSC_ERR_PYTHON
+    ctypedef int (*SlepcNEPMonitorFunction)(SlepcNEP,
+                                            PetscInt,
+                                            PetscInt,
+                                            PetscScalar*,
+                                            PetscScalar*,
+                                            PetscReal*,
+                                            PetscInt,
+                                            void*) except PETSC_ERR_PYTHON
+
     int NEPCreate(MPI_Comm,SlepcNEP*)
     int NEPDestroy(SlepcNEP*)
     int NEPReset(SlepcNEP)
@@ -105,32 +122,89 @@ cdef extern from * nogil:
 
     int NEPSetTwoSided(SlepcNEP,PetscBool)
     int NEPGetTwoSided(SlepcNEP,PetscBool*)
+    int NEPApplyResolvent(SlepcNEP,SlepcRG,PetscScalar,PetscVec,PetscVec)
 
     int NEPSetTrackAll(SlepcNEP,PetscBool)
     int NEPGetTrackAll(SlepcNEP,PetscBool*)
 
     int NEPSetDimensions(SlepcNEP,PetscInt,PetscInt,PetscInt)
     int NEPGetDimensions(SlepcNEP,PetscInt*,PetscInt*,PetscInt*)
-    int NEPRIISetLagPreconditioner(SlepcNEP,PetscInt)
-    int NEPRIIGetLagPreconditioner(SlepcNEP,PetscInt*)
-    int NEPRIISetConstCorrectionTol(SlepcNEP,PetscBool)
-    int NEPRIIGetConstCorrectionTol(SlepcNEP,PetscBool*)
 
     int NEPGetConverged(SlepcNEP,PetscInt*)
     int NEPGetEigenpair(SlepcNEP,PetscInt,PetscScalar*,PetscScalar*,PetscVec,PetscVec)
     int NEPGetLeftEigenvector(SlepcNEP,PetscInt,PetscVec,PetscVec)
     int NEPComputeError(SlepcNEP,PetscInt,SlepcNEPErrorType,PetscReal*)
     int NEPErrorView(SlepcNEP,SlepcNEPErrorType,PetscViewer)
+    int NEPValuesView(SlepcNEP,PetscViewer)
+    int NEPVectorsView(SlepcNEP,PetscViewer)
     int NEPGetErrorEstimate(SlepcNEP,PetscInt,PetscReal*)
 
+    int NEPMonitorSet(SlepcNEP,SlepcNEPMonitorFunction,void*,SlepcNEPCtxDel)
     int NEPMonitorCancel(SlepcNEP)
     int NEPGetIterationNumber(SlepcNEP,PetscInt*)
 
     int NEPSetInitialSpace(SlepcNEP,PetscInt,PetscVec*)
+    int NEPSetProblemType(SlepcNEP,SlepcNEPProblemType)
+    int NEPGetProblemType(SlepcNEP,SlepcNEPProblemType*)
     int NEPSetWhichEigenpairs(SlepcNEP,SlepcNEPWhich)
     int NEPGetWhichEigenpairs(SlepcNEP,SlepcNEPWhich*)
 
+    int NEPSetRefine(SlepcNEP,SlepcNEPRefine,PetscInt,PetscReal,PetscInt,SlepcNEPRefineScheme)
+    int NEPGetRefine(SlepcNEP,SlepcNEPRefine*,PetscInt*,PetscReal*,PetscInt*,SlepcNEPRefineScheme*)
+    int NEPRefineGetKSP(SlepcNEP,PetscKSP*)
+
     int NEPGetConvergedReason(SlepcNEP,SlepcNEPConvergedReason*)
+    int NEPSetConvergenceTest(SlepcNEP,SlepcNEPConv)
+    int NEPGetConvergenceTest(SlepcNEP,SlepcNEPConv*)
+
+    int NEPSetStoppingTestFunction(SlepcNEP,SlepcNEPStoppingFunction,void*,SlepcNEPCtxDel)
+    int NEPStoppingBasic(SlepcNEP,PetscInt,PetscInt,PetscInt,PetscInt,SlepcNEPConvergedReason*,void*) except PETSC_ERR_PYTHON
+
+    int NEPRIISetLagPreconditioner(SlepcNEP,PetscInt)
+    int NEPRIIGetLagPreconditioner(SlepcNEP,PetscInt*)
+    int NEPRIISetConstCorrectionTol(SlepcNEP,PetscBool)
+    int NEPRIIGetConstCorrectionTol(SlepcNEP,PetscBool*)
+    int NEPRIISetMaximumIterations(SlepcNEP,PetscInt)
+    int NEPRIIGetMaximumIterations(SlepcNEP,PetscInt*)
+    int NEPRIISetHermitian(SlepcNEP,PetscBool)
+    int NEPRIIGetHermitian(SlepcNEP,PetscBool*)
+    int NEPRIISetDeflationThreshold(SlepcNEP,PetscReal)
+    int NEPRIIGetDeflationThreshold(SlepcNEP,PetscReal*)
+    int NEPRIISetKSP(SlepcNEP,PetscKSP)
+    int NEPRIIGetKSP(SlepcNEP,PetscKSP*)
+
+    int NEPSLPSetDeflationThreshold(SlepcNEP,PetscReal)
+    int NEPSLPGetDeflationThreshold(SlepcNEP,PetscReal*)
+    int NEPSLPSetEPS(SlepcNEP,SlepcEPS)
+    int NEPSLPGetEPS(SlepcNEP,SlepcEPS*)
+    int NEPSLPSetEPSLeft(SlepcNEP,SlepcEPS)
+    int NEPSLPGetEPSLeft(SlepcNEP,SlepcEPS*)
+    int NEPSLPSetKSP(SlepcNEP,PetscKSP)
+    int NEPSLPGetKSP(SlepcNEP,PetscKSP*)
+
+    int NEPNArnoldiSetKSP(SlepcNEP,PetscKSP)
+    int NEPNArnoldiGetKSP(SlepcNEP,PetscKSP*)
+    int NEPNArnoldiSetLagPreconditioner(SlepcNEP,PetscInt)
+    int NEPNArnoldiGetLagPreconditioner(SlepcNEP,PetscInt*)
+
+    int NEPInterpolSetPEP(SlepcNEP,SlepcPEP)
+    int NEPInterpolGetPEP(SlepcNEP,SlepcPEP*)
+    int NEPInterpolSetInterpolation(SlepcNEP,PetscReal,PetscInt)
+    int NEPInterpolGetInterpolation(SlepcNEP,PetscReal*,PetscInt*)
+
+    int NEPNLEIGSSetRestart(SlepcNEP,PetscReal)
+    int NEPNLEIGSGetRestart(SlepcNEP,PetscReal*)
+    int NEPNLEIGSSetLocking(SlepcNEP,PetscBool)
+    int NEPNLEIGSGetLocking(SlepcNEP,PetscBool*)
+    int NEPNLEIGSSetInterpolation(SlepcNEP,PetscReal,PetscInt)
+    int NEPNLEIGSGetInterpolation(SlepcNEP,PetscReal*,PetscInt*)
+    int NEPNLEIGSSetRKShifts(SlepcNEP,PetscInt,PetscScalar[])
+    int NEPNLEIGSGetRKShifts(SlepcNEP,PetscInt*,PetscScalar*[])
+    int NEPNLEIGSGetKSPs(SlepcNEP,PetscInt*,PetscKSP**)
+    int NEPNLEIGSSetFullBasis(SlepcNEP,PetscBool)
+    int NEPNLEIGSGetFullBasis(SlepcNEP,PetscBool*)
+    int NEPNLEIGSSetEPS(SlepcNEP,SlepcEPS)
+    int NEPNLEIGSGetEPS(SlepcNEP,SlepcEPS*)
 
     ctypedef enum SlepcNEPCISSExtraction "NEPCISSExtraction":
         NEP_CISS_EXTRACTION_RITZ
@@ -198,3 +272,44 @@ cdef int NEP_Jacobian(
     Jtmp = J; J = Jmat.mat; Jmat.mat = Jtmp
     return 0
 
+# -----------------------------------------------------------------------------
+
+cdef int NEP_Stopping(
+    SlepcNEP                nep,
+    PetscInt                its,
+    PetscInt                max_it,
+    PetscInt                nconv,
+    PetscInt                nev,
+    SlepcNEPConvergedReason *r,
+    void                    *ctx,
+    ) except PETSC_ERR_PYTHON with gil:
+    cdef NEP Nep = ref_NEP(nep)
+    (stopping, args, kargs) = Nep.get_attr('__stopping__')
+    reason = stopping(Nep, toInt(its), toInt(max_it), toInt(nconv), toInt(nev), *args, **kargs)
+    if   reason is None:  r[0] = NEP_CONVERGED_ITERATING
+    elif reason is False: r[0] = NEP_CONVERGED_ITERATING
+    elif reason is True:  r[0] = NEP_CONVERGED_USER
+    else:                 r[0] = reason
+
+# -----------------------------------------------------------------------------
+
+cdef int NEP_Monitor(
+    SlepcNEP    nep,
+    PetscInt    its,
+    PetscInt    nconv,
+    PetscScalar *eigr,
+    PetscScalar *eigi,
+    PetscReal   *errest,
+    PetscInt    nest,
+    void        *ctx,
+    ) except PETSC_ERR_PYTHON with gil:
+    cdef NEP Nep = ref_NEP(nep)
+    cdef object monitorlist = Nep.get_attr('__monitor__')
+    if monitorlist is None: return 0
+    cdef object eig = [toComplex(eigr[i], eigi[i]) for i in range(nest)]
+    cdef object err = [toReal(errest[i]) for i in range(nest)]
+    for (monitor, args, kargs) in monitorlist:
+        monitor(Nep, toInt(its), toInt(nconv), eig, err, *args, **kargs)
+    return 0
+
+# -----------------------------------------------------------------------------
