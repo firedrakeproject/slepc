@@ -36,8 +36,7 @@ E.setProblemType(SLEPc.EPS.ProblemType.HEP)
 
 history = []
 def monitor(eps, its, nconv, eig, err):
-    history.append(err[nconv])
-    #print(its, rnorm)
+    if nconv<len(err): history.append(err[nconv])
 E.setMonitor(monitor)
 
 E.setFromOptions()
