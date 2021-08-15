@@ -15,7 +15,7 @@ models must be evaluated quickly and many times.
 
 Offline phase:
     1. A set of solution snapshots of the 1D Laplace problem in the full
-       problem space are are constructed and assembled into the columns of a dense
+       problem space are constructed and assembled into the columns of a dense
        matrix S.
     2. A standard eigenvalue decomposition is performed on the
        matrix S.T*S.

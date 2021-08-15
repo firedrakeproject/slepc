@@ -304,7 +304,7 @@ PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,Pet
 
    Notes:
    This function applies an orthogonal projector to project vector V[j] onto
-   the orthogonal complement of the span of the columns of V[0..j-1],
+   the orthogonal complement of the span of the columns V[0..j-1],
    where V[.] are the vectors of BV. The columns V[0..j-1] are assumed to be
    mutually orthonormal.
 

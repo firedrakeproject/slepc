@@ -115,6 +115,20 @@ cdef class BV(Object):
         SlepcCLEAR(self.obj); self.bv = newbv
         return self
 
+    def createFromMat(self, Mat A):
+        """
+        Creates a basis vectors object from a dense Mat object.
+
+        Parameters
+        ----------
+        A: Mat
+           A dense tall-skinny matrix.
+        """
+        cdef SlepcBV newbv = NULL
+        CHKERR( BVCreateFromMat(A.mat, &newbv) )
+        SlepcCLEAR(self.obj); self.bv = newbv
+        return self
+
     def createMat(self):
         """
         Creates a new Mat object of dense type and copies the contents of the
@@ -122,12 +136,12 @@ cdef class BV(Object):
 
         Returns
         -------
-        mat: the new matrix. 
+        mat: the new matrix.
         """
         cdef Mat mat = Mat()
         CHKERR( BVCreateMat(self.bv, &mat.mat) )
-        return mat 
-    
+        return mat
+
     def duplicate(self):
         """
         Duplicate the BV object with the same type and dimensions.
@@ -152,6 +166,14 @@ cdef class BV(Object):
         return bv
 
     def copy(self, BV result=None):
+        """
+        Copies a basis vector object into another one.
+
+        Parameters
+        ----------
+        result: `BV`, optional
+            The copy.
+        """
         if result is None:
             result = type(self)()
         if result.bv == NULL:
@@ -237,7 +259,6 @@ cdef class BV(Object):
         CHKERR( BVGetSizes(self.bv, &n, &N, &m) )
         return ((toInt(n), toInt(N)), toInt(m))
 
-
     def setOptionsPrefix(self, prefix):
         """
         Sets the prefix used for searching for all BV options in the
@@ -309,7 +330,7 @@ cdef class BV(Object):
         CHKERR( BVGetOrthogonalization(self.bv, &val1, &val2, &rval, &val3) )
         return (val1, val2, toReal(rval), val3)
 
-    def setOrthogonalization(self, type=None, refine=None, eta=None, block=None):
+    def setOrthogonalization(self, otype=None, refine=None, eta=None, block=None):
         """
         Specifies the method used for the orthogonalization of vectors
         (classical or modified Gram-Schmidt with or without refinement),
@@ -318,7 +339,7 @@ cdef class BV(Object):
 
         Parameters
         ----------
-        type: `BV.OrthogType` enumerate, optional
+        otype: `BV.OrthogType` enumerate, optional
               The type of orthogonalization technique.
         refine: `BV.OrthogRefineType` enumerate, optional
               The type of refinement.
@@ -346,11 +367,36 @@ cdef class BV(Object):
         cdef SlepcBVOrthogBlockType val3 = BV_ORTHOG_BLOCK_GS
         cdef PetscReal rval = PETSC_DEFAULT
         CHKERR( BVGetOrthogonalization(self.bv, &val1, &val2, &rval, &val3) )
-        if type   is not None: val1 = type
+        if otype  is not None: val1 = otype
         if refine is not None: val2 = refine
         if block  is not None: val3 = block
         if eta    is not None: rval = asReal(eta)
         CHKERR( BVSetOrthogonalization(self.bv, val1, val2, rval, val3) )
+
+    def getMatMultMethod(self):
+        """
+        Gets the method used for the `matMult()` operation.
+
+        Returns
+        -------
+        method: `BV.MatMultType` enumerate
+              The method for the `matMult()` operation.
+        """
+        cdef SlepcBVMatMultType val = BV_MATMULT_MAT
+        CHKERR( BVGetMatMultMethod(self.bv, &val) )
+        return val
+
+    def setMatMultMethod(self, method):
+        """
+        Specifies the method used for the `matMult()` operation.
+
+        Parameters
+        ----------
+        method: `BV.MatMultType` enumerate
+              The method for the `matMult()` operation.
+        """
+        cdef SlepcBVMatMultType val = method
+        CHKERR( BVSetMatMultMethod(self.bv, val) )
 
     #
 
@@ -402,7 +448,7 @@ cdef class BV(Object):
         """
         CHKERR( BVApplyMatrix(self.bv, x.vec, y.vec) )
 
-    def setActiveColumns(self, int l, int k):
+    def setActiveColumns(self, l, k):
         """
         Specify the columns that will be involved in operations.
 
@@ -413,7 +459,9 @@ cdef class BV(Object):
         k: int
             The active number of columns.
         """
-        CHKERR( BVSetActiveColumns(self.bv, l, k) )
+        cdef PetscInt ival1 = asInt(l)
+        cdef PetscInt ival2 = asInt(k)
+        CHKERR( BVSetActiveColumns(self.bv, ival1, ival2) )
 
     def getActiveColumns(self):
         """
@@ -430,7 +478,7 @@ cdef class BV(Object):
         CHKERR( BVGetActiveColumns(self.bv, &l, &k) )
         return (toInt(l), toInt(k))
 
-    def scaleColumn(self, int j, alpha):
+    def scaleColumn(self, j, alpha):
         """
         Scale column j by alpha
 
@@ -441,8 +489,9 @@ cdef class BV(Object):
         alpha: float
             scaling factor.
         """
+        cdef PetscInt ival = asInt(j)
         cdef PetscScalar sval = asScalar(alpha)
-        CHKERR( BVScaleColumn(self.bv, j, sval) )
+        CHKERR( BVScaleColumn(self.bv, ival, sval) )
 
     def scale(self, alpha):
         """
@@ -460,7 +509,7 @@ cdef class BV(Object):
         cdef PetscScalar sval = asScalar(alpha)
         CHKERR( BVScale(self.bv, sval) )
 
-    def insertVec(self, int j, Vec w):
+    def insertVec(self, j, Vec w):
         """
         Insert a vector into the specified column.
 
@@ -471,9 +520,10 @@ cdef class BV(Object):
         w: Vec
             The vector to be copied.
         """
-        CHKERR( BVInsertVec(self.bv, j, w.vec) )
+        cdef PetscInt ival = asInt(j)
+        CHKERR( BVInsertVec(self.bv, ival, w.vec) )
 
-    def insertVecs(self, int s, W, bint orth):
+    def insertVecs(self, s, W, bint orth):
         """
         Insert a set of vectors into specified columns.
 
@@ -500,14 +550,138 @@ cdef class BV(Object):
         decreased.
         """
         if isinstance(W, Vec): W = [W]
+        cdef PetscInt ival = asInt(s)
         cdef PetscVec *ws = NULL
         cdef Py_ssize_t i = 0, ns = len(W)
-        cdef tmp = allocate(<size_t>ns*sizeof(Vec),<void**>&ws)
+        cdef tmp = allocate(<size_t>ns*sizeof(PetscVec),<void**>&ws)
         for i in range(ns): ws[i] = (<Vec?>W[i]).vec
         cdef PetscInt m = <PetscInt>ns
         cdef PetscBool tval = PETSC_TRUE if orth else PETSC_FALSE
-        CHKERR( BVInsertVecs(self.bv, <PetscInt>s, &m, ws, tval) )
+        CHKERR( BVInsertVecs(self.bv, ival, &m, ws, tval) )
         return toInt(m)
+
+    def insertConstraints(self, C):
+        """
+        Insert a set of vectors as constraints.
+
+        Parameters
+        ----------
+        C: Vec or sequence of Vec.
+           Set of vectors to be inserted as constraints.
+
+        Returns
+        -------
+        nc: int
+            Number of linearly independent vectors.
+
+        Notes
+        -----
+        The constraints are relevant only during orthogonalization. Constraint
+        vectors span a subspace that is deflated in every orthogonalization
+        operation, so they are intended for removing those directions from the
+        orthogonal basis computed in regular BV columns.
+        """
+        if isinstance(C, Vec): C = [C]
+        cdef PetscVec *cs = NULL
+        cdef Py_ssize_t i = 0, nc = len(C)
+        cdef tmp = allocate(<size_t>nc*sizeof(PetscVec),<void**>&cs)
+        for i in range(nc): cs[i] = (<Vec?>C[i]).vec
+        cdef PetscInt m = <PetscInt>nc
+        CHKERR( BVInsertConstraints(self.bv, &m, cs) )
+        return toInt(m)
+
+    def setNumConstraints(self, nc):
+        """
+        Sets the number of constraints.
+
+        Parameters
+        ----------
+        nc: int
+            The number of constraints.
+        """
+        cdef PetscInt val = asInt(nc)
+        CHKERR( BVSetNumConstraints(self.bv, val) )
+
+    def getNumConstraints(self):
+        """
+        Gets the number of constraints.
+
+        Returns
+        -------
+        nc: int
+            The number of constraints.
+        """
+        cdef PetscInt val = 0
+        CHKERR( BVGetNumConstraints(self.bv, &val) )
+        return toInt(val)
+
+    def createVec(self):
+        """
+        Creates a new Vec object with the same type and dimensions as
+        the columns of the basis vectors object.
+
+        Returns
+        -------
+        v: Vec
+           New vector.
+        """
+        cdef Vec v = Vec()
+        CHKERR( BVCreateVec(self.bv, &v.vec) )
+        return v
+
+    def copyVec(self, j, Vec v):
+        """
+        Copies one of the columns of a basis vectors object into a Vec.
+
+        Parameters
+        ----------
+        j: int
+            The column number to be copied.
+        v: Vec
+            A vector.
+        """
+        cdef PetscInt ival = asInt(j)
+        CHKERR( BVCopyVec(self.bv, ival, v.vec) )
+
+    def copyColumn(self, j, i):
+        """
+        Copies the values from one of the columns to another one.
+
+        Parameters
+        ----------
+        j: int
+            The number of the source column.
+        i: int
+            The number of the destination column.
+        """
+        cdef PetscInt ival1 = asInt(j)
+        cdef PetscInt ival2 = asInt(i)
+        CHKERR( BVCopyColumn(self.bv, ival1, ival2) )
+
+    def setDefiniteTolerance(self, deftol):
+        """
+        Sets the tolerance to be used when checking a definite inner product.
+
+        Parameters
+        ----------
+        deftol: float
+             The tolerance.
+        """
+        cdef PetscReal val = asReal(deftol)
+        CHKERR( BVSetDefiniteTolerance(self.bv, val) )
+
+    def getDefiniteTolerance(self):
+        """
+        Gets the tolerance to be used when checking a definite inner product.
+
+        Returns
+        -------
+        deftol: float
+             The tolerance.
+        """
+        cdef PetscReal val = 0
+        CHKERR( BVGetDefiniteTolerance(self.bv, &val) )
+        return toReal(val)
 
     def dotVec(self, Vec v):
         """
@@ -524,6 +698,8 @@ cdef class BV(Object):
         m: Vec
             A vector with the results.
 
+        Notes
+        -----
         This is analogue to VecMDot(), but using BV to represent a collection
         of vectors. The result is m = X^H*y, so m_i is equal to x_j^H y. Note
         that here X is transposed as opposed to BVDot().
@@ -541,11 +717,39 @@ cdef class BV(Object):
         v.setType('seq')
         v.setSizes((DECIDE, k-l))
         v.setArray([toScalar(mval[i]) for i in range(0, k - l)])
-        v.ghostUpdate()
-
+        v.assemble()
         return v
 
-    def getColumn(self, int j):
+    def dotColumn(self, j):
+        """
+        Computes multiple dot products of a column against all the column
+        vectors of a BV.
+
+        Parameters
+        ----------
+        j: int
+            The index of the column.
+
+        Returns
+        -------
+        m: Vec
+            A vector with the results.
+        """
+        cdef PetscInt ival = asInt(j)
+        l, k = self.getActiveColumns()
+        cdef PetscScalar* mval = NULL
+        cdef tmp = allocate(<size_t>(k - l)*sizeof(PetscScalar), <void**>&mval)
+
+        CHKERR( BVDotColumn(self.bv, ival, mval) )
+
+        v = Vec().create(COMM_SELF)
+        v.setType('seq')
+        v.setSizes((DECIDE, k-l))
+        v.setArray([toScalar(mval[i]) for i in range(0, k - l)])
+        v.assemble()
+        return v
+
+    def getColumn(self, j):
         """
         Returns a Vec object that contains the entries of the requested column
         of the basis vectors object.
@@ -565,26 +769,68 @@ cdef class BV(Object):
         Modifying the returned Vec will change the BV entries as well.
         """
         cdef Vec v = Vec()
+        cdef PetscInt ival = asInt(j)
         CHKERR( BVGetColumn(self.bv, j, &v.vec) )
+        PetscINCREF(v.obj)
         return v
 
-    def restoreColumn(self, int j, Vec v):
+    def restoreColumn(self, j, Vec v):
         """
-        Restore a column obtained with BVGetColumn().
+        Restore a column obtained with `getColumn()`.
 
         Parameters
         ----------
         j: int
             The index of the requested column.
-
         v: Vec
-            The vector obtained with BVGetColumn().
+            The vector obtained with `getColumn()`.
 
         Notes
         -----
-        The arguments must match the corresponding call to BVGetColumn().
+        The arguments must match the corresponding call to `getColumn()`.
         """
-        CHKERR( BVRestoreColumn(self.bv, j, &v.vec) )
+        cdef PetscInt ival = asInt(j)
+        CHKERR( PetscObjectDereference(<PetscObject>v.vec) )
+        CHKERR( BVRestoreColumn(self.bv, ival, &v.vec) )
+
+    def getMat(self):
+        """
+        Returns a Mat object of dense type that shares the memory
+        of the basis vectors object.
+
+        Returns
+        -------
+        A: Mat
+           The matrix
+
+        Notes
+        -----
+        The returned matrix contains only the active columns. If the content
+        of the Mat is modified, these changes are also done in the BV object.
+        The user must call `restoreMat()` when no longer needed.
+        """
+        cdef Mat A = Mat()
+        CHKERR( BVGetMat(self.bv, &A.mat) )
+        PetscINCREF(A.obj)
+        return A
+
+    def restoreMat(self, Mat A):
+        """
+        Restores the Mat obtained with `getMat()`.
+
+        Parameters
+        ----------
+        A: Mat
+           The matrix obtained with `getMat()`.
+
+        Notes
+        -----
+        A call to this function must match a previous call of `getMat()`.
+        The effect is that the contents of the Mat are copied back to the
+        BV internal data structures.
+        """
+        CHKERR( PetscObjectDereference(<PetscObject>A.mat) )
+        CHKERR( BVRestoreMat(self.bv, &A.mat) )
 
     def dot(self, BV Y):
         """
@@ -635,7 +881,6 @@ cdef class BV(Object):
         ----------
         A: Mat or None
             Matrix to be projected.
-
         Y: BV
             Left basis vectors, can be the same as self, giving M = X^H A X.
 
@@ -693,7 +938,6 @@ cdef class BV(Object):
             CHKERR( MatGetSize(A.mat, &N, NULL) )
             CHKERR( BVGetSizes(self.bv, NULL, NULL, &m) )
             CHKERR( BVGetOrthogonalization(self.bv, &val1, &val2, &rval, &val3) )
-        if Y.bv == NULL:
             CHKERR( BVCreate(comm, &Y.bv) )
             CHKERR( BVSetType(Y.bv, bv_type) )
             CHKERR( BVSetSizes(Y.bv, n, N, m) )
@@ -737,7 +981,6 @@ cdef class BV(Object):
             CHKERR( MatGetSize(A.mat, &N, NULL) )
             CHKERR( BVGetSizes(self.bv, NULL, NULL, &m) )
             CHKERR( BVGetOrthogonalization(self.bv, &val1, &val2, &rval, &val3) )
-        if Y.bv == NULL:
             CHKERR( BVCreate(comm, &Y.bv) )
             CHKERR( BVSetType(Y.bv, bv_type) )
             CHKERR( BVSetSizes(Y.bv, n, N, m) )
@@ -745,20 +988,127 @@ cdef class BV(Object):
         CHKERR( BVMatMultHermitianTranspose(self.bv, A.mat, Y.bv) )
         return Y
 
+    def matMultColumn(self, Mat A, j):
+        """
+        Computes the matrix-vector product for a specified column, storing
+        the result in the next column: v_{j+1}=A*v_j.
+
+        Parameters
+        ----------
+        A: Mat
+            The matrix.
+        j: int
+            Index of column.
+        """
+        cdef PetscInt ival = asInt(j)
+        CHKERR( BVMatMultColumn(self.bv, A.mat, ival) )
+
+    def matMultTransposeColumn(self, Mat A, j):
+        """
+        Computes the transpose matrix-vector product for a specified column,
+        storing the result in the next column: v_{j+1}=A^T*v_j.
+
+        Parameters
+        ----------
+        A: Mat
+            The matrix.
+        j: int
+            Index of column.
+        """
+        cdef PetscInt ival = asInt(j)
+        CHKERR( BVMatMultTransposeColumn(self.bv, A.mat, ival) )
+
+    def matMultHermitianTransposeColumn(self, Mat A, j):
+        """
+        Computes the conjugate-transpose matrix-vector product for a specified column,
+        storing the result in the next column: v_{j+1}=A^H*v_j.
+
+        Parameters
+        ----------
+        A: Mat
+            The matrix.
+        j: int
+            Index of column.
+        """
+        cdef PetscInt ival = asInt(j)
+        CHKERR( BVMatMultHermitianTransposeColumn(self.bv, A.mat, ival) )
+
+    def mult(self, alpha, beta, BV X, Mat Q):
+        """
+        Computes Y = beta*Y + alpha*X*Q.
+
+        Parameters
+        ----------
+        alpha: scalar
+            Coefficient that multiplies X.
+        beta: scalar
+            Coefficient that multiplies Y.
+        X: BV
+            Input basis vectors.
+        Q: Mat
+            Input matrix.
+        """
+        cdef PetscScalar sval1 = asScalar(alpha)
+        cdef PetscScalar sval2 = asScalar(beta)
+        CHKERR( BVMult(self.bv, sval1, sval2, X.bv, Q.mat) )
+
+    def multInPlace(self, Mat Q, s, e):
+        """
+        Update a set of vectors as V(:,s:e-1) = V*Q(:,s:e-1).
+
+        Parameters
+        ----------
+        Q: Mat
+           A sequential dense matrix.
+        s: int
+           First column to be overwritten.
+        e: int
+           Last column to be overwritten.
+        """
+        cdef PetscInt ival1 = asInt(s)
+        cdef PetscInt ival2 = asInt(e)
+        CHKERR( BVMultInPlace(self.bv, Q.mat, ival1, ival2) )
+
+    def multColumn(self, alpha, beta, j, q):
+        """
+        Computes y = beta*y + alpha*X*q, where y is the j-th column.
+
+        Parameters
+        ----------
+        alpha: scalar
+            Coefficient that multiplies X.
+        beta: scalar
+            Coefficient that multiplies y.
+        j: int
+            The column index.
+        q: Array of scalar
+            Input coefficients.
+        """
+        cdef PetscScalar sval1 = asScalar(alpha)
+        cdef PetscScalar sval2 = asScalar(beta)
+        cdef PetscInt ival = asInt(j)
+        cdef PetscInt nq = 0
+        cdef PetscScalar* qval = NULL
+        cdef tmp = iarray_s(q, &nq, &qval)
+        cdef PetscInt l=0, k=0
+        CHKERR( BVGetActiveColumns(self.bv, &l, &k) )
+        assert nq == k-l
+        CHKERR( BVMultColumn(self.bv, sval1, sval2, ival, qval) )
+
     def multVec(self, alpha, beta, Vec y, q):
         """
         Computes y = beta*y + alpha*X*q.
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         alpha: scalar
+            Coefficient that multiplies X.
         beta: scalar
-        q: scalar or sequence of scalars
-
-        Return
-        ------
+            Coefficient that multiplies y.
         y: Vec
-            The result.
+            Input/output vector.
+        q: Array of scalar
+            Input coefficients.
         """
         cdef PetscScalar sval1 = asScalar(alpha)
         cdef PetscScalar sval2 = asScalar(beta)
@@ -778,7 +1128,7 @@ cdef class BV(Object):
         ----------
         j: int
             Index of column.
-        norm_type: PETSc.NormType (int)
+        norm_type: `PETSc.NormType` enumerate
             The norm type.
 
         Returns
@@ -805,7 +1155,7 @@ cdef class BV(Object):
 
         Parameters
         ----------
-        norm_type: PETSC.NormType enumerate
+        norm_type: `PETSC.NormType` enumerate
             The norm type.
 
         Returns
@@ -833,8 +1183,10 @@ cdef class BV(Object):
 
         Parameters
         ----------
-        m - the new number of columns.
-        copy - a flag indicating whether current values should be kept.
+        m: int
+           The new number of columns.
+        copy: bool
+           A flag indicating whether current values should be kept.
 
         Notes
         -----
@@ -847,7 +1199,7 @@ cdef class BV(Object):
 
     def setRandom(self):
         """
-        Set the active columns of BV to random numbers.
+        Set the active columns of the BV to random numbers.
 
         Notes
         -----
@@ -857,7 +1209,8 @@ cdef class BV(Object):
 
     def setRandomNormal(self):
         """
-        Set the active columns of BV to random numbers (with normal distribution).
+        Set the active columns of the BV to random numbers (with normal
+        distribution).
 
         Notes
         -----
@@ -874,6 +1227,57 @@ cdef class BV(Object):
         All active columns (except the leading ones) are modified.
         """
         CHKERR( BVSetRandomSign(self.bv) )
+
+    def setRandomColumn(self, j):
+        """
+        Set one column of the BV to random numbers.
+
+        Parameters
+        ----------
+        j: int
+           Column number to be set.
+        """
+        cdef PetscInt ival = asInt(j)
+        CHKERR( BVSetRandomColumn(self.bv, ival) )
+
+    def setRandomCond(self, condn):
+        """
+        Set the columns of a BV to random numbers, in a way that the generated
+        matrix has a given condition number.
+
+        Parameters
+        ----------
+        condn: float
+               Condition number.
+        """
+        cdef PetscReal rval = asReal(condn)
+        CHKERR( BVSetRandomCond(self.bv, rval) )
+
+    def setRandomContext(self, Random rnd):
+        """
+        Sets the `PETSc.Random` object associated with the BV, to be used
+        in operations that need random numbers.
+
+        Parameters
+        ----------
+        rnd: `PETSc.Random`
+             The random number generator context.
+        """
+        CHKERR( BVSetRandomContext(self.bv, rnd.rnd) )
+
+    def getRandomContext(self):
+        """
+        Gets the `PETSc.Random` object associated with the BV.
+
+        Returns
+        -------
+        rnd: `PETSc.Random`
+             The random number generator context.
+        """
+        cdef Random rnd = Random()
+        CHKERR( BVGetRandomContext(self.bv, &rnd.rnd) )
+        PetscINCREF(rnd.obj)
+        return rnd
 
     def orthogonalizeVec(self, Vec v):
         """
@@ -903,6 +1307,67 @@ cdef class BV(Object):
         cdef PetscReal norm = 0
         cdef PetscBool ldep = PETSC_FALSE
         CHKERR( BVOrthogonalizeVec(self.bv, v.vec, NULL, &norm, &ldep) )
+        return (toReal(norm), toBool(ldep))
+
+    def orthogonalizeColumn(self, j):
+        """
+        Orthogonalize one of the column vectors with respect to the previous ones.
+
+        Parameters
+        ----------
+        j: int
+           Index of the column to be orthogonalized.
+
+        Returns
+        -------
+        norm: float
+            The norm of the resulting vector.
+        lindep: bool
+            Flag indicating that refinement did not improve the
+            quality of orthogonalization.
+
+        Notes
+        -----
+        This function applies an orthogonal projector to project
+        vector ``V[j]`` onto the orthogonal complement of the span of the
+        columns ``V[0..j-1]``, where ``V[.]`` are the vectors of the BV.
+        The columns ``V[0..j-1]`` are assumed to be mutually orthonormal.
+
+        This routine does not normalize the resulting vector.
+        """
+        cdef PetscInt ival = asInt(j)
+        cdef PetscReal norm = 0
+        cdef PetscBool ldep = PETSC_FALSE
+        CHKERR( BVOrthogonalizeColumn(self.bv, ival, NULL, &norm, &ldep) )
+        return (toReal(norm), toBool(ldep))
+
+    def orthonormalizeColumn(self, j, replace=False):
+        """
+        Orthonormalize one of the column vectors with respect to the previous
+        ones.  This is equivalent to a call to `orthogonalizeColumn()`
+        followed by a call to `scaleColumn()` with the reciprocal of the norm.
+
+        Parameters
+        ----------
+        j: int
+           Index of the column to be orthonormalized.
+        replace: bool, optional
+           Whether it is allowed to set the vector randomly.
+
+        Returns
+        -------
+        norm: float
+            The norm of the resulting vector.
+        lindep: bool
+            Flag indicating that refinement did not improve the
+            quality of orthogonalization.
+        """
+        cdef PetscInt ival = asInt(j)
+        cdef PetscBool bval = PETSC_FALSE
+        if replace is not None: bval = asBool(replace)
+        cdef PetscReal norm = 0
+        cdef PetscBool ldep = PETSC_FALSE
+        CHKERR( BVOrthonormalizeColumn(self.bv, ival, bval, &norm, &ldep) )
         return (toReal(norm), toBool(ldep))
 
     def orthogonalize(self, Mat R=None, **kargs):
