@@ -279,7 +279,7 @@ Downloaded package %s from: %s is not a tarball.
 
   def ShowInfo(self):
     if self.havepackage:
-      if hasattr(self,'version'):
+      if hasattr(self,'version') and self.downloadpackage:
         packagename = self.packagename.upper()+' version '+self.version
       else:
         packagename = self.packagename.upper()
