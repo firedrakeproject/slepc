@@ -26,7 +26,7 @@ Dependencies
 .. _Python:   https://www.python.org
 .. _NumPy:    https://www.numpy.org
 .. _SLEPc:    https://slepc.upv.es
-.. _PETSc:    https://www.mcs.anl.gov/petsc/
+.. _PETSc:    https://petsc.org
 .. _petsc4py: https://gitlab.com/petsc/petsc4py
 .. _Cython:   https://cython.org
 

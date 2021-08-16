@@ -55,8 +55,8 @@ class HPDDM(package.Package):
       branch = 'current'
       if slepc.isrepo and slepc.branch != 'release':
         branch = 'dev'
-      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
-      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
+      urlretrieve('https://petsc.org/'+branch+'/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
+      urlretrieve('https://petsc.org/'+branch+'/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
     else:
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','ksp','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','ksphpddm.cxx'))
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','pc','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','pchpddm.cxx'))
