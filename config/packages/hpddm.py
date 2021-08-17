@@ -52,11 +52,11 @@ class HPDDM(package.Package):
     l = petsc.slflag+d+' -L'+d+' -lpetsc'
     d = libdir
     if petsc.isinstall:
-      branch = 'current'
+      branch = 'release'
       if slepc.isrepo and slepc.branch != 'release':
-        branch = 'dev'
-      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
-      urlretrieve('https://www.mcs.anl.gov/petsc/petsc-'+branch+'/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
+        branch = 'main'
+      urlretrieve('https://petsc.org/'+branch+'/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
+      urlretrieve('https://petsc.org/'+branch+'/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
     else:
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','ksp','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','ksphpddm.cxx'))
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','pc','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','pchpddm.cxx'))
