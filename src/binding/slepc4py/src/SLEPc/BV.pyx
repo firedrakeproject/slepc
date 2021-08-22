@@ -695,8 +695,8 @@ cdef class BV(Object):
 
         Returns
         -------
-        m: Vec
-            A vector with the results.
+        m: array of scalars
+            The computed values.
 
         Notes
         -----
@@ -713,12 +713,9 @@ cdef class BV(Object):
 
         CHKERR( BVDotVec(self.bv, v.vec, mval) )
 
-        v = Vec().create(COMM_SELF)
-        v.setType('seq')
-        v.setSizes((DECIDE, k-l))
-        v.setArray([toScalar(mval[i]) for i in range(0, k - l)])
-        v.assemble()
-        return v
+        cdef object m = None
+        m = array_s(k - l, mval)
+        return m
 
     def dotColumn(self, j):
         """
@@ -732,8 +729,8 @@ cdef class BV(Object):
 
         Returns
         -------
-        m: Vec
-            A vector with the results.
+        m: array of scalars
+            The computed values.
         """
         cdef PetscInt ival = asInt(j)
         l, k = self.getActiveColumns()
@@ -742,12 +739,9 @@ cdef class BV(Object):
 
         CHKERR( BVDotColumn(self.bv, ival, mval) )
 
-        v = Vec().create(COMM_SELF)
-        v.setType('seq')
-        v.setSizes((DECIDE, k-l))
-        v.setArray([toScalar(mval[i]) for i in range(0, k - l)])
-        v.assemble()
-        return v
+        cdef object m = None
+        m = array_s(k - l, mval)
+        return m
 
     def getColumn(self, j):
         """

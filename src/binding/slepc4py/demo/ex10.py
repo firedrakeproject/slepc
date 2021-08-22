@@ -283,7 +283,7 @@ def main():
     RHS, uex = set_problem_rhs(problem_dim)
     
     # Project the RHS on the POD basis
-    RHSred = bv.dotVec(RHS)
+    RHSred = PETSc.Vec().createWithArray(bv.dotVec(RHS))
 
     # Solve the problem with POD
     alpha = Ared.createVecs('right')
