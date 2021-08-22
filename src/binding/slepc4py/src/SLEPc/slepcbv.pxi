@@ -48,10 +48,16 @@ cdef extern from * nogil:
 
     int BVSetOrthogonalization(SlepcBV,SlepcBVOrthogType,SlepcBVOrthogRefineType,PetscReal,SlepcBVOrthogBlockType)
     int BVGetOrthogonalization(SlepcBV,SlepcBVOrthogType*,SlepcBVOrthogRefineType*,PetscReal*,SlepcBVOrthogBlockType*)
+    int BVSetMatMultMethod(SlepcBV,SlepcBVMatMultType)
+    int BVGetMatMultMethod(SlepcBV,SlepcBVMatMultType*)
 
     int BVSetRandom(SlepcBV)
     int BVSetRandomNormal(SlepcBV)
     int BVSetRandomSign(SlepcBV)
+    int BVSetRandomColumn(SlepcBV,PetscInt)
+    int BVSetRandomCond(SlepcBV,PetscReal)
+    int BVSetRandomContext(SlepcBV,PetscRandom)
+    int BVGetRandomContext(SlepcBV,PetscRandom*)
 
     int BVSetMatrix(SlepcBV,PetscMat,PetscBool)
     int BVGetMatrix(SlepcBV,PetscMat*,PetscBool*)
@@ -59,18 +65,34 @@ cdef extern from * nogil:
 
     int BVSetActiveColumns(SlepcBV,PetscInt,PetscInt)
     int BVGetActiveColumns(SlepcBV,PetscInt*,PetscInt*)
+    int BVSetDefiniteTolerance(SlepcBV,PetscReal)
+    int BVGetDefiniteTolerance(SlepcBV,PetscReal*)
 
+    int BVCreateVec(SlepcBV,PetscVec*)
     int BVInsertVec(SlepcBV,PetscInt,PetscVec)
     int BVInsertVecs(SlepcBV,PetscInt,PetscInt*,PetscVec*,PetscBool)
+    int BVInsertConstraints(SlepcBV,PetscInt*,PetscVec*)
+    int BVSetNumConstraints(SlepcBV,PetscInt)
+    int BVGetNumConstraints(SlepcBV,PetscInt*)
     int BVGetColumn(SlepcBV,PetscInt,PetscVec*)
     int BVRestoreColumn(SlepcBV,PetscInt,PetscVec*)
+    int BVCopyVec(SlepcBV,PetscInt,PetscVec)
+    int BVCopyColumn(SlepcBV,PetscInt,PetscInt)
 
     int BVDot(SlepcBV,SlepcBV,PetscMat)
     int BVDotVec(SlepcBV,PetscVec,PetscScalar*)
+    int BVDotColumn(SlepcBV,PetscInt,PetscScalar*)
 
     int BVMatProject(SlepcBV,PetscMat,SlepcBV,PetscMat)
     int BVMatMult(SlepcBV,PetscMat,SlepcBV)
     int BVMatMultHermitianTranspose(SlepcBV,PetscMat,SlepcBV)
+    int BVMatMultColumn(SlepcBV,PetscMat,PetscInt)
+    int BVMatMultTransposeColumn(SlepcBV,PetscMat,PetscInt)
+    int BVMatMultHermitianTransposeColumn(SlepcBV,PetscMat,PetscInt)
+
+    int BVMult(SlepcBV,PetscScalar,PetscScalar,SlepcBV,PetscMat)
+    int BVMultColumn(SlepcBV,PetscScalar,PetscScalar,PetscInt,PetscScalar*)
+    int BVMultInPlace(SlepcBV,PetscMat,PetscInt,PetscInt)
     int BVMultVec(SlepcBV,PetscScalar,PetscScalar,PetscVec,PetscScalar*)
 
     int BVScaleColumn(SlepcBV,PetscInt,PetscScalar)
@@ -80,8 +102,13 @@ cdef extern from * nogil:
     int BVNorm(SlepcBV,PetscNormType,PetscReal*)
 
     int BVOrthogonalizeVec(SlepcBV,PetscVec,PetscScalar*,PetscReal*,PetscBool*)
+    int BVOrthogonalizeColumn(SlepcBV,PetscInt,PetscScalar*,PetscReal*,PetscBool*)
+    int BVOrthonormalizeColumn(SlepcBV,PetscInt,PetscBool,PetscReal*,PetscBool*)
     int BVOrthogonalize(SlepcBV,PetscMat)
 
+    int BVCreateFromMat(PetscMat,SlepcBV*)
+    int BVGetMat(SlepcBV,PetscMat*)
+    int BVRestoreMat(SlepcBV,PetscMat*)
 
 cdef inline int BV_Sizes(
     object size,

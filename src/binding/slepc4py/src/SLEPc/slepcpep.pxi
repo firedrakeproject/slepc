@@ -80,6 +80,23 @@ cdef extern from * nogil:
         PEP_DIVERGED_SYMMETRY_LOST
         PEP_CONVERGED_ITERATING
 
+    ctypedef int (*SlepcPEPCtxDel)(void*)
+    ctypedef int (*SlepcPEPStoppingFunction)(SlepcPEP,
+                                             PetscInt,
+                                             PetscInt,
+                                             PetscInt,
+                                             PetscInt,
+                                             SlepcPEPConvergedReason*,
+                                             void*) except PETSC_ERR_PYTHON
+    ctypedef int (*SlepcPEPMonitorFunction)(SlepcPEP,
+                                            PetscInt,
+                                            PetscInt,
+                                            PetscScalar*,
+                                            PetscScalar*,
+                                            PetscReal*,
+                                            PetscInt,
+                                            void*) except PETSC_ERR_PYTHON
+
     int PEPCreate(MPI_Comm,SlepcPEP*)
     int PEPDestroy(SlepcPEP*)
     int PEPReset(SlepcPEP)
@@ -105,8 +122,6 @@ cdef extern from * nogil:
     int PEPGetBV(SlepcPEP,SlepcBV*)
     int PEPSetDS(SlepcPEP,SlepcDS)
     int PEPGetDS(SlepcPEP,SlepcDS*)
-    int PEPSetTolerances(SlepcPEP,PetscReal,PetscInt)
-    int PEPGetTolerances(SlepcPEP,PetscReal*,PetscInt*)
     int PEPSetST(SlepcPEP,SlepcST)
     int PEPGetST(SlepcPEP,SlepcST*)
     int PEPSetRG(SlepcPEP,SlepcRG)
@@ -115,6 +130,8 @@ cdef extern from * nogil:
     int PEPSetTrackAll(SlepcPEP,PetscBool)
     int PEPGetTrackAll(SlepcPEP,PetscBool*)
 
+    int PEPSetTolerances(SlepcPEP,PetscReal,PetscInt)
+    int PEPGetTolerances(SlepcPEP,PetscReal*,PetscInt*)
     int PEPSetDimensions(SlepcPEP,PetscInt,PetscInt,PetscInt)
     int PEPGetDimensions(SlepcPEP,PetscInt*,PetscInt*,PetscInt*)
     int PEPSetScale(SlepcPEP,SlepcPEPScale,PetscReal,PetscVec,PetscVec,PetscInt,PetscReal)
@@ -124,13 +141,22 @@ cdef extern from * nogil:
     int PEPGetEigenpair(SlepcPEP,PetscInt,PetscScalar*,PetscScalar*,PetscVec,PetscVec)
     int PEPComputeError(SlepcPEP,PetscInt,SlepcPEPErrorType,PetscReal*)
     int PEPErrorView(SlepcPEP,SlepcPEPErrorType,PetscViewer)
+    int PEPValuesView(SlepcPEP,PetscViewer)
+    int PEPVectorsView(SlepcPEP,PetscViewer)
     int PEPGetErrorEstimate(SlepcPEP,PetscInt,PetscReal*)
+
+    int PEPSetStoppingTestFunction(SlepcPEP,SlepcPEPStoppingFunction,void*,SlepcPEPCtxDel)
+    int PEPStoppingBasic(SlepcPEP,PetscInt,PetscInt,PetscInt,PetscInt,SlepcPEPConvergedReason*,void*) except PETSC_ERR_PYTHON
 
     int PEPSetConvergenceTest(SlepcPEP,SlepcPEPConv)
     int PEPGetConvergenceTest(SlepcPEP,SlepcPEPConv*)
     int PEPSetRefine(SlepcPEP,SlepcPEPRefine,PetscInt,PetscReal,PetscInt,SlepcPEPRefineScheme)
     int PEPGetRefine(SlepcPEP,SlepcPEPRefine*,PetscInt*,PetscReal*,PetscInt*,SlepcPEPRefineScheme*)
+    int PEPRefineGetKSP(SlepcPEP,PetscKSP*)
+    int PEPSetExtract(SlepcPEP,SlepcPEPExtract);
+    int PEPGetExtract(SlepcPEP,SlepcPEPExtract*)
 
+    int PEPMonitorSet(SlepcPEP,SlepcPEPMonitorFunction,void*,SlepcPEPCtxDel)
     int PEPMonitorCancel(SlepcPEP)
     int PEPGetIterationNumber(SlepcPEP,PetscInt*)
 
@@ -150,26 +176,42 @@ cdef extern from * nogil:
     int PEPLinearSetEPS(SlepcPEP,SlepcEPS)
     int PEPLinearGetEPS(SlepcPEP,SlepcEPS*)
 
-    int PEPTOARSetRestart(SlepcPEP,PetscReal);
-    int PEPTOARGetRestart(SlepcPEP,PetscReal*);
-    int PEPTOARSetLocking(SlepcPEP,PetscBool);
-    int PEPTOARGetLocking(SlepcPEP,PetscBool*);
+    int PEPQArnoldiSetRestart(SlepcPEP,PetscReal)
+    int PEPQArnoldiGetRestart(SlepcPEP,PetscReal*)
+    int PEPQArnoldiSetLocking(SlepcPEP,PetscBool)
+    int PEPQArnoldiGetLocking(SlepcPEP,PetscBool*)
 
-    int PEPSTOARSetLocking(SlepcPEP,PetscBool);
-    int PEPSTOARGetLocking(SlepcPEP,PetscBool*);
-    int PEPSTOARSetDetectZeros(SlepcPEP,PetscBool);
-    int PEPSTOARGetDetectZeros(SlepcPEP,PetscBool*);
-    int PEPSTOARSetDimensions(SlepcPEP,PetscInt,PetscInt,PetscInt);
-    int PEPSTOARGetDimensions(SlepcPEP,PetscInt*,PetscInt*,PetscInt*);
+    int PEPTOARSetRestart(SlepcPEP,PetscReal)
+    int PEPTOARGetRestart(SlepcPEP,PetscReal*)
+    int PEPTOARSetLocking(SlepcPEP,PetscBool)
+    int PEPTOARGetLocking(SlepcPEP,PetscBool*)
+
+    int PEPSTOARSetLinearization(SlepcPEP,PetscReal,PetscReal)
+    int PEPSTOARGetLinearization(SlepcPEP,PetscReal*,PetscReal*)
+    int PEPSTOARSetLocking(SlepcPEP,PetscBool)
+    int PEPSTOARGetLocking(SlepcPEP,PetscBool*)
+    int PEPSTOARSetDetectZeros(SlepcPEP,PetscBool)
+    int PEPSTOARGetDetectZeros(SlepcPEP,PetscBool*)
+    int PEPSTOARSetDimensions(SlepcPEP,PetscInt,PetscInt,PetscInt)
+    int PEPSTOARGetDimensions(SlepcPEP,PetscInt*,PetscInt*,PetscInt*)
+    int PEPSTOARGetInertias(SlepcPEP,PetscInt*,PetscReal**,PetscInt**)
+    int PEPSTOARSetCheckEigenvalueType(SlepcPEP,PetscBool)
+    int PEPSTOARGetCheckEigenvalueType(SlepcPEP,PetscBool*)
 
     ctypedef enum SlepcPEPJDProjection "PEPJDProjection":
         PEP_JD_PROJECTION_HARMONIC
         PEP_JD_PROJECTION_ORTHOGONAL
 
-    int PEPJDSetRestart(SlepcPEP,PetscReal);
-    int PEPJDGetRestart(SlepcPEP,PetscReal*);
-    int PEPJDSetFix(SlepcPEP,PetscReal);
-    int PEPJDGetFix(SlepcPEP,PetscReal*);
+    int PEPJDSetRestart(SlepcPEP,PetscReal)
+    int PEPJDGetRestart(SlepcPEP,PetscReal*)
+    int PEPJDSetFix(SlepcPEP,PetscReal)
+    int PEPJDGetFix(SlepcPEP,PetscReal*)
+    int PEPJDSetReusePreconditioner(SlepcPEP,PetscBool)
+    int PEPJDGetReusePreconditioner(SlepcPEP,PetscBool*)
+    int PEPJDSetMinimalityIndex(SlepcPEP,PetscInt)
+    int PEPJDGetMinimalityIndex(SlepcPEP,PetscInt*)
+    int PEPJDSetProjection(SlepcPEP,SlepcPEPJDProjection)
+    int PEPJDGetProjection(SlepcPEP,SlepcPEPJDProjection*)
 
     ctypedef enum SlepcPEPCISSExtraction "PEPCISSExtraction":
         PEP_CISS_EXTRACTION_RITZ
@@ -186,8 +228,52 @@ cdef extern from * nogil:
     int PEPCISSGetRefinement(SlepcPEP,PetscInt*,PetscInt*)
     int PEPCISSGetKSPs(SlepcPEP,PetscInt*,PetscKSP**)
 
-cdef extern from * nogil:
-    int VecCopy(PetscVec,PetscVec)
-    int VecSet(PetscVec,PetscScalar)
-    int VecDestroy(PetscVec*)
+# -----------------------------------------------------------------------------
 
+cdef inline PEP ref_PEP(SlepcPEP pep):
+    cdef PEP ob = <PEP> PEP()
+    ob.pep = pep
+    PetscINCREF(ob.obj)
+    return ob
+
+# -----------------------------------------------------------------------------
+
+cdef int PEP_Stopping(
+    SlepcPEP                pep,
+    PetscInt                its,
+    PetscInt                max_it,
+    PetscInt                nconv,
+    PetscInt                nev,
+    SlepcPEPConvergedReason *r,
+    void                    *ctx,
+    ) except PETSC_ERR_PYTHON with gil:
+    cdef PEP Pep = ref_PEP(pep)
+    (stopping, args, kargs) = Pep.get_attr('__stopping__')
+    reason = stopping(Pep, toInt(its), toInt(max_it), toInt(nconv), toInt(nev), *args, **kargs)
+    if   reason is None:  r[0] = PEP_CONVERGED_ITERATING
+    elif reason is False: r[0] = PEP_CONVERGED_ITERATING
+    elif reason is True:  r[0] = PEP_CONVERGED_USER
+    else:                 r[0] = reason
+
+# -----------------------------------------------------------------------------
+
+cdef int PEP_Monitor(
+    SlepcPEP    pep,
+    PetscInt    its,
+    PetscInt    nconv,
+    PetscScalar *eigr,
+    PetscScalar *eigi,
+    PetscReal   *errest,
+    PetscInt    nest,
+    void        *ctx,
+    ) except PETSC_ERR_PYTHON with gil:
+    cdef PEP Pep = ref_PEP(pep)
+    cdef object monitorlist = Pep.get_attr('__monitor__')
+    if monitorlist is None: return 0
+    cdef object eig = [toComplex(eigr[i], eigi[i]) for i in range(nest)]
+    cdef object err = [toReal(errest[i]) for i in range(nest)]
+    for (monitor, args, kargs) in monitorlist:
+        monitor(Pep, toInt(its), toInt(nconv), eig, err, *args, **kargs)
+    return 0
+
+# -----------------------------------------------------------------------------

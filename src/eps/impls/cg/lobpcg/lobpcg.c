@@ -532,7 +532,7 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
 .  -eps_lobpcg_restart - Sets the restart parameter
 
    Notes:
-   Allowed values are in the range [0.1,1.0]. The default is 0.6.
+   Allowed values are in the range [0.1,1.0]. The default is 0.9.
 
    Level: advanced
 

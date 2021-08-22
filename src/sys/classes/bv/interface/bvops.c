@@ -960,8 +960,8 @@ PetscErrorCode BVMatMultTransposeColumn(BV V,Mat A,PetscInt j)
 }
 
 /*@
-   BVMatMultHermitianTransposeColumn - Computes the matrix-vector product for a specified
-   column, storing the result in the next column: v_{j+1}=A*v_j.
+   BVMatMultHermitianTransposeColumn - Computes the conjugate-transpose matrix-vector
+   product for a specified column, storing the result in the next column: v_{j+1}=A^H*v_j.
 
    Neighbor-wise Collective on A
 

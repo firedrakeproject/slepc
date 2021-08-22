@@ -385,7 +385,6 @@ cdef class SVD(Object):
         """
         cdef SlepcSVDWhich val = which
         CHKERR( SVDSetWhichSingularTriplets(self.svd, val) )
-    #
 
     def getTolerances(self):
         """
@@ -426,6 +425,62 @@ cdef class SVD(Object):
         if tol    is not None: rval = asReal(tol)
         if max_it is not None: ival = asInt(max_it)
         CHKERR( SVDSetTolerances(self.svd, rval, ival) )
+
+    def getConvergenceTest(self):
+        """
+        Return the method used to compute the error estimate
+        used in the convergence test.
+
+        Returns
+        -------
+        conv: SVD.Conv
+            The method used to compute the error estimate
+            used in the convergence test.
+        """
+        cdef SlepcSVDConv conv = SVD_CONV_REL
+        CHKERR( SVDGetConvergenceTest(self.svd, &conv) )
+        return conv
+
+    def setConvergenceTest(self, conv):
+        """
+        Specifies how to compute the error estimate
+        used in the convergence test.
+
+        Parameters
+        ----------
+        conv: SVD.Conv
+            The method used to compute the error estimate
+            used in the convergence test.
+        """
+        cdef SlepcSVDConv tconv = conv
+        CHKERR( SVDSetConvergenceTest(self.svd, tconv) )
+
+    def getTrackAll(self):
+        """
+        Returns the flag indicating whether all residual norms must be
+        computed or not.
+
+        Returns
+        -------
+        trackall: bool
+            Whether the solver compute all residuals or not.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( SVDGetTrackAll(self.svd, &tval) )
+        return toBool(tval)
+
+    def setTrackAll(self, trackall):
+        """
+        Specifies if the solver must compute the residual of all
+        approximate singular triplets or not.
+
+        Parameters
+        ----------
+        trackall: bool
+            Whether compute all residuals or not.
+        """
+        cdef PetscBool tval = asBool(trackall)
+        CHKERR( SVDSetTrackAll(self.svd, tval) )
 
     def getDimensions(self):
         """
@@ -599,23 +654,65 @@ cdef class SVD(Object):
         elif isinstance(spaceright, Vec): spaceright = [spaceright]
         cdef PetscVec *isr = NULL
         cdef Py_ssize_t nr = len(spaceright)
-        cdef tmp1 = allocate(<size_t>nr*sizeof(Vec),<void**>&isr)
+        cdef tmp1 = allocate(<size_t>nr*sizeof(PetscVec),<void**>&isr)
         for i in range(nr): isr[i] = (<Vec?>spaceright[i]).vec
         if spaceleft is None: spaceright = []
         elif isinstance(spaceleft, Vec): spaceleft = [spaceleft]
         cdef PetscVec *isl = NULL
         cdef Py_ssize_t nl = len(spaceleft)
-        cdef tmp2 = allocate(<size_t>nl*sizeof(Vec),<void**>&isl)
+        cdef tmp2 = allocate(<size_t>nl*sizeof(PetscVec),<void**>&isl)
         for i in range(nl): isl[i] = (<Vec?>spaceleft[i]).vec
         CHKERR( SVDSetInitialSpaces(self.svd, <PetscInt>nr, isr, <PetscInt>nl, isl) )
 
     #
 
+    def setStoppingTest(self, stopping, args=None, kargs=None):
+        """
+        Sets a function to decide when to stop the outer iteration of the eigensolver.
+        """
+        if stopping is not None:
+            if args is None: args = ()
+            if kargs is None: kargs = {}
+            self.set_attr('__stopping__', (stopping, args, kargs))
+            CHKERR( SVDSetStoppingTestFunction(self.svd, SVD_Stopping, NULL, NULL) )
+        else:
+            self.set_attr('__stopping__', None)
+            CHKERR( SVDSetStoppingTestFunction(self.svd, SVDStoppingBasic, NULL, NULL) )
+
+    def getStoppingTest(self):
+        """
+        Gets the stopping function.
+        """
+        return self.get_attr('__stopping__')
+
+    #
+
+    def setMonitor(self, monitor, args=None, kargs=None):
+        """
+        Appends a monitor function to the list of monitors.
+        """
+        if monitor is None: return
+        cdef object monitorlist = self.get_attr('__monitor__')
+        if monitorlist is None:
+            monitorlist = []
+            self.set_attr('__monitor__', monitorlist)
+            CHKERR( SVDMonitorSet(self.svd, SVD_Monitor, NULL, NULL) )
+        if args is None: args = ()
+        if kargs is None: kargs = {}
+        monitorlist.append((monitor, args, kargs))
+
+    def getMonitor(self):
+        """
+        Gets the list of monitor functions.
+        """
+        return self.get_attr('__monitor__')
+
     def cancelMonitor(self):
         """
-        Clears all monitors for an SVD object.
+        Clears all monitors for an `SVD` object.
         """
         CHKERR( SVDMonitorCancel(self.svd) )
+        self.set_attr('__monitor__', None)
 
     #
 
@@ -826,6 +923,32 @@ cdef class SVD(Object):
         cdef PetscViewer vwr = def_Viewer(viewer)
         CHKERR( SVDErrorView(self.svd, et, vwr) )
 
+    def valuesView(self, Viewer viewer=None):
+        """
+        Displays the computed singular values in a viewer.
+
+        Parameters
+        ----------
+        viewer: Viewer, optional.
+                Visualization context; if not provided, the standard
+                output is used.
+        """
+        cdef PetscViewer vwr = def_Viewer(viewer)
+        CHKERR( SVDValuesView(self.svd, vwr) )
+
+    def vectorsView(self, Viewer viewer=None):
+        """
+        Outputs computed singular vectors to a viewer.
+
+        Parameters
+        ----------
+        viewer: Viewer, optional.
+                Visualization context; if not provided, the standard
+                output is used.
+        """
+        cdef PetscViewer vwr = def_Viewer(viewer)
+        CHKERR( SVDVectorsView(self.svd, vwr) )
+
     #
 
     def setCrossEPS(self, EPS eps):
@@ -854,6 +977,32 @@ cdef class SVD(Object):
         CHKERR( SVDCrossGetEPS(self.svd, &eps.eps) )
         PetscINCREF(eps.obj)
         return eps
+
+    def setCrossExplicitMatrix(self, flag=True):
+        """
+        Indicate if the eigensolver operator ``A^T*A`` must be
+        computed explicitly.
+
+        Parameters
+        ----------
+        flag: bool
+              True if ``A^T*A`` is built explicitly.
+        """
+        cdef PetscBool tval = asBool(flag)
+        CHKERR( SVDCrossSetExplicitMatrix(self.svd, tval) )
+
+    def getCrossExplicitMatrix(self):
+        """
+        Returns the flag indicating if ``A^T*A`` is built explicitly.
+
+        Returns
+        -------
+        flag: bool
+              True if ``A^T*A`` is built explicitly.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( SVDCrossGetExplicitMatrix(self.svd, &tval) )
+        return toBool(tval)
 
     def setCyclicEPS(self, EPS eps):
         """
@@ -930,6 +1079,20 @@ cdef class SVD(Object):
         cdef PetscBool tval = asBool(flag)
         CHKERR( SVDLanczosSetOneSide(self.svd, tval) )
 
+    def getLanczosOneSide(self):
+        """
+        Gets if the variant of the Lanczos method to be used is
+        one-sided or two-sided.
+
+        Returns
+        -------
+        delayed: bool
+                 True if the method is one-sided.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( SVDLanczosGetOneSide(self.svd, &tval) )
+        return toBool(tval)
+
     def setTRLanczosOneSide(self, flag=True):
         """
         Indicate if the variant of the thick-restart Lanczos method to
@@ -950,9 +1113,170 @@ cdef class SVD(Object):
         cdef PetscBool tval = asBool(flag)
         CHKERR( SVDLanczosSetOneSide(self.svd, tval) )
 
+    def getTRLanczosOneSide(self):
+        """
+        Gets if the variant of the thick-restart Lanczos method to be
+        used is one-sided or two-sided.
+
+        Returns
+        -------
+        delayed: bool
+                 True if the method is one-sided.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( SVDTRLanczosGetOneSide(self.svd, &tval) )
+        return toBool(tval)
+
+    def setTRLanczosGBidiag(self, bidiag):
+        """
+        Sets the bidiagonalization choice to use in the GSVD
+        TRLanczos solver.
+
+        Parameters
+        ----------
+        bidiag: `SVD.TRLanczosGBidiag` enumerate
+               The bidiagonalization choice.
+        """
+        cdef SlepcSVDTRLanczosGBidiag val = bidiag
+        CHKERR( SVDTRLanczosSetGBidiag(self.svd, val) )
+
+    def getTRLanczosGBidiag(self):
+        """
+        Returns bidiagonalization choice used in the GSVD
+        TRLanczos solver.
+
+        Returns
+        -------
+        bidiag: `SVD.TRLanczosGBidiag` enumerate
+               The bidiagonalization choice.
+        """
+        cdef SlepcSVDTRLanczosGBidiag val = SVD_TRLANCZOS_GBIDIAG_LOWER
+        CHKERR( SVDTRLanczosGetGBidiag(self.svd, &val) )
+        return val
+
+    def setTRLanczosRestart(self, keep):
+        """
+        Sets the restart parameter for the thick-restart Lanczos method, in
+        particular the proportion of basis vectors that must be kept
+        after restart.
+
+        Parameters
+        ----------
+        keep: float
+              The number of vectors to be kept at restart.
+
+        Notes
+        -----
+        Allowed values are in the range [0.1,0.9]. The default is 0.5.
+        """
+        cdef PetscReal val = asReal(keep)
+        CHKERR( SVDTRLanczosSetRestart(self.svd, val) )
+
+    def getTRLanczosRestart(self):
+        """
+        Gets the restart parameter used in the thick-restart Lanczos method.
+
+        Returns
+        -------
+        keep: float
+              The number of vectors to be kept at restart.
+        """
+        cdef PetscReal val = 0
+        CHKERR( SVDTRLanczosGetRestart(self.svd, &val) )
+        return toReal(val)
+
+    def setTRLanczosLocking(self, lock):
+        """
+        Choose between locking and non-locking variants of the
+        thick-restart Lanczos method.
+
+        Parameters
+        ----------
+        lock: bool
+              True if the locking variant must be selected.
+
+        Notes
+        -----
+        The default is to lock converged singular triplets when the method restarts.
+        This behaviour can be changed so that all directions are kept in the
+        working subspace even if already converged to working accuracy (the
+        non-locking variant).
+        """
+        cdef PetscBool val = asBool(lock)
+        CHKERR( SVDTRLanczosSetLocking(self.svd, val) )
+
+    def getTRLanczosLocking(self):
+        """
+        Gets the locking flag used in the thick-restart Lanczos method.
+
+        Returns
+        -------
+        lock: bool
+              The locking flag.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( SVDTRLanczosGetLocking(self.svd, &tval) )
+        return toBool(tval)
+
+    def setTRLanczosKSP(self, KSP ksp):
+        """
+        Associate a linear solver object to the SVD solver.
+
+        Parameters
+        ----------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        CHKERR( SVDTRLanczosSetKSP(self.svd, ksp.ksp) )
+
+    def getTRLanczosKSP(self):
+        """
+        Retrieve the linear solver object associated with the SVD solver.
+
+        Returns
+        -------
+        ksp: `KSP`
+             The linear solver object.
+        """
+        cdef KSP ksp = KSP()
+        CHKERR( SVDTRLanczosGetKSP(self.svd, &ksp.ksp) )
+        PetscINCREF(ksp.obj)
+        return ksp
+
+    def setTRLanczosExplicitMatrix(self, flag=True):
+        """
+        Indicate if the matrix ``Z=[A;B]`` must be built explicitly.
+
+        Parameters
+        ----------
+        flag: bool
+              True if ``Z=[A;B]`` is built explicitly.
+        """
+        cdef PetscBool tval = asBool(flag)
+        CHKERR( SVDTRLanczosSetExplicitMatrix(self.svd, tval) )
+
+    def getTRLanczosExplicitMatrix(self):
+        """
+        Returns the flag indicating if ``Z=[A;B]`` is built explicitly.
+
+        Returns
+        -------
+        flag: bool
+              True if ``Z=[A;B]`` is built explicitly.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( SVDTRLanczosGetExplicitMatrix(self.svd, &tval) )
+        return toBool(tval)
+
     setOperator = setOperators  # backward compatibility
 
     #
+
+    property problem_type:
+        def __get__(self):
+            return self.getProblemType()
+        def __set__(self, value):
+            self.setProblemType(value)
 
     property transpose_mode:
         def __get__(self):
@@ -978,11 +1302,17 @@ cdef class SVD(Object):
         def __set__(self, value):
             self.setTolerances(max_it=value)
 
-    property bv:
+    property track_all:
         def __get__(self):
-            return self.getBV()
+            return self.getTrackAll()
         def __set__(self, value):
-            self.setBV(value)
+            self.setTrackAll(value)
+
+    property ds:
+        def __get__(self):
+            return self.getDS()
+        def __set__(self, value):
+            self.setDS(value)
 
 # -----------------------------------------------------------------------------
 
