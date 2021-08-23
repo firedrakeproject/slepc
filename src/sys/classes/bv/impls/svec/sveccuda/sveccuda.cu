@@ -159,7 +159,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   BV_SVEC           *ctx = (BV_SVEC*)V->data;
   PetscScalar       *d_pv,*d_q,*d_A,*d_B,*d_work,sone=1.0,szero=0.0;
   const PetscScalar *q;
-  PetscInt          j,ldq,nq;
+  PetscInt          ldq,nq;
   PetscCuBLASInt    m=0,n=0,k=0,l=0,ldq_=0,bs=BLOCKSIZE;
   cublasStatus_t    cberr;
   size_t            freemem,totmem;
@@ -187,9 +187,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
     d_A = d_pv+(V->nc+V->l)*m;
     d_B = d_q+V->l*ldq+V->l+(s-V->l)*ldq;
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,m,n,k,&sone,d_A,m,d_B,ldq_,&szero,d_work,m);CHKERRCUBLAS(cberr);
-    for (j=0;j<n;j++) {
-      cerr = cudaMemcpy(d_A+(s-V->l+j)*m,d_work+(j*m),m*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
-    }
+    cerr = cudaMemcpy2D(d_A+(s-V->l)*m,m*sizeof(PetscScalar),d_work,m*sizeof(PetscScalar),m*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
   } else {
     ierr = PetscCuBLASIntCast(freemem/(m*sizeof(PetscScalar)),&bs);CHKERRQ(ierr);
     cerr = cudaMalloc((void**)&d_work,bs*n*sizeof(PetscScalar));CHKERRCUDA(cerr);
@@ -198,17 +196,13 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
       d_A = d_pv+(V->nc+V->l)*m;
       d_B = d_q+V->l*ldq+V->l+(s-V->l)*ldq;
       cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,l,n,k,&sone,d_A,m,d_B,ldq_,&szero,d_work,l);CHKERRCUBLAS(cberr);
-      for (j=0;j<n;j++) {
-        cerr = cudaMemcpy(d_A+(s-V->l+j)*m,d_work+(j*l),l*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
-      }
+      cerr = cudaMemcpy2D(d_A+(s-V->l)*m,m*sizeof(PetscScalar),d_work,l*sizeof(PetscScalar),l*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
     }
     for (;l<m;l+=bs) {
       d_A = d_pv+(V->nc+V->l)*m+l;
       d_B = d_q+V->l*ldq+V->l+(s-V->l)*ldq;
       cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,bs,n,k,&sone,d_A,m,d_B,ldq_,&szero,d_work,bs);CHKERRCUBLAS(cberr);
-      for (j=0;j<n;j++) {
-        cerr = cudaMemcpy(d_A+(s-V->l+j)*m,d_work+(j*bs),bs*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
-      }
+      cerr = cudaMemcpy2D(d_A+(s-V->l)*m,m*sizeof(PetscScalar),d_work,bs*sizeof(PetscScalar),bs*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
     }
   }
   ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
@@ -229,7 +223,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,P
   BV_SVEC           *ctx = (BV_SVEC*)V->data;
   PetscScalar       *d_pv,*d_q,*d_A,*d_B,*d_work,sone=1.0,szero=0.0;
   const PetscScalar *q;
-  PetscInt          j,ldq,nq;
+  PetscInt          ldq,nq;
   PetscCuBLASInt    m=0,n=0,k=0,ldq_=0;
   cublasStatus_t    cberr;
   cublasHandle_t    cublasv2handle;
@@ -253,9 +247,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,P
   d_A = d_pv+(V->nc+V->l)*m;
   d_B = d_q+V->l*ldq+s;
   cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_C,m,n,k,&sone,d_A,m,d_B,ldq_,&szero,d_work,m);CHKERRCUBLAS(cberr);
-  for (j=0;j<n;j++) {
-    cerr = cudaMemcpy(d_A+(s-V->l+j)*m,d_work+(j*m),m*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
-  }
+  cerr = cudaMemcpy2D(d_A+(s-V->l)*m,m*sizeof(PetscScalar),d_work,m*sizeof(PetscScalar),m*sizeof(PetscScalar),n,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
   ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
   ierr = MatDenseRestoreArrayRead(Q,&q);CHKERRQ(ierr);
   cerr = cudaFree(d_q);CHKERRCUDA(cerr);
