@@ -1050,8 +1050,11 @@ cdef class EPS(Object):
         cdef Mat B = Mat()
         CHKERR( EPSGetOperators(self.eps, &A.mat, &B.mat) )
         PetscINCREF(A.obj)
-        PetscINCREF(B.obj)
-        return (A, B)
+        if B.mat:
+            PetscINCREF(B.obj)
+            return (A, B)
+        else:
+            return (A, None)
 
     def setOperators(self, Mat A, Mat B=None):
         """
