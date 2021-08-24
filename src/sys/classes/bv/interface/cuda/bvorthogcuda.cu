@@ -31,7 +31,7 @@ PetscErrorCode BV_CleanCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h)
     ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
     d_hh = d_a + j*(bv->nc+bv->m);
     cerr = cudaMemset(d_hh,0,(bv->nc+j)*sizeof(PetscScalar));CHKERRCUDA(cerr);
-    ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
+    ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
     ierr = VecCUDARestoreArray(bv->buffer,&d_a);CHKERRQ(ierr);
   } else { /* cpu memory */
     for (i=0;i<bv->nc+j;i++) h[i] = 0.0;
