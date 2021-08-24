@@ -99,7 +99,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   BVCheckSizes(Y,2);
   PetscValidType(M,3);
   PetscCheckSameTypeAndComm(X,1,Y,2);
-  PetscCheckTypeName(M,MATSEQDENSE);
+  PetscCheckTypeNames(M,MATSEQDENSE,MATSEQDENSECUDA);
 
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
   if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,Y->k);
@@ -1200,7 +1200,7 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   BVCheckSizes(Y,3);
   PetscValidType(M,4);
   PetscCheckSameTypeAndComm(X,1,Y,3);
-  PetscCheckTypeName(M,MATSEQDENSE);
+  PetscCheckTypeNames(M,MATSEQDENSE,MATSEQDENSECUDA);
 
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
   if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D rows, should have at least %D",m,Y->k);
