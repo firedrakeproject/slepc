@@ -13,8 +13,7 @@ CFLAGS    =
 FFLAGS    =
 SOURCEC   =
 SOURCEF   =
-SOURCEH   = slepc.h slepceps.h slepcst.h slepcsvd.h slepcpep.h \
-            slepcnep.h slepcmfn.h slepclme.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcsys.h
+SOURCEH   = slepc.h slepceps.h slepcst.h slepcsvd.h slepcpep.h slepcnep.h slepcmfn.h slepclme.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcsys.h
 LIBBASE   = libslepcsys
 DIRS      =
 MANSEC    =

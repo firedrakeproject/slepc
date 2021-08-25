@@ -12,8 +12,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = davidson.c dvdcalcpairs.c dvdimprovex.c dvdinitv.c \
-           dvdschm.c dvdtestconv.c dvdupdatev.c dvdutils.c dvdgd2.c
+SOURCEC  = davidson.c dvdcalcpairs.c dvdimprovex.c dvdinitv.c dvdschm.c dvdtestconv.c dvdupdatev.c dvdutils.c dvdgd2.c
 SOURCEF  =
 SOURCEH  = davidson.h
 LIBBASE  = libslepceps
