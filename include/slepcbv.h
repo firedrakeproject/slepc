@@ -154,7 +154,8 @@ SLEPC_EXTERN PetscErrorCode BVMult(BV,PetscScalar,PetscScalar,BV,Mat);
 SLEPC_EXTERN PetscErrorCode BVMultVec(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode BVMultColumn(BV,PetscScalar,PetscScalar,PetscInt,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode BVMultInPlace(BV,Mat,PetscInt,PetscInt);
-SLEPC_EXTERN PetscErrorCode BVMultInPlaceTranspose(BV,Mat,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode BVMultInPlaceHermitianTranspose(BV,Mat,PetscInt,PetscInt);
+PETSC_DEPRECATED_FUNCTION("Use BVMultInPlaceHermitianTranspose()") PETSC_STATIC_INLINE PetscErrorCode BVMultInPlaceTranspose(BV bv,Mat A,PetscInt s,PetscInt e) {return BVMultInPlaceHermitianTranspose(bv,A,s,e);}
 SLEPC_EXTERN PetscErrorCode BVMatMult(BV,Mat,BV);
 SLEPC_EXTERN PetscErrorCode BVMatMultTranspose(BV,Mat,BV);
 SLEPC_EXTERN PetscErrorCode BVMatMultHermitianTranspose(BV,Mat,BV);

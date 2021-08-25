@@ -68,7 +68,7 @@ PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode BVMultInPlaceTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
+PetscErrorCode BVMultInPlaceHermitianTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   PetscErrorCode    ierr;
   BV_CONTIGUOUS     *ctx = (BV_CONTIGUOUS*)V->data;
@@ -385,7 +385,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->mult             = BVMult_Contiguous;
   bv->ops->multvec          = BVMultVec_Contiguous;
   bv->ops->multinplace      = BVMultInPlace_Contiguous;
-  bv->ops->multinplacetrans = BVMultInPlaceTranspose_Contiguous;
+  bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Contiguous;
   bv->ops->dot              = BVDot_Contiguous;
   bv->ops->dotvec           = BVDotVec_Contiguous;
   bv->ops->dotvec_local     = BVDotVec_Local_Contiguous;

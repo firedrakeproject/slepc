@@ -78,7 +78,7 @@ PetscErrorCode BVMultInPlace_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode BVMultInPlaceTranspose_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
+PetscErrorCode BVMultInPlaceHermitianTranspose_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   PetscErrorCode    ierr;
   BV_MAT            *ctx = (BV_MAT*)V->data;
@@ -479,7 +479,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->mult             = BVMult_Mat;
   bv->ops->multvec          = BVMultVec_Mat;
   bv->ops->multinplace      = BVMultInPlace_Mat;
-  bv->ops->multinplacetrans = BVMultInPlaceTranspose_Mat;
+  bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Mat;
   bv->ops->dot              = BVDot_Mat;
   bv->ops->dotvec           = BVDotVec_Mat;
   bv->ops->dotvec_local     = BVDotVec_Local_Mat;

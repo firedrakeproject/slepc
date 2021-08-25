@@ -20,7 +20,7 @@ typedef struct {
 SLEPC_INTERN PetscErrorCode BVMult_Svec_CUDA(BV,PetscScalar,PetscScalar,BV,Mat);
 SLEPC_INTERN PetscErrorCode BVMultVec_Svec_CUDA(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
 SLEPC_INTERN PetscErrorCode BVMultInPlace_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
-SLEPC_INTERN PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
+SLEPC_INTERN PetscErrorCode BVMultInPlaceHermitianTranspose_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
 SLEPC_INTERN PetscErrorCode BVDot_Svec_CUDA(BV,BV,Mat);
 SLEPC_INTERN PetscErrorCode BVDotVec_Svec_CUDA(BV,Vec,PetscScalar*);
 SLEPC_INTERN PetscErrorCode BVDotVec_Local_Svec_CUDA(BV,Vec,PetscScalar*);
