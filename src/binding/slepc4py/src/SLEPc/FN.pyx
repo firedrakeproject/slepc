@@ -215,7 +215,7 @@ cdef class FN(Object):
         CHKERR( FNEvaluateDerivative(self.fn, x, &sval) )
         return toScalar(sval)
 
-    def evaluateFunctionMat(self, Mat A):
+    def evaluateFunctionMat(self, Mat A, Mat B=None):
         """
         Computes the value of the function f(A) for a given matrix A.
 
@@ -223,17 +223,19 @@ cdef class FN(Object):
         ----------
         A: Mat
            Matrix on which the function must be evaluated.
+        B: Mat, optional
+           Placeholder for the result.
 
         Returns
         -------
         B: Mat
            The result of f(A).
         """
-        cdef Mat B = A.duplicate()
+        if B is None: B = A.duplicate()
         CHKERR( FNEvaluateFunctionMat(self.fn, A.mat, B.mat) )
         return B
 
-    def evaluateFunctionMatVec(self, Mat A):
+    def evaluateFunctionMatVec(self, Mat A, Vec v=None):
         """
         Computes the first column of the matrix f(A) for a given matrix A.
 
@@ -247,7 +249,7 @@ cdef class FN(Object):
         v: Vec
            The first column of the result f(A).
         """
-        cdef Vec v = A.createVecs('left')
+        if v is None: v = A.createVecs('left')
         CHKERR( FNEvaluateFunctionMatVec(self.fn, A.mat, v.vec) )
         return v
 
