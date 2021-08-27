@@ -13,7 +13,7 @@
 
 #if !defined(SLEPCCUBLAS_H)
 #define SLEPCCUBLAS_H
-#include <petsccublas.h>
+#include <petscdevice.h>
 
 /* complex single */
 #if defined(PETSC_USE_COMPLEX)
