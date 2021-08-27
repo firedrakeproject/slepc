@@ -43,7 +43,7 @@ PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode BVMultInPlaceTranspose_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
+PetscErrorCode BVMultInPlaceHermitianTranspose_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   PetscErrorCode    ierr;
   BV_TENSOR         *ctx = (BV_TENSOR*)V->data;
@@ -767,7 +767,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   ctx->puk = -1;
 
   bv->ops->multinplace      = BVMultInPlace_Tensor;
-  bv->ops->multinplacetrans = BVMultInPlaceTranspose_Tensor;
+  bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Tensor;
   bv->ops->dot              = BVDot_Tensor;
   bv->ops->scale            = BVScale_Tensor;
   bv->ops->norm             = BVNorm_Tensor;

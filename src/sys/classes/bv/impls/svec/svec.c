@@ -73,7 +73,7 @@ PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode BVMultInPlaceTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
+PetscErrorCode BVMultInPlaceHermitianTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   PetscErrorCode    ierr;
   BV_SVEC           *ctx = (BV_SVEC*)V->data;
@@ -511,7 +511,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->mult             = BVMult_Svec_CUDA;
     bv->ops->multvec          = BVMultVec_Svec_CUDA;
     bv->ops->multinplace      = BVMultInPlace_Svec_CUDA;
-    bv->ops->multinplacetrans = BVMultInPlaceTranspose_Svec_CUDA;
+    bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Svec_CUDA;
     bv->ops->dot              = BVDot_Svec_CUDA;
     bv->ops->dotvec           = BVDotVec_Svec_CUDA;
     bv->ops->dotvec_local     = BVDotVec_Local_Svec_CUDA;
@@ -530,7 +530,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->mult             = BVMult_Svec;
     bv->ops->multvec          = BVMultVec_Svec;
     bv->ops->multinplace      = BVMultInPlace_Svec;
-    bv->ops->multinplacetrans = BVMultInPlaceTranspose_Svec;
+    bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Svec;
     bv->ops->dot              = BVDot_Svec;
     bv->ops->dotvec           = BVDotVec_Svec;
     bv->ops->dotvec_local     = BVDotVec_Local_Svec;

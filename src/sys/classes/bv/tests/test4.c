@@ -149,7 +149,7 @@ int main(int argc,char **argv)
   if (trans) {
     Mat Qt;
     ierr = MatTranspose(Q,MAT_INITIAL_MATRIX,&Qt);CHKERRQ(ierr);
-    ierr = BVMultInPlaceTranspose(X,Qt,lx+1,ky);CHKERRQ(ierr);
+    ierr = BVMultInPlaceHermitianTranspose(X,Qt,lx+1,ky);CHKERRQ(ierr);
     ierr = MatDestroy(&Qt);CHKERRQ(ierr);
   } else {
     ierr = BVMultInPlace(X,Q,lx+1,ky);CHKERRQ(ierr);

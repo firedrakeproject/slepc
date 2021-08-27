@@ -26,6 +26,8 @@
   no longer transposed.
 - Interface of `BVMatArnoldi()` changed to receive a `Mat` instead of a pointer.
 - `STShellGetContext()` now takes `void*` as return argument, as well as `XXXGetMonitorContext()`.
+- Rename `BVMultInPlaceTranspose()` to `BVMultInPlaceHermitianTranspose()` to be
+  consistent with PETSc naming convention.
 
 ### Removed
 

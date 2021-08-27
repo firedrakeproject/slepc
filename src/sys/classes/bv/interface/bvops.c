@@ -220,7 +220,7 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
 
    Level: intermediate
 
-.seealso: BVMult(), BVMultVec(), BVMultInPlaceTranspose(), BVSetActiveColumns()
+.seealso: BVMult(), BVMultVec(), BVMultInPlaceHermitianTranspose(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 {
@@ -252,7 +252,7 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 }
 
 /*@
-   BVMultInPlaceTranspose - Update a set of vectors as V(:,s:e-1) = V*Q'(:,s:e-1).
+   BVMultInPlaceHermitianTranspose - Update a set of vectors as V(:,s:e-1) = V*Q'(:,s:e-1).
 
    Logically Collective on V
 
@@ -272,7 +272,7 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 
 .seealso: BVMultInPlace()
 @*/
-PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
+PetscErrorCode BVMultInPlaceHermitianTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   PetscErrorCode ierr;
   PetscInt       m,n;

@@ -138,9 +138,9 @@ PetscErrorCode BVMultInPlace_Vecs_Alloc(BV V,Mat Q,PetscInt s,PetscInt e)
 }
 
 /*
-   BVMultInPlaceTranspose_Vecs - V(:,s:e-1) = V*Q'(:,s:e-1) for regular vectors.
+   BVMultInPlaceHermitianTranspose_Vecs - V(:,s:e-1) = V*Q'(:,s:e-1) for regular vectors.
 */
-PetscErrorCode BVMultInPlaceTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
+PetscErrorCode BVMultInPlaceHermitianTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   PetscErrorCode    ierr;
   BV_VECS           *ctx = (BV_VECS*)V->data;
@@ -576,7 +576,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 
   bv->ops->mult             = BVMult_Vecs;
   bv->ops->multvec          = BVMultVec_Vecs;
-  bv->ops->multinplacetrans = BVMultInPlaceTranspose_Vecs;
+  bv->ops->multinplacetrans = BVMultInPlaceHermitianTranspose_Vecs;
   bv->ops->dot              = BVDot_Vecs;
   bv->ops->dotvec           = BVDotVec_Vecs;
   bv->ops->dotvec_begin     = BVDotVec_Begin_Vecs;
