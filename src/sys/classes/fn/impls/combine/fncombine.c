@@ -171,8 +171,8 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
   switch (ctx->comb) {
     case FN_COMBINE_ADD:
       PetscCall(VecDuplicate(v,&w));
-      PetscCall(FNEvaluateFunctionMatVec(ctx->f1,A,w));
-      PetscCall(FNEvaluateFunctionMatVec(ctx->f2,A,v));
+      PetscCall(FNEvaluateFunctionMatVec_Private(ctx->f1,A,w,PETSC_FALSE));
+      PetscCall(FNEvaluateFunctionMatVec_Private(ctx->f2,A,v,PETSC_FALSE));
       PetscCall(VecAXPY(v,1.0,w));
       PetscCall(VecDestroy(&w));
       break;

@@ -230,13 +230,6 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
                   "Denman-Beavers (product form)",
                   "Newton-Schulz iteration",
                   "Sadeghi iteration"
-#if defined(PETSC_HAVE_CUDA)
-                 ,"Newton-Schulz iteration CUDA"
-#if defined(PETSC_HAVE_MAGMA)
-                 ,"Denman-Beavers (product form) CUDA/MAGMA",
-                  "Sadeghi iteration CUDA/MAGMA"
-#endif
-#endif
   };
   const int      nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
@@ -275,10 +268,10 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
   fn->ops->evaluatefunctionmat[2]    = FNEvaluateFunctionMat_Invsqrt_NS;
   fn->ops->evaluatefunctionmat[3]    = FNEvaluateFunctionMat_Invsqrt_Sadeghi;
 #if defined(PETSC_HAVE_CUDA)
-  fn->ops->evaluatefunctionmat[4]    = FNEvaluateFunctionMat_Invsqrt_NS_CUDA;
+  fn->ops->evaluatefunctionmatcuda[2] = FNEvaluateFunctionMat_Invsqrt_NS_CUDA;
 #if defined(PETSC_HAVE_MAGMA)
-  fn->ops->evaluatefunctionmat[5]    = FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm;
-  fn->ops->evaluatefunctionmat[6]    = FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm;
+  fn->ops->evaluatefunctionmatcuda[1] = FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm;
+  fn->ops->evaluatefunctionmatcuda[3] = FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm;
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Invsqrt_Schur;
