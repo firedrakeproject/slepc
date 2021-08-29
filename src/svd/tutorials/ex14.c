@@ -107,7 +107,7 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      requires: double !complex !defined(PETSC_USE_64BIT_INDICES)
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -terse
       test:
          suffix: 1
@@ -133,7 +133,7 @@ int main(int argc,char **argv)
          filter: grep -v tolerance
 
    testset:
-      requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
       args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -terse
       test:
          suffix: 1_complex
@@ -158,11 +158,11 @@ int main(int argc,char **argv)
       test:
          suffix: 3
          args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc
-         requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+         requires: double !complex !defined(PETSC_USE_64BIT_INDICES)
       test:
          suffix: 3_complex
          args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc
-         requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+         requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
          filter: sed -e 's/[0-9][0-9]$//'
 
 TEST*/

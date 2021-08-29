@@ -103,7 +103,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/real/bfw782a.petsc -mfn_type {{krylov expokit}} -t 0.05
-      requires: double !complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      requires: double !complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
       output_file: output/test1_1.out
       test:
          suffix: 1
@@ -114,7 +114,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -mfn_type {{krylov expokit}}
-      requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
       output_file: output/test1_2.out
       test:
          suffix: 2
