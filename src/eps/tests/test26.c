@@ -93,7 +93,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -eps_largest_real -eps_nev 4
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      requires: double !complex !defined(PETSC_USE_64BIT_INDICES)
       output_file: output/test26_1.out
       test:
          args: -eps_true_residual {{0 1}}
@@ -105,7 +105,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -f1 ${DATAFILESPATH}/matrices/complex/mhd1280a.petsc -f2 ${DATAFILESPATH}/matrices/complex/mhd1280b.petsc -eps_smallest_real -eps_nev 4
-      requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
       output_file: output/test26_2.out
       test:
          suffix: 2

@@ -122,7 +122,7 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      requires: double !complex !defined(PETSC_USE_64BIT_INDICES)
       args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -svd_nsv 3 -terse
       output_file: output/ex48_1.out
       test:
@@ -142,7 +142,7 @@ int main(int argc,char **argv)
          args: -svd_type cyclic -svd_cyclic_explicitmatrix
 
    testset:
-      requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
       args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -svd_nsv 3 -terse
       output_file: output/ex48_2.out
       test:

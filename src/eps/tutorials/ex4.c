@@ -110,11 +110,11 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -eps_nev 4 -terse
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      requires: double !complex !defined(PETSC_USE_64BIT_INDICES)
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -eps_type ciss -terse
-      requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
       test:
          suffix: ciss_1
          args: -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05
