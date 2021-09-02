@@ -9,7 +9,7 @@ BV Object: X 1 MPI processes
 BV Object:X 1 MPI processes
   type: svec
   Vec Object:  X_0   1 MPI processes
-    type: seq
+    type: seqcuda
   -2.
   1.
   4.
@@ -63,7 +63,7 @@ BV Object:X 1 MPI processes
 BV Object:Y 1 MPI processes
   type: svec
   Vec Object:  Y_0   1 MPI processes
-    type: seq
+    type: seqcuda
   0.25
   0.25
   0.25
@@ -105,7 +105,7 @@ After BVMult - - - - - - - - -
 BV Object:Y 1 MPI processes
   type: svec
   Vec Object:  Y_0   1 MPI processes
-    type: seq
+    type: seqcuda
   2.25
   0.25
   -5.75
@@ -140,7 +140,7 @@ After BVMultVec - - - - - - -
 BV Object:Y 1 MPI processes
   type: svec
   Vec Object:  Y_0   1 MPI processes
-    type: seq
+    type: seqcuda
   6.25
   -2.75
   -11.75
@@ -189,7 +189,7 @@ After BVMultInPlace - - - - -
 BV Object:X 1 MPI processes
   type: svec
   Vec Object:  X_0   1 MPI processes
-    type: seq
+    type: seqcuda
   -4.
   2.
   8.

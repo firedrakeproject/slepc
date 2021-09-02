@@ -979,11 +979,10 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
   cerr = cudaMalloc((void **)&d_ppP,sizeof(PetscScalar*));CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_ppQ,sizeof(PetscScalar*));CHKERRCUDA(cerr);
 
-  ierr = PetscMalloc(sizeof(PetscScalar*),&ppP);CHKERRQ(ierr);
-  ierr = PetscMalloc(sizeof(PetscScalar*),&ppQ);CHKERRQ(ierr);
+  ierr = PetscMalloc1(1,&ppP);CHKERRQ(ierr);
+  ierr = PetscMalloc1(1,&ppQ);CHKERRQ(ierr);
 
   cerr = cudaMemcpy(d_As,Aa,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
-  cerr = cudaMemcpy(d_Ba,Ba,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   d_P = d_Ba;
   ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
 
@@ -1139,10 +1138,9 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
   cerr = cudaMalloc((void **)&d_As,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_A2,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
 
-  ierr = PetscMalloc(sizeof(PetscInt)*n,&piv);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&piv);CHKERRQ(ierr);
 
   cerr = cudaMemcpy(d_As,Aa,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
-  cerr = cudaMemcpy(d_Ba,Ba,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   d_P = d_Ba;
   ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
 
@@ -1267,11 +1265,10 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   n2 = n_*n_;
   ierr = PetscMalloc2(8*n*n,&work,n,&ipiv);CHKERRQ(ierr);
-  ierr = cudaMalloc((void**)&d_work,8*n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+  cerr = cudaMalloc((void**)&d_work,8*n*n*sizeof(PetscScalar));CHKERRCUDA(ierr);
   cerr = cudaMalloc((void **)&d_Ba,sizeof(PetscScalar)*n*n);CHKERRCUDA(cerr);
 
   ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
-  ierr = cudaMemcpy(d_Ba,Ba,n2*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
 
   /* Matrix powers */
   Apowers[0] = work;                  /* Apowers[0] = A   */
@@ -1286,13 +1283,13 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   d_Apowers[3] = d_Apowers[2] + n*n;    /* d_Apowers[3] = A^6 */
   d_Apowers[4] = d_Apowers[3] + n*n;    /* d_Apowers[4] = A^8 */
 
-  ierr = cudaMemcpy(d_Apowers[0],Aa,n2*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
+  cerr = cudaMemcpy(d_Apowers[0],Aa,n2*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRCUDA(ierr);
   cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[0],n_,d_Apowers[0],n_,&szero,d_Apowers[1],n_);CHKERRCUBLAS(cberr);
   cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[1],n_,d_Apowers[1],n_,&szero,d_Apowers[2],n_);CHKERRCUBLAS(cberr);
   cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[1],n_,d_Apowers[2],n_,&szero,d_Apowers[3],n_);CHKERRCUBLAS(cberr);
   ierr = PetscLogGpuFlops(6.0*n*n*n);CHKERRQ(ierr);
 
-  ierr = cudaMemcpy(Apowers[0],d_Apowers[0],4*n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
+  cerr = cudaMemcpy(Apowers[0],d_Apowers[0],4*n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRCUDA(ierr);
   /* Compute scaling parameter and order of Pade approximant */
   ierr = expm_params(n,Apowers,&s,&m,Apowers[4]);CHKERRQ(ierr);
 
@@ -1396,6 +1393,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   ierr = PetscFree2(work,ipiv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  cerr = cudaFree(d_Ba);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_work);CHKERRCUDA(cerr);
   magma_finalize();
   PetscFunctionReturn(0);
 }
@@ -1438,7 +1437,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
 
   cerr = cudaMalloc((void **)&d_Ba,sizeof(PetscScalar)*n2);CHKERRCUDA(cerr);
   ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
-  cerr = cudaMemcpy(d_Ba,Ba,sizeof(PetscScalar)*n2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   d_Ba2 = d_Ba;
 
   ierr = PetscMalloc2(n2,&sMaux,n2,&Maux);CHKERRQ(ierr);
@@ -1506,8 +1504,10 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
       ierr = PetscLogGpuFlops(1.0*n);CHKERRQ(ierr);
     }
     cerr = cudaMemcpy(Ba,d_sMaux,sizeof(PetscScalar)*n2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
-    cerr = cudaFree(d_sMaux);CHKERRCUDA(cerr);
     cerr = cudaFree(d_Ba);CHKERRCUDA(cerr);
+    cerr = cudaFree(d_isreal);CHKERRCUDA(cerr);
+    cerr = cudaFree(d_sMaux);CHKERRCUDA(cerr);
+    cerr = cudaFree(d_Maux);CHKERRCUDA(cerr);
     ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
     PetscFunctionReturn(0); /* quick return */
@@ -1670,12 +1670,13 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
 
   /* restore pointers */
   d_Maux = d_Maux2; d_expmA = d_expmA2; d_RR = d_RR2;
+  cerr = cudaFree(d_Ba);CHKERRCUDA(cerr);
   cerr = cudaFree(d_isreal);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_sMaux);CHKERRCUDA(cerr);
   cerr = cudaFree(d_Maux);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_expmA);CHKERRCUDA(cerr);
   cerr = cudaFree(d_As);CHKERRCUDA(cerr);
   cerr = cudaFree(d_RR);CHKERRCUDA(cerr);
-  cerr = cudaFree(d_expmA);CHKERRCUDA(cerr);
-  cerr = cudaFree(d_Ba);CHKERRCUDA(cerr);
   ierr = PetscFree(piv);CHKERRQ(ierr);
   ierr = PetscFree2(sMaux,Maux);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);

@@ -67,7 +67,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscCheckSameTypeAndComm(Y,1,X,4);
   if (X==Y) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
   if (Q) {
-    PetscCheckTypeName(Q,MATSEQDENSE);
+    PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
     ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
     if (m<X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,X->k);
     if (n<Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should have at least %D",n,Y->k);
@@ -235,7 +235,7 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidType(Q,2);
-  PetscCheckTypeName(Q,MATSEQDENSE);
+  PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
 
   if (s<V->l || s>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between %D and %D",s,V->l,V->m);
   if (e<V->l || e>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between %D and %D",e,V->l,V->m);
@@ -285,7 +285,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidType(Q,2);
-  PetscCheckTypeName(Q,MATSEQDENSE);
+  PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
 
   if (s<V->l || s>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between %D and %D",s,V->l,V->m);
   if (e<V->l || e>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between %D and %D",e,V->l,V->m);

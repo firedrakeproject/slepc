@@ -21,14 +21,14 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   PetscScalar    tau,eta;
   PetscBool      set,flg;
   PetscInt       n;
-  Mat            F,R,Finv;
+  Mat            F,R,Finv,Acopy;
   Vec            v,f0;
   FN             finv;
   PetscReal      nrm,nrmf;
 
   PetscFunctionBeginUser;
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F);CHKERRQ(ierr);
+  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&F);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)F,"F");CHKERRQ(ierr);
   /* compute matrix exponential */
   if (inplace) {
@@ -37,7 +37,15 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
     if (set && flg) { ierr = MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr); }
     ierr = FNEvaluateFunctionMat(fn,F,NULL);CHKERRQ(ierr);
   } else {
+    ierr = MatDuplicate(A,MAT_COPY_VALUES,&Acopy);CHKERRQ(ierr);
     ierr = FNEvaluateFunctionMat(fn,A,F);CHKERRQ(ierr);
+    /* check that A has not been modified */
+    ierr = MatAXPY(Acopy,-1.0,A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatNorm(Acopy,NORM_1,&nrm);CHKERRQ(ierr);
+    if (nrm>100*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the input matrix has changed by %g\n",(double)nrm);CHKERRQ(ierr);
+    }
+    ierr = MatDestroy(&Acopy);CHKERRQ(ierr);
   }
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
@@ -49,7 +57,7 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   ierr = MatNorm(F,NORM_1,&nrmf);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrmf);CHKERRQ(ierr);
   if (checkerror) {
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&Finv);CHKERRQ(ierr);
+    ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Finv);CHKERRQ(ierr);
     ierr = PetscObjectSetName((PetscObject)Finv,"Finv");CHKERRQ(ierr);
     ierr = FNGetScale(fn,&tau,&eta);CHKERRQ(ierr);
     /* compute inverse exp(-tau*A)/eta */

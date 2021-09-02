@@ -16,7 +16,7 @@ int main(int argc,char **argv)
 {
   PetscErrorCode    ierr;
   Vec               t,v;
-  Mat               Q,M;
+  Mat               Q=NULL,M=NULL;
   BV                X,Y;
   PetscInt          i,j,n=10,k=5,l=3,nloc;
   PetscMPIInt       rank;
@@ -24,13 +24,14 @@ int main(int argc,char **argv)
   const PetscScalar *pX;
   PetscReal         nrm;
   PetscViewer       view;
-  PetscBool         verbose;
+  PetscBool         verbose,matcuda;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-matcuda",&matcuda);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV with %D columns of dimension %D.\n",k,n);CHKERRQ(ierr);
 
   /* Create template vector */
@@ -85,7 +86,13 @@ int main(int argc,char **argv)
   }
 
   /* Create Mat */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q);CHKERRQ(ierr);
+  if (matcuda) {
+#if defined(PETSC_HAVE_CUDA)
+    ierr = MatCreateSeqDenseCUDA(PETSC_COMM_SELF,k,l,NULL,&Q);CHKERRQ(ierr);
+#endif
+  } else {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q);CHKERRQ(ierr);
+  }
   ierr = PetscObjectSetName((PetscObject)Q,"Q");CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   for (i=0;i<k;i++)
@@ -117,7 +124,13 @@ int main(int argc,char **argv)
   }
 
   /* Test BVDot */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,l,k,NULL,&M);CHKERRQ(ierr);
+  if (matcuda) {
+#if defined(PETSC_HAVE_CUDA)
+    ierr = MatCreateSeqDenseCUDA(PETSC_COMM_SELF,l,k,NULL,&M);CHKERRQ(ierr);
+#endif
+  } else {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,l,k,NULL,&M);CHKERRQ(ierr);
+  }
   ierr = PetscObjectSetName((PetscObject)M,"M");CHKERRQ(ierr);
   ierr = BVDot(X,Y,M);CHKERRQ(ierr);
   if (verbose) {
@@ -181,11 +194,15 @@ int main(int argc,char **argv)
       nsize: 1
       args: -bv_type {{vecs contiguous svec mat}separate output} -verbose
 
-   test:
-      suffix: 1_cuda
-      nsize: 1
+   testset:
       args: -bv_type svec -vec_type cuda -verbose
       requires: cuda
-      filter: sed -e "s/type: seqcuda/type: seq/"
+      output_file: output/test1_1_cuda.out
+      test:
+         suffix: 1_cuda
+      test:
+         suffix: 1_cuda_mat
+         args: -matcuda
+         filter: sed -e "s/seqdensecuda/seqdense/"
 
 TEST*/
