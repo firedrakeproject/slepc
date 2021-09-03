@@ -785,6 +785,13 @@ PetscErrorCode EPSComputeVectors_CISS(EPS eps)
     } else {
       ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
     }
+    if (eps->isgeneralized && eps->ispositive && ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
+      /* normalize to have unit B-norm */
+      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
+      ierr = BVSetMatrix(eps->V,B,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
+      ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
+    }
     PetscFunctionReturn(0);
   }
   ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
@@ -801,12 +808,7 @@ PetscErrorCode EPSComputeVectors_CISS(EPS eps)
 
   /* normalize */
   if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-    if (eps->isgeneralized && eps->ishermitian && eps->ispositive) {
-      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = BVSetMatrix(eps->V,B,PETSC_FALSE);CHKERRQ(ierr);
-    }
     ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
-    if (B) { ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
 }

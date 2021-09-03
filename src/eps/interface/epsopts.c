@@ -890,8 +890,9 @@ PetscErrorCode EPSGetStoppingTest(EPS eps,EPSStop *stop)
 .  -eps_gen_hermitian - generalized Hermitian eigenvalue problem
 .  -eps_non_hermitian - non-Hermitian eigenvalue problem
 .  -eps_gen_non_hermitian - generalized non-Hermitian eigenvalue problem
--  -eps_pos_gen_non_hermitian - generalized non-Hermitian eigenvalue problem
+.  -eps_pos_gen_non_hermitian - generalized non-Hermitian eigenvalue problem
    with positive semi-definite B
+-  -eps_gen_indefinite - generalized Hermitian-indefinite eigenvalue problem
 
    Notes:
    Allowed values for the problem type are: Hermitian (EPS_HEP), non-Hermitian
