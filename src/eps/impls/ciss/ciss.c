@@ -454,6 +454,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->pV);CHKERRQ(ierr);
   }
 
+  EPSCheckDefinite(eps);
   EPSCheckSinvertCondition(eps,ctx->usest," (with the usest flag set)");
 
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
