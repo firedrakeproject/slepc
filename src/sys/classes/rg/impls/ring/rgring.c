@@ -290,23 +290,24 @@ PetscErrorCode RGComputeBoundingBox_Ring(RG rg,PetscReal *a,PetscReal *b,PetscRe
 PetscErrorCode RGComputeQuadrature_Ring(RG rg,RGQuadRule quad,PetscInt n,PetscScalar *z,PetscScalar *zn,PetscScalar *w)
 {
   RG_RING     *ctx = (RG_RING*)rg->data;
-  PetscReal   theta,max_w=0.0;
+  PetscReal   max_w=0.0;
   PetscScalar tmp,tmp2;
   PetscInt    i,j;
 
   PetscFunctionBegin;
   if (quad == RG_QUADRULE_CHEBYSHEV) {
+#if defined(PETSC_USE_COMPLEX)
+    PetscReal theta;
     for (i=0;i<n;i++) {
       theta = PETSC_PI*(i+0.5)/n;
       zn[i] = PetscCosReal(theta);
       w[i]  = PetscCosReal((n-1)*theta)/n;
-#if defined(PETSC_USE_COMPLEX)
       theta = (ctx->start_ang*2.0+(ctx->end_ang-ctx->start_ang)*(PetscRealPart(zn[i])+1.0))*PETSC_PI;
       z[i] = rg->sfactor*(ctx->center + ctx->radius*PetscCMPLX(PetscCosReal(theta),ctx->vscale*PetscSinReal(theta)));
-#else
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
-#endif
     }
+#else
+    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
+#endif
   } else {  /* RG_QUADRULE_TRAPEZOIDAL */
     for (i=0;i<n;i++) {
       zn[i] = (z[i]-rg->sfactor*ctx->center)/(rg->sfactor*ctx->radius);
