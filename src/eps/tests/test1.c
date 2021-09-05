@@ -191,6 +191,12 @@ int main(int argc,char **argv)
          suffix: 1_ciss
          args: -eps_ciss_extraction {{ritz hankel}}
       test:
+         suffix: 1_ciss_ksps
+         args: -eps_ciss_usest 0 -eps_ciss_integration_points 12
+      test:
+         suffix: 1_ciss_gnhep
+         args: -eps_gen_non_hermitian -skiporth
+      test:
          suffix: 1_ciss_trapezoidal
          args: -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 5e-11 -skiporth
       test:

@@ -99,4 +99,13 @@ int main(int argc,char **argv)
       filter: cat - test2_3_ring.tikz
       requires: !single
 
+   test:
+      suffix: 4
+      args: -rg_ring_width 0.015 -rg_ring_center 3 -rg_ring_radius 0.3 -rg_ring_vscale 1
+      requires: !single
+
+   test:
+      suffix: 5
+      args: -rg_ring_width 0.1 -rg_ring_center 0.35 -rg_ring_radius 0.86 -rg_ring_vscale 1 -rg_ring_startangle 0.75 -rg_ring_endangle 0.25
+
 TEST*/

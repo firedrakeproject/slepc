@@ -196,5 +196,11 @@ int main(int argc,char **argv)
          suffix: 3
          args: -nep_ciss_moments 4 -nep_ciss_blocksize 5 -nep_ciss_refine_inner 1 -nep_ciss_refine_blocksize 2
 
+   test:
+      suffix: 4
+      args: -terse -nep_view
+      requires: complex !single
+      filter: grep -v tolerance
+
 TEST*/
 
