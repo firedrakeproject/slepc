@@ -620,12 +620,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
         if (nep->nconv > ctx->L) nv = nep->nconv;
         else if (ctx->L > nv) nv = ctx->L;
         ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M);CHKERRQ(ierr);
-        ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
-        for (i=0;i<ctx->L*nv;i++) {
-          ierr = PetscRandomGetValue(rand,&temp[i]);CHKERRQ(ierr);
-          temp[i] = PetscRealPart(temp[i]);
-        }
-        ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);
+        ierr = MatSetRandom(M,rand);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
         ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
         ierr = MatDestroy(&M);CHKERRQ(ierr);

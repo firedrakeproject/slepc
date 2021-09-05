@@ -741,21 +741,16 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       if (max_error <= eps->tol) eps->reason = EPS_CONVERGED_TOL;
       else if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
       else {
-        if (eps->nconv > ctx->L) {
-          ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->nconv,ctx->L,NULL,&M);CHKERRQ(ierr);
-          ierr = MatDenseGetArrayWrite(M,&temp);CHKERRQ(ierr);
-          for (i=0;i<ctx->L*eps->nconv;i++) {
-            ierr = PetscRandomGetValue(rand,&temp[i]);CHKERRQ(ierr);
-            temp[i] = PetscRealPart(temp[i]);
-          }
-          ierr = MatDenseRestoreArrayWrite(M,&temp);CHKERRQ(ierr);
-          ierr = BVSetActiveColumns(ctx->S,0,eps->nconv);CHKERRQ(ierr);
-          ierr = BVSetActiveColumns(ctx->V,0,eps->nconv);CHKERRQ(ierr);
-          ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
-          ierr = MatDestroy(&M);CHKERRQ(ierr);
-          ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
-          ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-        }
+        if (eps->nconv > ctx->L) nv = eps->nconv;
+        else if (ctx->L > nv) nv = ctx->L;
+        ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M);CHKERRQ(ierr);
+        ierr = MatSetRandom(M,rand);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+        ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
+        ierr = MatDestroy(&M);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
+        ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
         if (contour->pA) {
           ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
           ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
