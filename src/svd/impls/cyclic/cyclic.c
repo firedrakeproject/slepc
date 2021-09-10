@@ -519,7 +519,7 @@ PetscErrorCode SVDComputeVectors_Cyclic(SVD svd)
           ierr = VecScale(v,PETSC_SQRT2);CHKERRQ(ierr);  /* v_i = sqrt(2)*evec_i_1 */
           ierr = VecScale(x1,PETSC_SQRT2);CHKERRQ(ierr); /* w_i = sqrt(2)*evec_i_2 */
           ierr = MatMult(svd->A,x1,u);CHKERRQ(ierr);     /* A*w_i = u_i */
-          ierr = VecScale(x1,1.0/PetscSqrtReal(1.0+sigma*sigma));CHKERRQ(ierr);  /* x_i = w_i*c_i */
+          ierr = VecScale(x1,1.0/PetscSqrtScalar(1.0+sigma*sigma));CHKERRQ(ierr);  /* x_i = w_i*c_i */
           ierr = BVInsertVec(svd->V,j,x1);CHKERRQ(ierr);
           ierr = VecResetArray(x2);CHKERRQ(ierr);
           ierr = VecResetArray(x1);CHKERRQ(ierr);
@@ -533,7 +533,7 @@ PetscErrorCode SVDComputeVectors_Cyclic(SVD svd)
           ierr = VecScale(u,PETSC_SQRT2);CHKERRQ(ierr);  /* u_i = sqrt(2)*evec_i_1 */
           ierr = VecScale(x2,PETSC_SQRT2);CHKERRQ(ierr); /* w_i = sqrt(2)*evec_i_2 */
           ierr = MatMult(svd->B,x2,v);CHKERRQ(ierr);     /* B*w_i = v_i */
-          ierr = VecScale(x2,1.0/PetscSqrtReal(1.0+sigma*sigma));CHKERRQ(ierr);  /* x_i = w_i*s_i */
+          ierr = VecScale(x2,1.0/PetscSqrtScalar(1.0+sigma*sigma));CHKERRQ(ierr);  /* x_i = w_i*s_i */
           ierr = BVInsertVec(svd->V,j,x2);CHKERRQ(ierr);
           ierr = VecResetArray(x1);CHKERRQ(ierr);
           ierr = VecResetArray(x2);CHKERRQ(ierr);
