@@ -794,13 +794,13 @@ static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal
 
   PetscFunctionBegin;
   if (delta == PETSC_DEFAULT) {
-    ctx->delta = 1e-12;
+    ctx->delta = SLEPC_DEFAULT_TOL*1e-4;
   } else {
     if (delta<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The delta argument must be > 0.0");
     ctx->delta = delta;
   }
   if (spur == PETSC_DEFAULT) {
-    ctx->spurious_threshold = 1e-4;
+    ctx->spurious_threshold = PetscSqrtReal(SLEPC_DEFAULT_TOL);
   } else {
     if (spur<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
     ctx->spurious_threshold = spur;
@@ -1244,9 +1244,9 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   ctx->N                  = 32;
   ctx->L                  = 16;
   ctx->M                  = ctx->N/4;
-  ctx->delta              = 1e-12;
+  ctx->delta              = SLEPC_DEFAULT_TOL*1e-4;
   ctx->L_max              = 64;
-  ctx->spurious_threshold = 1e-4;
+  ctx->spurious_threshold = PetscSqrtReal(SLEPC_DEFAULT_TOL);
   ctx->isreal             = PETSC_FALSE;
   ctx->npart              = 1;
 

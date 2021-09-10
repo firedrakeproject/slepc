@@ -134,6 +134,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      requires: complex !single
+      requires: complex
 
 TEST*/

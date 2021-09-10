@@ -268,7 +268,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
 
    testset:
       args: -eps_type ciss -eps_tol 1e-9 -rg_type ellipse -rg_ellipse_center 0.55 -rg_ellipse_radius 0.05 -rg_ellipse_vscale 0.1 -eps_ciss_usest 0 -eps_all
-      requires: double
+      requires: !single
       output_file: output/test9_6.out
       test:
          suffix: 6
@@ -291,7 +291,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
    test:
       suffix: 6_cheby_interval
       args: -eps_type ciss -eps_tol 1e-9 -rg_type interval -rg_interval_endpoints 0.5,0.6 -eps_ciss_quadrule chebyshev -eps_ciss_usest 0 -eps_all
-      requires: double
+      requires: !single
       output_file: output/test9_6.out
 
    testset:
