@@ -590,7 +590,7 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
 {
   PetscErrorCode ierr;
   PEP_CISS       *ctx = (PEP_CISS*)pep->data;
-  PetscInt       oN,onpart;
+  PetscInt       oN,oL,oM,oLmax,onpart;
 
   PetscFunctionBegin;
   oN = ctx->N;
@@ -601,12 +601,14 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
     if (ip%2) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be an even number");
     if (ctx->N!=ip) { ctx->N = ip; ctx->M = ctx->N/4; }
   }
+  oL = ctx->L;
   if (bs == PETSC_DECIDE || bs == PETSC_DEFAULT) {
     ctx->L = 16;
   } else {
     if (bs<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
     ctx->L = bs;
   }
+  oM = ctx->M;
   if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
     ctx->M = ctx->N/4;
   } else {
@@ -621,6 +623,7 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
     if (npart<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
     ctx->npart = npart;
   }
+  oLmax = ctx->L_max;
   if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
     ctx->L_max = 64;
   } else {
@@ -630,9 +633,10 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
   if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) {
     ierr = SlepcContourDataDestroy(&ctx->contour);CHKERRQ(ierr);
     ierr = PetscInfo(pep,"Resetting the contour data structure due to a change of parameters\n");CHKERRQ(ierr);
+    pep->state = PEP_STATE_INITIAL;
   }
   ctx->isreal = realmats;
-  pep->state = PEP_STATE_INITIAL;
+  if (oL != ctx->L || oM != ctx->M || oLmax != ctx->L_max) pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -908,7 +912,10 @@ static PetscErrorCode PEPCISSSetExtraction_CISS(PEP pep,PEPCISSExtraction extrac
   PEP_CISS *ctx = (PEP_CISS*)pep->data;
 
   PetscFunctionBegin;
-  ctx->extraction = extraction;
+  if (ctx->extraction != extraction) {
+    ctx->extraction = extraction;
+    pep->state      = PEP_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1070,30 +1077,30 @@ PetscErrorCode PEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,PEP p
   PEP_CISS          *ctx = (PEP_CISS*)pep->data;
   PetscReal         r1,r2;
   PetscInt          i,i1,i2,i3,i4,i5,i6,i7;
-  PetscBool         b1,flg;
+  PetscBool         b1,flg,flg2,flg3,flg4,flg5,flg6;
   PEPCISSExtraction extraction;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP CISS Options");CHKERRQ(ierr);
 
     ierr = PEPCISSGetSizes(pep,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_ciss_integration_points","Number of integration points","PEPCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_ciss_blocksize","Block size","PEPCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_ciss_moments","Moment size","PEPCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_ciss_partitions","Number of partitions","PEPCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_ciss_maxblocksize","Maximum block size","PEPCISSSetSizes",i5,&i5,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsBool("-pep_ciss_realmats","True if all coefficient matrices of P(.) are real","PEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
-    ierr = PEPCISSSetSizes(pep,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_ciss_integration_points","Number of integration points","PEPCISSSetSizes",i1,&i1,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_ciss_blocksize","Block size","PEPCISSSetSizes",i2,&i2,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_ciss_moments","Moment size","PEPCISSSetSizes",i3,&i3,&flg3);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_ciss_partitions","Number of partitions","PEPCISSSetSizes",i4,&i4,&flg4);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_ciss_maxblocksize","Maximum block size","PEPCISSSetSizes",i5,&i5,&flg5);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-pep_ciss_realmats","True if all coefficient matrices of P(.) are real","PEPCISSSetSizes",b1,&b1,&flg6);CHKERRQ(ierr);
+    if (flg || flg2 || flg3 || flg4 || flg5 || flg6) { ierr = PEPCISSSetSizes(pep,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr); }
 
     ierr = PEPCISSGetThreshold(pep,&r1,&r2);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-pep_ciss_delta","Threshold for numerical rank","PEPCISSSetThreshold",r1,&r1,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-pep_ciss_spurious_threshold","Threshold for the spurious eigenpairs","PEPCISSSetThreshold",r2,&r2,NULL);CHKERRQ(ierr);
-    ierr = PEPCISSSetThreshold(pep,r1,r2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-pep_ciss_delta","Threshold for numerical rank","PEPCISSSetThreshold",r1,&r1,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-pep_ciss_spurious_threshold","Threshold for the spurious eigenpairs","PEPCISSSetThreshold",r2,&r2,&flg2);CHKERRQ(ierr);
+    if (flg || flg2) { ierr = PEPCISSSetThreshold(pep,r1,r2);CHKERRQ(ierr); }
 
     ierr = PEPCISSGetRefinement(pep,&i6,&i7);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_ciss_refine_inner","Number of inner iterative refinement iterations","PEPCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-pep_ciss_refine_blocksize","Number of blocksize iterative refinement iterations","PEPCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
-    ierr = PEPCISSSetRefinement(pep,i6,i7);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_ciss_refine_inner","Number of inner iterative refinement iterations","PEPCISSSetRefinement",i6,&i6,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_ciss_refine_blocksize","Number of blocksize iterative refinement iterations","PEPCISSSetRefinement",i7,&i7,&flg2);CHKERRQ(ierr);
+    if (flg || flg2) { ierr = PEPCISSSetRefinement(pep,i6,i7);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEnum("-pep_ciss_extraction","Extraction technique","PEPCISSSetExtraction",PEPCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPCISSSetExtraction(pep,extraction);CHKERRQ(ierr); }

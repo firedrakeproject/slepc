@@ -647,7 +647,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 {
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       oN,onpart;
+  PetscInt       oN,oL,oM,oLmax,onpart;
 
   PetscFunctionBegin;
   oN = ctx->N;
@@ -658,12 +658,14 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
     if (ip%2) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be an even number");
     if (ctx->N!=ip) { ctx->N = ip; ctx->M = ctx->N/4; }
   }
+  oL = ctx->L;
   if (bs == PETSC_DECIDE || bs == PETSC_DEFAULT) {
     ctx->L = 16;
   } else {
     if (bs<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
     ctx->L = bs;
   }
+  oM = ctx->M;
   if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
     ctx->M = ctx->N/4;
   } else {
@@ -678,6 +680,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
     if (npart<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
     ctx->npart = npart;
   }
+  oLmax = ctx->L_max;
   if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
     ctx->L_max = 64;
   } else {
@@ -687,9 +690,10 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
   if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) {
     ierr = SlepcContourDataDestroy(&ctx->contour);CHKERRQ(ierr);
     ierr = PetscInfo(nep,"Resetting the contour data structure due to a change of parameters\n");CHKERRQ(ierr);
+    nep->state = NEP_STATE_INITIAL;
   }
   ctx->isreal = realmats;
-  nep->state = NEP_STATE_INITIAL;
+  if (oL != ctx->L || oM != ctx->M || oLmax != ctx->L_max) nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -969,7 +973,10 @@ static PetscErrorCode NEPCISSSetExtraction_CISS(NEP nep,NEPCISSExtraction extrac
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
-  ctx->extraction = extraction;
+  if (ctx->extraction != extraction) {
+    ctx->extraction = extraction;
+    nep->state      = NEP_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1134,30 +1141,30 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   NEP_CISS          *ctx = (NEP_CISS*)nep->data;
   PetscReal         r1,r2;
   PetscInt          i,i1,i2,i3,i4,i5,i6,i7;
-  PetscBool         b1,flg;
+  PetscBool         b1,flg,flg2,flg3,flg4,flg5,flg6;
   NEPCISSExtraction extraction;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP CISS Options");CHKERRQ(ierr);
 
     ierr = NEPCISSGetSizes(nep,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_ciss_integration_points","Number of integration points","NEPCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_ciss_blocksize","Block size","NEPCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_ciss_moments","Moment size","NEPCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_ciss_partitions","Number of partitions","NEPCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_ciss_maxblocksize","Maximum block size","NEPCISSSetSizes",i5,&i5,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsBool("-nep_ciss_realmats","True if T(z) is real for real z","NEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
-    ierr = NEPCISSSetSizes(nep,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_integration_points","Number of integration points","NEPCISSSetSizes",i1,&i1,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_blocksize","Block size","NEPCISSSetSizes",i2,&i2,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_moments","Moment size","NEPCISSSetSizes",i3,&i3,&flg3);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_partitions","Number of partitions","NEPCISSSetSizes",i4,&i4,&flg4);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_maxblocksize","Maximum block size","NEPCISSSetSizes",i5,&i5,&flg5);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-nep_ciss_realmats","True if T(z) is real for real z","NEPCISSSetSizes",b1,&b1,&flg6);CHKERRQ(ierr);
+    if (flg || flg2 || flg3 || flg4 || flg5 || flg6) { ierr = NEPCISSSetSizes(nep,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr); }
 
     ierr = NEPCISSGetThreshold(nep,&r1,&r2);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-nep_ciss_delta","Threshold for numerical rank","NEPCISSSetThreshold",r1,&r1,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-nep_ciss_spurious_threshold","Threshold for the spurious eigenpairs","NEPCISSSetThreshold",r2,&r2,NULL);CHKERRQ(ierr);
-    ierr = NEPCISSSetThreshold(nep,r1,r2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_ciss_delta","Threshold for numerical rank","NEPCISSSetThreshold",r1,&r1,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_ciss_spurious_threshold","Threshold for the spurious eigenpairs","NEPCISSSetThreshold",r2,&r2,&flg2);CHKERRQ(ierr);
+    if (flg || flg2) { ierr = NEPCISSSetThreshold(nep,r1,r2);CHKERRQ(ierr); }
 
     ierr = NEPCISSGetRefinement(nep,&i6,&i7);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_ciss_refine_inner","Number of inner iterative refinement iterations","NEPCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-nep_ciss_refine_blocksize","Number of blocksize iterative refinement iterations","NEPCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
-    ierr = NEPCISSSetRefinement(nep,i6,i7);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_refine_inner","Number of inner iterative refinement iterations","NEPCISSSetRefinement",i6,&i6,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_refine_blocksize","Number of blocksize iterative refinement iterations","NEPCISSSetRefinement",i7,&i7,&flg2);CHKERRQ(ierr);
+    if (flg || flg2) { ierr = NEPCISSSetRefinement(nep,i6,i7);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEnum("-nep_ciss_extraction","Extraction technique","NEPCISSSetExtraction",NEPCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPCISSSetExtraction(nep,extraction);CHKERRQ(ierr); }
