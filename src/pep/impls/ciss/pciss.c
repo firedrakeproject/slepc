@@ -279,6 +279,7 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
   if (!pep->which) pep->which = PEP_ALL;
   if (pep->which!=PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver supports only computing all eigenvalues");
   PEPCheckUnsupported(pep,PEP_FEATURE_STOPPING);
+  PEPCheckIgnored(pep,PEP_FEATURE_SCALE);
 
   /* check region */
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
