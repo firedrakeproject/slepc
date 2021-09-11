@@ -229,7 +229,6 @@ struct _p_PEP {
   } while (0)
 #define PEPCheckIgnored(pep,mask) PEPCheckIgnoredCondition(pep,mask,PETSC_TRUE,"")
 
-
 SLEPC_INTERN PetscErrorCode PEPSetWhichEigenpairs_Default(PEP);
 SLEPC_INTERN PetscErrorCode PEPSetDimensions_Default(PEP,PetscInt,PetscInt*,PetscInt*);
 SLEPC_INTERN PetscErrorCode PEPExtractVectors(PEP);
