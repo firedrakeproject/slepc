@@ -91,7 +91,7 @@ static PetscErrorCode EPSSubspaceFindGroup(PetscInt l,PetscInt m,PetscScalar *wr
       (*arsd) += rsd[i]*rsd[i];
     }
     *ae = *ae / *ngrp;
-    *arsd = PetscSqrtScalar(*arsd / *ngrp);
+    *arsd = PetscSqrtReal(*arsd / *ngrp);
   }
   PetscFunctionReturn(0);
 }

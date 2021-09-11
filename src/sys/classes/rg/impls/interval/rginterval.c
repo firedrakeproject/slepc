@@ -197,7 +197,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
     if (n<4) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Minimum number of contour points: 4");
     N = n/2;
     t = ((ctx->d-ctx->c)/(ctx->d-ctx->c+ctx->b-ctx->a))*N;
-    Nv = t-floor(t)>0.5?PetscCeilReal(t):PetscFloorReal(t);
+    Nv = t-PetscFloorReal(t)>0.5?PetscCeilReal(t):PetscFloorReal(t);
     if (Nv==0) Nv++;
     else if (Nv==N) Nv--;
     Nh = N-Nv;

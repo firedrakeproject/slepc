@@ -252,12 +252,12 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
           dif = aa[ntop]-aa[nbot];
           if (2.0*PetscAbs(bb[ntop])<=dif) {
             tn = 2*bb[ntop]/dif;
-            tn = tn/(1.0 + PetscSqrtScalar(1.0+tn*tn));
+            tn = tn/(1.0 + PetscSqrtReal(1.0+tn*tn));
           } else {
             kt = dif/(2.0*bb[ntop]);
-            tn = PetscSign(kt)/(PetscAbs(kt)+PetscSqrtScalar(1.0+kt*kt));
+            tn = PetscSign(kt)/(PetscAbsReal(kt)+PetscSqrtReal(1.0+kt*kt));
           }
-          c = 1.0/PetscSqrtScalar(1.0 + tn*tn);
+          c = 1.0/PetscSqrtReal(1.0 + tn*tn);
           s = c*tn;
           aa[ntop] = aa[ntop] + tn*bb[ntop];
           aa[nbot] = aa[nbot] - tn*bb[ntop];
