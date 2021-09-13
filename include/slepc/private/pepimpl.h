@@ -53,7 +53,8 @@ typedef enum { PEP_FEATURE_NONMONOMIAL=1,   /* non-monomial bases */
                PEP_FEATURE_REGION=4,        /* nontrivial region for filtering */
                PEP_FEATURE_EXTRACT=8,       /* eigenvector extraction */
                PEP_FEATURE_CONVERGENCE=16,  /* convergence test selected by user */
-               PEP_FEATURE_STOPPING=32      /* stopping test */
+               PEP_FEATURE_STOPPING=32,     /* stopping test */
+               PEP_FEATURE_SCALE=64         /* scaling */
              } PEPFeatureType;
 
 /*
@@ -225,6 +226,7 @@ struct _p_PEP {
       if (((mask) & PEP_FEATURE_EXTRACT) && (pep)->extract && (pep)->extract!=PEP_EXTRACT_NONE) { __ierr = PetscInfo2((pep),"The solver '%s'%s ignores the extract settings\n",((PetscObject)(pep))->type_name,(msg)); } \
       if (((mask) & PEP_FEATURE_CONVERGENCE) && (pep)->converged!=PEPConvergedRelative) { __ierr = PetscInfo2((pep),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(pep))->type_name,(msg)); } \
       if (((mask) & PEP_FEATURE_STOPPING) && (pep)->stopping!=PEPStoppingBasic) { __ierr = PetscInfo2((pep),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(pep))->type_name,(msg)); } \
+      if (((mask) & PEP_FEATURE_SCALE) && (pep)->scale!=PEP_SCALE_NONE) { __ierr = PetscInfo2((pep),"The solver '%s'%s ignores the scaling settings\n",((PetscObject)(pep))->type_name,(msg)); } \
     } \
   } while (0)
 #define PEPCheckIgnored(pep,mask) PEPCheckIgnoredCondition(pep,mask,PETSC_TRUE,"")

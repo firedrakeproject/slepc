@@ -534,12 +534,15 @@ PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
   PetscValidBoolPointer(useconj,3);
-#if defined(PETSC_USE_COMPLEX)
-  ierr = RGIsAxisymmetric(rg,PETSC_FALSE,&isaxisymm);CHKERRQ(ierr);
-  ierr = RGComputeBoundingBox(rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
-  *useconj = (realmats && isaxisymm && c!=d)? PETSC_TRUE: PETSC_FALSE;
-#else
   *useconj = PETSC_FALSE;
+#if defined(PETSC_USE_COMPLEX)
+  if (realmats) {
+    ierr = RGIsAxisymmetric(rg,PETSC_FALSE,&isaxisymm);CHKERRQ(ierr);
+    if (isaxisymm) {
+      ierr = RGComputeBoundingBox(rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
+      if (c!=d) *useconj = PETSC_TRUE;
+    }
+  }
 #endif
   PetscFunctionReturn(0);
 }

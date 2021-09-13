@@ -122,7 +122,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -n 30 -eps_type ciss -eps_ciss_realmats -terse
-      requires: double
+      requires: !single
       output_file: output/ex2_ciss.out
       filter: grep -v method
       test:

@@ -185,7 +185,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -n 18 -eps_type ciss -rg_interval_endpoints 20.8,22
-      requires: double
+      requires: !single
       output_file: output/test1_1_ciss.out
       test:
          suffix: 1_ciss

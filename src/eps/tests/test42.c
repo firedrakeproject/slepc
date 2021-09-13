@@ -92,6 +92,6 @@ int main(int argc,char **argv)
       filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/g"
       test:
          suffix: 1_ring
-         args: -eps_ciss_extraction {{ritz hankel}} -eps_max_it 2
+         args: -eps_ciss_extraction {{ritz hankel}} -eps_max_it 4
 
 TEST*/
