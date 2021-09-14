@@ -166,7 +166,7 @@ int main(int argc,char **argv)
    testset:
       args: -pep_type ciss -rg_type ellipse -rg_ellipse_center 1+.5i -rg_ellipse_radius .15 -terse
       requires: complex
-      filter: sed -e "s/95386/95385/"
+      filter: sed -e "s/95386/95385/" | sed -e "s/91010/91009/"
       output_file: output/butterfly_ciss.out
       test:
          suffix: ciss_hankel
