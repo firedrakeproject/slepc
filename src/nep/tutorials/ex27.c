@@ -295,7 +295,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
    testset:
       args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse
       requires: complex
-      filter: sed -e "s/ (in split form)//" | sed -e "s/56925/56924/"
+      filter: sed -e "s/ (in split form)//" | sed -e "s/56925/56924/" | sed -e "s/60753/60754/" | sed -e "s/92630/92629/"
       output_file: output/ex27_7.out
       test:
          suffix: 8
