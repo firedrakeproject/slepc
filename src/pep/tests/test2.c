@@ -362,4 +362,9 @@ int main(int argc,char **argv)
       requires: x !single
       output_file: output/test2_3.out
 
+   test:
+      suffix: 14
+      requires: complex !single
+      args: -pep_type ciss -rg_type ellipse -rg_ellipse_center -48.5 -rg_ellipse_radius 1.5 -pep_ciss_delta 1e-10
+
 TEST*/

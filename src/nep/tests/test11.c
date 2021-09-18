@@ -188,6 +188,7 @@ int main(int argc,char **argv)
       filter: sed -e "s/([A-Z]* extraction)//"
       test:
          suffix: 1
+         args: -nep_ciss_delta 1e-10
       test:
          suffix: 2
          nsize: 2
