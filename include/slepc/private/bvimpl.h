@@ -307,6 +307,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AddCoefficients_Default(BV bv,PetscInt j,P
   }
   for (i=0;i<bv->nc+j;i++) hh[i] += cc[i];
   if (!h) { ierr = VecRestoreArray(bv->buffer,&cc);CHKERRQ(ierr); }
+  ierr = PetscLogFlops(1.0*(bv->nc+j));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -344,6 +345,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum_Default(BV bv,PetscInt j,PetscSc
   if (!h) { ierr = VecGetArray(bv->buffer,&hh);CHKERRQ(ierr); }
   for (i=0;i<bv->nc+j;i++) *sum += PetscRealPart(hh[i]*PetscConj(hh[i]));
   if (!h) { ierr = VecRestoreArray(bv->buffer,&hh);CHKERRQ(ierr); }
+  ierr = PetscLogFlops(2.0*(bv->nc+j));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -367,6 +369,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,Pe
   else for (i=0;i<bv->nc+j;i++) hh[i] *= PetscRealPart(omega[i]);
   ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
   if (!h) { ierr = VecRestoreArray(bv->buffer,&hh);CHKERRQ(ierr); }
+  ierr = PetscLogFlops(1.0*(bv->nc+j));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
