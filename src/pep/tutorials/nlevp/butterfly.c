@@ -190,6 +190,6 @@ int main(int argc,char **argv)
       suffix: 4
       args: -pep_type ciss -rg_type ellipse -rg_ellipse_center .5+.5i -rg_ellipse_radius .25 -pep_ciss_moments 4 -pep_ciss_blocksize 5 -pep_ciss_refine_blocksize 2 -terse
       requires: complex
-      filter: sed -e "s/46483i/46484i/" | sed -e "s/54946i/54945i/"
+      filter: sed -e "s/46483/46484/" | sed -e "s/54946/54945/" | sed -e "s/48456/48457/" | sed -e "s/74117/74116/"
 
 TEST*/
