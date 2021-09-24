@@ -81,7 +81,7 @@ variables:
         make checkbadSource SHELL=bash;
         make -f gmakefile check_output SHELL=bash;
       fi
-    - if [ ! -z ${RUN_LINT+x} ]; then make lint_slepc LINTER_OPTIONS="--clang_lib=`llvm-config --libdir`/libclang.so.11"; fi
+    - if [ ! -z ${RUN_LINT+x} ]; then make lint_slepc LINTER_OPTIONS="--clang_lib=`llvm-config --libdir`/libclang.so.11 --verbose --werror"; fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror cleantest allgtests-tap TIMEOUT=${TIMEOUT} search="${TEST_SEARCH}"; fi
