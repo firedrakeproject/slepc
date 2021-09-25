@@ -86,7 +86,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
     case SVD_CONV_REL:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the singular value\n");CHKERRQ(ierr);break;
-    case EPS_CONV_NORM:
+    case SVD_CONV_NORM:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: norm(A)=%g",(double)svd->nrma);CHKERRQ(ierr);
       if (svd->isgeneralized) {

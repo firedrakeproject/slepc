@@ -19,7 +19,7 @@ slepcClassIdMap = {
   "_p_LME *"    : "LME_CLASSID",
 }
 
-def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,maxWorkers=-1,checkFunctionFilter=None,applyPatches=False):
+def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,werror=False,maxWorkers=-1,checkFunctionFilter=None,applyPatches=False):
   extraCompilerFlags = [ '-I'+os.path.join(slepcDir,'include'), '-I'+os.path.join(slepcDir,petscArch,'include') ]
   with open(os.path.join(slepcDir,petscArch,"lib","slepc","conf","slepcvariables"),"r") as sv:
     line = sv.readline()
@@ -34,7 +34,7 @@ def main(slepcDir,petscDir,petscArch,clangDir=None,clangLib=None,verbose=False,m
   for headerFile in os.listdir(os.path.join(slepcDir,"include","slepc","private")):
     if headerFile in mansecimpls:
       extraHeaderIncludes.append("#include <slepc/private/{}>".format(headerFile))
-  ret = petscClangLinter.main(petscDir,petscArch,srcDir=os.path.join(slepcDir,"src"),clangDir=clangDir,clangLib=clangLib,verbose=verbose,workers=maxWorkers,checkFunctionFilter=checkFunctionFilter,patchDir=os.path.join(slepcDir,"slepcLintPatches"),applyPatches=applyPatches,extraCompilerFlags=extraCompilerFlags,extraHeaderIncludes=extraHeaderIncludes)
+  ret = petscClangLinter.main(petscDir,petscArch,srcDir=os.path.join(slepcDir,"src"),clangDir=clangDir,clangLib=clangLib,verbose=verbose,werror=werror,workers=maxWorkers,checkFunctionFilter=checkFunctionFilter,patchDir=os.path.join(slepcDir,"slepcLintPatches"),applyPatches=applyPatches,extraCompilerFlags=extraCompilerFlags,extraHeaderIncludes=extraHeaderIncludes)
   return ret
 
 
@@ -69,6 +69,7 @@ if __name__ == "__main__":
   grouppetsc.add_argument("--PETSC_DIR",required=False,default=petscDir,help="if this option is unused defaults to environment variable $PETSC_DIR",dest="petscdir")
   grouppetsc.add_argument("--PETSC_ARCH",required=False,default=petscArch,help="if this option is unused defaults to environment variable $PETSC_ARCH",dest="petscarch")
   parser.add_argument("-v","--verbose",required=False,action="store_true",help="verbose progress printed to screen")
+  parser.add_argument("--werror",required=False,action="store_true",help="treat all warnings as errors")
   filterFuncChoices = ", ".join(list(petscClangLinter.checkFunctionMap.keys()))
   parser.add_argument("-f","--functions",required=False,nargs="+",choices=list(petscClangLinter.checkFunctionMap.keys()),metavar="FUNCTIONNAME",help="filter to display errors only related to list of provided function names, default is all functions. Choose from available function names: "+filterFuncChoices,dest="funcs")
   parser.add_argument("-j","--jobs",required=False,type=int,default=-1,nargs="?",help="number of multiprocessing jobs, -1 means number of processors on machine")
