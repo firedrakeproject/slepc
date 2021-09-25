@@ -175,7 +175,7 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
     ierr = PetscArraycpy(M2,M,N);CHKERRQ(ierr);
     for (i=0;i<n;i++) M2[i+i*ld] -= 1.0;
     Mres = LAPACKlange_("fro",&n,&n,M2,&n,rwork);
-    ierr = PetscIsNanReal(Mres);CHKERRQ(ierr);
+    if (PetscIsNanReal(Mres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Mres<=tol) converged = PETSC_TRUE;
     ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Mres);CHKERRQ(ierr);
     ierr = PetscLogFlops(8.0*n*n*n+2.0*n*n+2.0*n*n*n/3.0+4.0*n*n*n/3.0+2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
@@ -283,7 +283,7 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
     cerr = cudaMemcpy(d_M2,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
     ierr = shift_diagonal(n,d_M2,ld,-1.0);CHKERRQ(cerr);
     cberr = cublasXnrm2(cublasv2handle,N,d_M2,one,&Mres);CHKERRCUBLAS(cberr);
-    ierr = PetscIsNanReal(Mres);CHKERRQ(ierr);
+    if (PetscIsNanReal(Mres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Mres<=tol) converged = PETSC_TRUE;
     ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Mres);CHKERRQ(ierr);
     ierr = PetscLogGpuFlops(8.0*n*n*n+2.0*n*n+2.0*n*n*n/3.0+4.0*n*n*n/3.0+2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);

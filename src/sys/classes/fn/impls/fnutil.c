@@ -297,7 +297,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
     /* reldiff = norm(Y-Yold,'fro')/norm(Y,'fro') */
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&N,&smone,Y,&one,Yold,&one));
     Yres = LAPACKlange_("fro",&n,&n,Yold,&n,rwork);
-    ierr = PetscIsNanReal(Yres);CHKERRQ(ierr);
+    if (PetscIsNanReal(Yres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Yres<=tol) converged = PETSC_TRUE;
     ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
@@ -393,7 +393,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
     /* reldiff = norm(Y-Yold,'fro')/norm(Y,'fro') */
     cberr = cublasXaxpy(cublasv2handle,N,&smone,d_A,one,d_Yold,one);CHKERRCUBLAS(cberr);
     cberr = cublasXnrm2(cublasv2handle,N,d_Yold,one,&Yres);CHKERRCUBLAS(cberr);
-    ierr = PetscIsNanReal(Yres);CHKERRQ(ierr);
+    if (PetscIsNanReal(Yres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Yres<=tol) converged = PETSC_TRUE;
     ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
