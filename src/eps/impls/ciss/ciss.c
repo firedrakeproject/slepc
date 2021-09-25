@@ -482,8 +482,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-        ierr = BVSetActiveColumns(ctx->S,0,ctx->L*ctx->M);CHKERRQ(ierr);
-        ierr = BVSVDAndRank(ctx->S,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
+        ierr = BVSVDAndRank(ctx->S,ctx->M,ctx->L,ctx->delta,H0,ctx->sigma,&nv);CHKERRQ(ierr);
         if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
           if (contour->pA) {
             ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);

@@ -309,36 +309,8 @@ PetscErrorCode BVTraceQuadrature(BV Y,BV V,PetscInt L,PetscInt L_max,PetscScalar
   ierr = VecDestroy(&yall);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-/*@
-   BVSVDAndRank - Compute the SVD (left singular vectors only, and singular
-   values) and determine the numerical rank according to a tolerance.
 
-   Collective on S
-
-   Input Parameters:
-+  S     - the basis vectors
--  delta - the tolerance used to determine the rank
-
-   Output Parameters:
-+  sigma - computed singular values
--  rank  - estimated rank (optional)
-
-   Notes:
-   This function computes [U,Sigma,V] = svd(S) and replaces S with U.
-   The current implementation computes this via S'*S, and it may include
-   some kind of iterative refinement to improve accuracy in some cases.
-   All columns up to k are modified, see BVSetActiveColumns().
-
-   Once the decomposition is computed, the numerical rank is estimated
-   by counting the number of singular values that are larger than the
-   tolerance delta, relative to the first singular value.
-
-   Level: developer
-
-.seealso: BVSetActiveColumns()
-@*/
-
-PetscErrorCode BVSVDAndRank(BV S,PetscReal delta,PetscReal *sigma,PetscInt *rank)
+PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *A,PetscReal *sigma,PetscInt *rank)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,k,ml=S->k;
@@ -439,6 +411,61 @@ PetscErrorCode BVSVDAndRank(BV S,PetscReal delta,PetscReal *sigma,PetscInt *rank
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVSVDAndRank - Compute the SVD (left singular vectors only, and singular
+   values) and determine the numerical rank according to a tolerance.
+
+   Collective on S
+
+   Input Parameters:
++  S     - the basis vectors
+.  m     - the moment degree
+.  l     - the block size
+-  delta - the tolerance used to determine the rank
+
+   Output Parameters:
++  A     - workspace, on output contains relevant values in the CAA method
+.  sigma - computed singular values
+-  rank  - estimated rank (optional)
+
+   Notes:
+   This function computes [U,Sigma,V] = svd(S) and replaces S with U.
+   The current implementation computes this via S'*S, and it may include
+   some kind of iterative refinement to improve accuracy in some cases.
+
+   The parameters m and l refer to the moment and block size of contour
+   integral methods. All columns up to m*l are modified, and the active
+   columns are set to 0..m*l.
+
+   The A workspace should be m*l*m*l in size.
+
+   Once the decomposition is computed, the numerical rank is estimated
+   by counting the number of singular values that are larger than the
+   tolerance delta, relative to the first singular value.
+
+   Level: developer
+
+.seealso: BVSetActiveColumns()
+@*/
+PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,PetscScalar *A,PetscReal *sigma,PetscInt *rank)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(S,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(S,m,2);
+  PetscValidLogicalCollectiveInt(S,l,3);
+  PetscValidLogicalCollectiveReal(S,delta,4);
+  PetscValidLogicalCollectiveEnum(S,meth,5);
+  PetscValidPointer(A,6);
+  PetscValidPointer(sigma,7);
+  PetscValidPointer(rank,8);
+
+  ierr = BVSetActiveColumns(S,0,m*l);CHKERRQ(ierr);
+  ierr = BVSVDAndRank_Refine(S,delta,A,sigma,rank);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
