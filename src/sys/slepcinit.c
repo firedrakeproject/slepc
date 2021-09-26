@@ -300,17 +300,21 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 PetscErrorCode SlepcFinalize(void)
 {
   PetscErrorCode ierr = 0;
+  PetscBool      pFinalized;
 
   PetscFunctionBegin;
+  ierr = PetscFinalized(&pFinalized);if (ierr) return ierr;
   if (PetscUnlikely(!SlepcInitializeCalled)) {
     fprintf(stderr,"SlepcInitialize() must be called before SlepcFinalize()\n");
-    ierr = PetscStackView(stderr);CHKERRQ(ierr);
     return PETSC_ERR_ARG_WRONGSTATE;
   }
-  ierr = PetscInfo(NULL,"SlepcFinalize() called\n");CHKERRQ(ierr);
+  if (!pFinalized) { ierr = PetscInfo(NULL,"SlepcFinalize() called\n");CHKERRQ(ierr); }
   if (SlepcBeganPetsc) {
     ierr = PetscFinalize();
     SlepcBeganPetsc = PETSC_FALSE;
+  } else if (!pFinalized) {
+    fprintf(stderr,"PetscFinalize() must be called before SlepcFinalize() because PETSc was initialized independently\n");
+    ierr = PETSC_ERR_ARG_WRONGSTATE;
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
