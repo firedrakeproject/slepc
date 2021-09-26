@@ -302,13 +302,19 @@ PetscErrorCode SlepcFinalize(void)
   PetscErrorCode ierr = 0;
 
   PetscFunctionBegin;
-  ierr = PetscInfo(0,"SlepcFinalize() called\n");CHKERRQ(ierr);
+  if (PetscUnlikely(!SlepcInitializeCalled)) {
+    fprintf(stderr,"SlepcInitialize() must be called before SlepcFinalize()\n");
+    ierr = PetscStackView(stderr);CHKERRQ(ierr);
+    return PETSC_ERR_ARG_WRONGSTATE;
+  }
+  ierr = PetscInfo(NULL,"SlepcFinalize() called\n");CHKERRQ(ierr);
   if (SlepcBeganPetsc) {
     ierr = PetscFinalize();
+    SlepcBeganPetsc = PETSC_FALSE;
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
-  PetscFunctionReturn(ierr);
+  return ierr;
 }
 
 /*@C
@@ -341,8 +347,9 @@ PetscErrorCode SlepcInitializeNoArguments(void)
 @*/
 PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
 {
+  PetscFunctionBegin;
   *isInitialized = SlepcInitializeCalled;
-  return 0;
+  PetscFunctionReturn(0);
 }
 
 /*@
@@ -354,8 +361,9 @@ PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
 @*/
 PetscErrorCode SlepcFinalized(PetscBool *isFinalized)
 {
+  PetscFunctionBegin;
   *isFinalized = SlepcFinalizeCalled;
-  return 0;
+  PetscFunctionReturn(0);
 }
 
 PETSC_EXTERN PetscBool PetscBeganMPI;
@@ -380,6 +388,6 @@ PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *filena
   ierr = SlepcInitialize(&myargc,&myargs,filename,help);CHKERRQ(ierr);
   ierr = PetscPopSignalHandler();CHKERRQ(ierr);
   PetscBeganMPI = PETSC_FALSE;
-  PetscFunctionReturn(ierr);
+  PetscFunctionReturn(0);
 }
 

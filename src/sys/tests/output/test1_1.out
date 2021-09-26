@@ -1,1 +1,2 @@
 Initialize SLEPc.
+SlepcInitialized=1, SlepcFinalized=0.
