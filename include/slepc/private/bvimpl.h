@@ -17,7 +17,7 @@
 SLEPC_EXTERN PetscBool BVRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode BVRegisterAll(void);
 
-SLEPC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_MultVec,BV_MultInPlace,BV_Dot,BV_DotVec,BV_Orthogonalize,BV_OrthogonalizeVec,BV_Scale,BV_Norm,BV_NormVec,BV_Normalize,BV_SetRandom,BV_MatMult,BV_MatMultVec,BV_MatProject;
+SLEPC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_MultVec,BV_MultInPlace,BV_Dot,BV_DotVec,BV_Orthogonalize,BV_OrthogonalizeVec,BV_Scale,BV_Norm,BV_NormVec,BV_Normalize,BV_SetRandom,BV_MatMult,BV_MatMultVec,BV_MatProject,BV_SVDAndRank;
 
 typedef struct _BVOps *BVOps;
 

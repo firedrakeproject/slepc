@@ -566,6 +566,7 @@ PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,BVSVDMeth
   PetscValidPointer(sigma,7);
   PetscValidPointer(rank,8);
 
+  ierr = PetscLogEventBegin(BV_SVDAndRank,S,0,0,0);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(S,0,m*l);CHKERRQ(ierr);
   switch (meth) {
     case BV_SVD_METHOD_REFINE:
@@ -578,6 +579,7 @@ PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,BVSVDMeth
       ierr = BVSVDAndRank_QR_CAA(S,m,l,delta,A,sigma,rank);CHKERRQ(ierr);
       break;
   }
+  ierr = PetscLogEventEnd(BV_SVDAndRank,S,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
