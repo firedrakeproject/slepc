@@ -22,6 +22,7 @@ const char *BVOrthogTypes[] = {"CGS","MGS","BVOrthogType","BV_ORTHOG_",0};
 const char *BVOrthogRefineTypes[] = {"IFNEEDED","NEVER","ALWAYS","BVOrthogRefineType","BV_ORTHOG_REFINE_",0};
 const char *BVOrthogBlockTypes[] = {"GS","CHOL","TSQR","TSQRCHOL","SVQB","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
 const char *BVMatMultTypes[] = {"VECS","MAT","MAT_SAVE","BVMatMultType","BV_MATMULT_",0};
+const char *BVSVDMethods[] = {"REFINE","QR","QR_CAA","BVSVDMethod","BV_SVD_METHOD_",0};
 
 /*@C
    BVFinalizePackage - This function destroys everything in the Slepc interface

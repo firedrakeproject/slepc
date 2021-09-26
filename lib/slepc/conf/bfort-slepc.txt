@@ -3,6 +3,7 @@ native BVOrthogType
 native BVOrthogRefineType
 native BVOrthogBlockType
 native BVMatMultType
+native BVSVDMethod
 native DSStateType
 native DSMatType
 native DSParallelType

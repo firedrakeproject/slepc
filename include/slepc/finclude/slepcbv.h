@@ -21,6 +21,7 @@
 #define BVOrthogRefineType PetscEnum
 #define BVOrthogBlockType  PetscEnum
 #define BVMatMultType      PetscEnum
+#define BVSVDMethod        PetscEnum
 
 #define BVMAT        'mat'
 #define BVSVEC       'svec'

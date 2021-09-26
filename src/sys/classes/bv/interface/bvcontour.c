@@ -424,7 +424,8 @@ PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *A,PetscReal
 +  S     - the basis vectors
 .  m     - the moment degree
 .  l     - the block size
--  delta - the tolerance used to determine the rank
+.  delta - the tolerance used to determine the rank
+-  meth  - the method to be used
 
    Output Parameters:
 +  A     - workspace, on output contains relevant values in the CAA method
@@ -440,6 +441,8 @@ PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *A,PetscReal
    integral methods. All columns up to m*l are modified, and the active
    columns are set to 0..m*l.
 
+   The method is one of BV_SVD_METHOD_REFINE, BV_SVD_METHOD_QR, BV_SVD_METHOD_QR_CAA.
+
    The A workspace should be m*l*m*l in size.
 
    Once the decomposition is computed, the numerical rank is estimated
@@ -450,7 +453,7 @@ PetscErrorCode BVSVDAndRank_Refine(BV S,PetscReal delta,PetscScalar *A,PetscReal
 
 .seealso: BVSetActiveColumns()
 @*/
-PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,PetscScalar *A,PetscReal *sigma,PetscInt *rank)
+PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,BVSVDMethod meth,PetscScalar *A,PetscReal *sigma,PetscInt *rank)
 {
   PetscErrorCode ierr;
 
@@ -465,7 +468,15 @@ PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,PetscScal
   PetscValidPointer(rank,8);
 
   ierr = BVSetActiveColumns(S,0,m*l);CHKERRQ(ierr);
-  ierr = BVSVDAndRank_Refine(S,delta,A,sigma,rank);CHKERRQ(ierr);
+  switch (meth) {
+    case BV_SVD_METHOD_REFINE:
+      ierr = BVSVDAndRank_Refine(S,delta,A,sigma,rank);CHKERRQ(ierr);
+      break;
+    case BV_SVD_METHOD_QR:
+      break;
+    case BV_SVD_METHOD_QR_CAA:
+      break;
+  }
   PetscFunctionReturn(0);
 }
 

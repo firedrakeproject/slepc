@@ -34,3 +34,7 @@
       PetscEnum, parameter :: BV_MATMULT_MAT            =  1
       PetscEnum, parameter :: BV_MATMULT_MAT_SAVE       =  2
 
+      PetscEnum, parameter :: BV_SVD_METHOD_REFINE      =  0
+      PetscEnum, parameter :: BV_SVD_METHOD_QR          =  1
+      PetscEnum, parameter :: BV_SVD_METHOD_QR_CAA      =  2
+
