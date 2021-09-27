@@ -15,7 +15,7 @@
 
 /* Logging support */
 PetscClassId      EPS_CLASSID = 0;
-PetscLogEvent     EPS_SetUp = 0,EPS_Solve = 0;
+PetscLogEvent     EPS_SetUp = 0,EPS_Solve = 0,EPS_CISS_SVD = 0;
 
 /* List of registered EPS routines */
 PetscFunctionList EPSList = 0;

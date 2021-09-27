@@ -33,7 +33,6 @@
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
 #include <slepc/private/slepccontour.h>
-#include <slepcblaslapack.h>
 
 typedef struct _n_nep_ciss_project *NEP_CISS_PROJECT;
 typedef struct {
@@ -163,130 +162,6 @@ static PetscErrorCode NEPCISSSolveSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_st
   }
   ierr = MatDestroy(&BMV);CHKERRQ(ierr);
   ierr = BVRestoreMat(V,&MV);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode SVD_H0(NEP nep,PetscScalar *S,PetscInt *K)
-{
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i,ml=ctx->L*ctx->M;
-  PetscBLASInt   m,n,lda,ldu,ldvt,lwork,info;
-  PetscScalar    *work;
-  PetscReal      *rwork;
-
-  PetscFunctionBegin;
-  ierr = PetscMalloc1(5*ml,&work);CHKERRQ(ierr);
-  ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
-  n = m; lda = m; ldu = m; ldvt = m; lwork = 5*m;
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,S,&lda,ctx->sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
-  SlepcCheckLapackInfo("gesvd",info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  (*K) = 0;
-  for (i=0;i<ml;i++) {
-    if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
-  }
-  ierr = PetscFree(work);CHKERRQ(ierr);
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode SVD_S(NEP nep,BV S,PetscScalar *pA,PetscInt *K)
-{
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i,n,ml=ctx->L*ctx->M;
-  PetscBLASInt   m,lda,lwork,info;
-  PetscScalar    *work;
-  PetscReal      *rwork;
-  Mat            A;
-  Vec            v;
-
-  PetscFunctionBegin;
-  /* Compute QR factorizaton of S */
-  ierr = BVGetSizes(S,NULL,&n,NULL);CHKERRQ(ierr);
-  n    = PetscMin(n,ml);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(S,0,n);CHKERRQ(ierr);
-  ierr = PetscArrayzero(pA,ml*n);CHKERRQ(ierr);
-  ierr = MatCreateDense(PETSC_COMM_SELF,n,n,PETSC_DECIDE,PETSC_DECIDE,pA,&A);CHKERRQ(ierr);
-  ierr = BVOrthogonalize(S,A);CHKERRQ(ierr);
-  if (n<ml) {
-    /* the rest of the factorization */
-    for (i=n;i<ml;i++) {
-      ierr = BVGetColumn(S,i,&v);CHKERRQ(ierr);
-      ierr = BVOrthogonalizeVec(S,v,pA+i*n,NULL,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(S,i,&v);CHKERRQ(ierr);
-    }
-  }
-  ierr = PetscBLASIntCast(n,&lda);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
-  ierr = PetscMalloc2(5*ml,&work,5*ml,&rwork);CHKERRQ(ierr);
-  lwork = 5*m;
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O","N",&lda,&m,pA,&lda,ctx->sigma,NULL,&lda,NULL,&lda,work,&lwork,rwork,&info));
-  SlepcCheckLapackInfo("gesvd",info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  (*K) = 0;
-  for (i=0;i<n;i++) {
-    if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
-  }
-  /* n first columns of A have the left singular vectors */
-  ierr = BVMultInPlace(S,A,0,*K);CHKERRQ(ierr);
-  ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode SVD_S_CAA(NEP nep,BV S,PetscScalar *pA,PetscInt *K)
-{
-  PetscErrorCode ierr;
-  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i,j,n,ml=ctx->L*ctx->M;
-  PetscBLASInt   m,k_,lda,lwork,info;
-  PetscScalar    *work,*T,*U,*R,sone=1.0,zero=0.0;
-  PetscReal      *rwork;
-  Mat            A;
-
-  PetscFunctionBegin;
-  /* Compute QR factorizaton of S */
-  ierr = BVGetSizes(S,NULL,&n,NULL);CHKERRQ(ierr);
-  if (n<ml) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This extraction strategy does not support problem size n < m*L");
-  ierr = BVSetActiveColumns(S,0,ml);CHKERRQ(ierr);
-  ierr = PetscArrayzero(pA,ml*ml);CHKERRQ(ierr);
-  ierr = MatCreateDense(PETSC_COMM_SELF,ml,ml,PETSC_DECIDE,PETSC_DECIDE,pA,&A);CHKERRQ(ierr);
-  ierr = BVOrthogonalize(S,A);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-
-  /* SVD of first (m-1)*L diagonal block */
-  ierr = PetscBLASIntCast((ctx->M-1)*ctx->L,&m);CHKERRQ(ierr);
-  ierr = PetscMalloc5(m*m,&T,m*m,&R,m*m,&U,5*ml,&work,5*ml,&rwork);CHKERRQ(ierr);
-  for (j=0;j<m;j++) {
-    ierr = PetscArraycpy(R+j*m,pA+j*ml,m);CHKERRQ(ierr);
-  }
-  lwork = 5*m;
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&m,&m,R,&m,ctx->sigma,U,&m,NULL,&m,work,&lwork,rwork,&info));
-  SlepcCheckLapackInfo("gesvd",info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  (*K) = 0;
-  for (i=0;i<m;i++) {
-    if (ctx->sigma[i]/PetscMax(ctx->sigma[0],1)>ctx->delta) (*K)++;
-  }
-  ierr = MatCreateDense(PETSC_COMM_SELF,m,m,PETSC_DECIDE,PETSC_DECIDE,U,&A);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(S,0,m);CHKERRQ(ierr);
-  ierr = BVMultInPlace(S,A,0,*K);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  /* Projected linear sistem */
-  /* m first columns of A have the right singular vectors */
-  ierr = PetscBLASIntCast(*K,&k_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ml,&lda);CHKERRQ(ierr);
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&m,&k_,&m,&sone,pA+ctx->L*lda,&lda,R,&m,&zero,T,&m));
-  ierr = PetscArrayzero(pA,ml*ml);CHKERRQ(ierr);
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&k_,&k_,&m,&sone,U,&m,T,&m,&zero,pA,&k_));
-  for (j=0;j<k_;j++) for (i=0;i<k_;i++) pA[j*k_+i] /= ctx->sigma[j];
-  ierr = PetscFree5(T,R,U,work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -470,7 +345,9 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   for (i=0;i<ctx->refine_blocksize;i++) {
     ierr = BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
     ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
-    ierr = SVD_H0(nep,H0,&nv);CHKERRQ(ierr);
+    ierr = PetscLogEventBegin(NEP_CISS_SVD,nep,0,0,0);CHKERRQ(ierr);
+    ierr = CISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(NEP_CISS_SVD,nep,0,0,0);CHKERRQ(ierr);
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
@@ -503,15 +380,13 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
         ierr = BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
         ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
-        ierr = SVD_H0(nep,H0,&nv);CHKERRQ(ierr);
+        ierr = PetscLogEventBegin(NEP_CISS_SVD,nep,0,0,0);CHKERRQ(ierr);
+        ierr = CISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
+        ierr = PetscLogEventEnd(NEP_CISS_SVD,nep,0,0,0);CHKERRQ(ierr);
       } else {
         ierr = BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
-        if (ctx->extraction == NEP_CISS_EXTRACTION_CAA) {
-          /* compute svd of S and projected matrix problem */
-          ierr = SVD_S_CAA(nep,ctx->S,H0,&nv);CHKERRQ(ierr);
-        } else {
-          ierr = SVD_S(nep,ctx->S,H0,&nv);CHKERRQ(ierr);
-        }
+        /* compute SVD of S */
+        ierr = BVSVDAndRank(ctx->S,ctx->M,ctx->L,ctx->delta,(ctx->extraction==NEP_CISS_EXTRACTION_CAA)?BV_SVD_METHOD_QR_CAA:BV_SVD_METHOD_QR,H0,ctx->sigma,&nv);CHKERRQ(ierr);
       }
       if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
         ierr = BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);

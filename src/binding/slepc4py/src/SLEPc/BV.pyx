@@ -58,6 +58,18 @@ class BVMatMultType(object):
     VECS     = BV_MATMULT_VECS
     MAT      = BV_MATMULT_MAT
 
+class BVSVDMethod(object):
+    """
+    BV methods for computing the SVD
+
+    - `REFINE`: Based on the SVD of the cross product matrix S'*S, with refinement.
+    - `QR`:     Based on the SVD of the triangular factor of qr(S).
+    - `QR_CAA`: Variant of QR intended for use in cammunication-avoiding Arnoldi.
+    """
+    REFINE   = BV_SVD_METHOD_REFINE
+    QR       = BV_SVD_METHOD_QR
+    QR_CAA   = BV_SVD_METHOD_QR_CAA
+
 # -----------------------------------------------------------------------------
 
 cdef class BV(Object):

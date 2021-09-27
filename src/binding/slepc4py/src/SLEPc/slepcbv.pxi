@@ -27,6 +27,11 @@ cdef extern from * nogil:
         BV_MATMULT_VECS
         BV_MATMULT_MAT
 
+    ctypedef enum SlepcBVSVDMethod "BVSVDMethod":
+        BV_SVD_METHOD_REFINE
+        BV_SVD_METHOD_QR
+        BV_SVD_METHOD_QR_CAA
+
     int BVCreate(MPI_Comm,SlepcBV*)
     int BVCreateMat(SlepcBV,PetscMat*)
     int BVDuplicate(SlepcBV,SlepcBV*)

@@ -213,6 +213,26 @@ SLEPC_EXTERN PetscErrorCode BVSumQuadrature(BV,BV,PetscInt,PetscInt,PetscInt,Pet
 SLEPC_EXTERN PetscErrorCode BVDotQuadrature(BV,BV,PetscScalar*,PetscInt,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscSubcomm,PetscInt,PetscBool);
 SLEPC_EXTERN PetscErrorCode BVTraceQuadrature(BV,BV,PetscInt,PetscInt,PetscScalar*,VecScatter,PetscSubcomm,PetscInt,PetscBool,PetscReal*);
 
+/*E
+   BVSVDMethod - Different methods for computing the SVD of a BV
+
+   Notes:
+   Allowed values are
++  BV_SVD_METHOD_REFINE - based on the SVD of the cross product matrix S'*S, with refinement
+.  BV_SVD_METHOD_QR     - based on the SVD of the triangular factor of qr(S)
+-  BV_SVD_METHOD_QR_CAA - variant of QR intended for use in cammunication-avoiding Arnoldi
+
+   Level: developer
+
+.seealso: BVSVDAndRank()
+E*/
+typedef enum { BV_SVD_METHOD_REFINE,
+               BV_SVD_METHOD_QR,
+               BV_SVD_METHOD_QR_CAA } BVSVDMethod;
+SLEPC_EXTERN const char *BVSVDMethods[];
+
+SLEPC_EXTERN PetscErrorCode BVSVDAndRank(BV,PetscInt,PetscInt,PetscReal,BVSVDMethod,PetscScalar*,PetscReal*,PetscInt*);
+
 SLEPC_EXTERN PetscErrorCode BVCreateTensor(BV,PetscInt,BV*);
 SLEPC_EXTERN PetscErrorCode BVTensorBuildFirstColumn(BV,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVTensorCompress(BV,PetscInt);

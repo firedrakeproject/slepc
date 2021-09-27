@@ -74,6 +74,7 @@ PetscErrorCode NEPInitializePackage(void)
   ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPResolvent",NEP_CLASSID,&NEP_Resolvent);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("NEPCISS_SVD",NEP_CLASSID,&NEP_CISS_SVD);CHKERRQ(ierr);
   /* Process Info */
   classids[0] = NEP_CLASSID;
   ierr = PetscInfoProcessClass("nep",1,&classids[0]);CHKERRQ(ierr);
