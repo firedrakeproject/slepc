@@ -120,6 +120,6 @@ int main(int argc,char **argv)
          args: -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05
       test:
          suffix: ciss_2
-         args: -rg_type interval -rg_interval_endpoints -0.062,.038,-.13,-.03
+         args: -rg_type interval -rg_interval_endpoints -0.062,.038,-.13,-.03 -eps_max_it 1
 
 TEST*/

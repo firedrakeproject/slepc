@@ -229,7 +229,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     }
   }
   ctx->L = PetscMin(ctx->L,ctx->L_max);
-  if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
+  if (eps->max_it==PETSC_DEFAULT) eps->max_it = 5;
   if (eps->mpd==PETSC_DEFAULT) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
   if (eps->which!=EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only computing all eigenvalues");
