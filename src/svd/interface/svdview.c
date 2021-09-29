@@ -280,7 +280,7 @@ static PetscErrorCode SVDErrorView_DETAIL(SVD svd,SVDErrorType etype,PetscViewer
     ierr = SVDComputeError(svd,i,etype,&error);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"       % 6f          %12g\n",(double)sigma,(double)error);CHKERRQ(ierr);
   }
-  ierr = PetscViewerASCIIPrintf(viewer,sep);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"%s",sep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -385,7 +385,7 @@ static PetscErrorCode PEPErrorView_DETAIL(PEP pep,PEPErrorType etype,PetscViewer
       ierr = PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
     }
   }
-  ierr = PetscViewerASCIIPrintf(viewer,sep);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"%s",sep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
