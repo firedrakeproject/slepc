@@ -38,6 +38,7 @@ SLEPC_EXTERN void petscfinalize_(PetscErrorCode *ierr);
 PETSC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarguments,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len,PETSC_FORTRAN_CHARLEN_T helplen)
 {
   PetscBool flg;
+
   *ierr = 1;
   if (SlepcInitializeCalled) { *ierr = 0; return; }
 
@@ -51,10 +52,9 @@ PETSC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarg
 
   *ierr = SlepcCitationsInitialize();
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:SlepcCitationsInitialize()\n");return; }
-#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
+
   *ierr = SlepcInitialize_DynamicLibraries();
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing dynamic libraries\n");return; }
-#endif
 
   SlepcInitializeCalled = PETSC_TRUE;
   SlepcFinalizeCalled   = PETSC_FALSE;
@@ -64,12 +64,25 @@ PETSC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarg
 
 SLEPC_EXTERN void slepcfinalize_(PetscErrorCode *ierr)
 {
-  *ierr = PetscInfo(0,"SlepcFinalize called from Fortran\n");
+  PetscBool pFinalized;
+
+  *ierr = PetscFinalized(&pFinalized);
+  if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscFinalized failed");return; }
+  if (PetscUnlikely(!SlepcInitializeCalled)) {
+    (*PetscErrorPrintf)("SlepcInitialize() must be called before SlepcFinalize()");
+    return;
+  }
+
+  *ierr = PetscInfo(0,"SlepcFinalize() called from Fortran\n");
   if (*ierr) { (*PetscErrorPrintf)("SlepcFinalize:Calling PetscInfo()");return; }
   *ierr = 0;
   if (SlepcBeganPetsc) {
     petscfinalize_(ierr);
     if (*ierr) { (*PetscErrorPrintf)("SlepcFinalize:Calling petscfinalize_()");return; }
+    SlepcBeganPetsc = PETSC_FALSE;
+  } else if (!pFinalized) {
+    (*PetscErrorPrintf)("PetscFinalize() must be called before SlepcFinalize() because PETSc was initialized independently");
+    return;
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
