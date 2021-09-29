@@ -187,7 +187,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
     }
   }
   ctx->L = PetscMin(ctx->L,ctx->L_max);
-  if (nep->max_it==PETSC_DEFAULT) nep->max_it = 1;
+  if (nep->max_it==PETSC_DEFAULT) nep->max_it = 5;
   if (nep->mpd==PETSC_DEFAULT) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_ALL;
   if (nep->which!=NEP_ALL) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only computing all eigenvalues");
