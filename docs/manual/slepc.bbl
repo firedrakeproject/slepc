@@ -24,16 +24,17 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
   Practical Guide\/}.
 \newblock SIAM, Philadelphia.
 
-\bibitem[{Balay {\em et~al.\/}(2021)Balay, Abhyankar, Adams, Brown, Brune,
-  Buschelman, Dalcin, Eijkhout, Gropp, Karpeyev, Kaushik, Knepley, May,
-  McInnes, Mills, Munson, Rupp, Sanan, Smith, Zampini, Zhang, and
-  Zhang}]{Balay:2021:PUM}
-Balay, S., S.~Abhyankar, M.~Adams, J.~Brown, P.~Brune, K.~Buschelman,
-  L.~Dalcin, A.~Dener,V.~Eijkhout, W.~Gropp, D.~Karpeyev, D.~Kaushik, M.~Knepley,
-  D.~May, L.~C. McInnes, R.~Mills, T.~Munson, K.~Rupp, P.~Sanan, B.~Smith,
-  S.~Zampini, H.~Zhang, and H.~Zhang (2021).
-\newblock {PETSc} Users Manual.
-\newblock Technical Report ANL-95/11 - Revision 3.15, Argonne National
+\bibitem[{Balay {\em et~al.\/}(2021)Balay, Abhyankar, Adams, Benson, Brown, Brune,
+  Buschelman, Constantinescu, Dalcin, Dener, Eijkhout, Gropp, Hapla, Isaac, Jolivet,
+  Karpeyev, Kaushik, Knepley, Kong, Kruger, May, McInnes, Mills, Mitchell, Munson,
+  Roman, Rupp, Sanan, Sarich, Smith, Zampini, Zhang, Zhang, and Zhang}]{Balay:2021:PUM}
+Balay, S., S.~Abhyankar, M.~Adams, S.~Benson, J.~Brown, P.~Brune, K.~Buschelman,
+  E.~Constantinescu, L.~Dalcin, A.~Dener, V.~Eijkhout, W.~Gropp, V.~Hapla, T.~Isaac,
+  P.~Jolivet, D.~Karpeyev, D.~Kaushik, M.~Knepley, F.~Kong, S.~Kruger, D.~May,
+  L.~C. McInnes, R.~T. Mills, L.~Mitchell, T.~Munson, J.~E. Roman, K.~Rupp, P.~Sanan,
+  J.~Sarich, B.~Smith, S.~Zampini, H.~Zhang, H.~Zhang, and J.~Zhang (2021).
+\newblock {PETSc/TAO} Users Manual.
+\newblock Technical Report ANL-21/39 - Revision 3.16, Argonne National
   Laboratory.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and
