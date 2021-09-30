@@ -2,6 +2,8 @@
 
 ## [unreleased]
 
+## [3.16] - 2021-09-30
+
 ### Added
 
 - `SVD`: support for the GSVD in `SVDTRLANCZOS`, `SVDCROSS` and `SVDCYCLIC` solvers.
@@ -383,7 +385,8 @@
 - Classical and modified Gram-Schmidt orthogonalization use iterative refinement, with user options
   for parameter adjustment.
 
-[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.15...main
+[unreleased]: https://gitlab.com/slepc/slepc/compare/v3.16...main
+[3.16]: https://gitlab.com/slepc/slepc/compare/v3.15...v3.16
 [3.15]: https://gitlab.com/slepc/slepc/compare/v3.14...v3.15
 [3.14]: https://gitlab.com/slepc/slepc/compare/v3.13...v3.14
 [3.13]: https://gitlab.com/slepc/slepc/compare/v3.12...v3.13
