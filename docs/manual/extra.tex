@@ -506,7 +506,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\begin{description}
 	\setlength{\itemsep}{0pt}
 	\item[References.]\citep{Polizzi:2009:DAS}.
-	\item[Website.] \url{http://www.ecs.umass.edu/~polizzi/feast}.
+	\item[Website.] \url{https://feast-solver.org/}.
 	\item[Summary.] \feast is a numerical library for solving the standard or generalized symmetric eigenvalue problem, and obtaining all the eigenvalues and eigenvectors within a given search interval. It is based on an innovative fast and stable numerical algorithm which deviates fundamentally from the traditional Krylov subspace based iterations or Davidson-Jacobi techniques. The FEAST algorithm takes its inspiration from the density-matrix representation and contour integration technique in quantum mechanics. Latest versions also support non-symmetric problems.
 	\item[Installation.] We only support the \feast implementation included in Intel MKL. For using it from \slepc it is necessary to configure \petsc with MKL by adding the corresponding option, e.g., \Verb!--with-blas-lapack-dir=$MKLROOT!.
 	\item[Specific options.] The \slepc interface to \feast allows the user to specify the number of contour integration points with the function \ident{EPSFEASTSetNumPoints} or at run time with the option \Verb!-eps_feast_num_points <n>!.
