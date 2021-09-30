@@ -856,7 +856,7 @@ PETSC_STATIC_INLINE PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,Pet
   const PetscScalar *carr;
 
   PetscFunctionBegin;
-  ierr = BVCreateVec(U1,&u);
+  ierr = BVCreateVec(U1,&u);CHKERRQ(ierr);
   ierr = VecGetLocalSize(u,&m);CHKERRQ(ierr);
   ierr = BVGetRandomContext(U1,&rand);CHKERRQ(ierr);
   ierr = VecSetRandom(u,rand);CHKERRQ(ierr);
