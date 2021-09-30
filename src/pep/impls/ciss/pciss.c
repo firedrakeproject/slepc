@@ -297,7 +297,7 @@ PetscErrorCode PEPSolve_CISS(PEP pep)
     ierr = BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
     ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
     ierr = PetscLogEventBegin(PEP_CISS_SVD,pep,0,0,0);CHKERRQ(ierr);
-    ierr = CISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
+    ierr = SlepcCISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(PEP_CISS_SVD,pep,0,0,0);CHKERRQ(ierr);
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
@@ -330,7 +330,7 @@ PetscErrorCode PEPSolve_CISS(PEP pep)
         ierr = BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
         ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
         ierr = PetscLogEventBegin(PEP_CISS_SVD,pep,0,0,0);CHKERRQ(ierr);
-        ierr = CISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
+        ierr = SlepcCISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
         ierr = PetscLogEventEnd(PEP_CISS_SVD,pep,0,0,0);CHKERRQ(ierr);
       } else {
         ierr = BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
@@ -393,7 +393,7 @@ PetscErrorCode PEPSolve_CISS(PEP pep)
       ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
       ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      ierr = CISS_isGhost(X,nv,ctx->sigma,ctx->spurious_threshold,fl1);CHKERRQ(ierr);
+      ierr = SlepcCISS_isGhost(X,nv,ctx->sigma,ctx->spurious_threshold,fl1);CHKERRQ(ierr);
       ierr = MatDestroy(&X);CHKERRQ(ierr);
       ierr = RGCheckInside(pep->rg,nv,pep->eigr,pep->eigi,inside);CHKERRQ(ierr);
       for (i=0;i<nv;i++) {

@@ -29,8 +29,8 @@ PETSC_STATIC_INLINE PetscErrorCode CISS_BlockHankel(PetscScalar *Mu,PetscInt s,P
   PetscFunctionReturn(0);
 }
 
-SLEPC_EXTERN PetscErrorCode CISS_isGhost(Mat,PetscInt,PetscReal*,PetscReal,PetscBool*);
-SLEPC_EXTERN PetscErrorCode CISS_BH_SVD(PetscScalar*,PetscInt,PetscReal,PetscReal*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode SlepcCISS_isGhost(Mat,PetscInt,PetscReal*,PetscReal,PetscBool*);
+SLEPC_EXTERN PetscErrorCode SlepcCISS_BH_SVD(PetscScalar*,PetscInt,PetscReal,PetscReal*,PetscInt*);
 
 /* Data structures and functions for contour integral methods (used in several classes) */
 struct _n_SlepcContourData {
