@@ -42,12 +42,13 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-
-   test:
-      suffix: 2
-      args: -skip_petsc_finalize -error_output_none
-      TODO: shows an mpiexec error message in C++ jobs
+   testset:
+      output_file: output/test4_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 2
+         args: -skip_petsc_finalize
+         TODO: shows an mpiexec error message in C++ jobs
 
 TEST*/

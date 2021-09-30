@@ -64,9 +64,6 @@ PETSC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarg
 
 SLEPC_EXTERN void slepcfinalize_(PetscErrorCode *ierr)
 {
-  PetscBool pFinalized;
-
-  *ierr = PetscFinalized(&pFinalized);
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscFinalized failed");return; }
   if (PetscUnlikely(!SlepcInitializeCalled)) {
     (*PetscErrorPrintf)("SlepcInitialize() must be called before SlepcFinalize()");
@@ -80,9 +77,6 @@ SLEPC_EXTERN void slepcfinalize_(PetscErrorCode *ierr)
     petscfinalize_(ierr);
     if (*ierr) { (*PetscErrorPrintf)("SlepcFinalize:Calling petscfinalize_()");return; }
     SlepcBeganPetsc = PETSC_FALSE;
-  } else if (!pFinalized) {
-    (*PetscErrorPrintf)("PetscFinalize() must be called before SlepcFinalize() because PETSc was initialized independently");
-    return;
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;

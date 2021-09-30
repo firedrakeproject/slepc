@@ -1,3 +1,0 @@
-PetscInitialized=1, SlepcInitialized=0.
-PetscInitialized=1, SlepcInitialized=1.
-SlepcFinalize() returned with error code 73
