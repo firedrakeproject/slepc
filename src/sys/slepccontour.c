@@ -166,7 +166,7 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
 }
 
 /*
-   CISS_isGhost - Determine if any of the computed eigenpairs are spurious.
+   SlepcCISS_isGhost - Determine if any of the computed eigenpairs are spurious.
 
    Input Parameters:
    X - the matrix of eigenvectors (MATSEQDENSE)
@@ -177,7 +177,7 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
    Output Parameter:
    fl - array of n booleans
 */
-PetscErrorCode CISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thresh,PetscBool *fl)
+PetscErrorCode SlepcCISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thresh,PetscBool *fl)
 {
   PetscErrorCode    ierr;
   const PetscScalar *pX;
@@ -206,7 +206,7 @@ PetscErrorCode CISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thresh,P
 }
 
 /*
-   CISS_BH_SVD - Compute SVD of block Hankel matrix and its rank.
+   SlepcCISS_BH_SVD - Compute SVD of block Hankel matrix and its rank.
 
    Input Parameters:
    H  - block Hankel matrix obtained via CISS_BlockHankel()
@@ -217,7 +217,7 @@ PetscErrorCode CISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thresh,P
    sigma - computed singular values
    rank  - the rank of H
 */
-PetscErrorCode CISS_BH_SVD(PetscScalar *H,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *rank)
+PetscErrorCode SlepcCISS_BH_SVD(PetscScalar *H,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *rank)
 {
   PetscErrorCode ierr;
   PetscInt       i;
