@@ -69,14 +69,15 @@ static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_sta
 {
   PetscErrorCode   ierr;
   EPS_CISS         *ctx = (EPS_CISS*)eps->data;
-  SlepcContourData contour = ctx->contour;
+  SlepcContourData contour;
   PetscInt         i,p_id;
   Mat              Fz,kspMat,MV,BMV=NULL,MC;
   KSP              ksp;
   const char       *prefix;
 
   PetscFunctionBegin;
-  if (!contour || !contour->ksp) { ierr = EPSCISSGetKSPs(eps,NULL,NULL);CHKERRQ(ierr); }
+  if (!ctx->contour || !ctx->contour->ksp) { ierr = EPSCISSGetKSPs(eps,NULL,NULL);CHKERRQ(ierr); }
+  contour = ctx->contour;
   if (ctx->usest) {
     ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
   }
