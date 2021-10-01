@@ -417,7 +417,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
         ierr = PetscArraycpy(S+j*lds,S+idxcpy*ld+j*lds,sr);CHKERRQ(ierr);
       }
     }
-    if (flg) PetscFree(A);CHKERRQ(ierr);
+    if (flg) { ierr = PetscFree(A);CHKERRQ(ierr); }
     for (i=0;i<pep->nmat-1;i++) {
       ierr = BVDestroy(&R[i]);CHKERRQ(ierr);
     }
