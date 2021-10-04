@@ -46,7 +46,7 @@ static PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar
 }
 
 /*
-    C := alpha*A*B + beta*C
+    C := alpha*A*Q + beta*C
 */
 PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
