@@ -12,10 +12,6 @@
 from __future__ import print_function
 import os, sys, time, shutil
 
-# Check python version
-if not hasattr(sys, 'version_info') or sys.version_info < (2,7):
-  sys.exit('ERROR: Python version 2.7 or higher is required')
-
 def WriteModulesFile(modules,version,sdir):
   ''' Write the contents of the Modules file '''
   modules.write('#%Module\n\n')
