@@ -303,8 +303,9 @@ PetscErrorCode SlepcFinalize(void)
 
   PetscFunctionBegin;
   if (PetscUnlikely(!SlepcInitializeCalled)) {
-    fprintf(stderr,"SlepcInitialize() must be called before SlepcFinalize()\n");
-    PetscFunctionReturn(PETSC_ERR_ARG_WRONGSTATE);
+    fprintf(PETSC_STDOUT,"SlepcInitialize() must be called before SlepcFinalize()\n");
+    PetscStackClearTop;
+    return PETSC_ERR_ARG_WRONGSTATE;
   }
   ierr = PetscInfo(NULL,"SlepcFinalize() called\n");CHKERRQ(ierr);
   if (SlepcBeganPetsc) {
@@ -313,7 +314,9 @@ PetscErrorCode SlepcFinalize(void)
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
-  PetscFunctionReturn(ierr);
+  /* To match PetscFunctionBegin() at the beginning of this function */
+  PetscStackClearTop;
+  return ierr;
 }
 
 /*@C
