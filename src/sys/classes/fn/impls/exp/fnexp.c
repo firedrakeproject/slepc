@@ -960,7 +960,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
   cudaError_t    cerr;
 
   PetscFunctionBegin;
-  ierr = PetscCUDAInitializeCheck();CHKERRQ(ierr); /* For CUDA event timers */
+  ierr = PetscDeviceInitialize(PETSC_DEVICE_CUDA);CHKERRQ(ierr); /* For CUDA event timers */
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
@@ -1122,7 +1122,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
   magma_int_t    mierr;
 
   PetscFunctionBegin;
-  ierr = PetscCUDAInitializeCheck();CHKERRQ(ierr); /* For CUDA event timers */
+  ierr = PetscDeviceInitialize(PETSC_DEVICE_CUDA);CHKERRQ(ierr); /* For CUDA event timers */
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   magma_init();
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
@@ -1256,7 +1256,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   magma_int_t       mierr;
 
   PetscFunctionBegin;
-  ierr = PetscCUDAInitializeCheck();CHKERRQ(ierr); /* For CUDA event timers */
+  ierr = PetscDeviceInitialize(PETSC_DEVICE_CUDA);CHKERRQ(ierr); /* For CUDA event timers */
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   magma_init();
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
@@ -1426,7 +1426,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   magma_int_t    mierr;
 
   PetscFunctionBegin;
-  ierr = PetscCUDAInitializeCheck();CHKERRQ(ierr); /* For CUDA event timers */
+  ierr = PetscDeviceInitialize(PETSC_DEVICE_CUDA);CHKERRQ(ierr); /* For CUDA event timers */
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   magma_init();
   ierr = MatGetSize(A,&n_,NULL);CHKERRQ(ierr);

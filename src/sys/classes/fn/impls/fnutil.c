@@ -343,7 +343,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   cudaError_t        cerr;
 
   PetscFunctionBegin;
-  ierr = PetscCUDAInitializeCheck();CHKERRQ(ierr); /* For CUDA event timers */
+  ierr = PetscDeviceInitialize(PETSC_DEVICE_CUDA);CHKERRQ(ierr); /* For CUDA event timers */
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   N = n*n;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
@@ -443,7 +443,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
   magma_int_t    mierr;
 
   PetscFunctionBegin;
-  ierr = PetscCUDAInitializeCheck();CHKERRQ(ierr); /* For CUDA event timers */
+  ierr = PetscDeviceInitialize(PETSC_DEVICE_CUDA);CHKERRQ(ierr); /* For CUDA event timers */
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   magma_init();
   N = n*n;
