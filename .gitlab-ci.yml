@@ -136,7 +136,7 @@ gnu-c-complex-nompi-int64:
 gnu-c99-mlib-static:
   extends: .stage-1
   tags:
-    - linux-fedora
+    - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 --CFLAGS=-std=c99
     TEST_SEARCH: eps_tests-test10_1
@@ -446,10 +446,10 @@ gnu-c-complex:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora
+    - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-petsc4py
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-blopex --with-packages-download-dir=/var/local/downloads --with-slepc4py
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --download-primme --download-blopex --with-packages-download-dir=/var/local/downloads --with-slepc4py
     SLEPC4PY: 1
 
 gnu-c:
