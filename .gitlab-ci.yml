@@ -429,7 +429,7 @@ gnu-c-c99-nompi:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --CFLAGS='-std=c99 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0 --download-sowing --with-mpi=0
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-lib=/usr/local/opt/ARPACK/libparpack.a,/usr/local/opt/ARPACK/libarpack.a,-lgfortran,-lmpi_usempif08,-lmpi_usempi_ignore_tkr,-lmpi_mpifh,-lmpi --with-blopex-dir=/usr/local/opt/blopex --with-trlan-dir=/usr/local/opt/trlan-201009 --with-packages-download-dir=/var/local/downloads --download-primme --download-primme-cflags=-std=c99
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-blopex-dir=/usr/local/opt/blopex --with-trlan-dir=/usr/local/opt/trlan-201009 --with-packages-download-dir=/var/local/downloads --download-primme --download-primme-cflags=-std=c99
 
 clang-c-valgrind:
   extends:
@@ -548,7 +548,7 @@ nvidia-c-nompi:
     MAKE_CFLAGS: ''
     MAKE_CXXFLAGS: ''
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/pgcc --with-fc=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/pgfortran --with-cxx=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/pgc++ --with-blaslapack-dir=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib --with-mpi=0
+    PETSC_CONFIG_OPTS: --with-cc=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgcc --with-fc=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgfortran --with-cxx=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgc++ --with-blaslapack-dir=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/lib --with-mpi=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme=/var/local/downloads/primme-3.2.tar.gz
 
 #
