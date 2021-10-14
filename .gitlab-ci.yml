@@ -586,7 +586,7 @@ nvidia-c-complex-nompi:
     MAKE_CFLAGS: ''
     MAKE_CXXFLAGS: ''
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/pgcc --with-fc=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/pgfortran --with-cxx=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/bin/pgc++ --with-blaslapack-dir=/opt/nvidia/hpc_sdk/Linux_x86_64/20.9/compilers/lib --with-scalar-type=complex --with-mpi=0
+    PETSC_CONFIG_OPTS: --with-cc=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgcc --with-fc=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgfortran --with-cxx=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgc++ --with-blaslapack-dir=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/lib --with-scalar-type=complex --with-mpi=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme
 
 intel-c-mkl-install:
