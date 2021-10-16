@@ -53,10 +53,10 @@ variables:
     - export SLEPC_DIR=$PWD
     - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
     - cd ..
-    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
+    - if [ ! -d petsc ]; then git clone --depth 5 https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
     - git clean -ffdxq
-    - git fetch
+    - git fetch --depth=5
     - |
       if [ -z ${PETSC_BRANCH+x} ]; then
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
@@ -167,10 +167,10 @@ gnu-lint:
     - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
     - cd ..
     - if [ ! -z ${INSTALL+x} ]; then export INSTALL_DIR=$PWD/install; rm -rf $INSTALL_DIR; fi
-    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
+    - if [ ! -d petsc ]; then git clone --depth 5 https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
     - git clean -ffdxq
-    - git fetch
+    - git fetch --depth=5
     - |
       if [ -z ${PETSC_BRANCH+x} ]; then
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
@@ -581,7 +581,7 @@ nvidia-c-complex-nompi:
     - .stage-3-sched
     - .linux_test
   tags:
-    - compiler:nvidia
+    - linux-debian, compiler:nvidia
   variables:
     MAKE_CFLAGS: ''
     MAKE_CXXFLAGS: ''
