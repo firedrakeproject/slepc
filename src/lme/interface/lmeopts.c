@@ -51,6 +51,7 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char opt[],const char name
   ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
   ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(LMEMonitorList,key,&mfunc);CHKERRQ(ierr);
+  if (!mfunc) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"Specified viewer and format not supported");
   ierr = PetscFunctionListFind(LMEMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(LMEMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
