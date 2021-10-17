@@ -557,9 +557,9 @@ The default is to use the criterion relative to the eigenvalue (note: for comput
     11 EPS nconv=2 first unconverged value (error) -0.671923+2.52712i (8.92724972e-05)
 \end{Verbatim}
 
-	Graphical monitoring (in an X display) is also available with \Verb!-eps_monitor draw:draw_lg!. Figure \ref{fig:plot} (left) shows the result of the following sample command line:
+	Graphical monitoring (in an X display) is also available with \Verb!-eps_monitor draw::draw_lg!. Figure \ref{fig:plot} (left) shows the result of the following sample command line:
 \begin{Verbatim}[fontsize=\footnotesize,numbers=none]
-   $ ./ex9 -n 200 -eps_nev 12 -eps_tol 1e-12 -eps_monitor draw:draw_lg -draw_pause .2
+   $ ./ex9 -n 200 -eps_nev 12 -eps_tol 1e-12 -eps_monitor draw::draw_lg -draw_pause .2
 \end{Verbatim}
 Again, only the error estimate of one eigenvalue is drawn. The spikes in the last part of the plot indicate convergence of one eigenvalue and switching to the next.
 
