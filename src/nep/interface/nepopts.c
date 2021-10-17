@@ -52,6 +52,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name
   ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
   ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(NEPMonitorList,key,&mfunc);CHKERRQ(ierr);
+  if (!mfunc) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Specified viewer and format not supported");
   ierr = PetscFunctionListFind(NEPMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(NEPMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
