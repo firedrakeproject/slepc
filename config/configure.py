@@ -88,7 +88,7 @@ import slepc, petsc
 slepc = slepc.SLEPc(argdb,log)
 petsc = petsc.PETSc(argdb,log)
 
-# Check enviroment and PETSc version
+# Check environment and PETSc version
 if not showhelp:
   log.Print('Checking environment...')
   petsc.InitDir(slepc.prefixdir)

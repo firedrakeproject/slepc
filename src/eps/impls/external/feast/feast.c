@@ -174,7 +174,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }
-    } else if (ijob && ijob!=-2) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in FEAST reverse comunication interface (ijob=%d)",ijob);
+    } else if (ijob && ijob!=-2) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in FEAST reverse communication interface (ijob=%d)",ijob);
 
   } while (ijob);
 

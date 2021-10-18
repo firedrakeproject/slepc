@@ -399,7 +399,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
    operation, so they are intended for removing those directions from the
    orthogonal basis computed in regular BV columns.
 
-   Constraints are not stored in regular BV colums, but in a special part of
+   Constraints are not stored in regular BV columns, but in a special part of
    the storage. They can be accessed with negative indices in BVGetColumn().
 
    This operation is DESTRUCTIVE, meaning that all data contained in the

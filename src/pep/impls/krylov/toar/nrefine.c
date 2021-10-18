@@ -893,7 +893,7 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
     }
   } else At = pep->A;
 
-  /* Main loop for computing the ith columns of dX and dS */
+  /* Main loop for computing the i-th columns of dX and dS */
   for (i=0;i<k;i++) {
     /* Compute and update i-th column of the right hand side */
     ierr = PetscArrayzero(Rh,k);CHKERRQ(ierr);
@@ -1442,7 +1442,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)dV);CHKERRQ(ierr);
   if (pep->scheme!=PEP_REFINE_SCHEME_SCHUR) {
     ierr = PetscMalloc1(1,&matctx);CHKERRQ(ierr);
-    if (nsubc>1) { /* spliting in subcommunicators */
+    if (nsubc>1) { /* splitting in subcommunicators */
       matctx->subc = pep->refinesubc;
       ierr = NRefSubcommSetup(pep,k,matctx,nsubc);CHKERRQ(ierr);
     } else matctx->subc=NULL;

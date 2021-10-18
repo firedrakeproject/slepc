@@ -217,7 +217,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 
       ierr = VecResetArray(x);CHKERRQ(ierr);
       ierr = VecResetArray(y);CHKERRQ(ierr);
-    } else if (ido != 99) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in ARPACK reverse comunication interface (ido=%d)",ido);
+    } else if (ido != 99) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in ARPACK reverse communication interface (ido=%d)",ido);
 
   } while (ido != 99);
 

@@ -338,7 +338,7 @@ PetscErrorCode FNGetScale(FN fn,PetscScalar *alpha,PetscScalar *beta)
 
    Input Parameters:
 +  fn   - the math function context
--  meth - an index indentifying the method
+-  meth - an index identifying the method
 
    Options Database Key:
 .  -fn_method <meth> - Sets the method

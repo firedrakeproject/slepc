@@ -258,7 +258,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
    matrix that represents the shifted matrix. This mode is the most efficient
    in creating the shifted matrix but it places serious limitations to the
    linear solves performed in each iteration of the eigensolver (typically,
-   only interative solvers with Jacobi preconditioning can be used).
+   only iterative solvers with Jacobi preconditioning can be used).
 
    In the two first modes the efficiency of the computation
    can be controlled with STSetMatStructure().

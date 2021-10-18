@@ -34,7 +34,7 @@
 #endif
 
 typedef struct {
-  primme_params        primme;    /* param struc */
+  primme_params        primme;    /* param struct */
   PetscInt             bs;        /* block size */
   primme_preset_method method;    /* primme method */
   Mat                  A,B;       /* problem matrices */

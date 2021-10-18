@@ -80,7 +80,7 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,
 /*
   SlepcViewEigenvector - Outputs an eigenvector xr,xi to a viewer.
   In complex scalars only xr is written.
-  The name of xr,xi is set before writting, based on the label, the index, and the name of obj.
+  The name of xr,xi is set before writing, based on the label, the index, and the name of obj.
 */
 PETSC_STATIC_INLINE PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec xi,const char *label,PetscInt index,PetscObject obj)
 {

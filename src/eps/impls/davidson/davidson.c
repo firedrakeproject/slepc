@@ -88,7 +88,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   dvd->A = A; dvd->B = eps->isgeneralized? B: NULL;
   ispositive = eps->ispositive;
   dvd->sA = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN: 0) | ((ispositive && !eps->isgeneralized) ? DVD_MAT_POS_DEF: 0);
-  /* Asume -eps_hermitian means hermitian-definite in generalized problems */
+  /* Assume -eps_hermitian means hermitian-definite in generalized problems */
   if (!ispositive && !eps->isgeneralized && eps->ishermitian) ispositive = PETSC_TRUE;
   if (!eps->isgeneralized) dvd->sB = DVD_MAT_IMPLICIT | DVD_MAT_HERMITIAN | DVD_MAT_IDENTITY | DVD_MAT_UNITARY | DVD_MAT_POS_DEF;
   else dvd->sB = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN: 0) | (ispositive? DVD_MAT_POS_DEF: 0);

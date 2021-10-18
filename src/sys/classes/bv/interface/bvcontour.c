@@ -95,7 +95,7 @@ PetscErrorCode BVScatter(BV Vin,BV Vout,VecScatter scat,Vec xdup)
    the width of the panels in Y.
 
    When using subcommunicators, Y is stored in the subcommunicators for a subset
-   of intergration points. In that case, the computation is done in the subcomm
+   of integration points. In that case, the computation is done in the subcomm
    and then scattered to the whole communicator in S using the VecScatter scat.
    The value npoints is the number of points to be processed in this subcomm
    and the flag useconj indicates whether symmetric points can be reused.
@@ -177,7 +177,7 @@ PetscErrorCode BVSumQuadrature(BV S,BV Y,PetscInt M,PetscInt L,PetscInt L_max,Pe
    the width of the panels in Y.
 
    When using subcommunicators, Y is stored in the subcommunicators for a subset
-   of intergration points. In that case, the computation is done in the subcomm
+   of integration points. In that case, the computation is done in the subcomm
    and then the final result is combined via reduction.
    The value npoints is the number of points to be processed in this subcomm
    and the flag useconj indicates whether symmetric points can be reused.
@@ -263,7 +263,7 @@ PetscErrorCode BVDotQuadrature(BV Y,BV V,PetscScalar *Mu,PetscInt M,PetscInt L,P
    computed by BVSumQuadrature().
 
    When using subcommunicators, Y is stored in the subcommunicators for a subset
-   of intergration points. In that case, the computation is done in the subcomm
+   of integration points. In that case, the computation is done in the subcomm
    and then scattered to the whole communicator in S using the VecScatter scat.
    The value npoints is the number of points to be processed in this subcomm
    and the flag useconj indicates whether symmetric points can be reused.

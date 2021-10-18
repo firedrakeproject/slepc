@@ -10,8 +10,8 @@
 
 static char help[] = "Solves a GSVD problem with matrices loaded from a file.\n"
   "The command line options are:\n"
-  "  -f1 <filename>, PETSc binary file containing matix A.\n"
-  "  -f2 <filename>, PETSc binary file containing matix B (optional).\n\n";
+  "  -f1 <filename>, PETSc binary file containing matrix A.\n"
+  "  -f2 <filename>, PETSc binary file containing matrix B (optional).\n\n";
 
 #include <slepcsvd.h>
 

@@ -113,7 +113,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
   nV  = kV - lV;
   cMT = nV - npreconv;
-  /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
+  /* Harmonics restarts with right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
@@ -174,7 +174,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 
   d->size_MT = nV;
   /* ps.Q <- orth([pX(0:size_X-1) [oldU(0:size_plusk-1); 0] ]) */
-  /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
+  /* Harmonics restarts with right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);

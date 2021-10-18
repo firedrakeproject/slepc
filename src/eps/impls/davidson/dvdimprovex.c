@@ -30,7 +30,7 @@ typedef struct {
   PetscReal    lastTol;            /* last tol for dynamic stopping criterion */
   PetscReal    fix;                /* tolerance for using the approx. eigenvalue */
   PetscBool    dynamic;            /* if the dynamic stopping criterion is applied */
-  dvdDashboard *d;                 /* the currect dvdDashboard reference */
+  dvdDashboard *d;                 /* the current dvdDashboard reference */
   PC           old_pc;             /* old pc in ksp */
   BV           KZ;                 /* KZ vecs for the projector KZ*inv(X'*KZ)*X' */
   BV           U;                  /* new X vectors */

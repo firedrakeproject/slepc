@@ -13,7 +13,7 @@ available in the slepc4py distribution, with comments inserted inline.
 
 The first thing to do is initialize the libraries. This is normally
 not required, as it is done automatically at import time. However, if
-you want to gain access to the facilities for accesing command-line
+you want to gain access to the facilities for accessing command-line
 options, the following lines must be executed by the main script prior
 to any petsc4py or slepc4py calls::
 

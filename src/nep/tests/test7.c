@@ -107,7 +107,7 @@ int main(int argc,char **argv)
     ierr = MatShellSetOperation(A[1],MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A[1],MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A1);CHKERRQ(ierr);
 
-    /* Define funcions for the split form */
+    /* Define functions for the split form */
     ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
     ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
     coeffs = 1.0;
