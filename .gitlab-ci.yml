@@ -512,7 +512,7 @@ gnu-c-coverage:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-debugging=1 --with-gcov=1 --CXXFLAGS='-O -g -std=c++11' --with-cxx-dialect=C++11
+    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-debugging=1 --with-gcov=1 --CXXFLAGS='-O -g' --with-cxx-dialect=11
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlanhttp://slepc.upv.es/download/external/trlan-201009.tar.gz --download-blopex --download-hpddm --download-evsl
     COVERAGE: 1
 
