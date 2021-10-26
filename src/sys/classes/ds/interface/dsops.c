@@ -1038,7 +1038,7 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   if (!ds->ops->transrks) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  ierr = PetscInfo1(ds,"Translating with alpha=%g\n",PetscRealPart(alpha));CHKERRQ(ierr);
+  ierr = PetscInfo1(ds,"Translating with alpha=%g\n",(double)PetscRealPart(alpha));CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->transrks)(ds,alpha);CHKERRQ(ierr);

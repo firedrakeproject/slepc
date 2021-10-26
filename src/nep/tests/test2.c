@@ -96,7 +96,7 @@ int main(int argc,char **argv)
   ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
   ierr = NEPSetSplitOperator(nep,3,A,f,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = NEPGetSplitOperatorInfo(nep,&nterm,&mstr);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Nonlinear function with %d terms, with %s\n",(int)nterm,MatStructures[mstr]);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Nonlinear function with %" PetscInt_FMT " terms, with %s\n",nterm,MatStructures[mstr]);CHKERRQ(ierr);
   ierr = NEPGetSplitOperatorTerm(nep,0,&B,&g);CHKERRQ(ierr);
   ierr = MatView(B,NULL);CHKERRQ(ierr);
   ierr = FNView(g,NULL);CHKERRQ(ierr);

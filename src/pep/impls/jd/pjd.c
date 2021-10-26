@@ -2011,7 +2011,7 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*pjd->keep));CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  threshold for changing the target in the correction equation (fix): %g\n",(double)pjd->fix);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  projection type: %s\n",PEPJDProjectionTypes[pjd->proj]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum allowed minimality index: %d\n",pjd->mmidx);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum allowed minimality index: %" PetscInt_FMT "\n",pjd->mmidx);CHKERRQ(ierr);
     if (pjd->reusepc) { ierr = PetscViewerASCIIPrintf(viewer,"  reusing the preconditioner\n");CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);

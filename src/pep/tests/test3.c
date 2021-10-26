@@ -78,7 +78,7 @@ int main(int argc,char **argv)
   ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
   ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
   ierr = PEPGetNumMatrices(pep,&nmat);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Polynomial of degree %d\n",(int)nmat-1);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Polynomial of degree %" PetscInt_FMT "\n",nmat-1);CHKERRQ(ierr);
   ierr = PEPGetOperators(pep,0,&B);CHKERRQ(ierr);
   ierr = MatView(B,NULL);CHKERRQ(ierr);
 

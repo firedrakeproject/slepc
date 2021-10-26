@@ -87,10 +87,10 @@ int main(int argc,char **argv)
   ierr = LMECreate(PETSC_COMM_WORLD,&lme);CHKERRQ(ierr);
   ierr = LMESetProblemType(lme,LME_SYLVESTER);CHKERRQ(ierr);
   ierr = LMEGetProblemType(lme,&ptype);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type set to %" PetscInt_FMT "\n",ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type set to %d\n",ptype);CHKERRQ(ierr);
   ierr = LMESetProblemType(lme,LME_LYAPUNOV);CHKERRQ(ierr);
   ierr = LMEGetProblemType(lme,&ptype);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type changed to %" PetscInt_FMT "\n",ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type changed to %d\n",ptype);CHKERRQ(ierr);
   ierr = LMESetCoefficients(lme,A,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = LMESetRHS(lme,C);CHKERRQ(ierr);
 

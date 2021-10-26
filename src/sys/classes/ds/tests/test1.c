@@ -76,7 +76,7 @@ int main(int argc,char **argv)
 
   ierr = DSGetType(ds,&type);CHKERRQ(ierr);
   ierr = DSGetMethod(ds,&method);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"DS of type %s, method used=%d\n",type,method);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"DS of type %s, method used=%" PetscInt_FMT "\n",type,method);CHKERRQ(ierr);
   ierr = DSGetState(ds,&state);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"State after solve: %s\n",DSStateTypes[state]);CHKERRQ(ierr);
 

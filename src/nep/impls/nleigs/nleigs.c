@@ -391,7 +391,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   /* Look for Leja-Bagby points in the discretization sets */
   s[0]    = ds[0];
   xi[0]   = (ndptx>0)?dxi[0]:PETSC_INFINITY;
-  if (PetscAbsScalar(xi[0])<10*PETSC_MACHINE_EPSILON) SETERRQ2(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point %" PetscInt_FMT " is nearly zero: %g; consider removing the singularity or shifting the problem",0,(double)PetscAbsScalar(xi[0]));
+  if (PetscAbsScalar(xi[0])<10*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point 0 is nearly zero: %g; consider removing the singularity or shifting the problem",(double)PetscAbsScalar(xi[0]));
   beta[0] = 1.0; /* scaling factors are also computed here */
   for (i=0;i<ndpt;i++) {
     nrs[i] = 1.0;

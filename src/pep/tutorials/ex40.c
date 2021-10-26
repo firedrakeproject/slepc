@@ -163,8 +163,8 @@ int main(int argc,char **argv)
     ierr = PEPCheckDefiniteQEP(pep,&xi,&mu,&def,&hyp);CHKERRQ(ierr);
     switch (def) {
       case 1:
-        if (hyp==1) {ierr = PetscPrintf(PETSC_COMM_WORLD,"Hyperbolic Problem xi=%g\n",xi);CHKERRQ(ierr);}
-        else {ierr = PetscPrintf(PETSC_COMM_WORLD,"Definite Problem xi=%g mu=%g\n",xi,mu);CHKERRQ(ierr);}
+        if (hyp==1) {ierr = PetscPrintf(PETSC_COMM_WORLD,"Hyperbolic Problem xi=%g\n",(double)xi);CHKERRQ(ierr);}
+        else {ierr = PetscPrintf(PETSC_COMM_WORLD,"Definite Problem xi=%g mu=%g\n",(double)xi,(double)mu);CHKERRQ(ierr);}
         break;
       case -1:
         ierr = PetscPrintf(PETSC_COMM_WORLD,"Not Definite Problem\n");CHKERRQ(ierr);

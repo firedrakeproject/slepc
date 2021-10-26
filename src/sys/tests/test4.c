@@ -20,11 +20,11 @@ int main(int argc,char **argv)
   ierr = PetscInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscInitialized(&pInitialized);CHKERRQ(ierr);
   ierr = SlepcInitialized(&sInitialized);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",pInitialized,sInitialized);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized);CHKERRQ(ierr);
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);CHKERRQ(ierr);
   ierr = PetscInitialized(&pInitialized);CHKERRQ(ierr);
   ierr = SlepcInitialized(&sInitialized);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",pInitialized,sInitialized);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-skip_petsc_finalize",&skip_petsc_finalize);CHKERRQ(ierr);
   if (!skip_petsc_finalize) {
     ierr = PetscFinalize();if (ierr) return ierr;
@@ -34,7 +34,7 @@ int main(int argc,char **argv)
   ierr = SlepcFinalized(&sFinalized);if (ierr) return ierr;
   if (sFinalized) printf("Unexpected value: SlepcFinalized() returned True before SlepcFinalize()\n");
   ierr = SlepcFinalize();
-  if (ierr) printf("SlepcFinalize() returned with error code %d\n",ierr);
+  if (ierr) printf("SlepcFinalize() returned with error code %d\n",(int)ierr);
   ierr = SlepcFinalized(&sFinalized);
   if (!sFinalized) printf("Unexpected value: SlepcFinalized() returned False after SlepcFinalize()\n");
   return ierr;

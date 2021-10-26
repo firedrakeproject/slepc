@@ -503,7 +503,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     p = pp;
     ierr = PetscBLASIntCast(mid*p,&colA);CHKERRQ(ierr);
 
-    ierr = PetscInfo2(ds,"Computing SVD of size %" PetscInt_FMT "x%" PetscInt_FMT "\n",rowA,colA);CHKERRQ(ierr);
+    ierr = PetscInfo2(ds,"Computing SVD of size %" PetscBLASInt_FMT "x%" PetscBLASInt_FMT "\n",rowA,colA);CHKERRQ(ierr);
     for (jj=0;jj<mid;jj++) {
       for (ii=0;ii<mid;ii++) {
         off = jj*p*rowA+ii*n;
@@ -618,7 +618,7 @@ static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
 
   PetscFunctionBegin;
   if (n<=0) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %" PetscInt_FMT,n);
-  if (n>DS_NUM_EXTRA) SETERRQ2(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %" PetscInt_FMT " but the limit is %" PetscInt_FMT,n,DS_NUM_EXTRA);
+  if (n>DS_NUM_EXTRA) SETERRQ2(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %" PetscInt_FMT " but the limit is %d",n,DS_NUM_EXTRA);
   if (ds->ld) { ierr = PetscInfo(ds,"DSNEPSetFN() called after DSAllocate()\n");CHKERRQ(ierr); }
   for (i=0;i<n;i++) {
     ierr = PetscObjectReference((PetscObject)fn[i]);CHKERRQ(ierr);

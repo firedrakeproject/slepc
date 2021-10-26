@@ -105,7 +105,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Using full basis = %s\n",fb?"true":"false");CHKERRQ(ierr);
   ierr = NEPNLEIGSGetRKShifts(nep,&ns,&rkshifts);CHKERRQ(ierr);
   if (ns) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Using %d RK shifts =",ns);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Using %" PetscInt_FMT " RK shifts =",ns);CHKERRQ(ierr);
     for (i=0;i<ns;i++) {
       ierr = PetscPrintf(PETSC_COMM_WORLD," %g",(double)PetscRealPart(rkshifts[i]));CHKERRQ(ierr);
     }

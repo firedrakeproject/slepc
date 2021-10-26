@@ -162,7 +162,7 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPValuesViewFromOptions(pep);CHKERRQ(ierr);
   ierr = PEPVectorsViewFromOptions(pep);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
-    ierr = PetscSNPrintf(str,sizeof(str),"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
+    ierr = PetscSNPrintf(str,sizeof(str),"-pep_view_mat%" PetscInt_FMT,i);CHKERRQ(ierr);
     ierr = MatViewFromOptions(pep->A[i],(PetscObject)pep,str);CHKERRQ(ierr);
   }
 

@@ -102,7 +102,7 @@ int main(int argc,char **argv)
   ierr = LMESetRHS(lme,C);CHKERRQ(ierr);
 
   if (rank) {  /* Create X only if the user has specified a nonzero value of rank */
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Computing a solution with prescribed rank=%d\n",rank);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Computing a solution with prescribed rank=%" PetscInt_FMT "\n",rank);CHKERRQ(ierr);
     ierr = MatCreate(PETSC_COMM_WORLD,&X1);CHKERRQ(ierr);
     ierr = MatSetSizes(X1,PETSC_DECIDE,PETSC_DECIDE,N,rank);CHKERRQ(ierr);
     ierr = MatSetType(X1,MATDENSE);CHKERRQ(ierr);
@@ -137,7 +137,7 @@ int main(int argc,char **argv)
     ierr = LMEGetSolution(lme,&X);CHKERRQ(ierr);
     ierr = MatLRCGetMats(X,NULL,&X1,NULL,NULL);CHKERRQ(ierr);
     ierr = MatGetSize(X1,NULL,&rank);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," The solver has computed a solution with rank=%d\n",rank);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," The solver has computed a solution with rank=%" PetscInt_FMT "\n",rank);CHKERRQ(ierr);
   }
 
   /*

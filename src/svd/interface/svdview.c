@@ -644,12 +644,12 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
     ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
     for (i=0;i<svd->nconv;i++) {
       k = svd->perm[i];
-      ierr = PetscSNPrintf(vname,sizeof(vname),"V%d_%s",(int)i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,sizeof(vname),"V%" PetscInt_FMT "_%s",i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
       ierr = BVRestoreColumn(svd->V,k,&x);CHKERRQ(ierr);
-      ierr = PetscSNPrintf(vname,sizeof(vname),"U%d_%s",(int)i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,sizeof(vname),"U%" PetscInt_FMT "_%s",i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->U,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);

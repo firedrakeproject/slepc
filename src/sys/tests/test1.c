@@ -24,7 +24,7 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initialize SLEPc.\n");CHKERRQ(ierr);
     ierr = SlepcInitialized(&isInitialized);CHKERRQ(ierr);
     ierr = SlepcFinalized(&isFinalized);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"SlepcInitialized=%d, SlepcFinalized=%d.\n",isInitialized,isFinalized);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"SlepcInitialized=%d, SlepcFinalized=%d.\n",(int)isInitialized,(int)isFinalized);CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"SLEPc was already initialized.\n");CHKERRQ(ierr);
   }

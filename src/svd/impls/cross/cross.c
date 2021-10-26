@@ -231,9 +231,9 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   for (i=0;i<svd->nconv;i++) {
     ierr = EPSGetEigenvalue(cross->eps,i,&lambda,NULL);CHKERRQ(ierr);
     sigma = PetscRealPart(lambda);
-    if (sigma<-10*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS: %g",sigma);
+    if (sigma<-10*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS: %g",(double)sigma);
     if (sigma<0.0) {
-      ierr = PetscInfo1(svd,"Negative eigenvalue computed by EPS: %g, resetting to 0\n",sigma);CHKERRQ(ierr);
+      ierr = PetscInfo1(svd,"Negative eigenvalue computed by EPS: %g, resetting to 0\n",(double)sigma);CHKERRQ(ierr);
       sigma = 0.0;
     }
     svd->sigma[i] = PetscSqrtReal(sigma);

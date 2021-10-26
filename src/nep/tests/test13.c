@@ -151,7 +151,7 @@ int main(int argc,char **argv)
 
   for (k=0;k<3;k++) {
     ierr = DSGetArray(ds,DSMatExtra[k],&M);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix E%d = \n",k);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix E%" PetscInt_FMT " = \n",k);CHKERRQ(ierr);
     for (i=0;i<nc;i++) {
       for (j=0;j<nc;j++) {
         ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5g",(double)PetscRealPart(M[i+j*nc]));CHKERRQ(ierr);

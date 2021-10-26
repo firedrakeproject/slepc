@@ -297,7 +297,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
     else if (liwork < liwmin) *info = -21;
   }
 
-  if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %d in DSBTDC",-(*info));
+  if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in DSBTDC",-(*info));
 
   /* Quick return if possible */
 
@@ -549,7 +549,7 @@ L20:
       /* check whether there is enough workspace */
 
       spneed = 2*nk*nk + nk * 6 + 1;
-      if (spneed > lwork) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: not enough workspace for DSYEVD, info = %d",lwork - 200 - spneed);
+      if (spneed > lwork) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: not enough workspace for DSYEVD, info = %" PetscBLASInt_FMT,lwork - 200 - spneed);
 
       PetscStackCallBLAS("LAPACKsyevd",LAPACKsyevd_("V", "L", &nk,
                     &z[np + np*ldz], &ldz, &ev[np],
@@ -613,7 +613,7 @@ L20:
                 &e[start*l2e*l1e], &iwork[start], l1e, l2e, tau2, &ev[np],
                 &z[np + np*ldz], ldz, work, lwork, &iwork[nblks-1], liwork, info, 1);
                 CHKERRQ(ierr);
-    if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: Error in DIBTDC, info = %d",*info);
+    if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: Error in DIBTDC, info = %" PetscBLASInt_FMT,*info);
 
 /* ************************************************************************** */
 
@@ -661,11 +661,11 @@ L20:
   /*    approximations).............................................. */
 
   *mingap = ev[1] - ev[0];
-  if (*mingap < 0.) SETERRQ2(PETSC_COMM_SELF,1,"dsbtdc: Eigenvalue approximations are not ordered properly. Approximation %d is larger than approximation %d.",1,2);
+  if (*mingap < 0.) SETERRQ(PETSC_COMM_SELF,1,"dsbtdc: Eigenvalue approximations are not ordered properly. Approximation 1 is larger than approximation 2.");
   *mingapi = 1;
   for (i = 2; i < n; ++i) {
     absdiff = ev[i] - ev[i-1];
-    if (absdiff < 0.) SETERRQ2(PETSC_COMM_SELF,1,"dsbtdc: Eigenvalue approximations are not ordered properly. Approximation %d is larger than approximation %d.",i,i+1);
+    if (absdiff < 0.) SETERRQ2(PETSC_COMM_SELF,1,"dsbtdc: Eigenvalue approximations are not ordered properly. Approximation %" PetscBLASInt_FMT " is larger than approximation %" PetscBLASInt_FMT ".",i,i+1);
     else if (absdiff < *mingap) {
       *mingap = absdiff;
       *mingapi = i;
