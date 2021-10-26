@@ -427,7 +427,7 @@ PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG 
     ki = VERTMAX;
     for (i=0;i<ki;i++) arrayi[i] = 0;
     ierr = PetscOptionsScalarArray("-rg_polygon_verticesi","Vertices of polygon (imaginary part)","RGPolygonSetVertices",arrayi,&ki,&flgi);CHKERRQ(ierr);
-    if (ki!=k) SETERRQ2(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"The number of real %D and imaginary %D parts do not match",k,ki);
+    if (ki!=k) SETERRQ2(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"The number of real %" PetscInt_FMT " and imaginary %" PetscInt_FMT " parts do not match",k,ki);
 #endif
     if (flg || flgi) { ierr = RGPolygonSetVertices(rg,k,array,arrayi);CHKERRQ(ierr); }
 

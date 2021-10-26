@@ -25,7 +25,7 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian plus diagonal, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian plus diagonal, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix for the 1-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -104,7 +104,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
   for (i=0;i<4;i++) {
     ierr = STMatMult(st,i,v,w);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"k= %D\n",i);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"k= %" PetscInt_FMT "\n",i);CHKERRQ(ierr);
     ierr = VecView(w,NULL);CHKERRQ(ierr);
   }
   ierr = STMatSolve(st,v,w);
@@ -118,7 +118,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
   for (i=0;i<4;i++) {
     ierr = STMatMult(st,i,v,w);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"k= %D\n",i);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"k= %" PetscInt_FMT "\n",i);CHKERRQ(ierr);
     ierr = VecView(w,NULL);CHKERRQ(ierr);
   }
   ierr = STMatSolve(st,v,w);
@@ -134,7 +134,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
   for (i=0;i<4;i++) {
     ierr = STMatMult(st,i,v,w);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"k= %D\n",i);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"k= %" PetscInt_FMT "\n",i);CHKERRQ(ierr);
     ierr = VecView(w,NULL);CHKERRQ(ierr);
   }
   ierr = STMatSolve(st,v,w);
@@ -148,7 +148,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
   for (i=0;i<4;i++) {
     ierr = STMatMult(st,i,v,w);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"k= %D\n",i);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"k= %" PetscInt_FMT "\n",i);CHKERRQ(ierr);
     ierr = VecView(w,NULL);CHKERRQ(ierr);
   }
   ierr = STMatSolve(st,v,w);

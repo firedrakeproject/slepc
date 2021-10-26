@@ -202,7 +202,7 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Phi_%D: ",ctx->k);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Phi_%" PetscInt_FMT ": ",ctx->k);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     if (fn->beta!=(PetscScalar)1.0) {
       ierr = SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE);CHKERRQ(ierr);
@@ -219,7 +219,7 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
     } else if (ctx->k==1) {
       ierr = PetscViewerASCIIPrintf(viewer,"(exp(%s)-1)/%s\n",strx,strx);CHKERRQ(ierr);
     } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"(phi_%D(%s)-1/%D!)/%s\n",ctx->k-1,strx,ctx->k-1,strx);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"(phi_%" PetscInt_FMT "(%s)-1/%" PetscInt_FMT "!)/%s\n",ctx->k-1,strx,ctx->k-1,strx);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
   }

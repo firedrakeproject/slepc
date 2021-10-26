@@ -31,8 +31,8 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-ky",&ky,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-ly",&ly,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"First BV with %D active columns (%D leading columns) of dimension %D.\n",kx,lx,n);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Second BV with %D active columns (%D leading columns) of dimension %D.\n",ky,ly,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"First BV with %" PetscInt_FMT " active columns (%" PetscInt_FMT " leading columns) of dimension %" PetscInt_FMT ".\n",kx,lx,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Second BV with %" PetscInt_FMT " active columns (%" PetscInt_FMT " leading columns) of dimension %" PetscInt_FMT ".\n",ky,ly,n);CHKERRQ(ierr);
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
@@ -162,7 +162,7 @@ int main(int argc,char **argv)
 
   /* Test BVNorm */
   ierr = BVNormColumn(X,lx,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm of X[%D] = %g\n",lx,(double)nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm of X[%" PetscInt_FMT "] = %g\n",lx,(double)nrm);CHKERRQ(ierr);
   ierr = BVNorm(X,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm of X = %g\n",(double)nrm);CHKERRQ(ierr);
 

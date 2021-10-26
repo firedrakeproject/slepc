@@ -32,7 +32,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nShifted 2-D Laplacian Eigenproblem, N=%D (%Dx%D grid) sigma=%.1f\n\n",N,n,m,(double)sigma);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nShifted 2-D Laplacian Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid) sigma=%.1f\n\n",N,n,m,(double)sigma);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Create the 2-D Laplacian
@@ -75,7 +75,7 @@ int main(int argc,char **argv)
   ierr = PetscObjectTypeCompare((PetscObject)eps,EPSLYAPII,&flag);CHKERRQ(ierr);
   if (flag) {
     ierr = EPSLyapIIGetRanks(eps,&rkc,&rkl);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," EPSLYAPII ranks: for Lyapunov solver=%D, after compression=%D\n\n",rkl,rkc);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," EPSLYAPII ranks: for Lyapunov solver=%" PetscInt_FMT ", after compression=%" PetscInt_FMT "\n\n",rkl,rkc);CHKERRQ(ierr);
   }
 
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);

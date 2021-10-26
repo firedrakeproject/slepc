@@ -403,7 +403,7 @@ PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
       ierr = PetscObjectGetName((PetscObject)ctx->A,&name);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s=%s;clear %s\n",bvname,name,name);CHKERRQ(ierr);
       if (bv->nc) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",bvname,bvname,bv->nc+1);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%" PetscInt_FMT ":end);\n",bvname,bvname,bv->nc+1);CHKERRQ(ierr);
       }
     }
   } else {

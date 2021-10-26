@@ -101,7 +101,7 @@ int main(int argc,char **argv)
      Get number of converged approximate eigenpairs
   */
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv);CHKERRQ(ierr);
   ierr = PetscMalloc2(nconv,&kr,nconv,&ki);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(t,3,&z);CHKERRQ(ierr);
   ierr = VecDuplicateVecs(t,nconv,&xr);CHKERRQ(ierr);

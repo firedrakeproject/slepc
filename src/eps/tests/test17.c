@@ -42,7 +42,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum-slicing test, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum-slicing test, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, Ax=kBx
@@ -127,14 +127,14 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)lock);CHKERRQ(ierr);
 
   ierr = EPSKrylovSchurGetDimensions(eps,&nev,&ncv,&mpd);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Sub-solve dimensions before changing = [%D,%D,%D]",nev,ncv,mpd);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Sub-solve dimensions before changing = [%" PetscInt_FMT ",%" PetscInt_FMT ",%" PetscInt_FMT "]",nev,ncv,mpd);CHKERRQ(ierr);
   ierr = EPSKrylovSchurSetDimensions(eps,30,60,60);CHKERRQ(ierr);
   ierr = EPSKrylovSchurGetDimensions(eps,&nev,&ncv,&mpd);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to [%D,%D,%D]\n",nev,ncv,mpd);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to [%" PetscInt_FMT ",%" PetscInt_FMT ",%" PetscInt_FMT "]\n",nev,ncv,mpd);CHKERRQ(ierr);
 
   if (size>1) {
     ierr = EPSKrylovSchurGetPartitions(eps,&npart);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Using %D partitions\n",npart);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Using %" PetscInt_FMT " partitions\n",npart);CHKERRQ(ierr);
 
     ierr = PetscMalloc1(npart+1,&subint);CHKERRQ(ierr);
     subint[0] = int0;
@@ -159,7 +159,7 @@ int main(int argc,char **argv)
   ierr = EPSKrylovSchurGetInertias(eps,&k,&shifts,&inertias);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Inertias after EPSSetUp:\n");CHKERRQ(ierr);
   for (i=0;i<k;i++) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree(shifts);CHKERRQ(ierr);
   ierr = PetscFree(inertias);CHKERRQ(ierr);
@@ -167,13 +167,13 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSGetInterval(eps,&int0,&int1);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Found %D eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Found %" PetscInt_FMT " eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
 
   if (showinertia) {
     ierr = EPSKrylovSchurGetInertias(eps,&k,&shifts,&inertias);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Used %D shifts (inertia):\n",k);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",k);CHKERRQ(ierr);
     for (i=0;i<k;i++) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(shifts);CHKERRQ(ierr);
     ierr = PetscFree(inertias);CHKERRQ(ierr);
@@ -189,7 +189,7 @@ int main(int argc,char **argv)
       evals[i] = PetscRealPart(lambda);
     }
     ierr = PetscFormatRealArray(vlist,sizeof(vlist),"%f",nval,evals);CHKERRQ(ierr);
-    ierr = PetscSynchronizedPrintf(PETSC_COMM_WORLD," Process %d has worked in sub-interval %D, containing %D eigenvalues: %s\n",(int)rank,k,nval,vlist);CHKERRQ(ierr);
+    ierr = PetscSynchronizedPrintf(PETSC_COMM_WORLD," Process %d has worked in sub-interval %" PetscInt_FMT ", containing %" PetscInt_FMT " eigenvalues: %s\n",(int)rank,k,nval,vlist);CHKERRQ(ierr);
     ierr = PetscSynchronizedFlush(PETSC_COMM_WORLD,PETSC_STDOUT);CHKERRQ(ierr);
     ierr = VecDestroy(&v);CHKERRQ(ierr);
     ierr = PetscFree(evals);CHKERRQ(ierr);
@@ -197,7 +197,7 @@ int main(int argc,char **argv)
     ierr = EPSKrylovSchurGetSubcommMats(eps,&As,&Bs);CHKERRQ(ierr);
     ierr = MatGetLocalSize(A,&nloc,NULL);CHKERRQ(ierr);
     ierr = MatGetLocalSize(As,&nlocs,&mlocs);CHKERRQ(ierr);
-    ierr = PetscSynchronizedPrintf(PETSC_COMM_WORLD," Process %d owns %D rows of the global matrices, and %D rows in the subcommunicator\n",(int)rank,nloc,nlocs);CHKERRQ(ierr);
+    ierr = PetscSynchronizedPrintf(PETSC_COMM_WORLD," Process %d owns %" PetscInt_FMT " rows of the global matrices, and %" PetscInt_FMT " rows in the subcommunicator\n",(int)rank,nloc,nlocs);CHKERRQ(ierr);
     ierr = PetscSynchronizedFlush(PETSC_COMM_WORLD,PETSC_STDOUT);CHKERRQ(ierr);
 
     /* modify A on subcommunicators */
@@ -217,7 +217,7 @@ int main(int argc,char **argv)
     ierr = EPSSolve(eps);CHKERRQ(ierr);
     ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
     ierr = EPSGetInterval(eps,&int0,&int1);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," After update, found %D eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," After update, found %" PetscInt_FMT " eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
   }
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);

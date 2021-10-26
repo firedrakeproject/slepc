@@ -445,7 +445,7 @@ PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
-    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial degree %D, max=%D\n",ctx->deg,ctx->maxdeg);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial degree %" PetscInt_FMT ", max=%" PetscInt_FMT "\n",ctx->deg,ctx->maxdeg);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance for norm of polynomial coefficients %g\n",ctx->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = PEPView(ctx->pep,viewer);CHKERRQ(ierr);

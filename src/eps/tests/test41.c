@@ -31,7 +31,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with EVSL, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with EVSL, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, Ax=kBx
@@ -83,7 +83,7 @@ int main(int argc,char **argv)
   ierr = EPSEVSLGetSlices(eps,&nslice);CHKERRQ(ierr);
   ierr = EPSGetInterval(eps,&a,&b);CHKERRQ(ierr);
   ierr = EPSEVSLGetRange(eps,&ra,&rb);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: solving interval [%g,%g] with %D slices (spectral range [%g,%g])\n",a,b,nslice,ra,rb);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: solving interval [%g,%g] with %" PetscInt_FMT " slices (spectral range [%g,%g])\n",a,b,nslice,ra,rb);CHKERRQ(ierr);
   ierr = EPSEVSLGetDamping(eps,&damping);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: damping type is %s\n",EPSEVSLDampings[damping]);CHKERRQ(ierr);
 

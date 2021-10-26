@@ -202,7 +202,7 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
   if (nconv<nest) {
     ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " NEP nconv=%" PetscInt_FMT " first unconverged value (error)",its,nconv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eigr[nconv]),(double)PetscImaginaryPart(eigr[nconv]));CHKERRQ(ierr);
@@ -255,7 +255,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
   if (its==1 && ((PetscObject)nep)->prefix) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)nep)->prefix);CHKERRQ(ierr);
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " NEP nconv=%" PetscInt_FMT " Values (Errors)",its,nconv);CHKERRQ(ierr);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
   for (i=0;i<nest;i++) {
 #if defined(PETSC_USE_COMPLEX)
@@ -315,7 +315,7 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
     ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP converged value (error) #%D",its,i);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " NEP converged value (error) #%" PetscInt_FMT,its,i);CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eigr[i]),(double)PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);

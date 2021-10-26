@@ -192,7 +192,7 @@ PetscErrorCode DSSortWithPermutation_NHEP_Private(DS ds,PetscInt *perm,PetscScal
     if (pos!=i) {
 #if !defined(PETSC_USE_COMPLEX)
       if ((T[pos+(pos-1)*ld] != 0.0 && perm[i+1]!=pos-1) || (T[pos+1+pos*ld] != 0.0 && perm[i+1]!=pos+1))
- SETERRQ1(PETSC_COMM_SELF,1,"Invalid permutation due to a 2x2 block at position %D",pos);
+ SETERRQ1(PETSC_COMM_SELF,1,"Invalid permutation due to a 2x2 block at position %" PetscInt_FMT,pos);
 #endif
       /* interchange blocks */
       ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);

@@ -50,7 +50,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
   h = PETSC_PI/(PetscReal)(n+1);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -147,7 +147,7 @@ int main(int argc,char **argv)
   ierr = PetscObjectTypeCompare((PetscObject)nep,NEPCISS,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = NEPCISSGetExtraction(nep,&ext);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Running CISS with %D KSP solvers (%s extraction)\n",nsolve,NEPCISSExtractions[ext]);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Running CISS with %" PetscInt_FMT " KSP solvers (%s extraction)\n",nsolve,NEPCISSExtractions[ext]);CHKERRQ(ierr);
   }
   ierr = NEPSolve(nep);CHKERRQ(ierr);
 

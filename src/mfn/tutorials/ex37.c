@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   diag = 2.0*(-2.0*epsilon/h2);
   lower = epsilon/h2-c/(2.0*h);
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nAdvection diffusion via y=exp(%g*A), n=%D, steps=%D, Peclet=%g\n\n",(double)PetscRealPart(t),n,steps,(double)peclet);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nAdvection diffusion via y=exp(%g*A), n=%" PetscInt_FMT ", steps=%" PetscInt_FMT ", Peclet=%g\n\n",(double)PetscRealPart(t),n,steps,(double)peclet);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Generate matrix A
@@ -103,11 +103,11 @@ int main(int argc,char **argv)
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",totits);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",totits);CHKERRQ(ierr);
   ierr = MFNGetDimensions(mfn,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %D\n",ncv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv);CHKERRQ(ierr);
   ierr = MFNGetTolerances(mfn,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%D\n",(double)tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
   ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n",(double)PetscRealPart(t)*steps,(double)norm);CHKERRQ(ierr);
 

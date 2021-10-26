@@ -199,7 +199,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
       ierr = DSGetTruncateSize(eps->ds,k,nv,&l);CHKERRQ(ierr);
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
-    if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
@@ -218,7 +218,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new Arnoldi factorization */
-        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         if (k<eps->nev) {
           ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
           ierr = EPSGetLeftStartVector(eps,k,&breakdownl);CHKERRQ(ierr);

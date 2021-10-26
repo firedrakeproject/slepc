@@ -491,12 +491,12 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
+        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = BVSetRandomColumn(svd->V,k);CHKERRQ(ierr);
           ierr = BVOrthonormalizeColumn(svd->V,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
@@ -692,12 +692,12 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
     if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
+        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
           ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
@@ -937,12 +937,12 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
     if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
+        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = SVDInitialVectorGUpper(svd,V,U1,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
@@ -1185,12 +1185,12 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
     if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%D)\n",svd->its);CHKERRQ(ierr);
+        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = SVDInitialVectorGLower(svd,V,U1,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {

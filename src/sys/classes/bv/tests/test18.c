@@ -35,7 +35,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV normalization with %D columns of length %D.\n",k,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV normalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n);CHKERRQ(ierr);
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);

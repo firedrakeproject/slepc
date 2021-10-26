@@ -30,7 +30,7 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-showinertia",&showinertia,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on PEP, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on PEP, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
@@ -134,10 +134,10 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)checket);CHKERRQ(ierr);
 
   ierr = PEPSTOARGetDimensions(pep,&nev,&ncv,&mpd);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Sub-solve dimensions before changing = [%D,%D,%D]",nev,ncv,mpd);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Sub-solve dimensions before changing = [%" PetscInt_FMT ",%" PetscInt_FMT ",%" PetscInt_FMT "]",nev,ncv,mpd);CHKERRQ(ierr);
   ierr = PEPSTOARSetDimensions(pep,30,60,60);CHKERRQ(ierr);
   ierr = PEPSTOARGetDimensions(pep,&nev,&ncv,&mpd);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to [%D,%D,%D]\n",nev,ncv,mpd);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to [%" PetscInt_FMT ",%" PetscInt_FMT ",%" PetscInt_FMT "]\n",nev,ncv,mpd);CHKERRQ(ierr);
 
   ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
 
@@ -149,7 +149,7 @@ int main(int argc,char **argv)
   ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Inertias (after setup):\n");CHKERRQ(ierr);
   for (i=0;i<ns;i++) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree(shifts);CHKERRQ(ierr);
   ierr = PetscFree(inertias);CHKERRQ(ierr);
@@ -157,13 +157,13 @@ int main(int argc,char **argv)
   ierr = PEPSolve(pep);CHKERRQ(ierr);
   ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PEPGetInterval(pep,&int0,&int1);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Found %D eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Found %" PetscInt_FMT " eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
 
   if (showinertia) {
     ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Used %D shifts (inertia):\n",ns);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",ns);CHKERRQ(ierr);
     for (i=0;i<ns;i++) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(shifts);CHKERRQ(ierr);
     ierr = PetscFree(inertias);CHKERRQ(ierr);

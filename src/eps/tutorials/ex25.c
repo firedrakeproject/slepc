@@ -39,7 +39,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetBool(NULL,NULL,"-show_inertias",&show,NULL);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on GHEP, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on GHEP, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, Ax=kBx
@@ -146,7 +146,7 @@ int main(int argc,char **argv)
   if (show) {
     ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Subintervals (after setup):\n");CHKERRQ(ierr);
-    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %D \n",(double)shifts[i],inertias[i]);CHKERRQ(ierr); }
+    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %" PetscInt_FMT " \n",(double)shifts[i],inertias[i]);CHKERRQ(ierr); }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
     ierr = PetscFree(shifts);CHKERRQ(ierr);
     ierr = PetscFree(inertias);CHKERRQ(ierr);
@@ -155,7 +155,7 @@ int main(int argc,char **argv)
   if (show) {
     ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"All shifts (after solve):\n");CHKERRQ(ierr);
-    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %D \n",(double)shifts[i],inertias[i]);CHKERRQ(ierr); }
+    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %" PetscInt_FMT " \n",(double)shifts[i],inertias[i]);CHKERRQ(ierr); }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
     ierr = PetscFree(shifts);CHKERRQ(ierr);
     ierr = PetscFree(inertias);CHKERRQ(ierr);
@@ -168,7 +168,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSGetInterval(eps,&inta,&intb);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," %D eigenvalues found in [%g, %g]\n",nev,(double)inta,(double)intb);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," %" PetscInt_FMT " eigenvalues found in [%g, %g]\n",nev,(double)inta,(double)intb);CHKERRQ(ierr);
 
   /*
      Show detailed info unless -terse option is given by user

@@ -822,9 +822,9 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
     }
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",DSStateTypes[ds->state]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%D, n=%D, l=%D, k=%D",ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%" PetscInt_FMT ", n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT,ds->ld,ds->n,ds->l,ds->k);CHKERRQ(ierr);
       if (ds->state==DS_STATE_TRUNCATED) {
-        ierr = PetscViewerASCIIPrintf(viewer,", t=%D\n",ds->t);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,", t=%" PetscInt_FMT "\n",ds->t);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
@@ -891,7 +891,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   PetscValidType(ds,1);
   if (ld<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
   if (ld!=ds->ld) {
-    ierr = PetscInfo1(ds,"Allocating memory with leading dimension=%D\n",ld);CHKERRQ(ierr);
+    ierr = PetscInfo1(ds,"Allocating memory with leading dimension=%" PetscInt_FMT "\n",ld);CHKERRQ(ierr);
     ierr = DSReset(ds);CHKERRQ(ierr);
     ds->ld = ld;
     ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);

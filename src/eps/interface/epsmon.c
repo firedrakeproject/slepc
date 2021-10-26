@@ -203,7 +203,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   if (nconv<nest) {
     ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS nconv=%" PetscInt_FMT " first unconverged value (error)",its,nconv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     er = eigr[nconv]; ei = eigi[nconv];
     ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
@@ -259,7 +259,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
   if (its==1 && ((PetscObject)eps)->prefix) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix);CHKERRQ(ierr);
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS nconv=%" PetscInt_FMT " Values (Errors)",its,nconv);CHKERRQ(ierr);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
   for (i=0;i<nest;i++) {
     er = eigr[i]; ei = eigi[i];
@@ -322,7 +322,7 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
     ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%3D EPS converged value (error) #%D",its,i);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS converged value (error) #%" PetscInt_FMT,its,i);CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
       er = eigr[i]; ei = eigi[i];
       ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);

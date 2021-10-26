@@ -229,7 +229,7 @@ PetscErrorCode FNSqrtmDenmanBeavers(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
       fnormT = LAPACKlange_("F",&n,&n,T,&n,rwork);
       ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
       reldiff = fnormdiff/fnormT;
-      ierr = PetscInfo4(fn,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
+      ierr = PetscInfo4(fn,"it: %" PetscBLASInt_FMT " reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
       if (reldiff<1e-2) scale = PETSC_FALSE;  /* Switch off scaling */
     }
 
@@ -299,7 +299,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
     Yres = LAPACKlange_("fro",&n,&n,Yold,&n,rwork);
     if (PetscIsNanReal(Yres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Yres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
+    ierr = PetscInfo2(fn,"it: %" PetscBLASInt_FMT " res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
     ierr = PetscLogFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
@@ -395,7 +395,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
     cberr = cublasXnrm2(cublasv2handle,N,d_Yold,one,&Yres);CHKERRCUBLAS(cberr);
     if (PetscIsNanReal(Yres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Yres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
+    ierr = PetscInfo2(fn,"it: %" PetscInt_FMT " res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
     ierr = PetscLogGpuFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
@@ -520,11 +520,11 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
       cberr = cublasXnrm2(cublasv2handle,N,d_T,one,&fnormT);CHKERRCUBLAS(cberr);
       ierr = PetscLogGpuFlops(7.0*n*n);CHKERRQ(ierr);
       reldiff = fnormdiff/fnormT;
-      ierr = PetscInfo4(fn,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
+      ierr = PetscInfo4(fn,"it: %" PetscInt_FMT " reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
       if (reldiff<1e-2) scale = PETSC_FALSE; /* Switch to no scaling. */
     }
 
-    ierr = PetscInfo2(fn,"it: %D Mres: %g\n",it,(double)Mres);
+    ierr = PetscInfo2(fn,"it: %" PetscInt_FMT " Mres: %g\n",it,(double)Mres);
     if (Mres<=tol) converged = PETSC_TRUE;
   }
 

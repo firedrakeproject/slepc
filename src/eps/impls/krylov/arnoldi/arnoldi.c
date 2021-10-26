@@ -122,7 +122,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     }
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
     if (eps->reason == EPS_CONVERGED_ITERATING && breakdown) {
-      ierr = PetscInfo2(eps,"Breakdown in Arnoldi method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
+      ierr = PetscInfo2(eps,"Breakdown in Arnoldi method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
       ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
       if (breakdown) {
         eps->reason = EPS_DIVERGED_BREAKDOWN;

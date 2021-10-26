@@ -55,7 +55,7 @@ int main(int argc,char **argv)
   if (!flag) m=n;
   ierr = PetscOptionsGetReal(NULL,NULL,"-target",&target,NULL);CHKERRQ(ierr);
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding, N=%D (%Dx%D grid) target=%f\n\n",N,n,m,(double)target);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid) target=%f\n\n",N,n,m,(double)target);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the 5-point stencil Laplacian
@@ -143,7 +143,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv);CHKERRQ(ierr);
   if (nconv>0) {
     ierr = PetscMalloc2(nconv,&evals,nconv,&error);CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
@@ -170,9 +170,9 @@ int main(int argc,char **argv)
       errok = PETSC_TRUE;
       for (i=0;i<nconv;i++) errok = (errok && error[i]<5.0*tol)? PETSC_TRUE: PETSC_FALSE;
       if (!errok) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nconv);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nconv);CHKERRQ(ierr);
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," nconv=%D eigenvalues computed up to the required tolerance:",nconv);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD," nconv=%" PetscInt_FMT " eigenvalues computed up to the required tolerance:",nconv);CHKERRQ(ierr);
         for (i=0;i<nconv;i++) {
           ierr = PetscPrintf(PETSC_COMM_WORLD," %.5f",(double)evals[i]);CHKERRQ(ierr);
         }

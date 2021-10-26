@@ -271,7 +271,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
   }
-  if (inertia) { ierr = PetscInfo2(eps,"Computed inertia at shift %g: %D\n",(double)nzshift,*inertia);CHKERRQ(ierr); }
+  if (inertia) { ierr = PetscInfo2(eps,"Computed inertia at shift %g: %" PetscInt_FMT "\n",(double)nzshift,*inertia);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -867,7 +867,6 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   EPS_shift       sPres;
   PetscBool       breakdown,complIterating,sch0,sch1;
   EPS_SR          sr = ctx->sr;
-  char            messg[100];
 
   PetscFunctionBegin;
   /* Spectrum slicing data */
@@ -980,7 +979,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Start a new Lanczos factorization */
-        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;
@@ -1027,8 +1026,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   sPres->comp[0] = PetscNot(count0 < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(count1 < sPres->nsch[1]);
-  ierr = PetscSNPrintf(messg,sizeof(messg),"Lanczos: %D evals in [%g,%g]%s and %D evals in [%g,%g]%s\n",count0,(double)(sr->dir==1)?sPres->ext[0]:sPres->value,(double)(sr->dir==1)?sPres->value:sPres->ext[0],(sPres->comp[0])?"*":"",count1,(double)(sr->dir==1)?sPres->value:sPres->ext[1],(double)(sr->dir==1)?sPres->ext[1]:sPres->value,(sPres->comp[1])?"*":"");CHKERRQ(ierr);
-  ierr = PetscInfo(eps,messg);CHKERRQ(ierr);
+  ierr = PetscInfo8(eps,"Lanczos: %" PetscInt_FMT " evals in [%g,%g]%s and %" PetscInt_FMT " evals in [%g,%g]%s\n",count0,(double)(sr->dir==1)?sPres->ext[0]:sPres->value,(double)(sr->dir==1)?sPres->value:sPres->ext[0],(sPres->comp[0])?"*":"",count1,(double)(sr->dir==1)?sPres->value:sPres->ext[1],(double)(sr->dir==1)?sPres->ext[1]:sPres->value,(sPres->comp[1])?"*":"");CHKERRQ(ierr);
   if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1]) InertiaMismatch(eps,ctx->detect);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);

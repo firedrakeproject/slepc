@@ -42,7 +42,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
   if (!flg) n=m+2;
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%D n=%D\n\n",m,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
@@ -78,7 +78,7 @@ int main(int argc,char **argv)
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   ierr = SVDPRIMMEGetBlockSize(svd,&bs);CHKERRQ(ierr);
   ierr = SVDPRIMMEGetMethod(svd,&meth);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," PRIMME: using block size %D, method %s\n",bs,SVDPRIMMEMethods[meth]);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," PRIMME: using block size %" PetscInt_FMT ", method %s\n",bs,SVDPRIMMEMethods[meth]);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up

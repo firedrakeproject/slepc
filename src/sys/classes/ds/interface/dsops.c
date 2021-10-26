@@ -161,7 +161,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
     ds->k = k;
   }
   if (on!=ds->n || ol!=ds->l || ok!=ds->k) {
-    ierr = PetscInfo3(ds,"New dimensions are: n=%D, l=%D, k=%D\n",ds->n,ds->l,ds->k);CHKERRQ(ierr);
+    ierr = PetscInfo3(ds,"New dimensions are: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -243,13 +243,13 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n,PetscBool trim)
   PetscValidLogicalCollectiveInt(ds,n,2);
   PetscValidLogicalCollectiveBool(ds,trim,3);
   if (!ds->ops->truncate) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (n<ds->l || n>ds->n) SETERRQ3(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n (%D). Must be between l (%D) and n (%D)",n,ds->l,ds->n);
+  if (n<ds->l || n>ds->n) SETERRQ3(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n (%" PetscInt_FMT "). Must be between l (%" PetscInt_FMT ") and n (%" PetscInt_FMT ")",n,ds->l,ds->n);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->truncate)(ds,n,trim);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscInfo2(ds,"Decomposition %s to size n=%D\n",trim?"trimmed":"truncated",ds->n);CHKERRQ(ierr);
+  ierr = PetscInfo2(ds,"Decomposition %s to size n=%" PetscInt_FMT "\n",trim?"trimmed":"truncated",ds->n);CHKERRQ(ierr);
   old = ds->state;
   ds->state = trim? DS_STATE_RAW: DS_STATE_TRUNCATED;
   if (old!=ds->state) {
@@ -659,7 +659,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscValidScalarPointer(eigr,2);
   if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(0);
   if (!ds->ops->solve[ds->method]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
-  ierr = PetscInfo3(ds,"Starting solve with problem sizes: n=%D, l=%D, k=%D\n",ds->n,ds->l,ds->k);CHKERRQ(ierr);
+  ierr = PetscInfo3(ds,"Starting solve with problem sizes: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Solve,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->solve[ds->method])(ds,eigr,eigi);CHKERRQ(ierr);

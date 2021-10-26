@@ -93,7 +93,7 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     if (ds->bs>1) {
-      ierr = PetscViewerASCIIPrintf(viewer,"block size: %D\n",ds->bs);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"block size: %" PetscInt_FMT "\n",ds->bs);CHKERRQ(ierr);
     }
     if (ds->method<nmeth) {
       ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]);CHKERRQ(ierr);
@@ -104,18 +104,18 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     rows = ds->extrarow? ds->n+1: ds->n;
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rows,ds->n);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",3*ds->n);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rows,ds->n);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%" PetscInt_FMT ",3);\n",3*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
       for (i=0;i<ds->n;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
       }
       for (i=0;i<rows-1;i++) {
         r = PetscMax(i+2,ds->k+1);
         c = i+1;
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",r,c,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",r,c,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
         if (i<ds->n-1 && ds->k<ds->n) { /* do not print vertical arrow when k=n */
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",c,r,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",c,r,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]);CHKERRQ(ierr);

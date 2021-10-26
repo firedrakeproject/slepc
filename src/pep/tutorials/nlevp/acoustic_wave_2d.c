@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   h = 1.0/m;
   n = m*(m-1);
   ierr = SlepcSNPrintfScalar(str,sizeof(str),z,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nAcoustic wave 2-D, n=%D (m=%D), z=%s\n\n",n,m,str);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nAcoustic wave 2-D, n=%" PetscInt_FMT " (m=%" PetscInt_FMT "), z=%s\n\n",n,m,str);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0

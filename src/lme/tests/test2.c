@@ -26,7 +26,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Dense matrix equations, n=%D.\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Dense matrix equations, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
 
   /* Create LME object */
   ierr = LMECreate(PETSC_COMM_WORLD,&lme);CHKERRQ(ierr);

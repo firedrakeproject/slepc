@@ -273,7 +273,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,n,2);
-  if (n <= 0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",n);
+  if (n <= 0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %" PetscInt_FMT,n);
   PetscValidPointer(A,3);
   PetscCheckSameComm(st,1,*A,3);
   STCheckNotSeized(st,1);
@@ -337,7 +337,7 @@ PetscErrorCode STGetMatrix(ST st,PetscInt k,Mat *A)
   PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(A,3);
   STCheckMatrices(st,1);
-  if (k<0 || k>=st->nmat) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat-1);
+  if (k<0 || k>=st->nmat) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
   if (((PetscObject)st->A[k])->state!=st->Astate[k]) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot retrieve original matrices (have been modified)");
   *A = st->A[k];
   PetscFunctionReturn(0);
@@ -366,7 +366,7 @@ PetscErrorCode STGetMatrixTransformed(ST st,PetscInt k,Mat *T)
   PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(T,3);
   STCheckMatrices(st,1);
-  if (k<0 || k>=st->nmat) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat-1);
+  if (k<0 || k>=st->nmat) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
   if (!st->T) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_POINTER,"There are no transformed matrices");
   *T = st->T[k];
   PetscFunctionReturn(0);
@@ -922,7 +922,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     }
     ierr = SlepcSNPrintfScalar(str,sizeof(str),st->sigma,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  shift: %s\n",str);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of matrices: %D\n",st->nmat);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of matrices: %" PetscInt_FMT "\n",st->nmat);CHKERRQ(ierr);
     switch (st->matmode) {
     case ST_MATMODE_COPY:
       break;

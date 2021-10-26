@@ -84,7 +84,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
             }
           }
           if (nconv0>eps->nconv) {
-            ierr = PetscInfo1(eps,"Discarded %D computed eigenvalues lying outside the interval\n",nconv0-eps->nconv);CHKERRQ(ierr);
+            ierr = PetscInfo1(eps,"Discarded %" PetscInt_FMT " computed eigenvalues lying outside the interval\n",nconv0-eps->nconv);CHKERRQ(ierr);
           }
         }
       }

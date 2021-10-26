@@ -114,7 +114,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
 #if defined(SLEPC_HAVE_PRIMME3)
     case primme_event_message:
       /* Print PRIMME information messages */
-      ierr = PetscInfo(svd,msg);
+      ierr = PetscInfo1(svd,"%s\n",msg);
       break;
 #endif
     default:
@@ -323,7 +323,7 @@ PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%D\n",ctx->bs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%" PetscInt_FMT "\n",ctx->bs);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",SVDPRIMMEMethods[(SVDPRIMMEMethod)ctx->method]);CHKERRQ(ierr);
 
     /* Display PRIMME params */

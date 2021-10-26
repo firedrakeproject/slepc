@@ -48,7 +48,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetReal(NULL,NULL,"-kappa",&kappa,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-mass",&m,NULL);CHKERRQ(ierr);
   sigma = kappa/m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Loaded vibrating string, n=%D kappa=%g m=%g\n\n",n,(double)kappa,(double)m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Loaded vibrating string, n=%" PetscInt_FMT " kappa=%g m=%g\n\n",n,(double)kappa,(double)m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Build the problem matrices
@@ -153,7 +153,7 @@ int main(int argc,char **argv)
     ierr = NEPApplyAdjoint(nep,lambda,v,w,r,NULL,NULL);CHKERRQ(ierr);
     ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
     if (nrm>tol*PetscAbsScalar(lambda)) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Left residual i=%D is above tolerance --> %g\n",i,nrm/PetscAbsScalar(lambda));CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Left residual i=%" PetscInt_FMT " is above tolerance --> %g\n",i,nrm/PetscAbsScalar(lambda));CHKERRQ(ierr);
     }
   }
 

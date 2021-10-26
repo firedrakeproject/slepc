@@ -151,7 +151,7 @@ int main(int argc,char **argv)
     /* Number of Newton iterations supposes to be zero */
     ierr = SNESGetIterationNumber(snes,&nits);CHKERRQ(ierr);
     if (nits) {
-      ierr = PetscPrintf(comm," Number of Newton iterations %D should be zero \n",nits);CHKERRQ(ierr);
+      ierr = PetscPrintf(comm," Number of Newton iterations %" PetscInt_FMT " should be zero \n",nits);CHKERRQ(ierr);
     }
   }
 
@@ -164,7 +164,7 @@ int main(int argc,char **argv)
   ierr = EPSPowerGetUpdate(eps,&update);CHKERRQ(ierr);
   ierr = PetscPrintf(comm," Solution method: %s%s\n\n",type,nonlin?(update?" (nonlinear with monolithic update)":" (nonlinear)"):"");CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(comm," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = PetscPrintf(comm," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
 
   /* print eigenvalue and error */
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);

@@ -35,7 +35,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flg);CHKERRQ(ierr);
   if (!flg) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-test_prefix",&testprefix,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-view_matrices",&viewmatrices,NULL);CHKERRQ(ierr);
 
@@ -87,10 +87,10 @@ int main(int argc,char **argv)
   ierr = LMECreate(PETSC_COMM_WORLD,&lme);CHKERRQ(ierr);
   ierr = LMESetProblemType(lme,LME_SYLVESTER);CHKERRQ(ierr);
   ierr = LMEGetProblemType(lme,&ptype);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type set to %D\n",ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type set to %" PetscInt_FMT "\n",ptype);CHKERRQ(ierr);
   ierr = LMESetProblemType(lme,LME_LYAPUNOV);CHKERRQ(ierr);
   ierr = LMEGetProblemType(lme,&ptype);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type changed to %D\n",ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type changed to %" PetscInt_FMT "\n",ptype);CHKERRQ(ierr);
   ierr = LMESetCoefficients(lme,A,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = LMESetRHS(lme,C);CHKERRQ(ierr);
 
@@ -121,9 +121,9 @@ int main(int argc,char **argv)
 
   /* query properties and print them */
   ierr = LMEGetTolerances(lme,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %D\n",(double)tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
   ierr = LMEGetDimensions(lme,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %D\n",ncv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv);CHKERRQ(ierr);
   ierr = LMEGetErrorIfNotConverged(lme,&flg);CHKERRQ(ierr);
   if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," Erroring out if convergence fails\n");CHKERRQ(ierr); }
 

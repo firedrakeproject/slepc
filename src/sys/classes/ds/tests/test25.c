@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetBool(NULL,NULL,"-isnep",&isnep,NULL);CHKERRQ(ierr);
   n = m*m;
   k = 10;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nButterfly problem, n=%D (m=%D)\n\n",n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nButterfly problem, n=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",n,m);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-radius",&radius,NULL);CHKERRQ(ierr);
 
@@ -90,7 +90,7 @@ int main(int argc,char **argv)
     if (isnep) {
       ierr = DSNEPGetNumFN(ds,&nfun);CHKERRQ(ierr);
       for (i=0;i<nfun;i++) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"Function %D:\n",i);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"Function %" PetscInt_FMT ":\n",i);CHKERRQ(ierr);
         ierr = DSNEPGetFN(ds,i,&qfun);CHKERRQ(ierr);
         ierr = FNView(qfun,NULL);CHKERRQ(ierr);
       }
@@ -196,7 +196,7 @@ int main(int argc,char **argv)
 #endif
   ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues in the region: %D\n",nev);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues in the region: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
   for (i=0;i<nev;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(wr[inside[i]]);
@@ -252,7 +252,7 @@ int main(int argc,char **argv)
     }
     nrm = PetscSqrtReal(nrm);
     if (nrm/SlepcAbsEigenvalue(wr[inside[i]],wi[inside[i]])>tol) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %D-th computed eigenpair %g\n",i,(double)nrm);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %" PetscInt_FMT "-th computed eigenpair %g\n",i,(double)nrm);CHKERRQ(ierr);
     }
     if (PetscAbs(im)<1e-10) {
       ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re);CHKERRQ(ierr);

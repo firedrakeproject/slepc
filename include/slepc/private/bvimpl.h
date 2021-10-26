@@ -451,7 +451,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_OrthogonalizeColumn_Safe(BV bv,PetscInt j,
   BVOrthogRefineType orthog_ref;
 
   PetscFunctionBegin;
-  ierr = PetscInfo1(bv,"Orthogonalizing column %D without refinement\n",j);CHKERRQ(ierr);
+  ierr = PetscInfo1(bv,"Orthogonalizing column %" PetscInt_FMT " without refinement\n",j);CHKERRQ(ierr);
   orthog_ref     = bv->orthog_ref;
   bv->orthog_ref = BV_ORTHOG_REFINE_NEVER;  /* avoid refinement */
   ierr = BVOrthogonalizeColumn(bv,j,H,NULL,NULL);CHKERRQ(ierr);

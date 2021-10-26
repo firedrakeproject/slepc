@@ -41,7 +41,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   nele = n/2;
   n    = 2*nele;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSimply supported beam damped in the middle, n=%D (nele=%D)\n\n",n,nele);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSimply supported beam damped in the middle, n=%" PetscInt_FMT " (nele=%" PetscInt_FMT ")\n\n",n,nele);CHKERRQ(ierr);
 
   dlen = glength/nele;
   EI   = 7e10*width*height*height*height/12.0;

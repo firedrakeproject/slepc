@@ -186,17 +186,17 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
     xintv[1] = ctx->sli[sl+1];
     xintv[2] = ctx->lmin;
     xintv[3] = ctx->lmax;
-    ierr = PetscInfo3(ctx->A,"Subinterval %D: [%.4e, %.4e]\n",sl+1,xintv[0],xintv[1]);CHKERRQ(ierr);
+    ierr = PetscInfo3(ctx->A,"Subinterval %" PetscInt_FMT ": [%.4e, %.4e]\n",sl+1,xintv[0],xintv[1]);CHKERRQ(ierr);
     set_pol_def(&pol);
     pol.max_deg    = ctx->max_deg;
     pol.damping    = (int)ctx->damping;
     pol.thresh_int = ctx->thresh;
     find_pol(xintv,&pol);
-    ierr = PetscInfo4(ctx->A,"Polynomial [type = %D], deg %D, bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam);CHKERRQ(ierr);
+    ierr = PetscInfo4(ctx->A,"Polynomial [type = %" PetscInt_FMT "], deg %" PetscInt_FMT ", bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam);CHKERRQ(ierr);
     ierr = ChebLanNr(xintv,mlan,eps->tol,vinit,&pol,&nevout,&lam,&Y,&res,NULL);CHKERRQ(ierr);
     if (k+nevout>nevmax) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
     free_pol(&pol);
-    ierr = PetscInfo1(ctx->A,"Computed %D eigenvalues\n",nevout);CHKERRQ(ierr);
+    ierr = PetscInfo1(ctx->A,"Computed %" PetscInt_FMT " eigenvalues\n",nevout);CHKERRQ(ierr);
     ierr = PetscMalloc1(nevout,&ind);CHKERRQ(ierr);
     sort_double(nevout,lam,ind);
     for (i=0;i<nevout;i++) {
@@ -713,20 +713,20 @@ PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  numerical range = [%g,%g]\n",(double)ctx->lmin,(double)ctx->lmax);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of slices = %D\n",ctx->nslices);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of slices = %" PetscInt_FMT "\n",ctx->nslices);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  type of damping = %s\n",EPSEVSLDampings[ctx->damping]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  computing DOS with %s: nvec=%D, ",EPSEVSLDOSMethods[ctx->dos],ctx->nvec);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  computing DOS with %s: nvec=%" PetscInt_FMT ", ",EPSEVSLDOSMethods[ctx->dos],ctx->nvec);CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     switch (ctx->dos) {
       case EPS_EVSL_DOS_KPM:
-        ierr = PetscViewerASCIIPrintf(viewer,"degree=%D\n",ctx->deg);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"degree=%" PetscInt_FMT "\n",ctx->deg);CHKERRQ(ierr);
         break;
       case EPS_EVSL_DOS_LANCZOS:
-        ierr = PetscViewerASCIIPrintf(viewer,"steps=%D, npoints=%D\n",ctx->steps,ctx->npoints);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"steps=%" PetscInt_FMT ", npoints=%" PetscInt_FMT "\n",ctx->steps,ctx->npoints);CHKERRQ(ierr);
         break;
     }
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial parameters: max degree = %D, threshold = %g\n",ctx->max_deg,(double)ctx->thresh);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial parameters: max degree = %" PetscInt_FMT ", threshold = %g\n",ctx->max_deg,(double)ctx->thresh);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -74,10 +74,10 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: smallest\n");CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of singular values (nsv): %D\n",svd->nsv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",svd->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",svd->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",svd->max_it);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of singular values (nsv): %" PetscInt_FMT "\n",svd->nsv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",svd->ncv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %" PetscInt_FMT "\n",svd->mpd);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",svd->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)svd->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
@@ -101,10 +101,10 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     }
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     if (svd->nini) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(svd->nini));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(svd->nini));CHKERRQ(ierr);
     }
     if (svd->ninil) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(svd->ninil));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %" PetscInt_FMT "\n",PetscAbs(svd->ninil));CHKERRQ(ierr);
     }
   } else {
     if (svd->ops->view) {
@@ -182,9 +182,9 @@ PetscErrorCode SVDConvergedReasonView(SVD svd,PetscViewer viewer)
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     if (svd->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve converged (%D singular triplet%s) due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",svd->nconv,(svd->nconv>1)?"s":"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve converged (%" PetscInt_FMT " singular triplet%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",svd->nconv,(svd->nconv>1)?"s":"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
     } else if (svd->reason <= 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve did not converge due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
   }
@@ -234,13 +234,13 @@ static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer 
 
   PetscFunctionBegin;
   if (svd->nconv<svd->nsv) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D singular values converged\n\n",svd->nsv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %" PetscInt_FMT " singular values converged\n\n",svd->nsv);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   for (i=0;i<svd->nsv;i++) {
     ierr = SVDComputeError(svd,i,etype,&error);CHKERRQ(ierr);
     if (error>=5.0*svd->tol) {
-      ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",svd->nsv);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",svd->nsv);CHKERRQ(ierr);
       PetscFunctionReturn(0);
     }
   }

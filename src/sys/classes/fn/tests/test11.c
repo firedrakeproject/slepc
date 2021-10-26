@@ -90,7 +90,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Phi1 via a combined function, n=%D.\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Phi1 via a combined function, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
 
   /* Create function */
 

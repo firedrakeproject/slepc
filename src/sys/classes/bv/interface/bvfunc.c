@@ -297,8 +297,8 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
 
   ierr = VecGetSize(w,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(w,&n);CHKERRQ(ierr);
-  if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,V->N,V->n);
-  if (j<-V->nc || j>=V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, should be between %D and %D",j,-V->nc,V->m-1);
+  if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
+  if (j<-V->nc || j>=V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,j,-V->nc,V->m-1);
 
   ierr = BVGetColumn(V,j,&v);CHKERRQ(ierr);
   ierr = VecCopy(w,v);CHKERRQ(ierr);
@@ -346,7 +346,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
   PetscValidIntPointer(m,3);
   PetscValidLogicalCollectiveInt(V,*m,3);
   if (!*m) PetscFunctionReturn(0);
-  if (*m<0) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",*m);
+  if (*m<0) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %" PetscInt_FMT ") cannot be negative",*m);
   PetscValidPointer(W,4);
   PetscValidHeaderSpecific(*W,VEC_CLASSID,4);
   PetscValidLogicalCollectiveBool(V,orth,5);
@@ -356,9 +356,9 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 
   ierr = VecGetSize(*W,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(*W,&n);CHKERRQ(ierr);
-  if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,V->N,V->n);
-  if (s<0 || s>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between 0 and %D",s,V->m-1);
-  if (s+(*m)>V->m) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Too many vectors provided, there is only room for %D",V->m);
+  if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
+  if (s<0 || s>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between 0 and %" PetscInt_FMT,s,V->m-1);
+  if (s+(*m)>V->m) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Too many vectors provided, there is only room for %" PetscInt_FMT,V->m);
 
   ndep = 0;
   for (i=0;i<*m;i++) {
@@ -368,7 +368,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
     if (orth) {
       ierr = BVOrthogonalizeColumn(V,s+i-ndep,NULL,&norm,&lindep);CHKERRQ(ierr);
       if (norm==0.0 || lindep) {
-        ierr = PetscInfo1(V,"Removing linearly dependent vector %D\n",i);CHKERRQ(ierr);
+        ierr = PetscInfo1(V,"Removing linearly dependent vector %" PetscInt_FMT "\n",i);CHKERRQ(ierr);
         ndep++;
       } else {
         ierr = BVScaleColumn(V,s+i-ndep,1.0/norm);CHKERRQ(ierr);
@@ -425,7 +425,7 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscValidIntPointer(nc,2);
   PetscValidLogicalCollectiveInt(V,*nc,2);
   if (!*nc) PetscFunctionReturn(0);
-  if (*nc<0) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",*nc);
+  if (*nc<0) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %" PetscInt_FMT ") cannot be negative",*nc);
   PetscValidPointer(C,3);
   PetscValidHeaderSpecific(*C,VEC_CLASSID,3);
   PetscValidType(V,1);
@@ -608,9 +608,9 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)bv,viewer);CHKERRQ(ierr);
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  %D columns of global length %D%s\n",bv->m,bv->N,bv->cuda?" (CUDA)":"");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  %" PetscInt_FMT " columns of global length %" PetscInt_FMT "%s\n",bv->m,bv->N,bv->cuda?" (CUDA)":"");CHKERRQ(ierr);
       if (bv->nc>0) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  number of constraints: %D\n",bv->nc);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  number of constraints: %" PetscInt_FMT "\n",bv->nc);CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  vector orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
       switch (bv->orthog_ref) {

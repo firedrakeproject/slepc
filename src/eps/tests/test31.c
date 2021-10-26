@@ -31,7 +31,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-modify",&modify,&flag);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -78,7 +78,7 @@ int main(int argc,char **argv)
   ierr = PetscObjectTypeCompare((PetscObject)st,STFILTER,&flag);CHKERRQ(ierr);
   if (flag) {
     ierr = STFilterGetDegree(st,&degree);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Filter degree: %D\n",degree);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Filter degree: %" PetscInt_FMT "\n",degree);CHKERRQ(ierr);
     ierr = STFilterGetInterval(st,&inta,&intb);CHKERRQ(ierr);
     ierr = STFilterGetRange(st,&rleft,&rright);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Requested interval: [%g,%g],  range: [%g,%g]\n\n",(double)inta,(double)intb,(double)rleft,(double)rright);CHKERRQ(ierr);

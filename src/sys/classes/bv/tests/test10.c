@@ -25,7 +25,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   if (k<3) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Should specify at least k=3 columns");
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"BV split ops (%D columns of dimension %D).\n",k,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"BV split ops (%" PetscInt_FMT " columns of dimension %" PetscInt_FMT ").\n",k,n);CHKERRQ(ierr);
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);

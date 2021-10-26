@@ -541,7 +541,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     }
     nconv = k;
     if (!ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
-    if (l) { ierr = PetscInfo1(pep,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo1(pep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     /* update S */
     ierr = DSGetMat(pep->ds,DS_MAT_Q,&MQ);CHKERRQ(ierr);
@@ -553,7 +553,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
     if (breakdown && pep->reason == PEP_CONVERGED_ITERATING) {
       /* stop if breakdown */
-      ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
+      ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%" PetscInt_FMT " norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
       pep->reason = PEP_DIVERGED_BREAKDOWN;
     }
     if (pep->reason != PEP_CONVERGED_ITERATING) l--;

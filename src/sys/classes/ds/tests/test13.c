@@ -27,7 +27,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-nblks",&nblks,NULL);CHKERRQ(ierr);
   n = maxbw*nblks;
   bs = maxbw;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a block HEP Dense System - dimension %D (bandwidth=%D, blocks=%D).\n",n,maxbw,nblks);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a block HEP Dense System - dimension %" PetscInt_FMT " (bandwidth=%" PetscInt_FMT ", blocks=%" PetscInt_FMT ").\n",n,maxbw,nblks);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
   /* Create DS object */

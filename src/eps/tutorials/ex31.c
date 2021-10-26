@@ -538,7 +538,7 @@ int main(int argc,char **argv)
   user.neqs_gen   = 9*ngen; /* # eqs. for generator subsystem */
   user.neqs_net   = 2*nbus; /* # eqs. for network subsystem   */
   user.neqs_pgrid = user.neqs_gen + user.neqs_net;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nStability analysis in a network with %D buses and %D generators\n\n",nbus,ngen);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nStability analysis in a network with %" PetscInt_FMT " buses and %" PetscInt_FMT " generators\n\n",nbus,ngen);CHKERRQ(ierr);
 
   /* Create indices for differential and algebraic equations */
   ierr = PetscMalloc1(7*ngen,&idx2);CHKERRQ(ierr);
@@ -620,11 +620,11 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
 
   ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the eigensolver: %D\n",its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the eigensolver: %" PetscInt_FMT "\n",its);CHKERRQ(ierr);
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n", type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -634,7 +634,7 @@ int main(int argc,char **argv)
   } else {
     /* Get number of converged approximate eigenpairs */
     ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv);CHKERRQ(ierr);
 
     if (nconv>0) {
       /* Display eigenvalues and relative errors */

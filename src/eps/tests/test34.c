@@ -33,7 +33,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with PRIMME, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with PRIMME, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Compute the matrices that define the eigensystem, Ax=kBx
@@ -88,7 +88,7 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSPRIMMEGetBlockSize(eps,&bs);CHKERRQ(ierr);
   ierr = EPSPRIMMEGetMethod(eps,&meth);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," PRIMME: using block size %D, method %s\n",bs,EPSPRIMMEMethods[meth]);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," PRIMME: using block size %" PetscInt_FMT ", method %s\n",bs,EPSPRIMMEMethods[meth]);CHKERRQ(ierr);
 
   ierr = EPSErrorView(eps,EPS_ERROR_ABSOLUTE,NULL);CHKERRQ(ierr);
 

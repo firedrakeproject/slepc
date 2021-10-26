@@ -31,7 +31,7 @@ int main(int argc,char **argv)
   if (!flag) m=n;
   N = n*m;
   ierr = PetscOptionsGetInt(NULL,NULL,"-neigs",&neigs,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%D (%Dx%D grid), neigs=%D\n\n",N,n,m,neigs);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid), neigs=%" PetscInt_FMT "\n\n",N,n,m,neigs);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Create the 2-D Laplacian
@@ -71,10 +71,10 @@ int main(int argc,char **argv)
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
 
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  if (nconv<neigs) SETERRQ2(PETSC_COMM_WORLD,1,"Only %D eigenvalues have converged, %D requested",nconv,neigs);
+  if (nconv<neigs) SETERRQ2(PETSC_COMM_WORLD,1,"Only %" PetscInt_FMT " eigenvalues have converged, %" PetscInt_FMT " requested",nconv,neigs);
   ierr = VecDuplicateVecs(v,neigs,&X);CHKERRQ(ierr);
   for (i=0;i<neigs;i++) {
     ierr = EPSGetEigenvector(eps,i,X[i],NULL);CHKERRQ(ierr);

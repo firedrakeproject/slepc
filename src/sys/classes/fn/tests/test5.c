@@ -75,7 +75,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix rational function, n=%D.\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix rational function, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
 
   /* Create rational function r(x)=p(x)/q(x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
