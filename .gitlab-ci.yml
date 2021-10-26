@@ -16,7 +16,6 @@ stages:
 variables:
   GIT_STRATEGY: fetch
   GIT_CLEAN_FLAGS: -ffdxq
-  PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump
   TIMEOUT: 600
 
 #
@@ -342,7 +341,6 @@ gnu-c-cuda:
     - linux-ubuntu, gpu:nvidia
   variables:
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --with-cuda-arch=35 --with-openmp --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse --with-magma-dir=/usr/local/opt/magma-2.6.1
-    PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
 
 clang-c:
   extends:
@@ -397,7 +395,6 @@ gnu-c-cuda-complex:
     - linux-ubuntu, gpu:nvidia
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-cuda-arch=35 --with-openmp --download-thrust --with-magma-dir=/usr/local/opt/magma-2.6.1
-    PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
     TEST_OPTS: -j1 query=requires queryval=cuda
 
 gnu-c-cuda-single:
@@ -408,7 +405,6 @@ gnu-c-cuda-single:
     - linux-ubuntu, gpu:nvidia
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-cuda --with-cuda-arch=35 --with-openmp
-    PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
     TEST_OPTS: -j1 query=requires queryval=cuda
 
 gnu-c-multilib:
@@ -629,5 +625,4 @@ gnu-c-cuda-int64:
     - linux-ubuntu, gpu:nvidia
   variables:
     PETSC_CONFIG_OPTS: --with-cuda --with-cuda-arch=35 --with-openmp --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.6.1
-    PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -use_gpu_aware_mpi 0
 
