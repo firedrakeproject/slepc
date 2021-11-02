@@ -48,6 +48,7 @@ class SlepcConfig(PetscConfig):
         self.SLEPC_DIR = self['SLEPC_DIR']
         self.SLEPC_DESTDIR = dest_dir
         self.SLEPC_LIB = self['SLEPC_LIB']
+        self.SLEPC_EXTERNAL_LIB_DIR = self['SLEPC_EXTERNAL_LIB_DIR']
 
     def _get_slepc_config(self, petsc_dir, slepc_dir):
         from os.path import join, isdir
@@ -74,6 +75,12 @@ class SlepcConfig(PetscConfig):
         slepc_confdict = makefile(StringIO(confstr))
         self.configdict['SLEPC_DIR'] = SLEPC_DIR
         self.configdict['SLEPC_LIB'] = slepc_confdict['SLEPC_LIB']
+        dirlist = []
+        for external in [ 'ARPACK_LIB', 'BLOPEX_LIB', 'ELPA_LIB', 'EVSL_LIB', 'HPDDM_LIB', 'PRIMME_LIB', 'SLICOT_LIB', 'TRLAN_LIB' ]:
+            for entry in [lib[2:] for lib in split_quoted(slepc_confdict[external]) if lib.startswith('-L')]:
+                if entry not in dirlist:
+                    dirlist.append(entry)
+        self.configdict['SLEPC_EXTERNAL_LIB_DIR'] = dirlist
 
     def configure_extension(self, extension):
         PetscConfig.configure_extension(self, extension)
@@ -90,7 +97,7 @@ class SlepcConfig(PetscConfig):
         SLEPC_LIB_DIR = [
             os.path.join(SLEPC_DIR, SLEPC_ARCH_DIR, 'lib'),
             os.path.join(SLEPC_DIR, 'lib'),
-            ]
+            ] + self.SLEPC_EXTERNAL_LIB_DIR
         slepc_cfg = { }
         slepc_cfg['include_dirs'] = SLEPC_INCLUDE
         slepc_cfg['library_dirs'] = SLEPC_LIB_DIR
