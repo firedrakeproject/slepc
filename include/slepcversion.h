@@ -15,7 +15,6 @@
 #define SLEPC_VERSION_MAJOR      3
 #define SLEPC_VERSION_MINOR      16
 #define SLEPC_VERSION_SUBMINOR   0
-#define SLEPC_VERSION_PATCH      0
 #define SLEPC_RELEASE_DATE       "September 30, 2021"
 #define SLEPC_VERSION_DATE       "unknown"
 
