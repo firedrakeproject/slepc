@@ -438,9 +438,9 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
     ierr = PetscMalloc1(n,&s->x);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)win,n*sizeof(Vec));CHKERRQ(ierr);
     ierr = VecGetSize(win,&N);CHKERRQ(ierr);
-    if (N%n) SETERRQ2(PetscObjectComm((PetscObject)win),1,"Global dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,N,n);
+    if (N%n) SETERRQ2(PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Global dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,N,n);
     ierr = VecGetLocalSize(win,&nlocal);CHKERRQ(ierr);
-    if (nlocal%n) SETERRQ2(PetscObjectComm((PetscObject)win),1,"Local dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,nlocal,n);
+    if (nlocal%n) SETERRQ2(PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Local dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,nlocal,n);
     s->nx = n;
     for (i=0;i<n;i++) {
       ierr = VecCreate(PetscObjectComm((PetscObject)win),&s->x[i]);CHKERRQ(ierr);

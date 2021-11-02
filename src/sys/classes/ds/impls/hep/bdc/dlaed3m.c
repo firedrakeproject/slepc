@@ -199,8 +199,8 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
       /* eigenvalues are not ordered, issue an error statement */
       /* but continue computation. */
 
-      if (dlamda[j-1] >= dlamda[j]) SETERRQ2(PETSC_COMM_SELF,1,"DLAMDA(%" PetscBLASInt_FMT ") is greater or equal than DLAMDA(%" PetscBLASInt_FMT ")", j, j+1);
-      if (d[j-1] < dlamda[j-1] || d[j-1] > dlamda[j]) SETERRQ6(PETSC_COMM_SELF,1,"DLAMDA(%" PetscBLASInt_FMT ") = %g D(%" PetscBLASInt_FMT ") = %g DLAMDA(%" PetscBLASInt_FMT ") = %g", j, (double)dlamda[j-1], j, (double)d[j-1], j+1, (double)dlamda[j]);
+      if (dlamda[j-1] >= dlamda[j]) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_FP,"DLAMDA(%" PetscBLASInt_FMT ") is greater or equal than DLAMDA(%" PetscBLASInt_FMT ")", j, j+1);
+      if (d[j-1] < dlamda[j-1] || d[j-1] > dlamda[j]) SETERRQ6(PETSC_COMM_SELF,PETSC_ERR_FP,"DLAMDA(%" PetscBLASInt_FMT ") = %g D(%" PetscBLASInt_FMT ") = %g DLAMDA(%" PetscBLASInt_FMT ") = %g", j, (double)dlamda[j-1], j, (double)d[j-1], j+1, (double)dlamda[j]);
     }
   }
 

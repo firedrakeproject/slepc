@@ -337,7 +337,7 @@ static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
     }
   }
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
-  if (!nq) SETERRQ1(PetscObjectComm((PetscObject)V),1,"Cannot build first column of tensor BV; U should contain k=%" PetscInt_FMT " nonzero columns",k);
+  if (!nq) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Cannot build first column of tensor BV; U should contain k=%" PetscInt_FMT " nonzero columns",k);
   ierr = BVTensorUpdateMatrix(V,0,nq);CHKERRQ(ierr);
   ierr = BVTensorNormColumn(V,0,&norm);CHKERRQ(ierr);
   ierr = BVScale_Tensor(V,0,1.0/norm);CHKERRQ(ierr);

@@ -114,7 +114,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
     ierr = VecDestroy(&v0);CHKERRQ(ierr);
     ctx->estimrange = PETSC_TRUE;   /* estimate if called again with another matrix */
   }
-  if (ctx->lmin > eps->inta || ctx->lmax < eps->intb) SETERRQ4(PetscObjectComm((PetscObject)eps),1,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)eps->inta,(double)eps->intb,(double)ctx->lmin,(double)ctx->lmax);
+  if (ctx->lmin > eps->inta || ctx->lmax < eps->intb) SETERRQ4(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)eps->inta,(double)eps->intb,(double)ctx->lmin,(double)ctx->lmax);
   xintv[0] = eps->inta;
   xintv[1] = eps->intb;
   xintv[2] = ctx->lmin;
