@@ -97,6 +97,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->f               = NULL;
   nep->nt              = 0;
   nep->mstr            = UNKNOWN_NONZERO_PATTERN;
+  nep->P               = NULL;
+  nep->mstrp           = UNKNOWN_NONZERO_PATTERN;
   nep->IS              = NULL;
   nep->eigr            = NULL;
   nep->eigi            = NULL;
@@ -298,6 +300,7 @@ PetscErrorCode NEPReset_Problem(NEP nep)
     }
     ierr = PetscFree(nep->f);CHKERRQ(ierr);
     ierr = PetscFree(nep->nrma);CHKERRQ(ierr);
+    if (nep->P) { ierr = MatDestroyMatrices(nep->nt,&nep->P);CHKERRQ(ierr); }
     nep->nt = 0;
   }
   PetscFunctionReturn(0);
@@ -853,7 +856,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context
-.  n   - number of terms in the split form
+.  nt  - number of terms in the split form
 .  A   - array of matrices
 .  f   - array of functions
 -  str - structure flag for matrices
@@ -876,7 +879,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
 
    Level: beginner
 
-.seealso: NEPGetSplitOperatorTerm(), NEPGetSplitOperatorInfo()
+.seealso: NEPGetSplitOperatorTerm(), NEPGetSplitOperatorInfo(), NEPSetSplitPreconditioner()
  @*/
 PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructure str)
 {
@@ -889,6 +892,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructu
   if (nt <= 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %" PetscInt_FMT,nt);
   PetscValidPointer(A,3);
   PetscValidPointer(f,4);
+  PetscValidLogicalCollectiveEnum(nep,str,5);
 
   for (i=0;i<nt;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
@@ -947,6 +951,7 @@ PetscErrorCode NEPGetSplitOperatorTerm(NEP nep,PetscInt k,Mat *A,FN *f)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,k,2);
   NEPCheckSplit(nep,1);
   if (k<0 || k>=nep->nt) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,nep->nt-1);
   if (A) *A = nep->A[k];
@@ -978,6 +983,132 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
   NEPCheckSplit(nep,1);
   if (n)   *n = nep->nt;
   if (str) *str = nep->mstr;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPSetSplitPreconditioner - Sets an operator in split form from which
+   to build the preconditioner to be used when solving the nonlinear
+   eigenvalue problem in split form.
+
+   Collective on nep
+
+   Input Parameters:
++  nep  - the nonlinear eigensolver context
+.  ntp  - number of terms in the split preconditioner
+.  P    - array of matrices
+-  strp - structure flag for matrices
+
+   Notes:
+   The matrix for the preconditioner is expressed as P(lambda) =
+   sum_i P_i*f_i(lambda), for i=1,...,n, where the f_i functions
+   are the same as in NEPSetSplitOperator(). It is not necessary to call
+   this function. If it is not invoked, then the preconditioner is
+   built from T(lambda), i.e., both matrices and functions passed in
+   NEPSetSplitOperator().
+
+   The structure flag provides information about P_i's nonzero pattern
+   in the same way as in NEPSetSplitOperator().
+
+   If the functions defining the preconditioner operator were different
+   from the ones given in NEPSetSplitOperator(), then the split form
+   cannot be used. Use the callback interface instead.
+
+   Level: advanced
+
+.seealso: NEPGetSplitPreconditionerTerm(), NEPGetSplitPreconditionerInfo(), NEPSetSplitOperator()
+ @*/
+PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructure strp)
+{
+  PetscInt       i,n=0,m,m0=0,mloc,nloc,mloc0=0;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,ntp,2);
+  if (ntp <= 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %D",ntp);
+  if (nep->fui != NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"Must call NEPSetSplitOperator first");
+  if (nep->nt != ntp) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The number of terms must be the same as in NEPSetSplitOperator()");
+  PetscValidPointer(P,3);
+  PetscValidLogicalCollectiveEnum(nep,strp,4);
+
+  for (i=0;i<ntp;i++) {
+    PetscValidHeaderSpecific(P[i],MAT_CLASSID,3);
+    PetscCheckSameComm(nep,1,P[i],3);
+    ierr = MatGetSize(P[i],&m,&n);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(P[i],&mloc,&nloc);CHKERRQ(ierr);
+    if (m!=n) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"P[%D] is a non-square matrix (%D rows, %D cols)",i,m,n);
+    if (mloc!=nloc) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"P[%D] does not have equal row and column local sizes (%D, %D)",i,mloc,nloc);
+    if (!i) { m0 = m; mloc0 = mloc; }
+    if (m!=m0) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Dimensions of P[%D] do not match with previous matrices (%D, %D)",i,m,m0);
+    if (mloc!=mloc0) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Local dimensions of P[%D] do not match with previous matrices (%D, %D)",i,mloc,mloc0);
+    ierr = PetscObjectReference((PetscObject)P[i]);CHKERRQ(ierr);
+  }
+
+  if (nep->state) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"To call this function after NEPSetUp(), you must call NEPSetSplitOperator() again");
+
+  /* allocate space and copy matrices and functions */
+  ierr = PetscMalloc1(ntp,&nep->P);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,ntp*sizeof(Mat));CHKERRQ(ierr);
+  for (i=0;i<ntp;i++) nep->P[i] = P[i];
+  nep->mstrp = strp;
+  nep->state = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPGetSplitPreconditionerTerm - Gets the matrices associated with
+   the split preconditioner.
+
+   Not collective, though parallel Mats are returned if the NEP is parallel
+
+   Input Parameters:
++  nep - the nonlinear eigensolver context
+-  k   - the index of the requested term (starting in 0)
+
+   Output Parameter:
+.  P  - the matrix of the requested term
+
+   Level: advanced
+
+.seealso: NEPSetSplitPreconditioner(), NEPGetSplitPreconditionerInfo()
+@*/
+PetscErrorCode NEPGetSplitPreconditionerTerm(NEP nep,PetscInt k,Mat *P)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,k,2);
+  NEPCheckSplit(nep,1);
+  if (k<0 || k>=nep->nt) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",nep->nt-1);
+  if (!nep->P) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"You have not called NEPSetSplitPreconditioner()");
+  if (P) *P = nep->P[k];
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPGetSplitPreconditionerInfo - Returns the number of terms of the split
+   preconditioner, as well as the structure flag for matrices.
+
+   Not collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameters:
++  n    - the number of terms passed in NEPSetSplitPreconditioner()
+-  strp - the matrix structure flag passed in NEPSetSplitPreconditioner()
+
+   Level: advanced
+
+.seealso: NEPSetSplitPreconditioner(), NEPGetSplitPreconditionerTerm()
+@*/
+PetscErrorCode NEPGetSplitPreconditionerInfo(NEP nep,PetscInt *n,MatStructure *strp)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  NEPCheckSplit(nep,1);
+  if (n)    *n    = nep->P? nep->nt: 0;
+  if (strp) *strp = nep->mstrp;
   PetscFunctionReturn(0);
 }
 

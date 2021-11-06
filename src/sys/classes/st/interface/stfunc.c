@@ -473,7 +473,7 @@ PetscErrorCode STSetPreconditionerMat(ST st,Mat mat)
 /*@
    STGetPreconditionerMat - Returns the matrix previously set by STSetPreconditionerMat().
 
-   Collective on st
+   Not Collective
 
    Input Parameter:
 .  st - the spectral transformation context
