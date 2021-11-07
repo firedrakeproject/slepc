@@ -98,6 +98,13 @@ cdef extern from * nogil:
                                             PetscReal*,
                                             PetscInt,
                                             void*) except PETSC_ERR_PYTHON
+    ctypedef int (*SlepcEPSArbitraryFunction)(PetscScalar,
+                                             PetscScalar,
+                                             PetscVec,
+                                             PetscVec,
+                                             PetscScalar*,
+                                             PetscScalar*,
+                                             void*) except PETSC_ERR_PYTHON
 
     int EPSView(SlepcEPS,PetscViewer)
     int EPSDestroy(SlepcEPS*)
@@ -174,6 +181,8 @@ cdef extern from * nogil:
 
     int EPSSetStoppingTestFunction(SlepcEPS,SlepcEPSStoppingFunction,void*,SlepcEPSCtxDel)
     int EPSStoppingBasic(SlepcEPS,PetscInt,PetscInt,PetscInt,PetscInt,SlepcEPSConvergedReason*,void*) except PETSC_ERR_PYTHON
+
+    int EPSSetArbitrarySelection(SlepcEPS,SlepcEPSArbitraryFunction,void*);
 
     int EPSGetErrorEstimate(SlepcEPS,PetscInt,PetscReal*)
     int EPSComputeError(SlepcEPS,PetscInt,SlepcEPSErrorType,PetscReal*)
@@ -316,6 +325,28 @@ cdef int EPS_Stopping(
     elif reason is False: r[0] = EPS_CONVERGED_ITERATING
     elif reason is True:  r[0] = EPS_CONVERGED_USER
     else:                 r[0] = reason
+
+# -----------------------------------------------------------------------------
+
+cdef int EPS_Arbitrary(
+    PetscScalar  er,
+    PetscScalar  ei,
+    PetscVec     xr,
+    PetscVec     xi,
+    PetscScalar* rr,
+    PetscScalar* ri,
+    void         *ctx,
+    ) except PETSC_ERR_PYTHON with gil:
+    (arbitrary, args, kargs) = <object>ctx
+    cdef Vec Vr = ref_Vec(xr)
+    cdef Vec Vi = ref_Vec(xi)
+    r = arbitrary(toComplex(er,ei), Vr, Vi, args, **kargs)
+    if sizeof(PetscScalar) == sizeof(PetscReal):
+        rr[0] = asComplexReal(r)
+        ri[0] = asComplexImag(r)
+    else:
+        rr[0] = asScalar(r)
+        ri[0] = 0.0
 
 # -----------------------------------------------------------------------------
 
