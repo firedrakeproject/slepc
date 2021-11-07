@@ -1024,7 +1024,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
   Compute Y^H*A*X= [   --   | Y0'*W1 ]
                    [ Y1'*W0 | Y1'*W1 ]
   First stage: allocate auxiliary BV to store A*X1, one BVDot for right part;
-  Second stage: resize BV to accomodate A'*Y1, then call BVDot for transpose of
+  Second stage: resize BV to accommodate A'*Y1, then call BVDot for transpose of
   bottom-left part; result placed in marray[*,ldm]
 */
 PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)

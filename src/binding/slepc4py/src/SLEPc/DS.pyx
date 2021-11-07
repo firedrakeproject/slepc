@@ -379,7 +379,7 @@ cdef class DS(Object):
         Parameters
         ----------
         meth: int
-              An index indentifying the method.
+              An index identifying the method.
         """
         cdef PetscInt val = meth
         CHKERR( DSSetMethod(self.ds, val) )

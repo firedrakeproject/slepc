@@ -10,7 +10,7 @@
 /*
    SLEPc nonlinear eigensolver: "slp"
 
-   Method: Succesive linear problems
+   Method: Successive linear problems
 
    Algorithm:
 

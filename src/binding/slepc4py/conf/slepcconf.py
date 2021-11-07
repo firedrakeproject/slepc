@@ -29,6 +29,7 @@ from conf.baseconf import sdist      as _sdist
 from conf.baseconf import makefile
 
 from distutils.errors import DistutilsError
+from distutils.util import split_quoted
 
 # --------------------------------------------------------------------
 
@@ -43,9 +44,43 @@ class SlepcConfig(PetscConfig):
             raise DistutilsError("SLEPc not found")
         if not os.path.isdir(slepc_dir):
             raise DistutilsError("invalid SLEPC_DIR")
-        self.configdict['SLEPC_DIR'] = slepc_dir
+        self._get_slepc_config(petsc_dir,slepc_dir)
         self.SLEPC_DIR = self['SLEPC_DIR']
         self.SLEPC_DESTDIR = dest_dir
+        self.SLEPC_LIB = self['SLEPC_LIB']
+        self.SLEPC_EXTERNAL_LIB_DIR = self['SLEPC_EXTERNAL_LIB_DIR']
+
+    def _get_slepc_config(self, petsc_dir, slepc_dir):
+        from os.path import join, isdir
+        PETSC_DIR  = petsc_dir
+        SLEPC_DIR  = slepc_dir
+        PETSC_ARCH = self.PETSC_ARCH
+        confdir = join('lib', 'slepc', 'conf')
+        if not (PETSC_ARCH and isdir(join(SLEPC_DIR, PETSC_ARCH))):
+            PETSC_ARCH = ''
+        variables = join(SLEPC_DIR, confdir, 'slepc_variables')
+        slepcvariables = join(SLEPC_DIR, PETSC_ARCH, confdir, 'slepcvariables')
+        with open(variables) as f:
+            contents = f.read()
+        with open(slepcvariables) as f:
+            contents += f.read()
+        try:
+            from cStringIO import StringIO
+        except ImportError:
+            from io import StringIO
+        confstr  = 'PETSC_DIR  = %s\n' % PETSC_DIR
+        confstr += 'PETSC_ARCH = %s\n' % PETSC_ARCH
+        confstr  = 'SLEPC_DIR  = %s\n' % SLEPC_DIR
+        confstr += contents
+        slepc_confdict = makefile(StringIO(confstr))
+        self.configdict['SLEPC_DIR'] = SLEPC_DIR
+        self.configdict['SLEPC_LIB'] = slepc_confdict['SLEPC_LIB']
+        dirlist = []
+        for external in [ 'ARPACK_LIB', 'BLOPEX_LIB', 'ELPA_LIB', 'EVSL_LIB', 'HPDDM_LIB', 'PRIMME_LIB', 'SLICOT_LIB', 'TRLAN_LIB' ]:
+            for entry in [lib[2:] for lib in split_quoted(slepc_confdict[external]) if lib.startswith('-L')]:
+                if entry not in dirlist:
+                    dirlist.append(entry)
+        self.configdict['SLEPC_EXTERNAL_LIB_DIR'] = dirlist
 
     def configure_extension(self, extension):
         PetscConfig.configure_extension(self, extension)
@@ -62,16 +97,11 @@ class SlepcConfig(PetscConfig):
         SLEPC_LIB_DIR = [
             os.path.join(SLEPC_DIR, SLEPC_ARCH_DIR, 'lib'),
             os.path.join(SLEPC_DIR, 'lib'),
-            ]
+            ] + self.SLEPC_EXTERNAL_LIB_DIR
         slepc_cfg = { }
         slepc_cfg['include_dirs'] = SLEPC_INCLUDE
         slepc_cfg['library_dirs'] = SLEPC_LIB_DIR
-        if 'petscvec' in self['PETSC_LIB']:
-            slepc_variables = os.path.join(SLEPC_DIR, 'lib', 'slepc', 'conf', 'slepc_variables')
-            slepc_libs = makefile(open(slepc_variables, 'rt')).get('SHLIBS').replace('lib', '').split()
-        else:
-            slepc_libs = ['slepc']
-        slepc_cfg['libraries'] = slepc_libs
+        slepc_cfg['libraries'] = [lib[2:] for lib in split_quoted(self.SLEPC_LIB) if lib.startswith('-l')]
         slepc_cfg['runtime_library_dirs'] = [strip_prefix(SLEPC_DESTDIR, d) for d in SLEPC_LIB_DIR]
         self._configure_ext(extension, slepc_cfg, preppend=True)
         if self['BUILDSHAREDLIB'] == 'no':

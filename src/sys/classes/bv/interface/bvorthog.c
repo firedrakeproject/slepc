@@ -381,7 +381,7 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
    because norm=0. In that case, it could be left as zero or replaced by a random
    vector that is then orthonormalized. The latter is achieved by setting the
    argument replace to TRUE. The vector will be replaced by a random vector also
-   if lindep was set to TRUE, even if the norm is not exaclty zero.
+   if lindep was set to TRUE, even if the norm is not exactly zero.
 
    If the vector has been replaced by a random vector, the output arguments norm and
    lindep will be set according to the orthogonalization of this new vector.

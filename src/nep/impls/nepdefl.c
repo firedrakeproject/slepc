@@ -246,7 +246,7 @@ PetscErrorCode NEPDeflationLocking(NEP_EXT_OP extop,Vec u,PetscScalar lambda)
     for (i=0;i<extop->n-1;i++) extop->XpX[i*extop->szd+extop->n-1] = PetscConj(extop->XpX[(extop->n-1)*extop->szd+i]);
     /* determine minimality index */
     extop->midx = PetscMin(extop->max_midx,extop->n);
-    /* polynominal basis coeficients */
+    /* polynominal basis coefficients */
     for (i=0;i<extop->midx;i++) extop->bc[i] = extop->nep->target;
     /* evaluate the polynomial basis in H */
     ierr = NEPDeflationEvaluateBasisMat(extop,-extop->midx,PETSC_FALSE,NULL,extop->Hj,NULL);CHKERRQ(ierr);

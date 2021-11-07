@@ -345,7 +345,7 @@ PetscErrorCode DSDuplicate(DS ds,DS *dsnew)
 
    Input Parameters:
 +  ds   - the direct solver context
--  meth - an index indentifying the method
+-  meth - an index identifying the method
 
    Options Database Key:
 .  -ds_method <meth> - Sets the method

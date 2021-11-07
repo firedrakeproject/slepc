@@ -1321,7 +1321,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   ierr = PEPJDCreateShellPC(pep,ww);CHKERRQ(ierr);
   ierr = PCShellGetContext(pjd->pcshell,&pcctx);CHKERRQ(ierr);
 
-  /* Create auxiliar vectors */
+  /* Create auxiliary vectors */
   ierr = BVCreateVec(pjd->V,&u[0]);CHKERRQ(ierr);
   ierr = VecDuplicate(u[0],&p[0]);CHKERRQ(ierr);
   ierr = VecDuplicate(u[0],&r[0]);CHKERRQ(ierr);

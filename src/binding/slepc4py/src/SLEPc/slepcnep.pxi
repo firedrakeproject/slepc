@@ -223,14 +223,6 @@ cdef extern from * nogil:
 
 # -----------------------------------------------------------------------------
 
-cdef inline Mat ref_Mat(PetscMat mat):
-    cdef Mat ob = <Mat> Mat()
-    ob.mat = mat
-    PetscINCREF(ob.obj)
-    return ob
-
-# -----------------------------------------------------------------------------
-
 cdef inline NEP ref_NEP(SlepcNEP nep):
     cdef NEP ob = <NEP> NEP()
     ob.nep = nep

@@ -292,7 +292,7 @@ cdef class FN(Object):
         Parameters
         ----------
         meth: int
-              An index indentifying the method.
+              An index identifying the method.
 
         Notes
         -----
@@ -315,7 +315,7 @@ cdef class FN(Object):
         Returns
         -------
         meth: int
-              An index indentifying the method.
+              An index identifying the method.
         """
         cdef PetscInt val = 0
         CHKERR( FNGetMethod(self.fn, &val) )

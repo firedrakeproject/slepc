@@ -454,7 +454,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
     }
     /*
       update columns associated with non-converged vectors, orthogonalize
-      against pQ so that next M has rank nnc+d-1 insted of nrow+d-1
+      against pQ so that next M has rank nnc+d-1 instead of nrow+d-1
     */
     for (i=0;i<deg;i++) {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pQ+offu,&rs1_,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_,&zero,SS+i*newc*nnc,&newc_));

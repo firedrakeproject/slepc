@@ -331,7 +331,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (!ds->compact) {
     ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);
   }
-  /* Undo from diagonal the blocks whith real eigenvalues*/
+  /* Undo from diagonal the blocks with real eigenvalues*/
   ierr = DSGHIEPRealBlocks(ds);CHKERRQ(ierr);
 
   /* Recover eigenvalues from diagonal */

@@ -103,7 +103,7 @@ def FixSign(x):
     aux.assemble()
     x0 = aux.sum()
     sign = x0/abs(x0)
-    x.scale(sign)
+    x.scale(1.0/sign)
 
 opts = PETSc.Options()
 n = opts.getInt('n', 128)

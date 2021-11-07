@@ -1184,6 +1184,24 @@ cdef class EPS(Object):
 
     #
 
+    def setArbitrarySelection(self, arbitrary, args=None, kargs=None):
+        """
+        Sets a function to look for eigenvalues according to an arbitrary selection
+        criterion. This criterion can be based on a computation involving the current
+        eigenvector approximation.
+        """
+        if arbitrary is not None:
+            if args is None: args = ()
+            if kargs is None: kargs = {}
+            self.set_attr('__arbitrary__', (arbitrary, args, kargs))
+            ctx = self.get_attr('__arbitrary__')
+            CHKERR( EPSSetArbitrarySelection(self.eps, EPS_Arbitrary, <void*>ctx) )
+        else:
+            self.set_attr('__arbitrary__', None)
+            CHKERR( EPSSetArbitrarySelection(self.eps, NULL, NULL) )
+
+    #
+
     def setMonitor(self, monitor, args=None, kargs=None):
         """
         Appends a monitor function to the list of monitors.

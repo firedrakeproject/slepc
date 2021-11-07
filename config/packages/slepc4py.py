@@ -116,7 +116,7 @@ class Slepc4py(package.Package):
 
 
   def SkipInstall(self,slepcrules):
-    # add emtpy rules
+    # add empty rules
     slepcrules.write('slepc4py-build:\n')
     slepcrules.write('slepc4py-install:\n')
     slepcrules.write('slepc4pytest:\n')

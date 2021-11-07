@@ -393,7 +393,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) { ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr); }
   if (power->nonlinear) {
     ierr = PetscObjectCompose((PetscObject)power->snes,"eps",(PetscObject)eps);CHKERRQ(ierr);
-    /* Compute an intial guess only when users do not provide one */
+    /* Compute an initial guess only when users do not provide one */
     if (power->update && !eps->nini) {
       ierr = EPSPowerComputeInitialGuess_Update(eps);CHKERRQ(ierr);
     }

@@ -376,7 +376,7 @@ PetscErrorCode QEPDefiniteTransformGetMatrices(PEP pep,PetscBool hyperbolic,Pets
 
 /* ------------------------------------------------------------------- */
 /*
-  Auxiliary funciton to compute the residual norm of an eigenpair of a QEP defined
+  Auxiliary function to compute the residual norm of an eigenpair of a QEP defined
   by coefficient matrices A
 */
 static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec *z,PetscReal *norm)

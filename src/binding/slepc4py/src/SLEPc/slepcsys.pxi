@@ -82,3 +82,15 @@ cdef inline KSP ref_KSP(PetscKSP ksp):
     PetscINCREF(ob.obj)
     return ob
 
+cdef inline Mat ref_Mat(PetscMat mat):
+    cdef Mat ob = <Mat> Mat()
+    ob.mat = mat
+    PetscINCREF(ob.obj)
+    return ob
+
+cdef inline Vec ref_Vec(PetscVec vec):
+    cdef Vec ob = <Vec> Vec()
+    ob.vec = vec
+    PetscINCREF(ob.obj)
+    return ob
+

@@ -504,7 +504,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     B = ds->mat[DS_MAT_W];
     ierr = PetscArraycpy(B,A,ld*ld);CHKERRQ(ierr);
 
-    /* Vector g initialy stores b = beta*e_n^T */
+    /* Vector g initially stores b = beta*e_n^T */
     ierr = PetscArrayzero(g,n);CHKERRQ(ierr);
     g[n-1] = beta;
 

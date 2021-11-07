@@ -95,7 +95,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
 /*
   Input:
     d, number of nodes to compute
-    a,b, interval extrems
+    a,b, interval extremes
   Output:
     *x, array containing the d Chebyshev nodes of the interval [a,b]
     *dct2, coefficients to compute a discrete cosine transformation (DCT-II)

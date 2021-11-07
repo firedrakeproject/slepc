@@ -266,7 +266,7 @@ cdef class ST(Object):
         shell matrix that represents the shifted matrix. This mode is
         the most efficient in creating the shifted matrix but it
         places serious limitations to the linear solves performed in
-        each iteration of the eigensolver (typically, only interative
+        each iteration of the eigensolver (typically, only iterative
         solvers with Jacobi preconditioning can be used).
 
         In the case of generalized problems, in the two first modes
@@ -436,7 +436,7 @@ cdef class ST(Object):
         """
         Applies the spectral transformation operator to a vector, for
         instance ``(A - sB)^-1 B`` in the case of the shift-and-invert
-        tranformation and generalized eigenproblem.
+        transformation and generalized eigenproblem.
 
         Parameters
         ----------
@@ -451,7 +451,7 @@ cdef class ST(Object):
         """
         Applies the transpose of the operator to a vector, for
         instance ``B^T(A - sB)^-T`` in the case of the
-        shift-and-invert tranformation and generalized eigenproblem.
+        shift-and-invert transformation and generalized eigenproblem.
 
         Parameters
         ----------
@@ -466,7 +466,7 @@ cdef class ST(Object):
         """
         Applies the hermitian-transpose of the operator to a vector, for
         instance ``B^H(A - sB)^-H`` in the case of the
-        shift-and-invert tranformation and generalized eigenproblem.
+        shift-and-invert transformation and generalized eigenproblem.
 
         Parameters
         ----------
@@ -481,7 +481,7 @@ cdef class ST(Object):
         """
         Applies the spectral transformation operator to a matrix, for
         instance ``(A - sB)^-1 B`` in the case of the shift-and-invert
-        tranformation and generalized eigenproblem.
+        transformation and generalized eigenproblem.
 
         Parameters
         ----------
