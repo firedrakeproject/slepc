@@ -298,7 +298,7 @@ static PetscErrorCode NEPNLEIGSAAASingularities(NEP nep,PetscInt ndpt,PetscScala
 {
   PetscErrorCode ierr;
   Vec            u,v,w;
-  PetscRandom    rand;
+  PetscRandom    rand=NULL;
   PetscScalar    *F,*isol;
   PetscInt       i,k,nisol,nt;
   Mat            T;
@@ -326,7 +326,7 @@ static PetscErrorCode NEPNLEIGSAAASingularities(NEP nep,PetscInt ndpt,PetscScala
     ierr = MatCreateVecs(nep->function,&u,NULL);CHKERRQ(ierr);
     ierr = VecDuplicate(u,&v);CHKERRQ(ierr);
     ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
-    ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr);
+    if (nep->V) { ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr); }
     ierr = VecSetRandom(u,rand);CHKERRQ(ierr);
     ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
     ierr = VecSetRandom(v,rand);CHKERRQ(ierr);
@@ -647,7 +647,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     ierr = FNEvaluateFunctionMat(nep->f[j],H,K);
     PetscPopErrorHandler();
     if (!ierr) {
-      for (i=0;i<nmax;i++) { ctx->coeffD[j+i*nep->nt] = pK[i]*beta[0]; }
+      for (i=0;i<nmax;i++) ctx->coeffD[j+i*nep->nt] = pK[i]*beta[0];
     } else {
       matrix = PETSC_FALSE;
       ierr = PetscFPTrapPop();CHKERRQ(ierr);
@@ -734,12 +734,12 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,*coeffs;
   Mat            *D=ctx->D,T;
   PetscBool      shell,has,vec=PETSC_FALSE;
-  PetscRandom    rand;
+  PetscRandom    rand=NULL;
   Vec            w[2];
 
   PetscFunctionBegin;
   ierr = PetscMalloc2(ctx->ddmaxit+1,&b,ctx->ddmaxit+1,&coeffs);CHKERRQ(ierr);
-  ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr);
+  if (nep->V) { ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr); }
   T = nep->function;
   ierr = NEPComputeFunction(nep,s[0],T,T);CHKERRQ(ierr);
   ierr = MatIsShell(T,&shell);CHKERRQ(ierr);

@@ -12,7 +12,7 @@ static char help[] = "Test the NLEIGS solver with shell matrices.\n\n"
   "This is based on ex27.\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = matrix dimension.\n"
-  "  -split <0/1>, to select the split form in the problem definition (enabled by default)\n";
+  "  -split <0/1>, to select the split form in the problem definition (enabled by default).\n";
 
 /*
    Solve T(lambda)x=0 using NLEIGS solver
