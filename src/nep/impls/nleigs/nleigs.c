@@ -634,7 +634,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   PetscInt       k,j,i,maxnmat,nmax;
   PetscReal      norm0,norm,*matnorm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*xi=ctx->xi,*b,alpha,*coeffs,*pK,*pH,sone=1.0;
-  Mat            T,Ts,K,H;
+  Mat            T,P,Ts,K,H;
   PetscBool      shell,hasmnorm=PETSC_FALSE,matrix=PETSC_TRUE;
   PetscBLASInt   n_;
 
@@ -722,9 +722,13 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     } else {
       ierr = NLEIGSMatToMatShellArray(nep->A[0],&T,maxnmat);CHKERRQ(ierr);
     }
+    if (nep->P) { /* user-defined preconditioner */
+      ierr = MatDuplicate(nep->P[0],MAT_COPY_VALUES,&P);CHKERRQ(ierr);
+    } else P=T;
     alpha = 0.0;
     for (j=0;j<ctx->nmat;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt];
     ierr = MatScale(T,alpha);CHKERRQ(ierr);
+    if (nep->P) { ierr = MatScale(P,alpha);CHKERRQ(ierr); }
     for (k=1;k<nep->nt;k++) {
       alpha = 0.0;
       for (j=0;j<ctx->nmat;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt+k];
@@ -732,13 +736,15 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
         ierr = NLEIGSMatToMatShellArray(nep->A[k],&Ts,maxnmat);CHKERRQ(ierr);
       }
       ierr = MatAXPY(T,alpha,shell?Ts:nep->A[k],nep->mstr);CHKERRQ(ierr);
+      if (nep->P) { ierr = MatAXPY(P,alpha,nep->P[k],nep->mstrp);CHKERRQ(ierr); }
       if (shell) {
         ierr = MatDestroy(&Ts);CHKERRQ(ierr);
       }
     }
-    ierr = KSPSetOperators(ctx->ksp[i],T,T);CHKERRQ(ierr);
+    ierr = KSPSetOperators(ctx->ksp[i],T,P);CHKERRQ(ierr);
     ierr = KSPSetUp(ctx->ksp[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&T);CHKERRQ(ierr);
+    if (nep->P) { ierr = MatDestroy(&P);CHKERRQ(ierr); }
   }
   ierr = PetscFree3(b,coeffs,matnorm);CHKERRQ(ierr);
   ierr = PetscFree2(pK,pH);CHKERRQ(ierr);
@@ -752,7 +758,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   PetscInt       k,j,i,maxnmat;
   PetscReal      norm0,norm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,*coeffs;
-  Mat            *D=ctx->D,T;
+  Mat            *D=ctx->D,*DP,T,P;
   PetscBool      shell,has,vec=PETSC_FALSE;
   PetscRandom    rand=NULL;
   Vec            w[2];
@@ -761,7 +767,8 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   ierr = PetscMalloc2(ctx->ddmaxit+1,&b,ctx->ddmaxit+1,&coeffs);CHKERRQ(ierr);
   if (nep->V) { ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr); }
   T = nep->function;
-  ierr = NEPComputeFunction(nep,s[0],T,T);CHKERRQ(ierr);
+  P = nep->function_pre;
+  ierr = NEPComputeFunction(nep,s[0],T,P);CHKERRQ(ierr);
   ierr = MatIsShell(T,&shell);CHKERRQ(ierr);
   maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   if (!shell) {
@@ -784,10 +791,14 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     vec = PETSC_TRUE;
     ierr = MatNormEstimate(D[0],ctx->vrn,w[0],&norm0);CHKERRQ(ierr);
   }
+  if (nep->function_pre != nep->function) {
+    ierr = PetscMalloc1(ctx->ddmaxit,&DP);CHKERRQ(ierr);
+    ierr = MatDuplicate(P,MAT_COPY_VALUES,&DP[0]);CHKERRQ(ierr);
+  }
   ctx->nmat = ctx->ddmaxit;
   for (k=1;k<ctx->ddmaxit;k++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,k,s[k],b);CHKERRQ(ierr);
-    ierr = NEPComputeFunction(nep,s[k],T,T);CHKERRQ(ierr);
+    ierr = NEPComputeFunction(nep,s[k],T,P);CHKERRQ(ierr);
     if (!shell) {
       ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[k]);CHKERRQ(ierr);
     } else {
@@ -811,6 +822,13 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
       }
       ierr = MatNormEstimate(D[k],ctx->vrn,w[0],&norm);CHKERRQ(ierr);
     }
+    if (nep->function_pre != nep->function) {
+      ierr = MatDuplicate(P,MAT_COPY_VALUES,&DP[k]);CHKERRQ(ierr);
+      for (j=0;j<k;j++) {
+        ierr = MatAXPY(DP[k],-b[j],DP[j],nep->mstrp);CHKERRQ(ierr);
+      }
+      ierr = MatScale(DP[k],1.0/b[k]);CHKERRQ(ierr);
+    }
     if (k>1 && norm/norm0 < ctx->ddtol && k>1) {
       ctx->nmat = k+1;
       break;
@@ -819,12 +837,19 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat-1,ctx->shifts[i],coeffs);CHKERRQ(ierr);
-    ierr = MatDuplicate(ctx->D[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
+    ierr = MatDuplicate(D[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     if (coeffs[0]!=1.0) { ierr = MatScale(T,coeffs[0]);CHKERRQ(ierr); }
     for (j=1;j<ctx->nmat;j++) {
-      ierr = MatAXPY(T,coeffs[j],ctx->D[j],nep->mstr);CHKERRQ(ierr);
+      ierr = MatAXPY(T,coeffs[j],D[j],nep->mstr);CHKERRQ(ierr);
     }
-    ierr = KSPSetOperators(ctx->ksp[i],T,T);CHKERRQ(ierr);
+    if (nep->function_pre != nep->function) {
+      ierr = MatDuplicate(DP[0],MAT_COPY_VALUES,&P);CHKERRQ(ierr);
+      if (coeffs[0]!=1.0) { ierr = MatScale(P,coeffs[0]);CHKERRQ(ierr); }
+      for (j=1;j<ctx->nmat;j++) {
+        ierr = MatAXPY(P,coeffs[j],DP[j],nep->mstrp);CHKERRQ(ierr);
+      }
+    } else P=T;
+    ierr = KSPSetOperators(ctx->ksp[i],T,P);CHKERRQ(ierr);
     ierr = KSPSetUp(ctx->ksp[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&T);CHKERRQ(ierr);
   }
@@ -832,6 +857,10 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   if (vec) {
     ierr = VecDestroy(&w[0]);CHKERRQ(ierr);
     ierr = VecDestroy(&w[1]);CHKERRQ(ierr);
+  }
+  if (nep->function_pre != nep->function) {
+    ierr = MatDestroy(&P);CHKERRQ(ierr);
+    ierr = MatDestroyMatrices(ctx->nmat,&DP);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1794,10 +1823,15 @@ static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,PetscInt *nsolve,KSP **ksp
       ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
       ierr = PetscObjectSetOptions((PetscObject)ctx->ksp[i],((PetscObject)nep)->options);CHKERRQ(ierr);
       ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = KSPSetTolerances(ctx->ksp[i],SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(ctx->ksp[i],1e-3*SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
       ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
-      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+      if ((nep->fui==NEP_USER_INTERFACE_SPLIT && nep->P) || (nep->fui==NEP_USER_INTERFACE_CALLBACK && nep->function_pre!=nep->function)) {
+        ierr = KSPSetType(ctx->ksp[i],KSPBCGS);CHKERRQ(ierr);
+        ierr = PCSetType(pc,PCBJACOBI);CHKERRQ(ierr);
+      } else {
+        ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
+        ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+      }
     }
   }
   if (nsolve) *nsolve = ctx->nshiftsw;
