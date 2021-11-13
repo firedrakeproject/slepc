@@ -53,14 +53,11 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   RG             rg;
   FN             f[2];
-  PetscMPIInt    size;
   PetscBool      terse,flg,lock,split=PETSC_TRUE;
   PetscScalar    coeffs;
   MatCtx         *ctx;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
-  if (size != 1) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This is a uniprocessor example only!");
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%D%s\n\n",n,split?" (in split form)":"");CHKERRQ(ierr);
@@ -94,14 +91,14 @@ int main(int argc,char **argv)
 
   if (split) {
     /* Create matrix A0 (tridiagonal) */
-    ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,NULL,&A[0]);CHKERRQ(ierr);
+    ierr = MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,NULL,&A[0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A[0],MATOP_MULT,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A[0],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A[0],MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A0);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A[0],MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A0);CHKERRQ(ierr);
 
     /* Create matrix A0 (identity) */
-    ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,NULL,&A[1]);CHKERRQ(ierr);
+    ierr = MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,NULL,&A[1]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A[1],MATOP_MULT,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A[1],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A[1],MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1);CHKERRQ(ierr);
@@ -118,7 +115,7 @@ int main(int argc,char **argv)
   } else {
     /* Callback form: create shell matrix for F=A0+sqrt(lambda)*A1  */
     ierr = PetscNew(&ctx);CHKERRQ(ierr);
-    ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctx,&F);CHKERRQ(ierr);
+    ierr = MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,(void*)ctx,&F);CHKERRQ(ierr);
     ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)(void))MatMult_F);CHKERRQ(ierr);
     ierr = MatShellSetOperation(F,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_F);CHKERRQ(ierr);
     ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_F);CHKERRQ(ierr);
@@ -215,16 +212,28 @@ PetscErrorCode MatMult_A0(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   PetscInt          i,n;
+  PetscMPIInt       rank,size,next,prev;
   const PetscScalar *px;
-  PetscScalar       *py;
+  PetscScalar       *py,upper=0.0,lower=0.0;
+  MPI_Comm          comm;
 
   PetscFunctionBeginUser;
+  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
+  next = rank==size-1? MPI_PROC_NULL: rank+1;
+  prev = rank==0? MPI_PROC_NULL: rank-1;
+
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecGetSize(x,&n);CHKERRQ(ierr);
-  py[0] = -2.0*px[0]+px[1];
+  ierr = VecGetLocalSize(x,&n);CHKERRQ(ierr);
+
+  ierr = MPI_Sendrecv(px,1,MPIU_SCALAR,prev,0,&lower,1,MPIU_SCALAR,next,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+  ierr = MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,next,0,&upper,1,MPIU_SCALAR,prev,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+
+  py[0] = upper-2.0*px[0]+px[1];
   for (i=1;i<n-1;i++) py[i] = px[i-1]-2.0*px[i]+px[i+1];
-  py[n-1] = px[n-2]-2.0*px[n-1];
+  py[n-1] = px[n-2]-2.0*px[n-1]+lower;
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -241,14 +250,15 @@ PetscErrorCode MatGetDiagonal_A0(Mat A,Vec diag)
 
 PetscErrorCode MatDuplicate_A0(Mat A,MatDuplicateOption op,Mat *B)
 {
-  PetscInt       n;
+  PetscInt       m,n,M,N;
   MPI_Comm       comm;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MatCreateShell(comm,n,n,n,n,NULL,B);CHKERRQ(ierr);
+  ierr = MatCreateShell(comm,m,n,M,N,NULL,B);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A0);CHKERRQ(ierr);
@@ -278,14 +288,15 @@ PetscErrorCode MatGetDiagonal_A1(Mat A,Vec diag)
 
 PetscErrorCode MatDuplicate_A1(Mat A,MatDuplicateOption op,Mat *B)
 {
-  PetscInt       n;
+  PetscInt       m,n,M,N;
   MPI_Comm       comm;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MatCreateShell(comm,n,n,n,n,NULL,B);CHKERRQ(ierr);
+  ierr = MatCreateShell(comm,m,n,M,N,NULL,B);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1);CHKERRQ(ierr);
@@ -299,19 +310,31 @@ PetscErrorCode MatMult_F(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   PetscInt          i,n;
+  PetscMPIInt       rank,size,next,prev;
   const PetscScalar *px;
-  PetscScalar       *py,d;
+  PetscScalar       *py,d,upper=0.0,lower=0.0;
   MatCtx            *ctx;
+  MPI_Comm          comm;
 
   PetscFunctionBeginUser;
+  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
+  ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
+  next = rank==size-1? MPI_PROC_NULL: rank+1;
+  prev = rank==0? MPI_PROC_NULL: rank-1;
+
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecGetSize(x,&n);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(x,&n);CHKERRQ(ierr);
+
+  ierr = MPI_Sendrecv(px,1,MPIU_SCALAR,prev,0,&lower,1,MPIU_SCALAR,next,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+  ierr = MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,next,0,&upper,1,MPIU_SCALAR,prev,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+
   d = -2.0+ctx->t;
-  py[0] = d*px[0]+px[1];
+  py[0] = upper+d*px[0]+px[1];
   for (i=1;i<n-1;i++) py[i] = px[i-1]+d*px[i]+px[i+1];
-  py[n-1] = px[n-2]+d*px[n-1];
+  py[n-1] = px[n-2]+d*px[n-1]+lower;
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -331,17 +354,18 @@ PetscErrorCode MatGetDiagonal_F(Mat A,Vec diag)
 PetscErrorCode MatDuplicate_F(Mat A,MatDuplicateOption op,Mat *B)
 {
   MatCtx         *actx,*bctx;
-  PetscInt       n;
+  PetscInt       m,n,M,N;
   MPI_Comm       comm;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,&actx);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
   ierr = PetscNew(&bctx);CHKERRQ(ierr);
   bctx->t = actx->t;
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MatCreateShell(comm,n,n,n,n,(void*)bctx,B);CHKERRQ(ierr);
+  ierr = MatCreateShell(comm,m,n,M,N,(void*)bctx,B);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_F);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_F);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_F);CHKERRQ(ierr);
@@ -364,6 +388,7 @@ PetscErrorCode MatDestroy_F(Mat A)
 /*TEST
 
    testset:
+      nsize: {{1 2}}
       args: -nep_nev 3 -nep_tol 1e-8 -terse
       filter: sed -e "s/[+-]0\.0*i//g"
       requires: !single

@@ -484,7 +484,7 @@ static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 
 static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 {
-  PetscInt            n,i;
+  PetscInt            m,n,M,N,i;
   NEP_NLEIGS_MATSHELL *ctxnew,*ctx;
   void                (*fun)(void);
   PetscErrorCode      ierr;
@@ -500,9 +500,10 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
     ctxnew->A[i] = ctx->A[i];
     ctxnew->coeff[i] = ctx->coeff[i];
   }
-  ierr = MatGetSize(ctx->A[0],&n,NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(ctx->A[0],&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->A[0],&m,&n);CHKERRQ(ierr);
   ierr = VecDuplicate(ctx->t,&ctxnew->t);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)A),n,n,n,n,(void*)ctxnew,B);CHKERRQ(ierr);
+  ierr = MatCreateShell(PetscObjectComm((PetscObject)A),m,n,M,N,(void*)ctxnew,B);CHKERRQ(ierr);
   ierr = MatShellSetManageScalingShifts(*B);CHKERRQ(ierr);
   ierr = MatShellGetOperation(A,MATOP_MULT,&fun);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT,fun);CHKERRQ(ierr);
@@ -577,25 +578,26 @@ static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms,PetscInt maxnmat)
+static PetscErrorCode NLEIGSMatToMatShellArray(Mat A,Mat *Ms,PetscInt maxnmat)
 {
   PetscErrorCode      ierr;
   NEP_NLEIGS_MATSHELL *ctx;
-  PetscInt            n;
+  PetscInt            m,n,M,N;
   PetscBool           has;
 
   PetscFunctionBegin;
-  ierr = MatHasOperation(M,MATOP_DUPLICATE,&has);CHKERRQ(ierr);
-  if (!has) SETERRQ(PetscObjectComm((PetscObject)M),PETSC_ERR_USER,"MatDuplicate operation required");
+  ierr = MatHasOperation(A,MATOP_DUPLICATE,&has);CHKERRQ(ierr);
+  if (!has) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_USER,"MatDuplicate operation required");
   ierr = PetscNew(&ctx);CHKERRQ(ierr);
   ctx->maxnmat = maxnmat;
   ierr = PetscMalloc2(ctx->maxnmat,&ctx->A,ctx->maxnmat,&ctx->coeff);CHKERRQ(ierr);
-  ierr = MatDuplicate(M,MAT_COPY_VALUES,&ctx->A[0]);CHKERRQ(ierr);
+  ierr = MatDuplicate(A,MAT_COPY_VALUES,&ctx->A[0]);CHKERRQ(ierr);
   ctx->nmat = 1;
   ctx->coeff[0] = 1.0;
-  ierr = MatCreateVecs(M,&ctx->t,NULL);CHKERRQ(ierr);
-  ierr = MatGetSize(M,&n,NULL);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)M),n,n,n,n,(void*)ctx,Ms);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&ctx->t,NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
+  ierr = MatCreateShell(PetscObjectComm((PetscObject)A),m,n,M,N,(void*)ctx,Ms);CHKERRQ(ierr);
   ierr = MatShellSetManageScalingShifts(*Ms);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*Ms,MATOP_MULT,(void(*)(void))MatMult_Fun);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*Ms,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Fun);CHKERRQ(ierr);
