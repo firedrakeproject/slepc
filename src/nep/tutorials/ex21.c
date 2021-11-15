@@ -41,6 +41,7 @@ PetscErrorCode MatDestroy_Jac(Mat);
 typedef struct {
   PetscScalar lambda,kappa;
   PetscReal   h;
+  PetscMPIInt next,prev;
 } MatCtx;
 
 /*
@@ -60,13 +61,13 @@ int main(int argc,char **argv)
   PetscInt       n=128,nev;
   KSP            ksp;
   PC             pc;
-  PetscMPIInt    size;
+  PetscMPIInt    rank,size;
   PetscBool      terse;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
-  if (size != 1) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This is a uniprocessor example only!");
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
   ctx.h = 1.0/(PetscReal)n;
@@ -85,8 +86,10 @@ int main(int argc,char **argv)
   ierr = PetscNew(&ctxF);CHKERRQ(ierr);
   ctxF->h = ctx.h;
   ctxF->kappa = ctx.kappa;
+  ctxF->next = rank==size-1? MPI_PROC_NULL: rank+1;
+  ctxF->prev = rank==0? MPI_PROC_NULL: rank-1;
 
-  ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxF,&F);CHKERRQ(ierr);
+  ierr = MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,(void*)ctxF,&F);CHKERRQ(ierr);
   ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)(void))MatMult_Fun);CHKERRQ(ierr);
   ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun);CHKERRQ(ierr);
   ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun);CHKERRQ(ierr);
@@ -105,8 +108,10 @@ int main(int argc,char **argv)
   ierr = PetscNew(&ctxJ);CHKERRQ(ierr);
   ctxJ->h = ctx.h;
   ctxJ->kappa = ctx.kappa;
+  ctxJ->next = rank==size-1? MPI_PROC_NULL: rank+1;
+  ctxJ->prev = rank==0? MPI_PROC_NULL: rank-1;
 
-  ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxJ,&J);CHKERRQ(ierr);
+  ierr = MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,(void*)ctxJ,&J);CHKERRQ(ierr);
   ierr = MatShellSetOperation(J,MATOP_MULT,(void(*)(void))MatMult_Jac);CHKERRQ(ierr);
   ierr = MatShellSetOperation(J,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Jac);CHKERRQ(ierr);
   ierr = MatShellSetOperation(J,MATOP_DESTROY,(void(*)(void))MatDestroy_Jac);CHKERRQ(ierr);
@@ -214,26 +219,32 @@ PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   MatCtx            *ctx;
-  PetscInt          i,n;
+  PetscInt          i,n,N;
   const PetscScalar *px;
-  PetscScalar       *py,c,d,de,oe;
+  PetscScalar       *py,c,d,de,oe,upper=0.0,lower=0.0;
   PetscReal         h;
+  MPI_Comm          comm;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  ierr = VecGetSize(x,&N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(x,&n);CHKERRQ(ierr);
 
-  ierr = VecGetSize(x,&n);CHKERRQ(ierr);
+  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
+  ierr = MPI_Sendrecv(px,1,MPIU_SCALAR,ctx->prev,0,&lower,1,MPIU_SCALAR,ctx->next,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+  ierr = MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,ctx->next,0,&upper,1,MPIU_SCALAR,ctx->prev,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
-  d = n;
+  d = N;
   de = 2.0*(d-ctx->lambda*h/3.0);   /* diagonal entry */
   oe = -d-ctx->lambda*h/6.0;        /* offdiagonal entry */
-  py[0] = de*px[0] + oe*px[1];
+  py[0] = oe*upper + de*px[0] + oe*px[1];
   for (i=1;i<n-1;i++) py[i] = oe*px[i-1] +de*px[i] + oe*px[i+1];
-  de = d-ctx->lambda*h/3.0+ctx->lambda*c;   /* diagonal entry of last row */
-  py[n-1] = oe*px[n-2] + de*px[n-1];
+  if (ctx->next==MPI_PROC_NULL) de = d-ctx->lambda*h/3.0+ctx->lambda*c;   /* diagonal entry of last row */
+  py[n-1] = oe*px[n-2] + de*px[n-1] + oe*lower;
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
@@ -245,16 +256,17 @@ PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
   MatCtx         *ctx;
-  PetscInt       n;
+  PetscInt       n,N;
   PetscScalar    *pd,c,d;
   PetscReal      h;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
-  ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
+  ierr = VecGetSize(diag,&N);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(diag,&n);CHKERRQ(ierr);
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
-  d = n;
+  d = N;
   ierr = VecSet(diag,2.0*(d-ctx->lambda*h/3.0));CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
   pd[n-1] = d-ctx->lambda*h/3.0+ctx->lambda*c;
@@ -278,21 +290,24 @@ PetscErrorCode MatDestroy_Fun(Mat A)
 PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 {
   MatCtx         *actx,*bctx;
-  PetscInt       n;
+  PetscInt       m,n,M,N;
   MPI_Comm       comm;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,&actx);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
 
   ierr = PetscNew(&bctx);CHKERRQ(ierr);
   bctx->h      = actx->h;
   bctx->kappa  = actx->kappa;
   bctx->lambda = actx->lambda;
+  bctx->next   = actx->next;
+  bctx->prev   = actx->prev;
 
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MatCreateShell(comm,n,n,n,n,(void*)bctx,B);CHKERRQ(ierr);
+  ierr = MatCreateShell(comm,m,n,M,N,(void*)bctx,B);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_Fun);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun);CHKERRQ(ierr);
@@ -307,23 +322,28 @@ PetscErrorCode MatMult_Jac(Mat A,Vec x,Vec y)
   MatCtx            *ctx;
   PetscInt          i,n;
   const PetscScalar *px;
-  PetscScalar       *py,c,de,oe;
+  PetscScalar       *py,c,de,oe,upper=0.0,lower=0.0;
   PetscReal         h;
+  MPI_Comm          comm;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(x,&n);CHKERRQ(ierr);
 
-  ierr = VecGetSize(x,&n);CHKERRQ(ierr);
+  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
+  ierr = MPI_Sendrecv(px,1,MPIU_SCALAR,ctx->prev,0,&lower,1,MPIU_SCALAR,ctx->next,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+  ierr = MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,ctx->next,0,&upper,1,MPIU_SCALAR,ctx->prev,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
   de = -2.0*h/3.0;    /* diagonal entry */
   oe = -h/6.0;        /* offdiagonal entry */
-  py[0] = de*px[0] + oe*px[1];
+  py[0] = oe*upper + de*px[0] + oe*px[1];
   for (i=1;i<n-1;i++) py[i] = oe*px[i-1] +de*px[i] + oe*px[i+1];
-  de = -h/3.0-c*c;    /* diagonal entry of last row */
-  py[n-1] = oe*px[n-2] + de*px[n-1];
+  if (ctx->next==MPI_PROC_NULL) de = -h/3.0-c*c;    /* diagonal entry of last row */
+  py[n-1] = oe*px[n-2] + de*px[n-1] + oe*lower;
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
@@ -341,7 +361,7 @@ PetscErrorCode MatGetDiagonal_Jac(Mat A,Vec diag)
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
-  ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(diag,&n);CHKERRQ(ierr);
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
   ierr = VecSet(diag,-2.0*h/3.0);CHKERRQ(ierr);
@@ -366,6 +386,7 @@ PetscErrorCode MatDestroy_Jac(Mat A)
 /*TEST
 
    testset:
+      nsize: {{1 2}}
       args: -terse
       requires: !single
       output_file: output/ex21_1.out
