@@ -46,7 +46,7 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
   if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-    ierr = PetscViewerASCIIPrintf(viewer,"polynomial degree: %D\n",ctx->d);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"polynomial degree: %" PetscInt_FMT "\n",ctx->d);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   for (i=0;i<=ctx->d;i++) {
@@ -297,7 +297,7 @@ static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
 
   PetscFunctionBegin;
   if (d<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The degree must be a non-negative integer");
-  if (d>=DS_NUM_EXTRA) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for polynomials of degree at most %D",DS_NUM_EXTRA-1);
+  if (d>=DS_NUM_EXTRA) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for polynomials of degree at most %d",DS_NUM_EXTRA-1);
   ctx->d = d;
   PetscFunctionReturn(0);
 }

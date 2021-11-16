@@ -34,7 +34,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSymmetric-definite problem with two intervals, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSymmetric-definite problem with two intervals, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, Ax=kBx
@@ -101,12 +101,12 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSGetInterval(eps,&int0,&int1);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Found %D eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Found %" PetscInt_FMT " eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
   if (showinertia) {
     ierr = EPSKrylovSchurGetInertias(eps,&k,&shifts,&inertias);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Used %D shifts (inertia):\n",k);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",k);CHKERRQ(ierr);
     for (i=0;i<k;i++) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(shifts);CHKERRQ(ierr);
     ierr = PetscFree(inertias);CHKERRQ(ierr);
@@ -119,12 +119,12 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSGetInterval(eps,&int0,&int1);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Found %D eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Found %" PetscInt_FMT " eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
   if (showinertia) {
     ierr = EPSKrylovSchurGetInertias(eps,&k,&shifts,&inertias);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Used %D shifts (inertia):\n",k);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",k);CHKERRQ(ierr);
     for (i=0;i<k;i++) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(shifts);CHKERRQ(ierr);
     ierr = PetscFree(inertias);CHKERRQ(ierr);

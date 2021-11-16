@@ -48,7 +48,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetString(NULL,NULL,"-type",svdtype,sizeof(svdtype),NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetString(NULL,NULL,"-epstype",epstype,sizeof(epstype),&flg);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%D",N);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%" PetscInt_FMT,N);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n\n");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

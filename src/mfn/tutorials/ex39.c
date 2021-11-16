@@ -105,7 +105,7 @@ int main(int argc,char **argv)
 
   steps = (PetscInt)(tend/deltat);
   if (PetscAbsReal(tend-steps*deltat)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires tend being a multiple of deltat");
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nHeat equation via phi functions, n=%D, tend=%g, deltat=%g%s\n\n",n,(double)tend,(double)deltat,combine?" (combine)":"");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nHeat equation via phi functions, n=%" PetscInt_FMT ", tend=%g, deltat=%g%s\n\n",n,(double)tend,(double)deltat,combine?" (combine)":"");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Build the 1-D Laplacian and various vectors

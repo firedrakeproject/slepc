@@ -40,7 +40,7 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%D\n\n",N);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix of size N
@@ -78,7 +78,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   N *= 2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%D\n\n",N);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N);CHKERRQ(ierr);
 
   ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
   ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);

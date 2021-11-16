@@ -44,7 +44,7 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   n = (n/4)*4;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPlanar waveguide, n=%D\n\n",n+1);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPlanar waveguide, n=%" PetscInt_FMT "\n\n",n+1);CHKERRQ(ierr);
   h = (b-a)/n;
   nlocal = (n/4)-1;
 

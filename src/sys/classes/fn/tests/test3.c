@@ -116,7 +116,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-checkerror",&checkerror);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix exponential, n=%D.\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix exponential, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
 
   /* Create exponential function object */
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);

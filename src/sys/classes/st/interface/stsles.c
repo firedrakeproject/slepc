@@ -86,7 +86,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   STCheckMatrices(st,1);
-  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat);
+  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
 
@@ -132,7 +132,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   STCheckMatrices(st,1);
-  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat);
+  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
 
@@ -380,13 +380,13 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
     ierr = MatMult(A,vi,w);CHKERRQ(ierr);
     ierr = VecNorm(w,NORM_2,&norm);CHKERRQ(ierr);
     if (norm < 10.0*PETSC_SQRT_MACHINE_EPSILON) {
-      ierr = PetscInfo2(st,"Vector %D included in the nullspace of OP, norm=%g\n",i,(double)norm);CHKERRQ(ierr);
+      ierr = PetscInfo2(st,"Vector %" PetscInt_FMT " included in the nullspace of OP, norm=%g\n",i,(double)norm);CHKERRQ(ierr);
       ierr = BVCreateVec(V,T+c);CHKERRQ(ierr);
       ierr = VecCopy(vi,T[c]);CHKERRQ(ierr);
       ierr = VecNormalize(T[c],NULL);CHKERRQ(ierr);
       c++;
     } else {
-      ierr = PetscInfo2(st,"Vector %D discarded as possible nullspace of OP, norm=%g\n",i,(double)norm);CHKERRQ(ierr);
+      ierr = PetscInfo2(st,"Vector %" PetscInt_FMT " discarded as possible nullspace of OP, norm=%g\n",i,(double)norm);CHKERRQ(ierr);
     }
     ierr = BVRestoreColumn(V,-nc+i,&vi);CHKERRQ(ierr);
   }

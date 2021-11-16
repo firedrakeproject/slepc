@@ -354,7 +354,7 @@ PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
   ierr = PetscLogObjectParents(bv,m,newV);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {
     for (j=0;j<m;j++) {
-      ierr = PetscSNPrintf(str,sizeof(str),"%s_%D",((PetscObject)bv)->name,j);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)newV[j],str);CHKERRQ(ierr);
     }
   }
@@ -546,7 +546,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
     ierr = PetscLogObjectParents(bv,bv->m,ctx->V);CHKERRQ(ierr);
     if (((PetscObject)bv)->name) {
       for (j=0;j<bv->m;j++) {
-        ierr = PetscSNPrintf(str,sizeof(str),"%s_%D",((PetscObject)bv)->name,j);CHKERRQ(ierr);
+        ierr = PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j);CHKERRQ(ierr);
         ierr = PetscObjectSetName((PetscObject)ctx->V[j],str);CHKERRQ(ierr);
       }
     }

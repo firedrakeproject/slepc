@@ -47,7 +47,7 @@ int main (int argc,char **argv)
   if (!flag) m = n;
   ierr = PetscOptionsGetScalar(NULL,NULL,"-target",&target,NULL);CHKERRQ(ierr);
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding via shell ST, N=%D (%Dx%D grid) target=%3.2f\n\n",N,n,m,(double)PetscRealPart(target));CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding via shell ST, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid) target=%3.2f\n\n",N,n,m,(double)PetscRealPart(target));CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the 5-point stencil Laplacian
@@ -109,7 +109,7 @@ int main (int argc,char **argv)
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up

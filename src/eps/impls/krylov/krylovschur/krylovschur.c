@@ -344,12 +344,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       if (!hermitian) { ierr = DSGetTruncateSize(eps->ds,k,nv,&l);CHKERRQ(ierr); }
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
-    if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
         /* Start a new Arnoldi factorization */
-        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         if (k<eps->nev) {
           ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
@@ -397,7 +397,7 @@ static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal kee
   PetscFunctionBegin;
   if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
   else {
-    if (keep<0.1 || keep>0.9) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",keep);
+    if (keep<0.1 || keep>0.9) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",(double)keep);
     ctx->keep = keep;
   }
   PetscFunctionReturn(0);
@@ -1515,9 +1515,9 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
       if (isfilt) {
         ierr = PetscViewerASCIIPrintf(viewer,"  using filtering to extract all eigenvalues in an interval\n");CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  doing spectrum slicing with nev=%D, ncv=%D, mpd=%D\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  doing spectrum slicing with nev=%" PetscInt_FMT ", ncv=%" PetscInt_FMT ", mpd=%" PetscInt_FMT "\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
         if (ctx->npart>1) {
-          ierr = PetscViewerASCIIPrintf(viewer,"  multi-communicator spectrum slicing with %D partitions\n",ctx->npart);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"  multi-communicator spectrum slicing with %" PetscInt_FMT " partitions\n",ctx->npart);CHKERRQ(ierr);
           if (ctx->detect) { ierr = PetscViewerASCIIPrintf(viewer,"  detecting zeros when factorizing at subinterval boundaries\n");CHKERRQ(ierr); }
         }
         /* view child KSP */

@@ -154,14 +154,14 @@ int main(int argc,char **argv)
 
   /* check vertices */
   ierr = RGPolygonGetVertices(rg,&nv,&pr,&pi);CHKERRQ(ierr);
-  if (nv!=NVERTEX) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong number of vertices: %D",nv);
+  if (nv!=NVERTEX) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong number of vertices: %" PetscInt_FMT,nv);
   for (i=0;i<nv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
     if (pr[i]!=vr[i] || pi[i]!=vi[i])
 #else
     if (pr[i]!=vr[i])
 #endif
-       SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Vertex number %D does not match",i);
+       SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Vertex number %" PetscInt_FMT " does not match",i);
   }
 
   ierr = PetscFree(pr);CHKERRQ(ierr);

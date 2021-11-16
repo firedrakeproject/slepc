@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PetscViewerAndFormat *vf;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
 
   /*
      Matrices
@@ -96,7 +96,7 @@ int main(int argc,char **argv)
   ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
   ierr = NEPSetSplitOperator(nep,3,A,f,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = NEPGetSplitOperatorInfo(nep,&nterm,&mstr);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Nonlinear function with %d terms, with %s\n",(int)nterm,MatStructures[mstr]);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Nonlinear function with %" PetscInt_FMT " terms, with %s\n",nterm,MatStructures[mstr]);CHKERRQ(ierr);
   ierr = NEPGetSplitOperatorTerm(nep,0,&B,&g);CHKERRQ(ierr);
   ierr = MatView(B,NULL);CHKERRQ(ierr);
   ierr = FNView(g,NULL);CHKERRQ(ierr);
@@ -115,7 +115,7 @@ int main(int argc,char **argv)
 
   ierr = NEPSetRefine(nep,NEP_REFINE_SIMPLE,1,1e-9,2,NEP_REFINE_SCHEME_EXPLICIT);CHKERRQ(ierr);
   ierr = NEPGetRefine(nep,&refine,NULL,&tol,&its,&rscheme);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Refinement: %s, tol=%g, its=%D, scheme=%s\n",NEPRefineTypes[refine],(double)tol,its,NEPRefineSchemes[rscheme]);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Refinement: %s, tol=%g, its=%" PetscInt_FMT ", scheme=%s\n",NEPRefineTypes[refine],(double)tol,its,NEPRefineSchemes[rscheme]);CHKERRQ(ierr);
 
   ierr = NEPSetTarget(nep,1.1);CHKERRQ(ierr);
   ierr = NEPGetTarget(nep,&target);CHKERRQ(ierr);
@@ -125,11 +125,11 @@ int main(int argc,char **argv)
 
   ierr = NEPSetDimensions(nep,1,12,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,&ncv,&mpd);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%D, ncv=%D, mpd=%D\n",nev,ncv,mpd);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%" PetscInt_FMT ", ncv=%" PetscInt_FMT ", mpd=%" PetscInt_FMT "\n",nev,ncv,mpd);CHKERRQ(ierr);
 
   ierr = NEPSetTolerances(nep,1.0e-6,200);CHKERRQ(ierr);
   ierr = NEPGetTolerances(nep,&tol,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.6f, max_its = %D\n",(double)tol,its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.6f, max_its = %" PetscInt_FMT "\n",(double)tol,its);CHKERRQ(ierr);
 
   ierr = NEPSetConvergenceTest(nep,NEP_CONV_ABS);CHKERRQ(ierr);
   ierr = NEPGetConvergenceTest(nep,&conv);CHKERRQ(ierr);

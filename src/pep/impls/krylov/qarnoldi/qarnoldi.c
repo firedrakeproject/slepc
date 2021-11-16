@@ -283,12 +283,12 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
       ierr = DSGetTruncateSize(pep->ds,k,nv,&l);CHKERRQ(ierr);
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
-    if (l) { ierr = PetscInfo1(pep,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo1(pep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (pep->reason == PEP_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Stop if breakdown */
-        ierr = PetscInfo2(pep,"Breakdown Quadratic Arnoldi method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
+        ierr = PetscInfo2(pep,"Breakdown Quadratic Arnoldi method (it=%" PetscInt_FMT " norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
         pep->reason = PEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */

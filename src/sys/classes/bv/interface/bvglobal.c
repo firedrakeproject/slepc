@@ -102,9 +102,9 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   PetscCheckTypeNames(M,MATSEQDENSE,MATSEQDENSECUDA);
 
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
-  if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,Y->k);
-  if (n<X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should have at least %D",n,X->k);
-  if (X->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
+  if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,Y->k);
+  if (n<X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,X->k);
+  if (X->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", Y %" PetscInt_FMT,X->n,Y->n);
   if (X->matrix!=Y->matrix) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"X and Y must have the same inner product matrix");
   if (X->l==X->k || Y->l==Y->k) PetscFunctionReturn(0);
 
@@ -169,7 +169,7 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar m[])
   PetscCheckSameTypeAndComm(X,1,y,2);
 
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
-  if (X->n!=n) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
+  if (X->n!=n) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", y %" PetscInt_FMT,X->n,n);
 
   ierr = PetscLogEventBegin(BV_DotVec,X,y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
@@ -208,7 +208,7 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
   PetscCheckSameTypeAndComm(X,1,y,2);
 
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
-  if (X->n!=n) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
+  if (X->n!=n) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", y %" PetscInt_FMT,X->n,n);
 
   if (X->ops->dotvec_begin) {
     ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
@@ -326,7 +326,7 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   BVCheckOp(X,1,dotvec);
 
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,X->m);
 
   ierr = PetscLogEventBegin(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
@@ -370,7 +370,7 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
   BVCheckSizes(X,1);
 
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,X->m);
   ksave = X->k;
   X->k = j;
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
@@ -430,7 +430,7 @@ PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
   BVCheckSizes(X,1);
 
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,X->m);
   ksave = X->k;
   X->k = j;
 
@@ -580,7 +580,7 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
   ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
     ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
-    if (bv->n!=n) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
+    if (bv->n!=n) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %" PetscInt_FMT ", v %" PetscInt_FMT,bv->n,n);
     ierr = BVNorm_Private(bv,v,type,val);CHKERRQ(ierr);
   } else {
     ierr = VecNorm(v,type,val);CHKERRQ(ierr);
@@ -625,7 +625,7 @@ PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
   ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
     ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
-    if (bv->n!=n) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
+    if (bv->n!=n) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %" PetscInt_FMT ", v %" PetscInt_FMT,bv->n,n);
     ierr = BVNorm_Begin_Private(bv,v,type,val);CHKERRQ(ierr);
   } else {
     ierr = VecNormBegin(v,type,val);CHKERRQ(ierr);
@@ -707,7 +707,7 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", the number of columns is %" PetscInt_FMT,j,bv->m);
   if (type==NORM_1_AND_2 && !bv->matrix) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
@@ -754,7 +754,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", the number of columns is %" PetscInt_FMT,j,bv->m);
   if (type==NORM_1_AND_2 && !bv->matrix) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
@@ -1203,9 +1203,9 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   PetscCheckTypeNames(M,MATSEQDENSE,MATSEQDENSECUDA);
 
   ierr = MatGetSize(M,&m,&n);CHKERRQ(ierr);
-  if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D rows, should have at least %D",m,Y->k);
-  if (n<X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %D columns, should have at least %D",n,X->k);
-  if (X->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
+  if (m<Y->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,Y->k);
+  if (n<X->k) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,X->k);
+  if (X->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", Y %" PetscInt_FMT,X->n,Y->n);
 
   ierr = PetscLogEventBegin(BV_MatProject,X,A,Y,0);CHKERRQ(ierr);
   /* temporarily set standard inner product */

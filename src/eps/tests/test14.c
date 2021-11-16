@@ -35,7 +35,7 @@ int main(int argc,char **argv)
   PetscViewerAndFormat *vf;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
 
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
   ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
@@ -80,7 +80,7 @@ int main(int argc,char **argv)
 
   ierr = EPSSetBalance(eps,EPS_BALANCE_ONESIDE,8,1e-6);CHKERRQ(ierr);
   ierr = EPSGetBalance(eps,&bal,&its,&cut);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Balance: %s, its=%D, cutoff=%g\n",EPSBalanceTypes[bal],its,(double)cut);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Balance: %s, its=%" PetscInt_FMT ", cutoff=%g\n",EPSBalanceTypes[bal],its,(double)cut);CHKERRQ(ierr);
 
   ierr = EPSSetPurify(eps,PETSC_FALSE);CHKERRQ(ierr);
   ierr = EPSGetPurify(eps,&pur);CHKERRQ(ierr);
@@ -95,11 +95,11 @@ int main(int argc,char **argv)
 
   ierr = EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,&ncv,&mpd);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%D, ncv=%D, mpd=%D\n",nev,ncv,mpd);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%" PetscInt_FMT ", ncv=%" PetscInt_FMT ", mpd=%" PetscInt_FMT "\n",nev,ncv,mpd);CHKERRQ(ierr);
 
   ierr = EPSSetTolerances(eps,2.2e-4,200);CHKERRQ(ierr);
   ierr = EPSGetTolerances(eps,&tol,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5f, max_its = %D\n",(double)tol,its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5f, max_its = %" PetscInt_FMT "\n",(double)tol,its);CHKERRQ(ierr);
 
   ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr);
   ierr = EPSGetConvergenceTest(eps,&conv);CHKERRQ(ierr);
@@ -122,7 +122,7 @@ int main(int argc,char **argv)
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetConvergedReason(eps,&reason);CHKERRQ(ierr);
   ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d, its=%D\n",(int)reason,its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d, its=%" PetscInt_FMT "\n",(int)reason,its);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up

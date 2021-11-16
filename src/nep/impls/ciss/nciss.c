@@ -329,7 +329,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   }
   /* Updates L after estimate the number of eigenvalue */
   if (L_add>0) {
-    ierr = PetscInfo2(nep,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo2(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) {
@@ -351,7 +351,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
-    ierr = PetscInfo2(nep,"Changing L %D -> %D by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo2(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) {
@@ -1087,12 +1087,12 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D, maximum block size: %D }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %" PetscInt_FMT ", block size: %" PetscInt_FMT ", moment size: %" PetscInt_FMT ", partitions: %" PetscInt_FMT ", maximum block size: %" PetscInt_FMT " }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max);CHKERRQ(ierr);
     if (ctx->isreal) {
       ierr = PetscViewerASCIIPrintf(viewer,"  exploiting symmetry of integration points\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement  { inner: %D, blocksize: %D }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement  { inner: %" PetscInt_FMT ", blocksize: %" PetscInt_FMT " }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",NEPCISSExtractions[ctx->extraction]);CHKERRQ(ierr);
     if (!ctx->contour || !ctx->contour->ksp) { ierr = NEPCISSGetKSPs(nep,NULL,NULL);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);

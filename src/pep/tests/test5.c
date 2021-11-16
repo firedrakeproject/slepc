@@ -28,7 +28,7 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPEP of diagonal problem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPEP of diagonal problem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrices
@@ -78,7 +78,7 @@ int main(int argc,char **argv)
   ierr = PEPSolve(pep);CHKERRQ(ierr);
   ierr = PEPGetConverged(pep,&nconv);CHKERRQ(ierr);
   ierr = PEPGetIterationNumber(pep,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," %D converged eigenpairs after %D iterations\n",nconv,its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," %" PetscInt_FMT " converged eigenpairs after %" PetscInt_FMT " iterations\n",nconv,its);CHKERRQ(ierr);
   if (nconv>0) {
     ierr = MatCreateVecs(A[0],&xr,&xi);CHKERRQ(ierr);
     ierr = PEPGetEigenpair(pep,0,&kr,&ki,xr,xi);CHKERRQ(ierr);

@@ -114,9 +114,9 @@ PetscErrorCode BVBiorthogonalizeColumn(BV V,BV W,PetscInt j)
   BVCheckSizes(W,2);
   PetscCheckSameTypeAndComm(V,1,W,2);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but V only has %D columns",j,V->m);
-  if (j>=W->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but W only has %D columns",j,W->m);
-  if (V->n!=W->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, W %D",V->n,W->n);
+  if (j>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but V only has %" PetscInt_FMT " columns",j,V->m);
+  if (j>=W->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but W only has %" PetscInt_FMT " columns",j,W->m);
+  if (V->n!=W->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %" PetscInt_FMT ", W %" PetscInt_FMT,V->n,W->n);
   if (V->matrix || W->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W must not have an inner product matrix");
   if (V->nc || W->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W cannot have different number of constraints");
   if (V->ops->gramschmidt || W->ops->gramschmidt) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Object has a special GS function");
@@ -188,9 +188,9 @@ PetscErrorCode BVBiorthonormalizeColumn(BV V,BV W,PetscInt j,PetscReal *delta)
   BVCheckSizes(W,2);
   PetscCheckSameTypeAndComm(V,1,W,2);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but V only has %D columns",j,V->m);
-  if (j>=W->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but W only has %D columns",j,W->m);
-  if (V->n!=W->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, W %D",V->n,W->n);
+  if (j>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but V only has %" PetscInt_FMT " columns",j,V->m);
+  if (j>=W->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but W only has %" PetscInt_FMT " columns",j,W->m);
+  if (V->n!=W->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %" PetscInt_FMT ", W %" PetscInt_FMT,V->n,W->n);
   if (V->matrix || W->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W must not have an inner product matrix");
   if (V->nc || W->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W cannot have different number of constraints");
   if (V->ops->gramschmidt || W->ops->gramschmidt) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Object has a special GS function");

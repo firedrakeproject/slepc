@@ -49,7 +49,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g\n",n,(double)tau);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n",n,(double)tau);CHKERRQ(ierr);
   h = PETSC_PI/(PetscReal)(n+1);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -151,7 +151,7 @@ int main(int argc,char **argv)
 
   for (k=0;k<3;k++) {
     ierr = DSGetArray(ds,DSMatExtra[k],&M);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix E%d = \n",k);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix E%" PetscInt_FMT " = \n",k);CHKERRQ(ierr);
     for (i=0;i<nc;i++) {
       for (j=0;j<nc;j++) {
         ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5g",(double)PetscRealPart(M[i+j*nc]));CHKERRQ(ierr);

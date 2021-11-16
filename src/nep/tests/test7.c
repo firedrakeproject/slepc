@@ -60,7 +60,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%D%s\n\n",n,split?" (in split form)":"");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%" PetscInt_FMT "%s\n\n",n,split?" (in split form)":"");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create NEP context, configure NLEIGS with appropriate options
@@ -135,7 +135,7 @@ int main(int argc,char **argv)
   ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = NEPNLEIGSGetRestart(nep,&keep);CHKERRQ(ierr);
@@ -143,7 +143,7 @@ int main(int argc,char **argv)
     ierr = NEPNLEIGSGetInterpolation(nep,&tol,&its);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Restart factor is %3.2f",(double)keep);CHKERRQ(ierr);
     if (lock) { ierr = PetscPrintf(PETSC_COMM_WORLD," (locking activated)");CHKERRQ(ierr); }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Divided diferences with tol=%6.2g maxit=%D\n",(double)tol,its);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Divided diferences with tol=%6.2g maxit=%" PetscInt_FMT "\n",(double)tol,its);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
 

@@ -54,7 +54,7 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
   ctx.h = 1.0/(PetscReal)n;
   ctx.kappa = 1.0;
   ierr = PetscOptionsGetBool(NULL,NULL,"-draw_sol",&draw_sol,NULL);CHKERRQ(ierr);
@@ -128,7 +128,7 @@ int main(int argc,char **argv)
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);
   ierr = NEPGetIterationNumber(nep,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of NEP iterations = %D\n\n",its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of NEP iterations = %" PetscInt_FMT "\n\n",its);CHKERRQ(ierr);
 
   /*
      Optional: Get some information from the solver and display it
@@ -136,9 +136,9 @@ int main(int argc,char **argv)
   ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
   ierr = NEPGetTolerances(nep,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%g, maxit=%D\n",(double)tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -148,7 +148,7 @@ int main(int argc,char **argv)
      Get number of converged approximate eigenpairs
   */
   ierr = NEPGetConverged(nep,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %" PetscInt_FMT "\n\n",nconv);CHKERRQ(ierr);
 
   if (nconv>0) {
     /*

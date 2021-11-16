@@ -432,7 +432,7 @@ static PetscErrorCode EPSLOBPCGSetBlockSize_LOBPCG(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT || bs == PETSC_DECIDE) bs = 1;
-  if (bs <= 0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid block size %D",bs);
+  if (bs <= 0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid block size %" PetscInt_FMT,bs);
   if (ctx->bs != bs) {
     ctx->bs = bs;
     eps->state = EPS_STATE_INITIAL;
@@ -670,8 +670,8 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  block size %D\n",ctx->bs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  restart parameter=%g (using %D guard vectors)\n",(double)ctx->restart,ctx->guard);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  block size %" PetscInt_FMT "\n",ctx->bs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  restart parameter=%g (using %" PetscInt_FMT " guard vectors)\n",(double)ctx->restart,ctx->guard);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  soft locking %sactivated\n",ctx->lock?"":"de");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

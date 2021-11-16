@@ -78,7 +78,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n");CHKERRQ(ierr);
         break;
       case NEP_USER_INTERFACE_SPLIT:
-        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form, with %D terms\n",nep->nt);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form, with %" PetscInt_FMT " terms\n",nep->nt);CHKERRQ(ierr);
         break;
       }
     } else {
@@ -128,10 +128,10 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     if (nep->twosided) {
       ierr = PetscViewerASCIIPrintf(viewer,"  using two-sided variant (for left eigenvectors)\n");CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",nep->nev);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",nep->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",nep->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",nep->max_it);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %" PetscInt_FMT "\n",nep->nev);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",nep->ncv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %" PetscInt_FMT "\n",nep->mpd);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",nep->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)nep->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
@@ -156,13 +156,13 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     if (nep->refine) {
       ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s, with %s scheme\n",NEPRefineTypes[nep->refine],NEPRefineSchemes[nep->scheme]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)nep->rtol,nep->rits);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%" PetscInt_FMT "\n",(double)nep->rtol,nep->rits);CHKERRQ(ierr);
       if (nep->npart>1) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %D partitions for refinement\n",nep->npart);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %" PetscInt_FMT " partitions for refinement\n",nep->npart);CHKERRQ(ierr);
       }
     }
     if (nep->nini) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(nep->nini));CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(nep->nini));CHKERRQ(ierr);
     }
   } else {
     if (nep->ops->view) {
@@ -254,9 +254,9 @@ PetscErrorCode NEPConvergedReasonView(NEP nep,PetscViewer viewer)
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
     if (nep->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve converged (%D eigenpair%s) due to %s; iterations %D\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",nep->nconv,(nep->nconv>1)?"s":"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve converged (%" PetscInt_FMT " eigenpair%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",nep->nconv,(nep->nconv>1)?"s":"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
     } else if (nep->reason <= 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
   }
@@ -307,7 +307,7 @@ static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer 
   PetscFunctionBegin;
   nvals = (nep->which==NEP_ALL)? nep->nconv: nep->nev;
   if (nep->which!=NEP_ALL && nep->nconv<nvals) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",nep->nev);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %" PetscInt_FMT " eigenvalues converged\n\n",nep->nev);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   if (nep->which==NEP_ALL && !nvals) {
@@ -317,12 +317,12 @@ static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer 
   for (i=0;i<nvals;i++) {
     ierr = NEPComputeError(nep,i,etype,&error);CHKERRQ(ierr);
     if (error>=5.0*nep->tol) {
-      ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
       PetscFunctionReturn(0);
     }
   }
   if (nep->which==NEP_ALL) {
-    ierr = PetscViewerASCIIPrintf(viewer," Found %D eigenvalues, all of them computed up to the required tolerance:",nvals);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals);CHKERRQ(ierr);
   } else {
     ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
   }

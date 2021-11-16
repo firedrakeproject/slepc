@@ -114,7 +114,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
 #if defined(SLEPC_HAVE_PRIMME3)
     case primme_event_message:
       /* Print PRIMME information messages */
-      ierr = PetscInfo(svd,msg);
+      ierr = PetscInfo1(svd,"%s\n",msg);
       break;
 #endif
     default:
@@ -279,12 +279,12 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
   /* Process PRIMME error code */
   if (ierrprimme == 0) {
     /* no error */
-  } else if (ierrprimme%100 == -1) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: unexpected error",ierrprimme);
-  else if (ierrprimme%100 == -2) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: allocation error",ierrprimme);
+  } else if (ierrprimme%100 == -1) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": unexpected error",ierrprimme);
+  else if (ierrprimme%100 == -2) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": allocation error",ierrprimme);
   else if (ierrprimme%100 == -3) {
     /* stop by maximum number of iteration or matvecs */
-  } else if (ierrprimme%100 >= -39) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: configuration error; check PRIMME's manual",ierrprimme);
-  else SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: runtime error; check PRIMME's manual",ierrprimme);
+  } else if (ierrprimme%100 >= -39) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": configuration error; check PRIMME's manual",ierrprimme);
+  else SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": runtime error; check PRIMME's manual",ierrprimme);
   PetscFunctionReturn(0);
 }
 
@@ -323,7 +323,7 @@ PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%D\n",ctx->bs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%" PetscInt_FMT "\n",ctx->bs);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",SVDPRIMMEMethods[(SVDPRIMMEMethod)ctx->method]);CHKERRQ(ierr);
 
     /* Display PRIMME params */

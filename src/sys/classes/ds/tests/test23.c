@@ -34,7 +34,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NEP - dimension %D, tau=%g.\n",n,(double)tau);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NEP - dimension %" PetscInt_FMT ", tau=%g.\n",n,(double)tau);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
   /* Create DS object and set options */
@@ -64,9 +64,9 @@ int main(int argc,char **argv)
   ierr = DSNEPGetRefine(ds,NULL,&rits);CHKERRQ(ierr);
   ierr = DSNEPGetSamplingSize(ds,&spls);CHKERRQ(ierr);
   if (meth==1) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour integral method with %D integration points, minimality index %D, and sampling size %D\n",ip,midx,spls);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour integral method with %" PetscInt_FMT " integration points, minimality index %" PetscInt_FMT ", and sampling size %" PetscInt_FMT "\n",ip,midx,spls);CHKERRQ(ierr);
     if (rits) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Doing %D iterations of Newton refinement\n",rits);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Doing %" PetscInt_FMT " iterations of Newton refinement\n",rits);CHKERRQ(ierr);
     }
   }
 
@@ -182,7 +182,7 @@ int main(int argc,char **argv)
     }
     nrm = PetscSqrtReal(nrm);
     if (nrm>1000*n*PETSC_MACHINE_EPSILON) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %D-th computed eigenpair %g\n",i,(double)nrm);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %" PetscInt_FMT "-th computed eigenpair %g\n",i,(double)nrm);CHKERRQ(ierr);
     }
     if (PetscAbs(im)<1e-10) {
       ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re);CHKERRQ(ierr);

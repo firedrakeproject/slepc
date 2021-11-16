@@ -32,7 +32,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-matcuda",&matcuda);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV with %D columns of dimension %D.\n",k,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV with %" PetscInt_FMT " columns of dimension %" PetscInt_FMT ".\n",k,n);CHKERRQ(ierr);
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);

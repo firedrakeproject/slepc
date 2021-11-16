@@ -93,7 +93,7 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec x
   ierr = PetscObjectGetName(obj,&pname);CHKERRQ(ierr);
   ierr = PetscSNPrintfCount(vname,sizeof(vname),"%s%s",&count,label,PetscDefined(USE_COMPLEX)?"":"r");CHKERRQ(ierr);
   count--;
-  ierr = PetscSNPrintf(vname+count,sizeof(vname)-count,"%d_%s",(int)index,pname);CHKERRQ(ierr);
+  ierr = PetscSNPrintf(vname+count,sizeof(vname)-count,"%" PetscInt_FMT "_%s",index,pname);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)xr,vname);CHKERRQ(ierr);
   ierr = VecView(xr,viewer);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)

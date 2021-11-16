@@ -99,31 +99,31 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
   if (ds->compact) {
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ds->n,ds->n);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",3*ds->n);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",ds->n,ds->n);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%" PetscInt_FMT ",3);\n",3*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
       for (i=0;i<ds->n;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
       }
       for (i=0;i<ds->n-1;i++) {
         if (*(ds->rmat[DS_MAT_T]+ds->ld+i) !=0 && i!=ds->k-1) {
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+2,i+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+2,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+2,i+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+2,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
         }
       }
       for (i = ds->l;i<ds->k;i++) {
         if (*(ds->rmat[DS_MAT_T]+2*ds->ld+i)) {
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",ds->k+1,i+1,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,ds->k+1,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",ds->k+1,i+1,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,ds->k+1,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_A]);CHKERRQ(ierr);
 
-      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",ds->n,ds->n);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"omega = zeros(%D,3);\n",3*ds->n);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",ds->n,ds->n);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"omega = zeros(%" PetscInt_FMT ",3);\n",3*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"omega = [\n");CHKERRQ(ierr);
       for (i=0;i<ds->n;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_D]+i));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_D]+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(omega);\n",DSMatName[DS_MAT_B]);CHKERRQ(ierr);
 

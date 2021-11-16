@@ -32,7 +32,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   N = n*n;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%D (%Dx%D grid)\n\n",N,n,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,n);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-test_prefix",&testprefix,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -98,9 +98,9 @@ int main(int argc,char **argv)
 
   /* query properties and print them */
   ierr = MFNGetTolerances(mfn,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %D\n",(double)tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
   ierr = MFNGetDimensions(mfn,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %D\n",ncv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv);CHKERRQ(ierr);
   ierr = MFNGetErrorIfNotConverged(mfn,&flg);CHKERRQ(ierr);
   if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," Erroring out if convergence fails\n");CHKERRQ(ierr); }
 
@@ -112,7 +112,7 @@ int main(int argc,char **argv)
   ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
   ierr = MFNGetIterationNumber(mfn,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason);CHKERRQ(ierr);
-  /* ierr = PetscPrintf(PETSC_COMM_WORLD," its = %D\n",its);CHKERRQ(ierr); */
+  /* ierr = PetscPrintf(PETSC_COMM_WORLD," its = %" PetscInt_FMT "\n",its);CHKERRQ(ierr); */
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," sqrt(A)*v has norm %g\n",(double)norm);CHKERRQ(ierr);
 

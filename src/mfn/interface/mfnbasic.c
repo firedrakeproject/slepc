@@ -73,8 +73,8 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
       ierr = (*mfn->ops->view)(mfn,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",mfn->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",mfn->max_it);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",mfn->ncv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",mfn->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)mfn->tol);CHKERRQ(ierr);
   } else {
     if (mfn->ops->view) {
@@ -148,9 +148,9 @@ PetscErrorCode MFNConvergedReasonView(MFN mfn,PetscViewer viewer)
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
     if (mfn->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve converged due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve converged due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
     } else if (mfn->reason <= 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve did not converge due to %s; iterations %D\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Matrix function solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
   }

@@ -206,7 +206,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
   else if (ldq < PetscMax(1,n)) *info = -6;
   else if (cutpnt < PetscMin(1,n) || cutpnt > PetscMax(1,n)) *info = -13;
   else if (lwork < lwmin) *info = -15;
-  if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %d in DMERG2",-(*info));
+  if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in DMERG2",-(*info));
 
 /* **************************************************************************** */
 
@@ -299,7 +299,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
           &work[idlmda], &work[iw], &work[iq2], &iwork[indx],
           &iwork[indxc], &iwork[indxp], &iwork[coltyp], tol, &dz, &de, info);
           CHKERRQ(ierr);
-  if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dmerg2: error in dsrtdf, info = %d",*info);
+  if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"dmerg2: error in dsrtdf, info = %" PetscBLASInt_FMT,*info);
 
   if (k < n) {
 
@@ -329,14 +329,14 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
     i__2 = (iwork[coltyp+1] + iwork[coltyp + 2]) * k;
     spneed = is + PetscMax(i__1,i__2) - 1;
 
-    if (spneed > lwork) SETERRQ1(PETSC_COMM_SELF,1,"dmerg2: Workspace needed exceeds the workspace provided by %d numbers",spneed-lwork);
+    if (spneed > lwork) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_MEM,"dmerg2: Workspace needed exceeds the workspace provided by %" PetscBLASInt_FMT " numbers",spneed-lwork);
 
     /* calling DLAED3M for solving the secular equation. */
 
     ierr = BDC_dlaed3m_(jobz, defl, k, n, tmpcut, ev, q, ldq,
                 *rho, &work[idlmda], &work[iq2], &iwork[indxc], &iwork[coltyp],
                 &work[iw], &work[is], info, 1, 1);CHKERRQ(ierr);
-    if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dmerg2: error in dlaed3m, info = %d",*info);
+    if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"dmerg2: error in dlaed3m, info = %" PetscBLASInt_FMT,*info);
 
     /* Prepare the INDXQ sorting permutation. */
 

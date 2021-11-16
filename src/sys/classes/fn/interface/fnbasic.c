@@ -703,12 +703,12 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   } else inplace = PETSC_TRUE;
   PetscCheckTypeName(A,MATSEQDENSE);
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
+  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   if (!inplace) {
     PetscCheckTypeName(B,MATSEQDENSE);
     n1 = n;
     ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
-    if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %D rows, %D cols)",m,n);
+    if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
     if (n1!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
   }
 
@@ -848,7 +848,7 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   PetscValidType(v,3);
   PetscCheckTypeName(A,MATSEQDENSE);
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
+  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   ierr = VecGetSize(v,&m);CHKERRQ(ierr);
   if (m!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrix A and vector v must have the same size");
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);

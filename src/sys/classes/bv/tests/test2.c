@@ -30,7 +30,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetReal(NULL,NULL,"-condn",&condn,NULL);CHKERRQ(ierr);
   if (condn<1.0) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The condition number must be > 1");
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with %D columns of length %D.\n",k,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n);CHKERRQ(ierr);
   if (condn>1.0) {
     ierr = PetscPrintf(PETSC_COMM_WORLD," - Using a random BV with condition number = %g\n",(double)condn);CHKERRQ(ierr);
   }

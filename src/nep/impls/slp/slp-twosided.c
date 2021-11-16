@@ -503,7 +503,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
         ierr = EPSGetConverged(ctx->eps,&nconv);CHKERRQ(ierr);
         ierr = EPSGetConverged(ctx->epsts,&nconv2);CHKERRQ(ierr);
         if (!nconv||!nconv2) {
-          ierr = PetscInfo1(nep,"iter=%D, inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }
@@ -513,7 +513,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
           if (SlepcAbsEigenvalue(mu-mu2,im-im2)/SlepcAbsEigenvalue(mu,im)<nep->tol*1000) break;
         }
         if (i==nconv2) {
-          ierr = PetscInfo1(nep,"iter=%D, inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }

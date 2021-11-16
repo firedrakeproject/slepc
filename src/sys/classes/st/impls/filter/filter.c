@@ -396,9 +396,9 @@ PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Filter: interval of desired eigenvalues is [%g,%g]\n",(double)ctx->inta,(double)ctx->intb);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  Filter: numerical range is [%g,%g]\n",(double)ctx->left,(double)ctx->right);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  Filter: degree of filter polynomial is %D\n",ctx->polyDegree);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Filter: degree of filter polynomial is %" PetscInt_FMT "\n",ctx->polyDegree);CHKERRQ(ierr);
     if (st->state>=ST_STATE_SETUP) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  Filter: limit to accept eigenvalues: theta=%g\n",ctx->filterInfo->yLimit);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  Filter: limit to accept eigenvalues: theta=%g\n",(double)ctx->filterInfo->yLimit);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

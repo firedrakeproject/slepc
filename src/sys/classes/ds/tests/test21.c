@@ -29,7 +29,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD - dimension (%D+%D)x%D.\n",n,p,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD - dimension (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT ".\n",n,p,m);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
   /* Create DS object */

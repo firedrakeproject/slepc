@@ -133,7 +133,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
             }
           }
           ierr = LMEDenseRankSVD(lme,n,L,n,U,n,&lrank);CHKERRQ(ierr);
-          ierr = PetscInfo1(lme,"Rank of the Cholesky factor = %D\n",lrank);CHKERRQ(ierr);
+          ierr = PetscInfo1(lme,"Rank of the Cholesky factor = %" PetscInt_FMT "\n",lrank);CHKERRQ(ierr);
           nouter = its;
           its = -1;
           if (!fixed) {  /* X1 was not set by user, allocate it with rank columns */

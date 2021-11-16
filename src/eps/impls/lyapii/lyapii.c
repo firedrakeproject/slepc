@@ -397,7 +397,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     /* Determine rank */
     rk = nv;
     for (i=1;i<nv;i++) if (PetscAbsScalar(s[i]/s[0])<PETSC_SQRT_MACHINE_EPSILON) {rk=i; break;}
-    ierr = PetscInfo1(eps,"The computed solution of the Lyapunov equation has rank %D\n",rk);CHKERRQ(ierr);
+    ierr = PetscInfo1(eps,"The computed solution of the Lyapunov equation has rank %" PetscInt_FMT "\n",rk);CHKERRQ(ierr);
     rk = PetscMin(rk,ctx->rkc);
     ierr = DSGetMat(ctx->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     ierr = BVMultInPlace(V,U,0,rk);CHKERRQ(ierr);
@@ -428,7 +428,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     ierr = DSSolve(ctx->ds,s,NULL);CHKERRQ(ierr);
     if (PetscAbsScalar(s[1]/s[0])<PETSC_SQRT_MACHINE_EPSILON) rk=1;
     else rk = 2;
-    ierr = PetscInfo1(eps,"The eigenvector has rank %D\n",rk);CHKERRQ(ierr);
+    ierr = PetscInfo1(eps,"The eigenvector has rank %" PetscInt_FMT "\n",rk);CHKERRQ(ierr);
     ierr = DSGetMat(ctx->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     ierr = BVMultInPlace(V,U,0,rk);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
@@ -564,9 +564,9 @@ static PetscErrorCode EPSLyapIISetRanks_LyapII(EPS eps,PetscInt rkc,PetscInt rkl
 
   PetscFunctionBegin;
   if (rkc==PETSC_DEFAULT) rkc = 10;
-  if (rkc<2) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The compressed rank %D must be larger than 1",rkc);
+  if (rkc<2) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The compressed rank %" PetscInt_FMT " must be larger than 1",rkc);
   if (rkl==PETSC_DEFAULT) rkl = 3*rkc;
-  if (rkl<rkc) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The Lyapunov rank %D cannot be smaller than the compressed rank %D",rkl,rkc);
+  if (rkl<rkc) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The Lyapunov rank %" PetscInt_FMT " cannot be smaller than the compressed rank %" PetscInt_FMT,rkl,rkc);
   if (rkc != ctx->rkc) {
     ctx->rkc   = rkc;
     eps->state = EPS_STATE_INITIAL;
@@ -743,7 +743,7 @@ PetscErrorCode EPSView_LyapII(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  ranks: for Lyapunov solver=%D, after compression=%D\n",ctx->rkl,ctx->rkc);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  ranks: for Lyapunov solver=%" PetscInt_FMT ", after compression=%" PetscInt_FMT "\n",ctx->rkl,ctx->rkc);CHKERRQ(ierr);
     if (!ctx->lme) { ierr = EPSLyapIIGetLME(eps,&ctx->lme);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = LMEView(ctx->lme,viewer);CHKERRQ(ierr);

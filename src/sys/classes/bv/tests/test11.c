@@ -56,7 +56,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsHasName(NULL,NULL,"-resid",&resid);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-rand",&rand);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV block orthogonalization (length %D, l=%D, k=%D)%s.\n",n,l,k,withb?" with non-standard inner product":"");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV block orthogonalization (length %" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT ")%s.\n",n,l,k,withb?" with non-standard inner product":"");CHKERRQ(ierr);
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);

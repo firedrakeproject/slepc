@@ -71,7 +71,7 @@ PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
 
   PetscFunctionBegin;
   if (x->U!=y->U) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"BVDot() in BVTENSOR requires that both operands have the same U factor");
-  if (lds!=y->ld*y->d) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mismatching dimensions ld*d %D %D",lds,y->ld*y->d);
+  if (lds!=y->ld*y->d) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mismatching dimensions ld*d %" PetscInt_FMT " %" PetscInt_FMT,lds,y->ld*y->d);
   ierr = MatGetSize(M,&ldm,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArrayRead(x->S,&px);CHKERRQ(ierr);
   ierr = MatDenseGetArrayRead(y->S,&py);CHKERRQ(ierr);
@@ -247,8 +247,8 @@ PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"number of tensor blocks (degree): %D\n",ctx->d);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"number of columns of U factor: %D\n",ctx->ld);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"number of tensor blocks (degree): %" PetscInt_FMT "\n",ctx->d);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"number of columns of U factor: %" PetscInt_FMT "\n",ctx->ld);CHKERRQ(ierr);
       PetscFunctionReturn(0);
     }
     ierr = BVView(ctx->U,viewer);CHKERRQ(ierr);
@@ -257,7 +257,7 @@ PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
       ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
       ierr = PetscObjectGetName((PetscObject)ctx->U,&uname);CHKERRQ(ierr);
       ierr = PetscObjectGetName((PetscObject)ctx->S,&sname);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=kron(eye(%D),%s)*%s(:,1:%D);\n",bvname,ctx->d,uname,sname,bv->k);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=kron(eye(%" PetscInt_FMT "),%s)*%s(:,1:%" PetscInt_FMT ");\n",bvname,ctx->d,uname,sname,bv->k);CHKERRQ(ierr);
     }
   } else {
     ierr = BVView(ctx->U,viewer);CHKERRQ(ierr);
@@ -337,7 +337,7 @@ static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
     }
   }
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
-  if (!nq) SETERRQ1(PetscObjectComm((PetscObject)V),1,"Cannot build first column of tensor BV; U should contain k=%D nonzero columns",k);
+  if (!nq) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Cannot build first column of tensor BV; U should contain k=%" PetscInt_FMT " nonzero columns",k);
   ierr = BVTensorUpdateMatrix(V,0,nq);CHKERRQ(ierr);
   ierr = BVTensorNormColumn(V,0,&norm);CHKERRQ(ierr);
   ierr = BVScale_Tensor(V,0,1.0/norm);CHKERRQ(ierr);
@@ -832,7 +832,7 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
 
   ierr = BVCreate(PetscObjectComm((PetscObject)U),V);CHKERRQ(ierr);
   ierr = BVGetSizes(U,&n,&N,&m);CHKERRQ(ierr);
-  if (m<d) SETERRQ2(PetscObjectComm((PetscObject)U),PETSC_ERR_ARG_SIZ,"U has %D columns, it should have at least d=%D",m,d);
+  if (m<d) SETERRQ2(PetscObjectComm((PetscObject)U),PETSC_ERR_ARG_SIZ,"U has %" PetscInt_FMT " columns, it should have at least d=%" PetscInt_FMT,m,d);
   ierr = BVSetSizes(*V,d*n,d*N,m-d+1);CHKERRQ(ierr);
   ierr = PetscObjectChangeTypeName((PetscObject)*V,BVTENSOR);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(BV_Create,*V,0,0,0);CHKERRQ(ierr);

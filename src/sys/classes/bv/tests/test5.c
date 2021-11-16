@@ -28,7 +28,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV with indefinite inner product (n=%D, k=%D).\n",n,k);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV with indefinite inner product (n=%" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",n,k);CHKERRQ(ierr);
 
   /* Create inner product matrix (standard involutionary permutation) */
   ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
@@ -124,14 +124,14 @@ int main(int argc,char **argv)
   ierr = VecAXPY(t,-1.0,v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,0,&v);CHKERRQ(ierr);
   ierr = VecNorm(t,NORM_2,&nrm);CHKERRQ(ierr);
-  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_WORLD,1,"Wrong value, nrm = %g\n",(double)nrm);
+  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_FP,"Wrong value, nrm = %g\n",(double)nrm);
 
   ierr = BVApplyMatrixBV(X,Y);CHKERRQ(ierr);
   ierr = BVGetColumn(Y,0,&v);CHKERRQ(ierr);
   ierr = VecAXPY(w,-1.0,v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(Y,0,&v);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_2,&nrm);CHKERRQ(ierr);
-  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_WORLD,1,"Wrong value, nrm = %g\n",(double)nrm);
+  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_FP,"Wrong value, nrm = %g\n",(double)nrm);
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);

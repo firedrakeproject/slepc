@@ -22,7 +22,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
 
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
   ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
@@ -49,7 +49,7 @@ int main(int argc,char **argv)
   ierr = EPSRQCGSetReset(eps,10);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSRQCGGetReset(eps,&nrest);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"RQCG reset parameter = %D\n\n",nrest);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"RQCG reset parameter = %" PetscInt_FMT "\n\n",nrest);CHKERRQ(ierr);
   ierr = EPSView(eps,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -27,7 +27,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV created from a dense Mat (length %D, k=%D).\n",n,k);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV created from a dense Mat (length %" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",n,k);CHKERRQ(ierr);
 
   /* Create dense matrix */
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);

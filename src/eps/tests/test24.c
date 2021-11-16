@@ -30,7 +30,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-nini",&nini,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-ncon",&ncon,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%D nini=%D ncon=%D\n\n",n,nini,ncon);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%" PetscInt_FMT " nini=%" PetscInt_FMT " ncon=%" PetscInt_FMT "\n\n",n,nini,ncon);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -101,7 +101,7 @@ int main(int argc,char **argv)
     ierr = EPSLOBPCGGetRestart(eps,&restart);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," LOBPCG Restart parameter=%.4g\n",(double)restart);CHKERRQ(ierr);
     ierr = EPSLOBPCGGetBlockSize(eps,&bs);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," LOBPCG Block size=%D\n",bs);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," LOBPCG Block size=%" PetscInt_FMT "\n",bs);CHKERRQ(ierr);
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -69,10 +69,10 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   if (Q) {
     PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
     ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
-    if (m<X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,X->k);
-    if (n<Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should have at least %D",n,Y->k);
+    if (m<X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,X->k);
+    if (n<Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,Y->k);
   }
-  if (X->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
+  if (X->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", Y %" PetscInt_FMT,X->n,Y->n);
 
   ierr = PetscLogEventBegin(BV_Mult,X,Y,0,0);CHKERRQ(ierr);
   ierr = (*Y->ops->mult)(Y,alpha,beta,X,Q);CHKERRQ(ierr);
@@ -130,7 +130,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
 
   ierr = VecGetSize(y,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
-  if (N!=X->N || n!=X->n) SETERRQ4(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,X->N,X->n);
+  if (N!=X->N || n!=X->n) SETERRQ4(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,X->N,X->n);
 
   ierr = PetscLogEventBegin(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
@@ -181,7 +181,7 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   BVCheckSizes(X,1);
 
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
+  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,X->m);
 
   ierr = PetscLogEventBegin(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
@@ -237,11 +237,11 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscValidType(Q,2);
   PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
 
-  if (s<V->l || s>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between %D and %D",s,V->l,V->m);
-  if (e<V->l || e>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between %D and %D",e,V->l,V->m);
+  if (s<V->l || s>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,s,V->l,V->m);
+  if (e<V->l || e>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,e,V->l,V->m);
   ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
-  if (m<V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,V->k);
-  if (e>n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D columns, the requested value of e is larger: %D",n,e);
+  if (m<V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,V->k);
+  if (e>n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %" PetscInt_FMT " columns, the requested value of e is larger: %" PetscInt_FMT,n,e);
   if (s>=e) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_MultInPlace,V,Q,0,0);CHKERRQ(ierr);
@@ -287,11 +287,11 @@ PetscErrorCode BVMultInPlaceHermitianTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscValidType(Q,2);
   PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
 
-  if (s<V->l || s>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %D, should be between %D and %D",s,V->l,V->m);
-  if (e<V->l || e>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %D, should be between %D and %D",e,V->l,V->m);
+  if (s<V->l || s>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,s,V->l,V->m);
+  if (e<V->l || e>V->m) SETERRQ3(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,e,V->l,V->m);
   ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
-  if (n<V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should have at least %D",n,V->k);
-  if (e>m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D rows, the requested value of e is larger: %D",m,e);
+  if (n<V->k) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,V->k);
+  if (e>m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %" PetscInt_FMT " rows, the requested value of e is larger: %" PetscInt_FMT,m,e);
   if (s>=e || !V->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_MultInPlace,V,Q,0,0);CHKERRQ(ierr);
@@ -362,7 +362,7 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", the number of columns is %" PetscInt_FMT,j,bv->m);
   if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
@@ -515,7 +515,7 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
+  if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", the number of columns is %" PetscInt_FMT,j,bv->m);
 
   ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
@@ -748,11 +748,11 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 
   ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
-  if (M!=Y->N) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %D, Y %D",M,Y->N);
-  if (m!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %D, Y %D",m,Y->n);
-  if (N!=V->N) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %D, V %D",N,V->N);
-  if (n!=V->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %D, V %D",n,V->n);
-  if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D active columns, should match %D active columns in V",Y->k-Y->l,V->k-V->l);
+  if (M!=Y->N) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,M,Y->N);
+  if (m!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,m,Y->n);
+  if (N!=V->N) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,N,V->N);
+  if (n!=V->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,n,V->n);
+  if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %" PetscInt_FMT " active columns, should match %" PetscInt_FMT " active columns in V",Y->k-Y->l,V->k-V->l);
 
   ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
   ierr = (*V->ops->matmult)(V,A,Y);CHKERRQ(ierr);
@@ -807,11 +807,11 @@ PetscErrorCode BVMatMultTranspose(BV V,Mat A,BV Y)
 
   ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
-  if (M!=V->N) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %D, V %D",M,V->N);
-  if (m!=V->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %D, V %D",m,V->n);
-  if (N!=Y->N) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %D, Y %D",N,Y->N);
-  if (n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %D, Y %D",n,Y->n);
-  if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D active columns, should match %D active columns in V",Y->k-Y->l,V->k-V->l);
+  if (M!=V->N) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,M,V->N);
+  if (m!=V->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,m,V->n);
+  if (N!=Y->N) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,N,Y->N);
+  if (n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,n,Y->n);
+  if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %" PetscInt_FMT " active columns, should match %" PetscInt_FMT " active columns in V",Y->k-Y->l,V->k-V->l);
 
   ierr = MatCreateTranspose(A,&AT);CHKERRQ(ierr);
   ierr = BVMatMult(V,AT,Y);CHKERRQ(ierr);
@@ -865,11 +865,11 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
 
   ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
-  if (M!=V->N) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %D, V %D",M,V->N);
-  if (m!=V->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %D, V %D",m,V->n);
-  if (N!=Y->N) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %D, Y %D",N,Y->N);
-  if (n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %D, Y %D",n,Y->n);
-  if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D active columns, should match %D active columns in V",Y->k-Y->l,V->k-V->l);
+  if (M!=V->N) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,M,V->N);
+  if (m!=V->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,m,V->n);
+  if (N!=Y->N) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,N,Y->N);
+  if (n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,n,Y->n);
+  if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %" PetscInt_FMT " active columns, should match %" PetscInt_FMT " active columns in V",Y->k-Y->l,V->k-V->l);
 
   ierr = MatCreateHermitianTranspose(A,&AH);CHKERRQ(ierr);
   ierr = BVMatMult(V,AH,Y);CHKERRQ(ierr);
@@ -905,7 +905,7 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
   PetscCheckSameComm(V,1,A,2);
   PetscValidLogicalCollectiveInt(V,j,3);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
+  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j+1,V->m);
 
   ierr = PetscLogEventBegin(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
@@ -946,7 +946,7 @@ PetscErrorCode BVMatMultTransposeColumn(BV V,Mat A,PetscInt j)
   PetscCheckSameComm(V,1,A,2);
   PetscValidLogicalCollectiveInt(V,j,3);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
+  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j+1,V->m);
 
   ierr = PetscLogEventBegin(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
@@ -987,7 +987,7 @@ PetscErrorCode BVMatMultHermitianTransposeColumn(BV V,Mat A,PetscInt j)
   PetscCheckSameComm(V,1,A,2);
   PetscValidLogicalCollectiveInt(V,j,3);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
+  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j+1,V->m);
 
   ierr = PetscLogEventBegin(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);

@@ -204,7 +204,7 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
     else break;
   }
   *kout = kini+nconv;
-  ierr = PetscInfo4(eps,"Found %D eigenvalue approximations inside the interval (gamma=%g), k=%D nconv=%D\n",ninside,(double)gamma,k,nconv);CHKERRQ(ierr);
+  ierr = PetscInfo4(eps,"Found %" PetscInt_FMT " eigenvalue approximations inside the interval (gamma=%g), k=%" PetscInt_FMT " nconv=%" PetscInt_FMT "\n",ninside,(double)gamma,k,nconv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -43,7 +43,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&M,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD of a rectangular Grcar matrix, %Dx%D\n\n",N,M);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD of a rectangular Grcar matrix, %" PetscInt_FMT "x%" PetscInt_FMT "\n\n",N,M);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

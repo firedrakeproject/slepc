@@ -1036,7 +1036,7 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
     ierr = PetscFree(ctx->baseFilter);CHKERRQ(ierr);
     ierr = PetscMalloc1((2*ctx->baseDegree+2)*(npoints-1),&ctx->baseFilter);CHKERRQ(ierr);
     ierr = FILTLAN_HermiteBaseFilterInChebyshevBasis(ctx->baseFilter,ctx->intervals,npoints,HighLowFlags,ctx->baseDegree);CHKERRQ(ierr);
-    ierr = PetscInfo1(st,"Computed value of yLimit = %g\n",ctx->filterInfo->yLimit);CHKERRQ(ierr);
+    ierr = PetscInfo1(st,"Computed value of yLimit = %g\n",(double)ctx->filterInfo->yLimit);CHKERRQ(ierr);
   }
   ctx->filtch = PETSC_FALSE;
 

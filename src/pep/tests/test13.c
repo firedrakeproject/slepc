@@ -32,7 +32,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flg);CHKERRQ(ierr);
   if (!flg) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
@@ -110,7 +110,7 @@ int main(int argc,char **argv)
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPCISS,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PEPCISSGetExtraction(pep,&ext);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Running CISS with %D KSP solvers (%s extraction)\n",nsolve,PEPCISSExtractions[ext]);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Running CISS with %" PetscInt_FMT " KSP solvers (%s extraction)\n",nsolve,PEPCISSExtractions[ext]);CHKERRQ(ierr);
   }
   ierr = PEPSolve(pep);CHKERRQ(ierr);
 

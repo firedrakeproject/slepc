@@ -57,7 +57,7 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%D\n\n",N);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",N);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
@@ -130,7 +130,7 @@ int main(int argc,char **argv)
   ierr = EPSGetTolerances(eps,&tol,NULL);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
   if (nconv<nev) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Problem: less than %D eigenvalues converged\n\n",nev);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Problem: less than %" PetscInt_FMT " eigenvalues converged\n\n",nev);CHKERRQ(ierr);
   } else {
     /* Check that all converged eigenpairs satisfy the requested tolerance
        (in this example we use the solver's error estimate instead of computing
@@ -142,7 +142,7 @@ int main(int argc,char **argv)
       errok = (errok && errest<5.0*SlepcAbsEigenvalue(kr,ki)*tol)? PETSC_TRUE: PETSC_FALSE;
     }
     if (!errok) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nev);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nev);CHKERRQ(ierr);
     } else {
       ierr = PetscPrintf(PETSC_COMM_WORLD," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
       for (i=0;i<=(nev-1)/8;i++) {

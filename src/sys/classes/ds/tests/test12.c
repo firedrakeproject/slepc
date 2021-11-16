@@ -32,7 +32,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NEP - dimension %D, tau=%g.\n",n,(double)tau);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NEP - dimension %" PetscInt_FMT ", tau=%g.\n",n,(double)tau);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-radius",&radius,NULL);CHKERRQ(ierr);
 
@@ -87,7 +87,7 @@ int main(int argc,char **argv)
   /* Show info about functions */
   ierr = DSNEPGetNumFN(ds,&nfun);CHKERRQ(ierr);
   for (i=0;i<nfun;i++) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Function %D:\n",i);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Function %" PetscInt_FMT ":\n",i);CHKERRQ(ierr);
     ierr = DSNEPGetFN(ds,i,&qfun);CHKERRQ(ierr);
     ierr = FNView(qfun,NULL);CHKERRQ(ierr);
   }
@@ -170,7 +170,7 @@ int main(int argc,char **argv)
     }
     nrm = PetscSqrtReal(nrm);
     if (nrm/SlepcAbsEigenvalue(wr[i],wi[i])>tol) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %D-th computed eigenpair %g\n",i,(double)nrm);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %" PetscInt_FMT "-th computed eigenpair %g\n",i,(double)nrm);CHKERRQ(ierr);
     }
     if (PetscAbs(im)<1e-10) {
       ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re);CHKERRQ(ierr);

@@ -31,9 +31,9 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-ky",&ky,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-ly",&ly,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV projection (n=%D).\n",n);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"X has %D active columns (%D leading columns).\n",kx,lx);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Y has %D active columns (%D leading columns).\n",ky,ly);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV projection (n=%" PetscInt_FMT ").\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"X has %" PetscInt_FMT " active columns (%" PetscInt_FMT " leading columns).\n",kx,lx);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Y has %" PetscInt_FMT " active columns (%" PetscInt_FMT " leading columns).\n",ky,ly);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);

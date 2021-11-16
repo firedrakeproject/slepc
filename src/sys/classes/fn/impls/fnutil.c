@@ -65,7 +65,7 @@ static PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASI
       if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&si,&sj,&r,&mone,T+i+(i+si)*ld,&ld,T+i+si+j*ld,&ld,&one,T+i+j*ld,&ld));
       PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,&si,&sj,T+i+i*ld,&ld,T+j+j*ld,&ld,T+i+j*ld,&ld,&scal,&info));
       SlepcCheckLapackInfo("trsyl",info);
-      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
+      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
     }
     if (sj==2) j++;
   }
@@ -131,7 +131,7 @@ PetscErrorCode FNSqrtmSchur(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
       if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",s+i,s+j,&r,&mone,T+p[i]+(p[i]+s[i])*ld,&ld,T+p[i]+s[i]+p[j]*ld,&ld,&one,T+p[i]+p[j]*ld,&ld));
       PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,s+i,s+j,T+p[i]+p[i]*ld,&ld,T+p[j]+p[j]*ld,&ld,T+p[i]+p[j]*ld,&ld,&scal,&info));
       SlepcCheckLapackInfo("trsyl",info);
-      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
+      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
     }
   }
 
@@ -229,7 +229,7 @@ PetscErrorCode FNSqrtmDenmanBeavers(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
       fnormT = LAPACKlange_("F",&n,&n,T,&n,rwork);
       ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
       reldiff = fnormdiff/fnormT;
-      ierr = PetscInfo4(fn,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
+      ierr = PetscInfo4(fn,"it: %" PetscBLASInt_FMT " reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)(tol*g));CHKERRQ(ierr);
       if (reldiff<1e-2) scale = PETSC_FALSE;  /* Switch off scaling */
     }
 
@@ -299,7 +299,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
     Yres = LAPACKlange_("fro",&n,&n,Yold,&n,rwork);
     if (PetscIsNanReal(Yres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Yres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
+    ierr = PetscInfo2(fn,"it: %" PetscBLASInt_FMT " res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
     ierr = PetscLogFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
@@ -395,7 +395,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
     cberr = cublasXnrm2(cublasv2handle,N,d_Yold,one,&Yres);CHKERRCUBLAS(cberr);
     if (PetscIsNanReal(Yres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Yres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(fn,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
+    ierr = PetscInfo2(fn,"it: %" PetscInt_FMT " res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
     ierr = PetscLogGpuFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
@@ -473,8 +473,8 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     if (scale) { /* g = (abs(det(M)))^(-1/(2*n)); */
       cerr = cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
       mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKERRMAGMA(mierr);
-      if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
-      if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
+      if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
+      if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
 
       /* XXX pending */
 //      ierr = mult_diagonal(d_invM,n,ld,&detM);CHKERRQ(cerr);
@@ -494,11 +494,11 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     cerr = cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
 
     mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKERRMAGMA(mierr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
     mierr = magma_xgetri_gpu(n,d_invM,ld,piv,d_work,lwork,&info);CHKERRMAGMA(mierr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
     ierr = PetscLogGpuFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0);CHKERRQ(ierr);
 
     ierr = shift_diagonal(n,d_invM,ld,sone);CHKERRQ(cerr);
@@ -520,11 +520,11 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
       cberr = cublasXnrm2(cublasv2handle,N,d_T,one,&fnormT);CHKERRCUBLAS(cberr);
       ierr = PetscLogGpuFlops(7.0*n*n);CHKERRQ(ierr);
       reldiff = fnormdiff/fnormT;
-      ierr = PetscInfo4(fn,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
+      ierr = PetscInfo4(fn,"it: %" PetscInt_FMT " reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
       if (reldiff<1e-2) scale = PETSC_FALSE; /* Switch to no scaling. */
     }
 
-    ierr = PetscInfo2(fn,"it: %D Mres: %g\n",it,(double)Mres);
+    ierr = PetscInfo2(fn,"it: %" PetscInt_FMT " Mres: %g\n",it,(double)Mres);
     if (Mres<=tol) converged = PETSC_TRUE;
   }
 

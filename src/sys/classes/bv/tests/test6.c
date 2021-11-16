@@ -29,7 +29,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-nc",&nc,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with %D columns + %D constraints, of length %D.\n",k,nc,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with %" PetscInt_FMT " columns + %" PetscInt_FMT " constraints, of length %" PetscInt_FMT ".\n",k,nc,n);CHKERRQ(ierr);
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);

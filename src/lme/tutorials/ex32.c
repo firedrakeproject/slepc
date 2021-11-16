@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   N = n*m;
   ierr = PetscOptionsGetScalar(NULL,NULL,"-sigma",&sigma,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-rank",&rank,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the 2-D Laplacian, A
@@ -102,7 +102,7 @@ int main(int argc,char **argv)
   ierr = LMESetRHS(lme,C);CHKERRQ(ierr);
 
   if (rank) {  /* Create X only if the user has specified a nonzero value of rank */
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Computing a solution with prescribed rank=%d\n",rank);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Computing a solution with prescribed rank=%" PetscInt_FMT "\n",rank);CHKERRQ(ierr);
     ierr = MatCreate(PETSC_COMM_WORLD,&X1);CHKERRQ(ierr);
     ierr = MatSetSizes(X1,PETSC_DECIDE,PETSC_DECIDE,N,rank);CHKERRQ(ierr);
     ierr = MatSetType(X1,MATDENSE);CHKERRQ(ierr);
@@ -137,18 +137,18 @@ int main(int argc,char **argv)
     ierr = LMEGetSolution(lme,&X);CHKERRQ(ierr);
     ierr = MatLRCGetMats(X,NULL,&X1,NULL,NULL);CHKERRQ(ierr);
     ierr = MatGetSize(X1,NULL,&rank);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," The solver has computed a solution with rank=%d\n",rank);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," The solver has computed a solution with rank=%" PetscInt_FMT "\n",rank);CHKERRQ(ierr);
   }
 
   /*
      Optional: Get some information from the solver and display it
   */
   ierr = LMEGetIterationNumber(lme,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its);CHKERRQ(ierr);
   ierr = LMEGetDimensions(lme,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %D\n",ncv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv);CHKERRQ(ierr);
   ierr = LMEGetTolerances(lme,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%D\n",(double)tol,maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Compute residual error

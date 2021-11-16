@@ -50,7 +50,7 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
   ctx.h = 1.0/(PetscReal)n;
   ctx.kappa = 1.0;
 
@@ -106,8 +106,8 @@ int main(int argc,char **argv)
     ierr = NEPRIIGetDeflationThreshold(nep,&thres);CHKERRQ(ierr);
     ierr = NEPRIIGetConstCorrectionTol(nep,&cct);CHKERRQ(ierr);
     ierr = NEPRIIGetHermitian(nep,&herm);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Maximum inner iterations of RII is %D\n",its);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Preconditioner rebuilt every %D iterations\n",lag);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Maximum inner iterations of RII is %" PetscInt_FMT "\n",its);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Preconditioner rebuilt every %" PetscInt_FMT " iterations\n",lag);CHKERRQ(ierr);
     if (thres>0.0) { ierr = PetscPrintf(PETSC_COMM_WORLD," Using deflation threshold=%g\n",(double)thres);CHKERRQ(ierr); }
     if (cct) { ierr = PetscPrintf(PETSC_COMM_WORLD," Using a constant correction tolerance\n");CHKERRQ(ierr); }
     if (herm) { ierr = PetscPrintf(PETSC_COMM_WORLD," Hermitian version of scalar equation\n");CHKERRQ(ierr); }

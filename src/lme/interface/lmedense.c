@@ -156,14 +156,14 @@ static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt
 
   /* solve Lyapunov equation (Hammarling) */
   PetscStackCallBLAS("SLICOTsb03od",SLICOTsb03od_("C","F","N",&n,&kk,W,&n,Q,&n,U,&lu,&scal,wr,wi,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%d",(int)info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%" PetscBLASInt_FMT,info);
   if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
 
   /* resnorm = norm(H(m+1,:)*U'*U), use Q(:,1) = U'*U(:,m) */
   if (res) {
     for (j=0;j<m;j++) Q[j] = U[j+(m-1)*ldu];
     PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","C","N",&n,U,&lu,Q,&ione));
-    if (k!=1) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Residual error is intended for k=1 only, but you set k=%d",(int)k);
+    if (k!=1) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Residual error is intended for k=1 only, but you set k=%" PetscInt_FMT,k);
     *res *= BLASnrm2_(&n,Q,&ione);
   }
 
@@ -270,7 +270,7 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
   /* solve triangular Sylvester equation */
   PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,W,&n,W,&n,C,&lu,&scal,&info));
   SlepcCheckLapackInfo("trsyl",info);
-  if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
+  if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
 
   /* back-transform C = Q*C*Q' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,C,&n,&zero,W,&n));
@@ -278,7 +278,7 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 
   /* resnorm = norm(H(m+1,:)*Y) */
   if (res) {
-    if (k!=1) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Residual error is intended for k=1 only, but you set k=%d",(int)k);
+    if (k!=1) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Residual error is intended for k=1 only, but you set k=%" PetscInt_FMT,k);
     *res *= BLASnrm2_(&n,C+m-1,&n);
   }
 
@@ -358,7 +358,7 @@ PetscErrorCode LMEDenseHessLyapunovChol(LME lme,PetscInt m,PetscScalar *H,PetscI
 #if defined(PETSC_USE_INFO)
   if (PetscLogPrintInfo) {
     ierr = LyapunovCholResidual(m,H,ldh,k,B,ldb,U,ldu,&error);CHKERRQ(ierr);
-    ierr = PetscInfo1(lme,"Residual norm of dense Lyapunov equation = %g\n",error);CHKERRQ(ierr);
+    ierr = PetscInfo1(lme,"Residual norm of dense Lyapunov equation = %g\n",(double)error);CHKERRQ(ierr);
   }
 #endif
   PetscFunctionReturn(0);
@@ -399,7 +399,7 @@ static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,Pet
 
   /* solve Lyapunov equation (Hammarling) */
   PetscStackCallBLAS("SLICOTsb03md",SLICOTsb03md_("C","X","F","N",&n,W,&n,Q,&n,X,&lx,&scal,&sep,&ferr,wr,wi,iwork,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%d",(int)info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%" PetscBLASInt_FMT,info);
   if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
 
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
@@ -458,7 +458,7 @@ static PetscErrorCode Lyapunov_LAPACK(PetscInt m,PetscScalar *A,PetscInt lda,Pet
   /* solve triangular Sylvester equation */
   PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,W,&n,W,&n,X,&lx,&scal,&info));
   SlepcCheckLapackInfo("trsyl",info);
-  if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
+  if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
 
   /* back-transform X = Q*X*Q' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,X,&n,&zero,W,&n));
@@ -527,7 +527,7 @@ PetscErrorCode LMEDenseLyapunov(LME lme,PetscInt m,PetscScalar *A,PetscInt lda,P
 #if defined(PETSC_USE_INFO)
   if (PetscLogPrintInfo) {
     ierr = LyapunovResidual(m,A,lda,B,ldb,X,ldx,&error);CHKERRQ(ierr);
-    ierr = PetscInfo1(lme,"Residual norm of dense Lyapunov equation = %g\n",error);CHKERRQ(ierr);
+    ierr = PetscInfo1(lme,"Residual norm of dense Lyapunov equation = %g\n",(double)error);CHKERRQ(ierr);
   }
 #endif
   PetscFunctionReturn(0);

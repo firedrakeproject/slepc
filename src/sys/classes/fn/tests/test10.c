@@ -65,7 +65,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test Phi functions, n=%D.\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test Phi functions, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
 
   /* Create matrix, fill it with 1-D Laplacian */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
@@ -97,7 +97,7 @@ int main(int argc,char **argv)
 
   ierr = FNDuplicate(phik,PETSC_COMM_WORLD,&phicopy);CHKERRQ(ierr);
   ierr = FNPhiGetIndex(phicopy,&k);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Index of phi function is %D\n",k);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Index of phi function is %" PetscInt_FMT "\n",k);CHKERRQ(ierr);
   ierr = TestPhiFunction(phicopy,2.2,A,verbose);CHKERRQ(ierr);
 
   ierr = FNDestroy(&phi0);CHKERRQ(ierr);

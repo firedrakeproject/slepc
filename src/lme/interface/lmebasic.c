@@ -82,8 +82,8 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  equation type: %s\n",eqname[lme->problem_type]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",lme->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",lme->max_it);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",lme->ncv);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",lme->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)lme->tol);CHKERRQ(ierr);
   } else {
     if (lme->ops->view) {
@@ -155,9 +155,9 @@ PetscErrorCode LMEConvergedReasonView(LME lme,PetscViewer viewer)
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)lme)->tablevel);CHKERRQ(ierr);
     if (lme->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve converged due to %s; iterations %D\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve converged due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its);CHKERRQ(ierr);
     } else if (lme->reason <= 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve did not converge due to %s; iterations %D\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)lme)->tablevel);CHKERRQ(ierr);
   }

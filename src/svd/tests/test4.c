@@ -49,7 +49,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
   if (!flg) n=m+2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%D n=%D\n\n",m,n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
@@ -110,7 +110,7 @@ int main(int argc,char **argv)
   ierr = SVDGetConvergedReason(svd,&reason);CHKERRQ(ierr);
   ierr = SVDGetIterationNumber(svd,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason);CHKERRQ(ierr);
-  /* ierr = PetscPrintf(PETSC_COMM_WORLD," its = %D\n",its);CHKERRQ(ierr); */
+  /* ierr = PetscPrintf(PETSC_COMM_WORLD," its = %" PetscInt_FMT "\n",its);CHKERRQ(ierr); */
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up

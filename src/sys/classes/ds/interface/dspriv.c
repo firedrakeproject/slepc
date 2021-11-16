@@ -144,7 +144,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
       if (PetscImaginaryPart(v[i+j*ds->ld])) { allreal = PETSC_FALSE; break; }
 #endif
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
-    ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %D %D\n",rows,cols);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rows,cols);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",DSMatName[m]);CHKERRQ(ierr);
   } else {
     ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",DSMatName[m]);CHKERRQ(ierr);

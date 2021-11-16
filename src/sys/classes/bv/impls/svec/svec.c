@@ -397,9 +397,9 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
       ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
       ierr = PetscObjectGetName((PetscObject)ctx->v,&name);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%D,%D);clear %s\n",bvname,name,bv->N,bv->nc+bv->m,name);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%" PetscInt_FMT ",%" PetscInt_FMT ");clear %s\n",bvname,name,bv->N,bv->nc+bv->m,name);CHKERRQ(ierr);
       if (bv->nc) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",bvname,bvname,bv->nc+1);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%" PetscInt_FMT ":end);\n",bvname,bvname,bv->nc+1);CHKERRQ(ierr);
       }
     }
   } else {

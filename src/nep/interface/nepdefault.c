@@ -175,11 +175,11 @@ PetscErrorCode NEPStoppingBasic(NEP nep,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionBegin;
   *reason = NEP_CONVERGED_ITERATING;
   if (nconv >= nev) {
-    ierr = PetscInfo2(nep,"Nonlinear eigensolver finished successfully: %D eigenpairs converged at iteration %D\n",nconv,its);CHKERRQ(ierr);
+    ierr = PetscInfo2(nep,"Nonlinear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
     *reason = NEP_CONVERGED_TOL;
   } else if (its >= max_it) {
     *reason = NEP_DIVERGED_ITS;
-    ierr = PetscInfo1(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%D)\n",its);CHKERRQ(ierr);
+    ierr = PetscInfo1(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

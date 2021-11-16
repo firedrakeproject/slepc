@@ -64,7 +64,7 @@ int main(int argc,char **argv)
     ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BVMatMult (m=%D, n=%D, k=%D).\n",m,n,k);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BVMatMult (m=%" PetscInt_FMT ", n=%" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",m,n,k);CHKERRQ(ierr);
   ierr = MatCreateVecs(B,&t,&r);CHKERRQ(ierr);
 
   /* Create BV object X */

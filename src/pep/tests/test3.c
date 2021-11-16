@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   PetscViewerAndFormat *vf;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Quadratic Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Quadratic Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
 
   ierr = MatCreate(PETSC_COMM_WORLD,&A[0]);CHKERRQ(ierr);
   ierr = MatSetSizes(A[0],PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
@@ -78,7 +78,7 @@ int main(int argc,char **argv)
   ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
   ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
   ierr = PEPGetNumMatrices(pep,&nmat);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Polynomial of degree %d\n",(int)nmat-1);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Polynomial of degree %" PetscInt_FMT "\n",nmat-1);CHKERRQ(ierr);
   ierr = PEPGetOperators(pep,0,&B);CHKERRQ(ierr);
   ierr = MatView(B,NULL);CHKERRQ(ierr);
 
@@ -100,7 +100,7 @@ int main(int argc,char **argv)
 
   ierr = PEPSetScale(pep,PEP_SCALE_SCALAR,.1,NULL,NULL,5,1.0);CHKERRQ(ierr);
   ierr = PEPGetScale(pep,&scale,&alpha,NULL,NULL,&its,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Scaling: %s, alpha=%g, its=%D\n",PEPScaleTypes[scale],(double)alpha,its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Scaling: %s, alpha=%g, its=%" PetscInt_FMT "\n",PEPScaleTypes[scale],(double)alpha,its);CHKERRQ(ierr);
 
   ierr = PEPSetBasis(pep,PEP_BASIS_CHEBYSHEV1);CHKERRQ(ierr);
   ierr = PEPGetBasis(pep,&basis);CHKERRQ(ierr);
@@ -108,7 +108,7 @@ int main(int argc,char **argv)
 
   ierr = PEPSetRefine(pep,PEP_REFINE_SIMPLE,1,1e-9,2,PEP_REFINE_SCHEME_SCHUR);CHKERRQ(ierr);
   ierr = PEPGetRefine(pep,&refine,NULL,&tol,&its,&rscheme);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Refinement: %s, tol=%g, its=%D, scheme=%s\n",PEPRefineTypes[refine],(double)tol,its,PEPRefineSchemes[rscheme]);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Refinement: %s, tol=%g, its=%" PetscInt_FMT ", scheme=%s\n",PEPRefineTypes[refine],(double)tol,its,PEPRefineSchemes[rscheme]);CHKERRQ(ierr);
 
   ierr = PEPSetTarget(pep,4.8);CHKERRQ(ierr);
   ierr = PEPGetTarget(pep,&target);CHKERRQ(ierr);
@@ -118,11 +118,11 @@ int main(int argc,char **argv)
 
   ierr = PEPSetDimensions(pep,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = PEPGetDimensions(pep,&nev,&ncv,&mpd);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%D, ncv=%D, mpd=%D\n",nev,ncv,mpd);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%" PetscInt_FMT ", ncv=%" PetscInt_FMT ", mpd=%" PetscInt_FMT "\n",nev,ncv,mpd);CHKERRQ(ierr);
 
   ierr = PEPSetTolerances(pep,2.2e-4,200);CHKERRQ(ierr);
   ierr = PEPGetTolerances(pep,&tol,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5f, max_its = %D\n",(double)tol,its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5f, max_its = %" PetscInt_FMT "\n",(double)tol,its);CHKERRQ(ierr);
 
   ierr = PEPSetConvergenceTest(pep,PEP_CONV_ABS);CHKERRQ(ierr);
   ierr = PEPGetConvergenceTest(pep,&conv);CHKERRQ(ierr);

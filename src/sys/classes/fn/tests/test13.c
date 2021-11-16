@@ -96,7 +96,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-random",&random);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-triang",&triang);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix logarithm, n=%D.\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix logarithm, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
 
   /* Create logarithm function object */
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
