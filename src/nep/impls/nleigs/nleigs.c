@@ -609,6 +609,24 @@ static PetscErrorCode NLEIGSMatToMatShellArray(Mat A,Mat *Ms,PetscInt maxnmat)
   PetscFunctionReturn(0);
 }
 
+/*
+   MatIsShellAny - returns true if any of the n matrices is a shell matrix
+ */
+static PetscErrorCode MatIsShellAny(Mat *A,PetscInt n,PetscBool *shell)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBool      flg;
+
+  PetscFunctionBegin;
+  *shell = PETSC_FALSE;
+  for (i=0;i<n;i++) {
+    ierr = MatIsShell(A[i],&flg);CHKERRQ(ierr);
+    if (flg) { *shell = PETSC_TRUE; break; }
+  }
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
 {
   PetscErrorCode ierr;
@@ -695,7 +713,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     }
   }
   if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = MatIsShell(nep->A[0],&shell);CHKERRQ(ierr);
+  ierr = MatIsShellAny(nep->A,nep->nt,&shell);CHKERRQ(ierr);
   maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat-1,ctx->shifts[i],coeffs);CHKERRQ(ierr);
