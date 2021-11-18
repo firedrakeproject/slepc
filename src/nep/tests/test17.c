@@ -277,7 +277,19 @@ int main(int argc,char **argv)
          requires: complex
       test:
          suffix: 2_nleigs_real
-         args: -nep_type nleigs -rg_interval_endpoints .5,15 -split {{0 1}}
+         args: -nep_type nleigs -rg_interval_endpoints .5,15 -split {{0 1}} -nep_nleigs_ksp_type tfqmr
          requires: !complex
+
+   testset:
+      args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -rg_ellipse_vscale 0.1 -nep_ciss_ksp_type bcgs -nep_ciss_pc_type sor
+      output_file: output/test17_3.out
+      requires: complex !single
+      test:
+          suffix: 3
+          args: -split {{0 1}}
+      test:
+          suffix: 3_par
+          nsize: 2
+          args: -nep_ciss_partitions 2
 
 TEST*/
