@@ -51,6 +51,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
   if (nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_CALLBACK | NEP_FEATURE_STOPPING | NEP_FEATURE_TWOSIDED);
+  if (nep->P) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined preconditioner");
 
   /* transfer PEP options */
   if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }

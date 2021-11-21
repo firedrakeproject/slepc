@@ -12,6 +12,7 @@ static char help[] = "Tests a user-provided preconditioner.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"
   "  -tau <tau>, where <tau> is the delay parameter.\n"
+  "  -a <a>, where <a> is the coefficient that multiplies u in the equation.\n"
   "  -split <0/1>, to select the split form in the problem definition (enabled by default).\n";
 
 /* Based on ex22.c (delay) */
@@ -185,8 +186,9 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(NULL,NULL,"-a",&a,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g, a=%g\n\n",n,(double)tau,(double)a);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Create nonlinear eigensolver and solve the problem
@@ -265,6 +267,14 @@ int main(int argc,char **argv)
 }
 
 /*TEST
+
+   testset:
+      args: -a 90000 -nep_nev 2
+      requires: double
+      output_file: output/test17_1.out
+      test:
+         suffix: 1
+         args: -nep_type slp -nep_two_sided {{0 1}} -split {{0 1}}
 
    testset:
       args: -nep_nev 2 -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7
