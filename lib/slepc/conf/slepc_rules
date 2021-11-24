@@ -22,7 +22,7 @@ chk_slepcdir:
 slepc_manualpages:
 	-@if [ "${MANSEC}" != "" ] ; then \
           if [ "${SUBMANSEC}" = "" ] ; then LMANSEC=${MANSEC}; else LMANSEC=${SUBMANSEC}; fi; \
-	  DOCTEXT_PATH=${PETSC_DIR}/src/docs/doctext; export DOCTEXT_PATH; \
+	  DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
 	  ${DOCTEXT} -html \
 		-mpath ${LOC}/docs/manualpages/$${LMANSEC} -heading SLEPc \
 		-defn ${SLEPC_DIR}/src/docs/doctext/html.def \
@@ -57,7 +57,7 @@ slepc_manexamples:
 slepc_html: chk_c2html
 	-@export htmlmap_tmp=$$(mktemp) ;\
           sed -e s?man+../?man+ROOT/docs/manualpages/? ${LOC}/docs/manualpages/manualpages.cit > $$htmlmap_tmp ;\
-          cat ${PETSC_DIR}/src/docs/mpi.www.index >> $$htmlmap_tmp ;\
+          cat ${PETSC_DIR}/doc/classic/mpi.www.index >> $$htmlmap_tmp ;\
           ROOT=`echo ${LOCDIR} | sed -e s?/[a-z]*?/..?g -e s?src/??g -e s?include/??g` ;\
           loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
           ${MKDIR} -p $${loc} ;\
