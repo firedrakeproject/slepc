@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
-#include <slepc/private/bvimpl.h>       /*I "slepcbv.h" I*/
+#include <slepc/private/bvimpl.h>
 #include <petscdraw.h>
 
 /*@C
