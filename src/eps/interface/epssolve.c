@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
-#include <slepc/private/bvimpl.h>    /*I "slepcbv.h" I*/
+#include <slepc/private/bvimpl.h>
 #include <petscdraw.h>
 
 PetscErrorCode EPSComputeVectors(EPS eps)
