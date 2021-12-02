@@ -379,7 +379,7 @@ intel-c-complex-mkl:
     - linux-fedora, compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/3.4.2-intel/bin/mpicc --with-fc=/opt/mpich/3.4.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.4.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-primme --download-blopex --with-feast=0
 
 gnu-c-libs:
@@ -397,7 +397,7 @@ gnu-cxx-int64:
     - .stage-2
     - .linux_test
   tags:
-    - compiler:intel, name:ahmes
+    - name:ahmes
   variables:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-3.2
@@ -505,7 +505,7 @@ intel-cxx-mkl:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, compiler:intel
+    - linux-ubuntu, name:ahmes
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++ --with-memalign=64
@@ -568,10 +568,10 @@ intel-c-complex-int64-mkl:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, compiler:intel
+    - compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-64-bit-indices --with-64-bit-blas-indices
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/3.4.2-intel/bin/mpicc --with-fc=/opt/mpich/3.4.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.4.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-64-bit-indices --with-64-bit-blas-indices
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-feast=0
 
 nvidia-c-nompi:
@@ -609,7 +609,7 @@ intel-c-mkl:
     - compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.4.2-intel/bin/mpicc --with-fc=/opt/mpich/3.4.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.4.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa
 
 nvidia-c-complex-nompi:
@@ -633,7 +633,7 @@ intel-c-mkl-install:
     - compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.4.2-intel/bin/mpicc --with-fc=/opt/mpich/3.4.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.4.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --prefix=../install
     INSTALL: 1
 
