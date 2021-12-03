@@ -358,7 +358,7 @@ clang-c:
   tags:
     - linux-ubuntu, compiler:clang, name:maat
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-clang/bin/mpicc --with-cxx=/opt/mpich/3.3.2-clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/3.3.2-clang/bin/mpiexec --download-sowing
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --download-sowing
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex
 
 gnu-c-complex-multilib:
@@ -379,7 +379,7 @@ intel-c-complex-mkl:
     - linux-fedora, compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/3.4.2-intel/bin/mpicc --with-fc=/opt/mpich/3.4.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.4.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-primme --download-blopex --with-feast=0
 
 gnu-c-libs:
@@ -444,7 +444,7 @@ intel-c-lapack:
     - linux-suse, compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.4.2-intel/bin/mpicc --with-fc=/opt/mpich/3.4.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.4.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 gnu-c-c99-nompi:
@@ -464,7 +464,7 @@ clang-c-valgrind:
   tags:
     - linux-fedora, compiler:clang
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-clang/bin/mpicc --with-cxx=/opt/mpich/3.3.2-clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/3.3.2-clang/bin/mpiexec --with-shared-libraries=0 --download-sowing
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-shared-libraries=0 --download-sowing
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 gnu-c-complex:
@@ -505,10 +505,10 @@ intel-cxx-mkl:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, name:ahmes
+    - compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.3.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++ --with-memalign=64
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++ --with-memalign=64
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 gnu-c-float128:
@@ -571,7 +571,7 @@ intel-c-complex-int64-mkl:
     - compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/3.4.2-intel/bin/mpicc --with-fc=/opt/mpich/3.4.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.4.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-64-bit-indices --with-64-bit-blas-indices
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-64-bit-indices --with-64-bit-blas-indices
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-feast=0
 
 nvidia-c-nompi:
@@ -598,7 +598,7 @@ clang-c-complex-valgrind:
   tags:
     - linux-fedora, compiler:clang
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-clang/bin/mpicc --with-cxx=/opt/mpich/3.3.2-clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/3.3.2-clang/bin/mpiexec --with-scalar-type=complex --with-shared-libraries=0 --download-sowing
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex --with-shared-libraries=0 --download-sowing
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 intel-c-mkl:
@@ -609,7 +609,7 @@ intel-c-mkl:
     - compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.4.2-intel/bin/mpicc --with-fc=/opt/mpich/3.4.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.4.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa
 
 nvidia-c-complex-nompi:
@@ -633,7 +633,7 @@ intel-c-mkl-install:
     - compiler:intel
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.4.2-intel/bin/mpicc --with-fc=/opt/mpich/3.4.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.4.2-intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --prefix=../install
     INSTALL: 1
 
@@ -644,7 +644,7 @@ clang-c-single:
   tags:
     - compiler:clang
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-clang/bin/mpicc --with-cxx=/opt/mpich/3.3.2-clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/3.3.2-clang/bin/mpiexec --download-sowing --with-precision=single
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --download-sowing --with-precision=single
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme
 
 gnu-c-complex-single:
