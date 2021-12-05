@@ -183,8 +183,8 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
 
    Output Parameters:
 +  y   - result vector
-.  A   - Function matrix
--  B   - optional preconditioning matrix
+.  A   - (optional) Function matrix, for callback interface only
+-  B   - (unused) preconditioning matrix
 
    Note:
    If the nonlinear operator is represented in split form, the result
@@ -220,7 +220,8 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
       ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
     }
   } else {
-    ierr = NEPComputeFunction(nep,lambda,A,B);CHKERRQ(ierr);
+    if (!A) A = nep->function;
+    ierr = NEPComputeFunction(nep,lambda,A,A);CHKERRQ(ierr);
     ierr = MatMult(A,x,y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -239,8 +240,8 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
 
    Output Parameters:
 +  y   - result vector
-.  A   - Function matrix
--  B   - optional preconditioning matrix
+.  A   - (optional) Function matrix, for callback interface only
+-  B   - (unused) preconditioning matrix
 
    Level: developer
 
@@ -273,7 +274,8 @@ PetscErrorCode NEPApplyAdjoint(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat 
       ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
     }
   } else {
-    ierr = NEPComputeFunction(nep,lambda,A,B);CHKERRQ(ierr);
+    if (!A) A = nep->function;
+    ierr = NEPComputeFunction(nep,lambda,A,A);CHKERRQ(ierr);
     ierr = MatMultTranspose(A,w,y);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
@@ -294,7 +296,7 @@ PetscErrorCode NEPApplyAdjoint(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat 
 
    Output Parameters:
 +  y   - result vector
--  A   - Jacobian matrix
+-  A   - (optional) Jacobian matrix, for callback interface only
 
    Note:
    If the nonlinear operator is represented in split form, the result
@@ -329,6 +331,7 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
       ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
     }
   } else {
+    if (!A) A = nep->jacobian;
     ierr = NEPComputeJacobian(nep,lambda,A);CHKERRQ(ierr);
     ierr = MatMult(A,x,y);CHKERRQ(ierr);
   }
@@ -604,9 +607,9 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscBool adj,PetscScalar 
   y = w[0];
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) z = w[1];
   if (adj) {
-    ierr = NEPApplyAdjoint(nep,lambda,x,z,y,nep->function,nep->function_pre);CHKERRQ(ierr);
+    ierr = NEPApplyAdjoint(nep,lambda,x,z,y,NULL,NULL);CHKERRQ(ierr);
   } else {
-    ierr = NEPApplyFunction(nep,lambda,x,z,y,nep->function,nep->function_pre);CHKERRQ(ierr);
+    ierr = NEPApplyFunction(nep,lambda,x,z,y,NULL,NULL);CHKERRQ(ierr);
   }
   ierr = VecNorm(y,NORM_2,norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
