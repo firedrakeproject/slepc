@@ -296,7 +296,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (ctx->usest && ctx->npart>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
 
   contour = ctx->contour;
-  ierr = SlepcContourRedundantMat(contour,eps->isgeneralized?2:1,A);CHKERRQ(ierr);
+  ierr = SlepcContourRedundantMat(contour,eps->isgeneralized?2:1,A,NULL);CHKERRQ(ierr);
   if (contour->pA) {
     ierr = BVGetColumn(ctx->V,0,&v0);CHKERRQ(ierr);
     ierr = SlepcContourScatterCreate(contour,v0);CHKERRQ(ierr);

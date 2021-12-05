@@ -71,8 +71,12 @@ PetscErrorCode NEPSetUp(NEP nep)
     break;
   case NEP_USER_INTERFACE_SPLIT:
     ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->function);CHKERRQ(ierr);
-    ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function);CHKERRQ(ierr);
+    if (nep->P) {
+      ierr = MatDuplicate(nep->P[0],MAT_DO_NOT_COPY_VALUES,&nep->function_pre);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function_pre);CHKERRQ(ierr);
+    }
+    ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->jacobian);CHKERRQ(ierr);
     ierr = MatGetSize(nep->A[0],&nep->n,NULL);CHKERRQ(ierr);
     ierr = MatGetLocalSize(nep->A[0],&nep->nloc,NULL);CHKERRQ(ierr);

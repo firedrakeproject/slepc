@@ -110,6 +110,9 @@ cdef extern from * nogil:
     int NEPSetSplitOperator(SlepcNEP,PetscInt,PetscMat[],SlepcFN[],PetscMatStructure)
     int NEPGetSplitOperatorTerm(SlepcNEP,PetscInt,PetscMat*,SlepcFN*)
     int NEPGetSplitOperatorInfo(SlepcNEP,PetscInt*,PetscMatStructure*)
+    int NEPSetSplitPreconditioner(SlepcNEP,PetscInt,PetscMat[],PetscMatStructure)
+    int NEPGetSplitPreconditionerTerm(SlepcNEP,PetscInt,PetscMat*)
+    int NEPGetSplitPreconditionerInfo(SlepcNEP,PetscInt*,PetscMatStructure*)
 
     int NEPSetBV(SlepcNEP,SlepcBV)
     int NEPGetBV(SlepcNEP,SlepcBV*)

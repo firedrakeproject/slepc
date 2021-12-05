@@ -60,6 +60,7 @@ struct _n_nep_def_fun_solve {
 typedef struct {
   NEP          nep;
   Mat          T;
+  Mat          P;
   BV           U;
   PetscScalar  *A;
   PetscScalar  *B;

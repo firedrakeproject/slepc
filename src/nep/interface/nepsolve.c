@@ -758,11 +758,12 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
     break;
   case NEP_USER_INTERFACE_SPLIT:
     ierr = MatZeroEntries(A);CHKERRQ(ierr);
+    if (A != B) { ierr = MatZeroEntries(B);CHKERRQ(ierr); }
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatAXPY(A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
+      if (A != B) { ierr = MatAXPY(B,alpha,nep->P[i],nep->mstrp);CHKERRQ(ierr); }
     }
-    if (A != B) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented");
     break;
   }
   PetscFunctionReturn(0);

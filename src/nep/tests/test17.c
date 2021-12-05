@@ -8,10 +8,11 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Tests multiple calls to NEPSolve() with different matrix size.\n\n"
+static char help[] = "Tests a user-provided preconditioner.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"
   "  -tau <tau>, where <tau> is the delay parameter.\n"
+  "  -a <a>, where <a> is the coefficient that multiplies u in the equation.\n"
   "  -split <0/1>, to select the split form in the problem definition (enabled by default).\n";
 
 /* Based on ex22.c (delay) */
@@ -85,6 +86,33 @@ PetscErrorCode BuildSplitMatrices(PetscInt n,PetscReal a,Mat *Id,Mat *A,Mat *B)
 }
 
 /*
+   Create preconditioner matrices (only Ap=diag(A))
+*/
+PetscErrorCode BuildSplitPreconditioner(PetscInt n,PetscReal a,Mat *Ap)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,Istart,Iend;
+  PetscReal      h;
+
+  PetscFunctionBeginUser;
+  h = PETSC_PI/(PetscReal)(n+1);
+
+  /* Ap = diag(A) */
+  ierr = MatCreate(PETSC_COMM_WORLD,Ap);CHKERRQ(ierr);
+  ierr = MatSetSizes(*Ap,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
+  ierr = MatSetFromOptions(*Ap);CHKERRQ(ierr);
+  ierr = MatSetUp(*Ap);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(*Ap,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(*Ap,i,i,-2.0/(h*h)+a,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = MatAssemblyBegin(*Ap,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(*Ap,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatSetOption(*Ap,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
    Compute Function matrix  T(lambda)
 */
 PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
@@ -105,12 +133,13 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
     xi = (i+1)*h;
     b = -4.1+xi*(1.0-PetscExpReal(xi-PETSC_PI));
     ierr = MatSetValue(fun,i,i,-lambda-2.0/(h*h)+user->a+PetscExpScalar(-user->tau*lambda)*b,INSERT_VALUES);CHKERRQ(ierr);
+    if (B!=fun) { ierr = MatSetValue(B,i,i,-lambda-2.0/(h*h)+user->a+PetscExpScalar(-user->tau*lambda)*b,INSERT_VALUES);CHKERRQ(ierr); }
   }
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   if (fun != B) {
-    ierr = MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -143,7 +172,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
-  Mat            Id,A,B,J,F;      /* problem matrices */
+  Mat            Id,A,B,Ap,J,F,P; /* problem matrices */
   FN             f1,f2,f3;        /* functions to define the nonlinear operator */
   ApplicationCtx ctx;             /* user-defined context */
   Mat            mats[3];
@@ -157,20 +186,15 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(NULL,NULL,"-a",&a,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g, a=%g\n\n",n,(double)tau,(double)a);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-              Create nonlinear eigensolver and set options
+              Create nonlinear eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
-  ierr = NEPSetTolerances(nep,1e-9,PETSC_DEFAULT);CHKERRQ(ierr);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      First solve
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
   if (split) {
     ierr = BuildSplitMatrices(n,a,&Id,&A,&B);CHKERRQ(ierr);
     /* f1=-lambda */
@@ -191,6 +215,11 @@ int main(int argc,char **argv)
     mats[1] = Id; funs[1] = f1;
     mats[2] = B;  funs[2] = f3;
     ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = BuildSplitPreconditioner(n,a,&Ap);CHKERRQ(ierr);
+    mats[0] = Ap;
+    mats[1] = Id;
+    mats[2] = B;
+    ierr = NEPSetSplitPreconditioner(nep,3,mats,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   } else {
     /* callback form  */
     ctx.tau = tau;
@@ -201,7 +230,8 @@ int main(int argc,char **argv)
     ierr = MatSeqAIJSetPreallocation(F,3,NULL);CHKERRQ(ierr);
     ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
     ierr = MatSetUp(F);CHKERRQ(ierr);
-    ierr = NEPSetFunction(nep,F,F,FormFunction,&ctx);CHKERRQ(ierr);
+    ierr = MatDuplicate(F,MAT_DO_NOT_COPY_VALUES,&P);CHKERRQ(ierr);
+    ierr = NEPSetFunction(nep,F,P,FormFunction,&ctx);CHKERRQ(ierr);
     ierr = MatCreate(PETSC_COMM_WORLD,&J);CHKERRQ(ierr);
     ierr = MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
     ierr = MatSetFromOptions(J);CHKERRQ(ierr);
@@ -218,55 +248,18 @@ int main(int argc,char **argv)
   ierr = NEPSolve(nep);CHKERRQ(ierr);
   ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-               Second solve, with problem matrices of size 2*n
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  n *= 2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
-  if (split) {
-    ierr = MatDestroy(&Id);CHKERRQ(ierr);
-    ierr = MatDestroy(&A);CHKERRQ(ierr);
-    ierr = MatDestroy(&B);CHKERRQ(ierr);
-    ierr = BuildSplitMatrices(n,a,&Id,&A,&B);CHKERRQ(ierr);
-    mats[0] = A;
-    mats[1] = Id;
-    mats[2] = B;
-    ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
-  } else {
-    /* callback form  */
-    ierr = MatDestroy(&F);CHKERRQ(ierr);
-    ierr = MatDestroy(&J);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&F);CHKERRQ(ierr);
-    ierr = MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(F);CHKERRQ(ierr);
-    ierr = MatSeqAIJSetPreallocation(F,3,NULL);CHKERRQ(ierr);
-    ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
-    ierr = MatSetUp(F);CHKERRQ(ierr);
-    ierr = NEPSetFunction(nep,F,F,FormFunction,&ctx);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&J);CHKERRQ(ierr);
-    ierr = MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(J);CHKERRQ(ierr);
-    ierr = MatSeqAIJSetPreallocation(J,3,NULL);CHKERRQ(ierr);
-    ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
-    ierr = MatSetUp(J);CHKERRQ(ierr);
-    ierr = NEPSetJacobian(nep,J,FormJacobian,&ctx);CHKERRQ(ierr);
-  }
-
-  /* Solve the eigensystem */
-  ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   if (split) {
     ierr = MatDestroy(&Id);CHKERRQ(ierr);
     ierr = MatDestroy(&A);CHKERRQ(ierr);
     ierr = MatDestroy(&B);CHKERRQ(ierr);
+    ierr = MatDestroy(&Ap);CHKERRQ(ierr);
     ierr = FNDestroy(&f1);CHKERRQ(ierr);
     ierr = FNDestroy(&f2);CHKERRQ(ierr);
     ierr = FNDestroy(&f3);CHKERRQ(ierr);
   } else {
     ierr = MatDestroy(&F);CHKERRQ(ierr);
+    ierr = MatDestroy(&P);CHKERRQ(ierr);
     ierr = MatDestroy(&J);CHKERRQ(ierr);
   }
   ierr = SlepcFinalize();
@@ -276,48 +269,37 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      nsize: 2
-      requires: !single
-      output_file: output/test10_1.out
+      args: -a 90000 -nep_nev 2
+      requires: double
+      output_file: output/test17_1.out
       test:
          suffix: 1
-         args: -nep_type narnoldi -nep_target 0.55
-      test:
-         suffix: 1_rii
-         args: -nep_type rii -nep_target 0.55 -nep_rii_hermitian -split {{0 1}}
-      test:
-         suffix: 1_narnoldi
-         args: -nep_type narnoldi -nep_target 0.55 -nep_narnoldi_lag_preconditioner 2
-      test:
-         suffix: 1_slp
-         args: -nep_type slp -nep_slp_st_pc_type redundant -split {{0 1}}
-      test:
-         suffix: 1_interpol
-         args: -nep_type interpol -rg_type interval -rg_interval_endpoints .5,1,-.1,.1 -nep_target .7 -nep_interpol_st_pc_type redundant
-      test:
-         suffix: 1_narnoldi_sync
-         args: -nep_type narnoldi -ds_parallel synchronized
+         args: -nep_type slp -nep_two_sided {{0 1}} -split {{0 1}}
 
    testset:
       args: -nep_nev 2 -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7
       requires: !single
-      output_file: output/test10_2.out
+      output_file: output/test17_2.out
       filter: sed -e "s/[+-]0\.0*i//g"
-      test:
-         suffix: 2_interpol
-         args: -nep_type interpol -nep_interpol_pep_type jd -nep_interpol_st_pc_type sor
       test:
          suffix: 2_nleigs
          args: -nep_type nleigs -split {{0 1}}
          requires: complex
       test:
          suffix: 2_nleigs_real
-         args: -nep_type nleigs -rg_interval_endpoints .5,15 -split {{0 1}}
+         args: -nep_type nleigs -rg_interval_endpoints .5,15 -split {{0 1}} -nep_nleigs_ksp_type tfqmr
          requires: !complex
 
-   test:
-      suffix: 3
+   testset:
+      args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -rg_ellipse_vscale 0.1 -nep_ciss_ksp_type bcgs -nep_ciss_pc_type sor
+      output_file: output/test17_3.out
       requires: complex !single
-      args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -rg_ellipse_vscale 0.1 -split {{0 1}}
+      test:
+          suffix: 3
+          args: -split {{0 1}}
+      test:
+          suffix: 3_par
+          nsize: 2
+          args: -nep_ciss_partitions 2
 
 TEST*/

@@ -193,7 +193,7 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->V);CHKERRQ(ierr);
 
   contour = ctx->contour;
-  ierr = SlepcContourRedundantMat(contour,pep->nmat,pep->A);CHKERRQ(ierr);
+  ierr = SlepcContourRedundantMat(contour,pep->nmat,pep->A,NULL);CHKERRQ(ierr);
   if (!ctx->T) {
     ierr = MatDuplicate(contour->pA?contour->pA[0]:pep->A[0],MAT_DO_NOT_COPY_VALUES,&ctx->T);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->T);CHKERRQ(ierr);

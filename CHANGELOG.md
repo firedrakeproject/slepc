@@ -2,6 +2,12 @@
 
 ## [unreleased]
 
+### Added
+
+- `NEP`: user-defined preconditioner for the split form, see `NEPSetSplitPreconditioner()`.
+  Support for preconditioner matrix different from the function matrix has also been
+  improved for the callback interface.
+
 ## [3.16] - 2021-09-30
 
 ### Added

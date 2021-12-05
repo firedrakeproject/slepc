@@ -1079,6 +1079,51 @@ cdef class NEP(Object):
             functions.append(f)
         return (matrices, functions, mstr)
 
+    def setSplitPreconditioner(self, P, structure=None):
+        """
+        Sets the operator in split form from which to build
+        the preconditioner to be used when solving the nonlinear
+        eigenvalue problem in split form.
+
+        Parameters
+        ----------
+        P: Mat or sequence of Mat
+            Coefficient matrices of the split preconditioner.
+        structure: `PETSc.Mat.Structure` enumerate, optional
+            Structure flag for matrices.
+        """
+        if isinstance(P, Mat): P = [P]
+        cdef PetscMat *Ps = NULL
+        cdef Py_ssize_t i = 0, n = len(P)
+        cdef PetscMatStructure mstr = matstructure(structure)
+        cdef tmp1 = allocate(<size_t>n*sizeof(PetscMat),<void**>&Ps)
+        for i in range(n):
+            Ps[i] = (<Mat?>P[i]).mat
+        CHKERR( NEPSetSplitPreconditioner(self.nep, <PetscInt>n, Ps, mstr) )
+
+    def getSplitPreconditioner(self):
+        """
+        Returns the operator of the split preconditioner.
+
+        Returns
+        -------
+        P: sequence of Mat
+            Coefficient matrices of the split preconditioner.
+        structure: `PETSc.Mat.Structure` enumerate
+            Structure flag for matrices.
+        """
+        cdef Mat P
+        cdef PetscMat mat = NULL
+        cdef PetscInt i=0, n=0
+        cdef PetscMatStructure mstr
+        CHKERR( NEPGetSplitPreconditionerInfo(self.nep, &n, &mstr) )
+        cdef object matrices = []
+        for i in range(n):
+            CHKERR( NEPGetSplitPreconditionerTerm(self.nep, i, &mat) )
+            P = Mat(); P.mat = mat; PetscINCREF(P.obj)
+            matrices.append(P)
+        return (matrices, mstr)
+
     def getTwoSided(self):
         """
         Returns the flag indicating whether a two-sided variant

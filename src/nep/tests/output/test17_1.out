@@ -1,0 +1,6 @@
+
+1-D Delay Eigenproblem, n=128, tau=0.001, a=90000.
+
+ All requested eigenvalues computed up to the required tolerance:
+     83478.16574, 83508.43402
+

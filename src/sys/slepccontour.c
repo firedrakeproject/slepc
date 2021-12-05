@@ -51,11 +51,8 @@ PetscErrorCode SlepcContourDataReset(SlepcContourData contour)
     }
   }
   if (contour->pA) {
-    for (i=0;i<contour->nmat;i++) {
-      ierr = MatDestroy(&contour->pA[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(contour->pA);CHKERRQ(ierr);
-    contour->pA = NULL;
+    ierr = MatDestroyMatrices(contour->nmat,&contour->pA);CHKERRQ(ierr);
+    ierr = MatDestroyMatrices(contour->nmat,&contour->pP);CHKERRQ(ierr);
     contour->nmat = 0;
   }
   ierr = VecScatterDestroy(&contour->scatterin);CHKERRQ(ierr);
@@ -92,19 +89,17 @@ PetscErrorCode SlepcContourDataDestroy(SlepcContourData *contour)
    Input Parameters:
    nmat - the number of matrices
    A    - array of matrices
+   P    - array of matrices (preconditioner)
 */
-PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,Mat *A)
+PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,Mat *A,Mat *P)
 {
   PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
   if (contour->pA) {
-    for (i=0;i<contour->nmat;i++) {
-      ierr = MatDestroy(&contour->pA[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(contour->pA);CHKERRQ(ierr);
-    contour->pA = NULL;
+    ierr = MatDestroyMatrices(contour->nmat,&contour->pA);CHKERRQ(ierr);
+    ierr = MatDestroyMatrices(contour->nmat,&contour->pP);CHKERRQ(ierr);
     contour->nmat = 0;
   }
   if (contour->subcomm && contour->subcomm->n != 1) {
@@ -112,6 +107,13 @@ PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,M
     for (i=0;i<nmat;i++) {
       ierr = MatCreateRedundantMatrix(A[i],contour->subcomm->n,PetscSubcommChild(contour->subcomm),MAT_INITIAL_MATRIX,&contour->pA[i]);CHKERRQ(ierr);
       ierr = PetscLogObjectParent(contour->parent,(PetscObject)contour->pA[i]);CHKERRQ(ierr);
+    }
+    if (P) {
+      ierr = PetscCalloc1(nmat,&contour->pP);CHKERRQ(ierr);
+      for (i=0;i<nmat;i++) {
+        ierr = MatCreateRedundantMatrix(P[i],contour->subcomm->n,PetscSubcommChild(contour->subcomm),MAT_INITIAL_MATRIX,&contour->pP[i]);CHKERRQ(ierr);
+        ierr = PetscLogObjectParent(contour->parent,(PetscObject)contour->pP[i]);CHKERRQ(ierr);
+      }
     }
     contour->nmat = nmat;
   }

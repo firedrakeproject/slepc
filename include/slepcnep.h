@@ -189,6 +189,9 @@ PETSC_DEPRECATED_FUNCTION("Use NEPGetFunction() and NEPGetJacobian") PETSC_STATI
 SLEPC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat[],FN[],MatStructure);
 SLEPC_EXTERN PetscErrorCode NEPGetSplitOperatorTerm(NEP,PetscInt,Mat*,FN*);
 SLEPC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*);
+SLEPC_EXTERN PetscErrorCode NEPSetSplitPreconditioner(NEP,PetscInt,Mat[],MatStructure);
+SLEPC_EXTERN PetscErrorCode NEPGetSplitPreconditionerTerm(NEP,PetscInt,Mat*);
+SLEPC_EXTERN PetscErrorCode NEPGetSplitPreconditionerInfo(NEP,PetscInt*,MatStructure*);
 
 SLEPC_EXTERN PetscErrorCode NEPSetBV(NEP,BV);
 SLEPC_EXTERN PetscErrorCode NEPGetBV(NEP,BV*);

@@ -32,6 +32,7 @@ typedef struct {   /* context for two-sided solver */
 typedef struct {   /* context for non-equivalence deflation */
   NEP_NEDEF_CTX defctx;
   Mat           F;
+  Mat           P;
   Mat           J;
   KSP           ksp;
   PetscBool     isJ;
@@ -159,9 +160,9 @@ static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar la
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
   if (lambda==matctx->lambda) PetscFunctionReturn(0);
-  ierr = NEPComputeFunction(nep,lambda,matctx->F,matctx->F);CHKERRQ(ierr);
+  ierr = NEPComputeFunction(nep,lambda,matctx->F,matctx->P);CHKERRQ(ierr);
   if (matctx->isJ) {ierr = NEPComputeJacobian(nep,lambda,matctx->J);CHKERRQ(ierr);}
-  if (matctx->ksp) {ierr = KSPSetOperators(matctx->ksp,matctx->F,matctx->F);CHKERRQ(ierr);}
+  if (matctx->ksp) {ierr = KSPSetOperators(matctx->ksp,matctx->F,matctx->P);CHKERRQ(ierr);}
   matctx->lambda = lambda;
   PetscFunctionReturn(0);
 }
@@ -323,7 +324,7 @@ static PetscErrorCode MatCreateVecs_NEPDeflationNE(Mat M,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,Mat F,Mat J,KSP ksp,PetscBool isJ,Mat *Mshell)
+static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,Mat F,Mat P,Mat J,KSP ksp,PetscBool isJ,Mat *Mshell)
 {
   NEP_NEDEF_MATSHELL *matctx;
   PetscErrorCode     ierr;
@@ -335,6 +336,7 @@ static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,
   ierr = MatGetLocalSize(nep->function,&mloc,&nloc);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,Mshell);CHKERRQ(ierr);
   matctx->F   = F;
+  matctx->P   = P;
   matctx->J   = J;
   matctx->isJ = isJ;
   matctx->ksp = ksp;
@@ -435,8 +437,8 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
   ierr = BVCopyVec(nep->V,0,u);CHKERRQ(ierr);
   ierr = BVCopyVec(nep->W,0,w);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
-  ierr = NEPDeflationNEFunctionCreate(defctx,nep,nep->function,NULL,ctx->ksp,PETSC_FALSE,&mF);CHKERRQ(ierr);
-  ierr = NEPDeflationNEFunctionCreate(defctx,nep,nep->function,nep->jacobian,NULL,PETSC_TRUE,&mJ);CHKERRQ(ierr);
+  ierr = NEPDeflationNEFunctionCreate(defctx,nep,nep->function,nep->function_pre?nep->function_pre:nep->function,NULL,ctx->ksp,PETSC_FALSE,&mF);CHKERRQ(ierr);
+  ierr = NEPDeflationNEFunctionCreate(defctx,nep,nep->function,nep->function,nep->jacobian,NULL,PETSC_TRUE,&mJ);CHKERRQ(ierr);
   ierr = NEPSLPSetUpEPSMat(nep,mF,mJ,PETSC_FALSE,&M);CHKERRQ(ierr);
   ierr = NEPSLPSetUpEPSMat(nep,mF,mJ,PETSC_TRUE,&Mt);CHKERRQ(ierr);
   ierr = EPSSetOperators(ctx->eps,M,NULL);CHKERRQ(ierr);

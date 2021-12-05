@@ -117,6 +117,8 @@ struct _p_NEP {
   FN             *f;               /* matrix functions of split form */
   PetscInt       nt;               /* number of terms in split form */
   MatStructure   mstr;             /* pattern of split matrices */
+  Mat            *P;               /* matrix coefficients of split form (preconditioner) */
+  MatStructure   mstrp;            /* pattern of split matrices (preconditioner) */
   Vec            *IS;              /* references to user-provided initial space */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
