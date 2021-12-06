@@ -28,7 +28,7 @@ NEP Object: 1 MPI processes
               total: nonzeros=472, allocated nonzeros=472
                 not using I-node routines
       linear system matrix = precond matrix:
-      Mat Object: 1 MPI processes
+      Mat Object: (nep_nleigs_) 1 MPI processes
         type: seqaij
         rows=100, cols=100
         total: nonzeros=298, allocated nonzeros=298

@@ -162,7 +162,7 @@ static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar la
   if (lambda==matctx->lambda) PetscFunctionReturn(0);
   ierr = NEPComputeFunction(nep,lambda,matctx->F,matctx->P);CHKERRQ(ierr);
   if (matctx->isJ) {ierr = NEPComputeJacobian(nep,lambda,matctx->J);CHKERRQ(ierr);}
-  if (matctx->ksp) {ierr = KSPSetOperators(matctx->ksp,matctx->F,matctx->P);CHKERRQ(ierr);}
+  if (matctx->ksp) {ierr = NEP_KSPSetOperators(matctx->ksp,matctx->F,matctx->P);CHKERRQ(ierr);}
   matctx->lambda = lambda;
   PetscFunctionReturn(0);
 }

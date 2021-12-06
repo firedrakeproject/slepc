@@ -1112,7 +1112,7 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep,Vec *ww)
     ierr = PCSetReusePreconditioner(pcctx->pc,PETSC_TRUE);CHKERRQ(ierr);
     ierr = KSPSetReusePreconditioner(ksp,PETSC_TRUE);CHKERRQ(ierr);
   }
-  ierr = KSPSetOperators(ksp,pjd->Pshell,pjd->Pshell);CHKERRQ(ierr);
+  ierr = PEP_KSPSetOperators(ksp,pjd->Pshell,pjd->Pshell);CHKERRQ(ierr);
   ierr = KSPSetUp(ksp);CHKERRQ(ierr);
   if (pjd->ld>1) {
     ierr = PetscMalloc2(pjd->ld*pjd->ld,&pcctx->M,pjd->ld*pjd->ld,&pcctx->ps);CHKERRQ(ierr);

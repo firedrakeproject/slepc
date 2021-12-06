@@ -500,7 +500,7 @@ static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *f
     ierr = BVRestoreColumn(M3,i,&vc);CHKERRQ(ierr);
   }
 
-  ierr = KSPSetOperators(ksp,M1,M1);CHKERRQ(ierr);
+  ierr = PEP_KSPSetOperators(ksp,M1,M1);CHKERRQ(ierr);
   ierr = KSPSetUp(ksp);CHKERRQ(ierr);
   ierr = MatDestroy(&Mk);CHKERRQ(ierr);
 
@@ -674,7 +674,7 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
   }
   ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
+  ierr = PEP_KSPSetOperators(ksp,M,M);CHKERRQ(ierr);
   ierr = KSPSetUp(ksp);CHKERRQ(ierr);
   ierr = PetscFree(ts);CHKERRQ(ierr);
   ierr = MatDestroy(&Mk);CHKERRQ(ierr);
@@ -1210,7 +1210,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
   if (ini) {
     ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr);
     ierr = KSPSetErrorIfNotConverged(pep->refineksp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = KSPSetOperators(pep->refineksp,M,P);CHKERRQ(ierr);
+    ierr = PEP_KSPSetOperators(pep->refineksp,M,P);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
   }
 

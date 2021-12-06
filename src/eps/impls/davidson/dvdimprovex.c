@@ -538,7 +538,7 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
       ierr = MatGetSize(M,&rM,NULL);CHKERRQ(ierr);
       if (rM != rA*data->ksp_max_size) { ierr = KSPReset(data->ksp);CHKERRQ(ierr); }
     }
-    ierr = KSPSetOperators(data->ksp,A,A);CHKERRQ(ierr);
+    ierr = EPS_KSPSetOperators(data->ksp,A,A);CHKERRQ(ierr);
     ierr = KSPSetReusePreconditioner(data->ksp,PETSC_TRUE);CHKERRQ(ierr);
     ierr = KSPSetUp(data->ksp);CHKERRQ(ierr);
     ierr = MatDestroy(&A);CHKERRQ(ierr);

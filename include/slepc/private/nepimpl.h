@@ -211,6 +211,26 @@ struct _p_NEP {
   } while (0)
 #define NEPCheckIgnored(nep,mask) NEPCheckIgnoredCondition(nep,mask,PETSC_TRUE,"")
 
+/*
+  NEP_KSPSetOperators - Sets the KSP matrices
+*/
+PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSetOperators(KSP ksp,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  const char     *prefix;
+
+  PetscFunctionBegin;
+  ierr = KSPSetOperators(ksp,A,B);CHKERRQ(ierr);
+  ierr = MatGetOptionsPrefix(B,&prefix);CHKERRQ(ierr);
+  if (!prefix) {
+    /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
+       only applies if the Mat has no user-defined prefix */
+    ierr = KSPGetOptionsPrefix(ksp,&prefix);CHKERRQ(ierr);
+    ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 SLEPC_INTERN PetscErrorCode NEPSetDimensions_Default(NEP,PetscInt,PetscInt*,PetscInt*);
 SLEPC_INTERN PetscErrorCode NEPComputeVectors(NEP);
 SLEPC_INTERN PetscErrorCode NEPReset_Problem(NEP);

@@ -162,6 +162,26 @@ struct _p_SVD {
 #define SVDCheckIgnored(svd,mask) SVDCheckIgnoredCondition(svd,mask,PETSC_TRUE,"")
 
 /*
+  SVD_KSPSetOperators - Sets the KSP matrices
+*/
+PETSC_STATIC_INLINE PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  const char     *prefix;
+
+  PetscFunctionBegin;
+  ierr = KSPSetOperators(ksp,A,B);CHKERRQ(ierr);
+  ierr = MatGetOptionsPrefix(B,&prefix);CHKERRQ(ierr);
+  if (!prefix) {
+    /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
+       only applies if the Mat has no user-defined prefix */
+    ierr = KSPGetOptionsPrefix(ksp,&prefix);CHKERRQ(ierr);
+    ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/*
    Create the template vector for the left basis in GSVD, as in
    MatCreateVecsEmpty(Z,NULL,&t) for Z=[A;B] without forming Z.
  */
