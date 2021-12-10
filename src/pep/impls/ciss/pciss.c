@@ -107,7 +107,7 @@ static PetscErrorCode PEPCISSSolveSystem(PEP pep,Mat T,Mat dT,BV V,PetscInt L_st
     if (initksp) {
       ierr = PEPComputeFunction(pep,ctx->omega[p_id],T,PETSC_FALSE);CHKERRQ(ierr);
       ierr = MatDuplicate(T,MAT_COPY_VALUES,&kspMat);CHKERRQ(ierr);
-      ierr = KSPSetOperators(contour->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
+      ierr = PEP_KSPSetOperators(contour->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
       ierr = MatDestroy(&kspMat);CHKERRQ(ierr);
     }
     ierr = PEPComputeFunction(pep,ctx->omega[p_id],dT,PETSC_TRUE);CHKERRQ(ierr);

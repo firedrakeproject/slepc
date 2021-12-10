@@ -145,7 +145,7 @@ static PetscErrorCode NEPCISSSolveSystem(NEP nep,Mat T,Mat P,Mat dT,BV V,PetscIn
       if (T != P) {
         ierr = MatDuplicate(P,MAT_COPY_VALUES,&Pmat);CHKERRQ(ierr);
       } else Pmat = Amat;
-      ierr = KSPSetOperators(contour->ksp[i],Amat,Pmat);CHKERRQ(ierr);
+      ierr = NEP_KSPSetOperators(contour->ksp[i],Amat,Pmat);CHKERRQ(ierr);
       ierr = MatDestroy(&Amat);CHKERRQ(ierr);
       if (T != P) {
         ierr = MatDestroy(&Pmat);CHKERRQ(ierr);

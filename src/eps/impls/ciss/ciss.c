@@ -73,7 +73,6 @@ static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_sta
   PetscInt         i,p_id;
   Mat              Fz,kspMat,MV,BMV=NULL,MC;
   KSP              ksp;
-  const char       *prefix;
 
   PetscFunctionBegin;
   if (!ctx->contour || !ctx->contour->ksp) { ierr = EPSCISSGetKSPs(eps,NULL,NULL);CHKERRQ(ierr); }
@@ -98,10 +97,7 @@ static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_sta
       } else {
         ierr = MatShift(kspMat,-ctx->omega[p_id]);CHKERRQ(ierr);
       }
-      ierr = KSPSetOperators(contour->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
-      /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS) */
-      ierr = KSPGetOptionsPrefix(contour->ksp[i],&prefix);CHKERRQ(ierr);
-      ierr = MatSetOptionsPrefix(kspMat,prefix);CHKERRQ(ierr);
+      ierr = EPS_KSPSetOperators(contour->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
       ierr = MatDestroy(&kspMat);CHKERRQ(ierr);
     } else if (ctx->usest) {
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);

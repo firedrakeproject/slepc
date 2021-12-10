@@ -211,7 +211,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     ierr = MatCreateNormalHermitian(lanczos->Z,&normal);CHKERRQ(ierr);
 
     if (!lanczos->ksp) { ierr = SVDTRLanczosGetKSP(svd,&lanczos->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(lanczos->ksp,lanczos->Z,normal);CHKERRQ(ierr);
+    ierr = SVD_KSPSetOperators(lanczos->ksp,lanczos->Z,normal);CHKERRQ(ierr);
     ierr = KSPSetUp(lanczos->ksp);CHKERRQ(ierr);
     ierr = MatDestroy(&normal);CHKERRQ(ierr);
 

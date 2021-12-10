@@ -594,7 +594,7 @@ PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP extop,PetscScalar lambda)
     ierr = NEPDeflationComputeShellMat(extop,lambda,PETSC_FALSE,solve->sincf?NULL:&solve->T);CHKERRQ(ierr);
     Mshell = (solve->sincf)?extop->MF:solve->T;
     ierr = MatShellGetContext(Mshell,&matctx);CHKERRQ(ierr);
-    ierr = KSPSetOperators(solve->ksp,matctx->T,matctx->P);CHKERRQ(ierr);
+    ierr = NEP_KSPSetOperators(solve->ksp,matctx->T,matctx->P);CHKERRQ(ierr);
     if (!extop->ref && n) {
       ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(extop->szd,&szd_);CHKERRQ(ierr);

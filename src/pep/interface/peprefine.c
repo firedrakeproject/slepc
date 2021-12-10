@@ -452,7 +452,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,
         ierr = BVGetColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr);
       } else v = ctx->v;
       ierr = PEPSimpleNRefSetUpSystem(pep,ctx->A,ctx,idx_sc[color],&Mt,&T,&P,ini,t[0],v);CHKERRQ(ierr);
-      ierr = KSPSetOperators(pep->refineksp,T,P);CHKERRQ(ierr);
+      ierr = PEP_KSPSetOperators(pep->refineksp,T,P);CHKERRQ(ierr);
       if (ini) {
         ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
         if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT) {

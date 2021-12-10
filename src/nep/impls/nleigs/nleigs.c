@@ -741,7 +741,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
         ierr = MatDestroy(&Ts);CHKERRQ(ierr);
       }
     }
-    ierr = KSPSetOperators(ctx->ksp[i],T,P);CHKERRQ(ierr);
+    ierr = NEP_KSPSetOperators(ctx->ksp[i],T,P);CHKERRQ(ierr);
     ierr = KSPSetUp(ctx->ksp[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&T);CHKERRQ(ierr);
     if (nep->P) { ierr = MatDestroy(&P);CHKERRQ(ierr); }
@@ -849,7 +849,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
         ierr = MatAXPY(P,coeffs[j],DP[j],nep->mstrp);CHKERRQ(ierr);
       }
     } else P=T;
-    ierr = KSPSetOperators(ctx->ksp[i],T,P);CHKERRQ(ierr);
+    ierr = NEP_KSPSetOperators(ctx->ksp[i],T,P);CHKERRQ(ierr);
     ierr = KSPSetUp(ctx->ksp[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&T);CHKERRQ(ierr);
   }

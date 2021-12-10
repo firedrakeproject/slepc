@@ -304,6 +304,26 @@ PETSC_STATIC_INLINE PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
   PetscFunctionReturn(0);
 }
 
+/*
+  EPS_KSPSetOperators - Sets the KSP matrices, see also ST_KSPSetOperators()
+*/
+PETSC_STATIC_INLINE PetscErrorCode EPS_KSPSetOperators(KSP ksp,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  const char     *prefix;
+
+  PetscFunctionBegin;
+  ierr = KSPSetOperators(ksp,A,B);CHKERRQ(ierr);
+  ierr = MatGetOptionsPrefix(B,&prefix);CHKERRQ(ierr);
+  if (!prefix) {
+    /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
+       only applies if the Mat has no user-defined prefix */
+    ierr = KSPGetOptionsPrefix(ksp,&prefix);CHKERRQ(ierr);
+    ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 SLEPC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
 SLEPC_INTERN PetscErrorCode EPSSetDimensions_Default(EPS,PetscInt,PetscInt*,PetscInt*);
 SLEPC_INTERN PetscErrorCode EPSBackTransform_Default(EPS);
