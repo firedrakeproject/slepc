@@ -258,11 +258,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     ierr = PEPQArnoldi(pep,S,ld,pep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
     ierr = DSRestoreArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     ierr = DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
-    if (l==0) {
-      ierr = DSSetState(pep->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    }
+    ierr = DSSetState(pep->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pep->V,pep->nconv,nv);CHKERRQ(ierr);
 
     /* Solve projected problem */
@@ -286,7 +282,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     if (l) { ierr = PetscInfo1(pep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (pep->reason == PEP_CONVERGED_ITERATING) {
-      if (breakdown) {
+      if (PetscUnlikely(breakdown)) {
         /* Stop if breakdown */
         ierr = PetscInfo2(pep,"Breakdown Quadratic Arnoldi method (it=%" PetscInt_FMT " norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
         pep->reason = PEP_DIVERGED_BREAKDOWN;

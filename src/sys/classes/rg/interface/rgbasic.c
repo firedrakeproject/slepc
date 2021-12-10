@@ -456,12 +456,12 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
     px = ar[i];
     py = ai[i];
 #endif
-    if (rg->sfactor != 1.0) {
+    if (PetscUnlikely(rg->sfactor != 1.0)) {
       px /= rg->sfactor;
       py /= rg->sfactor;
     }
     ierr = (*rg->ops->checkinside)(rg,px,py,inside+i);CHKERRQ(ierr);
-    if (rg->complement) inside[i] = -inside[i];
+    if (PetscUnlikely(rg->complement)) inside[i] = -inside[i];
   }
   PetscFunctionReturn(0);
 }

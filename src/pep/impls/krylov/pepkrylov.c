@@ -197,7 +197,7 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
     /* eigenvalue */
     re = pep->eigr[k];
     im = pep->eigi[k];
-    if (!istrivial) {
+    if (PetscUnlikely(!istrivial)) {
       ierr = STBackTransform(pep->st,1,&re,&im);CHKERRQ(ierr);
       ierr = RGCheckInside(pep->rg,1,&re,&im,&inside);CHKERRQ(ierr);
       if (marker==-1 && inside<0) marker = k;
@@ -210,7 +210,7 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
     /* error estimate */
     ierr = (*pep->converged)(pep,re,im,resnorm,&pep->errest[k],pep->convergedctx);CHKERRQ(ierr);
     if (marker==-1 && pep->errest[k] >= pep->tol) marker = k;
-    if (newk==k+1) {
+    if (PetscUnlikely(newk==k+1)) {
       pep->errest[k+1] = pep->errest[k];
       k++;
     }

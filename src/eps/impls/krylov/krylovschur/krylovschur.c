@@ -310,21 +310,17 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     }
     ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
-    if (l==0) {
-      ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    }
+    ierr = DSSetState(eps->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */
-    if (harmonic) {
+    if (PetscUnlikely(harmonic)) {
       ierr = DSTranslateHarmonic(eps->ds,eps->target,beta,PETSC_FALSE,g,&gamma);CHKERRQ(ierr);
     }
 
     /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    if (eps->arbitrary) {
+    if (PetscUnlikely(eps->arbitrary)) {
       ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr);
       j=1;
     }
@@ -347,7 +343,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
-      if (breakdown || k==nv) {
+      if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new Arnoldi factorization */
         ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         if (k<eps->nev) {
@@ -359,7 +355,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
         }
       } else {
         /* Undo translation of Krylov decomposition */
-        if (harmonic) {
+        if (PetscUnlikely(harmonic)) {
           ierr = DSSetDimensions(eps->ds,nv,k,l);CHKERRQ(ierr);
           ierr = DSTranslateHarmonic(eps->ds,0.0,beta,PETSC_TRUE,g,&gamma);CHKERRQ(ierr);
           /* gamma u^ = u - U*g~ */

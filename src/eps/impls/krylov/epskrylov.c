@@ -235,7 +235,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   Vec            x=NULL,y=NULL,w[3];
 
   PetscFunctionBegin;
-  if (eps->which == EPS_ALL) {
+  if (PetscUnlikely(eps->which == EPS_ALL)) {
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilter);CHKERRQ(ierr);
     if (isfilter) {
       ierr = STFilterGetThreshold(eps->st,&gamma);CHKERRQ(ierr);
@@ -244,7 +244,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     }
   }
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (eps->trueres) {
+  if (PetscUnlikely(eps->trueres)) {
     ierr = BVCreateVec(eps->V,&x);CHKERRQ(ierr);
     ierr = BVCreateVec(eps->V,&y);CHKERRQ(ierr);
     ierr = BVCreateVec(eps->V,&w[0]);CHKERRQ(ierr);
@@ -267,7 +267,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     if (!istrivial || eps->trueres || isshift || eps->conv==EPS_CONV_NORM) {
       ierr = STBackTransform(eps->st,1,&re,&im);CHKERRQ(ierr);
     }
-    if (!istrivial) {
+    if (PetscUnlikely(!istrivial)) {
       ierr = RGCheckInside(eps->rg,1,&re,&im,&inside);CHKERRQ(ierr);
       if (marker==-1 && inside<0) marker = k;
       if (!(eps->trueres || isshift || eps->conv==EPS_CONV_NORM)) {  /* make sure eps->converged below uses the right value */
@@ -277,7 +277,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     }
     newk = k;
     ierr = DSVectors(eps->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
-    if (eps->trueres) {
+    if (PetscUnlikely(eps->trueres)) {
       ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       Zr = X+k*ld;
       if (newk==k+1) Zi = X+newk*ld;
@@ -290,7 +290,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     /* error estimate */
     ierr = (*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx);CHKERRQ(ierr);
     if (marker==-1 && eps->errest[k] >= eps->tol) marker = k;
-    if (eps->twosided) {
+    if (PetscUnlikely(eps->twosided)) {
       newk2 = k;
       ierr = DSVectors(eps->ds,DS_MAT_Y,&newk2,&resnorm);CHKERRQ(ierr);
       resnorm *= betat;
@@ -298,7 +298,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
       eps->errest[k] = PetscMax(eps->errest[k],lerrest);
       if (marker==-1 && lerrest >= eps->tol) marker = k;
     }
-    if (newk==k+1) {
+    if (PetscUnlikely(newk==k+1)) {
       eps->errest[k+1] = eps->errest[k];
       k++;
     }
@@ -306,7 +306,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   }
   if (marker!=-1) k = marker;
   *kout = k;
-  if (eps->trueres) {
+  if (PetscUnlikely(eps->trueres)) {
     ierr = VecDestroy(&x);CHKERRQ(ierr);
     ierr = VecDestroy(&y);CHKERRQ(ierr);
     ierr = VecDestroy(&w[0]);CHKERRQ(ierr);

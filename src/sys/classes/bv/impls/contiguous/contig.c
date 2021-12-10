@@ -107,7 +107,7 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *q)
   Vec               z = y;
 
   PetscFunctionBegin;
-  if (X->matrix) {
+  if (PetscUnlikely(X->matrix)) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
@@ -127,7 +127,7 @@ PetscErrorCode BVDotVec_Local_Contiguous(BV X,Vec y,PetscScalar *m)
   Vec            z = y;
 
   PetscFunctionBegin;
-  if (X->matrix) {
+  if (PetscUnlikely(X->matrix)) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
@@ -143,7 +143,7 @@ PetscErrorCode BVScale_Contiguous(BV bv,PetscInt j,PetscScalar alpha)
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  if (j<0) {
+  if (PetscUnlikely(j<0)) {
     ierr = BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,ctx->array+(bv->nc+bv->l)*bv->n,alpha);CHKERRQ(ierr);
   } else {
     ierr = BVScale_BLAS_Private(bv,bv->n,ctx->array+(bv->nc+j)*bv->n,alpha);CHKERRQ(ierr);
@@ -157,7 +157,7 @@ PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  if (j<0) {
+  if (PetscUnlikely(j<0)) {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   } else {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
@@ -171,7 +171,7 @@ PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal 
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  if (j<0) {
+  if (PetscUnlikely(j<0)) {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
@@ -347,7 +347,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
 
-  if (bv->issplit) {
+  if (PetscUnlikely(bv->issplit)) {
     /* split BV: share memory and Vecs of the parent BV */
     parent = bv->splitparent;
     lsplit = parent->lsplit;
@@ -375,7 +375,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
     }
   }
 
-  if (bv->Acreate) {
+  if (PetscUnlikely(bv->Acreate)) {
     ierr = MatDenseGetArray(bv->Acreate,&aa);CHKERRQ(ierr);
     ierr = PetscArraycpy(ctx->array,aa,bv->m*nloc);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(bv->Acreate,&aa);CHKERRQ(ierr);

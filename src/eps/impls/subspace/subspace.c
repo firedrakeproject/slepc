@@ -74,12 +74,12 @@ static PetscErrorCode EPSSubspaceFindGroup(PetscInt l,PetscInt m,PetscScalar *wr
     rmod1 = SlepcAbsEigenvalue(wr[i],wi[i]);
     if (PetscAbsReal(rmod-rmod1) > grptol*(rmod+rmod1)) break;
     *ctr = (rmod+rmod1)/2.0;
-    if (wi[i] != 0.0) {
-      (*ngrp)+=2;
-      i+=2;
-    } else {
+    if (wi[i] == 0.0) {
       (*ngrp)++;
       i++;
+    } else {
+      (*ngrp)+=2;
+      i+=2;
     }
   }
 

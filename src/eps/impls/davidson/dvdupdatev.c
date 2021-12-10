@@ -58,7 +58,7 @@ static PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
   restart = (k+2 > d->eps->ncv)? PETSC_TRUE: PETSC_FALSE;
 
   /* Check old isRestarting function */
-  if (!restart && data->old_isRestarting) {
+  if (PetscUnlikely(!restart && data->old_isRestarting)) {
     ierr = data->old_isRestarting(d,&restart);CHKERRQ(ierr);
   }
   *r = restart;

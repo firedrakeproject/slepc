@@ -84,7 +84,7 @@ PetscErrorCode BVMultInPlace_BLAS_Private(BV bv,PetscInt m_,PetscInt k_,PetscInt
   ierr = PetscBLASIntCast(k_,&k);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldb_,&ldb);CHKERRQ(ierr);
   ierr = BVAllocateWork_Private(bv,BLOCKSIZE*n_);CHKERRQ(ierr);
-  if (btrans) {
+  if (PetscUnlikely(btrans)) {
     pb = (PetscScalar*)B+s;
     bt = "C";
   } else {
@@ -264,7 +264,7 @@ PetscErrorCode BVScale_BLAS_Private(BV bv,PetscInt n_,PetscScalar *A,PetscScalar
   PetscBLASInt   n,one=1;
 
   PetscFunctionBegin;
-  if (alpha == (PetscScalar)0.0) {
+  if (PetscUnlikely(alpha == (PetscScalar)0.0)) {
     ierr = PetscArrayzero(A,n_);CHKERRQ(ierr);
   } else if (alpha!=(PetscScalar)1.0) {
     ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);

@@ -117,22 +117,22 @@ static PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   }
 
   /* q = v - V h */
-  if (bv->indef) { ierr = BV_ApplySignature(bv,j,c,PETSC_TRUE);CHKERRQ(ierr); }
+  if (PetscUnlikely(bv->indef)) { ierr = BV_ApplySignature(bv,j,c,PETSC_TRUE);CHKERRQ(ierr); }
   if (!v) { ierr = BVMultColumn(bv,-1.0,1.0,j,c);CHKERRQ(ierr); }
   else { ierr = BVMultVec(bv,-1.0,1.0,v,c);CHKERRQ(ierr); }
-  if (bv->indef) { ierr = BV_ApplySignature(bv,j,c,PETSC_FALSE);CHKERRQ(ierr); }
+  if (PetscUnlikely(bv->indef)) { ierr = BV_ApplySignature(bv,j,c,PETSC_FALSE);CHKERRQ(ierr); }
 
   /* compute |v| */
   if (onorm) *onorm = beta;
 
   if (norm) {
-    if (bv->indef) {
+    if (PetscUnlikely(bv->indef)) {
       ierr = BV_NormVecOrColumn(bv,j,v,norm);CHKERRQ(ierr);
     } else {
       /* estimate |v'| from |v| */
       ierr = BV_SquareSum(bv,j,c,&sum);CHKERRQ(ierr);
       *norm = beta*beta-sum;
-      if (*norm <= 0.0) {
+      if (PetscUnlikely(*norm <= 0.0)) {
         ierr = BV_NormVecOrColumn(bv,j,v,norm);CHKERRQ(ierr);
       } else *norm = PetscSqrtReal(*norm);
     }

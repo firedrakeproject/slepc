@@ -98,7 +98,7 @@ PetscErrorCode BVMultInPlace_Vecs_ME(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = BVMultInPlace_Vecs_Private(V,V->n,e-s,ldq,ctx->V+V->nc+s,q+s*ldq+s,PETSC_FALSE);CHKERRQ(ierr);
   /* V2 += V1*Q1 + V3*Q3 */
   for (i=s;i<e;i++) {
-    if (s>V->l) {
+    if (PetscUnlikely(s>V->l)) {
       ierr = VecMAXPY(ctx->V[V->nc+i],s-V->l,q+i*ldq+V->l,ctx->V+V->nc+V->l);CHKERRQ(ierr);
     }
     if (V->k>e) {
@@ -190,7 +190,7 @@ PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *q)
   PetscScalar    *qq=q;
 
   PetscFunctionBegin;
-  if (X->matrix) {
+  if (PetscUnlikely(X->matrix)) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
@@ -207,7 +207,7 @@ PetscErrorCode BVDotVec_Begin_Vecs(BV X,Vec y,PetscScalar *m)
   Vec            z = y;
 
   PetscFunctionBegin;
-  if (X->matrix) {
+  if (PetscUnlikely(X->matrix)) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
@@ -232,7 +232,7 @@ PetscErrorCode BVScale_Vecs(BV bv,PetscInt j,PetscScalar alpha)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  if (j<0) {
+  if (PetscUnlikely(j<0)) {
     for (i=bv->l;i<bv->k;i++) {
       ierr = VecScale(ctx->V[bv->nc+i],alpha);CHKERRQ(ierr);
     }
@@ -250,7 +250,7 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  if (j<0) {
+  if (PetscUnlikely(j<0)) {
     if (type==NORM_FROBENIUS) {
       *val = 0.0;
       for (i=bv->l;i<bv->k;i++) {
@@ -271,7 +271,7 @@ PetscErrorCode BVNorm_Begin_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+  if (PetscUnlikely(j<0)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
   else {
     ierr = VecNormBegin(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
   }
@@ -284,7 +284,7 @@ PetscErrorCode BVNorm_End_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+  if (PetscUnlikely(j<0)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
   else {
     ierr = VecNormEnd(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
   }
@@ -534,7 +534,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
 
-  if (bv->issplit) {
+  if (PetscUnlikely(bv->issplit)) {
     /* split BV: share the Vecs of the parent BV */
     parent = bv->splitparent;
     lsplit = parent->lsplit;
@@ -552,7 +552,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
     }
   }
 
-  if (bv->Acreate) {
+  if (PetscUnlikely(bv->Acreate)) {
     for (j=0;j<bv->m;j++) {
       ierr = MatGetColumnVector(bv->Acreate,ctx->V[j],j);CHKERRQ(ierr);
     }

@@ -200,7 +200,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Ve
   ierr = SlepcVecPoolGetVecs(data->d->auxV,2,&auxV);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
-    if (data->d->eigi[data->r_s+i] != 0.0) {
+    if (PetscUnlikely(data->d->eigi[data->r_s+i] != 0.0)) {
       if (data->d->B) {
         ierr = MatMult(data->d->B,x[i],auxV[0]);CHKERRQ(ierr);
         ierr = MatMult(data->d->B,x[i+1],auxV[1]);CHKERRQ(ierr);

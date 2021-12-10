@@ -113,7 +113,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
     if (j-2>=k) which[j-2] = PETSC_FALSE;
     ierr = BVOrthogonalizeSomeColumn(eps->V,j+1,which,hwork,beta+j,breakdown);CHKERRQ(ierr);
     alpha[j] = PetscRealPart(hwork[j]);
-    if (*breakdown) {
+    if (PetscUnlikely(*breakdown)) {
       *M = j+1;
       break;
     } else {
@@ -215,7 +215,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     ierr = BVOrthogonalizeSomeColumn(eps->V,j+1,which,hwork,&norm,breakdown);CHKERRQ(ierr);
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = norm;
-    if (*breakdown) {
+    if (PetscUnlikely(*breakdown)) {
       *M = j+1;
       break;
     }
@@ -254,7 +254,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
       ierr = BVSetActiveColumns(lanczos->AV,0,nritz);CHKERRQ(ierr);
       ierr = BVOrthogonalizeVec(lanczos->AV,vj1,hwork,&norm,breakdown);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-      if (*breakdown) {
+      if (PetscUnlikely(*breakdown)) {
         *M = j+1;
         break;
       }
@@ -431,7 +431,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
       }
     }
 
-    if (*breakdown || norm < eps->n*anorm*PETSC_MACHINE_EPSILON) {
+    if (PetscUnlikely(*breakdown || norm < eps->n*anorm*PETSC_MACHINE_EPSILON)) {
       *M = j+1;
       break;
     }
@@ -688,7 +688,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
         ierr = PetscInfo(eps,"Using random vector for restart\n");CHKERRQ(ierr);
         ierr = EPSGetStartVector(eps,nconv,&breakdown);CHKERRQ(ierr);
       }
-      if (breakdown) { /* give up */
+      if (PetscUnlikely(breakdown)) { /* give up */
         eps->reason = EPS_DIVERGED_BREAKDOWN;
         ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
       }

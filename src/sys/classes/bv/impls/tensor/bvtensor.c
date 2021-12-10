@@ -63,7 +63,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Tensor(BV V,Mat Q,PetscInt s,Pets
 
 PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
 {
-  PetscErrorCode ierr;
+  PetscErrorCode    ierr;
   BV_TENSOR         *x = (BV_TENSOR*)X->data,*y = (BV_TENSOR*)Y->data;
   PetscScalar       *m;
   const PetscScalar *px,*py;
@@ -92,7 +92,7 @@ PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
-  if (j<0) {
+  if (PetscUnlikely(j<0)) {
     ierr = BVScale_BLAS_Private(bv,(bv->k-bv->l)*lds,pS+(bv->nc+bv->l)*lds,alpha);CHKERRQ(ierr);
   } else {
     ierr = BVScale_BLAS_Private(bv,lds,pS+(bv->nc+j)*lds,alpha);CHKERRQ(ierr);
@@ -147,7 +147,7 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
   lds = ld*ctx->d;
   ierr = MatDenseGetArrayRead(ctx->S,&S);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
-  if (ctx->qB) {
+  if (PetscUnlikely(ctx->qB)) {
     x = ctx->sw;
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,S+j*lds,&one,&szero,x,&one));
     dot = PetscRealPart(BLASdot_(&lds_,S+j*lds,&one,x,&one));
@@ -159,7 +159,7 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
       for (i=0;i<lds;i++) {
         aval = PetscAbsScalar(S[i+j*lds]);
         if (aval!=0.0) {
-          if (scale<aval) {
+          if (PetscUnlikely(scale<aval)) {
             alpha = 1.0 + alpha*PetscSqr(scale/aval);
             scale = aval;
           } else alpha += PetscSqr(aval/scale);
@@ -195,9 +195,9 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
   if (ctx->qB) x = ctx->sw;
   else x = pS+k*lds;
 
-  if (bv->orthog_type==BV_ORTHOG_MGS) {  /* modified Gram-Schmidt */
+  if (PetscUnlikely(bv->orthog_type==BV_ORTHOG_MGS)) {  /* modified Gram-Schmidt */
 
-    if (bv->indef) { /* signature */
+    if (PetscUnlikely(bv->indef)) { /* signature */
       ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
     }
     for (i=-bv->nc;i<k;i++) {
@@ -211,7 +211,7 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
       dot = -dot;
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&lds_,&dot,pS+i*lds,&one,pS+k*lds,&one));
     }
-    if (bv->indef) {
+    if (PetscUnlikely(bv->indef)) {
       ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
     }
 
@@ -222,9 +222,9 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
     PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&lds_,&k_,&sone,pS,&lds_,x,&one,&szero,cc,&one));
 
     /* s_k = s_k - S_{0:k-1} cc */
-    if (bv->indef) { ierr = BV_ApplySignature(bv,k,cc,PETSC_TRUE);CHKERRQ(ierr); }
-     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&k_,&sonem,pS,&lds_,cc,&one,&sone,pS+k*lds,&one));
-    if (bv->indef) { ierr = BV_ApplySignature(bv,k,cc,PETSC_FALSE);CHKERRQ(ierr); }
+    if (PetscUnlikely(bv->indef)) { ierr = BV_ApplySignature(bv,k,cc,PETSC_TRUE);CHKERRQ(ierr); }
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&k_,&sonem,pS,&lds_,cc,&one,&sone,pS+k*lds,&one));
+    if (PetscUnlikely(bv->indef)) { ierr = BV_ApplySignature(bv,k,cc,PETSC_FALSE);CHKERRQ(ierr); }
   }
 
   if (norm) { ierr = BVTensorNormColumn(bv,k,norm);CHKERRQ(ierr); }
@@ -298,7 +298,7 @@ static PetscErrorCode BVTensorUpdateMatrix(BV V,PetscInt ini,PetscInt end)
           for (j=0;j<i;j++) qB[i+j*lds] = PetscConj(qB[j+i*lds]);
           qB[i*lds+i] = PetscRealPart(qB[i+i*lds]);
         }
-        if (c!=r) {
+        if (PetscUnlikely(c!=r)) {
           sqB = ctx->qB+r*ld*lds+c*ld;
           for (i=ini;i<end;i++) for (j=0;j<=i;j++) {
             sqB[i+j*lds] = PetscConj(qB[j+i*lds]);

@@ -125,7 +125,7 @@ PetscErrorCode BVDotVec_Mat(BV X,Vec y,PetscScalar *q)
   Vec               z = y;
 
   PetscFunctionBegin;
-  if (X->matrix) {
+  if (PetscUnlikely(X->matrix)) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
@@ -147,7 +147,7 @@ PetscErrorCode BVDotVec_Local_Mat(BV X,Vec y,PetscScalar *m)
   Vec               z = y;
 
   PetscFunctionBegin;
-  if (X->matrix) {
+  if (PetscUnlikely(X->matrix)) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
@@ -167,7 +167,7 @@ PetscErrorCode BVScale_Mat(BV bv,PetscInt j,PetscScalar alpha)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(ctx->A,&array);CHKERRQ(ierr);
-  if (j<0) {
+  if (PetscUnlikely(j<0)) {
     ierr = BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,array+(bv->nc+bv->l)*bv->n,alpha);CHKERRQ(ierr);
   } else {
     ierr = BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->n,alpha);CHKERRQ(ierr);
@@ -184,7 +184,7 @@ PetscErrorCode BVNorm_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArrayRead(ctx->A,&array);CHKERRQ(ierr);
-  if (j<0) {
+  if (PetscUnlikely(j<0)) {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
   } else {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,ctx->mpi);CHKERRQ(ierr);
@@ -201,7 +201,7 @@ PetscErrorCode BVNorm_Local_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArrayRead(ctx->A,&array);CHKERRQ(ierr);
-  if (j<0) {
+  if (PetscUnlikely(j<0)) {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE);CHKERRQ(ierr);
@@ -448,7 +448,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
 
-  if (bv->issplit) {
+  if (PetscUnlikely(bv->issplit)) {
     /* split BV: share the memory of the parent BV */
     parent = bv->splitparent;
     lsplit = parent->lsplit;
@@ -468,7 +468,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     ierr = PetscObjectSetName((PetscObject)ctx->A,str);CHKERRQ(ierr);
   }
 
-  if (bv->Acreate) {
+  if (PetscUnlikely(bv->Acreate)) {
     ierr = MatCopy(bv->Acreate,ctx->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
   }
