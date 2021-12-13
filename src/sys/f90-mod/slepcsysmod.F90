@@ -14,7 +14,7 @@
         end module
 
         module slepcsys
-        use iso_c_binding
+        use,intrinsic :: iso_c_binding
         use slepcsysdef
 #include <../src/sys/f90-mod/slepcsys.h90>
         interface

@@ -606,7 +606,7 @@ intel-c-mkl:
     - .stage-3-sched
     - .linux_test
   tags:
-    - compiler:intel
+    - compiler:intel, name:maat
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
