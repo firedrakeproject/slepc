@@ -147,8 +147,16 @@ int main(int argc,char **argv)
          suffix: 1_toar
          args: -pep_type toar -pep_toar_locking 0
 
-   test:
-      suffix: 2
+   testset:
       args: -pep_nev 2 -pep_ncv 18 -pep_type stoar -pep_hermitian -pep_scale scalar -st_type sinvert -terse
+      output_file: output/acoustic_wave_2d_2.out
+      test:
+         suffix: 2
+      test:
+         suffix: 2_lin_b
+         args: -pep_stoar_linearization 0,1
+      test:
+         suffix: 2_lin_ab
+         args: -pep_stoar_linearization 0.1,0.9
 
 TEST*/
