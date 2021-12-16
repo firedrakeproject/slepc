@@ -37,7 +37,7 @@
 PetscErrorCode MatCreateExplicit_Linear_NA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N,m,n,i,Istart,Iend;
+  PetscInt       M,N,m,n;
   Mat            Id,T=NULL;
   PetscReal      a=ctx->alpha,b=ctx->beta;
   PetscScalar    scalt=1.0;
@@ -45,16 +45,7 @@ PetscErrorCode MatCreateExplicit_Linear_NA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
   PetscFunctionBegin;
   ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,&n);CHKERRQ(ierr);
-  ierr = MatCreate(PetscObjectComm((PetscObject)ctx->M),&Id);CHKERRQ(ierr);
-  ierr = MatSetSizes(Id,m,n,M,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
-  ierr = MatSetUp(Id);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatCreateConstantDiagonal(PetscObjectComm((PetscObject)ctx->M),m,n,M,N,1.0,&Id);CHKERRQ(ierr);
   if (a!=0.0 && b!=0.0) {
     ierr = MatDuplicate(ctx->C,MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     ierr = MatScale(T,-a*ctx->dsfactor*ctx->sfactor);CHKERRQ(ierr);
@@ -74,7 +65,7 @@ PetscErrorCode MatCreateExplicit_Linear_NA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 PetscErrorCode MatCreateExplicit_Linear_NB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N,m,n,i,Istart,Iend;
+  PetscInt       M,N,m,n;
   Mat            Id,T=NULL;
   PetscReal      a=ctx->alpha,b=ctx->beta;
   PetscScalar    scalt=1.0;
@@ -82,16 +73,7 @@ PetscErrorCode MatCreateExplicit_Linear_NB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
   PetscFunctionBegin;
   ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(ctx->M,&m,&n);CHKERRQ(ierr);
-  ierr = MatCreate(PetscObjectComm((PetscObject)ctx->M),&Id);CHKERRQ(ierr);
-  ierr = MatSetSizes(Id,m,n,M,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
-  ierr = MatSetUp(Id);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatCreateConstantDiagonal(PetscObjectComm((PetscObject)ctx->M),m,n,M,N,1.0,&Id);CHKERRQ(ierr);
   if (a!=0.0 && b!=0.0) {
     ierr = MatDuplicate(ctx->C,MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     ierr = MatScale(T,b*ctx->dsfactor*ctx->sfactor);CHKERRQ(ierr);

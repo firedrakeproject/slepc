@@ -86,15 +86,8 @@ int main(int argc,char **argv)
   ierr = MatShift(T2,-alpha*alpha);CHKERRQ(ierr);
 
   /* Create matrices D1, D2 */
-  ierr = MatCreate(PETSC_COMM_WORLD,&D1);CHKERRQ(ierr);
-  ierr = MatSetSizes(D1,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(D1);CHKERRQ(ierr);
-  ierr = MatSetUp(D1);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(D1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(D1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatDuplicate(D1,MAT_COPY_VALUES,&D2);CHKERRQ(ierr);
-  ierr = MatShift(D1,alpha*alpha);CHKERRQ(ierr);
-  ierr = MatShift(D2,-beta);CHKERRQ(ierr);
+  ierr = MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,alpha*alpha,&D1);CHKERRQ(ierr);
+  ierr = MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,-beta,&D2);CHKERRQ(ierr);
 
   /* Create the nest matrix */
   mats[0] = T1;

@@ -116,13 +116,7 @@ PROGRAM main
      call MatAssemblyBegin(A(1),MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
      call MatAssemblyEnd(A(1),MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
 
-     call MatCreate(PETSC_COMM_WORLD,A(2),ierr);CHKERRA(ierr)
-     call MatSetSizes(A(2),PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-     call MatSetFromOptions(A(2),ierr);CHKERRA(ierr)
-     call MatSetUp(A(2),ierr);CHKERRA(ierr)
-     call MatAssemblyBegin(A(2),MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-     call MatAssemblyEnd(A(2),MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-     call MatShift(A(2),done,ierr);CHKERRA(ierr)
+     call MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,done,A(2),ierr);CHKERRA(ierr)
 
      ! ** Define functions for the split form
      call FNCreate(PETSC_COMM_WORLD,fn(1),ierr);CHKERRA(ierr)

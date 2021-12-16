@@ -272,16 +272,7 @@ static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
 
   if (cyclic->explicitmatrix) {
     if (!svd->expltrans) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
-    ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Id);CHKERRQ(ierr);
-    ierr = MatSetSizes(Id,m,m,M,M);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(Id);CHKERRQ(ierr);
-    ierr = MatSetUp(Id);CHKERRQ(ierr);
-    ierr = MatGetOwnershipRange(Id,&Istart,&Iend);CHKERRQ(ierr);
-    for (i=Istart;i<Iend;i++) {
-      ierr = MatSetValue(Id,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
-    }
-    ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatCreateConstantDiagonal(PetscObjectComm((PetscObject)svd),m,m,M,M,1.0,&Id);CHKERRQ(ierr);
     ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zm);CHKERRQ(ierr);
     ierr = MatSetSizes(Zm,m,n,M,N);CHKERRQ(ierr);
     ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);

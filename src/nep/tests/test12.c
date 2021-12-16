@@ -76,13 +76,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(A[0],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A[0],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A[1]);CHKERRQ(ierr);
-  ierr = MatSetSizes(A[1],PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A[1]);CHKERRQ(ierr);
-  ierr = MatSetUp(A[1]);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(A[1],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A[1],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatShift(A[1],1.0);CHKERRQ(ierr);
+  ierr = MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,1.0,&A[1]);CHKERRQ(ierr);
 
   /* Define functions */
   ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
