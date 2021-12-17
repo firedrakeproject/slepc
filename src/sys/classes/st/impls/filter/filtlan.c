@@ -57,7 +57,7 @@ PETSC_STATIC_INLINE PetscErrorCode FILTLAN_NewtonPolynomial(PetscInt n,PetscReal
   for (j=1;j<n;j++) {
     for (k=n-1;k>=j;k--) {
       d = sx[k]-sx[k-j];
-      if (d == 0.0) sf[k] = 0.0;  /* assume that the derivative is 0.0 and apply the Hermite interpolation */
+      if (PetscUnlikely(d == 0.0)) sf[k] = 0.0;  /* assume that the derivative is 0.0 and apply the Hermite interpolation */
       else sf[k] = (sf[k]-sf[k-1]) / d;
     }
     sa[j] = sf[j];
@@ -661,7 +661,7 @@ PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialInnerProductInChebyshev
 
   PetscFunctionBegin;
   deg1 = PetscMin(prows,qrows);  /* number of effective coefficients, one more than the effective polynomial degree */
-  if (!deg1) PetscFunctionReturn(0.0);
+  if (PetscUnlikely(!deg1)) PetscFunctionReturn(0.0);
   nintv = PetscMin(pcols,qcols);  /* number of intervals */
 
   /* scaled by intervalWeights(i) in the i-th interval (we assume intervalWeights[] are always provided).

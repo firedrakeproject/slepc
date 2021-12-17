@@ -127,13 +127,13 @@ PetscErrorCode BVSumQuadrature(BV S,BV Y,PetscInt M,PetscInt L,PetscInt L_max,Pe
         ierr = BVSetActiveColumns(Y,i*L_max+j,i*L_max+j+1);CHKERRQ(ierr);
         ierr = BVMultVec(Y,ppk[i]*w[p_id(i)],1.0,v,&one);CHKERRQ(ierr);
       }
-      if (useconj) {
+      if (PetscUnlikely(useconj)) {
         ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
         for (i=0;i<nloc;i++) pv[i] = 2.0*PetscRealPart(pv[i]);
         ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
       }
       ierr = BVGetColumn(S,k*L+j,&sj);CHKERRQ(ierr);
-      if (scat) {
+      if (PetscUnlikely(scat)) {
         ierr = VecScatterBegin(scat,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
         ierr = VecScatterEnd(scat,v,sj,ADD_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       } else {
@@ -221,8 +221,8 @@ PetscErrorCode BVDotQuadrature(BV Y,BV V,PetscScalar *Mu,PetscInt M,PetscInt L,P
       for (i=0;i<npoints;i++) {
         alp = ppk[i]*w[p_id(i)];
         for (s=0;s<L;s++) {
-          if (useconj) temp2[s+(j+k*L)*L] += 2.0*PetscRealPart(alp*temp[s+(j+i*L)*L]);
-          else temp2[s+(j+k*L)*L] += alp*temp[s+(j+i*L)*L];
+          if (!useconj) temp2[s+(j+k*L)*L] += alp*temp[s+(j+i*L)*L];
+          else temp2[s+(j+k*L)*L] += 2.0*PetscRealPart(alp*temp[s+(j+i*L)*L]);
         }
       }
     }

@@ -93,7 +93,7 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
     } else {
       ierr = BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta,&lindep);CHKERRQ(ierr);
     }
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       *m = j+1;
       break;
     }
@@ -201,7 +201,7 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
     } else {
       ierr = BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta+j,&lindep);CHKERRQ(ierr);
     }
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       *m = j+1;
       break;
     }

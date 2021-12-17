@@ -433,7 +433,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
 
     /* purge previously converged eigenvectors */
-    if (power->nonlinear) {
+    if (PetscUnlikely(power->nonlinear)) {
       /* We do not need to call this for Newton eigensolver since eigenvalue is
        * updated in function evaluations.
        */
@@ -471,7 +471,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
        * If the Newton method (update, SNES) is used, we do not compute "relerr"
        * since SNES determines the convergence.
        */
-      if (power->update) relerr = 0.;
+      if (PetscUnlikely(power->update)) relerr = 0.;
       else {
         /* compute relative error as ||y-theta v||_2/|theta| */
         ierr = VecCopy(y,e);CHKERRQ(ierr);
@@ -479,7 +479,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         ierr = VecAXPY(e,power->nonlinear?-1.0:-theta,v);CHKERRQ(ierr);
         ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
         ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
-        if (power->nonlinear) relerr *= PetscAbsScalar(theta);
+        if (PetscUnlikely(power->nonlinear)) relerr *= PetscAbsScalar(theta);
         else relerr /= PetscAbsScalar(theta);
       }
 
@@ -545,11 +545,11 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     if (!power->nonlinear) { ierr = Normalize(y,norm,power->idx,power->p,NULL);CHKERRQ(ierr); }
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
 
-    if (power->update) {
+    if (PetscUnlikely(power->update)) {
       ierr = SNESGetConvergedReason(power->snes,&snesreason);CHKERRQ(ierr);
       /* For Newton eigensolver, we are ready to return once SNES converged. */
       if (snesreason>0) eps->nconv = 1;
-    } else if (relerr<eps->tol) {   /* accept eigenpair */
+    } else if (PetscUnlikely(relerr<eps->tol)) {   /* accept eigenpair */
       eps->nconv = eps->nconv + 1;
       if (eps->nconv<eps->nev) {
         ierr = EPSGetStartVector(eps,eps->nconv,&breakdown);CHKERRQ(ierr);
@@ -570,7 +570,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
      * When a customized stopping test is used, and reason can be set to be converged (EPS_CONVERGED_USER).
      * In this case, we need to increase eps->nconv to "1" so users can retrieve the solution.
      */
-    if (power->nonlinear && eps->reason>0) eps->nconv = 1;
+    if (PetscUnlikely(power->nonlinear && eps->reason>0)) eps->nconv = 1;
   }
 
   if (power->nonlinear) {
@@ -717,7 +717,7 @@ PetscErrorCode EPSStopping_Power(EPS eps,PetscInt its,PetscInt max_it,PetscInt n
   SNESConvergedReason snesreason;
 
   PetscFunctionBegin;
-  if (power->update) {
+  if (PetscUnlikely(power->update)) {
     ierr = SNESGetConvergedReason(power->snes,&snesreason);CHKERRQ(ierr);
     if (snesreason < 0) {
       *reason = EPS_DIVERGED_BREAKDOWN;

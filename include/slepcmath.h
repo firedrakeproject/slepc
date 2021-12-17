@@ -53,7 +53,7 @@ PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
 
   w = PetscMax(xabs,yabs);
   z = PetscMin(xabs,yabs);
-  if (z == 0.0) return w;
+  if (PetscUnlikely(z == 0.0)) return w;
   t = z/w;
   return w*PetscSqrtReal(1.0+t*t);
 }

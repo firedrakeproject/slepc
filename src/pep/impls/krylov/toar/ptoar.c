@@ -130,14 +130,14 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
     ss = S; lss = ls; off = 0; alpha = -ca[deg-1]; a = 1.0;
   }
   ierr = BVMultVec(V,1.0,0.0,v,ss+off*lss);CHKERRQ(ierr);
-  if (pep->Dr) { /* balancing */
+  if (PetscUnlikely(pep->Dr)) { /* balancing */
     ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
   }
   ierr = STMatMult(pep->st,off,v,q);CHKERRQ(ierr);
   ierr = VecScale(q,a);CHKERRQ(ierr);
   for (j=1+off;j<deg+off-1;j++) {
     ierr = BVMultVec(V,1.0,0.0,v,ss+j*lss);CHKERRQ(ierr);
-    if (pep->Dr) {
+    if (PetscUnlikely(pep->Dr)) {
       ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
     }
     ierr = STMatMult(pep->st,j,v,t);CHKERRQ(ierr);
@@ -146,7 +146,7 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
   }
   if (sinvert) {
     ierr = BVMultVec(V,1.0,0.0,v,ss);CHKERRQ(ierr);
-    if (pep->Dr) {
+    if (PetscUnlikely(pep->Dr)) {
       ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
     }
     ierr = STMatMult(pep->st,deg,v,t);CHKERRQ(ierr);
@@ -154,7 +154,7 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
     ierr = VecAXPY(q,a,t);CHKERRQ(ierr);
   } else {
     ierr = BVMultVec(V,1.0,0.0,ve,ss+(deg-1)*lss);CHKERRQ(ierr);
-    if (pep->Dr) {
+    if (PetscUnlikely(pep->Dr)) {
       ierr = VecPointwiseMult(ve,ve,pep->Dr);CHKERRQ(ierr);
     }
     a *= pep->sfactor;
@@ -166,10 +166,10 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
   ierr = STMatSolve(pep->st,q,t);CHKERRQ(ierr);
   ierr = VecScale(t,alpha);CHKERRQ(ierr);
   if (!sinvert) {
-    if (cg[deg-1]!=0) { ierr = VecAXPY(t,cg[deg-1],v);CHKERRQ(ierr); }
-    if (cb[deg-1]!=0) { ierr = VecAXPY(t,cb[deg-1],ve);CHKERRQ(ierr); }
+    ierr = VecAXPY(t,cg[deg-1],v);CHKERRQ(ierr);
+    ierr = VecAXPY(t,cb[deg-1],ve);CHKERRQ(ierr);
   }
-  if (pep->Dr) {
+  if (PetscUnlikely(pep->Dr)) {
     ierr = VecPointwiseDivide(t,t,pep->Dr);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -252,7 +252,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscScalar *H,PetscI
     /* level-2 orthogonalization */
     ierr = BVOrthogonalizeColumn(ctx->V,j+1,H+j*ldh,&norm,breakdown);CHKERRQ(ierr);
     H[j+1+ldh*j] = norm;
-    if (*breakdown) {
+    if (PetscUnlikely(*breakdown)) {
       *M = j+1;
       break;
     }
@@ -512,11 +512,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     beta = PetscAbsScalar(H[(nv-1)*ldds+nv]);
     ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
-    if (l==0) {
-      ierr = DSSetState(pep->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    }
+    ierr = DSSetState(pep->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,pep->nconv,nv);CHKERRQ(ierr);
 
     /* solve projected problem */
@@ -551,7 +547,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* copy last column of S */
     ierr = BVCopyColumn(ctx->V,nv,k+l);CHKERRQ(ierr);
 
-    if (breakdown && pep->reason == PEP_CONVERGED_ITERATING) {
+    if (PetscUnlikely(breakdown && pep->reason == PEP_CONVERGED_ITERATING)) {
       /* stop if breakdown */
       ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%" PetscInt_FMT " norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
       pep->reason = PEP_DIVERGED_BREAKDOWN;

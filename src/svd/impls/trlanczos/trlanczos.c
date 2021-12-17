@@ -472,11 +472,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     /* solve projected problem */
     ierr = DSSetDimensions(svd->ds,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     ierr = DSSVDSetDimensions(svd->ds,nv);CHKERRQ(ierr);
-    if (l==0) {
-      ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    }
+    ierr = DSSetState(svd->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
@@ -494,7 +490,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      if (breakdown || k==nv) {
+      if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new bidiagonalization */
         ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
@@ -572,7 +568,7 @@ static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscRea
   ierr = BVRestoreColumn(U,k,&u);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,k,&v);CHKERRQ(ierr);
   ierr = BVOrthonormalizeColumn(V,k,PETSC_FALSE,alpha+k,&lindep);CHKERRQ(ierr);
-  if (lindep) {
+  if (PetscUnlikely(lindep)) {
     *n = k;
     if (breakdown) *breakdown = lindep;
     PetscFunctionReturn(0);
@@ -589,7 +585,7 @@ static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscRea
     ierr = BVInsertVec(U,i,v1);CHKERRQ(ierr);
     ierr = VecResetArray(v1);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(U,i,PETSC_FALSE,beta+i-1,&lindep);CHKERRQ(ierr);
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       *n = i;
       break;
     }
@@ -614,7 +610,7 @@ static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscRea
     ierr = BVRestoreColumn(U,i,&u);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(V,i,PETSC_FALSE,alpha+i,&lindep);CHKERRQ(ierr);
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       *n = i;
       break;
     }
@@ -673,11 +669,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
     /* solve projected problem */
     ierr = DSSetDimensions(svd->ds,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     ierr = DSSVDSetDimensions(svd->ds,nv);CHKERRQ(ierr);
-    if (l==0) {
-      ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    }
+    ierr = DSSetState(svd->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
@@ -695,7 +687,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      if (breakdown || k==nv) {
+      if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new bidiagonalization */
         ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
@@ -811,7 +803,7 @@ static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal
     ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,&lindep2);CHKERRQ(ierr);
     if (i%2) alphah[i] = -alphah[i];
-    if (lindep1 || lindep2) {
+    if (PetscUnlikely(lindep1 || lindep2)) {
       lindep = PETSC_TRUE;
       *n = i;
       break;
@@ -834,7 +826,7 @@ static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal
     ierr = BVRestoreColumn(V,i+1,&v);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,beta+i,&lindep);CHKERRQ(ierr);
     betah[i] = -alpha[i]*beta[i]/alphah[i];
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       *n = i;
       break;
     }
@@ -918,11 +910,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
     /* solve projected problem */
     ierr = DSSetDimensions(svd->ds,nv,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     ierr = DSGSVDSetDimensions(svd->ds,nv,nv);CHKERRQ(ierr);
-    if (l==0) {
-      ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    }
+    ierr = DSSetState(svd->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
@@ -940,7 +928,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      if (breakdown || k==nv) {
+      if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new bidiagonalization */
         ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
@@ -1040,7 +1028,7 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
     ierr = BVRestoreColumn(U2,i,&u2);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,&lindep);CHKERRQ(ierr);
     if (i%2) alphah[i] = -alphah[i];
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
       *n = i;
       break;
@@ -1053,7 +1041,7 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
     ierr = BVOrthonormalizeColumn(U1,i+1,PETSC_FALSE,beta+i,&lindep);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(v,&carr);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       *n = i+1;
       break;
     }
@@ -1075,7 +1063,7 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
     ierr = BVRestoreColumn(V,i+1,&v);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,alpha+i+1,&lindep);CHKERRQ(ierr);
     betah[i] = -alpha[i+1]*beta[i]/alphah[i];
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       *n = i+1;
       break;
     }
@@ -1166,11 +1154,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
     /* solve projected problem */
     ierr = DSSetDimensions(svd->ds,nv+1,svd->nconv,svd->nconv+l);CHKERRQ(ierr);
     ierr = DSGSVDSetDimensions(svd->ds,nv,nv);CHKERRQ(ierr);
-    if (l==0) {
-      ierr = DSSetState(svd->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    }
+    ierr = DSSetState(svd->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(svd->ds);CHKERRQ(ierr);
@@ -1188,7 +1172,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
     if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      if (breakdown || k==nv) {
+      if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new bidiagonalization */
         ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {

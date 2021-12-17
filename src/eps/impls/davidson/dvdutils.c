@@ -277,7 +277,7 @@ static PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data,PetscScalar *ar,Petsc
   xr = *ar;
 #if !defined(PETSC_USE_COMPLEX)
   xi = *ai;
-  if (xi != 0.0) {
+  if (PetscUnlikely(xi != 0.0)) {
     k = (data->Pa - data->Wa*xr)*(data->Pa - data->Wa*xr) + data->Wa*data->Wa*xi*xi;
     *ar = (data->Pb*data->Pa - (data->Pb*data->Wa + data->Wb*data->Pa)*xr + data->Wb*data->Wa*(xr*xr + xi*xi))/k;
     *ai = (data->Pb*data->Wa - data->Wb*data->Pa)*xi/k;

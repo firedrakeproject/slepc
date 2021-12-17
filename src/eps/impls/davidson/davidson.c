@@ -203,7 +203,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
 
     /* Initialize V, if it is needed */
     ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-    if (l == k) { ierr = d->initV(d);CHKERRQ(ierr); }
+    if (PetscUnlikely(l == k)) { ierr = d->initV(d);CHKERRQ(ierr); }
 
     /* Find the best approximated eigenpairs in V, X */
     ierr = d->calcPairs(d);CHKERRQ(ierr);

@@ -130,7 +130,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
 
   ierr = VecGetSize(y,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
-  if (N!=X->N || n!=X->n) SETERRQ4(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,X->N,X->n);
+  if (PetscUnlikely(N!=X->N || n!=X->n)) SETERRQ4(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,X->N,X->n);
 
   ierr = PetscLogEventBegin(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
@@ -180,8 +180,8 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   PetscValidType(X,1);
   BVCheckSizes(X,1);
 
-  if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,X->m);
+  if (PetscUnlikely(j<0)) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (PetscUnlikely(j>=X->m)) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,X->m);
 
   ierr = PetscLogEventBegin(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;

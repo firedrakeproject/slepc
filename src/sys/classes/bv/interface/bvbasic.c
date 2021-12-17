@@ -417,16 +417,16 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
   PetscValidLogicalCollectiveInt(bv,l,2);
   PetscValidLogicalCollectiveInt(bv,k,3);
   BVCheckSizes(bv,1);
-  if (k==PETSC_DECIDE || k==PETSC_DEFAULT) {
+  if (PetscUnlikely(k==PETSC_DECIDE || k==PETSC_DEFAULT)) {
     bv->k = bv->m;
   } else {
-    if (k<0 || k>bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k (%" PetscInt_FMT "). Must be between 0 and m (%" PetscInt_FMT ")",k,bv->m);
+    if (PetscUnlikely(k<0 || k>bv->m)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k (%" PetscInt_FMT "). Must be between 0 and m (%" PetscInt_FMT ")",k,bv->m);
     bv->k = k;
   }
-  if (l==PETSC_DECIDE || l==PETSC_DEFAULT) {
+  if (PetscUnlikely(l==PETSC_DECIDE || l==PETSC_DEFAULT)) {
     bv->l = 0;
   } else {
-    if (l<0 || l>bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l (%" PetscInt_FMT "). Must be between 0 and k (%" PetscInt_FMT ")",l,bv->k);
+    if (PetscUnlikely(l<0 || l>bv->k)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l (%" PetscInt_FMT "). Must be between 0 and k (%" PetscInt_FMT ")",l,bv->k);
     bv->l = l;
   }
   PetscFunctionReturn(0);
@@ -1149,11 +1149,11 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   BVCheckSizes(bv,1);
   BVCheckOp(bv,1,getcolumn);
   PetscValidLogicalCollectiveInt(bv,j,2);
-  if (j<0 && -j>bv->nc) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %" PetscInt_FMT " but only %" PetscInt_FMT " are available",-j,bv->nc);
-  if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %" PetscInt_FMT " but only %" PetscInt_FMT " are available",j,bv->m);
-  if (j==bv->ci[0] || j==bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %" PetscInt_FMT " already fetched in a previous call to BVGetColumn",j);
+  if (PetscUnlikely(j<0 && -j>bv->nc)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %" PetscInt_FMT " but only %" PetscInt_FMT " are available",-j,bv->nc);
+  if (PetscUnlikely(j>=bv->m)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %" PetscInt_FMT " but only %" PetscInt_FMT " are available",j,bv->m);
+  if (PetscUnlikely(j==bv->ci[0] || j==bv->ci[1])) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %" PetscInt_FMT " already fetched in a previous call to BVGetColumn",j);
   l = BVAvailableVec;
-  if (l==-1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVRestoreColumn for one of the previously fetched columns");
+  if (PetscUnlikely(l==-1)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVRestoreColumn for one of the previously fetched columns");
   ierr = (*bv->ops->getcolumn)(bv,j,v);CHKERRQ(ierr);
   bv->ci[l] = j;
   ierr = PetscObjectStateGet((PetscObject)bv->cv[l],&bv->st[l]);CHKERRQ(ierr);
@@ -1193,12 +1193,12 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidPointer(v,3);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
-  if (j<0 && -j>bv->nc) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %" PetscInt_FMT " but only %" PetscInt_FMT " are available",-j,bv->nc);
-  if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %" PetscInt_FMT " but only %" PetscInt_FMT " are available",j,bv->m);
-  if (j!=bv->ci[0] && j!=bv->ci[1]) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Column %" PetscInt_FMT " has not been fetched with a call to BVGetColumn",j);
+  if (PetscUnlikely(j<0 && -j>bv->nc)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %" PetscInt_FMT " but only %" PetscInt_FMT " are available",-j,bv->nc);
+  if (PetscUnlikely(j>=bv->m)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %" PetscInt_FMT " but only %" PetscInt_FMT " are available",j,bv->m);
+  if (PetscUnlikely(j!=bv->ci[0] && j!=bv->ci[1])) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Column %" PetscInt_FMT " has not been fetched with a call to BVGetColumn",j);
   l = (j==bv->ci[0])? 0: 1;
   ierr = PetscObjectGetId((PetscObject)*v,&id);CHKERRQ(ierr);
-  if (id!=bv->id[l]) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same Vec that was obtained with BVGetColumn");
+  if (PetscUnlikely(id!=bv->id[l])) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same Vec that was obtained with BVGetColumn");
   ierr = PetscObjectStateGet((PetscObject)*v,&st);CHKERRQ(ierr);
   if (st!=bv->st[l]) {
     ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);

@@ -121,16 +121,16 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal
   PetscFunctionBegin;
   absal = PetscAbsScalar(alpha);
   realp = PetscRealPart(alpha);
-  if (absal<PETSC_MACHINE_EPSILON) {
+  if (PetscUnlikely(absal<PETSC_MACHINE_EPSILON)) {
     ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscAbsReal(PetscImaginaryPart(alpha))>bv->deftol && PetscAbsReal(PetscImaginaryPart(alpha))/absal>10*bv->deftol) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
+  if (PetscUnlikely(PetscAbsReal(PetscImaginaryPart(alpha))>bv->deftol && PetscAbsReal(PetscImaginaryPart(alpha))/absal>10*bv->deftol)) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
 #endif
-  if (bv->indef) {
+  if (PetscUnlikely(bv->indef)) {
     *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
   } else {
-    if (realp<-bv->deftol) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: indefinite matrix");
+    if (PetscUnlikely(realp<-bv->deftol)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: indefinite matrix");
     *res = (realp<0.0)? 0.0: PetscSqrtReal(realp);
   }
   PetscFunctionReturn(0);
@@ -146,7 +146,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
 
   PetscFunctionBegin;
   if (((PetscObject)x)->id != bv->xid || ((PetscObject)x)->state != bv->xstate) {
-    if (!bv->Bx) {
+    if (PetscUnlikely(!bv->Bx)) {
       ierr = MatCreateVecs(bv->matrix,&bv->Bx,NULL);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx);CHKERRQ(ierr);
     }
@@ -362,7 +362,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,Pe
   const PetscScalar *omega;
 
   PetscFunctionBegin;
-  if (!(bv->nc+j)) PetscFunctionReturn(0);
+  if (PetscUnlikely(!(bv->nc+j))) PetscFunctionReturn(0);
   if (!h) { ierr = VecGetArray(bv->buffer,&hh);CHKERRQ(ierr); }
   ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
   if (inverse) for (i=0;i<bv->nc+j;i++) hh[i] /= PetscRealPart(omega[i]);

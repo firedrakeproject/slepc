@@ -69,7 +69,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
   ierr = BVRestoreColumn(svd->V,k,&v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(svd->U,k,&u);CHKERRQ(ierr);
   ierr = BVOrthonormalizeColumn(svd->U,k,PETSC_FALSE,alpha+k,&lindep);CHKERRQ(ierr);
-  if (lindep) {
+  if (PetscUnlikely(lindep)) {
     *n = k;
     if (breakdown) *breakdown = lindep;
     PetscFunctionReturn(0);
@@ -82,7 +82,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
     ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->U,i-1,&u);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(svd->V,i,PETSC_FALSE,beta+i-1,&lindep);CHKERRQ(ierr);
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       *n = i;
       break;
     }
@@ -92,7 +92,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
     ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->U,i,&u);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(svd->U,i,PETSC_FALSE,alpha+i,&lindep);CHKERRQ(ierr);
-    if (lindep) {
+    if (PetscUnlikely(lindep)) {
       *n = i;
       break;
     }
@@ -106,7 +106,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
     ierr = BVRestoreColumn(svd->U,*n-1,&u);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(svd->V,*n,NULL,beta+*n-1,&lindep);CHKERRQ(ierr);
   }
-  if (breakdown) *breakdown = lindep;
+  if (PetscUnlikely(breakdown)) *breakdown = lindep;
   PetscFunctionReturn(0);
 }
 
@@ -195,11 +195,11 @@ PetscErrorCode SVDKrylovConvergence(SVD svd,PetscBool getall,PetscInt kini,Petsc
   PetscBool      extra;
 
   PetscFunctionBegin;
-  if (svd->conv == SVD_CONV_MAXIT && svd->its >= svd->max_it) *kout = svd->nsv;
+  if (PetscUnlikely(svd->conv == SVD_CONV_MAXIT && svd->its >= svd->max_it)) *kout = svd->nsv;
   else {
     ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
     ierr = DSGetExtraRow(svd->ds,&extra);CHKERRQ(ierr);
-    if (!extra) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Only implemented for DS with extra row");
+    if (PetscUnlikely(!extra)) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Only implemented for DS with extra row");
     marker = -1;
     if (svd->trackall) getall = PETSC_TRUE;
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);
