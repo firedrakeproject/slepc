@@ -10,7 +10,7 @@
 
 #include <slepc/private/slepcimpl.h>            /*I "slepcsys.h" I*/
 
-static PetscErrorCode MatCreateTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
+static PetscErrorCode MatCreateTile_Seq(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,M1,M2,N1,N2,*nnz,ncols,*scols,bs;
@@ -116,7 +116,7 @@ static PetscErrorCode MatCreateTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode MatCreateTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
+static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscErrorCode ierr;
   PetscMPIInt       np;
@@ -278,14 +278,21 @@ static PetscErrorCode MatCreateTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat
 
    Matrix G must be destroyed by the user.
 
+   The blocks can be of different type. They can be either ConstantDiagonal, or a standard
+   type such as AIJ, or any other type provided that it supports the MatGetRow operation.
+   The type of the output matrix will be the same as the first block that is not
+   ConstantDiagonal (checked in the A,B,C,D order).
+
    Level: developer
 @*/
 PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G)
 {
   PetscErrorCode ierr;
-  PetscInt       M1,M2,N1,N2,M,N,m1,m2,n1,n2,m,n,bs;
-  PetscBool      flg1;
-  MatType        Atype;
+  PetscInt       i,k,M1,M2,N1,N2,M,N,m1,m2,n1,n2,m,n,bs;
+  PetscBool      diag[4];
+  Mat            block[4] = {A,B,C,D};
+  MatType        type[4];
+  PetscMPIInt    size;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
@@ -326,22 +333,26 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   ierr = MatGetLocalSize(D,NULL,&n);CHKERRQ(ierr);
   if (N!=N2 || n!=n2) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
 
-  ierr = MatGetType(A,&Atype);CHKERRQ(ierr);
-  ierr = MatGetBlockSize(A,&bs);CHKERRQ(ierr);
-  ierr = MatCreate(PetscObjectComm((PetscObject)A),G);CHKERRQ(ierr);
+  /* check matrix types */
+  for (i=0;i<4;i++) {
+    ierr = MatGetType(block[i],&type[i]);CHKERRQ(ierr);
+    ierr = PetscStrcmp(type[i],MATCONSTANTDIAGONAL,&diag[i]);CHKERRQ(ierr);
+  }
+  for (k=0;k<4;k++) if (!diag[k]) break;
+  if (k==4) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_SUP,"Not implemented for 4 diagonal blocks");
+
+  ierr = MatGetBlockSize(block[k],&bs);CHKERRQ(ierr);
+  ierr = MatCreate(PetscObjectComm((PetscObject)block[k]),G);CHKERRQ(ierr);
   ierr = MatSetSizes(*G,m1+m2,n1+n2,M1+M2,N1+N2);CHKERRQ(ierr);
-  ierr = MatSetType(*G,Atype);CHKERRQ(ierr);
+  ierr = MatSetType(*G,type[k]);CHKERRQ(ierr);
   ierr = MatSetBlockSize(*G,bs);CHKERRQ(ierr);
   ierr = MatSetUp(*G);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)A,&flg1,MATMPIAIJ,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
-  if (flg1) {
-    ierr = MatCreateTile_MPIAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)*G),&size);CHKERRMPI(ierr);
+  if (size>1) {
+    ierr = MatCreateTile_MPI(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
   } else {
-    ierr = PetscObjectTypeCompareAny((PetscObject)A,&flg1,MATSEQAIJ,MATSEQAIJCUSPARSE,MATSEQBAIJ,"");CHKERRQ(ierr);
-    if (flg1) {
-      ierr = MatCreateTile_SeqAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
-    } else SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_SUP,"Not implemented for this matrix type");
+    ierr = MatCreateTile_Seq(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*G,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
