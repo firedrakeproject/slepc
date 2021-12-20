@@ -85,16 +85,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Id is the identity matrix
-      call MatCreate(PETSC_COMM_WORLD,Id,ierr);CHKERRA(ierr)
-      call MatSetSizes(Id,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(Id,ierr);CHKERRA(ierr)
-      call MatSetUp(Id,ierr);CHKERRA(ierr)
-      call MatGetOwnershipRange(Id,Istart,Iend,ierr);CHKERRA(ierr)
-      do i=Istart,Iend-1
-        call MatSetValue(Id,i,i,one,INSERT_VALUES,ierr);CHKERRA(ierr)
-      end do
-      call MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
+      call MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,one,Id,ierr);CHKERRA(ierr)
       call MatSetOption(Id,MAT_HERMITIAN,PETSC_TRUE,ierr);CHKERRA(ierr)
 
 !     ** A = 1/h^2*tridiag(1,-2,1) + aa*I
