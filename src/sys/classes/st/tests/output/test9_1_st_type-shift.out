@@ -1,0 +1,53 @@
+
+Test ST with four matrices, n=10
+
+ST type shift
+Mat Object: (st_) 1 MPI processes
+  type: seqaij
+row 0: (0, 0.)
+row 1: (1, 0.1)
+row 2: (2, 0.2)
+row 3: (3, 0.3)
+row 4: (4, 0.4)
+row 5: (5, 0.5)
+row 6: (6, 0.6)
+row 7: (7, 0.7)
+row 8: (8, 0.8)
+row 9: (9, 0.9)
+Vec Object: 1 MPI processes
+  type: seq
+0.1
+10.
+5.
+3.33333
+2.5
+2.
+1.66667
+1.42857
+1.25
+1.
+With shift=0.1
+Mat Object: (st_) 1 MPI processes
+  type: seqaij
+row 0: (0, 0.)
+row 1: (1, 0.1)
+row 2: (2, 0.2)
+row 3: (3, 0.3)
+row 4: (4, 0.4)
+row 5: (5, 0.5)
+row 6: (6, 0.6)
+row 7: (7, 0.7)
+row 8: (8, 0.8)
+row 9: (9, 0.9)
+Vec Object: 1 MPI processes
+  type: seq
+0.1
+10.
+5.
+3.33333
+2.5
+2.
+1.66667
+1.42857
+1.25
+1.

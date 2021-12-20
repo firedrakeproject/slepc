@@ -225,7 +225,11 @@ where the system is solved approximately with a preconditioned iterative linear 
 	\begin{Verbatim}[fontsize=\small]
 	STSetPreconditionerMat(ST st,Mat mat);
 	\end{Verbatim}
-The above function can also be used in other spectral transformations such as shift-and-invert in case the user has a cheap approximation $K$ of the coefficient matrix $A-\sigma B$.
+The above function can also be used in other spectral transformations such as shift-and-invert in case the user has a cheap approximation $K$ of the coefficient matrix $A-\sigma B$. An alternative is to pass approximations of both $A$ and $B$ so that \ident{ST} builds the preconditioner matrix internally, with
+	\findex{STSetSplitPreconditioner}
+	\begin{Verbatim}[fontsize=\small]
+	STSetSplitPreconditioner(ST st,PetscInt n,Mat Psplit[],MatStructure strp);
+	\end{Verbatim}
 
 	Note that preconditioned eigensolvers in \ident{EPS} select \ident{STPRECOND} by default, so the user does not need to specify it explicitly.
 

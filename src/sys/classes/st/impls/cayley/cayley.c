@@ -160,15 +160,18 @@ PetscErrorCode STComputeOperator_Cayley(ST st)
     ierr = MatShellSetOperation(st->T[0],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Cayley);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[0]);CHKERRQ(ierr);
   } else {
-    ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[0]);CHKERRQ(ierr);
+    ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
   }
   st->M = st->T[0];
 
   /* T[1] = A-sigma*B */
-  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[1]);CHKERRQ(ierr);
+  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   st->P = st->T[1];
+  if (st->Psplit) {  /* build custom preconditioner from the split matrices */
+    ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -194,15 +197,18 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 
   if (!ctx->nu_set) {
     if (st->matmode!=ST_MATMODE_INPLACE) {
-      ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
     }
     ctx->nu = newshift;
   }
-  ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
+  ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
   if (st->P!=st->T[1]) {
     ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
     ierr = MatDestroy(&st->P);CHKERRQ(ierr);
     st->P = st->T[1];
+  }
+  if (st->Psplit) {  /* build custom preconditioner from the split matrices */
+    ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_TRUE,&st->Pmat);CHKERRQ(ierr);
   }
   ierr = ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
@@ -235,7 +241,7 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   if (ctx->nu != newshift) {
     STCheckNotSeized(st,1);
     if (st->state && st->matmode!=ST_MATMODE_INPLACE) {
-      ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
     }
     ctx->nu = newshift;
   }

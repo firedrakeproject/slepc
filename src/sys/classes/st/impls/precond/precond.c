@@ -89,7 +89,7 @@ PetscErrorCode STComputeOperator_Precond(ST st)
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[0];
     } else if (PetscAbsScalar(st->sigma)<PETSC_MAX_REAL) {
-      ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[1]);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
       ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[1];
@@ -118,7 +118,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   if (st->transform && !st->Pmat) {
-    ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
+    ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
     if (st->P!=st->T[1]) {
       ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);

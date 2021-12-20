@@ -115,6 +115,8 @@ PetscErrorCode STReset(ST st)
   ierr = MatDestroy(&st->Op);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   ierr = MatDestroy(&st->Pmat);CHKERRQ(ierr);
+  ierr = MatDestroyMatrices(st->nsplit,&st->Psplit);CHKERRQ(ierr);
+  st->nsplit = 0;
   ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
   st->nwork = 0;
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
@@ -187,6 +189,10 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->transform    = PETSC_FALSE;
   st->D            = NULL;
   st->Pmat         = NULL;
+  st->Pmat_set     = PETSC_FALSE;
+  st->Psplit       = NULL;
+  st->nsplit       = 0;
+  st->strp         = UNKNOWN_NONZERO_PATTERN;
 
   st->ksp          = NULL;
   st->usesksp      = PETSC_FALSE;
@@ -277,6 +283,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   PetscValidPointer(A,3);
   PetscCheckSameComm(st,1,*A,3);
   STCheckNotSeized(st,1);
+  if (st->nsplit && st->nsplit != n) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"The number of matrices must be the same as in STSetSplitPreconditioner()");
 
   if (st->state) {
     if (n!=st->nmat) same = PETSC_FALSE;
@@ -307,6 +314,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   st->nmat = n;
   if (same) st->state = ST_STATE_UPDATED;
   else st->state = ST_STATE_INITIAL;
+  if (same && st->Psplit) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Support for changing the matrices while using a split preconditioner is not implemented yet");
   st->opready = PETSC_FALSE;
   if (!same) {
     ierr = STMatIsSymmetricKnown(st,&st->asymm,&st->aherm);CHKERRQ(ierr);
@@ -449,9 +457,15 @@ PetscErrorCode STResetMatrixState(ST st)
    If a preconditioner matrix is set, the default is to use an iterative KSP
    rather than a direct method.
 
+   An alternative to pass an approximation of A-sigma*B with this function is
+   to provide approximations of A and B via STSetSplitPreconditioner(). The
+   difference is that when sigma changes the preconditioner is recomputed.
+
+   Use NULL to remove a previously set matrix.
+
    Level: advanced
 
-.seealso: STGetPreconditionerMat(), STSetShift(), STGetOperator()
+.seealso: STGetPreconditionerMat(), STSetShift(), STGetOperator(), STSetSplitPreconditioner()
 @*/
 PetscErrorCode STSetPreconditionerMat(ST st,Mat mat)
 {
@@ -459,12 +473,16 @@ PetscErrorCode STSetPreconditionerMat(ST st,Mat mat)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
-  PetscCheckSameComm(st,1,mat,2);
+  if (mat) {
+    PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
+    PetscCheckSameComm(st,1,mat,2);
+  }
   STCheckNotSeized(st,1);
-  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
+  if (mat && st->Psplit) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot call both STSetPreconditionerMat and STSetSplitPreconditioner");
+  if (mat) { ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr); }
   ierr = MatDestroy(&st->Pmat);CHKERRQ(ierr);
   st->Pmat     = mat;
+  st->Pmat_set = mat? PETSC_TRUE: PETSC_FALSE;
   st->state    = ST_STATE_INITIAL;
   st->opready  = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -491,7 +509,139 @@ PetscErrorCode STGetPreconditionerMat(ST st,Mat *mat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mat,2);
-  *mat = st->Pmat;
+  *mat = st->Pmat_set? st->Pmat: NULL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STSetSplitPreconditioner - Sets the matrices from which to build the preconditioner
+   in split form.
+
+   Collective on st
+
+   Input Parameters:
++  st     - the spectral transformation context
+.  n      - number of matrices
+.  Psplit - array of matrices
+-  strp   - structure flag for Psplit matrices
+
+   Notes:
+   The number of matrices passed here must be the same as in STSetMatrices().
+
+   For linear eigenproblems, the preconditioner matrix is computed as
+   Pmat(sigma) = A0-sigma*B0, where A0 and B0 are approximations of A and B
+   (the eigenproblem matrices) provided via the Psplit array in this function.
+   Compared to STSetPreconditionerMat(), this function allows setting a preconditioner
+   in a way that is independent of the shift sigma. Whenever the value of sigma
+   changes the preconditioner is recomputed.
+
+   Similarly, for polynomial eigenproblems the matrix for the preconditioner
+   is expressed as Pmat(sigma) = sum_i Psplit_i*phi_i(sigma), for i=1,...,n, where
+   the phi_i's are the polynomial basis functions.
+
+   The structure flag provides information about the relative nonzero pattern of the
+   Psplit_i matrices, in the same way as in STSetMatStructure().
+
+   Use n=0 to reset a previously set split preconditioner.
+
+   Level: advanced
+
+.seealso: STGetSplitPreconditionerTerm(), STGetSplitPreconditionerInfo(), STSetPreconditionerMat(), STSetMatrices(), STSetMatStructure()
+ @*/
+PetscErrorCode STSetSplitPreconditioner(ST st,PetscInt n,Mat Psplit[],MatStructure strp)
+{
+  PetscInt       i,N=0,M,M0=0,mloc,nloc,mloc0=0;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveInt(st,n,2);
+  if (n < 0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Negative value of n = %" PetscInt_FMT,n);
+  if (n && st->Pmat_set) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot call both STSetPreconditionerMat and STSetSplitPreconditioner");
+  if (n && st->nmat && st->nmat != n) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"The number of matrices must be the same as in STSetMatrices()");
+  if (n) PetscValidPointer(Psplit,3);
+  PetscValidLogicalCollectiveEnum(st,strp,4);
+  STCheckNotSeized(st,1);
+
+  for (i=0;i<n;i++) {
+    PetscValidHeaderSpecific(Psplit[i],MAT_CLASSID,3);
+    PetscCheckSameComm(st,1,Psplit[i],3);
+    ierr = MatGetSize(Psplit[i],&M,&N);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(Psplit[i],&mloc,&nloc);CHKERRQ(ierr);
+    if (M!=N) SETERRQ3(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Psplit[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,M,N);
+    if (mloc!=nloc) SETERRQ3(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Psplit[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
+    if (!i) { M0 = M; mloc0 = mloc; }
+    if (M!=M0) SETERRQ3(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_INCOMP,"Dimensions of Psplit[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,M,M0);
+    if (mloc!=mloc0) SETERRQ3(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_INCOMP,"Local dimensions of Psplit[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
+    ierr = PetscObjectReference((PetscObject)Psplit[i]);CHKERRQ(ierr);
+  }
+
+  if (st->Psplit) { ierr = MatDestroyMatrices(st->nsplit,&st->Psplit);CHKERRQ(ierr); }
+
+  /* allocate space and copy matrices */
+  if (n) {
+    ierr = PetscMalloc1(n,&st->Psplit);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)st,n*sizeof(Mat));CHKERRQ(ierr);
+    for (i=0;i<n;i++) st->Psplit[i] = Psplit[i];
+  }
+  st->nsplit = n;
+  st->strp   = strp;
+  st->state  = ST_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STGetSplitPreconditionerTerm - Gets the matrices associated with
+   the split preconditioner.
+
+   Not collective, though parallel Mats are returned if the ST is parallel
+
+   Input Parameters:
++  st - the spectral transformation context
+-  k  - the index of the requested matrix (starting in 0)
+
+   Output Parameter:
+.  Psplit - the returned matrix
+
+   Level: advanced
+
+.seealso: STSetSplitPreconditioner(), STGetSplitPreconditionerInfo()
+@*/
+PetscErrorCode STGetSplitPreconditionerTerm(ST st,PetscInt k,Mat *Psplit)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveInt(st,k,2);
+  PetscValidPointer(Psplit,3);
+  if (k<0 || k>=st->nsplit) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nsplit-1);
+  if (!st->Psplit) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"You have not called STSetSplitPreconditioner()");
+  *Psplit = st->Psplit[k];
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STGetSplitPreconditionerInfo - Returns the number of matrices of the split
+   preconditioner, as well as the structure flag.
+
+   Not collective
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameters:
++  n    - the number of matrices passed in STSetSplitPreconditioner()
+-  strp - the matrix structure flag passed in STSetSplitPreconditioner()
+
+   Level: advanced
+
+.seealso: STSetSplitPreconditioner(), STGetSplitPreconditionerTerm()
+@*/
+PetscErrorCode STGetSplitPreconditionerInfo(ST st,PetscInt *n,MatStructure *strp)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  if (n)    *n    = st->nsplit;
+  if (strp) *strp = st->strp;
   PetscFunctionReturn(0);
 }
 
@@ -935,6 +1085,9 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     }
     if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) {
       ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",MatStructures[st->str]);CHKERRQ(ierr);
+    }
+    if (st->Psplit) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  using split preconditioner matrices with %s\n",MatStructures[st->strp]);CHKERRQ(ierr);
     }
     if (st->transform && st->nmat>2) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n");CHKERRQ(ierr);
