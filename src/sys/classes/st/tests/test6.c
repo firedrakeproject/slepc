@@ -20,6 +20,7 @@ int main(int argc,char **argv)
   Vec            v,w;
   PetscScalar    sigma;
   PetscInt       n=10,i,Istart,Iend;
+  STMatMode      matmode;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -111,6 +112,22 @@ int main(int argc,char **argv)
   ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            Test a user-provided preconditioner in split form
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = STGetMatMode(st,&matmode);CHKERRQ(ierr);
+  if (matmode==ST_MATMODE_COPY) {
+    ierr = STSetPreconditionerMat(st,NULL);CHKERRQ(ierr);
+    mat[0] = P;
+    ierr = STSetSplitPreconditioner(st,1,mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+
+    /* apply new preconditioner */
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"With split preconditioner\n");CHKERRQ(ierr);
+    ierr = STApply(st,v,w);CHKERRQ(ierr);
+    ierr = VecView(w,NULL);CHKERRQ(ierr);
+  }
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                              Clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = STDestroy(&st);CHKERRQ(ierr);
@@ -126,11 +143,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -st_matmode {{copy inplace}}
+      args: -st_matmode {{copy inplace shell}separate output}
       requires: !single
-
-   test:
-      suffix: 2
-      args: -st_matmode shell
 
 TEST*/
