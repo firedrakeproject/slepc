@@ -51,7 +51,6 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
   if (nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_CALLBACK | NEP_FEATURE_STOPPING | NEP_FEATURE_TWOSIDED);
-  if (nep->P) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined preconditioner");
 
   /* transfer PEP options */
   if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
@@ -119,15 +118,16 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
-  Mat            *A;
+  Mat            *A,*P;
   PetscScalar    *x,*fx,t;
   PetscReal      *cs,a,b,s,aprox,aprox0=1.0,*matnorm;
   PetscInt       i,j,k,deg=ctx->maxdeg;
   PetscBool      hasmnorm=PETSC_FALSE;
   Vec            vr,vi=NULL;
+  ST             st;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc5(deg+1,&A,(deg+1)*(deg+1),&cs,deg+1,&x,(deg+1)*nep->nt,&fx,nep->nt,&matnorm);CHKERRQ(ierr);
+  ierr = PetscMalloc4((deg+1)*(deg+1),&cs,deg+1,&x,(deg+1)*nep->nt,&fx,nep->nt,&matnorm);CHKERRQ(ierr);
   for  (j=0;j<nep->nt;j++) {
     ierr = MatHasOperation(nep->A[j],MATOP_NORM,&hasmnorm);CHKERRQ(ierr);
     if (!hasmnorm) break;
@@ -142,15 +142,19 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
     }
   }
   /* Polynomial coefficients */
+  ierr = PetscMalloc1(deg+1,&A);CHKERRQ(ierr);
+  if (nep->P) { ierr = PetscMalloc1(deg+1,&P);CHKERRQ(ierr); }
   ctx->deg = deg;
   for (k=0;k<=deg;k++) {
     ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&A[k]);CHKERRQ(ierr);
+    if (nep->P) { ierr = MatDuplicate(nep->P[0],MAT_COPY_VALUES,&P[k]);CHKERRQ(ierr); }
     t = 0.0;
     for (i=0;i<deg+1;i++) t += fx[i]*cs[i*(deg+1)+k];
     t *= 2.0/(deg+1);
     if (k==0) t /= 2.0;
     aprox = matnorm[0]*PetscAbsScalar(t);
     ierr = MatScale(A[k],t);CHKERRQ(ierr);
+    if (nep->P) { ierr = MatScale(P[k],t);CHKERRQ(ierr); }
     for (j=1;j<nep->nt;j++) {
       t = 0.0;
       for (i=0;i<deg+1;i++) t += fx[i+j*(deg+1)]*cs[i*(deg+1)+k];
@@ -158,16 +162,19 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
       if (k==0) t /= 2.0;
       aprox += matnorm[j]*PetscAbsScalar(t);
       ierr = MatAXPY(A[k],t,nep->A[j],nep->mstr);CHKERRQ(ierr);
+      if (nep->P) { ierr = MatAXPY(P[k],t,nep->P[j],nep->mstrp);CHKERRQ(ierr); }
     }
     if (k==0) aprox0 = aprox;
     if (k>1 && aprox/aprox0<ctx->tol) { ctx->deg = k; deg = k; break; }
   }
-
   ierr = PEPSetOperators(ctx->pep,deg+1,A);CHKERRQ(ierr);
-  for (k=0;k<=deg;k++) {
-    ierr = MatDestroy(&A[k]);CHKERRQ(ierr);
+  ierr = MatDestroyMatrices(deg+1,&A);CHKERRQ(ierr);
+  if (nep->P) {
+    ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
+    ierr = STSetSplitPreconditioner(st,deg+1,P,nep->mstrp);CHKERRQ(ierr);
+    ierr = MatDestroyMatrices(deg+1,&P);CHKERRQ(ierr);
   }
-  ierr = PetscFree5(A,cs,x,fx,matnorm);CHKERRQ(ierr);
+  ierr = PetscFree4(cs,x,fx,matnorm);CHKERRQ(ierr);
 
   /* Solve polynomial eigenproblem */
   ierr = PEPSolve(ctx->pep);CHKERRQ(ierr);
