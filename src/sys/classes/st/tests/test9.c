@@ -192,7 +192,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -st_type {{shift sinvert}separate output}
+      args: -st_type {{shift sinvert}separate output} -st_pc_type jacobi
       requires: !single
 
 TEST*/

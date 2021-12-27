@@ -147,13 +147,14 @@ int main(int argc,char **argv)
       test:
          suffix: 1
       test:
-         suffix: 2
-         args: -st_ksp_type bcgs -st_pc_type bjacobi
-      test:
-         suffix: 3
+         suffix: 1_jd
          args: -eps_type jd -st_type precond
       test:
-         suffix: 4
+         suffix: 1_lobpcg
          args: -eps_type lobpcg -st_type precond -eps_smallest_real -st_shift 0.2
+
+   test:
+      suffix: 2
+      args: -eps_type ciss -eps_all -rg_type ellipse -rg_ellipse_center 0 -rg_ellipse_radius 0.34 -rg_ellipse_vscale .2 -terse
 
 TEST*/

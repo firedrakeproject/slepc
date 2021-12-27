@@ -155,7 +155,7 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      args: -pep_nev 4 -pep_ncv 28 -n 12 -st_ksp_type bcgs -st_pc_type bjacobi -terse
+      args: -pep_nev 4 -pep_ncv 28 -n 12 -terse
       output_file: output/ex50_1.out
       requires: double
       test:
