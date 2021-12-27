@@ -289,11 +289,11 @@ int main(int argc,char **argv)
       output_file: output/test17_3.out
       requires: complex !single
       test:
-          suffix: 3
-          args: -split {{0 1}}
+         suffix: 3
+         args: -split {{0 1}}
       test:
-          suffix: 3_par
-          nsize: 2
-          args: -nep_ciss_partitions 2
+         suffix: 3_par
+         nsize: 2
+         args: -nep_ciss_partitions 2
 
 TEST*/
