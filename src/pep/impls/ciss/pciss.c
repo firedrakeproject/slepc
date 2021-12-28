@@ -100,12 +100,13 @@ static PetscErrorCode PEPCISSSolveSystem(PEP pep,Mat T,Mat P,Mat dT,BV V,PetscIn
 {
   PetscErrorCode   ierr;
   PEP_CISS         *ctx = (PEP_CISS*)pep->data;
-  SlepcContourData contour = ctx->contour;
+  SlepcContourData contour;
   PetscInt         i,p_id;
   Mat              Amat,Pmat,MV,BMV=NULL,MC;
 
   PetscFunctionBegin;
   if (!ctx->contour || !ctx->contour->ksp) { ierr = PEPCISSGetKSPs(pep,NULL,NULL);CHKERRQ(ierr); }
+  contour = ctx->contour;
   ierr = BVSetActiveColumns(V,L_start,L_end);CHKERRQ(ierr);
   ierr = BVGetMat(V,&MV);CHKERRQ(ierr);
   for (i=0;i<contour->npoints;i++) {

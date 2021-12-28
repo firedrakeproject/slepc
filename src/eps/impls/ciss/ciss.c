@@ -71,34 +71,27 @@ static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_sta
   EPS_CISS         *ctx = (EPS_CISS*)eps->data;
   SlepcContourData contour;
   PetscInt         i,p_id;
-  Mat              Fz,kspMat,MV,BMV=NULL,MC;
+  Mat              Amat,MV,BMV=NULL,MC;
+  MatStructure     str;
   KSP              ksp;
 
   PetscFunctionBegin;
   if (!ctx->contour || !ctx->contour->ksp) { ierr = EPSCISSGetKSPs(eps,NULL,NULL);CHKERRQ(ierr); }
   contour = ctx->contour;
-  if (ctx->usest) {
-    ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
-  }
+  ierr = STGetMatStructure(eps->st,&str);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(V,L_start,L_end);CHKERRQ(ierr);
   ierr = BVGetMat(V,&MV);CHKERRQ(ierr);
-  if (B) {
-    ierr = MatProductCreate(B,MV,NULL,&BMV);CHKERRQ(ierr);
-    ierr = MatProductSetType(BMV,MATPRODUCT_AB);CHKERRQ(ierr);
-    ierr = MatProductSetFromOptions(BMV);CHKERRQ(ierr);
-    ierr = MatProductSymbolic(BMV);CHKERRQ(ierr);
-  }
   for (i=0;i<contour->npoints;i++) {
     p_id = i*contour->subcomm->n + contour->subcomm->color;
     if (!ctx->usest && initksp) {
-      ierr = MatDuplicate(A,MAT_COPY_VALUES,&kspMat);CHKERRQ(ierr);
+      ierr = MatDuplicate(A,MAT_COPY_VALUES,&Amat);CHKERRQ(ierr);
       if (B) {
-        ierr = MatAXPY(kspMat,-ctx->omega[p_id],B,UNKNOWN_NONZERO_PATTERN);CHKERRQ(ierr);
+        ierr = MatAXPY(Amat,-ctx->omega[p_id],B,str);CHKERRQ(ierr);
       } else {
-        ierr = MatShift(kspMat,-ctx->omega[p_id]);CHKERRQ(ierr);
+        ierr = MatShift(Amat,-ctx->omega[p_id]);CHKERRQ(ierr);
       }
-      ierr = EPS_KSPSetOperators(contour->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
-      ierr = MatDestroy(&kspMat);CHKERRQ(ierr);
+      ierr = EPS_KSPSetOperators(contour->ksp[i],Amat,Amat);CHKERRQ(ierr);
+      ierr = MatDestroy(&Amat);CHKERRQ(ierr);
     } else if (ctx->usest) {
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
@@ -106,6 +99,12 @@ static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_sta
     ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+L_start,i*ctx->L_max+L_end);CHKERRQ(ierr);
     ierr = BVGetMat(ctx->Y,&MC);CHKERRQ(ierr);
     if (B) {
+      if (!i) {
+        ierr = MatProductCreate(B,MV,NULL,&BMV);CHKERRQ(ierr);
+        ierr = MatProductSetType(BMV,MATPRODUCT_AB);CHKERRQ(ierr);
+        ierr = MatProductSetFromOptions(BMV);CHKERRQ(ierr);
+        ierr = MatProductSymbolic(BMV);CHKERRQ(ierr);
+      }
       ierr = MatProductNumeric(BMV);CHKERRQ(ierr);
       if (ctx->usest) {
         ierr = KSPMatSolve(ksp,BMV,MC);CHKERRQ(ierr);
@@ -119,12 +118,11 @@ static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_sta
         ierr = KSPMatSolve(contour->ksp[i],MV,MC);CHKERRQ(ierr);
       }
     }
-    if (ctx->usest && i<contour->npoints-1) { ierr = KSPReset(ksp);CHKERRQ(ierr); }
     ierr = BVRestoreMat(ctx->Y,&MC);CHKERRQ(ierr);
+    if (ctx->usest && i<contour->npoints-1) { ierr = KSPReset(ksp);CHKERRQ(ierr); }
   }
   ierr = MatDestroy(&BMV);CHKERRQ(ierr);
   ierr = BVRestoreMat(V,&MV);CHKERRQ(ierr);
-  if (ctx->usest) { ierr = MatDestroy(&Fz);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
