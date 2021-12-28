@@ -290,7 +290,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = STGetMatrix(eps->st,0,&A[0]);CHKERRQ(ierr);
   ierr = MatIsShell(A[0],&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell is not supported in this solver");
-  if (eps->isgeneralized) { ierr = STGetMatrix(eps->st,0,&A[1]);CHKERRQ(ierr); }
+  if (eps->isgeneralized) { ierr = STGetMatrix(eps->st,1,&A[1]);CHKERRQ(ierr); }
 
   if (!ctx->usest_set) ctx->usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;
   if (ctx->usest && ctx->npart>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
@@ -1433,6 +1433,8 @@ PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscBool      usest = ctx->usest;
+  KSP            ksp;
+  PC             pc;
 
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
@@ -1442,6 +1444,11 @@ PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
     } else {
       /* we are not going to use ST, so avoid factorizing the matrix */
       ierr = STSetType(eps->st,STSHIFT);CHKERRQ(ierr);
+      if (eps->isgeneralized) {
+        ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+        ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+        ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
+      }
     }
   }
   PetscFunctionReturn(0);
