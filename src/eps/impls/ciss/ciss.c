@@ -65,20 +65,21 @@ typedef struct {
   PetscObjectState  rgstate;
 } EPS_CISS;
 
-static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_start,PetscInt L_end,PetscBool initksp)
+static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,Mat Pa,Mat Pb,BV V,PetscInt L_start,PetscInt L_end,PetscBool initksp)
 {
   PetscErrorCode   ierr;
   EPS_CISS         *ctx = (EPS_CISS*)eps->data;
   SlepcContourData contour;
-  PetscInt         i,p_id;
-  Mat              Amat,MV,BMV=NULL,MC;
-  MatStructure     str;
+  PetscInt         i,p_id,nsplit;
+  Mat              Amat,Pmat,MV,BMV=NULL,MC;
+  MatStructure     str,strp;
   KSP              ksp;
 
   PetscFunctionBegin;
   if (!ctx->contour || !ctx->contour->ksp) { ierr = EPSCISSGetKSPs(eps,NULL,NULL);CHKERRQ(ierr); }
   contour = ctx->contour;
   ierr = STGetMatStructure(eps->st,&str);CHKERRQ(ierr);
+  ierr = STGetSplitPreconditionerInfo(eps->st,&nsplit,&strp);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(V,L_start,L_end);CHKERRQ(ierr);
   ierr = BVGetMat(V,&MV);CHKERRQ(ierr);
   for (i=0;i<contour->npoints;i++) {
@@ -90,8 +91,17 @@ static PetscErrorCode EPSCISSSolveSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_sta
       } else {
         ierr = MatShift(Amat,-ctx->omega[p_id]);CHKERRQ(ierr);
       }
+      if (nsplit) {
+        ierr = MatDuplicate(Pa,MAT_COPY_VALUES,&Pmat);CHKERRQ(ierr);
+        if (Pb) {
+          ierr = MatAXPY(Pmat,-ctx->omega[p_id],Pb,strp);CHKERRQ(ierr);
+        } else {
+          ierr = MatShift(Pmat,-ctx->omega[p_id]);CHKERRQ(ierr);
+        }
+      } else Pmat = Amat;
       ierr = EPS_KSPSetOperators(contour->ksp[i],Amat,Amat);CHKERRQ(ierr);
       ierr = MatDestroy(&Amat);CHKERRQ(ierr);
+      if (nsplit) { ierr = MatDestroy(&Pmat);CHKERRQ(ierr); }
     } else if (ctx->usest) {
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
@@ -201,10 +211,11 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   SlepcContourData contour;
   PetscBool        istrivial,isring,isellipse,isinterval,flg;
   PetscReal        c,d;
+  PetscInt         nsplit;
   PetscRandom      rand;
   PetscObjectId    id;
   PetscObjectState state;
-  Mat              A[2];
+  Mat              A[2],Psplit[2];
   Vec              v0;
 
   PetscFunctionBegin;
@@ -289,8 +300,15 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (!ctx->usest_set) ctx->usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;
   if (ctx->usest && ctx->npart>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
 
+  /* check if a user-defined split preconditioner has been set */
+  ierr = STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL);CHKERRQ(ierr);
+  if (nsplit) {
+    ierr = STGetSplitPreconditionerTerm(eps->st,0,&Psplit[0]);CHKERRQ(ierr);
+    if (eps->isgeneralized) { ierr = STGetSplitPreconditionerTerm(eps->st,1,&Psplit[1]);CHKERRQ(ierr); }
+  }
+
   contour = ctx->contour;
-  ierr = SlepcContourRedundantMat(contour,eps->isgeneralized?2:1,A,NULL);CHKERRQ(ierr);
+  ierr = SlepcContourRedundantMat(contour,eps->isgeneralized?2:1,A,nsplit?Psplit:NULL);CHKERRQ(ierr);
   if (contour->pA) {
     ierr = BVGetColumn(ctx->V,0,&v0);CHKERRQ(ierr);
     ierr = SlepcContourScatterCreate(contour,v0);CHKERRQ(ierr);
@@ -369,8 +387,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscErrorCode   ierr;
   EPS_CISS         *ctx = (EPS_CISS*)eps->data;
   SlepcContourData contour = ctx->contour;
-  Mat              A,B,X,M,pA,pB;
-  PetscInt         i,j,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,nlocal,*inside;
+  Mat              A,B,X,M,pA,pB,T,J,Pa=NULL,Pb=NULL;
+  BV               V;
+  PetscInt         i,j,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,nlocal,*inside,nsplit;
   PetscScalar      *Mu,*H0,*H1=NULL,*rr,*temp;
   PetscReal        error,max_error,norm;
   PetscBool        *fl1;
@@ -397,17 +416,26 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
+  T = contour->pA? contour->pA[0]: A;
+  J = contour->pA? contour->pA[1]: B;
+  V = contour->pA? ctx->pV: ctx->V;
+  ierr = STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL);CHKERRQ(ierr);
+  if (nsplit) {
+    if (contour->pA) {
+      Pa = contour->pP[0];
+      if (nsplit>1) Pb = contour->pP[1];
+    } else {
+      ierr = STGetSplitPreconditionerTerm(eps->st,0,&Pa);CHKERRQ(ierr);
+      if (nsplit>1) { ierr = STGetSplitPreconditionerTerm(eps->st,1,&Pb);CHKERRQ(ierr); }
+    }
+  }
   ierr = RGComputeQuadrature(eps->rg,ctx->quad==EPS_CISS_QUADRULE_CHEBYSHEV?RG_QUADRULE_CHEBYSHEV:RG_QUADRULE_TRAPEZOIDAL,ctx->N,ctx->omega,ctx->pp,ctx->weight);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
   ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
   ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
 
-  if (contour->pA) {
-    ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-    ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
-  } else {
-    ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
-  }
+  if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
+  ierr = EPSCISSSolveSystem(eps,T,J,Pa,Pb,V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
@@ -425,12 +453,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscInfo2(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
-    if (contour->pA) {
-      ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-      ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
-    } else {
-      ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
-    }
+    if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
+    ierr = EPSCISSSolveSystem(eps,T,J,Pa,Pb,V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     ctx->L += L_add;
   }
   ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
@@ -446,12 +470,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscInfo2(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
-    if (contour->pA) {
-      ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-      ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
-    } else {
-      ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
-    }
+    if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
+    ierr = EPSCISSSolveSystem(eps,T,J,Pa,Pb,V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     ctx->L += L_add;
     if (L_add) {
       ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
@@ -479,12 +499,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
         ierr = BVSVDAndRank(ctx->S,ctx->M,ctx->L,ctx->delta,BV_SVD_METHOD_REFINE,H0,ctx->sigma,&nv);CHKERRQ(ierr);
         if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
-          if (contour->pA) {
-            ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-            ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
-          } else {
-            ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
-          }
+          if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
+          ierr = EPSCISSSolveSystem(eps,T,J,Pa,Pb,V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
         } else break;
       }
     }
@@ -602,12 +618,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-        if (contour->pA) {
-          ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr);
-          ierr = EPSCISSSolveSystem(eps,contour->pA[0],contour->pA[1],ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
-        } else {
-          ierr = EPSCISSSolveSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
-        }
+        if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
+        ierr = EPSCISSSolveSystem(eps,T,J,Pa,Pb,V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
       }
     }
   }
@@ -1223,7 +1235,7 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
   PetscErrorCode   ierr;
   EPS_CISS         *ctx = (EPS_CISS*)eps->data;
   SlepcContourData contour;
-  PetscInt         i;
+  PetscInt         i,nsplit;
   PC               pc;
 
   PetscFunctionBegin;
@@ -1234,6 +1246,8 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
   contour = ctx->contour;
   if (!contour->ksp) {
     ierr = PetscMalloc1(contour->npoints,&contour->ksp);CHKERRQ(ierr);
+    ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr);
+    ierr = STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL);CHKERRQ(ierr);
     for (i=0;i<contour->npoints;i++) {
       ierr = KSPCreate(PetscSubcommChild(contour->subcomm),&contour->ksp[i]);CHKERRQ(ierr);
       ierr = PetscObjectIncrementTabLevel((PetscObject)contour->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
@@ -1244,8 +1258,13 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
       ierr = KSPSetErrorIfNotConverged(contour->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
       ierr = KSPSetTolerances(contour->ksp[i],SlepcDefaultTol(eps->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
       ierr = KSPGetPC(contour->ksp[i],&pc);CHKERRQ(ierr);
-      ierr = KSPSetType(contour->ksp[i],KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+      if (nsplit) {
+        ierr = KSPSetType(contour->ksp[i],KSPBCGS);CHKERRQ(ierr);
+        ierr = PCSetType(pc,PCBJACOBI);CHKERRQ(ierr);
+      } else {
+        ierr = KSPSetType(contour->ksp[i],KSPPREONLY);CHKERRQ(ierr);
+        ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+      }
     }
   }
   if (nsolve) *nsolve = contour->npoints;

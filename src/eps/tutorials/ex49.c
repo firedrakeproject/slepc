@@ -153,8 +153,19 @@ int main(int argc,char **argv)
          suffix: 1_lobpcg
          args: -eps_type lobpcg -st_type precond -eps_smallest_real -st_shift 0.2
 
-   test:
-      suffix: 2
+   testset:
       args: -eps_type ciss -eps_all -rg_type ellipse -rg_ellipse_center 0 -rg_ellipse_radius 0.34 -rg_ellipse_vscale .2 -terse
+      output_file: output/ex49_2.out
+      test:
+         suffix: 2
+      test:
+         suffix: 2_nost
+         args: -eps_ciss_usest 0
+         requires: !single
+      test:
+         suffix: 2_par
+         nsize: 2
+         args: -eps_ciss_partitions 2
+         requires: !single
 
 TEST*/
