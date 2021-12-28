@@ -1,0 +1,10 @@
+
+Generalized Symmetric Eigenproblem, N=100 (10x10 grid), null(B)=0
+
+ Solution method: ciss
+
+ Number of requested eigenvalues: 1
+ Found 9 eigenvalues, all of them computed up to the required tolerance:
+     1.34947, 1.34947, 1.39859, 1.39859, 1.40859, 1.40859, 1.41542, 1.49178,
+     1.49178
+

@@ -149,4 +149,10 @@ int main(int argc,char **argv)
       args: -n 10 -m 12 -eps_nev 4 -eps_target 0.9 -eps_max_it 15000 -eps_type primme -st_pc_type jacobi -terse
       requires: primme defined(SLEPC_HAVE_PRIMME3) !single
 
+   test:
+      suffix: 6
+      nsize: 2
+      args: -eps_type ciss -rg_type ellipse -rg_ellipse_center 1.4 -rg_ellipse_radius 0.1 -eps_ciss_partitions 2 -terse
+      filter: sed -e "s/41541/41542/"
+
 TEST*/
