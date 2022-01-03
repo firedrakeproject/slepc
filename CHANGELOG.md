@@ -7,6 +7,7 @@
 - `NEP`: user-defined preconditioner for the split form, see `NEPSetSplitPreconditioner()`.
   Support for preconditioner matrix different from the function matrix has also been
   improved for the callback interface.
+- Add support for split preconditioner in `EPS` and `PEP` via `STSetSplitPreconditioner()`.
 
 ## [3.16] - 2021-09-30
 

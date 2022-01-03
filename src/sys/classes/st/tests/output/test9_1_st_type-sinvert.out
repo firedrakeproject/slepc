@@ -1,0 +1,53 @@
+
+Test ST with four matrices, n=10
+
+ST type sinvert
+Mat Object: (st_) 1 MPI processes
+  type: seqaij
+row 0: (0, 2.)
+row 1: (1, 2.)
+row 2: (2, 2.)
+row 3: (3, 2.)
+row 4: (4, 2.)
+row 5: (5, 2.)
+row 6: (6, 2.)
+row 7: (7, 2.)
+row 8: (8, 2.)
+row 9: (9, 2.)
+Vec Object: 1 MPI processes
+  type: seq
+5.
+9.
+12.
+14.
+15.
+15.
+14.
+12.
+9.
+5.
+With shift=0.1
+Mat Object: (st_) 1 MPI processes
+  type: seqaij
+row 0: (0, 1.9)
+row 1: (1, 2.1001)
+row 2: (2, 2.2002)
+row 3: (3, 2.3003)
+row 4: (4, 2.4004)
+row 5: (5, 2.5005)
+row 6: (6, 2.6006)
+row 7: (7, 2.7007)
+row 8: (8, 2.8008)
+row 9: (9, 2.9009)
+Vec Object: 1 MPI processes
+  type: seq
+2.04158
+2.88687
+3.03214
+2.79837
+2.42188
+2.03545
+1.69199
+1.39272
+1.09965
+0.716051

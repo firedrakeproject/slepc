@@ -58,6 +58,10 @@ struct _p_ST {
   PetscBool        transform;        /* whether transformed matrices are computed */
   Vec              D;                /* diagonal matrix for balancing */
   Mat              Pmat;             /* user-provided preconditioner matrix */
+  PetscBool        Pmat_set;         /* whether the user provided a preconditioner matrix or not  */
+  Mat              *Psplit;          /* matrices for the split preconditioner */
+  PetscInt         nsplit;           /* number of split preconditioner matrices */
+  MatStructure     strp;             /* pattern of split preconditioner matrices */
 
   /*------------------------- Misc data --------------------------*/
   KSP              ksp;              /* linear solver used in some ST's */
@@ -106,7 +110,7 @@ SLEPC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,BV);
 SLEPC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);
 SLEPC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
 SLEPC_INTERN PetscErrorCode STCheckFactorPackage(ST);
-SLEPC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
+SLEPC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscScalar*,PetscBool,PetscBool,Mat*);
 SLEPC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
 SLEPC_INTERN PetscErrorCode STSetDefaultKSP(ST);
 SLEPC_INTERN PetscErrorCode STSetDefaultKSP_Default(ST);

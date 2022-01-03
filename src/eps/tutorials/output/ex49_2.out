@@ -1,0 +1,6 @@
+
+GHEP with split preconditioner, N=576 (24x24 grid)
+
+ Found 3 eigenvalues, all of them computed up to the required tolerance:
+     0.32523, 0.32994, 0.33771
+

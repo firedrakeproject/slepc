@@ -112,6 +112,9 @@ SLEPC_EXTERN PetscErrorCode STCheckNullSpace(ST,BV);
 
 SLEPC_EXTERN PetscErrorCode STSetPreconditionerMat(ST,Mat);
 SLEPC_EXTERN PetscErrorCode STGetPreconditionerMat(ST,Mat*);
+SLEPC_EXTERN PetscErrorCode STSetSplitPreconditioner(ST,PetscInt,Mat[],MatStructure);
+SLEPC_EXTERN PetscErrorCode STGetSplitPreconditionerTerm(ST,PetscInt,Mat*);
+SLEPC_EXTERN PetscErrorCode STGetSplitPreconditionerInfo(ST,PetscInt*,MatStructure*);
 
 SLEPC_EXTERN PetscErrorCode STMatCreateVecs(ST,Vec*,Vec*);
 SLEPC_EXTERN PetscErrorCode STMatCreateVecsEmpty(ST,Vec*,Vec*);

@@ -46,7 +46,10 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
   if (!pctype && !ksptype) {
-    if (st->Pmat || st->matmode == ST_MATMODE_SHELL) {
+    if (st->Pmat || st->Psplit) {
+      ierr = KSPSetType(st->ksp,KSPBCGS);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCBJACOBI);CHKERRQ(ierr);
+    } else if (st->matmode == ST_MATMODE_SHELL) {
       ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
     } else {

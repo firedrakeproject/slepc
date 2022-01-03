@@ -75,6 +75,17 @@ PetscErrorCode STComputeOperator_Precond(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
   st->M = NULL;
 
+  /* build custom preconditioner from the split matrices */
+  if (st->Psplit) {
+    if (!(PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) && st->nmat>1) {
+      ierr = PetscObjectReference((PetscObject)st->Psplit[0]);CHKERRQ(ierr);
+      ierr = MatDestroy(&st->Pmat);CHKERRQ(ierr);
+      st->Pmat = st->Psplit[0];
+    } else if (PetscAbsScalar(st->sigma)<PETSC_MAX_REAL) {
+      ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat);CHKERRQ(ierr);
+    }
+  }
+
   /* P = A-sigma*B */
   if (st->Pmat) {
     ierr = PetscObjectReference((PetscObject)st->Pmat);CHKERRQ(ierr);
@@ -89,7 +100,7 @@ PetscErrorCode STComputeOperator_Precond(ST st)
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[0];
     } else if (PetscAbsScalar(st->sigma)<PETSC_MAX_REAL) {
-      ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[1]);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
       ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[1];
@@ -117,8 +128,13 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
+  if (st->Psplit) { /* update custom preconditioner from the split matrices */
+    if (PetscAbsScalar(st->sigma)<PETSC_MAX_REAL || st->nmat==1) {
+      ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_FALSE,PETSC_TRUE,&st->Pmat);CHKERRQ(ierr);
+    }
+  }
   if (st->transform && !st->Pmat) {
-    ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
+    ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
     if (st->P!=st->T[1]) {
       ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);

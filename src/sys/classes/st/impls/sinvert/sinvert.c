@@ -72,11 +72,14 @@ PetscErrorCode STComputeOperator_Sinvert(ST st)
   ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr);
   ierr = MatDestroy(&st->T[0]);CHKERRQ(ierr);
   st->T[0] = st->A[1];
-  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[1]);CHKERRQ(ierr);
+  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   st->P = st->T[1];
   st->M = (st->nmat>1)? st->T[0]: NULL;
+  if (st->Psplit) {  /* build custom preconditioner from the split matrices */
+    ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -104,12 +107,15 @@ PetscErrorCode STSetUp_Sinvert(ST st)
       ierr = MatDestroy(&st->T[0]);CHKERRQ(ierr);
       st->T[0] = st->A[k];
       for (k=1;k<nmat;k++) {
-        ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[k]);CHKERRQ(ierr);
+        ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
       }
       ierr = PetscFree(coeffs);CHKERRQ(ierr);
       ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[nmat-1];
+      if (st->Psplit) {  /* build custom preconditioner from the split matrices */
+        ierr = STMatMAXPY_Private(st,st->sigma,0.0,0,coeffs?coeffs+((nmat-1)*nmat)/2:NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat);CHKERRQ(ierr);
+      }
       ierr = ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P);CHKERRQ(ierr);
     } else {
       for (k=0;k<nmat;k++) {
@@ -140,7 +146,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
     }
     for (k=1;k<nmat;k++) {
-      ierr = STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_FALSE,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
     }
     if (st->matmode == ST_MATMODE_COPY && nmat>2) {
       ierr = PetscFree(coeffs);CHKERRQ(ierr);
@@ -149,6 +155,9 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[nmat-1];
+    }
+    if (st->Psplit) {  /* build custom preconditioner from the split matrices */
+      ierr = STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,0,coeffs?coeffs+((nmat-1)*nmat)/2:NULL,PETSC_FALSE,PETSC_TRUE,&st->Pmat);CHKERRQ(ierr);
     }
   }
   if (st->P) {

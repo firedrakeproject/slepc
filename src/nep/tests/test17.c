@@ -273,6 +273,9 @@ int main(int argc,char **argv)
       output_file: output/test17_2.out
       filter: sed -e "s/[+-]0\.0*i//g"
       test:
+         suffix: 2_interpol
+         args: -nep_type interpol -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type sor -nep_tol 1e-6 -nep_interpol_st_ksp_rtol 1e-7
+      test:
          suffix: 2_nleigs
          args: -nep_type nleigs -split {{0 1}}
          requires: complex
@@ -286,11 +289,11 @@ int main(int argc,char **argv)
       output_file: output/test17_3.out
       requires: complex !single
       test:
-          suffix: 3
-          args: -split {{0 1}}
+         suffix: 3
+         args: -split {{0 1}}
       test:
-          suffix: 3_par
-          nsize: 2
-          args: -nep_ciss_partitions 2
+         suffix: 3_par
+         nsize: 2
+         args: -nep_ciss_partitions 2
 
 TEST*/

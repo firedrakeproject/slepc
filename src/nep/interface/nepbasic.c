@@ -1047,7 +1047,7 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
 
   if (nep->state) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"To call this function after NEPSetUp(), you must call NEPSetSplitOperator() again");
 
-  /* allocate space and copy matrices and functions */
+  /* allocate space and copy matrices */
   ierr = PetscMalloc1(ntp,&nep->P);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,ntp*sizeof(Mat));CHKERRQ(ierr);
   for (i=0;i<ntp;i++) nep->P[i] = P[i];
@@ -1078,10 +1078,11 @@ PetscErrorCode NEPGetSplitPreconditionerTerm(NEP nep,PetscInt k,Mat *P)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,k,2);
+  PetscValidPointer(P,3);
   NEPCheckSplit(nep,1);
   if (k<0 || k>=nep->nt) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,nep->nt-1);
   if (!nep->P) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"You have not called NEPSetSplitPreconditioner()");
-  if (P) *P = nep->P[k];
+  *P = nep->P[k];
   PetscFunctionReturn(0);
 }
 

@@ -1,0 +1,53 @@
+
+1-D Laplacian plus diagonal, n=10
+
+Mat Object: (st_) 1 MPI processes
+  type: seqaij
+row 0: (0, -1.)
+row 1: (1, 1.)
+row 2: (2, 2.)
+row 3: (3, 3.)
+row 4: (4, 4.)
+row 5: (5, 5.)
+row 6: (6, 6.)
+row 7: (7, 7.)
+row 8: (8, 8.)
+row 9: (9, 9.)
+ST type shift
+Vec Object: 1 MPI processes
+  type: seq
+-1.
+0.
+0.
+0.
+0.
+0.
+0.
+0.
+0.
+0.111111
+With shift=0.1
+Mat Object: (st_sub_) 1 MPI processes
+  type: seqaij
+row 0: (0, -1.)
+row 1: (1, 1.)
+row 2: (2, 2.)
+row 3: (3, 3.)
+row 4: (4, 4.)
+row 5: (5, 5.)
+row 6: (6, 6.)
+row 7: (7, 7.)
+row 8: (8, 8.)
+row 9: (9, 9.)
+Vec Object: 1 MPI processes
+  type: seq
+-1.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+0.0111111

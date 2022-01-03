@@ -91,7 +91,7 @@ int main(int argc,char **argv)
   ierr = PEPSetType(pep,PEPJD);CHKERRQ(ierr);
 
   /*
-     Test interface functions of STOAR solver
+     Test interface functions of JD solver
   */
   ierr = PEPJDGetRestart(pep,&restart);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Restart parameter before changing = %g",(double)restart);CHKERRQ(ierr);
