@@ -1014,6 +1014,8 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
    from the ones given in NEPSetSplitOperator(), then the split form
    cannot be used. Use the callback interface instead.
 
+   Use ntp=0 to reset a previously set split preconditioner.
+
    Level: advanced
 
 .seealso: NEPGetSplitPreconditionerTerm(), NEPGetSplitPreconditionerInfo(), NEPSetSplitOperator()
@@ -1026,10 +1028,10 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,ntp,2);
-  if (ntp <= 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %" PetscInt_FMT,ntp);
+  if (ntp < 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Negative value of ntp = %" PetscInt_FMT,ntp);
   if (nep->fui != NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"Must call NEPSetSplitOperator first");
-  if (nep->nt != ntp) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The number of terms must be the same as in NEPSetSplitOperator()");
-  PetscValidPointer(P,3);
+  if (ntp && nep->nt != ntp) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The number of terms must be the same as in NEPSetSplitOperator()");
+  if (ntp) PetscValidPointer(P,3);
   PetscValidLogicalCollectiveEnum(nep,strp,4);
 
   for (i=0;i<ntp;i++) {
@@ -1046,11 +1048,14 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
   }
 
   if (nep->state) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"To call this function after NEPSetUp(), you must call NEPSetSplitOperator() again");
+  if (nep->P) { ierr = MatDestroyMatrices(nep->nt,&nep->P);CHKERRQ(ierr); }
 
   /* allocate space and copy matrices */
-  ierr = PetscMalloc1(ntp,&nep->P);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,ntp*sizeof(Mat));CHKERRQ(ierr);
-  for (i=0;i<ntp;i++) nep->P[i] = P[i];
+  if (ntp) {
+    ierr = PetscMalloc1(ntp,&nep->P);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)nep,ntp*sizeof(Mat));CHKERRQ(ierr);
+    for (i=0;i<ntp;i++) nep->P[i] = P[i];
+  }
   nep->mstrp = strp;
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
