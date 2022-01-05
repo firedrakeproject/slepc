@@ -56,7 +56,7 @@ class Feast(package.Package):
 
   def Check(self,slepcconf,slepcvars,petsc,archdir):
     if not 'mkl' in petsc.packages:
-      self.log.Exit('The FEAST interface requires that PETSc has been built with Intel MKL')
+      self.log.Exit('The FEAST interface requires that PETSc has been built with Intel MKL (libraries and includes)')
     code = self.SampleCode(petsc)
 
     (result,output) = self.Link([],[],[],code)
