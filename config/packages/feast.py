@@ -21,22 +21,45 @@ class Feast(package.Package):
     self.supports64bint = True
     self.ProcessArgs(argdb,petscpackages)
 
+  def SampleCode(self,petsc):
+    if petsc.scalar == 'real':
+      if petsc.precision == 'single':
+        function = 'sfeast_srci'
+        rtype = 'float'
+        ctype = 'MKL_Complex8'
+      else:
+        function = 'dfeast_srci'
+        rtype = 'double'
+        ctype = 'MKL_Complex16'
+      stype = rtype
+    else:
+      if petsc.precision == 'single':
+        function = 'cfeast_hrci'
+        rtype = 'float'
+        ctype = 'MKL_Complex8'
+      else:
+        function = 'zfeast_hrci'
+        rtype = 'double'
+        ctype = 'MKL_Complex16'
+      stype = ctype
+
+    code = '#include <mkl.h>\n'
+    code += 'int main() {\n'
+    code += '  ' + rtype + ' epsout=0.0,*evals=NULL,*errest=NULL,inta,intb;\n'
+    code += '  ' + ctype + ' Ze,*work2=NULL;\n'
+    code += '  ' + stype + ' *Aq=NULL,*Bq=NULL,*pV=NULL,*work1=NULL;\n'
+    code += '  MKL_INT fpm[128],ijob,n,loop,ncv,nconv,info;\n'
+    code += '  feastinit(fpm);\n'
+    code += '  ' + function + '(&ijob,&n,&Ze,work1,work2,Aq,Bq,fpm,&epsout,&loop,&inta,&intb,&ncv,evals,pV,&nconv,errest,&info);\n'
+    code += '  return 0;\n}\n'
+    return code
+
   def Check(self,slepcconf,slepcvars,petsc,archdir):
     if not 'mkl' in petsc.packages:
       self.log.Exit('The FEAST interface requires that PETSc has been built with Intel MKL')
-    functions = ['feastinit']
-    if petsc.scalar == 'real':
-      if petsc.precision == 'single':
-        functions += ['sfeast_srci']
-      else:
-        functions += ['dfeast_srci']
-    else:
-      if petsc.precision == 'single':
-        functions += ['cfeast_hrci']
-      else:
-        functions += ['zfeast_hrci']
+    code = self.SampleCode(petsc)
 
-    (result,output) = self.Link(functions,[],[])
+    (result,output) = self.Link([],[],[],code)
     if not result:
       self.log.write('WARNING: Unable to link with FEAST, maybe your MKL version does not contain it')
       self.log.write('If you do not want to check for FEAST, rerun configure adding --with-feast=0')
