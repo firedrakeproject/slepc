@@ -86,7 +86,7 @@ class Evsl(package.Package):
     confopt = '--prefix='+prefixdir+' --with-blas-lib="'+petsc.blaslapack_lib+'" --with-lapack-lib="'+petsc.blaslapack_lib+'" CC="'+petsc.cc+'" CFLAGS="'+petsc.getCFlags()+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.getFFlags()+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.getFFlags()+'"'
     if petsc.buildsharedlib:
       confopt = confopt+' --enable-shared'
-    if 'mkl' in petsc.packages and 'mkl_pardiso' in petsc.packages and 'MKLROOT' in os.environ:
+    if 'mkl_pardiso' in petsc.packages and 'MKLROOT' in os.environ:
       confopt = confopt+' --with-mkl-pardiso --with-intel-mkl'
     (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
     if result:

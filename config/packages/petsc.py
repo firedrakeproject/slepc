@@ -178,10 +178,14 @@ class PETSc(package.Package):
         elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
           self.arch = l[2].strip('"')
         else:
-          for p in ['elemental','hpddm','mkl','mkl_pardiso','scalapack','slepc']:
+          for p in ['elemental','hpddm','mkl_libs','mkl_includes','mkl_pardiso','scalapack','slepc']:
             if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_'+p.upper() and l[2]=='1':
               self.packages.append(p)
       f.close()
+      if 'mkl_libs' in self.packages and 'mkl_includes' in self.packages:
+        self.packages.remove('mkl_libs')
+        self.packages.remove('mkl_includes')
+        self.packages.append('mkl')
     except:
       if self.isinstall:
         self.log.Exit('Cannot process file ' + petscconf_h + ', maybe you forgot to set PETSC_ARCH')
