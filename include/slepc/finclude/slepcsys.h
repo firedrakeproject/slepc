@@ -12,8 +12,7 @@
 #if !defined(SLEPCSYSDEF_H)
 #define SLEPCSYSDEF_H
 
-#include "petscconf.h"
-#include "petsc/finclude/petsc.h"
+#include "petsc/finclude/petscmat.h"
 #include "slepcversion.h"
 
 #define SlepcSC type(tSlepcSC)
