@@ -119,38 +119,51 @@ static PetscErrorCode NEPComputeFunctionSubcomm(NEP nep,PetscScalar lambda,Mat T
 }
 
 /*
+  Set up KSP solvers for every integration point
+*/
+static PetscErrorCode NEPCISSSetUp(NEP nep,Mat T,Mat P)
+{
+  PetscErrorCode   ierr;
+  NEP_CISS         *ctx = (NEP_CISS*)nep->data;
+  SlepcContourData contour;
+  PetscInt         i,p_id;
+  Mat              Amat,Pmat;
+
+  PetscFunctionBegin;
+  if (!ctx->contour || !ctx->contour->ksp) { ierr = NEPCISSGetKSPs(nep,NULL,NULL);CHKERRQ(ierr); }
+  contour = ctx->contour;
+  for (i=0;i<contour->npoints;i++) {
+    p_id = i*contour->subcomm->n + contour->subcomm->color;
+    if (contour->subcomm->n == 1) {
+      ierr = NEPComputeFunction(nep,ctx->omega[p_id],T,P);CHKERRQ(ierr);
+    } else {
+      ierr = NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],T,P,PETSC_FALSE);CHKERRQ(ierr);
+    }
+    ierr = MatDuplicate(T,MAT_COPY_VALUES,&Amat);CHKERRQ(ierr);
+    if (T != P) { ierr = MatDuplicate(P,MAT_COPY_VALUES,&Pmat);CHKERRQ(ierr); } else Pmat = Amat;
+    ierr = NEP_KSPSetOperators(contour->ksp[i],Amat,Pmat);CHKERRQ(ierr);
+    ierr = MatDestroy(&Amat);CHKERRQ(ierr);
+    if (T != P) { ierr = MatDestroy(&Pmat);CHKERRQ(ierr); }
+  }
+  PetscFunctionReturn(0);
+}
+
+/*
   Y_i = F(z_i)^{-1}Fp(z_i)V for every integration point, Y=[Y_i] is in the context
 */
-static PetscErrorCode NEPCISSSolveSystem(NEP nep,Mat T,Mat P,Mat dT,BV V,PetscInt L_start,PetscInt L_end,PetscBool initksp)
+static PetscErrorCode NEPCISSSolve(NEP nep,Mat dT,BV V,PetscInt L_start,PetscInt L_end)
 {
   PetscErrorCode   ierr;
   NEP_CISS         *ctx = (NEP_CISS*)nep->data;
   SlepcContourData contour = ctx->contour;
   PetscInt         i,p_id;
-  Mat              Amat,Pmat,MV,BMV=NULL,MC;
+  Mat              MV,BMV=NULL,MC;
 
   PetscFunctionBegin;
-  if (!ctx->contour || !ctx->contour->ksp) { ierr = NEPCISSGetKSPs(nep,NULL,NULL);CHKERRQ(ierr); }
   ierr = BVSetActiveColumns(V,L_start,L_end);CHKERRQ(ierr);
   ierr = BVGetMat(V,&MV);CHKERRQ(ierr);
   for (i=0;i<contour->npoints;i++) {
     p_id = i*contour->subcomm->n + contour->subcomm->color;
-    if (initksp) {
-      if (contour->subcomm->n == 1) {
-        ierr = NEPComputeFunction(nep,ctx->omega[p_id],T,P);CHKERRQ(ierr);
-      } else {
-        ierr = NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],T,P,PETSC_FALSE);CHKERRQ(ierr);
-      }
-      ierr = MatDuplicate(T,MAT_COPY_VALUES,&Amat);CHKERRQ(ierr);
-      if (T != P) {
-        ierr = MatDuplicate(P,MAT_COPY_VALUES,&Pmat);CHKERRQ(ierr);
-      } else Pmat = Amat;
-      ierr = NEP_KSPSetOperators(contour->ksp[i],Amat,Pmat);CHKERRQ(ierr);
-      ierr = MatDestroy(&Amat);CHKERRQ(ierr);
-      if (T != P) {
-        ierr = MatDestroy(&Pmat);CHKERRQ(ierr);
-      } else Pmat = NULL;
-    }
     if (contour->subcomm->n==1) {
       ierr = NEPComputeJacobian(nep,ctx->omega[p_id],dT);CHKERRQ(ierr);
     } else {
@@ -330,7 +343,8 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
   ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
   if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
-  ierr = NEPCISSSolveSystem(nep,T,P,J,V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = NEPCISSSetUp(nep,T,P);CHKERRQ(ierr);
+  ierr = NEPCISSSolve(nep,J,V,0,ctx->L);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
     ierr = BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L_max,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig);CHKERRQ(ierr);
@@ -348,7 +362,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
-    ierr = NEPCISSSolveSystem(nep,T,P,J,V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = NEPCISSSolve(nep,J,V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ctx->L += L_add;
   }
 
@@ -366,7 +380,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
-    ierr = NEPCISSSolveSystem(nep,T,P,J,V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = NEPCISSSolve(nep,J,V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ctx->L += L_add;
     if (L_add) {
       ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
@@ -401,7 +415,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
         ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
         if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
-        ierr = NEPCISSSolveSystem(nep,T,P,J,V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+        ierr = NEPCISSSolve(nep,J,V,0,ctx->L);CHKERRQ(ierr);
       } else break;
     }
     nep->nconv = 0;
@@ -506,7 +520,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
         ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
         if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
-        ierr = NEPCISSSolveSystem(nep,T,P,J,V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+        ierr = NEPCISSSolve(nep,J,V,0,ctx->L);CHKERRQ(ierr);
       }
     }
   }
