@@ -52,6 +52,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
   NEPSimpNRefctx *ctx;
   Vec            v;
   PetscMPIInt    rank,size;
+  MPI_Comm       child;
 
   PetscFunctionBegin;
   ierr = PetscCalloc1(1,ctx_);CHKERRQ(ierr);
@@ -62,11 +63,12 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     nep->refinesubc = NULL;
     ctx->scatter_id = NULL;
   } else {
+    ierr = PetscSubcommGetChild(nep->refinesubc,&child);CHKERRQ(ierr);
     ierr = PetscMalloc2(nep->nt,&ctx->A,nep->npart,&ctx->scatter_id);CHKERRQ(ierr);
 
     /* Duplicate matrices */
     for (i=0;i<nep->nt;i++) {
-      ierr = MatCreateRedundantMatrix(nep->A[i],0,PetscSubcommChild(nep->refinesubc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(nep->A[i],0,child,MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
@@ -75,7 +77,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     /* Duplicate FNs */
     ierr = PetscMalloc1(nep->nt,&ctx->fn);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
-      ierr = FNDuplicate(nep->f[i],PetscSubcommChild(nep->refinesubc),&ctx->fn[i]);CHKERRQ(ierr);
+      ierr = FNDuplicate(nep->f[i],child,&ctx->fn[i]);CHKERRQ(ierr);
     }
 
     /* Create scatters for sending vectors to each subcommucator */
@@ -387,7 +389,6 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   ierr = PetscLogEventBegin(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
   ierr = NEPSimpleNRefSetUp(nep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
-  comm = (nep->npart==1)?PetscObjectComm((PetscObject)nep):PetscSubcommChild(nep->refinesubc);
   if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
   if (nep->npart==1) {
     ierr = BVGetColumn(nep->V,0,&v);CHKERRQ(ierr);
@@ -397,7 +398,12 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   ierr = VecDuplicate(v,&dv);CHKERRQ(ierr);
   ierr = VecDuplicate(v,&t[0]);CHKERRQ(ierr);
   ierr = VecDuplicate(v,&t[1]);CHKERRQ(ierr);
-  if (nep->npart==1) { ierr = BVRestoreColumn(nep->V,0,&v);CHKERRQ(ierr); }
+  if (nep->npart==1) {
+    ierr = BVRestoreColumn(nep->V,0,&v);CHKERRQ(ierr);
+    ierr = PetscObjectGetComm((PetscObject)nep,&comm);CHKERRQ(ierr);
+  } else {
+    ierr = PetscSubcommGetChild(nep->refinesubc,&comm);CHKERRQ(ierr);
+  }
   ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
   ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
   ierr = VecGetLocalSize(r,&n);CHKERRQ(ierr);

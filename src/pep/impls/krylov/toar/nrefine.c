@@ -1050,7 +1050,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
     if (ini) {
       if (matctx->subc) {
         A = matctx->A;
-        comm = PetscSubcommChild(matctx->subc);
+        ierr = PetscSubcommGetChild(matctx->subc,&comm);CHKERRQ(ierr);
       } else {
         A = At;
         ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
@@ -1149,7 +1149,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
     if (ini) {
       if (matctx->subc) {
         A = matctx->A;
-        comm = PetscSubcommChild(matctx->subc);
+        ierr = PetscSubcommGetChild(matctx->subc,&comm);CHKERRQ(ierr);
       } else {
         matctx->V = pep->V;
         A = At;
@@ -1245,6 +1245,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,PEP_REFINE_EXPLICIT *m
   const PetscScalar *array;
   Mat               *A;
   PetscBool         flg;
+  MPI_Comm          contpar,child;
 
   PetscFunctionBegin;
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -1254,18 +1255,20 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,PEP_REFINE_EXPLICIT *m
       ierr = STGetMatrixTransformed(pep->st,i,&A[i]);CHKERRQ(ierr);
     }
   } else A = pep->A;
+  ierr = PetscSubcommGetChild(matctx->subc,&child);CHKERRQ(ierr);
+  ierr = PetscSubcommGetContiguousParent(matctx->subc,&contpar);CHKERRQ(ierr);
 
   /* Duplicate pep matrices */
   ierr = PetscMalloc3(pep->nmat,&matctx->A,nsubc,&matctx->scatter_id,nsubc,&matctx->scatterp_id);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
-    ierr = MatCreateRedundantMatrix(A[i],0,PetscSubcommChild(matctx->subc),MAT_INITIAL_MATRIX,&matctx->A[i]);CHKERRQ(ierr);
+    ierr = MatCreateRedundantMatrix(A[i],0,child,MAT_INITIAL_MATRIX,&matctx->A[i]);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)matctx->A[i]);CHKERRQ(ierr);
   }
 
   /* Create Scatter */
   ierr = MatCreateVecs(matctx->A[0],&matctx->t,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(matctx->A[0],&nloc_sub,NULL);CHKERRQ(ierr);
-  ierr = VecCreateMPI(PetscSubcommContiguousParent(matctx->subc),nloc_sub,PETSC_DECIDE,&matctx->tg);CHKERRQ(ierr);
+  ierr = VecCreateMPI(contpar,nloc_sub,PETSC_DECIDE,&matctx->tg);CHKERRQ(ierr);
   ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
   ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
   nloc0 = m0-n0;
@@ -1299,7 +1302,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,PEP_REFINE_EXPLICIT *m
 
   /* Duplicate pep->V vecs */
   ierr = BVGetType(pep->V,&type);CHKERRQ(ierr);
-  ierr = BVCreate(PetscSubcommChild(matctx->subc),&matctx->V);CHKERRQ(ierr);
+  ierr = BVCreate(child,&matctx->V);CHKERRQ(ierr);
   ierr = BVSetType(matctx->V,type);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(matctx->V,matctx->t,k);CHKERRQ(ierr);
   if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT) {

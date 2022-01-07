@@ -1237,6 +1237,7 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
   SlepcContourData contour;
   PetscInt         i,nsplit;
   PC               pc;
+  MPI_Comm         child;
 
   PetscFunctionBegin;
   if (!ctx->contour) {  /* initialize contour data structure first */
@@ -1248,8 +1249,9 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
     ierr = PetscMalloc1(contour->npoints,&contour->ksp);CHKERRQ(ierr);
     ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr);
     ierr = STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL);CHKERRQ(ierr);
+    ierr = PetscSubcommGetChild(contour->subcomm,&child);CHKERRQ(ierr);
     for (i=0;i<contour->npoints;i++) {
-      ierr = KSPCreate(PetscSubcommChild(contour->subcomm),&contour->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPCreate(child,&contour->ksp[i]);CHKERRQ(ierr);
       ierr = PetscObjectIncrementTabLevel((PetscObject)contour->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
       ierr = KSPSetOptionsPrefix(contour->ksp[i],((PetscObject)eps)->prefix);CHKERRQ(ierr);
       ierr = KSPAppendOptionsPrefix(contour->ksp[i],"eps_ciss_");CHKERRQ(ierr);

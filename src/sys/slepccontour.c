@@ -95,6 +95,7 @@ PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,M
 {
   PetscErrorCode ierr;
   PetscInt       i;
+  MPI_Comm       child;
 
   PetscFunctionBegin;
   if (contour->pA) {
@@ -103,15 +104,16 @@ PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,M
     contour->nmat = 0;
   }
   if (contour->subcomm && contour->subcomm->n != 1) {
+    ierr = PetscSubcommGetChild(contour->subcomm,&child);CHKERRQ(ierr);
     ierr = PetscCalloc1(nmat,&contour->pA);CHKERRQ(ierr);
     for (i=0;i<nmat;i++) {
-      ierr = MatCreateRedundantMatrix(A[i],contour->subcomm->n,PetscSubcommChild(contour->subcomm),MAT_INITIAL_MATRIX,&contour->pA[i]);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(A[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pA[i]);CHKERRQ(ierr);
       ierr = PetscLogObjectParent(contour->parent,(PetscObject)contour->pA[i]);CHKERRQ(ierr);
     }
     if (P) {
       ierr = PetscCalloc1(nmat,&contour->pP);CHKERRQ(ierr);
       for (i=0;i<nmat;i++) {
-        ierr = MatCreateRedundantMatrix(P[i],contour->subcomm->n,PetscSubcommChild(contour->subcomm),MAT_INITIAL_MATRIX,&contour->pP[i]);CHKERRQ(ierr);
+        ierr = MatCreateRedundantMatrix(P[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pP[i]);CHKERRQ(ierr);
         ierr = PetscLogObjectParent(contour->parent,(PetscObject)contour->pP[i]);CHKERRQ(ierr);
       }
     }
@@ -135,6 +137,7 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
   IS             is1,is2;
   PetscInt       i,j,k,m,mstart,mend,mlocal;
   PetscInt       *idx1,*idx2,mloc_sub;
+  MPI_Comm       contpar,parent;
 
   PetscFunctionBegin;
   ierr = VecDestroy(&contour->xsub);CHKERRQ(ierr);
@@ -142,7 +145,8 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
 
   ierr = VecDestroy(&contour->xdup);CHKERRQ(ierr);
   ierr = MatGetLocalSize(contour->pA[0],&mloc_sub,NULL);CHKERRQ(ierr);
-  ierr = VecCreate(PetscSubcommContiguousParent(contour->subcomm),&contour->xdup);CHKERRQ(ierr);
+  ierr = PetscSubcommGetContiguousParent(contour->subcomm,&contpar);CHKERRQ(ierr);
+  ierr = VecCreate(contpar,&contour->xdup);CHKERRQ(ierr);
   ierr = VecSetSizes(contour->xdup,mloc_sub,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = VecSetType(contour->xdup,((PetscObject)v)->type_name);CHKERRQ(ierr);
 
@@ -158,8 +162,9 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
       idx2[j++] = i + m*k;
     }
   }
-  ierr = ISCreateGeneral(PetscSubcommParent(contour->subcomm),contour->subcomm->n*mlocal,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
-  ierr = ISCreateGeneral(PetscSubcommParent(contour->subcomm),contour->subcomm->n*mlocal,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
+  ierr = PetscSubcommGetParent(contour->subcomm,&parent);CHKERRQ(ierr);
+  ierr = ISCreateGeneral(parent,contour->subcomm->n*mlocal,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
+  ierr = ISCreateGeneral(parent,contour->subcomm->n*mlocal,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
   ierr = VecScatterCreate(v,is1,contour->xdup,is2,&contour->scatterin);CHKERRQ(ierr);
   ierr = ISDestroy(&is1);CHKERRQ(ierr);
   ierr = ISDestroy(&is2);CHKERRQ(ierr);

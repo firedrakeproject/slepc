@@ -51,6 +51,7 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
   PEPSimpNRefctx *ctx;
   Vec            v;
   PetscMPIInt    rank,size;
+  MPI_Comm       child;
 
   PetscFunctionBegin;
   ierr = PetscCalloc1(1,ctx_);CHKERRQ(ierr);
@@ -60,11 +61,12 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
     ctx->scatter_id = NULL;
     ctx->A = pep->A;
   } else {
+    ierr = PetscSubcommGetChild(pep->refinesubc,&child);CHKERRQ(ierr);
     ierr = PetscMalloc2(pep->nmat,&ctx->A,pep->npart,&ctx->scatter_id);CHKERRQ(ierr);
 
     /* Duplicate matrices */
     for (i=0;i<pep->nmat;i++) {
-      ierr = MatCreateRedundantMatrix(pep->A[i],0,PetscSubcommChild(pep->refinesubc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(pep->A[i],0,child,MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
@@ -394,7 +396,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,
   ierr = PEPSimpleNRefSetUp(pep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
   if (!pep->refineksp) { ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr); }
-  comm = (pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(pep->refinesubc);
   if (pep->npart==1) {
     ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
   } else v = ctx->v;
@@ -403,7 +404,12 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,
   ierr = VecDuplicate(v,&dv);CHKERRQ(ierr);
   ierr = VecDuplicate(v,&t[0]);CHKERRQ(ierr);
   ierr = VecDuplicate(v,&t[1]);CHKERRQ(ierr);
-  if (pep->npart==1) { ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr); }
+  if (pep->npart==1) {
+    ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr);
+    ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
+  } else {
+    ierr = PetscSubcommGetChild(pep->refinesubc,&comm);CHKERRQ(ierr);
+  }
   ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
   ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
   ierr = VecGetLocalSize(r,&n);CHKERRQ(ierr);

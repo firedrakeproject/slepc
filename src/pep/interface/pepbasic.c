@@ -644,6 +644,7 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
 {
   PetscErrorCode ierr;
+  MPI_Comm       comm;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -655,8 +656,11 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
       ierr = PetscSubcommSetNumber(pep->refinesubc,pep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
       ierr = PetscSubcommSetType(pep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
       ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
+      ierr = PetscSubcommGetChild(pep->refinesubc,&comm);CHKERRQ(ierr);
+    } else {
+      ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
     }
-    ierr = KSPCreate((pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(pep->refinesubc),&pep->refineksp);CHKERRQ(ierr);
+    ierr = KSPCreate(comm,&pep->refineksp);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)pep->refineksp,(PetscObject)pep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp);CHKERRQ(ierr);
     ierr = PetscObjectSetOptions((PetscObject)pep->refineksp,((PetscObject)pep)->options);CHKERRQ(ierr);
