@@ -98,22 +98,17 @@ static PetscErrorCode NEPComputeFunctionSubcomm(NEP nep,PetscScalar lambda,Mat T
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
-  switch (nep->fui) {
-  case NEP_USER_INTERFACE_CALLBACK:
-    SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Partitions are not supported with callbacks");
-  case NEP_USER_INTERFACE_SPLIT:
-    ierr = MatZeroEntries(T);CHKERRQ(ierr);
-    if (!deriv && T != P) { ierr = MatZeroEntries(P);CHKERRQ(ierr); }
-    for (i=0;i<nep->nt;i++) {
-      if (!deriv) {
-        ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
-      } else {
-        ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
-      }
-      ierr = MatAXPY(T,alpha,ctx->contour->pA[i],nep->mstr);CHKERRQ(ierr);
-      if (!deriv && T != P) { ierr = MatAXPY(P,alpha,ctx->contour->pP[i],nep->mstrp);CHKERRQ(ierr); }
+  if (nep->fui==NEP_USER_INTERFACE_CALLBACK) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"Should not arrive here with callbacks");
+  ierr = MatZeroEntries(T);CHKERRQ(ierr);
+  if (!deriv && T != P) { ierr = MatZeroEntries(P);CHKERRQ(ierr); }
+  for (i=0;i<nep->nt;i++) {
+    if (!deriv) {
+      ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
     }
-    break;
+    ierr = MatAXPY(T,alpha,ctx->contour->pA[i],nep->mstr);CHKERRQ(ierr);
+    if (!deriv && T != P) { ierr = MatAXPY(P,alpha,ctx->contour->pP[i],nep->mstrp);CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
 }
@@ -136,7 +131,7 @@ static PetscErrorCode NEPCISSSetUp(NEP nep,Mat T,Mat P)
     p_id = i*contour->subcomm->n + contour->subcomm->color;
     ierr = MatDuplicate(T,MAT_DO_NOT_COPY_VALUES,&Amat);CHKERRQ(ierr);
     if (T != P) { ierr = MatDuplicate(P,MAT_DO_NOT_COPY_VALUES,&Pmat);CHKERRQ(ierr); } else Pmat = Amat;
-    if (contour->subcomm->n == 1) {
+    if (contour->subcomm->n == 1 || nep->fui==NEP_USER_INTERFACE_CALLBACK) {
       ierr = NEPComputeFunction(nep,ctx->omega[p_id],Amat,Pmat);CHKERRQ(ierr);
     } else {
       ierr = NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],Amat,Pmat,PETSC_FALSE);CHKERRQ(ierr);
@@ -164,7 +159,7 @@ static PetscErrorCode NEPCISSSolve(NEP nep,Mat dT,BV V,PetscInt L_start,PetscInt
   ierr = BVGetMat(V,&MV);CHKERRQ(ierr);
   for (i=0;i<contour->npoints;i++) {
     p_id = i*contour->subcomm->n + contour->subcomm->color;
-    if (contour->subcomm->n==1) {
+    if (contour->subcomm->n==1 || nep->fui==NEP_USER_INTERFACE_CALLBACK) {
       ierr = NEPComputeJacobian(nep,ctx->omega[p_id],dT);CHKERRQ(ierr);
     } else {
       ierr = NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],dT,NULL,PETSC_TRUE);CHKERRQ(ierr);
@@ -251,7 +246,12 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->V);CHKERRQ(ierr);
 
   contour = ctx->contour;
-  ierr = SlepcContourRedundantMat(contour,nep->nt,nep->A,nep->P);CHKERRQ(ierr);
+  if (contour->subcomm && contour->subcomm->n != 1 && nep->fui==NEP_USER_INTERFACE_CALLBACK) {
+    ierr = NEPComputeFunction(nep,0,nep->function,nep->function_pre);CHKERRQ(ierr);
+    ierr = SlepcContourRedundantMat(contour,1,&nep->function,(nep->function!=nep->function_pre)?&nep->function_pre:NULL);CHKERRQ(ierr);
+  } else {
+    ierr = SlepcContourRedundantMat(contour,nep->nt,nep->A,nep->P);CHKERRQ(ierr);
+  }
   if (contour->pA) {
     if (!ctx->J) {
       ierr = MatDuplicate(contour->pA[0],MAT_DO_NOT_COPY_VALUES,&ctx->J);CHKERRQ(ierr);
@@ -327,7 +327,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   ierr = RGComputeQuadrature(nep->rg,RG_QUADRULE_TRAPEZOIDAL,ctx->N,ctx->omega,ctx->pp,ctx->weight);CHKERRQ(ierr);
   if (contour->pA) {
     T = contour->pA[0];
-    P = (nep->fui==NEP_USER_INTERFACE_SPLIT && nep->P)? contour->pP[0]: T;
+    P = ((nep->fui==NEP_USER_INTERFACE_SPLIT && nep->P) || (nep->fui==NEP_USER_INTERFACE_CALLBACK && contour->pP))? contour->pP[0]: T;
   } else {
     T = nep->function;
     P = nep->function_pre? nep->function_pre: nep->function;

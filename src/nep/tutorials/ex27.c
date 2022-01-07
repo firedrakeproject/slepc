@@ -281,10 +281,16 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
          args: -mat_type aijcusparse
          requires: cuda !single
 
-   test:
-      suffix: 7
+   testset:
       args: -split 0 -nep_type ciss -nep_ciss_extraction {{ritz hankel caa}} -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -nep_ciss_moments 4 -rg_ellipse_vscale 0.1 -terse
       requires: complex !single
+      output_file: output/ex27_7.out
+      test:
+         suffix: 7
+      test:
+         suffix: 7_par
+         nsize: 2
+         args: -nep_ciss_partitions 2
 
    testset:
       args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse
