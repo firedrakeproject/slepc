@@ -48,6 +48,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   PetscBool      isascii,islinear,istrivial;
   PetscInt       i;
   PetscViewer    sviewer;
+  MPI_Comm       child;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -193,7 +194,8 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     if (pep->npart>1) {
       if (pep->refinesubc->color==0) {
-        ierr = PetscViewerASCIIGetStdout(PetscSubcommChild(pep->refinesubc),&sviewer);CHKERRQ(ierr);
+        ierr = PetscSubcommGetChild(pep->refinesubc,&child);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIGetStdout(child,&sviewer);CHKERRQ(ierr);
         ierr = KSPView(pep->refineksp,sviewer);CHKERRQ(ierr);
       }
     } else {

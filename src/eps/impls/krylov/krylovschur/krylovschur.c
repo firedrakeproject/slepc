@@ -1295,7 +1295,7 @@ PetscErrorCode EPSKrylovSchurUpdateSubcommMats(EPS eps,PetscScalar s,PetscScalar
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
+PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *childeps)
 {
   PetscErrorCode   ierr;
   EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data,*ctx_local;
@@ -1306,6 +1306,7 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
   STType           sttype;
   PetscInt         nmat;
   const char       *prefix;
+  MPI_Comm         child;
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
@@ -1327,30 +1328,32 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
       ierr = PetscSubcommSetNumber(ctx->subc,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
       ierr = PetscSubcommSetType(ctx->subc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
       ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
+      ierr = PetscSubcommGetChild(ctx->subc,&child);CHKERRQ(ierr);
 
       /* Duplicate matrices */
-      ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(A,0,child,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)Ar);CHKERRQ(ierr);
       ctx->Astate = Astate;
       ctx->Aid = Aid;
       ierr = MatPropagateSymmetryOptions(A,Ar);CHKERRQ(ierr);
       if (B) {
-        ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
+        ierr = MatCreateRedundantMatrix(B,0,child,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
         ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)Br);CHKERRQ(ierr);
         ctx->Bstate = Bstate;
         ctx->Bid = Bid;
         ierr = MatPropagateSymmetryOptions(B,Br);CHKERRQ(ierr);
       }
     } else {
+      ierr = PetscSubcommGetChild(ctx->subc,&child);CHKERRQ(ierr);
       if (ctx->Astate != Astate || (B && ctx->Bstate != Bstate) || ctx->Aid != Aid || (B && ctx->Bid != Bid)) {
         ierr = STGetNumMatrices(ctx->eps->st,&nmat);CHKERRQ(ierr);
         if (nmat) {ierr = EPSGetOperators(ctx->eps,&Ar,&Br);CHKERRQ(ierr);}
-        ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+        ierr = MatCreateRedundantMatrix(A,0,child,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
         ctx->Astate = Astate;
         ctx->Aid = Aid;
         ierr = MatPropagateSymmetryOptions(A,Ar);CHKERRQ(ierr);
         if (B) {
-          ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
+          ierr = MatCreateRedundantMatrix(B,0,child,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
           ctx->Bstate = Bstate;
           ctx->Bid = Bid;
           ierr = MatPropagateSymmetryOptions(B,Br);CHKERRQ(ierr);
@@ -1363,7 +1366,7 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
 
     /* Create auxiliary EPS */
     if (!ctx->eps) {
-      ierr = EPSCreate(PetscSubcommChild(ctx->subc),&ctx->eps);CHKERRQ(ierr);
+      ierr = EPSCreate(child,&ctx->eps);CHKERRQ(ierr);
       ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
       ierr = EPSSetOptionsPrefix(ctx->eps,prefix);CHKERRQ(ierr);
       ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
@@ -1372,7 +1375,7 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
     }
     /* Create subcommunicator grouping processes with same rank */
     if (ctx->commset) { ierr = MPI_Comm_free(&ctx->commrank);CHKERRMPI(ierr); }
-    ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRMPI(ierr);
+    ierr = MPI_Comm_rank(child,&rank);CHKERRMPI(ierr);
     ierr = MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank);CHKERRMPI(ierr);
     ctx->commset = PETSC_TRUE;
   }
@@ -1386,7 +1389,7 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *child)
   ctx_local->eps = eps;
   ctx_local->subc = ctx->subc;
   ctx_local->commrank = ctx->commrank;
-  *child = ctx->eps;
+  *childeps = ctx->eps;
   PetscFunctionReturn(0);
 }
 

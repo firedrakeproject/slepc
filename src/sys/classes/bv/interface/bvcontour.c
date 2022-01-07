@@ -194,12 +194,14 @@ PetscErrorCode BVDotQuadrature(BV Y,BV V,PetscScalar *Mu,PetscInt M,PetscInt L,P
   PetscScalar       *temp,*temp2,*ppk,alp;
   Mat               H;
   const PetscScalar *pH;
+  MPI_Comm          child,parent;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(Y,BV_CLASSID,1);
   PetscValidHeaderSpecific(V,BV_CLASSID,2);
 
-  ierr = MPI_Comm_size(PetscSubcommChild(subcomm),&sub_size);CHKERRMPI(ierr);
+  ierr = PetscSubcommGetChild(subcomm,&child);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(child,&sub_size);CHKERRMPI(ierr);
   ierr = PetscMalloc3(npoints*L*(L+1),&temp,2*M*L*L,&temp2,npoints,&ppk);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,L,L_max*npoints,NULL,&H);CHKERRQ(ierr);
   ierr = PetscArrayzero(temp2,2*M*L*L);CHKERRQ(ierr);
@@ -230,7 +232,8 @@ PetscErrorCode BVDotQuadrature(BV Y,BV V,PetscScalar *Mu,PetscInt M,PetscInt L,P
   }
   for (i=0;i<2*M*L*L;i++) temp2[i] /= sub_size;
   ierr = PetscMPIIntCast(2*M*L*L,&count);CHKERRQ(ierr);
-  ierr = MPIU_Allreduce(temp2,Mu,count,MPIU_SCALAR,MPIU_SUM,PetscSubcommParent(subcomm));CHKERRMPI(ierr);
+  ierr = PetscSubcommGetParent(subcomm,&parent);CHKERRQ(ierr);
+  ierr = MPIU_Allreduce(temp2,Mu,count,MPIU_SCALAR,MPIU_SUM,parent);CHKERRMPI(ierr);
   ierr = PetscFree3(temp,temp2,ppk);CHKERRQ(ierr);
   ierr = MatDestroy(&H);CHKERRQ(ierr);
   PetscFunctionReturn(0);
