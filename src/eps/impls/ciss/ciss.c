@@ -426,30 +426,32 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   w[2] = eps->work[1];
   ierr = VecGetLocalSize(w[0],&nlocal);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
+  ierr = RGComputeQuadrature(eps->rg,ctx->quad==EPS_CISS_QUADRULE_CHEBYSHEV?RG_QUADRULE_CHEBYSHEV:RG_QUADRULE_TRAPEZOIDAL,ctx->N,ctx->omega,ctx->pp,ctx->weight);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
-  T = contour->pA? contour->pA[0]: A;
-  J = contour->pA? contour->pA[1]: B;
+  J = (contour->pA && nmat>1)? contour->pA[1]: B;
   V = contour->pA? ctx->pV: ctx->V;
-  ierr = STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL);CHKERRQ(ierr);
-  if (nsplit) {
-    if (contour->pA) {
-      Pa = contour->pP[0];
-      if (nsplit>1) Pb = contour->pP[1];
-    } else {
-      ierr = STGetSplitPreconditionerTerm(eps->st,0,&Pa);CHKERRQ(ierr);
-      if (nsplit>1) { ierr = STGetSplitPreconditionerTerm(eps->st,1,&Pb);CHKERRQ(ierr); }
+  if (!ctx->usest) {
+    T = contour->pA? contour->pA[0]: A;
+    ierr = STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL);CHKERRQ(ierr);
+    if (nsplit) {
+      if (contour->pA) {
+        Pa = contour->pP[0];
+        if (nsplit>1) Pb = contour->pP[1];
+      } else {
+        ierr = STGetSplitPreconditionerTerm(eps->st,0,&Pa);CHKERRQ(ierr);
+        if (nsplit>1) { ierr = STGetSplitPreconditionerTerm(eps->st,1,&Pb);CHKERRQ(ierr); }
+      }
     }
+    ierr = EPSCISSSetUp(eps,T,J,Pa,Pb);CHKERRQ(ierr);
   }
-  ierr = RGComputeQuadrature(eps->rg,ctx->quad==EPS_CISS_QUADRULE_CHEBYSHEV?RG_QUADRULE_CHEBYSHEV:RG_QUADRULE_TRAPEZOIDAL,ctx->N,ctx->omega,ctx->pp,ctx->weight);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
   ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
   ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
 
   if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
-  if (!ctx->usest) { ierr = EPSCISSSetUp(eps,T,J,Pa,Pb);CHKERRQ(ierr); }
   ierr = EPSCISSSolve(eps,J,V,0,ctx->L);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
