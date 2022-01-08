@@ -17,7 +17,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   Vec            t,r,v;
   Mat            B,Ymat;
-  BV             X,Y,Z,Zcopy;
+  BV             X,Y,Z=NULL,Zcopy=NULL;
   PetscInt       i,j,m=10,n,k=5,rep=1,Istart,Iend;
   PetscScalar    *pZ;
   PetscReal      norm;
@@ -112,6 +112,24 @@ int main(int argc,char **argv)
   }
   if (verbose) {
     ierr = BVView(Y,view);CHKERRQ(ierr);
+  }
+
+  if (fromfile) {
+    /* Test BVMatMultTranspose */
+    ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
+    ierr = BVSetRandom(Z);CHKERRQ(ierr);
+    for (i=0;i<rep;i++) {
+      ierr = BVMatMultTranspose(Z,B,Y);CHKERRQ(ierr);
+    }
+    if (verbose) {
+      ierr = BVView(Z,view);CHKERRQ(ierr);
+      ierr = BVView(Y,view);CHKERRQ(ierr);
+    }
+    ierr = BVDestroy(&Z);CHKERRQ(ierr);
+    ierr = BVMatMultTransposeColumn(Y,B,2);CHKERRQ(ierr);
+    if (verbose) {
+      ierr = BVView(Y,view);CHKERRQ(ierr);
+    }
   }
 
   /* Test BVGetMat/RestoreMat */
@@ -223,5 +241,15 @@ int main(int argc,char **argv)
       test:
          suffix: 2_mat
          args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult mat
+
+   testset:
+      output_file: output/test7_3.out
+      filter: grep -v "Using method"
+      args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -bv_reproducible_random
+      requires: double !complex !defined(PETSC_USE_64BIT_INDICES)
+      nsize: 2
+      test:
+         suffix: 3
+         args: -bv_type {{vecs contiguous svec mat}shared output} -bv_matmult {{vecs mat}}
 
 TEST*/
