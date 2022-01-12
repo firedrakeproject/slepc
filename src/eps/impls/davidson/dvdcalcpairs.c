@@ -501,7 +501,7 @@ static PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscI
     }
     ierr = BVSetActiveColumns(cX,l,k);CHKERRQ(ierr);
     if (lindep || (PetscAbs(d->nR[r_s+i]) < PETSC_MACHINE_EPSILON)) {
-      ierr = PetscInfo2(d->eps,"The computed eigenvector residual %" PetscInt_FMT " is too low, %g!\n",r_s+i,(double)(d->nR[r_s+i]));CHKERRQ(ierr);
+      ierr = PetscInfo(d->eps,"The computed eigenvector residual %" PetscInt_FMT " is too low, %g!\n",r_s+i,(double)(d->nR[r_s+i]));CHKERRQ(ierr);
     }
   } else {
     for (i=0;i<r_e-r_s;i++) {

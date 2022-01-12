@@ -152,11 +152,11 @@ PetscErrorCode PEPStoppingBasic(PEP pep,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionBegin;
   *reason = PEP_CONVERGED_ITERATING;
   if (nconv >= nev) {
-    ierr = PetscInfo2(pep,"Polynomial eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
+    ierr = PetscInfo(pep,"Polynomial eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
     *reason = PEP_CONVERGED_TOL;
   } else if (its >= max_it) {
     *reason = PEP_DIVERGED_ITS;
-    ierr = PetscInfo1(pep,"Polynomial eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
+    ierr = PetscInfo(pep,"Polynomial eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

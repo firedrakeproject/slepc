@@ -263,7 +263,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   if (match) PetscFunctionReturn(0);
 
   ierr =  PetscFunctionListFind(DSList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
+  if (!r) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
   ierr = PetscMemzero(ds->ops,sizeof(struct _DSOps));CHKERRQ(ierr);
 
@@ -893,7 +893,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   PetscValidType(ds,1);
   if (ld<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
   if (ld!=ds->ld) {
-    ierr = PetscInfo1(ds,"Allocating memory with leading dimension=%" PetscInt_FMT "\n",ld);CHKERRQ(ierr);
+    ierr = PetscInfo(ds,"Allocating memory with leading dimension=%" PetscInt_FMT "\n",ld);CHKERRQ(ierr);
     ierr = DSReset(ds);CHKERRQ(ierr);
     ds->ld = ld;
     ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);

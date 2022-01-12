@@ -265,7 +265,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (eps->useds && !eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   if (eps->twosided) {
-    if (eps->ishermitian && (!eps->isgeneralized || eps->ispositive)) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for %s problems",SLEPC_STRING_HERMITIAN);
+    if (eps->ishermitian && (!eps->isgeneralized || eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for %s problems",SLEPC_STRING_HERMITIAN);
   }
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
   if (!((PetscObject)eps->rg)->type_name) {
@@ -414,15 +414,15 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   /* Check matrix sizes */
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&mloc,&nloc);CHKERRQ(ierr);
-  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
-  if (mloc!=nloc) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A does not have equal row and column sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,nloc);
+  if (m!=n) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
+  if (mloc!=nloc) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A does not have equal row and column sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,nloc);
   if (B) {
     ierr = MatGetSize(B,&m0,&n);CHKERRQ(ierr);
     ierr = MatGetLocalSize(B,&mloc0,&nloc);CHKERRQ(ierr);
-    if (m0!=n) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m0,n);
-    if (mloc0!=nloc) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc0,nloc);
-    if (m!=m0) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",m,m0);
-    if (mloc!=mloc0) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Local dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,mloc0);
+    if (m0!=n) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m0,n);
+    if (mloc0!=nloc) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc0,nloc);
+    if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",m,m0);
+    if (mloc!=mloc0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Local dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,mloc0);
   }
   if (eps->state && (n!=eps->n || nloc!=eps->nloc)) { ierr = EPSReset(eps);CHKERRQ(ierr); }
   eps->nrma = 0.0;

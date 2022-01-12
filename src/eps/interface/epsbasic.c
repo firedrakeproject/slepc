@@ -170,7 +170,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFunctionListFind(EPSList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
+  if (!r) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
 
   if (eps->ops->destroy) { ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr); }
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);

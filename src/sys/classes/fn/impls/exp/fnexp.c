@@ -858,7 +858,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
     case 7:  c = c7;  break;
     case 9:  c = c9;  break;
     case 13: c = c13; break;
-    default: SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %" PetscInt_FMT,m);
+    default: SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %" PetscInt_FMT,m);
   }
   P = Ba;
   Q = Apowers[4] + n*n;
@@ -917,7 +917,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&sone,W,&one,Q,&one));
       ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
       break;
-    default: SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %" PetscInt_FMT,m);
+    default: SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %" PetscInt_FMT,m);
   }
   PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&smone,P,&one,Q,&one));
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n_,&n_,Q,&n_,ipiv,P,&n_,&info));
@@ -1034,12 +1034,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 
     cberr = cublasXgetrfBatched(cublasv2handle,n,d_ppQ,ld,d_ipiv,d_info,one);CHKERRCUBLAS(cberr);
     cerr = cudaMemcpy(&info,d_info,sizeof(PetscBLASInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
+    if (info < 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
+    if (info > 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
 #if defined (CUDA_VERSION) && CUDA_VERSION >= 5050
     cberr = cublasXgetrsBatched(cublasv2handle,CUBLAS_OP_N,n,n,(const PetscScalar **)d_ppQ,ld,d_ipiv,d_ppP,ld,&info,one);CHKERRCUBLAS(cberr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
+    if (info < 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
+    if (info > 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
 #else
     SETERRQ(communicator,PETSC_ERR_LIB,"cublasXgetrsBatched needs CUDA >= 7");
 #endif
@@ -1058,12 +1058,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 
     cberr = cublasXgetrfBatched(cublasv2handle,n,d_ppQ,ld,d_ipiv,d_info,one);CHKERRCUBLAS(cberr);
     cerr = cudaMemcpy(&info,d_info,sizeof(PetscBLASInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
+    if (info < 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
+    if (info > 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
 #if defined (CUDA_VERSION) && CUDA_VERSION >= 5050
     cberr = cublasXgetrsBatched(cublasv2handle,CUBLAS_OP_N,n,n,(const PetscScalar **)d_ppQ,ld,d_ipiv,d_ppP,ld,&info,one);CHKERRCUBLAS(cberr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
+    if (info < 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
+    if (info > 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
 #else
     SETERRQ(communicator,PETSC_ERR_LIB,"cublasXgetrsBatched needs CUDA >= 7");
 #endif
@@ -1187,7 +1187,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
     SWAP(d_Q,d_W,aux);
     cberr = cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one);CHKERRCUBLAS(cberr);
     mierr = magma_xgesv_gpu(n,n,d_Q,ld,piv,d_P,ld,&info);CHKERRMAGMA(mierr);
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %" PetscBLASInt_FMT,info);
+    if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %" PetscBLASInt_FMT,info);
     cberr = cublasXscal(cublasv2handle,ld2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
     ierr = shift_diagonal(n,d_P,ld,sone);CHKERRQ(cerr);
     cberr = cublasXscal(cublasv2handle,ld2,&smone,d_P,one);CHKERRCUBLAS(cberr);
@@ -1196,7 +1196,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
     SWAP(d_P,d_W,aux);
     cberr = cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one);CHKERRCUBLAS(cberr);
     mierr = magma_xgesv_gpu(n,n,d_Q,ld,piv,d_P,ld,&info);CHKERRMAGMA(mierr);
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %" PetscBLASInt_FMT,info);
+    if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %" PetscBLASInt_FMT,info);
     cberr = cublasXscal(cublasv2handle,ld2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
     ierr = shift_diagonal(n,d_P,ld,sone);CHKERRQ(cerr);
   }
@@ -1308,7 +1308,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
     case 7:  c = c7;  break;
     case 9:  c = c9;  break;
     case 13: c = c13; break;
-    default: SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %" PetscInt_FMT,m);
+    default: SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %" PetscInt_FMT,m);
   }
   d_P = d_Ba;
   d_Q = d_Apowers[4] + n*n;
@@ -1366,12 +1366,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
       cberr = cublasXaxpy(cublasv2handle,n2,&sone,d_W,one,d_Q,one);CHKERRCUBLAS(cberr);
       ierr = PetscLogGpuFlops(7.0*n*n);CHKERRQ(ierr);
       break;
-    default: SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %" PetscInt_FMT,m);
+    default: SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %" PetscInt_FMT,m);
   }
   cberr = cublasXaxpy(cublasv2handle,n2,&smone,d_P,one,d_Q,one);CHKERRCUBLAS(cberr);
 
   mierr = magma_xgesv_gpu(n_,n_,d_Q,n_,ipiv,d_P,n_,&info);CHKERRMAGMA(mierr);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %" PetscBLASInt_FMT,info);
+  if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %" PetscBLASInt_FMT,info);
 
   cberr = cublasXscal(cublasv2handle,n2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
   ierr = shift_diagonal(n,d_P,n,sone);CHKERRQ(ierr);

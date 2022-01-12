@@ -180,7 +180,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
   if (n < 0) *info = -2;
   else if (n1 < PetscMin(1,n) || n1 > PetscMax(1,n)) *info = -3;
   else if (ldq < PetscMax(1,n)) *info = -6;
-  if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in DSRTDF",-(*info));
+  if (*info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in DSRTDF",-(*info));
 
   /* Initialize deflation counters */
 

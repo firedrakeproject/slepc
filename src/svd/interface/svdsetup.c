@@ -51,8 +51,8 @@ PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
   if (B) {
     ierr = MatGetSize(B,&Mb,&Nb);CHKERRQ(ierr);
     ierr = MatGetLocalSize(B,&mb,&nb);CHKERRQ(ierr);
-    if (Na!=Nb) SETERRQ2(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different number of columns in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",Na,Nb);
-    if (na!=nb) SETERRQ2(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different local column size in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",na,nb);
+    if (Na!=Nb) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different number of columns in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",Na,Nb);
+    if (na!=nb) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different local column size in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",na,nb);
     if (svd->OPb) {
       ierr = MatGetSize(svd->OPb,&M0,&N0);CHKERRQ(ierr);
       ierr = MatGetLocalSize(svd->OPb,&m0,&n0);CHKERRQ(ierr);

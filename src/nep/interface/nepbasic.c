@@ -165,7 +165,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFunctionListFind(NEPList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown NEP type given: %s",type);
+  if (!r) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown NEP type given: %s",type);
 
   if (nep->ops->destroy) { ierr = (*nep->ops->destroy)(nep);CHKERRQ(ierr); }
   ierr = PetscMemzero(nep->ops,sizeof(struct _NEPOps));CHKERRQ(ierr);
@@ -893,7 +893,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructu
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,nt,2);
-  if (nt <= 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %" PetscInt_FMT,nt);
+  if (nt <= 0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %" PetscInt_FMT,nt);
   PetscValidPointer(A,3);
   PetscValidPointer(f,4);
   PetscValidLogicalCollectiveEnum(nep,str,5);
@@ -905,11 +905,11 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructu
     PetscCheckSameComm(nep,1,f[i],4);
     ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
     ierr = MatGetLocalSize(A[i],&mloc,&nloc);CHKERRQ(ierr);
-    if (m!=n) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
-    if (mloc!=nloc) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
+    if (m!=n) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
+    if (mloc!=nloc) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
     if (!i) { m0 = m; mloc0 = mloc; }
-    if (m!=m0) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
-    if (mloc!=mloc0) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
+    if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
+    if (mloc!=mloc0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
     ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
   }
@@ -957,7 +957,7 @@ PetscErrorCode NEPGetSplitOperatorTerm(NEP nep,PetscInt k,Mat *A,FN *f)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,k,2);
   NEPCheckSplit(nep,1);
-  if (k<0 || k>=nep->nt) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,nep->nt-1);
+  if (k<0 || k>=nep->nt) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,nep->nt-1);
   if (A) *A = nep->A[k];
   if (f) *f = nep->f[k];
   PetscFunctionReturn(0);
@@ -1032,7 +1032,7 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,ntp,2);
-  if (ntp < 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Negative value of ntp = %" PetscInt_FMT,ntp);
+  if (ntp < 0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Negative value of ntp = %" PetscInt_FMT,ntp);
   if (nep->fui != NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"Must call NEPSetSplitOperator first");
   if (ntp && nep->nt != ntp) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The number of terms must be the same as in NEPSetSplitOperator()");
   if (ntp) PetscValidPointer(P,3);
@@ -1043,11 +1043,11 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
     PetscCheckSameComm(nep,1,P[i],3);
     ierr = MatGetSize(P[i],&m,&n);CHKERRQ(ierr);
     ierr = MatGetLocalSize(P[i],&mloc,&nloc);CHKERRQ(ierr);
-    if (m!=n) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"P[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
-    if (mloc!=nloc) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"P[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
+    if (m!=n) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"P[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
+    if (mloc!=nloc) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"P[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
     if (!i) { m0 = m; mloc0 = mloc; }
-    if (m!=m0) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Dimensions of P[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
-    if (mloc!=mloc0) SETERRQ3(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Local dimensions of P[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
+    if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Dimensions of P[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
+    if (mloc!=mloc0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Local dimensions of P[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
     ierr = PetscObjectReference((PetscObject)P[i]);CHKERRQ(ierr);
   }
 
@@ -1089,7 +1089,7 @@ PetscErrorCode NEPGetSplitPreconditionerTerm(NEP nep,PetscInt k,Mat *P)
   PetscValidLogicalCollectiveInt(nep,k,2);
   PetscValidPointer(P,3);
   NEPCheckSplit(nep,1);
-  if (k<0 || k>=nep->nt) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,nep->nt-1);
+  if (k<0 || k>=nep->nt) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,nep->nt-1);
   if (!nep->P) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"You have not called NEPSetSplitPreconditioner()");
   *P = nep->P[k];
   PetscFunctionReturn(0);

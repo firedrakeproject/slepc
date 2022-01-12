@@ -348,7 +348,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
     ierr = BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L_max,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig);CHKERRQ(ierr);
-    ierr = PetscInfo1(nep,"Estimated eigenvalue count: %f\n",(double)est_eig);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Estimated eigenvalue count: %f\n",(double)est_eig);CHKERRQ(ierr);
     eta = PetscPowReal(10.0,-PetscLog10Real(nep->tol)/ctx->N);
     L_add = PetscMax(0,(PetscInt)PetscCeilReal((est_eig*eta)/ctx->M)-ctx->L);
     if (L_add>ctx->L_max-ctx->L) {
@@ -358,7 +358,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   }
   /* Updates L after estimate the number of eigenvalue */
   if (L_add>0) {
-    ierr = PetscInfo2(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
@@ -376,7 +376,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
-    ierr = PetscInfo2(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }

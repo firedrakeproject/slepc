@@ -234,7 +234,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
           blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
           lambda,lambdahist,blopex->bs,eps->errest+eps->nconv,residhist,blopex->bs);
 #endif
-    if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"BLOPEX failed with exit code=%d",info);
+    if (info>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"BLOPEX failed with exit code=%d",info);
     mv_MultiVectorDestroy(constraints);
     mv_MultiVectorDestroy(eigenvectors);
 

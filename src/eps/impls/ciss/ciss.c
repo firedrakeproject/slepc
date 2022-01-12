@@ -457,7 +457,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
     ierr = BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L_max,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig);CHKERRQ(ierr);
-    ierr = PetscInfo1(eps,"Estimated eigenvalue count: %f\n",(double)est_eig);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"Estimated eigenvalue count: %f\n",(double)est_eig);CHKERRQ(ierr);
     eta = PetscPowReal(10.0,-PetscLog10Real(eps->tol)/ctx->N);
     L_add = PetscMax(0,(PetscInt)PetscCeilReal((est_eig*eta)/ctx->M)-ctx->L);
     if (L_add>ctx->L_max-ctx->L) {
@@ -467,7 +467,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   }
 #endif
   if (L_add>0) {
-    ierr = PetscInfo2(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
@@ -484,7 +484,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
-    ierr = PetscInfo2(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }

@@ -53,7 +53,7 @@ PetscErrorCode LMESolve(LME lme)
   ierr = LMEViewFromOptions(lme,NULL,"-lme_view_pre");CHKERRQ(ierr);
 
   /* call solver */
-  if (!lme->ops->solve[lme->problem_type]) SETERRQ1(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"The specified solver does not support equation type %s",LMEProblemTypes[lme->problem_type]);
+  if (!lme->ops->solve[lme->problem_type]) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"The specified solver does not support equation type %s",LMEProblemTypes[lme->problem_type]);
   ierr = PetscLogEventBegin(LME_Solve,lme,0,0,0);CHKERRQ(ierr);
   ierr = (*lme->ops->solve[lme->problem_type])(lme);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(LME_Solve,lme,0,0,0);CHKERRQ(ierr);
@@ -316,7 +316,7 @@ PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
       ierr = LMEComputeResidualNorm_Lyapunov(lme,error);CHKERRQ(ierr);
       break;
     default:
-      SETERRQ1(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"Not implemented for equation type %s",LMEProblemTypes[lme->problem_type]);
+      SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"Not implemented for equation type %s",LMEProblemTypes[lme->problem_type]);
   }
 
   /* compute error */

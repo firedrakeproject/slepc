@@ -108,7 +108,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
         ierr = NEPDeflationFunctionSolve(extop,r,delta);CHKERRQ(ierr);
         ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
         if (kspreason<0) {
-          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its);CHKERRQ(ierr);
         }
         t = delta;
       } else t = r;
@@ -119,7 +119,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
         ierr = NEPDeflationFunctionSolve(extop,r,delta);CHKERRQ(ierr);
         ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
         if (kspreason<0) {
-          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its);CHKERRQ(ierr);
         }
         t = delta;
       } else t = r;
@@ -176,7 +176,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
         ierr = NEPDeflationFunctionSolve(extop,r,delta);CHKERRQ(ierr);
         ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
         if (kspreason<0) {
-          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }

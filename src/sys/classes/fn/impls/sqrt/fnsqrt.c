@@ -143,7 +143,7 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
     SlepcCheckLapackInfo("lascl",info);
     tol *= nrm;
   }
-  ierr = PetscInfo2(fn,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
+  ierr = PetscInfo(fn,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
 
   /* X = I */
   ierr = PetscArrayzero(X,N);CHKERRQ(ierr);
@@ -178,11 +178,11 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
     Mres = LAPACKlange_("fro",&n,&n,M2,&n,rwork);
     if (PetscIsNanReal(Mres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Mres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(fn,"it: %" PetscInt_FMT " res: %g\n",it,(double)Mres);CHKERRQ(ierr);
+    ierr = PetscInfo(fn,"it: %" PetscInt_FMT " res: %g\n",it,(double)Mres);CHKERRQ(ierr);
     ierr = PetscLogFlops(8.0*n*n*n+2.0*n*n+2.0*n*n*n/3.0+4.0*n*n*n/3.0+2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
 
-  if (Mres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations",MAXIT);
+  if (Mres>tol) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations",MAXIT);
 
   /* undo scaling */
   if (nrm>1.0) PetscStackCallBLAS("BLASscal",BLASscal_(&N,&sqrtnrm,A,&one));
@@ -248,7 +248,7 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
     cberr = cublasXscal(cublasv2handle,N,&alpha,d_M,one);CHKERRCUBLAS(cberr);
     tol *= nrm;
   }
-  ierr = PetscInfo2(fn,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
+  ierr = PetscInfo(fn,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
 
   /* X = I */
   cerr = cudaMemset(d_X,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
@@ -271,11 +271,11 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_G,ld,d_G,ld,&szero,d_M2,ld);CHKERRCUBLAS(cberr);
     /* magma */
     mierr = magma_xgetrf_gpu(n,n,d_M2,ld,piv,&info);CHKERRMAGMA(mierr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
+    if (info < 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
+    if (info > 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
     mierr = magma_xgetri_gpu(n,d_M2,ld,piv,d_work,lwork,&info);CHKERRMAGMA(mierr);
-    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
-    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
+    if (info < 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
+    if (info > 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
     /* magma */
     cerr = cudaMemcpy(d_G,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_G,ld,d_M2,ld,&szero,d_M,ld);CHKERRCUBLAS(cberr);
@@ -286,11 +286,11 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
     cberr = cublasXnrm2(cublasv2handle,N,d_M2,one,&Mres);CHKERRCUBLAS(cberr);
     if (PetscIsNanReal(Mres)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"The computed norm is not-a-number");
     if (Mres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(fn,"it: %" PetscInt_FMT " res: %g\n",it,(double)Mres);CHKERRQ(ierr);
+    ierr = PetscInfo(fn,"it: %" PetscInt_FMT " res: %g\n",it,(double)Mres);CHKERRQ(ierr);
     ierr = PetscLogGpuFlops(8.0*n*n*n+2.0*n*n+2.0*n*n*n/3.0+4.0*n*n*n/3.0+2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
 
-  if (Mres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", MAXIT);
+  if (Mres>tol) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", MAXIT);
 
   if (nrm>1.0) {cberr = cublasXscal(cublasv2handle,N,&sqrtnrm,d_X,one);CHKERRCUBLAS(cberr);}
   cerr = cudaMemcpy(A,d_X,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);

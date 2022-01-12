@@ -282,7 +282,7 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,nmat,2);
-  if (nmat <= 0) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %" PetscInt_FMT,nmat);
+  if (nmat <= 0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %" PetscInt_FMT,nmat);
   if (nmat <= 2) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Cannot solve linear eigenproblems with PEP; use EPS instead");
   PetscValidPointer(A,3);
 
@@ -291,11 +291,11 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
     PetscCheckSameComm(pep,1,A[i],3);
     ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
     ierr = MatGetLocalSize(A[i],&mloc,&nloc);CHKERRQ(ierr);
-    if (m!=n) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
-    if (mloc!=nloc) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
+    if (m!=n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
+    if (mloc!=nloc) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
     if (!i) { m0 = m; mloc0 = mloc; }
-    if (m!=m0) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
-    if (mloc!=mloc0) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
+    if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
+    if (mloc!=mloc0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
   }
 
@@ -339,7 +339,7 @@ PetscErrorCode PEPGetOperators(PEP pep,PetscInt k,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(A,3);
-  if (k<0 || k>=pep->nmat) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,pep->nmat-1);
+  if (k<0 || k>=pep->nmat) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,pep->nmat-1);
   *A = pep->A[k];
   PetscFunctionReturn(0);
 }

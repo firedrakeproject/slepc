@@ -1373,7 +1373,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
-  if (k > pep->n) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Multiple Refinement available only for invariant pairs of dimension smaller than n=%" PetscInt_FMT,pep->n);
+  if (k > pep->n) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Multiple Refinement available only for invariant pairs of dimension smaller than n=%" PetscInt_FMT,pep->n);
   /* the input tolerance is not being taken into account (by the moment) */
   its = *maxits;
   ierr = PetscMalloc3(k*k,&dH,nmat*k*k,&fH,k,&work);CHKERRQ(ierr);

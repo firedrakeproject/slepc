@@ -565,7 +565,7 @@ PetscErrorCode STSetUp(ST st)
   if (st->D) {
     ierr = MatGetLocalSize(st->A[0],NULL,&n);CHKERRQ(ierr);
     ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
-    if (n != k) SETERRQ2(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %" PetscInt_FMT " (should be %" PetscInt_FMT ")",k,n);
+    if (n != k) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %" PetscInt_FMT " (should be %" PetscInt_FMT ")",k,n);
     if (!st->wb) {
       ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb);CHKERRQ(ierr);
@@ -860,7 +860,7 @@ PetscErrorCode STSetWorkVecs(ST st,PetscInt nw)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,nw,2);
-  if (nw <= 0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
+  if (nw <= 0) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
   if (st->nwork < nw) {
     ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
     st->nwork = nw;

@@ -96,11 +96,11 @@ struct _p_ST {
 
 #define STCheckMatrices(h,arg) \
   do { \
-    if (!(h)->A) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"ST matrices have not been set: Parameter #%d",arg); \
+    if (!(h)->A) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"ST matrices have not been set: Parameter #%d",arg); \
   } while (0)
 #define STCheckNotSeized(h,arg) \
   do { \
-    if (h->opseized) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call STRestoreOperator() first: Parameter #%d",arg); \
+    if (h->opseized) SETERRQ(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call STRestoreOperator() first: Parameter #%d",arg); \
   } while (0)
 
 #endif

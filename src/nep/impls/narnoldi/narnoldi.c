@@ -161,7 +161,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
         ierr = BVRestoreColumn(Vext,n,&f);CHKERRQ(ierr);
         ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
         if (kspreason<0) {
-          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }
@@ -169,7 +169,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
         /* orthonormalize */
         ierr = BVOrthonormalizeColumn(Vext,n,PETSC_FALSE,&beta,&breakdown);CHKERRQ(ierr);
         if (breakdown || beta==0.0) {
-          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", orthogonalization failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", orthogonalization failed, stopping solve\n",nep->its);CHKERRQ(ierr);
           nep->reason = NEP_DIVERGED_BREAKDOWN;
           break;
         }

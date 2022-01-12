@@ -391,7 +391,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   /* Look for Leja-Bagby points in the discretization sets */
   s[0]    = ds[0];
   xi[0]   = (ndptx>0)?dxi[0]:PETSC_INFINITY;
-  if (PetscAbsScalar(xi[0])<10*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point 0 is nearly zero: %g; consider removing the singularity or shifting the problem",(double)PetscAbsScalar(xi[0]));
+  if (PetscAbsScalar(xi[0])<10*PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point 0 is nearly zero: %g; consider removing the singularity or shifting the problem",(double)PetscAbsScalar(xi[0]));
   beta[0] = 1.0; /* scaling factors are also computed here */
   for (i=0;i<ndpt;i++) {
     nrs[i] = 1.0;
@@ -409,7 +409,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
         nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
         if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
       }
-      if (PetscAbsScalar(xi[k])<10*PETSC_MACHINE_EPSILON) SETERRQ2(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point %" PetscInt_FMT " is nearly zero: %g; consider removing the singularity or shifting the problem",k,(double)PetscAbsScalar(xi[k]));
+      if (PetscAbsScalar(xi[k])<10*PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point %" PetscInt_FMT " is nearly zero: %g; consider removing the singularity or shifting the problem",k,(double)PetscAbsScalar(xi[k]));
     } else xi[k] = PETSC_INFINITY;
     beta[k] = maxnrs;
   }
@@ -1273,7 +1273,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     }
     nconv = k;
     if (!ctx->lock && nep->reason == NEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; }
-    if (l) { ierr = PetscInfo1(nep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo(nep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     /* Update S */
     ierr = DSGetMat(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&MQ);CHKERRQ(ierr);
@@ -1285,7 +1285,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
     if (breakdown && nep->reason == NEP_CONVERGED_ITERATING) {
       /* Stop if breakdown */
-      ierr = PetscInfo2(nep,"Breakdown (it=%" PetscInt_FMT " norm=%g)\n",nep->its,(double)betah);CHKERRQ(ierr);
+      ierr = PetscInfo(nep,"Breakdown (it=%" PetscInt_FMT " norm=%g)\n",nep->its,(double)betah);CHKERRQ(ierr);
       nep->reason = NEP_DIVERGED_BREAKDOWN;
     }
     if (nep->reason != NEP_CONVERGED_ITERATING) l--;

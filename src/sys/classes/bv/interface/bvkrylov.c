@@ -73,8 +73,8 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
   PetscValidType(A,2);
   PetscCheckSameComm(V,1,A,2);
 
-  if (k<0 || k>V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument k has wrong value %" PetscInt_FMT ", should be between 0 and %" PetscInt_FMT,k,V->m);
-  if (*m<1 || *m>V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m has wrong value %" PetscInt_FMT ", should be between 1 and %" PetscInt_FMT,*m,V->m);
+  if (k<0 || k>V->m) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument k has wrong value %" PetscInt_FMT ", should be between 0 and %" PetscInt_FMT,k,V->m);
+  if (*m<1 || *m>V->m) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m has wrong value %" PetscInt_FMT ", should be between 1 and %" PetscInt_FMT,*m,V->m);
   if (*m<=k) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m should be at least equal to k+1");
   if (H) {
     PetscValidHeaderSpecific(H,MAT_CLASSID,3);
@@ -82,8 +82,8 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
     PetscCheckTypeName(H,MATSEQDENSE);
     ierr = MatGetSize(H,&rows,&cols);CHKERRQ(ierr);
     ierr = MatDenseGetLDA(H,&ldh);CHKERRQ(ierr);
-    if (rows<*m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,rows,*m);
-    if (cols<*m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,cols,*m);
+    if (rows<*m) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,rows,*m);
+    if (cols<*m) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,cols,*m);
   }
 
   for (j=k;j<*m;j++) {
@@ -99,7 +99,7 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
     }
   }
   if (breakdown) *breakdown = lindep;
-  if (lindep) { ierr = PetscInfo1(V,"Arnoldi finished early at m=%" PetscInt_FMT "\n",*m);CHKERRQ(ierr); }
+  if (lindep) { ierr = PetscInfo(V,"Arnoldi finished early at m=%" PetscInt_FMT "\n",*m);CHKERRQ(ierr); }
 
   if (H) {
     ierr = MatDenseGetArray(H,&h);CHKERRQ(ierr);
@@ -190,8 +190,8 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
   PetscValidType(A,2);
   PetscCheckSameComm(V,1,A,2);
 
-  if (k<0 || k>V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument k has wrong value %" PetscInt_FMT ", should be between 0 and %" PetscInt_FMT,k,V->m);
-  if (*m<1 || *m>V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m has wrong value %" PetscInt_FMT ", should be between 1 and %" PetscInt_FMT,*m,V->m);
+  if (k<0 || k>V->m) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument k has wrong value %" PetscInt_FMT ", should be between 0 and %" PetscInt_FMT,k,V->m);
+  if (*m<1 || *m>V->m) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m has wrong value %" PetscInt_FMT ", should be between 1 and %" PetscInt_FMT,*m,V->m);
   if (*m<=k) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m should be at least equal to k+1");
 
   for (j=k;j<*m;j++) {
@@ -207,7 +207,7 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
     }
   }
   if (breakdown) *breakdown = lindep;
-  if (lindep) { ierr = PetscInfo1(V,"Lanczos finished early at m=%" PetscInt_FMT "\n",*m);CHKERRQ(ierr); }
+  if (lindep) { ierr = PetscInfo(V,"Lanczos finished early at m=%" PetscInt_FMT "\n",*m);CHKERRQ(ierr); }
 
   /* extract Hessenberg matrix from the BV buffer */
   ierr = BVGetBufferVec(V,&buf);CHKERRQ(ierr);

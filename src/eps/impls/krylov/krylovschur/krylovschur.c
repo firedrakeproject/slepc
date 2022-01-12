@@ -117,7 +117,7 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   if (estimaterange) { /* user did not set a range */
     ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
     ierr = EstimateRange(A,&rleft,&rright);CHKERRQ(ierr);
-    ierr = PetscInfo2(eps,"Setting eigenvalue range to [%g,%g]\n",(double)rleft,(double)rright);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"Setting eigenvalue range to [%g,%g]\n",(double)rleft,(double)rright);CHKERRQ(ierr);
     ierr = STFilterSetRange(eps->st,rleft,rright);CHKERRQ(ierr);
     ctx->estimatedrange = PETSC_TRUE;
   }
@@ -340,12 +340,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       if (!hermitian) { ierr = DSGetTruncateSize(eps->ds,k,nv,&l);CHKERRQ(ierr); }
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
-    if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new Arnoldi factorization */
-        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
+        ierr = PetscInfo(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         if (k<eps->nev) {
           ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
@@ -393,7 +393,7 @@ static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal kee
   PetscFunctionBegin;
   if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
   else {
-    if (keep<0.1 || keep>0.9) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",(double)keep);
+    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",(double)keep);
     ctx->keep = keep;
   }
   PetscFunctionReturn(0);

@@ -297,7 +297,7 @@ static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
 
   PetscFunctionBegin;
   if (d<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The degree must be a non-negative integer");
-  if (d>=DS_NUM_EXTRA) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for polynomials of degree at most %d",DS_NUM_EXTRA-1);
+  if (d>=DS_NUM_EXTRA) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for polynomials of degree at most %d",DS_NUM_EXTRA-1);
   ctx->d = d;
   PetscFunctionReturn(0);
 }

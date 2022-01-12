@@ -432,7 +432,7 @@ static PetscErrorCode EPSLOBPCGSetBlockSize_LOBPCG(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT || bs == PETSC_DECIDE) bs = 1;
-  if (bs <= 0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid block size %" PetscInt_FMT,bs);
+  if (bs <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid block size %" PetscInt_FMT,bs);
   if (ctx->bs != bs) {
     ctx->bs = bs;
     eps->state = EPS_STATE_INITIAL;
@@ -508,7 +508,7 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
 
   PetscFunctionBegin;
   if (restart==PETSC_DEFAULT) restart = 0.9;
-  if (restart<0.1 || restart>1.0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument %g must be in the range [0.1,1.0]",(double)restart);
+  if (restart<0.1 || restart>1.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument %g must be in the range [0.1,1.0]",(double)restart);
   if (restart != ctx->restart) {
     ctx->restart = restart;
     eps->state = EPS_STATE_INITIAL;

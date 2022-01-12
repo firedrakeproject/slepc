@@ -125,7 +125,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal
     ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscUnlikely(PetscAbsReal(PetscImaginaryPart(alpha))>bv->deftol && PetscAbsReal(PetscImaginaryPart(alpha))/absal>10*bv->deftol)) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
+  if (PetscUnlikely(PetscAbsReal(PetscImaginaryPart(alpha))>bv->deftol && PetscAbsReal(PetscImaginaryPart(alpha))/absal>10*bv->deftol)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
 #endif
   if (PetscUnlikely(bv->indef)) {
     *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
@@ -236,12 +236,12 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
 
 #define BVCheckSizes(h,arg) \
   do { \
-    if (!(h)->m) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"BV sizes have not been defined: Parameter #%d",arg); \
+    if (!(h)->m) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"BV sizes have not been defined: Parameter #%d",arg); \
   } while (0)
 
 #define BVCheckOp(h,arg,op) \
   do { \
-    if (!(h)->ops->op) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_SUP,"Operation not implemented in this BV type: Parameter #%d",arg); \
+    if (!(h)->ops->op) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_SUP,"Operation not implemented in this BV type: Parameter #%d",arg); \
   } while (0)
 
 #endif
@@ -451,7 +451,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_OrthogonalizeColumn_Safe(BV bv,PetscInt j,
   BVOrthogRefineType orthog_ref;
 
   PetscFunctionBegin;
-  ierr = PetscInfo1(bv,"Orthogonalizing column %" PetscInt_FMT " without refinement\n",j);CHKERRQ(ierr);
+  ierr = PetscInfo(bv,"Orthogonalizing column %" PetscInt_FMT " without refinement\n",j);CHKERRQ(ierr);
   orthog_ref     = bv->orthog_ref;
   bv->orthog_ref = BV_ORTHOG_REFINE_NEVER;  /* avoid refinement */
   ierr = BVOrthogonalizeColumn(bv,j,H,NULL,NULL);CHKERRQ(ierr);

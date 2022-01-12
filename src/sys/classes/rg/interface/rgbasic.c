@@ -222,7 +222,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
   if (match) PetscFunctionReturn(0);
 
   ierr =  PetscFunctionListFind(RGList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested RG type %s",type);
+  if (!r) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested RG type %s",type);
 
   if (rg->ops->destroy) { ierr = (*rg->ops->destroy)(rg);CHKERRQ(ierr); }
   ierr = PetscMemzero(rg->ops,sizeof(struct _RGOps));CHKERRQ(ierr);

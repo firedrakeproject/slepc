@@ -114,7 +114,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
     ierr = VecDestroy(&v0);CHKERRQ(ierr);
     ctx->estimrange = PETSC_TRUE;   /* estimate if called again with another matrix */
   }
-  if (ctx->lmin > eps->inta || ctx->lmax < eps->intb) SETERRQ4(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)eps->inta,(double)eps->intb,(double)ctx->lmin,(double)ctx->lmax);
+  if (ctx->lmin > eps->inta || ctx->lmax < eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)eps->inta,(double)eps->intb,(double)ctx->lmin,(double)ctx->lmax);
   xintv[0] = eps->inta;
   xintv[1] = eps->intb;
   xintv[2] = ctx->lmin;
@@ -133,7 +133,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid DOS method");
   ierr = MPI_Bcast(&ecount,1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
 
-  ierr = PetscInfo1(eps,"Estimated eigenvalue count in the interval: %g\n",ecount);CHKERRQ(ierr);
+  ierr = PetscInfo(eps,"Estimated eigenvalue count in the interval: %g\n",ecount);CHKERRQ(ierr);
   eps->ncv = (PetscInt)PetscCeilReal(1.5*ecount);
 
   /* slice the spectrum */
@@ -186,17 +186,17 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
     xintv[1] = ctx->sli[sl+1];
     xintv[2] = ctx->lmin;
     xintv[3] = ctx->lmax;
-    ierr = PetscInfo3(ctx->A,"Subinterval %" PetscInt_FMT ": [%.4e, %.4e]\n",sl+1,xintv[0],xintv[1]);CHKERRQ(ierr);
+    ierr = PetscInfo(ctx->A,"Subinterval %" PetscInt_FMT ": [%.4e, %.4e]\n",sl+1,xintv[0],xintv[1]);CHKERRQ(ierr);
     set_pol_def(&pol);
     pol.max_deg    = ctx->max_deg;
     pol.damping    = (int)ctx->damping;
     pol.thresh_int = ctx->thresh;
     find_pol(xintv,&pol);
-    ierr = PetscInfo4(ctx->A,"Polynomial [type = %" PetscInt_FMT "], deg %" PetscInt_FMT ", bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam);CHKERRQ(ierr);
+    ierr = PetscInfo(ctx->A,"Polynomial [type = %" PetscInt_FMT "], deg %" PetscInt_FMT ", bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam);CHKERRQ(ierr);
     ierr = ChebLanNr(xintv,mlan,eps->tol,vinit,&pol,&nevout,&lam,&Y,&res,NULL);CHKERRQ(ierr);
     if (k+nevout>nevmax) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
     free_pol(&pol);
-    ierr = PetscInfo1(ctx->A,"Computed %" PetscInt_FMT " eigenvalues\n",nevout);CHKERRQ(ierr);
+    ierr = PetscInfo(ctx->A,"Computed %" PetscInt_FMT " eigenvalues\n",nevout);CHKERRQ(ierr);
     ierr = PetscMalloc1(nevout,&ind);CHKERRQ(ierr);
     sort_double(nevout,lam,ind);
     for (i=0;i<nevout;i++) {

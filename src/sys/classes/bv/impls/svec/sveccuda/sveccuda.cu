@@ -389,7 +389,7 @@ PetscErrorCode ConjugateCudaArray(PetscScalar *a, PetscInt n)
     ptr = thrust::device_pointer_cast(a);
     thrust::transform(ptr,ptr+n,ptr,conjugate());
   } catch (char *ex) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Thrust error: %s", ex);
+    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Thrust error: %s", ex);
   }
   PetscFunctionReturn(0);
 }

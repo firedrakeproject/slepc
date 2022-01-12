@@ -18,7 +18,7 @@
 /* Macro to check nonzero info after LAPACK call */
 #define SlepcCheckLapackInfo(routine,info) \
   do { \
-    if (info) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in LAPACK subroutine %s: info=%" PetscBLASInt_FMT,routine,info); \
+    if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in LAPACK subroutine %s: info=%" PetscBLASInt_FMT,routine,info); \
   } while (0)
 
 /* LAPACK return type: we assume slange, etc. behave in the same way as snrm2 */

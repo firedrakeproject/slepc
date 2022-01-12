@@ -47,7 +47,7 @@ PetscErrorCode BVSetType(BV bv,BVType type)
   if (match) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ORDER,"Use BVCreateTensor() to create a BV of type tensor");
 
   ierr =  PetscFunctionListFind(BVList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested BV type %s",type);
+  if (!r) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested BV type %s",type);
 
   if (bv->ops->destroy) { ierr = (*bv->ops->destroy)(bv);CHKERRQ(ierr); }
   ierr = PetscMemzero(bv->ops,sizeof(struct _BVOps));CHKERRQ(ierr);
@@ -116,10 +116,10 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (N >= 0) PetscValidLogicalCollectiveInt(bv,N,3);
   PetscValidLogicalCollectiveInt(bv,m,4);
-  if (N >= 0 && n > N) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local size %" PetscInt_FMT " cannot be larger than global size %" PetscInt_FMT,n,N);
-  if (m <= 0) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
-  if ((bv->n >= 0 || bv->N >= 0) && (bv->n != n || bv->N != N)) SETERRQ4(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change/reset vector sizes to %" PetscInt_FMT " local %" PetscInt_FMT " global after previously setting them to %" PetscInt_FMT " local %" PetscInt_FMT " global",n,N,bv->n,bv->N);
-  if (bv->m > 0 && bv->m != m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change the number of columns to %" PetscInt_FMT " after previously setting it to %" PetscInt_FMT "; use BVResize()",m,bv->m);
+  if (N >= 0 && n > N) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local size %" PetscInt_FMT " cannot be larger than global size %" PetscInt_FMT,n,N);
+  if (m <= 0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
+  if ((bv->n >= 0 || bv->N >= 0) && (bv->n != n || bv->N != N)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change/reset vector sizes to %" PetscInt_FMT " local %" PetscInt_FMT " global after previously setting them to %" PetscInt_FMT " local %" PetscInt_FMT " global",n,N,bv->n,bv->N);
+  if (bv->m > 0 && bv->m != m) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change the number of columns to %" PetscInt_FMT " after previously setting it to %" PetscInt_FMT "; use BVResize()",m,bv->m);
   bv->n = n;
   bv->N = N;
   bv->m = m;
@@ -132,7 +132,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
     ierr = VecGetLocalSize(bv->t,&bv->n);CHKERRQ(ierr);
     if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
       ierr = MatGetLocalSize(bv->matrix,&ma,NULL);CHKERRQ(ierr);
-      if (bv->n!=ma) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
+      if (bv->n!=ma) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
     }
   }
   if (bv->ops->create) {
@@ -170,13 +170,13 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   PetscValidHeaderSpecific(t,VEC_CLASSID,2);
   PetscCheckSameComm(bv,1,t,2);
   PetscValidLogicalCollectiveInt(bv,m,3);
-  if (m <= 0) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
+  if (m <= 0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
   if (bv->t) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Template vector was already set by a previous call to BVSetSizes/FromVec");
   ierr = VecGetSize(t,&bv->N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(t,&bv->n);CHKERRQ(ierr);
   if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
     ierr = MatGetLocalSize(bv->matrix,&ma,NULL);CHKERRQ(ierr);
-    if (bv->n!=ma) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
+    if (bv->n!=ma) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %" PetscInt_FMT " does not match that of matrix given at BVSetMatrix %" PetscInt_FMT,bv->n,ma);
   }
   bv->m = m;
   bv->k = m;
@@ -260,7 +260,7 @@ PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,nc,2);
-  if (nc<0) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %" PetscInt_FMT ") cannot be negative",nc);
+  if (nc<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %" PetscInt_FMT ") cannot be negative",nc);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   if (V->ci[0]!=-V->nc-1 || V->ci[1]!=-V->nc-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVSetNumConstraints after BVGetColumn");
@@ -342,7 +342,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   PetscValidLogicalCollectiveInt(bv,m,2);
   PetscValidLogicalCollectiveBool(bv,copy,3);
   PetscValidType(bv,1);
-  if (m <= 0) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
+  if (m <= 0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %" PetscInt_FMT " must be positive",m);
   if (bv->nc && !bv->issplit) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot resize a BV with constraints");
   if (bv->m == m) PetscFunctionReturn(0);
   BVCheckOp(bv,1,resize);
@@ -420,13 +420,13 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
   if (PetscUnlikely(k==PETSC_DECIDE || k==PETSC_DEFAULT)) {
     bv->k = bv->m;
   } else {
-    if (PetscUnlikely(k<0 || k>bv->m)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k (%" PetscInt_FMT "). Must be between 0 and m (%" PetscInt_FMT ")",k,bv->m);
+    if (PetscUnlikely(k<0 || k>bv->m)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k (%" PetscInt_FMT "). Must be between 0 and m (%" PetscInt_FMT ")",k,bv->m);
     bv->k = k;
   }
   if (PetscUnlikely(l==PETSC_DECIDE || l==PETSC_DEFAULT)) {
     bv->l = 0;
   } else {
-    if (PetscUnlikely(l<0 || l>bv->k)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l (%" PetscInt_FMT "). Must be between 0 and k (%" PetscInt_FMT ")",l,bv->k);
+    if (PetscUnlikely(l<0 || l>bv->k)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of l (%" PetscInt_FMT "). Must be between 0 and k (%" PetscInt_FMT ")",l,bv->k);
     bv->l = l;
   }
   PetscFunctionReturn(0);
@@ -499,7 +499,7 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
       PetscValidHeaderSpecific(B,MAT_CLASSID,2);
       ierr = MatGetLocalSize(B,&m,&n);CHKERRQ(ierr);
       if (m!=n) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Matrix must be square");
-      if (bv->m && bv->n!=n) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %" PetscInt_FMT ", Mat %" PetscInt_FMT,bv->n,n);
+      if (bv->m && bv->n!=n) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %" PetscInt_FMT ", Mat %" PetscInt_FMT,bv->n,n);
     }
     if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
     ierr = MatDestroy(&bv->matrix);CHKERRQ(ierr);
@@ -646,7 +646,7 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
   PetscValidType(omega,2);
 
   ierr = VecGetSize(omega,&n);CHKERRQ(ierr);
-  if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %" PetscInt_FMT " elements, should be %" PetscInt_FMT,n,bv->k);
+  if (n!=bv->k) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %" PetscInt_FMT " elements, should be %" PetscInt_FMT,n,bv->k);
   ierr = BV_AllocateSignature(bv);CHKERRQ(ierr);
   if (bv->indef) {
     ierr = VecGetArrayRead(omega,&pomega);CHKERRQ(ierr);
@@ -693,7 +693,7 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
   PetscValidType(omega,2);
 
   ierr = VecGetSize(omega,&n);CHKERRQ(ierr);
-  if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %" PetscInt_FMT " elements, should be %" PetscInt_FMT,n,bv->k);
+  if (n!=bv->k) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %" PetscInt_FMT " elements, should be %" PetscInt_FMT,n,bv->k);
   if (bv->indef && bv->omega) {
     ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
     ierr = VecGetArrayRead(bv->omega,&intern);CHKERRQ(ierr);
@@ -739,7 +739,7 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
   BVCheckSizes(bv,1);
   ierr = VecGetSize(buffer,&n);CHKERRQ(ierr);
   ld = bv->m+bv->nc;
-  if (n != ld*bv->m) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Buffer size must be %" PetscInt_FMT,ld*bv->m);
+  if (n != ld*bv->m) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Buffer size must be %" PetscInt_FMT,ld*bv->m);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)buffer),&size);CHKERRMPI(ierr);
   if (size>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Buffer must be a sequential vector");
 
@@ -1151,9 +1151,9 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   BVCheckSizes(bv,1);
   BVCheckOp(bv,1,getcolumn);
   PetscValidLogicalCollectiveInt(bv,j,2);
-  if (PetscUnlikely(j<0 && -j>bv->nc)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %" PetscInt_FMT " but only %" PetscInt_FMT " are available",-j,bv->nc);
-  if (PetscUnlikely(j>=bv->m)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %" PetscInt_FMT " but only %" PetscInt_FMT " are available",j,bv->m);
-  if (PetscUnlikely(j==bv->ci[0] || j==bv->ci[1])) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %" PetscInt_FMT " already fetched in a previous call to BVGetColumn",j);
+  if (PetscUnlikely(j<0 && -j>bv->nc)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %" PetscInt_FMT " but only %" PetscInt_FMT " are available",-j,bv->nc);
+  if (PetscUnlikely(j>=bv->m)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %" PetscInt_FMT " but only %" PetscInt_FMT " are available",j,bv->m);
+  if (PetscUnlikely(j==bv->ci[0] || j==bv->ci[1])) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %" PetscInt_FMT " already fetched in a previous call to BVGetColumn",j);
   l = BVAvailableVec;
   if (PetscUnlikely(l==-1)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVRestoreColumn for one of the previously fetched columns");
   ierr = (*bv->ops->getcolumn)(bv,j,v);CHKERRQ(ierr);
@@ -1195,9 +1195,9 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidPointer(v,3);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
-  if (PetscUnlikely(j<0 && -j>bv->nc)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %" PetscInt_FMT " but only %" PetscInt_FMT " are available",-j,bv->nc);
-  if (PetscUnlikely(j>=bv->m)) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %" PetscInt_FMT " but only %" PetscInt_FMT " are available",j,bv->m);
-  if (PetscUnlikely(j!=bv->ci[0] && j!=bv->ci[1])) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Column %" PetscInt_FMT " has not been fetched with a call to BVGetColumn",j);
+  if (PetscUnlikely(j<0 && -j>bv->nc)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %" PetscInt_FMT " but only %" PetscInt_FMT " are available",-j,bv->nc);
+  if (PetscUnlikely(j>=bv->m)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %" PetscInt_FMT " but only %" PetscInt_FMT " are available",j,bv->m);
+  if (PetscUnlikely(j!=bv->ci[0] && j!=bv->ci[1])) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Column %" PetscInt_FMT " has not been fetched with a call to BVGetColumn",j);
   l = (j==bv->ci[0])? 0: 1;
   ierr = PetscObjectGetId((PetscObject)*v,&id);CHKERRQ(ierr);
   if (PetscUnlikely(id!=bv->id[l])) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same Vec that was obtained with BVGetColumn");
@@ -1703,8 +1703,8 @@ PetscErrorCode BVCopy(BV V,BV W)
   PetscValidType(W,2);
   BVCheckSizes(W,2);
   PetscCheckSameTypeAndComm(V,1,W,2);
-  if (V->n!=W->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %" PetscInt_FMT ", W %" PetscInt_FMT,V->n,W->n);
-  if (V->k-V->l>W->m-W->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"W has %" PetscInt_FMT " non-leading columns, not enough to store %" PetscInt_FMT " columns",W->m-W->l,V->k-V->l);
+  if (V->n!=W->n) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %" PetscInt_FMT ", W %" PetscInt_FMT,V->n,W->n);
+  if (V->k-V->l>W->m-W->l) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"W has %" PetscInt_FMT " non-leading columns, not enough to store %" PetscInt_FMT " columns",W->m-W->l,V->k-V->l);
   if (V==W || !V->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Copy,V,W,0,0);CHKERRQ(ierr);
@@ -1758,7 +1758,7 @@ PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
 
   ierr = VecGetSize(w,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(w,&n);CHKERRQ(ierr);
-  if (N!=V->N || n!=V->n) SETERRQ4(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
+  if (N!=V->N || n!=V->n) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
 
   ierr = PetscLogEventBegin(BV_Copy,V,w,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);

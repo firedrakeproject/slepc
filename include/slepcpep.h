@@ -390,7 +390,7 @@ SLEPC_EXTERN PetscErrorCode PEPCISSGetKSPs(PEP,PetscInt*,KSP**);
 #else
 #define SlepcPEPCISSUnavailable(pep) do { \
     PetscFunctionBegin; \
-    SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"%s() not available with real scalars",PETSC_FUNCTION_NAME); \
+    SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"%s() not available with real scalars",PETSC_FUNCTION_NAME); \
     } while (0)
 PETSC_STATIC_INLINE PetscErrorCode PEPCISSSetExtraction(PEP pep,PETSC_UNUSED PEPCISSExtraction ex) {SlepcPEPCISSUnavailable(pep);}
 PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetExtraction(PEP pep,PETSC_UNUSED PEPCISSExtraction *ex) {SlepcPEPCISSUnavailable(pep);}

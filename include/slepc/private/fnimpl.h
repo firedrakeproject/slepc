@@ -61,7 +61,7 @@ PETSC_STATIC_INLINE PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
 
   PetscFunctionBegin;
   *M = NULL;
-  if (fn->cw==FN_MAX_W) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Too many requested work matrices %" PetscInt_FMT,fn->cw);
+  if (fn->cw==FN_MAX_W) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Too many requested work matrices %" PetscInt_FMT,fn->cw);
   if (fn->nw<=fn->cw) {
     create=PETSC_TRUE;
     fn->nw++;

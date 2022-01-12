@@ -162,7 +162,7 @@ PetscErrorCode SlepcHasExternalPackage(const char pkg[], PetscBool *has)
 
   PetscFunctionBegin;
   ierr = PetscSNPrintfCount(pkgstr,sizeof(pkgstr),":%s:",&cnt,pkg);CHKERRQ(ierr);
-  if (cnt >= sizeof(pkgstr)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Package name is too long: \"%s\"",pkg);
+  if (cnt >= sizeof(pkgstr)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Package name is too long: \"%s\"",pkg);
   ierr = PetscStrtolower(pkgstr);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_PACKAGES)
   ierr = PetscStrstr(SLEPC_HAVE_PACKAGES,pkgstr,&loc);CHKERRQ(ierr);

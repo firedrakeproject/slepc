@@ -206,7 +206,7 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,nw,2);
-  if (nw <= 0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
+  if (nw <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
   if (eps->nwork < nw) {
     ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
     eps->nwork = nw;
@@ -310,11 +310,11 @@ PetscErrorCode EPSStoppingBasic(EPS eps,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionBegin;
   *reason = EPS_CONVERGED_ITERATING;
   if (nconv >= nev) {
-    ierr = PetscInfo2(eps,"Linear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"Linear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
     *reason = EPS_CONVERGED_TOL;
   } else if (its >= max_it) {
     *reason = EPS_DIVERGED_ITS;
-    ierr = PetscInfo1(eps,"Linear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"Linear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

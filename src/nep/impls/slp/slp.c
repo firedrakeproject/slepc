@@ -221,7 +221,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
         ierr = EPSSolve(ctx->eps);CHKERRQ(ierr);
         ierr = EPSGetConverged(ctx->eps,&nconv);CHKERRQ(ierr);
         if (!nconv) {
-          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }

@@ -135,7 +135,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 
   ierr = VecDestroy(&globaldata.x);CHKERRQ(ierr);
   ierr = VecDestroy(&globaldata.y);CHKERRQ(ierr);
-  if (stat!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%" PetscBLASInt_FMT ")",stat);
+  if (stat!=0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%" PetscBLASInt_FMT ")",stat);
   PetscFunctionReturn(0);
 }
 

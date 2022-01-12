@@ -43,7 +43,7 @@ static const char citation[] =
 
 #define InertiaMismatch(h,d) \
   do { \
-    SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",d?"":", consider using EPSKrylovSchurSetDetectZeros()"); \
+    SETERRQ(PetscObjectComm((PetscObject)h),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",d?"":", consider using EPSKrylovSchurSetDetectZeros()"); \
   } while (0)
 
 static PetscErrorCode EPSSliceResetSR(EPS eps)
@@ -271,7 +271,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
   }
-  if (inertia) { ierr = PetscInfo2(eps,"Computed inertia at shift %g: %" PetscInt_FMT "\n",(double)nzshift,*inertia);CHKERRQ(ierr); }
+  if (inertia) { ierr = PetscInfo(eps,"Computed inertia at shift %g: %" PetscInt_FMT "\n",(double)nzshift,*inertia);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -427,7 +427,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
         } else { /* perturb shift */
           sr->int0 *= (1.0+SLICE_PTOL);
           ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,&zeros);CHKERRQ(ierr);
-          if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",(double)sr->int1);
+          if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",(double)sr->int1);
         }
       }
     }
@@ -842,7 +842,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
       if (sr->dir*(sPres->neighb[0] && newShift-sPres->neighb[0]->value) < 0) newShift = (sPres->value+sPres->neighb[0]->value)/2;
       else if (sPres->neighb[1] && sr->dir*(sPres->neighb[1]->value-newShift) < 0) newShift = (sPres->value+sPres->neighb[1]->value)/2;
       ierr = EPSSliceGetInertia(eps,newShift,&iner,&zeros);CHKERRQ(ierr);
-      if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",(double)newShift);
+      if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",(double)newShift);
       sPres->value = newShift;
     }
     sr->sPres->inertia = iner;
@@ -981,7 +981,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Start a new Lanczos factorization */
-        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
+        ierr = PetscInfo(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;
@@ -1028,7 +1028,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   sPres->comp[0] = PetscNot(count0 < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(count1 < sPres->nsch[1]);
-  ierr = PetscInfo8(eps,"Lanczos: %" PetscInt_FMT " evals in [%g,%g]%s and %" PetscInt_FMT " evals in [%g,%g]%s\n",count0,(double)(sr->dir==1?sPres->ext[0]:sPres->value),(double)(sr->dir==1?sPres->value:sPres->ext[0]),sPres->comp[0]?"*":"",count1,(double)(sr->dir==1?sPres->value:sPres->ext[1]),(double)(sr->dir==1?sPres->ext[1]:sPres->value),sPres->comp[1]?"*":"");CHKERRQ(ierr);
+  ierr = PetscInfo(eps,"Lanczos: %" PetscInt_FMT " evals in [%g,%g]%s and %" PetscInt_FMT " evals in [%g,%g]%s\n",count0,(double)(sr->dir==1?sPres->ext[0]:sPres->value),(double)(sr->dir==1?sPres->value:sPres->ext[0]),sPres->comp[0]?"*":"",count1,(double)(sr->dir==1?sPres->value:sPres->ext[1]),(double)(sr->dir==1?sPres->ext[1]:sPres->value),sPres->comp[1]?"*":"");CHKERRQ(ierr);
   if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1]) InertiaMismatch(eps,ctx->detect);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);

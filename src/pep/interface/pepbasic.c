@@ -169,7 +169,7 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFunctionListFind(PEPList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown PEP type given: %s",type);
+  if (!r) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown PEP type given: %s",type);
 
   if (pep->ops->destroy) { ierr = (*pep->ops->destroy)(pep);CHKERRQ(ierr); }
   ierr = PetscMemzero(pep->ops,sizeof(struct _PEPOps));CHKERRQ(ierr);
