@@ -212,7 +212,7 @@ static PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Input Parameter:
+   Output Parameter:
 .  delayed - boolean flag indicating if delayed reorthogonalization has been enabled
 
    Level: advanced

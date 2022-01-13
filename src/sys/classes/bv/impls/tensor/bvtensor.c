@@ -716,7 +716,7 @@ static PetscErrorCode BVTensorRestoreFactors_Tensor(BV V,BV *U,Mat *S)
 .  U - the BV factor (or NULL)
 -  S - the Mat factor (or NULL)
 
-   Nots:
+   Notes:
    The arguments must match the corresponding call to BVTensorGetFactors().
 
    Level: advanced

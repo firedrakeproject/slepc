@@ -114,11 +114,13 @@ PetscErrorCode SVDStoppingBasic(SVD svd,PetscInt its,PetscInt max_it,PetscInt nc
 .  nleft  - number of work vectors of dimension equal to left singular vector
 -  nright - number of work vectors of dimension equal to right singular vector
 
-   Developers Note:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by user plugin SVD
    implementations.
 
    Level: developer
+
+.seealso: SVDSetUp()
 @*/
 PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
 {

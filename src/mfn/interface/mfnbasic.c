@@ -51,6 +51,8 @@ PetscBool         MFNMonitorRegisterAllCalled = PETSC_FALSE;
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
+
+.seealso: MFNCreate()
 @*/
 PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 {
@@ -201,7 +203,7 @@ PetscErrorCode MFNConvergedReasonViewFromOptions(MFN mfn)
 .  comm - MPI communicator
 
    Output Parameter:
-.  mfn - location to put the MFN context
+.  outmfn - location to put the MFN context
 
    Note:
    The default MFN type is MFNKRYLOV
@@ -307,7 +309,7 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
 .  mfn - the matrix function context
 
    Output Parameter:
-.  name - name of MFN method
+.  type - name of MFN method
 
    Level: intermediate
 

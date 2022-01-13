@@ -312,11 +312,9 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 .  ldb - leading dimension of B
 -  ldu - leading dimension of U
 
-   Output Parameter:
-.  U   - Cholesky factor of the solution
-
-   Input/Output Parameter:
-.  res - (optional) residual norm, on input it should contain H(m+1,m)
+   Output Parameters:
++  U   - Cholesky factor of the solution
+-  res - (optional) residual norm, on input it should contain H(m+1,m)
 
    Note:
    The Lyapunov equation has the form H*X + X*H' = -B*B', where H is an mxm

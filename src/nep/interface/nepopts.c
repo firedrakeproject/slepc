@@ -81,6 +81,8 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name
    To see all options, run your program with the -help option.
 
    Level: beginner
+
+.seealso: NEPSetOptionsPrefix()
 @*/
 PetscErrorCode NEPSetFromOptions(NEP nep)
 {
@@ -554,7 +556,7 @@ PetscErrorCode NEPSetEigenvalueComparison(NEP nep,PetscErrorCode (*func)(PetscSc
 -  -nep_rational - a rational eigenvalue problem defined in split form with all f_i rational
 
    Notes:
-   Allowed values for the problem type are: general (NEP_GENERAL), and rational
+   Allowed values for the problem type are general (NEP_GENERAL), and rational
    (NEP_RATIONAL).
 
    This function is used to provide a hint to the NEP solver to exploit certain
@@ -985,7 +987,7 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 
    Notes:
    By default, iterative refinement is disabled, since it may be very
-   costly. There are two possible refinement strategies: simple and multiple.
+   costly. There are two possible refinement strategies, simple and multiple.
    The simple approach performs iterative refinement on each of the
    converged eigenpairs individually, whereas the multiple strategy works
    with the invariant pair as a whole, refining all eigenpairs simultaneously.
@@ -1003,7 +1005,7 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
    refinement iterations (just one by default).
 
    The scheme argument is used to change the way in which linear systems are
-   solved. Possible choices are: explicit, mixed block elimination (MBE),
+   solved. Possible choices are explicit, mixed block elimination (MBE),
    and Schur complement.
 
    Level: intermediate

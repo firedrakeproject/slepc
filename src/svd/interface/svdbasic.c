@@ -36,7 +36,7 @@ PetscBool         SVDMonitorRegisterAllCalled = PETSC_FALSE;
 .  comm - MPI communicator
 
    Output Parameter:
-.  svd - location to put the SVD context
+.  outsvd - location to put the SVD context
 
    Note:
    The default SVD type is SVDCROSS
@@ -250,7 +250,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
 .  svd - the singular value solver context
 
    Output Parameter:
-.  name - name of SVD method
+.  type - name of SVD method
 
    Level: intermediate
 

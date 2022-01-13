@@ -361,6 +361,8 @@ PETSC_STATIC_INLINE PetscErrorCode PEPQSliceEvaluateQEP(PEP pep,PetscScalar x,Ma
    hyperbolic=1 then only xi is computed.
 
    Level: advanced
+
+.seealso: PEPSetProblemType()
 @*/
 PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt *definite,PetscInt *hyperbolic)
 {

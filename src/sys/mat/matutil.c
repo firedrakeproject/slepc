@@ -258,7 +258,7 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
 
    Collective on A
 
-   Input parameters:
+   Input Parameters:
 +  A - matrix for top-left block
 .  a - scaling factor for block A
 .  B - matrix for top-right block
@@ -268,7 +268,7 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
 .  D - matrix for bottom-right block
 -  d - scaling factor for block D
 
-   Output parameter:
+   Output Parameter:
 .  G  - the resulting matrix
 
    Notes:
@@ -284,6 +284,8 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
    ConstantDiagonal (checked in the A,B,C,D order).
 
    Level: developer
+
+.seealso: MatCreateNest()
 @*/
 PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G)
 {
@@ -377,6 +379,8 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
    array, so the intended usage is with VecPlaceArray().
 
    Level: developer
+
+.seealso: VecDuplicateEmpty()
 @*/
 PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
 {

@@ -255,7 +255,7 @@ PetscErrorCode FNSetType(FN fn,FNType type)
 .  fn - the math function context
 
    Output Parameter:
-.  name - name of the math function
+.  type - name of the math function
 
    Level: intermediate
 
@@ -869,6 +869,8 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
    To see all options, run your program with the -help option.
 
    Level: beginner
+
+.seealso: FNSetOptionsPrefix()
 @*/
 PetscErrorCode FNSetFromOptions(FN fn)
 {
@@ -933,6 +935,8 @@ PetscErrorCode FNSetFromOptions(FN fn)
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
+
+.seealso: FNCreate()
 @*/
 PetscErrorCode FNView(FN fn,PetscViewer viewer)
 {

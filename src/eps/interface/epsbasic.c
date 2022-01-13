@@ -36,7 +36,7 @@ PetscBool         EPSMonitorRegisterAllCalled = PETSC_FALSE;
 .  comm - MPI communicator
 
    Output Parameter:
-.  eps - location to put the EPS context
+.  outeps - location to put the EPS context
 
    Note:
    The default EPS type is EPSKRYLOVSCHUR
@@ -190,7 +190,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
 .  eps - the eigensolver context
 
    Output Parameter:
-.  name - name of EPS method
+.  type - name of EPS method
 
    Level: intermediate
 

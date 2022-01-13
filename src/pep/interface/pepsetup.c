@@ -393,6 +393,8 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
    of the wanted eigenspace. Then, convergence may be faster.
 
    Level: intermediate
+
+.seealso: PEPSetUp()
 @*/
 PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec is[])
 {
@@ -454,11 +456,13 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
 -  extra - number of additional positions, used for methods that require a
            working basis slightly larger than ncv
 
-   Developers Note:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by user plugin PEP
    implementations.
 
    Level: developer
+
+.seealso: PEPSetUp()
 @*/
 PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
 {

@@ -841,7 +841,7 @@ static PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shif
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Input Parameter:
+   Output Parameter:
 .  shift - the type of shift
 
    Level: advanced
@@ -888,7 +888,7 @@ static PetscErrorCode EPSPowerSetNonlinear_Power(EPS eps,PetscBool nonlinear)
    Notes:
    If this flag is set, the solver assumes that the problem is nonlinear,
    that is, the operators that define the eigenproblem are not constant
-   matrices, but depend on the eigenvector: A(x)*x=lambda*B(x)*x. This is
+   matrices, but depend on the eigenvector, A(x)*x=lambda*B(x)*x. This is
    different from the case of nonlinearity with respect to the eigenvalue
    (use the NEP solver class for this kind of problems).
 
@@ -931,7 +931,7 @@ static PetscErrorCode EPSPowerGetNonlinear_Power(EPS eps,PetscBool *nonlinear)
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Input Parameter:
+   Output Parameter:
 .  nonlinear - the nonlinear flag
 
    Level: advanced
@@ -1006,7 +1006,7 @@ static PetscErrorCode EPSPowerGetUpdate_Power(EPS eps,PetscBool *update)
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Input Parameter:
+   Output Parameter:
 .  update - the update flag
 
    Level: advanced

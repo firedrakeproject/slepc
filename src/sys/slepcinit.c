@@ -256,7 +256,7 @@ PetscErrorCode SlepcCitationsInitialize()
           (use NULL for default)
 -  help - [optional] Help message to print, use NULL for no message
 
-   Fortran Note:
+   Fortran Notes:
    Fortran syntax is very similar to that of PetscInitialize()
 
    Level: beginner
@@ -343,6 +343,9 @@ PetscErrorCode SlepcInitializeNoArguments(void)
 /*@
    SlepcInitialized - Determine whether SLEPc is initialized.
 
+   Output Parameter:
+.  isInitialized - the result
+
    Level: beginner
 
 .seealso: SlepcInitialize(), SlepcInitializeFortran()
@@ -357,6 +360,9 @@ PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
 /*@
    SlepcFinalized - Determine whether SlepcFinalize() has been called.
 
+   Output Parameter:
+.  isFinalized - the result
+
    Level: developer
 
 .seealso: SlepcFinalize()
@@ -370,24 +376,31 @@ PetscErrorCode SlepcFinalized(PetscBool *isFinalized)
 
 PETSC_EXTERN PetscBool PetscBeganMPI;
 
-/*
+/*@C
    SlepcInitializeNoPointers - Calls SlepcInitialize() from C/C++ without the pointers
    to argc and args (analogue to PetscInitializeNoPointers).
 
    Collective
 
+   Input Parameters:
++  argc - count of number of command line arguments
+.  args - the command line arguments
+.  file - [optional] PETSc database file, defaults to ~username/.petscrc
+          (use NULL for default)
+-  help - [optional] Help message to print, use NULL for no message
+
    Level: advanced
 
 .seealso: SlepcInitialize()
-*/
-PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *filename,const char *help)
+@*/
+PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *file,const char *help)
 {
   PetscErrorCode ierr;
   int            myargc = argc;
   char           **myargs = args;
 
   PetscFunctionBegin;
-  ierr = SlepcInitialize(&myargc,&myargs,filename,help);CHKERRQ(ierr);
+  ierr = SlepcInitialize(&myargc,&myargs,file,help);CHKERRQ(ierr);
   ierr = PetscPopSignalHandler();CHKERRQ(ierr);
   PetscBeganMPI = PETSC_FALSE;
   PetscFunctionReturn(0);

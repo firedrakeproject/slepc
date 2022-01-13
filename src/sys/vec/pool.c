@@ -23,7 +23,7 @@
 -  init_size - first guess of maximum vectors.
 
    Output Parameter:
-.  pool - the pool context.
+.  p - the pool context.
 
    Level: developer
 
@@ -53,7 +53,7 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
    Collective on p
 
    Input Parameters:
-.  pool - pool of Vec.
+.  p - pool of Vec.
 
    Level: developer
 
@@ -83,7 +83,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
    Collective on p
 
    Input Parameters:
-+  pool - pool of Vec.
++  p - pool of Vec.
 -  n - number of vectors.
 
    Output Parameter:
@@ -127,8 +127,8 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
    Collective on p
 
    Input Parameters:
-+  pool - pool of Vec.
-.  n - number of vectors.
++  p    - pool of Vec.
+.  n    - number of vectors.
 -  vecs - vectors
 
    Level: developer

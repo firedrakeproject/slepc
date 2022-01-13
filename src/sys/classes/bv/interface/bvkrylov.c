@@ -32,9 +32,9 @@
    Notes:
    Computes an m-step Arnoldi factorization for matrix A. The first k columns
    are assumed to be locked and therefore they are not modified. On exit, the
-   following relation is satisfied:
+   following relation is satisfied
 
-                    A * V - V * H = beta*v_m * e_m^T
+$                    A * V - V * H = beta*v_m * e_m^T
 
    where the columns of V are the Arnoldi vectors (which are orthonormal), H is
    an upper Hessenberg matrix, e_m is the m-th vector of the canonical basis.
@@ -144,13 +144,13 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
    exploting symmetry of the operator.
 
    The first k columns are assumed to be locked and therefore they are
-   not modified. On exit, the following relation is satisfied:
+   not modified. On exit, the following relation is satisfied
 
-                    A * V - V * T = beta_m*v_m * e_m^T
+$                    A * V - V * T = beta_m*v_m * e_m^T
 
    where the columns of V are the Lanczos vectors (which are B-orthonormal),
    T is a real symmetric tridiagonal matrix, and e_m is the m-th vector of
-   the canonical basis. The tridiagonal is stored as two arrays: alpha
+   the canonical basis. The tridiagonal is stored as two arrays - alpha
    contains the diagonal elements, beta the off-diagonal. On exit, the last
    element of beta contains the B-norm of V[m] before normalization.
    The basis V must have at least m+1 columns, while the arrays alpha and

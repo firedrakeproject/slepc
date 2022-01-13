@@ -628,7 +628,7 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
 
    Level: beginner
 
-.seealso:
+.seealso: SVDSetOptionsPrefix()
 @*/
 PetscErrorCode SVDSetFromOptions(SVD svd)
 {

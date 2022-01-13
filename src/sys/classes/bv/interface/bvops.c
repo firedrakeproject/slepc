@@ -20,12 +20,11 @@
    Logically Collective on Y
 
    Input Parameters:
-+  Y,X        - basis vectors
-.  alpha,beta - scalars
--  Q          - (optional) sequential dense matrix
-
-   Output Parameter:
-.  Y          - the modified basis vectors
++  Y     - first basis vectors context (modified on output)
+.  alpha - first scalar
+.  beta  - second scalar
+.  X     - second basis vectors context
+-  Q     - (optional) sequential dense matrix
 
    Notes:
    X and Y must be different objects. The case X=Y can be addressed with
@@ -87,13 +86,11 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
    Logically Collective on X
 
    Input Parameters:
-+  X          - a basis vectors object
-.  alpha,beta - scalars
-.  y          - a vector
--  q          - an array of scalars
-
-   Output Parameter:
-.  y          - the modified vector
++  X     - a basis vectors object
+.  alpha - first scalar
+.  beta  - second scalar
+.  y     - a vector (modified on output)
+-  q     - an array of scalars
 
    Notes:
    This operation is the analogue of BVMult() but with a BV and a Vec,
@@ -145,10 +142,11 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
    Logically Collective on X
 
    Input Parameters:
-+  X          - a basis vectors object
-.  alpha,beta - scalars
-.  j          - the column index
--  q          - an array of scalars
++  X     - a basis vectors object
+.  alpha - first scalar
+.  beta  - second scalar
+.  j     - the column index
+-  q     - an array of scalars
 
    Notes:
    This operation is equivalent to BVMultVec() but it uses column j of X
@@ -879,7 +877,7 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
 
 /*@
    BVMatMultColumn - Computes the matrix-vector product for a specified
-   column, storing the result in the next column: v_{j+1}=A*v_j.
+   column, storing the result in the next column v_{j+1}=A*v_j.
 
    Neighbor-wise Collective on A
 
@@ -920,7 +918,7 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
 
 /*@
    BVMatMultTransposeColumn - Computes the transpose matrix-vector product for a
-   specified column, storing the result in the next column: v_{j+1}=A^T*v_j.
+   specified column, storing the result in the next column v_{j+1}=A^T*v_j.
 
    Neighbor-wise Collective on A
 
@@ -961,7 +959,7 @@ PetscErrorCode BVMatMultTransposeColumn(BV V,Mat A,PetscInt j)
 
 /*@
    BVMatMultHermitianTransposeColumn - Computes the conjugate-transpose matrix-vector
-   product for a specified column, storing the result in the next column: v_{j+1}=A^H*v_j.
+   product for a specified column, storing the result in the next column v_{j+1}=A^H*v_j.
 
    Neighbor-wise Collective on A
 

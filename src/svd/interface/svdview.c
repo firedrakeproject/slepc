@@ -38,6 +38,8 @@
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
+
+.seealso: EPSView()
 @*/
 PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 {
@@ -372,6 +374,8 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
 .  svd - the singular value solver context
 
    Level: developer
+
+.seealso: SVDErrorView()
 @*/
 PetscErrorCode SVDErrorViewFromOptions(SVD svd)
 {
@@ -580,6 +584,8 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
 .  svd - the singular value solver context
 
    Level: developer
+
+.seealso: SVDValuesView()
 @*/
 PetscErrorCode SVDValuesViewFromOptions(SVD svd)
 {
@@ -617,7 +623,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
 
    Note:
    Right and left singular vectors are interleaved, that is, the vectors are
-   output in the following order: V0, U0, V1, U1, V2, U2, ...
+   output in the following order V0, U0, V1, U1, V2, U2, ...
 
    Level: intermediate
 
@@ -669,6 +675,8 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
 .  svd - the singular value solver context
 
    Level: developer
+
+.seealso: SVDVectorsView()
 @*/
 PetscErrorCode SVDVectorsViewFromOptions(SVD svd)
 {

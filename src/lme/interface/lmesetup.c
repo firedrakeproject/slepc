@@ -365,11 +365,13 @@ PetscErrorCode LMEGetSolution(LME lme,Mat *X)
 -  extra - number of additional positions, used for methods that require a
            working basis slightly larger than ncv
 
-   Developers Note:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by user plugin LME
    implementations.
 
    Level: developer
+
+.seealso: LMESetUp()
 @*/
 PetscErrorCode LMEAllocateSolution(LME lme,PetscInt extra)
 {

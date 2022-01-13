@@ -24,6 +24,8 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN);
    Not Collective
 
    Level: advanced
+
+.seealso: FNRegister()
 @*/
 PetscErrorCode FNRegisterAll(void)
 {

@@ -87,8 +87,9 @@ static PetscErrorCode BVBiorthogonalizeGS(BV V,BV W,Vec v)
    Collective on V
 
    Input Parameters:
-+  V,W - two basis vectors contexts
--  j   - index of column to be bi-orthonormalized
++  V - first basis vectors context
+.  W - second basis vectors context
+-  j - index of column to be bi-orthonormalized
 
    Notes:
    This function bi-orthogonalizes vectors V[j],W[j] against W[0..j-1],
@@ -155,8 +156,9 @@ PetscErrorCode BVBiorthogonalizeColumn(BV V,BV W,PetscInt j)
    Collective on V
 
    Input Parameters:
-+  V,W - two basis vectors contexts
--  j   - index of column to be bi-orthonormalized
++  V - first basis vectors context
+.  W - second basis vectors context
+-  j - index of column to be bi-orthonormalized
 
    Output Parameters:
 .  delta - (optional) value used for normalization

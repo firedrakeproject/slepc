@@ -153,7 +153,7 @@ PetscErrorCode BVDestroy(BV *bv)
 .  comm - MPI communicator
 
    Output Parameter:
-.  bv - location to put the basis vectors context
+.  newbv - location to put the basis vectors context
 
    Level: beginner
 
@@ -587,6 +587,8 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
    PetscViewerASCIIOpen() (output to a specified file).
 
    Level: beginner
+
+.seealso: BVCreate()
 @*/
 PetscErrorCode BVView(BV bv,PetscViewer viewer)
 {

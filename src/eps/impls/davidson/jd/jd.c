@@ -213,7 +213,7 @@ PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart)
 
    Level: advanced
 
-.seealso: EPSJDGetKrylovStart()
+.seealso: EPSJDSetKrylovStart()
 @*/
 PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 {
@@ -542,20 +542,23 @@ PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
 
 /*@
    EPSJDGetConstCorrectionTol - Returns a flag indicating if the dynamic stopping is being used for
-   solving the correction equation. If the flag is false the KSP relative tolerance is set
-   to 0.5**i, where i is the number of EPS iterations from the last converged value.
+   solving the correction equation.
 
    Not Collective
 
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Output Parameters:
+   Output Parameter:
 .  constant - boolean flag indicating if the dynamic stopping criterion is not being used.
+
+   Notes:
+   If the flag is false the KSP relative tolerance is set to 0.5**i, where i is the number
+   of EPS iterations from the last converged value.
 
    Level: advanced
 
-.seealso: EPSJDGetConstCorrectionTol()
+.seealso: EPSJDSetConstCorrectionTol()
 @*/
 PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
 {

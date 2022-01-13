@@ -226,6 +226,7 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
 
    Level: beginner
 
+.seealso: SVDSetDimensions(), SVDSolve(), SVDGetSingularTriplet()
 @*/
 PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 {
@@ -308,7 +309,7 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
      sigma - singular value
      u,v   - singular vectors
      x,y   - two work vectors with the same dimensions as u,v
-@*/
+*/
 static PetscErrorCode SVDComputeResidualNorms_Standard(SVD svd,PetscReal sigma,Vec u,Vec v,Vec x,Vec y,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;

@@ -72,7 +72,7 @@ PetscErrorCode BVSetType(BV bv,BVType type)
 .  bv - the basis vectors context
 
    Output Parameter:
-.  name - name of the type of basis vectors
+.  type - name of the type of basis vectors
 
    Level: intermediate
 
@@ -403,7 +403,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
    operation.
 
    In orthogonalization operations, the first l columns are treated
-   differently: they participate in the orthogonalization but the computed
+   differently, they participate in the orthogonalization but the computed
    coefficients are not stored.
 
    Level: intermediate
@@ -878,6 +878,8 @@ PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
 .  bv - the basis vectors context
 
    Level: beginner
+
+.seealso: BVSetOptionsPrefix()
 @*/
 PetscErrorCode BVSetFromOptions(BV bv)
 {
@@ -1992,7 +1994,7 @@ PetscErrorCode BVSetDefiniteTolerance(BV bv,PetscReal deftol)
 
    Level: advanced
 
-.seealso: BVGetDefiniteTolerance()
+.seealso: BVSetDefiniteTolerance()
 @*/
 PetscErrorCode BVGetDefiniteTolerance(BV bv,PetscReal *deftol)
 {

@@ -254,7 +254,7 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,PetscInt *its)
 
    Level: beginner
 
-.seealso: EPSSetDimensions(), EPSSolve()
+.seealso: EPSSetDimensions(), EPSSolve(), EPSGetEigenpair()
 @*/
 PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 {

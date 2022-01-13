@@ -21,6 +21,8 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Polygon(RG);
    Not Collective
 
    Level: advanced
+
+.seealso: RGRegister()
 @*/
 PetscErrorCode RGRegisterAll(void)
 {

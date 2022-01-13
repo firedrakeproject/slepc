@@ -184,7 +184,7 @@ PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscBool krylovstart)
 
    Level: advanced
 
-.seealso: EPSGDGetKrylovStart()
+.seealso: EPSGDSetKrylovStart()
 @*/
 PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 {
@@ -444,10 +444,7 @@ static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool doubleexp)
 }
 
 /*@
-   EPSGDSetDoubleExpansion - Activate a variant where the search subspace is
-   expanded with K*[A*x B*x] (double expansion) instead of the classic K*r,
-   where K is the preconditioner, x the selected approximate eigenvector and
-   r its associated residual vector.
+   EPSGDSetDoubleExpansion - Activate the double expansion variant of GD.
 
    Logically Collective on eps
 
@@ -458,7 +455,14 @@ static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool doubleexp)
    Options Database Keys:
 .  -eps_gd_double_expansion - activate the double-expansion variant of GD
 
+   Notes:
+   In the double expansion variant the search subspace is expanded with K*[A*x B*x]
+   instead of the classic K*r, where K is the preconditioner, x the selected
+   approximate eigenvector and r its associated residual vector.
+
    Level: advanced
+
+.seealso: EPSGDGetDoubleExpansion()
 @*/
 PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool doubleexp)
 {

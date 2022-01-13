@@ -92,6 +92,8 @@ PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
          in case of nonzero imaginary part
 
    Level: developer
+
+.seealso: PetscSNPrintf()
 @*/
 PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBool exp)
 {
@@ -149,6 +151,8 @@ PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBoo
    It should correspond to the name listed in  ./configure --help
 
    The lookup is case insensitive, i.e. looking for "ARPACK" or "arpack" is the same.
+
+.seealso: EPSType, SVDType
 @*/
 PetscErrorCode SlepcHasExternalPackage(const char pkg[], PetscBool *has)
 {

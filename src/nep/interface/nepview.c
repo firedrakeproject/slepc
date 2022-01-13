@@ -39,6 +39,8 @@
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
+
+.seealso: FNView()
 @*/
 PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
@@ -473,6 +475,8 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
 .  nep - the nonlinear eigensolver context
 
    Level: developer
+
+.seealso: NEPErrorView()
 @*/
 PetscErrorCode NEPErrorViewFromOptions(NEP nep)
 {
@@ -733,6 +737,8 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
 .  nep - the nonlinear eigensolver context
 
    Level: developer
+
+.seealso: NEPValuesView()
 @*/
 PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 {
@@ -775,7 +781,7 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 
    If left eigenvectors were computed with a two-sided eigensolver, the right
    and left eigenvectors are interleaved, that is, the vectors are output in
-   the following order: X0, Y0, X1, Y1, X2, Y2, ...
+   the following order X0, Y0, X1, Y1, X2, Y2, ...
 
    Level: intermediate
 
@@ -828,6 +834,8 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 .  nep - the nonlinear eigensolver context
 
    Level: developer
+
+.seealso: NEPVectorsView()
 @*/
 PetscErrorCode NEPVectorsViewFromOptions(NEP nep)
 {

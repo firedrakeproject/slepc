@@ -1733,13 +1733,13 @@ PetscErrorCode SVDTRLanczosGetLocking(SVD svd,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDTRLanczosSetExplicitMatrix_TRLanczos(SVD svd,PetscBool explicitmatrix)
+static PetscErrorCode SVDTRLanczosSetExplicitMatrix_TRLanczos(SVD svd,PetscBool explicitmat)
 {
   SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  if (lanczos->explicitmatrix != explicitmatrix) {
-    lanczos->explicitmatrix = explicitmatrix;
+  if (lanczos->explicitmatrix != explicitmat) {
+    lanczos->explicitmatrix = explicitmat;
     svd->state = SVD_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
@@ -1752,8 +1752,8 @@ static PetscErrorCode SVDTRLanczosSetExplicitMatrix_TRLanczos(SVD svd,PetscBool 
    Logically Collective on svd
 
    Input Parameters:
-+  svd      - singular value solver
--  explicit - Boolean flag indicating if Z=[A;B] is built explicitly
++  svd         - singular value solver
+-  explicitmat - Boolean flag indicating if Z=[A;B] is built explicitly
 
    Options Database Key:
 .  -svd_trlanczos_explicitmatrix <boolean> - Indicates the boolean flag
@@ -1766,23 +1766,23 @@ static PetscErrorCode SVDTRLanczosSetExplicitMatrix_TRLanczos(SVD svd,PetscBool 
 
 .seealso: SVDTRLanczosGetExplicitMatrix()
 @*/
-PetscErrorCode SVDTRLanczosSetExplicitMatrix(SVD svd,PetscBool explicitmatrix)
+PetscErrorCode SVDTRLanczosSetExplicitMatrix(SVD svd,PetscBool explicitmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidLogicalCollectiveBool(svd,explicitmatrix,2);
-  ierr = PetscTryMethod(svd,"SVDTRLanczosSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmatrix));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveBool(svd,explicitmat,2);
+  ierr = PetscTryMethod(svd,"SVDTRLanczosSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDTRLanczosGetExplicitMatrix_TRLanczos(SVD svd,PetscBool *explicitmatrix)
+static PetscErrorCode SVDTRLanczosGetExplicitMatrix_TRLanczos(SVD svd,PetscBool *explicitmat)
 {
   SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  *explicitmatrix = lanczos->explicitmatrix;
+  *explicitmat = lanczos->explicitmatrix;
   PetscFunctionReturn(0);
 }
 
@@ -1795,20 +1795,20 @@ static PetscErrorCode SVDTRLanczosGetExplicitMatrix_TRLanczos(SVD svd,PetscBool 
 .  svd  - singular value solver
 
    Output Parameter:
-.  explicit - the mode flag
+.  explicitmat - the mode flag
 
    Level: advanced
 
 .seealso: SVDTRLanczosSetExplicitMatrix()
 @*/
-PetscErrorCode SVDTRLanczosGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
+PetscErrorCode SVDTRLanczosGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(explicitmatrix,2);
-  ierr = PetscUseMethod(svd,"SVDTRLanczosGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmatrix));CHKERRQ(ierr);
+  PetscValidBoolPointer(explicitmat,2);
+  ierr = PetscUseMethod(svd,"SVDTRLanczosGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

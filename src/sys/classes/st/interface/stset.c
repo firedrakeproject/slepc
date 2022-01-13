@@ -78,7 +78,7 @@ PetscErrorCode STSetType(ST st,STType type)
 .  st - the spectral transformation context
 
    Output Parameter:
-.  name - name of the spectral transformation
+.  type - name of the spectral transformation
 
    Level: intermediate
 
@@ -105,6 +105,8 @@ PetscErrorCode STGetType(ST st,STType *type)
 .  st - the spectral transformation context
 
    Level: beginner
+
+.seealso: STSetOptionsPrefix()
 @*/
 PetscErrorCode STSetFromOptions(ST st)
 {

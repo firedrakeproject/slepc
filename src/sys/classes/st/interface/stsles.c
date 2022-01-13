@@ -309,6 +309,8 @@ PetscErrorCode STCheckFactorPackage(ST st)
 -  ksp  - the linear system context
 
    Level: advanced
+
+.seealso: STGetKSP()
 @*/
 PetscErrorCode STSetKSP(ST st,KSP ksp)
 {
@@ -339,6 +341,8 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
 .  ksp  - the linear system context
 
    Level: intermediate
+
+.seealso: STSetKSP()
 @*/
 PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {
@@ -406,10 +410,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
 }
 
 /*@
-   STCheckNullSpace - Given a basis vectors object, this function tests each
-   of its constraint vectors to be a nullspace vector of the coefficient
-   matrix of the associated KSP object. All these nullspace vectors are passed
-   to the KSP object.
+   STCheckNullSpace - Tests if constraint vectors are nullspace vectors.
 
    Collective on st
 
@@ -417,8 +418,13 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
 +  st - the spectral transformation context
 -  V  - basis vectors to be checked
 
-   Note:
-   This function allows to handle singular pencils and to solve some problems
+   Notes:
+   Given a basis vectors object, this function tests each of its constraint
+   vectors to be a nullspace vector of the coefficient matrix of the
+   associated KSP object. All these nullspace vectors are passed to the KSP
+   object.
+
+   This function allows handling singular pencils and solving some problems
    in which the nullspace is important (see the users guide for details).
 
    Level: developer

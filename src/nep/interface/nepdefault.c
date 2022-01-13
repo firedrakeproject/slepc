@@ -22,11 +22,13 @@
 +  nep - nonlinear eigensolver context
 -  nw  - number of work vectors to allocate
 
-   Developers Note:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by user plugin NEP
    implementations.
 
    Level: developer
+
+.seealso: NEPSetUp()
 @*/
 PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
 {

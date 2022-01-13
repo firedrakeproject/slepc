@@ -495,6 +495,8 @@ PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
 .  eps - the eigensolver context
 
    Level: developer
+
+.seealso: EPSErrorView()
 @*/
 PetscErrorCode EPSErrorViewFromOptions(EPS eps)
 {
@@ -755,6 +757,8 @@ PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
 .  eps - the eigensolver context
 
    Level: developer
+
+.seealso: EPSValuesView()
 @*/
 PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 {
@@ -783,7 +787,7 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 
    Collective on eps
 
-   Parameter:
+   Input Parameters:
 +  eps    - the eigensolver context
 -  viewer - the viewer
 
@@ -797,7 +801,7 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 
    If left eigenvectors were computed with a two-sided eigensolver, the right
    and left eigenvectors are interleaved, that is, the vectors are output in
-   the following order: X0, Y0, X1, Y1, X2, Y2, ...
+   the following order X0, Y0, X1, Y1, X2, Y2, ...
 
    Level: intermediate
 
@@ -850,6 +854,8 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
 .  eps - the eigensolver context
 
    Level: developer
+
+.seealso: EPSVectorsView()
 @*/
 PetscErrorCode EPSVectorsViewFromOptions(EPS eps)
 {

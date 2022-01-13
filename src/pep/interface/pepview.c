@@ -39,6 +39,8 @@
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
+
+.seealso: STView()
 @*/
 PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 {
@@ -480,6 +482,8 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
 .  pep - the eigensolver context
 
    Level: developer
+
+.seealso: PEPErrorView()
 @*/
 PetscErrorCode PEPErrorViewFromOptions(PEP pep)
 {
@@ -740,6 +744,8 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
 .  pep - the eigensolver context
 
    Level: developer
+
+.seealso: PEPValuesView()
 @*/
 PetscErrorCode PEPValuesViewFromOptions(PEP pep)
 {
@@ -827,6 +833,8 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
 .  pep - the eigensolver context
 
    Level: developer
+
+.seealso: PEPVectorsView()
 @*/
 PetscErrorCode PEPVectorsViewFromOptions(PEP pep)
 {

@@ -163,7 +163,7 @@ PetscErrorCode STDestroy(ST *st)
 .  comm - MPI communicator
 
    Output Parameter:
-.  st - location to put the spectral transformation context
+.  newst - location to put the spectral transformation context
 
    Level: beginner
 
@@ -841,6 +841,8 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
 -  left  - (optional) vector that the matrix vector product can be stored in
 
    Level: developer
+
+.seealso: STMatCreateVecsEmpty()
 @*/
 PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
 {
@@ -867,7 +869,7 @@ PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
 
    Level: developer
 
-.seealso: MatCreateVecsEmpty()
+.seealso: STMatCreateVecs(), MatCreateVecsEmpty()
 @*/
 PetscErrorCode STMatCreateVecsEmpty(ST st,Vec *right,Vec *left)
 {
@@ -892,6 +894,8 @@ PetscErrorCode STMatCreateVecsEmpty(ST st,Vec *right,Vec *left)
 -  n - the number of global columns
 
    Level: developer
+
+.seealso: STMatGetLocalSize()
 @*/
 PetscErrorCode STMatGetSize(ST st,PetscInt *m,PetscInt *n)
 {
@@ -916,6 +920,8 @@ PetscErrorCode STMatGetSize(ST st,PetscInt *m,PetscInt *n)
 -  n - the number of local columns
 
    Level: developer
+
+.seealso: STMatGetSize()
 @*/
 PetscErrorCode STMatGetLocalSize(ST st,PetscInt *m,PetscInt *n)
 {

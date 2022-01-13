@@ -852,11 +852,11 @@ static PetscErrorCode EPSKrylovSchurSetSubintervals_KrylovSchur(EPS eps,PetscRea
    Notes:
    This function must be called after EPSKrylovSchurSetPartitions(). For npart
    partitions, the argument subint must contain npart+1 real values sorted in
-   ascending order: subint_0, subint_1, ..., subint_npart, where the first
+   ascending order, subint_0, subint_1, ..., subint_npart, where the first
    and last values must coincide with the interval endpoints set with
    EPSSetInterval().
 
-   The subintervals are then defined by two consecutive points: [subint_0,subint_1],
+   The subintervals are then defined by two consecutive points [subint_0,subint_1],
    [subint_1,subint_2], and so on.
 
    Level: advanced
@@ -1419,8 +1419,8 @@ static PetscErrorCode EPSKrylovSchurGetKSP_KrylovSchur(EPS eps,KSP *ksp)
    Input Parameter:
 .  eps - the eigenproblem solver context
 
-   Output Parameters:
--  ksp - the internal KSP object
+   Output Parameter:
+.  ksp - the internal KSP object
 
    Notes:
    When invoked to compute all eigenvalues in an interval with spectrum

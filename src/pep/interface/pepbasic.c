@@ -36,7 +36,7 @@ PetscBool         PEPMonitorRegisterAllCalled = PETSC_FALSE;
 .  comm - MPI communicator
 
    Output Parameter:
-.  pep - location to put the PEP context
+.  outpep - location to put the PEP context
 
    Note:
    The default PEP type is PEPTOAR
@@ -189,7 +189,7 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
 .  pep - the eigensolver context
 
    Output Parameter:
-.  name - name of PEP method
+.  type - name of PEP method
 
    Level: intermediate
 

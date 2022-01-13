@@ -518,9 +518,6 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
 
 /*@
    EPSLOBPCGSetRestart - Sets the restart parameter for the LOBPCG method.
-   The meaning of this parameter is the proportion of vectors within the
-   current block iterate that must have converged in order to force a
-   restart with hard locking.
 
    Logically Collective on eps
 
@@ -532,6 +529,9 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
 .  -eps_lobpcg_restart - Sets the restart parameter
 
    Notes:
+   The meaning of this parameter is the proportion of vectors within the
+   current block iterate that must have converged in order to force a
+   restart with hard locking.
    Allowed values are in the range [0.1,1.0]. The default is 0.9.
 
    Level: advanced

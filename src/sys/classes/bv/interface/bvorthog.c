@@ -356,8 +356,7 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
 
 /*@
    BVOrthonormalizeColumn - Orthonormalize one of the column vectors with respect to
-   the previous ones. This is equivalent to a call to BVOrthogonalizeColumn()
-   followed by a call to BVScaleColumn() with the reciprocal of the norm.
+   the previous ones.
 
    Collective on bv
 
@@ -372,6 +371,9 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
              orthogonalization
 
    Notes:
+   This is equivalent to a call to BVOrthogonalizeColumn() followed by a
+   call to BVScaleColumn() with the reciprocal of the norm.
+
    This function first orthogonalizes vector V[j] with respect to V[0..j-1],
    where V[.] are the vectors of BV. A byproduct of this computation is norm,
    the norm of the vector after orthogonalization. Secondly, it scales the
@@ -715,8 +717,8 @@ static PetscErrorCode BVOrthogonalize_SVQB(BV V,Mat Rin)
 
    Collective on V
 
-   Input/Outpu Parameters:
-+  V - basis vectors to be orthogonalized (or B-orthogonalized)
+   Input Parameters:
++  V - basis vectors to be orthogonalized (or B-orthogonalized), modified on output
 -  R - a sequential dense matrix (or NULL), on output the triangular factor of
        the QR decomposition
 

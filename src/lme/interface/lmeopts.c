@@ -77,6 +77,8 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char opt[],const char name
    To see all options, run your program with the -help option.
 
    Level: beginner
+
+.seealso: LMESetOptionsPrefix()
 @*/
 PetscErrorCode LMESetFromOptions(LME lme)
 {
@@ -411,7 +413,7 @@ PetscErrorCode LMESetErrorIfNotConverged(LME lme,PetscBool flg)
 
    Level: intermediate
 
-.seealso:  LMESetErrorIfNotConverged()
+.seealso: LMESetErrorIfNotConverged()
 @*/
 PetscErrorCode LMEGetErrorIfNotConverged(LME lme,PetscBool *flag)
 {

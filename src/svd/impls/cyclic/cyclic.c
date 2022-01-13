@@ -615,13 +615,13 @@ PetscErrorCode SVDSetFromOptions_Cyclic(PetscOptionItems *PetscOptionsObject,SVD
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explicitmatrix)
+static PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explicitmat)
 {
   SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
-  if (cyclic->explicitmatrix != explicitmatrix) {
-    cyclic->explicitmatrix = explicitmatrix;
+  if (cyclic->explicitmatrix != explicitmat) {
+    cyclic->explicitmatrix = explicitmat;
     svd->state = SVD_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
@@ -634,8 +634,8 @@ static PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explic
    Logically Collective on svd
 
    Input Parameters:
-+  svd      - singular value solver
--  explicit - boolean flag indicating if H(A) is built explicitly
++  svd         - singular value solver
+-  explicitmat - boolean flag indicating if H(A) is built explicitly
 
    Options Database Key:
 .  -svd_cyclic_explicitmatrix <boolean> - Indicates the boolean flag
@@ -644,23 +644,23 @@ static PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explic
 
 .seealso: SVDCyclicGetExplicitMatrix()
 @*/
-PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicitmatrix)
+PetscErrorCode SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicitmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidLogicalCollectiveBool(svd,explicitmatrix,2);
-  ierr = PetscTryMethod(svd,"SVDCyclicSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmatrix));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveBool(svd,explicitmat,2);
+  ierr = PetscTryMethod(svd,"SVDCyclicSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *explicitmatrix)
+static PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *explicitmat)
 {
   SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
-  *explicitmatrix = cyclic->explicitmatrix;
+  *explicitmat = cyclic->explicitmatrix;
   PetscFunctionReturn(0);
 }
 
@@ -673,20 +673,20 @@ static PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *expli
 .  svd  - singular value solver
 
    Output Parameter:
-.  explicit - the mode flag
+.  explicitmat - the mode flag
 
    Level: advanced
 
 .seealso: SVDCyclicSetExplicitMatrix()
 @*/
-PetscErrorCode SVDCyclicGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
+PetscErrorCode SVDCyclicGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(explicitmatrix,2);
-  ierr = PetscUseMethod(svd,"SVDCyclicGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmatrix));CHKERRQ(ierr);
+  PetscValidBoolPointer(explicitmat,2);
+  ierr = PetscUseMethod(svd,"SVDCyclicGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

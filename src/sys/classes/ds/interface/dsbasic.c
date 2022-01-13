@@ -281,7 +281,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
 .  ds - the direct solver context
 
    Output Parameter:
-.  name - name of the direct solver
+.  type - name of the direct solver
 
    Level: intermediate
 
@@ -740,6 +740,8 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
    To see all options, run your program with the -help option.
 
    Level: beginner
+
+.seealso: DSSetOptionsPrefix()
 @*/
 PetscErrorCode DSSetFromOptions(DS ds)
 {
@@ -974,7 +976,7 @@ PetscErrorCode DSDestroy(DS *ds)
 
    Input Parameters:
 +  name - name of a new user-defined DS
--  routine_create - routine to create context
+-  function - routine to create context
 
    Notes:
    DSRegister() may be called multiple times to add several user-defined
@@ -1011,6 +1013,8 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS);
    Not Collective
 
    Level: advanced
+
+.seealso: DSRegister()
 @*/
 PetscErrorCode DSRegisterAll(void)
 {

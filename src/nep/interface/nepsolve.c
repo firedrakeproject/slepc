@@ -387,7 +387,7 @@ PetscErrorCode NEPGetIterationNumber(NEP nep,PetscInt *its)
 
    Level: beginner
 
-.seealso: NEPSetDimensions(), NEPSolve()
+.seealso: NEPSetDimensions(), NEPSolve(), NEPGetEigenpair()
 @*/
 PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
 {

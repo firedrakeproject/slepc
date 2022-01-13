@@ -81,6 +81,8 @@ PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char opt[],const char name
    To see all options, run your program with the -help option.
 
    Level: beginner
+
+.seealso: EPSSetOptionsPrefix()
 @*/
 PetscErrorCode EPSSetFromOptions(EPS eps)
 {
@@ -896,7 +898,7 @@ PetscErrorCode EPSGetStoppingTest(EPS eps,EPSStop *stop)
 -  -eps_gen_indefinite - generalized Hermitian-indefinite eigenvalue problem
 
    Notes:
-   Allowed values for the problem type are: Hermitian (EPS_HEP), non-Hermitian
+   Allowed values for the problem type are Hermitian (EPS_HEP), non-Hermitian
    (EPS_NHEP), generalized Hermitian (EPS_GHEP), generalized non-Hermitian
    (EPS_GNHEP), generalized non-Hermitian with positive semi-definite B
    (EPS_PGNHEP), and generalized Hermitian-indefinite (EPS_GHIEP).

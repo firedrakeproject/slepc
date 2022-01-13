@@ -220,7 +220,7 @@ PetscErrorCode PEPGetIterationNumber(PEP pep,PetscInt *its)
 
    Level: beginner
 
-.seealso: PEPSetDimensions(), PEPSolve()
+.seealso: PEPSetDimensions(), PEPSolve(), PEPGetEigenpair()
 @*/
 PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
 {

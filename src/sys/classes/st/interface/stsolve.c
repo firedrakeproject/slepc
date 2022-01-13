@@ -96,7 +96,7 @@ PetscErrorCode STApplyMat_Generic(ST st,Mat B,Mat C)
 -  X  - input matrix
 
    Output Parameter:
-.  y - output matrix
+.  Y - output matrix
 
    Level: developer
 
@@ -228,6 +228,8 @@ PetscErrorCode STApplyHermitianTranspose(ST st,Vec x,Vec y)
    case of standard eigenproblems.
 
    Level: developer
+
+.seealso: BVSetMatrix()
 @*/
 PetscErrorCode STGetBilinearForm(ST st,Mat *B)
 {
@@ -393,9 +395,7 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
    The returned shell matrix is essentially a wrapper to the STApply() and
    STApplyTranspose() operations. The operator can often be expressed as
 
-.vb
-      Op = D*inv(K)*M*inv(D)
-.ve
+$     Op = D*inv(K)*M*inv(D)
 
    where D is the balancing matrix, and M and K are two matrices corresponding
    to the numerator and denominator for spectral transformations that represent
@@ -739,8 +739,9 @@ PetscErrorCode STPostSolve(ST st)
 
    Input Parameters:
 +  st   - the spectral transformation context
-   eigr - real part of a computed eigenvalue
--  eigi - imaginary part of a computed eigenvalue
+.  n    - number of eigenvalues
+.  eigr - real part of a computed eigenvalues
+-  eigi - imaginary part of a computed eigenvalues
 
    Level: developer
 
@@ -807,8 +808,8 @@ PetscErrorCode STIsInjective(ST st,PetscBool* is)
    This function is not intended to be called by end users, but by SLEPc
    solvers that use ST. It builds matrix st->P as follows, then calls KSPSetUp().
 .vb
-    If (coeffs):  st->P = Sum_{i=0:nmat-1} coeffs[i]*sigma^i*A_i.
-    else          st->P = Sum_{i=0:nmat-1} sigma^i*A_i
+    If (coeffs)  st->P = Sum_{i=0..nmat-1} coeffs[i]*sigma^i*A_i
+    else         st->P = Sum_{i=0..nmat-1} sigma^i*A_i
 .ve
 
    Level: developer
@@ -844,10 +845,12 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 +  st - the spectral transformation context
 -  nw - number of work vectors to allocate
 
-   Developers Note:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by shell STs.
 
    Level: developer
+
+.seealso: STMatCreateVecs()
 @*/
 PetscErrorCode STSetWorkVecs(ST st,PetscInt nw)
 {

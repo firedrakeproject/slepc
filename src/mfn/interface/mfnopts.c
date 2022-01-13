@@ -77,6 +77,8 @@ PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char opt[],const char name
    To see all options, run your program with the -help option.
 
    Level: beginner
+
+.seealso: MFNSetOptionsPrefix()
 @*/
 PetscErrorCode MFNSetFromOptions(MFN mfn)
 {
@@ -310,7 +312,7 @@ PetscErrorCode MFNSetErrorIfNotConverged(MFN mfn,PetscBool flg)
 
    Level: intermediate
 
-.seealso:  MFNSetErrorIfNotConverged()
+.seealso: MFNSetErrorIfNotConverged()
 @*/
 PetscErrorCode MFNGetErrorIfNotConverged(MFN mfn,PetscBool *flag)
 {

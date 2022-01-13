@@ -286,8 +286,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
 /*@C
    SVDSetInitialSpaces - Specify two basis of vectors that constitute the initial
-   right and/or left spaces, that is, a rough approximation to the right and/or
-   left singular subspaces from which the solver starts to iterate.
+   right and/or left spaces.
 
    Collective on svd
 
@@ -299,6 +298,8 @@ PetscErrorCode SVDSetUp(SVD svd)
 -  isl   - set of basis vectors of the left initial space
 
    Notes:
+   The initial right and left spaces are rough approximations to the right and/or
+   left singular subspaces from which the solver starts to iterate.
    It is not necessary to provide both sets of vectors.
 
    Some solvers start to iterate on a single vector (initial vector). In that case,
@@ -314,6 +315,8 @@ PetscErrorCode SVDSetUp(SVD svd)
    of the wanted singular space. Then, convergence may be faster.
 
    Level: intermediate
+
+.seealso: SVDSetUp()
 @*/
 PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec isr[],PetscInt nl,Vec isl[])
 {
@@ -381,13 +384,15 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
 -  extra - number of additional positions, used for methods that require a
            working basis slightly larger than ncv
 
-   Developers Notes:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by user plugin SVD
    implementations.
 
    This is called at setup after setting the value of ncv and the flag leftbasis.
 
    Level: developer
+
+.seealso: SVDSetUp()
 @*/
 PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
 {

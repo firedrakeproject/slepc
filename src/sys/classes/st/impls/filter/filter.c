@@ -361,6 +361,8 @@ static PetscErrorCode STFilterGetThreshold_Filter(ST st,PetscReal *gamma)
 .  gamma - the threshold value
 
    Level: developer
+
+.seealso: STFilterGetRange()
 @*/
 PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
 {

@@ -345,7 +345,7 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
 
    Input Parameters:
 +  X - basis vectors
--  j - the column index
+.  j - the column index
 -  m - an array where the result will go (can be NULL)
 
    Note:

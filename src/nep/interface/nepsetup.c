@@ -231,6 +231,8 @@ PetscErrorCode NEPSetUp(NEP nep)
    of the wanted eigenspace. Then, convergence may be faster.
 
    Level: intermediate
+
+.seealso: NEPSetUp()
 @*/
 PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec is[])
 {
@@ -282,11 +284,13 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
 -  extra - number of additional positions, used for methods that require a
            working basis slightly larger than ncv
 
-   Developers Note:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by user plugin NEP
    implementations.
 
    Level: developer
+
+.seealso: PEPSetUp()
 @*/
 PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 {

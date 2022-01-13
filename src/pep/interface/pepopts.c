@@ -81,6 +81,8 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char opt[],const char name
    To see all options, run your program with the -help option.
 
    Level: beginner
+
+.seealso: PEPSetOptionsPrefix()
 @*/
 PetscErrorCode PEPSetFromOptions(PEP pep)
 {
@@ -590,7 +592,7 @@ PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscSc
 -  -pep_gyroscopic - problem with Hamiltonian structure
 
    Notes:
-   Allowed values for the problem type are: general (PEP_GENERAL), Hermitian
+   Allowed values for the problem type are general (PEP_GENERAL), Hermitian
    (PEP_HERMITIAN), hyperbolic (PEP_HYPERBOLIC), and gyroscopic (PEP_GYROSCOPIC).
 
    This function is used to instruct SLEPc to exploit certain structure in
@@ -1020,7 +1022,7 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
 -  -pep_scale_lambda <lambda> - approximation to eigenvalues
 
    Notes:
-   There are two non-exclusive scaling strategies: scalar and diagonal.
+   There are two non-exclusive scaling strategies, scalar and diagonal.
 
    In the scalar strategy, scaling is applied to the eigenvalue, that is,
    mu = lambda/alpha is the new eigenvalue and all matrices are scaled
@@ -1200,7 +1202,7 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
 
    Notes:
    By default, iterative refinement is disabled, since it may be very
-   costly. There are two possible refinement strategies: simple and multiple.
+   costly. There are two possible refinement strategies, simple and multiple.
    The simple approach performs iterative refinement on each of the
    converged eigenpairs individually, whereas the multiple strategy works
    with the invariant pair as a whole, refining all eigenpairs simultaneously.
@@ -1218,7 +1220,7 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
    refinement iterations (just one by default).
 
    The scheme argument is used to change the way in which linear systems are
-   solved. Possible choices are: explicit, mixed block elimination (MBE),
+   solved. Possible choices are explicit, mixed block elimination (MBE),
    and Schur complement.
 
    Level: intermediate

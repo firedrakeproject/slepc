@@ -397,6 +397,8 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt istart,PetscInt iend,PetscIn
 -  mat - the matrix to modify
 
    Level: intermediate
+
+.seealso: DSGetMat()
 @*/
 PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 {

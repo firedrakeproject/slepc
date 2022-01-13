@@ -476,7 +476,7 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
 
    Notes:
    The density of states (or spectral density) can be approximated with two
-   methods: kernel polynomial method (KPM) or Lanczos. Some parameters for
+   methods, kernel polynomial method (KPM) or Lanczos. Some parameters for
    these methods can be set by the user with this function, with some of
    them being relevant for one of the methods only.
 

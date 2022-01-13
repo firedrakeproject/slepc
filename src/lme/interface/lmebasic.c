@@ -51,6 +51,8 @@ PetscBool         LMEMonitorRegisterAllCalled = PETSC_FALSE;
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
+
+.seealso: LMECreate()
 @*/
 PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 {
@@ -208,7 +210,7 @@ PetscErrorCode LMEConvergedReasonViewFromOptions(LME lme)
 .  comm - MPI communicator
 
    Output Parameter:
-.  lme - location to put the LME context
+.  outlme - location to put the LME context
 
    Note:
    The default LME type is LMEKRYLOV
@@ -318,7 +320,7 @@ PetscErrorCode LMESetType(LME lme,LMEType type)
 .  lme - the linear matrix equation context
 
    Output Parameter:
-.  name - name of LME method
+.  type - name of LME method
 
    Level: intermediate
 

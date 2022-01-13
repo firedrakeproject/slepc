@@ -858,8 +858,8 @@ static PetscErrorCode PEPLinearSetExplicitMatrix_Linear(PEP pep,PetscBool explic
    Logically Collective on pep
 
    Input Parameters:
-+  pep      - polynomial eigenvalue solver
--  explicit - boolean flag indicating if the matrices are built explicitly
++  pep         - polynomial eigenvalue solver
+-  explicitmat - boolean flag indicating if the matrices are built explicitly
 
    Options Database Key:
 .  -pep_linear_explicitmatrix <boolean> - Indicates the boolean flag
@@ -868,23 +868,23 @@ static PetscErrorCode PEPLinearSetExplicitMatrix_Linear(PEP pep,PetscBool explic
 
 .seealso: PEPLinearGetExplicitMatrix()
 @*/
-PetscErrorCode PEPLinearSetExplicitMatrix(PEP pep,PetscBool explicitmatrix)
+PetscErrorCode PEPLinearSetExplicitMatrix(PEP pep,PetscBool explicitmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidLogicalCollectiveBool(pep,explicitmatrix,2);
-  ierr = PetscTryMethod(pep,"PEPLinearSetExplicitMatrix_C",(PEP,PetscBool),(pep,explicitmatrix));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveBool(pep,explicitmat,2);
+  ierr = PetscTryMethod(pep,"PEPLinearSetExplicitMatrix_C",(PEP,PetscBool),(pep,explicitmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPLinearGetExplicitMatrix_Linear(PEP pep,PetscBool *explicitmatrix)
+static PetscErrorCode PEPLinearGetExplicitMatrix_Linear(PEP pep,PetscBool *explicitmat)
 {
   PEP_LINEAR *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  *explicitmatrix = ctx->explicitmatrix;
+  *explicitmat = ctx->explicitmatrix;
   PetscFunctionReturn(0);
 }
 
@@ -898,20 +898,20 @@ static PetscErrorCode PEPLinearGetExplicitMatrix_Linear(PEP pep,PetscBool *expli
 .  pep  - polynomial eigenvalue solver
 
    Output Parameter:
-.  explicitmatrix - the mode flag
+.  explicitmat - the mode flag
 
    Level: advanced
 
 .seealso: PEPLinearSetExplicitMatrix()
 @*/
-PetscErrorCode PEPLinearGetExplicitMatrix(PEP pep,PetscBool *explicitmatrix)
+PetscErrorCode PEPLinearGetExplicitMatrix(PEP pep,PetscBool *explicitmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidBoolPointer(explicitmatrix,2);
-  ierr = PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmatrix));CHKERRQ(ierr);
+  PetscValidBoolPointer(explicitmat,2);
+  ierr = PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

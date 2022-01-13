@@ -393,7 +393,7 @@ static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
    the coefficients must be different.
 
    There must be a total of 3*(d+1) coefficients, where d is the degree of the
-   polynomial. The coefficients are arranged in three groups: alpha, beta, and
+   polynomial. The coefficients are arranged in three groups, alpha, beta, and
    gamma, according to the definition of the three-term recurrence. In the case
    of the monomial basis, alpha=1 and beta=gamma=0, in which case it is not
    necessary to invoke this function.
@@ -440,7 +440,7 @@ static PetscErrorCode DSPEPGetCoefficients_PEP(DS ds,PetscReal **pbc)
    Note:
    The returned array has length 3*(d+1) and should be freed by the user.
 
-   Fortran Note:
+   Fortran Notes:
    The calling sequence from Fortran is
 .vb
    DSPEPGetCoefficients(eps,pbc,ierr)

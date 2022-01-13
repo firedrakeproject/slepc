@@ -20,7 +20,7 @@ SLEPC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN);
 
   Level: advanced
 
-.seealso:  MFNRegister()
+.seealso: MFNRegister()
 @*/
 PetscErrorCode MFNRegisterAll(void)
 {
@@ -40,6 +40,8 @@ PetscErrorCode MFNRegisterAll(void)
   Not Collective
 
   Level: advanced
+
+.seealso: MFNMonitorRegister()
 @*/
 PetscErrorCode MFNMonitorRegisterAll(void)
 {

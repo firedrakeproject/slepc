@@ -241,7 +241,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
 .  rg - the region context
 
    Output Parameter:
-.  name - name of the region
+.  type - name of the region
 
    Level: intermediate
 
@@ -268,6 +268,8 @@ PetscErrorCode RGGetType(RG rg,RGType *type)
    To see all options, run your program with the -help option.
 
    Level: beginner
+
+.seealso: RGSetOptionsPrefix()
 @*/
 PetscErrorCode RGSetFromOptions(RG rg)
 {
@@ -321,6 +323,8 @@ PetscErrorCode RGSetFromOptions(RG rg)
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
+
+.seealso: RGCreate()
 @*/
 PetscErrorCode RGView(RG rg,PetscViewer viewer)
 {
@@ -393,6 +397,8 @@ PetscErrorCode RGViewFromOptions(RG rg,PetscObject obj,const char name[])
              ellipse with infinite radius.
 
    Level: beginner
+
+.seealso: RGCheckInside()
 @*/
 PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
 {
@@ -484,6 +490,8 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
    the vertical axis, otherwise with respect to the horizontal axis.
 
    Level: intermediate
+
+.seealso: RGCanUseConjugates()
 @*/
 PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
 {
@@ -521,6 +529,8 @@ PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
    in the case of a flat region (height equal to zero).
 
    Level: developer
+
+.seealso: RGIsAxisymmetric()
 @*/
 PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
 {
@@ -567,6 +577,8 @@ PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
    not referenced).
 
    Level: intermediate
+
+.seealso: RGComputeBoundingBox()
 @*/
 PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci[])
 {
@@ -612,7 +624,7 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
 
    Level: intermediate
 
-.seealso: RGSetComplement()
+.seealso: RGComputeContour()
 @*/
 PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
 {
@@ -772,7 +784,7 @@ PetscErrorCode RGSetScale(RG rg,PetscReal sfactor)
 .  rg - the region context
 
    Output Parameter:
-.  flg - the flag
+.  sfactor - the scaling factor
 
    Level: advanced
 

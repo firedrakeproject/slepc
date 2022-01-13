@@ -57,7 +57,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS);
 
   Level: advanced
 
-.seealso:  EPSRegister()
+.seealso: EPSRegister()
 @*/
 PetscErrorCode EPSRegisterAll(void)
 {
@@ -114,6 +114,8 @@ PetscErrorCode EPSRegisterAll(void)
   Not Collective
 
   Level: advanced
+
+.seealso: EPSMonitorRegister()
 @*/
 PetscErrorCode EPSMonitorRegisterAll(void)
 {

@@ -81,7 +81,7 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
 .  eigr - pointer to the array containing the eigenvalues
 -  eigi - imaginary part of the eigenvalues (only when using real numbers)
 
-   Input/Output Parameter:
+   Output Parameter:
 .  perm - permutation array. Must be initialized to 0:n-1 on input.
 
    Note:

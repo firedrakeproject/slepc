@@ -89,7 +89,7 @@ PetscErrorCode BVScatter(BV Vin,BV Vout,VecScatter scat,Vec xdup)
 
    Notes:
    This is a generalization of BVMult(). The resulting matrix S consists of M
-   panels of L columns, and the following formula is computed for each panel:
+   panels of L columns, and the following formula is computed for each panel
    S_k = sum_j w_j*zn_j^k*Y_j, where Y_j is the j-th panel of Y containing
    the result of solving T(z_j)^{-1}*X for each integration point j. L_max is
    the width of the panels in Y.
@@ -171,7 +171,7 @@ PetscErrorCode BVSumQuadrature(BV S,BV Y,PetscInt M,PetscInt L,PetscInt L_max,Pe
 
    Notes:
    This is a generalization of BVDot(). The resulting matrix Mu consists of M
-   blocks of size LxL (placed horizontally), each of them computed as:
+   blocks of size LxL (placed horizontally), each of them computed as
    Mu_k = sum_j w_j*zn_j^k*V'*Y_j, where Y_j is the j-th panel of Y containing
    the result of solving T(z_j)^{-1}*X for each integration point j. L_max is
    the width of the panels in Y.

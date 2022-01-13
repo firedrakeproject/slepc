@@ -15,15 +15,17 @@
 
    Collective on xr
 
-   Input parameters:
+   Input Parameters:
 +  xr - the real part of the vector (overwritten on output)
 .  xi - the imaginary part of the vector (not referenced if iscomplex is false)
 -  iscomplex - a flag indicating if the vector is complex
 
-   Output parameter:
+   Output Parameter:
 .  norm - the vector norm before normalization (can be set to NULL)
 
    Level: developer
+
+.seealso: BVNormalize()
 @*/
 PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *norm)
 {
@@ -117,7 +119,7 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
 
    Collective on V
 
-   Input parameters:
+   Input Parameters:
 +  V  - a set of vectors
 .  nv - number of V vectors
 .  W  - an alternative set of vectors (optional)
@@ -125,7 +127,7 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
 .  B  - matrix defining the inner product (optional)
 -  viewer - optional visualization context
 
-   Output parameter:
+   Output Parameter:
 .  lev - level of orthogonality (optional)
 
    Notes:
@@ -168,7 +170,7 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
 
    Collective on V
 
-   Input parameters:
+   Input Parameters:
 +  V  - a set of vectors
 .  nv - number of V vectors
 .  W  - an alternative set of vectors (optional)
@@ -176,7 +178,7 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
 .  B  - matrix defining the inner product (optional)
 -  viewer - optional visualization context
 
-   Output parameter:
+   Output Parameter:
 .  lev - level of orthogonality (optional)
 
    Notes:
@@ -212,10 +214,10 @@ PetscErrorCode VecCheckOrthonormality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Ma
 
    Collective on v
 
-   Input parameters:
+   Input Parameters:
 .  v - a vector to mimic
 
-   Output parameter:
+   Output Parameter:
 .  newv - location to put new vector
 
    Note:
@@ -223,6 +225,8 @@ PetscErrorCode VecCheckOrthonormality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Ma
    array, so the intended usage is with VecPlaceArray().
 
    Level: developer
+
+.seealso: MatCreateVecsEmpty()
 @*/
 PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
 {
@@ -268,19 +272,22 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
 
    Logically Collective on v
 
-   Input parameters:
-+  v     - the vector to be filled with random values
-.  rctx  - the random number context (can be NULL)
--  w1,w2 - two work vectors (can be NULL)
+   Input Parameters:
++  v    - the vector to be filled with random values
+.  rctx - the random number context (can be NULL)
+.  w1   - first work vector (can be NULL)
+-  w2   - second work vector (can be NULL)
 
-   Output parameter:
-.  v     - the vector
+   Output Parameter:
+.  v    - the vector
 
    Notes:
    Fills the two work vectors with uniformly distributed random values (VecSetRandom)
    and then applies the Box-Muller transform to get normally distributed values on v.
 
    Level: developer
+
+.seealso: VecSetRandom()
 @*/
 PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
 {

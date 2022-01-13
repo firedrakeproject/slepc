@@ -93,8 +93,8 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
    between the two concentric ellipses (above and below the radius by
    width/2).
 
-   The start and end angles are expressed as a fraction of the circumference:
-   the allowed range is [0..1], with 0 corresponding to 0 radians, 0.25 to
+   The start and end angles are expressed as a fraction of the circumference.
+   The allowed range is [0..1], with 0 corresponding to 0 radians, 0.25 to
    pi/2 radians, and so on. It is allowed to have startangle>endangle, in
    which case the ring region crosses over the zero angle.
 

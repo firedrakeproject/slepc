@@ -354,8 +354,8 @@ static PetscErrorCode SVDCrossSetExplicitMatrix_Cross(SVD svd,PetscBool explicit
    Logically Collective on svd
 
    Input Parameters:
-+  svd      - singular value solver
--  explicit - boolean flag indicating if A^T*A is built explicitly
++  svd         - singular value solver
+-  explicitmat - boolean flag indicating if A^T*A is built explicitly
 
    Options Database Key:
 .  -svd_cross_explicitmatrix <boolean> - Indicates the boolean flag
@@ -364,23 +364,23 @@ static PetscErrorCode SVDCrossSetExplicitMatrix_Cross(SVD svd,PetscBool explicit
 
 .seealso: SVDCrossGetExplicitMatrix()
 @*/
-PetscErrorCode SVDCrossSetExplicitMatrix(SVD svd,PetscBool explicitmatrix)
+PetscErrorCode SVDCrossSetExplicitMatrix(SVD svd,PetscBool explicitmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidLogicalCollectiveBool(svd,explicitmatrix,2);
-  ierr = PetscTryMethod(svd,"SVDCrossSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmatrix));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveBool(svd,explicitmat,2);
+  ierr = PetscTryMethod(svd,"SVDCrossSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDCrossGetExplicitMatrix_Cross(SVD svd,PetscBool *explicitmatrix)
+static PetscErrorCode SVDCrossGetExplicitMatrix_Cross(SVD svd,PetscBool *explicitmat)
 {
   SVD_CROSS *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
-  *explicitmatrix = cross->explicitmatrix;
+  *explicitmat = cross->explicitmatrix;
   PetscFunctionReturn(0);
 }
 
@@ -393,20 +393,20 @@ static PetscErrorCode SVDCrossGetExplicitMatrix_Cross(SVD svd,PetscBool *explici
 .  svd  - singular value solver
 
    Output Parameter:
-.  explicit - the mode flag
+.  explicitmat - the mode flag
 
    Level: advanced
 
 .seealso: SVDCrossSetExplicitMatrix()
 @*/
-PetscErrorCode SVDCrossGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
+PetscErrorCode SVDCrossGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidBoolPointer(explicitmatrix,2);
-  ierr = PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmatrix));CHKERRQ(ierr);
+  PetscValidBoolPointer(explicitmat,2);
+  ierr = PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

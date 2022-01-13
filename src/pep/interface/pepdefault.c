@@ -22,11 +22,13 @@
 +  pep - polynomial eigensolver context
 -  nw  - number of work vectors to allocate
 
-   Developers Note:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by user plugin PEP
    implementations.
 
    Level: developer
+
+.seealso: PEPSetUp()
 @*/
 PetscErrorCode PEPSetWorkVecs(PEP pep,PetscInt nw)
 {

@@ -190,11 +190,13 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 +  eps - eigensolver context
 -  nw  - number of work vectors to allocate
 
-   Developers Note:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by user plugin EPS
    implementations.
 
    Level: developer
+
+.seealso: EPSSetUp()
 @*/
 PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
 {

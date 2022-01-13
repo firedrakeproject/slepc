@@ -840,7 +840,7 @@ PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 -  mat - the matrix, used to indicate which vectors are required
 
    Input/Output Parameter:
--  j   - (optional) index of vector to be computed
+.  j   - (optional) index of vector to be computed
 
    Output Parameter:
 .  rnorm - (optional) computed residual norm
@@ -983,6 +983,8 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
    translation done previously. In that case, parameter tau is ignored.
 
    Level: developer
+
+.seealso: DSTranslateRKS()
 @*/
 PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *g,PetscReal *gamma)
 {
@@ -1028,6 +1030,8 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
    Krylov basis.
 
    Level: developer
+
+.seealso: DSTranslateHarmonic()
 @*/
 PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
 {

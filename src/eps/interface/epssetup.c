@@ -651,11 +651,13 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
 -  extra - number of additional positions, used for methods that require a
            working basis slightly larger than ncv
 
-   Developers Note:
+   Developer Notes:
    This is SLEPC_EXTERN because it may be required by user plugin EPS
    implementations.
 
    Level: developer
+
+.seealso: EPSSetUp()
 @*/
 PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 {

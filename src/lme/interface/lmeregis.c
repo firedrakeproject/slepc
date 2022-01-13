@@ -19,7 +19,7 @@ SLEPC_EXTERN PetscErrorCode LMECreate_Krylov(LME);
 
   Level: advanced
 
-.seealso:  LMERegister()
+.seealso: LMERegister()
 @*/
 PetscErrorCode LMERegisterAll(void)
 {
@@ -38,6 +38,8 @@ PetscErrorCode LMERegisterAll(void)
   Not Collective
 
   Level: advanced
+
+.seealso: LMEMonitorRegister()
 @*/
 PetscErrorCode LMEMonitorRegisterAll(void)
 {

@@ -26,7 +26,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_CISS(PEP);
 
    Level: advanced
 
-.seealso:  PEPRegister()
+.seealso: PEPRegister()
 @*/
 PetscErrorCode PEPRegisterAll(void)
 {
@@ -52,6 +52,8 @@ PetscErrorCode PEPRegisterAll(void)
   Not Collective
 
   Level: advanced
+
+.seealso: PEPMonitorRegister()
 @*/
 PetscErrorCode PEPMonitorRegisterAll(void)
 {
