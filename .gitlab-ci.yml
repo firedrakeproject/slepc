@@ -112,7 +112,7 @@ gnu-c-single-nofort:
   tags:
     - linux-ubuntu, name:athor
   variables:
-    PETSC_CONFIG_OPTS: --with-fc=0 --with-precision=single --download-sowing
+    PETSC_CONFIG_OPTS: --with-fc=0 --with-precision=single
     TEST_SEARCH: eps_tests-test10_1
 
 gnu-cxx-complex-nofort:
@@ -339,7 +339,7 @@ gnu-cxx-complex:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0 --download-sowing
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex
 
 gnu-c-cuda:
@@ -358,7 +358,7 @@ clang-c:
   tags:
     - linux-ubuntu, compiler:clang, name:maat
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --download-sowing
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex
 
 gnu-c-complex-multilib:
@@ -368,7 +368,7 @@ gnu-c-complex-multilib:
   tags:
     - linux-ubuntu, name:maat
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --download-sowing --download-elemental --download-metis --download-parmetis --download-scalapack
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --download-elemental --download-metis --download-parmetis --download-scalapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-elpa
 
 intel-c-complex-mkl:
@@ -454,7 +454,7 @@ gnu-c-c99-nompi:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --CFLAGS='-std=c99 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0 --download-sowing --with-mpi=0
+    PETSC_CONFIG_OPTS: --CFLAGS='-std=c99 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0 --with-mpi=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-blopex-dir=/usr/local/opt/blopex --with-trlan-dir=/usr/local/opt/trlan-201009 --with-packages-download-dir=/var/local/downloads --download-primme --download-primme-cflags=-std=c99
 
 clang-c-valgrind:
@@ -464,7 +464,7 @@ clang-c-valgrind:
   tags:
     - linux-fedora, compiler:clang
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-shared-libraries=0 --download-sowing
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-shared-libraries=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 gnu-c-complex:
@@ -572,7 +572,7 @@ intel-c-complex-int64-mkl:
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-64-bit-indices --with-64-bit-blas-indices
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-feast=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-feast=0 --download-sowing
 
 nvidia-c-nompi:
   extends:
@@ -598,7 +598,7 @@ clang-c-complex-valgrind:
   tags:
     - linux-fedora, compiler:clang
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex --with-shared-libraries=0 --download-sowing
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex --with-shared-libraries=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 intel-c-mkl:
@@ -644,7 +644,7 @@ clang-c-single:
   tags:
     - compiler:clang
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --download-sowing --with-precision=single
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-precision=single
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme
 
 gnu-c-complex-single:
