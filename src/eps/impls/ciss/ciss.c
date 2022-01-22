@@ -128,7 +128,7 @@ static PetscErrorCode EPSCISSSolve(EPS eps,Mat B,BV V,PetscInt L_start,PetscInt 
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     } else ksp = contour->ksp[i];
-    ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+L_start,i*ctx->L_max+L_end);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(ctx->Y,i*ctx->L+L_start,i*ctx->L+L_end);CHKERRQ(ierr);
     ierr = BVGetMat(ctx->Y,&MC);CHKERRQ(ierr);
     if (B) {
       if (!i) {
@@ -300,10 +300,10 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 
   /* allocate basis vectors */
   ierr = BVDestroy(&ctx->S);CHKERRQ(ierr);
-  ierr = BVDuplicateResize(eps->V,ctx->L_max*ctx->M,&ctx->S);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(eps->V,ctx->L*ctx->M,&ctx->S);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->S);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
-  ierr = BVDuplicateResize(eps->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(eps->V,ctx->L,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->V);CHKERRQ(ierr);
 
   ierr = STGetMatrix(eps->st,0,&A[0]);CHKERRQ(ierr);
@@ -331,7 +331,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = BVCreate(PetscObjectComm((PetscObject)contour->xsub),&ctx->pV);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(ctx->pV,contour->xsub,eps->n);CHKERRQ(ierr);
     ierr = BVSetFromOptions(ctx->pV);CHKERRQ(ierr);
-    ierr = BVResize(ctx->pV,ctx->L_max,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVResize(ctx->pV,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->pV);CHKERRQ(ierr);
   }
 
@@ -343,9 +343,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = BVCreate(PetscObjectComm((PetscObject)contour->xsub),&ctx->Y);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(ctx->Y,contour->xsub,eps->n);CHKERRQ(ierr);
     ierr = BVSetFromOptions(ctx->Y);CHKERRQ(ierr);
-    ierr = BVResize(ctx->Y,contour->npoints*ctx->L_max,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVResize(ctx->Y,contour->npoints*ctx->L,PETSC_FALSE);CHKERRQ(ierr);
   } else {
-    ierr = BVDuplicateResize(eps->V,contour->npoints*ctx->L_max,&ctx->Y);CHKERRQ(ierr);
+    ierr = BVDuplicateResize(eps->V,contour->npoints*ctx->L,&ctx->Y);CHKERRQ(ierr);
   }
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->Y);CHKERRQ(ierr);
 
@@ -456,7 +456,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
-    ierr = BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L_max,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig);CHKERRQ(ierr);
+    ierr = BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig);CHKERRQ(ierr);
     ierr = PetscInfo(eps,"Estimated eigenvalue count: %f\n",(double)est_eig);CHKERRQ(ierr);
     eta = PetscPowReal(10.0,-PetscLog10Real(eps->tol)/ctx->N);
     L_add = PetscMax(0,(PetscInt)PetscCeilReal((est_eig*eta)/ctx->M)-ctx->L);
@@ -468,15 +468,16 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 #endif
   if (L_add>0) {
     ierr = PetscInfo(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVCISSResizeBases(ctx->S,contour->pA?ctx->pV:ctx->V,ctx->Y,ctx->L,ctx->L+L_add,ctx->M,contour->npoints);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
-    ierr = EPSCISSSolve(eps,J,V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ctx->L += L_add;
+    ierr = EPSCISSSolve(eps,J,V,ctx->L-L_add,ctx->L);CHKERRQ(ierr);
   }
   ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
   for (i=0;i<ctx->refine_blocksize;i++) {
-    ierr = BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
+    ierr = BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
     ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
     ierr = PetscLogEventBegin(EPS_CISS_SVD,eps,0,0,0);CHKERRQ(ierr);
     ierr = SlepcCISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
@@ -485,11 +486,12 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
     ierr = PetscInfo(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = BVCISSResizeBases(ctx->S,contour->pA?ctx->pV:ctx->V,ctx->Y,ctx->L,ctx->L+L_add,ctx->M,contour->npoints);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
-    ierr = EPSCISSSolve(eps,J,V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ctx->L += L_add;
+    ierr = EPSCISSSolve(eps,J,V,ctx->L-L_add,ctx->L);CHKERRQ(ierr);
     if (L_add) {
       ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
       ierr = PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0);CHKERRQ(ierr);
@@ -503,14 +505,14 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     eps->its++;
     for (inner=0;inner<=ctx->refine_inner;inner++) {
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-        ierr = BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
+        ierr = BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
         ierr = CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0);CHKERRQ(ierr);
         ierr = PetscLogEventBegin(EPS_CISS_SVD,eps,0,0,0);CHKERRQ(ierr);
         ierr = SlepcCISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv);CHKERRQ(ierr);
         ierr = PetscLogEventEnd(EPS_CISS_SVD,eps,0,0,0);CHKERRQ(ierr);
         break;
       } else {
-        ierr = BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
+        ierr = BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->V,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
@@ -580,7 +582,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-        ierr = BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L_max,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
+        ierr = BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
