@@ -76,6 +76,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
+    ierr = PetscFree(pep->solvematcoeffs);CHKERRQ(ierr);
     ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
