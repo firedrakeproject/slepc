@@ -78,6 +78,8 @@ class Package:
         self.packagedir = string
       string,found = argdb.PopString('with-'+self.packagename+'-lib')
       if found:
+        if self.packagedir:
+          self.log.Exit('Specify either "--with-'+self.packagename+'-dir" or "--with-'+self.packagename+'-lib%s", but not both!' % (' --with-'+self.packagename+'-include' if self.hasheaders else ''))
         self.requested = True
         self.packagelibs = string.split(',')
       if self.hasheaders:
