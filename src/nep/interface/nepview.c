@@ -79,7 +79,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n");CHKERRQ(ierr);
         break;
       case NEP_USER_INTERFACE_SPLIT:
-        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form, with %" PetscInt_FMT " terms\n",nep->nt);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form\n");CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"    number of terms: %" PetscInt_FMT "\n",nep->nt);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"    nonzero pattern of the matrices: %s\n",MatStructures[nep->mstr]);CHKERRQ(ierr);
         break;
       }
     } else {

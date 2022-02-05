@@ -1084,7 +1084,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       break;
     }
     if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",MatStructures[st->str]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  nonzero pattern of the matrices: %s\n",MatStructures[st->str]);CHKERRQ(ierr);
     }
     if (st->Psplit) {
       ierr = PetscViewerASCIIPrintf(viewer,"  using split preconditioner matrices with %s\n",MatStructures[st->strp]);CHKERRQ(ierr);
