@@ -51,7 +51,9 @@ NEP Object: (check_myprefix_) 1 MPI processes
         total number of mallocs used during MatSetValues calls =0
           not using I-node routines
   problem type: general nonlinear eigenvalue problem
-  nonlinear operator in split form, with 3 terms
+  nonlinear operator in split form
+    number of terms: 3
+    nonzero pattern of the matrices: SUBSET
   selected portion of the spectrum: closest to target: 0. (in magnitude)
   number of eigenvalues (nev): 1
   number of column vectors (ncv): 16

@@ -1,7 +1,7 @@
 
 Diagonal Nonlinear Eigenproblem, n=20
 
- Nonlinear function with 3 terms, with same nonzero pattern
+ Nonlinear function with 3 terms, with SAME nonzero pattern
 Mat Object: 1 MPI processes
   type: seqaij
 row 0: (0, 1.) 
