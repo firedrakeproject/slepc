@@ -216,13 +216,14 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
   const PetscScalar    *vals,*array;
   MatStructure         str;
   PEP_REFINES_MATSHELL *fctx;
+  PEPRefineScheme      scheme=pep->scheme;
   Vec                  w=ctx->w;
   Mat                  M;
 
   PetscFunctionBegin;
   ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
   ierr = PetscMalloc2(nmat,&coeffs,nmat,&coeffs2);CHKERRQ(ierr);
-  switch (pep->scheme) {
+  switch (scheme) {
   case PEP_REFINE_SCHEME_SCHUR:
     if (ini) {
       ierr = PetscCalloc1(1,&fctx);CHKERRQ(ierr);
@@ -261,7 +262,7 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
     ierr = MatMult(A[i],v,t);CHKERRQ(ierr);
     ierr = VecAXPY(w,coeffs2[i],t);CHKERRQ(ierr);
   }
-  switch (pep->scheme) {
+  switch (scheme) {
   case PEP_REFINE_SCHEME_EXPLICIT:
     comm = PetscObjectComm((PetscObject)A[0]);
     ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
@@ -346,7 +347,7 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
     ierr = PetscFree(cols2);CHKERRQ(ierr);
     break;
   case PEP_REFINE_SCHEME_SCHUR:
-    fctx->M2 = ctx->w;
+    fctx->M2 = w;
     fctx->M3 = v;
     fctx->m3 = 0.0;
     for (i=1;i<nmat-1;i++) fctx->m3 += PetscConj(coeffs[i])*coeffs[i];

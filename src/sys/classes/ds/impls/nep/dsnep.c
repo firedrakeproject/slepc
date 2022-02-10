@@ -312,7 +312,7 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   ierr = PetscArrayzero(p,k);CHKERRQ(ierr);
   ierr = DSAllocateWork_Private(ds,(n+2)*(n+1),0,n+1);CHKERRQ(ierr);
   U    = ds->work+nwu;    nwu += (n+1)*(n+1);
-  R    = ds->work+nwu;    nwu += n+1;
+  R    = ds->work+nwu;    /*nwu += n+1;*/
   perm = ds->iwork;
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {
     ierr = PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,k,1,&map);CHKERRQ(ierr);
@@ -448,7 +448,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   alpha = ds->work+nwu;    nwu += mid*n;
   beta  = ds->work+nwu;    nwu += mid*n;
   S     = ds->work+nwu;    nwu += 2*mid*n*p;
-  work  = ds->work+nwu;    nwu += mid*n*5;
+  work  = ds->work+nwu;    /*nwu += mid*n*5;*/
 
   /* Compute quadrature parameters */
   ierr = RGComputeQuadrature(ctx->rg,RG_QUADRULE_TRAPEZOIDAL,nnod,z,zn,w);CHKERRQ(ierr);

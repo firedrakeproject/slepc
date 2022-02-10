@@ -207,6 +207,7 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscInt       t,l,ld=ds->ld,i,*perm,*perm2;
   PetscReal      *T=NULL,*D=NULL,*eig;
   PetscScalar    *A=NULL,*B=NULL;
+  PetscBool      compact=ds->compact;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
@@ -215,7 +216,7 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   t = ds->t;
   perm = ds->perm;
   ierr = PetscMalloc2(t,&eig,t,&perm2);CHKERRQ(ierr);
-  if (ds->compact) {
+  if (compact) {
     T = ds->rmat[DS_MAT_T];
     D = ds->rmat[DS_MAT_D];
     for (i=0;i<t;i++) eig[i] = (D[i]==0)?PETSC_INFINITY:T[i]/D[i];
@@ -227,7 +228,7 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   ierr = DSSortEigenvaluesReal_Private(ds,eig,perm);CHKERRQ(ierr);
   ierr = PetscArraycpy(perm2,perm,t);CHKERRQ(ierr);
   for (i=l;i<t;i++) wr[i] = eig[perm[i]];
-  if (ds->compact) {
+  if (compact) {
     ierr = PetscArraycpy(eig,T,t);CHKERRQ(ierr);
     for (i=l;i<t;i++) T[i] = eig[perm[i]];
     ierr = PetscArraycpy(eig,D,t);CHKERRQ(ierr);

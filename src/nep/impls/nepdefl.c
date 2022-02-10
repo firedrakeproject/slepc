@@ -660,7 +660,7 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
     b1 = b; x1 = x;
   }
   ierr = KSPSolve(extop->solve->ksp,b1,x1);CHKERRQ(ierr);
-  if (!extop->ref && extop->n) {
+  if (!extop->ref && extop->n && extop->szd) {
     ierr = PetscBLASIntCast(extop->szd,&szd_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(extop->n,&n_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(extop->szd+1,&ldh_);CHKERRQ(ierr);

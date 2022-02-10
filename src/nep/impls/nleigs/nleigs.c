@@ -759,7 +759,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   PetscReal      norm0,norm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,*coeffs;
   Mat            *D=ctx->D,*DP,T,P;
-  PetscBool      shell,has,vec=PETSC_FALSE;
+  PetscBool      shell,has,vec=PETSC_FALSE,precond=(nep->function_pre!=nep->function)?PETSC_TRUE:PETSC_FALSE;
   PetscRandom    rand=NULL;
   Vec            w[2];
 
@@ -791,7 +791,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     vec = PETSC_TRUE;
     ierr = MatNormEstimate(D[0],ctx->vrn,w[0],&norm0);CHKERRQ(ierr);
   }
-  if (nep->function_pre != nep->function) {
+  if (precond) {
     ierr = PetscMalloc1(ctx->ddmaxit,&DP);CHKERRQ(ierr);
     ierr = MatDuplicate(P,MAT_COPY_VALUES,&DP[0]);CHKERRQ(ierr);
   }
@@ -822,7 +822,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
       }
       ierr = MatNormEstimate(D[k],ctx->vrn,w[0],&norm);CHKERRQ(ierr);
     }
-    if (nep->function_pre != nep->function) {
+    if (precond) {
       ierr = MatDuplicate(P,MAT_COPY_VALUES,&DP[k]);CHKERRQ(ierr);
       for (j=0;j<k;j++) {
         ierr = MatAXPY(DP[k],-b[j],DP[j],nep->mstrp);CHKERRQ(ierr);
@@ -842,7 +842,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     for (j=1;j<ctx->nmat;j++) {
       ierr = MatAXPY(T,coeffs[j],D[j],nep->mstr);CHKERRQ(ierr);
     }
-    if (nep->function_pre != nep->function) {
+    if (precond) {
       ierr = MatDuplicate(DP[0],MAT_COPY_VALUES,&P);CHKERRQ(ierr);
       if (coeffs[0]!=1.0) { ierr = MatScale(P,coeffs[0]);CHKERRQ(ierr); }
       for (j=1;j<ctx->nmat;j++) {
@@ -858,7 +858,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     ierr = VecDestroy(&w[0]);CHKERRQ(ierr);
     ierr = VecDestroy(&w[1]);CHKERRQ(ierr);
   }
-  if (nep->function_pre != nep->function) {
+  if (precond) {
     ierr = MatDestroy(&P);CHKERRQ(ierr);
     ierr = MatDestroyMatrices(ctx->nmat,&DP);CHKERRQ(ierr);
   }

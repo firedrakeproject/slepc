@@ -790,7 +790,6 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   rcde = ds->rwork+nwru;
   nwru += ld;
   rcdv = ds->rwork+nwru;
-  nwru += ld;
   /* Quick return if possible */
   if (n_ == 1) {
     for (i=0;i<=ds->l;i++) Q[i+i*ld] = 1.0;
