@@ -286,7 +286,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode PEPQSliceDiscriminant(PEP pep,Vec u,Vec w,PetscReal *d,PetscReal *smas,PetscReal *smenos)
+static inline PetscErrorCode PEPQSliceDiscriminant(PEP pep,Vec u,Vec w,PetscReal *d,PetscReal *smas,PetscReal *smenos)
 {
   PetscReal      ap,bp,cp,dis;
   PetscErrorCode ierr;
@@ -319,7 +319,7 @@ PETSC_STATIC_INLINE PetscErrorCode PEPQSliceDiscriminant(PEP pep,Vec u,Vec w,Pet
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode PEPQSliceEvaluateQEP(PEP pep,PetscScalar x,Mat M,MatStructure str)
+static inline PetscErrorCode PEPQSliceEvaluateQEP(PEP pep,PetscScalar x,Mat M,MatStructure str)
 {
   PetscErrorCode ierr;
 

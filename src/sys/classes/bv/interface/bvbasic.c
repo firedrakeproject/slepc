@@ -1530,7 +1530,7 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
 /*
    Copy all user-provided attributes of V to another BV object W
  */
-PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,BV W)
+static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
 {
   PetscErrorCode ierr;
 

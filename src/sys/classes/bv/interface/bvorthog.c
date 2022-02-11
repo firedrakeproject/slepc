@@ -17,7 +17,7 @@
    BV_NormVecOrColumn - Compute the 2-norm of the working vector, irrespective of
    whether it is in a column or not
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_NormVecOrColumn(BV bv,PetscInt j,Vec v,PetscReal *nrm)
+static inline PetscErrorCode BV_NormVecOrColumn(BV bv,PetscInt j,Vec v,PetscReal *nrm)
 {
   PetscErrorCode ierr;
 
@@ -31,7 +31,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_NormVecOrColumn(BV bv,PetscInt j,Vec v,Pet
    BVDotColumnInc - Same as BVDotColumn() but also including column j, which
    is multiplied by itself
 */
-PETSC_STATIC_INLINE PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q)
+static inline PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q)
 {
   PetscErrorCode ierr;
   PetscInt       ksave;
@@ -575,7 +575,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
 /*
   BV_GetBufferMat - Create auxiliary seqdense matrix that wraps the bv->buffer.
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_GetBufferMat(BV bv)
+static inline PetscErrorCode BV_GetBufferMat(BV bv)
 {
   PetscErrorCode ierr;
   PetscInt       ld;
@@ -598,7 +598,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_GetBufferMat(BV bv)
    provided by the caller. Only columns l:k-1 are copied, restricting to the upper
    triangular part if tri=PETSC_TRUE.
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R,PetscBool tri)
+static inline PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R,PetscBool tri)
 {
   PetscErrorCode    ierr;
   const PetscScalar *bb;

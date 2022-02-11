@@ -113,7 +113,7 @@ struct _p_BV {
     if definite inner product:     res = sqrt(alpha)
     if indefinite inner product:   res = sgn(alpha)*sqrt(abs(alpha))
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
+static inline PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
 {
   PetscErrorCode ierr;
   PetscReal      absal,realp;
@@ -140,7 +140,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal
   BV_IPMatMult - Multiply a vector x by the inner-product matrix, cache the
   result in Bx.
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
+static inline PetscErrorCode BV_IPMatMult(BV bv,Vec x)
 {
   PetscErrorCode ierr;
 
@@ -161,7 +161,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
   BV_IPMatMultBV - Multiply BV by the inner-product matrix, cache the
   result internally in bv->cached.
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMultBV(BV bv)
+static inline PetscErrorCode BV_IPMatMultBV(BV bv)
 {
   PetscErrorCode ierr;
 
@@ -182,7 +182,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMultBV(BV bv)
 /*
   BV_AllocateCoeffs - Allocate orthogonalization coefficients if not done already.
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_AllocateCoeffs(BV bv)
+static inline PetscErrorCode BV_AllocateCoeffs(BV bv)
 {
   PetscErrorCode ierr;
 
@@ -197,7 +197,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateCoeffs(BV bv)
 /*
   BV_AllocateSignature - Allocate signature coefficients if not done already.
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
+static inline PetscErrorCode BV_AllocateSignature(BV bv)
 {
   PetscErrorCode ierr;
 
@@ -274,7 +274,7 @@ SLEPC_EXTERN void MPIAPI SlepcPythag(void*,void*,PetscMPIInt*,MPI_Datatype*);
 /*
    BV_CleanCoefficients_Default - Sets to zero all entries of column j of the bv buffer
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_CleanCoefficients_Default(BV bv,PetscInt j,PetscScalar *h)
+static inline PetscErrorCode BV_CleanCoefficients_Default(BV bv,PetscInt j,PetscScalar *h)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h,*a;
@@ -294,7 +294,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_CleanCoefficients_Default(BV bv,PetscInt j
    BV_AddCoefficients_Default - Add the contents of the scratch (0-th column) of the bv buffer
    into column j of the bv buffer
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_AddCoefficients_Default(BV bv,PetscInt j,PetscScalar *h,PetscScalar *c)
+static inline PetscErrorCode BV_AddCoefficients_Default(BV bv,PetscInt j,PetscScalar *h,PetscScalar *c)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h,*cc=c;
@@ -315,7 +315,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AddCoefficients_Default(BV bv,PetscInt j,P
    BV_SetValue_Default - Sets value in row j (counted after the constraints) of column k
    of the coefficients array
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_SetValue_Default(BV bv,PetscInt j,PetscInt k,PetscScalar *h,PetscScalar value)
+static inline PetscErrorCode BV_SetValue_Default(BV bv,PetscInt j,PetscInt k,PetscScalar *h,PetscScalar value)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h,*a;
@@ -334,7 +334,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SetValue_Default(BV bv,PetscInt j,PetscInt
    BV_SquareSum_Default - Returns the value h'*h, where h represents the contents of the
    coefficients array (up to position j)
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum_Default(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
+static inline PetscErrorCode BV_SquareSum_Default(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h;
@@ -354,7 +354,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum_Default(BV bv,PetscInt j,PetscSc
    the contents of the coefficients array (up to position j) and omega is the signature;
    if inverse=TRUE then the operation is h/omega
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,PetscScalar *h,PetscBool inverse)
+static inline PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,PetscScalar *h,PetscBool inverse)
 {
   PetscErrorCode    ierr;
   PetscScalar       *hh=h;
@@ -377,7 +377,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,Pe
    BV_SquareRoot_Default - Returns the square root of position j (counted after the constraints)
    of the coefficients array
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_SquareRoot_Default(BV bv,PetscInt j,PetscScalar *h,PetscReal *beta)
+static inline PetscErrorCode BV_SquareRoot_Default(BV bv,PetscInt j,PetscScalar *h,PetscReal *beta)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h;
@@ -393,7 +393,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SquareRoot_Default(BV bv,PetscInt j,PetscS
    BV_StoreCoefficients_Default - Copy the contents of the coefficients array to an array dest
    provided by the caller (only values from l to j are copied)
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoefficients_Default(BV bv,PetscInt j,PetscScalar *h,PetscScalar *dest)
+static inline PetscErrorCode BV_StoreCoefficients_Default(BV bv,PetscInt j,PetscScalar *h,PetscScalar *dest)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h,*a;
@@ -413,7 +413,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoefficients_Default(BV bv,PetscInt j
   BV_GetEigenvector - retrieves k-th eigenvector from basis vectors V.
   The argument eigi is the imaginary part of the corresponding eigenvalue.
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_GetEigenvector(BV V,PetscInt k,PetscScalar eigi,Vec Vr,Vec Vi)
+static inline PetscErrorCode BV_GetEigenvector(BV V,PetscInt k,PetscScalar eigi,Vec Vr,Vec Vi)
 {
   PetscErrorCode ierr;
 
@@ -445,7 +445,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_GetEigenvector(BV V,PetscInt k,PetscScalar
    iterative refinement may cause problems in parallel (collective operation
    not being called by all processes)
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_OrthogonalizeColumn_Safe(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
+static inline PetscErrorCode BV_OrthogonalizeColumn_Safe(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode     ierr;
   BVOrthogRefineType orthog_ref;

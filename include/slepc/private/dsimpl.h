@@ -108,8 +108,8 @@ struct _p_DS {
 #endif
 
 SLEPC_INTERN PetscErrorCode DSAllocateMatrix_Private(DS,DSMatType,PetscBool);
-PETSC_STATIC_INLINE PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_FALSE);}
-PETSC_STATIC_INLINE PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_TRUE);}
+static inline PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_FALSE);}
+static inline PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_TRUE);}
 SLEPC_INTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
 SLEPC_INTERN PetscErrorCode DSSortEigenvalues_Private(DS,PetscScalar*,PetscScalar*,PetscInt*,PetscBool);
 SLEPC_INTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscReal*,PetscInt*);

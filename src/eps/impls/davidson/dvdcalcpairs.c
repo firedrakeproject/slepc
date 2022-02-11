@@ -191,7 +191,7 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
 /*
    BV <- BV*MT
  */
-PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,DSMatType mat)
+static inline PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,DSMatType mat)
 {
   PetscErrorCode ierr;
   PetscInt       l,k,n;

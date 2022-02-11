@@ -234,7 +234,7 @@ struct _p_PEP {
 /*
   PEP_KSPSetOperators - Sets the KSP matrices
 */
-PETSC_STATIC_INLINE PetscErrorCode PEP_KSPSetOperators(KSP ksp,Mat A,Mat B)
+static inline PetscErrorCode PEP_KSPSetOperators(KSP ksp,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   const char     *prefix;

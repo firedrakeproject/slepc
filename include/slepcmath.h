@@ -47,7 +47,7 @@
 
    Level: developer
 @*/
-PETSC_STATIC_INLINE PetscReal SlepcAbs(PetscReal x,PetscReal y)
+static inline PetscReal SlepcAbs(PetscReal x,PetscReal y)
 {
   PetscReal w,z,t,xabs=PetscAbs(x),yabs=PetscAbs(y);
 
@@ -92,7 +92,7 @@ M*/
 /*
    SlepcSetFlushToZero - Set the FTZ flag in floating-point arithmetic.
 */
-PETSC_STATIC_INLINE PetscErrorCode SlepcSetFlushToZero(unsigned int *state)
+static inline PetscErrorCode SlepcSetFlushToZero(unsigned int *state)
 {
   PetscFunctionBegin;
 #if defined(PETSC_HAVE_XMMINTRIN_H) && defined(_MM_FLUSH_ZERO_ON) && defined(__SSE__)
@@ -107,7 +107,7 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcSetFlushToZero(unsigned int *state)
 /*
    SlepcResetFlushToZero - Reset the FTZ flag in floating-point arithmetic.
 */
-PETSC_STATIC_INLINE PetscErrorCode SlepcResetFlushToZero(unsigned int *state)
+static inline PetscErrorCode SlepcResetFlushToZero(unsigned int *state)
 {
   PetscFunctionBegin;
 #if defined(PETSC_HAVE_XMMINTRIN_H) && defined(_MM_FLUSH_ZERO_MASK) && defined(__SSE__)

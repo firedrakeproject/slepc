@@ -220,7 +220,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 /*
    Checks whether the ST matrices are all symmetric or hermitian.
 */
-PETSC_STATIC_INLINE PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm,PetscBool *herm)
+static inline PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm,PetscBool *herm)
 {
   PetscErrorCode ierr;
   PetscInt       i;

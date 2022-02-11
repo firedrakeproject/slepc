@@ -124,7 +124,7 @@ SLEPC_INTERN PetscErrorCode STApplyTranspose_Generic(ST,Vec,Vec);
 /*
   ST_KSPSetOperators - Sets the KSP matrices
 */
-PETSC_STATIC_INLINE PetscErrorCode ST_KSPSetOperators(ST st,Mat A,Mat B)
+static inline PetscErrorCode ST_KSPSetOperators(ST st,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   const char     *prefix;

@@ -372,7 +372,7 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
+static inline PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
 {
   PetscErrorCode ierr;
   PetscInt       i,low,high;
@@ -396,7 +396,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscInt k,Vec w1,Vec w2)
+static inline PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscInt k,Vec w1,Vec w2)
 {
   PetscErrorCode ierr;
   PetscInt       i,low,high;
@@ -427,7 +427,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscIn
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode BVSetRandomSignColumn_Private(BV bv,PetscInt k)
+static inline PetscErrorCode BVSetRandomSignColumn_Private(BV bv,PetscInt k)
 {
   PetscErrorCode ierr;
   PetscInt       i,low,high;

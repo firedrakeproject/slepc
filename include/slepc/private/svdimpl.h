@@ -164,7 +164,7 @@ struct _p_SVD {
 /*
   SVD_KSPSetOperators - Sets the KSP matrices
 */
-PETSC_STATIC_INLINE PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
+static inline PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   const char     *prefix;
@@ -185,7 +185,7 @@ PETSC_STATIC_INLINE PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
    Create the template vector for the left basis in GSVD, as in
    MatCreateVecsEmpty(Z,NULL,&t) for Z=[A;B] without forming Z.
  */
-PETSC_STATIC_INLINE PetscErrorCode SVDCreateLeftTemplate(SVD svd,Vec *t)
+static inline PetscErrorCode SVDCreateLeftTemplate(SVD svd,Vec *t)
 {
   PetscErrorCode ierr;
   PetscInt       M,P,m,p;

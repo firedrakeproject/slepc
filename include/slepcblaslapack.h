@@ -136,7 +136,7 @@ BLAS_EXTERN SlepcLRT LAPACKlange_(const char*,PetscBLASInt*,PetscBLASInt*,PetscS
 #if !defined(SLEPC_MISSING_LAPACK_LANHS)
 BLAS_EXTERN SlepcLRT LAPACKlanhs_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*);
 #else
-PETSC_STATIC_INLINE SlepcLRT LAPACKlanhs_(const char *norm,PetscBLASInt *n,PetscScalar *A,PetscBLASInt *lda,PetscReal *work) {return LAPACKlange_(norm,n,n,A,lda,work);}
+static inline SlepcLRT LAPACKlanhs_(const char *norm,PetscBLASInt *n,PetscScalar *A,PetscBLASInt *lda,PetscReal *work) {return LAPACKlange_(norm,n,n,A,lda,work);}
 #endif
 #if !defined(SLEPC_MISSING_LAPACK_LARF)
 BLAS_EXTERN void     LAPACKlarf_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*);

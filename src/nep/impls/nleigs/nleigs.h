@@ -50,7 +50,7 @@ typedef struct {
   Vec         t;
 } NEP_NLEIGS_MATSHELL;
 
-PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep,PetscInt *nshiftsw)
+static inline PetscErrorCode NEPNLEIGSSetShifts(NEP nep,PetscInt *nshiftsw)
 {
   NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
 

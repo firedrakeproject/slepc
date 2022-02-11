@@ -76,7 +76,7 @@ struct _p_MFN {
 /*
    MFN_CreateDenseMat - Creates a dense Mat of size k unless it already has that size
 */
-PETSC_STATIC_INLINE PetscErrorCode MFN_CreateDenseMat(PetscInt k,Mat *A)
+static inline PetscErrorCode MFN_CreateDenseMat(PetscInt k,Mat *A)
 {
   PetscErrorCode ierr;
   PetscBool      create=PETSC_FALSE;
@@ -100,7 +100,7 @@ PETSC_STATIC_INLINE PetscErrorCode MFN_CreateDenseMat(PetscInt k,Mat *A)
 /*
    MFN_CreateVec - Creates a Vec of size k unless it already has that size
 */
-PETSC_STATIC_INLINE PetscErrorCode MFN_CreateVec(PetscInt k,Vec *v)
+static inline PetscErrorCode MFN_CreateVec(PetscInt k,Vec *v)
 {
   PetscErrorCode ierr;
   PetscBool      create=PETSC_FALSE;

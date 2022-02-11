@@ -173,8 +173,8 @@ SLEPC_EXTERN PetscErrorCode NEPErrorView(NEP,NEPErrorType,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPErrorViewFromOptions(NEP);
 SLEPC_EXTERN PetscErrorCode NEPConvergedReasonView(NEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPConvergedReasonViewFromOptions(NEP);
-PETSC_DEPRECATED_FUNCTION("Use NEPConvergedReasonView() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode NEPReasonView(NEP nep,PetscViewer v) {return NEPConvergedReasonView(nep,v);}
-PETSC_DEPRECATED_FUNCTION("Use NEPConvergedReasonViewFromOptions() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode NEPReasonViewFromOptions(NEP nep) {return NEPConvergedReasonViewFromOptions(nep);}
+PETSC_DEPRECATED_FUNCTION("Use NEPConvergedReasonView() (since version 3.14)") static inline PetscErrorCode NEPReasonView(NEP nep,PetscViewer v) {return NEPConvergedReasonView(nep,v);}
+PETSC_DEPRECATED_FUNCTION("Use NEPConvergedReasonViewFromOptions() (since version 3.14)") static inline PetscErrorCode NEPReasonViewFromOptions(NEP nep) {return NEPConvergedReasonViewFromOptions(nep);}
 SLEPC_EXTERN PetscErrorCode NEPValuesView(NEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPValuesViewFromOptions(NEP);
 SLEPC_EXTERN PetscErrorCode NEPVectorsView(NEP,PetscViewer);
@@ -184,8 +184,8 @@ SLEPC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,Pe
 SLEPC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,Mat,void*),void**);
 SLEPC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,void*),void*);
 SLEPC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,void*),void**);
-PETSC_DEPRECATED_FUNCTION("Use NEPSetFunction() and NEPSetJacobian") PETSC_STATIC_INLINE PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*fun)(NEP,PetscScalar,PetscInt,Mat,void*),void *ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
-PETSC_DEPRECATED_FUNCTION("Use NEPGetFunction() and NEPGetJacobian") PETSC_STATIC_INLINE PetscErrorCode NEPGetDerivatives(NEP nep,Mat *A,PetscErrorCode (**fun)(NEP,PetscScalar,PetscInt,Mat,void*),void **ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
+PETSC_DEPRECATED_FUNCTION("Use NEPSetFunction() and NEPSetJacobian") static inline PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*fun)(NEP,PetscScalar,PetscInt,Mat,void*),void *ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
+PETSC_DEPRECATED_FUNCTION("Use NEPGetFunction() and NEPGetJacobian") static inline PetscErrorCode NEPGetDerivatives(NEP nep,Mat *A,PetscErrorCode (**fun)(NEP,PetscScalar,PetscInt,Mat,void*),void **ctx) {(void)A;(void)fun;(void)ctx;SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
 SLEPC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat[],FN[],MatStructure);
 SLEPC_EXTERN PetscErrorCode NEPGetSplitOperatorTerm(NEP,PetscInt,Mat*,FN*);
 SLEPC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*);
@@ -222,8 +222,8 @@ SLEPC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScala
 SLEPC_EXTERN PetscErrorCode NEPGetLeftEigenvector(NEP,PetscInt,Vec,Vec);
 
 SLEPC_EXTERN PetscErrorCode NEPComputeError(NEP,PetscInt,NEPErrorType,PetscReal*);
-PETSC_DEPRECATED_FUNCTION("Use NEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_RELATIVE,r);}
-PETSC_DEPRECATED_FUNCTION("Use NEPComputeError() with NEP_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_ABSOLUTE,r);}
+PETSC_DEPRECATED_FUNCTION("Use NEPComputeError()") static inline PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED_FUNCTION("Use NEPComputeError() with NEP_ERROR_ABSOLUTE") static inline PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_ABSOLUTE,r);}
 SLEPC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 
 SLEPC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,Mat,Mat);
@@ -338,15 +338,15 @@ SLEPC_EXTERN PetscErrorCode NEPCISSGetKSPs(NEP,PetscInt*,KSP**);
     PetscFunctionBegin; \
     SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"%s() not available with real scalars",PETSC_FUNCTION_NAME); \
     } while (0)
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetExtraction(NEP nep,PETSC_UNUSED NEPCISSExtraction ex) {SlepcNEPCISSUnavailable(nep);}
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetExtraction(NEP nep,PETSC_UNUSED NEPCISSExtraction *ex) {SlepcNEPCISSUnavailable(nep);}
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetSizes(NEP nep,PETSC_UNUSED PetscInt ip,PETSC_UNUSED PetscInt bs,PETSC_UNUSED PetscInt ms,PETSC_UNUSED PetscInt npart,PETSC_UNUSED PetscInt bsmax,PETSC_UNUSED PetscBool realmats) {SlepcNEPCISSUnavailable(nep);}
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetSizes(NEP nep,PETSC_UNUSED PetscInt *ip,PETSC_UNUSED PetscInt *bs,PETSC_UNUSED PetscInt *ms,PETSC_UNUSED PetscInt *npart,PETSC_UNUSED PetscInt *bsmak,PETSC_UNUSED PetscBool *realmats) {SlepcNEPCISSUnavailable(nep);}
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetThreshold(NEP nep,PETSC_UNUSED PetscReal delta,PETSC_UNUSED PetscReal spur) {SlepcNEPCISSUnavailable(nep);}
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetThreshold(NEP nep,PETSC_UNUSED PetscReal *delta,PETSC_UNUSED PetscReal *spur) {SlepcNEPCISSUnavailable(nep);}
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetRefinement(NEP nep,PETSC_UNUSED PetscInt inner,PETSC_UNUSED PetscInt blsize) {SlepcNEPCISSUnavailable(nep);}
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetRefinement(NEP nep,PETSC_UNUSED PetscInt *inner,PETSC_UNUSED PetscInt *blsize) {SlepcNEPCISSUnavailable(nep);}
-PETSC_STATIC_INLINE PetscErrorCode NEPCISSGetKSPs(NEP nep,PETSC_UNUSED PetscInt *nsolve,PETSC_UNUSED KSP **ksp) {SlepcNEPCISSUnavailable(nep);}
+static inline PetscErrorCode NEPCISSSetExtraction(NEP nep,PETSC_UNUSED NEPCISSExtraction ex) {SlepcNEPCISSUnavailable(nep);}
+static inline PetscErrorCode NEPCISSGetExtraction(NEP nep,PETSC_UNUSED NEPCISSExtraction *ex) {SlepcNEPCISSUnavailable(nep);}
+static inline PetscErrorCode NEPCISSSetSizes(NEP nep,PETSC_UNUSED PetscInt ip,PETSC_UNUSED PetscInt bs,PETSC_UNUSED PetscInt ms,PETSC_UNUSED PetscInt npart,PETSC_UNUSED PetscInt bsmax,PETSC_UNUSED PetscBool realmats) {SlepcNEPCISSUnavailable(nep);}
+static inline PetscErrorCode NEPCISSGetSizes(NEP nep,PETSC_UNUSED PetscInt *ip,PETSC_UNUSED PetscInt *bs,PETSC_UNUSED PetscInt *ms,PETSC_UNUSED PetscInt *npart,PETSC_UNUSED PetscInt *bsmak,PETSC_UNUSED PetscBool *realmats) {SlepcNEPCISSUnavailable(nep);}
+static inline PetscErrorCode NEPCISSSetThreshold(NEP nep,PETSC_UNUSED PetscReal delta,PETSC_UNUSED PetscReal spur) {SlepcNEPCISSUnavailable(nep);}
+static inline PetscErrorCode NEPCISSGetThreshold(NEP nep,PETSC_UNUSED PetscReal *delta,PETSC_UNUSED PetscReal *spur) {SlepcNEPCISSUnavailable(nep);}
+static inline PetscErrorCode NEPCISSSetRefinement(NEP nep,PETSC_UNUSED PetscInt inner,PETSC_UNUSED PetscInt blsize) {SlepcNEPCISSUnavailable(nep);}
+static inline PetscErrorCode NEPCISSGetRefinement(NEP nep,PETSC_UNUSED PetscInt *inner,PETSC_UNUSED PetscInt *blsize) {SlepcNEPCISSUnavailable(nep);}
+static inline PetscErrorCode NEPCISSGetKSPs(NEP nep,PETSC_UNUSED PetscInt *nsolve,PETSC_UNUSED KSP **ksp) {SlepcNEPCISSUnavailable(nep);}
 #undef SlepcNEPCISSUnavailable
 #endif
 

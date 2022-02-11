@@ -17,7 +17,7 @@
   BVDot for the particular case of non-standard inner product with
   matrix B, which is assumed to be symmetric (or complex Hermitian)
 */
-PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
+static inline PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
   PetscObjectId  idx,idy;
@@ -460,7 +460,7 @@ PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal *val)
+static inline PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
   PetscScalar    p;
@@ -472,7 +472,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType type,PetscReal *val)
+static inline PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
   PetscScalar    p;
@@ -483,7 +483,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType typ
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,PetscReal *val)
+static inline PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
   PetscScalar    p;
@@ -923,7 +923,7 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
   Compute Y^H*A*X: right part column by column (with MatMult) and bottom
   part row by row (with MatMultHermitianTranspose); result placed in marray[*,ldm]
 */
-PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)
+static inline PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,lx,ly,kx,ky,ulim;
@@ -971,7 +971,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar 
   call for top-right part and another one for bottom part;
   result placed in marray[*,ldm]
 */
-PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm)
+static inline PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm)
 {
   PetscErrorCode    ierr;
   PetscInt          j,lx,ly,kx,ky;
@@ -1027,7 +1027,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
   Second stage: resize BV to accommodate A'*Y1, then call BVDot for transpose of
   bottom-left part; result placed in marray[*,ldm]
 */
-PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)
+static inline PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar *marray,PetscInt ldm,PetscBool symm)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,lx,ly,kx,ky;
@@ -1090,7 +1090,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscS
   one BVDot call for top-right part and another one for bottom part;
   result placed in marray[*,ldm]
 */
-PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marray,PetscInt ldm)
+static inline PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marray,PetscInt ldm)
 {
   PetscErrorCode    ierr;
   PetscInt          j,lx,ly,kx,ky;

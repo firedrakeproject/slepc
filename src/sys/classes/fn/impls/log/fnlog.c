@@ -261,7 +261,7 @@ static PetscErrorCode sqrtm_tbt(PetscScalar *T)
 /*
    Unwinding number of z
 */
-PETSC_STATIC_INLINE PetscReal unwinding(PetscScalar z)
+static inline PetscReal unwinding(PetscScalar z)
 {
   PetscReal u;
 

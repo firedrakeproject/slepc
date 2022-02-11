@@ -63,10 +63,10 @@ SLEPC_EXTERN PetscErrorCode STSetFromOptions(ST);
 SLEPC_EXTERN PetscErrorCode STView(ST,PetscViewer);
 SLEPC_EXTERN PetscErrorCode STViewFromOptions(ST,PetscObject,const char[]);
 
-PETSC_DEPRECATED_FUNCTION("Use STSetMatrices()") PETSC_STATIC_INLINE PetscErrorCode STSetOperators(ST st,PetscInt n,Mat *A) {return STSetMatrices(st,n,A);}
-PETSC_DEPRECATED_FUNCTION("Use STGetMatrix()") PETSC_STATIC_INLINE PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}
-PETSC_DEPRECATED_FUNCTION("Use STGetMatrixTransformed()") PETSC_STATIC_INLINE PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
-PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()") PETSC_STATIC_INLINE PetscErrorCode STComputeExplicitOperator(ST st,Mat *A)
+PETSC_DEPRECATED_FUNCTION("Use STSetMatrices()") static inline PetscErrorCode STSetOperators(ST st,PetscInt n,Mat *A) {return STSetMatrices(st,n,A);}
+PETSC_DEPRECATED_FUNCTION("Use STGetMatrix()") static inline PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}
+PETSC_DEPRECATED_FUNCTION("Use STGetMatrixTransformed()") static inline PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
+PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()") static inline PetscErrorCode STComputeExplicitOperator(ST st,Mat *A)
 {
   PetscErrorCode ierr; Mat Op;
   ierr = STGetOperator(st,&Op);CHKERRQ(ierr);
@@ -153,8 +153,8 @@ SLEPC_EXTERN PetscErrorCode STShellSetBackTransform(ST,PetscErrorCode (*)(ST,Pet
 SLEPC_EXTERN PetscErrorCode STCayleyGetAntishift(ST,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode STCayleySetAntishift(ST,PetscScalar);
 
-PETSC_DEPRECATED_FUNCTION("Use STGetPreconditionerMat()") PETSC_STATIC_INLINE PetscErrorCode STPrecondGetMatForPC(ST st,Mat *A) {return STGetPreconditionerMat(st,A);}
-PETSC_DEPRECATED_FUNCTION("Use STSetPreconditionerMat()") PETSC_STATIC_INLINE PetscErrorCode STPrecondSetMatForPC(ST st,Mat A) {return STSetPreconditionerMat(st,A);}
+PETSC_DEPRECATED_FUNCTION("Use STGetPreconditionerMat()") static inline PetscErrorCode STPrecondGetMatForPC(ST st,Mat *A) {return STGetPreconditionerMat(st,A);}
+PETSC_DEPRECATED_FUNCTION("Use STSetPreconditionerMat()") static inline PetscErrorCode STPrecondSetMatForPC(ST st,Mat A) {return STSetPreconditionerMat(st,A);}
 SLEPC_EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST,PetscBool*);
 SLEPC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST,PetscBool);
 

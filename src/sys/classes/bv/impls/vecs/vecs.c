@@ -444,7 +444,7 @@ PetscErrorCode BVRestoreArrayRead_Vecs(BV bv,const PetscScalar **a)
 /*
    Sets the value of vmip flag and resets ops->multinplace accordingly
  */
-PETSC_STATIC_INLINE PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
+static inline PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
 {
   typedef PetscErrorCode (*fmultinplace)(BV,Mat,PetscInt,PetscInt);
   fmultinplace multinplace[2] = {BVMultInPlace_Vecs_ME, BVMultInPlace_Vecs_Alloc};

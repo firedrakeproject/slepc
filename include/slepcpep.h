@@ -215,12 +215,12 @@ SLEPC_EXTERN PetscErrorCode PEPSolve(PEP);
 SLEPC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode PEPViewFromOptions(PEP,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode PEPErrorView(PEP,PEPErrorType,PetscViewer);
-PETSC_DEPRECATED_FUNCTION("Use PEPErrorView()") PETSC_STATIC_INLINE PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
+PETSC_DEPRECATED_FUNCTION("Use PEPErrorView()") static inline PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
 SLEPC_EXTERN PetscErrorCode PEPErrorViewFromOptions(PEP);
 SLEPC_EXTERN PetscErrorCode PEPConvergedReasonView(PEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode PEPConvergedReasonViewFromOptions(PEP);
-PETSC_DEPRECATED_FUNCTION("Use PEPConvergedReasonView() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode PEPReasonView(PEP pep,PetscViewer v) {return PEPConvergedReasonView(pep,v);}
-PETSC_DEPRECATED_FUNCTION("Use PEPConvergedReasonViewFromOptions() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode PEPReasonViewFromOptions(PEP pep) {return PEPConvergedReasonViewFromOptions(pep);}
+PETSC_DEPRECATED_FUNCTION("Use PEPConvergedReasonView() (since version 3.14)") static inline PetscErrorCode PEPReasonView(PEP pep,PetscViewer v) {return PEPConvergedReasonView(pep,v);}
+PETSC_DEPRECATED_FUNCTION("Use PEPConvergedReasonViewFromOptions() (since version 3.14)") static inline PetscErrorCode PEPReasonViewFromOptions(PEP pep) {return PEPConvergedReasonViewFromOptions(pep);}
 SLEPC_EXTERN PetscErrorCode PEPValuesView(PEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode PEPValuesViewFromOptions(PEP);
 SLEPC_EXTERN PetscErrorCode PEPVectorsView(PEP,PetscViewer);
@@ -263,8 +263,8 @@ SLEPC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 SLEPC_EXTERN PetscErrorCode PEPGetConverged(PEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode PEPGetEigenpair(PEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode PEPComputeError(PEP,PetscInt,PEPErrorType,PetscReal*);
-PETSC_DEPRECATED_FUNCTION("Use PEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_BACKWARD,r);}
-PETSC_DEPRECATED_FUNCTION("Use PEPComputeError() with PEP_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_ABSOLUTE,r);}
+PETSC_DEPRECATED_FUNCTION("Use PEPComputeError()") static inline PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_BACKWARD,r);}
+PETSC_DEPRECATED_FUNCTION("Use PEPComputeError() with PEP_ERROR_ABSOLUTE") static inline PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_ABSOLUTE,r);}
 SLEPC_EXTERN PetscErrorCode PEPGetErrorEstimate(PEP,PetscInt,PetscReal*);
 SLEPC_EXTERN PetscErrorCode PEPGetIterationNumber(PEP,PetscInt*);
 
@@ -317,8 +317,8 @@ SLEPC_EXTERN PetscErrorCode PEPLinearSetExplicitMatrix(PEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
 SLEPC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
 SLEPC_EXTERN PetscErrorCode PEPLinearGetEPS(PEP,EPS*);
-PETSC_DEPRECATED_FUNCTION("Use PEPLinearSetLinearization()") PETSC_STATIC_INLINE PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform) {return (cform==1)?PEPLinearSetLinearization(pep,1.0,0.0):PEPLinearSetLinearization(pep,0.0,1.0);}
-PETSC_DEPRECATED_FUNCTION("Use PEPLinearGetLinearization()") PETSC_STATIC_INLINE PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform) {(void)pep; if (cform) *cform=1; return 0;}
+PETSC_DEPRECATED_FUNCTION("Use PEPLinearSetLinearization()") static inline PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform) {return (cform==1)?PEPLinearSetLinearization(pep,1.0,0.0):PEPLinearSetLinearization(pep,0.0,1.0);}
+PETSC_DEPRECATED_FUNCTION("Use PEPLinearGetLinearization()") static inline PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform) {(void)pep; if (cform) *cform=1; return 0;}
 
 SLEPC_EXTERN PetscErrorCode PEPQArnoldiSetRestart(PEP,PetscReal);
 SLEPC_EXTERN PetscErrorCode PEPQArnoldiGetRestart(PEP,PetscReal*);
@@ -392,15 +392,15 @@ SLEPC_EXTERN PetscErrorCode PEPCISSGetKSPs(PEP,PetscInt*,KSP**);
     PetscFunctionBegin; \
     SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"%s() not available with real scalars",PETSC_FUNCTION_NAME); \
     } while (0)
-PETSC_STATIC_INLINE PetscErrorCode PEPCISSSetExtraction(PEP pep,PETSC_UNUSED PEPCISSExtraction ex) {SlepcPEPCISSUnavailable(pep);}
-PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetExtraction(PEP pep,PETSC_UNUSED PEPCISSExtraction *ex) {SlepcPEPCISSUnavailable(pep);}
-PETSC_STATIC_INLINE PetscErrorCode PEPCISSSetSizes(PEP pep,PETSC_UNUSED PetscInt ip,PETSC_UNUSED PetscInt bs,PETSC_UNUSED PetscInt ms,PETSC_UNUSED PetscInt npart,PETSC_UNUSED PetscInt bsmax,PETSC_UNUSED PetscBool realmats) {SlepcPEPCISSUnavailable(pep);}
-PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetSizes(PEP pep,PETSC_UNUSED PetscInt *ip,PETSC_UNUSED PetscInt *bs,PETSC_UNUSED PetscInt *ms,PETSC_UNUSED PetscInt *npart,PETSC_UNUSED PetscInt *bsmak,PETSC_UNUSED PetscBool *realmats) {SlepcPEPCISSUnavailable(pep);}
-PETSC_STATIC_INLINE PetscErrorCode PEPCISSSetThreshold(PEP pep,PETSC_UNUSED PetscReal delta,PETSC_UNUSED PetscReal spur) {SlepcPEPCISSUnavailable(pep);}
-PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetThreshold(PEP pep,PETSC_UNUSED PetscReal *delta,PETSC_UNUSED PetscReal *spur) {SlepcPEPCISSUnavailable(pep);}
-PETSC_STATIC_INLINE PetscErrorCode PEPCISSSetRefinement(PEP pep,PETSC_UNUSED PetscInt inner,PETSC_UNUSED PetscInt blsize) {SlepcPEPCISSUnavailable(pep);}
-PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetRefinement(PEP pep,PETSC_UNUSED PetscInt *inner,PETSC_UNUSED PetscInt *blsize) {SlepcPEPCISSUnavailable(pep);}
-PETSC_STATIC_INLINE PetscErrorCode PEPCISSGetKSPs(PEP pep,PETSC_UNUSED PetscInt *nsolve,PETSC_UNUSED KSP **ksp) {SlepcPEPCISSUnavailable(pep);}
+static inline PetscErrorCode PEPCISSSetExtraction(PEP pep,PETSC_UNUSED PEPCISSExtraction ex) {SlepcPEPCISSUnavailable(pep);}
+static inline PetscErrorCode PEPCISSGetExtraction(PEP pep,PETSC_UNUSED PEPCISSExtraction *ex) {SlepcPEPCISSUnavailable(pep);}
+static inline PetscErrorCode PEPCISSSetSizes(PEP pep,PETSC_UNUSED PetscInt ip,PETSC_UNUSED PetscInt bs,PETSC_UNUSED PetscInt ms,PETSC_UNUSED PetscInt npart,PETSC_UNUSED PetscInt bsmax,PETSC_UNUSED PetscBool realmats) {SlepcPEPCISSUnavailable(pep);}
+static inline PetscErrorCode PEPCISSGetSizes(PEP pep,PETSC_UNUSED PetscInt *ip,PETSC_UNUSED PetscInt *bs,PETSC_UNUSED PetscInt *ms,PETSC_UNUSED PetscInt *npart,PETSC_UNUSED PetscInt *bsmak,PETSC_UNUSED PetscBool *realmats) {SlepcPEPCISSUnavailable(pep);}
+static inline PetscErrorCode PEPCISSSetThreshold(PEP pep,PETSC_UNUSED PetscReal delta,PETSC_UNUSED PetscReal spur) {SlepcPEPCISSUnavailable(pep);}
+static inline PetscErrorCode PEPCISSGetThreshold(PEP pep,PETSC_UNUSED PetscReal *delta,PETSC_UNUSED PetscReal *spur) {SlepcPEPCISSUnavailable(pep);}
+static inline PetscErrorCode PEPCISSSetRefinement(PEP pep,PETSC_UNUSED PetscInt inner,PETSC_UNUSED PetscInt blsize) {SlepcPEPCISSUnavailable(pep);}
+static inline PetscErrorCode PEPCISSGetRefinement(PEP pep,PETSC_UNUSED PetscInt *inner,PETSC_UNUSED PetscInt *blsize) {SlepcPEPCISSUnavailable(pep);}
+static inline PetscErrorCode PEPCISSGetKSPs(PEP pep,PETSC_UNUSED PetscInt *nsolve,PETSC_UNUSED KSP **ksp) {SlepcPEPCISSUnavailable(pep);}
 #undef SlepcPEPCISSUnavailable
 #endif
 #endif

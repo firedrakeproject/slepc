@@ -16,9 +16,9 @@ static PetscBool VecCompInitialized = PETSC_FALSE;
 MPI_Op MPIU_NORM2_SUM=0;
 
 /* Private functions */
-PETSC_STATIC_INLINE void SumNorm2(PetscReal*,PetscReal*,PetscReal*,PetscReal*);
-PETSC_STATIC_INLINE PetscReal GetNorm2(PetscReal,PetscReal);
-PETSC_STATIC_INLINE void AddNorm2(PetscReal*,PetscReal*,PetscReal);
+static inline void SumNorm2(PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+static inline PetscReal GetNorm2(PetscReal,PetscReal);
+static inline void AddNorm2(PetscReal*,PetscReal*,PetscReal);
 static PetscErrorCode VecCompSetSubVecs_Comp(Vec,PetscInt,Vec*);
 static PetscErrorCode VecCompGetSubVecs_Comp(Vec,PetscInt*,const Vec**);
 
@@ -27,7 +27,7 @@ static PetscErrorCode VecCompGetSubVecs_Comp(Vec,PetscInt*,const Vec**);
 #define __WITH_MPI__
 #include "veccomp0.h"
 
-PETSC_STATIC_INLINE void SumNorm2(PetscReal *ssq0,PetscReal *scale0,PetscReal *ssq1,PetscReal *scale1)
+static inline void SumNorm2(PetscReal *ssq0,PetscReal *scale0,PetscReal *ssq1,PetscReal *scale1)
 {
   PetscReal q;
   if (*scale0 > *scale1) {
@@ -40,12 +40,12 @@ PETSC_STATIC_INLINE void SumNorm2(PetscReal *ssq0,PetscReal *scale0,PetscReal *s
   }
 }
 
-PETSC_STATIC_INLINE PetscReal GetNorm2(PetscReal ssq,PetscReal scale)
+static inline PetscReal GetNorm2(PetscReal ssq,PetscReal scale)
 {
   return scale*PetscSqrtReal(ssq);
 }
 
-PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
+static inline void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
 {
   PetscReal absx,q;
   if (x != 0.0) {

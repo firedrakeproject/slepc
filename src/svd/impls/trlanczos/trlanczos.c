@@ -725,7 +725,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
 }
 
 /* Move generalized left singular vectors (0..nconv) from U1 and U2 to its final destination svd->U (single variant) */
-PETSC_STATIC_INLINE PetscErrorCode SVDLeftSingularVectors_Single(SVD svd,BV U1,BV U2)
+static inline PetscErrorCode SVDLeftSingularVectors_Single(SVD svd,BV U1,BV U2)
 {
   PetscErrorCode    ierr;
   PetscInt          i,k,m,p;
@@ -837,7 +837,7 @@ static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal
 }
 
 /* generate random initial vector in column k for joint upper-upper bidiagonalization */
-PETSC_STATIC_INLINE PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
+static inline PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
 {
   PetscErrorCode    ierr;
   SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
@@ -967,7 +967,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
 }
 
 /* Move generalized left singular vectors (0..nconv) from U1 and U2 to its final destination svd->U (upper and lower variants) */
-PETSC_STATIC_INLINE PetscErrorCode SVDLeftSingularVectors(SVD svd,BV U1,BV U2)
+static inline PetscErrorCode SVDLeftSingularVectors(SVD svd,BV U1,BV U2)
 {
   PetscErrorCode    ierr;
   PetscInt          i,k,m,p;
@@ -1074,7 +1074,7 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
 }
 
 /* generate random initial vector in column k for joint lower-upper bidiagonalization */
-PETSC_STATIC_INLINE PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
+static inline PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
 {
   PetscErrorCode    ierr;
   SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;

@@ -53,7 +53,7 @@ struct _p_FN {
   its contents. The work matrix is returned in M and should be freed with
   FN_FreeWorkMat().
 */
-PETSC_STATIC_INLINE PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
+static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
 {
   PetscErrorCode ierr;
   PetscInt       n,na;
@@ -87,7 +87,7 @@ PETSC_STATIC_INLINE PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
 /*
   FN_FreeWorkMat - Release a work matrix created with FN_AllocateWorkMat().
 */
-PETSC_STATIC_INLINE PetscErrorCode FN_FreeWorkMat(FN fn,Mat *M)
+static inline PetscErrorCode FN_FreeWorkMat(FN fn,Mat *M)
 {
   PetscFunctionBegin;
   if (!fn->cw) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"There are no work matrices");

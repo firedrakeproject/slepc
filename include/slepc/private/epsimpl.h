@@ -266,7 +266,7 @@ struct _p_EPS {
 /*
   EPS_SetInnerProduct - set B matrix for inner product if appropriate.
 */
-PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
+static inline PetscErrorCode EPS_SetInnerProduct(EPS eps)
 {
   PetscErrorCode ierr;
   Mat            B;
@@ -286,7 +286,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
 /*
   EPS_Purify - purify the first k vectors in the V basis
 */
-PETSC_STATIC_INLINE PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
+static inline PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -307,7 +307,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
 /*
   EPS_KSPSetOperators - Sets the KSP matrices, see also ST_KSPSetOperators()
 */
-PETSC_STATIC_INLINE PetscErrorCode EPS_KSPSetOperators(KSP ksp,Mat A,Mat B)
+static inline PetscErrorCode EPS_KSPSetOperators(KSP ksp,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   const char     *prefix;

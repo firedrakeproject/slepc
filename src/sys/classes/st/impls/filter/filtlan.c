@@ -43,7 +43,7 @@ static PetscErrorCode FILTLAN_ExpandNewtonPolynomialInChebyshevBasis(PetscInt,Pe
    in general, if there are k x(i)'s with the same value x0, then
        the j-th order derivative of P(z) is zero at z=x0 for j=1,...,k-1
 */
-PETSC_STATIC_INLINE PetscErrorCode FILTLAN_NewtonPolynomial(PetscInt n,PetscReal *x,PetscReal *y,PetscReal *sa,PetscReal *sf)
+static inline PetscErrorCode FILTLAN_NewtonPolynomial(PetscInt n,PetscReal *x,PetscReal *y,PetscReal *sa,PetscReal *sf)
 {
   PetscErrorCode ierr;
   PetscReal      d,*sx=x,*sy=y;
@@ -476,7 +476,7 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
    a vector q containing the Chebyshev coefficients:
        P(z) = q(1)*S_0(z) + q(2)*S_1(z) + ... + q(n)*S_{n-1}(z)
 */
-PETSC_STATIC_INLINE PetscErrorCode FILTLAN_ExpandNewtonPolynomialInChebyshevBasis(PetscInt n,PetscReal aa,PetscReal bb,PetscReal *a,PetscReal *x,PetscReal *q,PetscReal *q2)
+static inline PetscErrorCode FILTLAN_ExpandNewtonPolynomialInChebyshevBasis(PetscInt n,PetscReal aa,PetscReal bb,PetscReal *a,PetscReal *x,PetscReal *q,PetscReal *q2)
 {
   PetscInt  m,mm;
   PetscReal *sa,*sx,*sq,*sq2,c,c2,h,h2;
@@ -540,7 +540,7 @@ PETSC_STATIC_INLINE PetscErrorCode FILTLAN_ExpandNewtonPolynomialInChebyshevBasi
    output:
    the evaluated value of P(z) at z=z0
 */
-PETSC_STATIC_INLINE PetscReal FILTLAN_PolynomialEvaluationInChebyshevBasis(PetscReal *pp,PetscInt m,PetscInt idx,PetscReal z0,PetscReal aa,PetscReal bb)
+static inline PetscReal FILTLAN_PolynomialEvaluationInChebyshevBasis(PetscReal *pp,PetscInt m,PetscInt idx,PetscReal z0,PetscReal aa,PetscReal bb)
 {
   PetscInt  ii,deg1;
   PetscReal y,zz,t0,t1,t2,*sc;
@@ -594,7 +594,7 @@ PETSC_STATIC_INLINE PetscReal FILTLAN_PolynomialEvaluationInChebyshevBasis(Petsc
    note that if z0 falls below the first interval, then the polynomial in the first interval will be used to evaluate P(z0)
              if z0 flies over  the last  interval, then the polynomial in the last  interval will be used to evaluate P(z0)
 */
-PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialEvaluationInChebyshevBasis(PetscReal *pp,PetscInt m,PetscReal *intv,PetscInt npoints,PetscReal z0)
+static inline PetscReal FILTLAN_PiecewisePolynomialEvaluationInChebyshevBasis(PetscReal *pp,PetscInt m,PetscReal *intv,PetscInt npoints,PetscReal z0)
 {
   PetscReal *sintv,aa,bb,resul;
   PetscInt  idx;
@@ -654,7 +654,7 @@ PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialEvaluationInChebyshevBa
 
    note that for unit weights, pass an empty vector of intervalWeights (i.e. of length 0)
 */
-PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialInnerProductInChebyshevBasis(PetscReal *pp,PetscInt prows,PetscInt pcols,PetscInt ldp,PetscReal *qq,PetscInt qrows,PetscInt qcols,PetscInt ldq,const PetscReal *intervalWeights)
+static inline PetscReal FILTLAN_PiecewisePolynomialInnerProductInChebyshevBasis(PetscReal *pp,PetscInt prows,PetscInt pcols,PetscInt ldp,PetscReal *qq,PetscInt qrows,PetscInt qcols,PetscInt ldq,const PetscReal *intervalWeights)
 {
   PetscInt  nintv,deg1,i,k;
   PetscReal *sp,*sq,ans=0.0,ans2;
@@ -695,7 +695,7 @@ PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialInnerProductInChebyshev
 
    the returned matrix is qq which represents Q(z) = z*P(z)
 */
-PETSC_STATIC_INLINE PetscErrorCode FILTLAN_PiecewisePolynomialInChebyshevBasisMultiplyX(PetscReal *pp,PetscInt deg1,PetscInt ldp,PetscReal *intv,PetscInt nintv,PetscReal *qq,PetscInt ldq)
+static inline PetscErrorCode FILTLAN_PiecewisePolynomialInChebyshevBasisMultiplyX(PetscReal *pp,PetscInt deg1,PetscInt ldp,PetscReal *intv,PetscInt nintv,PetscReal *qq,PetscInt ldq)
 {
   PetscInt  i,j;
   PetscReal c,h,h2,tmp,*sp,*sq,*sp2,*sq2;
@@ -732,7 +732,7 @@ PETSC_STATIC_INLINE PetscErrorCode FILTLAN_PiecewisePolynomialInChebyshevBasisMu
 
     A,B are nxk
 */
-PETSC_STATIC_INLINE PetscErrorCode Mat_AXPY_BLAS(PetscInt n,PetscInt k,PetscReal alpha,const PetscReal *A,PetscInt lda,PetscReal beta,PetscReal *B,PetscInt ldb)
+static inline PetscErrorCode Mat_AXPY_BLAS(PetscInt n,PetscInt k,PetscReal alpha,const PetscReal *A,PetscInt lda,PetscReal beta,PetscReal *B,PetscInt ldb)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;

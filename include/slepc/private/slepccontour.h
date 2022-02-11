@@ -17,7 +17,7 @@
 /*
   CISS_BlockHankel - Builds a block Hankel matrix from the contents of Mu.
 */
-PETSC_STATIC_INLINE PetscErrorCode CISS_BlockHankel(PetscScalar *Mu,PetscInt s,PetscInt L,PetscInt M,PetscScalar *H)
+static inline PetscErrorCode CISS_BlockHankel(PetscScalar *Mu,PetscInt s,PetscInt L,PetscInt M,PetscScalar *H)
 {
   PetscInt i,j,k;
 

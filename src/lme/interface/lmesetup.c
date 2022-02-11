@@ -13,7 +13,7 @@
 
 #include <slepc/private/lmeimpl.h>       /*I "slepclme.h" I*/
 
-PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Lyapunov(LME lme)
+static inline PetscErrorCode LMESetUp_Lyapunov(LME lme)
 {
   PetscErrorCode ierr;
   Mat            C1,C2,X1,X2;
@@ -108,7 +108,7 @@ PetscErrorCode LMESetUp(LME lme)
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode LMESetCoefficients_Private(LME lme,Mat A,Mat *lmeA)
+static inline PetscErrorCode LMESetCoefficients_Private(LME lme,Mat A,Mat *lmeA)
 {
   PetscErrorCode ierr;
   PetscInt       m,n;

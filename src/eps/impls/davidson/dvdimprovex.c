@@ -184,7 +184,7 @@ static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
    y <- theta[1]A*x - theta[0]*B*x
    auxV, two auxiliary vectors
  */
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y)
+static inline PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y)
 {
   PetscErrorCode ierr;
   PetscInt       n,i;
@@ -229,7 +229,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Ve
 /*
    y <- theta[1]'*A'*x - theta[0]'*B'*x
  */
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y)
+static inline PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y)
 {
   PetscErrorCode ierr;
   PetscInt       n,i;
@@ -830,7 +830,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
 }
 
 #if !defined(PETSC_USE_COMPLEX)
-PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,Vec Axr,Vec Axi,Vec Bxr,Vec Bxi,PetscScalar *eigr,PetscScalar *eigi)
+static inline PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,Vec Axr,Vec Axi,Vec Bxr,Vec Bxi,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscErrorCode ierr;
   PetscScalar    rAr,iAr,rAi,iAi,rBr,iBr,rBi,iBi,b0,b2,b4,b6,b7;
@@ -866,7 +866,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,V
 }
 #endif
 
-PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,Vec *u,Vec *Ax,Vec *Bx)
+static inline PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,Vec *u,Vec *Ax,Vec *Bx)
 {
   PetscErrorCode ierr;
   PetscInt       i;
