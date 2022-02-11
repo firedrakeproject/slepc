@@ -380,15 +380,15 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,
    Options Database Keys:
 +  -svd_conv_abs   - Sets the absolute convergence test
 .  -svd_conv_rel   - Sets the convergence test relative to the singular value
-.  -svd_conv_norm  - Sets the convergence test relative to the matrix norms
+.  -svd_conv_norm  - Sets the convergence test relative to the matrix norm
 .  -svd_conv_maxit - Forces the maximum number of iterations as set by -svd_max_it
 -  -svd_conv_user  - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
 +     SVD_CONV_ABS   - absolute error ||r||
-.     SVD_CONV_REL   - error relative to the singular value l, ||r||/sigma
-.     SVD_CONV_NORM  - error relative to the matrix norms, ||r||/||A||
+.     SVD_CONV_REL   - error relative to the singular value sigma, ||r||/sigma
+.     SVD_CONV_NORM  - error relative to the matrix norm, ||r||/||A||
 .     SVD_CONV_MAXIT - no convergence until maximum number of iterations has been reached
 -     SVD_CONV_USER  - function set by SVDSetConvergenceTestFunction()
 
