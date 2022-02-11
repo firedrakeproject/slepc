@@ -28,7 +28,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
   Vec            u,t;
   PetscScalar    shh[100],*lhh,dot,dot2;
   PetscReal      norm1=0.0,norm2=1.0;
-  Vec            vj,vj1,vj2;
+  Vec            vj,vj1,vj2=NULL;
 
   PetscFunctionBegin;
   if (m<=100) lhh = shh;
@@ -51,34 +51,28 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
       ierr = BVDotColumnBegin(eps->V,j,lhh);CHKERRQ(ierr);
       ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
       ierr = VecDotBegin(vj,vj,&dot);CHKERRQ(ierr);
-    }
-    if (j>k+1) {
-      ierr = BVNormVecBegin(eps->V,u,NORM_2,&norm2);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,j-2,&vj2);CHKERRQ(ierr);
-      ierr = VecDotBegin(u,vj2,&dot2);CHKERRQ(ierr);
-    }
-
-    ierr = BVDotColumnEnd(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) {
+      if (j>k+1) {
+        ierr = BVNormVecBegin(eps->V,u,NORM_2,&norm2);CHKERRQ(ierr);
+        ierr = BVGetColumn(eps->V,j-2,&vj2);CHKERRQ(ierr);
+        ierr = VecDotBegin(u,vj2,&dot2);CHKERRQ(ierr);
+      }
+      ierr = BVDotColumnEnd(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
       ierr = BVDotColumnEnd(eps->V,j,lhh);CHKERRQ(ierr);
       ierr = VecDotEnd(vj,vj,&dot);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    }
-    if (j>k+1) {
-      ierr = BVNormVecEnd(eps->V,u,NORM_2,&norm2);CHKERRQ(ierr);
-      ierr = VecDotEnd(u,vj2,&dot2);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,j-2,&vj2);CHKERRQ(ierr);
-    }
-
-    if (j>k) {
+      if (j>k+1) {
+        ierr = BVNormVecEnd(eps->V,u,NORM_2,&norm2);CHKERRQ(ierr);
+        ierr = VecDotEnd(u,vj2,&dot2);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(eps->V,j-2,&vj2);CHKERRQ(ierr);
+      }
       norm1 = PetscSqrtReal(PetscRealPart(dot));
-      for (i=0;i<j;i++)
-        H[ldh*j+i] = H[ldh*j+i]/norm1;
+      for (i=0;i<j;i++) H[ldh*j+i] = H[ldh*j+i]/norm1;
       H[ldh*j+j] = H[ldh*j+j]/dot;
-
       ierr = BVCopyVec(eps->V,j,t);CHKERRQ(ierr);
       ierr = BVScaleColumn(eps->V,j,1.0/norm1);CHKERRQ(ierr);
       ierr = BVScaleColumn(eps->V,j+1,1.0/norm1);CHKERRQ(ierr);
+    } else {  /* j==k */
+      ierr = BVDotColumnEnd(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
     }
 
     ierr = BVMultColumn(eps->V,-1.0,1.0,j+1,H+ldh*j);CHKERRQ(ierr);
@@ -146,27 +140,22 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k
     ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
     ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVDotColumnBegin(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
     if (j>k) {
+      ierr = BVDotColumnBegin(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
       ierr = VecDotBegin(vj,vj,&dot);CHKERRQ(ierr);
-    }
-    ierr = BVDotColumnEnd(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
-    if (j>k) {
+      ierr = BVDotColumnEnd(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
       ierr = VecDotEnd(vj,vj,&dot);CHKERRQ(ierr);
-    }
-    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
-
-    if (j>k) {
       norm = PetscSqrtReal(PetscRealPart(dot));
       ierr = BVScaleColumn(eps->V,j,1.0/norm);CHKERRQ(ierr);
       H[ldh*(j-1)+j] = norm;
-
-      for (i=0;i<j;i++)
-        H[ldh*j+i] = H[ldh*j+i]/norm;
+      for (i=0;i<j;i++) H[ldh*j+i] = H[ldh*j+i]/norm;
       H[ldh*j+j] = H[ldh*j+j]/dot;
       ierr = BVScaleColumn(eps->V,j+1,1.0/norm);CHKERRQ(ierr);
       *beta = norm;
+    } else {  /* j==k */
+      ierr = BVDotColumn(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
     }
+    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
     ierr = BVMultColumn(eps->V,-1.0,1.0,j+1,H+ldh*j);CHKERRQ(ierr);
   }
 
