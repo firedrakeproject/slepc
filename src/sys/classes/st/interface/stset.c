@@ -57,7 +57,7 @@ PetscErrorCode STSetType(ST st,STType type)
   STCheckNotSeized(st,1);
 
   ierr =  PetscFunctionListFind(STList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
+  PetscCheckFalse(!r,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
 
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);

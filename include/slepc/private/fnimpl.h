@@ -61,7 +61,7 @@ static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
 
   PetscFunctionBegin;
   *M = NULL;
-  if (fn->cw==FN_MAX_W) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Too many requested work matrices %" PetscInt_FMT,fn->cw);
+  PetscCheckFalse(fn->cw==FN_MAX_W,PETSC_COMM_SELF,PETSC_ERR_SUP,"Too many requested work matrices %" PetscInt_FMT,fn->cw);
   if (fn->nw<=fn->cw) {
     create=PETSC_TRUE;
     fn->nw++;
@@ -90,9 +90,9 @@ static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
 static inline PetscErrorCode FN_FreeWorkMat(FN fn,Mat *M)
 {
   PetscFunctionBegin;
-  if (!fn->cw) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"There are no work matrices");
+  PetscCheckFalse(!fn->cw,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"There are no work matrices");
   fn->cw--;
-  if (fn->W[fn->cw]!=*M) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Work matrices must be freed in the reverse order of their creation");
+  PetscCheckFalse(fn->W[fn->cw]!=*M,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Work matrices must be freed in the reverse order of their creation");
   *M = NULL;
   PetscFunctionReturn(0);
 }

@@ -115,8 +115,8 @@ static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
   FN_PHI         *ctx = (FN_PHI*)fn->data;
 
   PetscFunctionBegin;
-  if (k<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Index cannot be negative");
-  if (k>MAX_INDEX) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Phi functions only implemented for k<=%d",MAX_INDEX);
+  PetscCheckFalse(k<0,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Index cannot be negative");
+  PetscCheckFalse(k>MAX_INDEX,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Phi functions only implemented for k<=%d",MAX_INDEX);
   if (k!=ctx->k) {
     ctx->k = k;
     ierr = MatDestroy(&ctx->H);CHKERRQ(ierr);

@@ -146,7 +146,7 @@ static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt
   PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,wi,Q,&n,work,&lwork,NULL,&info));
   SlepcCheckLapackInfo("gees",info);
 #if defined(PETSC_USE_DEBUG)
-  for (i=0;i<m;i++) if (PetscRealPart(wr[i])>=0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_USER_INPUT,"Eigenvalue with non-negative real part, the coefficient matrix is not stable");
+  for (i=0;i<m;i++) PetscCheckFalse(PetscRealPart(wr[i])>=0.0,PETSC_COMM_SELF,PETSC_ERR_USER_INPUT,"Eigenvalue with non-negative real part, the coefficient matrix is not stable");
 #endif
 
   /* copy B' into first rows of U */
@@ -156,14 +156,14 @@ static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt
 
   /* solve Lyapunov equation (Hammarling) */
   PetscStackCallBLAS("SLICOTsb03od",SLICOTsb03od_("C","F","N",&n,&kk,W,&n,Q,&n,U,&lu,&scal,wr,wi,work,&lwork,&info));
-  if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%" PetscBLASInt_FMT,info);
-  if (scal!=1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
+  PetscCheckFalse(info,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%" PetscBLASInt_FMT,info);
+  PetscCheckFalse(scal!=1.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
 
   /* resnorm = norm(H(m+1,:)*U'*U), use Q(:,1) = U'*U(:,m) */
   if (res) {
     for (j=0;j<m;j++) Q[j] = U[j+(m-1)*ldu];
     PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","C","N",&n,U,&lu,Q,&ione));
-    if (k!=1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Residual error is intended for k=1 only, but you set k=%" PetscInt_FMT,k);
+    PetscCheckFalse(k!=1,PETSC_COMM_SELF,PETSC_ERR_LIB,"Residual error is intended for k=1 only, but you set k=%" PetscInt_FMT,k);
     *res *= BLASnrm2_(&n,Q,&ione);
   }
 
@@ -260,7 +260,7 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 #endif
   SlepcCheckLapackInfo("hseqr",info);
 #if defined(PETSC_USE_DEBUG)
-  for (i=0;i<m;i++) if (PetscRealPart(wr[i])>=0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_USER_INPUT,"Eigenvalue with non-negative real part %g, the coefficient matrix is not stable",PetscRealPart(wr[i]));
+  for (i=0;i<m;i++) PetscCheckFalse(PetscRealPart(wr[i])>=0.0,PETSC_COMM_SELF,PETSC_ERR_USER_INPUT,"Eigenvalue with non-negative real part %g, the coefficient matrix is not stable",PetscRealPart(wr[i]));
 #endif
 
   /* C = -Z*Z', Z = Q'*B */
@@ -270,7 +270,7 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
   /* solve triangular Sylvester equation */
   PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,W,&n,W,&n,C,&lu,&scal,&info));
   SlepcCheckLapackInfo("trsyl",info);
-  if (scal!=1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
+  PetscCheckFalse(scal!=1.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
 
   /* back-transform C = Q*C*Q' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,C,&n,&zero,W,&n));
@@ -278,7 +278,7 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 
   /* resnorm = norm(H(m+1,:)*Y) */
   if (res) {
-    if (k!=1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Residual error is intended for k=1 only, but you set k=%" PetscInt_FMT,k);
+    PetscCheckFalse(k!=1,PETSC_COMM_SELF,PETSC_ERR_LIB,"Residual error is intended for k=1 only, but you set k=%" PetscInt_FMT,k);
     *res *= BLASnrm2_(&n,C+m-1,&n);
   }
 
@@ -397,8 +397,8 @@ static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,Pet
 
   /* solve Lyapunov equation (Hammarling) */
   PetscStackCallBLAS("SLICOTsb03md",SLICOTsb03md_("C","X","F","N",&n,W,&n,Q,&n,X,&lx,&scal,&sep,&ferr,wr,wi,iwork,work,&lwork,&info));
-  if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%" PetscBLASInt_FMT,info);
-  if (scal!=1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
+  PetscCheckFalse(info,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%" PetscBLASInt_FMT,info);
+  PetscCheckFalse(scal!=1.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
 
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscFree6(W,Q,wr,wi,iwork,work);CHKERRQ(ierr);
@@ -456,7 +456,7 @@ static PetscErrorCode Lyapunov_LAPACK(PetscInt m,PetscScalar *A,PetscInt lda,Pet
   /* solve triangular Sylvester equation */
   PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,W,&n,W,&n,X,&lx,&scal,&info));
   SlepcCheckLapackInfo("trsyl",info);
-  if (scal!=1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
+  PetscCheckFalse(scal!=1.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
 
   /* back-transform X = Q*X*Q' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,X,&n,&zero,W,&n));

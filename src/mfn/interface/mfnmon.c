@@ -90,7 +90,7 @@ PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (mfn->numbermonitors >= MAXMFNMONITORS) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Too many MFN monitors set");
+  PetscCheckFalse(mfn->numbermonitors >= MAXMFNMONITORS,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Too many MFN monitors set");
   mfn->monitor[mfn->numbermonitors]           = monitor;
   mfn->monitorcontext[mfn->numbermonitors]    = (void*)mctx;
   mfn->monitordestroy[mfn->numbermonitors++]  = monitordestroy;

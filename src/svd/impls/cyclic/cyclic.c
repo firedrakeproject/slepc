@@ -90,7 +90,7 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
   ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
 
   if (cyclic->explicitmatrix) {
-    if (!svd->expltrans) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
+    PetscCheckFalse(!svd->expltrans,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
     ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zm);CHKERRQ(ierr);
     ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
     ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
@@ -271,7 +271,7 @@ static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
   ierr = VecGetLocalSize(t,&m);CHKERRQ(ierr);
 
   if (cyclic->explicitmatrix) {
-    if (!svd->expltrans) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
+    PetscCheckFalse(!svd->expltrans,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
     ierr = MatCreateConstantDiagonal(PetscObjectComm((PetscObject)svd),m,m,M,M,1.0,&Id);CHKERRQ(ierr);
     ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zm);CHKERRQ(ierr);
     ierr = MatSetSizes(Zm,m,n,M,N);CHKERRQ(ierr);
@@ -414,7 +414,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = VecGetArrayWrite(v,&va);CHKERRQ(ierr);
       if (i<-svd->ninil) {
         ierr = VecGetSize(svd->ISL[i],&isl);CHKERRQ(ierr);
-        if (isl!=m) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for left initial vector");
+        PetscCheckFalse(isl!=m,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for left initial vector");
         ierr = VecGetArrayRead(svd->ISL[i],&isa);CHKERRQ(ierr);
         ierr = PetscArraycpy(va,isa,m);CHKERRQ(ierr);
         ierr = VecRestoreArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
@@ -423,7 +423,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       }
       if (i<-svd->nini) {
         ierr = VecGetSize(svd->IS[i],&isl);CHKERRQ(ierr);
-        if (isl!=n) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for right initial vector");
+        PetscCheckFalse(isl!=n,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for right initial vector");
         ierr = VecGetArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
         ierr = PetscArraycpy(va+m,isa,n);CHKERRQ(ierr);
         ierr = VecRestoreArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);

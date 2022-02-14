@@ -104,17 +104,17 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
 
   PetscFunctionBegin;
   ierr = MatGetSize(A,&m0,&n0);CHKERRQ(ierr); ldA_=m0;
-  if (m0!=n0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"A should be square");
-  if (lA<0 || lA>m0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row, column in A");
-  if (kA<0 || kA<lA || kA>m0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid final row, column in A");
+  PetscCheckFalse(m0!=n0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"A should be square");
+  PetscCheckFalse(lA<0 || lA>m0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row, column in A");
+  PetscCheckFalse(kA<0 || kA<lA || kA>m0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid final row, column in A");
   ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
   symm = set? flg: PETSC_FALSE;
   ierr = MatGetSize(Q,&m0,&n0);CHKERRQ(ierr); ldQ_=nQ_=m0;
-  if (l<0 || l>n0 || l+dA_>n0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Q");
+  PetscCheckFalse(l<0 || l>n0 || l+dA_>n0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Q");
   ierr = MatGetSize(Z,&m0,&n0);CHKERRQ(ierr); ldZ_=m0;
-  if (l<0 || l>n0 || l+dA_>n0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Z");
+  PetscCheckFalse(l<0 || l>n0 || l+dA_>n0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Z");
   ierr = MatGetSize(aux,&m0,&n0);CHKERRQ(ierr);
-  if (m0*n0<nQ_*dA_) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"aux should be larger");
+  PetscCheckFalse(m0*n0<nQ_*dA_,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"aux should be larger");
   ierr = PetscBLASIntCast(dA_,&dA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nQ_,&nQ);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldA_,&ldA);CHKERRQ(ierr);
@@ -202,7 +202,7 @@ static inline PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,D
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM);CHKERRQ(ierr);
   ierr = MatZeroEntries(auxM);CHKERRQ(ierr);
   ierr = DSGetDimensions(d->eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
-  if (k-l!=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(k-l!=n,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   ierr = DSCopyMat(d->eps->ds,mat,0,0,auxM,l,l,n,d->V_tra_e,PETSC_TRUE);CHKERRQ(ierr);
   ierr = BVMultInPlace(bv,auxM,l,l+d->V_tra_e);CHKERRQ(ierr);
   ierr = MatDestroy(&auxM);CHKERRQ(ierr);
@@ -245,7 +245,7 @@ static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     ierr = dvd_orthV(d->eps->V,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
     /* 3. AV <- [AV A * V(V_new_s:V_new_e-1)] */
     /* Check consistency */
-    if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+    PetscCheckFalse(k-l != d->V_new_s,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
     for (i=l+d->V_new_s;i<l+d->V_new_e;i++) {
       ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
       ierr = BVGetColumn(d->AX,i,&v2);CHKERRQ(ierr);
@@ -256,7 +256,7 @@ static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     /* 4. BV <- [BV B * V(V_new_s:V_new_e-1)] */
     if (d->BX) {
       /* Check consistency */
-      if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+      PetscCheckFalse(k-l != d->V_new_s,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
       for (i=l+d->V_new_s;i<l+d->V_new_e;i++) {
         ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
         ierr = BVGetColumn(d->BX,i,&v2);CHKERRQ(ierr);

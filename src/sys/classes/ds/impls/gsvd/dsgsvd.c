@@ -107,7 +107,7 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"number of rows of B: %" PetscInt_FMT "\n",p);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   if (ds->compact) {
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     rowsa = n;
@@ -211,7 +211,7 @@ PetscErrorCode DSSort_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   l = ds->l;
   t = ds->t;
   perm = ds->perm;
@@ -257,7 +257,7 @@ PetscErrorCode DSUpdateExtraRow_GSVD(DS ds)
   PetscReal      *T,*e,*f,alpha,beta,betah;
 
   PetscFunctionBegin;
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ctx->m,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
@@ -298,7 +298,7 @@ PetscErrorCode DSTruncate_GSVD(DS ds,PetscInt n,PetscBool trim)
   PetscBool   lower=(ds->n>ctx->m)?PETSC_TRUE:PETSC_FALSE;
 
   PetscFunctionBegin;
-  if (!ds->compact) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non-compact storage");
+  PetscCheckFalse(!ds->compact,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non-compact storage");
   if (trim) {
     ds->l   = 0;
     ds->k   = 0;
@@ -337,7 +337,7 @@ static PetscErrorCode DSSwitchFormat_GSVD(DS ds)
   PetscInt       i,n=ds->n,k=ds->k,ld=ds->ld,m=ctx->m;
 
   PetscFunctionBegin;
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   /* switch from compact (arrow) to dense storage */
   /* bidiagonal associated to B is stored in D and T+2*ld */
   ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
@@ -380,15 +380,15 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   ierr = PetscBLASIntCast(ds->n,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ctx->m,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ctx->p,&p);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&lc);CHKERRQ(ierr);
   /* In compact storage B is always nxn and A can be either nxn or (n+1)xn */
   if (!ds->compact) {
-    if (lc!=0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DSGSVD with non-compact format does not support locking");
-  } else if (p!=n || (m!=p && m!=p+1)) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Dimensions not supported in compact format");
+    PetscCheckFalse(lc!=0,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DSGSVD with non-compact format does not support locking");
+  } else PetscCheckFalse(p!=n || (m!=p && m!=p+1),PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Dimensions not supported in compact format");
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   n1 = n-lc;     /* n1 = size of leading block, excl. locked + size of trailing block */
   m1 = m-lc;
@@ -455,7 +455,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
 
 #endif
 
-  if (k+l<n1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"The rank deficient case not supported yet");
+  PetscCheckFalse(k+l<n1,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"The rank deficient case not supported yet");
   if (ds->compact) {
     /* R is the identity matrix (except the sign) */
     for (i=lc;i<n;i++) {
@@ -556,7 +556,7 @@ PetscErrorCode DSMatGetSize_GSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols
   DS_GSVD *ctx = (DS_GSVD*)ds->data;
 
   PetscFunctionBegin;
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the other dimensions with DSGSVDSetDimensions()");
   switch (t) {
     case DS_MAT_A:
       *rows = ds->n;
@@ -593,13 +593,13 @@ static PetscErrorCode DSGSVDSetDimensions_GSVD(DS ds,PetscInt m,PetscInt p)
   if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
     ctx->m = ds->ld;
   } else {
-    if (m<1 || m>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
+    PetscCheckFalse(m<1 || m>ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
     ctx->m = m;
   }
   if (p==PETSC_DECIDE || p==PETSC_DEFAULT) {
     ctx->p = ds->n;
   } else {
-    if (p<1 || p>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of p. Must be between 1 and ld");
+    PetscCheckFalse(p<1 || p>ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of p. Must be between 1 and ld");
     ctx->p = p;
   }
   PetscFunctionReturn(0);

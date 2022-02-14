@@ -230,7 +230,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFunctionListFind(SVDList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown SVD type given: %s",type);
+  PetscCheckFalse(!r,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown SVD type given: %s",type);
 
   if (svd->ops->destroy) { ierr = (*svd->ops->destroy)(svd);CHKERRQ(ierr); }
   ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);

@@ -275,7 +275,7 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
       for (ntry=1;ntry<=6;ntry++) {
         ierr = HZStep(ntop,nbot+1,tr,dt,aa,bb,dd,uu,nn,ld,&flag);CHKERRQ(ierr);
         if (!flag) break;
-        else if (ntry == 6) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Unable to complete hz step on six tries");
+        else PetscCheckFalse(ntry == 6,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Unable to complete hz step on six tries");
         else {
           tr = 0.9*tr; dt = 0.81*dt;
         }
@@ -310,7 +310,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Check signature */
   for (i=0;i<ds->n;i++) {
     PetscReal de = (ds->compact)?s[i]:PetscRealPart(B[i*ld+i]);
-    if (de != 1.0 && de != -1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Diagonal elements of the signature matrix must be 1 or -1");
+    PetscCheckFalse(de != 1.0 && de != -1.0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Diagonal elements of the signature matrix must be 1 or -1");
   }
 #endif
   /* Quick return */

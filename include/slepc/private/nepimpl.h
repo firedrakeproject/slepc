@@ -156,22 +156,22 @@ struct _p_NEP {
 
 #define NEPCheckProblem(h,arg) \
   do { \
-    if (!((h)->fui)) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"The nonlinear eigenproblem has not been specified yet. Parameter #%d",arg); \
+    PetscCheckFalse(!((h)->fui),PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"The nonlinear eigenproblem has not been specified yet. Parameter #%d",arg); \
   } while (0)
 
 #define NEPCheckCallback(h,arg) \
   do { \
-    if ((h)->fui!=NEP_USER_INTERFACE_CALLBACK) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem specified with callbacks. Parameter #%d",arg); \
+    PetscCheckFalse((h)->fui!=NEP_USER_INTERFACE_CALLBACK,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem specified with callbacks. Parameter #%d",arg); \
   } while (0)
 
 #define NEPCheckSplit(h,arg) \
   do { \
-    if ((h)->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem in split form. Parameter #%d",arg); \
+    PetscCheckFalse((h)->fui!=NEP_USER_INTERFACE_SPLIT,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem in split form. Parameter #%d",arg); \
   } while (0)
 
 #define NEPCheckSolved(h,arg) \
   do { \
-    if ((h)->state<NEP_STATE_SOLVED) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call NEPSolve() first: Parameter #%d",arg); \
+    PetscCheckFalse((h)->state<NEP_STATE_SOLVED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call NEPSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #endif
@@ -180,15 +180,15 @@ struct _p_NEP {
 #define NEPCheckUnsupportedCondition(nep,mask,condition,msg) \
   do { \
     if (condition) { \
-      if (((mask) & NEP_FEATURE_CALLBACK) && (nep)->fui==NEP_USER_INTERFACE_CALLBACK) SETERRQ(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used with callback functions (use the split operator)",((PetscObject)(nep))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & NEP_FEATURE_CALLBACK) && (nep)->fui==NEP_USER_INTERFACE_CALLBACK,PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used with callback functions (use the split operator)",((PetscObject)(nep))->type_name,(msg)); \
       if ((mask) & NEP_FEATURE_REGION) { \
         PetscBool      __istrivial; \
         PetscErrorCode __ierr = RGIsTrivial((nep)->rg,&__istrivial);CHKERRQ(__ierr); \
-        if (!__istrivial) SETERRQ(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(nep))->type_name,(msg)); \
+        PetscCheckFalse(!__istrivial,PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(nep))->type_name,(msg)); \
       } \
-      if (((mask) & NEP_FEATURE_CONVERGENCE) && (nep)->converged!=NEPConvergedRelative) SETERRQ(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(nep))->type_name,(msg)); \
-      if (((mask) & NEP_FEATURE_STOPPING) && (nep)->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(nep))->type_name,(msg)); \
-      if (((mask) & NEP_FEATURE_TWOSIDED) && (nep)->twosided) SETERRQ(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s cannot compute left eigenvectors (no two-sided variant)",((PetscObject)(nep))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & NEP_FEATURE_CONVERGENCE) && (nep)->converged!=NEPConvergedRelative,PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(nep))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & NEP_FEATURE_STOPPING) && (nep)->stopping!=NEPStoppingBasic,PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(nep))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & NEP_FEATURE_TWOSIDED) && (nep)->twosided,PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s cannot compute left eigenvectors (no two-sided variant)",((PetscObject)(nep))->type_name,(msg)); \
     } \
   } while (0)
 #define NEPCheckUnsupported(nep,mask) NEPCheckUnsupportedCondition(nep,mask,PETSC_TRUE,"")

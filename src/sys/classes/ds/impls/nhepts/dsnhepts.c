@@ -96,7 +96,7 @@ static PetscErrorCode DSVectors_NHEPTS_Eigen_Some(DS ds,PetscInt *k,PetscReal *r
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,ds->rwork,&info));
 #endif
   SlepcCheckLapackInfo("trevc",info);
-  if (mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
+  PetscCheckFalse(mout != mm,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
 
   /* accumulate and normalize eigenvectors */
   if (ds->state>=DS_STATE_CONDENSED) {
@@ -187,7 +187,7 @@ PetscErrorCode DSVectors_NHEPTS(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm
   PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
-      if (ds->refined) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
+      PetscCheckFalse(ds->refined,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
       else {
         if (j) {
           ierr = DSVectors_NHEPTS_Eigen_Some(ds,j,rnorm,PETSC_FALSE);CHKERRQ(ierr);
@@ -197,7 +197,7 @@ PetscErrorCode DSVectors_NHEPTS(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm
       }
       break;
     case DS_MAT_Y:
-      if (ds->refined) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
+      PetscCheckFalse(ds->refined,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
       if (j) {
         ierr = DSVectors_NHEPTS_Eigen_Some(ds,j,rnorm,PETSC_TRUE);CHKERRQ(ierr);
       } else {
@@ -224,7 +224,7 @@ PetscErrorCode DSSort_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *
 #endif
 
   PetscFunctionBegin;
-  if (rr && wr != rr) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
+  PetscCheckFalse(rr && wr != rr,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
   ierr = PetscMalloc3(ds->ld,&idx,ds->ld,&idx2,ds->ld,&p);CHKERRQ(ierr);
   ierr = DSSort_NHEP_Total(ds,ds->mat[DS_MAT_A],ds->mat[DS_MAT_Q],wr,wi);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
@@ -397,7 +397,7 @@ PetscErrorCode DSTruncate_NHEPTS(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionBegin;
 #if defined(PETSC_USE_DEBUG)
   /* make sure diagonal 2x2 block is not broken */
-  if (ds->state>=DS_STATE_CONDENSED && n>0 && n<ds->n && A[n+(n-1)*ld]!=0.0 && B[n+(n-1)*ld]!=0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
+  PetscCheckFalse(ds->state>=DS_STATE_CONDENSED && n>0 && n<ds->n && A[n+(n-1)*ld]!=0.0 && B[n+(n-1)*ld]!=0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
 #endif
   if (trim) {
     if (ds->extrarow) {   /* clean extra row */

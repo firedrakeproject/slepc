@@ -74,7 +74,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
 
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  if (nconv<neigs) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Only %" PetscInt_FMT " eigenvalues have converged, %" PetscInt_FMT " requested",nconv,neigs);
+  PetscCheckFalse(nconv<neigs,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Only %" PetscInt_FMT " eigenvalues have converged, %" PetscInt_FMT " requested",nconv,neigs);
   ierr = VecDuplicateVecs(v,neigs,&X);CHKERRQ(ierr);
   for (i=0;i<neigs;i++) {
     ierr = EPSGetEigenvector(eps,i,X[i],NULL);CHKERRQ(ierr);

@@ -65,7 +65,7 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds)
   PetscInt       i,m=ctx->m,k=ds->k,ld=ds->ld;
 
   PetscFunctionBegin;
-  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheckFalse(!m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   /* switch from compact (arrow) to dense storage */
   ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
@@ -95,7 +95,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"number of columns: %" PetscInt_FMT "\n",m);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheckFalse(!m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   if (ds->compact) {
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     rows = ds->n;
@@ -161,7 +161,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   l = ds->l;
   n = PetscMin(ds->n,ctx->m);
   A = ds->mat[DS_MAT_A];
@@ -191,7 +191,7 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
   PetscReal      *e,beta;
 
   PetscFunctionBegin;
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ctx->m,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
@@ -257,7 +257,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscReal      *d,*e,*Ur,*Vr;
 
   PetscFunctionBegin;
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ctx->m,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
@@ -395,7 +395,7 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   DS_SVD *ctx = (DS_SVD*)ds->data;
 
   PetscFunctionBegin;
-  if (!ctx->m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheckFalse(!ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   switch (t) {
     case DS_MAT_A:
     case DS_MAT_T:
@@ -425,7 +425,7 @@ static PetscErrorCode DSSVDSetDimensions_SVD(DS ds,PetscInt m)
   if (m==PETSC_DECIDE || m==PETSC_DEFAULT) {
     ctx->m = ds->ld;
   } else {
-    if (m<1 || m>ds->ld) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
+    PetscCheckFalse(m<1 || m>ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of m. Must be between 1 and ld");
     ctx->m = m;
   }
   PetscFunctionReturn(0);

@@ -279,11 +279,11 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,n,2);
-  if (n <= 0) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %" PetscInt_FMT,n);
+  PetscCheckFalse(n <= 0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %" PetscInt_FMT,n);
   PetscValidPointer(A,3);
   PetscCheckSameComm(st,1,*A,3);
   STCheckNotSeized(st,1);
-  if (st->nsplit && st->nsplit != n) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"The number of matrices must be the same as in STSetSplitPreconditioner()");
+  PetscCheckFalse(st->nsplit && st->nsplit != n,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"The number of matrices must be the same as in STSetSplitPreconditioner()");
 
   if (st->state) {
     if (n!=st->nmat) same = PETSC_FALSE;
@@ -314,7 +314,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   st->nmat = n;
   if (same) st->state = ST_STATE_UPDATED;
   else st->state = ST_STATE_INITIAL;
-  if (same && st->Psplit) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Support for changing the matrices while using a split preconditioner is not implemented yet");
+  PetscCheckFalse(same && st->Psplit,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Support for changing the matrices while using a split preconditioner is not implemented yet");
   st->opready = PETSC_FALSE;
   if (!same) {
     ierr = STMatIsSymmetricKnown(st,&st->asymm,&st->aherm);CHKERRQ(ierr);
@@ -345,8 +345,8 @@ PetscErrorCode STGetMatrix(ST st,PetscInt k,Mat *A)
   PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(A,3);
   STCheckMatrices(st,1);
-  if (k<0 || k>=st->nmat) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
-  if (((PetscObject)st->A[k])->state!=st->Astate[k]) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot retrieve original matrices (have been modified)");
+  PetscCheckFalse(k<0 || k>=st->nmat,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
+  PetscCheckFalse(((PetscObject)st->A[k])->state!=st->Astate[k],PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot retrieve original matrices (have been modified)");
   *A = st->A[k];
   PetscFunctionReturn(0);
 }
@@ -374,8 +374,8 @@ PetscErrorCode STGetMatrixTransformed(ST st,PetscInt k,Mat *T)
   PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(T,3);
   STCheckMatrices(st,1);
-  if (k<0 || k>=st->nmat) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
-  if (!st->T) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_POINTER,"There are no transformed matrices");
+  PetscCheckFalse(k<0 || k>=st->nmat,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat-1);
+  PetscCheckFalse(!st->T,PetscObjectComm((PetscObject)st),PETSC_ERR_POINTER,"There are no transformed matrices");
   *T = st->T[k];
   PetscFunctionReturn(0);
 }
@@ -478,7 +478,7 @@ PetscErrorCode STSetPreconditionerMat(ST st,Mat mat)
     PetscCheckSameComm(st,1,mat,2);
   }
   STCheckNotSeized(st,1);
-  if (mat && st->Psplit) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot call both STSetPreconditionerMat and STSetSplitPreconditioner");
+  PetscCheckFalse(mat && st->Psplit,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot call both STSetPreconditionerMat and STSetSplitPreconditioner");
   if (mat) { ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr); }
   ierr = MatDestroy(&st->Pmat);CHKERRQ(ierr);
   st->Pmat     = mat;
@@ -556,9 +556,9 @@ PetscErrorCode STSetSplitPreconditioner(ST st,PetscInt n,Mat Psplit[],MatStructu
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,n,2);
-  if (n < 0) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Negative value of n = %" PetscInt_FMT,n);
-  if (n && st->Pmat_set) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot call both STSetPreconditionerMat and STSetSplitPreconditioner");
-  if (n && st->nmat && st->nmat != n) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"The number of matrices must be the same as in STSetMatrices()");
+  PetscCheckFalse(n < 0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Negative value of n = %" PetscInt_FMT,n);
+  PetscCheckFalse(n && st->Pmat_set,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot call both STSetPreconditionerMat and STSetSplitPreconditioner");
+  PetscCheckFalse(n && st->nmat && st->nmat != n,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"The number of matrices must be the same as in STSetMatrices()");
   if (n) PetscValidPointer(Psplit,3);
   PetscValidLogicalCollectiveEnum(st,strp,4);
   STCheckNotSeized(st,1);
@@ -568,11 +568,11 @@ PetscErrorCode STSetSplitPreconditioner(ST st,PetscInt n,Mat Psplit[],MatStructu
     PetscCheckSameComm(st,1,Psplit[i],3);
     ierr = MatGetSize(Psplit[i],&M,&N);CHKERRQ(ierr);
     ierr = MatGetLocalSize(Psplit[i],&mloc,&nloc);CHKERRQ(ierr);
-    if (M!=N) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Psplit[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,M,N);
-    if (mloc!=nloc) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Psplit[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
+    PetscCheckFalse(M!=N,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Psplit[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,M,N);
+    PetscCheckFalse(mloc!=nloc,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Psplit[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
     if (!i) { M0 = M; mloc0 = mloc; }
-    if (M!=M0) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_INCOMP,"Dimensions of Psplit[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,M,M0);
-    if (mloc!=mloc0) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_INCOMP,"Local dimensions of Psplit[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
+    PetscCheckFalse(M!=M0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_INCOMP,"Dimensions of Psplit[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,M,M0);
+    PetscCheckFalse(mloc!=mloc0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_INCOMP,"Local dimensions of Psplit[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
     ierr = PetscObjectReference((PetscObject)Psplit[i]);CHKERRQ(ierr);
   }
 
@@ -613,8 +613,8 @@ PetscErrorCode STGetSplitPreconditionerTerm(ST st,PetscInt k,Mat *Psplit)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(Psplit,3);
-  if (k<0 || k>=st->nsplit) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nsplit-1);
-  if (!st->Psplit) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"You have not called STSetSplitPreconditioner()");
+  PetscCheckFalse(k<0 || k>=st->nsplit,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nsplit-1);
+  PetscCheckFalse(!st->Psplit,PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"You have not called STSetSplitPreconditioner()");
   *Psplit = st->Psplit[k];
   PetscFunctionReturn(0);
 }

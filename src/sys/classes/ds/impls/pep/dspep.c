@@ -23,7 +23,7 @@ PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!ctx->d) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
+  PetscCheckFalse(!ctx->d,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
   ierr = DSAllocateMat_Private(ds,DS_MAT_Y);CHKERRQ(ierr);
   for (i=0;i<=ctx->d;i++) {
@@ -59,7 +59,7 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
 PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
-  if (rnorm) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
+  PetscCheckFalse(rnorm,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
   switch (mat) {
     case DS_MAT_X:
       break;
@@ -296,8 +296,8 @@ static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
   DS_PEP *ctx = (DS_PEP*)ds->data;
 
   PetscFunctionBegin;
-  if (d<0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The degree must be a non-negative integer");
-  if (d>=DS_NUM_EXTRA) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for polynomials of degree at most %d",DS_NUM_EXTRA-1);
+  PetscCheckFalse(d<0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The degree must be a non-negative integer");
+  PetscCheckFalse(d>=DS_NUM_EXTRA,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for polynomials of degree at most %d",DS_NUM_EXTRA-1);
   ctx->d = d;
   PetscFunctionReturn(0);
 }
@@ -368,7 +368,7 @@ static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!ctx->d) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Must first specify the polynomial degree via DSPEPSetDegree()");
+  PetscCheckFalse(!ctx->d,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Must first specify the polynomial degree via DSPEPSetDegree()");
   if (ctx->pbc) { ierr = PetscFree(ctx->pbc);CHKERRQ(ierr); }
   ierr = PetscMalloc1(3*(ctx->d+1),&ctx->pbc);CHKERRQ(ierr);
   for (i=0;i<3*(ctx->d+1);i++) ctx->pbc[i] = pbc[i];
@@ -419,7 +419,7 @@ static PetscErrorCode DSPEPGetCoefficients_PEP(DS ds,PetscReal **pbc)
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!ctx->d) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Must first specify the polynomial degree via DSPEPSetDegree()");
+  PetscCheckFalse(!ctx->d,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Must first specify the polynomial degree via DSPEPSetDegree()");
   ierr = PetscCalloc1(3*(ctx->d+1),pbc);CHKERRQ(ierr);
   if (ctx->pbc) for (i=0;i<3*(ctx->d+1);i++) (*pbc)[i] = ctx->pbc[i];
   else for (i=0;i<ctx->d+1;i++) (*pbc)[i] = 1.0;
@@ -482,7 +482,7 @@ PetscErrorCode DSMatGetSize_PEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   DS_PEP *ctx = (DS_PEP*)ds->data;
 
   PetscFunctionBegin;
-  if (!ctx->d) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
+  PetscCheckFalse(!ctx->d,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
   *rows = ds->n;
   if (t==DS_MAT_A || t==DS_MAT_B || t==DS_MAT_W || t==DS_MAT_U) *rows *= ctx->d;
   *cols = ds->n;

@@ -44,14 +44,14 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
-  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
+  PetscCheckFalse(eps->ncv>eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
-  if (eps->which==EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
+  PetscCheckFalse(eps->which==EPS_ALL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION);
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE);
 
-  if (lanczos->reorthog == (EPSLanczosReorthogType)-1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"You should explicitly provide the reorthogonalization type, e.g., -eps_lanczos_reorthog local\n          ...   Note that the EPSLANCZOS solver is *NOT RECOMMENDED* for general use, because it uses\n          ...   explicit restart which typically has slow convergence. The recommended solver is\n          ...   EPSKRYLOVSCHUR (the default), which implements Lanczos with thick restart in the\n          ...   case of symmetric/Hermitian problems");
+  PetscCheckFalse(lanczos->reorthog == (EPSLanczosReorthogType)-1,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"You should explicitly provide the reorthogonalization type, e.g., -eps_lanczos_reorthog local\n          ...   Note that the EPSLANCZOS solver is *NOT RECOMMENDED* for general use, because it uses\n          ...   explicit restart which typically has slow convergence. The recommended solver is\n          ...   EPSKRYLOVSCHUR (the default), which implements Lanczos with thick restart in the\n          ...   case of symmetric/Hermitian problems");
 
   ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);

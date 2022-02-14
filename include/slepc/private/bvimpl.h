@@ -125,12 +125,12 @@ static inline PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
     ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscUnlikely(PetscAbsReal(PetscImaginaryPart(alpha))>bv->deftol && PetscAbsReal(PetscImaginaryPart(alpha))/absal>10*bv->deftol)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
+  PetscCheckFalse(PetscAbsReal(PetscImaginaryPart(alpha))>bv->deftol && PetscAbsReal(PetscImaginaryPart(alpha))/absal>10*bv->deftol,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
 #endif
   if (PetscUnlikely(bv->indef)) {
     *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
   } else {
-    if (PetscUnlikely(realp<-bv->deftol)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: indefinite matrix");
+    PetscCheckFalse(realp<-bv->deftol,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: indefinite matrix");
     *res = (realp<0.0)? 0.0: PetscSqrtReal(realp);
   }
   PetscFunctionReturn(0);
@@ -236,12 +236,12 @@ static inline PetscErrorCode BV_AllocateSignature(BV bv)
 
 #define BVCheckSizes(h,arg) \
   do { \
-    if (!(h)->m) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"BV sizes have not been defined: Parameter #%d",arg); \
+    PetscCheckFalse(!(h)->m,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"BV sizes have not been defined: Parameter #%d",arg); \
   } while (0)
 
 #define BVCheckOp(h,arg,op) \
   do { \
-    if (!(h)->ops->op) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_SUP,"Operation not implemented in this BV type: Parameter #%d",arg); \
+    PetscCheckFalse(!(h)->ops->op,PetscObjectComm((PetscObject)(h)),PETSC_ERR_SUP,"Operation not implemented in this BV type: Parameter #%d",arg); \
   } while (0)
 
 #endif

@@ -300,7 +300,7 @@ PetscErrorCode LMESetType(LME lme,LMEType type)
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFunctionListFind(LMEList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown LME type given: %s",type);
+  PetscCheckFalse(!r,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown LME type given: %s",type);
 
   if (lme->ops->destroy) { ierr = (*lme->ops->destroy)(lme);CHKERRQ(ierr); }
   ierr = PetscMemzero(lme->ops,sizeof(struct _LMEOps));CHKERRQ(ierr);

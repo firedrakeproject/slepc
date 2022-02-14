@@ -62,7 +62,7 @@ int main(int argc,char **argv)
   ierr = BVCreateTensor(U,d,&V);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)V,"V");CHKERRQ(ierr);
   ierr = BVTensorGetDegree(V,&deg);CHKERRQ(ierr);
-  if (deg!=d) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong degree");
+  PetscCheckFalse(deg!=d,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong degree");
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
@@ -85,7 +85,7 @@ int main(int argc,char **argv)
   ierr = BVTensorGetFactors(V,&UU,&S);CHKERRQ(ierr);
   ierr = BVGetActiveColumns(UU,NULL,&j);CHKERRQ(ierr);
   ierr = BVGetSizes(UU,NULL,NULL,&id);CHKERRQ(ierr);
-  if (id!=k+d-1) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong dimensions");
+  PetscCheckFalse(id!=k+d-1,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong dimensions");
   lds = id*d;
   for (jj=1;jj<k;jj++) {
     /* set new orthogonal column in U */

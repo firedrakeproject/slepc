@@ -51,25 +51,25 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   bs = data->blocksize;
   if (bs <= 0) bs = 1;
   if (eps->ncv!=PETSC_DEFAULT) {
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of ncv must be at least nev");
+    PetscCheckFalse(eps->ncv<eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of ncv must be at least nev");
   } else if (eps->mpd!=PETSC_DEFAULT) eps->ncv = eps->mpd + eps->nev + bs;
   else if (eps->nev<500) eps->ncv = PetscMin(eps->n-bs,PetscMax(2*eps->nev,eps->nev+15))+bs;
   else eps->ncv = PetscMin(eps->n-bs,eps->nev+500)+bs;
   if (eps->mpd==PETSC_DEFAULT) eps->mpd = eps->ncv;
-  if (eps->mpd > eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
-  if (eps->mpd < 2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The mpd has to be greater than 2");
+  PetscCheckFalse(eps->mpd > eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The mpd has to be less or equal than ncv");
+  PetscCheckFalse(eps->mpd < 2,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The mpd has to be greater than 2");
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100*eps->ncv,2*eps->n);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
-  if (!(eps->nev + bs <= eps->ncv)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
-  if (eps->trueres) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"-eps_true_residual is temporally disable in this solver.");
+  PetscCheckFalse(!(eps->nev + bs <= eps->ncv),PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
+  PetscCheckFalse(eps->trueres,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"-eps_true_residual is temporally disable in this solver.");
   EPSCheckUnsupported(eps,EPS_FEATURE_REGION | EPS_FEATURE_TWOSIDED);
 
   ierr = EPSXDSetRestart_XD(eps,data->minv,data->plusk);CHKERRQ(ierr);
   min_size_V = data->minv;
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);
-  if (!(min_size_V+bs <= eps->mpd)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of minv must be less than mpd minus blocksize");
+  PetscCheckFalse(!(min_size_V+bs <= eps->mpd),PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of minv must be less than mpd minus blocksize");
   initv = data->initialsize;
-  if (eps->mpd < initv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
+  PetscCheckFalse(eps->mpd < initv,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
@@ -266,7 +266,7 @@ PetscErrorCode EPSXDSetBlockSize_XD(EPS eps,PetscInt blocksize)
 
   PetscFunctionBegin;
   if (blocksize == PETSC_DEFAULT || blocksize == PETSC_DECIDE) blocksize = 1;
-  if (blocksize <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid blocksize value");
+  PetscCheckFalse(blocksize <= 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid blocksize value");
   data->blocksize = blocksize;
   PetscFunctionReturn(0);
 }
@@ -286,9 +286,9 @@ PetscErrorCode EPSXDSetRestart_XD(EPS eps,PetscInt minv,PetscInt plusk)
 
   PetscFunctionBegin;
   if (minv == PETSC_DEFAULT || minv == PETSC_DECIDE) minv = 5;
-  if (minv <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid minv value");
+  PetscCheckFalse(minv <= 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid minv value");
   if (plusk == PETSC_DEFAULT || plusk == PETSC_DECIDE) plusk = eps->problem_type == EPS_GHIEP?0:1;
-  if (plusk < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid plusk value");
+  PetscCheckFalse(plusk < 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid plusk value");
   data->minv = minv;
   data->plusk = plusk;
   PetscFunctionReturn(0);
@@ -319,7 +319,7 @@ PetscErrorCode EPSXDSetInitialSize_XD(EPS eps,PetscInt initialsize)
 
   PetscFunctionBegin;
   if (initialsize == PETSC_DEFAULT || initialsize == PETSC_DECIDE) initialsize = 5;
-  if (initialsize <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial size value");
+  PetscCheckFalse(initialsize <= 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial size value");
   data->initialsize = initialsize;
   PetscFunctionReturn(0);
 }

@@ -146,7 +146,7 @@ struct _p_PEP {
 
 #define PEPCheckSolved(h,arg) \
   do { \
-    if ((h)->state<PEP_STATE_SOLVED) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSolve() first: Parameter #%d",arg); \
+    PetscCheckFalse((h)->state<PEP_STATE_SOLVED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #endif
@@ -159,7 +159,7 @@ struct _p_PEP {
 #define PEPCheckHermitianCondition(pep,condition,msg) \
   do { \
     if (condition) { \
-      if ((pep)->problem_type!=PEP_HERMITIAN && (pep)->problem_type!=PEP_HYPERBOLIC) SETERRQ(PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s can only be used for Hermitian (or hyperbolic) problems",((PetscObject)(pep))->type_name,(msg)); \
+      PetscCheckFalse((pep)->problem_type!=PEP_HERMITIAN && (pep)->problem_type!=PEP_HYPERBOLIC,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s can only be used for Hermitian (or hyperbolic) problems",((PetscObject)(pep))->type_name,(msg)); \
     } \
   } while (0)
 #define PEPCheckHermitian(pep) PEPCheckHermitianCondition(pep,PETSC_TRUE,"")
@@ -168,7 +168,7 @@ struct _p_PEP {
 #define PEPCheckQuadraticCondition(pep,condition,msg) \
   do { \
     if (condition) { \
-      if ((pep)->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s is only available for quadratic problems",((PetscObject)(pep))->type_name,(msg)); \
+      PetscCheckFalse((pep)->nmat!=3,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s is only available for quadratic problems",((PetscObject)(pep))->type_name,(msg)); \
     } \
   } while (0)
 #define PEPCheckQuadratic(pep) PEPCheckQuadraticCondition(pep,PETSC_TRUE,"")
@@ -179,7 +179,7 @@ struct _p_PEP {
     if (condition) { \
       PetscBool __flg; \
       ierr = PetscObjectTypeCompareAny((PetscObject)(pep)->st,&__flg,STSINVERT,STSHIFT,"");CHKERRQ(ierr); \
-      if (!__flg) SETERRQ(PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s requires shift or shift-and-invert spectral transform",((PetscObject)(pep))->type_name,(msg)); \
+      PetscCheckFalse(!__flg,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s requires shift or shift-and-invert spectral transform",((PetscObject)(pep))->type_name,(msg)); \
     } \
   } while (0)
 #define PEPCheckShiftSinvert(pep) PEPCheckShiftSinvertCondition(pep,PETSC_TRUE,"")
@@ -190,7 +190,7 @@ struct _p_PEP {
     if (condition) { \
       PetscBool __flg; \
       ierr = PetscObjectTypeCompareAny((PetscObject)(pep)->st,&__flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr); \
-      if (!__flg) SETERRQ(PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s requires shift-and-invert or Cayley transform",((PetscObject)(pep))->type_name,(msg)); \
+      PetscCheckFalse(!__flg,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s requires shift-and-invert or Cayley transform",((PetscObject)(pep))->type_name,(msg)); \
     } \
   } while (0)
 #define PEPCheckSinvertCayley(pep) PEPCheckSinvertCayleyCondition(pep,PETSC_TRUE,"")
@@ -199,15 +199,15 @@ struct _p_PEP {
 #define PEPCheckUnsupportedCondition(pep,mask,condition,msg) \
   do { \
     if (condition) { \
-      if (((mask) & PEP_FEATURE_NONMONOMIAL) && (pep)->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s is not implemented for non-monomial bases",((PetscObject)(pep))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & PEP_FEATURE_NONMONOMIAL) && (pep)->basis!=PEP_BASIS_MONOMIAL,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s is not implemented for non-monomial bases",((PetscObject)(pep))->type_name,(msg)); \
       if ((mask) & PEP_FEATURE_REGION) { \
         PetscBool      __istrivial; \
         PetscErrorCode __ierr = RGIsTrivial((pep)->rg,&__istrivial);CHKERRQ(__ierr); \
-        if (!__istrivial) SETERRQ(PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(pep))->type_name,(msg)); \
+        PetscCheckFalse(!__istrivial,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(pep))->type_name,(msg)); \
       } \
-      if (((mask) & PEP_FEATURE_EXTRACT) && (pep)->extract && (pep)->extract!=PEP_EXTRACT_NONE) SETERRQ(PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s does not support extraction variants",((PetscObject)(pep))->type_name,(msg)); \
-      if (((mask) & PEP_FEATURE_CONVERGENCE) && (pep)->converged!=PEPConvergedRelative) SETERRQ(PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(pep))->type_name,(msg)); \
-      if (((mask) & PEP_FEATURE_STOPPING) && (pep)->stopping!=PEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(pep))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & PEP_FEATURE_EXTRACT) && (pep)->extract && (pep)->extract!=PEP_EXTRACT_NONE,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s does not support extraction variants",((PetscObject)(pep))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & PEP_FEATURE_CONVERGENCE) && (pep)->converged!=PEPConvergedRelative,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(pep))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & PEP_FEATURE_STOPPING) && (pep)->stopping!=PEPStoppingBasic,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(pep))->type_name,(msg)); \
     } \
   } while (0)
 #define PEPCheckUnsupported(pep,mask) PEPCheckUnsupportedCondition(pep,mask,PETSC_TRUE,"")

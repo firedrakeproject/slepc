@@ -22,7 +22,7 @@
 
 #define SlepcValidVecComp(y,arg) \
   do { \
-    if (((Vec_Comp*)(y)->data)->nx < ((Vec_Comp*)(y)->data)->n->n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Invalid number of subvectors required: Parameter #%d",arg); \
+    PetscCheckFalse(((Vec_Comp*)(y)->data)->nx < ((Vec_Comp*)(y)->data)->n->n,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Invalid number of subvectors required: Parameter #%d",arg); \
   } while (0)
 
 #endif

@@ -25,13 +25,13 @@ static PetscErrorCode RGIntervalSetEndpoints_Interval(RG rg,PetscReal a,PetscRea
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
 
   PetscFunctionBegin;
-  if (!a && !b && !c && !d) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"At least one argument must be nonzero");
-  if (a==b && a) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"Badly defined interval, endpoints must be distinct (or both zero)");
-  if (a>b) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be a<b");
-  if (c==d && c) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"Badly defined interval, endpoints must be distinct (or both zero)");
-  if (c>d) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be c<d");
+  PetscCheckFalse(!a && !b && !c && !d,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"At least one argument must be nonzero");
+  PetscCheckFalse(a==b && a,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"Badly defined interval, endpoints must be distinct (or both zero)");
+  PetscCheckFalse(a>b,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be a<b");
+  PetscCheckFalse(c==d && c,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"Badly defined interval, endpoints must be distinct (or both zero)");
+  PetscCheckFalse(c>d,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be c<d");
 #if !defined(PETSC_USE_COMPLEX)
-  if (c!=-d) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
+  PetscCheckFalse(c!=-d,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
 #endif
   ctx->a = a;
   ctx->b = b;
@@ -181,7 +181,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
   PetscReal   hv,hh,t;
 
   PetscFunctionBegin;
-  if (!(ctx->a>-PETSC_MAX_REAL && ctx->b<PETSC_MAX_REAL && ctx->c>-PETSC_MAX_REAL && ctx->d<PETSC_MAX_REAL)) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Contour not defined in unbounded regions");
+  PetscCheckFalse(!(ctx->a>-PETSC_MAX_REAL && ctx->b<PETSC_MAX_REAL && ctx->c>-PETSC_MAX_REAL && ctx->d<PETSC_MAX_REAL),PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Contour not defined in unbounded regions");
   if (ctx->a==ctx->b || ctx->c==ctx->d) {
     if (ctx->a==ctx->b) {hv = (ctx->d-ctx->c)/(n-1); hh = 0.0;}
     else {hh = (ctx->b-ctx->a)/(n-1); hv = 0.0;}
@@ -194,7 +194,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
 #endif
     }
   } else {
-    if (n<4) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Minimum number of contour points: 4");
+    PetscCheckFalse(n<4,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Minimum number of contour points: 4");
     N = n/2;
     t = ((ctx->d-ctx->c)/(ctx->d-ctx->c+ctx->b-ctx->a))*N;
     Nv = t-PetscFloorReal(t)>0.5?PetscCeilReal(t):PetscFloorReal(t);
@@ -259,7 +259,7 @@ PetscErrorCode RGComputeQuadrature_Interval(RG rg,RGQuadRule quad,PetscInt n,Pet
 
   PetscFunctionBegin;
   if (quad == RG_QUADRULE_CHEBYSHEV) {
-    if ((ctx->c!=ctx->d || ctx->c!=0.0) && (ctx->a!=ctx->b || ctx->a!=0.0)) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Endpoints of the imaginary axis or the real axis must be both zero");
+    PetscCheckFalse((ctx->c!=ctx->d || ctx->c!=0.0) && (ctx->a!=ctx->b || ctx->a!=0.0),PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Endpoints of the imaginary axis or the real axis must be both zero");
     for (i=0;i<n;i++) {
       theta = PETSC_PI*(i+0.5)/n;
       zn[i] = PetscCosReal(theta);
@@ -334,7 +334,7 @@ PetscErrorCode RGSetFromOptions_Interval(PetscOptionItems *PetscOptionsObject,RG
     k = 4;
     ierr = PetscOptionsRealArray("-rg_interval_endpoints","Interval endpoints (two or four real values separated with a comma without spaces)","RGIntervalSetEndpoints",array,&k,&flg);CHKERRQ(ierr);
     if (flg) {
-      if (k<2) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"Must pass at least two values in -rg_interval_endpoints (comma-separated without spaces)");
+      PetscCheckFalse(k<2,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"Must pass at least two values in -rg_interval_endpoints (comma-separated without spaces)");
       ierr = RGIntervalSetEndpoints(rg,array[0],array[1],array[2],array[3]);CHKERRQ(ierr);
     }
 

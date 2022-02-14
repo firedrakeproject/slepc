@@ -268,7 +268,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   if (!pep->which) { ierr = PEPSetWhichEigenpairs_Default(pep);CHKERRQ(ierr); }
-  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
+  PetscCheckFalse(pep->which==PEP_ALL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
   if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
@@ -280,8 +280,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   if (ctx->explicitmatrix) {
     PEPCheckQuadraticCondition(pep,PETSC_TRUE," (with explicit matrix)");
     PEPCheckUnsupportedCondition(pep,PEP_FEATURE_NONMONOMIAL,PETSC_TRUE," (with explicit matrix)");
-    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-transform flag active");
-    if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
+    PetscCheckFalse(transf,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-transform flag active");
+    PetscCheckFalse(pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
     if (sinv && !transf) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
     ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);
     ierr = STGetMatrixTransformed(pep->st,0,&ctx->K);CHKERRQ(ierr);
@@ -310,14 +310,14 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B);CHKERRQ(ierr);
 
   } else {   /* implicit matrix */
-    if (pep->problem_type!=PEP_GENERAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option if problem type is not general");
+    PetscCheckFalse(pep->problem_type!=PEP_GENERAL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option if problem type is not general");
     if (!((PetscObject)(ctx->eps))->type_name) {
       ierr = EPSSetType(ctx->eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
     } else {
       ierr = PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks);CHKERRQ(ierr);
-      if (!ks) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option only implemented for Krylov-Schur");
+      PetscCheckFalse(!ks,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option only implemented for Krylov-Schur");
     }
-    if (ctx->alpha!=1.0 || ctx->beta!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option does not support changing alpha,beta parameters of the linearization");
+    PetscCheckFalse(ctx->alpha!=1.0 || ctx->beta!=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option does not support changing alpha,beta parameters of the linearization");
     ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
     ierr = STShellSetContext(st,ctx);CHKERRQ(ierr);
     if (!transf) { ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr); }
@@ -392,7 +392,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   }
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) {
-    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPLINEAR does not support a nontrivial region with st-transform");
+    PetscCheckFalse(transf,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPLINEAR does not support a nontrivial region with st-transform");
     ierr = EPSSetRG(ctx->eps,pep->rg);CHKERRQ(ierr);
   }
   /* Transfer the trackall option from pep to eps */
@@ -762,7 +762,7 @@ static PetscErrorCode PEPLinearSetLinearization_Linear(PEP pep,PetscReal alpha,P
   PEP_LINEAR *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  if (beta==0.0 && alpha==0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
+  PetscCheckFalse(beta==0.0 && alpha==0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
   ctx->alpha = alpha;
   ctx->beta  = beta;
   PetscFunctionReturn(0);

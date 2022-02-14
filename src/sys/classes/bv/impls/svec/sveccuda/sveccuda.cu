@@ -740,7 +740,7 @@ PetscErrorCode BVGetMat_Svec_CUDA(BV bv,Mat *A)
   if (!bv->Aget) create=PETSC_TRUE;
   else {
     ierr = MatDenseCUDAGetArray(bv->Aget,&aa);CHKERRQ(ierr);
-    if (aa) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
+    PetscCheckFalse(aa,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
     ierr = MatGetSize(bv->Aget,NULL,&cols);CHKERRQ(ierr);
     if (cols!=m) {
       ierr = MatDestroy(&bv->Aget);CHKERRQ(ierr);

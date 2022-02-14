@@ -101,7 +101,7 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->numbermonitors >= MAXEPSMONITORS) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Too many EPS monitors set");
+  PetscCheckFalse(eps->numbermonitors >= MAXEPSMONITORS,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Too many EPS monitors set");
   eps->monitor[eps->numbermonitors]           = monitor;
   eps->monitorcontext[eps->numbermonitors]    = (void*)mctx;
   eps->monitordestroy[eps->numbermonitors++]  = monitordestroy;

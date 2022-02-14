@@ -147,7 +147,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* Call solver */
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
-  if (!eps->reason) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+  PetscCheckFalse(!eps->reason,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   eps->state = EPS_STATE_SOLVED;
 
   /* Only the first nconv columns contain useful information (except in CISS) */
@@ -343,7 +343,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
   PetscValidPointer(v,2);
   PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   EPSCheckSolved(eps,1);
-  if (!eps->ishermitian && eps->state==EPS_STATE_EIGENVECTORS) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector or EPSComputeError");
+  PetscCheckFalse(!eps->ishermitian && eps->state==EPS_STATE_EIGENVECTORS,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector or EPSComputeError");
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
     ierr = BVDuplicateResize(eps->V,eps->nconv,&V);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
@@ -411,8 +411,8 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
   EPSCheckSolved(eps,1);
-  if (i<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
-  if (i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+  PetscCheckFalse(i<0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
+  PetscCheckFalse(i>=eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
   ierr = EPSGetEigenvalue(eps,i,eigr,eigi);CHKERRQ(ierr);
   if (Vr || Vi) { ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
@@ -451,8 +451,8 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   EPSCheckSolved(eps,1);
-  if (i<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
-  if (i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+  PetscCheckFalse(i<0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
+  PetscCheckFalse(i>=eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
   k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
   if (eigr) *eigr = eps->eigr[k];
@@ -509,8 +509,8 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Vr,3); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Vi,4); }
   EPSCheckSolved(eps,1);
-  if (i<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
-  if (i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
+  PetscCheckFalse(i<0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
+  PetscCheckFalse(i>=eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   k = eps->perm[i];
   ierr = BV_GetEigenvector(eps->V,k,eps->eigi[k],Vr,Vi);CHKERRQ(ierr);
@@ -561,8 +561,8 @@ PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
   if (Wr) { PetscValidHeaderSpecific(Wr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Wr,3); }
   if (Wi) { PetscValidHeaderSpecific(Wi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Wi,4); }
   EPSCheckSolved(eps,1);
-  if (!eps->twosided) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetTwoSided");
-  if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  PetscCheckFalse(!eps->twosided,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetTwoSided");
+  PetscCheckFalse(i<0 || i>=eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   k = eps->perm[i];
   ierr = BV_GetEigenvector(eps->W,k,eps->eigi[k],Wr,Wi);CHKERRQ(ierr);
@@ -597,7 +597,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidRealPointer(errest,3);
   EPSCheckSolved(eps,1);
-  if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  PetscCheckFalse(i<0 || i>=eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   *errest = eps->errest[eps->perm[i]];
   PetscFunctionReturn(0);
 }
@@ -747,14 +747,14 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
       if (!eps->nrma) {
         ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
         ierr = MatHasOperation(A,MATOP_NORM,&flg);CHKERRQ(ierr);
-        if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+        PetscCheckFalse(!flg,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
         ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
       }
       if (eps->isgeneralized) {
         if (!eps->nrmb) {
           ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
           ierr = MatHasOperation(B,MATOP_NORM,&flg);CHKERRQ(ierr);
-          if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+          PetscCheckFalse(!flg,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
           ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr);
         }
       } else eps->nrmb = 1.0;
@@ -821,7 +821,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
-    if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Initial vector is zero or belongs to the deflation space");
+    PetscCheckFalse(i==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Initial vector is zero or belongs to the deflation space");
     else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more start vectors");
   }
   ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
@@ -851,7 +851,7 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   ierr = BVOrthogonalizeColumn(eps->W,i,NULL,&norm,&lindep);CHKERRQ(ierr);
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
-    if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Left initial vector is zero");
+    PetscCheckFalse(i==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Left initial vector is zero");
     else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more left start vectors");
   }
   ierr = BVScaleColumn(eps->W,i,1.0/norm);CHKERRQ(ierr);

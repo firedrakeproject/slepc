@@ -27,7 +27,7 @@ PetscErrorCode SVDSetUp_Elemental(SVD svd)
   PetscFunctionBegin;
   SVDCheckStandard(svd);
   ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
-  if (M!=N) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Not implemented for rectangular matrices");
+  PetscCheckFalse(M!=N,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Not implemented for rectangular matrices");
   svd->ncv = N;
   if (svd->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;

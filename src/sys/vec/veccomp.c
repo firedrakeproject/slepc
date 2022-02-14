@@ -202,7 +202,7 @@ PetscErrorCode VecDuplicateVecs_Comp(Vec w,PetscInt m,Vec *V[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(w,VEC_CLASSID,1);
   PetscValidPointer(V,3);
-  if (m<=0) SETERRQ(PetscObjectComm((PetscObject)w),PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
+  PetscCheckFalse(m<=0,PetscObjectComm((PetscObject)w),PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
   ierr = PetscMalloc1(m,V);CHKERRQ(ierr);
   for (i=0;i<m;i++) { ierr = VecDuplicate(w,*V+i);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
@@ -215,7 +215,7 @@ PetscErrorCode VecDestroyVecs_Comp(PetscInt m,Vec v[])
 
   PetscFunctionBegin;
   PetscValidPointer(v,2);
-  if (m<=0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
+  PetscCheckFalse(m<=0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
   for (i=0;i<m;i++) { ierr = VecDestroy(&v[i]);CHKERRQ(ierr); }
   ierr = PetscFree(v);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -432,15 +432,15 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (!s) SETERRQ(PetscObjectComm((PetscObject)win),PETSC_ERR_ORDER,"Must call VecSetSizes first");
+  PetscCheckFalse(!s,PetscObjectComm((PetscObject)win),PETSC_ERR_ORDER,"Must call VecSetSizes first");
   if (!s->nx) {
     /* vector has been created via VecCreate+VecSetType+VecSetSizes, so allocate data structures */
     ierr = PetscMalloc1(n,&s->x);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)win,n*sizeof(Vec));CHKERRQ(ierr);
     ierr = VecGetSize(win,&N);CHKERRQ(ierr);
-    if (N%n) SETERRQ(PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Global dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,N,n);
+    PetscCheckFalse(N%n,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Global dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,N,n);
     ierr = VecGetLocalSize(win,&nlocal);CHKERRQ(ierr);
-    if (nlocal%n) SETERRQ(PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Local dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,nlocal,n);
+    PetscCheckFalse(nlocal%n,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Local dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,nlocal,n);
     s->nx = n;
     for (i=0;i<n;i++) {
       ierr = VecCreate(PetscObjectComm((PetscObject)win),&s->x[i]);CHKERRQ(ierr);
@@ -454,7 +454,7 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
       nn->lN = nlocal;
       nn->friends = 1;
     }
-  } else if (n > s->nx) SETERRQ(PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Number of child vectors cannot be larger than %" PetscInt_FMT,s->nx);
+  } else PetscCheckFalse(n > s->nx,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Number of child vectors cannot be larger than %" PetscInt_FMT,s->nx);
   if (x) {
     ierr = PetscArraycpy(s->x,x,n);CHKERRQ(ierr);
   }

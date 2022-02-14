@@ -85,24 +85,24 @@ struct _p_DS {
 
 #define DSCheckAlloc(h,arg) \
   do { \
-    if (!(h)->ld) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSAllocate() first: Parameter #%d",arg); \
+    PetscCheckFalse(!(h)->ld,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSAllocate() first: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckSolved(h,arg) \
   do { \
-    if ((h)->state<DS_STATE_CONDENSED) SETERRQ(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
+    PetscCheckFalse((h)->state<DS_STATE_CONDENSED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckValidMat(ds,m,arg) \
   do { \
-    if ((m)>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
-    if (!(ds)->mat[m]) SETERRQ(PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+    PetscCheckFalse((m)>=DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    PetscCheckFalse(!(ds)->mat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckValidMatReal(ds,m,arg) \
   do { \
-    if ((m)>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
-    if (!(ds)->rmat[m]) SETERRQ(PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+    PetscCheckFalse((m)>=DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    PetscCheckFalse(!(ds)->rmat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
   } while (0)
 
 #endif

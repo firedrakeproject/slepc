@@ -61,13 +61,13 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
 #endif
 
   PetscFunctionBegin;
-  if (cV > 2) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(cV > 2,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
 
   /* h <- X'*V */
   ierr = PetscMalloc1(data->size_iXKZ*cV,&h);CHKERRQ(ierr);
   ldh = data->size_iXKZ;
   ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
-  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(ldh!=k,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   ierr = BVSetActiveColumns(data->U,0,k);CHKERRQ(ierr);
   for (i=0;i<cV;i++) {
     ierr = BVDotVec(data->U,V[i],&h[ldh*i]);CHKERRQ(ierr);
@@ -113,13 +113,13 @@ static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscI
 #endif
 
   PetscFunctionBegin;
-  if (cV > 2) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(cV > 2,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
 
   /* h <- KZ'*V */
   ierr = PetscMalloc1(data->size_iXKZ*cV,&h);CHKERRQ(ierr);
   ldh = data->size_iXKZ;
   ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
-  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(ldh!=k,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   ierr = BVSetActiveColumns(data->KZ,0,k);CHKERRQ(ierr);
   for (i=0;i<cV;i++) {
     ierr = BVDotVec(data->KZ,V[i],&h[ldh*i]);CHKERRQ(ierr);
@@ -572,7 +572,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   /* Check consistency */
   ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
   V_new = lv - data->size_cX;
-  if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(V_new > data->old_size_X,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   data->old_size_X = n;
   data->size_cX = lv;
 
@@ -655,8 +655,8 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
   }
 
   n = PetscMin(PetscMin(data->size_X, max_size_D), r_e-r_s);
-  if (n == 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"n == 0");
-  if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"size_X < r_e-r_s");
+  PetscCheckFalse(n == 0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"n == 0");
+  PetscCheckFalse(data->size_X < r_e-r_s,PETSC_COMM_SELF,PETSC_ERR_PLIB,"size_X < r_e-r_s");
 
   ierr = DSGetLeadingDimension(d->eps->ds,&ld);CHKERRQ(ierr);
 

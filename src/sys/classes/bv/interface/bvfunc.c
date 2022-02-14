@@ -123,7 +123,7 @@ PetscErrorCode BVDestroy(BV *bv)
   PetscFunctionBegin;
   if (!*bv) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*bv,BV_CLASSID,1);
-  if ((*bv)->lsplit) SETERRQ(PetscObjectComm((PetscObject)(*bv)),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
+  PetscCheckFalse((*bv)->lsplit,PetscObjectComm((PetscObject)(*bv)),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
   if (--((PetscObject)(*bv))->refct > 0) { *bv = 0; PetscFunctionReturn(0); }
   if ((*bv)->ops->destroy) { ierr = (*(*bv)->ops->destroy)(*bv);CHKERRQ(ierr); }
   ierr = VecDestroy(&(*bv)->t);CHKERRQ(ierr);
@@ -297,8 +297,8 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
 
   ierr = VecGetSize(w,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(w,&n);CHKERRQ(ierr);
-  if (N!=V->N || n!=V->n) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
-  if (j<-V->nc || j>=V->m) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,j,-V->nc,V->m-1);
+  PetscCheckFalse(N!=V->N || n!=V->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
+  PetscCheckFalse(j<-V->nc || j>=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,j,-V->nc,V->m-1);
 
   ierr = BVGetColumn(V,j,&v);CHKERRQ(ierr);
   ierr = VecCopy(w,v);CHKERRQ(ierr);
@@ -346,7 +346,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
   PetscValidIntPointer(m,3);
   PetscValidLogicalCollectiveInt(V,*m,3);
   if (!*m) PetscFunctionReturn(0);
-  if (*m<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %" PetscInt_FMT ") cannot be negative",*m);
+  PetscCheckFalse(*m<0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %" PetscInt_FMT ") cannot be negative",*m);
   PetscValidPointer(W,4);
   PetscValidHeaderSpecific(*W,VEC_CLASSID,4);
   PetscValidLogicalCollectiveBool(V,orth,5);
@@ -356,9 +356,9 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 
   ierr = VecGetSize(*W,&N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(*W,&n);CHKERRQ(ierr);
-  if (N!=V->N || n!=V->n) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
-  if (s<0 || s>=V->m) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between 0 and %" PetscInt_FMT,s,V->m-1);
-  if (s+(*m)>V->m) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Too many vectors provided, there is only room for %" PetscInt_FMT,V->m);
+  PetscCheckFalse(N!=V->N || n!=V->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
+  PetscCheckFalse(s<0 || s>=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between 0 and %" PetscInt_FMT,s,V->m-1);
+  PetscCheckFalse(s+(*m)>V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Too many vectors provided, there is only room for %" PetscInt_FMT,V->m);
 
   ndep = 0;
   for (i=0;i<*m;i++) {
@@ -425,15 +425,15 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscValidIntPointer(nc,2);
   PetscValidLogicalCollectiveInt(V,*nc,2);
   if (!*nc) PetscFunctionReturn(0);
-  if (*nc<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %" PetscInt_FMT ") cannot be negative",*nc);
+  PetscCheckFalse(*nc<0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %" PetscInt_FMT ") cannot be negative",*nc);
   PetscValidPointer(C,3);
   PetscValidHeaderSpecific(*C,VEC_CLASSID,3);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscCheckSameComm(V,1,*C,3);
-  if (V->issplit) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"Operation not permitted for a BV obtained from BVGetSplit");
-  if (V->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"Constraints already present in this BV object");
-  if (V->ci[0]!=-1 || V->ci[1]!=-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVInsertConstraints after BVGetColumn");
+  PetscCheckFalse(V->issplit,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"Operation not permitted for a BV obtained from BVGetSplit");
+  PetscCheckFalse(V->nc,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"Constraints already present in this BV object");
+  PetscCheckFalse(V->ci[0]!=-1 || V->ci[1]!=-1,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVInsertConstraints after BVGetColumn");
 
   msave = V->m;
   ierr = BVResize(V,*nc+V->m,PETSC_FALSE);CHKERRQ(ierr);

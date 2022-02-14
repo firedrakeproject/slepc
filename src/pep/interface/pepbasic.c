@@ -169,7 +169,7 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFunctionListFind(PEPList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown PEP type given: %s",type);
+  PetscCheckFalse(!r,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown PEP type given: %s",type);
 
   if (pep->ops->destroy) { ierr = (*pep->ops->destroy)(pep);CHKERRQ(ierr); }
   ierr = PetscMemzero(pep->ops,sizeof(struct _PEPOps));CHKERRQ(ierr);
@@ -770,7 +770,7 @@ PetscErrorCode PEPSetInterval(PEP pep,PetscReal inta,PetscReal intb)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,inta,2);
   PetscValidLogicalCollectiveReal(pep,intb,3);
-  if (inta>=intb) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
+  PetscCheckFalse(inta>=intb,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
   if (pep->inta != inta || pep->intb != intb) {
     pep->inta = inta;
     pep->intb = intb;
