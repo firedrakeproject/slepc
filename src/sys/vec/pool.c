@@ -38,7 +38,7 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
   PetscValidHeaderSpecific(v,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(v,init_size,2);
   PetscValidPointer(p,3);
-  if (init_size<0) SETERRQ(PetscObjectComm((PetscObject)v),PETSC_ERR_ARG_WRONG,"init_size should be positive");
+  PetscCheckFalse(init_size<0,PetscObjectComm((PetscObject)v),PETSC_ERR_ARG_WRONG,"init_size should be positive");
   ierr = PetscCalloc1(1,&pool);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)v);CHKERRQ(ierr);
   pool->v     = v;
@@ -101,7 +101,7 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
   PetscFunctionBegin;
   PetscValidPointer(p,1);
   PetscValidPointer(vecs,3);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)pool->v),PETSC_ERR_ARG_OUTOFRANGE,"n should be positive");
+  PetscCheckFalse(n<0,PetscObjectComm((PetscObject)pool->v),PETSC_ERR_ARG_OUTOFRANGE,"n should be positive");
   while (pool->next) pool = pool->next;
   if (pool->n-pool->used < n) {
     pool->guess = PetscMax(p->guess,pool->used+n);
@@ -149,6 +149,6 @@ PetscErrorCode SlepcVecPoolRestoreVecs(VecPool p,PetscInt n,Vec **vecs)
     pool->next = NULL;
   }
   pool->used -= n;
-  if (pool->used < 0) SETERRQ(PetscObjectComm((PetscObject)pool->v),PETSC_ERR_ARG_OUTOFRANGE,"Unmatched SlepcVecPoolRestoreVecs");
+  PetscCheckFalse(pool->used < 0,PetscObjectComm((PetscObject)pool->v),PETSC_ERR_ARG_OUTOFRANGE,"Unmatched SlepcVecPoolRestoreVecs");
   PetscFunctionReturn(0);
 }

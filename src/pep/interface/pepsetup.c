@@ -94,7 +94,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   }
 
   /* check matrices, transfer them to ST */
-  if (!pep->A) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");
+  PetscCheckFalse(!pep->A,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");
   ierr = STSetMatrices(pep->st,pep->nmat,pep->A);CHKERRQ(ierr);
 
   /* set problem dimensions */
@@ -126,16 +126,16 @@ PetscErrorCode PEPSetUp(PEP pep)
       if (flg) {
         ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
       }
-      if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
+      PetscCheckFalse(!flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
       ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size);CHKERRMPI(ierr);
       if (size>1) {   /* currently selected PC is a factorization */
         ierr = PCFactorGetMatSolverType(pc,&stype);CHKERRQ(ierr);
         ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
-        if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"For Newton refinement, you chose to solve linear systems with a factorization, but in parallel runs you need to select an external package");
+        PetscCheckFalse(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"For Newton refinement, you chose to solve linear systems with a factorization, but in parallel runs you need to select an external package");
       }
     }
     if (pep->scheme==PEP_REFINE_SCHEME_SCHUR) {
-      if (pep->npart>1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The Schur scheme for refinement does not support subcommunicators");
+      PetscCheckFalse(pep->npart>1,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The Schur scheme for refinement does not support subcommunicators");
     }
   }
   /* call specific solver setup */
@@ -221,7 +221,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!flg) {
     if (pep->which!=PEP_ALL && pep->solvematcoeffs) { ierr = STMatSetUp(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr); }
   } else {
-    if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
+    PetscCheckFalse(pep->basis!=PEP_BASIS_MONOMIAL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
   }
 
   /* compute scale factor if no set by user */
@@ -243,7 +243,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* process initial vectors */
   if (pep->nini<0) {
     k = -pep->nini;
-    if (k>pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
+    PetscCheckFalse(k>pep->ncv,PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
     ierr = BVInsertVecs(pep->V,0,&k,pep->IS,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
     pep->nini = k;
@@ -282,8 +282,8 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,nmat,2);
-  if (nmat <= 0) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %" PetscInt_FMT,nmat);
-  if (nmat <= 2) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Cannot solve linear eigenproblems with PEP; use EPS instead");
+  PetscCheckFalse(nmat <= 0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %" PetscInt_FMT,nmat);
+  PetscCheckFalse(nmat <= 2,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Cannot solve linear eigenproblems with PEP; use EPS instead");
   PetscValidPointer(A,3);
 
   for (i=0;i<nmat;i++) {
@@ -291,11 +291,11 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
     PetscCheckSameComm(pep,1,A[i],3);
     ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
     ierr = MatGetLocalSize(A[i],&mloc,&nloc);CHKERRQ(ierr);
-    if (m!=n) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
-    if (mloc!=nloc) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
+    PetscCheckFalse(m!=n,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
+    PetscCheckFalse(mloc!=nloc,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
     if (!i) { m0 = m; mloc0 = mloc; }
-    if (m!=m0) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
-    if (mloc!=mloc0) SETERRQ3(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
+    PetscCheckFalse(m!=m0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
+    PetscCheckFalse(mloc!=mloc0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
   }
 
@@ -339,7 +339,7 @@ PetscErrorCode PEPGetOperators(PEP pep,PetscInt k,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(A,3);
-  if (k<0 || k>=pep->nmat) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,pep->nmat-1);
+  PetscCheckFalse(k<0 || k>=pep->nmat,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,pep->nmat-1);
   *A = pep->A[k];
   PetscFunctionReturn(0);
 }
@@ -403,7 +403,7 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec is[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
+  PetscCheckFalse(n<0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   if (n>0) {
     PetscValidPointer(is,3);
     PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
@@ -428,9 +428,9 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
   dim = (pep->nmat-1)*pep->n;
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
     if (krylov) {
-      if (*ncv<nev+1 && !(*ncv==nev && *ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
+      PetscCheckFalse(*ncv<nev+1 && !(*ncv==nev && *ncv==dim),PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
     } else {
-      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
+      PetscCheckFalse(*ncv<nev,PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
     }
   } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
     *ncv = PetscMin(dim,nev+(*mpd));

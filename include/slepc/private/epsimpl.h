@@ -156,7 +156,7 @@ struct _p_EPS {
 
 #define EPSCheckSolved(h,arg) \
   do { \
-    if ((h)->state<EPS_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSolve() first: Parameter #%d",arg); \
+    PetscCheckFalse((h)->state<EPS_STATE_SOLVED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #endif
@@ -169,8 +169,8 @@ struct _p_EPS {
 #define EPSCheckHermitianDefiniteCondition(eps,condition,msg) \
   do { \
     if (condition) { \
-      if (!(eps)->ishermitian) SETERRQ3(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
-      else if ((eps)->isgeneralized && !(eps)->ispositive) SETERRQ3(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires that the problem is %s-definite",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+      PetscCheckFalse(!(eps)->ishermitian,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+      else PetscCheckFalse((eps)->isgeneralized && !(eps)->ispositive,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires that the problem is %s-definite",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
     } \
   } while (0)
 #define EPSCheckHermitianDefinite(eps) EPSCheckHermitianDefiniteCondition(eps,PETSC_TRUE,"")
@@ -179,7 +179,7 @@ struct _p_EPS {
 #define EPSCheckHermitianCondition(eps,condition,msg) \
   do { \
     if (condition) { \
-      if (!(eps)->ishermitian) SETERRQ3(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+      PetscCheckFalse(!(eps)->ishermitian,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
     } \
   } while (0)
 #define EPSCheckHermitian(eps) EPSCheckHermitianCondition(eps,PETSC_TRUE,"")
@@ -188,7 +188,7 @@ struct _p_EPS {
 #define EPSCheckDefiniteCondition(eps,condition,msg) \
   do { \
     if (condition) { \
-      if ((eps)->isgeneralized && (eps)->ishermitian && !(eps)->ispositive) SETERRQ3(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for %s-indefinite problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+      PetscCheckFalse((eps)->isgeneralized && (eps)->ishermitian && !(eps)->ispositive,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for %s-indefinite problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
     } \
   } while (0)
 #define EPSCheckDefinite(eps) EPSCheckDefiniteCondition(eps,PETSC_TRUE,"")
@@ -197,7 +197,7 @@ struct _p_EPS {
 #define EPSCheckStandardCondition(eps,condition,msg) \
   do { \
     if (condition) { \
-      if ((eps)->isgeneralized) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheckFalse((eps)->isgeneralized,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
 #define EPSCheckStandard(eps) EPSCheckStandardCondition(eps,PETSC_TRUE,"")
@@ -208,7 +208,7 @@ struct _p_EPS {
     if (condition) { \
       PetscBool __flg; \
       ierr = PetscObjectTypeCompare((PetscObject)(eps)->st,STSINVERT,&__flg);CHKERRQ(ierr); \
-      if (!__flg) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires a shift-and-invert spectral transform",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheckFalse(!__flg,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires a shift-and-invert spectral transform",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
 #define EPSCheckSinvert(eps) EPSCheckSinvertCondition(eps,PETSC_TRUE,"")
@@ -219,7 +219,7 @@ struct _p_EPS {
     if (condition) { \
       PetscBool __flg; \
       ierr = PetscObjectTypeCompareAny((PetscObject)(eps)->st,&__flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr); \
-      if (!__flg) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires shift-and-invert or Cayley transform",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheckFalse(!__flg,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires shift-and-invert or Cayley transform",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
 #define EPSCheckSinvertCayley(eps) EPSCheckSinvertCayleyCondition(eps,PETSC_TRUE,"")
@@ -228,17 +228,17 @@ struct _p_EPS {
 #define EPSCheckUnsupportedCondition(eps,mask,condition,msg) \
   do { \
     if (condition) { \
-      if (((mask) & EPS_FEATURE_BALANCE) && (eps)->balance!=EPS_BALANCE_NONE) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support balancing",((PetscObject)(eps))->type_name,(msg)); \
-      if (((mask) & EPS_FEATURE_ARBITRARY) && (eps)->arbitrary) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support arbitrary selection of eigenpairs",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & EPS_FEATURE_BALANCE) && (eps)->balance!=EPS_BALANCE_NONE,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support balancing",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & EPS_FEATURE_ARBITRARY) && (eps)->arbitrary,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support arbitrary selection of eigenpairs",((PetscObject)(eps))->type_name,(msg)); \
       if ((mask) & EPS_FEATURE_REGION) { \
         PetscBool      __istrivial; \
         PetscErrorCode __ierr = RGIsTrivial((eps)->rg,&__istrivial);CHKERRQ(__ierr); \
-        if (!__istrivial) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(eps))->type_name,(msg)); \
+        PetscCheckFalse(!__istrivial,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(eps))->type_name,(msg)); \
       } \
-      if (((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports Ritz extraction",((PetscObject)(eps))->type_name,(msg)); \
-      if (((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(eps))->type_name,(msg)); \
-      if (((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(eps))->type_name,(msg)); \
-      if (((mask) & EPS_FEATURE_TWOSIDED) && (eps)->twosided) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot compute left eigenvectors (no two-sided variant)",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports Ritz extraction",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & EPS_FEATURE_TWOSIDED) && (eps)->twosided,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot compute left eigenvectors (no two-sided variant)",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
 #define EPSCheckUnsupported(eps,mask) EPSCheckUnsupportedCondition(eps,mask,PETSC_TRUE,"")
@@ -248,17 +248,17 @@ struct _p_EPS {
   do { \
     PetscErrorCode __ierr; \
     if (condition) { \
-      if (((mask) & EPS_FEATURE_BALANCE) && (eps)->balance!=EPS_BALANCE_NONE) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the balancing settings\n",((PetscObject)(eps))->type_name,(msg)); } \
-      if (((mask) & EPS_FEATURE_ARBITRARY) && (eps)->arbitrary) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the settings for arbitrary selection of eigenpairs\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_BALANCE) && (eps)->balance!=EPS_BALANCE_NONE) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the balancing settings\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_ARBITRARY) && (eps)->arbitrary) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the settings for arbitrary selection of eigenpairs\n",((PetscObject)(eps))->type_name,(msg)); } \
       if ((mask) & EPS_FEATURE_REGION) { \
         PetscBool __istrivial; \
         __ierr = RGIsTrivial((eps)->rg,&__istrivial);CHKERRQ(__ierr); \
-        if (!__istrivial) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the specified region\n",((PetscObject)(eps))->type_name,(msg)); } \
+        if (!__istrivial) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the specified region\n",((PetscObject)(eps))->type_name,(msg)); } \
       } \
-      if (((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the extraction settings\n",((PetscObject)(eps))->type_name,(msg)); } \
-      if (((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
-      if (((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
-      if (((mask) & EPS_FEATURE_TWOSIDED) && (eps)->twosided) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the two-sided flag\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the extraction settings\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_TWOSIDED) && (eps)->twosided) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the two-sided flag\n",((PetscObject)(eps))->type_name,(msg)); } \
     } \
   } while (0)
 #define EPSCheckIgnored(eps,mask) EPSCheckIgnoredCondition(eps,mask,PETSC_TRUE,"")
@@ -266,7 +266,7 @@ struct _p_EPS {
 /*
   EPS_SetInnerProduct - set B matrix for inner product if appropriate.
 */
-PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
+static inline PetscErrorCode EPS_SetInnerProduct(EPS eps)
 {
   PetscErrorCode ierr;
   Mat            B;
@@ -286,7 +286,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
 /*
   EPS_Purify - purify the first k vectors in the V basis
 */
-PETSC_STATIC_INLINE PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
+static inline PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -307,7 +307,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
 /*
   EPS_KSPSetOperators - Sets the KSP matrices, see also ST_KSPSetOperators()
 */
-PETSC_STATIC_INLINE PetscErrorCode EPS_KSPSetOperators(KSP ksp,Mat A,Mat B)
+static inline PetscErrorCode EPS_KSPSetOperators(KSP ksp,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   const char     *prefix;

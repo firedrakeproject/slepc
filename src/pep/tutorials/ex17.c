@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n");CHKERRQ(ierr);
 #endif
   ierr = PetscOptionsGetStringArray(NULL,NULL,"-A",filenames,&nmat,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a comma-separated list of file names with the -A option");
+  PetscCheckFalse(!flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a comma-separated list of file names with the -A option");
   for (i=0;i<nmat;i++) {
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filenames[i],FILE_MODE_READ,&viewer);CHKERRQ(ierr);
     ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);

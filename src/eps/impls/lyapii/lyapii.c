@@ -61,12 +61,12 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
   PetscFunctionBegin;
   EPSCheckSinvert(eps);
   if (eps->ncv!=PETSC_DEFAULT) {
-    if (eps->ncv<eps->nev+1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
+    PetscCheckFalse(eps->ncv<eps->nev+1,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
   } else eps->ncv = eps->nev+1;
   if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
   if (!eps->which) eps->which=EPS_LARGEST_REAL;
-  if (eps->which!=EPS_LARGEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest real eigenvalues");
+  PetscCheckFalse(eps->which!=EPS_LARGEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION | EPS_FEATURE_TWOSIDED);
 
   if (!ctx->rkc) ctx->rkc = 10;
@@ -397,7 +397,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     /* Determine rank */
     rk = nv;
     for (i=1;i<nv;i++) if (PetscAbsScalar(s[i]/s[0])<PETSC_SQRT_MACHINE_EPSILON) {rk=i; break;}
-    ierr = PetscInfo1(eps,"The computed solution of the Lyapunov equation has rank %" PetscInt_FMT "\n",rk);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"The computed solution of the Lyapunov equation has rank %" PetscInt_FMT "\n",rk);CHKERRQ(ierr);
     rk = PetscMin(rk,ctx->rkc);
     ierr = DSGetMat(ctx->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     ierr = BVMultInPlace(V,U,0,rk);CHKERRQ(ierr);
@@ -428,7 +428,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     ierr = DSSolve(ctx->ds,s,NULL);CHKERRQ(ierr);
     if (PetscAbsScalar(s[1]/s[0])<PETSC_SQRT_MACHINE_EPSILON) rk=1;
     else rk = 2;
-    ierr = PetscInfo1(eps,"The eigenvector has rank %" PetscInt_FMT "\n",rk);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"The eigenvector has rank %" PetscInt_FMT "\n",rk);CHKERRQ(ierr);
     ierr = DSGetMat(ctx->ds,DS_MAT_U,&U);CHKERRQ(ierr);
     ierr = BVMultInPlace(V,U,0,rk);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
@@ -564,9 +564,9 @@ static PetscErrorCode EPSLyapIISetRanks_LyapII(EPS eps,PetscInt rkc,PetscInt rkl
 
   PetscFunctionBegin;
   if (rkc==PETSC_DEFAULT) rkc = 10;
-  if (rkc<2) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The compressed rank %" PetscInt_FMT " must be larger than 1",rkc);
+  PetscCheckFalse(rkc<2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The compressed rank %" PetscInt_FMT " must be larger than 1",rkc);
   if (rkl==PETSC_DEFAULT) rkl = 3*rkc;
-  if (rkl<rkc) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The Lyapunov rank %" PetscInt_FMT " cannot be smaller than the compressed rank %" PetscInt_FMT,rkl,rkc);
+  PetscCheckFalse(rkl<rkc,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The Lyapunov rank %" PetscInt_FMT " cannot be smaller than the compressed rank %" PetscInt_FMT,rkl,rkc);
   if (rkc != ctx->rkc) {
     ctx->rkc   = rkc;
     eps->state = EPS_STATE_INITIAL;

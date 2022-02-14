@@ -92,13 +92,13 @@ PetscErrorCode SVDStoppingBasic(SVD svd,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionBegin;
   *reason = SVD_CONVERGED_ITERATING;
   if (nconv >= nsv) {
-    ierr = PetscInfo2(svd,"Singular value solver finished successfully: %" PetscInt_FMT " singular triplets converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
+    ierr = PetscInfo(svd,"Singular value solver finished successfully: %" PetscInt_FMT " singular triplets converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
     *reason = SVD_CONVERGED_TOL;
   } else if (its >= max_it) {
     if (svd->conv == SVD_CONV_MAXIT) *reason = SVD_CONVERGED_MAXIT;
     else {
       *reason = SVD_DIVERGED_ITS;
-      ierr = PetscInfo1(svd,"Singular value solver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
+      ierr = PetscInfo(svd,"Singular value solver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -131,8 +131,8 @@ PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,nleft,2);
   PetscValidLogicalCollectiveInt(svd,nright,3);
-  if (nleft <= 0) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nleft must be > 0: nleft = %" PetscInt_FMT,nleft);
-  if (nright <= 0) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nright must be > 0: nright = %" PetscInt_FMT,nright);
+  PetscCheckFalse(nleft <= 0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nleft must be > 0: nleft = %" PetscInt_FMT,nleft);
+  PetscCheckFalse(nright <= 0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nright must be > 0: nright = %" PetscInt_FMT,nright);
   if (svd->nworkl < nleft) {
     ierr = VecDestroyVecs(svd->nworkl,&svd->workl);CHKERRQ(ierr);
     svd->nworkl = nleft;

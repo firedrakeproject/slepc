@@ -118,25 +118,25 @@ PetscErrorCode EPSCheckCompatibleST(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&cayley);CHKERRQ(ierr);
 
   /* preconditioned eigensolvers */
-  if (eps->categ==EPS_CATEGORY_PRECOND && !precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires ST=PRECOND");
-  if (eps->categ!=EPS_CATEGORY_PRECOND && precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"STPRECOND is intended for preconditioned eigensolvers only");
+  PetscCheckFalse(eps->categ==EPS_CATEGORY_PRECOND && !precond,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires ST=PRECOND");
+  PetscCheckFalse(eps->categ!=EPS_CATEGORY_PRECOND && precond,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"STPRECOND is intended for preconditioned eigensolvers only");
 
   /* harmonic extraction */
-  if (!(precond || shift) && eps->extraction && eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cannot use a spectral transformation combined with harmonic extraction");
+  PetscCheckFalse(!(precond || shift) && eps->extraction && eps->extraction!=EPS_RITZ,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cannot use a spectral transformation combined with harmonic extraction");
 
   /* real shifts in Hermitian problems */
 #if defined(PETSC_USE_COMPLEX)
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
-  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
+  PetscCheckFalse(eps->ishermitian && PetscImaginaryPart(sigma) != 0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
 #endif
 
   /* Cayley with PGNHEP */
-  if (cayley && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
+  PetscCheckFalse(cayley && eps->problem_type == EPS_PGNHEP,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
 
   /* make sure that the user does not specify smallest magnitude with shift-and-invert */
   if ((cayley || sinvert) && (eps->categ==EPS_CATEGORY_KRYLOV || eps->categ==EPS_CATEGORY_OTHER)) {
     ierr = PetscObjectTypeCompare((PetscObject)eps,EPSLYAPII,&lyapii);CHKERRQ(ierr);
-    if (!lyapii && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY && eps->which!=EPS_ALL && eps->which!=EPS_WHICH_USER) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
+    PetscCheckFalse(!lyapii && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY && eps->which!=EPS_ALL && eps->which!=EPS_WHICH_USER,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
   }
   PetscFunctionReturn(0);
 }
@@ -265,7 +265,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (eps->useds && !eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   if (eps->twosided) {
-    if (eps->ishermitian && (!eps->isgeneralized || eps->ispositive)) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for %s problems",SLEPC_STRING_HERMITIAN);
+    PetscCheckFalse(eps->ishermitian && (!eps->isgeneralized || eps->ispositive),PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for %s problems",SLEPC_STRING_HERMITIAN);
   }
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
   if (!((PetscObject)eps->rg)->type_name) {
@@ -274,7 +274,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* Set problem dimensions */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  if (!nmat) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first");
+  PetscCheckFalse(!nmat,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first");
   ierr = STMatGetSize(eps->st,&eps->n,NULL);CHKERRQ(ierr);
   ierr = STMatGetLocalSize(eps->st,&eps->nloc,NULL);CHKERRQ(ierr);
 
@@ -289,13 +289,13 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = PetscInfo(eps,"Eigenproblem set as generalized but no matrix B was provided; reverting to a standard eigenproblem\n");CHKERRQ(ierr);
     eps->isgeneralized = PETSC_FALSE;
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
-  } else if (nmat>1 && !eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state: the problem type does not match the number of matrices");
+  } else PetscCheckFalse(nmat>1 && !eps->isgeneralized,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state: the problem type does not match the number of matrices");
 
   if (eps->nev > eps->n) eps->nev = eps->n;
   if (eps->ncv > eps->n) eps->ncv = eps->n;
 
   /* check some combinations of eps->which */
-  if (eps->ishermitian && (!eps->isgeneralized || eps->ispositive) && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY || eps->which==EPS_TARGET_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Sorting the eigenvalues along the imaginary axis is not allowed when all eigenvalues are real");
+  PetscCheckFalse(eps->ishermitian && (!eps->isgeneralized || eps->ispositive) && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY || eps->which==EPS_TARGET_IMAGINARY),PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Sorting the eigenvalues along the imaginary axis is not allowed when all eigenvalues are real");
 
   /* initialization of matrix norms */
   if (eps->conv==EPS_CONV_NORM) {
@@ -360,14 +360,14 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   if (eps->nini<0) {
     k = -eps->nini;
-    if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
+    PetscCheckFalse(k>eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
     ierr = BVInsertVecs(eps->V,0,&k,eps->IS,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&eps->nini,&eps->IS);CHKERRQ(ierr);
     eps->nini = k;
   }
   if (eps->twosided && eps->ninil<0) {
     k = -eps->ninil;
-    if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The number of left initial vectors is larger than ncv");
+    PetscCheckFalse(k>eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The number of left initial vectors is larger than ncv");
     ierr = BVInsertVecs(eps->W,0,&k,eps->ISL,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&eps->ninil,&eps->ISL);CHKERRQ(ierr);
     eps->ninil = k;
@@ -414,15 +414,15 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   /* Check matrix sizes */
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,&mloc,&nloc);CHKERRQ(ierr);
-  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
-  if (mloc!=nloc) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A does not have equal row and column sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,nloc);
+  PetscCheckFalse(m!=n,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
+  PetscCheckFalse(mloc!=nloc,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A does not have equal row and column sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,nloc);
   if (B) {
     ierr = MatGetSize(B,&m0,&n);CHKERRQ(ierr);
     ierr = MatGetLocalSize(B,&mloc0,&nloc);CHKERRQ(ierr);
-    if (m0!=n) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m0,n);
-    if (mloc0!=nloc) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc0,nloc);
-    if (m!=m0) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",m,m0);
-    if (mloc!=mloc0) SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Local dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,mloc0);
+    PetscCheckFalse(m0!=n,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m0,n);
+    PetscCheckFalse(mloc0!=nloc,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc0,nloc);
+    PetscCheckFalse(m!=m0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",m,m0);
+    PetscCheckFalse(mloc!=mloc0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Local dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,mloc0);
   }
   if (eps->state && (n!=eps->n || nloc!=eps->nloc)) { ierr = EPSReset(eps);CHKERRQ(ierr); }
   eps->nrma = 0.0;
@@ -516,7 +516,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range");
+  PetscCheckFalse(n<0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range");
   if (n>0) {
     PetscValidPointer(v,3);
     PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
@@ -561,7 +561,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
+  PetscCheckFalse(n<0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   if (n>0) {
     PetscValidPointer(is,3);
     PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
@@ -600,7 +600,7 @@ PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec isl[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
+  PetscCheckFalse(n<0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   if (n>0) {
     PetscValidPointer(isl,3);
     PetscValidHeaderSpecific(*isl,VEC_CLASSID,3);
@@ -623,9 +623,9 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
     ierr = PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,"");CHKERRQ(ierr);
     if (krylov) {
-      if (*ncv<nev+1 && !(*ncv==nev && *ncv==eps->n)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
+      PetscCheckFalse(*ncv<nev+1 && !(*ncv==nev && *ncv==eps->n),PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
     } else {
-      if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
+      PetscCheckFalse(*ncv<nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
     }
   } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
     *ncv = PetscMin(eps->n,nev+(*mpd));

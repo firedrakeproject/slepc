@@ -315,25 +315,25 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   ierr = MatGetLocalSize(A,&m1,NULL);CHKERRQ(ierr);
   ierr = MatGetSize(B,&M,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(B,&m,NULL);CHKERRQ(ierr);
-  if (M!=M1 || m!=m1) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
+  PetscCheckFalse(M!=M1 || m!=m1,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
   /* check row 2 */
   ierr = MatGetSize(C,&M2,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(C,&m2,NULL);CHKERRQ(ierr);
   ierr = MatGetSize(D,&M,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(D,&m,NULL);CHKERRQ(ierr);
-  if (M!=M2 || m!=m2) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
+  PetscCheckFalse(M!=M2 || m!=m2,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
   /* check column 1 */
   ierr = MatGetSize(A,NULL,&N1);CHKERRQ(ierr);
   ierr = MatGetLocalSize(A,NULL,&n1);CHKERRQ(ierr);
   ierr = MatGetSize(C,NULL,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(C,NULL,&n);CHKERRQ(ierr);
-  if (N!=N1 || n!=n1) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
+  PetscCheckFalse(N!=N1 || n!=n1,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
   /* check column 2 */
   ierr = MatGetSize(B,NULL,&N2);CHKERRQ(ierr);
   ierr = MatGetLocalSize(B,NULL,&n2);CHKERRQ(ierr);
   ierr = MatGetSize(D,NULL,&N);CHKERRQ(ierr);
   ierr = MatGetLocalSize(D,NULL,&n);CHKERRQ(ierr);
-  if (N!=N2 || n!=n2) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
+  PetscCheckFalse(N!=N2 || n!=n2,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
 
   /* check matrix types */
   for (i=0;i<4;i++) {
@@ -341,7 +341,7 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
     ierr = PetscStrcmp(type[i],MATCONSTANTDIAGONAL,&diag[i]);CHKERRQ(ierr);
   }
   for (k=0;k<4;k++) if (!diag[k]) break;
-  if (k==4) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_SUP,"Not implemented for 4 diagonal blocks");
+  PetscCheckFalse(k==4,PetscObjectComm((PetscObject)A),PETSC_ERR_SUP,"Not implemented for 4 diagonal blocks");
 
   ierr = MatGetBlockSize(block[k],&bs);CHKERRQ(ierr);
   ierr = MatCreate(PetscObjectComm((PetscObject)block[k]),G);CHKERRQ(ierr);

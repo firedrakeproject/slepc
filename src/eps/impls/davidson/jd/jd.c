@@ -105,7 +105,7 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   /* Check some constraints */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
-  if (t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSJD does not work with KSPPREONLY");
+  PetscCheckFalse(t,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSJD does not work with KSPPREONLY");
   PetscFunctionReturn(0);
 }
 
@@ -414,7 +414,7 @@ PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
 
   PetscFunctionBegin;
   if (fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
-  if (fix < 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
+  PetscCheckFalse(fix < 0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
   data->fix = fix;
   PetscFunctionReturn(0);
 }

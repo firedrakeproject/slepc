@@ -69,7 +69,7 @@ int main(int argc,char **argv)
   gamma = gamma/PetscAbsScalar(gamma);
   k = 7;
   ierr = PetscOptionsGetRealArray(NULL,NULL,"-c",c,&k,&flg);CHKERRQ(ierr);
-  if (flg && k!=7) SETERRQ1(PETSC_COMM_WORLD,PETSC_ERR_USER,"The number of parameters -c should be 7, you provided %" PetscInt_FMT,k);
+  PetscCheckFalse(flg && k!=7,PETSC_COMM_WORLD,PETSC_ERR_USER,"The number of parameters -c should be 7, you provided %" PetscInt_FMT,k);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPDDE stability, n=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

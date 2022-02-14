@@ -117,7 +117,7 @@ PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
   PetscFunctionBegin;
   k = ((eps->nev-1)/ctx->bs+1)*ctx->bs;
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
-    if (*ncv<k) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv is not sufficiently large");
+    PetscCheckFalse(*ncv<k,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv is not sufficiently large");
   } else *ncv = k;
   if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
   else { ierr = PetscInfo(eps,"Warning: given value of mpd ignored\n");CHKERRQ(ierr); }
@@ -137,7 +137,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = EPSSetDimensions_BLOPEX(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real eigenvalues");
+  PetscCheckFalse(eps->which!=EPS_SMALLEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_EXTRACTION);
 
@@ -234,7 +234,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
           blopex->blap_fn,blopex->tol,eps->max_it,0,&its,
           lambda,lambdahist,blopex->bs,eps->errest+eps->nconv,residhist,blopex->bs);
 #endif
-    if (info>0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"BLOPEX failed with exit code=%d",info);
+    PetscCheckFalse(info>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"BLOPEX failed with exit code=%d",info);
     mv_MultiVectorDestroy(constraints);
     mv_MultiVectorDestroy(eigenvectors);
 
@@ -291,7 +291,7 @@ static PetscErrorCode EPSBLOPEXSetBlockSize_BLOPEX(EPS eps,PetscInt bs)
     ctx->bs    = 0;
     eps->state = EPS_STATE_INITIAL;
   } else {
-    if (bs<=0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Block size must be >0");
+    PetscCheckFalse(bs<=0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Block size must be >0");
     ctx->bs = bs;
   }
   PetscFunctionReturn(0);

@@ -131,7 +131,7 @@ int main(int argc,char **argv)
 
   ierr = LMESolve(lme);CHKERRQ(ierr);
   ierr = LMEGetConvergedReason(lme,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
+  PetscCheckFalse(reason<0,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
 
   if (!rank) {  /* X1 was created by the solver, so extract it and see how many columns it has */
     ierr = LMEGetSolution(lme,&X);CHKERRQ(ierr);

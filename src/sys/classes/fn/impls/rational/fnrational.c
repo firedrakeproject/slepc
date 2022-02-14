@@ -39,7 +39,7 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
     q = ctx->qcoeff[0];
     for (i=1;i<ctx->nq;i++)
       q = ctx->qcoeff[i]+x*q;
-    if (q==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
+    PetscCheckFalse(q==0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
     *y = p/q;
   }
   PetscFunctionReturn(0);
@@ -160,7 +160,7 @@ PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp
       qp = q+x*qp;
       q = ctx->qcoeff[i]+x*q;
     }
-    if (q==0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
+    PetscCheckFalse(q==0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
     *yp = (pp*q-p*qp)/(q*q);
   }
   PetscFunctionReturn(0);
@@ -240,7 +240,7 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (np<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument np cannot be negative");
+  PetscCheckFalse(np<0,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument np cannot be negative");
   ctx->np = np;
   ierr = PetscFree(ctx->pcoeff);CHKERRQ(ierr);
   if (np) {
@@ -344,7 +344,7 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (nq<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nq cannot be negative");
+  PetscCheckFalse(nq<0,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nq cannot be negative");
   ctx->nq = nq;
   ierr = PetscFree(ctx->qcoeff);CHKERRQ(ierr);
   if (nq) {

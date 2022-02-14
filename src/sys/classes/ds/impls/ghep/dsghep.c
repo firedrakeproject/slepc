@@ -47,7 +47,7 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (rnorm) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
+  PetscCheckFalse(rnorm,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
   switch (mat) {
     case DS_MAT_X:
     case DS_MAT_Y:

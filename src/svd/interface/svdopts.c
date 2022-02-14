@@ -110,14 +110,14 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
     svd->tol   = PETSC_DEFAULT;
     svd->state = SVD_STATE_INITIAL;
   } else {
-    if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    PetscCheckFalse(tol <= 0.0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     svd->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
     svd->max_it = PETSC_DEFAULT;
     svd->state  = SVD_STATE_INITIAL;
   } else {
-    if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    PetscCheckFalse(maxits <= 0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     svd->max_it = maxits;
   }
   PetscFunctionReturn(0);
@@ -193,18 +193,18 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(svd,nsv,2);
   PetscValidLogicalCollectiveInt(svd,ncv,3);
   PetscValidLogicalCollectiveInt(svd,mpd,4);
-  if (nsv<1) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
+  PetscCheckFalse(nsv<1,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nsv. Must be > 0");
   svd->nsv = nsv;
   if (ncv == PETSC_DEFAULT || ncv == PETSC_DECIDE) {
     svd->ncv = PETSC_DEFAULT;
   } else {
-    if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    PetscCheckFalse(ncv<1,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     svd->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
     svd->mpd = PETSC_DEFAULT;
   } else {
-    if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+    PetscCheckFalse(mpd<1,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     svd->mpd = mpd;
   }
   svd->state = SVD_STATE_INITIAL;
@@ -407,7 +407,7 @@ PetscErrorCode SVDSetConvergenceTest(SVD svd,SVDConv conv)
     case SVD_CONV_NORM:  svd->converged = SVDConvergedNorm; break;
     case SVD_CONV_MAXIT: svd->converged = SVDConvergedMaxIt; break;
     case SVD_CONV_USER:
-      if (!svd->convergeduser) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ORDER,"Must call SVDSetConvergenceTestFunction() first");
+      PetscCheckFalse(!svd->convergeduser,PetscObjectComm((PetscObject)svd),PETSC_ERR_ORDER,"Must call SVDSetConvergenceTestFunction() first");
       svd->converged = svd->convergeduser;
       break;
     default:
@@ -526,7 +526,7 @@ PetscErrorCode SVDSetStoppingTest(SVD svd,SVDStop stop)
   switch (stop) {
     case SVD_STOP_BASIC: svd->stopping = SVDStoppingBasic; break;
     case SVD_STOP_USER:
-      if (!svd->stoppinguser) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ORDER,"Must call SVDSetStoppingTestFunction() first");
+      PetscCheckFalse(!svd->stoppinguser,PetscObjectComm((PetscObject)svd),PETSC_ERR_ORDER,"Must call SVDSetStoppingTestFunction() first");
       svd->stopping = svd->stoppinguser;
       break;
     default:
@@ -598,7 +598,7 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
   ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
   ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(SVDMonitorList,key,&mfunc);CHKERRQ(ierr);
-  if (!mfunc) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Specified viewer and format not supported");
+  PetscCheckFalse(!mfunc,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Specified viewer and format not supported");
   ierr = PetscFunctionListFind(SVDMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(SVDMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;

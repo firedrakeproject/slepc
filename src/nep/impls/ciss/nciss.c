@@ -98,7 +98,7 @@ static PetscErrorCode NEPComputeFunctionSubcomm(NEP nep,PetscScalar lambda,Mat T
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
-  if (nep->fui==NEP_USER_INTERFACE_CALLBACK) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"Should not arrive here with callbacks");
+  PetscCheckFalse(nep->fui==NEP_USER_INTERFACE_CALLBACK,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"Should not arrive here with callbacks");
   ierr = MatZeroEntries(T);CHKERRQ(ierr);
   if (!deriv && T != P) { ierr = MatZeroEntries(P);CHKERRQ(ierr); }
   for (i=0;i<nep->nt;i++) {
@@ -206,16 +206,16 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   if (nep->max_it==PETSC_DEFAULT) nep->max_it = 5;
   if (nep->mpd==PETSC_DEFAULT) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_ALL;
-  if (nep->which!=NEP_ALL) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only computing all eigenvalues");
+  PetscCheckFalse(nep->which!=NEP_ALL,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only computing all eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_STOPPING | NEP_FEATURE_TWOSIDED);
 
   /* check region */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  PetscCheckFalse(istrivial,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
   ierr = RGGetComplement(nep->rg,&flg);CHKERRQ(ierr);
-  if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
+  PetscCheckFalse(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  if (!isellipse) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
+  PetscCheckFalse(!isellipse,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
 
   /* if the region has changed, then reset contour data */
   ierr = PetscObjectGetId((PetscObject)nep->rg,&id);CHKERRQ(ierr);
@@ -348,7 +348,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (isellipse) {
     ierr = BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L_max,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig);CHKERRQ(ierr);
-    ierr = PetscInfo1(nep,"Estimated eigenvalue count: %f\n",(double)est_eig);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Estimated eigenvalue count: %f\n",(double)est_eig);CHKERRQ(ierr);
     eta = PetscPowReal(10.0,-PetscLog10Real(nep->tol)/ctx->N);
     L_add = PetscMax(0,(PetscInt)PetscCeilReal((est_eig*eta)/ctx->M)-ctx->L);
     if (L_add>ctx->L_max-ctx->L) {
@@ -358,7 +358,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   }
   /* Updates L after estimate the number of eigenvalue */
   if (L_add>0) {
-    ierr = PetscInfo2(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
@@ -376,7 +376,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
-    ierr = PetscInfo2(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = BVSetRandomSign(ctx->V);CHKERRQ(ierr);
     if (contour->pA) { ierr = BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup);CHKERRQ(ierr); }
@@ -542,37 +542,37 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
   if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) {
     if (ctx->N!=32) { ctx->N =32; ctx->M = ctx->N/4; }
   } else {
-    if (ip<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be > 0");
-    if (ip%2) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be an even number");
+    PetscCheckFalse(ip<1,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be > 0");
+    PetscCheckFalse(ip%2,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be an even number");
     if (ctx->N!=ip) { ctx->N = ip; ctx->M = ctx->N/4; }
   }
   oL = ctx->L;
   if (bs == PETSC_DECIDE || bs == PETSC_DEFAULT) {
     ctx->L = 16;
   } else {
-    if (bs<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
+    PetscCheckFalse(bs<1,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
     ctx->L = bs;
   }
   oM = ctx->M;
   if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
     ctx->M = ctx->N/4;
   } else {
-    if (ms<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be > 0");
-    if (ms>ctx->N) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be less than or equal to the number of integration points");
+    PetscCheckFalse(ms<1,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be > 0");
+    PetscCheckFalse(ms>ctx->N,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be less than or equal to the number of integration points");
     ctx->M = PetscMax(ms,2);
   }
   onpart = ctx->npart;
   if (npart == PETSC_DECIDE || npart == PETSC_DEFAULT) {
     ctx->npart = 1;
   } else {
-    if (npart<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
+    PetscCheckFalse(npart<1,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
     ctx->npart = npart;
   }
   oLmax = ctx->L_max;
   if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
     ctx->L_max = 64;
   } else {
-    if (bsmax<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
+    PetscCheckFalse(bsmax<1,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
     ctx->L_max = PetscMax(bsmax,ctx->L);
   }
   if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) {
@@ -688,13 +688,13 @@ static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal
   if (delta == PETSC_DEFAULT) {
     ctx->delta = SLEPC_DEFAULT_TOL*1e-4;
   } else {
-    if (delta<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The delta argument must be > 0.0");
+    PetscCheckFalse(delta<=0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The delta argument must be > 0.0");
     ctx->delta = delta;
   }
   if (spur == PETSC_DEFAULT) {
     ctx->spurious_threshold = PetscSqrtReal(SLEPC_DEFAULT_TOL);
   } else {
-    if (spur<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
+    PetscCheckFalse(spur<=0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
     ctx->spurious_threshold = spur;
   }
   PetscFunctionReturn(0);
@@ -776,13 +776,13 @@ static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt 
   if (inner == PETSC_DEFAULT) {
     ctx->refine_inner = 0;
   } else {
-    if (inner<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine inner argument must be >= 0");
+    PetscCheckFalse(inner<0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine inner argument must be >= 0");
     ctx->refine_inner = inner;
   }
   if (blsize == PETSC_DEFAULT) {
     ctx->refine_blocksize = 0;
   } else {
-    if (blsize<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine blocksize argument must be >= 0");
+    PetscCheckFalse(blsize<0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine blocksize argument must be >= 0");
     ctx->refine_blocksize = blsize;
   }
   PetscFunctionReturn(0);

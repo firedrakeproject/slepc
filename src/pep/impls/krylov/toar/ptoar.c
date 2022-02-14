@@ -57,10 +57,10 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PetscFunctionBegin;
   PEPCheckShiftSinvert(pep);
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
-  if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
+  PetscCheckFalse(!ctx->lock && pep->mpd<pep->ncv,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
   if (!pep->which) { ierr = PEPSetWhichEigenpairs_Default(pep);CHKERRQ(ierr); }
-  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
+  PetscCheckFalse(pep->which==PEP_ALL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
   if (pep->problem_type!=PEP_GENERAL) {
     ierr = PetscInfo(pep,"Problem type ignored, performing a non-symmetric linearization\n");CHKERRQ(ierr);
   }
@@ -228,7 +228,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscScalar *H,PetscI
   if (!flg) {
     /* spectral transformation handled by the solver */
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSINVERT,STSHIFT,"");CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"ST type not supported for TOAR without transforming matrices");
+    PetscCheckFalse(!flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"ST type not supported for TOAR without transforming matrices");
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
   }
   ierr = BVSetActiveColumns(ctx->V,0,m);CHKERRQ(ierr);
@@ -538,7 +538,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     }
     nconv = k;
     if (!ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
-    if (l) { ierr = PetscInfo1(pep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo(pep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     /* update S */
     ierr = DSGetMat(pep->ds,DS_MAT_Q,&MQ);CHKERRQ(ierr);
@@ -550,7 +550,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
     if (PetscUnlikely(breakdown && pep->reason == PEP_CONVERGED_ITERATING)) {
       /* stop if breakdown */
-      ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%" PetscInt_FMT " norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
+      ierr = PetscInfo(pep,"Breakdown TOAR method (it=%" PetscInt_FMT " norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
       pep->reason = PEP_DIVERGED_BREAKDOWN;
     }
     if (pep->reason != PEP_CONVERGED_ITERATING) l--;
@@ -641,7 +641,7 @@ static PetscErrorCode PEPTOARSetRestart_TOAR(PEP pep,PetscReal keep)
   PetscFunctionBegin;
   if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
   else {
-    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    PetscCheckFalse(keep<0.1 || keep>0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;
   }
   PetscFunctionReturn(0);

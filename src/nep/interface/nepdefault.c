@@ -118,14 +118,14 @@ PetscErrorCode NEPConvergedNorm(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscR
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) {
     ierr = NEPComputeFunction(nep,eigr,nep->function,nep->function);CHKERRQ(ierr);
     ierr = MatHasOperation(nep->function,MATOP_NORM,&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+    PetscCheckFalse(!flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
     ierr = MatNorm(nep->function,NORM_INFINITY,&w);CHKERRQ(ierr);
   } else {
     /* initialization of matrix norms */
     if (!nep->nrma[0]) {
       for (j=0;j<nep->nt;j++) {
         ierr = MatHasOperation(nep->A[j],MATOP_NORM,&flg);CHKERRQ(ierr);
-        if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The convergence test related to the matrix norms requires a matrix norm operation");
+        PetscCheckFalse(!flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The convergence test related to the matrix norms requires a matrix norm operation");
         ierr = MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]);CHKERRQ(ierr);
       }
     }
@@ -177,11 +177,11 @@ PetscErrorCode NEPStoppingBasic(NEP nep,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionBegin;
   *reason = NEP_CONVERGED_ITERATING;
   if (nconv >= nev) {
-    ierr = PetscInfo2(nep,"Nonlinear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Nonlinear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
     *reason = NEP_CONVERGED_TOL;
   } else if (its >= max_it) {
     *reason = NEP_DIVERGED_ITS;
-    ierr = PetscInfo1(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
+    ierr = PetscInfo(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

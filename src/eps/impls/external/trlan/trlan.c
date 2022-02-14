@@ -30,13 +30,13 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   EPSCheckStandard(eps);
   ierr = PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan);CHKERRQ(ierr);
   if (eps->ncv!=PETSC_DEFAULT) {
-    if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
+    PetscCheckFalse(eps->ncv<eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
   } else eps->ncv = tr->maxlan;
   if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000,eps->n);
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_TARGET_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest, largest or target real eigenvalues");
+  PetscCheckFalse(eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_TARGET_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest, largest or target real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING);
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_EXTRACTION);
 
@@ -135,7 +135,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 
   ierr = VecDestroy(&globaldata.x);CHKERRQ(ierr);
   ierr = VecDestroy(&globaldata.y);CHKERRQ(ierr);
-  if (stat!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%" PetscBLASInt_FMT ")",stat);
+  PetscCheckFalse(stat!=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%" PetscBLASInt_FMT ")",stat);
   PetscFunctionReturn(0);
 }
 

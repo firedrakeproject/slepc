@@ -96,11 +96,11 @@ struct _p_ST {
 
 #define STCheckMatrices(h,arg) \
   do { \
-    if (!(h)->A) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"ST matrices have not been set: Parameter #%d",arg); \
+    PetscCheckFalse(!(h)->A,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"ST matrices have not been set: Parameter #%d",arg); \
   } while (0)
 #define STCheckNotSeized(h,arg) \
   do { \
-    if (h->opseized) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call STRestoreOperator() first: Parameter #%d",arg); \
+    PetscCheckFalse(h->opseized,PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call STRestoreOperator() first: Parameter #%d",arg); \
   } while (0)
 
 #endif
@@ -124,7 +124,7 @@ SLEPC_INTERN PetscErrorCode STApplyTranspose_Generic(ST,Vec,Vec);
 /*
   ST_KSPSetOperators - Sets the KSP matrices
 */
-PETSC_STATIC_INLINE PetscErrorCode ST_KSPSetOperators(ST st,Mat A,Mat B)
+static inline PetscErrorCode ST_KSPSetOperators(ST st,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   const char     *prefix;

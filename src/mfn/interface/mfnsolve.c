@@ -28,7 +28,7 @@ static PetscErrorCode MFNSolve_Private(MFN mfn,Vec b,Vec x)
 
   /* check nonzero right-hand side */
   ierr = VecNorm(b,NORM_2,&mfn->bnorm);CHKERRQ(ierr);
-  if (!mfn->bnorm) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
+  PetscCheckFalse(!mfn->bnorm,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
 
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
@@ -37,9 +37,9 @@ static PetscErrorCode MFNSolve_Private(MFN mfn,Vec b,Vec x)
   if (b!=x) { ierr = VecLockReadPop(b);CHKERRQ(ierr); }
   ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
-  if (!mfn->reason) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+  PetscCheckFalse(!mfn->reason,PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
-  if (mfn->errorifnotconverged && mfn->reason < 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_NOT_CONVERGED,"MFNSolve has not converged");
+  PetscCheckFalse(mfn->errorifnotconverged && mfn->reason < 0,PetscObjectComm((PetscObject)mfn),PETSC_ERR_NOT_CONVERGED,"MFNSolve has not converged");
 
   /* various viewers */
   ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view");CHKERRQ(ierr);

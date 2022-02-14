@@ -222,7 +222,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
   if (match) PetscFunctionReturn(0);
 
   ierr =  PetscFunctionListFind(RGList,type,&r);CHKERRQ(ierr);
-  if (!r) SETERRQ1(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested RG type %s",type);
+  PetscCheckFalse(!r,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested RG type %s",type);
 
   if (rg->ops->destroy) { ierr = (*rg->ops->destroy)(rg);CHKERRQ(ierr); }
   ierr = PetscMemzero(rg->ops,sizeof(struct _RGOps));CHKERRQ(ierr);
@@ -591,9 +591,9 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
 #if defined(PETSC_USE_COMPLEX)
   PetscValidScalarPointer(cr,3);
 #else
-  if (!cr && !ci) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"cr and ci cannot be NULL simultaneously");
+  PetscCheckFalse(!cr && !ci,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"cr and ci cannot be NULL simultaneously");
 #endif
-  if (rg->complement) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Cannot compute contour of region with complement flag set");
+  PetscCheckFalse(rg->complement,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Cannot compute contour of region with complement flag set");
   ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     if (cr) cr[i] *= rg->sfactor;
@@ -689,7 +689,7 @@ PetscErrorCode RGComputeQuadrature(RG rg,RGQuadRule quad,PetscInt n,PetscScalar 
   PetscValidScalarPointer(w,6);
 
   ierr = RGComputeContour(rg,n,z,NULL);CHKERRQ(ierr);
-  if (!rg->ops->computequadrature) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Quadrature rules not implemented for this region type");
+  PetscCheckFalse(!rg->ops->computequadrature,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Quadrature rules not implemented for this region type");
   ierr = (*rg->ops->computequadrature)(rg,quad,n,z,zn,w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -769,7 +769,7 @@ PetscErrorCode RGSetScale(RG rg,PetscReal sfactor)
   PetscValidLogicalCollectiveReal(rg,sfactor,2);
   if (sfactor == PETSC_DEFAULT || sfactor == PETSC_DECIDE) rg->sfactor = 1.0;
   else {
-    if (sfactor<=0.0) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of scaling factor. Must be > 0");
+    PetscCheckFalse(sfactor<=0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of scaling factor. Must be > 0");
     rg->sfactor = sfactor;
   }
   PetscFunctionReturn(0);
@@ -824,8 +824,8 @@ PetscErrorCode RGPushScale(RG rg,PetscReal sfactor)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidLogicalCollectiveReal(rg,sfactor,2);
-  if (sfactor<=0.0) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of scaling factor. Must be > 0");
-  if (rg->osfactor) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Current implementation does not allow pushing several scaling factors");
+  PetscCheckFalse(sfactor<=0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of scaling factor. Must be > 0");
+  PetscCheckFalse(rg->osfactor,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Current implementation does not allow pushing several scaling factors");
   rg->osfactor = rg->sfactor;
   rg->sfactor *= sfactor;
   PetscFunctionReturn(0);
@@ -847,7 +847,7 @@ PetscErrorCode RGPopScale(RG rg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  if (!rg->osfactor) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ORDER,"Must call RGPushScale first");
+  PetscCheckFalse(!rg->osfactor,PetscObjectComm((PetscObject)rg),PETSC_ERR_ORDER,"Must call RGPushScale first");
   rg->sfactor  = rg->osfactor;
   rg->osfactor = 0.0;
   PetscFunctionReturn(0);

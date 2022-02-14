@@ -74,8 +74,8 @@ SLEPC_EXTERN PetscErrorCode LMEView(LME,PetscViewer);
 SLEPC_EXTERN PetscErrorCode LMEViewFromOptions(LME,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode LMEConvergedReasonView(LME,PetscViewer);
 SLEPC_EXTERN PetscErrorCode LMEConvergedReasonViewFromOptions(LME);
-PETSC_DEPRECATED_FUNCTION("Use LMEConvergedReasonView() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode LMEReasonView(LME lme,PetscViewer v) {return LMEConvergedReasonView(lme,v);}
-PETSC_DEPRECATED_FUNCTION("Use LMEConvergedReasonViewFromOptions() (since version 3.14)") PETSC_STATIC_INLINE PetscErrorCode LMEReasonViewFromOptions(LME lme) {return LMEConvergedReasonViewFromOptions(lme);}
+PETSC_DEPRECATED_FUNCTION("Use LMEConvergedReasonView() (since version 3.14)") static inline PetscErrorCode LMEReasonView(LME lme,PetscViewer v) {return LMEConvergedReasonView(lme,v);}
+PETSC_DEPRECATED_FUNCTION("Use LMEConvergedReasonViewFromOptions() (since version 3.14)") static inline PetscErrorCode LMEReasonViewFromOptions(LME lme) {return LMEConvergedReasonViewFromOptions(lme);}
 
 SLEPC_EXTERN PetscErrorCode LMESetBV(LME,BV);
 SLEPC_EXTERN PetscErrorCode LMEGetBV(LME,BV*);
@@ -92,7 +92,7 @@ SLEPC_EXTERN PetscErrorCode LMEGetErrorIfNotConverged(LME,PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode LMEDenseLyapunov(LME,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
 SLEPC_EXTERN PetscErrorCode LMEDenseHessLyapunovChol(LME,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal*);
-PETSC_DEPRECATED_FUNCTION("Use LMEDenseHessLyapunovChol()") PETSC_STATIC_INLINE PetscErrorCode LMEDenseLyapunovChol(LME lme,PetscScalar *H,PetscInt m,PetscInt ldh,PetscScalar *r,PetscScalar *L,PetscInt ldl,PetscReal *res) {return LMEDenseHessLyapunovChol(lme,m,H,ldh,1,r,m,L,ldl,res);}
+PETSC_DEPRECATED_FUNCTION("Use LMEDenseHessLyapunovChol()") static inline PetscErrorCode LMEDenseLyapunovChol(LME lme,PetscScalar *H,PetscInt m,PetscInt ldh,PetscScalar *r,PetscScalar *L,PetscInt ldl,PetscReal *res) {return LMEDenseHessLyapunovChol(lme,m,H,ldh,1,r,m,L,ldl,res);}
 
 SLEPC_EXTERN PetscErrorCode LMEMonitor(LME,PetscInt,PetscReal);
 SLEPC_EXTERN PetscErrorCode LMEMonitorSet(LME,PetscErrorCode (*)(LME,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));

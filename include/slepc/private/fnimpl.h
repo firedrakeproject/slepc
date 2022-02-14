@@ -53,7 +53,7 @@ struct _p_FN {
   its contents. The work matrix is returned in M and should be freed with
   FN_FreeWorkMat().
 */
-PETSC_STATIC_INLINE PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
+static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
 {
   PetscErrorCode ierr;
   PetscInt       n,na;
@@ -61,7 +61,7 @@ PETSC_STATIC_INLINE PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
 
   PetscFunctionBegin;
   *M = NULL;
-  if (fn->cw==FN_MAX_W) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Too many requested work matrices %" PetscInt_FMT,fn->cw);
+  PetscCheckFalse(fn->cw==FN_MAX_W,PETSC_COMM_SELF,PETSC_ERR_SUP,"Too many requested work matrices %" PetscInt_FMT,fn->cw);
   if (fn->nw<=fn->cw) {
     create=PETSC_TRUE;
     fn->nw++;
@@ -87,12 +87,12 @@ PETSC_STATIC_INLINE PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
 /*
   FN_FreeWorkMat - Release a work matrix created with FN_AllocateWorkMat().
 */
-PETSC_STATIC_INLINE PetscErrorCode FN_FreeWorkMat(FN fn,Mat *M)
+static inline PetscErrorCode FN_FreeWorkMat(FN fn,Mat *M)
 {
   PetscFunctionBegin;
-  if (!fn->cw) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"There are no work matrices");
+  PetscCheckFalse(!fn->cw,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"There are no work matrices");
   fn->cw--;
-  if (fn->W[fn->cw]!=*M) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Work matrices must be freed in the reverse order of their creation");
+  PetscCheckFalse(fn->W[fn->cw]!=*M,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Work matrices must be freed in the reverse order of their creation");
   *M = NULL;
   PetscFunctionReturn(0);
 }

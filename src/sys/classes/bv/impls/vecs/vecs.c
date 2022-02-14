@@ -273,7 +273,7 @@ PetscErrorCode BVNorm_Begin_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  if (PetscUnlikely(j<0)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+  PetscCheckFalse(j<0,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
   else {
     ierr = VecNormBegin(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
   }
@@ -286,7 +286,7 @@ PetscErrorCode BVNorm_End_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  if (PetscUnlikely(j<0)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+  PetscCheckFalse(j<0,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
   else {
     ierr = VecNormEnd(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
   }
@@ -444,7 +444,7 @@ PetscErrorCode BVRestoreArrayRead_Vecs(BV bv,const PetscScalar **a)
 /*
    Sets the value of vmip flag and resets ops->multinplace accordingly
  */
-PETSC_STATIC_INLINE PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
+static inline PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
 {
   typedef PetscErrorCode (*fmultinplace)(BV,Mat,PetscInt,PetscInt);
   fmultinplace multinplace[2] = {BVMultInPlace_Vecs_ME, BVMultInPlace_Vecs_Alloc};

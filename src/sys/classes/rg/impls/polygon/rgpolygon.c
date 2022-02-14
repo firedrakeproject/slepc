@@ -53,10 +53,10 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
 
   PetscFunctionBegin;
-  if (n<3) SETERRQ1(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"At least 3 vertices required, you provided %" PetscInt_FMT,n);
-  if (n>VERTMAX) SETERRQ1(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Too many points, maximum allowed is %d",VERTMAX);
+  PetscCheckFalse(n<3,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"At least 3 vertices required, you provided %" PetscInt_FMT,n);
+  PetscCheckFalse(n>VERTMAX,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Too many points, maximum allowed is %d",VERTMAX);
 #if !defined(PETSC_USE_COMPLEX)
-  if (!CheckSymmetry(n,vr,vi)) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
+  PetscCheckFalse(!CheckSymmetry(n,vr,vi),PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
 #endif
   if (ctx->n) {
     ierr = PetscFree(ctx->vr);CHKERRQ(ierr);
@@ -282,7 +282,7 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscS
 #endif
 
   PetscFunctionBegin;
-  if (!ctx->n) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONGSTATE,"No vertices have been set yet");
+  PetscCheckFalse(!ctx->n,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONGSTATE,"No vertices have been set yet");
   length = SlepcAbsEigenvalue(ctx->vr[0]-ctx->vr[ctx->n-1],ctx->vi[0]-ctx->vi[ctx->n-1]);
   for (i=0;i<ctx->n-1;i++) length += SlepcAbsEigenvalue(ctx->vr[i]-ctx->vr[i+1],ctx->vi[i]-ctx->vi[i+1]);
   h = length/n;
@@ -427,7 +427,7 @@ PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG 
     ki = VERTMAX;
     for (i=0;i<ki;i++) arrayi[i] = 0;
     ierr = PetscOptionsScalarArray("-rg_polygon_verticesi","Vertices of polygon (imaginary part)","RGPolygonSetVertices",arrayi,&ki,&flgi);CHKERRQ(ierr);
-    if (ki!=k) SETERRQ2(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"The number of real %" PetscInt_FMT " and imaginary %" PetscInt_FMT " parts do not match",k,ki);
+    PetscCheckFalse(ki!=k,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"The number of real %" PetscInt_FMT " and imaginary %" PetscInt_FMT " parts do not match",k,ki);
 #endif
     if (flg || flgi) { ierr = RGPolygonSetVertices(rg,k,array,arrayi);CHKERRQ(ierr); }
 

@@ -121,7 +121,7 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
     }
     if (ksum != n || kchk == 1) *info = -4;
   }
-  if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in CUTLR",-(*info));
+  PetscCheckFalse(*info,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in CUTLR",-(*info));
 
   /* determine smallest rank in the range considered */
 
@@ -352,7 +352,7 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
     }
   }
 
-  if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in DIBTDC",-(*info));
+  PetscCheckFalse(*info,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in DIBTDC",-(*info));
 
 /* **************************************************************************** */
 
@@ -400,7 +400,7 @@ L200:
 
     ierr = cutlr_(start, size, blks, &ksizes[start-1], &rank[start-1], &cut,
                   &lsum, &lblks, info);CHKERRQ(ierr);
-    if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: Error in cutlr, info = %" PetscBLASInt_FMT,*info);
+    PetscCheckFalse(*info,PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: Error in cutlr, info = %" PetscBLASInt_FMT,*info);
 
   } else {
     cut = 1;
@@ -433,7 +433,7 @@ L200:
     size -= lsum;
     blks -= lblks;
 
-    if (blks <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: Error in preprocessing, blks = %" PetscBLASInt_FMT,blks);
+    PetscCheckFalse(blks <= 0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: Error in preprocessing, blks = %" PetscBLASInt_FMT,blks);
 
     if (blks == 2) {
 
@@ -461,7 +461,7 @@ L200:
       } else {
 
         /* nothing left on the stack */
-        if (merged != nblks-1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"ERROR in preprocessing - not enough merges performed");
+        PetscCheckFalse(merged != nblks-1,PETSC_COMM_SELF,PETSC_ERR_PLIB,"ERROR in preprocessing - not enough merges performed");
 
         /* exit preprocessing */
 
@@ -495,7 +495,7 @@ L200:
       iwork[isize + (nblks - 1) - merged-1] = size - lsum;
       iwork[ilsum + (nblks - 1) - merged-1] = ksizes[start + lblks-1];
     }
-    if (rblks <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: ERROR in preprocessing - rblks = %" PetscBLASInt_FMT,rblks);
+    PetscCheckFalse(rblks <= 0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: ERROR in preprocessing - rblks = %" PetscBLASInt_FMT,rblks);
 
     /* continue on the left side */
 
@@ -744,7 +744,7 @@ L200:
                     ksizes[kbrk], &e[(rank[kbrk-1]+j+1 + (kbrk-1)*l2e)*l1e],
                     ksizes[kbrk-1], mat1, work, lwork, &iwork[n], tol, info, 1);
                     CHKERRQ(ierr);
-      if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: Error in dmerg2, info = %" PetscBLASInt_FMT,*info);
+      PetscCheckFalse(*info,PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: Error in dmerg2, info = %" PetscBLASInt_FMT,*info);
     }
 
     /* at this point all RANK(KBRK) rank-one modifications corresponding */

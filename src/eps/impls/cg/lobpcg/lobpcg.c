@@ -45,10 +45,10 @@ PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
   PetscFunctionBegin;
   k = PetscMax(3*ctx->bs,((eps->nev-1)/ctx->bs+3)*ctx->bs);
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
-    if (*ncv<k) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv is not sufficiently large");
+    PetscCheckFalse(*ncv<k,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv is not sufficiently large");
   } else *ncv = k;
   if (*mpd==PETSC_DEFAULT) *mpd = 3*ctx->bs;
-  else if (*mpd!=3*ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"This solver does not allow a value of mpd different from 3*blocksize");
+  else PetscCheckFalse(*mpd!=3*ctx->bs,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"This solver does not allow a value of mpd different from 3*blocksize");
   PetscFunctionReturn(0);
 }
 
@@ -60,11 +60,11 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
   if (!ctx->bs) ctx->bs = PetscMin(16,eps->nev);
-  if (eps->n-eps->nds<5*ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The problem size is too small relative to the block size");
+  PetscCheckFalse(eps->n-eps->nds<5*ctx->bs,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The problem size is too small relative to the block size");
   ierr = EPSSetDimensions_LOBPCG(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_LARGEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real or largest real eigenvalues");
+  PetscCheckFalse(eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_LARGEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real or largest real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION);
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE);
 
@@ -432,7 +432,7 @@ static PetscErrorCode EPSLOBPCGSetBlockSize_LOBPCG(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT || bs == PETSC_DECIDE) bs = 1;
-  if (bs <= 0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid block size %" PetscInt_FMT,bs);
+  PetscCheckFalse(bs <= 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid block size %" PetscInt_FMT,bs);
   if (ctx->bs != bs) {
     ctx->bs = bs;
     eps->state = EPS_STATE_INITIAL;
@@ -508,7 +508,7 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
 
   PetscFunctionBegin;
   if (restart==PETSC_DEFAULT) restart = 0.9;
-  if (restart<0.1 || restart>1.0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument %g must be in the range [0.1,1.0]",(double)restart);
+  PetscCheckFalse(restart<0.1 || restart>1.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument %g must be in the range [0.1,1.0]",(double)restart);
   if (restart != ctx->restart) {
     ctx->restart = restart;
     eps->state = EPS_STATE_INITIAL;

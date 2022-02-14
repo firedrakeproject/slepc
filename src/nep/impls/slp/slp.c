@@ -43,16 +43,16 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   nep->ncv = nep->nev;
   if (nep->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
   nep->mpd = nep->nev;
-  if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
+  PetscCheckFalse(nep->ncv>nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
-  if (nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
+  PetscCheckFalse(nep->which!=NEP_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_REGION);
 
   if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-  if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"SLP does not support spectral transformation");
+  PetscCheckFalse(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"SLP does not support spectral transformation");
   ierr = EPSSetDimensions(ctx->eps,1,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,SlepcDefaultTol(nep->tol)/10.0,nep->max_it);CHKERRQ(ierr);
@@ -65,7 +65,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
     if (!ctx->epsts) { ierr = NEPSLPGetEPSLeft(nep,&ctx->epsts);CHKERRQ(ierr); }
     ierr = EPSGetST(ctx->epsts,&st);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-    if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"SLP does not support spectral transformation");
+    PetscCheckFalse(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"SLP does not support spectral transformation");
     ierr = EPSSetDimensions(ctx->epsts,1,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(ctx->epsts,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
     ierr = EPSSetTolerances(ctx->epsts,SlepcDefaultTol(nep->tol)/10.0,nep->max_it);CHKERRQ(ierr);
@@ -221,13 +221,13 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
         ierr = EPSSolve(ctx->eps);CHKERRQ(ierr);
         ierr = EPSGetConverged(ctx->eps,&nconv);CHKERRQ(ierr);
         if (!nconv) {
-          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }
         ierr = EPSGetEigenpair(ctx->eps,0,&mu,&im,u,NULL);CHKERRQ(ierr);
         mu = 1.0/mu;
-        if (PetscAbsScalar(im)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Complex eigenvalue approximation - not implemented in real scalars");
+        PetscCheckFalse(PetscAbsScalar(im)>PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Complex eigenvalue approximation - not implemented in real scalars");
       } else {
         nep->its--;  /* do not count this as a full iteration */
         /* use second eigenpair computed in previous iteration */
@@ -302,7 +302,7 @@ static PetscErrorCode NEPSLPSetDeflationThreshold_SLP(NEP nep,PetscReal deftol)
     ctx->deftol = PETSC_DEFAULT;
     nep->state  = NEP_STATE_INITIAL;
   } else {
-    if (deftol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of deftol. Must be > 0");
+    PetscCheckFalse(deftol <= 0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of deftol. Must be > 0");
     ctx->deftol = deftol;
   }
   PetscFunctionReturn(0);

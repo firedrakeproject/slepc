@@ -61,13 +61,13 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
 #endif
 
   PetscFunctionBegin;
-  if (cV > 2) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(cV > 2,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
 
   /* h <- X'*V */
   ierr = PetscMalloc1(data->size_iXKZ*cV,&h);CHKERRQ(ierr);
   ldh = data->size_iXKZ;
   ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
-  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(ldh!=k,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   ierr = BVSetActiveColumns(data->U,0,k);CHKERRQ(ierr);
   for (i=0;i<cV;i++) {
     ierr = BVDotVec(data->U,V[i],&h[ldh*i]);CHKERRQ(ierr);
@@ -113,13 +113,13 @@ static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscI
 #endif
 
   PetscFunctionBegin;
-  if (cV > 2) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(cV > 2,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
 
   /* h <- KZ'*V */
   ierr = PetscMalloc1(data->size_iXKZ*cV,&h);CHKERRQ(ierr);
   ldh = data->size_iXKZ;
   ierr = BVGetActiveColumns(data->U,&l,&k);CHKERRQ(ierr);
-  if (ldh!=k) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(ldh!=k,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   ierr = BVSetActiveColumns(data->KZ,0,k);CHKERRQ(ierr);
   for (i=0;i<cV;i++) {
     ierr = BVDotVec(data->KZ,V[i],&h[ldh*i]);CHKERRQ(ierr);
@@ -184,7 +184,7 @@ static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
    y <- theta[1]A*x - theta[0]*B*x
    auxV, two auxiliary vectors
  */
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y)
+static inline PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Vec *x,const Vec *y)
 {
   PetscErrorCode ierr;
   PetscInt       n,i;
@@ -229,7 +229,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Ve
 /*
    y <- theta[1]'*A'*x - theta[0]'*B'*x
  */
-PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y)
+static inline PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,const Vec *x,const Vec *y)
 {
   PetscErrorCode ierr;
   PetscInt       n,i;
@@ -572,7 +572,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   /* Check consistency */
   ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
   V_new = lv - data->size_cX;
-  if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(V_new > data->old_size_X,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   data->old_size_X = n;
   data->size_cX = lv;
 
@@ -655,8 +655,8 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
   }
 
   n = PetscMin(PetscMin(data->size_X, max_size_D), r_e-r_s);
-  if (n == 0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"n == 0");
-  if (data->size_X < r_e-r_s) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"size_X < r_e-r_s");
+  PetscCheckFalse(n == 0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"n == 0");
+  PetscCheckFalse(data->size_X < r_e-r_s,PETSC_COMM_SELF,PETSC_ERR_PLIB,"size_X < r_e-r_s");
 
   ierr = DSGetLeadingDimension(d->eps->ds,&ld);CHKERRQ(ierr);
 
@@ -830,7 +830,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
 }
 
 #if !defined(PETSC_USE_COMPLEX)
-PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,Vec Axr,Vec Axi,Vec Bxr,Vec Bxi,PetscScalar *eigr,PetscScalar *eigi)
+static inline PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,Vec Axr,Vec Axi,Vec Bxr,Vec Bxi,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscErrorCode ierr;
   PetscScalar    rAr,iAr,rAi,iAi,rBr,iBr,rBi,iBi,b0,b2,b4,b6,b7;
@@ -866,7 +866,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,V
 }
 #endif
 
-PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,Vec *u,Vec *Ax,Vec *Bx)
+static inline PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,Vec *u,Vec *Ax,Vec *Bx)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -879,7 +879,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
       PetscScalar eigr0=0.0,eigi0=0.0;
       ierr = dvd_complex_rayleigh_quotient(u[i],u[i+1],Ax[i],Ax[i+1],Bx[i],Bx[i+1],&eigr0,&eigi0);CHKERRQ(ierr);
       if (PetscAbsScalar(eigr[i_s+i]-eigr0)/PetscAbsScalar(eigr[i_s+i]) > 1e-10 || PetscAbsScalar(eigi[i_s+i]-eigi0)/PetscAbsScalar(eigi[i_s+i]) > 1e-10) {
-        ierr = PetscInfo4(u[0],"The eigenvalue %g%+gi is far from its Rayleigh quotient value %g%+gi\n",(double)eigr[i_s+i],(double)eigi[i_s+i],(double)eigr0,(double)eigi0);CHKERRQ(ierr);
+        ierr = PetscInfo(u[0],"The eigenvalue %g%+gi is far from its Rayleigh quotient value %g%+gi\n",(double)eigr[i_s+i],(double)eigi[i_s+i],(double)eigr0,(double)eigi0);CHKERRQ(ierr);
       }
       i++;
     } else
@@ -891,7 +891,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
       ierr = VecDotEnd(Bx[i],u[i],&b1);CHKERRQ(ierr);
       b0 = b0/b1;
       if (PetscAbsScalar(eigr[i_s+i]-b0)/PetscAbsScalar(eigr[i_s+i]) > 1e-10) {
-        ierr = PetscInfo4(u[0],"The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n",(double)PetscRealPart(eigr[i_s+i]),(double)PetscImaginaryPart(eigr[i_s+i]),(double)PetscRealPart(b0),(double)PetscImaginaryPart(b0));CHKERRQ(ierr);
+        ierr = PetscInfo(u[0],"The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n",(double)PetscRealPart(eigr[i_s+i]),(double)PetscImaginaryPart(eigr[i_s+i]),(double)PetscRealPart(b0),(double)PetscImaginaryPart(b0));CHKERRQ(ierr);
       }
     }
   }

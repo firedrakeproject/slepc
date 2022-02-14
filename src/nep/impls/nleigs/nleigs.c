@@ -261,7 +261,7 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
     if (err <= ctx->ddtol*norm) break;
   }
 
-  if (k==ndpt-1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_CONV_FAILED,"Failed to determine singularities automatically in general problem");
+  PetscCheckFalse(k==ndpt-1,PetscObjectComm((PetscObject)nep),PETSC_ERR_CONV_FAILED,"Failed to determine singularities automatically in general problem");
   /* poles */
   ierr = PetscArrayzero(C,ndpt*ndpt);CHKERRQ(ierr);
   ierr = PetscArrayzero(A,ndpt*ndpt);CHKERRQ(ierr);
@@ -370,7 +370,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     if (nep->problem_type==NEP_RATIONAL) {
       /* Select a segment in the real axis */
       ierr = RGComputeBoundingBox(nep->rg,&a,&b,NULL,NULL);CHKERRQ(ierr);
-      if (a<=-PETSC_MAX_REAL || b>=PETSC_MAX_REAL) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"NLEIGS requires a bounded target set");
+      PetscCheckFalse(a<=-PETSC_MAX_REAL || b>=PETSC_MAX_REAL,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"NLEIGS requires a bounded target set");
       h = (b-a)/ndpt;
       for (i=0;i<ndpt;i++) {ds[i] = a+h*i; dsi[i] = 0.0;}
     } else SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NLEIGS with real arithmetic requires the target set to be included in the real axis");
@@ -382,7 +382,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   } else {
     if (nep->problem_type==NEP_RATIONAL) {
       ierr = NEPNLEIGSRationalSingularities(nep,&ndptx,dxi,&rational);CHKERRQ(ierr);
-      if (!rational) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_CONV_FAILED,"Failed to determine singularities automatically in rational problem; consider solving the problem as general");
+      PetscCheckFalse(!rational,PetscObjectComm((PetscObject)nep),PETSC_ERR_CONV_FAILED,"Failed to determine singularities automatically in rational problem; consider solving the problem as general");
     } else {
       /* AAA algorithm */
       ierr = NEPNLEIGSAAASingularities(nep,ndpt,ds,&ndptx,dxi);CHKERRQ(ierr);
@@ -391,7 +391,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   /* Look for Leja-Bagby points in the discretization sets */
   s[0]    = ds[0];
   xi[0]   = (ndptx>0)?dxi[0]:PETSC_INFINITY;
-  if (PetscAbsScalar(xi[0])<10*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point 0 is nearly zero: %g; consider removing the singularity or shifting the problem",(double)PetscAbsScalar(xi[0]));
+  PetscCheckFalse(PetscAbsScalar(xi[0])<10*PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point 0 is nearly zero: %g; consider removing the singularity or shifting the problem",(double)PetscAbsScalar(xi[0]));
   beta[0] = 1.0; /* scaling factors are also computed here */
   for (i=0;i<ndpt;i++) {
     nrs[i] = 1.0;
@@ -409,7 +409,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
         nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
         if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
       }
-      if (PetscAbsScalar(xi[k])<10*PETSC_MACHINE_EPSILON) SETERRQ2(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point %" PetscInt_FMT " is nearly zero: %g; consider removing the singularity or shifting the problem",k,(double)PetscAbsScalar(xi[k]));
+      PetscCheckFalse(PetscAbsScalar(xi[k])<10*PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"Singularity point %" PetscInt_FMT " is nearly zero: %g; consider removing the singularity or shifting the problem",k,(double)PetscAbsScalar(xi[k]));
     } else xi[k] = PETSC_INFINITY;
     beta[k] = maxnrs;
   }
@@ -587,7 +587,7 @@ static PetscErrorCode NLEIGSMatToMatShellArray(Mat A,Mat *Ms,PetscInt maxnmat)
 
   PetscFunctionBegin;
   ierr = MatHasOperation(A,MATOP_DUPLICATE,&has);CHKERRQ(ierr);
-  if (!has) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_USER,"MatDuplicate operation required");
+  PetscCheckFalse(!has,PetscObjectComm((PetscObject)A),PETSC_ERR_USER,"MatDuplicate operation required");
   ierr = PetscNew(&ctx);CHKERRQ(ierr);
   ctx->maxnmat = maxnmat;
   ierr = PetscMalloc2(ctx->maxnmat,&ctx->A,ctx->maxnmat,&ctx->coeff);CHKERRQ(ierr);
@@ -921,13 +921,13 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 
   PetscFunctionBegin;
   ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
-  if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
+  PetscCheckFalse(nep->ncv>nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!ctx->ddmaxit) ctx->ddmaxit = LBPOINTS;
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
+  PetscCheckFalse(istrivial,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
-  if (nep->which!=NEP_TARGET_MAGNITUDE && nep->which!=NEP_TARGET_REAL && nep->which!=NEP_TARGET_IMAGINARY && nep->which!=NEP_WHICH_USER) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target selection of eigenvalues");
+  PetscCheckFalse(nep->which!=NEP_TARGET_MAGNITUDE && nep->which!=NEP_TARGET_REAL && nep->which!=NEP_TARGET_IMAGINARY && nep->which!=NEP_WHICH_USER,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target selection of eigenvalues");
 
   /* Initialize the NLEIGS context structure */
   k = ctx->ddmaxit;
@@ -941,7 +941,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
   if (nep->problem_type!=NEP_RATIONAL) {
     ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
-    if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
+    PetscCheckFalse(in<0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
   }
 
   /* Compute the divided difference matrices */
@@ -953,7 +953,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = NEPAllocateSolution(nep,ctx->nmat-1);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,4);CHKERRQ(ierr);
   if (!ctx->fullbasis) {
-    if (nep->twosided) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Two-sided variant requires the full-basis option, rerun with -nep_nleigs_full_basis");
+    PetscCheckFalse(nep->twosided,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Two-sided variant requires the full-basis option, rerun with -nep_nleigs_full_basis");
     /* set-up DS and transfer split operator functions */
     ierr = DSSetType(nep->ds,ctx->nshifts?DSGNHEP:DSNHEP);CHKERRQ(ierr);
     ierr = DSAllocate(nep->ds,nep->ncv+1);CHKERRQ(ierr);
@@ -1000,7 +1000,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
   sigma = ctx->shifts[idxrktg];
   ierr = BVSetActiveColumns(nep->V,0,nv);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->nmat,&coeffs);CHKERRQ(ierr);
-  if (PetscAbsScalar(s[deg-2]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Breakdown in NLEIGS");
+  PetscCheckFalse(PetscAbsScalar(s[deg-2]-sigma)<100*PETSC_MACHINE_EPSILON,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Breakdown in NLEIGS");
   /* i-part stored in (i-1) position */
   for (j=0;j<nv;j++) {
     r[(deg-2)*lr+j] = (S[(deg-2)*ls+j]+(beta[deg-1]/xi[deg-2])*S[(deg-1)*ls+j])/(s[deg-2]-sigma);
@@ -1013,7 +1013,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
   ierr = BVMultVec(V,1.0,0.0,w,r+(deg-2)*lr);CHKERRQ(ierr);
   ierr = BVRestoreColumn(W,deg-2,&w);CHKERRQ(ierr);
   for (k=deg-2;k>0;k--) {
-    if (PetscAbsScalar(s[k-1]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Breakdown in NLEIGS");
+    PetscCheckFalse(PetscAbsScalar(s[k-1]-sigma)<100*PETSC_MACHINE_EPSILON,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Breakdown in NLEIGS");
     for (j=0;j<nv;j++) r[(k-1)*lr+j] = (S[(k-1)*ls+j]+(beta[k]/xi[k-1])*S[k*ls+j]-beta[k]*(1.0-sigma/xi[k-1])*r[(k)*lr+j])/(s[k-1]-sigma);
     ierr = BVGetColumn(W,k-1,&w);CHKERRQ(ierr);
     ierr = BVMultVec(V,1.0,0.0,w,r+(k-1)*lr);CHKERRQ(ierr);
@@ -1273,7 +1273,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     }
     nconv = k;
     if (!ctx->lock && nep->reason == NEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; }
-    if (l) { ierr = PetscInfo1(nep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo(nep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     /* Update S */
     ierr = DSGetMat(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&MQ);CHKERRQ(ierr);
@@ -1285,7 +1285,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
     if (breakdown && nep->reason == NEP_CONVERGED_ITERATING) {
       /* Stop if breakdown */
-      ierr = PetscInfo2(nep,"Breakdown (it=%" PetscInt_FMT " norm=%g)\n",nep->its,(double)betah);CHKERRQ(ierr);
+      ierr = PetscInfo(nep,"Breakdown (it=%" PetscInt_FMT " norm=%g)\n",nep->its,(double)betah);CHKERRQ(ierr);
       nep->reason = NEP_DIVERGED_BREAKDOWN;
     }
     if (nep->reason != NEP_CONVERGED_ITERATING) l--;
@@ -1444,7 +1444,7 @@ static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
   PetscFunctionBegin;
   if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
   else {
-    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    PetscCheckFalse(keep<0.1 || keep>0.9,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     ctx->keep = keep;
   }
   PetscFunctionReturn(0);
@@ -1605,7 +1605,7 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
     ctx->ddtol = PETSC_DEFAULT;
     nep->state = NEP_STATE_INITIAL;
   } else {
-    if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    PetscCheckFalse(tol <= 0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     ctx->ddtol = tol;
   }
   if (degree == PETSC_DEFAULT || degree == PETSC_DECIDE) {
@@ -1613,7 +1613,7 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
     if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
     nep->state = NEP_STATE_INITIAL;
   } else {
-    if (degree <= 0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
+    PetscCheckFalse(degree <= 0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
     if (ctx->ddmaxit != degree) {
       ctx->ddmaxit = degree;
       if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
@@ -1701,7 +1701,7 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (ns<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"Number of shifts must be non-negative");
+  PetscCheckFalse(ns<0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"Number of shifts must be non-negative");
   if (ctx->nshifts) { ierr = PetscFree(ctx->shifts);CHKERRQ(ierr); }
   for (i=0;i<ctx->nshiftsw;i++) { ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr); }
   ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);

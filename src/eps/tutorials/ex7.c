@@ -42,7 +42,7 @@ int main(int argc,char **argv)
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized eigenproblem stored in file.\n\n");CHKERRQ(ierr);
   ierr = PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name for matrix A with the -f1 option");
+  PetscCheckFalse(!flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name for matrix A with the -f1 option");
 
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n");CHKERRQ(ierr);
@@ -75,9 +75,9 @@ int main(int argc,char **argv)
   */
   ierr = PetscOptionsGetInt(NULL,NULL,"-nconstr",&ncon,&flg);CHKERRQ(ierr);
   if (flg) {
-    if (ncon<=0) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The number of constraints must be >0");
+    PetscCheckFalse(ncon<=0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The number of constraints must be >0");
     ierr = PetscOptionsGetString(NULL,NULL,"-fconstr",filename,sizeof(filename),&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file storing the constraints");
+    PetscCheckFalse(!flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file storing the constraints");
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(xr,ncon,&Cv);CHKERRQ(ierr);
     for (i=0;i<ncon;i++) {
@@ -91,9 +91,9 @@ int main(int argc,char **argv)
   */
   ierr = PetscOptionsGetInt(NULL,NULL,"-ninitial",&nini,&flg);CHKERRQ(ierr);
   if (flg) {
-    if (nini<=0) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The number of initial vectors must be >0");
+    PetscCheckFalse(nini<=0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The number of initial vectors must be >0");
     ierr = PetscOptionsGetString(NULL,NULL,"-finitial",filename,sizeof(filename),&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file containing the initial vectors");
+    PetscCheckFalse(!flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file containing the initial vectors");
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(xr,nini,&Iv);CHKERRQ(ierr);
     for (i=0;i<nini;i++) {

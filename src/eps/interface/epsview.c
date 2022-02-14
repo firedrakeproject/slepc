@@ -480,7 +480,7 @@ PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
       ierr = EPSErrorView_MATLAB(eps,etype,viewer);CHKERRQ(ierr);
       break;
     default:
-      ierr = PetscInfo1(eps,"Unsupported viewer format %s\n",PetscViewerFormats[format]);CHKERRQ(ierr);
+      ierr = PetscInfo(eps,"Unsupported viewer format %s\n",PetscViewerFormats[format]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -741,7 +741,7 @@ PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
         ierr = EPSValuesView_MATLAB(eps,viewer);CHKERRQ(ierr);
         break;
       default:
-        ierr = PetscInfo1(eps,"Unsupported viewer format %s\n",PetscViewerFormats[format]);CHKERRQ(ierr);
+        ierr = PetscInfo(eps,"Unsupported viewer format %s\n",PetscViewerFormats[format]);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

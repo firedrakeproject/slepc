@@ -389,7 +389,7 @@ PetscErrorCode ConjugateCudaArray(PetscScalar *a, PetscInt n)
     ptr = thrust::device_pointer_cast(a);
     thrust::transform(ptr,ptr+n,ptr,conjugate());
   } catch (char *ex) {
-    SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Thrust error: %s", ex);
+    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Thrust error: %s", ex);
   }
   PetscFunctionReturn(0);
 }
@@ -740,7 +740,7 @@ PetscErrorCode BVGetMat_Svec_CUDA(BV bv,Mat *A)
   if (!bv->Aget) create=PETSC_TRUE;
   else {
     ierr = MatDenseCUDAGetArray(bv->Aget,&aa);CHKERRQ(ierr);
-    if (aa) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
+    PetscCheckFalse(aa,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
     ierr = MatGetSize(bv->Aget,NULL,&cols);CHKERRQ(ierr);
     if (cols!=m) {
       ierr = MatDestroy(&bv->Aget);CHKERRQ(ierr);

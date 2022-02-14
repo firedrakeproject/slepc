@@ -446,7 +446,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
     for (i=0;i<nep->npart&&solved;i++) solved = PetscNot(idx_sc[i]<k);
     if (idx_sc[color]<k) {
 #if !defined(PETSC_USE_COMPLEX)
-      if (nep->eigi[idx_sc[color]]!=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Simple Refinement not implemented in real scalar for complex eigenvalues");
+      PetscCheckFalse(nep->eigi[idx_sc[color]]!=0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Simple Refinement not implemented in real scalar for complex eigenvalues");
 #endif
       if (nep->npart==1) {
         ierr = BVGetColumn(nep->V,idx_sc[color],&v);CHKERRQ(ierr);

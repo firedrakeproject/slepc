@@ -52,7 +52,7 @@ struct _n_SlepcConvMon {
 /*
   SlepcPrintEigenvalueASCII - Print an eigenvalue on an ASCII viewer.
 */
-PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscScalar eigr,PetscScalar eigi)
+static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscScalar eigr,PetscScalar eigi)
 {
   PetscErrorCode ierr;
   PetscReal      re,im;
@@ -82,7 +82,7 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,
   In complex scalars only xr is written.
   The name of xr,xi is set before writing, based on the label, the index, and the name of obj.
 */
-PETSC_STATIC_INLINE PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec xi,const char *label,PetscInt index,PetscObject obj)
+static inline PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec xi,const char *label,PetscInt index,PetscObject obj)
 {
   PetscErrorCode ierr;
   size_t         count;

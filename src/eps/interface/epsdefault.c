@@ -43,7 +43,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
     if (iscayley && eps->isgeneralized) {
       ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
       ierr = BVGetMatrix(eps->V,&C,&indef);CHKERRQ(ierr);
-      if (indef) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"The inner product should not be indefinite");
+      PetscCheckFalse(indef,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"The inner product should not be indefinite");
       ierr = BVSetMatrix(eps->V,B,PETSC_FALSE);CHKERRQ(ierr);
       ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
       ierr = BVSetMatrix(eps->V,C,PETSC_FALSE);CHKERRQ(ierr);  /* restore original matrix */
@@ -206,7 +206,7 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,nw,2);
-  if (nw <= 0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
+  PetscCheckFalse(nw <= 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
   if (eps->nwork < nw) {
     ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
     eps->nwork = nw;
@@ -310,11 +310,11 @@ PetscErrorCode EPSStoppingBasic(EPS eps,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionBegin;
   *reason = EPS_CONVERGED_ITERATING;
   if (nconv >= nev) {
-    ierr = PetscInfo2(eps,"Linear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"Linear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
     *reason = EPS_CONVERGED_TOL;
   } else if (its >= max_it) {
     *reason = EPS_DIVERGED_ITS;
-    ierr = PetscInfo1(eps,"Linear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"Linear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

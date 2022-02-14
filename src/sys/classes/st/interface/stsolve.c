@@ -58,9 +58,9 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   PetscValidType(st,1);
   STCheckMatrices(st,1);
-  if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  PetscCheckFalse(x == y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
-  if (!st->ops->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
+  PetscCheckFalse(!st->ops->apply,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
   ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
   ierr = MatMult(Op,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -112,8 +112,8 @@ PetscErrorCode STApplyMat(ST st,Mat X,Mat Y)
   PetscValidHeaderSpecific(Y,MAT_CLASSID,3);
   PetscValidType(st,1);
   STCheckMatrices(st,1);
-  if (X == Y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"X and Y must be different matrices");
-  if (!st->ops->applymat) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applymat");
+  PetscCheckFalse(X == Y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"X and Y must be different matrices");
+  PetscCheckFalse(!st->ops->applymat,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applymat");
   ierr = (*st->ops->applymat)(st,X,Y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -163,9 +163,9 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   PetscValidType(st,1);
   STCheckMatrices(st,1);
-  if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  PetscCheckFalse(x == y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
-  if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
+  PetscCheckFalse(!st->ops->applytrans,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
   ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
   ierr = MatMultTranspose(Op,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -203,9 +203,9 @@ PetscErrorCode STApplyHermitianTranspose(ST st,Vec x,Vec y)
   PetscValidHeaderSpecific(y,VEC_CLASSID,3);
   PetscValidType(st,1);
   STCheckMatrices(st,1);
-  if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  PetscCheckFalse(x == y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
-  if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
+  PetscCheckFalse(!st->ops->applytrans,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
   ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
   ierr = MatMultHermitianTranspose(Op,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -430,7 +430,7 @@ PetscErrorCode STGetOperator(ST st,Mat *Op)
   PetscValidType(st,1);
   STCheckMatrices(st,1);
   STCheckNotSeized(st,1);
-  if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"The operator is not defined in polynomial eigenproblems");
+  PetscCheckFalse(st->nmat>2,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"The operator is not defined in polynomial eigenproblems");
   ierr = STGetOperator_Private(st,Op);CHKERRQ(ierr);
   if (Op) st->opseized = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -458,7 +458,7 @@ PetscErrorCode STRestoreOperator(ST st,Mat *Op)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(Op,2);
   PetscValidHeaderSpecific(*Op,MAT_CLASSID,2);
-  if (!st->opseized) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must be called after STGetOperator()");
+  PetscCheckFalse(!st->opseized,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must be called after STGetOperator()");
   *Op = NULL;
   st->opseized = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -565,7 +565,7 @@ PetscErrorCode STSetUp(ST st)
   if (st->D) {
     ierr = MatGetLocalSize(st->A[0],NULL,&n);CHKERRQ(ierr);
     ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
-    if (n != k) SETERRQ2(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %" PetscInt_FMT " (should be %" PetscInt_FMT ")",k,n);
+    PetscCheckFalse(n != k,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %" PetscInt_FMT " (should be %" PetscInt_FMT ")",k,n);
     if (!st->wb) {
       ierr = VecDuplicate(st->D,&st->wb);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb);CHKERRQ(ierr);
@@ -609,8 +609,8 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
   nmat = st->nmat-k;
   switch (st->matmode) {
   case ST_MATMODE_INPLACE:
-    if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
-    if (precond) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for split preconditioner");
+    PetscCheckFalse(st->nmat>2,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
+    PetscCheckFalse(precond,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for split preconditioner");
     if (initial) {
       ierr = PetscObjectReference((PetscObject)A[0]);CHKERRQ(ierr);
       *S = A[0];
@@ -625,7 +625,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
     }
     break;
   case ST_MATMODE_SHELL:
-    if (precond) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_SHELL not supported for split preconditioner");
+    PetscCheckFalse(precond,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_SHELL not supported for split preconditioner");
     if (initial) {
       if (st->nmat>2) {
         ierr = PetscMalloc1(nmat,&matIdx);CHKERRQ(ierr);
@@ -860,7 +860,7 @@ PetscErrorCode STSetWorkVecs(ST st,PetscInt nw)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,nw,2);
-  if (nw <= 0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
+  PetscCheckFalse(nw <= 0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
   if (st->nwork < nw) {
     ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
     st->nwork = nw;

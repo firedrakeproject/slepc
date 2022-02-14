@@ -97,10 +97,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
       ierr = DSGetTruncateSize(eps->ds,k,t,&l);CHKERRQ(ierr);
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
-    if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
-      if (breakdown) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",(double)beta);
+      PetscCheckFalse(breakdown,PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",(double)beta);
       else {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);

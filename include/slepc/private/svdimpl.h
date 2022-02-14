@@ -122,7 +122,7 @@ struct _p_SVD {
 
 #define SVDCheckSolved(h,arg) \
   do { \
-    if ((h)->state<SVD_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call SVDSolve() first: Parameter #%d",arg); \
+    PetscCheckFalse((h)->state<SVD_STATE_SOLVED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call SVDSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #endif
@@ -135,7 +135,7 @@ struct _p_SVD {
 #define SVDCheckStandardCondition(svd,condition,msg) \
   do { \
     if (condition) { \
-      if ((svd)->isgeneralized) SETERRQ2(PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(svd))->type_name,(msg)); \
+      PetscCheckFalse((svd)->isgeneralized,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(svd))->type_name,(msg)); \
     } \
   } while (0)
 #define SVDCheckStandard(svd) SVDCheckStandardCondition(svd,PETSC_TRUE,"")
@@ -144,8 +144,8 @@ struct _p_SVD {
 #define SVDCheckUnsupportedCondition(svd,mask,condition,msg) \
   do { \
     if (condition) { \
-      if (((mask) & SVD_FEATURE_CONVERGENCE) && (svd)->converged!=SVDConvergedRelative) SETERRQ2(PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(svd))->type_name,(msg)); \
-      if (((mask) & SVD_FEATURE_STOPPING) && (svd)->stopping!=SVDStoppingBasic) SETERRQ2(PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(svd))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & SVD_FEATURE_CONVERGENCE) && (svd)->converged!=SVDConvergedRelative,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(svd))->type_name,(msg)); \
+      PetscCheckFalse(((mask) & SVD_FEATURE_STOPPING) && (svd)->stopping!=SVDStoppingBasic,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(svd))->type_name,(msg)); \
     } \
   } while (0)
 #define SVDCheckUnsupported(svd,mask) SVDCheckUnsupportedCondition(svd,mask,PETSC_TRUE,"")
@@ -155,8 +155,8 @@ struct _p_SVD {
   do { \
     PetscErrorCode __ierr; \
     if (condition) { \
-      if (((mask) & SVD_FEATURE_CONVERGENCE) && (svd)->converged!=SVDConvergedRelative) { __ierr = PetscInfo2((svd),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(svd))->type_name,(msg)); } \
-      if (((mask) & SVD_FEATURE_STOPPING) && (svd)->stopping!=SVDStoppingBasic) { __ierr = PetscInfo2((svd),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(svd))->type_name,(msg)); } \
+      if (((mask) & SVD_FEATURE_CONVERGENCE) && (svd)->converged!=SVDConvergedRelative) { __ierr = PetscInfo((svd),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(svd))->type_name,(msg)); } \
+      if (((mask) & SVD_FEATURE_STOPPING) && (svd)->stopping!=SVDStoppingBasic) { __ierr = PetscInfo((svd),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(svd))->type_name,(msg)); } \
     } \
   } while (0)
 #define SVDCheckIgnored(svd,mask) SVDCheckIgnoredCondition(svd,mask,PETSC_TRUE,"")
@@ -164,7 +164,7 @@ struct _p_SVD {
 /*
   SVD_KSPSetOperators - Sets the KSP matrices
 */
-PETSC_STATIC_INLINE PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
+static inline PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   const char     *prefix;
@@ -185,7 +185,7 @@ PETSC_STATIC_INLINE PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
    Create the template vector for the left basis in GSVD, as in
    MatCreateVecsEmpty(Z,NULL,&t) for Z=[A;B] without forming Z.
  */
-PETSC_STATIC_INLINE PetscErrorCode SVDCreateLeftTemplate(SVD svd,Vec *t)
+static inline PetscErrorCode SVDCreateLeftTemplate(SVD svd,Vec *t)
 {
   PetscErrorCode ierr;
   PetscInt       M,P,m,p;

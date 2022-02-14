@@ -442,7 +442,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi);CHKERRQ(ierr);
   if (!ctx->mpi) {
     ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq);CHKERRQ(ierr);
-    if (!seq) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot create a BVMAT from a non-standard template vector");
+    PetscCheckFalse(!seq,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot create a BVMAT from a non-standard template vector");
   }
 
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);

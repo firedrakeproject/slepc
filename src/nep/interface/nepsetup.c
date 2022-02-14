@@ -90,7 +90,7 @@ PetscErrorCode NEPSetUp(NEP nep)
 
   /* check consistency of refinement options */
   if (nep->refine) {
-    if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");
+    PetscCheckFalse(nep->fui!=NEP_USER_INTERFACE_SPLIT,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");
     if (!nep->scheme) {  /* set default scheme */
       ierr = NEPRefineGetKSP(nep,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
@@ -107,16 +107,16 @@ PetscErrorCode NEPSetUp(NEP nep)
       if (flg) {
         ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
       }
-      if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
+      PetscCheckFalse(!flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
       ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size);CHKERRMPI(ierr);
       if (size>1) {   /* currently selected PC is a factorization */
         ierr = PCFactorGetMatSolverType(pc,&stype);CHKERRQ(ierr);
         ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
-        if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"For Newton refinement, you chose to solve linear systems with a factorization, but in parallel runs you need to select an external package");
+        PetscCheckFalse(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"For Newton refinement, you chose to solve linear systems with a factorization, but in parallel runs you need to select an external package");
       }
     }
     if (nep->scheme==NEP_REFINE_SCHEME_SCHUR) {
-      if (nep->npart>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The Schur scheme for refinement does not support subcommunicators");
+      PetscCheckFalse(nep->npart>1,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The Schur scheme for refinement does not support subcommunicators");
     }
   }
   /* call specific solver setup */
@@ -191,12 +191,12 @@ PetscErrorCode NEPSetUp(NEP nep)
       sc->mapobj = NULL;
     }
   }
-  if (nep->nev > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
+  PetscCheckFalse(nep->nev > nep->ncv,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
   /* process initial vectors */
   if (nep->nini<0) {
     k = -nep->nini;
-    if (k>nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
+    PetscCheckFalse(k>nep->ncv,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
     ierr = BVInsertVecs(nep->V,0,&k,nep->IS,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&nep->nini,&nep->IS);CHKERRQ(ierr);
     nep->nini = k;
@@ -241,7 +241,7 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec is[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
+  PetscCheckFalse(n<0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   if (n>0) {
     PetscValidPointer(is,3);
     PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
@@ -259,7 +259,7 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
 {
   PetscFunctionBegin;
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
-    if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
+    PetscCheckFalse(*ncv<nev,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
   } else if (*mpd!=PETSC_DEFAULT) { /* mpd set */
     *ncv = PetscMin(nep->n,nev+(*mpd));
   } else { /* neither set: defaults depend on nev being small or large */

@@ -54,15 +54,15 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRMPI(ierr);
-  if (size!=1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The FEAST interface is supported for sequential runs only");
+  PetscCheckFalse(size!=1,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The FEAST interface is supported for sequential runs only");
   EPSCheckSinvertCayley(eps);
   if (eps->ncv!=PETSC_DEFAULT) {
-    if (eps->ncv<eps->nev+2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
+    PetscCheckFalse(eps->ncv<eps->nev+2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
   if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = 20;
   if (!eps->which) eps->which = EPS_ALL;
-  if (eps->which!=EPS_ALL || eps->inta==eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver must be used with a computational interval");
+  PetscCheckFalse(eps->which!=EPS_ALL || eps->inta==eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver must be used with a computational interval");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION);
 
@@ -125,7 +125,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 
     FEAST_RCI(&ijob,&n,&Ze,SCALAR_CAST ctx->work1,ctx->work2,SCALAR_CAST ctx->Aq,SCALAR_CAST ctx->Bq,fpm,&epsout,&loop,&eps->inta,&eps->intb,&ncv,evals,SCALAR_CAST pV,&nconv,eps->errest,&info);
 
-    if (ncv!=eps->ncv) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"FEAST changed value of ncv to %d",ncv);
+    PetscCheckFalse(ncv!=eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"FEAST changed value of ncv to %d",ncv);
     if (ijob == 10) {
       /* set new quadrature point */
       ierr = STSetShift(eps->st,Ze.real);CHKERRQ(ierr);
@@ -174,7 +174,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
         ierr = VecResetArray(x);CHKERRQ(ierr);
         ierr = VecResetArray(y);CHKERRQ(ierr);
       }
-    } else if (ijob && ijob!=-2) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in FEAST reverse communication interface (ijob=%d)",ijob);
+    } else PetscCheckFalse(ijob && ijob!=-2,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in FEAST reverse communication interface (ijob=%d)",ijob);
 
   } while (ijob);
 
@@ -186,7 +186,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
       eps->nconv = 0;
     } else if (info==2) { /* FEAST did not converge "yet" */
       eps->reason = EPS_DIVERGED_ITS;
-    } else SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",info);
+    } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",info);
   }
 
   for (i=0;i<eps->nconv;i++) eps->eigr[i] = evals[i];

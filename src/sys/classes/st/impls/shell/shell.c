@@ -91,7 +91,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
   PetscObjectState instate,outstate;
 
   PetscFunctionBegin;
-  if (!shell->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No apply() routine provided to Shell ST");
+  PetscCheckFalse(!shell->apply,PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No apply() routine provided to Shell ST");
   ierr = PetscObjectStateGet((PetscObject)y,&instate);CHKERRQ(ierr);
   PetscStackCall("STSHELL user function apply()",ierr = (*shell->apply)(st,x,y);CHKERRQ(ierr));
   ierr = PetscObjectStateGet((PetscObject)y,&outstate);CHKERRQ(ierr);
@@ -109,7 +109,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
   PetscObjectState instate,outstate;
 
   PetscFunctionBegin;
-  if (!shell->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
+  PetscCheckFalse(!shell->applytrans,PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
   ierr = PetscObjectStateGet((PetscObject)y,&instate);CHKERRQ(ierr);
   PetscStackCall("STSHELL user function applytrans()",ierr = (*shell->applytrans)(st,x,y);CHKERRQ(ierr));
   ierr = PetscObjectStateGet((PetscObject)y,&outstate);CHKERRQ(ierr);

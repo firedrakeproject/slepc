@@ -170,8 +170,8 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscFunctionBegin;
   ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
-  if (svd->ncv>svd->nsv+svd->mpd) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nsv+mpd");
-  if (!lanczos->lock && svd->mpd<svd->ncv) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
+  PetscCheckFalse(svd->ncv>svd->nsv+svd->mpd,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nsv+mpd");
+  PetscCheckFalse(!lanczos->lock && svd->mpd<svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
   if (!lanczos->keep) lanczos->keep = 0.5;
   svd->leftbasis = PETSC_TRUE;
@@ -372,7 +372,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
     ierr = BVMultColumn(V,-1.0,1.0/a,i,work);CHKERRQ(ierr);
     ierr = SVDOrthogonalizeCGS(V,i,work,a,refine,eta,&b);CHKERRQ(ierr);
     ierr = BVScaleColumn(V,i,1.0/b);CHKERRQ(ierr);
-    if (PetscAbsReal(b)<10*PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_PLIB,"Recurrence generated a zero vector; use a two-sided variant");
+    PetscCheckFalse(PetscAbsReal(b)<10*PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)svd),PETSC_ERR_PLIB,"Recurrence generated a zero vector; use a two-sided variant");
 
     ierr = BVGetColumn(V,i,&vi);CHKERRQ(ierr);
     ierr = BVGetColumn(U,i,&ui);CHKERRQ(ierr);
@@ -487,12 +487,12 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
+        ierr = PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = BVSetRandomColumn(svd->V,k);CHKERRQ(ierr);
           ierr = BVOrthonormalizeColumn(svd->V,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
@@ -684,12 +684,12 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
     if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
+        ierr = PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = BVSetRandomColumn(U1,k);CHKERRQ(ierr);
           ierr = BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
@@ -725,7 +725,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
 }
 
 /* Move generalized left singular vectors (0..nconv) from U1 and U2 to its final destination svd->U (single variant) */
-PETSC_STATIC_INLINE PetscErrorCode SVDLeftSingularVectors_Single(SVD svd,BV U1,BV U2)
+static inline PetscErrorCode SVDLeftSingularVectors_Single(SVD svd,BV U1,BV U2)
 {
   PetscErrorCode    ierr;
   PetscInt          i,k,m,p;
@@ -837,7 +837,7 @@ static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal
 }
 
 /* generate random initial vector in column k for joint upper-upper bidiagonalization */
-PETSC_STATIC_INLINE PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
+static inline PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
 {
   PetscErrorCode    ierr;
   SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
@@ -925,12 +925,12 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
     if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
+        ierr = PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = SVDInitialVectorGUpper(svd,V,U1,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
@@ -967,7 +967,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
 }
 
 /* Move generalized left singular vectors (0..nconv) from U1 and U2 to its final destination svd->U (upper and lower variants) */
-PETSC_STATIC_INLINE PetscErrorCode SVDLeftSingularVectors(SVD svd,BV U1,BV U2)
+static inline PetscErrorCode SVDLeftSingularVectors(SVD svd,BV U1,BV U2)
 {
   PetscErrorCode    ierr;
   PetscInt          i,k,m,p;
@@ -1074,7 +1074,7 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
 }
 
 /* generate random initial vector in column k for joint lower-upper bidiagonalization */
-PETSC_STATIC_INLINE PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
+static inline PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
 {
   PetscErrorCode    ierr;
   SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
@@ -1169,12 +1169,12 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
     if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
     if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) { ierr = PetscInfo1(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) { ierr = PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (svd->reason == SVD_CONVERGED_ITERATING) {
       if (PetscUnlikely(breakdown || k==nv)) {
         /* Start a new bidiagonalization */
-        ierr = PetscInfo1(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
+        ierr = PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its);CHKERRQ(ierr);
         if (k<svd->nsv) {
           ierr = SVDInitialVectorGLower(svd,V,U1,k,&breakdown);CHKERRQ(ierr);
           if (breakdown) {
@@ -1580,7 +1580,7 @@ static PetscErrorCode SVDTRLanczosSetRestart_TRLanczos(SVD svd,PetscReal keep)
   PetscFunctionBegin;
   if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
   else {
-    if (keep<0.1 || keep>0.9) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",(double)keep);
+    PetscCheckFalse(keep<0.1 || keep>0.9,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",(double)keep);
     ctx->keep = keep;
   }
   PetscFunctionReturn(0);

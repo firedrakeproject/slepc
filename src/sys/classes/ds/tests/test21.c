@@ -41,7 +41,7 @@ int main(int argc,char **argv)
   ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
   ierr = DSGSVDSetDimensions(ds,m,p);CHKERRQ(ierr);
   ierr = DSGSVDGetDimensions(ds,&m1,&p1);CHKERRQ(ierr);
-  if (m1!=m || p1!=p) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension values");
+  PetscCheckFalse(m1!=m || p1!=p,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension values");
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);

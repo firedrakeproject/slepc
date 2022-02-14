@@ -43,7 +43,7 @@ static const char citation[] =
 
 #define InertiaMismatch(h,d) \
   do { \
-    SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",d?"":", consider using EPSKrylovSchurSetDetectZeros()"); \
+    SETERRQ(PetscObjectComm((PetscObject)h),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",d?"":", consider using EPSKrylovSchurSetDetectZeros()"); \
   } while (0)
 
 static PetscErrorCode EPSSliceResetSR(EPS eps)
@@ -189,7 +189,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     a = eps->inta; b = eps->intb;
   } else {
     if (!ctx->subintset) { /* uniform distribution if no set by user */
-      if (!sr->hasEnd) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Global interval must be bounded for splitting it in uniform subintervals");
+      PetscCheckFalse(!sr->hasEnd,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Global interval must be bounded for splitting it in uniform subintervals");
       h = (eps->intb-eps->inta)/ctx->npart;
       a = eps->inta+ctx->subc->color*h;
       b = (ctx->subc->color==ctx->npart-1)?eps->intb:eps->inta+(ctx->subc->color+1)*h;
@@ -271,7 +271,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
   }
-  if (inertia) { ierr = PetscInfo2(eps,"Computed inertia at shift %g: %" PetscInt_FMT "\n",(double)nzshift,*inertia);CHKERRQ(ierr); }
+  if (inertia) { ierr = PetscInfo(eps,"Computed inertia at shift %g: %" PetscInt_FMT "\n",(double)nzshift,*inertia);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -301,9 +301,9 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   if (ctx->global) {
     EPSCheckHermitianDefiniteCondition(eps,PETSC_TRUE," with spectrum slicing");
     EPSCheckSinvertCayleyCondition(eps,PETSC_TRUE," with spectrum slicing");
-    if (eps->inta==eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues unless you provide a computational interval with EPSSetInterval()");
-    if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
-    if (eps->nds) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not supported in combination with deflation space");
+    PetscCheckFalse(eps->inta==eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues unless you provide a computational interval with EPSSetInterval()");
+    PetscCheckFalse(eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
+    PetscCheckFalse(eps->nds,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not supported in combination with deflation space");
     EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING,PETSC_TRUE," with spectrum slicing");
     EPSCheckIgnoredCondition(eps,EPS_FEATURE_BALANCE,PETSC_TRUE," with spectrum slicing");
     if (eps->tol==PETSC_DEFAULT) {
@@ -316,7 +316,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     }
     if (eps->max_it==PETSC_DEFAULT) eps->max_it = 100;
     if (ctx->nev==1) ctx->nev = PetscMin(40,eps->n);  /* nev not set, use default value */
-    if (eps->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
+    PetscCheckFalse(eps->n>10 && ctx->nev<10,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   }
   eps->ops->backtransform = EPSBackTransform_Skip;
 
@@ -419,15 +419,15 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     */
     ierr = PetscOptionsGetInt(NULL,NULL,"-eps_krylovschur_hiteigenvalue",&hiteig,NULL);CHKERRQ(ierr);
     if (zeros) { /* error in factorization */
-      if (sr->int0==ctx->eps->inta || sr->int0==ctx->eps->intb) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
-      else if (ctx_glob->subintset && !hiteig) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+      PetscCheckFalse(sr->int0==ctx->eps->inta || sr->int0==ctx->eps->intb,((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
+      else PetscCheckFalse(ctx_glob->subintset && !hiteig,((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
       else {
         if (hiteig==1) { /* idle subgroup */
           sr->inertia0 = -1;
         } else { /* perturb shift */
           sr->int0 *= (1.0+SLICE_PTOL);
           ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,&zeros);CHKERRQ(ierr);
-          if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",(double)sr->int1);
+          PetscCheckFalse(zeros,((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",(double)sr->int1);
         }
       }
     }
@@ -459,7 +459,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     /* last process in eps comm computes inertia1 */
     if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
       ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
-      if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+      PetscCheckFalse(zeros,((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
       if (!rank && sr->inertia0==-1) {
         sr->inertia0 = sr->inertia1; sr->int0 = sr->int1;
         ierr = MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRMPI(ierr);
@@ -589,8 +589,8 @@ static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts
   EPS_shift       s;
 
   PetscFunctionBegin;
-  if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
-  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
+  PetscCheckFalse(!eps->state,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
+  PetscCheckFalse(!ctx->sr,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
   if (!ctx->sr->s0) {  /* EPSSolve not called yet */
     *n = 2;
   } else {
@@ -842,7 +842,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
       if (sr->dir*(sPres->neighb[0] && newShift-sPres->neighb[0]->value) < 0) newShift = (sPres->value+sPres->neighb[0]->value)/2;
       else if (sPres->neighb[1] && sr->dir*(sPres->neighb[1]->value-newShift) < 0) newShift = (sPres->value+sPres->neighb[1]->value)/2;
       ierr = EPSSliceGetInertia(eps,newShift,&iner,&zeros);CHKERRQ(ierr);
-      if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",(double)newShift);
+      PetscCheckFalse(zeros,((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",(double)newShift);
       sPres->value = newShift;
     }
     sr->sPres->inertia = iner;
@@ -981,7 +981,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
         /* Start a new Lanczos factorization */
-        ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
+        ierr = PetscInfo(eps,"Breakdown in Krylov-Schur method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;
@@ -1028,7 +1028,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   sPres->comp[0] = PetscNot(count0 < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(count1 < sPres->nsch[1]);
-  ierr = PetscInfo8(eps,"Lanczos: %" PetscInt_FMT " evals in [%g,%g]%s and %" PetscInt_FMT " evals in [%g,%g]%s\n",count0,(double)(sr->dir==1?sPres->ext[0]:sPres->value),(double)(sr->dir==1?sPres->value:sPres->ext[0]),sPres->comp[0]?"*":"",count1,(double)(sr->dir==1?sPres->value:sPres->ext[1]),(double)(sr->dir==1?sPres->ext[1]:sPres->value),sPres->comp[1]?"*":"");CHKERRQ(ierr);
+  ierr = PetscInfo(eps,"Lanczos: %" PetscInt_FMT " evals in [%g,%g]%s and %" PetscInt_FMT " evals in [%g,%g]%s\n",count0,(double)(sr->dir==1?sPres->ext[0]:sPres->value),(double)(sr->dir==1?sPres->value:sPres->ext[0]),sPres->comp[0]?"*":"",count1,(double)(sr->dir==1?sPres->value:sPres->ext[1]),(double)(sr->dir==1?sPres->ext[1]:sPres->value),sPres->comp[1]?"*":"");CHKERRQ(ierr);
   if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1]) InertiaMismatch(eps,ctx->detect);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1059,7 +1059,7 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         *newS = sPres->value + 10*(sr->dir)*PetscAbsReal(sPres->value - sPres->neighb[0]->value);
         sr->nleap++;
         /* Stops when the interval is open and no values are found in the last 5 shifts (there might be infinite eigenvalues) */
-        if (!sr->hasEnd && sr->nleap > 5) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unable to compute the wanted eigenvalues with open interval");
+        PetscCheckFalse(!sr->hasEnd && sr->nleap > 5,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unable to compute the wanted eigenvalues with open interval");
       } else { /* First shift */
         if (eps->nconv != 0) {
           /* Unaccepted values give information for next shift */
@@ -1158,7 +1158,7 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
     err = eps->errest[eps->perm[i]];
 
     if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
-      if (count>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unexpected error in Spectrum Slicing");
+      PetscCheckFalse(count>=sr->numEigs,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unexpected error in Spectrum Slicing");
       sr->eigr[count] = lambda;
       sr->errest[count] = err;
       /* Explicit purification */
@@ -1296,7 +1296,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr);
       ierr = PetscObjectGetId((PetscObject)B,&Bid);CHKERRQ(ierr);
     }
-    if (Astate!=ctx->Astate || (B && Bstate!=ctx->Bstate) || Aid!=ctx->Aid || (B && Bid!=ctx->Bid)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Subcomm matrices have been modified by user");
+    PetscCheckFalse(Astate!=ctx->Astate || (B && Bstate!=ctx->Bstate) || Aid!=ctx->Aid || (B && Bid!=ctx->Bid),PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Subcomm matrices have been modified by user");
     /* Only with eigenvalues present in the interval ...*/
     if (sr->numEigs==0) {
       eps->reason = EPS_CONVERGED_TOL;

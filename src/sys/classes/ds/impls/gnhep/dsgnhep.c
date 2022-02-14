@@ -110,7 +110,7 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rn
   PetscStackCallBLAS("LAPACKtgevc",LAPACKtgevc_(side,"S",select,&n,A,&ld,B,&ld,Y,&ld,X,&ld,&mm,&mout,ds->work,&info));
 #endif
   SlepcCheckLapackInfo("tgevc",info);
-  if (!select[*k] || mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong arguments in call to Lapack xTGEVC");
+  PetscCheckFalse(!select[*k] || mout != mm,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong arguments in call to Lapack xTGEVC");
 
   /* accumulate and normalize eigenvectors */
   ierr = PetscArraycpy(ds->work,Z,mm*ld);CHKERRQ(ierr);
@@ -583,7 +583,7 @@ PetscErrorCode DSTruncate_GNHEP(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionBegin;
 #if defined(PETSC_USE_DEBUG)
   /* make sure diagonal 2x2 block is not broken */
-  if (ds->state>=DS_STATE_CONDENSED && n>0 && n<ds->n && (A[n+(n-1)*ld]!=0.0 || B[n+(n-1)*ld]!=0.0)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
+  PetscCheckFalse(ds->state>=DS_STATE_CONDENSED && n>0 && n<ds->n && (A[n+(n-1)*ld]!=0.0 || B[n+(n-1)*ld]!=0.0),PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
 #endif
   if (trim) {
     if (ds->extrarow) {   /* clean extra row */

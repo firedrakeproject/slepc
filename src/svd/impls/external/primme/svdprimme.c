@@ -114,7 +114,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
 #if defined(SLEPC_HAVE_PRIMME3)
     case primme_event_message:
       /* Print PRIMME information messages */
-      ierr = PetscInfo1(svd,"%s\n",msg);
+      ierr = PetscInfo(svd,"%s\n",msg);
       break;
 #endif
     default:
@@ -215,7 +215,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
     if (svd->ncv!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
   } else if (svd->ncv!=PETSC_DEFAULT) primme->maxBasisSize = svd->ncv;
 
-  if (primme_svds_set_method(ops->method,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,PRIMME_DEFAULT_METHOD,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"PRIMME method not valid");
+  PetscCheckFalse(primme_svds_set_method(ops->method,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,PRIMME_DEFAULT_METHOD,primme) < 0,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"PRIMME method not valid");
 
   svd->mpd = primme->maxBasisSize;
   svd->ncv = (primme->locking?svd->nsv:0)+primme->maxBasisSize;
@@ -279,12 +279,12 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
   /* Process PRIMME error code */
   if (ierrprimme == 0) {
     /* no error */
-  } else if (ierrprimme%100 == -1) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": unexpected error",ierrprimme);
-  else if (ierrprimme%100 == -2) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": allocation error",ierrprimme);
+  } else PetscCheckFalse(ierrprimme%100 == -1,PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": unexpected error",ierrprimme);
+  else PetscCheckFalse(ierrprimme%100 == -2,PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": allocation error",ierrprimme);
   else if (ierrprimme%100 == -3) {
     /* stop by maximum number of iteration or matvecs */
-  } else if (ierrprimme%100 >= -39) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": configuration error; check PRIMME's manual",ierrprimme);
-  else SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": runtime error; check PRIMME's manual",ierrprimme);
+  } else PetscCheckFalse(ierrprimme%100 >= -39,PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": configuration error; check PRIMME's manual",ierrprimme);
+  else SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": runtime error; check PRIMME's manual",ierrprimme);
   PetscFunctionReturn(0);
 }
 
@@ -360,7 +360,7 @@ static PetscErrorCode SVDPRIMMESetBlockSize_PRIMME(SVD svd,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) ops->bs = 0;
-  else if (bs <= 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
+  else PetscCheckFalse(bs <= 0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
   else ops->bs = bs;
   PetscFunctionReturn(0);
 }

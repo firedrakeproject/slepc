@@ -31,8 +31,8 @@ SLEPC_EXTERN PetscErrorCode VecDuplicateEmpty(Vec,Vec*);
 SLEPC_EXTERN PetscErrorCode VecSetRandomNormal(Vec,PetscRandom,Vec,Vec);
 
 /* Deprecated functions */
-PETSC_DEPRECATED_FUNCTION("Use VecNormalizeComplex()") PETSC_STATIC_INLINE PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool c,PetscReal *nrm) {return VecNormalizeComplex(xr,xi,c,nrm);}
-PETSC_DEPRECATED_FUNCTION("Use VecCheckOrthogonality()") PETSC_STATIC_INLINE PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev) {return VecCheckOrthogonality(V,nv,W,nw,B,viewer,lev);}
+PETSC_DEPRECATED_FUNCTION("Use VecNormalizeComplex()") static inline PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool c,PetscReal *nrm) {return VecNormalizeComplex(xr,xi,c,nrm);}
+PETSC_DEPRECATED_FUNCTION("Use VecCheckOrthogonality()") static inline PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev) {return VecCheckOrthogonality(V,nv,W,nw,B,viewer,lev);}
 
 #endif
 

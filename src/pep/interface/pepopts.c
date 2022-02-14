@@ -52,7 +52,7 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char opt[],const char name
   ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
   ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(PEPMonitorList,key,&mfunc);CHKERRQ(ierr);
-  if (!mfunc) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Specified viewer and format not supported");
+  PetscCheckFalse(!mfunc,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Specified viewer and format not supported");
   ierr = PetscFunctionListFind(PEPMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(PEPMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
@@ -203,7 +203,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     k = 2;
     ierr = PetscOptionsRealArray("-pep_interval","Computational interval (two real values separated with a comma without spaces)","PEPSetInterval",array,&k,&flg);CHKERRQ(ierr);
     if (flg) {
-      if (k<2) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_SIZ,"Must pass two values in -pep_interval (comma-separated without spaces)");
+      PetscCheckFalse(k<2,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_SIZ,"Must pass two values in -pep_interval (comma-separated without spaces)");
       ierr = PEPSetWhichEigenpairs(pep,PEP_ALL);CHKERRQ(ierr);
       ierr = PEPSetInterval(pep,array[0],array[1]);CHKERRQ(ierr);
     }
@@ -308,14 +308,14 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
     pep->tol   = PETSC_DEFAULT;
     pep->state = PEP_STATE_INITIAL;
   } else {
-    if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    PetscCheckFalse(tol <= 0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     pep->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
     pep->max_it = PETSC_DEFAULT;
     pep->state  = PEP_STATE_INITIAL;
   } else {
-    if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    PetscCheckFalse(maxits <= 0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     pep->max_it = maxits;
   }
   PetscFunctionReturn(0);
@@ -396,18 +396,18 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(pep,nev,2);
   PetscValidLogicalCollectiveInt(pep,ncv,3);
   PetscValidLogicalCollectiveInt(pep,mpd,4);
-  if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+  PetscCheckFalse(nev<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
   pep->nev = nev;
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
     pep->ncv = PETSC_DEFAULT;
   } else {
-    if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    PetscCheckFalse(ncv<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     pep->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
     pep->mpd = PETSC_DEFAULT;
   } else {
-    if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+    PetscCheckFalse(mpd<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     pep->mpd = mpd;
   }
   pep->state = PEP_STATE_INITIAL;
@@ -613,7 +613,7 @@ PetscErrorCode PEPSetProblemType(PEP pep,PEPProblemType type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,type,2);
-  if (type!=PEP_GENERAL && type!=PEP_HERMITIAN && type!=PEP_HYPERBOLIC && type!=PEP_GYROSCOPIC) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
+  PetscCheckFalse(type!=PEP_GENERAL && type!=PEP_HERMITIAN && type!=PEP_HYPERBOLIC && type!=PEP_GYROSCOPIC,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   if (type != pep->problem_type) {
     pep->problem_type = type;
     pep->state = PEP_STATE_INITIAL;
@@ -847,7 +847,7 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
     case PEP_CONV_REL:  pep->converged = PEPConvergedRelative; break;
     case PEP_CONV_NORM: pep->converged = PEPConvergedNorm; break;
     case PEP_CONV_USER:
-      if (!pep->convergeduser) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ORDER,"Must call PEPSetConvergenceTestFunction() first");
+      PetscCheckFalse(!pep->convergeduser,PetscObjectComm((PetscObject)pep),PETSC_ERR_ORDER,"Must call PEPSetConvergenceTestFunction() first");
       pep->converged = pep->convergeduser;
       break;
     default:
@@ -966,7 +966,7 @@ PetscErrorCode PEPSetStoppingTest(PEP pep,PEPStop stop)
   switch (stop) {
     case PEP_STOP_BASIC: pep->stopping = PEPStoppingBasic; break;
     case PEP_STOP_USER:
-      if (!pep->stoppinguser) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ORDER,"Must call PEPSetStoppingTestFunction() first");
+      PetscCheckFalse(!pep->stoppinguser,PetscObjectComm((PetscObject)pep),PETSC_ERR_ORDER,"Must call PEPSetStoppingTestFunction() first");
       pep->stopping = pep->stoppinguser;
       break;
     default:
@@ -1058,7 +1058,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
       pep->sfactor = 0.0;
       pep->sfactor_set = PETSC_FALSE;
     } else {
-      if (alpha<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
+      PetscCheckFalse(alpha<=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of alpha. Must be > 0");
       pep->sfactor = alpha;
       pep->sfactor_set = PETSC_TRUE;
     }
@@ -1083,7 +1083,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) pep->sits = 5;
     else pep->sits = its;
     if (lambda==PETSC_DECIDE || lambda==PETSC_DEFAULT) pep->slambda = 1.0;
-    else if (lambda<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of lambda. Must be > 0");
+    else PetscCheckFalse(lambda<=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of lambda. Must be > 0");
     else pep->slambda = lambda;
   }
   pep->state = PEP_STATE_INITIAL;
@@ -1249,19 +1249,19 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
       pep->npart = 1;
     } else {
       ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&size);CHKERRMPI(ierr);
-      if (npart<1 || npart>size) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
+      PetscCheckFalse(npart<1 || npart>size,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
       pep->npart = npart;
     }
     if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
       pep->rtol = PETSC_DEFAULT;
     } else {
-      if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+      PetscCheckFalse(tol<=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       pep->rtol = tol;
     }
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
       pep->rits = PETSC_DEFAULT;
     } else {
-      if (its<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
+      PetscCheckFalse(its<0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
       pep->rits = its;
     }
     pep->scheme = scheme;

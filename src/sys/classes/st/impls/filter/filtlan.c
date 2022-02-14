@@ -43,7 +43,7 @@ static PetscErrorCode FILTLAN_ExpandNewtonPolynomialInChebyshevBasis(PetscInt,Pe
    in general, if there are k x(i)'s with the same value x0, then
        the j-th order derivative of P(z) is zero at z=x0 for j=1,...,k-1
 */
-PETSC_STATIC_INLINE PetscErrorCode FILTLAN_NewtonPolynomial(PetscInt n,PetscReal *x,PetscReal *y,PetscReal *sa,PetscReal *sf)
+static inline PetscErrorCode FILTLAN_NewtonPolynomial(PetscInt n,PetscReal *x,PetscReal *y,PetscReal *sa,PetscReal *sf)
 {
   PetscErrorCode ierr;
   PetscReal      d,*sx=x,*sy=y;
@@ -219,13 +219,13 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
   const PetscInt  numLookMore = 2*(PetscInt)(0.5+(PetscLogReal(2.0)/PetscLogReal(opts->shiftStepExpanRate)));
 
   PetscFunctionBegin;
-  if (a>a1 || a1>b1 || b1>b) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Values in the frame vector should be non-decreasing");
-  if (a1 == b1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The range of wanted eigenvalues cannot be of size zero");
+  PetscCheckFalse(a>a1 || a1>b1 || b1>b,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Values in the frame vector should be non-decreasing");
+  PetscCheckFalse(a1 == b1,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The range of wanted eigenvalues cannot be of size zero");
   filterInfo->filterType = 2;      /* mid-pass filter, for interior eigenvalues */
   if (b == b1) {
-    if (a == a1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"A polynomial filter should not cover all eigenvalues");
+    PetscCheckFalse(a == a1,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"A polynomial filter should not cover all eigenvalues");
     filterInfo->filterType = 1;    /* high-pass filter, for largest eigenvalues */
-  } else if (a == a1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"filterType==3 for smallest eigenvalues should be pre-converted to filterType==1 for largest eigenvalues");
+  } else PetscCheckFalse(a == a1,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"filterType==3 for smallest eigenvalues should be pre-converted to filterType==1 for largest eigenvalues");
 
   /* the following recipe follows Yousef Saad (2005, 2006) with a few minor adaptations / enhancements */
   halfPlateau = 0.5*(b1-a1)*opts->initialPlateau;    /* half length of the "plateau" of the (dual) base filter */
@@ -448,7 +448,7 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
       else halfPlateau /= PetscSqrtReal(opts->plateauShrinkRate);
     }
   }
-  if (!filterInfo->filterOK) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"STFILTER cannot get the filter specified; please adjust your filter parameters (e.g. increasing the polynomial degree)");
+  PetscCheckFalse(!filterInfo->filterOK,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"STFILTER cannot get the filter specified; please adjust your filter parameters (e.g. increasing the polynomial degree)");
 
   filterInfo->totalNumIter = numIter;
   ierr = PetscFree2(polyFilter,baseFilter);CHKERRQ(ierr);
@@ -476,7 +476,7 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
    a vector q containing the Chebyshev coefficients:
        P(z) = q(1)*S_0(z) + q(2)*S_1(z) + ... + q(n)*S_{n-1}(z)
 */
-PETSC_STATIC_INLINE PetscErrorCode FILTLAN_ExpandNewtonPolynomialInChebyshevBasis(PetscInt n,PetscReal aa,PetscReal bb,PetscReal *a,PetscReal *x,PetscReal *q,PetscReal *q2)
+static inline PetscErrorCode FILTLAN_ExpandNewtonPolynomialInChebyshevBasis(PetscInt n,PetscReal aa,PetscReal bb,PetscReal *a,PetscReal *x,PetscReal *q,PetscReal *q2)
 {
   PetscInt  m,mm;
   PetscReal *sa,*sx,*sq,*sq2,c,c2,h,h2;
@@ -540,7 +540,7 @@ PETSC_STATIC_INLINE PetscErrorCode FILTLAN_ExpandNewtonPolynomialInChebyshevBasi
    output:
    the evaluated value of P(z) at z=z0
 */
-PETSC_STATIC_INLINE PetscReal FILTLAN_PolynomialEvaluationInChebyshevBasis(PetscReal *pp,PetscInt m,PetscInt idx,PetscReal z0,PetscReal aa,PetscReal bb)
+static inline PetscReal FILTLAN_PolynomialEvaluationInChebyshevBasis(PetscReal *pp,PetscInt m,PetscInt idx,PetscReal z0,PetscReal aa,PetscReal bb)
 {
   PetscInt  ii,deg1;
   PetscReal y,zz,t0,t1,t2,*sc;
@@ -594,7 +594,7 @@ PETSC_STATIC_INLINE PetscReal FILTLAN_PolynomialEvaluationInChebyshevBasis(Petsc
    note that if z0 falls below the first interval, then the polynomial in the first interval will be used to evaluate P(z0)
              if z0 flies over  the last  interval, then the polynomial in the last  interval will be used to evaluate P(z0)
 */
-PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialEvaluationInChebyshevBasis(PetscReal *pp,PetscInt m,PetscReal *intv,PetscInt npoints,PetscReal z0)
+static inline PetscReal FILTLAN_PiecewisePolynomialEvaluationInChebyshevBasis(PetscReal *pp,PetscInt m,PetscReal *intv,PetscInt npoints,PetscReal z0)
 {
   PetscReal *sintv,aa,bb,resul;
   PetscInt  idx;
@@ -654,7 +654,7 @@ PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialEvaluationInChebyshevBa
 
    note that for unit weights, pass an empty vector of intervalWeights (i.e. of length 0)
 */
-PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialInnerProductInChebyshevBasis(PetscReal *pp,PetscInt prows,PetscInt pcols,PetscInt ldp,PetscReal *qq,PetscInt qrows,PetscInt qcols,PetscInt ldq,const PetscReal *intervalWeights)
+static inline PetscReal FILTLAN_PiecewisePolynomialInnerProductInChebyshevBasis(PetscReal *pp,PetscInt prows,PetscInt pcols,PetscInt ldp,PetscReal *qq,PetscInt qrows,PetscInt qcols,PetscInt ldq,const PetscReal *intervalWeights)
 {
   PetscInt  nintv,deg1,i,k;
   PetscReal *sp,*sq,ans=0.0,ans2;
@@ -695,7 +695,7 @@ PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialInnerProductInChebyshev
 
    the returned matrix is qq which represents Q(z) = z*P(z)
 */
-PETSC_STATIC_INLINE PetscErrorCode FILTLAN_PiecewisePolynomialInChebyshevBasisMultiplyX(PetscReal *pp,PetscInt deg1,PetscInt ldp,PetscReal *intv,PetscInt nintv,PetscReal *qq,PetscInt ldq)
+static inline PetscErrorCode FILTLAN_PiecewisePolynomialInChebyshevBasisMultiplyX(PetscReal *pp,PetscInt deg1,PetscInt ldp,PetscReal *intv,PetscInt nintv,PetscReal *qq,PetscInt ldq)
 {
   PetscInt  i,j;
   PetscReal c,h,h2,tmp,*sp,*sq,*sp2,*sq2;
@@ -732,7 +732,7 @@ PETSC_STATIC_INLINE PetscErrorCode FILTLAN_PiecewisePolynomialInChebyshevBasisMu
 
     A,B are nxk
 */
-PETSC_STATIC_INLINE PetscErrorCode Mat_AXPY_BLAS(PetscInt n,PetscInt k,PetscReal alpha,const PetscReal *A,PetscInt lda,PetscReal beta,PetscReal *B,PetscInt ldb)
+static inline PetscErrorCode Mat_AXPY_BLAS(PetscInt n,PetscInt k,PetscReal alpha,const PetscReal *A,PetscInt lda,PetscReal beta,PetscReal *B,PetscInt ldb)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
@@ -1036,7 +1036,7 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
     ierr = PetscFree(ctx->baseFilter);CHKERRQ(ierr);
     ierr = PetscMalloc1((2*ctx->baseDegree+2)*(npoints-1),&ctx->baseFilter);CHKERRQ(ierr);
     ierr = FILTLAN_HermiteBaseFilterInChebyshevBasis(ctx->baseFilter,ctx->intervals,npoints,HighLowFlags,ctx->baseDegree);CHKERRQ(ierr);
-    ierr = PetscInfo1(st,"Computed value of yLimit = %g\n",(double)ctx->filterInfo->yLimit);CHKERRQ(ierr);
+    ierr = PetscInfo(st,"Computed value of yLimit = %g\n",(double)ctx->filterInfo->yLimit);CHKERRQ(ierr);
   }
   ctx->filtch = PETSC_FALSE;
 

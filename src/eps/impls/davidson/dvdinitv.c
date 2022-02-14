@@ -30,7 +30,7 @@ static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
   /* User vectors are added at the beginning, so no active column should be in V */
-  if (data->user>0&&l>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(data->user>0&&l>0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   /* Generate a set of random initial vectors and orthonormalize them */
   for (i=l+user;i<l+data->k && i<d->eps->ncv && i-l<d->eps->mpd;i++) {
     ierr = BVSetRandomColumn(d->eps->V,i);CHKERRQ(ierr);
@@ -53,7 +53,7 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
   /* User vectors are added at the beginning, so no active column should be in V */
-  if (data->user>0&&l>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscCheckFalse(data->user>0&&l>0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
 
   /* If needed, generate a random vector for starting the arnoldi method */
   if (user == 0) {

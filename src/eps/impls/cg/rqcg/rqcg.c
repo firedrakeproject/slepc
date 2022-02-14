@@ -45,7 +45,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real eigenvalues");
+  PetscCheckFalse(eps->which!=EPS_SMALLEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION);
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE);
 
@@ -286,7 +286,7 @@ static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
     ctx->nrest = 0;
     eps->state = EPS_STATE_INITIAL;
   } else {
-    if (nrest<=0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Reset parameter must be >0");
+    PetscCheckFalse(nrest<=0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Reset parameter must be >0");
     ctx->nrest = nrest;
   }
   PetscFunctionReturn(0);

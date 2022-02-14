@@ -85,31 +85,31 @@ struct _p_DS {
 
 #define DSCheckAlloc(h,arg) \
   do { \
-    if (!(h)->ld) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSAllocate() first: Parameter #%d",arg); \
+    PetscCheckFalse(!(h)->ld,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSAllocate() first: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckSolved(h,arg) \
   do { \
-    if ((h)->state<DS_STATE_CONDENSED) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
+    PetscCheckFalse((h)->state<DS_STATE_CONDENSED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckValidMat(ds,m,arg) \
   do { \
-    if ((m)>=DS_NUM_MAT) SETERRQ1(PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
-    if (!(ds)->mat[m]) SETERRQ1(PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+    PetscCheckFalse((m)>=DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    PetscCheckFalse(!(ds)->mat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckValidMatReal(ds,m,arg) \
   do { \
-    if ((m)>=DS_NUM_MAT) SETERRQ1(PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
-    if (!(ds)->rmat[m]) SETERRQ1(PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+    PetscCheckFalse((m)>=DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    PetscCheckFalse(!(ds)->rmat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
   } while (0)
 
 #endif
 
 SLEPC_INTERN PetscErrorCode DSAllocateMatrix_Private(DS,DSMatType,PetscBool);
-PETSC_STATIC_INLINE PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_FALSE);}
-PETSC_STATIC_INLINE PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_TRUE);}
+static inline PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_FALSE);}
+static inline PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_TRUE);}
 SLEPC_INTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
 SLEPC_INTERN PetscErrorCode DSSortEigenvalues_Private(DS,PetscScalar*,PetscScalar*,PetscInt*,PetscBool);
 SLEPC_INTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscReal*,PetscInt*);

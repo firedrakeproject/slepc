@@ -51,7 +51,7 @@ PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char opt[],const char name
   ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
   ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(MFNMonitorList,key,&mfunc);CHKERRQ(ierr);
-  if (!mfunc) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_SUP,"Specified viewer and format not supported");
+  PetscCheckFalse(!mfunc,PetscObjectComm((PetscObject)mfn),PETSC_ERR_SUP,"Specified viewer and format not supported");
   ierr = PetscFunctionListFind(MFNMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(MFNMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
@@ -196,14 +196,14 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
     mfn->tol = PETSC_DEFAULT;
     mfn->setupcalled = 0;
   } else {
-    if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    PetscCheckFalse(tol <= 0.0,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     mfn->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
     mfn->max_it = PETSC_DEFAULT;
     mfn->setupcalled = 0;
   } else {
-    if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    PetscCheckFalse(maxits <= 0,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     mfn->max_it = maxits;
   }
   PetscFunctionReturn(0);
@@ -261,7 +261,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
     mfn->ncv = PETSC_DEFAULT;
   } else {
-    if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    PetscCheckFalse(ncv<1,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     mfn->ncv = ncv;
   }
   mfn->setupcalled = 0;

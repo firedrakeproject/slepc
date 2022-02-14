@@ -36,10 +36,10 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 
   PetscFunctionBegin;
   ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
-  if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
+  PetscCheckFalse(nep->ncv>nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (nep->max_it==PETSC_DEFAULT) nep->max_it = nep->nev*nep->ncv;
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
-  if (nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
+  PetscCheckFalse(nep->which!=NEP_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_CALLBACK | NEP_FEATURE_REGION | NEP_FEATURE_TWOSIDED);
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,3);CHKERRQ(ierr);
@@ -161,7 +161,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
         ierr = BVRestoreColumn(Vext,n,&f);CHKERRQ(ierr);
         ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
         if (kspreason<0) {
-          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }
@@ -169,7 +169,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
         /* orthonormalize */
         ierr = BVOrthonormalizeColumn(Vext,n,PETSC_FALSE,&beta,&breakdown);CHKERRQ(ierr);
         if (breakdown || beta==0.0) {
-          ierr = PetscInfo1(nep,"iter=%" PetscInt_FMT ", orthogonalization failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", orthogonalization failed, stopping solve\n",nep->its);CHKERRQ(ierr);
           nep->reason = NEP_DIVERGED_BREAKDOWN;
           break;
         }
@@ -224,7 +224,7 @@ static PetscErrorCode NEPNArnoldiSetLagPreconditioner_NArnoldi(NEP nep,PetscInt 
   NEP_NARNOLDI *ctx = (NEP_NARNOLDI*)nep->data;
 
   PetscFunctionBegin;
-  if (lag<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Lag must be non-negative");
+  PetscCheckFalse(lag<0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Lag must be non-negative");
   ctx->lag = lag;
   PetscFunctionReturn(0);
 }
