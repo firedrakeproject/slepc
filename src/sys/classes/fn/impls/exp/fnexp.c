@@ -1036,13 +1036,9 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
     cerr = cudaMemcpy(&info,d_info,sizeof(PetscBLASInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
     PetscCheckFalse(info < 0,PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
     PetscCheckFalse(info > 0,PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
-#if defined (CUDA_VERSION) && CUDA_VERSION >= 5050
     cberr = cublasXgetrsBatched(cublasv2handle,CUBLAS_OP_N,n,n,(const PetscScalar **)d_ppQ,ld,d_ipiv,d_ppP,ld,&info,one);CHKERRCUBLAS(cberr);
     PetscCheckFalse(info < 0,PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
     PetscCheckFalse(info > 0,PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
-#else
-    SETERRQ(communicator,PETSC_ERR_LIB,"cublasXgetrsBatched needs CUDA >= 7");
-#endif
     cberr = cublasXscal(cublasv2handle,ld2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
     ierr = shift_diagonal(n,d_P,ld,sone);CHKERRQ(cerr);
     cberr = cublasXscal(cublasv2handle,ld2,&smone,d_P,one);CHKERRCUBLAS(cberr);
@@ -1060,13 +1056,9 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
     cerr = cudaMemcpy(&info,d_info,sizeof(PetscBLASInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
     PetscCheckFalse(info < 0,PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
     PetscCheckFalse(info > 0,PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
-#if defined (CUDA_VERSION) && CUDA_VERSION >= 5050
     cberr = cublasXgetrsBatched(cublasv2handle,CUBLAS_OP_N,n,n,(const PetscScalar **)d_ppQ,ld,d_ipiv,d_ppP,ld,&info,one);CHKERRCUBLAS(cberr);
     PetscCheckFalse(info < 0,PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
     PetscCheckFalse(info > 0,PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
-#else
-    SETERRQ(communicator,PETSC_ERR_LIB,"cublasXgetrsBatched needs CUDA >= 7");
-#endif
     cberr = cublasXscal(cublasv2handle,ld2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
     ierr = shift_diagonal(n,d_P,ld,sone);CHKERRQ(cerr);
   }
