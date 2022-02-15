@@ -1061,24 +1061,21 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
         /* Stops when the interval is open and no values are found in the last 5 shifts (there might be infinite eigenvalues) */
         PetscCheckFalse(!sr->hasEnd && sr->nleap > 5,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Unable to compute the wanted eigenvalues with open interval");
       } else { /* First shift */
-        if (eps->nconv != 0) {
-          /* Unaccepted values give information for next shift */
-          idxP=0;/* Number of values left from shift */
-          for (i=0;i<eps->nconv;i++) {
-            lambda = PetscRealPart(eps->eigr[i]);
-            if ((sr->dir)*(lambda - sPres->value) <0) idxP++;
-            else break;
-          }
-          /* Avoiding subtraction of eigenvalues (might be the same).*/
-          if (idxP>0) {
-            d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[0]))/(idxP+0.3);
-          } else {
-            d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[eps->nconv-1]))/(eps->nconv+0.3);
-          }
-          *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
-        } else { /* No values found, no information for next shift */
-          SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"First shift renders no information");
+        PetscCheck(eps->nconv!=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"First shift renders no information");
+        /* Unaccepted values give information for next shift */
+        idxP=0;/* Number of values left from shift */
+        for (i=0;i<eps->nconv;i++) {
+          lambda = PetscRealPart(eps->eigr[i]);
+          if ((sr->dir)*(lambda - sPres->value) <0) idxP++;
+          else break;
         }
+        /* Avoiding subtraction of eigenvalues (might be the same).*/
+        if (idxP>0) {
+          d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[0]))/(idxP+0.3);
+        } else {
+          d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[eps->nconv-1]))/(eps->nconv+0.3);
+        }
+        *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
       }
     } else { /* Accepted values found */
       sr->nleap = 0;

@@ -44,9 +44,8 @@ static PetscErrorCode EPSComputeValues(EPS eps)
       ierr = STIsInjective(eps->st,&injective);CHKERRQ(ierr);
       if (injective) {
         /* one-to-one mapping: backtransform eigenvalues */
-        if (eps->ops->backtransform) {
-          ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
-        } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, spectral transform should have a backtransform operation");
+        PetscCheck(eps->ops->backtransform,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, spectral transform should have a backtransform operation");
+        ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
       } else {
         /* compute eigenvalues from Rayleigh quotient */
         ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
@@ -822,7 +821,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     PetscCheckFalse(i==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Initial vector is zero or belongs to the deflation space");
-    else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more start vectors");
+    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more start vectors");
   }
   ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -852,7 +851,7 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     PetscCheckFalse(i==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Left initial vector is zero");
-    else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more left start vectors");
+    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more left start vectors");
   }
   ierr = BVScaleColumn(eps->W,i,1.0/norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -1431,13 +1431,11 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds);CHKERRQ(ierr);
   /* check if H is in Schur form */
   for (i=0;i<k-1;i++) {
-    if (H[i+1+i*ldh]!=0.0) {
 #if !defined(PETSC_USE_COMPLEX)
-      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Iterative Refinement requires the complex Schur form of the projected matrix");
+    PetscCheck(H[i+1+i*ldh]==0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Iterative Refinement requires the complex Schur form of the projected matrix");
 #else
-      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Iterative Refinement requires an upper triangular projected matrix");
+    PetscCheck(H[i+1+i*ldh]==0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Iterative Refinement requires an upper triangular projected matrix");
 #endif
-    }
   }
   PetscCheckFalse(nsubc>k,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Amount of subcommunicators should not be larger than the invariant pair dimension");
   ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);

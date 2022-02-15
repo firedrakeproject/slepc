@@ -397,9 +397,8 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCheckFalse(!ctx->rg,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"The contour solver requires a region passed with DSNEPSetRG()");
   /* Contour parameters */
   ierr = PetscObjectTypeCompare((PetscObject)ctx->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  if (isellipse) {
-    ierr = RGEllipseGetParameters(ctx->rg,&center,&radius,&vscale);CHKERRQ(ierr);
-  } else SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Region must be Ellipse");
+  PetscCheck(isellipse,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Region must be Ellipse");
+  ierr = RGEllipseGetParameters(ctx->rg,&center,&radius,&vscale);CHKERRQ(ierr);
   ierr = RGGetScale(ctx->rg,&rgscale);CHKERRQ(ierr);
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {
     if (!ctx->map) { ierr = PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,ctx->nnod,1,&ctx->map);CHKERRQ(ierr); }

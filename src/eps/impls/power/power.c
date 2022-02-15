@@ -260,13 +260,12 @@ static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
   PetscFunctionBegin;
   ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
-  if (A) {
-    if (power->formFunctionA) {
-      ierr = (*power->formFunctionA)(power->snes,x,Ax,power->formFunctionActx);CHKERRQ(ierr);
-    } else {
-      ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
-    }
-  } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem");
+  PetscCheck(A,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem");
+  if (power->formFunctionA) {
+    ierr = (*power->formFunctionA)(power->snes,x,Ax,power->formFunctionActx);CHKERRQ(ierr);
+  } else {
+    ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

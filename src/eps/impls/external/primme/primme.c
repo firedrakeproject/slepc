@@ -351,14 +351,19 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   eps->its    = ops->primme.stats.numOuterIterations;
 
   /* Process PRIMME error code */
-  if (ierrprimme == 0) {
-    /* no error */
-  } else PetscCheckFalse(ierrprimme == -1,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": unexpected error",ierrprimme);
-  else PetscCheckFalse(ierrprimme == -2,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": allocation error",ierrprimme);
-  else if (ierrprimme == -3) {
-    /* stop by maximum number of iteration or matvecs */
-  } else PetscCheckFalse(ierrprimme >= -39,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": configuration error; check PRIMME's manual",ierrprimme);
-  else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": runtime error; check PRIMME's manual",ierrprimme);
+  switch (ierrprimme) {
+    case 0: /* no error */
+      break;
+    case -1:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": unexpected error",ierrprimme);
+    case -2:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": allocation error",ierrprimme);
+    case -3: /* stop due to maximum number of iterations or matvecs */
+      break;
+    default:
+      if (ierrprimme >= -39) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": configuration error; check PRIMME's manual",ierrprimme);
+      else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": runtime error; check PRIMME's manual",ierrprimme);
+  }
   PetscFunctionReturn(0);
 }
 

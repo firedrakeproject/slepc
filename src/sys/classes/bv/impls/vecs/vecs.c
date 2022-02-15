@@ -253,14 +253,13 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   if (PetscUnlikely(j<0)) {
-    if (type==NORM_FROBENIUS) {
-      *val = 0.0;
-      for (i=bv->l;i<bv->k;i++) {
-        ierr = VecNorm(ctx->V[bv->nc+i],NORM_2,&nrm);CHKERRQ(ierr);
-        *val += nrm*nrm;
-      }
-      *val = PetscSqrtReal(*val);
-    } else SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+    PetscCheck(type==NORM_FROBENIUS,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+    *val = 0.0;
+    for (i=bv->l;i<bv->k;i++) {
+      ierr = VecNorm(ctx->V[bv->nc+i],NORM_2,&nrm);CHKERRQ(ierr);
+      *val += nrm*nrm;
+    }
+    *val = PetscSqrtReal(*val);
   } else {
     ierr = VecNorm(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
   }

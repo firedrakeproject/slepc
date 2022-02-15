@@ -367,13 +367,12 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 #if !defined(PETSC_USE_COMPLEX)
   for (i=0;i<ndpt;i++) if (dsi[i]!=0.0) break;
   if (i<ndpt) {
-    if (nep->problem_type==NEP_RATIONAL) {
-      /* Select a segment in the real axis */
-      ierr = RGComputeBoundingBox(nep->rg,&a,&b,NULL,NULL);CHKERRQ(ierr);
-      PetscCheckFalse(a<=-PETSC_MAX_REAL || b>=PETSC_MAX_REAL,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"NLEIGS requires a bounded target set");
-      h = (b-a)/ndpt;
-      for (i=0;i<ndpt;i++) {ds[i] = a+h*i; dsi[i] = 0.0;}
-    } else SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NLEIGS with real arithmetic requires the target set to be included in the real axis");
+    PetscCheck(nep->problem_type==NEP_RATIONAL,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NLEIGS with real arithmetic requires the target set to be included in the real axis");
+    /* Select a segment in the real axis */
+    ierr = RGComputeBoundingBox(nep->rg,&a,&b,NULL,NULL);CHKERRQ(ierr);
+    PetscCheckFalse(a<=-PETSC_MAX_REAL || b>=PETSC_MAX_REAL,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"NLEIGS requires a bounded target set");
+    h = (b-a)/ndpt;
+    for (i=0;i<ndpt;i++) {ds[i] = a+h*i; dsi[i] = 0.0;}
   }
 #endif
   /* Discretize the singularity region */

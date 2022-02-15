@@ -714,26 +714,25 @@ static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(pjd->ld-1,&tt);CHKERRQ(ierr);
-  if (pep->nini==0) {
-    ierr = BVSetRandomColumn(pjd->V,0);CHKERRQ(ierr);
-    for (i=0;i<pjd->ld-1;i++) tt[i] = 0.0;
+  PetscCheck(pep->nini==0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Support for initial vectors not implemented yet");
+  ierr = BVSetRandomColumn(pjd->V,0);CHKERRQ(ierr);
+  for (i=0;i<pjd->ld-1;i++) tt[i] = 0.0;
+  ierr = BVGetColumn(pjd->V,0,&vg);CHKERRQ(ierr);
+  ierr = PEPJDCopyToExtendedVec(pep,NULL,tt,pjd->ld-1,0,vg,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
+  ierr = BVNormColumn(pjd->V,0,NORM_2,&norm);CHKERRQ(ierr);
+  ierr = BVScaleColumn(pjd->V,0,1.0/norm);CHKERRQ(ierr);
+  if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
     ierr = BVGetColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-    ierr = PEPJDCopyToExtendedVec(pep,NULL,tt,pjd->ld-1,0,vg,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVGetColumn(pjd->W,0,&wg);CHKERRQ(ierr);
+    ierr = VecSet(wg,0.0);CHKERRQ(ierr);
+    target[0] = pep->target; target[1] = 0.0;
+    ierr = PEPJDComputeResidual(pep,PETSC_TRUE,1,&vg,target,&wg,w);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(pjd->W,0,&wg);CHKERRQ(ierr);
     ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-    ierr = BVNormColumn(pjd->V,0,NORM_2,&norm);CHKERRQ(ierr);
-    ierr = BVScaleColumn(pjd->V,0,1.0/norm);CHKERRQ(ierr);
-    if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
-      ierr = BVGetColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-      ierr = BVGetColumn(pjd->W,0,&wg);CHKERRQ(ierr);
-      ierr = VecSet(wg,0.0);CHKERRQ(ierr);
-      target[0] = pep->target; target[1] = 0.0;
-      ierr = PEPJDComputeResidual(pep,PETSC_TRUE,1,&vg,target,&wg,w);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pjd->W,0,&wg);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-      ierr = BVNormColumn(pjd->W,0,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(pjd->W,0,1.0/norm);CHKERRQ(ierr);
-    }
-  } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Support for initial vectors not implemented yet");
+    ierr = BVNormColumn(pjd->W,0,NORM_2,&norm);CHKERRQ(ierr);
+    ierr = BVScaleColumn(pjd->W,0,1.0/norm);CHKERRQ(ierr);
+  }
   ierr = PetscFree(tt);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

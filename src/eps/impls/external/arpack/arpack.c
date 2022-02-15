@@ -224,8 +224,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   eps->nconv = iparam[4];
   eps->its = iparam[2];
 
-  PetscCheckFalse(info==3,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
-  else PetscCheckFalse(info!=0 && info!=1,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%" PetscInt_FMT ")",info);
+  if (info==3) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
+  else if (info!=0 && info!=1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%" PetscInt_FMT ")",info);
 
   rvec = PETSC_TRUE;
 

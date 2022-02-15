@@ -727,8 +727,8 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
       j=i+1;
       while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
       if (j==ds->n) {
-        if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) wr[i]=PetscRealPart(wr[i]);
-        else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
+        PetscCheck(PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON,PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
+        wr[i]=PetscRealPart(wr[i]);
       } else { /* complex eigenvalue */
         wr[j] = wr[i+1];
         if (PetscImaginaryPart(wr[i])<0) wr[i] = PetscConj(wr[i]);
@@ -839,12 +839,11 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     j=i+1;
     while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
     if (j==ds->n) {
-      if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) {
-        wr[i]=PetscRealPart(wr[i]); /* real eigenvalue */
-        for (k=ds->l;k<ds->n;k++) {
-          X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
-        }
-      } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
+      PetscCheck(PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON,PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
+      wr[i]=PetscRealPart(wr[i]); /* real eigenvalue */
+      for (k=ds->l;k<ds->n;k++) {
+        X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
+      }
     } else { /* complex eigenvalue */
       if (j!=i+1) {
         wr[j] = wr[i+1];
