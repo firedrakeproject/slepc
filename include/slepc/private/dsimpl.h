@@ -85,24 +85,24 @@ struct _p_DS {
 
 #define DSCheckAlloc(h,arg) \
   do { \
-    PetscCheckFalse(!(h)->ld,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSAllocate() first: Parameter #%d",arg); \
+    PetscCheck((h)->ld,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSAllocate() first: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckSolved(h,arg) \
   do { \
-    PetscCheckFalse((h)->state<DS_STATE_CONDENSED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
+    PetscCheck((h)->state>=DS_STATE_CONDENSED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckValidMat(ds,m,arg) \
   do { \
-    PetscCheckFalse((m)>=DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
-    PetscCheckFalse(!(ds)->mat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+    PetscCheck((m)<DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    PetscCheck((ds)->mat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckValidMatReal(ds,m,arg) \
   do { \
-    PetscCheckFalse((m)>=DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
-    PetscCheckFalse(!(ds)->rmat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+    PetscCheck((m)<DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    PetscCheck((ds)->rmat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
   } while (0)
 
 #endif

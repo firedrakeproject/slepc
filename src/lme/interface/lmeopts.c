@@ -51,7 +51,7 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char opt[],const char name
   ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
   ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(LMEMonitorList,key,&mfunc);CHKERRQ(ierr);
-  PetscCheckFalse(!mfunc,PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"Specified viewer and format not supported");
+  PetscCheck(mfunc,PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"Specified viewer and format not supported");
   ierr = PetscFunctionListFind(LMEMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(LMEMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
@@ -297,14 +297,14 @@ PetscErrorCode LMESetTolerances(LME lme,PetscReal tol,PetscInt maxits)
     lme->tol = PETSC_DEFAULT;
     lme->setupcalled = 0;
   } else {
-    PetscCheckFalse(tol <= 0.0,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    PetscCheck(tol>0.0,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     lme->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
     lme->max_it = PETSC_DEFAULT;
     lme->setupcalled = 0;
   } else {
-    PetscCheckFalse(maxits <= 0,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    PetscCheck(maxits>0,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     lme->max_it = maxits;
   }
   PetscFunctionReturn(0);
@@ -362,7 +362,7 @@ PetscErrorCode LMESetDimensions(LME lme,PetscInt ncv)
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
     lme->ncv = PETSC_DEFAULT;
   } else {
-    PetscCheckFalse(ncv<1,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    PetscCheck(ncv>0,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     lme->ncv = ncv;
   }
   lme->setupcalled = 0;

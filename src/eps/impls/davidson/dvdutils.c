@@ -178,7 +178,7 @@ static PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 
   /* W(i) <- Wa*AV(i) - Wb*BV(i) */
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  PetscCheckFalse(k != l+d->V_new_s,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
+  PetscAssert(k==l+d->V_new_s,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   ierr = BVSetActiveColumns(d->W,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(d->AX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(BX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);

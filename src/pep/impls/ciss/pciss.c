@@ -178,17 +178,17 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
   if (pep->max_it==PETSC_DEFAULT) pep->max_it = 5;
   if (pep->mpd==PETSC_DEFAULT) pep->mpd = pep->ncv;
   if (!pep->which) pep->which = PEP_ALL;
-  PetscCheckFalse(pep->which!=PEP_ALL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver supports only computing all eigenvalues");
+  PetscCheck(pep->which==PEP_ALL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver supports only computing all eigenvalues");
   PEPCheckUnsupported(pep,PEP_FEATURE_STOPPING);
   PEPCheckIgnored(pep,PEP_FEATURE_SCALE);
 
   /* check region */
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
-  PetscCheckFalse(istrivial,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  PetscCheck(!istrivial,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
   ierr = RGGetComplement(pep->rg,&flg);CHKERRQ(ierr);
-  PetscCheckFalse(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
+  PetscCheck(!flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
   ierr = PetscObjectTypeCompare((PetscObject)pep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  PetscCheckFalse(!isellipse,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
+  PetscCheck(isellipse,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
 
   /* if the region has changed, then reset contour data */
   ierr = PetscObjectGetId((PetscObject)pep->rg,&id);CHKERRQ(ierr);
@@ -514,23 +514,23 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
   if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) {
     if (ctx->N!=32) { ctx->N =32; ctx->M = ctx->N/4; }
   } else {
-    PetscCheckFalse(ip<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be > 0");
-    PetscCheckFalse(ip%2,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be an even number");
+    PetscCheck(ip>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be > 0");
+    PetscCheck(ip%2==0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The ip argument must be an even number");
     if (ctx->N!=ip) { ctx->N = ip; ctx->M = ctx->N/4; }
   }
   oL = ctx->L;
   if (bs == PETSC_DECIDE || bs == PETSC_DEFAULT) {
     ctx->L = 16;
   } else {
-    PetscCheckFalse(bs<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
+    PetscCheck(bs>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
     ctx->L = bs;
   }
   oM = ctx->M;
   if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
     ctx->M = ctx->N/4;
   } else {
-    PetscCheckFalse(ms<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be > 0");
-    PetscCheckFalse(ms>ctx->N,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be less than or equal to the number of integration points");
+    PetscCheck(ms>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be > 0");
+    PetscCheck(ms<=ctx->N,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be less than or equal to the number of integration points");
     ctx->M = PetscMax(ms,2);
   }
   onpart = ctx->npart;
@@ -538,14 +538,14 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
     ctx->npart = 1;
   } else {
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&size);CHKERRMPI(ierr);
-    PetscCheckFalse(npart<1 || npart>size,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
+    PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
     ctx->npart = npart;
   }
   oLmax = ctx->L_max;
   if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
     ctx->L_max = 64;
   } else {
-    PetscCheckFalse(bsmax<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
+    PetscCheck(bsmax>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
     ctx->L_max = PetscMax(bsmax,ctx->L);
   }
   if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) {
@@ -657,13 +657,13 @@ static PetscErrorCode PEPCISSSetThreshold_CISS(PEP pep,PetscReal delta,PetscReal
   if (delta == PETSC_DEFAULT) {
     ctx->delta = SLEPC_DEFAULT_TOL*1e-4;
   } else {
-    PetscCheckFalse(delta<=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The delta argument must be > 0.0");
+    PetscCheck(delta>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The delta argument must be > 0.0");
     ctx->delta = delta;
   }
   if (spur == PETSC_DEFAULT) {
     ctx->spurious_threshold = PetscSqrtReal(SLEPC_DEFAULT_TOL);
   } else {
-    PetscCheckFalse(spur<=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
+    PetscCheck(spur>0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The spurious threshold argument must be > 0.0");
     ctx->spurious_threshold = spur;
   }
   PetscFunctionReturn(0);
@@ -745,13 +745,13 @@ static PetscErrorCode PEPCISSSetRefinement_CISS(PEP pep,PetscInt inner,PetscInt 
   if (inner == PETSC_DEFAULT) {
     ctx->refine_inner = 0;
   } else {
-    PetscCheckFalse(inner<0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The refine inner argument must be >= 0");
+    PetscCheck(inner>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The refine inner argument must be >= 0");
     ctx->refine_inner = inner;
   }
   if (blsize == PETSC_DEFAULT) {
     ctx->refine_blocksize = 0;
   } else {
-    PetscCheckFalse(blsize<0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The refine blocksize argument must be >= 0");
+    PetscCheck(blsize>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The refine blocksize argument must be >= 0");
     ctx->refine_blocksize = blsize;
   }
   PetscFunctionReturn(0);

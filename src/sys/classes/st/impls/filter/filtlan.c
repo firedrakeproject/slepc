@@ -219,13 +219,13 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
   const PetscInt  numLookMore = 2*(PetscInt)(0.5+(PetscLogReal(2.0)/PetscLogReal(opts->shiftStepExpanRate)));
 
   PetscFunctionBegin;
-  PetscCheckFalse(a>a1 || a1>b1 || b1>b,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Values in the frame vector should be non-decreasing");
-  PetscCheckFalse(a1 == b1,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The range of wanted eigenvalues cannot be of size zero");
+  PetscCheck(a<=a1 && a1<=b1 && b1<=b,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Values in the frame vector should be non-decreasing");
+  PetscCheck(a1!=b1,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The range of wanted eigenvalues cannot be of size zero");
   filterInfo->filterType = 2;      /* mid-pass filter, for interior eigenvalues */
   if (b == b1) {
-    PetscCheckFalse(a == a1,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"A polynomial filter should not cover all eigenvalues");
+    PetscCheck(a!=a1,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"A polynomial filter should not cover all eigenvalues");
     filterInfo->filterType = 1;    /* high-pass filter, for largest eigenvalues */
-  } else PetscCheckFalse(a == a1,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"filterType==3 for smallest eigenvalues should be pre-converted to filterType==1 for largest eigenvalues");
+  } else PetscCheck(a!=a1,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"filterType==3 for smallest eigenvalues should be pre-converted to filterType==1 for largest eigenvalues");
 
   /* the following recipe follows Yousef Saad (2005, 2006) with a few minor adaptations / enhancements */
   halfPlateau = 0.5*(b1-a1)*opts->initialPlateau;    /* half length of the "plateau" of the (dual) base filter */
@@ -448,7 +448,7 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
       else halfPlateau /= PetscSqrtReal(opts->plateauShrinkRate);
     }
   }
-  PetscCheckFalse(!filterInfo->filterOK,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"STFILTER cannot get the filter specified; please adjust your filter parameters (e.g. increasing the polynomial degree)");
+  PetscCheck(filterInfo->filterOK,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"STFILTER cannot get the filter specified; please adjust your filter parameters (e.g. increasing the polynomial degree)");
 
   filterInfo->totalNumIter = numIter;
   ierr = PetscFree2(polyFilter,baseFilter);CHKERRQ(ierr);

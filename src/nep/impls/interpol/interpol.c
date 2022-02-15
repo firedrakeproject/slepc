@@ -46,10 +46,10 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
 
   PetscFunctionBegin;
   ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
-  PetscCheckFalse(nep->ncv>nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
+  PetscCheck(nep->ncv<=nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
-  PetscCheckFalse(nep->which!=NEP_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
+  PetscCheck(nep->which==NEP_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_CALLBACK | NEP_FEATURE_STOPPING | NEP_FEATURE_TWOSIDED);
 
   /* transfer PEP options */
@@ -72,20 +72,20 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
 
   /* transfer region options */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
-  PetscCheckFalse(istrivial,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPINTERPOL requires a nontrivial region");
+  PetscCheck(!istrivial,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPINTERPOL requires a nontrivial region");
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGINTERVAL,&flg);CHKERRQ(ierr);
-  PetscCheckFalse(!flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for interval regions");
+  PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for interval regions");
   ierr = RGIntervalGetEndpoints(nep->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-  PetscCheckFalse(a<=-PETSC_MAX_REAL || b>=PETSC_MAX_REAL,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for bounded intervals");
+  PetscCheck(a>-PETSC_MAX_REAL && b<PETSC_MAX_REAL,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for bounded intervals");
   ierr = PEPGetRG(ctx->pep,&rg);CHKERRQ(ierr);
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-  PetscCheckFalse(a==b,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for intervals on the real axis");
+  PetscCheck(a!=b,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for intervals on the real axis");
   s = 2.0/(b-a);
   c = c*s;
   d = d*s;
   ierr = RGIntervalSetEndpoints(rg,-1.0,1.0,c,d);CHKERRQ(ierr);
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
-  PetscCheckFalse(in<0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
+  PetscCheck(in>=0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
   ierr = PEPSetTarget(ctx->pep,(nep->target-(a+b)/2)*s);CHKERRQ(ierr);
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
@@ -268,7 +268,7 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
     ctx->tol   = PETSC_DEFAULT;
     nep->state = NEP_STATE_INITIAL;
   } else {
-    PetscCheckFalse(tol <= 0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    PetscCheck(tol>0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     ctx->tol = tol;
   }
   if (degree == PETSC_DEFAULT || degree == PETSC_DECIDE) {
@@ -276,7 +276,7 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
     if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
     nep->state = NEP_STATE_INITIAL;
   } else {
-    PetscCheckFalse(degree <= 0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
+    PetscCheck(degree>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
     if (ctx->maxdeg != degree) {
       ctx->maxdeg = degree;
       if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }

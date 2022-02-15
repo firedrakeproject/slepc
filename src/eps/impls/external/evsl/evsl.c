@@ -67,7 +67,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   EPSCheckStandard(eps);
   EPSCheckHermitian(eps);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift);CHKERRQ(ierr);
-  PetscCheckFalse(!isshift,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support spectral transformations");
+  PetscCheck(isshift,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support spectral transformations");
 
   if (ctx->initialized) EVSLFinish();
   EVSLStart();
@@ -100,7 +100,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION | EPS_FEATURE_CONVERGENCE);
 
   if (!eps->which) eps->which=EPS_ALL;
-  PetscCheckFalse(eps->which!=EPS_ALL || eps->inta==eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires setting an interval with EPSSetInterval()");
+  PetscCheck(eps->which==EPS_ALL && eps->inta!=eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires setting an interval with EPSSetInterval()");
 
   /* estimate numerical range */
   if (ctx->estimrange || ctx->lmin == PETSC_MIN_REAL || ctx->lmax == PETSC_MAX_REAL) {
@@ -114,7 +114,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
     ierr = VecDestroy(&v0);CHKERRQ(ierr);
     ctx->estimrange = PETSC_TRUE;   /* estimate if called again with another matrix */
   }
-  PetscCheckFalse(ctx->lmin > eps->inta || ctx->lmax < eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)eps->inta,(double)eps->intb,(double)ctx->lmin,(double)ctx->lmax);
+  PetscCheck(ctx->lmin<=eps->inta && ctx->lmax>=eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)eps->inta,(double)eps->intb,(double)ctx->lmin,(double)ctx->lmax);
   xintv[0] = eps->inta;
   xintv[1] = eps->intb;
   xintv[2] = ctx->lmin;
@@ -194,7 +194,7 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
     find_pol(xintv,&pol);
     ierr = PetscInfo(ctx->A,"Polynomial [type = %" PetscInt_FMT "], deg %" PetscInt_FMT ", bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam);CHKERRQ(ierr);
     ierr = ChebLanNr(xintv,mlan,eps->tol,vinit,&pol,&nevout,&lam,&Y,&res,NULL);CHKERRQ(ierr);
-    PetscCheckFalse(k+nevout>nevmax,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
+    PetscCheck(k+nevout<=nevmax,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
     free_pol(&pol);
     ierr = PetscInfo(ctx->A,"Computed %" PetscInt_FMT " eigenvalues\n",nevout);CHKERRQ(ierr);
     ierr = PetscMalloc1(nevout,&ind);CHKERRQ(ierr);
@@ -222,7 +222,7 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
     disp[i]   = disp[i-1]+nevloc[i-1];
   }
   disp[size] = disp[size-1]+nevloc[size-1];
-  PetscCheckFalse(eps->nev>eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
+  PetscCheck(eps->nev<=eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
   ierr = MPI_Allgatherv(eigr,k,MPIU_SCALAR,eps->eigr,nevloc,disp,MPIU_SCALAR,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
   ierr = MPI_Allgatherv(errest,k,MPIU_REAL,eps->errest,nevloc,disp,MPIU_REAL,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
   eps->nconv  = eps->nev;
@@ -260,7 +260,7 @@ static PetscErrorCode EPSEVSLSetSlices_EVSL(EPS eps,PetscInt nslices)
 
   PetscFunctionBegin;
   if (nslices == PETSC_DECIDE || nslices == PETSC_DEFAULT) nslices = 0;
-  else PetscCheckFalse(nslices<1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Number of slices must be 1 at least");
+  else PetscCheck(nslices>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Number of slices must be 1 at least");
   if (ctx->nslices != nslices) {
     ctx->nslices = nslices;
     eps->state   = EPS_STATE_INITIAL;
@@ -342,7 +342,7 @@ static PetscErrorCode EPSEVSLSetRange_EVSL(EPS eps,PetscReal lmin,PetscReal lmax
   EPS_EVSL *ctx = (EPS_EVSL*)eps->data;
 
   PetscFunctionBegin;
-  PetscCheckFalse(lmin>lmax,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be lmin<lmax");
+  PetscCheck(lmin<lmax,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be lmin<lmax");
   if (ctx->lmin != lmin || ctx->lmax != lmax) {
     ctx->lmin  = lmin;
     ctx->lmax  = lmax;
@@ -432,20 +432,20 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
   PetscFunctionBegin;
   ctx->dos = dos;
   if (nvec == PETSC_DECIDE || nvec == PETSC_DEFAULT) ctx->nvec = 80;
-  else PetscCheckFalse(nvec<1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The nvec argument must be > 0");
+  else PetscCheck(nvec>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The nvec argument must be > 0");
   else ctx->nvec = nvec;
   switch (dos) {
     case EPS_EVSL_DOS_KPM:
       if (deg == PETSC_DECIDE || deg == PETSC_DEFAULT) ctx->deg = 300;
-      else PetscCheckFalse(deg<1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The deg argument must be > 0");
+      else PetscCheck(deg>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The deg argument must be > 0");
       else ctx->deg = deg;
       break;
     case EPS_EVSL_DOS_LANCZOS:
       if (steps == PETSC_DECIDE || steps == PETSC_DEFAULT) ctx->steps = 40;
-      else PetscCheckFalse(steps<1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The steps argument must be > 0");
+      else PetscCheck(steps>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The steps argument must be > 0");
       else ctx->steps = steps;
       if (npoints == PETSC_DECIDE || npoints == PETSC_DEFAULT) ctx->npoints = 200;
-      else PetscCheckFalse(npoints<1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npoints argument must be > 0");
+      else PetscCheck(npoints>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npoints argument must be > 0");
       else ctx->npoints = npoints;
       break;
   }
@@ -548,10 +548,10 @@ static PetscErrorCode EPSEVSLSetPolParameters_EVSL(EPS eps,PetscInt max_deg,Pets
 
   PetscFunctionBegin;
   if (max_deg == PETSC_DECIDE || max_deg == PETSC_DEFAULT) ctx->max_deg = 10000;
-  else PetscCheckFalse(max_deg<3,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The max_deg argument must be > 2");
+  else PetscCheck(max_deg>2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The max_deg argument must be > 2");
   else ctx->max_deg = max_deg;
   if (thresh == PETSC_DECIDE || thresh == PETSC_DEFAULT) ctx->thresh = 0.8;
-  else PetscCheckFalse(thresh<0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The thresh argument must be > 0.0");
+  else PetscCheck(thresh>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The thresh argument must be > 0.0");
   else ctx->thresh = thresh;
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -747,7 +747,7 @@ PetscErrorCode EPSSetFromOptions_EVSL(PetscOptionItems *PetscOptionsObject,EPS e
     k = 2;
     ierr = PetscOptionsRealArray("-eps_evsl_range","Interval containing all eigenvalues (two real values separated with a comma without spaces)","EPSEVSLSetRange",array,&k,&flg);CHKERRQ(ierr);
     if (flg) {
-      PetscCheckFalse(k<2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_evsl_range (comma-separated without spaces)");
+      PetscCheck(k>1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_evsl_range (comma-separated without spaces)");
       ierr = EPSEVSLSetRange(eps,array[0],array[1]);CHKERRQ(ierr);
     }
 

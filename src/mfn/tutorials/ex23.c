@@ -85,7 +85,7 @@ int main(int argc,char **argv)
 
   ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
   ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-  PetscCheckFalse(reason<0,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
+  PetscCheck(reason>=0,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
 
   /*

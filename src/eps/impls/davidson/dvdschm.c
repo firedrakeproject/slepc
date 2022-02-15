@@ -86,6 +86,6 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
   }
 
   check_sum1 = DVD_CHECKSUM(b);
-  PetscCheckFalse(check_sum0 != check_sum1,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Something awful happened");
+  PetscAssert(check_sum0==check_sum1,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Something awful happened");
   PetscFunctionReturn(0);
 }

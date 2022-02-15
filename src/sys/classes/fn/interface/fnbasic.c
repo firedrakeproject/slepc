@@ -236,7 +236,7 @@ PetscErrorCode FNSetType(FN fn,FNType type)
   if (match) PetscFunctionReturn(0);
 
   ierr =  PetscFunctionListFind(FNList,type,&r);CHKERRQ(ierr);
-  PetscCheckFalse(!r,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested FN type %s",type);
+  PetscCheck(r,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested FN type %s",type);
 
   if (fn->ops->destroy) { ierr = (*fn->ops->destroy)(fn);CHKERRQ(ierr); }
   ierr = PetscMemzero(fn->ops,sizeof(struct _FNOps));CHKERRQ(ierr);
@@ -300,7 +300,7 @@ PetscErrorCode FNSetScale(FN fn,PetscScalar alpha,PetscScalar beta)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveScalar(fn,alpha,2);
   PetscValidLogicalCollectiveScalar(fn,beta,3);
-  PetscCheckFalse(PetscAbsScalar(alpha)==0.0 || PetscAbsScalar(beta)==0.0,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_WRONG,"Scaling factors must be nonzero");
+  PetscCheck(PetscAbsScalar(alpha)!=0.0 && PetscAbsScalar(beta)!=0.0,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_WRONG,"Scaling factors must be nonzero");
   fn->alpha = alpha;
   fn->beta  = beta;
   PetscFunctionReturn(0);
@@ -360,8 +360,8 @@ PetscErrorCode FNSetMethod(FN fn,PetscInt meth)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,meth,2);
-  PetscCheckFalse(meth<0,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
-  PetscCheckFalse(meth>FN_MAX_SOLVE,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
+  PetscCheck(meth>=0,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
+  PetscCheck(meth<=FN_MAX_SOLVE,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
   fn->method = meth;
   PetscFunctionReturn(0);
 }
@@ -705,13 +705,13 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   } else inplace = PETSC_TRUE;
   PetscCheckTypeName(A,MATSEQDENSE);
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  PetscCheckFalse(m!=n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
+  PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   if (!inplace) {
     PetscCheckTypeName(B,MATSEQDENSE);
     n1 = n;
     ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
-    PetscCheckFalse(m!=n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
-    PetscCheckFalse(n1!=n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
+    PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
+    PetscCheck(n1==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
   }
 
   /* evaluate matrix function */
@@ -852,9 +852,9 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   PetscValidType(v,3);
   PetscCheckTypeName(A,MATSEQDENSE);
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  PetscCheckFalse(m!=n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
+  PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   ierr = VecGetSize(v,&m);CHKERRQ(ierr);
-  PetscCheckFalse(m!=n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrix A and vector v must have the same size");
+  PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrix A and vector v must have the same size");
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = FNEvaluateFunctionMatVec_Private(fn,A,v,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);

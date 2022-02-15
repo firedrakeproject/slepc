@@ -100,11 +100,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     if (l) { ierr = PetscInfo(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
-      PetscCheckFalse(breakdown,PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",(double)beta);
-      else {
-        /* Prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
-      }
+      PetscCheck(!breakdown,PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",(double)beta);
+      /* Prepare the Rayleigh quotient for restart */
+      ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);

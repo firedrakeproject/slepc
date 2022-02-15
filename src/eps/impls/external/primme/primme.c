@@ -288,7 +288,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     if (eps->ncv!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
   } else if (eps->ncv!=PETSC_DEFAULT) primme->maxBasisSize = eps->ncv;
 
-  PetscCheckFalse(primme_set_method(ops->method,primme) < 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
+  PetscCheck(primme_set_method(ops->method,primme)>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
 
   eps->mpd = primme->maxBasisSize;
   eps->ncv = (primme->locking?eps->nev:0)+primme->maxBasisSize;
@@ -439,7 +439,7 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) ops->bs = 0;
-  else PetscCheckFalse(bs <= 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
+  else PetscCheck(bs>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
   else ops->bs = bs;
   PetscFunctionReturn(0);
 }

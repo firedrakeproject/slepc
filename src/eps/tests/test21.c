@@ -111,7 +111,7 @@ int main(int argc,char **argv)
 #else
       eval = PetscCMPLX(kr,ki);
 #endif
-      PetscCheckFalse(eval!=eigs[i],PETSC_COMM_WORLD,PETSC_ERR_FILE_UNEXPECTED,"Eigenvalues in the file do not match");
+      PetscCheck(eval==eigs[i],PETSC_COMM_WORLD,PETSC_ERR_FILE_UNEXPECTED,"Eigenvalues in the file do not match");
     }
     ierr = PetscFree(eigs);CHKERRQ(ierr);
   }

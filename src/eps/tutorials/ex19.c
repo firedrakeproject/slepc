@@ -122,7 +122,7 @@ int main(int argc,char **argv)
   /* create random initial vector */
   seed = 1;
   ierr = PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL);CHKERRQ(ierr);
-  PetscCheckFalse(seed<0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Seed must be >=0");
+  PetscCheck(seed>=0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Seed must be >=0");
   ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(rctx);CHKERRQ(ierr);
@@ -222,10 +222,8 @@ int main(int argc,char **argv)
         re = kr;
         im = ki;
 #endif
-        PetscCheckFalse(im!=0.0,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Eigenvalue should be real");
-        else {
-          ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g        %12g\n",(double)re,(double)error,(double)PetscAbsReal(re-exact[i]));CHKERRQ(ierr);
-        }
+        PetscCheck(im==0.0,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Eigenvalue should be real");
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g        %12g\n",(double)re,(double)error,(double)PetscAbsReal(re-exact[i]));CHKERRQ(ierr);
       }
       ierr = PetscFree(exact);CHKERRQ(ierr);
       ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);

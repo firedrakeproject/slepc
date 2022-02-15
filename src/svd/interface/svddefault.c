@@ -131,8 +131,8 @@ PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,nleft,2);
   PetscValidLogicalCollectiveInt(svd,nright,3);
-  PetscCheckFalse(nleft <= 0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nleft must be > 0: nleft = %" PetscInt_FMT,nleft);
-  PetscCheckFalse(nright <= 0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nright must be > 0: nright = %" PetscInt_FMT,nright);
+  PetscCheck(nleft>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nleft must be > 0: nleft = %" PetscInt_FMT,nleft);
+  PetscCheck(nright>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nright must be > 0: nright = %" PetscInt_FMT,nright);
   if (svd->nworkl < nleft) {
     ierr = VecDestroyVecs(svd->nworkl,&svd->workl);CHKERRQ(ierr);
     svd->nworkl = nleft;

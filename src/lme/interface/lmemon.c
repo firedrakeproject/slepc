@@ -90,7 +90,7 @@ PetscErrorCode LMEMonitorSet(LME lme,PetscErrorCode (*monitor)(LME,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscCheckFalse(lme->numbermonitors >= MAXLMEMONITORS,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Too many LME monitors set");
+  PetscCheck(lme->numbermonitors<MAXLMEMONITORS,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_OUTOFRANGE,"Too many LME monitors set");
   lme->monitor[lme->numbermonitors]           = monitor;
   lme->monitorcontext[lme->numbermonitors]    = (void*)mctx;
   lme->monitordestroy[lme->numbermonitors++]  = monitordestroy;

@@ -55,7 +55,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   }
 
   /* Check problem dimensions */
-  PetscCheckFalse(!mfn->A,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
+  PetscCheck(mfn->A,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
   if (mfn->ncv > N) mfn->ncv = N;
 
@@ -98,7 +98,7 @@ PetscErrorCode MFNSetOperator(MFN mfn,Mat A)
   PetscCheckSameComm(mfn,1,A,2);
 
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  PetscCheckFalse(m!=n,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"A is a non-square matrix");
+  PetscCheck(m==n,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"A is a non-square matrix");
   ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
   if (mfn->setupcalled) { ierr = MFNReset(mfn);CHKERRQ(ierr); }
   else { ierr = MatDestroy(&mfn->A);CHKERRQ(ierr); }

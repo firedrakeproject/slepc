@@ -181,7 +181,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
     ierr = DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,Z,0,0,nV,size_X,PETSC_FALSE);CHKERRQ(ierr);
     ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
-  PetscCheckFalse(size_plusk > 0 && DVD_IS(d->sEP,DVD_EP_INDEFINITE),PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
+  PetscCheck(size_plusk<=0 || !DVD_IS(d->sEP,DVD_EP_INDEFINITE),PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
   if (size_plusk > 0) {
     ierr = DSCopyMat(d->eps->ds,DS_MAT_Q,0,size_X,data->oldU,0,0,nV,size_plusk,PETSC_FALSE);CHKERRQ(ierr);
   }
@@ -197,7 +197,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
     ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Z,size_X+size_plusk,&cMTY);CHKERRQ(ierr);
     cMTX = PetscMin(cMTX, cMTY);
   }
-  PetscCheckFalse(cMTX > size_X+size_plusk,PETSC_COMM_SELF,PETSC_ERR_SUP,"Invalid number of columns to restart");
+  PetscAssert(cMTX<=size_X+size_plusk,PETSC_COMM_SELF,PETSC_ERR_SUP,"Invalid number of columns to restart");
 
   /* Notify the changes in V and update the other subspaces */
   d->V_tra_s = 0;                     d->V_tra_e = cMTX;

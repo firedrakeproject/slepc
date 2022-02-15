@@ -474,7 +474,7 @@ PetscErrorCode BVSVDAndRank_QR_CAA(BV S,PetscInt M,PetscInt L,PetscReal delta,Pe
   PetscFunctionBegin;
   /* Compute QR factorizaton of S */
   ierr = BVGetSizes(S,NULL,&n,NULL);CHKERRQ(ierr);
-  PetscCheckFalse(n<ml,PetscObjectComm((PetscObject)S),PETSC_ERR_SUP,"The QR_CAA method does not support problem size n < m*L");
+  PetscCheck(n>=ml,PetscObjectComm((PetscObject)S),PETSC_ERR_SUP,"The QR_CAA method does not support problem size n < m*L");
   ierr = BVSetActiveColumns(S,0,ml);CHKERRQ(ierr);
   ierr = PetscArrayzero(pA,ml*ml);CHKERRQ(ierr);
   ierr = MatCreateDense(PETSC_COMM_SELF,ml,ml,PETSC_DECIDE,PETSC_DECIDE,pA,&A);CHKERRQ(ierr);

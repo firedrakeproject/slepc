@@ -70,8 +70,8 @@ PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
   PetscInt          ldm,lds = x->ld*x->d;
 
   PetscFunctionBegin;
-  PetscCheckFalse(x->U!=y->U,PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"BVDot() in BVTENSOR requires that both operands have the same U factor");
-  PetscCheckFalse(lds!=y->ld*y->d,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mismatching dimensions ld*d %" PetscInt_FMT " %" PetscInt_FMT,lds,y->ld*y->d);
+  PetscCheck(x->U==y->U,PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"BVDot() in BVTENSOR requires that both operands have the same U factor");
+  PetscCheck(lds==y->ld*y->d,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mismatching dimensions ld*d %" PetscInt_FMT " %" PetscInt_FMT,lds,y->ld*y->d);
   ierr = MatGetSize(M,&ldm,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArrayRead(x->S,&px);CHKERRQ(ierr);
   ierr = MatDenseGetArrayRead(y->S,&py);CHKERRQ(ierr);
@@ -182,7 +182,7 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
   const PetscScalar *omega;
 
   PetscFunctionBegin;
-  PetscCheckFalse(v,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Orthogonalization against an external vector is not allowed in BVTENSOR");
+  PetscCheck(!v,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Orthogonalization against an external vector is not allowed in BVTENSOR");
   ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
   if (!c) {
     ierr = VecGetArray(bv->buffer,&cc);CHKERRQ(ierr);
@@ -337,7 +337,7 @@ static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
     }
   }
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
-  PetscCheckFalse(!nq,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Cannot build first column of tensor BV; U should contain k=%" PetscInt_FMT " nonzero columns",k);
+  PetscCheck(nq,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Cannot build first column of tensor BV; U should contain k=%" PetscInt_FMT " nonzero columns",k);
   ierr = BVTensorUpdateMatrix(V,0,nq);CHKERRQ(ierr);
   ierr = BVTensorNormColumn(V,0,&norm);CHKERRQ(ierr);
   ierr = BVScale_Tensor(V,0,1.0/norm);CHKERRQ(ierr);
@@ -646,7 +646,7 @@ static PetscErrorCode BVTensorGetFactors_Tensor(BV V,BV *U,Mat *S)
   BV_TENSOR *ctx = (BV_TENSOR*)V->data;
 
   PetscFunctionBegin;
-  PetscCheckFalse(ctx->puk>-1,PetscObjectComm((PetscObject)V),PETSC_ERR_ORDER,"Previous call to BVTensonGetFactors without a BVTensorRestoreFactors call");
+  PetscCheck(ctx->puk==-1,PetscObjectComm((PetscObject)V),PETSC_ERR_ORDER,"Previous call to BVTensonGetFactors without a BVTensorRestoreFactors call");
   ctx->puk = ctx->U->k;
   if (U) *U = ctx->U;
   if (S) *S = ctx->S;
@@ -828,11 +828,11 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
   PetscValidHeaderSpecific(U,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(U,d,2);
   ierr = PetscObjectTypeCompare((PetscObject)U,BVTENSOR,&match);CHKERRQ(ierr);
-  PetscCheckFalse(match,PetscObjectComm((PetscObject)U),PETSC_ERR_SUP,"U cannot be of type tensor");
+  PetscCheck(!match,PetscObjectComm((PetscObject)U),PETSC_ERR_SUP,"U cannot be of type tensor");
 
   ierr = BVCreate(PetscObjectComm((PetscObject)U),V);CHKERRQ(ierr);
   ierr = BVGetSizes(U,&n,&N,&m);CHKERRQ(ierr);
-  PetscCheckFalse(m<d,PetscObjectComm((PetscObject)U),PETSC_ERR_ARG_SIZ,"U has %" PetscInt_FMT " columns, it should have at least d=%" PetscInt_FMT,m,d);
+  PetscCheck(m>=d,PetscObjectComm((PetscObject)U),PETSC_ERR_ARG_SIZ,"U has %" PetscInt_FMT " columns, it should have at least d=%" PetscInt_FMT,m,d);
   ierr = BVSetSizes(*V,d*n,d*N,m-d+1);CHKERRQ(ierr);
   ierr = PetscObjectChangeTypeName((PetscObject)*V,BVTENSOR);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(BV_Create,*V,0,0,0);CHKERRQ(ierr);

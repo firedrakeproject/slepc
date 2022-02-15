@@ -52,7 +52,7 @@ PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char opt[],const char name
   ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
   ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(EPSMonitorList,key,&mfunc);CHKERRQ(ierr);
-  PetscCheckFalse(!mfunc,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Specified viewer and format not supported");
+  PetscCheck(mfunc,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Specified viewer and format not supported");
   ierr = PetscFunctionListFind(EPSMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
   ierr = PetscFunctionListFind(EPSMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
@@ -201,7 +201,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     k = 2;
     ierr = PetscOptionsRealArray("-eps_interval","Computational interval (two real values separated with a comma without spaces)","EPSSetInterval",array,&k,&flg);CHKERRQ(ierr);
     if (flg) {
-      PetscCheckFalse(k<2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
+      PetscCheck(k>1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
       ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
       ierr = EPSSetInterval(eps,array[0],array[1]);CHKERRQ(ierr);
     }
@@ -312,14 +312,14 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
     eps->tol   = PETSC_DEFAULT;
     eps->state = EPS_STATE_INITIAL;
   } else {
-    PetscCheckFalse(tol <= 0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    PetscCheck(tol>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     eps->tol = tol;
   }
   if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
     eps->max_it = PETSC_DEFAULT;
     eps->state  = EPS_STATE_INITIAL;
   } else {
-    PetscCheckFalse(maxits <= 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    PetscCheck(maxits>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
     eps->max_it = maxits;
   }
   PetscFunctionReturn(0);
@@ -398,18 +398,18 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscValidLogicalCollectiveInt(eps,nev,2);
   PetscValidLogicalCollectiveInt(eps,ncv,3);
   PetscValidLogicalCollectiveInt(eps,mpd,4);
-  PetscCheckFalse(nev<1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+  PetscCheck(nev>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
   eps->nev = nev;
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
     eps->ncv = PETSC_DEFAULT;
   } else {
-    PetscCheckFalse(ncv<1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    PetscCheck(ncv>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     eps->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
     eps->mpd = PETSC_DEFAULT;
   } else {
-    PetscCheckFalse(mpd<1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+    PetscCheck(mpd>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     eps->mpd = mpd;
   }
   eps->state = EPS_STATE_INITIAL;
@@ -725,7 +725,7 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
     case EPS_CONV_REL:  eps->converged = EPSConvergedRelative; break;
     case EPS_CONV_NORM: eps->converged = EPSConvergedNorm; break;
     case EPS_CONV_USER:
-      PetscCheckFalse(!eps->convergeduser,PetscObjectComm((PetscObject)eps),PETSC_ERR_ORDER,"Must call EPSSetConvergenceTestFunction() first");
+      PetscCheck(eps->convergeduser,PetscObjectComm((PetscObject)eps),PETSC_ERR_ORDER,"Must call EPSSetConvergenceTestFunction() first");
       eps->converged = eps->convergeduser;
       break;
     default:
@@ -844,7 +844,7 @@ PetscErrorCode EPSSetStoppingTest(EPS eps,EPSStop stop)
   switch (stop) {
     case EPS_STOP_BASIC: eps->stopping = EPSStoppingBasic; break;
     case EPS_STOP_USER:
-      PetscCheckFalse(!eps->stoppinguser,PetscObjectComm((PetscObject)eps),PETSC_ERR_ORDER,"Must call EPSSetStoppingTestFunction() first");
+      PetscCheck(eps->stoppinguser,PetscObjectComm((PetscObject)eps),PETSC_ERR_ORDER,"Must call EPSSetStoppingTestFunction() first");
       eps->stopping = eps->stoppinguser;
       break;
     default:
@@ -1113,12 +1113,12 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   }
   if (its==PETSC_DECIDE || its==PETSC_DEFAULT) eps->balance_its = 5;
   else {
-    PetscCheckFalse(its <= 0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
+    PetscCheck(its>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be > 0");
     eps->balance_its = its;
   }
   if (cutoff==PETSC_DECIDE || cutoff==PETSC_DEFAULT) eps->balance_cutoff = 1e-8;
   else {
-    PetscCheckFalse(cutoff <= 0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of cutoff. Must be > 0");
+    PetscCheck(cutoff>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of cutoff. Must be > 0");
     eps->balance_cutoff = cutoff;
   }
   PetscFunctionReturn(0);

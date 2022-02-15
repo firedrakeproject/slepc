@@ -44,7 +44,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
   SVDCheckStandard(svd);
   ierr = MatGetSize(svd->A,NULL,&N);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
-  PetscCheckFalse(svd->ncv>svd->nsv+svd->mpd,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
+  PetscCheck(svd->ncv<=svd->nsv+svd->mpd,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
   svd->leftbasis = PetscNot(lanczos->oneside);
   ierr = SVDAllocateSolution(svd,1);CHKERRQ(ierr);
@@ -139,7 +139,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
     ierr = BVDotColumn(V,i,work);CHKERRQ(ierr);
     ierr = BVMultColumn(V,-1.0,1.0,i,work);CHKERRQ(ierr);
     ierr = BVNormColumn(V,i,NORM_2,&b);CHKERRQ(ierr);
-    PetscCheckFalse(PetscAbsReal(b)<10*PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)svd),PETSC_ERR_PLIB,"Recurrence generated a zero vector; use a two-sided variant");
+    PetscCheck(PetscAbsReal(b)>10*PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)svd),PETSC_ERR_PLIB,"Recurrence generated a zero vector; use a two-sided variant");
     ierr = BVScaleColumn(V,i,1.0/b);CHKERRQ(ierr);
 
     ierr = BVGetColumn(V,i,&z);CHKERRQ(ierr);
@@ -199,7 +199,7 @@ PetscErrorCode SVDKrylovConvergence(SVD svd,PetscBool getall,PetscInt kini,Petsc
   else {
     ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
     ierr = DSGetExtraRow(svd->ds,&extra);CHKERRQ(ierr);
-    PetscCheckFalse(!extra,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Only implemented for DS with extra row");
+    PetscCheck(extra,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Only implemented for DS with extra row");
     marker = -1;
     if (svd->trackall) getall = PETSC_TRUE;
     ierr = DSGetArrayReal(svd->ds,DS_MAT_T,&alpha);CHKERRQ(ierr);

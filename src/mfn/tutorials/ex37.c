@@ -95,7 +95,7 @@ int main(int argc,char **argv)
   for (i=0;i<steps;i++) {
     ierr = MFNSolve(mfn,v,v);CHKERRQ(ierr);
     ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-    PetscCheckFalse(reason<0,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
+    PetscCheck(reason>=0,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
     ierr = MFNGetIterationNumber(mfn,&its);CHKERRQ(ierr);
     totits += its;
   }

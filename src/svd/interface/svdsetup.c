@@ -51,8 +51,8 @@ PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
   if (B) {
     ierr = MatGetSize(B,&Mb,&Nb);CHKERRQ(ierr);
     ierr = MatGetLocalSize(B,&mb,&nb);CHKERRQ(ierr);
-    PetscCheckFalse(Na!=Nb,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different number of columns in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",Na,Nb);
-    PetscCheckFalse(na!=nb,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different local column size in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",na,nb);
+    PetscCheck(Na==Nb,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different number of columns in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",Na,Nb);
+    PetscCheck(na==nb,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different local column size in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",na,nb);
     if (svd->OPb) {
       ierr = MatGetSize(svd->OPb,&M0,&N0);CHKERRQ(ierr);
       ierr = MatGetLocalSize(svd->OPb,&m0,&n0);CHKERRQ(ierr);
@@ -147,7 +147,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
 
   /* check matrices */
-  PetscCheckFalse(!svd->OP,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");
+  PetscCheck(svd->OP,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");
 
   /* Set default problem type */
   if (!svd->problem_type) {
@@ -160,7 +160,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     ierr = PetscInfo(svd,"Problem type set as generalized but no matrix B was provided; reverting to a standard singular value problem\n");CHKERRQ(ierr);
     svd->isgeneralized = PETSC_FALSE;
     svd->problem_type = SVD_STANDARD;
-  } else PetscCheckFalse(svd->OPb && !svd->isgeneralized,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type does not match the number of matrices");
+  } else PetscCheck(!svd->OPb || svd->isgeneralized,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type does not match the number of matrices");
 
   /* determine how to handle the transpose */
   svd->expltrans = PETSC_TRUE;
@@ -178,7 +178,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
   if (svd->isgeneralized) {
     ierr = MatGetSize(svd->OPb,&P,NULL);CHKERRQ(ierr);
-    PetscCheckFalse(M+P<N,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case when [A;B] has less rows than columns is not supported");
+    PetscCheck(M+P>=N,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case when [A;B] has less rows than columns is not supported");
   }
 
   /* build transpose matrix */
@@ -233,7 +233,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   maxnsol = svd->isgeneralized? PetscMin(PetscMin(M,N),P): PetscMin(M,N);
   svd->ncv = PetscMin(svd->ncv,maxnsol);
   svd->nsv = PetscMin(svd->nsv,maxnsol);
-  PetscCheckFalse(svd->ncv!=PETSC_DEFAULT && svd->nsv > svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
+  PetscCheck(svd->ncv==PETSC_DEFAULT || svd->nsv<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   /* initialization of matrix norms */
   if (svd->conv==SVD_CONV_NORM) {
@@ -261,7 +261,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* process initial vectors */
   if (svd->nini<0) {
     k = -svd->nini;
-    PetscCheckFalse(k>svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
+    PetscCheck(k<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
     ierr = BVInsertVecs(svd->V,0,&k,svd->IS,PETSC_TRUE);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
     svd->nini = k;
@@ -270,7 +270,7 @@ PetscErrorCode SVDSetUp(SVD svd)
     k = 0;
     if (svd->leftbasis) {
       k = -svd->ninil;
-      PetscCheckFalse(k>svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The number of left initial vectors is larger than ncv");
+      PetscCheck(k<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The number of left initial vectors is larger than ncv");
       ierr = BVInsertVecs(svd->U,0,&k,svd->ISL,PETSC_TRUE);CHKERRQ(ierr);
     } else {
       ierr = PetscInfo(svd,"Ignoring initial left vectors\n");CHKERRQ(ierr);
@@ -326,12 +326,12 @@ PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec isr[],PetscInt nl,Vec
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,nr,2);
   PetscValidLogicalCollectiveInt(svd,nl,4);
-  PetscCheckFalse(nr<0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nr cannot be negative");
+  PetscCheck(nr>=0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nr cannot be negative");
   if (nr>0) {
     PetscValidPointer(isr,3);
     PetscValidHeaderSpecific(*isr,VEC_CLASSID,3);
   }
-  PetscCheckFalse(nl<0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nl cannot be negative");
+  PetscCheck(nl>=0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nl cannot be negative");
   if (nl>0) {
     PetscValidPointer(isl,5);
     PetscValidHeaderSpecific(*isl,VEC_CLASSID,5);
@@ -359,7 +359,7 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
     maxnsol = PetscMin(maxnsol,P);
   }
   if (svd->ncv!=PETSC_DEFAULT) { /* ncv set */
-    PetscCheckFalse(svd->ncv<svd->nsv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nsv");
+    PetscCheck(svd->ncv>=svd->nsv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nsv");
   } else if (svd->mpd!=PETSC_DEFAULT) { /* mpd set */
     svd->ncv = PetscMin(maxnsol,svd->nsv+svd->mpd);
   } else { /* neither set: defaults depend on nsv being small or large */
