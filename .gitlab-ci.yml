@@ -526,10 +526,11 @@ gnu-cxx-complex-int64:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:maat
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps --download-suitesparse
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-hpddm
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-64-bit-indices --with-petsc4py --download-scalapack --download-elemental --download-parmetis --download-metis --download-mumps --download-suitesparse
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-slepc4py --download-primme --download-hpddm
+    SLEPC4PY: 1
 
 gnu-c-single:
   extends:
