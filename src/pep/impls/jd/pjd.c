@@ -1811,11 +1811,13 @@ PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
   PetscFunctionBegin;
-  if (mmidx == PETSC_DEFAULT || mmidx == PETSC_DECIDE) pjd->mmidx = 1;
-  else {
+  if (mmidx == PETSC_DEFAULT || mmidx == PETSC_DECIDE) {
+    if (pjd->mmidx != 1) pep->state = PEP_STATE_INITIAL;
+    pjd->mmidx = 1;
+  } else {
     PetscCheckFalse(mmidx < 1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mmidx value");
+    if (pjd->mmidx != mmidx) pep->state = PEP_STATE_INITIAL;
     pjd->mmidx = mmidx;
-    pep->state = PEP_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
