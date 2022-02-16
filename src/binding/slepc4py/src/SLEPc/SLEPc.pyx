@@ -93,8 +93,8 @@ cdef extern from *:
 cdef extern from "scalar.h":
     object      PyPetscScalar_FromPetscScalar(PetscScalar)
     PetscScalar PyPetscScalar_AsPetscScalar(object) except? <PetscScalar>-1.0
-    PetscReal   PyPetscScalar_AsPetscComplexReal(object) except? <PetscScalar>-1.0
-    PetscReal   PyPetscScalar_AsPetscComplexImag(object) except? <PetscScalar>-1.0
+    PetscReal   PyPetscScalar_AsPetscComplexReal(object) except? <PetscReal>-1.0
+    PetscReal   PyPetscScalar_AsPetscComplexImag(object) except? <PetscReal>-1.0
 
 cdef inline object toBool(PetscBool value):
     return True if value else False
@@ -118,9 +118,9 @@ cdef inline PetscScalar asScalar(object value) except? <PetscScalar>-1.0:
 
 cdef inline object toComplex(PetscScalar rvalue, PetscScalar ivalue):
     return complex(toScalar(rvalue),toScalar(ivalue))
-cdef inline PetscReal asComplexReal(object value) except? <PetscScalar>-1.0:
+cdef inline PetscReal asComplexReal(object value) except? <PetscReal>-1.0:
     return PyPetscScalar_AsPetscComplexReal(value)
-cdef inline PetscReal asComplexImag(object value) except? <PetscScalar>-1.0:
+cdef inline PetscReal asComplexImag(object value) except? <PetscReal>-1.0:
     return PyPetscScalar_AsPetscComplexImag(value)
 
 # --------------------------------------------------------------------
