@@ -507,6 +507,7 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
   PetscErrorCode ierr;
   PEP_CISS       *ctx = (PEP_CISS*)pep->data;
   PetscInt       oN,oL,oM,oLmax,onpart;
+  PetscMPIInt    size;
 
   PetscFunctionBegin;
   oN = ctx->N;
@@ -536,7 +537,8 @@ static PetscErrorCode PEPCISSSetSizes_CISS(PEP pep,PetscInt ip,PetscInt bs,Petsc
   if (npart == PETSC_DECIDE || npart == PETSC_DEFAULT) {
     ctx->npart = 1;
   } else {
-    PetscCheckFalse(npart<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&size);CHKERRMPI(ierr);
+    PetscCheckFalse(npart<1 || npart>size,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
     ctx->npart = npart;
   }
   oLmax = ctx->L_max;
