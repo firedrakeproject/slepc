@@ -156,7 +156,7 @@ struct _p_EPS {
 
 #define EPSCheckSolved(h,arg) \
   do { \
-    PetscCheckFalse((h)->state<EPS_STATE_SOLVED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSolve() first: Parameter #%d",arg); \
+    PetscCheck((h)->state>=EPS_STATE_SOLVED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #endif
@@ -169,8 +169,8 @@ struct _p_EPS {
 #define EPSCheckHermitianDefiniteCondition(eps,condition,msg) \
   do { \
     if (condition) { \
-      PetscCheckFalse(!(eps)->ishermitian,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
-      else PetscCheckFalse((eps)->isgeneralized && !(eps)->ispositive,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires that the problem is %s-definite",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+      PetscCheck((eps)->ishermitian,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+      PetscCheck(!(eps)->isgeneralized || (eps)->ispositive,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires that the problem is %s-definite",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
     } \
   } while (0)
 #define EPSCheckHermitianDefinite(eps) EPSCheckHermitianDefiniteCondition(eps,PETSC_TRUE,"")
@@ -179,7 +179,7 @@ struct _p_EPS {
 #define EPSCheckHermitianCondition(eps,condition,msg) \
   do { \
     if (condition) { \
-      PetscCheckFalse(!(eps)->ishermitian,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+      PetscCheck((eps)->ishermitian,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
     } \
   } while (0)
 #define EPSCheckHermitian(eps) EPSCheckHermitianCondition(eps,PETSC_TRUE,"")
@@ -188,7 +188,7 @@ struct _p_EPS {
 #define EPSCheckDefiniteCondition(eps,condition,msg) \
   do { \
     if (condition) { \
-      PetscCheckFalse((eps)->isgeneralized && (eps)->ishermitian && !(eps)->ispositive,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for %s-indefinite problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+      PetscCheck(!(eps)->isgeneralized || !(eps)->ishermitian || (eps)->ispositive,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for %s-indefinite problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
     } \
   } while (0)
 #define EPSCheckDefinite(eps) EPSCheckDefiniteCondition(eps,PETSC_TRUE,"")
@@ -197,7 +197,7 @@ struct _p_EPS {
 #define EPSCheckStandardCondition(eps,condition,msg) \
   do { \
     if (condition) { \
-      PetscCheckFalse((eps)->isgeneralized,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheck(!(eps)->isgeneralized,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
 #define EPSCheckStandard(eps) EPSCheckStandardCondition(eps,PETSC_TRUE,"")
@@ -208,7 +208,7 @@ struct _p_EPS {
     if (condition) { \
       PetscBool __flg; \
       ierr = PetscObjectTypeCompare((PetscObject)(eps)->st,STSINVERT,&__flg);CHKERRQ(ierr); \
-      PetscCheckFalse(!__flg,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires a shift-and-invert spectral transform",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheck(__flg,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires a shift-and-invert spectral transform",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
 #define EPSCheckSinvert(eps) EPSCheckSinvertCondition(eps,PETSC_TRUE,"")
@@ -219,7 +219,7 @@ struct _p_EPS {
     if (condition) { \
       PetscBool __flg; \
       ierr = PetscObjectTypeCompareAny((PetscObject)(eps)->st,&__flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr); \
-      PetscCheckFalse(!__flg,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires shift-and-invert or Cayley transform",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheck(__flg,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires shift-and-invert or Cayley transform",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
 #define EPSCheckSinvertCayley(eps) EPSCheckSinvertCayleyCondition(eps,PETSC_TRUE,"")
@@ -228,17 +228,17 @@ struct _p_EPS {
 #define EPSCheckUnsupportedCondition(eps,mask,condition,msg) \
   do { \
     if (condition) { \
-      PetscCheckFalse(((mask) & EPS_FEATURE_BALANCE) && (eps)->balance!=EPS_BALANCE_NONE,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support balancing",((PetscObject)(eps))->type_name,(msg)); \
-      PetscCheckFalse(((mask) & EPS_FEATURE_ARBITRARY) && (eps)->arbitrary,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support arbitrary selection of eigenpairs",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheck(!((mask) & EPS_FEATURE_BALANCE) || (eps)->balance==EPS_BALANCE_NONE,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support balancing",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheck(!((mask) & EPS_FEATURE_ARBITRARY) || !(eps)->arbitrary,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support arbitrary selection of eigenpairs",((PetscObject)(eps))->type_name,(msg)); \
       if ((mask) & EPS_FEATURE_REGION) { \
         PetscBool      __istrivial; \
         PetscErrorCode __ierr = RGIsTrivial((eps)->rg,&__istrivial);CHKERRQ(__ierr); \
-        PetscCheckFalse(!__istrivial,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(eps))->type_name,(msg)); \
+        PetscCheck(__istrivial,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(eps))->type_name,(msg)); \
       } \
-      PetscCheckFalse(((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports Ritz extraction",((PetscObject)(eps))->type_name,(msg)); \
-      PetscCheckFalse(((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(eps))->type_name,(msg)); \
-      PetscCheckFalse(((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(eps))->type_name,(msg)); \
-      PetscCheckFalse(((mask) & EPS_FEATURE_TWOSIDED) && (eps)->twosided,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot compute left eigenvectors (no two-sided variant)",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheck(!((mask) & EPS_FEATURE_EXTRACTION) || (eps)->extraction==EPS_RITZ,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports Ritz extraction",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheck(!((mask) & EPS_FEATURE_CONVERGENCE) || (eps)->converged==EPSConvergedRelative,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheck(!((mask) & EPS_FEATURE_STOPPING) || (eps)->stopping==EPSStoppingBasic,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(eps))->type_name,(msg)); \
+      PetscCheck(!((mask) & EPS_FEATURE_TWOSIDED) || !(eps)->twosided,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot compute left eigenvectors (no two-sided variant)",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
 #define EPSCheckUnsupported(eps,mask) EPSCheckUnsupportedCondition(eps,mask,PETSC_TRUE,"")

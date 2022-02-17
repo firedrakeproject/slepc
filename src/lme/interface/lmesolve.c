@@ -53,14 +53,14 @@ PetscErrorCode LMESolve(LME lme)
   ierr = LMEViewFromOptions(lme,NULL,"-lme_view_pre");CHKERRQ(ierr);
 
   /* call solver */
-  PetscCheckFalse(!lme->ops->solve[lme->problem_type],PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"The specified solver does not support equation type %s",LMEProblemTypes[lme->problem_type]);
+  PetscCheck(lme->ops->solve[lme->problem_type],PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"The specified solver does not support equation type %s",LMEProblemTypes[lme->problem_type]);
   ierr = PetscLogEventBegin(LME_Solve,lme,0,0,0);CHKERRQ(ierr);
   ierr = (*lme->ops->solve[lme->problem_type])(lme);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(LME_Solve,lme,0,0,0);CHKERRQ(ierr);
 
-  PetscCheckFalse(!lme->reason,PetscObjectComm((PetscObject)lme),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+  PetscCheck(lme->reason,PetscObjectComm((PetscObject)lme),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
-  PetscCheckFalse(lme->errorifnotconverged && lme->reason < 0,PetscObjectComm((PetscObject)lme),PETSC_ERR_NOT_CONVERGED,"LMESolve has not converged");
+  PetscCheck(!lme->errorifnotconverged || lme->reason>=0,PetscObjectComm((PetscObject)lme),PETSC_ERR_NOT_CONVERGED,"LMESolve has not converged");
 
   /* various viewers */
   ierr = LMEViewFromOptions(lme,NULL,"-lme_view");CHKERRQ(ierr);

@@ -159,7 +159,7 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
   else if (n1 < PetscMin(1,n) || n1 > PetscMax(1,n)) *info = -5;
   else if (ldq < PetscMax(1,n)) *info = -8;
   else if (rho < 0.) *info = -9;
-  PetscCheckFalse(*info,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in DLAED3M",-(*info));
+  PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %" PetscBLASInt_FMT " in DLAED3M",-(*info));
 
   /* Quick return if possible */
 
@@ -199,8 +199,8 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
       /* eigenvalues are not ordered, issue an error statement */
       /* but continue computation. */
 
-      PetscCheckFalse(dlamda[j-1] >= dlamda[j],PETSC_COMM_SELF,PETSC_ERR_FP,"DLAMDA(%" PetscBLASInt_FMT ") is greater or equal than DLAMDA(%" PetscBLASInt_FMT ")", j, j+1);
-      PetscCheckFalse(d[j-1] < dlamda[j-1] || d[j-1] > dlamda[j],PETSC_COMM_SELF,PETSC_ERR_FP,"DLAMDA(%" PetscBLASInt_FMT ") = %g D(%" PetscBLASInt_FMT ") = %g DLAMDA(%" PetscBLASInt_FMT ") = %g", j, (double)dlamda[j-1], j, (double)d[j-1], j+1, (double)dlamda[j]);
+      PetscCheck(dlamda[j-1]<dlamda[j],PETSC_COMM_SELF,PETSC_ERR_FP,"DLAMDA(%" PetscBLASInt_FMT ") is greater or equal than DLAMDA(%" PetscBLASInt_FMT ")", j, j+1);
+      PetscCheck(d[j-1]>=dlamda[j-1] && d[j-1]<=dlamda[j],PETSC_COMM_SELF,PETSC_ERR_FP,"DLAMDA(%" PetscBLASInt_FMT ") = %g D(%" PetscBLASInt_FMT ") = %g DLAMDA(%" PetscBLASInt_FMT ") = %g", j, (double)dlamda[j-1], j, (double)d[j-1], j+1, (double)dlamda[j]);
     }
   }
 

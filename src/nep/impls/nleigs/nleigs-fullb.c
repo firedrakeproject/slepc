@@ -253,7 +253,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   EPSWhich       which;
 
   PetscFunctionBegin;
-  PetscCheckFalse(ctx->nshifts,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The full-basis option is not supported with rational Krylov");
+  PetscCheck(ctx->nshifts==0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The full-basis option is not supported with rational Krylov");
   if (!ctx->eps) { ierr = NEPNLEIGSGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,nep->target);CHKERRQ(ierr);
@@ -262,7 +262,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
     ierr = EPSSetType(ctx->eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   } else {
     ierr = PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks);CHKERRQ(ierr);
-    PetscCheckFalse(!ks,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Full-basis option only implemented for Krylov-Schur");
+    PetscCheck(ks,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Full-basis option only implemented for Krylov-Schur");
   }
   ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
   ierr = STShellSetContext(st,nep);CHKERRQ(ierr);
@@ -414,7 +414,7 @@ PetscErrorCode NEPSolve_NLEIGS_FullBasis(NEP nep)
   for (i=0;i<nep->nconv;i++) {
     ierr = EPSGetEigenpair(ctx->eps,i,&nep->eigr[i],&eigi,NULL,NULL);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-    PetscCheckFalse(eigi!=0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Complex value requires complex arithmetic");
+    PetscCheck(eigi==0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Complex value requires complex arithmetic");
 #endif
   }
   ierr = NEPNLEIGSExtract_None(nep,ctx->eps);CHKERRQ(ierr);

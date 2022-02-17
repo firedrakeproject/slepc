@@ -204,9 +204,9 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
     ep = LAPACKlamch_("S");
     /* Compute eigenvalues of the block */
     PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
-    PetscCheckFalse(wi==0.0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Real block in DSVectors_GHIEP");
+    PetscCheck(wi!=0.0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Real block in DSVectors_GHIEP");
     else { /* Complex eigenvalues */
-      PetscCheckFalse(scal1<ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
+      PetscCheck(scal1>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
       wr1 /= scal1;
       wi  /= scal1;
 #if !defined(PETSC_USE_COMPLEX)
@@ -337,9 +337,9 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,
       ep = LAPACKlamch_("S");
       /* Compute eigenvalues of the block */
       PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi1));
-      PetscCheckFalse(scal1<ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
+      PetscCheck(scal1>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
       if (wi1==0.0) { /* Real eigenvalues */
-        PetscCheckFalse(scal2<ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
+        PetscCheck(scal2>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
         wr[k] = wr1/scal1; wr[k+1] = wr2/scal2;
 #if !defined(PETSC_USE_COMPLEX)
         wi[k] = wi[k+1] = 0.0;
@@ -579,7 +579,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
         PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
         if (wi==0.0) { /* Real eigenvalues */
           isreal = PETSC_TRUE;
-          PetscCheckFalse(scal1<ep||scal2<ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
+          PetscCheck(scal1>=ep && scal2>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
           wr1 /= scal1;
           wr2 /= scal2;
           if (PetscAbsReal(s1*d1-wr1)<PetscAbsReal(s2*d2-wr1)) {
@@ -668,7 +668,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Check signature */
   for (i=0;i<ds->n;i++) {
     PetscReal de = (ds->compact)?s[i]:PetscRealPart(B[i*ld+i]);
-    PetscCheckFalse(de != 1.0 && de != -1.0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Diagonal elements of the signature matrix must be 1 or -1");
+    PetscCheck(de==1.0 || de==-1.0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Diagonal elements of the signature matrix must be 1 or -1");
   }
 #endif
   ierr = DSAllocateWork_Private(ds,ld*ld,2*ld,ld*2);CHKERRQ(ierr);
@@ -727,8 +727,8 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
       j=i+1;
       while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
       if (j==ds->n) {
-        if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) wr[i]=PetscRealPart(wr[i]);
-        else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
+        PetscCheck(PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON,PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
+        wr[i]=PetscRealPart(wr[i]);
       } else { /* complex eigenvalue */
         wr[j] = wr[i+1];
         if (PetscImaginaryPart(wr[i])<0) wr[i] = PetscConj(wr[i]);
@@ -779,7 +779,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Check signature */
   for (i=0;i<ds->n;i++) {
     PetscReal de = (ds->compact)?s[i]:PetscRealPart(B[i*ld+i]);
-    PetscCheckFalse(de != 1.0 && de != -1.0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Diagonal elements of the signature matrix must be 1 or -1");
+    PetscCheck(de==1.0 || de==-1.0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Diagonal elements of the signature matrix must be 1 or -1");
   }
 #endif
   lw = 14*ld+ld*ld;
@@ -839,12 +839,11 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     j=i+1;
     while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
     if (j==ds->n) {
-      if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) {
-        wr[i]=PetscRealPart(wr[i]); /* real eigenvalue */
-        for (k=ds->l;k<ds->n;k++) {
-          X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
-        }
-      } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
+      PetscCheck(PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON,PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
+      wr[i]=PetscRealPart(wr[i]); /* real eigenvalue */
+      for (k=ds->l;k<ds->n;k++) {
+        X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
+      }
     } else { /* complex eigenvalue */
       if (j!=i+1) {
         wr[j] = wr[i+1];
@@ -903,7 +902,7 @@ PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionBegin;
 #if defined(PETSC_USE_DEBUG)
   /* make sure diagonal 2x2 block is not broken */
-  PetscCheckFalse(ds->state>=DS_STATE_CONDENSED && n>0 && n<ds->n && T[n-1+ld]!=0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
+  PetscCheck(ds->state<DS_STATE_CONDENSED || n==0 || n==ds->n || T[n-1+ld]==0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
 #endif
   if (trim) {
     if (!ds->compact && ds->extrarow) {   /* clean extra row */

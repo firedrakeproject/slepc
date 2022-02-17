@@ -114,13 +114,13 @@ PetscErrorCode BVBiorthogonalizeColumn(BV V,BV W,PetscInt j)
   PetscValidType(W,2);
   BVCheckSizes(W,2);
   PetscCheckSameTypeAndComm(V,1,W,2);
-  PetscCheckFalse(j<0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  PetscCheckFalse(j>=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but V only has %" PetscInt_FMT " columns",j,V->m);
-  PetscCheckFalse(j>=W->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but W only has %" PetscInt_FMT " columns",j,W->m);
-  PetscCheckFalse(V->n!=W->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %" PetscInt_FMT ", W %" PetscInt_FMT,V->n,W->n);
-  PetscCheckFalse(V->matrix || W->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W must not have an inner product matrix");
-  PetscCheckFalse(V->nc || W->nc,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W cannot have different number of constraints");
-  PetscCheckFalse(V->ops->gramschmidt || W->ops->gramschmidt,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Object has a special GS function");
+  PetscCheck(j>=0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  PetscCheck(j<V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but V only has %" PetscInt_FMT " columns",j,V->m);
+  PetscCheck(j<W->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but W only has %" PetscInt_FMT " columns",j,W->m);
+  PetscCheck(V->n==W->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %" PetscInt_FMT ", W %" PetscInt_FMT,V->n,W->n);
+  PetscCheck(!V->matrix && !W->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W must not have an inner product matrix");
+  PetscCheck(!V->nc && !W->nc,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W cannot have different number of constraints");
+  PetscCheck(!V->ops->gramschmidt && !W->ops->gramschmidt,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Object has a special GS function");
 
   /* bi-orthogonalize */
   ierr = PetscLogEventBegin(BV_OrthogonalizeVec,V,0,0,0);CHKERRQ(ierr);
@@ -189,13 +189,13 @@ PetscErrorCode BVBiorthonormalizeColumn(BV V,BV W,PetscInt j,PetscReal *delta)
   PetscValidType(W,2);
   BVCheckSizes(W,2);
   PetscCheckSameTypeAndComm(V,1,W,2);
-  PetscCheckFalse(j<0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  PetscCheckFalse(j>=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but V only has %" PetscInt_FMT " columns",j,V->m);
-  PetscCheckFalse(j>=W->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but W only has %" PetscInt_FMT " columns",j,W->m);
-  PetscCheckFalse(V->n!=W->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %" PetscInt_FMT ", W %" PetscInt_FMT,V->n,W->n);
-  PetscCheckFalse(V->matrix || W->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W must not have an inner product matrix");
-  PetscCheckFalse(V->nc || W->nc,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W cannot have different number of constraints");
-  PetscCheckFalse(V->ops->gramschmidt || W->ops->gramschmidt,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Object has a special GS function");
+  PetscCheck(j>=0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  PetscCheck(j<V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but V only has %" PetscInt_FMT " columns",j,V->m);
+  PetscCheck(j<W->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but W only has %" PetscInt_FMT " columns",j,W->m);
+  PetscCheck(V->n==W->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %" PetscInt_FMT ", W %" PetscInt_FMT,V->n,W->n);
+  PetscCheck(!V->matrix && !W->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W must not have an inner product matrix");
+  PetscCheck(!V->nc && !W->nc,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W cannot have different number of constraints");
+  PetscCheck(!V->ops->gramschmidt && !W->ops->gramschmidt,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Object has a special GS function");
 
   /* bi-orthogonalize */
   ierr = PetscLogEventBegin(BV_OrthogonalizeVec,V,0,0,0);CHKERRQ(ierr);

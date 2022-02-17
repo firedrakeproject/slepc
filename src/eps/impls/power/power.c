@@ -62,7 +62,7 @@ static PetscErrorCode SNESMonitor_PowerUpdate(SNES snes,PetscInt its,PetscReal f
 
   PetscFunctionBegin;
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
-  PetscCheckFalse(!eps,PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
+  PetscCheck(eps,PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
   /* Call EPS monitor on each SNES iteration */
   ierr = EPSMonitor(eps,its,eps->nconv,eps->eigr,eps->eigi,eps->errest,PetscMin(eps->nconv+1,eps->nev));CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -82,7 +82,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ncv!=PETSC_DEFAULT) {
-    PetscCheckFalse(eps->ncv<eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
+    PetscCheck(eps->ncv>=eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
   } else eps->ncv = eps->nev;
   if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (eps->max_it==PETSC_DEFAULT) {
@@ -91,12 +91,12 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     else eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
   }
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
-  PetscCheckFalse(eps->which!=EPS_LARGEST_MAGNITUDE && eps->which!=EPS_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest magnitude or target magnitude eigenvalues");
+  PetscCheck(eps->which==EPS_LARGEST_MAGNITUDE || eps->which==EPS_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest magnitude or target magnitude eigenvalues");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
-    PetscCheckFalse(power->nonlinear,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Variable shifts not allowed in nonlinear problems");
+    PetscCheck(!power->nonlinear,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Variable shifts not allowed in nonlinear problems");
     EPSCheckSinvertCayleyCondition(eps,PETSC_TRUE," (with variable shifts)");
     ierr = STGetMatMode(eps->st,&mode);CHKERRQ(ierr);
-    PetscCheckFalse(mode == ST_MATMODE_INPLACE,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
+    PetscCheck(mode!=ST_MATMODE_INPLACE,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION);
@@ -104,9 +104,9 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
 
   if (power->nonlinear) {
-    PetscCheckFalse(eps->nev>1,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration cannot compute more than one eigenvalue");
+    PetscCheck(eps->nev==1,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration cannot compute more than one eigenvalue");
     ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
-    PetscCheckFalse(power->update && eps->max_it>1,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"More than one iteration is not allowed for Newton eigensolver (SNES)");
+    PetscCheck(!power->update || eps->max_it==1,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"More than one iteration is not allowed for Newton eigensolver (SNES)");
 
     /* Set up SNES solver */
     /* If SNES was setup, we need to reset it so that it will be consistent with the current EPS */
@@ -122,7 +122,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
 
     ierr = PetscObjectQueryFunction((PetscObject)A,"formFunction",&formFunctionA);CHKERRQ(ierr);
-    PetscCheckFalse(!formFunctionA,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER,"For nonlinear inverse iteration you must compose a callback function 'formFunction' in matrix A");
+    PetscCheck(formFunctionA,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER,"For nonlinear inverse iteration you must compose a callback function 'formFunction' in matrix A");
     ierr = PetscObjectQuery((PetscObject)A,"formFunctionCtx",(PetscObject*)&container);CHKERRQ(ierr);
     if (container) {
       ierr = PetscContainerGetPointer(container,&ctx);CHKERRQ(ierr);
@@ -139,7 +139,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     ierr = VecDestroy(&res);CHKERRQ(ierr);
 
     ierr = PetscObjectQueryFunction((PetscObject)A,"formJacobian",&formJacobianA);CHKERRQ(ierr);
-    PetscCheckFalse(!formJacobianA,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER,"For nonlinear inverse iteration you must compose a callback function 'formJacobian' in matrix A");
+    PetscCheck(formJacobianA,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER,"For nonlinear inverse iteration you must compose a callback function 'formJacobian' in matrix A");
     ierr = PetscObjectQuery((PetscObject)A,"formJacobianCtx",(PetscObject*)&container);CHKERRQ(ierr);
     if (container) {
       ierr = PetscContainerGetPointer(container,&ctx);CHKERRQ(ierr);
@@ -170,8 +170,8 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   }
   /* dispatch solve method */
   if (eps->twosided) {
-    PetscCheckFalse(power->nonlinear,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration does not have two-sided variant");
-    PetscCheckFalse(power->shift_type == EPS_POWER_SHIFT_WILKINSON,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided variant does not support Wilkinson shifts");
+    PetscCheck(!power->nonlinear,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration does not have two-sided variant");
+    PetscCheck(power->shift_type!=EPS_POWER_SHIFT_WILKINSON,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided variant does not support Wilkinson shifts");
     eps->ops->solve = EPSSolve_TS_Power;
   } else eps->ops->solve = EPSSolve_Power;
   PetscFunctionReturn(0);
@@ -197,7 +197,7 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
   ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   if (i==last) i=N;
   ierr = MPIU_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x));CHKERRMPI(ierr);
-  PetscCheckFalse(*idx==N,PetscObjectComm((PetscObject)x),PETSC_ERR_PLIB,"Zero vector found");
+  PetscCheck(*idx!=N,PetscObjectComm((PetscObject)x),PETSC_ERR_PLIB,"Zero vector found");
   ierr = VecGetLayout(x,&map);CHKERRQ(ierr);
   ierr = PetscLayoutFindOwner(map,*idx,p);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -260,13 +260,12 @@ static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
   PetscFunctionBegin;
   ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
-  if (A) {
-    if (power->formFunctionA) {
-      ierr = (*power->formFunctionA)(power->snes,x,Ax,power->formFunctionActx);CHKERRQ(ierr);
-    } else {
-      ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
-    }
-  } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem");
+  PetscCheck(A,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem");
+  if (power->formFunctionA) {
+    ierr = (*power->formFunctionA)(power->snes,x,Ax,power->formFunctionActx);CHKERRQ(ierr);
+  } else {
+    ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -281,7 +280,7 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
 
   PetscFunctionBegin;
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
-  PetscCheckFalse(!eps,PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
+  PetscCheck(eps,PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
   ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
   power = (EPS_POWER*)eps->data;
   Bx = eps->work[2];
@@ -534,7 +533,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           rho *= 1+10*PETSC_MACHINE_EPSILON;
           ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
           ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
-          PetscCheckFalse(reason,PetscObjectComm((PetscObject)ksp),PETSC_ERR_CONV_FAILED,"Second factorization failed");
+          PetscCheck(!reason,PetscObjectComm((PetscObject)ksp),PETSC_ERR_CONV_FAILED,"Second factorization failed");
         }
         ierr = KSPSetErrorIfNotConverged(ksp,PETSC_TRUE);CHKERRQ(ierr);
       }
@@ -650,7 +649,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
     ierr = BVDotVec(eps->V,z,&alpha);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->W,k,&z);CHKERRQ(ierr);
     delta = PetscSqrtReal(PetscAbsScalar(alpha));
-    PetscCheckFalse(delta==0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in two-sided Power/RQI");
+    PetscCheck(delta!=0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in two-sided Power/RQI");
     ierr = BVScaleColumn(eps->V,k,1.0/PetscConj(alpha/delta));CHKERRQ(ierr);
     ierr = BVScaleColumn(eps->W,k,1.0/delta);CHKERRQ(ierr);
     ierr = BVCopyVec(eps->V,k,v);CHKERRQ(ierr);
@@ -680,7 +679,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
           rho *= 1+10*PETSC_MACHINE_EPSILON;
           ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
           ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
-          PetscCheckFalse(reason,PetscObjectComm((PetscObject)ksp),PETSC_ERR_CONV_FAILED,"Second factorization failed");
+          PetscCheck(!reason,PetscObjectComm((PetscObject)ksp),PETSC_ERR_CONV_FAILED,"Second factorization failed");
         }
         ierr = KSPSetErrorIfNotConverged(ksp,PETSC_TRUE);CHKERRQ(ierr);
       }
@@ -954,7 +953,7 @@ static PetscErrorCode EPSPowerSetUpdate_Power(EPS eps,PetscBool update)
   EPS_POWER *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
-  PetscCheckFalse(!power->nonlinear,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"This option does not make sense for linear problems");
+  PetscCheck(power->nonlinear,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"This option does not make sense for linear problems");
   power->update = update;
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);

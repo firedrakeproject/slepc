@@ -84,7 +84,7 @@ SLEPC_INTERN PetscErrorCode LMEDenseRankSVD(LME,PetscInt,PetscScalar*,PetscInt,P
 
 #define LMECheckCoeff(h,A,mat,eq) \
   do { \
-    PetscCheckFalse(!(A),PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"%s matrix equation requires coefficient matrix %s",eq,mat); \
+    PetscCheck(A,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"%s matrix equation requires coefficient matrix %s",eq,mat); \
   } while (0)
 
 #endif

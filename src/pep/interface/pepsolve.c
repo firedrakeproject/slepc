@@ -110,7 +110,7 @@ PetscErrorCode PEPSolve(PEP pep)
 
   /* Call solver */
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
-  PetscCheckFalse(!pep->reason,PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+  PetscCheck(pep->reason,PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   pep->state = PEP_STATE_SOLVED;
 
   /* Only the first nconv columns contain useful information */
@@ -315,8 +315,8 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
   if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,5); PetscCheckSameComm(pep,1,Vr,5); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,6); PetscCheckSameComm(pep,1,Vi,6); }
   PEPCheckSolved(pep,1);
-  PetscCheckFalse(i<0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
-  PetscCheckFalse(i>=pep->nconv,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see PEPGetConverged()");
+  PetscCheck(i>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
+  PetscCheck(i<pep->nconv,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see PEPGetConverged()");
 
   ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
   k = pep->perm[i];
@@ -363,7 +363,8 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidRealPointer(errest,3);
   PEPCheckSolved(pep,1);
-  PetscCheckFalse(i<0 || i>=pep->nconv,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  PetscCheck(i>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
+  PetscCheck(i<pep->nconv,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see PEPGetConverged()");
   *errest = pep->errest[pep->perm[i]];
   PetscFunctionReturn(0);
 }
@@ -523,7 +524,7 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
       if (!pep->nrma[pep->nmat-1]) {
         for (j=0;j<pep->nmat;j++) {
           ierr = MatHasOperation(pep->A[j],MATOP_NORM,&flg);CHKERRQ(ierr);
-          PetscCheckFalse(!flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+          PetscCheck(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
           ierr = MatNorm(pep->A[j],NORM_INFINITY,&pep->nrma[j]);CHKERRQ(ierr);
         }
       }

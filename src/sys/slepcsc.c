@@ -47,7 +47,7 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
   PetscFunctionBegin;
   PetscValidIntPointer(res,6);
 #if defined(PETSC_USE_DEBUG)
-  PetscCheckFalse(!sc->comparison,PETSC_COMM_SELF,PETSC_ERR_USER,"Undefined comparison function");
+  PetscCheck(sc->comparison,PETSC_COMM_SELF,PETSC_ERR_USER,"Undefined comparison function");
 #endif
   re[0] = ar; re[1] = br;
   im[0] = ai; im[1] = bi;

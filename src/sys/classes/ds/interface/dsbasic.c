@@ -263,7 +263,7 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   if (match) PetscFunctionReturn(0);
 
   ierr =  PetscFunctionListFind(DSList,type,&r);CHKERRQ(ierr);
-  PetscCheckFalse(!r,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
+  PetscCheck(r,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
   ierr = PetscMemzero(ds->ops,sizeof(struct _DSOps));CHKERRQ(ierr);
 
@@ -359,8 +359,8 @@ PetscErrorCode DSSetMethod(DS ds,PetscInt meth)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,meth,2);
-  PetscCheckFalse(meth<0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
-  PetscCheckFalse(meth>DS_MAX_SOLVE,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
+  PetscCheck(meth>=0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
+  PetscCheck(meth<=DS_MAX_SOLVE,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
   ds->method = meth;
   PetscFunctionReturn(0);
 }
@@ -535,7 +535,7 @@ PetscErrorCode DSSetExtraRow(DS ds,PetscBool ext)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveBool(ds,ext,2);
-  PetscCheckFalse(ds->n>0 && ds->n==ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
+  PetscCheck(ds->n==0 || ds->n!=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
   ds->extrarow = ext;
   PetscFunctionReturn(0);
 }
@@ -642,7 +642,7 @@ PetscErrorCode DSSetBlockSize(DS ds,PetscInt bs)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,bs,2);
-  PetscCheckFalse(bs<1,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The block size must be at least one");
+  PetscCheck(bs>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The block size must be at least one");
   ds->bs = bs;
   PetscFunctionReturn(0);
 }
@@ -891,7 +891,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,ld,2);
   PetscValidType(ds,1);
-  PetscCheckFalse(ld<1,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
+  PetscCheck(ld>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
   if (ld!=ds->ld) {
     ierr = PetscInfo(ds,"Allocating memory with leading dimension=%" PetscInt_FMT "\n",ld);CHKERRQ(ierr);
     ierr = DSReset(ds);CHKERRQ(ierr);

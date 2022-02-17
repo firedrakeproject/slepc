@@ -23,13 +23,13 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   PetscFunctionBegin;
   EPSCheckDefinite(eps);
   if (eps->ncv!=PETSC_DEFAULT) {
-    PetscCheckFalse(eps->ncv<eps->nev+2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
+    PetscCheck(eps->ncv>=eps->nev+2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
   if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
-  PetscCheckFalse(eps->which==EPS_ALL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
-  PetscCheckFalse(eps->which==EPS_WHICH_USER,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support user-defined ordering of eigenvalues");
+  PetscCheck(eps->which!=EPS_ALL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
+  PetscCheck(eps->which!=EPS_WHICH_USER,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support user-defined ordering of eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION);
 
@@ -133,7 +133,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     bmat[0] = 'G';
   } else {
     /* regular mode */
-    PetscCheckFalse(eps->ishermitian && eps->isgeneralized,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
+    PetscCheck(!eps->ishermitian || !eps->isgeneralized,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
     iparam[6] = 1;
     bmat[0] = 'I';
   }
@@ -217,15 +217,15 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 
       ierr = VecResetArray(x);CHKERRQ(ierr);
       ierr = VecResetArray(y);CHKERRQ(ierr);
-    } else PetscCheckFalse(ido != 99,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in ARPACK reverse communication interface (ido=%" PetscInt_FMT ")",ido);
+    } else PetscCheck(ido==99,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in ARPACK reverse communication interface (ido=%" PetscInt_FMT ")",ido);
 
   } while (ido != 99);
 
   eps->nconv = iparam[4];
   eps->its = iparam[2];
 
-  PetscCheckFalse(info==3,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
-  else PetscCheckFalse(info!=0 && info!=1,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%" PetscInt_FMT ")",info);
+  if (info==3) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
+  else if (info!=0 && info!=1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%" PetscInt_FMT ")",info);
 
   rvec = PETSC_TRUE;
 
@@ -239,7 +239,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 #else
     PetscStackCall("ARPACKneupd",ARPACKneupd_(&fcomm,&rvec,howmny,ar->select,eps->eigr,pV,&n,&sigmar,ar->workev,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,ar->rwork,&info));
 #endif
-    PetscCheckFalse(info!=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%" PetscInt_FMT ")",info);
+    PetscCheck(info==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%" PetscInt_FMT ")",info);
   }
 
   ierr = BVRestoreArray(eps->V,&pV);CHKERRQ(ierr);

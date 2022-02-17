@@ -25,10 +25,10 @@ PetscErrorCode STComputeOperator_Filter(ST st)
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
-  PetscCheckFalse(st->nmat>1,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Only implemented for standard eigenvalue problem");
-  PetscCheckFalse(ctx->intb >= PETSC_MAX_REAL && ctx->inta <= PETSC_MIN_REAL,PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"Must pass an interval with STFilterSetInterval()");
-  PetscCheckFalse(ctx->right == 0.0 && ctx->left == 0.0,PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"Must pass an approximate numerical range with STFilterSetRange()");
-  PetscCheckFalse(ctx->left > ctx->inta || ctx->right < ctx->intb,PetscObjectComm((PetscObject)st),PETSC_ERR_USER_INPUT,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)ctx->inta,(double)ctx->intb,(double)ctx->left,(double)ctx->right);
+  PetscCheck(st->nmat==1,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Only implemented for standard eigenvalue problem");
+  PetscCheck(ctx->intb<PETSC_MAX_REAL || ctx->inta>PETSC_MIN_REAL,PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"Must pass an interval with STFilterSetInterval()");
+  PetscCheck(ctx->right!=0.0 || ctx->left!=0.0,PetscObjectComm((PetscObject)st),PETSC_ERR_ORDER,"Must pass an approximate numerical range with STFilterSetRange()");
+  PetscCheck(ctx->left<=ctx->inta && ctx->right>=ctx->intb,PetscObjectComm((PetscObject)st),PETSC_ERR_USER_INPUT,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)ctx->inta,(double)ctx->intb,(double)ctx->left,(double)ctx->right);
   if (!ctx->polyDegree) ctx->polyDegree = 100;
   ctx->frame[0] = ctx->left;
   ctx->frame[1] = ctx->inta;
@@ -62,13 +62,13 @@ PetscErrorCode STSetFromOptions_Filter(PetscOptionItems *PetscOptionsObject,ST s
     k = 2;
     ierr = PetscOptionsRealArray("-st_filter_interval","Interval containing the desired eigenvalues (two real values separated with a comma without spaces)","STFilterSetInterval",array,&k,&flg);CHKERRQ(ierr);
     if (flg) {
-      PetscCheckFalse(k<2,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Must pass two values in -st_filter_interval (comma-separated without spaces)");
+      PetscCheck(k>1,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Must pass two values in -st_filter_interval (comma-separated without spaces)");
       ierr = STFilterSetInterval(st,array[0],array[1]);CHKERRQ(ierr);
     }
     k = 2;
     ierr = PetscOptionsRealArray("-st_filter_range","Interval containing all eigenvalues (two real values separated with a comma without spaces)","STFilterSetRange",array,&k,&flg);CHKERRQ(ierr);
     if (flg) {
-      PetscCheckFalse(k<2,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Must pass two values in -st_filter_range (comma-separated without spaces)");
+      PetscCheck(k>1,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Must pass two values in -st_filter_range (comma-separated without spaces)");
       ierr = STFilterSetRange(st,array[0],array[1]);CHKERRQ(ierr);
     }
     ierr = PetscOptionsInt("-st_filter_degree","Degree of filter polynomial","STFilterSetDegree",100,&k,&flg);CHKERRQ(ierr);
@@ -83,7 +83,7 @@ static PetscErrorCode STFilterSetInterval_Filter(ST st,PetscReal inta,PetscReal 
   ST_FILTER *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
-  PetscCheckFalse(inta>intb,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
+  PetscCheck(inta<intb,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
   if (ctx->inta != inta || ctx->intb != intb) {
     ctx->inta   = inta;
     ctx->intb   = intb;
@@ -174,7 +174,7 @@ static PetscErrorCode STFilterSetRange_Filter(ST st,PetscReal left,PetscReal rig
   ST_FILTER *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
-  PetscCheckFalse(left>right,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be left<right");
+  PetscCheck(left<right,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be left<right");
   if (ctx->left != left || ctx->right != right) {
     ctx->left   = left;
     ctx->right  = right;
@@ -266,7 +266,7 @@ static PetscErrorCode STFilterSetDegree_Filter(ST st,PetscInt deg)
     st->opready     = PETSC_FALSE;
     ctx->filtch     = PETSC_TRUE;
   } else {
-    PetscCheckFalse(deg<=0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
+    PetscCheck(deg>0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
     if (ctx->polyDegree != deg) {
       ctx->polyDegree = deg;
       st->state       = ST_STATE_INITIAL;

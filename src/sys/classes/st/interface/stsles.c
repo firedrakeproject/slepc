@@ -89,8 +89,8 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   STCheckMatrices(st,1);
-  PetscCheckFalse(k<0 || k>=PetscMax(2,st->nmat),PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat);
-  PetscCheckFalse(x == y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  PetscCheck(k>=0 && k<PetscMax(2,st->nmat),PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat);
+  PetscCheck(x!=y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
 
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
@@ -135,8 +135,8 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   STCheckMatrices(st,1);
-  PetscCheckFalse(k<0 || k>=PetscMax(2,st->nmat),PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat);
-  PetscCheckFalse(x == y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  PetscCheck(k>=0 && k<PetscMax(2,st->nmat),PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat);
+  PetscCheck(x!=y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
 
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
@@ -179,7 +179,7 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(b,VEC_CLASSID,2);
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   STCheckMatrices(st,1);
-  PetscCheckFalse(x == b,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+  PetscCheck(x!=b,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
   ierr = VecSetErrorIfLocked(x,3);CHKERRQ(ierr);
 
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
@@ -261,7 +261,7 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(b,VEC_CLASSID,2);
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   STCheckMatrices(st,1);
-  PetscCheckFalse(x == b,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
+  PetscCheck(x!=b,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
   ierr = VecSetErrorIfLocked(x,3);CHKERRQ(ierr);
 
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
@@ -293,7 +293,7 @@ PetscErrorCode STCheckFactorPackage(ST st)
   ierr = PCFactorGetMatSolverType(pc,&stype);CHKERRQ(ierr);
   if (stype) {   /* currently selected PC is a factorization */
     ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
-    PetscCheckFalse(flg,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"You chose to solve linear systems with a factorization, but in parallel runs you need to select an external package; see the users guide for details");
+    PetscCheck(!flg,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"You chose to solve linear systems with a factorization, but in parallel runs you need to select an external package; see the users guide for details");
   }
   PetscFunctionReturn(0);
 }
@@ -441,7 +441,7 @@ PetscErrorCode STCheckNullSpace(ST st,BV V)
   PetscValidHeaderSpecific(V,BV_CLASSID,2);
   PetscValidType(st,1);
   PetscCheckSameComm(st,1,V,2);
-  PetscCheckFalse(!st->state,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must call STSetUp() first");
+  PetscCheck(st->state,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must call STSetUp() first");
 
   ierr = BVGetNumConstraints(V,&nc);CHKERRQ(ierr);
   if (nc && st->ops->checknullspace) {

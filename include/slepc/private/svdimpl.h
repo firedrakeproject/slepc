@@ -122,7 +122,7 @@ struct _p_SVD {
 
 #define SVDCheckSolved(h,arg) \
   do { \
-    PetscCheckFalse((h)->state<SVD_STATE_SOLVED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call SVDSolve() first: Parameter #%d",arg); \
+    PetscCheck((h)->state>=SVD_STATE_SOLVED,PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call SVDSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #endif
@@ -135,7 +135,7 @@ struct _p_SVD {
 #define SVDCheckStandardCondition(svd,condition,msg) \
   do { \
     if (condition) { \
-      PetscCheckFalse((svd)->isgeneralized,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(svd))->type_name,(msg)); \
+      PetscCheck(!(svd)->isgeneralized,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(svd))->type_name,(msg)); \
     } \
   } while (0)
 #define SVDCheckStandard(svd) SVDCheckStandardCondition(svd,PETSC_TRUE,"")
@@ -144,8 +144,8 @@ struct _p_SVD {
 #define SVDCheckUnsupportedCondition(svd,mask,condition,msg) \
   do { \
     if (condition) { \
-      PetscCheckFalse(((mask) & SVD_FEATURE_CONVERGENCE) && (svd)->converged!=SVDConvergedRelative,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(svd))->type_name,(msg)); \
-      PetscCheckFalse(((mask) & SVD_FEATURE_STOPPING) && (svd)->stopping!=SVDStoppingBasic,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(svd))->type_name,(msg)); \
+      PetscCheck(!((mask) & SVD_FEATURE_CONVERGENCE) || (svd)->converged==SVDConvergedRelative,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(svd))->type_name,(msg)); \
+      PetscCheck(!((mask) & SVD_FEATURE_STOPPING) || (svd)->stopping==SVDStoppingBasic,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(svd))->type_name,(msg)); \
     } \
   } while (0)
 #define SVDCheckUnsupported(svd,mask) SVDCheckUnsupportedCondition(svd,mask,PETSC_TRUE,"")

@@ -136,13 +136,13 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_TARGET_MAGNITUDE;
-  PetscCheckFalse(pep->which!=PEP_TARGET_MAGNITUDE && pep->which!=PEP_TARGET_REAL && pep->which!=PEP_TARGET_IMAGINARY,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver supports only target which, see PEPSetWhichEigenpairs()");
+  PetscCheck(pep->which==PEP_TARGET_MAGNITUDE || pep->which==PEP_TARGET_REAL || pep->which==PEP_TARGET_IMAGINARY,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver supports only target which, see PEPSetWhichEigenpairs()");
 
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STPRECOND,&isprecond);CHKERRQ(ierr);
-  PetscCheckFalse(!isprecond,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver only works with PRECOND spectral transformation");
+  PetscCheck(isprecond,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver only works with PRECOND spectral transformation");
 
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  PetscCheckFalse(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver requires the ST transform flag unset, see STSetTransform()");
+  PetscCheck(!flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver requires the ST transform flag unset, see STSetTransform()");
   PEPCheckIgnored(pep,PEP_FEATURE_EXTRACT);
 
   if (!pjd->mmidx) pjd->mmidx = pep->nmat-1;
@@ -714,26 +714,25 @@ static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(pjd->ld-1,&tt);CHKERRQ(ierr);
-  if (pep->nini==0) {
-    ierr = BVSetRandomColumn(pjd->V,0);CHKERRQ(ierr);
-    for (i=0;i<pjd->ld-1;i++) tt[i] = 0.0;
+  PetscCheck(pep->nini==0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Support for initial vectors not implemented yet");
+  ierr = BVSetRandomColumn(pjd->V,0);CHKERRQ(ierr);
+  for (i=0;i<pjd->ld-1;i++) tt[i] = 0.0;
+  ierr = BVGetColumn(pjd->V,0,&vg);CHKERRQ(ierr);
+  ierr = PEPJDCopyToExtendedVec(pep,NULL,tt,pjd->ld-1,0,vg,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
+  ierr = BVNormColumn(pjd->V,0,NORM_2,&norm);CHKERRQ(ierr);
+  ierr = BVScaleColumn(pjd->V,0,1.0/norm);CHKERRQ(ierr);
+  if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
     ierr = BVGetColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-    ierr = PEPJDCopyToExtendedVec(pep,NULL,tt,pjd->ld-1,0,vg,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVGetColumn(pjd->W,0,&wg);CHKERRQ(ierr);
+    ierr = VecSet(wg,0.0);CHKERRQ(ierr);
+    target[0] = pep->target; target[1] = 0.0;
+    ierr = PEPJDComputeResidual(pep,PETSC_TRUE,1,&vg,target,&wg,w);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(pjd->W,0,&wg);CHKERRQ(ierr);
     ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-    ierr = BVNormColumn(pjd->V,0,NORM_2,&norm);CHKERRQ(ierr);
-    ierr = BVScaleColumn(pjd->V,0,1.0/norm);CHKERRQ(ierr);
-    if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
-      ierr = BVGetColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-      ierr = BVGetColumn(pjd->W,0,&wg);CHKERRQ(ierr);
-      ierr = VecSet(wg,0.0);CHKERRQ(ierr);
-      target[0] = pep->target; target[1] = 0.0;
-      ierr = PEPJDComputeResidual(pep,PETSC_TRUE,1,&vg,target,&wg,w);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pjd->W,0,&wg);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-      ierr = BVNormColumn(pjd->W,0,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(pjd->W,0,1.0/norm);CHKERRQ(ierr);
-    }
-  } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Support for initial vectors not implemented yet");
+    ierr = BVNormColumn(pjd->W,0,NORM_2,&norm);CHKERRQ(ierr);
+    ierr = BVScaleColumn(pjd->W,0,1.0/norm);CHKERRQ(ierr);
+  }
   ierr = PetscFree(tt);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1479,8 +1478,8 @@ PetscErrorCode PEPSolve_JD(PEP pep)
         ierr = BVRestoreColumn(pjd->V,nv,&t[0]);CHKERRQ(ierr);
         ierr = BVOrthogonalizeColumn(pjd->V,nv,NULL,&norm,&lindep);CHKERRQ(ierr);
         if (lindep || norm==0.0) {
-          PetscCheckFalse(sz==1,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
-          else off = 1;
+          PetscCheck(sz!=1,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
+          off = 1;
         } else {
           off = 0;
           ierr = BVScaleColumn(pjd->V,nv,1.0/norm);CHKERRQ(ierr);
@@ -1496,8 +1495,8 @@ PetscErrorCode PEPSolve_JD(PEP pep)
           }
           ierr = BVOrthogonalizeColumn(pjd->V,nv+1-off,NULL,&norm,&lindep);CHKERRQ(ierr);
           if (lindep || norm==0.0) {
-            PetscCheckFalse(off,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
-            else off = 1;
+            PetscCheck(off==0,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
+            off = 1;
           } else {
             ierr = BVScaleColumn(pjd->V,nv+1-off,1.0/norm);CHKERRQ(ierr);
           }
@@ -1509,11 +1508,11 @@ PetscErrorCode PEPSolve_JD(PEP pep)
             ierr = BVInsertVec(pjd->W,nv+1,r[1]);CHKERRQ(ierr);
           }
           ierr = BVOrthogonalizeColumn(pjd->W,nv,NULL,&norm,&lindep);CHKERRQ(ierr);
-          PetscCheckFalse(lindep || norm==0.0,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
+          PetscCheck(!lindep && norm>0.0,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
           ierr = BVScaleColumn(pjd->W,nv,1.0/norm);CHKERRQ(ierr);
           if (sz==2 && !off) {
             ierr = BVOrthogonalizeColumn(pjd->W,nv+1,NULL,&norm,&lindep);CHKERRQ(ierr);
-            PetscCheckFalse(lindep || norm==0.0,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
+            PetscCheck(!lindep && norm>0.0,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linearly dependent continuation vector");
             ierr = BVScaleColumn(pjd->W,nv+1,1.0/norm);CHKERRQ(ierr);
           }
         }
@@ -1570,7 +1569,7 @@ PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
   PetscFunctionBegin;
   if (keep==PETSC_DEFAULT) pjd->keep = 0.5;
   else {
-    PetscCheckFalse(keep<0.1 || keep>0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    PetscCheck(keep>=0.1 && keep<=0.9,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
     pjd->keep = keep;
   }
   PetscFunctionReturn(0);
@@ -1650,7 +1649,7 @@ PetscErrorCode PEPJDSetFix_JD(PEP pep,PetscReal fix)
   PetscFunctionBegin;
   if (fix == PETSC_DEFAULT || fix == PETSC_DECIDE) pjd->fix = 0.01;
   else {
-    PetscCheckFalse(fix < 0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
+    PetscCheck(fix>=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value, must be >0");
     pjd->fix = fix;
   }
   PetscFunctionReturn(0);
@@ -1812,11 +1811,13 @@ PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
   PetscFunctionBegin;
-  if (mmidx == PETSC_DEFAULT || mmidx == PETSC_DECIDE) pjd->mmidx = 1;
-  else {
-    PetscCheckFalse(mmidx < 1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mmidx value");
+  if (mmidx == PETSC_DEFAULT || mmidx == PETSC_DECIDE) {
+    if (pjd->mmidx != 1) pep->state = PEP_STATE_INITIAL;
+    pjd->mmidx = 1;
+  } else {
+    PetscCheck(mmidx>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mmidx value, should be >0");
+    if (pjd->mmidx != mmidx) pep->state = PEP_STATE_INITIAL;
     pjd->mmidx = mmidx;
-    pep->state = PEP_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }

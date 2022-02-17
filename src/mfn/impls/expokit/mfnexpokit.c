@@ -38,7 +38,7 @@ PetscErrorCode MFNSetUp_Expokit(MFN mfn)
   ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
 
   ierr = PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp);CHKERRQ(ierr);
-  PetscCheckFalse(!isexp,PETSC_COMM_SELF,PETSC_ERR_SUP,"This solver only supports the exponential function");
+  PetscCheck(isexp,PETSC_COMM_SELF,PETSC_ERR_SUP,"This solver only supports the exponential function");
   PetscFunctionReturn(0);
 }
 

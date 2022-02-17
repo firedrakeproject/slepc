@@ -135,7 +135,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
     ierr = PEPSetUp_STOAR_QSlice(pep);CHKERRQ(ierr);
   } else {
     ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
-    PetscCheckFalse(!ctx->lock && pep->mpd<pep->ncv,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
+    PetscCheck(ctx->lock || pep->mpd>=pep->ncv,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
     if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
     pep->ops->solve = PEPSolve_STOAR;
     ld   = pep->ncv+2;
@@ -202,7 +202,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   if (!flg) {
     /* spectral transformation handled by the solver */
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSINVERT,STSHIFT,"");CHKERRQ(ierr);
-    PetscCheckFalse(!flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"ST type not supported for TOAR without transforming matrices");
+    PetscCheck(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"ST type not supported for TOAR without transforming matrices");
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
     ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
   }
@@ -620,8 +620,8 @@ static PetscErrorCode PEPSTOARGetInertias_STOAR(PEP pep,PetscInt *n,PetscReal **
   PEP_SR         sr = ctx->sr;
 
   PetscFunctionBegin;
-  PetscCheckFalse(!pep->state,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSetUp() first");
-  PetscCheckFalse(!ctx->sr,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see PEPSetInterval()");
+  PetscCheck(pep->state,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSetUp() first");
+  PetscCheck(ctx->sr,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see PEPSetInterval()");
   switch (pep->state) {
   case PEP_STATE_INITIAL:
     break;
@@ -797,7 +797,7 @@ static PetscErrorCode PEPSTOARSetLinearization_STOAR(PEP pep,PetscReal alpha,Pet
   PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
-  PetscCheckFalse(beta==0.0 && alpha==0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
+  PetscCheck(beta!=0.0 || alpha!=0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
   ctx->alpha = alpha;
   ctx->beta  = beta;
   PetscFunctionReturn(0);
@@ -879,18 +879,18 @@ static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt 
   PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
-  PetscCheckFalse(nev<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+  PetscCheck(nev>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
   ctx->nev = nev;
   if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
     ctx->ncv = PETSC_DEFAULT;
   } else {
-    PetscCheckFalse(ncv<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    PetscCheck(ncv>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
     ctx->ncv = ncv;
   }
   if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
     ctx->mpd = PETSC_DEFAULT;
   } else {
-    PetscCheckFalse(mpd<1,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+    PetscCheck(mpd>0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
     ctx->mpd = mpd;
   }
   pep->state = PEP_STATE_INITIAL;

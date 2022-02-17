@@ -521,7 +521,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
         }
 
         mu = 1.0/mu;
-        PetscCheckFalse(PetscAbsScalar(im)>PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Complex eigenvalue approximation - not implemented in real scalars");
+        PetscCheck(PetscAbsScalar(im)<PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Complex eigenvalue approximation - not implemented in real scalars");
       } else {
         nep->its--;  /* do not count this as a full iteration */
         /* use second eigenpair computed in previous iteration */

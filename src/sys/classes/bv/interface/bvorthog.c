@@ -337,8 +337,8 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  PetscCheckFalse(j<0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  PetscCheckFalse(j>=bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,bv->m);
+  PetscCheck(j>=0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  PetscCheck(j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,bv->m);
 
   ierr = PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0);CHKERRQ(ierr);
   ksave = bv->k;
@@ -406,8 +406,8 @@ PetscErrorCode BVOrthonormalizeColumn(BV bv,PetscInt j,PetscBool replace,PetscRe
   PetscValidLogicalCollectiveInt(bv,j,2);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  PetscCheckFalse(j<0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  PetscCheckFalse(j>=bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,bv->m);
+  PetscCheck(j>=0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  PetscCheck(j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,bv->m);
 
   /* orthogonalize */
   ierr = PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0);CHKERRQ(ierr);
@@ -487,9 +487,9 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
   PetscValidBoolPointer(which,3);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  PetscCheckFalse(j<0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
-  PetscCheckFalse(j>=bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,bv->m);
-  PetscCheckFalse(bv->orthog_type!=BV_ORTHOG_MGS,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation only available for MGS orthogonalization");
+  PetscCheck(j>=0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  PetscCheck(j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,bv->m);
+  PetscCheck(bv->orthog_type==BV_ORTHOG_MGS,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation only available for MGS orthogonalization");
 
   ierr = PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0);CHKERRQ(ierr);
   ksave = bv->k;
@@ -560,7 +560,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
     } else {
       ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
     }
-    PetscCheckFalse(!norm,PetscObjectComm((PetscObject)V),PETSC_ERR_CONV_FAILED,"Breakdown in BVOrthogonalize due to a linearly dependent column");
+    PetscCheck(norm,PetscObjectComm((PetscObject)V),PETSC_ERR_CONV_FAILED,"Breakdown in BVOrthogonalize due to a linearly dependent column");
     if (V->matrix && V->orthog_type==BV_ORTHOG_CGS) {  /* fill cached BV */
       ierr = BVGetColumn(V->cached,j,&v);CHKERRQ(ierr);
       ierr = VecCopy(V->Bx,v);CHKERRQ(ierr);
@@ -770,10 +770,10 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
     PetscValidType(R,2);
     PetscCheckTypeName(R,MATSEQDENSE);
     ierr = MatGetSize(R,&m,&n);CHKERRQ(ierr);
-    PetscCheckFalse(m!=n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument is not square, it has %" PetscInt_FMT " rows and %" PetscInt_FMT " columns",m,n);
-    PetscCheckFalse(n<V->k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat size %" PetscInt_FMT " is smaller than the number of BV active columns %" PetscInt_FMT,n,V->k);
+    PetscCheck(m==n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument is not square, it has %" PetscInt_FMT " rows and %" PetscInt_FMT " columns",m,n);
+    PetscCheck(n>=V->k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat size %" PetscInt_FMT " is smaller than the number of BV active columns %" PetscInt_FMT,n,V->k);
   }
-  PetscCheckFalse(V->nc,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for BV with constraints, use BVOrthogonalizeColumn() instead");
+  PetscCheck(!V->nc,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for BV with constraints, use BVOrthogonalizeColumn() instead");
 
   ierr = PetscLogEventBegin(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
   switch (V->orthog_block) {
@@ -784,11 +784,11 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
     ierr = BVOrthogonalize_Chol(V,R);CHKERRQ(ierr);
     break;
   case BV_ORTHOG_BLOCK_TSQR:
-    PetscCheckFalse(V->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
+    PetscCheck(!V->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
     ierr = BVOrthogonalize_TSQR(V,R);CHKERRQ(ierr);
     break;
   case BV_ORTHOG_BLOCK_TSQRCHOL:
-    PetscCheckFalse(V->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
+    PetscCheck(!V->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
     ierr = BVOrthogonalize_TSQRCHOL(V,R);CHKERRQ(ierr);
     break;
   case BV_ORTHOG_BLOCK_SVQB:

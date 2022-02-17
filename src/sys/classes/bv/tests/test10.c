@@ -24,7 +24,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  PetscCheckFalse(k<3,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Should specify at least k=3 columns");
+  PetscCheck(k>2,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Should specify at least k=3 columns");
   ierr = PetscPrintf(PETSC_COMM_WORLD,"BV split ops (%" PetscInt_FMT " columns of dimension %" PetscInt_FMT ").\n",k,n);CHKERRQ(ierr);
 
   /* Create template vector */

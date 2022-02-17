@@ -101,7 +101,7 @@ PetscErrorCode NEPMonitorSet(NEP nep,PetscErrorCode (*monitor)(NEP,PetscInt,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscCheckFalse(nep->numbermonitors >= MAXNEPMONITORS,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Too many NEP monitors set");
+  PetscCheck(nep->numbermonitors<MAXNEPMONITORS,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Too many NEP monitors set");
   nep->monitor[nep->numbermonitors]           = monitor;
   nep->monitorcontext[nep->numbermonitors]    = (void*)mctx;
   nep->monitordestroy[nep->numbermonitors++]  = monitordestroy;

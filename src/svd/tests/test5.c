@@ -67,7 +67,7 @@ int main(int argc,char **argv)
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
       ierr = SVDGetSingularTriplet(svd,i,&sval,NULL,NULL);CHKERRQ(ierr);
-      PetscCheckFalse(sval!=sigma[i],PETSC_COMM_WORLD,PETSC_ERR_FILE_UNEXPECTED,"Singular values in the file do not match");
+      PetscCheck(sval==sigma[i],PETSC_COMM_WORLD,PETSC_ERR_FILE_UNEXPECTED,"Singular values in the file do not match");
     }
     ierr = PetscFree(sigma);CHKERRQ(ierr);
   }

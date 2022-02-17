@@ -124,7 +124,7 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
 PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
-  PetscCheckFalse(rnorm,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
+  PetscCheck(!rnorm,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
   switch (mat) {
     case DS_MAT_X:
       break;
@@ -265,7 +265,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
 
 #if !defined(PETSC_USE_COMPLEX)
-    PetscCheckFalse(im!=0.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"DSNEP found a complex eigenvalue; try rerunning with complex scalars");
+    PetscCheck(im==0.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"DSNEP found a complex eigenvalue; try rerunning with complex scalars");
 #endif
     mu = alpha[pos]/beta[pos];
     ierr = PetscArraycpy(X,W+pos*ld,n);CHKERRQ(ierr);
@@ -277,7 +277,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     lambda = lambda - mu;
   }
 
-  PetscCheckFalse(it==maxit,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"DSNEP did not converge");
+  PetscCheck(it<maxit,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"DSNEP did not converge");
   ds->t = 1;
   wr[0] = lambda;
   if (wi) wi[0] = 0.0;
@@ -394,12 +394,11 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscRandom    rand;
 
   PetscFunctionBegin;
-  PetscCheckFalse(!ctx->rg,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"The contour solver requires a region passed with DSNEPSetRG()");
+  PetscCheck(ctx->rg,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"The contour solver requires a region passed with DSNEPSetRG()");
   /* Contour parameters */
   ierr = PetscObjectTypeCompare((PetscObject)ctx->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  if (isellipse) {
-    ierr = RGEllipseGetParameters(ctx->rg,&center,&radius,&vscale);CHKERRQ(ierr);
-  } else SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Region must be Ellipse");
+  PetscCheck(isellipse,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Region must be Ellipse");
+  ierr = RGEllipseGetParameters(ctx->rg,&center,&radius,&vscale);CHKERRQ(ierr);
   ierr = RGGetScale(ctx->rg,&rgscale);CHKERRQ(ierr);
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {
     if (!ctx->map) { ierr = PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,ctx->nnod,1,&ctx->map);CHKERRQ(ierr); }
@@ -617,8 +616,8 @@ static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
   PetscInt       i;
 
   PetscFunctionBegin;
-  PetscCheckFalse(n<=0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %" PetscInt_FMT,n);
-  PetscCheckFalse(n>DS_NUM_EXTRA,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %" PetscInt_FMT " but the limit is %d",n,DS_NUM_EXTRA);
+  PetscCheck(n>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %" PetscInt_FMT,n);
+  PetscCheck(n<=DS_NUM_EXTRA,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %" PetscInt_FMT " but the limit is %d",n,DS_NUM_EXTRA);
   if (ds->ld) { ierr = PetscInfo(ds,"DSNEPSetFN() called after DSAllocate()\n");CHKERRQ(ierr); }
   for (i=0;i<n;i++) {
     ierr = PetscObjectReference((PetscObject)fn[i]);CHKERRQ(ierr);
@@ -676,7 +675,7 @@ static PetscErrorCode DSNEPGetFN_NEP(DS ds,PetscInt k,FN *fn)
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  PetscCheckFalse(k<0 || k>=ctx->nf,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,ctx->nf-1);
+  PetscCheck(k>=0 && k<ctx->nf,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,ctx->nf-1);
   *fn = ctx->f[k];
   PetscFunctionReturn(0);
 }
@@ -751,7 +750,7 @@ static PetscErrorCode DSNEPSetMinimality_NEP(DS ds,PetscInt n)
   PetscFunctionBegin;
   if (n == PETSC_DECIDE || n == PETSC_DEFAULT) ctx->max_mid = 4;
   else {
-    PetscCheckFalse(n<1,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The minimality value must be > 0");
+    PetscCheck(n>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The minimality value must be > 0");
     ctx->max_mid = n;
   }
   PetscFunctionReturn(0);
@@ -834,12 +833,12 @@ static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
   PetscFunctionBegin;
   if (tol == PETSC_DEFAULT) ctx->rtol = PETSC_MACHINE_EPSILON/PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON);
   else {
-    PetscCheckFalse(tol<=0.0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The tolerance must be > 0");
+    PetscCheck(tol>0.0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The tolerance must be > 0");
     ctx->rtol = tol;
   }
   if (its == PETSC_DECIDE || its == PETSC_DEFAULT) ctx->Nit = 3;
   else {
-    PetscCheckFalse(its<0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
+    PetscCheck(its>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
     ctx->Nit = its;
   }
   PetscFunctionReturn(0);
@@ -925,7 +924,7 @@ static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
   PetscFunctionBegin;
   if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) ctx->nnod = 64;
   else {
-    PetscCheckFalse(ip<1,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of integration points must be > 0");
+    PetscCheck(ip>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of integration points must be > 0");
     ctx->nnod = ip;
   }
   ierr = PetscLayoutDestroy(&ctx->map);CHKERRQ(ierr);  /* need to redistribute at next solve */
@@ -1006,7 +1005,7 @@ static PetscErrorCode DSNEPSetSamplingSize_NEP(DS ds,PetscInt p)
   PetscFunctionBegin;
   if (p == PETSC_DECIDE || p == PETSC_DEFAULT) ctx->spls = 0;
   else {
-    PetscCheckFalse(p<20,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The sample size can not be smaller than 20");
+    PetscCheck(p>=20,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The sample size cannot be smaller than 20");
     ctx->spls = p;
   }
   PetscFunctionReturn(0);

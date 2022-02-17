@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
   ierr = DSSVDSetDimensions(ds,m);CHKERRQ(ierr);
   ierr = DSSVDGetDimensions(ds,&m1);CHKERRQ(ierr);
-  PetscCheckFalse(m1!=m,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension value");
+  PetscCheck(m1==m,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension value");
   ierr = DSSetExtraRow(ds,extrarow);CHKERRQ(ierr);
 
   /* Set up viewer */

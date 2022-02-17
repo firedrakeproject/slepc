@@ -54,9 +54,9 @@ int main(int argc,char **argv)
   /* Print current options */
   ierr = DSGetMethod(ds,&meth);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  PetscCheckFalse(meth!=1,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"This example requires ds_method=1");
+  PetscCheck(meth==1,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"This example requires ds_method=1");
   ierr = RGIsTrivial(rg,&flg);CHKERRQ(ierr);
-  PetscCheckFalse(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must at least set the radius of the ellipse");
+  PetscCheck(!flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must at least set the radius of the ellipse");
 #endif
 
   ierr = DSNEPGetMinimality(ds,&midx);CHKERRQ(ierr);

@@ -170,7 +170,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   if (match) PetscFunctionReturn(0);
 
   ierr = PetscFunctionListFind(EPSList,type,&r);CHKERRQ(ierr);
-  PetscCheckFalse(!r,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
+  PetscCheck(r,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
 
   if (eps->ops->destroy) { ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr); }
   ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
@@ -464,7 +464,7 @@ PetscErrorCode EPSSetInterval(EPS eps,PetscReal inta,PetscReal intb)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,inta,2);
   PetscValidLogicalCollectiveReal(eps,intb,3);
-  PetscCheckFalse(inta>=intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
+  PetscCheck(inta<intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
   if (eps->inta != inta || eps->intb != intb) {
     eps->inta = inta;
     eps->intb = intb;

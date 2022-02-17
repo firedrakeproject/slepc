@@ -33,32 +33,32 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
   if (radius == PETSC_DEFAULT) {
     ctx->radius = 1.0;
   } else {
-    PetscCheckFalse(radius<=0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
+    PetscCheck(radius>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The radius argument must be > 0.0");
     ctx->radius = radius;
   }
-  PetscCheckFalse(vscale<=0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
+  PetscCheck(vscale>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The vscale argument must be > 0.0");
   ctx->vscale = vscale;
   if (start_ang == PETSC_DEFAULT) {
     ctx->start_ang = 0.0;
   } else {
-    PetscCheckFalse(start_ang<0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be >= 0.0");
-    PetscCheckFalse(start_ang>1.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be <= 1.0");
+    PetscCheck(start_ang>=0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be >= 0.0");
+    PetscCheck(start_ang<=1.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be <= 1.0");
     ctx->start_ang = start_ang;
   }
   if (end_ang == PETSC_DEFAULT) {
     ctx->end_ang = 1.0;
   } else {
-    PetscCheckFalse(end_ang<0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be >= 0.0");
-    PetscCheckFalse(end_ang>1.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be <= 1.0");
+    PetscCheck(end_ang>=0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be >= 0.0");
+    PetscCheck(end_ang<=1.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be <= 1.0");
     ctx->end_ang = end_ang;
   }
 #if !defined(PETSC_USE_COMPLEX)
-  PetscCheckFalse(ctx->start_ang+ctx->end_ang!=1.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
+  PetscCheck(ctx->start_ang+ctx->end_ang==1.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
 #endif
   if (width == PETSC_DEFAULT) {
     ctx->width = 0.1;
   } else {
-    PetscCheckFalse(width<=0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The width argument must be > 0.0");
+    PetscCheck(width>0.0,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The width argument must be > 0.0");
     ctx->width = width;
   }
   PetscFunctionReturn(0);

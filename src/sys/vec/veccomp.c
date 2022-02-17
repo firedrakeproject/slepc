@@ -132,67 +132,79 @@ PetscErrorCode VecDestroy_Comp(Vec v)
   PetscFunctionReturn(0);
 }
 
-static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
-            VecDuplicateVecs_Comp,
-            VecDestroyVecs_Comp,
-            VecDot_Comp_MPI,
-            VecMDot_Comp_MPI,
-            VecNorm_Comp_MPI,
-            VecTDot_Comp_MPI,
-            VecMTDot_Comp_MPI,
-            VecScale_Comp,
-            VecCopy_Comp, /* 10 */
-            VecSet_Comp,
-            VecSwap_Comp,
-            VecAXPY_Comp,
-            VecAXPBY_Comp,
-            VecMAXPY_Comp,
-            VecAYPX_Comp,
-            VecWAXPY_Comp,
-            VecAXPBYPCZ_Comp,
-            VecPointwiseMult_Comp,
-            VecPointwiseDivide_Comp,
-            0, /* 20 */
-            0,0,
-            0 /*VecGetArray_Seq*/,
-            VecGetSize_Comp,
-            VecGetLocalSize_Comp,
-            0/*VecRestoreArray_Seq*/,
-            VecMax_Comp,
-            VecMin_Comp,
-            VecSetRandom_Comp,
-            0, /* 30 */
-            0,
-            VecDestroy_Comp,
-            VecView_Comp,
-            0/*VecPlaceArray_Seq*/,
-            0/*VecReplaceArray_Seq*/,
-            VecDot_Comp_Seq,
-            VecTDot_Comp_Seq,
-            VecNorm_Comp_Seq,
-            VecMDot_Comp_Seq,
-            VecMTDot_Comp_Seq, /* 40 */
-            0,
-            VecReciprocal_Comp,
-            VecConjugate_Comp,
-            0,0,
-            0/*VecResetArray_Seq*/,
-            0,
-            VecMaxPointwiseDivide_Comp,
-            VecPointwiseMax_Comp,
-            VecPointwiseMaxAbs_Comp,
-            VecPointwiseMin_Comp,
-            0,
-            VecSqrtAbs_Comp,
-            VecAbs_Comp,
-            VecExp_Comp,
-            VecLog_Comp,
-            VecShift_Comp,
-            0,
-            0,
-            0,
-            VecDotNorm2_Comp_MPI
-          };
+static struct _VecOps DvOps = {
+  PetscDesignatedInitializer(duplicate,VecDuplicate_Comp),
+  PetscDesignatedInitializer(duplicatevecs,VecDuplicateVecs_Comp),
+  PetscDesignatedInitializer(destroyvecs,VecDestroyVecs_Comp),
+  PetscDesignatedInitializer(dot,VecDot_Comp_MPI),
+  PetscDesignatedInitializer(mdot,VecMDot_Comp_MPI),
+  PetscDesignatedInitializer(norm,VecNorm_Comp_MPI),
+  PetscDesignatedInitializer(tdot,VecTDot_Comp_MPI),
+  PetscDesignatedInitializer(mtdot,VecMTDot_Comp_MPI),
+  PetscDesignatedInitializer(scale,VecScale_Comp),
+  PetscDesignatedInitializer(copy,VecCopy_Comp),
+  PetscDesignatedInitializer(set,VecSet_Comp),
+  PetscDesignatedInitializer(swap,VecSwap_Comp),
+  PetscDesignatedInitializer(axpy,VecAXPY_Comp),
+  PetscDesignatedInitializer(axpby,VecAXPBY_Comp),
+  PetscDesignatedInitializer(maxpy,VecMAXPY_Comp),
+  PetscDesignatedInitializer(aypx,VecAYPX_Comp),
+  PetscDesignatedInitializer(waxpy,VecWAXPY_Comp),
+  PetscDesignatedInitializer(axpbypcz,VecAXPBYPCZ_Comp),
+  PetscDesignatedInitializer(pointwisemult,VecPointwiseMult_Comp),
+  PetscDesignatedInitializer(pointwisedivide,VecPointwiseDivide_Comp),
+  PetscDesignatedInitializer(setvalues,NULL),
+  PetscDesignatedInitializer(assemblybegin,NULL),
+  PetscDesignatedInitializer(assemblyend,NULL),
+  PetscDesignatedInitializer(getarray,NULL),
+  PetscDesignatedInitializer(getsize,VecGetSize_Comp),
+  PetscDesignatedInitializer(getlocalsize,VecGetLocalSize_Comp),
+  PetscDesignatedInitializer(restorearray,NULL),
+  PetscDesignatedInitializer(max,VecMax_Comp),
+  PetscDesignatedInitializer(min,VecMin_Comp),
+  PetscDesignatedInitializer(setrandom,VecSetRandom_Comp),
+  PetscDesignatedInitializer(setoption,NULL),
+  PetscDesignatedInitializer(setvaluesblocked,NULL),
+  PetscDesignatedInitializer(destroy,VecDestroy_Comp),
+  PetscDesignatedInitializer(view,VecView_Comp),
+  PetscDesignatedInitializer(placearray,NULL),
+  PetscDesignatedInitializer(replacearray,NULL),
+  PetscDesignatedInitializer(dot_local,VecDot_Comp_Seq),
+  PetscDesignatedInitializer(tdot_local,VecTDot_Comp_Seq),
+  PetscDesignatedInitializer(norm_local,VecNorm_Comp_Seq),
+  PetscDesignatedInitializer(mdot_local,VecMDot_Comp_Seq),
+  PetscDesignatedInitializer(mtdot_local,VecMTDot_Comp_Seq),
+  PetscDesignatedInitializer(load,NULL),
+  PetscDesignatedInitializer(reciprocal,VecReciprocal_Comp),
+  PetscDesignatedInitializer(conjugate,VecConjugate_Comp),
+  PetscDesignatedInitializer(setlocaltoglobalmapping,NULL),
+  PetscDesignatedInitializer(setvalueslocal,NULL),
+  PetscDesignatedInitializer(resetarray,NULL),
+  PetscDesignatedInitializer(setfromoptions,NULL),
+  PetscDesignatedInitializer(maxpointwisedivide,VecMaxPointwiseDivide_Comp),
+  PetscDesignatedInitializer(pointwisemax,VecPointwiseMax_Comp),
+  PetscDesignatedInitializer(pointwisemaxabs,VecPointwiseMaxAbs_Comp),
+  PetscDesignatedInitializer(pointwisemin,VecPointwiseMin_Comp),
+  PetscDesignatedInitializer(getvalues,NULL),
+  PetscDesignatedInitializer(sqrt,VecSqrtAbs_Comp),
+  PetscDesignatedInitializer(abs,VecAbs_Comp),
+  PetscDesignatedInitializer(exp,VecExp_Comp),
+  PetscDesignatedInitializer(log,VecLog_Comp),
+  PetscDesignatedInitializer(shift,VecShift_Comp),
+  PetscDesignatedInitializer(create,NULL),
+  PetscDesignatedInitializer(stridegather,NULL),
+  PetscDesignatedInitializer(stridescatter,NULL),
+  PetscDesignatedInitializer(dotnorm2,VecDotNorm2_Comp_MPI),
+  PetscDesignatedInitializer(getsubvector,NULL),
+  PetscDesignatedInitializer(restoresubvector,NULL),
+  PetscDesignatedInitializer(getarrayread,NULL),
+  PetscDesignatedInitializer(restorearrayread,NULL),
+  PetscDesignatedInitializer(stridesubsetgather,NULL),
+  PetscDesignatedInitializer(stridesubsetscatter,NULL),
+  PetscDesignatedInitializer(viewnative,NULL),
+  PetscDesignatedInitializer(loadnative,NULL),
+  PetscDesignatedInitializer(getlocalvector,NULL)
+};
 
 PetscErrorCode VecDuplicateVecs_Comp(Vec w,PetscInt m,Vec *V[])
 {
@@ -202,7 +214,7 @@ PetscErrorCode VecDuplicateVecs_Comp(Vec w,PetscInt m,Vec *V[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(w,VEC_CLASSID,1);
   PetscValidPointer(V,3);
-  PetscCheckFalse(m<=0,PetscObjectComm((PetscObject)w),PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
+  PetscCheck(m>0,PetscObjectComm((PetscObject)w),PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
   ierr = PetscMalloc1(m,V);CHKERRQ(ierr);
   for (i=0;i<m;i++) { ierr = VecDuplicate(w,*V+i);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
@@ -215,7 +227,7 @@ PetscErrorCode VecDestroyVecs_Comp(PetscInt m,Vec v[])
 
   PetscFunctionBegin;
   PetscValidPointer(v,2);
-  PetscCheckFalse(m<=0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
+  PetscCheck(m>0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
   for (i=0;i<m;i++) { ierr = VecDestroy(&v[i]);CHKERRQ(ierr); }
   ierr = PetscFree(v);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -432,15 +444,15 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscCheckFalse(!s,PetscObjectComm((PetscObject)win),PETSC_ERR_ORDER,"Must call VecSetSizes first");
+  PetscCheck(s,PetscObjectComm((PetscObject)win),PETSC_ERR_ORDER,"Must call VecSetSizes first");
   if (!s->nx) {
     /* vector has been created via VecCreate+VecSetType+VecSetSizes, so allocate data structures */
     ierr = PetscMalloc1(n,&s->x);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)win,n*sizeof(Vec));CHKERRQ(ierr);
     ierr = VecGetSize(win,&N);CHKERRQ(ierr);
-    PetscCheckFalse(N%n,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Global dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,N,n);
+    PetscCheck(N%n==0,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Global dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,N,n);
     ierr = VecGetLocalSize(win,&nlocal);CHKERRQ(ierr);
-    PetscCheckFalse(nlocal%n,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Local dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,nlocal,n);
+    PetscCheck(nlocal%n==0,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Local dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,nlocal,n);
     s->nx = n;
     for (i=0;i<n;i++) {
       ierr = VecCreate(PetscObjectComm((PetscObject)win),&s->x[i]);CHKERRQ(ierr);
@@ -454,7 +466,7 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
       nn->lN = nlocal;
       nn->friends = 1;
     }
-  } else PetscCheckFalse(n > s->nx,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Number of child vectors cannot be larger than %" PetscInt_FMT,s->nx);
+  } else PetscCheck(n<=s->nx,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Number of child vectors cannot be larger than %" PetscInt_FMT,s->nx);
   if (x) {
     ierr = PetscArraycpy(s->x,x,n);CHKERRQ(ierr);
   }

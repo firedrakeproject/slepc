@@ -231,7 +231,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
         if (cond > 1.0/(10*PETSC_SQRT_MACHINE_EPSILON)) {
           breakdown = PETSC_TRUE;
           k++;
-          PetscCheckFalse(k==n || flip,PETSC_COMM_SELF,PETSC_ERR_SUP,"Breakdown in construction of hyperbolic transformation");
+          PetscCheck(k<n && !flip,PETSC_COMM_SELF,PETSC_ERR_SUP,"Breakdown in construction of hyperbolic transformation");
           break;
         }
         A[ni-n0+j*lda] = r; A[n-n1+j*lda] = 0.0;
