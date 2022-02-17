@@ -223,3 +223,11 @@
         end subroutine
       end interface RGPolygonGetVertices
 
+      interface
+        subroutine RGDestroy(a,z)
+          import tRG
+          RG a
+          PetscErrorCode z
+        end subroutine
+      end interface
+

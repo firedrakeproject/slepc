@@ -8,3 +8,11 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 
+      interface
+        subroutine DSDestroy(a,z)
+          import tDS
+          DS a
+          PetscErrorCode z
+        end subroutine
+      end interface
+

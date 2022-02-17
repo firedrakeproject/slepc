@@ -31,3 +31,11 @@
         end subroutine
       end interface MFNGetTolerances
 
+      interface
+        subroutine MFNDestroy(a,z)
+          import tMFN
+          MFN a
+          PetscErrorCode z
+        end subroutine
+      end interface
+

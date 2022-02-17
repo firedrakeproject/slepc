@@ -233,3 +233,11 @@
         end subroutine
       end interface NEPSetInitialSpace
 
+      interface
+        subroutine NEPDestroy(a,z)
+          import tNEP
+          NEP a
+          PetscErrorCode z
+        end subroutine
+      end interface
+
