@@ -25,16 +25,58 @@
 
 #include <slepc/private/epsimpl.h>
 
+typedef struct {
+  PetscBool estimatedrange;     /* the filter range was not set by the user */
+} EPS_SUBSPACE;
+
+static PetscErrorCode EPSSetUp_Subspace_Filter(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_SUBSPACE   *ctx = (EPS_SUBSPACE*)eps->data;
+  PetscBool      estimaterange=PETSC_TRUE;
+  PetscReal      rleft,rright;
+  Mat            A;
+
+  PetscFunctionBegin;
+  EPSCheckHermitianCondition(eps,PETSC_TRUE," with polynomial filter");
+  EPSCheckStandardCondition(eps,PETSC_TRUE," with polynomial filter");
+  PetscCheck(eps->intb<PETSC_MAX_REAL || eps->inta>PETSC_MIN_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
+  EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION,PETSC_TRUE," with polynomial filter");
+  ierr = STFilterSetInterval(eps->st,eps->inta,eps->intb);CHKERRQ(ierr);
+  if (!ctx->estimatedrange) {
+    ierr = STFilterGetRange(eps->st,&rleft,&rright);CHKERRQ(ierr);
+    estimaterange = (!rleft && !rright)? PETSC_TRUE: PETSC_FALSE;
+  }
+  if (estimaterange) { /* user did not set a range */
+    ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
+    ierr = MatEstimateSpectralRange_EPS(A,&rleft,&rright);CHKERRQ(ierr);
+    ierr = PetscInfo(eps,"Setting eigenvalue range to [%g,%g]\n",(double)rleft,(double)rright);CHKERRQ(ierr);
+    ierr = STFilterSetRange(eps->st,rleft,rright);CHKERRQ(ierr);
+    ctx->estimatedrange = PETSC_TRUE;
+  }
+  if (eps->ncv==PETSC_DEFAULT && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
+  ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
+  PetscCheck(eps->ncv<=eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSSetUp_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscBool      isfilt;
 
   PetscFunctionBegin;
   EPSCheckDefinite(eps);
-  ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
-  PetscCheck(eps->which==EPS_LARGEST_MAGNITUDE || eps->which==EPS_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest magnitude or target magnitude eigenvalues");
+  if (eps->which==EPS_ALL) {
+    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt);CHKERRQ(ierr);
+    PetscCheck(isfilt,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not supported in this solver");
+    ierr = EPSSetUp_Subspace_Filter(eps);CHKERRQ(ierr);
+  } else {
+    PetscCheck(eps->which==EPS_LARGEST_MAGNITUDE || eps->which==EPS_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest magnitude or target magnitude eigenvalues");
+    ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
+  }
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_EXTRACTION | EPS_FEATURE_TWOSIDED);
   PetscCheck(eps->converged==EPSConvergedRelative,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver only supports relative convergence test");
 
@@ -46,6 +88,24 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
     ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode EPSSetUpSort_Subspace(EPS eps)
+{
+  PetscErrorCode ierr;
+  SlepcSC        sc;
+
+  PetscFunctionBegin;
+  ierr = EPSSetUpSort_Default(eps);CHKERRQ(ierr);
+  if (eps->which==EPS_ALL) {
+    ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+    sc->rg            = NULL;
+    sc->comparison    = SlepcCompareLargestReal;
+    sc->comparisonctx = NULL;
+    sc->map           = NULL;
+    sc->mapobj        = NULL;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -129,8 +189,8 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   BV             AV,R;
   PetscBool      indef;
   PetscInt       i,k,ld,ngrp,nogrp,*itrsd,*itrsdold;
-  PetscInt       nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
-  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,tcond=1.0;
+  PetscInt       nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its,ninside;
+  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,tcond=1.0,gamma;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5;    /* Max num of iter before next SRR step */
@@ -199,6 +259,15 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     ierr = EPSSubspaceResidualNorms(R,eps->V,T,eps->nconv,nv,eps->eigi,rsd);CHKERRQ(ierr);
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
 
+    if (eps->which==EPS_ALL && eps->its>1) {   /* adjust eigenvalue count */
+      ninside = 0;
+      ierr = STFilterGetThreshold(eps->st,&gamma);CHKERRQ(ierr);
+      for (i=eps->nconv;i<nv;i++) {
+        if (PetscRealPart(eps->eigr[i]) < gamma) break;
+        ninside++;
+      }
+      eps->nev = eps->nconv+ninside;
+    }
     for (i=eps->nconv;i<nv;i++) {
       itrsdold[i] = itrsd[i];
       itrsd[i] = its;
@@ -268,15 +337,31 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode EPSDestroy_Subspace(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(eps->data);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
+  EPS_SUBSPACE   *ctx;
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  eps->data  = (void*)ctx;
+
   eps->useds = PETSC_TRUE;
   eps->categ = EPS_CATEGORY_OTHER;
 
   eps->ops->solve          = EPSSolve_Subspace;
   eps->ops->setup          = EPSSetUp_Subspace;
-  eps->ops->setupsort      = EPSSetUpSort_Default;
+  eps->ops->setupsort      = EPSSetUpSort_Subspace;
+  eps->ops->destroy        = EPSDestroy_Subspace;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;
   PetscFunctionReturn(0);
