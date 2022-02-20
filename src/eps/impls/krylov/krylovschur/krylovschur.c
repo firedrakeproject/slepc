@@ -59,42 +59,6 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode EstimateRange(Mat A,PetscReal *left,PetscReal *right)
-{
-  PetscErrorCode ierr;
-  PetscInt       nconv;
-  PetscScalar    eig0;
-  PetscReal      tol=1e-3,errest=tol;
-  EPS            eps;
-
-  PetscFunctionBegin;
-  *left = 0.0; *right = 0.0;
-  ierr = EPSCreate(PetscObjectComm((PetscObject)A),&eps);CHKERRQ(ierr);
-  ierr = EPSSetOptionsPrefix(eps,"eps_filter_");CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,50);CHKERRQ(ierr);
-  ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  if (nconv>0) {
-    ierr = EPSGetEigenvalue(eps,0,&eig0,NULL);CHKERRQ(ierr);
-    ierr = EPSGetErrorEstimate(eps,0,&errest);CHKERRQ(ierr);
-  } else eig0 = eps->eigr[0];
-  *left = PetscRealPart(eig0)-errest;
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  if (nconv>0) {
-    ierr = EPSGetEigenvalue(eps,0,&eig0,NULL);CHKERRQ(ierr);
-    ierr = EPSGetErrorEstimate(eps,0,&errest);CHKERRQ(ierr);
-  } else eig0 = eps->eigr[0];
-  *right = PetscRealPart(eig0)+errest;
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -116,7 +80,7 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   }
   if (estimaterange) { /* user did not set a range */
     ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-    ierr = EstimateRange(A,&rleft,&rright);CHKERRQ(ierr);
+    ierr = MatEstimateSpectralRange_EPS(A,&rleft,&rright);CHKERRQ(ierr);
     ierr = PetscInfo(eps,"Setting eigenvalue range to [%g,%g]\n",(double)rleft,(double)rright);CHKERRQ(ierr);
     ierr = STFilterSetRange(eps->st,rleft,rright);CHKERRQ(ierr);
     ctx->estimatedrange = PETSC_TRUE;
