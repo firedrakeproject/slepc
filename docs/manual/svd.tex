@@ -93,7 +93,7 @@ Computing the SVD via the cross product approach may be adequate for determining
 \label{eq:cyclic}
 H(A)=\begin{bmatrix}0&A\\A^*&0\end{bmatrix},
 \end{equation}
-which is a Hermitian matrix of order $(m+n)$. It can be shown that $\pm\sigma_i$ is a pair of eigenvalues of $H(A)$ for $i=1,\ldots,r$ and the other $m+n-2r$ eigenvalues are zero. The unit eigenvectors associated with $\pm\sigma_i$ are $\frac{1}{\sqrt{2}}\left[\begin{smallmatrix}\pm u_i\\v_i\end{smallmatrix}\right]$. Thus it is possible to extract the singular values and the left and right singular vectors of $A$ directly from the eigenvalues and eigenvectors of $H(A)$. Note that in this case singular values are not squared, and therefore the computed values will be more accurate (especially the small ones). The drawback in this case is that small eigenvalues are located in the interior of the spectrum.
+which is a Hermitian matrix of order $(m+n)$. It can be shown that $\pm\sigma_i$ is a pair of eigenvalues of $H(A)$ for $i=1,\ldots,r$ and the other $m+n-2r$ eigenvalues are zero. The unit eigenvectors associated with $\pm\sigma_i$ are $\frac{1}{\sqrt{2}}\left[\begin{smallmatrix}\pm u_i\\v_i\end{smallmatrix}\right]$. Thus it is possible to extract the singular values and the left and right singular vectors of $A$ directly from the eigenvalues and eigenvectors of $H(A)$. Note that in this case the singular values are not squared, and therefore the computed values will be more accurate (especially the small ones). The drawback in this case is that small eigenvalues are located in the interior of the spectrum.
 
 \subsection{\label{sec:gsvd}The Generalized Singular Value Decomposition (GSVD)}
 
@@ -104,12 +104,12 @@ Consider two matrices, $A\in\mathbb{C}^{m\times n}$ with $m\geq n$ and $B\in\mat
 \label{eq:gsvd}
 U^*AX=C,\qquad V^*BX=S,
 \end{equation}
-where $C=\mathrm{diag}(c_1,\dots,c_n)$ and $S=\mathrm{diag}(s_1,\dots,s_q)$ with $q=\min(p,n)$. The values $c_i$ and $s_i$ are real and nonnegative, and the ratios define the generalized singular values,
+where $C=\mathrm{diag}(c_1,\dots,c_n)$ and $S=\mathrm{diag}(s_{n-q+1},\dots,s_n)$ with $q=\min(p,n)$. The values $c_i$ and $s_i$ are real and nonnegative, and the ratios define the generalized singular values,
 \begin{equation}
 \label{eq:gsvd-values}
 \sigma(A,B)\equiv\{c_1/s_1,\dots,c_q/s_q\},
 \end{equation}
-and if $p<n$ we can consider that there are $n-p$ infinite generalized singular values, that is, $s_{q+1}=\dots=s_n=0$. Note that if $B$ is the identity matrix, $X$ can be taken to be unitary and then we recover the standard SVD, $\sigma(A,I)=\sigma(A)$, that is why \eqref{eq:gsvd} is considered a generalization of the SVD.
+and if $p<n$ we can consider that the first $n-p$ generalized singular values are infinite, as if $s_1=\dots=s_{n-p}=0$. Note that if $B$ is the identity matrix, $X$ can be taken to be unitary and then we recover the standard SVD, $\sigma(A,I)=\sigma(A)$, that is why \eqref{eq:gsvd} is considered a generalization of the SVD.
 
 The diagonal matrices $C$ and $S$ satisfy $C^*C+S^*S=I$, and are related to the CS decomposition~\citep[\S 2.6.4]{Golub:1996:MC} associated with the orthogonal factor of the QR factorization of matrices $A$ and $B$ stacked, that is, if
 \begin{equation}
@@ -132,7 +132,7 @@ then $C$ and $S$ can be obtained from the singular values of $Q_1$ and $Q_2$, re
   \draw[fill=black!5] (0,1) rectangle node {$B$} +(3,2);
   \draw[fill=black!5] (3.25,0) rectangle node {$X$} +(3,3);
   \node at (6.75,1.75) {=};
-  \draw (7.25,1) rectangle +(3,2) (7.25,3) -- +(2,-2);
+  \draw (7.25,1) rectangle +(3,2) ++(3,0) -- +(-2,2);
   \node[below] at (8.75,1) {$S$};
   \end{scope}
 \end{tikzpicture}
