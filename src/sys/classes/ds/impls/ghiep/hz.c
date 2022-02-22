@@ -40,24 +40,26 @@ static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,Pet
   } else {
     nrm = PetscMax(PetscAbs(x),PetscAbs(y));
     c = x/nrm; s = y/nrm;
+    PetscCheck(sygn==1.0 || sygn==-1,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Value of sygn sent to transetup must be 1 or -1");
     if (sygn == 1.0) {  /* set up a rotator */
       nrm = PetscSqrtReal(c*c+s*s);
       c = c/nrm; s = s/nrm;
       /* rot = [c s; -s c]; */
       rot[0] = c; rot[1] = -s; rot[2] = s; rot[3] = c;
       *rcond = 1.0;
-    } else if (sygn == -1) {  /* set up a hyperbolic transformation */
+    } else {  /* sygn == -1, set up a hyperbolic transformation */
       nrm = c*c-s*s;
       if (nrm > 0) nrm = PetscSqrtReal(nrm);
-      else if (nrm < 0) {
+      else {
+        PetscCheck(nrm<0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Breakdown in construction of hyperbolic transformation");
         nrm = PetscSqrtReal(-nrm);
         *swap = PETSC_TRUE;
-      } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Breakdown in construction of hyperbolic transformation");
+      }
       c = c/nrm; s = s/nrm;
       /* rot = [c -s; -s c]; */
       rot[0] = c; rot[1] = -s; rot[2] = -s; rot[3] = c;
       *rcond = PetscAbs(PetscAbs(s)-PetscAbs(c))/(PetscAbs(s)+PetscAbs(c));
-    } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Value of sygn sent to transetup must be 1 or -1");
+    }
   }
   PetscFunctionReturn(0);
 }
