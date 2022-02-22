@@ -361,8 +361,8 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
     case -3: /* stop due to maximum number of iterations or matvecs */
       break;
     default:
-      if (ierrprimme >= -39) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": configuration error; check PRIMME's manual",ierrprimme);
-      else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": runtime error; check PRIMME's manual",ierrprimme);
+      PetscCheck(ierrprimme<-39,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": configuration error; check PRIMME's manual",ierrprimme);
+      PetscCheck(ierrprimme>=-39,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%" PetscInt_FMT ": runtime error; check PRIMME's manual",ierrprimme);
   }
   PetscFunctionReturn(0);
 }

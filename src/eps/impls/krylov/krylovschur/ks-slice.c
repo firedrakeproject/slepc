@@ -41,11 +41,6 @@ static const char citation[] =
 
 #define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON
 
-#define InertiaMismatch(h,d) \
-  do { \
-    SETERRQ(PetscObjectComm((PetscObject)h),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",d?"":", consider using EPSKrylovSchurSetDetectZeros()"); \
-  } while (0)
-
 static PetscErrorCode EPSSliceResetSR(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -1027,7 +1022,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   sPres->comp[0] = PetscNot(count0 < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(count1 < sPres->nsch[1]);
   ierr = PetscInfo(eps,"Lanczos: %" PetscInt_FMT " evals in [%g,%g]%s and %" PetscInt_FMT " evals in [%g,%g]%s\n",count0,(double)(sr->dir==1?sPres->ext[0]:sPres->value),(double)(sr->dir==1?sPres->value:sPres->ext[0]),sPres->comp[0]?"*":"",count1,(double)(sr->dir==1?sPres->value:sPres->ext[1]),(double)(sr->dir==1?sPres->ext[1]:sPres->value),sPres->comp[1]?"*":"");CHKERRQ(ierr);
-  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1]) InertiaMismatch(eps,ctx->detect);
+  PetscCheck(count0<=sPres->nsch[0] && count1<=sPres->nsch[1],PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",ctx->detect?"":", consider using EPSKrylovSchurSetDetectZeros()");
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1215,12 +1210,12 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   /* The number of values on each side are found */
   if (sPres->neighb[0]) {
     sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
-    if (sPres->nsch[0]<0) InertiaMismatch(eps,ctx->detect);
+    PetscCheck(sPres->nsch[0]>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",ctx->detect?"":", consider using EPSKrylovSchurSetDetectZeros()");
   } else sPres->nsch[0] = 0;
 
   if (sPres->neighb[1]) {
     sPres->nsch[1] = (sr->dir)*(sPres->neighb[1]->inertia - sPres->inertia) - count1;
-    if (sPres->nsch[1]<0) InertiaMismatch(eps,ctx->detect);
+    PetscCheck(sPres->nsch[1]>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Mismatch between number of values found and information from inertia%s",ctx->detect?"":", consider using EPSKrylovSchurSetDetectZeros()");
   } else sPres->nsch[1] = (sr->dir)*(sr->inertia1 - sPres->inertia);
 
   /* Completing vector of indexes for deflation */

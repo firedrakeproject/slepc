@@ -733,10 +733,9 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
           *newS = sPres->value + ((sr->dir)*d_prev*pep->nev)/2;
           sr->dirch = PETSC_FALSE;
         } else { /* No values found, no information for next shift */
-          if (!sr->dirch) {
-            sr->dirch = PETSC_TRUE;
-            *newS = sr->int1;
-          } else SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"First shift renders no information");
+          PetscCheck(!sr->dirch,PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"First shift renders no information");
+          sr->dirch = PETSC_TRUE;
+          *newS = sr->int1;
         }
       }
     } else { /* Accepted values found */

@@ -121,16 +121,21 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   xintv[3] = ctx->lmax;
 
   /* estimate number of eigenvalues in the interval */
-  if (ctx->dos == EPS_EVSL_DOS_KPM) {
-    ierr = PetscMalloc1(ctx->deg+1,&mu);CHKERRQ(ierr);
-    if (!rank) { ierr = kpmdos(ctx->deg,(int)ctx->damping,ctx->nvec,xintv,mu,&ecount);CHKERRQ(ierr); }
-    ierr = MPI_Bcast(mu,ctx->deg+1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
-  } else if (ctx->dos == EPS_EVSL_DOS_LANCZOS) {
-    ierr = PetscMalloc2(ctx->npoints,&xdos,ctx->npoints,&ydos);CHKERRQ(ierr);
-    if (!rank) { ierr = LanDos(ctx->nvec,PetscMin(ctx->steps,eps->n/2),ctx->npoints,xdos,ydos,&ecount,xintv);CHKERRQ(ierr); }
-    ierr = MPI_Bcast(xdos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
-    ierr = MPI_Bcast(ydos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
-  } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid DOS method");
+  switch (ctx->dos) {
+    case EPS_EVSL_DOS_KPM:
+      ierr = PetscMalloc1(ctx->deg+1,&mu);CHKERRQ(ierr);
+      if (!rank) { ierr = kpmdos(ctx->deg,(int)ctx->damping,ctx->nvec,xintv,mu,&ecount);CHKERRQ(ierr); }
+      ierr = MPI_Bcast(mu,ctx->deg+1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
+      break;
+    case EPS_EVSL_DOS_LANCZOS:
+      ierr = PetscMalloc2(ctx->npoints,&xdos,ctx->npoints,&ydos);CHKERRQ(ierr);
+      if (!rank) { ierr = LanDos(ctx->nvec,PetscMin(ctx->steps,eps->n/2),ctx->npoints,xdos,ydos,&ecount,xintv);CHKERRQ(ierr); }
+      ierr = MPI_Bcast(xdos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
+      ierr = MPI_Bcast(ydos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid DOS method");
+  }
   ierr = MPI_Bcast(&ecount,1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps));CHKERRMPI(ierr);
 
   ierr = PetscInfo(eps,"Estimated eigenvalue count in the interval: %g\n",ecount);CHKERRQ(ierr);

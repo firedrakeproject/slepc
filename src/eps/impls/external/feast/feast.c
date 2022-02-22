@@ -182,11 +182,16 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   eps->its    = loop;
   eps->nconv  = nconv;
   if (info) {
-    if (info==1) { /* No eigenvalue has been found in the proposed search interval */
-      eps->nconv = 0;
-    } else if (info==2) { /* FEAST did not converge "yet" */
-      eps->reason = EPS_DIVERGED_ITS;
-    } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",info);
+    switch (info) {
+      case 1:  /* No eigenvalue has been found in the proposed search interval */
+        eps->nconv = 0;
+        break;
+      case 2:   /* FEAST did not converge "yet" */
+        eps->reason = EPS_DIVERGED_ITS;
+        break;
+      default:
+        SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by FEAST (%d)",info);
+    }
   }
 
   for (i=0;i<eps->nconv;i++) eps->eigr[i] = evals[i];

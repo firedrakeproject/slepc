@@ -143,13 +143,14 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   blopex->st = eps->st;
 
+  PetscCheck(eps->converged==EPSConvergedRelative || eps->converged==EPSConvergedAbsolute,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Convergence test not supported in this solver");
   if (eps->converged == EPSConvergedRelative) {
     blopex->tol.absolute = 0.0;
     blopex->tol.relative = SlepcDefaultTol(eps->tol);
-  } else if (eps->converged == EPSConvergedAbsolute) {
+  } else {  /* EPSConvergedAbsolute */
     blopex->tol.absolute = SlepcDefaultTol(eps->tol);
     blopex->tol.relative = 0.0;
-  } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Convergence test not supported in this solver");
+  }
 
   SLEPCSetupInterpreter(&blopex->ii);
 

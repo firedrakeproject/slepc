@@ -90,9 +90,8 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
 
-  if (eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL) lohi = 1;
-  else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
-  else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Wrong value of eps->which");
+  PetscCheck(eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL || eps->which==EPS_SMALLEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Wrong value of eps->which");
+  lohi = (eps->which==EPS_SMALLEST_REAL)? -1: 1;
 
   globaldata.eps = eps;
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);

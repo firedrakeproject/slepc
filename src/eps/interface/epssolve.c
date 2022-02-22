@@ -823,7 +823,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     PetscCheck(i,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Initial vector is zero or belongs to the deflation space");
-    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more start vectors");
+    PetscCheck(!i,PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more start vectors");
   }
   ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
