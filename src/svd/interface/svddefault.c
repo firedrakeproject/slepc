@@ -39,7 +39,7 @@ PetscErrorCode SVDConvergedRelative(SVD svd,PetscReal sigma,PetscReal res,PetscR
 PetscErrorCode SVDConvergedNorm(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscFunctionBegin;
-  *errest = res/SlepcAbs(svd->nrma,svd->nrmb);
+  *errest = res/PetscMax(svd->nrma,svd->nrmb);
   PetscFunctionReturn(0);
 }
 
