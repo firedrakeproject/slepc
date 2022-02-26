@@ -1200,7 +1200,9 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
   if (Au) {
     ierr = MatAXPY(A,ap,Au,str);CHKERRQ(ierr);
   }
-  if (B) ierr = MatScale(B,b);CHKERRQ(ierr);
+  if (B) {
+    ierr = MatScale(B,b);CHKERRQ(ierr);
+  }
   if (Bu) {
     ierr = MatAXPY(B,bp,Bu,str);CHKERRQ(ierr);
   }
