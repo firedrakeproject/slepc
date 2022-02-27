@@ -17,7 +17,7 @@ int main(int argc,char **argv)
   Vec               t,v;
   Mat               Q=NULL,M=NULL;
   BV                X,Y;
-  PetscInt          i,j,n=10,k=5,l=3,nloc;
+  PetscInt          i,j,n=10,k=5,l=3,nloc,lda;
   PetscMPIInt       rank;
   PetscScalar       *q,*z;
   const PetscScalar *pX;
@@ -85,11 +85,12 @@ int main(int argc,char **argv)
 #endif
   } else PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q));
   PetscCall(PetscObjectSetName((PetscObject)Q,"Q"));
-  PetscCall(MatDenseGetArray(Q,&q));
+  PetscCall(MatDenseGetArrayWrite(Q,&q));
+  PetscCall(MatDenseGetLDA(Q,&lda));
   for (i=0;i<k;i++)
     for (j=0;j<l;j++)
-      q[i+j*k] = (i<j)? 2.0: -0.5;
-  PetscCall(MatDenseRestoreArray(Q,&q));
+      q[i+j*lda] = (i<j)? 2.0: -0.5;
+  PetscCall(MatDenseRestoreArrayWrite(Q,&q));
   if (verbose) PetscCall(MatView(Q,NULL));
 
   /* Test BVMult */

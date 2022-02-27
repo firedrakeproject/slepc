@@ -70,7 +70,8 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
     PetscCall(PetscCuBLASIntCast(Y->k-Y->l,&n));
     PetscCall(PetscCuBLASIntCast(X->k-X->l,&k));
     PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
-    PetscCall(MatGetSize(Q,&ldq,&mq));
+    PetscCall(MatGetSize(Q,NULL,&mq));
+    PetscCall(MatDenseGetLDA(Q,&ldq));
     PetscCall(PetscCuBLASIntCast(ldq,&ldq_));
     PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSECUDA,&matiscuda));
     if (matiscuda) PetscCall(MatDenseCUDAGetArrayRead(Q,(const PetscScalar**)&d_q));
@@ -154,7 +155,8 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscCall(PetscCuBLASIntCast(V->n,&m));
   PetscCall(PetscCuBLASIntCast(e-s,&n));
   PetscCall(PetscCuBLASIntCast(V->k-V->l,&k));
-  PetscCall(MatGetSize(Q,&ldq,&nq));
+  PetscCall(MatGetSize(Q,NULL,&nq));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(PetscCuBLASIntCast(ldq,&ldq_));
   PetscCall(VecCUDAGetArray(ctx->v,&d_pv));
   PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSECUDA,&matiscuda));
@@ -222,7 +224,8 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,P
   PetscCall(PetscCuBLASIntCast(V->n,&m));
   PetscCall(PetscCuBLASIntCast(e-s,&n));
   PetscCall(PetscCuBLASIntCast(V->k-V->l,&k));
-  PetscCall(MatGetSize(Q,&ldq,&nq));
+  PetscCall(MatGetSize(Q,NULL,&nq));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(PetscCuBLASIntCast(ldq,&ldq_));
   PetscCall(VecCUDAGetArray(ctx->v,&d_pv));
   PetscCall(PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSECUDA,&matiscuda));
@@ -269,11 +272,11 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
   PetscCall(PetscCuBLASIntCast(Y->k-Y->l,&m));
   PetscCall(PetscCuBLASIntCast(X->k-X->l,&n));
   PetscCall(PetscCuBLASIntCast(X->n,&k));
-  PetscCall(MatGetSize(M,&ldm,NULL));
+  PetscCall(MatDenseGetLDA(M,&ldm));
   PetscCall(PetscCuBLASIntCast(ldm,&ldm_));
   PetscCall(VecCUDAGetArrayRead(x->v,&d_px));
   PetscCall(VecCUDAGetArrayRead(y->v,&d_py));
-  PetscCall(MatDenseGetArray(M,&pm));
+  PetscCall(MatDenseGetArrayWrite(M,&pm));
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
   PetscCallCUDA(cudaMalloc((void**)&d_work,m*n*sizeof(PetscScalar)));
   d_A = d_py+(Y->nc+Y->l)*Y->n;
@@ -317,7 +320,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
     }
   }
   PetscCallCUDA(cudaFree(d_work));
-  PetscCall(MatDenseRestoreArray(M,&pm));
+  PetscCall(MatDenseRestoreArrayWrite(M,&pm));
   PetscCall(VecCUDARestoreArrayRead(x->v,&d_px));
   PetscCall(VecCUDARestoreArrayRead(y->v,&d_py));
   PetscCall(PetscLogGpuFlops(2.0*m*n*k));
