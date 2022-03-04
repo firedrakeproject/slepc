@@ -388,7 +388,7 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveInt(ds,l,2);
   PetscValidLogicalCollectiveInt(ds,n,3);
-  PetscValidPointer(k,4);
+  PetscValidIntPointer(k,4);
   if (ds->ops->gettruncatesize) {
     ierr = (*ds->ops->gettruncatesize)(ds,l?l:ds->l,n?n:ds->n,k);CHKERRQ(ierr);
   }

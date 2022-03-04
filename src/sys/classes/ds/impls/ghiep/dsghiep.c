@@ -652,7 +652,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(wi,3);
+  PetscValidScalarPointer(wi,3);
 #endif
   one = 1;
   ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
@@ -764,7 +764,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(wi,3);
+  PetscValidScalarPointer(wi,3);
 #endif
   n = ds->n-ds->l;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
