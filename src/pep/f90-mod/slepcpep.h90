@@ -316,3 +316,11 @@
         end subroutine
       end interface PEPSetInitialSpace
 
+      interface
+        subroutine PEPDestroy(a,z)
+          import tPEP
+          PEP a
+          PetscErrorCode z
+        end subroutine
+      end interface
+

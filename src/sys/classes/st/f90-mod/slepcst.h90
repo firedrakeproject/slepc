@@ -8,3 +8,11 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 
+      interface
+        subroutine STDestroy(a,z)
+          import tST
+          ST a
+          PetscErrorCode z
+        end subroutine
+      end interface
+
