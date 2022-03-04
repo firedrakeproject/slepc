@@ -8,3 +8,11 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 
+      interface
+        subroutine BVDestroy(a,z)
+          import tBV
+          BV a
+          PetscErrorCode z
+        end subroutine
+      end interface
+

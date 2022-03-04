@@ -31,3 +31,11 @@
         end subroutine
       end interface LMEGetTolerances
 
+      interface
+        subroutine LMEDestroy(a,z)
+          import tLME
+          LME a
+          PetscErrorCode z
+        end subroutine
+      end interface
+

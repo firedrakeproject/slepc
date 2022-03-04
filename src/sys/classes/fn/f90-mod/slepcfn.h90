@@ -75,3 +75,11 @@
         end subroutine
       end interface FNRationalGetDenominator
 
+      interface
+        subroutine FNDestroy(a,z)
+          import tFN
+          FN a
+          PetscErrorCode z
+        end subroutine
+      end interface
+

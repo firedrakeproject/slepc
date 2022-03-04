@@ -146,3 +146,11 @@
         end subroutine
       end interface SVDSetInitialSpaces
 
+      interface
+        subroutine SVDDestroy(a,z)
+          import tSVD
+          SVD a
+          PetscErrorCode z
+        end subroutine
+      end interface
+
