@@ -46,11 +46,7 @@ static void multMatvec_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,int*,stru
 static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_svds_params *primme,int *ierr)
 {
   if (sendBuf == recvBuf) {
-#if defined(PETSC_HAVE_MPI_IN_PLACE)
     *ierr = MPI_Allreduce(MPI_IN_PLACE,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));
-#else
-#error Cannot use SLEPc-PRIMME interface if your MPI does not support MPI_IN_PLACE
-#endif
   } else {
     *ierr = MPI_Allreduce(sendBuf,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));
   }
