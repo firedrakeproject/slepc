@@ -636,8 +636,8 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   eps->data = (void*)data;
 
   data->blocksize   = 1;
-  data->initialsize = 6;
-  data->minv        = 6;
+  data->initialsize = 0;
+  data->minv        = 0;
   data->plusk       = PETSC_DEFAULT;
   data->ipB         = PETSC_TRUE;
   data->fix         = 0.01;
