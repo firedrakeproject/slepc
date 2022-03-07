@@ -463,7 +463,7 @@ PetscErrorCode PEPSolve_CISS(PEP pep)
         ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
         ierr = BVMultInPlace(ctx->S,X,0,pep->nconv);CHKERRQ(ierr);
         ierr = MatDestroy(&X);CHKERRQ(ierr);
-        ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,pep->nconv);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,pep->V);CHKERRQ(ierr);
       }
       max_error = 0.0;

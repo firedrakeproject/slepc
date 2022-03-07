@@ -494,7 +494,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
         ierr = DSGetMat(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
         ierr = BVMultInPlace(ctx->S,X,0,nep->nconv);CHKERRQ(ierr);
         ierr = MatDestroy(&X);CHKERRQ(ierr);
-        ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,nep->nconv);CHKERRQ(ierr);
         ierr = BVCopy(ctx->S,nep->V);CHKERRQ(ierr);
       }
       max_error = 0.0;
