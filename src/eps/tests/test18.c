@@ -121,7 +121,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 2
-      args: -n 10 -m 11 -eps_type {{gd jd}} -eps_target 0.2 -eps_harmonic -eps_nev 2 -eps_ncv 10 -terse
+      args: -n 10 -m 11 -eps_type {{gd jd}} -eps_target 0.2 -eps_harmonic -eps_nev 2 -eps_ncv 11 -terse
       requires: !single
       filter: sed -e "s/[+-]0\.0*i//g"
 
