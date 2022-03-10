@@ -19,6 +19,12 @@ chk_slepcdir:
           printf "******************************************************"${PETSC_TEXT_NORMAL}"\n" ; \
         fi
 
+chk_in_slepcdir:
+	@if [ ! -f include/slepcversion.h ]; then \
+	  printf ${PETSC_TEXT_HILIGHT}"*********************** ERROR **********************************************\n" ; \
+	  echo " This target should be invoked in top level SLEPc source dir!"; \
+	  printf "****************************************************************************"${PETSC_TEXT_NORMAL}"\n" ;  false; fi
+
 slepc_manualpages:
 	-@if [ "${MANSEC}" != "" ] ; then \
           if [ "${SUBMANSEC}" = "" ] ; then LMANSEC=${MANSEC}; else LMANSEC=${SUBMANSEC}; fi; \
