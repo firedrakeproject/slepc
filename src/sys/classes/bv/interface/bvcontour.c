@@ -586,3 +586,47 @@ PetscErrorCode BVSVDAndRank(BV S,PetscInt m,PetscInt l,PetscReal delta,BVSVDMeth
   PetscFunctionReturn(0);
 }
 
+/*@
+   BVCISSResizeBases - Resize the bases involved in CISS solvers when the L grows.
+
+   Collective on S
+
+   Input Parameters:
++  S      - basis of L*M columns
+.  V      - basis of L columns (may be associated to subcommunicators)
+.  Y      - basis of npoints*L columns
+.  Lold   - old value of L
+.  Lnew   - new value of L
+.  M      - the moment size
+-  npoints - number of integration points
+
+   Level: developer
+
+.seealso: BVResize()
+@*/
+PetscErrorCode BVCISSResizeBases(BV S,BV V,BV Y,PetscInt Lold,PetscInt Lnew,PetscInt M,PetscInt npoints)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(S,BV_CLASSID,1);
+  PetscValidHeaderSpecific(V,BV_CLASSID,2);
+  PetscValidHeaderSpecific(Y,BV_CLASSID,3);
+  PetscValidLogicalCollectiveInt(S,Lold,4);
+  PetscValidLogicalCollectiveInt(S,Lnew,5);
+  PetscValidLogicalCollectiveInt(S,M,6);
+  PetscValidLogicalCollectiveInt(S,npoints,7);
+
+  ierr = BVResize(S,Lnew*M,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVResize(V,Lnew,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = BVResize(Y,Lnew*npoints,PETSC_TRUE);CHKERRQ(ierr);
+  /* columns of Y are interleaved */
+  for (i=npoints-1;i>=0;i--) {
+    for (j=Lold-1;j>=0;j--) {
+      ierr = BVCopyColumn(Y,i*Lold+j,i*Lnew+j);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+

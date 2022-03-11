@@ -232,6 +232,7 @@ typedef enum { BV_SVD_METHOD_REFINE,
 SLEPC_EXTERN const char *BVSVDMethods[];
 
 SLEPC_EXTERN PetscErrorCode BVSVDAndRank(BV,PetscInt,PetscInt,PetscReal,BVSVDMethod,PetscScalar*,PetscReal*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode BVCISSResizeBases(BV,BV,BV,PetscInt,PetscInt,PetscInt,PetscInt);
 
 SLEPC_EXTERN PetscErrorCode BVCreateTensor(BV,PetscInt,BV*);
 SLEPC_EXTERN PetscErrorCode BVTensorBuildFirstColumn(BV,PetscInt);
