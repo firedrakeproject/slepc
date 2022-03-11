@@ -412,7 +412,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
 {
   PetscErrorCode ierr;
   PetscReal      sigma,norm1,norm2;
-  Vec            u,v,x,y;
+  Vec            u=NULL,v=NULL,x=NULL,y=NULL;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);

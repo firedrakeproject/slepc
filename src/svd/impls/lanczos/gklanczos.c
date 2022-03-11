@@ -183,11 +183,12 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
      getall  - whether all residuals must be computed
      kini    - initial value of k (the loop variable)
      nits    - number of iterations of the loop
+     normr   - norm of triangular factor of qr([A;B]), used only in GSVD
 
    Output Parameter:
      kout  - the first index where the convergence test failed
 */
-PetscErrorCode SVDKrylovConvergence(SVD svd,PetscBool getall,PetscInt kini,PetscInt nits,PetscInt *kout)
+PetscErrorCode SVDKrylovConvergence(SVD svd,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal normr,PetscInt *kout)
 {
   PetscErrorCode ierr;
   PetscInt       k,marker,ld;
@@ -206,7 +207,7 @@ PetscErrorCode SVDKrylovConvergence(SVD svd,PetscBool getall,PetscInt kini,Petsc
     beta = alpha + ld;
     betah = alpha + 2*ld;
     for (k=kini;k<kini+nits;k++) {
-      if (svd->isgeneralized) resnorm = SlepcAbs(beta[k],betah[k]);
+      if (svd->isgeneralized) resnorm = SlepcAbs(beta[k],betah[k])*normr;
       else resnorm = PetscAbsReal(beta[k]);
       ierr = (*svd->converged)(svd,svd->sigma[k],resnorm,&svd->errest[k],svd->convergedctx);CHKERRQ(ierr);
       if (marker==-1 && svd->errest[k] >= svd->tol) marker = k;
@@ -272,7 +273,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     for (i=svd->nconv;i<nv;i++) svd->sigma[i] = PetscRealPart(w[i]);
 
     /* check convergence */
-    ierr = SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,&k);CHKERRQ(ierr);
+    ierr = SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,1.0,&k);CHKERRQ(ierr);
     ierr = (*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* compute restart vector */
