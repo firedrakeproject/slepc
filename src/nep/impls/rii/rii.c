@@ -85,7 +85,6 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   ierr = BVRestoreColumn(nep->V,0,&uu);CHKERRQ(ierr);
 
   /* prepare linear solver */
-  ierr = NEPDeflationComputeFunction(extop,lambda,&T);CHKERRQ(ierr);
   ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
   ierr = KSPGetTolerances(ctx->ksp,&rtol,NULL,NULL,NULL);CHKERRQ(ierr);
 
