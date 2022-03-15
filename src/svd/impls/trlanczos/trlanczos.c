@@ -1779,7 +1779,7 @@ PetscErrorCode SVDReset_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  if (svd->isgeneralized) {
+  if (svd->isgeneralized || (!svd->problem_type && svd->OPb)) {
     PetscCall(KSPReset(lanczos->ksp));
     PetscCall(MatDestroy(&lanczos->Z));
   }
@@ -1791,7 +1791,7 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  if (svd->isgeneralized) PetscCall(KSPDestroy(&lanczos->ksp));
+  if (svd->isgeneralized || (!svd->problem_type && svd->OPb)) PetscCall(KSPDestroy(&lanczos->ksp));
   PetscCall(PetscFree(svd->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetOneSide_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetOneSide_C",NULL));

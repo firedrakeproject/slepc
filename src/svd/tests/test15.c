@@ -71,6 +71,7 @@ int main(int argc,char **argv)
 
   PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
   PetscCall(SVDSetOperators(svd,A,B));
+  PetscCall(SVDSetProblemType(svd,SVD_GENERALIZED));
   PetscCall(SVDSetDimensions(svd,4,PETSC_DEFAULT,PETSC_DEFAULT));
   PetscCall(SVDSetConvergenceTest(svd,SVD_CONV_NORM));
 
