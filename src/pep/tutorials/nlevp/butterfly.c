@@ -186,10 +186,16 @@ int main(int argc,char **argv)
          suffix: ciss_refine
          args: -pep_ciss_refine_inner 1 -pep_ciss_refine_blocksize 1
 
-   test:
-      suffix: 4
-      args: -pep_type ciss -rg_type ellipse -rg_ellipse_center .5+.5i -rg_ellipse_radius .25 -pep_ciss_moments 4 -pep_ciss_blocksize 5 -pep_ciss_refine_blocksize 2 -pep_ciss_extraction {{hankel ritz}} -terse
+   testset:
+      args: -pep_type ciss -rg_type ellipse -rg_ellipse_center .5+.5i -rg_ellipse_radius .25 -pep_ciss_moments 4 -pep_ciss_blocksize 5 -pep_ciss_refine_blocksize 2 -terse
       requires: complex
       filter: sed -e "s/46483/46484/" | sed -e "s/54946/54945/" | sed -e "s/48456/48457/" | sed -e "s/74117/74116/" | sed -e "s/37240/37241/"
+      output_file: output/butterfly_4.out
+      test:
+         suffix: 4
+      test:
+         suffix: 4_hankel
+         args: -pep_ciss_extraction hankel
+         requires: !single
 
 TEST*/
