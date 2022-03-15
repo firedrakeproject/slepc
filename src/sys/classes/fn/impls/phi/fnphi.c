@@ -24,7 +24,7 @@ typedef struct {
 
 #define MAX_INDEX 10
 
-const static PetscReal rfactorial[MAX_INDEX+2] = { 1, 1, 0.5, 1.0/6, 1.0/24, 1.0/120, 1.0/720, 1.0/5040, 1.0/40320, 1.0/362880, 1.0/3628800, 1.0/39916800 };
+static const PetscReal rfactorial[MAX_INDEX+2] = { 1, 1, 0.5, 1.0/6, 1.0/24, 1.0/120, 1.0/720, 1.0/5040, 1.0/40320, 1.0/362880, 1.0/3628800, 1.0/39916800 };
 
 PetscErrorCode FNEvaluateFunction_Phi(FN fn,PetscScalar x,PetscScalar *y)
 {
