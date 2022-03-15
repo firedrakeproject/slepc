@@ -514,6 +514,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       else {
         if (nep->nconv > ctx->L) nv = nep->nconv;
         else if (ctx->L > nv) nv = ctx->L;
+        nv = PetscMin(nv,ctx->L*ctx->M);
         ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M);CHKERRQ(ierr);
         ierr = MatSetRandom(M,rand);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
