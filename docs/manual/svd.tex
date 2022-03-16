@@ -384,13 +384,13 @@ where $\sigma$ is an exact singular value. The associated error can be obtained 
 
 In the case of the GSVD, the function \ident{SVDComputeError} will compute a residual norm based on the two relations~\eqref{eq:gsvd},
 \begin{equation}
-\|r_\mathrm{GSVD}\|_2=\left(\|A\tilde{x}-\tilde{c}\tilde{u}\|_2^2+\|B\tilde{x}-\tilde{s}\tilde{v}\|_2^2\right)^{\frac{1}{2}},
+\|r_\mathrm{GSVD}\|_2=\left(\|\tilde{s}^2A^*\tilde{u}-\tilde{c}B^*B\tilde{x}\|_2^2+\|\tilde{c}^2B^*\tilde{v}-\tilde{s}A^*A\tilde{x}\|_2^2\right)^{\frac{1}{2}},
 \end{equation}
-where $\tilde{x}$, $\tilde{u}$, $\tilde{v}$ are the computed singular vectors corresponding to $\tilde{\sigma}$, and $\tilde{c}$, $\tilde{s}$ are obtained from $\tilde{\sigma}$ as $\tilde{s}=1/\sqrt{1+\tilde{\sigma}^2}$ and $\tilde{c}=\tilde{\sigma}\tilde{s}$.
+where $\tilde{x}$, $\tilde{u}$, $\tilde{v}$ are the computed singular vectors corresponding to $\tilde{\sigma}$, and $\tilde{c}$, $\tilde{s}$ are obtained from $\tilde{\sigma}$ as $\tilde{s}=1/\sqrt{1+\tilde{\sigma}^2}$ and $\tilde{c}=\tilde{\sigma}\tilde{s}$. See~\citep{Alvarruiz:2022:TRL} for details.
 
 \paragraph{Controlling and Monitoring Convergence.}
 
-Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations carried out by the solver can be determined with \ident{SVDGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{SVDSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-svd_monitor!, \Verb!-svd_monitor_all!, \Verb!-svd_monitor_conv!, or graphically with \Verb!-svd_monitor draw::draw_lg!, or \Verb!-svd_monitor_all draw::draw_lg!. See \S\ref{sec:monitor} for additional details.
+Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations carried out by the solver can be determined with \ident{SVDGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{SVDSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-svd_monitor!, \Verb!-svd_monitor_all!, \Verb!-svd_monitor_conv!, or graphically with \Verb!-svd_monitor draw::draw_lg!, or alternatively with \Verb!-svd_monitor_all draw::draw_lg!. See \S\ref{sec:monitor} for additional details.
 
 \begin{table}
 \centering

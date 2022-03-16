@@ -1,6 +1,11 @@
 \begin{thebibliography}{40}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
+\bibitem[{Alvarruiz {\em et~al.\/}(2022)}]{Alvarruiz:2022:TRL}
+Alvarruiz, F., C. Campos, and J.~E. Roman (2022).
+\newblock Thick-restarted joint Lanczos bidigonalization for the GSVD.
+\newblock In preparation.
+
 \bibitem[{Anderson {\em et~al.\/}(1999)Anderson, Bai, Bischof, Blackford, Demmel,
   Dongarra, Croz, Greenbaum, Hammarling, McKenney, and
   Sorensen}]{Anderson:1999:LUG}
