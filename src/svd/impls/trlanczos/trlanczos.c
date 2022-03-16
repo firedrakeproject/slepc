@@ -1224,6 +1224,7 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscInt       k,m,p;
+  PetscBool      convchg=PETSC_FALSE;
   BV             U1,U2;
   BVType         type;
   Mat            U,V;
@@ -1231,6 +1232,10 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citationg,&citedg);CHKERRQ(ierr);
 
+  if (svd->converged==SVDConvergedNorm) {  /* override temporarily since computed residual is already relative to the norms */
+    svd->converged = SVDConvergedAbsolute;
+    convchg = PETSC_TRUE;
+  }
   ierr = MatGetLocalSize(svd->A,&m,NULL);CHKERRQ(ierr);
   ierr = MatGetLocalSize(svd->B,&p,NULL);CHKERRQ(ierr);
 
@@ -1283,6 +1288,7 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   ierr = BVDestroy(&U2);CHKERRQ(ierr);
   ierr = BVDestroy(&U1);CHKERRQ(ierr);
   ierr = DSTruncate(svd->ds,svd->nconv,PETSC_TRUE);CHKERRQ(ierr);
+  if (convchg) svd->converged = SVDConvergedNorm;
   PetscFunctionReturn(0);
 }
 

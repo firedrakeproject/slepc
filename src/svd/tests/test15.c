@@ -103,7 +103,7 @@ int main(int argc,char **argv)
   }
 
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_ABSOLUTE,NULL);CHKERRQ(ierr);
+  ierr = SVDErrorView(svd,SVD_ERROR_NORM,NULL);CHKERRQ(ierr);
 
   /* Free work space */
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
@@ -118,12 +118,13 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
+      args: -svd_trlanczos_gbidiag {{single upper lower}}
+      filter: grep -v "TRLANCZOS: using"
       requires: !single
 
    test:
       suffix: 2
-      args: -m 6 -n 12 -p 12 -svd_trlanczos_gbidiag {{single upper lower}}
-      filter: grep -v "TRLANCZOS: using"
+      args: -m 6 -n 12 -p 12 -svd_trlanczos_restart .7
       requires: !single
 
 TEST*/

@@ -104,7 +104,7 @@ int main(int argc,char **argv)
   ierr = SVDSetOperators(svd,A1,B);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_ABSOLUTE,NULL);CHKERRQ(ierr);
+  ierr = SVDErrorView(svd,SVD_ERROR_NORM,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Solve second problem
@@ -112,7 +112,7 @@ int main(int argc,char **argv)
 
   ierr = SVDSetOperators(svd,A2,B);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_ABSOLUTE,NULL);CHKERRQ(ierr);
+  ierr = SVDErrorView(svd,SVD_ERROR_NORM,NULL);CHKERRQ(ierr);
 
   /* Free work space */
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
