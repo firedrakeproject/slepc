@@ -103,7 +103,7 @@ int main(int argc,char **argv)
   }
 
   ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  ierr = SVDErrorView(svd,SVD_ERROR_ABSOLUTE,NULL);CHKERRQ(ierr);
 
   /* Free work space */
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);

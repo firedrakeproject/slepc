@@ -32,6 +32,7 @@
 
       PetscEnum, parameter :: SVD_ERROR_ABSOLUTE         =  0
       PetscEnum, parameter :: SVD_ERROR_RELATIVE         =  1
+      PetscEnum, parameter :: SVD_ERROR_NORM             =  2
 
       PetscEnum, parameter :: SVD_CONV_ABS               =  0
       PetscEnum, parameter :: SVD_CONV_REL               =  1

@@ -22,6 +22,7 @@ cdef extern from * nogil:
     ctypedef enum SlepcSVDErrorType "SVDErrorType":
         SVD_ERROR_ABSOLUTE
         SVD_ERROR_RELATIVE
+        SVD_ERROR_NORM
 
     ctypedef enum SlepcSVDConv "SVDConv":
         SVD_CONV_ABS

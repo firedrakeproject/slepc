@@ -468,6 +468,15 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
     case SVD_ERROR_RELATIVE:
       *error /= sigma;
       break;
+    case SVD_ERROR_NORM:
+      if (!svd->nrma) {
+        ierr = MatNorm(svd->OP,NORM_INFINITY,&svd->nrma);CHKERRQ(ierr);
+      }
+      if (svd->isgeneralized && !svd->nrmb) {
+        ierr = MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb);CHKERRQ(ierr);
+      }
+      *error /= PetscMax(svd->nrma,svd->nrmb);
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
   }

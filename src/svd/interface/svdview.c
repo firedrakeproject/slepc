@@ -275,6 +275,9 @@ static PetscErrorCode SVDErrorView_DETAIL(SVD svd,SVDErrorType etype,PetscViewer
     case SVD_ERROR_RELATIVE:
       ierr = PetscSNPrintf(ex,sizeof(ex)," relative error");CHKERRQ(ierr);
       break;
+    case SVD_ERROR_NORM:
+      ierr = PetscSNPrintf(ex,sizeof(ex)," error relative to matrix norm");CHKERRQ(ierr);
+      break;
   }
   ierr = PetscViewerASCIIPrintf(viewer,"%s          sigma           %s\n%s",sep,ex,sep);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
@@ -399,6 +402,13 @@ PetscErrorCode SVDErrorViewFromOptions(SVD svd)
   if (flg) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,"-svd_error_norm",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = SVDErrorView(svd,SVD_ERROR_NORM,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

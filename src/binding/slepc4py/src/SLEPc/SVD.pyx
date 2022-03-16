@@ -44,9 +44,11 @@ class SVDErrorType(object):
 
     - `ABSOLUTE`: Absolute error.
     - `RELATIVE`: Relative error.
+    - `NORM`:     Error relative to the matrix norm.
     """
     ABSOLUTE = SVD_ERROR_ABSOLUTE
     RELATIVE = SVD_ERROR_RELATIVE
+    NORM     = SVD_ERROR_NORM
 
 class SVDWhich(object):
     """

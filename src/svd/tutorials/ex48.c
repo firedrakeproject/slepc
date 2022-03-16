@@ -106,11 +106,11 @@ int main(int argc,char **argv)
   /* show detailed info unless -terse option is given by user */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {
-    ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+    ierr = SVDErrorView(svd,SVD_ERROR_ABSOLUTE,NULL);CHKERRQ(ierr);
   } else {
     ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
     ierr = SVDConvergedReasonView(svd,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = SVDErrorView(svd,SVD_ERROR_ABSOLUTE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
