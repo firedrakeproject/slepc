@@ -20,23 +20,22 @@
 */
 PetscErrorCode DSSolve_NHEP_Private(DS ds,PetscScalar *A,PetscScalar *Q,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscErrorCode ierr;
   PetscScalar    *work,*tau;
   PetscInt       i,j;
   PetscBLASInt   ilo,lwork,info,n,k,ld;
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->l+1,&ilo);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->k,&k);CHKERRQ(ierr);
-  ierr = DSAllocateWork_Private(ds,ld+6*ld,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(ds->n,&n));
+  CHKERRQ(PetscBLASIntCast(ds->ld,&ld));
+  CHKERRQ(PetscBLASIntCast(ds->l+1,&ilo));
+  CHKERRQ(PetscBLASIntCast(ds->k,&k));
+  CHKERRQ(DSAllocateWork_Private(ds,ld+6*ld,0,0));
   tau  = ds->work;
   work = ds->work+ld;
   lwork = 6*ld;
 
   /* initialize orthogonal matrix */
-  ierr = PetscArrayzero(Q,ld*ld);CHKERRQ(ierr);
+  CHKERRQ(PetscArrayzero(Q,ld*ld));
   for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
   if (n==1) { /* quick return */
     wr[0] = A[0];
@@ -89,7 +88,6 @@ PetscErrorCode DSSolve_NHEP_Private(DS ds,PetscScalar *A,PetscScalar *Q,PetscSca
 */
 PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *T,PetscScalar *Q,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscErrorCode ierr;
   PetscScalar    re;
   PetscInt       i,j,pos,result;
   PetscBLASInt   ifst,ilst,info,n,ld;
@@ -98,10 +96,10 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *T,PetscScalar *Q,PetscScalar
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(ds->n,&n));
+  CHKERRQ(PetscBLASIntCast(ds->ld,&ld));
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = DSAllocateWork_Private(ds,ld,0,0);CHKERRQ(ierr);
+  CHKERRQ(DSAllocateWork_Private(ds,ld,0,0));
   work = ds->work;
 #endif
   /* selection sort */
@@ -118,9 +116,9 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *T,PetscScalar *Q,PetscScalar
     /* find minimum eigenvalue */
     for (;j<n;j++) {
 #if !defined(PETSC_USE_COMPLEX)
-      ierr = SlepcSCCompare(ds->sc,re,im,wr[j],wi[j],&result);CHKERRQ(ierr);
+      CHKERRQ(SlepcSCCompare(ds->sc,re,im,wr[j],wi[j],&result));
 #else
-      ierr = SlepcSCCompare(ds->sc,re,0.0,wr[j],0.0,&result);CHKERRQ(ierr);
+      CHKERRQ(SlepcSCCompare(ds->sc,re,0.0,wr[j],0.0,&result));
 #endif
       if (result > 0) {
         re = wr[j];
@@ -135,8 +133,8 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *T,PetscScalar *Q,PetscScalar
     }
     if (pos) {
       /* interchange blocks */
-      ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);
-      ierr = PetscBLASIntCast(i+1,&ilst);CHKERRQ(ierr);
+      CHKERRQ(PetscBLASIntCast(pos+1,&ifst));
+      CHKERRQ(PetscBLASIntCast(i+1,&ilst));
 #if !defined(PETSC_USE_COMPLEX)
       PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info));
 #else
@@ -170,7 +168,6 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *T,PetscScalar *Q,PetscScalar
 */
 PetscErrorCode DSSortWithPermutation_NHEP_Private(DS ds,PetscInt *perm,PetscScalar *T,PetscScalar *Q,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscErrorCode ierr;
   PetscInt       i,j,pos,inc=1;
   PetscBLASInt   ifst,ilst,info,n,ld;
 #if !defined(PETSC_USE_COMPLEX)
@@ -178,10 +175,10 @@ PetscErrorCode DSSortWithPermutation_NHEP_Private(DS ds,PetscInt *perm,PetscScal
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(ds->n,&n));
+  CHKERRQ(PetscBLASIntCast(ds->ld,&ld));
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = DSAllocateWork_Private(ds,ld,0,0);CHKERRQ(ierr);
+  CHKERRQ(DSAllocateWork_Private(ds,ld,0,0));
   work = ds->work;
 #endif
   for (i=ds->l;i<n-1;i++) {
@@ -194,8 +191,8 @@ PetscErrorCode DSSortWithPermutation_NHEP_Private(DS ds,PetscInt *perm,PetscScal
       PetscCheck((T[pos+(pos-1)*ld]==0.0 || perm[i+1]==pos-1) && (T[pos+1+pos*ld]==0.0 || perm[i+1]==pos+1),PETSC_COMM_SELF,PETSC_ERR_FP,"Invalid permutation due to a 2x2 block at position %" PetscInt_FMT,pos);
 #endif
       /* interchange blocks */
-      ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);
-      ierr = PetscBLASIntCast(i+1,&ilst);CHKERRQ(ierr);
+      CHKERRQ(PetscBLASIntCast(pos+1,&ifst));
+      CHKERRQ(PetscBLASIntCast(i+1,&ilst));
 #if !defined(PETSC_USE_COMPLEX)
       PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info));
 #else
@@ -225,4 +222,3 @@ PetscErrorCode DSSortWithPermutation_NHEP_Private(DS ds,PetscInt *perm,PetscScal
   }
   PetscFunctionReturn(0);
 }
-

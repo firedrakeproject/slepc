@@ -27,71 +27,71 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with EVSL, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with EVSL, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    CHKERRQ(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetType(eps,EPSEVSL);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  CHKERRQ(EPSSetOperators(eps,A,NULL));
+  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
+  CHKERRQ(EPSSetType(eps,EPSEVSL));
 
   /*
      Set several options
   */
-  ierr = EPSSetInterval(eps,1.3,1.44);CHKERRQ(ierr);
-  ierr = EPSEVSLSetRange(eps,0,8);CHKERRQ(ierr);
-  ierr = EPSEVSLSetSlices(eps,3);CHKERRQ(ierr);
-  ierr = EPSEVSLSetDamping(eps,EPS_EVSL_DAMPING_SIGMA);CHKERRQ(ierr);
-  ierr = EPSEVSLSetDOSParameters(eps,EPS_EVSL_DOS_KPM,50,450,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSEVSLSetPolParameters(eps,4000,0.85);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSSetInterval(eps,1.3,1.44));
+  CHKERRQ(EPSEVSLSetRange(eps,0,8));
+  CHKERRQ(EPSEVSLSetSlices(eps,3));
+  CHKERRQ(EPSEVSLSetDamping(eps,EPS_EVSL_DAMPING_SIGMA));
+  CHKERRQ(EPSEVSLSetDOSParameters(eps,EPS_EVSL_DOS_KPM,50,450,PETSC_DEFAULT,PETSC_DEFAULT));
+  CHKERRQ(EPSEVSLSetPolParameters(eps,4000,0.85));
+  CHKERRQ(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
            Compute all eigenvalues in interval and display info
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSEVSLGetSlices(eps,&nslice);CHKERRQ(ierr);
-  ierr = EPSGetInterval(eps,&a,&b);CHKERRQ(ierr);
-  ierr = EPSEVSLGetRange(eps,&ra,&rb);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: solving interval [%g,%g] with %" PetscInt_FMT " slices (spectral range [%g,%g])\n",a,b,nslice,ra,rb);CHKERRQ(ierr);
-  ierr = EPSEVSLGetDamping(eps,&damping);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: damping type is %s\n",EPSEVSLDampings[damping]);CHKERRQ(ierr);
+  CHKERRQ(EPSSolve(eps));
+  CHKERRQ(EPSEVSLGetSlices(eps,&nslice));
+  CHKERRQ(EPSGetInterval(eps,&a,&b));
+  CHKERRQ(EPSEVSLGetRange(eps,&ra,&rb));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," EVSL: solving interval [%g,%g] with %" PetscInt_FMT " slices (spectral range [%g,%g])\n",a,b,nslice,ra,rb));
+  CHKERRQ(EPSEVSLGetDamping(eps,&damping));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," EVSL: damping type is %s\n",EPSEVSLDampings[damping]));
 
-  ierr = EPSView(eps,NULL);CHKERRQ(ierr);
-  ierr = EPSErrorView(eps,EPS_ERROR_ABSOLUTE,NULL);CHKERRQ(ierr);
+  CHKERRQ(EPSView(eps,NULL));
+  CHKERRQ(EPSErrorView(eps,EPS_ERROR_ABSOLUTE,NULL));
 
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  CHKERRQ(EPSDestroy(&eps));
+  CHKERRQ(MatDestroy(&A));
   ierr = SlepcFinalize();
   return ierr;
 }

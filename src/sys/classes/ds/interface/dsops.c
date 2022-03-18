@@ -62,8 +62,6 @@ PetscErrorCode DSGetLeadingDimension(DS ds,PetscInt *ld)
 @*/
 PetscErrorCode DSSetState(DS ds,DSStateType state)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(ds,state,2);
@@ -72,7 +70,7 @@ PetscErrorCode DSSetState(DS ds,DSStateType state)
     case DS_STATE_INTERMEDIATE:
     case DS_STATE_CONDENSED:
     case DS_STATE_TRUNCATED:
-      if (ds->state!=state) { ierr = PetscInfo(ds,"State has changed from %s to %s\n",DSStateTypes[ds->state],DSStateTypes[state]);CHKERRQ(ierr); }
+      if (ds->state!=state) CHKERRQ(PetscInfo(ds,"State has changed from %s to %s\n",DSStateTypes[ds->state],DSStateTypes[state]));
       ds->state = state;
       break;
     default:
@@ -128,7 +126,6 @@ PetscErrorCode DSGetState(DS ds,DSStateType *state)
 @*/
 PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
 {
-  PetscErrorCode ierr;
   PetscInt       on,ol,ok;
   PetscBool      issvd;
 
@@ -143,7 +140,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
     ds->n = ds->ld;
   } else {
     PetscCheck(n>=0 && n<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 0 and ld");
-    ierr = PetscObjectTypeCompareAny((PetscObject)ds,&issvd,DSSVD,DSGSVD,"");CHKERRQ(ierr);  /* SVD and GSVD have extra column instead of extra row */
+    CHKERRQ(PetscObjectTypeCompareAny((PetscObject)ds,&issvd,DSSVD,DSGSVD,""));  /* SVD and GSVD have extra column instead of extra row */
     PetscCheck(!ds->extrarow || n<ds->ld || issvd,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"A value of n equal to ld leaves no room for extra row");
     ds->n = n;
   }
@@ -161,7 +158,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
     ds->k = k;
   }
   if (on!=ds->n || ol!=ds->l || ok!=ds->k) {
-    ierr = PetscInfo(ds,"New dimensions are: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k);CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(ds,"New dimensions are: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k));
   }
   PetscFunctionReturn(0);
 }
@@ -233,7 +230,6 @@ PetscErrorCode DSGetDimensions(DS ds,PetscInt *n,PetscInt *l,PetscInt *k,PetscIn
 @*/
 PetscErrorCode DSTruncate(DS ds,PetscInt n,PetscBool trim)
 {
-  PetscErrorCode ierr;
   DSStateType    old;
 
   PetscFunctionBegin;
@@ -244,18 +240,18 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n,PetscBool trim)
   PetscValidLogicalCollectiveBool(ds,trim,3);
   PetscCheck(ds->ops->truncate,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   PetscCheck(n>=ds->l && n<=ds->n,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n (%" PetscInt_FMT "). Must be between l (%" PetscInt_FMT ") and n (%" PetscInt_FMT ")",n,ds->l,ds->n);
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->truncate)(ds,n,trim);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscInfo(ds,"Decomposition %s to size n=%" PetscInt_FMT "\n",trim?"trimmed":"truncated",ds->n);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ((*ds->ops->truncate)(ds,n,trim));
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscInfo(ds,"Decomposition %s to size n=%" PetscInt_FMT "\n",trim?"trimmed":"truncated",ds->n));
   old = ds->state;
   ds->state = trim? DS_STATE_RAW: DS_STATE_TRUNCATED;
   if (old!=ds->state) {
-    ierr = PetscInfo(ds,"State has changed from %s to %s\n",DSStateTypes[old],DSStateTypes[ds->state]);CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(ds,"State has changed from %s to %s\n",DSStateTypes[old],DSStateTypes[ds->state]));
   }
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
@@ -281,7 +277,6 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n,PetscBool trim)
 @*/
 PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
 {
-  PetscErrorCode ierr;
   PetscInt       rows,cols;
 
   PetscFunctionBegin;
@@ -289,7 +284,7 @@ PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
   PetscValidType(ds,1);
   DSCheckValidMat(ds,t,2);
   if (ds->ops->matgetsize) {
-    ierr = (*ds->ops->matgetsize)(ds,t,&rows,&cols);CHKERRQ(ierr);
+    CHKERRQ((*ds->ops->matgetsize)(ds,t,&rows,&cols));
   } else {
     if (ds->state==DS_STATE_TRUNCATED && t>=DS_MAT_Q) rows = ds->t;
     else rows = (t==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
@@ -322,15 +317,13 @@ PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
 @*/
 PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckValidMat(ds,t,2);
   PetscValidBoolPointer(flg,3);
   if (ds->ops->hermitian) {
-    ierr = (*ds->ops->hermitian)(ds,t,flg);CHKERRQ(ierr);
+    CHKERRQ((*ds->ops->hermitian)(ds,t,flg));
   } else *flg = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -381,8 +374,6 @@ PetscErrorCode DSGetTruncateSize_Default(DS ds,PetscInt l,PetscInt n,PetscInt *k
 @*/
 PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
@@ -390,7 +381,7 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
   PetscValidLogicalCollectiveInt(ds,n,3);
   PetscValidIntPointer(k,4);
   if (ds->ops->gettruncatesize) {
-    ierr = (*ds->ops->gettruncatesize)(ds,l?l:ds->l,n?n:ds->n,k);CHKERRQ(ierr);
+    CHKERRQ((*ds->ops->gettruncatesize)(ds,l?l:ds->l,n?n:ds->n,k));
   }
   PetscFunctionReturn(0);
 }
@@ -424,7 +415,6 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 @*/
 PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 {
-  PetscErrorCode ierr;
   PetscInt       j,rows,cols,arows,acols;
   PetscBool      create=PETSC_FALSE,flg;
   PetscScalar    *pA,*M;
@@ -436,32 +426,32 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   PetscValidPointer(A,3);
   PetscCheck(m!=DS_MAT_T && m!=DS_MAT_D,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
 
-  ierr = DSMatGetSize(ds,m,&rows,&cols);CHKERRQ(ierr);
+  CHKERRQ(DSMatGetSize(ds,m,&rows,&cols));
   if (!ds->omat[m]) create=PETSC_TRUE;
   else {
-    ierr = MatGetSize(ds->omat[m],&arows,&acols);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(ds->omat[m],&arows,&acols));
     if (arows!=rows || acols!=cols) {
-      ierr = MatDestroy(&ds->omat[m]);CHKERRQ(ierr);
+      CHKERRQ(MatDestroy(&ds->omat[m]));
       create=PETSC_TRUE;
     }
   }
   if (create) {
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]);CHKERRQ(ierr);
+    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]));
   }
 
   /* set Hermitian flag */
-  ierr = DSMatIsHermitian(ds,m,&flg);CHKERRQ(ierr);
-  ierr = MatSetOption(ds->omat[m],MAT_HERMITIAN,flg);CHKERRQ(ierr);
+  CHKERRQ(DSMatIsHermitian(ds,m,&flg));
+  CHKERRQ(MatSetOption(ds->omat[m],MAT_HERMITIAN,flg));
 
   /* copy entries */
-  ierr = PetscObjectReference((PetscObject)ds->omat[m]);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectReference((PetscObject)ds->omat[m]));
   *A = ds->omat[m];
   M  = ds->mat[m];
-  ierr = MatDenseGetArray(*A,&pA);CHKERRQ(ierr);
+  CHKERRQ(MatDenseGetArray(*A,&pA));
   for (j=0;j<cols;j++) {
-    ierr = PetscArraycpy(pA+j*rows,M+j*ds->ld,rows);CHKERRQ(ierr);
+    CHKERRQ(PetscArraycpy(pA+j*rows,M+j*ds->ld,rows));
   }
-  ierr = MatDenseRestoreArray(*A,&pA);CHKERRQ(ierr);
+  CHKERRQ(MatDenseRestoreArray(*A,&pA));
   PetscFunctionReturn(0);
 }
 
@@ -489,7 +479,6 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 @*/
 PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
 {
-  PetscErrorCode ierr;
   PetscInt       j,rows,cols;
   PetscScalar    *pA,*M;
 
@@ -501,14 +490,14 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
   PetscCheck(ds->omat[m],PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSRestoreMat must match a previous call to DSGetMat");
   PetscCheck(ds->omat[m]==*A,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with DSGetMat");
 
-  ierr = MatGetSize(*A,&rows,&cols);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(*A,&rows,&cols));
   M  = ds->mat[m];
-  ierr = MatDenseGetArray(*A,&pA);CHKERRQ(ierr);
+  CHKERRQ(MatDenseGetArray(*A,&pA));
   for (j=0;j<cols;j++) {
-    ierr = PetscArraycpy(M+j*ds->ld,pA+j*rows,rows);CHKERRQ(ierr);
+    CHKERRQ(PetscArraycpy(M+j*ds->ld,pA+j*rows,rows));
   }
-  ierr = MatDenseRestoreArray(*A,&pA);CHKERRQ(ierr);
-  ierr = MatDestroy(A);CHKERRQ(ierr);
+  CHKERRQ(MatDenseRestoreArray(*A,&pA));
+  CHKERRQ(MatDestroy(A));
   PetscFunctionReturn(0);
 }
 
@@ -558,8 +547,6 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
 @*/
 PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
@@ -567,7 +554,7 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscValidPointer(a,3);
   CHKMEMQ;
   *a = 0;
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
@@ -617,8 +604,6 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
 @*/
 PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
@@ -626,7 +611,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscValidPointer(a,3);
   CHKMEMQ;
   *a = 0;
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
@@ -650,8 +635,6 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
 @*/
 PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
@@ -659,15 +642,15 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscValidScalarPointer(eigr,2);
   if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(0);
   PetscCheck(ds->ops->solve[ds->method],PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
-  ierr = PetscInfo(ds,"Starting solve with problem sizes: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k);CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(DS_Solve,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->solve[ds->method])(ds,eigr,eigi);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Solve,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscInfo(ds,"State has changed from %s to CONDENSED\n",DSStateTypes[ds->state]);CHKERRQ(ierr);
+  CHKERRQ(PetscInfo(ds,"Starting solve with problem sizes: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k));
+  CHKERRQ(PetscLogEventBegin(DS_Solve,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ((*ds->ops->solve[ds->method])(ds,eigr,eigi));
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Solve,ds,0,0,0));
+  CHKERRQ(PetscInfo(ds,"State has changed from %s to CONDENSED\n",DSStateTypes[ds->state]));
   ds->state = DS_STATE_CONDENSED;
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
@@ -706,7 +689,6 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 @*/
 PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -721,13 +703,13 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   PetscCheck(!k || rr,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Argument k can only be used together with rr");
 
   for (i=0;i<ds->n;i++) ds->perm[i] = i;   /* initialize to trivial permutation */
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->sort)(ds,eigr,eigi,rr,ri,k);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
-  ierr = PetscInfo(ds,"Finished sorting\n");CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ((*ds->ops->sort)(ds,eigr,eigi,rr,ri,k));
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
+  CHKERRQ(PetscInfo(ds,"Finished sorting\n"));
   PetscFunctionReturn(0);
 }
 
@@ -756,8 +738,6 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
 @*/
 PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,PetscScalar *eigi)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
@@ -767,13 +747,13 @@ PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,Pets
   PetscCheck(ds->state<DS_STATE_TRUNCATED,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot sort a truncated DS");
   PetscCheck(ds->ops->sortperm,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
 
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->sortperm)(ds,perm,eigr,eigi);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
-  ierr = PetscInfo(ds,"Finished sorting\n");CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ((*ds->ops->sortperm)(ds,perm,eigr,eigi));
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
+  CHKERRQ(PetscInfo(ds,"Finished sorting\n"));
   PetscFunctionReturn(0);
 }
 
@@ -809,22 +789,21 @@ PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,Pets
 @*/
 PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
-  PetscErrorCode ierr;
   PetscMPIInt    size;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size));
   if (size>1 && ds->pmode==DS_PARALLEL_SYNCHRONIZED) {
-    ierr = PetscLogEventBegin(DS_Synchronize,ds,0,0,0);CHKERRQ(ierr);
+    CHKERRQ(PetscLogEventBegin(DS_Synchronize,ds,0,0,0));
     if (ds->ops->synchronize) {
-      ierr = (*ds->ops->synchronize)(ds,eigr,eigi);CHKERRQ(ierr);
+      CHKERRQ((*ds->ops->synchronize)(ds,eigr,eigi));
     }
-    ierr = PetscLogEventEnd(DS_Synchronize,ds,0,0,0);CHKERRQ(ierr);
-    ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
-    ierr = PetscInfo(ds,"Synchronization completed (%s)\n",DSParallelTypes[ds->pmode]);CHKERRQ(ierr);
+    CHKERRQ(PetscLogEventEnd(DS_Synchronize,ds,0,0,0));
+    CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
+    CHKERRQ(PetscInfo(ds,"Synchronization completed (%s)\n",DSParallelTypes[ds->pmode]));
   }
   PetscFunctionReturn(0);
 }
@@ -868,8 +847,6 @@ PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 @*/
 PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
@@ -878,14 +855,14 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscCheck(mat<DS_NUM_MAT,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   PetscCheck(ds->ops->vectors,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   PetscCheck(!rnorm || j,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must give a value of j");
-  if (!ds->mat[mat]) { ierr = DSAllocateMat_Private(ds,mat);CHKERRQ(ierr); }
-  if (!j) { ierr = PetscInfo(ds,"Computing all vectors on %s\n",DSMatName[mat]);CHKERRQ(ierr); }
-  ierr = PetscLogEventBegin(DS_Vectors,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->vectors)(ds,mat,j,rnorm);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Vectors,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  if (!ds->mat[mat]) CHKERRQ(DSAllocateMat_Private(ds,mat));
+  if (!j) CHKERRQ(PetscInfo(ds,"Computing all vectors on %s\n",DSMatName[mat]));
+  CHKERRQ(PetscLogEventBegin(DS_Vectors,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ((*ds->ops->vectors)(ds,mat,j,rnorm));
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Vectors,ds,0,0,0));
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
@@ -904,20 +881,18 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 @*/
 PetscErrorCode DSUpdateExtraRow(DS ds)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscCheck(ds->ops->update,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   PetscCheck(ds->extrarow,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Should have called DSSetExtraRow");
-  ierr = PetscInfo(ds,"Updating extra row\n");CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->update)(ds);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscInfo(ds,"Updating extra row\n"));
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ((*ds->ops->update)(ds));
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -937,20 +912,18 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
 @*/
 PetscErrorCode DSCond(DS ds,PetscReal *cond)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscValidRealPointer(cond,2);
   PetscCheck(ds->ops->cond,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->cond)(ds,cond);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscInfo(ds,"Computed condition number = %g\n",(double)*cond);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ((*ds->ops->cond)(ds,cond));
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscInfo(ds,"Computed condition number = %g\n",(double)*cond));
   PetscFunctionReturn(0);
 }
 
@@ -988,22 +961,20 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
 @*/
 PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *g,PetscReal *gamma)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscCheck(ds->ops->transharm,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (recover) { ierr = PetscInfo(ds,"Undoing the translation\n");CHKERRQ(ierr); }
-  else { ierr = PetscInfo(ds,"Computing the translation\n");CHKERRQ(ierr); }
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->transharm)(ds,tau,beta,recover,g,gamma);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  if (recover) CHKERRQ(PetscInfo(ds,"Undoing the translation\n"));
+  else CHKERRQ(PetscInfo(ds,"Computing the translation\n"));
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ((*ds->ops->transharm)(ds,tau,beta,recover,g,gamma));
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
   ds->state = DS_STATE_RAW;
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
@@ -1035,22 +1006,20 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
 @*/
 PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscCheck(ds->ops->transrks,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  ierr = PetscInfo(ds,"Translating with alpha=%g\n",(double)PetscRealPart(alpha));CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->transrks)(ds,alpha);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscInfo(ds,"Translating with alpha=%g\n",(double)PetscRealPart(alpha)));
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ((*ds->ops->transrks)(ds,alpha));
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
   ds->state   = DS_STATE_RAW;
   ds->compact = PETSC_FALSE;
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
@@ -1082,7 +1051,6 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
 @*/
 PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscInt Ar,PetscInt Ac,PetscInt rows,PetscInt cols,PetscBool out)
 {
-  PetscErrorCode ierr;
   PetscInt       j,mrows,mcols,arows,acols;
   PetscScalar    *pA,*M;
 
@@ -1101,8 +1069,8 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   PetscValidLogicalCollectiveBool(ds,out,10);
   if (!rows || !cols) PetscFunctionReturn(0);
 
-  ierr = DSMatGetSize(ds,m,&mrows,&mcols);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&arows,&acols);CHKERRQ(ierr);
+  CHKERRQ(DSMatGetSize(ds,m,&mrows,&mcols));
+  CHKERRQ(MatGetSize(A,&arows,&acols));
   PetscCheck(m!=DS_MAT_T && m!=DS_MAT_D,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
   PetscCheck(mr>=0 && mr<mrows,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in m");
   PetscCheck(mc>=0 && mc<mcols,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial column in m");
@@ -1112,15 +1080,14 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   PetscCheck(mc+cols<=mcols && Ac+cols<=acols,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid number of columns");
 
   M  = ds->mat[m];
-  ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
+  CHKERRQ(MatDenseGetArray(A,&pA));
   for (j=0;j<cols;j++) {
     if (out) {
-      ierr = PetscArraycpy(pA+(Ac+j)*arows+Ar,M+(mc+j)*ds->ld+mr,rows);CHKERRQ(ierr);
+      CHKERRQ(PetscArraycpy(pA+(Ac+j)*arows+Ar,M+(mc+j)*ds->ld+mr,rows));
     } else {
-      ierr = PetscArraycpy(M+(mc+j)*ds->ld+mr,pA+(Ac+j)*arows+Ar,rows);CHKERRQ(ierr);
+      CHKERRQ(PetscArraycpy(M+(mc+j)*ds->ld+mr,pA+(Ac+j)*arows+Ar,rows));
     }
   }
-  ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
+  CHKERRQ(MatDenseRestoreArray(A,&pA));
   PetscFunctionReturn(0);
 }
-

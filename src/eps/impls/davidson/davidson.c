@@ -34,7 +34,6 @@ static const char citation[] =
 
 PetscErrorCode EPSSetUp_XD(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
@@ -78,18 +77,18 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Change the default sigma to inf if necessary */
   if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
-    ierr = STSetDefaultShift(eps->st,PETSC_MAX_REAL);CHKERRQ(ierr);
+    CHKERRQ(STSetDefaultShift(eps->st,PETSC_MAX_REAL));
   }
 
   /* Set up preconditioner */
-  ierr = STSetUp(eps->st);CHKERRQ(ierr);
+  CHKERRQ(STSetUp(eps->st));
 
   /* Setup problem specification in dvd */
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
-  ierr = EPSReset_XD(eps);CHKERRQ(ierr);
-  ierr = PetscMemzero(dvd,sizeof(dvdDashboard));CHKERRQ(ierr);
+  CHKERRQ(STGetNumMatrices(eps->st,&nmat));
+  CHKERRQ(STGetMatrix(eps->st,0,&A));
+  if (nmat>1) CHKERRQ(STGetMatrix(eps->st,1,&B));
+  CHKERRQ(EPSReset_XD(eps));
+  CHKERRQ(PetscMemzero(dvd,sizeof(dvdDashboard)));
   dvd->A = A; dvd->B = eps->isgeneralized? B: NULL;
   ispositive = eps->ispositive;
   dvd->sA = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN: 0) | ((ispositive && !eps->isgeneralized) ? DVD_MAT_POS_DEF: 0);
@@ -127,7 +126,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
       dvd->target[1] = 1.0;
       break;
     case EPS_WHICH_USER:
-      ierr = STGetShift(eps->st,&target);CHKERRQ(ierr);
+      CHKERRQ(STGetShift(eps->st,&target));
       dvd->target[0] = target;
       dvd->target[1] = 1.0;
       break;
@@ -175,20 +174,20 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   init = data->krylovstart? DVD_INITV_KRYLOV: DVD_INITV_CLASSIC;
 
   /* Preconfigure dvd */
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,ksp,init,eps->trackall,data->ipB,data->doubleexp);CHKERRQ(ierr);
+  CHKERRQ(STGetKSP(eps->st,&ksp));
+  CHKERRQ(dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,ksp,init,eps->trackall,data->ipB,data->doubleexp));
 
   /* Allocate memory */
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  CHKERRQ(EPSAllocateSolution(eps,0));
 
   /* Setup orthogonalization */
-  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
+  CHKERRQ(EPS_SetInnerProduct(eps));
   if (!(ipB && dvd->B)) {
-    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
   }
 
   /* Configure dvd for a basic GD */
-  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,data->fix,init,eps->trackall,data->ipB,data->dynamic,data->doubleexp);CHKERRQ(ierr);
+  CHKERRQ(dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,data->fix,init,eps->trackall,data->ipB,data->dynamic,data->doubleexp));
   PetscFunctionReturn(0);
 }
 
@@ -197,38 +196,37 @@ PetscErrorCode EPSSolve_XD(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *d = &data->ddb;
   PetscInt       l,k;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
+  CHKERRQ(PetscCitationsRegister(citation,&cited));
   /* Call the starting routines */
-  ierr = EPSDavidsonFLCall(d->startList,d);CHKERRQ(ierr);
+  CHKERRQ(EPSDavidsonFLCall(d->startList,d));
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
 
     /* Initialize V, if it is needed */
-    ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-    if (PetscUnlikely(l == k)) { ierr = d->initV(d);CHKERRQ(ierr); }
+    CHKERRQ(BVGetActiveColumns(d->eps->V,&l,&k));
+    if (PetscUnlikely(l == k)) CHKERRQ(d->initV(d));
 
     /* Find the best approximated eigenpairs in V, X */
-    ierr = d->calcPairs(d);CHKERRQ(ierr);
+    CHKERRQ(d->calcPairs(d));
 
     /* Test for convergence */
-    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
+    CHKERRQ((*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx));
     if (eps->reason != EPS_CONVERGED_ITERATING) break;
 
     /* Expand the subspace */
-    ierr = d->updateV(d);CHKERRQ(ierr);
+    CHKERRQ(d->updateV(d));
 
     /* Monitor progress */
     eps->nconv = d->nconv;
     eps->its++;
-    ierr = BVGetActiveColumns(d->eps->V,NULL,&k);CHKERRQ(ierr);
-    ierr = EPSMonitor(eps,eps->its,eps->nconv+d->npreconv,eps->eigr,eps->eigi,eps->errest,PetscMin(k,eps->nev));CHKERRQ(ierr);
+    CHKERRQ(BVGetActiveColumns(d->eps->V,NULL,&k));
+    CHKERRQ(EPSMonitor(eps,eps->its,eps->nconv+d->npreconv,eps->eigr,eps->eigi,eps->errest,PetscMin(k,eps->nev)));
   }
 
   /* Call the ending routines */
-  ierr = EPSDavidsonFLCall(d->endList,d);CHKERRQ(ierr);
+  CHKERRQ(EPSDavidsonFLCall(d->endList,d));
   PetscFunctionReturn(0);
 }
 
@@ -236,14 +234,13 @@ PetscErrorCode EPSReset_XD(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   /* Call step destructors and destroys the list */
-  ierr = EPSDavidsonFLCall(dvd->destroyList,dvd);CHKERRQ(ierr);
-  ierr = EPSDavidsonFLDestroy(&dvd->destroyList);CHKERRQ(ierr);
-  ierr = EPSDavidsonFLDestroy(&dvd->startList);CHKERRQ(ierr);
-  ierr = EPSDavidsonFLDestroy(&dvd->endList);CHKERRQ(ierr);
+  CHKERRQ(EPSDavidsonFLCall(dvd->destroyList,dvd));
+  CHKERRQ(EPSDavidsonFLDestroy(&dvd->destroyList));
+  CHKERRQ(EPSDavidsonFLDestroy(&dvd->startList));
+  CHKERRQ(EPSDavidsonFLDestroy(&dvd->endList));
   PetscFunctionReturn(0);
 }
 
@@ -366,19 +363,18 @@ PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth)
  */
 PetscErrorCode EPSComputeVectors_XD(EPS eps)
 {
-  PetscErrorCode ierr;
   Mat            X;
   PetscBool      symm;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)eps->ds,DSHEP,&symm);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->ds,DSHEP,&symm));
   if (symm) PetscFunctionReturn(0);
-  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
 
   /* V <- V * X */
-  ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
-  ierr = BVMultInPlace(eps->V,X,0,eps->nconv);CHKERRQ(ierr);
-  ierr = MatDestroy(&X);CHKERRQ(ierr);
+  CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&X));
+  CHKERRQ(BVSetActiveColumns(eps->V,0,eps->nconv));
+  CHKERRQ(BVMultInPlace(eps->V,X,0,eps->nconv));
+  CHKERRQ(MatDestroy(&X));
   PetscFunctionReturn(0);
 }

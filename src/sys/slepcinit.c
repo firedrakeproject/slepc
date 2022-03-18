@@ -33,13 +33,11 @@ SLEPC_EXTERN PetscErrorCode PCCreate_HPDDM(PC);
 @*/
 PetscErrorCode SlepcGetVersion(char version[],size_t len)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
 #if (SLEPC_VERSION_RELEASE == 1)
-  ierr = PetscSNPrintf(version,len,"SLEPc Release Version %d.%d.%d, %s",SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR,SLEPC_VERSION_SUBMINOR,SLEPC_VERSION_DATE);CHKERRQ(ierr);
+  CHKERRQ(PetscSNPrintf(version,len,"SLEPc Release Version %d.%d.%d, %s",SLEPC_VERSION_MAJOR,SLEPC_VERSION_MINOR,SLEPC_VERSION_SUBMINOR,SLEPC_VERSION_DATE));
 #else
-  ierr = PetscSNPrintf(version,len,"SLEPc Development GIT revision: %s  GIT Date: %s",SLEPC_VERSION_GIT,SLEPC_VERSION_DATE_GIT);CHKERRQ(ierr);
+  CHKERRQ(PetscSNPrintf(version,len,"SLEPc Development GIT revision: %s  GIT Date: %s",SLEPC_VERSION_GIT,SLEPC_VERSION_DATE_GIT));
 #endif
   PetscFunctionReturn(0);
 }
@@ -84,15 +82,14 @@ PetscErrorCode SlepcGetVersionNumber(PetscInt *major,PetscInt *minor,PetscInt *s
 */
 static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 {
-  PetscErrorCode ierr;
   char           version[256];
 
   PetscFunctionBegin;
-  ierr = SlepcGetVersion(version,256);CHKERRQ(ierr);
-  ierr = (*PetscHelpPrintf)(comm,"%s\n",version);CHKERRQ(ierr);
-  ierr = (*PetscHelpPrintf)(comm,SLEPC_AUTHOR_INFO);CHKERRQ(ierr);
-  ierr = (*PetscHelpPrintf)(comm,"See docs/manual.html for help.\n");CHKERRQ(ierr);
-  ierr = (*PetscHelpPrintf)(comm,"SLEPc libraries linked from %s\n",SLEPC_LIB_DIR);CHKERRQ(ierr);
+  CHKERRQ(SlepcGetVersion(version,256));
+  CHKERRQ((*PetscHelpPrintf)(comm,"%s\n",version));
+  CHKERRQ((*PetscHelpPrintf)(comm,SLEPC_AUTHOR_INFO));
+  CHKERRQ((*PetscHelpPrintf)(comm,"See docs/manual.html for help.\n"));
+  CHKERRQ((*PetscHelpPrintf)(comm,"SLEPc libraries linked from %s\n",SLEPC_LIB_DIR));
   PetscFunctionReturn(0);
 }
 
@@ -103,12 +100,10 @@ static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 */
 static PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 {
-  PetscErrorCode  ierr;
-
   PetscFunctionBegin;
-  ierr = (*PetscHelpPrintf)(comm,"SLEPc help information includes that for the PETSc libraries, which provide\n");CHKERRQ(ierr);
-  ierr = (*PetscHelpPrintf)(comm,"low-level system infrastructure and linear algebra tools.\n");CHKERRQ(ierr);
-  ierr = (*PetscHelpPrintf)(comm,"----------------------------------------\n");CHKERRQ(ierr);
+  CHKERRQ((*PetscHelpPrintf)(comm,"SLEPc help information includes that for the PETSc libraries, which provide\n"));
+  CHKERRQ((*PetscHelpPrintf)(comm,"low-level system infrastructure and linear algebra tools.\n"));
+  CHKERRQ((*PetscHelpPrintf)(comm,"----------------------------------------\n"));
   PetscFunctionReturn(0);
 }
 
@@ -125,15 +120,14 @@ PetscBool SlepcFinalizeCalled   = PETSC_FALSE;
 static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
 {
   char           libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscStrcpy(libs,SLEPC_LIB_DIR);CHKERRQ(ierr);
-  ierr = PetscStrlcat(libs,"/libslepc",sizeof(libs));CHKERRQ(ierr);
-  ierr = PetscStrlcat(libs,name,sizeof(libs));CHKERRQ(ierr);
-  ierr = PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,sizeof(dlib),found);CHKERRQ(ierr);
+  CHKERRQ(PetscStrcpy(libs,SLEPC_LIB_DIR));
+  CHKERRQ(PetscStrlcat(libs,"/libslepc",sizeof(libs)));
+  CHKERRQ(PetscStrlcat(libs,name,sizeof(libs)));
+  CHKERRQ(PetscDLLibraryRetrieve(PETSC_COMM_WORLD,libs,dlib,sizeof(dlib),found));
   if (*found) {
-    ierr = PetscDLLibraryAppend(PETSC_COMM_WORLD,&PetscDLLibrariesLoaded,dlib);CHKERRQ(ierr);
+    CHKERRQ(PetscDLLibraryAppend(PETSC_COMM_WORLD,&PetscDLLibrariesLoaded,dlib));
   }
   PetscFunctionReturn(0);
 }
@@ -159,7 +153,6 @@ SLEPC_EXTERN PetscErrorCode LMEInitializePackage(void);
 */
 PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 {
-  PetscErrorCode ierr;
   PetscBool      preload = PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -168,42 +161,42 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   preload = PETSC_TRUE;
 #endif
 
-  ierr = PetscOptionsGetBool(NULL,NULL,"-library_preload",&preload,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-library_preload",&preload,NULL));
   if (preload) {
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES)
     PetscBool found;
 #if defined(PETSC_USE_SINGLE_LIBRARY)
-    ierr = SlepcLoadDynamicLibrary("",&found);CHKERRQ(ierr);
+    CHKERRQ(SlepcLoadDynamicLibrary("",&found));
     PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
 #else
-    ierr = SlepcLoadDynamicLibrary("sys",&found);CHKERRQ(ierr);
+    CHKERRQ(SlepcLoadDynamicLibrary("sys",&found));
     PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc sys dynamic library\nYou cannot move the dynamic libraries!");
-    ierr = SlepcLoadDynamicLibrary("eps",&found);CHKERRQ(ierr);
+    CHKERRQ(SlepcLoadDynamicLibrary("eps",&found));
     PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc EPS dynamic library\nYou cannot move the dynamic libraries!");
-    ierr = SlepcLoadDynamicLibrary("pep",&found);CHKERRQ(ierr);
+    CHKERRQ(SlepcLoadDynamicLibrary("pep",&found));
     PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc PEP dynamic library\nYou cannot move the dynamic libraries!");
-    ierr = SlepcLoadDynamicLibrary("nep",&found);CHKERRQ(ierr);
+    CHKERRQ(SlepcLoadDynamicLibrary("nep",&found));
     PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc NEP dynamic library\nYou cannot move the dynamic libraries!");
-    ierr = SlepcLoadDynamicLibrary("svd",&found);CHKERRQ(ierr);
+    CHKERRQ(SlepcLoadDynamicLibrary("svd",&found));
     PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc SVD dynamic library\nYou cannot move the dynamic libraries!");
-    ierr = SlepcLoadDynamicLibrary("mfn",&found);CHKERRQ(ierr);
+    CHKERRQ(SlepcLoadDynamicLibrary("mfn",&found));
     PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc MFN dynamic library\nYou cannot move the dynamic libraries!");
-    ierr = SlepcLoadDynamicLibrary("lme",&found);CHKERRQ(ierr);
+    CHKERRQ(SlepcLoadDynamicLibrary("lme",&found));
     PetscCheck(found,PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc LME dynamic library\nYou cannot move the dynamic libraries!");
 #endif
 #else /* defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES) */
 #if defined(PETSC_USE_SINGLE_LIBRARY)
-  ierr = STInitializePackage();CHKERRQ(ierr);
-  ierr = DSInitializePackage();CHKERRQ(ierr);
-  ierr = FNInitializePackage();CHKERRQ(ierr);
-  ierr = BVInitializePackage();CHKERRQ(ierr);
-  ierr = RGInitializePackage();CHKERRQ(ierr);
-  ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = SVDInitializePackage();CHKERRQ(ierr);
-  ierr = PEPInitializePackage();CHKERRQ(ierr);
-  ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = MFNInitializePackage();CHKERRQ(ierr);
-  ierr = LMEInitializePackage();CHKERRQ(ierr);
+  CHKERRQ(STInitializePackage());
+  CHKERRQ(DSInitializePackage());
+  CHKERRQ(FNInitializePackage());
+  CHKERRQ(BVInitializePackage());
+  CHKERRQ(RGInitializePackage());
+  CHKERRQ(EPSInitializePackage());
+  CHKERRQ(SVDInitializePackage());
+  CHKERRQ(PEPInitializePackage());
+  CHKERRQ(NEPInitializePackage());
+  CHKERRQ(MFNInitializePackage());
+  CHKERRQ(LMEInitializePackage());
 #else
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Cannot use -library_preload with multiple static SLEPc libraries");
 #endif
@@ -211,18 +204,16 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   }
 
 #if defined(SLEPC_HAVE_HPDDM)
-  ierr = KSPRegister(KSPHPDDM,KSPCreate_HPDDM);CHKERRQ(ierr);
-  ierr = PCRegister(PCHPDDM,PCCreate_HPDDM);CHKERRQ(ierr);
+  CHKERRQ(KSPRegister(KSPHPDDM,KSPCreate_HPDDM));
+  CHKERRQ(PCRegister(PCHPDDM,PCCreate_HPDDM));
 #endif
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SlepcCitationsInitialize()
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscCitationsRegister("@Article{slepc-toms,\n"
+  CHKERRQ(PetscCitationsRegister("@Article{slepc-toms,\n"
     "   author = \"Vicente Hernandez and Jose E. Roman and Vicente Vidal\",\n"
     "   title = \"{SLEPc}: A Scalable and Flexible Toolkit for the Solution of Eigenvalue Problems\",\n"
     "   journal = \"{ACM} Trans. Math. Software\",\n"
@@ -231,14 +222,14 @@ PetscErrorCode SlepcCitationsInitialize()
     "   pages = \"351--362\",\n"
     "   year = \"2005,\"\n"
     "   doi = \"https://doi.org/10.1145/1089014.1089019\"\n"
-    "}\n",NULL);CHKERRQ(ierr);
-  ierr = PetscCitationsRegister("@TechReport{slepc-manual,\n"
+    "}\n",NULL));
+  CHKERRQ(PetscCitationsRegister("@TechReport{slepc-manual,\n"
     "   author = \"J. E. Roman and C. Campos and L. Dalcin and E. Romero and A. Tomas\",\n"
     "   title = \"{SLEPc} Users Manual\",\n"
     "   number = \"DSIC-II/24/02 - Revision 3.16\",\n"
     "   institution = \"D. Sistemes Inform\\`atics i Computaci\\'o, Universitat Polit\\`ecnica de Val\\`encia\",\n"
     "   year = \"2021\"\n"
-    "}\n",NULL);CHKERRQ(ierr);
+    "}\n",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -272,18 +263,18 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   ierr = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);if (ierr) return ierr;
   ierr = PetscInitialized(&flg);if (ierr) return ierr;
   if (!flg) {
-    ierr = PetscInitialize(argc,args,file,help);CHKERRQ(ierr);
+    CHKERRQ(PetscInitialize(argc,args,file,help));
     SlepcBeganPetsc = PETSC_TRUE;
   }
 
-  ierr = SlepcCitationsInitialize();CHKERRQ(ierr);
+  CHKERRQ(SlepcCitationsInitialize());
 
   /* Load the dynamic libraries (on machines that support them), this registers all the solvers etc. */
-  ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);
+  CHKERRQ(SlepcInitialize_DynamicLibraries());
 
   SlepcInitializeCalled = PETSC_TRUE;
   SlepcFinalizeCalled   = PETSC_FALSE;
-  ierr = PetscInfo(0,"SLEPc successfully started\n");CHKERRQ(ierr);
+  CHKERRQ(PetscInfo(0,"SLEPc successfully started\n"));
   return 0;
 }
 
@@ -307,7 +298,7 @@ PetscErrorCode SlepcFinalize(void)
     PetscStackClearTop;
     return PETSC_ERR_ARG_WRONGSTATE;
   }
-  ierr = PetscInfo(NULL,"SlepcFinalize() called\n");CHKERRQ(ierr);
+  CHKERRQ(PetscInfo(NULL,"SlepcFinalize() called\n"));
   if (SlepcBeganPetsc) {
     ierr = PetscFinalize();
     SlepcBeganPetsc = PETSC_FALSE;
@@ -395,14 +386,12 @@ PETSC_EXTERN PetscBool PetscBeganMPI;
 @*/
 PetscErrorCode SlepcInitializeNoPointers(int argc,char **args,const char *file,const char *help)
 {
-  PetscErrorCode ierr;
   int            myargc = argc;
   char           **myargs = args;
 
   PetscFunctionBegin;
-  ierr = SlepcInitialize(&myargc,&myargs,file,help);CHKERRQ(ierr);
-  ierr = PetscPopSignalHandler();CHKERRQ(ierr);
+  CHKERRQ(SlepcInitialize(&myargc,&myargs,file,help));
+  CHKERRQ(PetscPopSignalHandler());
   PetscBeganMPI = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
-

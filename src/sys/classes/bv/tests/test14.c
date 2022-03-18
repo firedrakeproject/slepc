@@ -24,72 +24,72 @@ int main(int argc,char **argv)
   PetscScalar    alpha;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV created from a dense Mat (length %" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",n,k);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BV created from a dense Mat (length %" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",n,k));
 
   /* Create dense matrix */
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,k);CHKERRQ(ierr);
-  ierr = MatSetType(A,MATDENSE);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,k));
+  CHKERRQ(MatSetType(A,MATDENSE));
+  CHKERRQ(MatSetUp(A));
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (j=0;j<k;j++) {
     for (i=0;i<=n/2;i++) {
       if (i+j<n && i>=Istart && i<Iend) {
         alpha = (3.0*i+j-2)/(2*(i+j+1));
-        ierr = MatSetValue(A,i+j,j,alpha,INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(MatSetValue(A,i+j,j,alpha,INSERT_VALUES));
       }
     }
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* Create BV object X */
-  ierr = BVCreateFromMat(A,&X);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(X);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
+  CHKERRQ(BVCreateFromMat(A,&X));
+  CHKERRQ(BVSetFromOptions(X));
+  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
   if (verbose) {
-    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
+    CHKERRQ(BVView(X,view));
   }
 
   /* Test BVCreateMat */
-  ierr = BVCreateMat(X,&B);CHKERRQ(ierr);
-  ierr = MatAXPY(B,-1.0,A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = MatNorm(B,NORM_1,&norm);CHKERRQ(ierr);
+  CHKERRQ(BVCreateMat(X,&B));
+  CHKERRQ(MatAXPY(B,-1.0,A,SAME_NONZERO_PATTERN));
+  CHKERRQ(MatNorm(B,NORM_1,&norm));
   if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of difference < 100*eps\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference < 100*eps\n"));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of difference: %g\n",(double)norm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference: %g\n",(double)norm));
   }
 
   /* Test BVOrthogonalize */
-  ierr = BVOrthogonalize(X,NULL);CHKERRQ(ierr);
+  CHKERRQ(BVOrthogonalize(X,NULL));
   if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(X,view));
   }
 
   /* Check orthogonality */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M);CHKERRQ(ierr);
-  ierr = MatShift(M,1.0);CHKERRQ(ierr);   /* set leading part to identity */
-  ierr = BVDot(X,X,M);CHKERRQ(ierr);
-  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
-  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
+  CHKERRQ(MatShift(M,1.0));   /* set leading part to identity */
+  CHKERRQ(BVDot(X,X,M));
+  CHKERRQ(MatShift(M,-1.0));
+  CHKERRQ(MatNorm(M,NORM_1,&norm));
   if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
   }
 
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = BVDestroy(&X);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&M));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&B));
+  CHKERRQ(BVDestroy(&X));
   ierr = SlepcFinalize();
   return ierr;
 }

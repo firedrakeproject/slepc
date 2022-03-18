@@ -23,7 +23,6 @@
 */
 PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
 {
-  PetscErrorCode ierr;
   PetscInt       i,j,m=*M;
   Vec            u,t;
   PetscScalar    shh[100],*lhh,dot,dot2;
@@ -33,91 +32,91 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
   PetscFunctionBegin;
   if (m<=100) lhh = shh;
   else {
-    ierr = PetscMalloc1(m,&lhh);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc1(m,&lhh));
   }
-  ierr = BVCreateVec(eps->V,&u);CHKERRQ(ierr);
-  ierr = BVCreateVec(eps->V,&t);CHKERRQ(ierr);
+  CHKERRQ(BVCreateVec(eps->V,&u));
+  CHKERRQ(BVCreateVec(eps->V,&t));
 
-  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  CHKERRQ(BVSetActiveColumns(eps->V,0,m));
   for (j=k;j<m;j++) {
-    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(eps->V,j,&vj));
+    CHKERRQ(BVGetColumn(eps->V,j+1,&vj1));
+    CHKERRQ(STApply(eps->st,vj,vj1));
+    CHKERRQ(BVRestoreColumn(eps->V,j,&vj));
+    CHKERRQ(BVRestoreColumn(eps->V,j+1,&vj1));
 
-    ierr = BVDotColumnBegin(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
+    CHKERRQ(BVDotColumnBegin(eps->V,j+1,H+ldh*j));
     if (j>k) {
-      ierr = BVDotColumnBegin(eps->V,j,lhh);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
-      ierr = VecDotBegin(vj,vj,&dot);CHKERRQ(ierr);
+      CHKERRQ(BVDotColumnBegin(eps->V,j,lhh));
+      CHKERRQ(BVGetColumn(eps->V,j,&vj));
+      CHKERRQ(VecDotBegin(vj,vj,&dot));
       if (j>k+1) {
-        ierr = BVNormVecBegin(eps->V,u,NORM_2,&norm2);CHKERRQ(ierr);
-        ierr = BVGetColumn(eps->V,j-2,&vj2);CHKERRQ(ierr);
-        ierr = VecDotBegin(u,vj2,&dot2);CHKERRQ(ierr);
+        CHKERRQ(BVNormVecBegin(eps->V,u,NORM_2,&norm2));
+        CHKERRQ(BVGetColumn(eps->V,j-2,&vj2));
+        CHKERRQ(VecDotBegin(u,vj2,&dot2));
       }
-      ierr = BVDotColumnEnd(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
-      ierr = BVDotColumnEnd(eps->V,j,lhh);CHKERRQ(ierr);
-      ierr = VecDotEnd(vj,vj,&dot);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
+      CHKERRQ(BVDotColumnEnd(eps->V,j+1,H+ldh*j));
+      CHKERRQ(BVDotColumnEnd(eps->V,j,lhh));
+      CHKERRQ(VecDotEnd(vj,vj,&dot));
+      CHKERRQ(BVRestoreColumn(eps->V,j,&vj));
       if (j>k+1) {
-        ierr = BVNormVecEnd(eps->V,u,NORM_2,&norm2);CHKERRQ(ierr);
-        ierr = VecDotEnd(u,vj2,&dot2);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->V,j-2,&vj2);CHKERRQ(ierr);
+        CHKERRQ(BVNormVecEnd(eps->V,u,NORM_2,&norm2));
+        CHKERRQ(VecDotEnd(u,vj2,&dot2));
+        CHKERRQ(BVRestoreColumn(eps->V,j-2,&vj2));
       }
       norm1 = PetscSqrtReal(PetscRealPart(dot));
       for (i=0;i<j;i++) H[ldh*j+i] = H[ldh*j+i]/norm1;
       H[ldh*j+j] = H[ldh*j+j]/dot;
-      ierr = BVCopyVec(eps->V,j,t);CHKERRQ(ierr);
-      ierr = BVScaleColumn(eps->V,j,1.0/norm1);CHKERRQ(ierr);
-      ierr = BVScaleColumn(eps->V,j+1,1.0/norm1);CHKERRQ(ierr);
+      CHKERRQ(BVCopyVec(eps->V,j,t));
+      CHKERRQ(BVScaleColumn(eps->V,j,1.0/norm1));
+      CHKERRQ(BVScaleColumn(eps->V,j+1,1.0/norm1));
     } else {  /* j==k */
-      ierr = BVDotColumnEnd(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
+      CHKERRQ(BVDotColumnEnd(eps->V,j+1,H+ldh*j));
     }
 
-    ierr = BVMultColumn(eps->V,-1.0,1.0,j+1,H+ldh*j);CHKERRQ(ierr);
+    CHKERRQ(BVMultColumn(eps->V,-1.0,1.0,j+1,H+ldh*j));
 
     if (j>k) {
-      ierr = BVSetActiveColumns(eps->V,0,j);CHKERRQ(ierr);
-      ierr = BVMultVec(eps->V,-1.0,1.0,t,lhh);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+      CHKERRQ(BVSetActiveColumns(eps->V,0,j));
+      CHKERRQ(BVMultVec(eps->V,-1.0,1.0,t,lhh));
+      CHKERRQ(BVSetActiveColumns(eps->V,0,m));
       for (i=0;i<j;i++)
         H[ldh*(j-1)+i] += lhh[i];
     }
 
     if (j>k+1) {
-      ierr = BVGetColumn(eps->V,j-1,&vj1);CHKERRQ(ierr);
-      ierr = VecCopy(u,vj1);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,j-1,&vj1);CHKERRQ(ierr);
-      ierr = BVScaleColumn(eps->V,j-1,1.0/norm2);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(eps->V,j-1,&vj1));
+      CHKERRQ(VecCopy(u,vj1));
+      CHKERRQ(BVRestoreColumn(eps->V,j-1,&vj1));
+      CHKERRQ(BVScaleColumn(eps->V,j-1,1.0/norm2));
       H[ldh*(j-2)+j-1] = norm2;
     }
 
     if (j<m-1) {
-      ierr = VecCopy(t,u);CHKERRQ(ierr);
+      CHKERRQ(VecCopy(t,u));
     }
   }
 
-  ierr = BVNormVec(eps->V,t,NORM_2,&norm2);CHKERRQ(ierr);
-  ierr = VecScale(t,1.0/norm2);CHKERRQ(ierr);
-  ierr = BVGetColumn(eps->V,m-1,&vj1);CHKERRQ(ierr);
-  ierr = VecCopy(t,vj1);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V,m-1,&vj1);CHKERRQ(ierr);
+  CHKERRQ(BVNormVec(eps->V,t,NORM_2,&norm2));
+  CHKERRQ(VecScale(t,1.0/norm2));
+  CHKERRQ(BVGetColumn(eps->V,m-1,&vj1));
+  CHKERRQ(VecCopy(t,vj1));
+  CHKERRQ(BVRestoreColumn(eps->V,m-1,&vj1));
   H[ldh*(m-2)+m-1] = norm2;
 
-  ierr = BVDotColumn(eps->V,m,lhh);CHKERRQ(ierr);
+  CHKERRQ(BVDotColumn(eps->V,m,lhh));
 
-  ierr = BVMultColumn(eps->V,-1.0,1.0,m,lhh);CHKERRQ(ierr);
+  CHKERRQ(BVMultColumn(eps->V,-1.0,1.0,m,lhh));
   for (i=0;i<m;i++)
     H[ldh*(m-1)+i] += lhh[i];
 
-  ierr = BVNormColumn(eps->V,m,NORM_2,beta);CHKERRQ(ierr);
-  ierr = BVScaleColumn(eps->V,m,1.0 / *beta);CHKERRQ(ierr);
+  CHKERRQ(BVNormColumn(eps->V,m,NORM_2,beta));
+  CHKERRQ(BVScaleColumn(eps->V,m,1.0 / *beta));
   *breakdown = PETSC_FALSE;
 
-  if (m>100) { ierr = PetscFree(lhh);CHKERRQ(ierr); }
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
+  if (m>100) CHKERRQ(PetscFree(lhh));
+  CHKERRQ(VecDestroy(&u));
+  CHKERRQ(VecDestroy(&t));
   PetscFunctionReturn(0);
 }
 
@@ -127,36 +126,35 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
 */
 PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
 {
-  PetscErrorCode ierr;
   PetscInt       i,j,m=*M;
   PetscScalar    dot;
   PetscReal      norm=0.0;
   Vec            vj,vj1;
 
   PetscFunctionBegin;
-  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  CHKERRQ(BVSetActiveColumns(eps->V,0,m));
   for (j=k;j<m;j++) {
-    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(eps->V,j,&vj));
+    CHKERRQ(BVGetColumn(eps->V,j+1,&vj1));
+    CHKERRQ(STApply(eps->st,vj,vj1));
+    CHKERRQ(BVRestoreColumn(eps->V,j+1,&vj1));
     if (j>k) {
-      ierr = BVDotColumnBegin(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
-      ierr = VecDotBegin(vj,vj,&dot);CHKERRQ(ierr);
-      ierr = BVDotColumnEnd(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
-      ierr = VecDotEnd(vj,vj,&dot);CHKERRQ(ierr);
+      CHKERRQ(BVDotColumnBegin(eps->V,j+1,H+ldh*j));
+      CHKERRQ(VecDotBegin(vj,vj,&dot));
+      CHKERRQ(BVDotColumnEnd(eps->V,j+1,H+ldh*j));
+      CHKERRQ(VecDotEnd(vj,vj,&dot));
       norm = PetscSqrtReal(PetscRealPart(dot));
-      ierr = BVScaleColumn(eps->V,j,1.0/norm);CHKERRQ(ierr);
+      CHKERRQ(BVScaleColumn(eps->V,j,1.0/norm));
       H[ldh*(j-1)+j] = norm;
       for (i=0;i<j;i++) H[ldh*j+i] = H[ldh*j+i]/norm;
       H[ldh*j+j] = H[ldh*j+j]/dot;
-      ierr = BVScaleColumn(eps->V,j+1,1.0/norm);CHKERRQ(ierr);
+      CHKERRQ(BVScaleColumn(eps->V,j+1,1.0/norm));
       *beta = norm;
     } else {  /* j==k */
-      ierr = BVDotColumn(eps->V,j+1,H+ldh*j);CHKERRQ(ierr);
+      CHKERRQ(BVDotColumn(eps->V,j+1,H+ldh*j));
     }
-    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVMultColumn(eps->V,-1.0,1.0,j+1,H+ldh*j);CHKERRQ(ierr);
+    CHKERRQ(BVRestoreColumn(eps->V,j,&vj));
+    CHKERRQ(BVMultColumn(eps->V,-1.0,1.0,j+1,H+ldh*j));
   }
 
   *breakdown = PETSC_FALSE;
@@ -168,7 +166,6 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k
 */
 PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal gamma,PetscInt *kout)
 {
-  PetscErrorCode ierr;
   PetscInt       k,ninside,nconv;
   PetscScalar    re,im;
   PetscReal      resnorm;
@@ -185,15 +182,15 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
     /* eigenvalue */
     re = eps->eigr[k];
     im = eps->eigi[k];
-    ierr = DSVectors(eps->ds,DS_MAT_X,&k,&resnorm);CHKERRQ(ierr);
+    CHKERRQ(DSVectors(eps->ds,DS_MAT_X,&k,&resnorm));
     resnorm *= beta;
     /* error estimate */
-    ierr = (*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx);CHKERRQ(ierr);
+    CHKERRQ((*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx));
     if (eps->errest[k] < eps->tol) nconv++;
     else break;
   }
   *kout = kini+nconv;
-  ierr = PetscInfo(eps,"Found %" PetscInt_FMT " eigenvalue approximations inside the interval (gamma=%g), k=%" PetscInt_FMT " nconv=%" PetscInt_FMT "\n",ninside,(double)gamma,k,nconv);CHKERRQ(ierr);
+  CHKERRQ(PetscInfo(eps,"Found %" PetscInt_FMT " eigenvalue approximations inside the interval (gamma=%g), k=%" PetscInt_FMT " nconv=%" PetscInt_FMT "\n",ninside,(double)gamma,k,nconv));
   PetscFunctionReturn(0);
 }
 
@@ -216,7 +213,6 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
 */
 PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal betat,PetscReal corrf,PetscInt *kout)
 {
-  PetscErrorCode ierr;
   PetscInt       k,newk,newk2,marker,ld,inside;
   PetscScalar    re,im,*Zr,*Zi,*X;
   PetscReal      resnorm,gamma,lerrest;
@@ -225,28 +221,28 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
 
   PetscFunctionBegin;
   if (PetscUnlikely(eps->which == EPS_ALL)) {
-    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilter);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilter));
     if (isfilter) {
-      ierr = STFilterGetThreshold(eps->st,&gamma);CHKERRQ(ierr);
-      ierr = EPSKrylovConvergence_Filter(eps,getall,kini,nits,beta,gamma,kout);CHKERRQ(ierr);
+      CHKERRQ(STFilterGetThreshold(eps->st,&gamma));
+      CHKERRQ(EPSKrylovConvergence_Filter(eps,getall,kini,nits,beta,gamma,kout));
       PetscFunctionReturn(0);
     }
   }
-  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  CHKERRQ(RGIsTrivial(eps->rg,&istrivial));
   if (PetscUnlikely(eps->trueres)) {
-    ierr = BVCreateVec(eps->V,&x);CHKERRQ(ierr);
-    ierr = BVCreateVec(eps->V,&y);CHKERRQ(ierr);
-    ierr = BVCreateVec(eps->V,&w[0]);CHKERRQ(ierr);
-    ierr = BVCreateVec(eps->V,&w[2]);CHKERRQ(ierr);
+    CHKERRQ(BVCreateVec(eps->V,&x));
+    CHKERRQ(BVCreateVec(eps->V,&y));
+    CHKERRQ(BVCreateVec(eps->V,&w[0]));
+    CHKERRQ(BVCreateVec(eps->V,&w[2]));
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = BVCreateVec(eps->V,&w[1]);CHKERRQ(ierr);
+    CHKERRQ(BVCreateVec(eps->V,&w[1]));
 #else
     w[1] = NULL;
 #endif
   }
-  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetRefined(eps->ds,&refined);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift);CHKERRQ(ierr);
+  CHKERRQ(DSGetLeadingDimension(eps->ds,&ld));
+  CHKERRQ(DSGetRefined(eps->ds,&refined));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
   marker = -1;
   if (eps->trackall) getall = PETSC_TRUE;
   for (k=kini;k<kini+nits;k++) {
@@ -254,10 +250,10 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     re = eps->eigr[k];
     im = eps->eigi[k];
     if (!istrivial || eps->trueres || isshift || eps->conv==EPS_CONV_NORM) {
-      ierr = STBackTransform(eps->st,1,&re,&im);CHKERRQ(ierr);
+      CHKERRQ(STBackTransform(eps->st,1,&re,&im));
     }
     if (PetscUnlikely(!istrivial)) {
-      ierr = RGCheckInside(eps->rg,1,&re,&im,&inside);CHKERRQ(ierr);
+      CHKERRQ(RGCheckInside(eps->rg,1,&re,&im,&inside));
       if (marker==-1 && inside<0) marker = k;
       if (!(eps->trueres || isshift || eps->conv==EPS_CONV_NORM)) {  /* make sure eps->converged below uses the right value */
         re = eps->eigr[k];
@@ -265,25 +261,25 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
       }
     }
     newk = k;
-    ierr = DSVectors(eps->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+    CHKERRQ(DSVectors(eps->ds,DS_MAT_X,&newk,&resnorm));
     if (PetscUnlikely(eps->trueres)) {
-      ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+      CHKERRQ(DSGetArray(eps->ds,DS_MAT_X,&X));
       Zr = X+k*ld;
       if (newk==k+1) Zi = X+newk*ld;
       else Zi = NULL;
-      ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,x,y);CHKERRQ(ierr);
-      ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,re,im,x,y,w,&resnorm);CHKERRQ(ierr);
+      CHKERRQ(EPSComputeRitzVector(eps,Zr,Zi,eps->V,x,y));
+      CHKERRQ(DSRestoreArray(eps->ds,DS_MAT_X,&X));
+      CHKERRQ(EPSComputeResidualNorm_Private(eps,PETSC_FALSE,re,im,x,y,w,&resnorm));
     }
     else if (!refined) resnorm *= beta*corrf;
     /* error estimate */
-    ierr = (*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx);CHKERRQ(ierr);
+    CHKERRQ((*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx));
     if (marker==-1 && eps->errest[k] >= eps->tol) marker = k;
     if (PetscUnlikely(eps->twosided)) {
       newk2 = k;
-      ierr = DSVectors(eps->ds,DS_MAT_Y,&newk2,&resnorm);CHKERRQ(ierr);
+      CHKERRQ(DSVectors(eps->ds,DS_MAT_Y,&newk2,&resnorm));
       resnorm *= betat;
-      ierr = (*eps->converged)(eps,re,im,resnorm,&lerrest,eps->convergedctx);CHKERRQ(ierr);
+      CHKERRQ((*eps->converged)(eps,re,im,resnorm,&lerrest,eps->convergedctx));
       eps->errest[k] = PetscMax(eps->errest[k],lerrest);
       if (marker==-1 && lerrest >= eps->tol) marker = k;
     }
@@ -296,12 +292,12 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   if (marker!=-1) k = marker;
   *kout = k;
   if (PetscUnlikely(eps->trueres)) {
-    ierr = VecDestroy(&x);CHKERRQ(ierr);
-    ierr = VecDestroy(&y);CHKERRQ(ierr);
-    ierr = VecDestroy(&w[0]);CHKERRQ(ierr);
-    ierr = VecDestroy(&w[2]);CHKERRQ(ierr);
+    CHKERRQ(VecDestroy(&x));
+    CHKERRQ(VecDestroy(&y));
+    CHKERRQ(VecDestroy(&w[0]));
+    CHKERRQ(VecDestroy(&w[2]));
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = VecDestroy(&w[1]);CHKERRQ(ierr);
+    CHKERRQ(VecDestroy(&w[1]));
 #endif
   }
   PetscFunctionReturn(0);
@@ -309,7 +305,6 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
 
 PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,PetscReal *cos,Vec w)
 {
-  PetscErrorCode ierr;
   PetscInt       j,m = *M,i,ld,l;
   Vec            vj,vj1;
   PetscScalar    *hwork,lhwork[100];
@@ -317,53 +312,52 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
   PetscBLASInt   j_,one=1;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetDimensions(eps->ds,NULL,&l,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(DSGetLeadingDimension(eps->ds,&ld));
+  CHKERRQ(DSGetDimensions(eps->ds,NULL,&l,NULL,NULL));
   if (cos) *cos = 1.0;
   if (m > 100) {
-    ierr = PetscMalloc1(m,&hwork);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc1(m,&hwork));
   } else hwork = lhwork;
 
-  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  CHKERRQ(BVSetActiveColumns(eps->V,0,m));
   for (j=k;j<m;j++) {
-    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(eps->V,j+1,hwork,&norm,breakdown);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(eps->V,j,&vj));
+    CHKERRQ(BVGetColumn(eps->V,j+1,&vj1));
+    CHKERRQ(STApply(eps->st,vj,vj1));
+    CHKERRQ(BVRestoreColumn(eps->V,j,&vj));
+    CHKERRQ(BVRestoreColumn(eps->V,j+1,&vj1));
+    CHKERRQ(BVOrthogonalizeColumn(eps->V,j+1,hwork,&norm,breakdown));
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = PetscAbsReal(norm);
     if (j==k) {
       PetscReal *f;
 
-      ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&f);CHKERRQ(ierr);
+      CHKERRQ(DSGetArrayReal(eps->ds,DS_MAT_T,&f));
       for (i=0;i<l;i++) hwork[i]  = 0.0;
       for (;i<j-1;i++)  hwork[i] -= f[2*ld+i];
-      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&f);CHKERRQ(ierr);
+      CHKERRQ(DSRestoreArrayReal(eps->ds,DS_MAT_T,&f));
     }
     hwork[j-1] -= beta[j-1];
-    ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
+    CHKERRQ(PetscBLASIntCast(j,&j_));
     sym = SlepcAbs(BLASnrm2_(&j_,hwork,&one),sym);
     fro = SlepcAbs(fro,SlepcAbs(alpha[j],beta[j]));
     if (j>0) fro = SlepcAbs(fro,beta[j-1]);
     if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*eps->tol)) { *symmlost = PETSC_TRUE; *M=j+1; break; }
     omega[j+1] = (norm<0.0)? -1.0: 1.0;
-    ierr = BVScaleColumn(eps->V,j+1,1.0/norm);CHKERRQ(ierr);
+    CHKERRQ(BVScaleColumn(eps->V,j+1,1.0/norm));
     /* */
     if (cos) {
-      ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-      ierr = VecNorm(vj1,NORM_2,&norm1);CHKERRQ(ierr);
-      ierr = BVApplyMatrix(eps->V,vj1,w);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-      ierr = VecNorm(w,NORM_2,&norm2);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(eps->V,j+1,&vj1));
+      CHKERRQ(VecNorm(vj1,NORM_2,&norm1));
+      CHKERRQ(BVApplyMatrix(eps->V,vj1,w));
+      CHKERRQ(BVRestoreColumn(eps->V,j+1,&vj1));
+      CHKERRQ(VecNorm(w,NORM_2,&norm2));
       t = 1.0/(norm1*norm2);
       if (*cos>t) *cos = t;
     }
   }
   if (m > 100) {
-    ierr = PetscFree(hwork);CHKERRQ(ierr);
+    CHKERRQ(PetscFree(hwork));
   }
   PetscFunctionReturn(0);
 }
-

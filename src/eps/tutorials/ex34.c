@@ -63,145 +63,145 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   comm = PETSC_COMM_WORLD;
   /* Create a quadrilateral mesh on domain (0,1)x(0,1) */
-  ierr = CreateSquareMesh(comm,&dm);CHKERRQ(ierr);
+  CHKERRQ(CreateSquareMesh(comm,&dm));
   /* Setup basis function */
-  ierr = SetupDiscretization(dm);CHKERRQ(ierr);
-  ierr = BoundaryGlobalIndex(dm,"marker",&user.bdis);CHKERRQ(ierr);
+  CHKERRQ(SetupDiscretization(dm));
+  CHKERRQ(BoundaryGlobalIndex(dm,"marker",&user.bdis));
   /* Check if we are going to use shell matrices */
-  ierr = PetscOptionsGetBool(NULL,NULL,"-use_shell_matrix",&use_shell_matrix,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-use_shell_matrix",&use_shell_matrix,NULL));
   if (use_shell_matrix) {
-    ierr = DMCreateMatrix(dm,&P);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(P,&m,&n);CHKERRQ(ierr);
-    ierr = MatGetSize(P,&M,&N);CHKERRQ(ierr);
-    ierr = MatCreateShell(comm,m,n,M,N,&user,&A);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_A);CHKERRQ(ierr);
-    ierr = MatCreateShell(comm,m,n,M,N,&user,&B);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(B,MATOP_MULT,(void(*)(void))MatMult_B);CHKERRQ(ierr);
+    CHKERRQ(DMCreateMatrix(dm,&P));
+    CHKERRQ(MatGetLocalSize(P,&m,&n));
+    CHKERRQ(MatGetSize(P,&M,&N));
+    CHKERRQ(MatCreateShell(comm,m,n,M,N,&user,&A));
+    CHKERRQ(MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_A));
+    CHKERRQ(MatCreateShell(comm,m,n,M,N,&user,&B));
+    CHKERRQ(MatShellSetOperation(B,MATOP_MULT,(void(*)(void))MatMult_B));
   } else {
-    ierr = DMCreateMatrix(dm,&A);CHKERRQ(ierr);
-    ierr = MatDuplicate(A,MAT_COPY_VALUES,&B);CHKERRQ(ierr);
+    CHKERRQ(DMCreateMatrix(dm,&A));
+    CHKERRQ(MatDuplicate(A,MAT_COPY_VALUES,&B));
   }
 
   /*
      Compose callback functions and context that will be needed by the solver
   */
-  ierr = PetscObjectComposeFunction((PetscObject)A,"formFunction",FormFunctionA);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-form_function_ab",&flg,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)A,"formFunction",FormFunctionA));
+  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-form_function_ab",&flg,NULL));
   if (flg) {
-    ierr = PetscObjectComposeFunction((PetscObject)A,"formFunctionAB",FormFunctionAB);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectComposeFunction((PetscObject)A,"formFunctionAB",FormFunctionAB));
   }
-  ierr = PetscObjectComposeFunction((PetscObject)A,"formJacobian",FormJacobianA);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)B,"formFunction",FormFunctionB);CHKERRQ(ierr);
-  ierr = PetscContainerCreate(comm,&container);CHKERRQ(ierr);
-  ierr = PetscContainerSetPointer(container,&user);CHKERRQ(ierr);
-  ierr = PetscObjectCompose((PetscObject)A,"formFunctionCtx",(PetscObject)container);CHKERRQ(ierr);
-  ierr = PetscObjectCompose((PetscObject)A,"formJacobianCtx",(PetscObject)container);CHKERRQ(ierr);
-  ierr = PetscObjectCompose((PetscObject)B,"formFunctionCtx",(PetscObject)container);CHKERRQ(ierr);
-  ierr = PetscContainerDestroy(&container);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)A,"formJacobian",FormJacobianA));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)B,"formFunction",FormFunctionB));
+  CHKERRQ(PetscContainerCreate(comm,&container));
+  CHKERRQ(PetscContainerSetPointer(container,&user));
+  CHKERRQ(PetscObjectCompose((PetscObject)A,"formFunctionCtx",(PetscObject)container));
+  CHKERRQ(PetscObjectCompose((PetscObject)A,"formJacobianCtx",(PetscObject)container));
+  CHKERRQ(PetscObjectCompose((PetscObject)B,"formFunctionCtx",(PetscObject)container));
+  CHKERRQ(PetscContainerDestroy(&container));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(comm,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(comm,&eps));
+  CHKERRQ(EPSSetOperators(eps,A,B));
+  CHKERRQ(EPSSetProblemType(eps,EPS_GNHEP));
   /*
      Use nonlinear inverse iteration
   */
-  ierr = EPSSetType(eps,EPSPOWER);CHKERRQ(ierr);
-  ierr = EPSPowerSetNonlinear(eps,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(EPSSetType(eps,EPSPOWER));
+  CHKERRQ(EPSPowerSetNonlinear(eps,PETSC_TRUE));
   /*
     Attach DM to SNES
   */
-  ierr = EPSPowerGetSNES(eps,&snes);CHKERRQ(ierr);
+  CHKERRQ(EPSPowerGetSNES(eps,&snes));
   user.snes = snes;
-  ierr = SNESSetDM(snes,dm);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  CHKERRQ(SNESSetDM(snes,dm));
+  CHKERRQ(EPSSetFromOptions(eps));
 
   /* Set a preconditioning matrix to ST */
   if (use_shell_matrix) {
-    ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-    ierr = STSetPreconditionerMat(st,P);CHKERRQ(ierr);
+    CHKERRQ(EPSGetST(eps,&st));
+    CHKERRQ(STSetPreconditionerMat(st,P));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSSolve(eps));
 
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-test_init_sol",&test_init_sol,NULL);CHKERRQ(ierr);
+  CHKERRQ(EPSGetConverged(eps,&nconv));
+  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-test_init_sol",&test_init_sol,NULL));
   if (nconv && test_init_sol) {
     PetscScalar   k;
     PetscReal     norm0;
     PetscInt      nits;
 
-    ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
-    ierr = EPSGetEigenpair(eps,0,&k,NULL,v0,NULL);CHKERRQ(ierr);
-    ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
-    ierr = VecDestroy(&v0);CHKERRQ(ierr);
+    CHKERRQ(MatCreateVecs(A,&v0,NULL));
+    CHKERRQ(EPSGetEigenpair(eps,0,&k,NULL,v0,NULL));
+    CHKERRQ(EPSSetInitialSpace(eps,1,&v0));
+    CHKERRQ(VecDestroy(&v0));
     /* Norm of the previous residual */
-    ierr = SNESGetFunctionNorm(snes,&norm0);CHKERRQ(ierr);
+    CHKERRQ(SNESGetFunctionNorm(snes,&norm0));
     /* Make the tolerance smaller than the last residual
        SNES will converge right away if the initial is setup correctly */
-    ierr = SNESSetTolerances(snes,norm0*1.2,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-    ierr = EPSSolve(eps);CHKERRQ(ierr);
+    CHKERRQ(SNESSetTolerances(snes,norm0*1.2,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    CHKERRQ(EPSSolve(eps));
     /* Number of Newton iterations supposes to be zero */
-    ierr = SNESGetIterationNumber(snes,&nits);CHKERRQ(ierr);
+    CHKERRQ(SNESGetIterationNumber(snes,&nits));
     if (nits) {
-      ierr = PetscPrintf(comm," Number of Newton iterations %" PetscInt_FMT " should be zero \n",nits);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(comm," Number of Newton iterations %" PetscInt_FMT " should be zero \n",nits));
     }
   }
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(eps,&tol,NULL);CHKERRQ(ierr);
-  ierr = EPSPowerGetNonlinear(eps,&nonlin);CHKERRQ(ierr);
-  ierr = EPSPowerGetUpdate(eps,&update);CHKERRQ(ierr);
-  ierr = PetscPrintf(comm," Solution method: %s%s\n\n",type,nonlin?(update?" (nonlinear with monolithic update)":" (nonlinear)"):"");CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(comm," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  CHKERRQ(EPSGetType(eps,&type));
+  CHKERRQ(EPSGetTolerances(eps,&tol,NULL));
+  CHKERRQ(EPSPowerGetNonlinear(eps,&nonlin));
+  CHKERRQ(EPSPowerGetUpdate(eps,&update));
+  CHKERRQ(PetscPrintf(comm," Solution method: %s%s\n\n",type,nonlin?(update?" (nonlinear with monolithic update)":" (nonlinear)"):""));
+  CHKERRQ(EPSGetDimensions(eps,&nev,NULL,NULL));
+  CHKERRQ(PetscPrintf(comm," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* print eigenvalue and error */
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  CHKERRQ(EPSGetConverged(eps,&nconv));
   if (nconv>0) {
     PetscScalar   k;
     PetscReal     na,nb;
     Vec           a,b,eigen;
-    ierr = DMCreateGlobalVector(dm,&a);CHKERRQ(ierr);
-    ierr = VecDuplicate(a,&b);CHKERRQ(ierr);
-    ierr = VecDuplicate(a,&eigen);CHKERRQ(ierr);
-    ierr = EPSGetEigenpair(eps,0,&k,NULL,eigen,NULL);CHKERRQ(ierr);
-    ierr = FormFunctionA(snes,eigen,a,&user);CHKERRQ(ierr);
-    ierr = FormFunctionB(snes,eigen,b,&user);CHKERRQ(ierr);
-    ierr = VecAXPY(a,-k,b);CHKERRQ(ierr);
-    ierr = VecNorm(a,NORM_2,&na);CHKERRQ(ierr);
-    ierr = VecNorm(b,NORM_2,&nb);CHKERRQ(ierr);
+    CHKERRQ(DMCreateGlobalVector(dm,&a));
+    CHKERRQ(VecDuplicate(a,&b));
+    CHKERRQ(VecDuplicate(a,&eigen));
+    CHKERRQ(EPSGetEigenpair(eps,0,&k,NULL,eigen,NULL));
+    CHKERRQ(FormFunctionA(snes,eigen,a,&user));
+    CHKERRQ(FormFunctionB(snes,eigen,b,&user));
+    CHKERRQ(VecAXPY(a,-k,b));
+    CHKERRQ(VecNorm(a,NORM_2,&na));
+    CHKERRQ(VecNorm(b,NORM_2,&nb));
     relerr = na/(nb*PetscAbsScalar(k));
     if (relerr<10*tol) {
-      ierr = PetscPrintf(comm,"k: %g, relative error below tol\n",(double)PetscRealPart(k));CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(comm,"k: %g, relative error below tol\n",(double)PetscRealPart(k)));
     } else {
-      ierr = PetscPrintf(comm,"k: %g, relative error: %g\n",(double)PetscRealPart(k),(double)relerr);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(comm,"k: %g, relative error: %g\n",(double)PetscRealPart(k),(double)relerr));
     }
-    ierr = VecDestroy(&a);CHKERRQ(ierr);
-    ierr = VecDestroy(&b);CHKERRQ(ierr);
-    ierr = VecDestroy(&eigen);CHKERRQ(ierr);
+    CHKERRQ(VecDestroy(&a));
+    CHKERRQ(VecDestroy(&b));
+    CHKERRQ(VecDestroy(&eigen));
   } else {
-    ierr = PetscPrintf(comm,"Solver did not converge\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(comm,"Solver did not converge\n"));
   }
 
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&B));
   if (use_shell_matrix) {
-    ierr = MatDestroy(&P);CHKERRQ(ierr);
+    CHKERRQ(MatDestroy(&P));
   }
-  ierr = DMDestroy(&dm);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = ISDestroy(&user.bdis);CHKERRQ(ierr);
+  CHKERRQ(DMDestroy(&dm));
+  CHKERRQ(EPSDestroy(&eps));
+  CHKERRQ(ISDestroy(&user.bdis));
   ierr = SlepcFinalize();
   return ierr;
 }
@@ -256,16 +256,15 @@ PetscErrorCode SetupDiscretization(DM dm)
 {
   PetscFE        fe;
   MPI_Comm       comm;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
   /* Create finite element */
-  ierr = PetscObjectGetComm((PetscObject)dm,&comm);CHKERRQ(ierr);
-  ierr = PetscFECreateDefault(comm,2,1,PETSC_FALSE,NULL,-1,&fe);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)fe,"u");CHKERRQ(ierr);
-  ierr = DMSetField(dm,0,NULL,(PetscObject)fe);CHKERRQ(ierr);
-  ierr = DMCreateDS(dm);CHKERRQ(ierr);
-  ierr = PetscFEDestroy(&fe);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectGetComm((PetscObject)dm,&comm));
+  CHKERRQ(PetscFECreateDefault(comm,2,1,PETSC_FALSE,NULL,-1,&fe));
+  CHKERRQ(PetscObjectSetName((PetscObject)fe,"u"));
+  CHKERRQ(DMSetField(dm,0,NULL,(PetscObject)fe));
+  CHKERRQ(DMCreateDS(dm));
+  CHKERRQ(PetscFEDestroy(&fe));
   PetscFunctionReturn(0);
 }
 
@@ -275,16 +274,15 @@ PetscErrorCode CreateSquareMesh(MPI_Comm comm,DM *dm)
   PetscInt       dim = 2;
   DM             pdm;
   PetscMPIInt    size;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DMPlexCreateBoxMesh(comm,dim,PETSC_FALSE,cells,NULL,NULL,NULL,PETSC_TRUE,dm);CHKERRQ(ierr);
-  ierr = DMSetFromOptions(*dm);CHKERRQ(ierr);
-  ierr = DMSetUp(*dm);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
+  CHKERRQ(DMPlexCreateBoxMesh(comm,dim,PETSC_FALSE,cells,NULL,NULL,NULL,PETSC_TRUE,dm));
+  CHKERRQ(DMSetFromOptions(*dm));
+  CHKERRQ(DMSetUp(*dm));
+  CHKERRMPI(MPI_Comm_size(comm,&size));
   if (size > 1) {
-    ierr = DMPlexDistribute(*dm,0,NULL,&pdm);CHKERRQ(ierr);
-    ierr = DMDestroy(dm);CHKERRQ(ierr);
+    CHKERRQ(DMPlexDistribute(*dm,0,NULL,&pdm));
+    CHKERRQ(DMDestroy(dm));
     *dm = pdm;
   }
   PetscFunctionReturn(0);
@@ -297,31 +295,30 @@ PetscErrorCode BoundaryGlobalIndex(DM dm,const char labelname[],IS *bdis)
   const PetscInt *bdpoints_indices;
   DMLabel        bdmarker;
   PetscSection   gsection;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DMGetGlobalSection(dm,&gsection);CHKERRQ(ierr);
-  ierr = DMGetLabel(dm,labelname,&bdmarker);CHKERRQ(ierr);
-  ierr = DMLabelGetStratumIS(bdmarker,1,&bdpoints);CHKERRQ(ierr);
-  ierr = ISGetLocalSize(bdpoints,&npoints);CHKERRQ(ierr);
-  ierr = ISGetIndices(bdpoints,&bdpoints_indices);CHKERRQ(ierr);
+  CHKERRQ(DMGetGlobalSection(dm,&gsection));
+  CHKERRQ(DMGetLabel(dm,labelname,&bdmarker));
+  CHKERRQ(DMLabelGetStratumIS(bdmarker,1,&bdpoints));
+  CHKERRQ(ISGetLocalSize(bdpoints,&npoints));
+  CHKERRQ(ISGetIndices(bdpoints,&bdpoints_indices));
   nindices = 0;
   for (i=0;i<npoints;i++) {
-    ierr = PetscSectionGetDof(gsection,bdpoints_indices[i],&numDof);CHKERRQ(ierr);
+    CHKERRQ(PetscSectionGetDof(gsection,bdpoints_indices[i],&numDof));
     if (numDof<=0) continue;
     nindices += numDof;
   }
-  ierr = PetscCalloc1(nindices,&indices);CHKERRQ(ierr);
+  CHKERRQ(PetscCalloc1(nindices,&indices));
   nindices = 0;
   for (i=0;i<npoints;i++) {
-    ierr = PetscSectionGetDof(gsection,bdpoints_indices[i],&numDof);CHKERRQ(ierr);
+    CHKERRQ(PetscSectionGetDof(gsection,bdpoints_indices[i],&numDof));
     if (numDof<=0) continue;
-    ierr = PetscSectionGetOffset(gsection,bdpoints_indices[i],&offset);CHKERRQ(ierr);
+    CHKERRQ(PetscSectionGetOffset(gsection,bdpoints_indices[i],&offset));
     for (j=0;j<numDof;j++) indices[nindices++] = offset+j;
   }
-  ierr = ISRestoreIndices(bdpoints,&bdpoints_indices);CHKERRQ(ierr);
-  ierr = ISDestroy(&bdpoints);CHKERRQ(ierr);
-  ierr = ISCreateGeneral(PetscObjectComm((PetscObject)dm),nindices,indices,PETSC_OWN_POINTER,bdis);CHKERRQ(ierr);
+  CHKERRQ(ISRestoreIndices(bdpoints,&bdpoints_indices));
+  CHKERRQ(ISDestroy(&bdpoints));
+  CHKERRQ(ISCreateGeneral(PetscObjectComm((PetscObject)dm),nindices,indices,PETSC_OWN_POINTER,bdis));
   PetscFunctionReturn(0);
 }
 
@@ -329,69 +326,64 @@ static PetscErrorCode FormJacobian(SNES snes,Vec X,Mat A,Mat B,void *ctx)
 {
   DM             dm;
   Vec            Xloc;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
-  ierr = DMGetLocalVector(dm,&Xloc);CHKERRQ(ierr);
-  ierr = VecZeroEntries(Xloc);CHKERRQ(ierr);
-  ierr = DMGlobalToLocalBegin(dm,X,INSERT_VALUES,Xloc);CHKERRQ(ierr);
-  ierr = DMGlobalToLocalEnd(dm,X,INSERT_VALUES,Xloc);CHKERRQ(ierr);
+  CHKERRQ(SNESGetDM(snes,&dm));
+  CHKERRQ(DMGetLocalVector(dm,&Xloc));
+  CHKERRQ(VecZeroEntries(Xloc));
+  CHKERRQ(DMGlobalToLocalBegin(dm,X,INSERT_VALUES,Xloc));
+  CHKERRQ(DMGlobalToLocalEnd(dm,X,INSERT_VALUES,Xloc));
   CHKMEMQ;
-  ierr = DMPlexSNESComputeJacobianFEM(dm,Xloc,A,B,ctx);CHKERRQ(ierr);
+  CHKERRQ(DMPlexSNESComputeJacobianFEM(dm,Xloc,A,B,ctx));
   if (A!=B) {
-    ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+    CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   }
   CHKMEMQ;
-  ierr = DMRestoreLocalVector(dm,&Xloc);CHKERRQ(ierr);
+  CHKERRQ(DMRestoreLocalVector(dm,&Xloc));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FormJacobianA(SNES snes,Vec X,Mat A,Mat B,void *ctx)
 {
-  PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
   PetscWeakForm  wf;
   AppCtx         *userctx = (AppCtx *)ctx;
 
   PetscFunctionBegin;
-  ierr = MatSetOption(B,MAT_KEEP_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
-  ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
-  ierr = PetscDSGetWeakForm(prob, &wf);CHKERRQ(ierr);
-  ierr = PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_G3, 0);CHKERRQ(ierr);
-  ierr = PetscWeakFormSetIndexJacobian(wf, NULL, 0, 0, 0, 0, 0, NULL, 0, NULL, 0, NULL, 0, g3_uu);CHKERRQ(ierr);
-  ierr = FormJacobian(snes,X,A,B,ctx);CHKERRQ(ierr);
-  ierr = MatZeroRowsIS(B,userctx->bdis,1.0,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatSetOption(B,MAT_KEEP_NONZERO_PATTERN,PETSC_TRUE));
+  CHKERRQ(SNESGetDM(snes,&dm));
+  CHKERRQ(DMGetDS(dm,&prob));
+  CHKERRQ(PetscDSGetWeakForm(prob, &wf));
+  CHKERRQ(PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_G3, 0));
+  CHKERRQ(PetscWeakFormSetIndexJacobian(wf, NULL, 0, 0, 0, 0, 0, NULL, 0, NULL, 0, NULL, 0, g3_uu));
+  CHKERRQ(FormJacobian(snes,X,A,B,ctx));
+  CHKERRQ(MatZeroRowsIS(B,userctx->bdis,1.0,NULL,NULL));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FormJacobianB(SNES snes,Vec X,Mat A,Mat B,void *ctx)
 {
-  PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
   PetscWeakForm  wf;
   AppCtx         *userctx = (AppCtx *)ctx;
 
   PetscFunctionBegin;
-  ierr = MatSetOption(B,MAT_KEEP_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
-  ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
-  ierr = PetscDSGetWeakForm(prob, &wf);CHKERRQ(ierr);
-  ierr = PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_G3, 0);CHKERRQ(ierr);
-  ierr = PetscWeakFormSetIndexJacobian(wf, NULL, 0, 0, 0, 0, 0, g0_uu, 0, NULL, 0, NULL, 0, NULL);CHKERRQ(ierr);
-  ierr = FormJacobian(snes,X,A,B,ctx);CHKERRQ(ierr);
-  ierr = MatZeroRowsIS(B,userctx->bdis,0.0,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatSetOption(B,MAT_KEEP_NONZERO_PATTERN,PETSC_TRUE));
+  CHKERRQ(SNESGetDM(snes,&dm));
+  CHKERRQ(DMGetDS(dm,&prob));
+  CHKERRQ(PetscDSGetWeakForm(prob, &wf));
+  CHKERRQ(PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_G3, 0));
+  CHKERRQ(PetscWeakFormSetIndexJacobian(wf, NULL, 0, 0, 0, 0, 0, g0_uu, 0, NULL, 0, NULL, 0, NULL));
+  CHKERRQ(FormJacobian(snes,X,A,B,ctx));
+  CHKERRQ(MatZeroRowsIS(B,userctx->bdis,0.0,NULL,NULL));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FormFunctionAB(SNES snes,Vec x,Vec Ax,Vec Bx,void *ctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   /*
    * In real applications, users should have a generic formFunctionAB which
@@ -399,8 +391,8 @@ PetscErrorCode FormFunctionAB(SNES snes,Vec x,Vec Ax,Vec Bx,void *ctx)
    * In this example, we just call FormFunctionA+FormFunctionB to mimic how
    * to use FormFunctionAB
    */
-  ierr = FormFunctionA(snes,x,Ax,ctx);CHKERRQ(ierr);
-  ierr = FormFunctionB(snes,x,Bx,ctx);CHKERRQ(ierr);
+  CHKERRQ(FormFunctionA(snes,x,Ax,ctx));
+  CHKERRQ(FormFunctionB(snes,x,Bx,ctx));
   PetscFunctionReturn(0);
 }
 
@@ -408,30 +400,28 @@ static PetscErrorCode FormFunction(SNES snes,Vec X,Vec F,void *ctx)
 {
   DM             dm;
   Vec            Xloc,Floc;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
-  ierr = DMGetLocalVector(dm,&Xloc);CHKERRQ(ierr);
-  ierr = DMGetLocalVector(dm,&Floc);CHKERRQ(ierr);
-  ierr = VecZeroEntries(Xloc);CHKERRQ(ierr);
-  ierr = VecZeroEntries(Floc);CHKERRQ(ierr);
-  ierr = DMGlobalToLocalBegin(dm,X,INSERT_VALUES,Xloc);CHKERRQ(ierr);
-  ierr = DMGlobalToLocalEnd(dm,X,INSERT_VALUES,Xloc);CHKERRQ(ierr);
+  CHKERRQ(SNESGetDM(snes,&dm));
+  CHKERRQ(DMGetLocalVector(dm,&Xloc));
+  CHKERRQ(DMGetLocalVector(dm,&Floc));
+  CHKERRQ(VecZeroEntries(Xloc));
+  CHKERRQ(VecZeroEntries(Floc));
+  CHKERRQ(DMGlobalToLocalBegin(dm,X,INSERT_VALUES,Xloc));
+  CHKERRQ(DMGlobalToLocalEnd(dm,X,INSERT_VALUES,Xloc));
   CHKMEMQ;
-  ierr = DMPlexSNESComputeResidualFEM(dm,Xloc,Floc,ctx);CHKERRQ(ierr);
+  CHKERRQ(DMPlexSNESComputeResidualFEM(dm,Xloc,Floc,ctx));
   CHKMEMQ;
-  ierr = VecZeroEntries(F);CHKERRQ(ierr);
-  ierr = DMLocalToGlobalBegin(dm,Floc,ADD_VALUES,F);CHKERRQ(ierr);
-  ierr = DMLocalToGlobalEnd(dm,Floc,ADD_VALUES,F);CHKERRQ(ierr);
-  ierr = DMRestoreLocalVector(dm,&Xloc);CHKERRQ(ierr);
-  ierr = DMRestoreLocalVector(dm,&Floc);CHKERRQ(ierr);
+  CHKERRQ(VecZeroEntries(F));
+  CHKERRQ(DMLocalToGlobalBegin(dm,Floc,ADD_VALUES,F));
+  CHKERRQ(DMLocalToGlobalEnd(dm,Floc,ADD_VALUES,F));
+  CHKERRQ(DMRestoreLocalVector(dm,&Xloc));
+  CHKERRQ(DMRestoreLocalVector(dm,&Floc));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
 {
-  PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
   PetscWeakForm  wf;
@@ -442,50 +432,48 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   PetscInt       vecstate;
 
   PetscFunctionBegin;
-  ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
-  ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
+  CHKERRQ(SNESGetDM(snes,&dm));
+  CHKERRQ(DMGetDS(dm,&prob));
   /* hook functions */
-  ierr = PetscDSGetWeakForm(prob, &wf);CHKERRQ(ierr);
-  ierr = PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_F0, 0);CHKERRQ(ierr);
-  ierr = PetscWeakFormSetIndexResidual(wf, NULL, 0, 0, 0, 0, NULL, 0, f1_u);CHKERRQ(ierr);
-  ierr = FormFunction(snes,X,F,ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscDSGetWeakForm(prob, &wf));
+  CHKERRQ(PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_F0, 0));
+  CHKERRQ(PetscWeakFormSetIndexResidual(wf, NULL, 0, 0, 0, 0, NULL, 0, f1_u));
+  CHKERRQ(FormFunction(snes,X,F,ctx));
   /* Boundary condition */
-  ierr = VecLockGet(X,&vecstate);CHKERRQ(ierr);
+  CHKERRQ(VecLockGet(X,&vecstate));
   if (vecstate>0) {
-    ierr = VecLockReadPop(X);CHKERRQ(ierr);
+    CHKERRQ(VecLockReadPop(X));
   }
-  ierr = VecGetOwnershipRange(X,&iStart,&iEnd);CHKERRQ(ierr);
-  ierr = VecGetArray(X,&array);CHKERRQ(ierr);
-  ierr = ISGetLocalSize(userctx->bdis,&nindices);CHKERRQ(ierr);
-  ierr = ISGetIndices(userctx->bdis,&indices);CHKERRQ(ierr);
+  CHKERRQ(VecGetOwnershipRange(X,&iStart,&iEnd));
+  CHKERRQ(VecGetArray(X,&array));
+  CHKERRQ(ISGetLocalSize(userctx->bdis,&nindices));
+  CHKERRQ(ISGetIndices(userctx->bdis,&indices));
   for (i=0;i<nindices;i++) {
     value = array[indices[i]-iStart] - 0.0;
-    ierr = VecSetValue(F,indices[i],value,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(VecSetValue(F,indices[i],value,INSERT_VALUES));
   }
-  ierr = ISRestoreIndices(userctx->bdis,&indices);CHKERRQ(ierr);
-  ierr = VecRestoreArray(X,&array);CHKERRQ(ierr);
+  CHKERRQ(ISRestoreIndices(userctx->bdis,&indices));
+  CHKERRQ(VecRestoreArray(X,&array));
   if (vecstate>0) {
-    ierr = VecLockReadPush(X);CHKERRQ(ierr);
+    CHKERRQ(VecLockReadPush(X));
   }
-  ierr = VecAssemblyBegin(F);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(F);CHKERRQ(ierr);
+  CHKERRQ(VecAssemblyBegin(F));
+  CHKERRQ(VecAssemblyEnd(F));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatMult_A(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
   AppCtx         *userctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,&userctx);CHKERRQ(ierr);
-  ierr = FormFunctionA(userctx->snes,x,y,userctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(A,&userctx));
+  CHKERRQ(FormFunctionA(userctx->snes,x,y,userctx));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
 {
-  PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
   PetscWeakForm  wf;
@@ -495,35 +483,34 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
   const PetscInt *indices;
 
   PetscFunctionBegin;
-  ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
-  ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
+  CHKERRQ(SNESGetDM(snes,&dm));
+  CHKERRQ(DMGetDS(dm,&prob));
   /* hook functions */
-  ierr = PetscDSGetWeakForm(prob, &wf);CHKERRQ(ierr);
-  ierr = PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_F1, 0);CHKERRQ(ierr);
-  ierr = PetscWeakFormSetIndexResidual(wf, NULL, 0, 0, 0, 0, f0_u, 0, NULL);CHKERRQ(ierr);
-  ierr = FormFunction(snes,X,F,ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscDSGetWeakForm(prob, &wf));
+  CHKERRQ(PetscWeakFormClearIndex(wf, NULL, 0, 0, 0, PETSC_WF_F1, 0));
+  CHKERRQ(PetscWeakFormSetIndexResidual(wf, NULL, 0, 0, 0, 0, f0_u, 0, NULL));
+  CHKERRQ(FormFunction(snes,X,F,ctx));
   /* Boundary condition */
-  ierr = VecGetOwnershipRange(F,&iStart,&iEnd);CHKERRQ(ierr);
-  ierr = ISGetLocalSize(userctx->bdis,&nindices);CHKERRQ(ierr);
-  ierr = ISGetIndices(userctx->bdis,&indices);CHKERRQ(ierr);
+  CHKERRQ(VecGetOwnershipRange(F,&iStart,&iEnd));
+  CHKERRQ(ISGetLocalSize(userctx->bdis,&nindices));
+  CHKERRQ(ISGetIndices(userctx->bdis,&indices));
   for (i=0;i<nindices;i++) {
     value = 0.0;
-    ierr = VecSetValue(F,indices[i],value,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(VecSetValue(F,indices[i],value,INSERT_VALUES));
   }
-  ierr = ISRestoreIndices(userctx->bdis,&indices);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(F);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(F);CHKERRQ(ierr);
+  CHKERRQ(ISRestoreIndices(userctx->bdis,&indices));
+  CHKERRQ(VecAssemblyBegin(F));
+  CHKERRQ(VecAssemblyEnd(F));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
   AppCtx         *userctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,&userctx);CHKERRQ(ierr);
-  ierr = FormFunctionB(userctx->snes,x,y,userctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(B,&userctx));
+  CHKERRQ(FormFunctionB(userctx->snes,x,y,userctx));
   PetscFunctionReturn(0);
 }
 

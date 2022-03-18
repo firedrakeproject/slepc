@@ -42,53 +42,49 @@ typedef struct {   /* context for non-equivalence deflation */
 
 static PetscErrorCode MatMult_SLPTS_Right(Mat M,Vec x,Vec y)
 {
-  PetscErrorCode     ierr;
   NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
-  ierr = MatMult(ctx->Jt,x,ctx->w);CHKERRQ(ierr);
-  ierr = MatSolve(ctx->Ft,ctx->w,y);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&ctx));
+  CHKERRQ(MatMult(ctx->Jt,x,ctx->w));
+  CHKERRQ(MatSolve(ctx->Ft,ctx->w,y));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatMult_SLPTS_Left(Mat M,Vec x,Vec y)
 {
-  PetscErrorCode     ierr;
   NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
-  ierr = MatMultTranspose(ctx->Jt,x,ctx->w);CHKERRQ(ierr);
-  ierr = MatSolveTranspose(ctx->Ft,ctx->w,y);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&ctx));
+  CHKERRQ(MatMultTranspose(ctx->Jt,x,ctx->w));
+  CHKERRQ(MatSolveTranspose(ctx->Ft,ctx->w,y));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatDestroy_SLPTS(Mat M)
 {
-  PetscErrorCode     ierr;
   NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
-  ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&ctx));
+  CHKERRQ(VecDestroy(&ctx->w));
+  CHKERRQ(PetscFree(ctx));
   PetscFunctionReturn(0);
 }
 
 #if defined(PETSC_HAVE_CUDA)
 static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
 {
-  PetscErrorCode     ierr;
   NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&ctx));
   if (right) {
-    ierr = VecDuplicate(ctx->w,right);CHKERRQ(ierr);
+    CHKERRQ(VecDuplicate(ctx->w,right));
   }
   if (left) {
-    ierr = VecDuplicate(ctx->w,left);CHKERRQ(ierr);
+    CHKERRQ(VecDuplicate(ctx->w,left));
   }
   PetscFunctionReturn(0);
 }
@@ -96,57 +92,53 @@ static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
 
 static PetscErrorCode NEPSLPSetUpEPSMat(NEP nep,Mat F,Mat J,PetscBool left,Mat *M)
 {
-  PetscErrorCode     ierr;
   Mat                Mshell;
   PetscInt           nloc,mloc;
   NEP_SLPTS_MATSHELL *shellctx;
 
   PetscFunctionBegin;
   /* Create mat shell */
-  ierr = PetscNew(&shellctx);CHKERRQ(ierr);
+  CHKERRQ(PetscNew(&shellctx));
   shellctx->Ft = F;
   shellctx->Jt = J;
-  ierr = MatGetLocalSize(nep->function,&mloc,&nloc);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,shellctx,&Mshell);CHKERRQ(ierr);
+  CHKERRQ(MatGetLocalSize(nep->function,&mloc,&nloc));
+  CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,shellctx,&Mshell));
   if (left) {
-    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Left);CHKERRQ(ierr);
+    CHKERRQ(MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Left));
   } else {
-    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Right);CHKERRQ(ierr);
+    CHKERRQ(MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Right));
   }
-  ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_SLPTS);CHKERRQ(ierr);
+  CHKERRQ(MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_SLPTS));
 #if defined(PETSC_HAVE_CUDA)
-  ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_SLPTS);CHKERRQ(ierr);
+  CHKERRQ(MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_SLPTS));
 #endif
   *M = Mshell;
-  ierr = MatCreateVecs(nep->function,&shellctx->w,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(nep->function,&shellctx->w,NULL));
   PetscFunctionReturn(0);
 }
 
 /* Functions for deflation */
 static PetscErrorCode NEPDeflationNEDestroy(NEP_NEDEF_CTX defctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (!defctx) PetscFunctionReturn(0);
-  ierr = PetscFree(defctx->eig);CHKERRQ(ierr);
-  ierr = PetscFree(defctx);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(defctx->eig));
+  CHKERRQ(PetscFree(defctx));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPDeflationNECreate(NEP nep,BV V,BV W,PetscInt sz,NEP_NEDEF_CTX *defctx)
 {
-  PetscErrorCode ierr;
   NEP_NEDEF_CTX  op;
 
   PetscFunctionBegin;
-  ierr = PetscNew(&op);CHKERRQ(ierr);
+  CHKERRQ(PetscNew(&op));
   *defctx = op;
   op->n   = 0;
   op->ref = PETSC_FALSE;
-  ierr = PetscCalloc1(sz,&op->eig);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)W);CHKERRQ(ierr);
+  CHKERRQ(PetscCalloc1(sz,&op->eig));
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)W));
   op->V = V;
   op->W = W;
   PetscFunctionReturn(0);
@@ -154,15 +146,14 @@ static PetscErrorCode NEPDeflationNECreate(NEP nep,BV V,BV W,PetscInt sz,NEP_NED
 
 static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar lambda)
 {
-  PetscErrorCode     ierr;
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
   if (lambda==matctx->lambda) PetscFunctionReturn(0);
-  ierr = NEPComputeFunction(nep,lambda,matctx->F,matctx->P);CHKERRQ(ierr);
-  if (matctx->isJ) {ierr = NEPComputeJacobian(nep,lambda,matctx->J);CHKERRQ(ierr);}
-  if (matctx->ksp) {ierr = NEP_KSPSetOperators(matctx->ksp,matctx->F,matctx->P);CHKERRQ(ierr);}
+  CHKERRQ(NEPComputeFunction(nep,lambda,matctx->F,matctx->P));
+  if (matctx->isJ) CHKERRQ(NEPComputeJacobian(nep,lambda,matctx->J));
+  if (matctx->ksp) CHKERRQ(NEP_KSPSetOperators(matctx->ksp,matctx->F,matctx->P));
   matctx->lambda = lambda;
   PetscFunctionReturn(0);
 }
@@ -172,33 +163,32 @@ static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
   Vec                t,tt;
   PetscScalar        *h,*alpha,lambda,*eig;
   PetscInt           i,k;
-  PetscErrorCode     ierr;
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
   if (matctx->defctx->n && !matctx->defctx->ref) {
     k = matctx->defctx->n;
     lambda = matctx->lambda;
     eig = matctx->defctx->eig;
     t = matctx->w[0];
-    ierr = VecCopy(x,t);CHKERRQ(ierr);
-    ierr = PetscMalloc2(k,&h,k,&alpha);CHKERRQ(ierr);
+    CHKERRQ(VecCopy(x,t));
+    CHKERRQ(PetscMalloc2(k,&h,k,&alpha));
     for (i=0;i<k;i++) alpha[i] = (lambda-eig[i]-1.0)/(lambda-eig[i]);
-    ierr = BVDotVec(matctx->defctx->V,t,h);CHKERRQ(ierr);
+    CHKERRQ(BVDotVec(matctx->defctx->V,t,h));
     for (i=0;i<k;i++) h[i] *= alpha[i];
-    ierr = BVMultVec(matctx->defctx->W,-1.0,1.0,t,h);CHKERRQ(ierr);
-    ierr = MatMult(matctx->isJ?matctx->J:matctx->F,t,r);CHKERRQ(ierr);
+    CHKERRQ(BVMultVec(matctx->defctx->W,-1.0,1.0,t,h));
+    CHKERRQ(MatMult(matctx->isJ?matctx->J:matctx->F,t,r));
     if (matctx->isJ) {
       for (i=0;i<k;i++) h[i] *= (1.0/((lambda-eig[i])*(lambda-eig[i])))/alpha[i];
       tt = matctx->w[1];
-      ierr = BVMultVec(matctx->defctx->W,-1.0,0.0,tt,h);CHKERRQ(ierr);
-      ierr = MatMult(matctx->F,tt,t);CHKERRQ(ierr);
-      ierr = VecAXPY(r,1.0,t);CHKERRQ(ierr);
+      CHKERRQ(BVMultVec(matctx->defctx->W,-1.0,0.0,tt,h));
+      CHKERRQ(MatMult(matctx->F,tt,t));
+      CHKERRQ(VecAXPY(r,1.0,t));
     }
-    ierr = PetscFree2(h,alpha);CHKERRQ(ierr);
+    CHKERRQ(PetscFree2(h,alpha));
   } else {
-    ierr = MatMult(matctx->isJ?matctx->J:matctx->F,x,r);CHKERRQ(ierr);
+    CHKERRQ(MatMult(matctx->isJ?matctx->J:matctx->F,x,r));
   }
   PetscFunctionReturn(0);
 }
@@ -208,133 +198,127 @@ static PetscErrorCode MatMultTranspose_NEPDeflationNE(Mat M,Vec x,Vec r)
   Vec                t,tt;
   PetscScalar        *h,*alphaC,lambda,*eig;
   PetscInt           i,k;
-  PetscErrorCode     ierr;
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
   t    = matctx->w[0];
-  ierr = VecCopy(x,t);CHKERRQ(ierr);
+  CHKERRQ(VecCopy(x,t));
   if (matctx->defctx->n && !matctx->defctx->ref) {
-    ierr = VecConjugate(t);CHKERRQ(ierr);
+    CHKERRQ(VecConjugate(t));
     k = matctx->defctx->n;
     lambda = matctx->lambda;
     eig = matctx->defctx->eig;
-    ierr = PetscMalloc2(k,&h,k,&alphaC);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc2(k,&h,k,&alphaC));
     for (i=0;i<k;i++) alphaC[i] = PetscConj((lambda-eig[i]-1.0)/(lambda-eig[i]));
-    ierr = BVDotVec(matctx->defctx->W,t,h);CHKERRQ(ierr);
+    CHKERRQ(BVDotVec(matctx->defctx->W,t,h));
     for (i=0;i<k;i++) h[i] *= alphaC[i];
-    ierr = BVMultVec(matctx->defctx->V,-1.0,1.0,t,h);CHKERRQ(ierr);
-    ierr = VecConjugate(t);CHKERRQ(ierr);
-    ierr = MatMultTranspose(matctx->isJ?matctx->J:matctx->F,t,r);CHKERRQ(ierr);
+    CHKERRQ(BVMultVec(matctx->defctx->V,-1.0,1.0,t,h));
+    CHKERRQ(VecConjugate(t));
+    CHKERRQ(MatMultTranspose(matctx->isJ?matctx->J:matctx->F,t,r));
     if (matctx->isJ) {
       for (i=0;i<k;i++) h[i] *= PetscConj(1.0/((lambda-eig[i])*(lambda-eig[i])))/alphaC[i];
       tt = matctx->w[1];
-      ierr = BVMultVec(matctx->defctx->V,-1.0,0.0,tt,h);CHKERRQ(ierr);
-      ierr = VecConjugate(tt);CHKERRQ(ierr);
-      ierr = MatMultTranspose(matctx->F,tt,t);CHKERRQ(ierr);
-      ierr = VecAXPY(r,1.0,t);CHKERRQ(ierr);
+      CHKERRQ(BVMultVec(matctx->defctx->V,-1.0,0.0,tt,h));
+      CHKERRQ(VecConjugate(tt));
+      CHKERRQ(MatMultTranspose(matctx->F,tt,t));
+      CHKERRQ(VecAXPY(r,1.0,t));
     }
-    ierr = PetscFree2(h,alphaC);CHKERRQ(ierr);
+    CHKERRQ(PetscFree2(h,alphaC));
   } else {
-    ierr = MatMultTranspose(matctx->isJ?matctx->J:matctx->F,t,r);CHKERRQ(ierr);
+    CHKERRQ(MatMultTranspose(matctx->isJ?matctx->J:matctx->F,t,r));
   }
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatSolve_NEPDeflationNE(Mat M,Vec b,Vec x)
 {
-  PetscErrorCode     ierr;
   PetscScalar        *h,*alpha,lambda,*eig;
   PetscInt           i,k;
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
   if (!matctx->ksp) {
-    ierr = VecCopy(b,x);CHKERRQ(ierr);
+    CHKERRQ(VecCopy(b,x));
     PetscFunctionReturn(0);
   }
-  ierr = KSPSolve(matctx->ksp,b,x);CHKERRQ(ierr);
+  CHKERRQ(KSPSolve(matctx->ksp,b,x));
   if (matctx->defctx->n && !matctx->defctx->ref) {
     k = matctx->defctx->n;
     lambda = matctx->lambda;
     eig = matctx->defctx->eig;
-    ierr = PetscMalloc2(k,&h,k,&alpha);CHKERRQ(ierr);
-    ierr = BVDotVec(matctx->defctx->V,x,h);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc2(k,&h,k,&alpha));
+    CHKERRQ(BVDotVec(matctx->defctx->V,x,h));
     for (i=0;i<k;i++) alpha[i] = (lambda-eig[i]-1.0)/(lambda-eig[i]);
     for (i=0;i<k;i++) h[i] *= alpha[i]/(1.0-alpha[i]);
-    ierr = BVMultVec(matctx->defctx->W,1.0,1.0,x,h);CHKERRQ(ierr);
-    ierr = PetscFree2(h,alpha);CHKERRQ(ierr);
+    CHKERRQ(BVMultVec(matctx->defctx->W,1.0,1.0,x,h));
+    CHKERRQ(PetscFree2(h,alpha));
   }
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatSolveTranspose_NEPDeflationNE(Mat M,Vec b,Vec x)
 {
-  PetscErrorCode     ierr;
   PetscScalar        *h,*alphaC,lambda,*eig;
   PetscInt           i,k;
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
   if (!matctx->ksp) {
-    ierr = VecCopy(b,x);CHKERRQ(ierr);
+    CHKERRQ(VecCopy(b,x));
     PetscFunctionReturn(0);
   }
-  ierr = KSPSolveTranspose(matctx->ksp,b,x);CHKERRQ(ierr);
+  CHKERRQ(KSPSolveTranspose(matctx->ksp,b,x));
   if (matctx->defctx->n && !matctx->defctx->ref) {
-    ierr = VecConjugate(x);CHKERRQ(ierr);
+    CHKERRQ(VecConjugate(x));
     k = matctx->defctx->n;
     lambda = matctx->lambda;
     eig = matctx->defctx->eig;
-    ierr = PetscMalloc2(k,&h,k,&alphaC);CHKERRQ(ierr);
-    ierr = BVDotVec(matctx->defctx->W,x,h);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc2(k,&h,k,&alphaC));
+    CHKERRQ(BVDotVec(matctx->defctx->W,x,h));
     for (i=0;i<k;i++) alphaC[i] = PetscConj((lambda-eig[i]-1.0)/(lambda-eig[i]));
     for (i=0;i<k;i++) h[i] *= alphaC[i]/(1.0-alphaC[i]);
-    ierr = BVMultVec(matctx->defctx->V,1.0,1.0,x,h);CHKERRQ(ierr);
-    ierr = PetscFree2(h,alphaC);CHKERRQ(ierr);
-    ierr = VecConjugate(x);CHKERRQ(ierr);
+    CHKERRQ(BVMultVec(matctx->defctx->V,1.0,1.0,x,h));
+    CHKERRQ(PetscFree2(h,alphaC));
+    CHKERRQ(VecConjugate(x));
   }
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatDestroy_NEPDeflationNE(Mat M)
 {
-  PetscErrorCode     ierr;
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
-  ierr = VecDestroy(&matctx->w[0]);CHKERRQ(ierr);
-  ierr = VecDestroy(&matctx->w[1]);CHKERRQ(ierr);
-  ierr = PetscFree(matctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
+  CHKERRQ(VecDestroy(&matctx->w[0]));
+  CHKERRQ(VecDestroy(&matctx->w[1]));
+  CHKERRQ(PetscFree(matctx));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatCreateVecs_NEPDeflationNE(Mat M,Vec *right,Vec *left)
 {
-  PetscErrorCode     ierr;
   NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
-  ierr = MatCreateVecs(matctx->F,right,left);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
+  CHKERRQ(MatCreateVecs(matctx->F,right,left));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,Mat F,Mat P,Mat J,KSP ksp,PetscBool isJ,Mat *Mshell)
 {
   NEP_NEDEF_MATSHELL *matctx;
-  PetscErrorCode     ierr;
   PetscInt           nloc,mloc;
 
   PetscFunctionBegin;
   /* Create mat shell */
-  ierr = PetscNew(&matctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(nep->function,&mloc,&nloc);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,Mshell);CHKERRQ(ierr);
+  CHKERRQ(PetscNew(&matctx));
+  CHKERRQ(MatGetLocalSize(nep->function,&mloc,&nloc));
+  CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,Mshell));
   matctx->F   = F;
   matctx->P   = P;
   matctx->J   = J;
@@ -342,59 +326,57 @@ static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,
   matctx->ksp = ksp;
   matctx->defctx = defctx;
   matctx->lambda = PETSC_MAX_REAL;
-  ierr = MatCreateVecs(F,&matctx->w[0],NULL);CHKERRQ(ierr);
-  ierr = VecDuplicate(matctx->w[0],&matctx->w[1]);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_MULT,(void(*)(void))MatMult_NEPDeflationNE);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_NEPDeflationNE);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_SOLVE,(void(*)(void))MatSolve_NEPDeflationNE);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_SOLVE_TRANSPOSE,(void(*)(void))MatSolveTranspose_NEPDeflationNE);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_NEPDeflationNE);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_NEPDeflationNE);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(F,&matctx->w[0],NULL));
+  CHKERRQ(VecDuplicate(matctx->w[0],&matctx->w[1]));
+  CHKERRQ(MatShellSetOperation(*Mshell,MATOP_MULT,(void(*)(void))MatMult_NEPDeflationNE));
+  CHKERRQ(MatShellSetOperation(*Mshell,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_NEPDeflationNE));
+  CHKERRQ(MatShellSetOperation(*Mshell,MATOP_SOLVE,(void(*)(void))MatSolve_NEPDeflationNE));
+  CHKERRQ(MatShellSetOperation(*Mshell,MATOP_SOLVE_TRANSPOSE,(void(*)(void))MatSolveTranspose_NEPDeflationNE));
+  CHKERRQ(MatShellSetOperation(*Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_NEPDeflationNE));
+  CHKERRQ(MatShellSetOperation(*Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_NEPDeflationNE));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPDeflationNERecoverEigenvectors(NEP_NEDEF_CTX defctx,Vec u,Vec w,PetscScalar lambda)
 {
-  PetscErrorCode ierr;
   PetscScalar    *h,*alpha,*eig;
   PetscInt       i,k;
 
   PetscFunctionBegin;
-  if (w) { ierr = VecConjugate(w);CHKERRQ(ierr); }
+  if (w) CHKERRQ(VecConjugate(w));
   if (defctx->n && !defctx->ref) {
     eig = defctx->eig;
     k = defctx->n;
-    ierr = PetscMalloc2(k,&h,k,&alpha);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc2(k,&h,k,&alpha));
     for (i=0;i<k;i++) alpha[i] = (lambda-eig[i]-1.0)/(lambda-eig[i]);
-    ierr = BVDotVec(defctx->V,u,h);CHKERRQ(ierr);
+    CHKERRQ(BVDotVec(defctx->V,u,h));
     for (i=0;i<k;i++) h[i] *= alpha[i];
-    ierr = BVMultVec(defctx->W,-1.0,1.0,u,h);CHKERRQ(ierr);
-    ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
+    CHKERRQ(BVMultVec(defctx->W,-1.0,1.0,u,h));
+    CHKERRQ(VecNormalize(u,NULL));
     if (w) {
-      ierr = BVDotVec(defctx->W,w,h);CHKERRQ(ierr);
+      CHKERRQ(BVDotVec(defctx->W,w,h));
       for (i=0;i<k;i++) alpha[i] = PetscConj((lambda-eig[i]-1.0)/(lambda-eig[i]));
       for (i=0;i<k;i++) h[i] *= alpha[i];
-      ierr = BVMultVec(defctx->V,-1.0,1.0,w,h);CHKERRQ(ierr);
-      ierr = VecNormalize(w,NULL);CHKERRQ(ierr);
+      CHKERRQ(BVMultVec(defctx->V,-1.0,1.0,w,h));
+      CHKERRQ(VecNormalize(w,NULL));
     }
-    ierr = PetscFree2(h,alpha);CHKERRQ(ierr);
+    CHKERRQ(PetscFree2(h,alpha));
   }
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPDeflationNELocking(NEP_NEDEF_CTX defctx,Vec u,Vec w,PetscScalar lambda)
 {
-  PetscErrorCode ierr;
   PetscInt       n;
 
   PetscFunctionBegin;
   n = defctx->n++;
   defctx->eig[n] = lambda;
-  ierr = BVInsertVec(defctx->V,n,u);CHKERRQ(ierr);
-  ierr = BVInsertVec(defctx->W,n,w);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(defctx->V,0,defctx->n);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(defctx->W,0,defctx->n);CHKERRQ(ierr);
-  ierr = BVBiorthonormalizeColumn(defctx->V,defctx->W,n,NULL);CHKERRQ(ierr);
+  CHKERRQ(BVInsertVec(defctx->V,n,u));
+  CHKERRQ(BVInsertVec(defctx->W,n,w));
+  CHKERRQ(BVSetActiveColumns(defctx->V,0,defctx->n));
+  CHKERRQ(BVSetActiveColumns(defctx->W,0,defctx->n));
+  CHKERRQ(BVBiorthonormalizeColumn(defctx->V,defctx->W,n,NULL));
   PetscFunctionReturn(0);
 }
 
@@ -407,7 +389,6 @@ static PetscErrorCode NEPDeflationNESetRefine(NEP_NEDEF_CTX defctx,PetscBool ref
 
 PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
   Mat            mF,mJ,M,Mt;
   Vec            u,r,t,w;
@@ -420,102 +401,102 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
 
   PetscFunctionBegin;
   /* get initial approximation of eigenvalue and eigenvector */
-  ierr = NEPGetDefaultShift(nep,&sigma);CHKERRQ(ierr);
+  CHKERRQ(NEPGetDefaultShift(nep,&sigma));
   if (!nep->nini) {
-    ierr = BVSetRandomColumn(nep->V,0);CHKERRQ(ierr);
+    CHKERRQ(BVSetRandomColumn(nep->V,0));
   }
-  ierr = BVSetRandomColumn(nep->W,0);CHKERRQ(ierr);
+  CHKERRQ(BVSetRandomColumn(nep->W,0));
   lambda = sigma;
-  if (!ctx->ksp) { ierr = NEPSLPGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = BVDuplicate(nep->V,&X);CHKERRQ(ierr);
-  ierr = BVDuplicate(nep->W,&Y);CHKERRQ(ierr);
-  ierr = NEPDeflationNECreate(nep,X,Y,nep->nev,&defctx);CHKERRQ(ierr);
-  ierr = BVGetColumn(nep->V,0,&t);CHKERRQ(ierr);
-  ierr = VecDuplicate(t,&u);CHKERRQ(ierr);
-  ierr = VecDuplicate(t,&w);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(nep->V,0,&t);CHKERRQ(ierr);
-  ierr = BVCopyVec(nep->V,0,u);CHKERRQ(ierr);
-  ierr = BVCopyVec(nep->W,0,w);CHKERRQ(ierr);
-  ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
-  ierr = NEPDeflationNEFunctionCreate(defctx,nep,nep->function,nep->function_pre?nep->function_pre:nep->function,NULL,ctx->ksp,PETSC_FALSE,&mF);CHKERRQ(ierr);
-  ierr = NEPDeflationNEFunctionCreate(defctx,nep,nep->function,nep->function,nep->jacobian,NULL,PETSC_TRUE,&mJ);CHKERRQ(ierr);
-  ierr = NEPSLPSetUpEPSMat(nep,mF,mJ,PETSC_FALSE,&M);CHKERRQ(ierr);
-  ierr = NEPSLPSetUpEPSMat(nep,mF,mJ,PETSC_TRUE,&Mt);CHKERRQ(ierr);
-  ierr = EPSSetOperators(ctx->eps,M,NULL);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = EPSSetOperators(ctx->epsts,Mt,NULL);CHKERRQ(ierr);
-  ierr = MatDestroy(&Mt);CHKERRQ(ierr);
+  if (!ctx->ksp) CHKERRQ(NEPSLPGetKSP(nep,&ctx->ksp));
+  CHKERRQ(BVDuplicate(nep->V,&X));
+  CHKERRQ(BVDuplicate(nep->W,&Y));
+  CHKERRQ(NEPDeflationNECreate(nep,X,Y,nep->nev,&defctx));
+  CHKERRQ(BVGetColumn(nep->V,0,&t));
+  CHKERRQ(VecDuplicate(t,&u));
+  CHKERRQ(VecDuplicate(t,&w));
+  CHKERRQ(BVRestoreColumn(nep->V,0,&t));
+  CHKERRQ(BVCopyVec(nep->V,0,u));
+  CHKERRQ(BVCopyVec(nep->W,0,w));
+  CHKERRQ(VecDuplicate(u,&r));
+  CHKERRQ(NEPDeflationNEFunctionCreate(defctx,nep,nep->function,nep->function_pre?nep->function_pre:nep->function,NULL,ctx->ksp,PETSC_FALSE,&mF));
+  CHKERRQ(NEPDeflationNEFunctionCreate(defctx,nep,nep->function,nep->function,nep->jacobian,NULL,PETSC_TRUE,&mJ));
+  CHKERRQ(NEPSLPSetUpEPSMat(nep,mF,mJ,PETSC_FALSE,&M));
+  CHKERRQ(NEPSLPSetUpEPSMat(nep,mF,mJ,PETSC_TRUE,&Mt));
+  CHKERRQ(EPSSetOperators(ctx->eps,M,NULL));
+  CHKERRQ(MatDestroy(&M));
+  CHKERRQ(EPSSetOperators(ctx->epsts,Mt,NULL));
+  CHKERRQ(MatDestroy(&Mt));
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
 
     /* form residual,  r = T(lambda)*u (used in convergence test only) */
-    ierr = NEPDeflationNEComputeFunction(nep,mF,lambda);CHKERRQ(ierr);
-    ierr = MatMultTranspose(mF,w,r);CHKERRQ(ierr);
-    ierr = VecNorm(r,NORM_2,&resl);CHKERRQ(ierr);
-    ierr = MatMult(mF,u,r);CHKERRQ(ierr);
+    CHKERRQ(NEPDeflationNEComputeFunction(nep,mF,lambda));
+    CHKERRQ(MatMultTranspose(mF,w,r));
+    CHKERRQ(VecNorm(r,NORM_2,&resl));
+    CHKERRQ(MatMult(mF,u,r));
 
     /* convergence test */
-    ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
+    CHKERRQ(VecNorm(r,NORM_2,&resnorm));
     resnorm = PetscMax(resnorm,resl);
-    ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
+    CHKERRQ((*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx));
     nep->eigr[nep->nconv] = lambda;
     if (nep->errest[nep->nconv]<=nep->tol || nep->errest[nep->nconv]<=ctx->deftol) {
       if (nep->errest[nep->nconv]<=ctx->deftol && !defctx->ref && nep->nconv) {
-        ierr = NEPDeflationNERecoverEigenvectors(defctx,u,w,lambda);CHKERRQ(ierr);
-        ierr = VecConjugate(w);CHKERRQ(ierr);
-        ierr = NEPDeflationNESetRefine(defctx,PETSC_TRUE);CHKERRQ(ierr);
-        ierr = MatMultTranspose(mF,w,r);CHKERRQ(ierr);
-        ierr = VecNorm(r,NORM_2,&resl);CHKERRQ(ierr);
-        ierr = MatMult(mF,u,r);CHKERRQ(ierr);
-        ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
+        CHKERRQ(NEPDeflationNERecoverEigenvectors(defctx,u,w,lambda));
+        CHKERRQ(VecConjugate(w));
+        CHKERRQ(NEPDeflationNESetRefine(defctx,PETSC_TRUE));
+        CHKERRQ(MatMultTranspose(mF,w,r));
+        CHKERRQ(VecNorm(r,NORM_2,&resl));
+        CHKERRQ(MatMult(mF,u,r));
+        CHKERRQ(VecNorm(r,NORM_2,&resnorm));
         resnorm = PetscMax(resnorm,resl);
-        ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
+        CHKERRQ((*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx));
         if (nep->errest[nep->nconv]<=nep->tol) lock = PETSC_TRUE;
       } else if (nep->errest[nep->nconv]<=nep->tol) lock = PETSC_TRUE;
     }
     if (lock) {
       lock = PETSC_FALSE;
       skip = PETSC_TRUE;
-      ierr = NEPDeflationNERecoverEigenvectors(defctx,u,w,lambda);CHKERRQ(ierr);
-      ierr = NEPDeflationNELocking(defctx,u,w,lambda);CHKERRQ(ierr);
-      ierr = NEPDeflationNESetRefine(defctx,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = BVInsertVec(nep->V,nep->nconv,u);CHKERRQ(ierr);
-      ierr = BVInsertVec(nep->W,nep->nconv,w);CHKERRQ(ierr);
-      ierr = VecConjugate(w);CHKERRQ(ierr);
+      CHKERRQ(NEPDeflationNERecoverEigenvectors(defctx,u,w,lambda));
+      CHKERRQ(NEPDeflationNELocking(defctx,u,w,lambda));
+      CHKERRQ(NEPDeflationNESetRefine(defctx,PETSC_FALSE));
+      CHKERRQ(BVInsertVec(nep->V,nep->nconv,u));
+      CHKERRQ(BVInsertVec(nep->W,nep->nconv,w));
+      CHKERRQ(VecConjugate(w));
       nep->nconv = nep->nconv + 1;
     }
-    ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
+    CHKERRQ((*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx));
     if (!skip || nep->reason>0) {
-      ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1);CHKERRQ(ierr);
+      CHKERRQ(NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
     }
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
         /* evaluate T(lambda) and T'(lambda) */
-        ierr = NEPDeflationNEComputeFunction(nep,mF,lambda);CHKERRQ(ierr);
-        ierr = NEPDeflationNEComputeFunction(nep,mJ,lambda);CHKERRQ(ierr);
-        ierr = EPSSetInitialSpace(ctx->eps,1,&u);CHKERRQ(ierr);
-        ierr = EPSSetInitialSpace(ctx->epsts,1,&w);CHKERRQ(ierr);
+        CHKERRQ(NEPDeflationNEComputeFunction(nep,mF,lambda));
+        CHKERRQ(NEPDeflationNEComputeFunction(nep,mJ,lambda));
+        CHKERRQ(EPSSetInitialSpace(ctx->eps,1,&u));
+        CHKERRQ(EPSSetInitialSpace(ctx->epsts,1,&w));
 
         /* compute new eigenvalue correction mu and eigenvector approximation u */
-        ierr = EPSSolve(ctx->eps);CHKERRQ(ierr);
-        ierr = EPSSolve(ctx->epsts);CHKERRQ(ierr);
-        ierr = EPSGetConverged(ctx->eps,&nconv);CHKERRQ(ierr);
-        ierr = EPSGetConverged(ctx->epsts,&nconv2);CHKERRQ(ierr);
+        CHKERRQ(EPSSolve(ctx->eps));
+        CHKERRQ(EPSSolve(ctx->epsts));
+        CHKERRQ(EPSGetConverged(ctx->eps,&nconv));
+        CHKERRQ(EPSGetConverged(ctx->epsts,&nconv2));
         if (!nconv||!nconv2) {
-          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          CHKERRQ(PetscInfo(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its));
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }
-        ierr = EPSGetEigenpair(ctx->eps,0,&mu,&im,u,NULL);CHKERRQ(ierr);
+        CHKERRQ(EPSGetEigenpair(ctx->eps,0,&mu,&im,u,NULL));
         for (i=0;i<nconv2;i++) {
-          ierr = EPSGetEigenpair(ctx->epsts,i,&mu2,&im2,w,NULL);CHKERRQ(ierr);
+          CHKERRQ(EPSGetEigenpair(ctx->epsts,i,&mu2,&im2,w,NULL));
           if (SlepcAbsEigenvalue(mu-mu2,im-im2)/SlepcAbsEigenvalue(mu,im)<nep->tol*1000) break;
         }
         if (i==nconv2) {
-          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          CHKERRQ(PetscInfo(nep,"iter=%" PetscInt_FMT ", inner iteration failed, stopping solve\n",nep->its));
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }
@@ -525,16 +506,16 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
       } else {
         nep->its--;  /* do not count this as a full iteration */
         /* use second eigenpair computed in previous iteration */
-        ierr = EPSGetConverged(ctx->eps,&nconv);CHKERRQ(ierr);
+        CHKERRQ(EPSGetConverged(ctx->eps,&nconv));
         if (nconv>=2 && nconv2>=2) {
-          ierr = EPSGetEigenpair(ctx->eps,1,&mu,&im,u,NULL);CHKERRQ(ierr);
-          ierr = EPSGetEigenpair(ctx->epsts,1,&mu2,&im2,w,NULL);CHKERRQ(ierr);
+          CHKERRQ(EPSGetEigenpair(ctx->eps,1,&mu,&im,u,NULL));
+          CHKERRQ(EPSGetEigenpair(ctx->epsts,1,&mu2,&im2,w,NULL));
           mu = 1.0/mu;
         } else {
-          ierr = BVSetRandomColumn(nep->V,nep->nconv);CHKERRQ(ierr);
-          ierr = BVSetRandomColumn(nep->W,nep->nconv);CHKERRQ(ierr);
-          ierr = BVCopyVec(nep->V,nep->nconv,u);CHKERRQ(ierr);
-          ierr = BVCopyVec(nep->W,nep->nconv,w);CHKERRQ(ierr);
+          CHKERRQ(BVSetRandomColumn(nep->V,nep->nconv));
+          CHKERRQ(BVSetRandomColumn(nep->W,nep->nconv));
+          CHKERRQ(BVCopyVec(nep->V,nep->nconv,u));
+          CHKERRQ(BVCopyVec(nep->W,nep->nconv,w));
           mu = lambda-sigma;
         }
         skip = PETSC_FALSE;
@@ -543,14 +524,13 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
       lambda = lambda - mu;
     }
   }
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
-  ierr = VecDestroy(&r);CHKERRQ(ierr);
-  ierr = MatDestroy(&mF);CHKERRQ(ierr);
-  ierr = MatDestroy(&mJ);CHKERRQ(ierr);
-  ierr = BVDestroy(&X);CHKERRQ(ierr);
-  ierr = BVDestroy(&Y);CHKERRQ(ierr);
-  ierr = NEPDeflationNEDestroy(defctx);CHKERRQ(ierr);
+  CHKERRQ(VecDestroy(&u));
+  CHKERRQ(VecDestroy(&w));
+  CHKERRQ(VecDestroy(&r));
+  CHKERRQ(MatDestroy(&mF));
+  CHKERRQ(MatDestroy(&mJ));
+  CHKERRQ(BVDestroy(&X));
+  CHKERRQ(BVDestroy(&Y));
+  CHKERRQ(NEPDeflationNEDestroy(defctx));
   PetscFunctionReturn(0);
 }
-

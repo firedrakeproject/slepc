@@ -14,29 +14,28 @@ static char help[] = "Test DSSynchronize() on a NHEP.\n\n";
 
 PetscErrorCode CheckArray(PetscScalar *A,const char *label,PetscInt k)
 {
-  PetscErrorCode ierr;
   PetscInt       j;
   PetscMPIInt    p,size,rank;
   PetscScalar    dif,*buf;
   PetscReal      error;
 
   PetscFunctionBeginUser;
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
-  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
+  CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
   if (rank) {
-    ierr = MPI_Send(A,k,MPIU_SCALAR,0,111,PETSC_COMM_WORLD);CHKERRMPI(ierr);
+    CHKERRMPI(MPI_Send(A,k,MPIU_SCALAR,0,111,PETSC_COMM_WORLD));
   } else {
-    ierr = PetscMalloc1(k,&buf);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc1(k,&buf));
     for (p=1;p<size;p++) {
-      ierr = MPI_Recv(buf,k,MPIU_SCALAR,p,111,PETSC_COMM_WORLD,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+      CHKERRMPI(MPI_Recv(buf,k,MPIU_SCALAR,p,111,PETSC_COMM_WORLD,MPI_STATUS_IGNORE));
       dif = 0.0;
       for (j=0;j<k;j++) dif += A[j]-buf[j];
       error = PetscAbsScalar(dif);
       if (error>10*PETSC_MACHINE_EPSILON) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," Array %s differs in proc %d: %g\n",label,(int)p,(double)error);CHKERRQ(ierr);
+        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Array %s differs in proc %d: %g\n",label,(int)p,(double)error));
       }
     }
-    ierr = PetscFree(buf);CHKERRQ(ierr);
+    CHKERRQ(PetscFree(buf));
   }
   PetscFunctionReturn(0);
 }
@@ -52,37 +51,37 @@ int main(int argc,char **argv)
   PetscMPIInt    size;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n));
 
   /* Create DS object */
-  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
-  ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
-  ierr = DSAllocate(ds,n);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
+  CHKERRQ(DSCreate(PETSC_COMM_WORLD,&ds));
+  CHKERRQ(DSSetType(ds,DSNHEP));
+  CHKERRQ(DSSetFromOptions(ds));
+  CHKERRQ(DSAllocate(ds,n));
+  CHKERRQ(DSSetDimensions(ds,n,0,0));
 
   /* Fill with Grcar matrix */
-  ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  CHKERRQ(DSGetArray(ds,DS_MAT_A,&A));
   for (i=1;i<n;i++) A[i+(i-1)*n]=-1.0;
   for (j=0;j<4;j++) {
     for (i=0;i<n-j;i++) A[i+(i+j)*n]=1.0;
   }
-  ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = DSSetState(ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(ds,DS_MAT_A,&A));
+  CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
 
   /* Solve */
-  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc2(n,&wr,n,&wi));
+  CHKERRQ(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
-  ierr = DSSort(ds,wr,wi,NULL,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(DSSolve(ds,wr,wi));
+  CHKERRQ(DSSort(ds,wr,wi,NULL,NULL,NULL));
 
   /* Print eigenvalues */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n");CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(wr[i]);
@@ -92,30 +91,30 @@ int main(int argc,char **argv)
     im = wi[i];
 #endif
     if (PetscAbs(im)<1e-10) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
     } else {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
     }
   }
 
   /* Synchronize data and check */
-  ierr = DSSynchronize(ds,wr,wi);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
+  CHKERRQ(DSSynchronize(ds,wr,wi));
+  CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   if (size>1) {
-    ierr = CheckArray(wr,"wr",n);CHKERRQ(ierr);
+    CHKERRQ(CheckArray(wr,"wr",n));
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = CheckArray(wi,"wi",n);CHKERRQ(ierr);
+    CHKERRQ(CheckArray(wi,"wi",n));
 #endif
-    ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-    ierr = CheckArray(A,"A",n*n);CHKERRQ(ierr);
-    ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-    ierr = DSGetArray(ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = CheckArray(Q,"Q",n*n);CHKERRQ(ierr);
-    ierr = DSRestoreArray(ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    CHKERRQ(DSGetArray(ds,DS_MAT_A,&A));
+    CHKERRQ(CheckArray(A,"A",n*n));
+    CHKERRQ(DSRestoreArray(ds,DS_MAT_A,&A));
+    CHKERRQ(DSGetArray(ds,DS_MAT_Q,&Q));
+    CHKERRQ(CheckArray(Q,"Q",n*n));
+    CHKERRQ(DSRestoreArray(ds,DS_MAT_Q,&Q));
   }
 
-  ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
-  ierr = DSDestroy(&ds);CHKERRQ(ierr);
+  CHKERRQ(PetscFree2(wr,wi));
+  CHKERRQ(DSDestroy(&ds));
   ierr = SlepcFinalize();
   return ierr;
 }

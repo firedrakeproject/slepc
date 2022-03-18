@@ -16,10 +16,8 @@
 
 PetscErrorCode EPSBackTransform_Default(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = STBackTransform(eps->st,eps->nconv,eps->eigr,eps->eigi);CHKERRQ(ierr);
+  CHKERRQ(STBackTransform(eps->st,eps->nconv,eps->eigr,eps->eigi));
   PetscFunctionReturn(0);
 }
 
@@ -29,24 +27,23 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
  */
 PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscBool      iscayley,indef;
   Mat            B,C;
 
   PetscFunctionBegin;
   if (eps->purify) {
-    ierr = EPS_Purify(eps,eps->nconv);CHKERRQ(ierr);
-    ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
+    CHKERRQ(EPS_Purify(eps,eps->nconv));
+    CHKERRQ(BVNormalize(eps->V,NULL));
   } else {
     /* In the case of Cayley transform, eigenvectors need to be B-normalized */
-    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley));
     if (iscayley && eps->isgeneralized) {
-      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = BVGetMatrix(eps->V,&C,&indef);CHKERRQ(ierr);
+      CHKERRQ(STGetMatrix(eps->st,1,&B));
+      CHKERRQ(BVGetMatrix(eps->V,&C,&indef));
       PetscCheck(!indef,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"The inner product should not be indefinite");
-      ierr = BVSetMatrix(eps->V,B,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
-      ierr = BVSetMatrix(eps->V,C,PETSC_FALSE);CHKERRQ(ierr);  /* restore original matrix */
+      CHKERRQ(BVSetMatrix(eps->V,B,PETSC_FALSE));
+      CHKERRQ(BVNormalize(eps->V,NULL));
+      CHKERRQ(BVSetMatrix(eps->V,C,PETSC_FALSE));  /* restore original matrix */
     }
   }
   PetscFunctionReturn(0);
@@ -58,22 +55,21 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
  */
 PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscInt       n;
   Mat            X;
 
   PetscFunctionBegin;
-  ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = BVMultInPlace(eps->V,X,0,n);CHKERRQ(ierr);
-  ierr = MatDestroy(&X);CHKERRQ(ierr);
+  CHKERRQ(DSGetDimensions(eps->ds,&n,NULL,NULL,NULL));
+  CHKERRQ(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
+  CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&X));
+  CHKERRQ(BVMultInPlace(eps->V,X,0,n));
+  CHKERRQ(MatDestroy(&X));
 
   /* purification */
-  if (eps->purify) { ierr = EPS_Purify(eps,eps->nconv);CHKERRQ(ierr); }
+  if (eps->purify) CHKERRQ(EPS_Purify(eps,eps->nconv));
 
   /* normalization */
-  ierr = BVNormalize(eps->V,eps->eigi);CHKERRQ(ierr);
+  CHKERRQ(BVNormalize(eps->V,eps->eigi));
   PetscFunctionReturn(0);
 }
 
@@ -82,21 +78,20 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
  */
 PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   Vec            w,y;
 
   PetscFunctionBegin;
   if (!eps->twosided || !eps->isgeneralized) PetscFunctionReturn(0);
-  ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
+  CHKERRQ(EPSSetWorkVecs(eps,1));
   w = eps->work[0];
   for (i=0;i<eps->nconv;i++) {
-    ierr = BVCopyVec(eps->W,i,w);CHKERRQ(ierr);
-    ierr = VecConjugate(w);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->W,i,&y);CHKERRQ(ierr);
-    ierr = STMatSolveTranspose(eps->st,w,y);CHKERRQ(ierr);
-    ierr = VecConjugate(y);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->W,i,&y);CHKERRQ(ierr);
+    CHKERRQ(BVCopyVec(eps->W,i,w));
+    CHKERRQ(VecConjugate(w));
+    CHKERRQ(BVGetColumn(eps->W,i,&y));
+    CHKERRQ(STMatSolveTranspose(eps->st,w,y));
+    CHKERRQ(VecConjugate(y));
+    CHKERRQ(BVRestoreColumn(eps->W,i,&y));
   }
   PetscFunctionReturn(0);
 }
@@ -111,7 +106,6 @@ PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
  */
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   Mat            Z;
   Vec            z;
@@ -119,60 +113,60 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   PetscFunctionBegin;
   if (eps->ishermitian) {
     if (eps->isgeneralized && !eps->ispositive) {
-      ierr = EPSComputeVectors_Indefinite(eps);CHKERRQ(ierr);
+      CHKERRQ(EPSComputeVectors_Indefinite(eps));
     } else {
-      ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
+      CHKERRQ(EPSComputeVectors_Hermitian(eps));
     }
     PetscFunctionReturn(0);
   }
 
   /* right eigenvectors */
-  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
 
   /* V = V * Z */
-  ierr = DSGetMat(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = BVMultInPlace(eps->V,Z,0,eps->nconv);CHKERRQ(ierr);
-  ierr = MatDestroy(&Z);CHKERRQ(ierr);
+  CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&Z));
+  CHKERRQ(BVMultInPlace(eps->V,Z,0,eps->nconv));
+  CHKERRQ(MatDestroy(&Z));
 
   /* Purify eigenvectors */
-  if (eps->purify) { ierr = EPS_Purify(eps,eps->nconv);CHKERRQ(ierr); }
+  if (eps->purify) CHKERRQ(EPS_Purify(eps,eps->nconv));
 
   /* Fix eigenvectors if balancing was used */
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
     for (i=0;i<eps->nconv;i++) {
-      ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
-      ierr = VecPointwiseDivide(z,z,eps->D);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(eps->V,i,&z));
+      CHKERRQ(VecPointwiseDivide(z,z,eps->D));
+      CHKERRQ(BVRestoreColumn(eps->V,i,&z));
     }
   }
 
   /* normalize eigenvectors (when using purification or balancing) */
   if (eps->purify || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
-    ierr = BVNormalize(eps->V,eps->eigi);CHKERRQ(ierr);
+    CHKERRQ(BVNormalize(eps->V,eps->eigi));
   }
 
   /* left eigenvectors */
   if (eps->twosided) {
-    ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
+    CHKERRQ(DSVectors(eps->ds,DS_MAT_Y,NULL,NULL));
     /* W = W * Z */
-    ierr = DSGetMat(eps->ds,DS_MAT_Y,&Z);CHKERRQ(ierr);
-    ierr = BVMultInPlace(eps->W,Z,0,eps->nconv);CHKERRQ(ierr);
-    ierr = MatDestroy(&Z);CHKERRQ(ierr);
+    CHKERRQ(DSGetMat(eps->ds,DS_MAT_Y,&Z));
+    CHKERRQ(BVMultInPlace(eps->W,Z,0,eps->nconv));
+    CHKERRQ(MatDestroy(&Z));
     /* Fix left eigenvectors if balancing was used */
     if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
       for (i=0;i<eps->nconv;i++) {
-        ierr = BVGetColumn(eps->W,i,&z);CHKERRQ(ierr);
-        ierr = VecPointwiseMult(z,z,eps->D);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->W,i,&z);CHKERRQ(ierr);
+        CHKERRQ(BVGetColumn(eps->W,i,&z));
+        CHKERRQ(VecPointwiseMult(z,z,eps->D));
+        CHKERRQ(BVRestoreColumn(eps->W,i,&z));
       }
     }
-    ierr = EPSComputeVectors_Twosided(eps);CHKERRQ(ierr);
+    CHKERRQ(EPSComputeVectors_Twosided(eps));
     /* normalize */
-    ierr = BVNormalize(eps->W,eps->eigi);CHKERRQ(ierr);
+    CHKERRQ(BVNormalize(eps->W,eps->eigi));
 #if !defined(PETSC_USE_COMPLEX)
     for (i=0;i<eps->nconv-1;i++) {
       if (eps->eigi[i] != 0.0) {
-        if (eps->eigi[i] > 0.0) { ierr = BVScaleColumn(eps->W,i+1,-1.0);CHKERRQ(ierr); }
+        if (eps->eigi[i] > 0.0) CHKERRQ(BVScaleColumn(eps->W,i+1,-1.0));
         i++;
       }
     }
@@ -200,7 +194,6 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 @*/
 PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
 {
-  PetscErrorCode ierr;
   Vec            t;
 
   PetscFunctionBegin;
@@ -208,12 +201,12 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
   PetscValidLogicalCollectiveInt(eps,nw,2);
   PetscCheck(nw>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
   if (eps->nwork < nw) {
-    ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
+    CHKERRQ(VecDestroyVecs(eps->nwork,&eps->work));
     eps->nwork = nw;
-    ierr = BVGetColumn(eps->V,0,&t);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(t,nw,&eps->work);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,0,&t);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(eps,nw,eps->work);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(eps->V,0,&t));
+    CHKERRQ(VecDuplicateVecs(t,nw,&eps->work));
+    CHKERRQ(BVRestoreColumn(eps->V,0,&t));
+    CHKERRQ(PetscLogObjectParents(eps,nw,eps->work));
   }
   PetscFunctionReturn(0);
 }
@@ -225,10 +218,9 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
 PetscErrorCode EPSSetWhichEigenpairs_Default(EPS eps)
 {
   PetscBool      target;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&target,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompareAny((PetscObject)eps->st,&target,STSINVERT,STCAYLEY,""));
   if (target) eps->which = EPS_TARGET_MAGNITUDE;
   else eps->which = EPS_LARGEST_MAGNITUDE;
   PetscFunctionReturn(0);
@@ -305,16 +297,14 @@ PetscErrorCode EPSConvergedNorm(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscR
 @*/
 PetscErrorCode EPSStoppingBasic(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   *reason = EPS_CONVERGED_ITERATING;
   if (nconv >= nev) {
-    ierr = PetscInfo(eps,"Linear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(eps,"Linear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its));
     *reason = EPS_CONVERGED_TOL;
   } else if (its >= max_it) {
     *reason = EPS_DIVERGED_ITS;
-    ierr = PetscInfo(eps,"Linear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(eps,"Linear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
   }
   PetscFunctionReturn(0);
 }
@@ -330,7 +320,6 @@ PetscErrorCode EPSStoppingBasic(EPS eps,PetscInt its,PetscInt max_it,PetscInt nc
 */
 PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
   PetscInt       l,k;
   PetscReal      norm;
 #if !defined(PETSC_USE_COMPLEX)
@@ -339,56 +328,56 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
 
   PetscFunctionBegin;
   /* compute eigenvector */
-  ierr = BVGetActiveColumns(V,&l,&k);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(V,0,k);CHKERRQ(ierr);
-  ierr = BVMultVec(V,1.0,0.0,x,Zr);CHKERRQ(ierr);
+  CHKERRQ(BVGetActiveColumns(V,&l,&k));
+  CHKERRQ(BVSetActiveColumns(V,0,k));
+  CHKERRQ(BVMultVec(V,1.0,0.0,x,Zr));
 
   /* purify eigenvector if necessary */
   if (eps->purify) {
-    ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
+    CHKERRQ(STApply(eps->st,x,y));
     if (eps->ishermitian) {
-      ierr = BVNormVec(eps->V,y,NORM_2,&norm);CHKERRQ(ierr);
+      CHKERRQ(BVNormVec(eps->V,y,NORM_2,&norm));
     } else {
-      ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
+      CHKERRQ(VecNorm(y,NORM_2,&norm));
     }
-    ierr = VecScale(y,1.0/norm);CHKERRQ(ierr);
-    ierr = VecCopy(y,x);CHKERRQ(ierr);
+    CHKERRQ(VecScale(y,1.0/norm));
+    CHKERRQ(VecCopy(y,x));
   }
   /* fix eigenvector if balancing is used */
   if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE && eps->D) {
-    ierr = VecPointwiseDivide(x,x,eps->D);CHKERRQ(ierr);
+    CHKERRQ(VecPointwiseDivide(x,x,eps->D));
   }
 #if !defined(PETSC_USE_COMPLEX)
   /* compute imaginary part of eigenvector */
   if (Zi) {
-    ierr = BVMultVec(V,1.0,0.0,y,Zi);CHKERRQ(ierr);
+    CHKERRQ(BVMultVec(V,1.0,0.0,y,Zi));
     if (eps->ispositive) {
-      ierr = BVCreateVec(V,&z);CHKERRQ(ierr);
-      ierr = STApply(eps->st,y,z);CHKERRQ(ierr);
-      ierr = VecNorm(z,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = VecScale(z,1.0/norm);CHKERRQ(ierr);
-      ierr = VecCopy(z,y);CHKERRQ(ierr);
-      ierr = VecDestroy(&z);CHKERRQ(ierr);
+      CHKERRQ(BVCreateVec(V,&z));
+      CHKERRQ(STApply(eps->st,y,z));
+      CHKERRQ(VecNorm(z,NORM_2,&norm));
+      CHKERRQ(VecScale(z,1.0/norm));
+      CHKERRQ(VecCopy(z,y));
+      CHKERRQ(VecDestroy(&z));
     }
     if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-      ierr = VecPointwiseDivide(y,y,eps->D);CHKERRQ(ierr);
+      CHKERRQ(VecPointwiseDivide(y,y,eps->D));
     }
   } else
 #endif
-  { ierr = VecSet(y,0.0);CHKERRQ(ierr); }
+  CHKERRQ(VecSet(y,0.0));
 
   /* normalize eigenvectors (when using balancing) */
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
 #if !defined(PETSC_USE_COMPLEX)
     if (Zi) {
-      ierr = VecNormalizeComplex(x,y,PETSC_TRUE,NULL);CHKERRQ(ierr);
+      CHKERRQ(VecNormalizeComplex(x,y,PETSC_TRUE,NULL));
     } else
 #endif
     {
-      ierr = VecNormalize(x,NULL);CHKERRQ(ierr);
+      CHKERRQ(VecNormalize(x,NULL));
     }
   }
-  ierr = BVSetActiveColumns(V,l,k);CHKERRQ(ierr);
+  CHKERRQ(BVSetActiveColumns(V,l,k));
   PetscFunctionReturn(0);
 }
 
@@ -404,47 +393,46 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
   PetscScalar       *pz,*pD;
   const PetscScalar *pr,*pp;
   PetscRandom       rand;
-  PetscErrorCode    ierr;
 
   PetscFunctionBegin;
-  ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
-  ierr = BVGetRandomContext(eps->V,&rand);CHKERRQ(ierr);
+  CHKERRQ(EPSSetWorkVecs(eps,3));
+  CHKERRQ(BVGetRandomContext(eps->V,&rand));
   r = eps->work[0];
   p = eps->work[1];
   z = eps->work[2];
-  ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
+  CHKERRQ(VecSet(eps->D,1.0));
 
   for (j=0;j<eps->balance_its;j++) {
 
     /* Build a random vector of +-1's */
-    ierr = VecSetRandom(z,rand);CHKERRQ(ierr);
-    ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
+    CHKERRQ(VecSetRandom(z,rand));
+    CHKERRQ(VecGetArray(z,&pz));
     for (i=0;i<eps->nloc;i++) {
       if (PetscRealPart(pz[i])<0.5) pz[i]=-1.0;
       else pz[i]=1.0;
     }
-    ierr = VecRestoreArray(z,&pz);CHKERRQ(ierr);
+    CHKERRQ(VecRestoreArray(z,&pz));
 
     /* Compute p=DA(D\z) */
-    ierr = VecPointwiseDivide(r,z,eps->D);CHKERRQ(ierr);
-    ierr = STApply(eps->st,r,p);CHKERRQ(ierr);
-    ierr = VecPointwiseMult(p,p,eps->D);CHKERRQ(ierr);
+    CHKERRQ(VecPointwiseDivide(r,z,eps->D));
+    CHKERRQ(STApply(eps->st,r,p));
+    CHKERRQ(VecPointwiseMult(p,p,eps->D));
     if (eps->balance == EPS_BALANCE_TWOSIDE) {
       if (j==0) {
         /* Estimate the matrix inf-norm */
-        ierr = VecAbs(p);CHKERRQ(ierr);
-        ierr = VecMax(p,NULL,&norma);CHKERRQ(ierr);
+        CHKERRQ(VecAbs(p));
+        CHKERRQ(VecMax(p,NULL,&norma));
       }
       /* Compute r=D\(A'Dz) */
-      ierr = VecPointwiseMult(z,z,eps->D);CHKERRQ(ierr);
-      ierr = STApplyHermitianTranspose(eps->st,z,r);CHKERRQ(ierr);
-      ierr = VecPointwiseDivide(r,r,eps->D);CHKERRQ(ierr);
+      CHKERRQ(VecPointwiseMult(z,z,eps->D));
+      CHKERRQ(STApplyHermitianTranspose(eps->st,z,r));
+      CHKERRQ(VecPointwiseDivide(r,r,eps->D));
     }
 
     /* Adjust values of D */
-    ierr = VecGetArrayRead(r,&pr);CHKERRQ(ierr);
-    ierr = VecGetArrayRead(p,&pp);CHKERRQ(ierr);
-    ierr = VecGetArray(eps->D,&pD);CHKERRQ(ierr);
+    CHKERRQ(VecGetArrayRead(r,&pr));
+    CHKERRQ(VecGetArrayRead(p,&pp));
+    CHKERRQ(VecGetArray(eps->D,&pD));
     for (i=0;i<eps->nloc;i++) {
       if (eps->balance == EPS_BALANCE_TWOSIDE) {
         if (PetscAbsScalar(pp[i])>eps->balance_cutoff*norma && pr[i]!=0.0)
@@ -453,10 +441,9 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
         if (pp[i]!=0.0) pD[i] /= PetscAbsScalar(pp[i]);
       }
     }
-    ierr = VecRestoreArrayRead(r,&pr);CHKERRQ(ierr);
-    ierr = VecRestoreArrayRead(p,&pp);CHKERRQ(ierr);
-    ierr = VecRestoreArray(eps->D,&pD);CHKERRQ(ierr);
+    CHKERRQ(VecRestoreArrayRead(r,&pr));
+    CHKERRQ(VecRestoreArrayRead(p,&pp));
+    CHKERRQ(VecRestoreArray(eps->D,&pD));
   }
   PetscFunctionReturn(0);
 }
-

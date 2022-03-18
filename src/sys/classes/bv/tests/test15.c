@@ -17,26 +17,25 @@ static char help[] = "Test BVGetSplit().\n\n";
  */
 PetscErrorCode PrintFirstRow(BV X)
 {
-  PetscErrorCode    ierr;
   PetscMPIInt       rank;
   PetscInt          i,nloc,k,nc;
   const PetscScalar *pX;
   const char        *name;
 
   PetscFunctionBeginUser;
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)X),&rank);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)X),&rank));
   if (!rank) {
-    ierr = BVGetActiveColumns(X,NULL,&k);CHKERRQ(ierr);
-    ierr = BVGetSizes(X,&nloc,NULL,NULL);CHKERRQ(ierr);
-    ierr = BVGetNumConstraints(X,&nc);CHKERRQ(ierr);
-    ierr = PetscObjectGetName((PetscObject)X,&name);CHKERRQ(ierr);
-    ierr = PetscPrintf(PetscObjectComm((PetscObject)X),"First row of %s =\n",name);CHKERRQ(ierr);
-    ierr = BVGetArrayRead(X,&pX);CHKERRQ(ierr);
+    CHKERRQ(BVGetActiveColumns(X,NULL,&k));
+    CHKERRQ(BVGetSizes(X,&nloc,NULL,NULL));
+    CHKERRQ(BVGetNumConstraints(X,&nc));
+    CHKERRQ(PetscObjectGetName((PetscObject)X,&name));
+    CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"First row of %s =\n",name));
+    CHKERRQ(BVGetArrayRead(X,&pX));
     for (i=0;i<nc+k;i++) {
-      ierr = PetscPrintf(PetscObjectComm((PetscObject)X),"%g ",(double)PetscRealPart(pX[i*nloc]));CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"%g ",(double)PetscRealPart(pX[i*nloc])));
     }
-    ierr = PetscPrintf(PetscObjectComm((PetscObject)X),"\n");CHKERRQ(ierr);
-    ierr = BVRestoreArrayRead(X,&pX);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"\n"));
+    CHKERRQ(BVRestoreArrayRead(X,&pX));
   }
   PetscFunctionReturn(0);
 }
@@ -53,112 +52,112 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-nc",&nc,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BVGetSplit (length %" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT ", nc=%" PetscInt_FMT ").\n",n,l,k,nc);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-nc",&nc,NULL));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BVGetSplit (length %" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT ", nc=%" PetscInt_FMT ").\n",n,l,k,nc));
 
   /* Create template vector */
-  ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
-  ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(t);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(t,&nloc);CHKERRQ(ierr);
+  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
+  CHKERRQ(VecSetSizes(t,PETSC_DECIDE,n));
+  CHKERRQ(VecSetFromOptions(t));
+  CHKERRQ(VecGetLocalSize(t,&nloc));
 
   /* Create BV object X */
-  ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&X));
+  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
+  CHKERRQ(BVSetSizesFromVec(X,t,k));
+  CHKERRQ(BVSetFromOptions(X));
 
   /* Generate constraints and attach them to X */
   if (nc>0) {
-    ierr = VecDuplicateVecs(t,nc,&C);CHKERRQ(ierr);
+    CHKERRQ(VecDuplicateVecs(t,nc,&C));
     for (j=0;j<nc;j++) {
       for (i=0;i<=j;i++) {
-        ierr = VecSetValue(C[j],nc-i+1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(VecSetValue(C[j],nc-i+1,1.0,INSERT_VALUES));
       }
-      ierr = VecAssemblyBegin(C[j]);CHKERRQ(ierr);
-      ierr = VecAssemblyEnd(C[j]);CHKERRQ(ierr);
+      CHKERRQ(VecAssemblyBegin(C[j]));
+      CHKERRQ(VecAssemblyEnd(C[j]));
     }
-    ierr = BVInsertConstraints(X,&nc,C);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(nc,&C);CHKERRQ(ierr);
+    CHKERRQ(BVInsertConstraints(X,&nc,C));
+    CHKERRQ(VecDestroyVecs(nc,&C));
   }
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
   if (verbose) {
-    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
   }
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
-    ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-    ierr = VecSet(v,0.0);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(X,j,&v));
+    CHKERRQ(VecSet(v,0.0));
     for (i=0;i<4;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
       }
     }
-    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
+    CHKERRQ(VecAssemblyBegin(v));
+    CHKERRQ(VecAssemblyEnd(v));
+    CHKERRQ(BVRestoreColumn(X,j,&v));
   }
   if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(X,view));
   }
 
   /* Get split BVs */
-  ierr = BVSetActiveColumns(X,l,k);CHKERRQ(ierr);
-  ierr = BVGetSplit(X,&L,&R);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)L,"L");CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
+  CHKERRQ(BVSetActiveColumns(X,l,k));
+  CHKERRQ(BVGetSplit(X,&L,&R));
+  CHKERRQ(PetscObjectSetName((PetscObject)L,"L"));
+  CHKERRQ(PetscObjectSetName((PetscObject)R,"R"));
 
   if (verbose) {
-    ierr = BVView(L,view);CHKERRQ(ierr);
-    ierr = BVView(R,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(L,view));
+    CHKERRQ(BVView(R,view));
   }
 
   /* Modify first column of R */
-  ierr = BVGetColumn(R,0,&v);CHKERRQ(ierr);
-  ierr = VecSet(v,-1.0);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(R,0,&v);CHKERRQ(ierr);
+  CHKERRQ(BVGetColumn(R,0,&v));
+  CHKERRQ(VecSet(v,-1.0));
+  CHKERRQ(BVRestoreColumn(R,0,&v));
 
   /* Finished using the split BVs */
-  ierr = BVRestoreSplit(X,&L,&R);CHKERRQ(ierr);
-  ierr = PrintFirstRow(X);CHKERRQ(ierr);
+  CHKERRQ(BVRestoreSplit(X,&L,&R));
+  CHKERRQ(PrintFirstRow(X));
   if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(X,view));
   }
 
   /* Get the left split BV only */
-  ierr = BVGetSplit(X,&L,NULL);CHKERRQ(ierr);
+  CHKERRQ(BVGetSplit(X,&L,NULL));
   for (j=0;j<l;j++) {
-    ierr = BVOrthogonalizeColumn(L,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    CHKERRQ(BVOrthogonalizeColumn(L,j,NULL,&norm,NULL));
     alpha = 1.0/norm;
-    ierr = BVScaleColumn(L,j,alpha);CHKERRQ(ierr);
+    CHKERRQ(BVScaleColumn(L,j,alpha));
   }
-  ierr = BVRestoreSplit(X,&L,NULL);CHKERRQ(ierr);
-  ierr = PrintFirstRow(X);CHKERRQ(ierr);
+  CHKERRQ(BVRestoreSplit(X,&L,NULL));
+  CHKERRQ(PrintFirstRow(X));
   if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(X,view));
   }
 
   /* Now get the right split BV after changing the number of leading columns */
-  ierr = BVSetActiveColumns(X,l-1,k);CHKERRQ(ierr);
-  ierr = BVGetSplit(X,NULL,&R);CHKERRQ(ierr);
-  ierr = BVGetColumn(R,0,&v);CHKERRQ(ierr);
-  ierr = BVInsertVec(X,0,v);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(R,0,&v);CHKERRQ(ierr);
-  ierr = BVRestoreSplit(X,NULL,&R);CHKERRQ(ierr);
-  ierr = PrintFirstRow(X);CHKERRQ(ierr);
+  CHKERRQ(BVSetActiveColumns(X,l-1,k));
+  CHKERRQ(BVGetSplit(X,NULL,&R));
+  CHKERRQ(BVGetColumn(R,0,&v));
+  CHKERRQ(BVInsertVec(X,0,v));
+  CHKERRQ(BVRestoreColumn(R,0,&v));
+  CHKERRQ(BVRestoreSplit(X,NULL,&R));
+  CHKERRQ(PrintFirstRow(X));
   if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(X,view));
   }
 
-  ierr = BVDestroy(&X);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
+  CHKERRQ(BVDestroy(&X));
+  CHKERRQ(VecDestroy(&t));
   ierr = SlepcFinalize();
   return ierr;
 }

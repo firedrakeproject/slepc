@@ -50,144 +50,144 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
-  ierr = PetscOptionsGetReal(NULL,NULL,"-target",&target,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-target",&target,NULL));
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid) target=%f\n\n",N,n,m,(double)target);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid) target=%f\n\n",N,n,m,(double)target));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the 5-point stencil Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    CHKERRQ(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,&x,NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&nloc,&mloc);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatCreateVecs(A,&x,NULL));
+  CHKERRQ(MatGetLocalSize(A,&nloc,&mloc));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create shell matrix to perform spectrum folding
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = PetscNew(&ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscNew(&ctx));
   ctx->A = A;
   ctx->target = target;
-  ierr = VecDuplicate(x,&ctx->w);CHKERRQ(ierr);
+  CHKERRQ(VecDuplicate(x,&ctx->w));
 
-  ierr = MatCreateShell(PETSC_COMM_WORLD,nloc,mloc,N,N,ctx,&M);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatMult_Fold);CHKERRQ(ierr);
+  CHKERRQ(MatCreateShell(PETSC_COMM_WORLD,nloc,mloc,N,N,ctx,&M));
+  CHKERRQ(MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatMult_Fold));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,M,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  CHKERRQ(EPSSetOperators(eps,M,NULL));
+  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
+  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
+  CHKERRQ(EPSSetFromOptions(eps));
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,EPSBLOPEX,EPSLOBPCG,EPSRQCG,"");CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,EPSBLOPEX,EPSLOBPCG,EPSRQCG,""));
   if (flag) {
     /*
        Build preconditioner specific for this application (diagonal of A^2)
     */
-    ierr = MatGetRowSum(A,x);CHKERRQ(ierr);
-    ierr = VecScale(x,-1.0);CHKERRQ(ierr);
-    ierr = VecShift(x,20.0);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&P);CHKERRQ(ierr);
-    ierr = MatSetSizes(P,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(P);CHKERRQ(ierr);
-    ierr = MatSetUp(P);CHKERRQ(ierr);
-    ierr = MatDiagonalSet(P,x,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatGetRowSum(A,x));
+    CHKERRQ(VecScale(x,-1.0));
+    CHKERRQ(VecShift(x,20.0));
+    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&P));
+    CHKERRQ(MatSetSizes(P,PETSC_DECIDE,PETSC_DECIDE,N,N));
+    CHKERRQ(MatSetFromOptions(P));
+    CHKERRQ(MatSetUp(P));
+    CHKERRQ(MatDiagonalSet(P,x,INSERT_VALUES));
     /*
        Set diagonal preconditioner
     */
-    ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-    ierr = STSetType(st,STPRECOND);CHKERRQ(ierr);
-    ierr = STSetPreconditionerMat(st,P);CHKERRQ(ierr);
-    ierr = MatDestroy(&P);CHKERRQ(ierr);
-    ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-    ierr = STPrecondGetKSPHasMat(st,&hasmat);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Preconditioned solver, hasmat=%s\n",hasmat?"true":"false");CHKERRQ(ierr);
+    CHKERRQ(EPSGetST(eps,&st));
+    CHKERRQ(STSetType(st,STPRECOND));
+    CHKERRQ(STSetPreconditionerMat(st,P));
+    CHKERRQ(MatDestroy(&P));
+    CHKERRQ(STGetKSP(st,&ksp));
+    CHKERRQ(KSPGetPC(ksp,&pc));
+    CHKERRQ(PCSetType(pc,PCJACOBI));
+    CHKERRQ(STPrecondGetKSPHasMat(st,&hasmat));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Preconditioned solver, hasmat=%s\n",hasmat?"true":"false"));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(eps,&tol,NULL);CHKERRQ(ierr);
+  CHKERRQ(EPSSolve(eps));
+  CHKERRQ(EPSGetType(eps,&type));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  CHKERRQ(EPSGetTolerances(eps,&tol,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv);CHKERRQ(ierr);
+  CHKERRQ(EPSGetConverged(eps,&nconv));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv));
   if (nconv>0) {
-    ierr = PetscMalloc2(nconv,&evals,nconv,&error);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc2(nconv,&evals,nconv,&error));
     for (i=0;i<nconv;i++) {
       /*  Get i-th eigenvector, compute eigenvalue approximation from
           Rayleigh quotient and compute residual norm */
-      ierr = EPSGetEigenpair(eps,i,NULL,NULL,x,NULL);CHKERRQ(ierr);
-      ierr = RayleighQuotient(A,x,&lambda);CHKERRQ(ierr);
-      ierr = ComputeResidualNorm(A,lambda,x,&error[i]);CHKERRQ(ierr);
+      CHKERRQ(EPSGetEigenpair(eps,i,NULL,NULL,x,NULL));
+      CHKERRQ(RayleighQuotient(A,x,&lambda));
+      CHKERRQ(ComputeResidualNorm(A,lambda,x,&error[i]));
 #if defined(PETSC_USE_COMPLEX)
       evals[i] = PetscRealPart(lambda);
 #else
       evals[i] = lambda;
 #endif
     }
-    ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+    CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
     if (!terse) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,
            "           k              ||Ax-kx||\n"
-           "   ----------------- ------------------\n");CHKERRQ(ierr);
+           "   ----------------- ------------------\n"));
       for (i=0;i<nconv;i++) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12.2g\n",(double)evals[i],(double)error[i]);CHKERRQ(ierr);
+        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12.2g\n",(double)evals[i],(double)error[i]));
       }
     } else {
       errok = PETSC_TRUE;
       for (i=0;i<nconv;i++) errok = (errok && error[i]<5.0*tol)? PETSC_TRUE: PETSC_FALSE;
       if (!errok) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nconv);CHKERRQ(ierr);
+        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nconv));
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," nconv=%" PetscInt_FMT " eigenvalues computed up to the required tolerance:",nconv);CHKERRQ(ierr);
+        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," nconv=%" PetscInt_FMT " eigenvalues computed up to the required tolerance:",nconv));
         for (i=0;i<nconv;i++) {
-          ierr = PetscPrintf(PETSC_COMM_WORLD," %.5f",(double)evals[i]);CHKERRQ(ierr);
+          CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %.5f",(double)evals[i]));
         }
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-    ierr = PetscFree2(evals,error);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+    CHKERRQ(PetscFree2(evals,error));
   }
 
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  CHKERRQ(EPSDestroy(&eps));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&M));
+  CHKERRQ(VecDestroy(&ctx->w));
+  CHKERRQ(VecDestroy(&x));
+  CHKERRQ(PetscFree(ctx));
   ierr = SlepcFinalize();
   return ierr;
 }
@@ -200,15 +200,14 @@ PetscErrorCode MatMult_Fold(Mat M,Vec x,Vec y)
 {
   CTX_FOLD       *ctx;
   PetscScalar    sigma;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&ctx));
   sigma = -ctx->target;
-  ierr = MatMult(ctx->A,x,ctx->w);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->w,sigma,x);CHKERRQ(ierr);
-  ierr = MatMult(ctx->A,ctx->w,y);CHKERRQ(ierr);
-  ierr = VecAXPY(y,sigma,ctx->w);CHKERRQ(ierr);
+  CHKERRQ(MatMult(ctx->A,x,ctx->w));
+  CHKERRQ(VecAXPY(ctx->w,sigma,x));
+  CHKERRQ(MatMult(ctx->A,ctx->w,y));
+  CHKERRQ(VecAXPY(y,sigma,ctx->w));
   PetscFunctionReturn(0);
 }
 
@@ -219,13 +218,12 @@ PetscErrorCode MatMult_Fold(Mat M,Vec x,Vec y)
 PetscErrorCode RayleighQuotient(Mat A,Vec x,PetscScalar *r)
 {
   Vec            Ax;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = VecDuplicate(x,&Ax);CHKERRQ(ierr);
-  ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
-  ierr = VecDot(Ax,x,r);CHKERRQ(ierr);
-  ierr = VecDestroy(&Ax);CHKERRQ(ierr);
+  CHKERRQ(VecDuplicate(x,&Ax));
+  CHKERRQ(MatMult(A,x,Ax));
+  CHKERRQ(VecDot(Ax,x,r));
+  CHKERRQ(VecDestroy(&Ax));
   PetscFunctionReturn(0);
 }
 
@@ -235,14 +233,13 @@ PetscErrorCode RayleighQuotient(Mat A,Vec x,PetscScalar *r)
 PetscErrorCode ComputeResidualNorm(Mat A,PetscScalar lambda,Vec x,PetscReal *r)
 {
   Vec            Ax;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = VecDuplicate(x,&Ax);CHKERRQ(ierr);
-  ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
-  ierr = VecAXPY(Ax,-lambda,x);CHKERRQ(ierr);
-  ierr = VecNorm(Ax,NORM_2,r);CHKERRQ(ierr);
-  ierr = VecDestroy(&Ax);CHKERRQ(ierr);
+  CHKERRQ(VecDuplicate(x,&Ax));
+  CHKERRQ(MatMult(A,x,Ax));
+  CHKERRQ(VecAXPY(Ax,-lambda,x));
+  CHKERRQ(VecNorm(Ax,NORM_2,r));
+  CHKERRQ(VecDestroy(&Ax));
   PetscFunctionReturn(0);
 }
 

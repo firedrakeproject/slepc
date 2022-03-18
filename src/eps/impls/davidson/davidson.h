@@ -186,11 +186,10 @@ typedef struct {
 
 static inline PetscErrorCode EPSDavidsonFLAdd(dvdFunctionList **fl,dvdCallback f)
 {
-  PetscErrorCode ierr;
   dvdFunctionList *l;
 
   PetscFunctionBegin;
-  ierr = PetscNew(&l);CHKERRQ(ierr);
+  CHKERRQ(PetscNew(&l));
   l->f = f;
   l->next = *fl;
   *fl = l;
@@ -199,23 +198,21 @@ static inline PetscErrorCode EPSDavidsonFLAdd(dvdFunctionList **fl,dvdCallback f
 
 static inline PetscErrorCode EPSDavidsonFLCall(dvdFunctionList *fl,dvdDashboard *d)
 {
-  PetscErrorCode ierr;
   dvdFunctionList *l;
 
   PetscFunctionBegin;
-  for (l=fl;l;l=l->next) { ierr = (l->f)(d);CHKERRQ(ierr); }
+  for (l=fl;l;l=l->next) CHKERRQ((l->f)(d));
   PetscFunctionReturn(0);
 }
 
 static inline PetscErrorCode EPSDavidsonFLDestroy(dvdFunctionList **fl)
 {
-  PetscErrorCode  ierr;
   dvdFunctionList *l,*l0;
 
   PetscFunctionBegin;
   for (l=*fl;l;l=l0) {
     l0 = l->next;
-    ierr = PetscFree(l);CHKERRQ(ierr);
+    CHKERRQ(PetscFree(l));
   }
   *fl = NULL;
   PetscFunctionReturn(0);
@@ -293,4 +290,3 @@ SLEPC_INTERN PetscErrorCode EPSXDSetBOrth_XD(EPS,PetscBool);
 SLEPC_INTERN PetscErrorCode EPSXDGetBOrth_XD(EPS,PetscBool*);
 SLEPC_INTERN PetscErrorCode EPSJDGetFix_JD(EPS,PetscReal*);
 SLEPC_INTERN PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS,PetscBool*);
-

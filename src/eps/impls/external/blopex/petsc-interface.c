@@ -79,70 +79,62 @@ BlopexInt PETSC_zsygv_interface (BlopexInt *itype,char *jobz,char *uplo,BlopexIn
 
 void *PETSC_MimicVector(void *vvector)
 {
-  PetscErrorCode  ierr;
   Vec temp;
 
-  ierr = VecDuplicate((Vec)vvector,&temp);CHKERRABORT(PETSC_COMM_SELF,ierr);
+  CHKERRABORT(PETSC_COMM_SELF,VecDuplicate((Vec)vvector,&temp));
   return (void*)temp;
 }
 
 BlopexInt PETSC_DestroyVector(void *vvector)
 {
-  PetscErrorCode ierr;
   Vec v = (Vec)vvector;
 
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  CHKERRQ(VecDestroy(&v));
   return 0;
 }
 
 BlopexInt PETSC_InnerProd(void *x,void *y,void *result)
 {
-  PetscErrorCode ierr;
 
-  ierr = VecDot((Vec)x,(Vec)y,(PetscScalar*)result);CHKERRQ(ierr);
+  CHKERRQ(VecDot((Vec)x,(Vec)y,(PetscScalar*)result));
   return 0;
 }
 
 BlopexInt PETSC_CopyVector(void *x,void *y)
 {
-  PetscErrorCode  ierr;
 
-  ierr = VecCopy((Vec)x,(Vec)y);CHKERRQ(ierr);
+  CHKERRQ(VecCopy((Vec)x,(Vec)y));
   return 0;
 }
 
 BlopexInt PETSC_ClearVector(void *x)
 {
-  PetscErrorCode  ierr;
 
-  ierr = VecSet((Vec)x,0.0);CHKERRQ(ierr);
+  CHKERRQ(VecSet((Vec)x,0.0));
   return 0;
 }
 
 BlopexInt PETSC_SetRandomValues(void* v,BlopexInt seed)
 {
-  PetscErrorCode ierr;
 
   /* note: without previous call to LOBPCG_InitRandomContext LOBPCG_RandomContext will be null,
     and VecSetRandom will use internal petsc random context */
 
-  ierr = VecSetRandom((Vec)v,LOBPCG_RandomContext);CHKERRQ(ierr);
+  CHKERRQ(VecSetRandom((Vec)v,LOBPCG_RandomContext));
   return 0;
 }
 
 BlopexInt PETSC_ScaleVector(double alpha,void *x)
 {
-  PetscErrorCode ierr;
 
-  ierr = VecScale((Vec)x,alpha);CHKERRQ(ierr);
+  CHKERRQ(VecScale((Vec)x,alpha));
   return 0;
 }
 
 BlopexInt PETSC_Axpy(void *alpha,void *x,void *y)
 {
-  PetscErrorCode ierr;
 
-  ierr = VecAXPY((Vec)y,*(PetscScalar*)alpha,(Vec)x);CHKERRQ(ierr);
+  CHKERRQ(VecAXPY((Vec)y,*(PetscScalar*)alpha,(Vec)x));
   return 0;
 }
 
@@ -155,37 +147,34 @@ BlopexInt PETSC_VectorSize(void *x)
 
 int LOBPCG_InitRandomContext(MPI_Comm comm,PetscRandom rand)
 {
-  PetscErrorCode ierr;
   /* PetscScalar rnd_bound = 1.0; */
 
   if (rand) {
-    ierr = PetscObjectReference((PetscObject)rand);CHKERRQ(ierr);
-    ierr = PetscRandomDestroy(&LOBPCG_RandomContext);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectReference((PetscObject)rand));
+    CHKERRQ(PetscRandomDestroy(&LOBPCG_RandomContext));
     LOBPCG_RandomContext = rand;
   } else {
-    ierr = PetscRandomCreate(comm,&LOBPCG_RandomContext);CHKERRQ(ierr);
+    CHKERRQ(PetscRandomCreate(comm,&LOBPCG_RandomContext));
   }
   return 0;
 }
 
 int LOBPCG_SetFromOptionsRandomContext(void)
 {
-  PetscErrorCode ierr;
-  ierr = PetscRandomSetFromOptions(LOBPCG_RandomContext);CHKERRQ(ierr);
+  CHKERRQ(PetscRandomSetFromOptions(LOBPCG_RandomContext));
 
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)PetscCMPLX(-1.0,-1.0),(PetscScalar)PetscCMPLX(1.0,1.0));CHKERRQ(ierr);
+  CHKERRQ(PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)PetscCMPLX(-1.0,-1.0),(PetscScalar)PetscCMPLX(1.0,1.0)));
 #else
-  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0);CHKERRQ(ierr);
+  CHKERRQ(PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0));
 #endif
   return 0;
 }
 
 int LOBPCG_DestroyRandomContext(void)
 {
-  PetscErrorCode ierr;
 
-  ierr = PetscRandomDestroy(&LOBPCG_RandomContext);CHKERRQ(ierr);
+  CHKERRQ(PetscRandomDestroy(&LOBPCG_RandomContext));
   return 0;
 }
 

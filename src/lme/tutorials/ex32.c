@@ -30,55 +30,55 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-sigma",&sigma,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-rank",&rank,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-sigma",&sigma,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-rank",&rank,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the 2-D Laplacian, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,-4.0-sigma,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,1.0,INSERT_VALUES));
+    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,1.0,INSERT_VALUES));
+    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,1.0,INSERT_VALUES));
+    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,1.0,INSERT_VALUES));
+    CHKERRQ(MatSetValue(A,II,II,-4.0-sigma,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
        Create a low-rank Mat to store the right-hand side C = C1*C1'
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&C1);CHKERRQ(ierr);
-  ierr = MatSetSizes(C1,PETSC_DECIDE,PETSC_DECIDE,N,2);CHKERRQ(ierr);
-  ierr = MatSetType(C1,MATDENSE);CHKERRQ(ierr);
-  ierr = MatSetUp(C1);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(C1,&Istart,&Iend);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(C1,&u);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&C1));
+  CHKERRQ(MatSetSizes(C1,PETSC_DECIDE,PETSC_DECIDE,N,2));
+  CHKERRQ(MatSetType(C1,MATDENSE));
+  CHKERRQ(MatSetUp(C1));
+  CHKERRQ(MatGetOwnershipRange(C1,&Istart,&Iend));
+  CHKERRQ(MatDenseGetArray(C1,&u));
   for (i=Istart;i<Iend;i++) {
     if (i<N/2) u[i-Istart] = 1.0;
     if (i==0) u[i+Iend-2*Istart] = -2.0;
     if (i==1) u[i+Iend-2*Istart] = -1.0;
     if (i==2) u[i+Iend-2*Istart] = -1.0;
   }
-  ierr = MatDenseRestoreArray(C1,&u);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(C1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(C1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateLRC(NULL,C1,NULL,NULL,&C);CHKERRQ(ierr);
-  ierr = MatDestroy(&C1);CHKERRQ(ierr);
+  CHKERRQ(MatDenseRestoreArray(C1,&u));
+  CHKERRQ(MatAssemblyBegin(C1,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(C1,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatCreateLRC(NULL,C1,NULL,NULL,&C));
+  CHKERRQ(MatDestroy(&C1));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
@@ -86,89 +86,89 @@ int main(int argc,char **argv)
   /*
      Create the matrix equation solver context
   */
-  ierr = LMECreate(PETSC_COMM_WORLD,&lme);CHKERRQ(ierr);
+  CHKERRQ(LMECreate(PETSC_COMM_WORLD,&lme));
 
   /*
      Set the type of equation
   */
-  ierr = LMESetProblemType(lme,LME_LYAPUNOV);CHKERRQ(ierr);
+  CHKERRQ(LMESetProblemType(lme,LME_LYAPUNOV));
 
   /*
      Set the matrix coefficients, the right-hand side, and the solution.
      In this case, it is a Lyapunov equation A*X+X*A'=-C where both
      C and X are symmetric and low-rank, C=C1*C1', X=X1*X1'
   */
-  ierr = LMESetCoefficients(lme,A,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = LMESetRHS(lme,C);CHKERRQ(ierr);
+  CHKERRQ(LMESetCoefficients(lme,A,NULL,NULL,NULL));
+  CHKERRQ(LMESetRHS(lme,C));
 
   if (rank) {  /* Create X only if the user has specified a nonzero value of rank */
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Computing a solution with prescribed rank=%" PetscInt_FMT "\n",rank);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&X1);CHKERRQ(ierr);
-    ierr = MatSetSizes(X1,PETSC_DECIDE,PETSC_DECIDE,N,rank);CHKERRQ(ierr);
-    ierr = MatSetType(X1,MATDENSE);CHKERRQ(ierr);
-    ierr = MatSetUp(X1);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(X1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(X1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatCreateLRC(NULL,X1,NULL,NULL,&X);CHKERRQ(ierr);
-    ierr = MatDestroy(&X1);CHKERRQ(ierr);
-    ierr = LMESetSolution(lme,X);CHKERRQ(ierr);
-    ierr = MatDestroy(&X);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Computing a solution with prescribed rank=%" PetscInt_FMT "\n",rank));
+    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&X1));
+    CHKERRQ(MatSetSizes(X1,PETSC_DECIDE,PETSC_DECIDE,N,rank));
+    CHKERRQ(MatSetType(X1,MATDENSE));
+    CHKERRQ(MatSetUp(X1));
+    CHKERRQ(MatAssemblyBegin(X1,MAT_FINAL_ASSEMBLY));
+    CHKERRQ(MatAssemblyEnd(X1,MAT_FINAL_ASSEMBLY));
+    CHKERRQ(MatCreateLRC(NULL,X1,NULL,NULL,&X));
+    CHKERRQ(MatDestroy(&X1));
+    CHKERRQ(LMESetSolution(lme,X));
+    CHKERRQ(MatDestroy(&X));
   }
 
   /*
      (Optional) Set other solver options
   */
-  ierr = LMESetTolerances(lme,1e-07,PETSC_DEFAULT);CHKERRQ(ierr);
+  CHKERRQ(LMESetTolerances(lme,1e-07,PETSC_DEFAULT));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = LMESetFromOptions(lme);CHKERRQ(ierr);
+  CHKERRQ(LMESetFromOptions(lme));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                    Solve the matrix equation, A*X+X*A'=-C
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = LMESolve(lme);CHKERRQ(ierr);
-  ierr = LMEGetConvergedReason(lme,&reason);CHKERRQ(ierr);
+  CHKERRQ(LMESolve(lme));
+  CHKERRQ(LMEGetConvergedReason(lme,&reason));
   PetscCheck(reason>=0,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
 
   if (!rank) {  /* X1 was created by the solver, so extract it and see how many columns it has */
-    ierr = LMEGetSolution(lme,&X);CHKERRQ(ierr);
-    ierr = MatLRCGetMats(X,NULL,&X1,NULL,NULL);CHKERRQ(ierr);
-    ierr = MatGetSize(X1,NULL,&rank);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," The solver has computed a solution with rank=%" PetscInt_FMT "\n",rank);CHKERRQ(ierr);
+    CHKERRQ(LMEGetSolution(lme,&X));
+    CHKERRQ(MatLRCGetMats(X,NULL,&X1,NULL,NULL));
+    CHKERRQ(MatGetSize(X1,NULL,&rank));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," The solver has computed a solution with rank=%" PetscInt_FMT "\n",rank));
   }
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = LMEGetIterationNumber(lme,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its);CHKERRQ(ierr);
-  ierr = LMEGetDimensions(lme,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv);CHKERRQ(ierr);
-  ierr = LMEGetTolerances(lme,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
+  CHKERRQ(LMEGetIterationNumber(lme,&its));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
+  CHKERRQ(LMEGetDimensions(lme,&ncv));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv));
+  CHKERRQ(LMEGetTolerances(lme,&tol,&maxit));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Compute residual error
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = LMEGetErrorEstimate(lme,&errest);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Error estimate reported by the solver: %.4g\n",(double)errest);CHKERRQ(ierr);
+  CHKERRQ(LMEGetErrorEstimate(lme,&errest));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Error estimate reported by the solver: %.4g\n",(double)errest));
   if (n<=150) {
-    ierr = LMEComputeError(lme,&error);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %.4g\n\n",(double)error);CHKERRQ(ierr);
+    CHKERRQ(LMEComputeError(lme,&error));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %.4g\n\n",(double)error));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Matrix too large to compute residual norm\n\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Matrix too large to compute residual norm\n\n"));
   }
 
   /*
      Free work space
   */
-  ierr = LMEDestroy(&lme);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&C);CHKERRQ(ierr);
+  CHKERRQ(LMEDestroy(&lme));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&C));
   ierr = SlepcFinalize();
   return ierr;
 }

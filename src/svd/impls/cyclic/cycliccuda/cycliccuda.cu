@@ -15,60 +15,57 @@
 
 PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)
 {
-  PetscErrorCode    ierr;
   SVD_CYCLIC_SHELL  *ctx;
   const PetscScalar *d_px;
   PetscScalar       *d_py;
   PetscInt          m;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->A,&m,NULL);CHKERRQ(ierr);
-  ierr = VecCUDAGetArrayRead(x,&d_px);CHKERRQ(ierr);
-  ierr = VecCUDAGetArrayWrite(y,&d_py);CHKERRQ(ierr);
-  ierr = VecCUDAPlaceArray(ctx->x1,d_px);CHKERRQ(ierr);
-  ierr = VecCUDAPlaceArray(ctx->x2,d_px+m);CHKERRQ(ierr);
-  ierr = VecCUDAPlaceArray(ctx->y1,d_py);CHKERRQ(ierr);
-  ierr = VecCUDAPlaceArray(ctx->y2,d_py+m);CHKERRQ(ierr);
-  ierr = MatMult(ctx->A,ctx->x2,ctx->y1);CHKERRQ(ierr);
-  ierr = MatMult(ctx->AT,ctx->x1,ctx->y2);CHKERRQ(ierr);
-  ierr = VecCUDAResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecCUDAResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecCUDAResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecCUDAResetArray(ctx->y2);CHKERRQ(ierr);
-  ierr = VecCUDARestoreArrayRead(x,&d_px);CHKERRQ(ierr);
-  ierr = VecCUDARestoreArrayWrite(y,&d_py);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(B,&ctx));
+  CHKERRQ(MatGetLocalSize(ctx->A,&m,NULL));
+  CHKERRQ(VecCUDAGetArrayRead(x,&d_px));
+  CHKERRQ(VecCUDAGetArrayWrite(y,&d_py));
+  CHKERRQ(VecCUDAPlaceArray(ctx->x1,d_px));
+  CHKERRQ(VecCUDAPlaceArray(ctx->x2,d_px+m));
+  CHKERRQ(VecCUDAPlaceArray(ctx->y1,d_py));
+  CHKERRQ(VecCUDAPlaceArray(ctx->y2,d_py+m));
+  CHKERRQ(MatMult(ctx->A,ctx->x2,ctx->y1));
+  CHKERRQ(MatMult(ctx->AT,ctx->x1,ctx->y2));
+  CHKERRQ(VecCUDAResetArray(ctx->x1));
+  CHKERRQ(VecCUDAResetArray(ctx->x2));
+  CHKERRQ(VecCUDAResetArray(ctx->y1));
+  CHKERRQ(VecCUDAResetArray(ctx->y2));
+  CHKERRQ(VecCUDARestoreArrayRead(x,&d_px));
+  CHKERRQ(VecCUDARestoreArrayWrite(y,&d_py));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatMult_ECross_CUDA(Mat B,Vec x,Vec y)
 {
-  PetscErrorCode    ierr;
   SVD_CYCLIC_SHELL  *ctx;
   const PetscScalar *d_px;
   PetscScalar       *d_py;
   PetscInt          mn,m,n;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(ctx->A,NULL,&n);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(y,&mn);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(B,&ctx));
+  CHKERRQ(MatGetLocalSize(ctx->A,NULL,&n));
+  CHKERRQ(VecGetLocalSize(y,&mn));
   m = mn-n;
-  ierr = VecCUDAGetArrayRead(x,&d_px);CHKERRQ(ierr);
-  ierr = VecCUDAGetArrayWrite(y,&d_py);CHKERRQ(ierr);
-  ierr = VecCUDAPlaceArray(ctx->x1,d_px);CHKERRQ(ierr);
-  ierr = VecCUDAPlaceArray(ctx->x2,d_px+m);CHKERRQ(ierr);
-  ierr = VecCUDAPlaceArray(ctx->y1,d_py);CHKERRQ(ierr);
-  ierr = VecCUDAPlaceArray(ctx->y2,d_py+m);CHKERRQ(ierr);
-  ierr = VecCopy(ctx->x1,ctx->y1);CHKERRQ(ierr);
-  ierr = MatMult(ctx->A,ctx->x2,ctx->w);CHKERRQ(ierr);
-  ierr = MatMult(ctx->AT,ctx->w,ctx->y2);CHKERRQ(ierr);
-  ierr = VecCUDAResetArray(ctx->x1);CHKERRQ(ierr);
-  ierr = VecCUDAResetArray(ctx->x2);CHKERRQ(ierr);
-  ierr = VecCUDAResetArray(ctx->y1);CHKERRQ(ierr);
-  ierr = VecCUDAResetArray(ctx->y2);CHKERRQ(ierr);
-  ierr = VecCUDARestoreArrayRead(x,&d_px);CHKERRQ(ierr);
-  ierr = VecCUDARestoreArrayWrite(y,&d_py);CHKERRQ(ierr);
+  CHKERRQ(VecCUDAGetArrayRead(x,&d_px));
+  CHKERRQ(VecCUDAGetArrayWrite(y,&d_py));
+  CHKERRQ(VecCUDAPlaceArray(ctx->x1,d_px));
+  CHKERRQ(VecCUDAPlaceArray(ctx->x2,d_px+m));
+  CHKERRQ(VecCUDAPlaceArray(ctx->y1,d_py));
+  CHKERRQ(VecCUDAPlaceArray(ctx->y2,d_py+m));
+  CHKERRQ(VecCopy(ctx->x1,ctx->y1));
+  CHKERRQ(MatMult(ctx->A,ctx->x2,ctx->w));
+  CHKERRQ(MatMult(ctx->AT,ctx->w,ctx->y2));
+  CHKERRQ(VecCUDAResetArray(ctx->x1));
+  CHKERRQ(VecCUDAResetArray(ctx->x2));
+  CHKERRQ(VecCUDAResetArray(ctx->y1));
+  CHKERRQ(VecCUDAResetArray(ctx->y2));
+  CHKERRQ(VecCUDARestoreArrayRead(x,&d_px));
+  CHKERRQ(VecCUDARestoreArrayWrite(y,&d_py));
   PetscFunctionReturn(0);
 }
-

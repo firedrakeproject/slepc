@@ -19,16 +19,15 @@ PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
   size_t         sz;
   PetscInt       n,d,nelem;
   PetscBool      ispep,isnep;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)ds,DSNEP,&isnep);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)ds,DSNEP,&isnep));
   if (ispep) {
-    ierr = DSPEPGetDegree(ds,&d);CHKERRQ(ierr);
+    CHKERRQ(DSPEPGetDegree(ds,&d));
   }
   if (isnep) {
-    ierr = DSNEPGetMinimality(ds,&d);CHKERRQ(ierr);
+    CHKERRQ(DSNEPGetMinimality(ds,&d));
   }
   if ((ispep || isnep) && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_U || m==DS_MAT_X || m==DS_MAT_Y)) n = d*ds->ld;
   else n = ds->ld;
@@ -52,44 +51,42 @@ PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
   if (isreal) {
     sz = nelem*sizeof(PetscReal);
     if (ds->rmat[m]) {
-      ierr = PetscFree(ds->rmat[m]);CHKERRQ(ierr);
+      CHKERRQ(PetscFree(ds->rmat[m]));
     } else {
-      ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
+      CHKERRQ(PetscLogObjectMemory((PetscObject)ds,sz));
     }
-    ierr = PetscCalloc1(nelem,&ds->rmat[m]);CHKERRQ(ierr);
+    CHKERRQ(PetscCalloc1(nelem,&ds->rmat[m]));
   } else {
     sz = nelem*sizeof(PetscScalar);
     if (ds->mat[m]) {
-      ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
+      CHKERRQ(PetscFree(ds->mat[m]));
     } else {
-      ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
+      CHKERRQ(PetscLogObjectMemory((PetscObject)ds,sz));
     }
-    ierr = PetscCalloc1(nelem,&ds->mat[m]);CHKERRQ(ierr);
+    CHKERRQ(PetscCalloc1(nelem,&ds->mat[m]));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (s>ds->lwork) {
-    ierr = PetscFree(ds->work);CHKERRQ(ierr);
-    ierr = PetscMalloc1(s,&ds->work);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)ds,(s-ds->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
+    CHKERRQ(PetscFree(ds->work));
+    CHKERRQ(PetscMalloc1(s,&ds->work));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)ds,(s-ds->lwork)*sizeof(PetscScalar)));
     ds->lwork = s;
   }
   if (r>ds->lrwork) {
-    ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
-    ierr = PetscMalloc1(r,&ds->rwork);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)ds,(r-ds->lrwork)*sizeof(PetscReal));CHKERRQ(ierr);
+    CHKERRQ(PetscFree(ds->rwork));
+    CHKERRQ(PetscMalloc1(r,&ds->rwork));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)ds,(r-ds->lrwork)*sizeof(PetscReal)));
     ds->lrwork = r;
   }
   if (i>ds->liwork) {
-    ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
-    ierr = PetscMalloc1(i,&ds->iwork);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)ds,(i-ds->liwork)*sizeof(PetscBLASInt));CHKERRQ(ierr);
+    CHKERRQ(PetscFree(ds->iwork));
+    CHKERRQ(PetscMalloc1(i,&ds->iwork));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)ds,(i-ds->liwork)*sizeof(PetscBLASInt)));
     ds->liwork = i;
   }
   PetscFunctionReturn(0);
@@ -115,7 +112,6 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 @*/
 PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 {
-  PetscErrorCode    ierr;
   PetscInt          i,j,rows,cols;
   PetscScalar       *v;
   PetscViewerFormat format;
@@ -128,14 +124,14 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   PetscValidLogicalCollectiveEnum(ds,m,3);
   DSCheckValidMat(ds,m,3);
   if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)ds),&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)ds),&viewer));
   }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ds,1,viewer,2);
-  ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerGetFormat(viewer,&format));
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
-  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = DSMatGetSize(ds,m,&rows,&cols);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
+  CHKERRQ(DSMatGetSize(ds,m,&rows,&cols));
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */
   v = ds->mat[m];
@@ -144,10 +140,10 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
       if (PetscImaginaryPart(v[i+j*ds->ld])) { allreal = PETSC_FALSE; break; }
 #endif
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
-    ierr = PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rows,cols);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",DSMatName[m]);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rows,cols));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s = [\n",DSMatName[m]));
   } else {
-    ierr = PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",DSMatName[m]);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",DSMatName[m]));
   }
 
   for (i=0;i<rows;i++) {
@@ -155,29 +151,28 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
     for (j=0;j<cols;j++) {
 #if defined(PETSC_USE_COMPLEX)
       if (allreal) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)PetscRealPart(*v));CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)PetscRealPart(*v)));
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",(double)PetscRealPart(*v),(double)PetscImaginaryPart(*v));CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",(double)PetscRealPart(*v),(double)PetscImaginaryPart(*v)));
       }
 #else
-      ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)*v);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)*v));
 #endif
       v += ds->ld;
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
   }
 
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
-    ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"];\n"));
   }
-  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscViewerFlush(viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
+  CHKERRQ(PetscViewerFlush(viewer));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,PetscInt *perm,PetscBool isghiep)
 {
-  PetscErrorCode ierr;
   PetscScalar    re,im,wi0;
   PetscInt       n,i,j,result,tmp1,tmp2=0,d=1;
 
@@ -205,7 +200,7 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
     j = i-1;
     if (wi) wi0 = wi[perm[j]];
     else wi0 = 0.0;
-    ierr = SlepcSCCompare(ds->sc,re,im,wr[perm[j]],wi0,&result);CHKERRQ(ierr);
+    CHKERRQ(SlepcSCCompare(ds->sc,re,im,wr[perm[j]],wi0,&result));
     while (result<0 && j>=ds->l) {
       perm[j+d] = perm[j];
       j--;
@@ -219,7 +214,7 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
       if (j>=ds->l) {
         if (wi) wi0 = wi[perm[j]];
         else wi0 = 0.0;
-        ierr = SlepcSCCompare(ds->sc,re,im,wr[perm[j]],wi0,&result);CHKERRQ(ierr);
+        CHKERRQ(SlepcSCCompare(ds->sc,re,im,wr[perm[j]],wi0,&result));
       }
     }
     perm[j+1] = tmp1;
@@ -230,7 +225,6 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
 
 PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm)
 {
-  PetscErrorCode ierr;
   PetscScalar    re;
   PetscInt       i,j,result,tmp,l,n;
 
@@ -241,11 +235,11 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
   for (i=l+1;i<n;i++) {
     re = eig[perm[i]];
     j = i-1;
-    ierr = SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
+    CHKERRQ(SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result));
     while (result<0 && j>=l) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
       if (j>=l) {
-        ierr = SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result);CHKERRQ(ierr);
+        CHKERRQ(SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result));
       }
     }
   }
@@ -258,7 +252,6 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
 */
 PetscErrorCode DSCopyMatrix_Private(DS ds,DSMatType dst,DSMatType src)
 {
-  PetscErrorCode ierr;
   PetscInt    j,m,off,ld;
   PetscScalar *S,*D;
 
@@ -269,7 +262,7 @@ PetscErrorCode DSCopyMatrix_Private(DS ds,DSMatType dst,DSMatType src)
   S   = ds->mat[src];
   D   = ds->mat[dst];
   for (j=0;j<m;j++) {
-    ierr = PetscArraycpy(D+off+j*ld,S+off+j*ld,m);CHKERRQ(ierr);
+    CHKERRQ(PetscArraycpy(D+off+j*ld,S+off+j*ld,m));
   }
   PetscFunctionReturn(0);
 }
@@ -402,7 +395,6 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt istart,PetscInt iend,PetscIn
 @*/
 PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 {
-  PetscErrorCode ierr;
   PetscScalar    *x;
   PetscInt       i,ld,n,l;
 
@@ -411,14 +403,14 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   PetscValidLogicalCollectiveEnum(ds,mat,2);
   DSCheckValidMat(ds,mat,2);
 
-  ierr = DSGetDimensions(ds,&n,&l,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
-  ierr = PetscArrayzero(&x[ld*l],ld*(n-l));CHKERRQ(ierr);
+  CHKERRQ(DSGetDimensions(ds,&n,&l,NULL,NULL));
+  CHKERRQ(DSGetLeadingDimension(ds,&ld));
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  CHKERRQ(DSGetArray(ds,mat,&x));
+  CHKERRQ(PetscArrayzero(&x[ld*l],ld*(n-l)));
   for (i=l;i<n;i++) x[i+i*ld] = 1.0;
-  ierr = DSRestoreArray(ds,mat,&x);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(ds,mat,&x));
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -441,7 +433,6 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 @*/
 PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindcols)
 {
-  PetscErrorCode ierr;
   PetscInt       n,l,ld;
   PetscBLASInt   ld_,rA,cA,info,ltau,lw;
   PetscScalar    *A,*tau,*w,saux,dummy;
@@ -453,24 +444,24 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
 
-  ierr = DSGetDimensions(ds,&n,&l,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
+  CHKERRQ(DSGetDimensions(ds,&n,&l,NULL,NULL));
+  CHKERRQ(DSGetLeadingDimension(ds,&ld));
   n = n - l;
   PetscCheck(cols<=n,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) PetscFunctionReturn(0);
 
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&A);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(PetscMin(cols,n),&ltau);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(n,&rA);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(cols,&cA);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  CHKERRQ(DSGetArray(ds,mat,&A));
+  CHKERRQ(PetscBLASIntCast(PetscMin(cols,n),&ltau));
+  CHKERRQ(PetscBLASIntCast(ld,&ld_));
+  CHKERRQ(PetscBLASIntCast(n,&rA));
+  CHKERRQ(PetscBLASIntCast(cols,&cA));
   lw = -1;
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,A,&ld_,&dummy,&saux,&lw,&info));
   SlepcCheckLapackInfo("geqrf",info);
   lw = (PetscBLASInt)PetscRealPart(saux);
-  ierr = DSAllocateWork_Private(ds,lw+ltau,0,0);CHKERRQ(ierr);
+  CHKERRQ(DSAllocateWork_Private(ds,lw+ltau,0,0));
   tau = ds->work;
   w = &tau[ltau];
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info));
@@ -479,10 +470,10 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   SlepcCheckLapackInfo("orgqr",info);
   if (lindcols) *lindcols = ltau;
 
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = DSRestoreArray(ds,mat,&A);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  CHKERRQ(PetscFPTrapPop());
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
+  CHKERRQ(DSRestoreArray(ds,mat,&A));
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
@@ -498,7 +489,6 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
 */
 static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar b,PetscScalar a,const PetscScalar *A,PetscInt _ldA,PetscInt rA,PetscInt cA,PetscBool At,const PetscScalar *B,PetscInt _ldB,PetscInt rB,PetscInt cB,PetscBool Bt)
 {
-  PetscErrorCode ierr;
   PetscInt       tmp;
   PetscBLASInt   m, n, k, ldA = _ldA, ldB = _ldB, ldC = _ldC;
   const char     *N = "N", *T = "C", *qA = N, *qB = N;
@@ -528,7 +518,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
     PetscStackCallBLAS("BLASgemm",BLASgemm_(qA,qB,&m,&n,&k,&a,(PetscScalar*)A,&ldA,(PetscScalar*)B,&ldB,&b,C,&ldC));
   }
 
-  ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
+  CHKERRQ(PetscLogFlops(2.0*m*n*k));
   PetscFunctionReturn(0);
 }
 
@@ -557,7 +547,6 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
 @*/
 PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal *s,PetscInt *lindcols,PetscReal *ns)
 {
-  PetscErrorCode ierr;
   PetscInt       i,j,k,l,n,ld;
   PetscBLASInt   info,one=1,zero=0,rA_,ld_;
   PetscScalar    *A,*A_,*m,*h,nr0;
@@ -570,37 +559,37 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
   PetscValidRealPointer(s,4);
-  ierr = DSGetDimensions(ds,&n,&l,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
+  CHKERRQ(DSGetDimensions(ds,&n,&l,NULL,NULL));
+  CHKERRQ(DSGetLeadingDimension(ds,&ld));
   n = n - l;
   PetscCheck(cols<=n,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) PetscFunctionReturn(0);
-  ierr = PetscBLASIntCast(n,&rA_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&A_);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(n,&rA_));
+  CHKERRQ(PetscBLASIntCast(ld,&ld_));
+  CHKERRQ(DSGetArray(ds,mat,&A_));
   A = &A_[ld*l+l];
-  ierr = DSAllocateWork_Private(ds,n+cols,ns?0:cols,0);CHKERRQ(ierr);
+  CHKERRQ(DSAllocateWork_Private(ds,n+cols,ns?0:cols,0));
   m = ds->work;
   h = &m[n];
   ns_ = ns ? ns : ds->rwork;
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(DS_Other,ds,0,0,0));
   for (i=0; i<cols; i++) {
     /* m <- diag(s)*A[i] */
     for (k=0; k<n; k++) m[k] = s[k]*A[k+i*ld];
     /* nr_o <- mynorm(A[i]'*m), mynorm(x) = sign(x)*sqrt(|x|) */
-    ierr = SlepcMatDenseMult(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(SlepcMatDenseMult(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE));
     nr = nr_o = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbsScalar(nr0));
     for (j=0; j<3 && i>0; j++) {
       /* h <- A[0:i-1]'*m */
-      ierr = SlepcMatDenseMult(h,i,0.0,1.0,A,ld,n,i,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
+      CHKERRQ(SlepcMatDenseMult(h,i,0.0,1.0,A,ld,n,i,PETSC_TRUE,m,n,n,1,PETSC_FALSE));
       /* h <- diag(ns)*h */
       for (k=0; k<i; k++) h[k] *= ns_[k];
       /* A[i] <- A[i] - A[0:i-1]*h */
-      ierr = SlepcMatDenseMult(&A[ld*i],ld,1.0,-1.0,A,ld,n,i,PETSC_FALSE,h,i,i,1,PETSC_FALSE);CHKERRQ(ierr);
+      CHKERRQ(SlepcMatDenseMult(&A[ld*i],ld,1.0,-1.0,A,ld,n,i,PETSC_FALSE,h,i,i,1,PETSC_FALSE));
       /* m <- diag(s)*A[i] */
       for (k=0; k<n; k++) m[k] = s[k]*A[k+i*ld];
       /* nr_o <- mynorm(A[i]'*m) */
-      ierr = SlepcMatDenseMult(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE);CHKERRQ(ierr);
+      CHKERRQ(SlepcMatDenseMult(&nr0,1,0.0,1.0,&A[ld*i],ld,n,1,PETSC_TRUE,m,n,n,1,PETSC_FALSE));
       nr = PetscSign(PetscRealPart(nr0))*PetscSqrtReal(PetscAbsScalar(nr0));
       PetscCheck(PetscAbs(nr)>PETSC_MACHINE_EPSILON,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Linear dependency detected");
       if (PetscAbs(nr) > 0.7*PetscAbs(nr_o)) break;
@@ -612,9 +601,9 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
     PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&nr_abs,&done,&rA_,&one,A+i*ld,&ld_,&info));
     SlepcCheckLapackInfo("lascl",info);
   }
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = DSRestoreArray(ds,mat,&A_);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventEnd(DS_Other,ds,0,0,0));
+  CHKERRQ(DSRestoreArray(ds,mat,&A_));
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   if (lindcols) *lindcols = cols;
   PetscFunctionReturn(0);
 }

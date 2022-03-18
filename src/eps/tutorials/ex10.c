@@ -42,26 +42,26 @@ int main (int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem (shell-enabled), n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem (shell-enabled), n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) CHKERRQ(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    CHKERRQ(MatSetValue(A,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -70,83 +70,83 @@ int main (int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+  CHKERRQ(EPSSetOperators(eps,A,NULL));
+  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSSetFromOptions(eps));
 
   /*
      Initialize shell spectral transformation if selected by user
   */
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&isShell);CHKERRQ(ierr);
+  CHKERRQ(EPSGetST(eps,&st));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)st,STSHELL,&isShell));
   if (isShell) {
     /* Change sorting criterion since this ST example computes values
        closest to 0 */
-    ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+    CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
 
     /* (Required) Create a context for the user-defined spectral transform;
        this context can be defined to contain any application-specific data. */
-    ierr = STCreate_User(&shell);CHKERRQ(ierr);
-    ierr = STShellSetContext(st,shell);CHKERRQ(ierr);
+    CHKERRQ(STCreate_User(&shell));
+    CHKERRQ(STShellSetContext(st,shell));
 
     /* (Required) Set the user-defined routine for applying the operator */
-    ierr = STShellSetApply(st,STApply_User);CHKERRQ(ierr);
+    CHKERRQ(STShellSetApply(st,STApply_User));
 
     /* (Optional) Set the user-defined routine for applying the transposed operator */
-    ierr = STShellSetApplyTranspose(st,STApplyTranspose_User);CHKERRQ(ierr);
+    CHKERRQ(STShellSetApplyTranspose(st,STApplyTranspose_User));
 
     /* (Optional) Set the user-defined routine for back-transformation */
-    ierr = STShellSetBackTransform(st,STBackTransform_User);CHKERRQ(ierr);
+    CHKERRQ(STShellSetBackTransform(st,STBackTransform_User));
 
     /* (Optional) Set a name for the transformation, used for STView() */
-    ierr = PetscObjectSetName((PetscObject)st,"MyTransformation");CHKERRQ(ierr);
+    CHKERRQ(PetscObjectSetName((PetscObject)st,"MyTransformation"));
 
     /* (Optional) Do any setup required for the new transformation */
-    ierr = STSetUp_User(shell,st);CHKERRQ(ierr);
+    CHKERRQ(STSetUp_User(shell,st));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSSolve(eps));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  CHKERRQ(EPSGetType(eps,&type));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  CHKERRQ(EPSGetDimensions(eps,&nev,NULL,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
   if (terse) {
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
   if (isShell) {
-    ierr = STDestroy_User(shell);CHKERRQ(ierr);
+    CHKERRQ(STDestroy_User(shell));
   }
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  CHKERRQ(EPSDestroy(&eps));
+  CHKERRQ(MatDestroy(&A));
   ierr = SlepcFinalize();
   return ierr;
 }
@@ -165,12 +165,11 @@ int main (int argc,char **argv)
 PetscErrorCode STCreate_User(SampleShellST **shell)
 {
   SampleShellST  *newctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr   = PetscNew(&newctx);CHKERRQ(ierr);
-  ierr   = KSPCreate(PETSC_COMM_WORLD,&newctx->ksp);CHKERRQ(ierr);
-  ierr   = KSPAppendOptionsPrefix(newctx->ksp,"st_");CHKERRQ(ierr);
+  CHKERRQ(PetscNew(&newctx));
+  CHKERRQ(KSPCreate(PETSC_COMM_WORLD,&newctx->ksp));
+  CHKERRQ(KSPAppendOptionsPrefix(newctx->ksp,"st_"));
   *shell = newctx;
   PetscFunctionReturn(0);
 }
@@ -195,12 +194,11 @@ PetscErrorCode STCreate_User(SampleShellST **shell)
 PetscErrorCode STSetUp_User(SampleShellST *shell,ST st)
 {
   Mat            A;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STGetMatrix(st,0,&A);CHKERRQ(ierr);
-  ierr = KSPSetOperators(shell->ksp,A,A);CHKERRQ(ierr);
-  ierr = KSPSetFromOptions(shell->ksp);CHKERRQ(ierr);
+  CHKERRQ(STGetMatrix(st,0,&A));
+  CHKERRQ(KSPSetOperators(shell->ksp,A,A));
+  CHKERRQ(KSPSetFromOptions(shell->ksp));
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
@@ -223,11 +221,10 @@ PetscErrorCode STSetUp_User(SampleShellST *shell,ST st)
 PetscErrorCode STApply_User(ST st,Vec x,Vec y)
 {
   SampleShellST  *shell;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,&shell);CHKERRQ(ierr);
-  ierr = KSPSolve(shell->ksp,x,y);CHKERRQ(ierr);
+  CHKERRQ(STShellGetContext(st,&shell));
+  CHKERRQ(KSPSolve(shell->ksp,x,y));
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
@@ -245,11 +242,10 @@ PetscErrorCode STApply_User(ST st,Vec x,Vec y)
 PetscErrorCode STApplyTranspose_User(ST st,Vec x,Vec y)
 {
   SampleShellST  *shell;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,&shell);CHKERRQ(ierr);
-  ierr = KSPSolveTranspose(shell->ksp,x,y);CHKERRQ(ierr);
+  CHKERRQ(STShellGetContext(st,&shell));
+  CHKERRQ(KSPSolveTranspose(shell->ksp,x,y));
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
@@ -290,11 +286,9 @@ PetscErrorCode STBackTransform_User(ST st,PetscInt n,PetscScalar *eigr,PetscScal
 */
 PetscErrorCode STDestroy_User(SampleShellST *shell)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = KSPDestroy(&shell->ksp);CHKERRQ(ierr);
-  ierr = PetscFree(shell);CHKERRQ(ierr);
+  CHKERRQ(KSPDestroy(&shell->ksp));
+  CHKERRQ(PetscFree(shell));
   PetscFunctionReturn(0);
 }
 

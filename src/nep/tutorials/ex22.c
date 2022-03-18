@@ -46,16 +46,16 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n\n",n,(double)tau));
   h = PETSC_PI/(PetscReal)(n+1);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create nonlinear eigensolver context
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
+  CHKERRQ(NEPCreate(PETSC_COMM_WORLD,&nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create problem matrices and coefficient functions. Pass them to NEP
@@ -64,59 +64,59 @@ int main(int argc,char **argv)
   /*
      Identity matrix
   */
-  ierr = MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,1.0,&Id);CHKERRQ(ierr);
-  ierr = MatSetOption(Id,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,1.0,&Id));
+  CHKERRQ(MatSetOption(Id,MAT_HERMITIAN,PETSC_TRUE));
 
   /*
      A = 1/h^2*tridiag(1,-2,1) + a*I
   */
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A,i,i-1,1.0/(h*h),INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,i,i+1,1.0/(h*h),INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,i,i,-2.0/(h*h)+a,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(A,i,i-1,1.0/(h*h),INSERT_VALUES));
+    if (i<n-1) CHKERRQ(MatSetValue(A,i,i+1,1.0/(h*h),INSERT_VALUES));
+    CHKERRQ(MatSetValue(A,i,i,-2.0/(h*h)+a,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
 
   /*
      B = diag(b(xi))
   */
-  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-  ierr = MatSetUp(B);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
+  CHKERRQ(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(B));
+  CHKERRQ(MatSetUp(B));
+  CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     xi = (i+1)*h;
     b = -4.1+xi*(1.0-PetscExpReal(xi-PETSC_PI));
-    ierr = MatSetValue(B,i,i,b,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValue(B,i,i,b,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatSetOption(B,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatSetOption(B,MAT_HERMITIAN,PETSC_TRUE));
 
   /*
      Functions: f1=-lambda, f2=1.0, f3=exp(-tau*lambda)
   */
-  ierr = FNCreate(PETSC_COMM_WORLD,&f1);CHKERRQ(ierr);
-  ierr = FNSetType(f1,FNRATIONAL);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f1));
+  CHKERRQ(FNSetType(f1,FNRATIONAL));
   coeffs[0] = -1.0; coeffs[1] = 0.0;
-  ierr = FNRationalSetNumerator(f1,2,coeffs);CHKERRQ(ierr);
+  CHKERRQ(FNRationalSetNumerator(f1,2,coeffs));
 
-  ierr = FNCreate(PETSC_COMM_WORLD,&f2);CHKERRQ(ierr);
-  ierr = FNSetType(f2,FNRATIONAL);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f2));
+  CHKERRQ(FNSetType(f2,FNRATIONAL));
   coeffs[0] = 1.0;
-  ierr = FNRationalSetNumerator(f2,1,coeffs);CHKERRQ(ierr);
+  CHKERRQ(FNRationalSetNumerator(f2,1,coeffs));
 
-  ierr = FNCreate(PETSC_COMM_WORLD,&f3);CHKERRQ(ierr);
-  ierr = FNSetType(f3,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetScale(f3,-tau,1.0);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f3));
+  CHKERRQ(FNSetType(f3,FNEXP));
+  CHKERRQ(FNSetScale(f3,-tau,1.0));
 
   /*
      Set the split operator. Note that A is passed first so that
@@ -125,50 +125,50 @@ int main(int argc,char **argv)
   mats[0] = A;  funs[0] = f2;
   mats[1] = Id; funs[1] = f1;
   mats[2] = B;  funs[2] = f3;
-  ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+  CHKERRQ(NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPSetTolerances(nep,1e-9,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = NEPSetDimensions(nep,1,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = NEPRIISetLagPreconditioner(nep,0);CHKERRQ(ierr);
+  CHKERRQ(NEPSetTolerances(nep,1e-9,PETSC_DEFAULT));
+  CHKERRQ(NEPSetDimensions(nep,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  CHKERRQ(NEPRIISetLagPreconditioner(nep,0));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
+  CHKERRQ(NEPSetFromOptions(nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  CHKERRQ(NEPSolve(nep));
+  CHKERRQ(NEPGetDimensions(nep,&nev,NULL,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
   if (terse) {
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
   } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    CHKERRQ(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = NEPDestroy(&nep);CHKERRQ(ierr);
-  ierr = MatDestroy(&Id);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = FNDestroy(&f1);CHKERRQ(ierr);
-  ierr = FNDestroy(&f2);CHKERRQ(ierr);
-  ierr = FNDestroy(&f3);CHKERRQ(ierr);
+  CHKERRQ(NEPDestroy(&nep));
+  CHKERRQ(MatDestroy(&Id));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&B));
+  CHKERRQ(FNDestroy(&f1));
+  CHKERRQ(FNDestroy(&f2));
+  CHKERRQ(FNDestroy(&f3));
   ierr = SlepcFinalize();
   return ierr;
 }

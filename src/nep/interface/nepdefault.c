@@ -32,17 +32,16 @@
 @*/
 PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
 {
-  PetscErrorCode ierr;
   Vec            t;
 
   PetscFunctionBegin;
   if (nep->nwork < nw) {
-    ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
+    CHKERRQ(VecDestroyVecs(nep->nwork,&nep->work));
     nep->nwork = nw;
-    ierr = BVGetColumn(nep->V,0,&t);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(t,nw,&nep->work);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(nep->V,0,&t);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(nep,nw,nep->work);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(nep->V,0,&t));
+    CHKERRQ(VecDuplicateVecs(t,nw,&nep->work));
+    CHKERRQ(BVRestoreColumn(nep->V,0,&t));
+    CHKERRQ(PetscLogObjectParents(nep,nw,nep->work));
   }
   PetscFunctionReturn(0);
 }
@@ -112,25 +111,24 @@ PetscErrorCode NEPConvergedNorm(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscR
   PetscReal      w=0.0;
   PetscInt       j;
   PetscBool      flg;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) {
-    ierr = NEPComputeFunction(nep,eigr,nep->function,nep->function);CHKERRQ(ierr);
-    ierr = MatHasOperation(nep->function,MATOP_NORM,&flg);CHKERRQ(ierr);
+    CHKERRQ(NEPComputeFunction(nep,eigr,nep->function,nep->function));
+    CHKERRQ(MatHasOperation(nep->function,MATOP_NORM,&flg));
     PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
-    ierr = MatNorm(nep->function,NORM_INFINITY,&w);CHKERRQ(ierr);
+    CHKERRQ(MatNorm(nep->function,NORM_INFINITY,&w));
   } else {
     /* initialization of matrix norms */
     if (!nep->nrma[0]) {
       for (j=0;j<nep->nt;j++) {
-        ierr = MatHasOperation(nep->A[j],MATOP_NORM,&flg);CHKERRQ(ierr);
+        CHKERRQ(MatHasOperation(nep->A[j],MATOP_NORM,&flg));
         PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The convergence test related to the matrix norms requires a matrix norm operation");
-        ierr = MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]);CHKERRQ(ierr);
+        CHKERRQ(MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]));
       }
     }
     for (j=0;j<nep->nt;j++) {
-      ierr = FNEvaluateFunction(nep->f[j],eigr,&s);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunction(nep->f[j],eigr,&s));
       w = w + nep->nrma[j]*PetscAbsScalar(s);
     }
   }
@@ -172,31 +170,27 @@ PetscErrorCode NEPConvergedNorm(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscR
 @*/
 PetscErrorCode NEPStoppingBasic(NEP nep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   *reason = NEP_CONVERGED_ITERATING;
   if (nconv >= nev) {
-    ierr = PetscInfo(nep,"Nonlinear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(nep,"Nonlinear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its));
     *reason = NEP_CONVERGED_TOL;
   } else if (its >= max_it) {
     *reason = NEP_DIVERGED_ITS;
-    ierr = PetscInfo(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPComputeVectors_Schur(NEP nep)
 {
-  PetscErrorCode ierr;
   Mat            Z;
 
   PetscFunctionBegin;
-  ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetMat(nep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = BVMultInPlace(nep->V,Z,0,nep->nconv);CHKERRQ(ierr);
-  ierr = MatDestroy(&Z);CHKERRQ(ierr);
-  ierr = BVNormalize(nep->V,nep->eigi);CHKERRQ(ierr);
+  CHKERRQ(DSVectors(nep->ds,DS_MAT_X,NULL,NULL));
+  CHKERRQ(DSGetMat(nep->ds,DS_MAT_X,&Z));
+  CHKERRQ(BVMultInPlace(nep->V,Z,0,nep->nconv));
+  CHKERRQ(MatDestroy(&Z));
+  CHKERRQ(BVNormalize(nep->V,nep->eigi));
   PetscFunctionReturn(0);
 }
-

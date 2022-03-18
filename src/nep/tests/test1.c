@@ -46,8 +46,8 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
   ctx.h = 1.0/(PetscReal)n;
   ctx.kappa = 1.0;
 
@@ -55,54 +55,54 @@ int main(int argc,char **argv)
                Prepare nonlinear eigensolver context
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
+  CHKERRQ(NEPCreate(PETSC_COMM_WORLD,&nep));
 
   /*
      Create Function and Jacobian matrices; set evaluation routines
   */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&F);CHKERRQ(ierr);
-  ierr = MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(F);CHKERRQ(ierr);
-  ierr = MatSeqAIJSetPreallocation(F,3,NULL);CHKERRQ(ierr);
-  ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
-  ierr = MatSetUp(F);CHKERRQ(ierr);
-  ierr = NEPSetFunction(nep,F,F,FormFunction,&ctx);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&F));
+  CHKERRQ(MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(F));
+  CHKERRQ(MatSeqAIJSetPreallocation(F,3,NULL));
+  CHKERRQ(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
+  CHKERRQ(MatSetUp(F));
+  CHKERRQ(NEPSetFunction(nep,F,F,FormFunction,&ctx));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&J);CHKERRQ(ierr);
-  ierr = MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(J);CHKERRQ(ierr);
-  ierr = MatSeqAIJSetPreallocation(J,3,NULL);CHKERRQ(ierr);
-  ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
-  ierr = MatSetUp(J);CHKERRQ(ierr);
-  ierr = NEPSetJacobian(nep,J,FormJacobian,&ctx);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&J));
+  CHKERRQ(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(J));
+  CHKERRQ(MatSeqAIJSetPreallocation(J,3,NULL));
+  CHKERRQ(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
+  CHKERRQ(MatSetUp(J));
+  CHKERRQ(NEPSetJacobian(nep,J,FormJacobian,&ctx));
 
-  ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
+  CHKERRQ(NEPSetFromOptions(nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPSolve(nep);CHKERRQ(ierr);
+  CHKERRQ(NEPSolve(nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
   if (terse) {
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
   } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    CHKERRQ(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
 
-  ierr = NEPDestroy(&nep);CHKERRQ(ierr);
-  ierr = MatDestroy(&F);CHKERRQ(ierr);
-  ierr = MatDestroy(&J);CHKERRQ(ierr);
+  CHKERRQ(NEPDestroy(&nep));
+  CHKERRQ(MatDestroy(&F));
+  CHKERRQ(MatDestroy(&J));
   ierr = SlepcFinalize();
   return ierr;
 }
@@ -122,7 +122,6 @@ int main(int argc,char **argv)
 */
 PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 {
-  PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
   PetscScalar    A[3],c,d;
   PetscReal      h;
@@ -133,8 +132,8 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   /*
      Compute Function entries and insert into matrix
   */
-  ierr = MatGetSize(fun,&n,NULL);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(fun,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(fun,&n,NULL));
+  CHKERRQ(MatGetOwnershipRange(fun,&Istart,&Iend));
   if (Istart==0) FirstBlock=PETSC_TRUE;
   if (Iend==n) LastBlock=PETSC_TRUE;
   h = user->h;
@@ -147,7 +146,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   for (i=(FirstBlock? Istart+1: Istart);i<(LastBlock? Iend-1: Iend);i++) {
     j[0] = i-1; j[1] = i; j[2] = i+1;
     A[0] = A[2] = -d-lambda*h/6.0; A[1] = 2.0*(d-lambda*h/3.0);
-    ierr = MatSetValues(fun,1,&i,3,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValues(fun,1,&i,3,j,A,INSERT_VALUES));
   }
 
   /*
@@ -157,24 +156,24 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
     i = 0;
     j[0] = 0; j[1] = 1;
     A[0] = 2.0*(d-lambda*h/3.0); A[1] = -d-lambda*h/6.0;
-    ierr = MatSetValues(fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValues(fun,1,&i,2,j,A,INSERT_VALUES));
   }
 
   if (LastBlock) {
     i = n-1;
     j[0] = n-2; j[1] = n-1;
     A[0] = -d-lambda*h/6.0; A[1] = d-lambda*h/3.0+lambda*c;
-    ierr = MatSetValues(fun,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValues(fun,1,&i,2,j,A,INSERT_VALUES));
   }
 
   /*
      Assemble matrix
   */
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
   if (fun != B) {
-    ierr = MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    CHKERRQ(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY));
+    CHKERRQ(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY));
   }
   PetscFunctionReturn(0);
 }
@@ -194,7 +193,6 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 */
 PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 {
-  PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
   PetscScalar    A[3],c;
   PetscReal      h;
@@ -205,8 +203,8 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   /*
      Compute Jacobian entries and insert into matrix
   */
-  ierr = MatGetSize(jac,&n,NULL);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(jac,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(jac,&n,NULL));
+  CHKERRQ(MatGetOwnershipRange(jac,&Istart,&Iend));
   if (Istart==0) FirstBlock=PETSC_TRUE;
   if (Iend==n) LastBlock=PETSC_TRUE;
   h = user->h;
@@ -218,7 +216,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   for (i=(FirstBlock? Istart+1: Istart);i<(LastBlock? Iend-1: Iend);i++) {
     j[0] = i-1; j[1] = i; j[2] = i+1;
     A[0] = A[2] = -h/6.0; A[1] = -2.0*h/3.0;
-    ierr = MatSetValues(jac,1,&i,3,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValues(jac,1,&i,3,j,A,INSERT_VALUES));
   }
 
   /*
@@ -228,21 +226,21 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
     i = 0;
     j[0] = 0; j[1] = 1;
     A[0] = -2.0*h/3.0; A[1] = -h/6.0;
-    ierr = MatSetValues(jac,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValues(jac,1,&i,2,j,A,INSERT_VALUES));
   }
 
   if (LastBlock) {
     i = n-1;
     j[0] = n-2; j[1] = n-1;
     A[0] = -h/6.0; A[1] = -h/3.0-c*c;
-    ierr = MatSetValues(jac,1,&i,2,j,A,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValues(jac,1,&i,2,j,A,INSERT_VALUES));
   }
 
   /*
      Assemble matrix
   */
-  ierr = MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
 }
 

@@ -22,93 +22,93 @@ int main(int argc,char **argv)
   PetscReal      nrm;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   PetscCheck(k>2,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Should specify at least k=3 columns");
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"BV split ops (%" PetscInt_FMT " columns of dimension %" PetscInt_FMT ").\n",k,n);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"BV split ops (%" PetscInt_FMT " columns of dimension %" PetscInt_FMT ").\n",k,n));
 
   /* Create template vector */
-  ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
-  ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(t);CHKERRQ(ierr);
-  ierr = VecDuplicate(t,&v);CHKERRQ(ierr);
-  ierr = VecSet(v,1.0);CHKERRQ(ierr);
+  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
+  CHKERRQ(VecSetSizes(t,PETSC_DECIDE,n));
+  CHKERRQ(VecSetFromOptions(t));
+  CHKERRQ(VecDuplicate(t,&v));
+  CHKERRQ(VecSet(v,1.0));
 
   /* Create BV object X */
-  ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&X));
+  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
+  CHKERRQ(BVSetSizesFromVec(X,t,k));
+  CHKERRQ(BVSetFromOptions(X));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
-    ierr = BVGetColumn(X,j,&w);CHKERRQ(ierr);
-    ierr = VecSet(w,0.0);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(X,j,&w));
+    CHKERRQ(VecSet(w,0.0));
     for (i=0;i<4;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(w,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(VecSetValue(w,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
       }
     }
-    ierr = VecAssemblyBegin(w);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(w);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(X,j,&w);CHKERRQ(ierr);
+    CHKERRQ(VecAssemblyBegin(w));
+    CHKERRQ(VecAssemblyEnd(w));
+    CHKERRQ(BVRestoreColumn(X,j,&w));
   }
 
   /* Use regular operations */
-  ierr = VecCreateSeq(PETSC_COMM_SELF,k+6,&z);CHKERRQ(ierr);
-  ierr = VecGetArray(z,&zarray);CHKERRQ(ierr);
-  ierr = BVGetColumn(X,0,&w);CHKERRQ(ierr);
-  ierr = VecDot(w,v,zarray);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(X,0,&w);CHKERRQ(ierr);
-  ierr = BVDotVec(X,v,zarray+1);CHKERRQ(ierr);
-  ierr = BVDotColumn(X,2,zarray+1+k);CHKERRQ(ierr);
+  CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,k+6,&z));
+  CHKERRQ(VecGetArray(z,&zarray));
+  CHKERRQ(BVGetColumn(X,0,&w));
+  CHKERRQ(VecDot(w,v,zarray));
+  CHKERRQ(BVRestoreColumn(X,0,&w));
+  CHKERRQ(BVDotVec(X,v,zarray+1));
+  CHKERRQ(BVDotColumn(X,2,zarray+1+k));
 
-  ierr = BVGetColumn(X,1,&y);CHKERRQ(ierr);
-  ierr = VecNorm(y,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(X,1,&y);CHKERRQ(ierr);
+  CHKERRQ(BVGetColumn(X,1,&y));
+  CHKERRQ(VecNorm(y,NORM_2,&nrm));
+  CHKERRQ(BVRestoreColumn(X,1,&y));
   zarray[k+3] = nrm;
-  ierr = BVNormVec(X,v,NORM_2,&nrm);CHKERRQ(ierr);
+  CHKERRQ(BVNormVec(X,v,NORM_2,&nrm));
   zarray[k+4] = nrm;
-  ierr = BVNormColumn(X,0,NORM_2,&nrm);CHKERRQ(ierr);
+  CHKERRQ(BVNormColumn(X,0,NORM_2,&nrm));
   zarray[k+5] = nrm;
-  ierr = VecRestoreArray(z,&zarray);CHKERRQ(ierr);
+  CHKERRQ(VecRestoreArray(z,&zarray));
 
   /* Use split operations */
-  ierr = VecCreateSeq(PETSC_COMM_SELF,k+6,&zsplit);CHKERRQ(ierr);
-  ierr = VecGetArray(zsplit,&zarray);CHKERRQ(ierr);
-  ierr = BVGetColumn(X,0,&w);CHKERRQ(ierr);
-  ierr = VecDotBegin(w,v,zarray);CHKERRQ(ierr);
-  ierr = BVDotVecBegin(X,v,zarray+1);CHKERRQ(ierr);
-  ierr = BVDotColumnBegin(X,2,zarray+1+k);CHKERRQ(ierr);
-  ierr = VecDotEnd(w,v,zarray);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(X,0,&w);CHKERRQ(ierr);
-  ierr = BVDotVecEnd(X,v,zarray+1);CHKERRQ(ierr);
-  ierr = BVDotColumnEnd(X,2,zarray+1+k);CHKERRQ(ierr);
+  CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,k+6,&zsplit));
+  CHKERRQ(VecGetArray(zsplit,&zarray));
+  CHKERRQ(BVGetColumn(X,0,&w));
+  CHKERRQ(VecDotBegin(w,v,zarray));
+  CHKERRQ(BVDotVecBegin(X,v,zarray+1));
+  CHKERRQ(BVDotColumnBegin(X,2,zarray+1+k));
+  CHKERRQ(VecDotEnd(w,v,zarray));
+  CHKERRQ(BVRestoreColumn(X,0,&w));
+  CHKERRQ(BVDotVecEnd(X,v,zarray+1));
+  CHKERRQ(BVDotColumnEnd(X,2,zarray+1+k));
 
-  ierr = BVGetColumn(X,1,&y);CHKERRQ(ierr);
-  ierr = VecNormBegin(y,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = BVNormVecBegin(X,v,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = BVNormColumnBegin(X,0,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = VecNormEnd(y,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(X,1,&y);CHKERRQ(ierr);
+  CHKERRQ(BVGetColumn(X,1,&y));
+  CHKERRQ(VecNormBegin(y,NORM_2,&nrm));
+  CHKERRQ(BVNormVecBegin(X,v,NORM_2,&nrm));
+  CHKERRQ(BVNormColumnBegin(X,0,NORM_2,&nrm));
+  CHKERRQ(VecNormEnd(y,NORM_2,&nrm));
+  CHKERRQ(BVRestoreColumn(X,1,&y));
   zarray[k+3] = nrm;
-  ierr = BVNormVecEnd(X,v,NORM_2,&nrm);CHKERRQ(ierr);
+  CHKERRQ(BVNormVecEnd(X,v,NORM_2,&nrm));
   zarray[k+4] = nrm;
-  ierr = BVNormColumnEnd(X,0,NORM_2,&nrm);CHKERRQ(ierr);
+  CHKERRQ(BVNormColumnEnd(X,0,NORM_2,&nrm));
   zarray[k+5] = nrm;
-  ierr = VecRestoreArray(zsplit,&zarray);CHKERRQ(ierr);
+  CHKERRQ(VecRestoreArray(zsplit,&zarray));
 
   /* Show difference */
-  ierr = VecAXPY(z,-1.0,zsplit);CHKERRQ(ierr);
-  ierr = VecNorm(z,NORM_1,&nrm);CHKERRQ(ierr);
-  ierr = PetscSynchronizedPrintf(PETSC_COMM_WORLD,"%g\n",(double)nrm);CHKERRQ(ierr);
-  ierr = PetscSynchronizedFlush(PETSC_COMM_WORLD,NULL);CHKERRQ(ierr);
+  CHKERRQ(VecAXPY(z,-1.0,zsplit));
+  CHKERRQ(VecNorm(z,NORM_1,&nrm));
+  CHKERRQ(PetscSynchronizedPrintf(PETSC_COMM_WORLD,"%g\n",(double)nrm));
+  CHKERRQ(PetscSynchronizedFlush(PETSC_COMM_WORLD,NULL));
 
-  ierr = BVDestroy(&X);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&z);CHKERRQ(ierr);
-  ierr = VecDestroy(&zsplit);CHKERRQ(ierr);
+  CHKERRQ(BVDestroy(&X));
+  CHKERRQ(VecDestroy(&t));
+  CHKERRQ(VecDestroy(&v));
+  CHKERRQ(VecDestroy(&z));
+  CHKERRQ(VecDestroy(&zsplit));
   ierr = SlepcFinalize();
   return ierr;
 }

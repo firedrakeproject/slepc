@@ -32,7 +32,6 @@ typedef struct {
 */
 PetscErrorCode BuildSplitMatrices(PetscInt n,PetscReal a,Mat *Id,Mat *A,Mat *B)
 {
-  PetscErrorCode ierr;
   PetscInt       i,Istart,Iend;
   PetscReal      h,xi;
   PetscScalar    b;
@@ -41,38 +40,38 @@ PetscErrorCode BuildSplitMatrices(PetscInt n,PetscReal a,Mat *Id,Mat *A,Mat *B)
   h = PETSC_PI/(PetscReal)(n+1);
 
   /* Identity matrix */
-  ierr = MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,1.0,Id);CHKERRQ(ierr);
-  ierr = MatSetOption(*Id,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,1.0,Id));
+  CHKERRQ(MatSetOption(*Id,MAT_HERMITIAN,PETSC_TRUE));
 
   /* A = 1/h^2*tridiag(1,-2,1) + a*I */
-  ierr = MatCreate(PETSC_COMM_WORLD,A);CHKERRQ(ierr);
-  ierr = MatSetSizes(*A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(*A);CHKERRQ(ierr);
-  ierr = MatSetUp(*A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(*A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,A));
+  CHKERRQ(MatSetSizes(*A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(*A));
+  CHKERRQ(MatSetUp(*A));
+  CHKERRQ(MatGetOwnershipRange(*A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(*A,i,i-1,1.0/(h*h),INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(*A,i,i+1,1.0/(h*h),INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(*A,i,i,-2.0/(h*h)+a,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(*A,i,i-1,1.0/(h*h),INSERT_VALUES));
+    if (i<n-1) CHKERRQ(MatSetValue(*A,i,i+1,1.0/(h*h),INSERT_VALUES));
+    CHKERRQ(MatSetValue(*A,i,i,-2.0/(h*h)+a,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatSetOption(*A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatSetOption(*A,MAT_HERMITIAN,PETSC_TRUE));
 
   /* B = diag(b(xi)) */
-  ierr = MatCreate(PETSC_COMM_WORLD,B);CHKERRQ(ierr);
-  ierr = MatSetSizes(*B,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(*B);CHKERRQ(ierr);
-  ierr = MatSetUp(*B);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(*B,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,B));
+  CHKERRQ(MatSetSizes(*B,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(*B));
+  CHKERRQ(MatSetUp(*B));
+  CHKERRQ(MatGetOwnershipRange(*B,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     xi = (i+1)*h;
     b = -4.1+xi*(1.0-PetscExpReal(xi-PETSC_PI));
-    ierr = MatSetValue(*B,i,i,b,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValue(*B,i,i,b,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatSetOption(*B,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(*B,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(*B,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatSetOption(*B,MAT_HERMITIAN,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -81,7 +80,6 @@ PetscErrorCode BuildSplitMatrices(PetscInt n,PetscReal a,Mat *Id,Mat *A,Mat *B)
 */
 PetscErrorCode BuildSplitPreconditioner(PetscInt n,PetscReal a,Mat *Ap)
 {
-  PetscErrorCode ierr;
   PetscInt       i,Istart,Iend;
   PetscReal      h;
 
@@ -89,17 +87,17 @@ PetscErrorCode BuildSplitPreconditioner(PetscInt n,PetscReal a,Mat *Ap)
   h = PETSC_PI/(PetscReal)(n+1);
 
   /* Ap = diag(A) */
-  ierr = MatCreate(PETSC_COMM_WORLD,Ap);CHKERRQ(ierr);
-  ierr = MatSetSizes(*Ap,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(*Ap);CHKERRQ(ierr);
-  ierr = MatSetUp(*Ap);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(*Ap,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,Ap));
+  CHKERRQ(MatSetSizes(*Ap,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(*Ap));
+  CHKERRQ(MatSetUp(*Ap));
+  CHKERRQ(MatGetOwnershipRange(*Ap,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(*Ap,i,i,-2.0/(h*h)+a,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValue(*Ap,i,i,-2.0/(h*h)+a,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(*Ap,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*Ap,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatSetOption(*Ap,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(*Ap,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(*Ap,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatSetOption(*Ap,MAT_HERMITIAN,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -108,29 +106,28 @@ PetscErrorCode BuildSplitPreconditioner(PetscInt n,PetscReal a,Mat *Ap)
 */
 PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 {
-  PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
   PetscInt       i,n,Istart,Iend;
   PetscReal      h,xi;
   PetscScalar    b;
 
   PetscFunctionBeginUser;
-  ierr = MatGetSize(fun,&n,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(fun,&n,NULL));
   h = PETSC_PI/(PetscReal)(n+1);
-  ierr = MatGetOwnershipRange(fun,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(fun,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(fun,i,i-1,1.0/(h*h),INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(fun,i,i+1,1.0/(h*h),INSERT_VALUES);CHKERRQ(ierr); }
+    if (i>0) CHKERRQ(MatSetValue(fun,i,i-1,1.0/(h*h),INSERT_VALUES));
+    if (i<n-1) CHKERRQ(MatSetValue(fun,i,i+1,1.0/(h*h),INSERT_VALUES));
     xi = (i+1)*h;
     b = -4.1+xi*(1.0-PetscExpReal(xi-PETSC_PI));
-    ierr = MatSetValue(fun,i,i,-lambda-2.0/(h*h)+user->a+PetscExpScalar(-user->tau*lambda)*b,INSERT_VALUES);CHKERRQ(ierr);
-    if (B!=fun) { ierr = MatSetValue(B,i,i,-lambda-2.0/(h*h)+user->a+PetscExpScalar(-user->tau*lambda)*b,INSERT_VALUES);CHKERRQ(ierr); }
+    CHKERRQ(MatSetValue(fun,i,i,-lambda-2.0/(h*h)+user->a+PetscExpScalar(-user->tau*lambda)*b,INSERT_VALUES));
+    if (B!=fun) CHKERRQ(MatSetValue(B,i,i,-lambda-2.0/(h*h)+user->a+PetscExpScalar(-user->tau*lambda)*b,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY));
   if (fun != B) {
-    ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+    CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
   }
   PetscFunctionReturn(0);
 }
@@ -140,23 +137,22 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 */
 PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 {
-  PetscErrorCode ierr;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
   PetscInt       i,n,Istart,Iend;
   PetscReal      h,xi;
   PetscScalar    b;
 
   PetscFunctionBeginUser;
-  ierr = MatGetSize(jac,&n,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(jac,&n,NULL));
   h = PETSC_PI/(PetscReal)(n+1);
-  ierr = MatGetOwnershipRange(jac,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(jac,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     xi = (i+1)*h;
     b = -4.1+xi*(1.0-PetscExpReal(xi-PETSC_PI));
-    ierr = MatSetValue(jac,i,i,-1.0-user->tau*PetscExpScalar(-user->tau*lambda)*b,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValue(jac,i,i,-1.0-user->tau*PetscExpScalar(-user->tau*lambda)*b,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
 }
 
@@ -175,83 +171,83 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-a",&a,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g, a=%g\n\n",n,(double)tau,(double)a);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
+  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-a",&a,NULL));
+  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g, a=%g\n\n",n,(double)tau,(double)a));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Create nonlinear eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
+  CHKERRQ(NEPCreate(PETSC_COMM_WORLD,&nep));
   if (split) {
-    ierr = BuildSplitMatrices(n,a,&Id,&A,&B);CHKERRQ(ierr);
+    CHKERRQ(BuildSplitMatrices(n,a,&Id,&A,&B));
     /* f1=-lambda */
-    ierr = FNCreate(PETSC_COMM_WORLD,&f1);CHKERRQ(ierr);
-    ierr = FNSetType(f1,FNRATIONAL);CHKERRQ(ierr);
+    CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f1));
+    CHKERRQ(FNSetType(f1,FNRATIONAL));
     coeffs[0] = -1.0; coeffs[1] = 0.0;
-    ierr = FNRationalSetNumerator(f1,2,coeffs);CHKERRQ(ierr);
+    CHKERRQ(FNRationalSetNumerator(f1,2,coeffs));
     /* f2=1.0 */
-    ierr = FNCreate(PETSC_COMM_WORLD,&f2);CHKERRQ(ierr);
-    ierr = FNSetType(f2,FNRATIONAL);CHKERRQ(ierr);
+    CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f2));
+    CHKERRQ(FNSetType(f2,FNRATIONAL));
     coeffs[0] = 1.0;
-    ierr = FNRationalSetNumerator(f2,1,coeffs);CHKERRQ(ierr);
+    CHKERRQ(FNRationalSetNumerator(f2,1,coeffs));
     /* f3=exp(-tau*lambda) */
-    ierr = FNCreate(PETSC_COMM_WORLD,&f3);CHKERRQ(ierr);
-    ierr = FNSetType(f3,FNEXP);CHKERRQ(ierr);
-    ierr = FNSetScale(f3,-tau,1.0);CHKERRQ(ierr);
+    CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f3));
+    CHKERRQ(FNSetType(f3,FNEXP));
+    CHKERRQ(FNSetScale(f3,-tau,1.0));
     mats[0] = A;  funs[0] = f2;
     mats[1] = Id; funs[1] = f1;
     mats[2] = B;  funs[2] = f3;
-    ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
-    ierr = BuildSplitPreconditioner(n,a,&Ap);CHKERRQ(ierr);
+    CHKERRQ(NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN));
+    CHKERRQ(BuildSplitPreconditioner(n,a,&Ap));
     mats[0] = Ap;
     mats[1] = Id;
     mats[2] = B;
-    ierr = NEPSetSplitPreconditioner(nep,3,mats,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    CHKERRQ(NEPSetSplitPreconditioner(nep,3,mats,SAME_NONZERO_PATTERN));
   } else {
     /* callback form  */
     ctx.tau = tau;
     ctx.a   = a;
-    ierr = MatCreate(PETSC_COMM_WORLD,&F);CHKERRQ(ierr);
-    ierr = MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(F);CHKERRQ(ierr);
-    ierr = MatSeqAIJSetPreallocation(F,3,NULL);CHKERRQ(ierr);
-    ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
-    ierr = MatSetUp(F);CHKERRQ(ierr);
-    ierr = MatDuplicate(F,MAT_DO_NOT_COPY_VALUES,&P);CHKERRQ(ierr);
-    ierr = NEPSetFunction(nep,F,P,FormFunction,&ctx);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&J);CHKERRQ(ierr);
-    ierr = MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(J);CHKERRQ(ierr);
-    ierr = MatSeqAIJSetPreallocation(J,3,NULL);CHKERRQ(ierr);
-    ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
-    ierr = MatSetUp(J);CHKERRQ(ierr);
-    ierr = NEPSetJacobian(nep,J,FormJacobian,&ctx);CHKERRQ(ierr);
+    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&F));
+    CHKERRQ(MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n));
+    CHKERRQ(MatSetFromOptions(F));
+    CHKERRQ(MatSeqAIJSetPreallocation(F,3,NULL));
+    CHKERRQ(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
+    CHKERRQ(MatSetUp(F));
+    CHKERRQ(MatDuplicate(F,MAT_DO_NOT_COPY_VALUES,&P));
+    CHKERRQ(NEPSetFunction(nep,F,P,FormFunction,&ctx));
+    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&J));
+    CHKERRQ(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n));
+    CHKERRQ(MatSetFromOptions(J));
+    CHKERRQ(MatSeqAIJSetPreallocation(J,3,NULL));
+    CHKERRQ(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
+    CHKERRQ(MatSetUp(J));
+    CHKERRQ(NEPSetJacobian(nep,J,FormJacobian,&ctx));
   }
 
   /* Set solver parameters at runtime */
-  ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
+  CHKERRQ(NEPSetFromOptions(nep));
 
   /* Solve the eigensystem */
-  ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  CHKERRQ(NEPSolve(nep));
+  CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
 
-  ierr = NEPDestroy(&nep);CHKERRQ(ierr);
+  CHKERRQ(NEPDestroy(&nep));
   if (split) {
-    ierr = MatDestroy(&Id);CHKERRQ(ierr);
-    ierr = MatDestroy(&A);CHKERRQ(ierr);
-    ierr = MatDestroy(&B);CHKERRQ(ierr);
-    ierr = MatDestroy(&Ap);CHKERRQ(ierr);
-    ierr = FNDestroy(&f1);CHKERRQ(ierr);
-    ierr = FNDestroy(&f2);CHKERRQ(ierr);
-    ierr = FNDestroy(&f3);CHKERRQ(ierr);
+    CHKERRQ(MatDestroy(&Id));
+    CHKERRQ(MatDestroy(&A));
+    CHKERRQ(MatDestroy(&B));
+    CHKERRQ(MatDestroy(&Ap));
+    CHKERRQ(FNDestroy(&f1));
+    CHKERRQ(FNDestroy(&f2));
+    CHKERRQ(FNDestroy(&f3));
   } else {
-    ierr = MatDestroy(&F);CHKERRQ(ierr);
-    ierr = MatDestroy(&P);CHKERRQ(ierr);
-    ierr = MatDestroy(&J);CHKERRQ(ierr);
+    CHKERRQ(MatDestroy(&F));
+    CHKERRQ(MatDestroy(&P));
+    CHKERRQ(MatDestroy(&J));
   }
   ierr = SlepcFinalize();
   return ierr;

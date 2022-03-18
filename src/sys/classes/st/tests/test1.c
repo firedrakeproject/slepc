@@ -19,18 +19,17 @@ static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M);
 
 static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
 {
-  PetscErrorCode ierr;
   MPI_Comm       comm;
   PetscInt       n;
 
   PetscFunctionBeginUser;
-  ierr = MatGetSize(*A,&n,NULL);CHKERRQ(ierr);
-  ierr = PetscObjectGetComm((PetscObject)*A,&comm);CHKERRQ(ierr);
-  ierr = MatCreateShell(comm,PETSC_DECIDE,PETSC_DECIDE,n,n,A,M);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*M,MATOP_MULT,(void(*)(void))MatMult_Shell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*M,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*M,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Shell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*M,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Shell);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(*A,&n,NULL));
+  CHKERRQ(PetscObjectGetComm((PetscObject)*A,&comm));
+  CHKERRQ(MatCreateShell(comm,PETSC_DECIDE,PETSC_DECIDE,n,n,A,M));
+  CHKERRQ(MatShellSetOperation(*M,MATOP_MULT,(void(*)(void))MatMult_Shell));
+  CHKERRQ(MatShellSetOperation(*M,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell));
+  CHKERRQ(MatShellSetOperation(*M,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Shell));
+  CHKERRQ(MatShellSetOperation(*M,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Shell));
   PetscFunctionReturn(0);
 }
 
@@ -47,137 +46,133 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian with shell matrices, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian with shell matrices, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix for the 1-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) CHKERRQ(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    CHKERRQ(MatSetValue(A,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* create the shell version of A */
-  ierr = MyShellMatCreate(&A,&S);CHKERRQ(ierr);
+  CHKERRQ(MyShellMatCreate(&A,&S));
 
   /* work vectors */
-  ierr = MatCreateVecs(A,&v,&w);CHKERRQ(ierr);
-  ierr = VecSet(v,1.0);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(A,&v,&w));
+  CHKERRQ(VecSet(v,1.0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the spectral transformation object
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = STCreate(PETSC_COMM_WORLD,&st);CHKERRQ(ierr);
+  CHKERRQ(STCreate(PETSC_COMM_WORLD,&st));
   mat[0] = S;
-  ierr = STSetMatrices(st,1,mat);CHKERRQ(ierr);
-  ierr = STSetTransform(st,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = STSetFromOptions(st);CHKERRQ(ierr);
+  CHKERRQ(STSetMatrices(st,1,mat));
+  CHKERRQ(STSetTransform(st,PETSC_TRUE));
+  CHKERRQ(STSetFromOptions(st));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Apply the transformed operator for several ST's
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* shift, sigma=0.0 */
-  ierr = STSetUp(st);CHKERRQ(ierr);
-  ierr = STGetType(st,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
-  ierr = STApplyTranspose(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  CHKERRQ(STSetUp(st));
+  CHKERRQ(STGetType(st,&type));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
+  CHKERRQ(STApply(st,v,w));
+  CHKERRQ(VecView(w,NULL));
+  CHKERRQ(STApplyTranspose(st,v,w));
+  CHKERRQ(VecView(w,NULL));
 
   /* shift, sigma=0.1 */
   sigma = 0.1;
-  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  CHKERRQ(STSetShift(st,sigma));
+  CHKERRQ(STGetShift(st,&sigma));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  CHKERRQ(STApply(st,v,w));
+  CHKERRQ(VecView(w,NULL));
 
   /* sinvert, sigma=0.1 */
-  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPGMRES);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-  ierr = STGetType(st,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  CHKERRQ(STPostSolve(st));   /* undo changes if inplace */
+  CHKERRQ(STSetType(st,STSINVERT));
+  CHKERRQ(STGetKSP(st,&ksp));
+  CHKERRQ(KSPSetType(ksp,KSPGMRES));
+  CHKERRQ(KSPGetPC(ksp,&pc));
+  CHKERRQ(PCSetType(pc,PCJACOBI));
+  CHKERRQ(STGetType(st,&type));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
+  CHKERRQ(STGetShift(st,&sigma));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  CHKERRQ(STApply(st,v,w));
+  CHKERRQ(VecView(w,NULL));
 
   /* sinvert, sigma=-0.5 */
   sigma = -0.5;
-  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  CHKERRQ(STSetShift(st,sigma));
+  CHKERRQ(STGetShift(st,&sigma));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  CHKERRQ(STApply(st,v,w));
+  CHKERRQ(VecView(w,NULL));
 
-  ierr = STDestroy(&st);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&S);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
+  CHKERRQ(STDestroy(&st));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&S));
+  CHKERRQ(VecDestroy(&v));
+  CHKERRQ(VecDestroy(&w));
   ierr = SlepcFinalize();
   return ierr;
 }
 
 static PetscErrorCode MatMult_Shell(Mat S,Vec x,Vec y)
 {
-  PetscErrorCode    ierr;
   Mat               *A;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(S,&A);CHKERRQ(ierr);
-  ierr = MatMult(*A,x,y);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(S,&A));
+  CHKERRQ(MatMult(*A,x,y));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y)
 {
-  PetscErrorCode    ierr;
   Mat               *A;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(S,&A);CHKERRQ(ierr);
-  ierr = MatMultTranspose(*A,x,y);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(S,&A));
+  CHKERRQ(MatMultTranspose(*A,x,y));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag)
 {
-  PetscErrorCode    ierr;
   Mat               *A;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(S,&A);CHKERRQ(ierr);
-  ierr = MatGetDiagonal(*A,diag);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(S,&A));
+  CHKERRQ(MatGetDiagonal(*A,diag));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M)
 {
-  PetscErrorCode ierr;
   Mat            *A;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(S,&A);CHKERRQ(ierr);
-  ierr = MyShellMatCreate(A,M);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(S,&A));
+  CHKERRQ(MyShellMatCreate(A,M));
   PetscFunctionReturn(0);
 }
 

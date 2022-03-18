@@ -42,74 +42,74 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
     if (i<n-1) {
-      ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
     } else if (i==n-1) {
-      ierr = MatSetValue(A,i,col[0],value[0],INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
     }
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Create a standalone EPS with appropriate settings
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = EPSSetTarget(eps,1.0);CHKERRQ(ierr);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STSetShift(st,1.01);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE));
+  CHKERRQ(EPSSetTarget(eps,1.0));
+  CHKERRQ(EPSGetST(eps,&st));
+  CHKERRQ(STSetType(st,STSINVERT));
+  CHKERRQ(STSetShift(st,1.01));
+  CHKERRQ(STGetKSP(st,&ksp));
+  CHKERRQ(KSPSetType(ksp,KSPPREONLY));
+  CHKERRQ(KSPGetPC(ksp,&pc));
+  CHKERRQ(PCSetType(pc,PCLU));
+  CHKERRQ(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetType(svd,SVDCYCLIC);CHKERRQ(ierr);
-  ierr = SVDCyclicSetEPS(svd,eps);CHKERRQ(ierr);
-  ierr = SVDCyclicSetExplicitMatrix(svd,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCYCLIC,&flg);CHKERRQ(ierr);
+  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
+  CHKERRQ(SVDSetOperators(svd,A,NULL));
+  CHKERRQ(SVDSetType(svd,SVDCYCLIC));
+  CHKERRQ(SVDCyclicSetEPS(svd,eps));
+  CHKERRQ(SVDCyclicSetExplicitMatrix(svd,PETSC_TRUE));
+  CHKERRQ(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
+  CHKERRQ(SVDSetFromOptions(svd));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)svd,SVDCYCLIC,&flg));
   if (flg) {
-    ierr = SVDCyclicGetExplicitMatrix(svd,&expmat);CHKERRQ(ierr);
+    CHKERRQ(SVDCyclicGetExplicitMatrix(svd,&expmat));
     if (expmat) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cyclic solver\n");CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cyclic solver\n"));
     }
   }
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
+  CHKERRQ(SVDSolve(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+  CHKERRQ(SVDDestroy(&svd));
+  CHKERRQ(EPSDestroy(&eps));
+  CHKERRQ(MatDestroy(&A));
   ierr = SlepcFinalize();
   return ierr;
 }

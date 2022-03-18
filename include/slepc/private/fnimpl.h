@@ -55,7 +55,6 @@ struct _p_FN {
 */
 static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
 {
-  PetscErrorCode ierr;
   PetscInt       n,na;
   PetscBool      create=PETSC_FALSE;
 
@@ -66,18 +65,18 @@ static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
     create=PETSC_TRUE;
     fn->nw++;
   } else {
-    ierr = MatGetSize(fn->W[fn->cw],&n,NULL);CHKERRQ(ierr);
-    ierr = MatGetSize(A,&na,NULL);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(fn->W[fn->cw],&n,NULL));
+    CHKERRQ(MatGetSize(A,&na,NULL));
     if (n!=na) {
-      ierr = MatDestroy(&fn->W[fn->cw]);CHKERRQ(ierr);
+      CHKERRQ(MatDestroy(&fn->W[fn->cw]));
       create=PETSC_TRUE;
     }
   }
   if (create) {
-    ierr = MatDuplicate(A,MAT_COPY_VALUES,&fn->W[fn->cw]);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)fn,(PetscObject)fn->W[fn->cw]);CHKERRQ(ierr);
+    CHKERRQ(MatDuplicate(A,MAT_COPY_VALUES,&fn->W[fn->cw]));
+    CHKERRQ(PetscLogObjectParent((PetscObject)fn,(PetscObject)fn->W[fn->cw]));
   } else {
-    ierr = MatCopy(A,fn->W[fn->cw],SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    CHKERRQ(MatCopy(A,fn->W[fn->cw],SAME_NONZERO_PATTERN));
   }
   *M = fn->W[fn->cw];
   fn->cw++;

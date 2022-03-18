@@ -23,65 +23,65 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV with %" PetscInt_FMT " columns of dimension %" PetscInt_FMT ".\n",k,n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BV with %" PetscInt_FMT " columns of dimension %" PetscInt_FMT ".\n",k,n));
 
   /* Create template vector */
-  ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
-  ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(t);CHKERRQ(ierr);
+  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
+  CHKERRQ(VecSetSizes(t,PETSC_DECIDE,n));
+  CHKERRQ(VecSetFromOptions(t));
 
   /* Create BV object X */
-  ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&X));
+  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
+  CHKERRQ(BVSetSizesFromVec(X,t,k));
+  CHKERRQ(BVSetFromOptions(X));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
   if (verbose) {
-    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
   }
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
-    ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-    ierr = VecSet(v,0.0);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(X,j,&v));
+    CHKERRQ(VecSet(v,0.0));
     for (i=0;i<4;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
       }
     }
-    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
+    CHKERRQ(VecAssemblyBegin(v));
+    CHKERRQ(VecAssemblyEnd(v));
+    CHKERRQ(BVRestoreColumn(X,j,&v));
   }
   if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(X,view));
   }
 
   /* Test BVDotColumn */
-  ierr = BVDotColumn(X,2,NULL);CHKERRQ(ierr);
+  CHKERRQ(BVDotColumn(X,2,NULL));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVDotColumn - - - - - - -\n");CHKERRQ(ierr);
-    ierr = BVGetBufferVec(X,&z);CHKERRQ(ierr);
-    ierr = VecView(z,view);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVDotColumn - - - - - - -\n"));
+    CHKERRQ(BVGetBufferVec(X,&z));
+    CHKERRQ(VecView(z,view));
   }
   /* Test BVMultColumn */
-  ierr = BVMultColumn(X,-1.0,1.0,2,NULL);CHKERRQ(ierr);
+  CHKERRQ(BVMultColumn(X,-1.0,1.0,2,NULL));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMultColumn - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVMultColumn - - - - - - - - -\n"));
+    CHKERRQ(BVView(X,view));
   }
 
-  ierr = BVNorm(X,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm or X = %g\n",(double)nrm);CHKERRQ(ierr);
+  CHKERRQ(BVNorm(X,NORM_FROBENIUS,&nrm));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm or X = %g\n",(double)nrm));
 
-  ierr = BVDestroy(&X);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
+  CHKERRQ(BVDestroy(&X));
+  CHKERRQ(VecDestroy(&t));
   ierr = SlepcFinalize();
   return ierr;
 }

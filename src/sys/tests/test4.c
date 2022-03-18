@@ -18,14 +18,14 @@ int main(int argc,char **argv)
   PetscBool      pInitialized,sInitialized,pFinalized,sFinalized,skip_petsc_finalize;
 
   ierr = PetscInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscInitialized(&pInitialized);CHKERRQ(ierr);
-  ierr = SlepcInitialized(&sInitialized);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized);CHKERRQ(ierr);
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);CHKERRQ(ierr);
-  ierr = PetscInitialized(&pInitialized);CHKERRQ(ierr);
-  ierr = SlepcInitialized(&sInitialized);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-skip_petsc_finalize",&skip_petsc_finalize);CHKERRQ(ierr);
+  CHKERRQ(PetscInitialized(&pInitialized));
+  CHKERRQ(SlepcInitialized(&sInitialized));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  CHKERRQ(PetscInitialized(&pInitialized));
+  CHKERRQ(SlepcInitialized(&sInitialized));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-skip_petsc_finalize",&skip_petsc_finalize));
   if (!skip_petsc_finalize) {
     ierr = PetscFinalize();if (ierr) return ierr;
     ierr = PetscFinalized(&pFinalized);if (ierr) return ierr;

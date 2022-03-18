@@ -17,12 +17,10 @@
 
 PetscErrorCode EPSComputeVectors(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   EPSCheckSolved(eps,1);
   if (eps->state==EPS_STATE_SOLVED && eps->ops->computevectors) {
-    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
+    CHKERRQ((*eps->ops->computevectors)(eps));
   }
   eps->state = EPS_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
@@ -32,7 +30,6 @@ PetscErrorCode EPSComputeVectors(EPS eps)
 
 static PetscErrorCode EPSComputeValues(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscBool      injective,iscomp,isfilter;
   PetscInt       i,n,aux,nconv0;
   Mat            A,B=NULL,G,Z;
@@ -41,39 +38,39 @@ static PetscErrorCode EPSComputeValues(EPS eps)
   switch (eps->categ) {
     case EPS_CATEGORY_KRYLOV:
     case EPS_CATEGORY_OTHER:
-      ierr = STIsInjective(eps->st,&injective);CHKERRQ(ierr);
+      CHKERRQ(STIsInjective(eps->st,&injective));
       if (injective) {
         /* one-to-one mapping: backtransform eigenvalues */
         PetscCheck(eps->ops->backtransform,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, spectral transform should have a backtransform operation");
-        ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
+        CHKERRQ((*eps->ops->backtransform)(eps));
       } else {
         /* compute eigenvalues from Rayleigh quotient */
-        ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
+        CHKERRQ(DSGetDimensions(eps->ds,&n,NULL,NULL,NULL));
         if (!n) break;
-        ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
-        ierr = BVSetActiveColumns(eps->V,0,n);CHKERRQ(ierr);
-        ierr = DSGetCompact(eps->ds,&iscomp);CHKERRQ(ierr);
-        ierr = DSSetCompact(eps->ds,PETSC_FALSE);CHKERRQ(ierr);
-        ierr = DSGetMat(eps->ds,DS_MAT_A,&G);CHKERRQ(ierr);
-        ierr = BVMatProject(eps->V,A,eps->V,G);CHKERRQ(ierr);
-        ierr = DSRestoreMat(eps->ds,DS_MAT_A,&G);CHKERRQ(ierr);
+        CHKERRQ(EPSGetOperators(eps,&A,&B));
+        CHKERRQ(BVSetActiveColumns(eps->V,0,n));
+        CHKERRQ(DSGetCompact(eps->ds,&iscomp));
+        CHKERRQ(DSSetCompact(eps->ds,PETSC_FALSE));
+        CHKERRQ(DSGetMat(eps->ds,DS_MAT_A,&G));
+        CHKERRQ(BVMatProject(eps->V,A,eps->V,G));
+        CHKERRQ(DSRestoreMat(eps->ds,DS_MAT_A,&G));
         if (B) {
-          ierr = DSGetMat(eps->ds,DS_MAT_B,&G);CHKERRQ(ierr);
-          ierr = BVMatProject(eps->V,B,eps->V,G);CHKERRQ(ierr);
-          ierr = DSRestoreMat(eps->ds,DS_MAT_A,&G);CHKERRQ(ierr);
+          CHKERRQ(DSGetMat(eps->ds,DS_MAT_B,&G));
+          CHKERRQ(BVMatProject(eps->V,B,eps->V,G));
+          CHKERRQ(DSRestoreMat(eps->ds,DS_MAT_A,&G));
         }
-        ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-        ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-        ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-        ierr = DSSetCompact(eps->ds,iscomp);CHKERRQ(ierr);
+        CHKERRQ(DSSolve(eps->ds,eps->eigr,eps->eigi));
+        CHKERRQ(DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL));
+        CHKERRQ(DSSynchronize(eps->ds,eps->eigr,eps->eigi));
+        CHKERRQ(DSSetCompact(eps->ds,iscomp));
         if (eps->ishermitian && (!eps->isgeneralized || eps->ispositive)) { /* V = V * Z */
-          ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-          ierr = DSGetMat(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-          ierr = BVMultInPlace(eps->V,Z,0,n);CHKERRQ(ierr);
-          ierr = MatDestroy(&Z);CHKERRQ(ierr);
+          CHKERRQ(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
+          CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&Z));
+          CHKERRQ(BVMultInPlace(eps->V,Z,0,n));
+          CHKERRQ(MatDestroy(&Z));
         }
         /* in case of STFILTER discard computed eigenvalues that lie outside the wanted interval */
-        ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilter);CHKERRQ(ierr);
+        CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilter));
         if (isfilter) {
           nconv0 = eps->nconv;
           for (i=0;i<eps->nconv;i++) {
@@ -83,7 +80,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
             }
           }
           if (nconv0>eps->nconv) {
-            ierr = PetscInfo(eps,"Discarded %" PetscInt_FMT " computed eigenvalues lying outside the interval\n",nconv0-eps->nconv);CHKERRQ(ierr);
+            CHKERRQ(PetscInfo(eps,"Discarded %" PetscInt_FMT " computed eigenvalues lying outside the interval\n",nconv0-eps->nconv));
           }
         }
       }
@@ -121,7 +118,6 @@ static PetscErrorCode EPSComputeValues(EPS eps)
 @*/
 PetscErrorCode EPSSolve(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   STMatMode      matmode;
   Mat            A,B;
@@ -129,10 +125,10 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->state>=EPS_STATE_SOLVED) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(EPS_Solve,eps,0,0,0));
 
   /* Call setup */
-  ierr = EPSSetUp(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSSetUp(eps));
   eps->nconv = 0;
   eps->its   = 0;
   for (i=0;i<eps->ncv;i++) {
@@ -141,27 +137,27 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->errest[i] = 0.0;
     eps->perm[i]   = i;
   }
-  ierr = EPSViewFromOptions(eps,NULL,"-eps_view_pre");CHKERRQ(ierr);
-  ierr = RGViewFromOptions(eps->rg,NULL,"-rg_view");CHKERRQ(ierr);
+  CHKERRQ(EPSViewFromOptions(eps,NULL,"-eps_view_pre"));
+  CHKERRQ(RGViewFromOptions(eps->rg,NULL,"-rg_view"));
 
   /* Call solver */
-  ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
+  CHKERRQ((*eps->ops->solve)(eps));
   PetscCheck(eps->reason,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   eps->state = EPS_STATE_SOLVED;
 
   /* Only the first nconv columns contain useful information (except in CISS) */
-  ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
-  if (eps->twosided) { ierr = BVSetActiveColumns(eps->W,0,eps->nconv);CHKERRQ(ierr); }
+  CHKERRQ(BVSetActiveColumns(eps->V,0,eps->nconv));
+  if (eps->twosided) CHKERRQ(BVSetActiveColumns(eps->W,0,eps->nconv));
 
   /* If inplace, purify eigenvectors before reverting operator */
-  ierr = STGetMatMode(eps->st,&matmode);CHKERRQ(ierr);
+  CHKERRQ(STGetMatMode(eps->st,&matmode));
   if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
-    ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
+    CHKERRQ(EPSComputeVectors(eps));
   }
-  ierr = STPostSolve(eps->st);CHKERRQ(ierr);
+  CHKERRQ(STPostSolve(eps->st));
 
   /* Map eigenvalues back to the original problem if appropriate */
-  ierr = EPSComputeValues(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSComputeValues(eps));
 
 #if !defined(PETSC_USE_COMPLEX)
   /* Reorder conjugate eigenvalues (positive imaginary first) */
@@ -171,8 +167,8 @@ PetscErrorCode EPSSolve(EPS eps)
         eps->eigi[i] = -eps->eigi[i];
         eps->eigi[i+1] = -eps->eigi[i+1];
         /* the next correction only works with eigenvectors */
-        ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
-        ierr = BVScaleColumn(eps->V,i+1,-1.0);CHKERRQ(ierr);
+        CHKERRQ(EPSComputeVectors(eps));
+        CHKERRQ(BVScaleColumn(eps->V,i+1,-1.0));
       }
       i++;
     }
@@ -180,24 +176,24 @@ PetscErrorCode EPSSolve(EPS eps)
 #endif
 
   /* Sort eigenvalues according to eps->which parameter */
-  ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm));
+  CHKERRQ(PetscLogEventEnd(EPS_Solve,eps,0,0,0));
 
   /* Various viewers */
-  ierr = EPSViewFromOptions(eps,NULL,"-eps_view");CHKERRQ(ierr);
-  ierr = EPSConvergedReasonViewFromOptions(eps);CHKERRQ(ierr);
-  ierr = EPSErrorViewFromOptions(eps);CHKERRQ(ierr);
-  ierr = EPSValuesViewFromOptions(eps);CHKERRQ(ierr);
-  ierr = EPSVectorsViewFromOptions(eps);CHKERRQ(ierr);
-  ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0");CHKERRQ(ierr);
+  CHKERRQ(EPSViewFromOptions(eps,NULL,"-eps_view"));
+  CHKERRQ(EPSConvergedReasonViewFromOptions(eps));
+  CHKERRQ(EPSErrorViewFromOptions(eps));
+  CHKERRQ(EPSValuesViewFromOptions(eps));
+  CHKERRQ(EPSVectorsViewFromOptions(eps));
+  CHKERRQ(EPSGetOperators(eps,&A,&B));
+  CHKERRQ(MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0"));
   if (eps->isgeneralized) {
-    ierr = MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1");CHKERRQ(ierr);
+    CHKERRQ(MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1"));
   }
 
   /* Remove deflation and initial subspaces */
   if (eps->nds) {
-    ierr = BVSetNumConstraints(eps->V,0);CHKERRQ(ierr);
+    CHKERRQ(BVSetNumConstraints(eps->V,0));
     eps->nds = 0;
   }
   eps->nini = 0;
@@ -332,7 +328,6 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 @*/
 PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   BV             V=eps->V;
   Vec            w;
@@ -344,21 +339,21 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
   EPSCheckSolved(eps,1);
   PetscCheck(eps->ishermitian || eps->state!=EPS_STATE_EIGENVECTORS,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector or EPSComputeError");
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-    ierr = BVDuplicateResize(eps->V,eps->nconv,&V);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
-    ierr = BVCopy(eps->V,V);CHKERRQ(ierr);
+    CHKERRQ(BVDuplicateResize(eps->V,eps->nconv,&V));
+    CHKERRQ(BVSetActiveColumns(eps->V,0,eps->nconv));
+    CHKERRQ(BVCopy(eps->V,V));
     for (i=0;i<eps->nconv;i++) {
-      ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
-      ierr = VecPointwiseDivide(w,w,eps->D);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(V,i,&w));
+      CHKERRQ(VecPointwiseDivide(w,w,eps->D));
+      CHKERRQ(BVRestoreColumn(V,i,&w));
     }
-    ierr = BVOrthogonalize(V,NULL);CHKERRQ(ierr);
+    CHKERRQ(BVOrthogonalize(V,NULL));
   }
   for (i=0;i<eps->nconv;i++) {
-    ierr = BVCopyVec(V,i,v[i]);CHKERRQ(ierr);
+    CHKERRQ(BVCopyVec(V,i,v[i]));
   }
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-    ierr = BVDestroy(&V);CHKERRQ(ierr);
+    CHKERRQ(BVDestroy(&V));
   }
   PetscFunctionReturn(0);
 }
@@ -404,16 +399,14 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
 @*/
 PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar *eigi,Vec Vr,Vec Vi)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
   EPSCheckSolved(eps,1);
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
-  ierr = EPSGetEigenvalue(eps,i,eigr,eigi);CHKERRQ(ierr);
-  if (Vr || Vi) { ierr = EPSGetEigenvector(eps,i,Vr,Vi);CHKERRQ(ierr); }
+  CHKERRQ(EPSGetEigenvalue(eps,i,eigr,eigi));
+  if (Vr || Vi) CHKERRQ(EPSGetEigenvector(eps,i,Vr,Vi));
   PetscFunctionReturn(0);
 }
 
@@ -499,7 +492,6 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
 @*/
 PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 {
-  PetscErrorCode ierr;
   PetscInt       k;
 
   PetscFunctionBegin;
@@ -510,9 +502,9 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   EPSCheckSolved(eps,1);
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
-  ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSComputeVectors(eps));
   k = eps->perm[i];
-  ierr = BV_GetEigenvector(eps->V,k,eps->eigi[k],Vr,Vi);CHKERRQ(ierr);
+  CHKERRQ(BV_GetEigenvector(eps->V,k,eps->eigi[k],Vr,Vi));
   PetscFunctionReturn(0);
 }
 
@@ -551,7 +543,6 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 @*/
 PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
 {
-  PetscErrorCode ierr;
   PetscInt       k;
 
   PetscFunctionBegin;
@@ -563,9 +554,9 @@ PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
   PetscCheck(eps->twosided,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetTwoSided");
   PetscCheck(i>=0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<eps->nconv,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see EPSGetConverged()");
-  ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSComputeVectors(eps));
   k = eps->perm[i];
-  ierr = BV_GetEigenvector(eps->W,k,eps->eigi[k],Wr,Wi);CHKERRQ(ierr);
+  CHKERRQ(BV_GetEigenvector(eps->W,k,eps->eigi[k],Wr,Wi));
   PetscFunctionReturn(0);
 }
 
@@ -615,7 +606,6 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
 */
 PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec *z,PetscReal *norm)
 {
-  PetscErrorCode ierr;
   PetscInt       nmat;
   Mat            A,B;
   Vec            u,w;
@@ -628,40 +618,40 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
 
   PetscFunctionBegin;
   u = z[0]; w = z[2];
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
+  CHKERRQ(STGetNumMatrices(eps->st,&nmat));
+  CHKERRQ(STGetMatrix(eps->st,0,&A));
+  if (nmat>1) CHKERRQ(STGetMatrix(eps->st,1,&B));
 
 #if !defined(PETSC_USE_COMPLEX)
   v = z[1];
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    ierr = (*matmult)(A,xr,u);CHKERRQ(ierr);                          /* u=A*x */
+    CHKERRQ((*matmult)(A,xr,u));                          /* u=A*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      if (nmat>1) { ierr = (*matmult)(B,xr,w);CHKERRQ(ierr); }
-      else { ierr = VecCopy(xr,w);CHKERRQ(ierr); }                    /* w=B*x */
+      if (nmat>1) CHKERRQ((*matmult)(B,xr,w));
+      else CHKERRQ(VecCopy(xr,w));                    /* w=B*x */
       alpha = trans? -PetscConj(kr): -kr;
-      ierr = VecAXPY(u,alpha,w);CHKERRQ(ierr);                        /* u=A*x-k*B*x */
+      CHKERRQ(VecAXPY(u,alpha,w));                        /* u=A*x-k*B*x */
     }
-    ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
+    CHKERRQ(VecNorm(u,NORM_2,norm));
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    ierr = (*matmult)(A,xr,u);CHKERRQ(ierr);                          /* u=A*xr */
+    CHKERRQ((*matmult)(A,xr,u));                          /* u=A*xr */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      if (nmat>1) { ierr = (*matmult)(B,xr,v);CHKERRQ(ierr); }
-      else { ierr = VecCopy(xr,v);CHKERRQ(ierr); }                    /* v=B*xr */
-      ierr = VecAXPY(u,-kr,v);CHKERRQ(ierr);                          /* u=A*xr-kr*B*xr */
-      if (nmat>1) { ierr = (*matmult)(B,xi,w);CHKERRQ(ierr); }
-      else { ierr = VecCopy(xi,w);CHKERRQ(ierr); }                    /* w=B*xi */
-      ierr = VecAXPY(u,trans?-ki:ki,w);CHKERRQ(ierr);                 /* u=A*xr-kr*B*xr+ki*B*xi */
+      if (nmat>1) CHKERRQ((*matmult)(B,xr,v));
+      else CHKERRQ(VecCopy(xr,v));                    /* v=B*xr */
+      CHKERRQ(VecAXPY(u,-kr,v));                          /* u=A*xr-kr*B*xr */
+      if (nmat>1) CHKERRQ((*matmult)(B,xi,w));
+      else CHKERRQ(VecCopy(xi,w));                    /* w=B*xi */
+      CHKERRQ(VecAXPY(u,trans?-ki:ki,w));                 /* u=A*xr-kr*B*xr+ki*B*xi */
     }
-    ierr = VecNorm(u,NORM_2,&nr);CHKERRQ(ierr);
-    ierr = (*matmult)(A,xi,u);CHKERRQ(ierr);                          /* u=A*xi */
+    CHKERRQ(VecNorm(u,NORM_2,&nr));
+    CHKERRQ((*matmult)(A,xi,u));                          /* u=A*xi */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr);                          /* u=A*xi-kr*B*xi */
-      ierr = VecAXPY(u,trans?ki:-ki,v);CHKERRQ(ierr);                 /* u=A*xi-kr*B*xi-ki*B*xr */
+      CHKERRQ(VecAXPY(u,-kr,w));                          /* u=A*xi-kr*B*xi */
+      CHKERRQ(VecAXPY(u,trans?ki:-ki,v));                 /* u=A*xi-kr*B*xi-ki*B*xr */
     }
-    ierr = VecNorm(u,NORM_2,&ni);CHKERRQ(ierr);
+    CHKERRQ(VecNorm(u,NORM_2,&ni));
     *norm = SlepcAbsEigenvalue(nr,ni);
   }
 #endif
@@ -692,7 +682,6 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
 @*/
 PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *error)
 {
-  PetscErrorCode ierr;
   Mat            A,B;
   Vec            xr,xi,w[3];
   PetscReal      t,vecnorm=1.0,errorl;
@@ -708,11 +697,11 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
 
   /* allocate work vectors */
 #if defined(PETSC_USE_COMPLEX)
-  ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
+  CHKERRQ(EPSSetWorkVecs(eps,3));
   xi   = NULL;
   w[1] = NULL;
 #else
-  ierr = EPSSetWorkVecs(eps,5);CHKERRQ(ierr);
+  CHKERRQ(EPSSetWorkVecs(eps,5));
   xi   = eps->work[3];
   w[1] = eps->work[4];
 #endif
@@ -721,18 +710,18 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   w[2] = eps->work[2];
 
   /* compute residual norm */
-  ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
+  CHKERRQ(EPSGetEigenpair(eps,i,&kr,&ki,xr,xi));
+  CHKERRQ(EPSComputeResidualNorm_Private(eps,PETSC_FALSE,kr,ki,xr,xi,w,error));
 
   /* compute 2-norm of eigenvector */
   if (eps->problem_type==EPS_GHEP) {
-    ierr = VecNorm(xr,NORM_2,&vecnorm);CHKERRQ(ierr);
+    CHKERRQ(VecNorm(xr,NORM_2,&vecnorm));
   }
 
   /* if two-sided, compute left residual norm and take the maximum */
   if (eps->twosided) {
-    ierr = EPSGetLeftEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
-    ierr = EPSComputeResidualNorm_Private(eps,PETSC_TRUE,kr,ki,xr,xi,w,&errorl);CHKERRQ(ierr);
+    CHKERRQ(EPSGetLeftEigenvector(eps,i,xr,xi));
+    CHKERRQ(EPSComputeResidualNorm_Private(eps,PETSC_TRUE,kr,ki,xr,xi,w,&errorl));
     *error = PetscMax(*error,errorl);
   }
 
@@ -746,17 +735,17 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
     case EPS_ERROR_BACKWARD:
       /* initialization of matrix norms */
       if (!eps->nrma) {
-        ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-        ierr = MatHasOperation(A,MATOP_NORM,&flg);CHKERRQ(ierr);
+        CHKERRQ(STGetMatrix(eps->st,0,&A));
+        CHKERRQ(MatHasOperation(A,MATOP_NORM,&flg));
         PetscCheck(flg,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
-        ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
+        CHKERRQ(MatNorm(A,NORM_INFINITY,&eps->nrma));
       }
       if (eps->isgeneralized) {
         if (!eps->nrmb) {
-          ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
-          ierr = MatHasOperation(B,MATOP_NORM,&flg);CHKERRQ(ierr);
+          CHKERRQ(STGetMatrix(eps->st,1,&B));
+          CHKERRQ(MatHasOperation(B,MATOP_NORM,&flg));
           PetscCheck(flg,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
-          ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr);
+          CHKERRQ(MatNorm(B,NORM_INFINITY,&eps->nrmb));
         }
       } else eps->nrmb = 1.0;
       t = SlepcAbsEigenvalue(kr,ki);
@@ -794,7 +783,6 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
 */
 PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
 {
-  PetscErrorCode ierr;
   PetscReal      norm;
   PetscBool      lindep;
   Vec            w,z;
@@ -805,27 +793,27 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
 
   /* For the first step, use the first initial vector, otherwise a random one */
   if (i>0 || eps->nini==0) {
-    ierr = BVSetRandomColumn(eps->V,i);CHKERRQ(ierr);
+    CHKERRQ(BVSetRandomColumn(eps->V,i));
   }
 
   /* Force the vector to be in the range of OP for definite generalized problems */
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
-    ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
-    ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
-    ierr = STApply(eps->st,w,z);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
-    ierr = VecDestroy(&w);CHKERRQ(ierr);
+    CHKERRQ(BVCreateVec(eps->V,&w));
+    CHKERRQ(BVCopyVec(eps->V,i,w));
+    CHKERRQ(BVGetColumn(eps->V,i,&z));
+    CHKERRQ(STApply(eps->st,w,z));
+    CHKERRQ(BVRestoreColumn(eps->V,i,&z));
+    CHKERRQ(VecDestroy(&w));
   }
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
+  CHKERRQ(BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&lindep));
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     PetscCheck(i,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Initial vector is zero or belongs to the deflation space");
     PetscCheck(!i,PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more start vectors");
   }
-  ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
+  CHKERRQ(BVScaleColumn(eps->V,i,1.0/norm));
   PetscFunctionReturn(0);
 }
 
@@ -835,7 +823,6 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
 */
 PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
 {
-  PetscErrorCode ierr;
   PetscReal      norm;
   PetscBool      lindep;
 
@@ -845,17 +832,16 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
 
   /* For the first step, use the first initial vector, otherwise a random one */
   if (i>0 || eps->ninil==0) {
-    ierr = BVSetRandomColumn(eps->W,i);CHKERRQ(ierr);
+    CHKERRQ(BVSetRandomColumn(eps->W,i));
   }
 
   /* Orthonormalize the vector with respect to previous vectors */
-  ierr = BVOrthogonalizeColumn(eps->W,i,NULL,&norm,&lindep);CHKERRQ(ierr);
+  CHKERRQ(BVOrthogonalizeColumn(eps->W,i,NULL,&norm,&lindep));
   if (breakdown) *breakdown = lindep;
   else if (lindep || norm == 0.0) {
     PetscCheck(i,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Left initial vector is zero");
     SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Unable to generate more left start vectors");
   }
-  ierr = BVScaleColumn(eps->W,i,1.0/norm);CHKERRQ(ierr);
+  CHKERRQ(BVScaleColumn(eps->W,i,1.0/norm));
   PetscFunctionReturn(0);
 }
-

@@ -29,88 +29,88 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Compute the discrete 2-D Laplacian, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    CHKERRQ(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* set symmetry flag so that solver can exploit it */
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
 
   /* set v = e_1 */
-  ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
-  ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&z);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(A,NULL,&v));
+  CHKERRQ(VecSetValue(v,0,1.0,INSERT_VALUES));
+  CHKERRQ(VecAssemblyBegin(v));
+  CHKERRQ(VecAssemblyEnd(v));
+  CHKERRQ(VecDuplicate(v,&y));
+  CHKERRQ(VecDuplicate(v,&z));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the solver, set the matrix and the function
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
-  ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
-  ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
-  ierr = FNSetType(f,FNSQRT);CHKERRQ(ierr);
-  ierr = MFNSetErrorIfNotConverged(mfn,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
+  CHKERRQ(MFNCreate(PETSC_COMM_WORLD,&mfn));
+  CHKERRQ(MFNSetOperator(mfn,A));
+  CHKERRQ(MFNGetFN(mfn,&f));
+  CHKERRQ(FNSetType(f,FNSQRT));
+  CHKERRQ(MFNSetErrorIfNotConverged(mfn,PETSC_TRUE));
+  CHKERRQ(MFNSetFromOptions(mfn));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       First solve: y=sqrt(A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
-  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Intermediate vector has norm %g\n",(double)norm);CHKERRQ(ierr);
+  CHKERRQ(MFNSolve(mfn,v,y));
+  CHKERRQ(VecNorm(y,NORM_2,&norm));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Intermediate vector has norm %g\n",(double)norm));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Second solve: z=sqrt(A)*y and compare against A*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MFNSolve(mfn,y,z);CHKERRQ(ierr);
-  ierr = MFNGetTolerances(mfn,&tol,NULL);CHKERRQ(ierr);
+  CHKERRQ(MFNSolve(mfn,y,z));
+  CHKERRQ(MFNGetTolerances(mfn,&tol,NULL));
 
-  ierr = MatMult(A,v,y);CHKERRQ(ierr);   /* overwrite y */
-  ierr = VecAXPY(y,-1.0,z);CHKERRQ(ierr);
-  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
+  CHKERRQ(MatMult(A,v,y));   /* overwrite y */
+  CHKERRQ(VecAXPY(y,-1.0,z));
+  CHKERRQ(VecNorm(y,NORM_2,&norm));
 
   if (norm<tol) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n"));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm));
   }
 
   /*
      Free work space
   */
-  ierr = MFNDestroy(&mfn);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
-  ierr = VecDestroy(&z);CHKERRQ(ierr);
+  CHKERRQ(MFNDestroy(&mfn));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(VecDestroy(&v));
+  CHKERRQ(VecDestroy(&y));
+  CHKERRQ(VecDestroy(&z));
   ierr = SlepcFinalize();
   return ierr;
 }

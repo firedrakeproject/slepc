@@ -39,61 +39,61 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT,N);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n\n");CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT,N));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
     if (i==0) {
-      ierr = MatSetValues(A,1,&i,4,col+1,value+1,INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(MatSetValues(A,1,&i,4,col+1,value+1,INSERT_VALUES));
     } else {
-      ierr = MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
     }
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Create the singular value solver and set the solution method
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetTolerances(svd,1e-6,1000);CHKERRQ(ierr);
-  ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
+  CHKERRQ(SVDSetOperators(svd,A,NULL));
+  CHKERRQ(SVDSetTolerances(svd,1e-6,1000));
+  CHKERRQ(SVDSetWhichSingularTriplets(svd,SVD_LARGEST));
+  CHKERRQ(SVDSetFromOptions(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Compute the singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* First solve */
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - First solve, default subspace dimension - - -\n");CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  CHKERRQ(SVDSolve(svd));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - - - First solve, default subspace dimension - - -\n"));
+  CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
 
   /* Second solve */
-  ierr = SVDGetDimensions(svd,&nsv,&ncv,NULL);CHKERRQ(ierr);
-  ierr = SVDSetDimensions(svd,nsv,ncv+2,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Second solve, subspace of increased size - - -\n");CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  CHKERRQ(SVDGetDimensions(svd,&nsv,&ncv,NULL));
+  CHKERRQ(SVDSetDimensions(svd,nsv,ncv+2,PETSC_DEFAULT));
+  CHKERRQ(SVDSolve(svd));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - - - Second solve, subspace of increased size - - -\n"));
+  CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
 
   /* Free work space */
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  CHKERRQ(SVDDestroy(&svd));
+  CHKERRQ(MatDestroy(&A));
   ierr = SlepcFinalize();
   return ierr;
 }

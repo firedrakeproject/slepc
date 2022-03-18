@@ -17,10 +17,8 @@ static char help[] = "Diagonal eigenproblem. Illustrates use of shell preconditi
 
 PetscErrorCode PCApply_User(PC pc,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecCopy(x,y);CHKERRQ(ierr);
+  CHKERRQ(VecCopy(x,y));
   PetscFunctionReturn(0);
 }
 
@@ -39,54 +37,54 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(A,i,i,i+1,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValue(A,i,i,i+1,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCSHELL);CHKERRQ(ierr);
-  ierr = PCShellSetApply(pc,PCApply_User);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  CHKERRQ(EPSSetOperators(eps,A,NULL));
+  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
+  CHKERRQ(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  CHKERRQ(EPSSetFromOptions(eps));
+  CHKERRQ(EPSGetST(eps,&st));
+  CHKERRQ(STGetKSP(st,&ksp));
+  CHKERRQ(KSPGetPC(ksp,&pc));
+  CHKERRQ(PCSetType(pc,PCSHELL));
+  CHKERRQ(PCShellSetApply(pc,PCApply_User));
 
   /* set random initial vector */
-  ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
-  ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL);CHKERRQ(ierr);
-  ierr = PetscRandomSetSeed(rand,seed);CHKERRQ(ierr);
-  ierr = PetscRandomSeed(rand);CHKERRQ(ierr);
-  ierr = VecSetRandom(v0,rand);CHKERRQ(ierr);
-  ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(A,&v0,NULL));
+  CHKERRQ(PetscRandomCreate(PETSC_COMM_WORLD,&rand));
+  CHKERRQ(PetscRandomSetFromOptions(rand));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL));
+  CHKERRQ(PetscRandomSetSeed(rand,seed));
+  CHKERRQ(PetscRandomSeed(rand));
+  CHKERRQ(VecSetRandom(v0,rand));
+  CHKERRQ(EPSSetInitialSpace(eps,1,&v0));
   /* call the solver */
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSSolve(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v0);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  CHKERRQ(EPSDestroy(&eps));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(VecDestroy(&v0));
+  CHKERRQ(PetscRandomDestroy(&rand));
   ierr = SlepcFinalize();
   return ierr;
 }

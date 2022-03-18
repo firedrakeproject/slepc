@@ -19,17 +19,16 @@ PetscErrorCode LMEMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscDraw      draw;
   PetscDrawAxis  axis;
   PetscDrawLG    lg;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
-  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
-  ierr = PetscDrawLGCreate(draw,l,&lg);CHKERRQ(ierr);
-  if (names) { ierr = PetscDrawLGSetLegend(lg,names);CHKERRQ(ierr); }
-  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
-  ierr = PetscDrawLGGetAxis(lg,&axis);CHKERRQ(ierr);
-  ierr = PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric);CHKERRQ(ierr);
-  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
+  CHKERRQ(PetscDrawCreate(comm,host,label,x,y,m,n,&draw));
+  CHKERRQ(PetscDrawSetFromOptions(draw));
+  CHKERRQ(PetscDrawLGCreate(draw,l,&lg));
+  if (names) CHKERRQ(PetscDrawLGSetLegend(lg,names));
+  CHKERRQ(PetscDrawLGSetFromOptions(lg));
+  CHKERRQ(PetscDrawLGGetAxis(lg,&axis));
+  CHKERRQ(PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric));
+  CHKERRQ(PetscDrawDestroy(&draw));
   *lgctx = lg;
   PetscFunctionReturn(0);
 }
@@ -39,12 +38,11 @@ PetscErrorCode LMEMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
 */
 PetscErrorCode LMEMonitor(LME lme,PetscInt it,PetscReal errest)
 {
-  PetscErrorCode ierr;
   PetscInt       i,n = lme->numbermonitors;
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) {
-    ierr = (*lme->monitor[i])(lme,it,errest,lme->monitorcontext[i]);CHKERRQ(ierr);
+    CHKERRQ((*lme->monitor[i])(lme,it,errest,lme->monitorcontext[i]));
   }
   PetscFunctionReturn(0);
 }
@@ -116,14 +114,13 @@ PetscErrorCode LMEMonitorSet(LME lme,PetscErrorCode (*monitor)(LME,PetscInt,Pets
 @*/
 PetscErrorCode LMEMonitorCancel(LME lme)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   for (i=0; i<lme->numbermonitors; i++) {
     if (lme->monitordestroy[i]) {
-      ierr = (*lme->monitordestroy[i])(&lme->monitorcontext[i]);CHKERRQ(ierr);
+      CHKERRQ((*lme->monitordestroy[i])(&lme->monitorcontext[i]));
     }
   }
   lme->numbermonitors = 0;
@@ -175,20 +172,19 @@ PetscErrorCode LMEGetMonitorContext(LME lme,void *ctx)
 @*/
 PetscErrorCode LMEMonitorDefault(LME lme,PetscInt its,PetscReal errest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscViewer    viewer = vf->viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,4);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)lme)->tablevel);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
+  CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)lme)->tablevel));
   if (its == 1 && ((PetscObject)lme)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Error estimates for %s solve.\n",((PetscObject)lme)->prefix);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Error estimates for %s solve.\n",((PetscObject)lme)->prefix));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " LME Error estimate %14.12e\n",its,(double)errest);CHKERRQ(ierr);
-  ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)lme)->tablevel);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " LME Error estimate %14.12e\n",its,(double)errest));
+  CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)lme)->tablevel));
+  CHKERRQ(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -213,7 +209,6 @@ PetscErrorCode LMEMonitorDefault(LME lme,PetscInt its,PetscReal errest,PetscView
 @*/
 PetscErrorCode LMEMonitorDefaultDrawLG(LME lme,PetscInt its,PetscReal errest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscViewer    viewer = vf->viewer;
   PetscDrawLG    lg = vf->lg;
   PetscReal      x,y;
@@ -222,21 +217,21 @@ PetscErrorCode LMEMonitorDefaultDrawLG(LME lme,PetscInt its,PetscReal errest,Pet
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,4);
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,4);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
   if (its==1) {
-    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(lme->tol)-2,0.0);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawLGReset(lg));
+    CHKERRQ(PetscDrawLGSetDimension(lg,1));
+    CHKERRQ(PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(lme->tol)-2,0.0));
   }
   x = (PetscReal)its;
   if (errest > 0.0) y = PetscLog10Real(errest);
   else y = 0.0;
-  ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+  CHKERRQ(PetscDrawLGAddPoint(lg,&x,&y));
   if (its <= 20 || !(its % 5) || lme->reason) {
-    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawLGDraw(lg));
+    CHKERRQ(PetscDrawLGSave(lg));
   }
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -259,12 +254,9 @@ PetscErrorCode LMEMonitorDefaultDrawLG(LME lme,PetscInt its,PetscReal errest,Pet
 @*/
 PetscErrorCode LMEMonitorDefaultDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
-  ierr = LMEMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  CHKERRQ(LMEMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
   PetscFunctionReturn(0);
 }
-

@@ -19,48 +19,48 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"MatCreateTile test, n=%" PetscInt_FMT "\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"MatCreateTile test, n=%" PetscInt_FMT "\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create T=tridiag([-1 2 -1],n,n) and E=eye(n)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&T);CHKERRQ(ierr);
-  ierr = MatSetSizes(T,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(T);CHKERRQ(ierr);
-  ierr = MatSetUp(T);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&T));
+  CHKERRQ(MatSetSizes(T,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(T));
+  CHKERRQ(MatSetUp(T));
 
-  ierr = MatGetOwnershipRange(T,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(T,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(T,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(T,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(T,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(T,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) CHKERRQ(MatSetValue(T,i,i+1,-1.0,INSERT_VALUES));
+    CHKERRQ(MatSetValue(T,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(T,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(T,MAT_FINAL_ASSEMBLY));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&E);CHKERRQ(ierr);
-  ierr = MatSetSizes(E,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(E);CHKERRQ(ierr);
-  ierr = MatSetUp(E);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&E));
+  CHKERRQ(MatSetSizes(E,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  CHKERRQ(MatSetFromOptions(E));
+  CHKERRQ(MatSetUp(E));
 
-  ierr = MatGetOwnershipRange(E,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(E,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(E,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(MatSetValue(E,i,i,1.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(E,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(E,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(E,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(E,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create tiled matrix A = [ 2*T -E; 0 3*T ]
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MatCreateTile(2.0,T,-1.0,E,0.0,E,3.0,T,&A);CHKERRQ(ierr);
-  ierr = MatView(A,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatCreateTile(2.0,T,-1.0,E,0.0,E,3.0,T,&A));
+  CHKERRQ(MatView(A,NULL));
 
-  ierr = MatDestroy(&T);CHKERRQ(ierr);
-  ierr = MatDestroy(&E);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&T));
+  CHKERRQ(MatDestroy(&E));
+  CHKERRQ(MatDestroy(&A));
   ierr = SlepcFinalize();
   return ierr;
 }

@@ -39,7 +39,6 @@
 @*/
 PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res)
 {
-  PetscErrorCode ierr;
   PetscScalar    re[2],im[2];
   PetscInt       cin[2];
   PetscBool      inside[2];
@@ -52,19 +51,19 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
   re[0] = ar; re[1] = br;
   im[0] = ai; im[1] = bi;
   if (sc->map) {
-    ierr = (*sc->map)(sc->mapobj,2,re,im);CHKERRQ(ierr);
+    CHKERRQ((*sc->map)(sc->mapobj,2,re,im));
   }
   if (sc->rg) {
-    ierr = RGCheckInside(sc->rg,2,re,im,cin);CHKERRQ(ierr);
+    CHKERRQ(RGCheckInside(sc->rg,2,re,im,cin));
     inside[0] = PetscNot(cin[0]<0);
     inside[1] = PetscNot(cin[1]<0);
     if (inside[0] && !inside[1]) *res = -1;
     else if (!inside[0] && inside[1]) *res = 1;
     else {
-      ierr = (*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx);CHKERRQ(ierr);
+      CHKERRQ((*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx));
     }
   } else {
-    ierr = (*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx);CHKERRQ(ierr);
+    CHKERRQ((*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx));
   }
   PetscFunctionReturn(0);
 }
@@ -95,7 +94,6 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
 @*/
 PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,PetscInt *perm)
 {
-  PetscErrorCode ierr;
   PetscScalar    re,im;
   PetscInt       i,j,result,tmp;
 
@@ -117,7 +115,7 @@ PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,Pets
     }
 #endif
     while (j<n) {
-      ierr = SlepcSCCompare(sc,re,im,eigr[perm[j]],eigi[perm[j]],&result);CHKERRQ(ierr);
+      CHKERRQ(SlepcSCCompare(sc,re,im,eigr[perm[j]],eigi[perm[j]],&result));
       if (result<=0) break;
 #if !defined(PETSC_USE_COMPLEX)
       /* keep together every complex conjugated eigenpair */
@@ -152,10 +150,8 @@ PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,Pets
 */
 PetscErrorCode SlepcMap_ST(PetscObject obj,PetscInt n,PetscScalar* eigr,PetscScalar* eigi)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = STBackTransform((ST)obj,n,eigr,eigi);CHKERRQ(ierr);
+  CHKERRQ(STBackTransform((ST)obj,n,eigr,eigi));
   PetscFunctionReturn(0);
 }
 
@@ -316,4 +312,3 @@ PetscErrorCode SlepcCompareSmallestPosReal(PetscScalar ar,PetscScalar ai,PetscSc
   else *result = 1;  /* 'b' is on the right */
   PetscFunctionReturn(0);
 }
-

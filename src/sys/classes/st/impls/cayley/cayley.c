@@ -20,13 +20,12 @@ typedef struct {
 
 static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
   ST             st;
   ST_CAYLEY      *ctx;
   PetscScalar    nu;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,&st);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(B,&st));
   ctx = (ST_CAYLEY*)st->data;
   nu = ctx->nu;
 
@@ -34,26 +33,25 @@ static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
 
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A + tB)x */
-    ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
-    ierr = MatMult(st->A[1],x,st->work[1]);CHKERRQ(ierr);
-    ierr = VecAXPY(y,nu,st->work[1]);CHKERRQ(ierr);
+    CHKERRQ(MatMult(st->A[0],x,y));
+    CHKERRQ(MatMult(st->A[1],x,st->work[1]));
+    CHKERRQ(VecAXPY(y,nu,st->work[1]));
   } else {
     /* standard eigenproblem: y = (A + tI)x */
-    ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
-    ierr = VecAXPY(y,nu,x);CHKERRQ(ierr);
+    CHKERRQ(MatMult(st->A[0],x,y));
+    CHKERRQ(VecAXPY(y,nu,x));
   }
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatMultTranspose_Cayley(Mat B,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
   ST             st;
   ST_CAYLEY      *ctx;
   PetscScalar    nu;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,&st);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(B,&st));
   ctx = (ST_CAYLEY*)st->data;
   nu = ctx->nu;
 
@@ -62,25 +60,23 @@ static PetscErrorCode MatMultTranspose_Cayley(Mat B,Vec x,Vec y)
 
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A + tB)x */
-    ierr = MatMultTranspose(st->A[0],x,y);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A[1],x,st->work[1]);CHKERRQ(ierr);
-    ierr = VecAXPY(y,nu,st->work[1]);CHKERRQ(ierr);
+    CHKERRQ(MatMultTranspose(st->A[0],x,y));
+    CHKERRQ(MatMultTranspose(st->A[1],x,st->work[1]));
+    CHKERRQ(VecAXPY(y,nu,st->work[1]));
   } else {
     /* standard eigenproblem: y = (A + tI)x */
-    ierr = MatMultTranspose(st->A[0],x,y);CHKERRQ(ierr);
-    ierr = VecAXPY(y,nu,x);CHKERRQ(ierr);
+    CHKERRQ(MatMultTranspose(st->A[0],x,y));
+    CHKERRQ(VecAXPY(y,nu,x));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = STSetUp(st);CHKERRQ(ierr);
+  CHKERRQ(STSetUp(st));
   *B = st->T[0];
-  ierr = PetscObjectReference((PetscObject)*B);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectReference((PetscObject)*B));
   PetscFunctionReturn(0);
 }
 
@@ -116,14 +112,12 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
 
 PetscErrorCode STPostSolve_Cayley(ST st)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (st->matmode == ST_MATMODE_INPLACE) {
     if (st->nmat>1) {
-      ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
+      CHKERRQ(MatAXPY(st->A[0],st->sigma,st->A[1],st->str));
     } else {
-      ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
+      CHKERRQ(MatShift(st->A[0],st->sigma));
     }
     st->Astate[0] = ((PetscObject)st->A[0])->state;
     st->state   = ST_STATE_INITIAL;
@@ -140,7 +134,6 @@ PetscErrorCode STPostSolve_Cayley(ST st)
 */
 PetscErrorCode STComputeOperator_Cayley(ST st)
 {
-  PetscErrorCode ierr;
   PetscInt       n,m;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
@@ -154,41 +147,38 @@ PetscErrorCode STComputeOperator_Cayley(ST st)
 
   /* T[0] = A+nu*B */
   if (st->matmode==ST_MATMODE_INPLACE) {
-    ierr = MatGetLocalSize(st->A[0],&n,&m);CHKERRQ(ierr);
-    ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(st->T[0],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Cayley);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[0]);CHKERRQ(ierr);
+    CHKERRQ(MatGetLocalSize(st->A[0],&n,&m));
+    CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)st),n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]));
+    CHKERRQ(MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley));
+    CHKERRQ(MatShellSetOperation(st->T[0],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Cayley));
+    CHKERRQ(PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[0]));
   } else {
-    ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
+    CHKERRQ(STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[0]));
   }
   st->M = st->T[0];
 
   /* T[1] = A-sigma*B */
-  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
-  ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
-  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+  CHKERRQ(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[1]));
+  CHKERRQ(PetscObjectReference((PetscObject)st->T[1]));
+  CHKERRQ(MatDestroy(&st->P));
   st->P = st->T[1];
   if (st->Psplit) {  /* build custom preconditioner from the split matrices */
-    ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat);CHKERRQ(ierr);
+    CHKERRQ(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STSetUp_Cayley(ST st)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscCheck(st->nmat<=2,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cayley transform cannot be used in polynomial eigenproblems");
-  ierr = STSetWorkVecs(st,2);CHKERRQ(ierr);
-  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  CHKERRQ(STSetWorkVecs(st,2));
+  CHKERRQ(KSPSetUp(st->ksp));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 {
-  PetscErrorCode ierr;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
@@ -197,51 +187,49 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 
   if (!ctx->nu_set) {
     if (st->matmode!=ST_MATMODE_INPLACE) {
-      ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
+      CHKERRQ(STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]));
     }
     ctx->nu = newshift;
   }
-  ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
+  CHKERRQ(STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[1]));
   if (st->P!=st->T[1]) {
-    ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
-    ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectReference((PetscObject)st->T[1]));
+    CHKERRQ(MatDestroy(&st->P));
     st->P = st->T[1];
   }
   if (st->Psplit) {  /* build custom preconditioner from the split matrices */
-    ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_TRUE,&st->Pmat);CHKERRQ(ierr);
+    CHKERRQ(STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_TRUE,&st->Pmat));
   }
-  ierr = ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P);CHKERRQ(ierr);
-  ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
+  CHKERRQ(ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P));
+  CHKERRQ(KSPSetUp(st->ksp));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STSetFromOptions_Cayley(PetscOptionItems *PetscOptionsObject,ST st)
 {
-  PetscErrorCode ierr;
   PetscScalar    nu;
   PetscBool      flg;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"ST Cayley Options");CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"ST Cayley Options"));
 
-    ierr = PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->nu,&nu,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = STCayleySetAntishift(st,nu);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->nu,&nu,&flg));
+    if (flg) CHKERRQ(STCayleySetAntishift(st,nu));
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
 {
-  PetscErrorCode ierr;
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
   if (ctx->nu != newshift) {
     STCheckNotSeized(st,1);
     if (st->state && st->matmode!=ST_MATMODE_INPLACE) {
-      ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
+      CHKERRQ(STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]));
     }
     ctx->nu = newshift;
   }
@@ -273,12 +261,10 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
 @*/
 PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,nu,2);
-  ierr = PetscTryMethod(st,"STCayleySetAntishift_C",(ST,PetscScalar),(st,nu));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(st,"STCayleySetAntishift_C",(ST,PetscScalar),(st,nu)));
   PetscFunctionReturn(0);
 }
 
@@ -309,49 +295,43 @@ static PetscErrorCode STCayleyGetAntishift_Cayley(ST st,PetscScalar *nu)
 @*/
 PetscErrorCode STCayleyGetAntishift(ST st,PetscScalar *nu)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidScalarPointer(nu,2);
-  ierr = PetscUseMethod(st,"STCayleyGetAntishift_C",(ST,PetscScalar*),(st,nu));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(st,"STCayleyGetAntishift_C",(ST,PetscScalar*),(st,nu)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   char           str[50];
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->nu,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %s\n",str);CHKERRQ(ierr);
+    CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->nu,PETSC_FALSE));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  antishift: %s\n",str));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STDestroy_Cayley(ST st)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFree(st->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleySetAntishift_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleyGetAntishift_C",NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(st->data));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STCayleySetAntishift_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STCayleyGetAntishift_C",NULL));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
 {
-  PetscErrorCode ierr;
   ST_CAYLEY      *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscNewLog(st,&ctx));
   st->data = (void*)ctx;
 
   st->usesksp = PETSC_TRUE;
@@ -370,8 +350,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
   st->ops->checknullspace  = STCheckNullSpace_Default;
   st->ops->setdefaultksp   = STSetDefaultKSP_Default;
 
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleySetAntishift_C",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleyGetAntishift_C",STCayleyGetAntishift_Cayley);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STCayleySetAntishift_C",STCayleySetAntishift_Cayley));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STCayleyGetAntishift_C",STCayleyGetAntishift_Cayley));
   PetscFunctionReturn(0);
 }
-

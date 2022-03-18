@@ -26,13 +26,11 @@ const char *const*LMEConvergedReasons = LMEConvergedReasons_Shifted + 2;
 @*/
 PetscErrorCode LMEFinalizePackage(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&LMEList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&LMEMonitorList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&LMEMonitorCreateList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&LMEMonitorDestroyList);CHKERRQ(ierr);
+  CHKERRQ(PetscFunctionListDestroy(&LMEList));
+  CHKERRQ(PetscFunctionListDestroy(&LMEMonitorList));
+  CHKERRQ(PetscFunctionListDestroy(&LMEMonitorCreateList));
+  CHKERRQ(PetscFunctionListDestroy(&LMEMonitorDestroyList));
   LMEPackageInitialized       = PETSC_FALSE;
   LMERegisterAllCalled        = PETSC_FALSE;
   LMEMonitorRegisterAllCalled = PETSC_FALSE;
@@ -53,32 +51,31 @@ PetscErrorCode LMEInitializePackage(void)
   char           logList[256];
   PetscBool      opt,pkg;
   PetscClassId   classids[1];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (LMEPackageInitialized) PetscFunctionReturn(0);
   LMEPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Lin. Matrix Equation",&LME_CLASSID);CHKERRQ(ierr);
+  CHKERRQ(PetscClassIdRegister("Lin. Matrix Equation",&LME_CLASSID));
   /* Register Constructors */
-  ierr = LMERegisterAll();CHKERRQ(ierr);
+  CHKERRQ(LMERegisterAll());
   /* Register Monitors */
-  ierr = LMEMonitorRegisterAll();CHKERRQ(ierr);
+  CHKERRQ(LMEMonitorRegisterAll());
   /* Register Events */
-  ierr = PetscLogEventRegister("LMESetUp",LME_CLASSID,&LME_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("LMESolve",LME_CLASSID,&LME_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("LMEComputeError",LME_CLASSID,&LME_ComputeError);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventRegister("LMESetUp",LME_CLASSID,&LME_SetUp));
+  CHKERRQ(PetscLogEventRegister("LMESolve",LME_CLASSID,&LME_Solve));
+  CHKERRQ(PetscLogEventRegister("LMEComputeError",LME_CLASSID,&LME_ComputeError));
   /* Process Info */
   classids[0] = LME_CLASSID;
-  ierr = PetscInfoProcessClass("lme",1,&classids[0]);CHKERRQ(ierr);
+  CHKERRQ(PetscInfoProcessClass("lme",1,&classids[0]));
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    ierr = PetscStrInList("lme",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscLogEventDeactivateClass(LME_CLASSID);CHKERRQ(ierr); }
+    CHKERRQ(PetscStrInList("lme",logList,',',&pkg));
+    if (pkg) CHKERRQ(PetscLogEventDeactivateClass(LME_CLASSID));
   }
   /* Register package finalizer */
-  ierr = PetscRegisterFinalize(LMEFinalizePackage);CHKERRQ(ierr);
+  CHKERRQ(PetscRegisterFinalize(LMEFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -92,11 +89,8 @@ PetscErrorCode LMEInitializePackage(void)
  */
 SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme()
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = LMEInitializePackage();CHKERRQ(ierr);
+  CHKERRQ(LMEInitializePackage());
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */
-

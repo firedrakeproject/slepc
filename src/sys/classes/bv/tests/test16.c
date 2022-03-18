@@ -25,146 +25,146 @@ int main(int argc,char **argv)
   PetscBool         verbose;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-d",&d,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test tensor BV of degree %" PetscInt_FMT " with %" PetscInt_FMT " columns of dimension %" PetscInt_FMT "*d.\n",d,k,n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-d",&d,NULL));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test tensor BV of degree %" PetscInt_FMT " with %" PetscInt_FMT " columns of dimension %" PetscInt_FMT "*d.\n",d,k,n));
 
   /* Create template vector */
-  ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
-  ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(t);CHKERRQ(ierr);
+  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
+  CHKERRQ(VecSetSizes(t,PETSC_DECIDE,n));
+  CHKERRQ(VecSetFromOptions(t));
 
   /* Create BV object U */
-  ierr = BVCreate(PETSC_COMM_WORLD,&U);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)U,"U");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(U,t,k+d-1);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(U);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)U,"U");CHKERRQ(ierr);
+  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&U));
+  CHKERRQ(PetscObjectSetName((PetscObject)U,"U"));
+  CHKERRQ(BVSetSizesFromVec(U,t,k+d-1));
+  CHKERRQ(BVSetFromOptions(U));
+  CHKERRQ(PetscObjectSetName((PetscObject)U,"U"));
 
   /* Fill first d columns of U */
   for (j=0;j<d;j++) {
-    ierr = BVGetColumn(U,j,&v);CHKERRQ(ierr);
-    ierr = VecSet(v,0.0);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(U,j,&v));
+    CHKERRQ(VecSet(v,0.0));
     for (i=0;i<4;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
       }
     }
-    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(U,j,&v);CHKERRQ(ierr);
+    CHKERRQ(VecAssemblyBegin(v));
+    CHKERRQ(VecAssemblyEnd(v));
+    CHKERRQ(BVRestoreColumn(U,j,&v));
   }
 
   /* Create tensor BV */
-  ierr = BVCreateTensor(U,d,&V);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)V,"V");CHKERRQ(ierr);
-  ierr = BVTensorGetDegree(V,&deg);CHKERRQ(ierr);
+  CHKERRQ(BVCreateTensor(U,d,&V));
+  CHKERRQ(PetscObjectSetName((PetscObject)V,"V"));
+  CHKERRQ(BVTensorGetDegree(V,&deg));
   PetscCheck(deg==d,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong degree");
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = BVView(V,view);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(view);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
+  CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_INFO_DETAIL));
+  CHKERRQ(BVView(V,view));
+  CHKERRQ(PetscViewerPopFormat(view));
   if (verbose) {
-    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-    ierr = BVView(V,view);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
+    CHKERRQ(BVView(V,view));
   }
 
   /* Build first column from previously introduced coefficients */
-  ierr = BVTensorBuildFirstColumn(V,d);CHKERRQ(ierr);
+  CHKERRQ(BVTensorBuildFirstColumn(V,d));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After building the first column - - - - -\n");CHKERRQ(ierr);
-    ierr = BVView(V,view);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After building the first column - - - - -\n"));
+    CHKERRQ(BVView(V,view));
   }
 
   /* Test orthogonalization */
-  ierr = BVTensorGetFactors(V,&UU,&S);CHKERRQ(ierr);
-  ierr = BVGetActiveColumns(UU,NULL,&j);CHKERRQ(ierr);
-  ierr = BVGetSizes(UU,NULL,NULL,&id);CHKERRQ(ierr);
+  CHKERRQ(BVTensorGetFactors(V,&UU,&S));
+  CHKERRQ(BVGetActiveColumns(UU,NULL,&j));
+  CHKERRQ(BVGetSizes(UU,NULL,NULL,&id));
   PetscCheck(id==k+d-1,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong dimensions");
   lds = id*d;
   for (jj=1;jj<k;jj++) {
     /* set new orthogonal column in U */
-    ierr = BVGetColumn(UU,j,&v);CHKERRQ(ierr);
-    ierr = VecSet(v,0.0);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(UU,j,&v));
+    CHKERRQ(VecSet(v,0.0));
     for (i=0;i<4;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
       }
     }
-    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(UU,j,&v);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(UU,j,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
+    CHKERRQ(VecAssemblyBegin(v));
+    CHKERRQ(VecAssemblyEnd(v));
+    CHKERRQ(BVRestoreColumn(UU,j,&v));
+    CHKERRQ(BVOrthonormalizeColumn(UU,j,PETSC_TRUE,NULL,NULL));
     j++;
-    ierr = BVSetActiveColumns(UU,0,j);CHKERRQ(ierr);
+    CHKERRQ(BVSetActiveColumns(UU,0,j));
     /* set new column of S */
-    ierr = MatDenseGetArray(S,&pS);CHKERRQ(ierr);
+    CHKERRQ(MatDenseGetArray(S,&pS));
     for (ii=0;ii<d;ii++) {
       for (i=0;i<ii+jj+1;i++) {
         pS[i+ii*id+jj*lds] = (PetscScalar)(2*ii+i+0.5*jj);
       }
     }
-    ierr = MatDenseRestoreArray(S,&pS);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(V,jj,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
+    CHKERRQ(MatDenseRestoreArray(S,&pS));
+    CHKERRQ(BVOrthonormalizeColumn(V,jj,PETSC_TRUE,NULL,NULL));
   }
-  ierr = BVTensorRestoreFactors(V,&UU,&S);CHKERRQ(ierr);
+  CHKERRQ(BVTensorRestoreFactors(V,&UU,&S));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After orthogonalization - - - - -\n");CHKERRQ(ierr);
-    ierr = BVView(V,view);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After orthogonalization - - - - -\n"));
+    CHKERRQ(BVView(V,view));
   }
 
   /* Check orthogonality */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M);CHKERRQ(ierr);
-  ierr = BVDot(V,V,M);CHKERRQ(ierr);
-  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
-  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
+  CHKERRQ(BVDot(V,V,M));
+  CHKERRQ(MatShift(M,-1.0));
+  CHKERRQ(MatNorm(M,NORM_1,&norm));
   if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
   }
 
   /* Test BVTensorCompress */
-  ierr = BVSetActiveColumns(V,0,l);CHKERRQ(ierr);
-  ierr = BVTensorCompress(V,0);CHKERRQ(ierr);
+  CHKERRQ(BVSetActiveColumns(V,0,l));
+  CHKERRQ(BVTensorCompress(V,0));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVTensorCompress - - - - -\n");CHKERRQ(ierr);
-    ierr = BVView(V,view);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVTensorCompress - - - - -\n"));
+    CHKERRQ(BVView(V,view));
   }
 
   /* Create Mat */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)Q,"Q");CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q));
+  CHKERRQ(PetscObjectSetName((PetscObject)Q,"Q"));
+  CHKERRQ(MatDenseGetArray(Q,&q));
   for (i=0;i<k;i++)
     for (j=0;j<l;j++)
       q[i+j*k] = (i<j)? 2.0: -0.5;
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  CHKERRQ(MatDenseRestoreArray(Q,&q));
   if (verbose) {
-    ierr = MatView(Q,NULL);CHKERRQ(ierr);
+    CHKERRQ(MatView(Q,NULL));
   }
 
   /* Test BVMultInPlace */
-  ierr = BVMultInPlace(V,Q,1,l);CHKERRQ(ierr);
+  CHKERRQ(BVMultInPlace(V,Q,1,l));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n");CHKERRQ(ierr);
-    ierr = BVView(V,view);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n"));
+    CHKERRQ(BVView(V,view));
   }
 
   /* Test BVNorm */
-  ierr = BVNorm(V,NORM_1,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm: %g\n",(double)norm);CHKERRQ(ierr);
+  CHKERRQ(BVNorm(V,NORM_1,&norm));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm: %g\n",(double)norm));
 
-  ierr = BVDestroy(&U);CHKERRQ(ierr);
-  ierr = BVDestroy(&V);CHKERRQ(ierr);
-  ierr = MatDestroy(&Q);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
+  CHKERRQ(BVDestroy(&U));
+  CHKERRQ(BVDestroy(&V));
+  CHKERRQ(MatDestroy(&Q));
+  CHKERRQ(MatDestroy(&M));
+  CHKERRQ(VecDestroy(&t));
   ierr = SlepcFinalize();
   return ierr;
 }

@@ -30,22 +30,20 @@ typedef struct {
 
 static PetscErrorCode MatMult_FS(Mat M ,Vec x,Vec y)
 {
-  PetscErrorCode       ierr;
   PEP_REFINES_MATSHELL *ctx;
   PetscScalar          t;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
-  ierr = VecDot(x,ctx->M3,&t);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&ctx));
+  CHKERRQ(VecDot(x,ctx->M3,&t));
   t *= ctx->m3/ctx->M4;
-  ierr = MatMult(ctx->M1,x,y);CHKERRQ(ierr);
-  ierr = VecAXPY(y,-t,ctx->M2);CHKERRQ(ierr);
+  CHKERRQ(MatMult(ctx->M1,x,y));
+  CHKERRQ(VecAXPY(y,-t,ctx->M2));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
 {
-  PetscErrorCode ierr;
   PetscInt       i,si,j,n0,m0,nloc,*idx1,*idx2,ne;
   IS             is1,is2;
   PEPSimpNRefctx *ctx;
@@ -54,66 +52,66 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
   MPI_Comm       child;
 
   PetscFunctionBegin;
-  ierr = PetscCalloc1(1,ctx_);CHKERRQ(ierr);
+  CHKERRQ(PetscCalloc1(1,ctx_));
   ctx = *ctx_;
   if (pep->npart==1) {
     pep->refinesubc = NULL;
     ctx->scatter_id = NULL;
     ctx->A = pep->A;
   } else {
-    ierr = PetscSubcommGetChild(pep->refinesubc,&child);CHKERRQ(ierr);
-    ierr = PetscMalloc2(pep->nmat,&ctx->A,pep->npart,&ctx->scatter_id);CHKERRQ(ierr);
+    CHKERRQ(PetscSubcommGetChild(pep->refinesubc,&child));
+    CHKERRQ(PetscMalloc2(pep->nmat,&ctx->A,pep->npart,&ctx->scatter_id));
 
     /* Duplicate matrices */
     for (i=0;i<pep->nmat;i++) {
-      ierr = MatCreateRedundantMatrix(pep->A[i],0,child,MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A[i]);CHKERRQ(ierr);
+      CHKERRQ(MatCreateRedundantMatrix(pep->A[i],0,child,MAT_INITIAL_MATRIX,&ctx->A[i]));
+      CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A[i]));
     }
-    ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->v);CHKERRQ(ierr);
+    CHKERRQ(MatCreateVecs(ctx->A[0],&ctx->v,NULL));
+    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->v));
 
     /* Create scatters for sending vectors to each subcommucator */
-    ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
-    ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr);
-    ierr = VecGetLocalSize(ctx->v,&nloc);CHKERRQ(ierr);
-    ierr = PetscMalloc2(m0-n0,&idx1,m0-n0,&idx2);CHKERRQ(ierr);
-    ierr = VecCreateMPI(PetscObjectComm((PetscObject)pep),nloc,PETSC_DECIDE,&ctx->vg);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(pep->V,0,&v));
+    CHKERRQ(VecGetOwnershipRange(v,&n0,&m0));
+    CHKERRQ(BVRestoreColumn(pep->V,0,&v));
+    CHKERRQ(VecGetLocalSize(ctx->v,&nloc));
+    CHKERRQ(PetscMalloc2(m0-n0,&idx1,m0-n0,&idx2));
+    CHKERRQ(VecCreateMPI(PetscObjectComm((PetscObject)pep),nloc,PETSC_DECIDE,&ctx->vg));
     for (si=0;si<pep->npart;si++) {
       j = 0;
       for (i=n0;i<m0;i++) {
         idx1[j]   = i;
         idx2[j++] = i+pep->n*si;
       }
-      ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
-      ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),(m0-n0),idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
-      ierr = VecScatterCreate(v,is1,ctx->vg,is2,&ctx->scatter_id[si]);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr);
-      ierr = ISDestroy(&is1);CHKERRQ(ierr);
-      ierr = ISDestroy(&is2);CHKERRQ(ierr);
+      CHKERRQ(ISCreateGeneral(PetscObjectComm((PetscObject)pep),(m0-n0),idx1,PETSC_COPY_VALUES,&is1));
+      CHKERRQ(ISCreateGeneral(PetscObjectComm((PetscObject)pep),(m0-n0),idx2,PETSC_COPY_VALUES,&is2));
+      CHKERRQ(BVGetColumn(pep->V,0,&v));
+      CHKERRQ(VecScatterCreate(v,is1,ctx->vg,is2,&ctx->scatter_id[si]));
+      CHKERRQ(BVRestoreColumn(pep->V,0,&v));
+      CHKERRQ(ISDestroy(&is1));
+      CHKERRQ(ISDestroy(&is2));
     }
-    ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
+    CHKERRQ(PetscFree2(idx1,idx2));
   }
   if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT) {
-    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ctx->A[0]),&rank);CHKERRMPI(ierr);
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ctx->A[0]),&size);CHKERRMPI(ierr);
+    CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ctx->A[0]),&rank));
+    CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ctx->A[0]),&size));
     if (size>1) {
       if (pep->npart==1) {
-        ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
+        CHKERRQ(BVGetColumn(pep->V,0,&v));
       } else v = ctx->v;
-      ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
+      CHKERRQ(VecGetOwnershipRange(v,&n0,&m0));
       ne = (rank == size-1)?pep->n:0;
-      ierr = VecCreateMPI(PetscObjectComm((PetscObject)ctx->A[0]),ne,PETSC_DECIDE,&ctx->nv);CHKERRQ(ierr);
-      ierr = PetscMalloc1(m0-n0,&idx1);CHKERRQ(ierr);
+      CHKERRQ(VecCreateMPI(PetscObjectComm((PetscObject)ctx->A[0]),ne,PETSC_DECIDE,&ctx->nv));
+      CHKERRQ(PetscMalloc1(m0-n0,&idx1));
       for (i=n0;i<m0;i++) idx1[i-n0] = i;
-      ierr = ISCreateGeneral(PetscObjectComm((PetscObject)ctx->A[0]),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
-      ierr = VecScatterCreate(v,is1,ctx->nv,is1,&ctx->nst);CHKERRQ(ierr);
+      CHKERRQ(ISCreateGeneral(PetscObjectComm((PetscObject)ctx->A[0]),(m0-n0),idx1,PETSC_COPY_VALUES,&is1));
+      CHKERRQ(VecScatterCreate(v,is1,ctx->nv,is1,&ctx->nst));
       if (pep->npart==1) {
-        ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr);
+        CHKERRQ(BVRestoreColumn(pep->V,0,&v));
       }
-      ierr = PetscFree(idx1);CHKERRQ(ierr);
-      ierr = ISDestroy(&is1);CHKERRQ(ierr);
+      CHKERRQ(PetscFree(idx1));
+      CHKERRQ(ISDestroy(&is1));
     }
   }
   PetscFunctionReturn(0);
@@ -124,38 +122,37 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
 */
 static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx,PetscInt *fail)
 {
-  PetscErrorCode    ierr;
   PetscMPIInt       nproc,p;
   MPI_Comm          comm=((PetscObject)pep)->comm;
   Vec               v;
   const PetscScalar *array;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(comm,&nproc);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Comm_size(comm,&nproc));
   p = (nproc/pep->npart)*(sc+1)+PetscMin(nproc%pep->npart,sc+1)-1;
   if (pep->npart>1) {
     /* Communicate convergence successful */
-    ierr = MPI_Bcast(fail,1,MPIU_INT,p,comm);CHKERRMPI(ierr);
+    CHKERRMPI(MPI_Bcast(fail,1,MPIU_INT,p,comm));
     if (!(*fail)) {
       /* Process 0 of subcommunicator sc broadcasts the eigenvalue */
-      ierr = MPI_Bcast(&pep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRMPI(ierr);
+      CHKERRMPI(MPI_Bcast(&pep->eigr[idx],1,MPIU_SCALAR,p,comm));
       /* Gather pep->V[idx] from the subcommuniator sc */
-      ierr = BVGetColumn(pep->V,idx,&v);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(pep->V,idx,&v));
       if (pep->refinesubc->color==sc) {
-        ierr = VecGetArrayRead(ctx->v,&array);CHKERRQ(ierr);
-        ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
+        CHKERRQ(VecGetArrayRead(ctx->v,&array));
+        CHKERRQ(VecPlaceArray(ctx->vg,array));
       }
-      ierr = VecScatterBegin(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      ierr = VecScatterEnd(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
+      CHKERRQ(VecScatterBegin(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE));
+      CHKERRQ(VecScatterEnd(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE));
       if (pep->refinesubc->color==sc) {
-        ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
-        ierr = VecRestoreArrayRead(ctx->v,&array);CHKERRQ(ierr);
+        CHKERRQ(VecResetArray(ctx->vg));
+        CHKERRQ(VecRestoreArrayRead(ctx->v,&array));
       }
-      ierr = BVRestoreColumn(pep->V,idx,&v);CHKERRQ(ierr);
+      CHKERRQ(BVRestoreColumn(pep->V,idx,&v));
     }
   } else {
     if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT && !(*fail)) {
-      ierr = MPI_Bcast(&pep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRMPI(ierr);
+      CHKERRMPI(MPI_Bcast(&pep->eigr[idx],1,MPIU_SCALAR,p,comm));
     }
   }
   PetscFunctionReturn(0);
@@ -163,24 +160,23 @@ static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,P
 
 static PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
 {
-  PetscErrorCode    ierr;
   Vec               v;
   const PetscScalar *array;
 
   PetscFunctionBegin;
   if (pep->npart>1) {
-    ierr = BVGetColumn(pep->V,idx,&v);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(pep->V,idx,&v));
     if (pep->refinesubc->color==sc) {
-      ierr = VecGetArrayRead(ctx->v,&array);CHKERRQ(ierr);
-      ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
+      CHKERRQ(VecGetArrayRead(ctx->v,&array));
+      CHKERRQ(VecPlaceArray(ctx->vg,array));
     }
-    ierr = VecScatterBegin(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = VecScatterEnd(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    CHKERRQ(VecScatterBegin(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD));
+    CHKERRQ(VecScatterEnd(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD));
     if (pep->refinesubc->color==sc) {
-      ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
-      ierr = VecRestoreArrayRead(ctx->v,&array);CHKERRQ(ierr);
+      CHKERRQ(VecResetArray(ctx->vg));
+      CHKERRQ(VecRestoreArrayRead(ctx->v,&array));
     }
-    ierr = BVRestoreColumn(pep->V,idx,&v);CHKERRQ(ierr);
+    CHKERRQ(BVRestoreColumn(pep->V,idx,&v));
   }
   PetscFunctionReturn(0);
 }
@@ -221,17 +217,17 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
   Mat                  M;
 
   PetscFunctionBegin;
-  ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
-  ierr = PetscMalloc2(nmat,&coeffs,nmat,&coeffs2);CHKERRQ(ierr);
+  CHKERRQ(STGetMatStructure(pep->st,&str));
+  CHKERRQ(PetscMalloc2(nmat,&coeffs,nmat,&coeffs2));
   switch (scheme) {
   case PEP_REFINE_SCHEME_SCHUR:
     if (ini) {
-      ierr = PetscCalloc1(1,&fctx);CHKERRQ(ierr);
-      ierr = MatGetSize(A[0],&m0,&n0);CHKERRQ(ierr);
-      ierr = MatCreateShell(PetscObjectComm((PetscObject)A[0]),PETSC_DECIDE,PETSC_DECIDE,m0,n0,fctx,T);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(*T,MATOP_MULT,(void(*)(void))MatMult_FS);CHKERRQ(ierr);
+      CHKERRQ(PetscCalloc1(1,&fctx));
+      CHKERRQ(MatGetSize(A[0],&m0,&n0));
+      CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)A[0]),PETSC_DECIDE,PETSC_DECIDE,m0,n0,fctx,T));
+      CHKERRQ(MatShellSetOperation(*T,MATOP_MULT,(void(*)(void))MatMult_FS));
     } else {
-      ierr = MatShellGetContext(*T,&fctx);CHKERRQ(ierr);
+      CHKERRQ(MatShellGetContext(*T,&fctx));
     }
     M=fctx->M1;
     break;
@@ -243,108 +239,108 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
     break;
   }
   if (ini) {
-    ierr = MatDuplicate(A[0],MAT_COPY_VALUES,&M);CHKERRQ(ierr);
+    CHKERRQ(MatDuplicate(A[0],MAT_COPY_VALUES,&M));
   } else {
-    ierr = MatCopy(A[0],M,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    CHKERRQ(MatCopy(A[0],M,DIFFERENT_NONZERO_PATTERN));
   }
-  ierr = PEPEvaluateBasis(pep,pep->eigr[idx],0,coeffs,NULL);CHKERRQ(ierr);
-  ierr = MatScale(M,coeffs[0]);CHKERRQ(ierr);
+  CHKERRQ(PEPEvaluateBasis(pep,pep->eigr[idx],0,coeffs,NULL));
+  CHKERRQ(MatScale(M,coeffs[0]));
   for (i=1;i<nmat;i++) {
-    ierr = MatAXPY(M,coeffs[i],A[i],(ini)?str:SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+    CHKERRQ(MatAXPY(M,coeffs[i],A[i],(ini)?str:SUBSET_NONZERO_PATTERN));
   }
-  ierr = PEPEvaluateFunctionDerivatives(pep,pep->eigr[idx],coeffs2);CHKERRQ(ierr);
+  CHKERRQ(PEPEvaluateFunctionDerivatives(pep,pep->eigr[idx],coeffs2));
   for (i=0;i<nmat && PetscAbsScalar(coeffs2[i])==0.0;i++);
-  ierr = MatMult(A[i],v,w);CHKERRQ(ierr);
+  CHKERRQ(MatMult(A[i],v,w));
   if (coeffs2[i]!=1.0) {
-    ierr = VecScale(w,coeffs2[i]);CHKERRQ(ierr);
+    CHKERRQ(VecScale(w,coeffs2[i]));
   }
   for (i++;i<nmat;i++) {
-    ierr = MatMult(A[i],v,t);CHKERRQ(ierr);
-    ierr = VecAXPY(w,coeffs2[i],t);CHKERRQ(ierr);
+    CHKERRQ(MatMult(A[i],v,t));
+    CHKERRQ(VecAXPY(w,coeffs2[i],t));
   }
   switch (scheme) {
   case PEP_REFINE_SCHEME_EXPLICIT:
     comm = PetscObjectComm((PetscObject)A[0]);
-    ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
-    ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
-    ierr = MatGetSize(M,&mg,NULL);CHKERRQ(ierr);
-    ierr = MatGetOwnershipRange(M,&m0,&m1);CHKERRQ(ierr);
+    CHKERRMPI(MPI_Comm_rank(comm,&rank));
+    CHKERRMPI(MPI_Comm_size(comm,&size));
+    CHKERRQ(MatGetSize(M,&mg,NULL));
+    CHKERRQ(MatGetOwnershipRange(M,&m0,&m1));
     if (ini) {
-      ierr = MatCreate(comm,T);CHKERRQ(ierr);
-      ierr = MatGetLocalSize(M,&ml,NULL);CHKERRQ(ierr);
+      CHKERRQ(MatCreate(comm,T));
+      CHKERRQ(MatGetLocalSize(M,&ml,NULL));
       if (rank==size-1) ml++;
-      ierr = MatSetSizes(*T,ml,ml,mg+1,mg+1);CHKERRQ(ierr);
-      ierr = MatSetFromOptions(*T);CHKERRQ(ierr);
-      ierr = MatSetUp(*T);CHKERRQ(ierr);
+      CHKERRQ(MatSetSizes(*T,ml,ml,mg+1,mg+1));
+      CHKERRQ(MatSetFromOptions(*T));
+      CHKERRQ(MatSetUp(*T));
       /* Preallocate M */
       if (size>1) {
         ierr = MatPreallocateInitialize(comm,ml,ml,dnz,onz);CHKERRQ(ierr);
         for (i=m0;i<m1;i++) {
-          ierr = MatGetRow(M,i,&ncols,&cols,NULL);CHKERRQ(ierr);
-          ierr = MatPreallocateSet(i,ncols,cols,dnz,onz);CHKERRQ(ierr);
-          ierr = MatPreallocateSet(i,1,&mg,dnz,onz);CHKERRQ(ierr);
-          ierr = MatRestoreRow(M,i,&ncols,&cols,NULL);CHKERRQ(ierr);
+          CHKERRQ(MatGetRow(M,i,&ncols,&cols,NULL));
+          CHKERRQ(MatPreallocateSet(i,ncols,cols,dnz,onz));
+          CHKERRQ(MatPreallocateSet(i,1,&mg,dnz,onz));
+          CHKERRQ(MatRestoreRow(M,i,&ncols,&cols,NULL));
         }
         if (rank==size-1) {
-          ierr = PetscCalloc1(mg+1,&cols2);CHKERRQ(ierr);
+          CHKERRQ(PetscCalloc1(mg+1,&cols2));
           for (i=0;i<mg+1;i++) cols2[i]=i;
-          ierr = MatPreallocateSet(m1,mg+1,cols2,dnz,onz);CHKERRQ(ierr);
-          ierr = PetscFree(cols2);CHKERRQ(ierr);
+          CHKERRQ(MatPreallocateSet(m1,mg+1,cols2,dnz,onz));
+          CHKERRQ(PetscFree(cols2));
         }
-        ierr = MatMPIAIJSetPreallocation(*T,0,dnz,0,onz);CHKERRQ(ierr);
+        CHKERRQ(MatMPIAIJSetPreallocation(*T,0,dnz,0,onz));
         ierr = MatPreallocateFinalize(dnz,onz);CHKERRQ(ierr);
       } else {
-        ierr = PetscCalloc1(mg+1,&nnz);CHKERRQ(ierr);
+        CHKERRQ(PetscCalloc1(mg+1,&nnz));
         for (i=0;i<mg;i++) {
-          ierr = MatGetRow(M,i,&ncols,NULL,NULL);CHKERRQ(ierr);
+          CHKERRQ(MatGetRow(M,i,&ncols,NULL,NULL));
           nnz[i] = ncols+1;
-          ierr = MatRestoreRow(M,i,&ncols,NULL,NULL);CHKERRQ(ierr);
+          CHKERRQ(MatRestoreRow(M,i,&ncols,NULL,NULL));
         }
         nnz[mg] = mg+1;
-        ierr = MatSeqAIJSetPreallocation(*T,0,nnz);CHKERRQ(ierr);
-        ierr = PetscFree(nnz);CHKERRQ(ierr);
+        CHKERRQ(MatSeqAIJSetPreallocation(*T,0,nnz));
+        CHKERRQ(PetscFree(nnz));
       }
       *Mt = M;
       *P  = *T;
     }
 
     /* Set values */
-    ierr = VecGetArrayRead(w,&array);CHKERRQ(ierr);
+    CHKERRQ(VecGetArrayRead(w,&array));
     for (i=m0;i<m1;i++) {
-      ierr = MatGetRow(M,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-      ierr = MatSetValues(*T,1,&i,ncols,cols,vals,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatRestoreRow(M,i,&ncols,&cols,&vals);CHKERRQ(ierr);
-      ierr = MatSetValues(*T,1,&i,1,&mg,array+i-m0,INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(MatGetRow(M,i,&ncols,&cols,&vals));
+      CHKERRQ(MatSetValues(*T,1,&i,ncols,cols,vals,INSERT_VALUES));
+      CHKERRQ(MatRestoreRow(M,i,&ncols,&cols,&vals));
+      CHKERRQ(MatSetValues(*T,1,&i,1,&mg,array+i-m0,INSERT_VALUES));
     }
-    ierr = VecRestoreArrayRead(w,&array);CHKERRQ(ierr);
-    ierr = VecConjugate(v);CHKERRQ(ierr);
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)A[0]),&size);CHKERRMPI(ierr);
-    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)A[0]),&rank);CHKERRMPI(ierr);
+    CHKERRQ(VecRestoreArrayRead(w,&array));
+    CHKERRQ(VecConjugate(v));
+    CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)A[0]),&size));
+    CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)A[0]),&rank));
     if (size>1) {
       if (rank==size-1) {
-        ierr = PetscMalloc1(pep->n,&cols2);CHKERRQ(ierr);
+        CHKERRQ(PetscMalloc1(pep->n,&cols2));
         for (i=0;i<pep->n;i++) cols2[i]=i;
       }
-      ierr = VecScatterBegin(ctx->nst,v,ctx->nv,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-      ierr = VecScatterEnd(ctx->nst,v,ctx->nv,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-      ierr = VecGetArrayRead(ctx->nv,&array);CHKERRQ(ierr);
+      CHKERRQ(VecScatterBegin(ctx->nst,v,ctx->nv,INSERT_VALUES,SCATTER_FORWARD));
+      CHKERRQ(VecScatterEnd(ctx->nst,v,ctx->nv,INSERT_VALUES,SCATTER_FORWARD));
+      CHKERRQ(VecGetArrayRead(ctx->nv,&array));
       if (rank==size-1) {
-        ierr = MatSetValues(*T,1,&mg,pep->n,cols2,array,INSERT_VALUES);CHKERRQ(ierr);
-        ierr = MatSetValues(*T,1,&mg,1,&mg,&zero,INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(MatSetValues(*T,1,&mg,pep->n,cols2,array,INSERT_VALUES));
+        CHKERRQ(MatSetValues(*T,1,&mg,1,&mg,&zero,INSERT_VALUES));
       }
-        ierr = VecRestoreArrayRead(ctx->nv,&array);CHKERRQ(ierr);
+        CHKERRQ(VecRestoreArrayRead(ctx->nv,&array));
     } else {
-      ierr = PetscMalloc1(m1-m0,&cols2);CHKERRQ(ierr);
+      CHKERRQ(PetscMalloc1(m1-m0,&cols2));
       for (i=0;i<m1-m0;i++) cols2[i]=m0+i;
-      ierr = VecGetArrayRead(v,&array);CHKERRQ(ierr);
-      ierr = MatSetValues(*T,1,&mg,m1-m0,cols2,array,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValues(*T,1,&mg,1,&mg,&zero,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = VecRestoreArrayRead(v,&array);CHKERRQ(ierr);
+      CHKERRQ(VecGetArrayRead(v,&array));
+      CHKERRQ(MatSetValues(*T,1,&mg,m1-m0,cols2,array,INSERT_VALUES));
+      CHKERRQ(MatSetValues(*T,1,&mg,1,&mg,&zero,INSERT_VALUES));
+      CHKERRQ(VecRestoreArrayRead(v,&array));
     }
-    ierr = VecConjugate(v);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(*T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(*T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = PetscFree(cols2);CHKERRQ(ierr);
+    CHKERRQ(VecConjugate(v));
+    CHKERRQ(MatAssemblyBegin(*T,MAT_FINAL_ASSEMBLY));
+    CHKERRQ(MatAssemblyEnd(*T,MAT_FINAL_ASSEMBLY));
+    CHKERRQ(PetscFree(cols2));
     break;
   case PEP_REFINE_SCHEME_SCHUR:
     fctx->M2 = w;
@@ -355,16 +351,16 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
     for (i=1;i<nmat-1;i++) fctx->M4 += PetscConj(coeffs[i])*coeffs2[i];
     fctx->M1 = M;
     if (ini) {
-      ierr = MatDuplicate(M,MAT_COPY_VALUES,P);CHKERRQ(ierr);
+      CHKERRQ(MatDuplicate(M,MAT_COPY_VALUES,P));
     } else {
-      ierr = MatCopy(M,*P,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+      CHKERRQ(MatCopy(M,*P,SAME_NONZERO_PATTERN));
     }
     if (fctx->M4!=0.0) {
-      ierr = VecConjugate(v);CHKERRQ(ierr);
-      ierr = VecPointwiseMult(t,v,w);CHKERRQ(ierr);
-      ierr = VecConjugate(v);CHKERRQ(ierr);
-      ierr = VecScale(t,-fctx->m3/fctx->M4);CHKERRQ(ierr);
-      ierr = MatDiagonalSet(*P,t,ADD_VALUES);CHKERRQ(ierr);
+      CHKERRQ(VecConjugate(v));
+      CHKERRQ(VecPointwiseMult(t,v,w));
+      CHKERRQ(VecConjugate(v));
+      CHKERRQ(VecScale(t,-fctx->m3/fctx->M4));
+      CHKERRQ(MatDiagonalSet(*P,t,ADD_VALUES));
     }
     break;
   case PEP_REFINE_SCHEME_MBE:
@@ -372,13 +368,12 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
     *P = M;
     break;
   }
-  ierr = PetscFree2(coeffs,coeffs2);CHKERRQ(ierr);
+  CHKERRQ(PetscFree2(coeffs,coeffs2));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,PetscInt k)
 {
-  PetscErrorCode       ierr;
   PetscInt             i,n,its,idx=0,*idx_sc,*its_sc,color,*fail_sc;
   PetscMPIInt          rank,size;
   Mat                  Mt=NULL,T=NULL,P=NULL;
@@ -393,28 +388,28 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,
   KSPConvergedReason   reason;
 
   PetscFunctionBegin;
-  ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
-  ierr = PEPSimpleNRefSetUp(pep,&ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(PEP_Refine,pep,0,0,0));
+  CHKERRQ(PEPSimpleNRefSetUp(pep,&ctx));
   its = (maxits)?*maxits:NREF_MAXIT;
-  if (!pep->refineksp) { ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr); }
+  if (!pep->refineksp) CHKERRQ(PEPRefineGetKSP(pep,&pep->refineksp));
   if (pep->npart==1) {
-    ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(pep->V,0,&v));
   } else v = ctx->v;
-  ierr = VecDuplicate(v,&ctx->w);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&r);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&dv);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&t[0]);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&t[1]);CHKERRQ(ierr);
+  CHKERRQ(VecDuplicate(v,&ctx->w));
+  CHKERRQ(VecDuplicate(v,&r));
+  CHKERRQ(VecDuplicate(v,&dv));
+  CHKERRQ(VecDuplicate(v,&t[0]));
+  CHKERRQ(VecDuplicate(v,&t[1]));
   if (pep->npart==1) {
-    ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr);
-    ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
+    CHKERRQ(BVRestoreColumn(pep->V,0,&v));
+    CHKERRQ(PetscObjectGetComm((PetscObject)pep,&comm));
   } else {
-    ierr = PetscSubcommGetChild(pep->refinesubc,&comm);CHKERRQ(ierr);
+    CHKERRQ(PetscSubcommGetChild(pep->refinesubc,&comm));
   }
-  ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
-  ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
-  ierr = VecGetLocalSize(r,&n);CHKERRQ(ierr);
-  ierr = PetscMalloc3(pep->npart,&idx_sc,pep->npart,&its_sc,pep->npart,&fail_sc);CHKERRQ(ierr);
+  CHKERRMPI(MPI_Comm_size(comm,&size));
+  CHKERRMPI(MPI_Comm_rank(comm,&rank));
+  CHKERRQ(VecGetLocalSize(r,&n));
+  CHKERRQ(PetscMalloc3(pep->npart,&idx_sc,pep->npart,&its_sc,pep->npart,&fail_sc));
   for (i=0;i<pep->npart;i++) fail_sc[i] = 0;
   for (i=0;i<pep->npart;i++) its_sc[i] = 0;
   color = (pep->npart==1)?0:pep->refinesubc->color;
@@ -428,20 +423,20 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,
         if (idx_sc[i]>=k) {
           sc_pend = PETSC_FALSE;
         } else {
-          ierr = PEPSimpleNRefScatterEigenvector(pep,ctx,i,idx_sc[i]);CHKERRQ(ierr);
+          CHKERRQ(PEPSimpleNRefScatterEigenvector(pep,ctx,i,idx_sc[i]));
         }
       }  else { /* Gather Eigenpair from subcommunicator i */
-        ierr = PEPSimpleNRefGatherEigenpair(pep,ctx,i,idx_sc[i],&fail_sc[i]);CHKERRQ(ierr);
+        CHKERRQ(PEPSimpleNRefGatherEigenpair(pep,ctx,i,idx_sc[i],&fail_sc[i]));
       }
       while (sc_pend) {
         if (!fail_sc[i]) {
-          ierr = PEPComputeError(pep,idx_sc[i],PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
+          CHKERRQ(PEPComputeError(pep,idx_sc[i],PEP_ERROR_BACKWARD,&error));
         }
         if (error<=tol || its_sc[i]>=its || fail_sc[i]) {
           idx_sc[i] = idx++;
           its_sc[i] = 0;
           fail_sc[i] = 0;
-          if (idx_sc[i]<k) { ierr = PEPSimpleNRefScatterEigenvector(pep,ctx,i,idx_sc[i]);CHKERRQ(ierr); }
+          if (idx_sc[i]<k) CHKERRQ(PEPSimpleNRefScatterEigenvector(pep,ctx,i,idx_sc[i]));
         } else {
           sc_pend = PETSC_FALSE;
           its_sc[i]++;
@@ -456,138 +451,137 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,
       PetscCheck(pep->eigi[idx_sc[color]]==0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Simple Refinement not implemented in real scalars for complex eigenvalues");
 #endif
       if (pep->npart==1) {
-        ierr = BVGetColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr);
+        CHKERRQ(BVGetColumn(pep->V,idx_sc[color],&v));
       } else v = ctx->v;
-      ierr = PEPSimpleNRefSetUpSystem(pep,ctx->A,ctx,idx_sc[color],&Mt,&T,&P,ini,t[0],v);CHKERRQ(ierr);
-      ierr = PEP_KSPSetOperators(pep->refineksp,T,P);CHKERRQ(ierr);
+      CHKERRQ(PEPSimpleNRefSetUpSystem(pep,ctx->A,ctx,idx_sc[color],&Mt,&T,&P,ini,t[0],v));
+      CHKERRQ(PEP_KSPSetOperators(pep->refineksp,T,P));
       if (ini) {
-        ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
+        CHKERRQ(KSPSetFromOptions(pep->refineksp));
         if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT) {
-          ierr = MatCreateVecs(T,&dvv,NULL);CHKERRQ(ierr);
-          ierr = VecDuplicate(dvv,&rr);CHKERRQ(ierr);
+          CHKERRQ(MatCreateVecs(T,&dvv,NULL));
+          CHKERRQ(VecDuplicate(dvv,&rr));
         }
         ini = PETSC_FALSE;
       }
 
       switch (pep->scheme) {
       case PEP_REFINE_SCHEME_EXPLICIT:
-        ierr = MatMult(Mt,v,r);CHKERRQ(ierr);
-        ierr = VecGetArrayRead(r,&array);CHKERRQ(ierr);
+        CHKERRQ(MatMult(Mt,v,r));
+        CHKERRQ(VecGetArrayRead(r,&array));
         if (rank==size-1) {
-          ierr = VecGetArray(rr,&array2);CHKERRQ(ierr);
-          ierr = PetscArraycpy(array2,array,n);CHKERRQ(ierr);
+          CHKERRQ(VecGetArray(rr,&array2));
+          CHKERRQ(PetscArraycpy(array2,array,n));
           array2[n] = 0.0;
-          ierr = VecRestoreArray(rr,&array2);CHKERRQ(ierr);
+          CHKERRQ(VecRestoreArray(rr,&array2));
         } else {
-          ierr = VecPlaceArray(rr,array);CHKERRQ(ierr);
+          CHKERRQ(VecPlaceArray(rr,array));
         }
-        ierr = KSPSolve(pep->refineksp,rr,dvv);CHKERRQ(ierr);
-        ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
+        CHKERRQ(KSPSolve(pep->refineksp,rr,dvv));
+        CHKERRQ(KSPGetConvergedReason(pep->refineksp,&reason));
         if (reason>0) {
           if (rank != size-1) {
-            ierr = VecResetArray(rr);CHKERRQ(ierr);
+            CHKERRQ(VecResetArray(rr));
           }
-          ierr = VecRestoreArrayRead(r,&array);CHKERRQ(ierr);
-          ierr = VecGetArrayRead(dvv,&array);CHKERRQ(ierr);
-          ierr = VecPlaceArray(dv,array);CHKERRQ(ierr);
-          ierr = VecAXPY(v,-1.0,dv);CHKERRQ(ierr);
-          ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-          ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
-          ierr = VecResetArray(dv);CHKERRQ(ierr);
+          CHKERRQ(VecRestoreArrayRead(r,&array));
+          CHKERRQ(VecGetArrayRead(dvv,&array));
+          CHKERRQ(VecPlaceArray(dv,array));
+          CHKERRQ(VecAXPY(v,-1.0,dv));
+          CHKERRQ(VecNorm(v,NORM_2,&norm));
+          CHKERRQ(VecScale(v,1.0/norm));
+          CHKERRQ(VecResetArray(dv));
           if (rank==size-1) pep->eigr[idx_sc[color]] -= array[n];
-          ierr = VecRestoreArrayRead(dvv,&array);CHKERRQ(ierr);
+          CHKERRQ(VecRestoreArrayRead(dvv,&array));
         } else fail_sc[color] = 1;
         break;
       case PEP_REFINE_SCHEME_MBE:
-        ierr = MatMult(T,v,r);CHKERRQ(ierr);
+        CHKERRQ(MatMult(T,v,r));
         /* Mixed block elimination */
-        ierr = VecConjugate(v);CHKERRQ(ierr);
-        ierr = KSPSolveTranspose(pep->refineksp,v,t[0]);CHKERRQ(ierr);
-        ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
+        CHKERRQ(VecConjugate(v));
+        CHKERRQ(KSPSolveTranspose(pep->refineksp,v,t[0]));
+        CHKERRQ(KSPGetConvergedReason(pep->refineksp,&reason));
         if (reason>0) {
-          ierr = VecConjugate(t[0]);CHKERRQ(ierr);
-          ierr = VecDot(ctx->w,t[0],&tt[0]);CHKERRQ(ierr);
-          ierr = KSPSolve(pep->refineksp,ctx->w,t[1]);CHKERRQ(ierr);
-          ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
+          CHKERRQ(VecConjugate(t[0]));
+          CHKERRQ(VecDot(ctx->w,t[0],&tt[0]));
+          CHKERRQ(KSPSolve(pep->refineksp,ctx->w,t[1]));
+          CHKERRQ(KSPGetConvergedReason(pep->refineksp,&reason));
           if (reason>0) {
-            ierr = VecDot(t[1],v,&tt[1]);CHKERRQ(ierr);
-            ierr = VecDot(r,t[0],&ttt);CHKERRQ(ierr);
+            CHKERRQ(VecDot(t[1],v,&tt[1]));
+            CHKERRQ(VecDot(r,t[0],&ttt));
             tt[0] = ttt/tt[0];
-            ierr = VecAXPY(r,-tt[0],ctx->w);CHKERRQ(ierr);
-            ierr = KSPSolve(pep->refineksp,r,dv);CHKERRQ(ierr);
-            ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
+            CHKERRQ(VecAXPY(r,-tt[0],ctx->w));
+            CHKERRQ(KSPSolve(pep->refineksp,r,dv));
+            CHKERRQ(KSPGetConvergedReason(pep->refineksp,&reason));
             if (reason>0) {
-              ierr = VecDot(dv,v,&ttt);CHKERRQ(ierr);
+              CHKERRQ(VecDot(dv,v,&ttt));
               tt[1] = ttt/tt[1];
-              ierr = VecAXPY(dv,-tt[1],t[1]);CHKERRQ(ierr);
+              CHKERRQ(VecAXPY(dv,-tt[1],t[1]));
               deig = tt[0]+tt[1];
             }
           }
-          ierr = VecConjugate(v);CHKERRQ(ierr);
-          ierr = VecAXPY(v,-1.0,dv);CHKERRQ(ierr);
-          ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-          ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
+          CHKERRQ(VecConjugate(v));
+          CHKERRQ(VecAXPY(v,-1.0,dv));
+          CHKERRQ(VecNorm(v,NORM_2,&norm));
+          CHKERRQ(VecScale(v,1.0/norm));
           pep->eigr[idx_sc[color]] -= deig;
           fail_sc[color] = 0;
         } else {
-          ierr = VecConjugate(v);CHKERRQ(ierr);
+          CHKERRQ(VecConjugate(v));
           fail_sc[color] = 1;
         }
         break;
       case PEP_REFINE_SCHEME_SCHUR:
         fail_sc[color] = 1;
-        ierr = MatShellGetContext(T,&fctx);CHKERRQ(ierr);
+        CHKERRQ(MatShellGetContext(T,&fctx));
         if (fctx->M4!=0.0) {
-          ierr = MatMult(fctx->M1,v,r);CHKERRQ(ierr);
-          ierr = KSPSolve(pep->refineksp,r,dv);CHKERRQ(ierr);
-          ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
+          CHKERRQ(MatMult(fctx->M1,v,r));
+          CHKERRQ(KSPSolve(pep->refineksp,r,dv));
+          CHKERRQ(KSPGetConvergedReason(pep->refineksp,&reason));
           if (reason>0) {
-            ierr = VecDot(dv,v,&deig);CHKERRQ(ierr);
+            CHKERRQ(VecDot(dv,v,&deig));
             deig *= -fctx->m3/fctx->M4;
-            ierr = VecAXPY(v,-1.0,dv);CHKERRQ(ierr);
-            ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-            ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
+            CHKERRQ(VecAXPY(v,-1.0,dv));
+            CHKERRQ(VecNorm(v,NORM_2,&norm));
+            CHKERRQ(VecScale(v,1.0/norm));
             pep->eigr[idx_sc[color]] -= deig;
             fail_sc[color] = 0;
           }
         }
         break;
       }
-      if (pep->npart==1) { ierr = BVRestoreColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr); }
+      if (pep->npart==1) CHKERRQ(BVRestoreColumn(pep->V,idx_sc[color],&v));
     }
   }
-  ierr = VecDestroy(&t[0]);CHKERRQ(ierr);
-  ierr = VecDestroy(&t[1]);CHKERRQ(ierr);
-  ierr = VecDestroy(&dv);CHKERRQ(ierr);
-  ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
-  ierr = VecDestroy(&r);CHKERRQ(ierr);
-  ierr = PetscFree3(idx_sc,its_sc,fail_sc);CHKERRQ(ierr);
-  ierr = VecScatterDestroy(&ctx->nst);CHKERRQ(ierr);
+  CHKERRQ(VecDestroy(&t[0]));
+  CHKERRQ(VecDestroy(&t[1]));
+  CHKERRQ(VecDestroy(&dv));
+  CHKERRQ(VecDestroy(&ctx->w));
+  CHKERRQ(VecDestroy(&r));
+  CHKERRQ(PetscFree3(idx_sc,its_sc,fail_sc));
+  CHKERRQ(VecScatterDestroy(&ctx->nst));
   if (pep->npart>1) {
-    ierr = VecDestroy(&ctx->vg);CHKERRQ(ierr);
-    ierr = VecDestroy(&ctx->v);CHKERRQ(ierr);
+    CHKERRQ(VecDestroy(&ctx->vg));
+    CHKERRQ(VecDestroy(&ctx->v));
     for (i=0;i<pep->nmat;i++) {
-      ierr = MatDestroy(&ctx->A[i]);CHKERRQ(ierr);
+      CHKERRQ(MatDestroy(&ctx->A[i]));
     }
     for (i=0;i<pep->npart;i++) {
-      ierr = VecScatterDestroy(&ctx->scatter_id[i]);CHKERRQ(ierr);
+      CHKERRQ(VecScatterDestroy(&ctx->scatter_id[i]));
     }
-    ierr = PetscFree2(ctx->A,ctx->scatter_id);CHKERRQ(ierr);
+    CHKERRQ(PetscFree2(ctx->A,ctx->scatter_id));
   }
   if (fctx && pep->scheme==PEP_REFINE_SCHEME_SCHUR) {
-    ierr = MatDestroy(&P);CHKERRQ(ierr);
-    ierr = MatDestroy(&fctx->M1);CHKERRQ(ierr);
-    ierr = PetscFree(fctx);CHKERRQ(ierr);
+    CHKERRQ(MatDestroy(&P));
+    CHKERRQ(MatDestroy(&fctx->M1));
+    CHKERRQ(PetscFree(fctx));
   }
   if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT) {
-    ierr = MatDestroy(&Mt);CHKERRQ(ierr);
-    ierr = VecDestroy(&dvv);CHKERRQ(ierr);
-    ierr = VecDestroy(&rr);CHKERRQ(ierr);
-    ierr = VecDestroy(&ctx->nv);CHKERRQ(ierr);
+    CHKERRQ(MatDestroy(&Mt));
+    CHKERRQ(VecDestroy(&dvv));
+    CHKERRQ(VecDestroy(&rr));
+    CHKERRQ(VecDestroy(&ctx->nv));
   }
-  ierr = MatDestroy(&T);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&T));
+  CHKERRQ(PetscFree(ctx));
+  CHKERRQ(PetscLogEventEnd(PEP_Refine,pep,0,0,0));
   PetscFunctionReturn(0);
 }
-

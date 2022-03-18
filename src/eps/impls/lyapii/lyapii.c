@@ -54,7 +54,6 @@ typedef struct {
 
 PetscErrorCode EPSSetUp_LyapII(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscRandom    rand;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
 
@@ -63,7 +62,7 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
   if (eps->ncv!=PETSC_DEFAULT) {
     PetscCheck(eps->ncv>=eps->nev+1,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
   } else eps->ncv = eps->nev+1;
-  if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (eps->mpd!=PETSC_DEFAULT) CHKERRQ(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
   if (!eps->which) eps->which=EPS_LARGEST_REAL;
   PetscCheck(eps->which==EPS_LARGEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest real eigenvalues");
@@ -71,53 +70,50 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
 
   if (!ctx->rkc) ctx->rkc = 10;
   if (!ctx->rkl) ctx->rkl = 3*ctx->rkc;
-  if (!ctx->lme) { ierr = EPSLyapIIGetLME(eps,&ctx->lme);CHKERRQ(ierr); }
-  ierr = LMESetProblemType(ctx->lme,LME_LYAPUNOV);CHKERRQ(ierr);
-  ierr = LMESetErrorIfNotConverged(ctx->lme,PETSC_TRUE);CHKERRQ(ierr);
+  if (!ctx->lme) CHKERRQ(EPSLyapIIGetLME(eps,&ctx->lme));
+  CHKERRQ(LMESetProblemType(ctx->lme,LME_LYAPUNOV));
+  CHKERRQ(LMESetErrorIfNotConverged(ctx->lme,PETSC_TRUE));
 
   if (!ctx->ds) {
-    ierr = DSCreate(PetscObjectComm((PetscObject)eps),&ctx->ds);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ds);CHKERRQ(ierr);
-    ierr = DSSetType(ctx->ds,DSSVD);CHKERRQ(ierr);
+    CHKERRQ(DSCreate(PetscObjectComm((PetscObject)eps),&ctx->ds));
+    CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ds));
+    CHKERRQ(DSSetType(ctx->ds,DSSVD));
   }
-  ierr = DSAllocate(ctx->ds,ctx->rkl);CHKERRQ(ierr);
+  CHKERRQ(DSAllocate(ctx->ds,ctx->rkl));
 
-  ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
+  CHKERRQ(DSSetType(eps->ds,DSNHEP));
+  CHKERRQ(DSAllocate(eps->ds,eps->ncv));
 
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  ierr = BVGetRandomContext(eps->V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
-  ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
+  CHKERRQ(EPSAllocateSolution(eps,0));
+  CHKERRQ(BVGetRandomContext(eps->V,&rand));  /* make sure the random context is available when duplicating */
+  CHKERRQ(EPSSetWorkVecs(eps,3));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatMult_EPSLyapIIOperator(Mat M,Vec x,Vec r)
 {
-  PetscErrorCode      ierr;
   EPS_LYAPII_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
-  ierr = MatMult(matctx->S,x,r);CHKERRQ(ierr);
-  ierr = BVOrthogonalizeVec(matctx->Q,r,NULL,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
+  CHKERRQ(MatMult(matctx->S,x,r));
+  CHKERRQ(BVOrthogonalizeVec(matctx->Q,r,NULL,NULL,NULL));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
 {
-  PetscErrorCode      ierr;
   EPS_LYAPII_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
-  ierr = MatDestroy(&matctx->S);CHKERRQ(ierr);
-  ierr = PetscFree(matctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
+  CHKERRQ(MatDestroy(&matctx->S));
+  CHKERRQ(PetscFree(matctx));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 {
-  PetscErrorCode    ierr;
   EPS_EIG_MATSHELL  *matctx;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt          n;
@@ -127,49 +123,48 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 #endif
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
 
 #if defined(PETSC_USE_COMPLEX)
-  ierr = MatMult(matctx->B,x,matctx->w);CHKERRQ(ierr);
-  ierr = MatSolve(matctx->F,matctx->w,y);CHKERRQ(ierr);
+  CHKERRQ(MatMult(matctx->B,x,matctx->w));
+  CHKERRQ(MatSolve(matctx->F,matctx->w,y));
 #else
-  ierr = VecGetArrayRead(x,&X);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&Y);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayRead(matctx->S,&S);CHKERRQ(ierr);
+  CHKERRQ(VecGetArrayRead(x,&X));
+  CHKERRQ(VecGetArray(y,&Y));
+  CHKERRQ(MatDenseGetArrayRead(matctx->S,&S));
 
   n = matctx->n;
-  ierr = PetscCalloc1(n*n,&C);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  CHKERRQ(PetscCalloc1(n*n,&C));
+  CHKERRQ(PetscBLASIntCast(n,&n_));
 
   /* C = 2*S*X*S.' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&dtwo,S,&n_,X,&n_,&zero,Y,&n_));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&n_,&n_,&n_,&done,Y,&n_,S,&n_,&zero,C,&n_));
 
   /* Solve S*Y + Y*S' = -C */
-  ierr = LMEDenseLyapunov(matctx->lme,n,(PetscScalar*)S,n,C,n,Y,n);CHKERRQ(ierr);
+  CHKERRQ(LMEDenseLyapunov(matctx->lme,n,(PetscScalar*)S,n,C,n,Y,n));
 
-  ierr = PetscFree(C);CHKERRQ(ierr);
-  ierr = VecRestoreArrayRead(x,&X);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&Y);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(matctx->S,&S);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(C));
+  CHKERRQ(VecRestoreArrayRead(x,&X));
+  CHKERRQ(VecRestoreArray(y,&Y));
+  CHKERRQ(MatDenseRestoreArrayRead(matctx->S,&S));
 #endif
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatDestroy_EigOperator(Mat M)
 {
-  PetscErrorCode   ierr;
   EPS_EIG_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M,&matctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(M,&matctx));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = MatDestroy(&matctx->A);CHKERRQ(ierr);
-  ierr = MatDestroy(&matctx->B);CHKERRQ(ierr);
-  ierr = MatDestroy(&matctx->F);CHKERRQ(ierr);
-  ierr = VecDestroy(&matctx->w);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&matctx->A));
+  CHKERRQ(MatDestroy(&matctx->B));
+  CHKERRQ(MatDestroy(&matctx->F));
+  CHKERRQ(VecDestroy(&matctx->w));
 #endif
-  ierr = PetscFree(matctx);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(matctx));
   PetscFunctionReturn(0);
 }
 
@@ -178,7 +173,6 @@ static PetscErrorCode MatDestroy_EigOperator(Mat M)
  */
 static PetscErrorCode EV2x2(PetscScalar *M,PetscInt ld,PetscScalar *wr,PetscScalar *wi,PetscScalar *vec)
 {
-  PetscErrorCode ierr;
   PetscBLASInt   lwork=10,ld_;
   PetscScalar    work[10];
   PetscBLASInt   two=2,info;
@@ -187,15 +181,15 @@ static PetscErrorCode EV2x2(PetscScalar *M,PetscInt ld,PetscScalar *wr,PetscScal
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(ld,&ld_));
+  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&two,M,&ld_,wr,wi,NULL,&ld_,vec,&ld_,work,&lwork,&info));
 #else
   PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&two,M,&ld_,wr,NULL,&ld_,vec,&ld_,work,&lwork,rwork,&info));
 #endif
   SlepcCheckLapackInfo("geev",info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  CHKERRQ(PetscFPTrapPop());
   PetscFunctionReturn(0);
 }
 
@@ -208,32 +202,31 @@ static PetscErrorCode EV2x2(PetscScalar *M,PetscInt ld,PetscScalar *wr,PetscScal
  */
 static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
 {
-  PetscErrorCode ierr;
   PetscScalar    *array,*uu;
   PetscInt       i,nloc;
   Vec            v,u=work[0];
 
   PetscFunctionBegin;
-  ierr = MatGetLocalSize(U,&nloc,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatGetLocalSize(U,&nloc,NULL));
   for (i=0;i<rk;i++) {
-    ierr = MatDenseGetColumn(U,i,&array);CHKERRQ(ierr);
+    CHKERRQ(MatDenseGetColumn(U,i,&array));
     if (V) {
-      ierr = BVGetColumn(V,i,&v);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(V,i,&v));
     } else {
       v = work[1];
-      ierr = VecPlaceArray(v,array);CHKERRQ(ierr);
+      CHKERRQ(VecPlaceArray(v,array));
     }
-    ierr = MatMult(S,v,u);CHKERRQ(ierr);
+    CHKERRQ(MatMult(S,v,u));
     if (V) {
-      ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
+      CHKERRQ(BVRestoreColumn(V,i,&v));
     } else {
-      ierr = VecResetArray(v);CHKERRQ(ierr);
+      CHKERRQ(VecResetArray(v));
     }
-    ierr = VecScale(u,PETSC_SQRT2);CHKERRQ(ierr);
-    ierr = VecGetArray(u,&uu);CHKERRQ(ierr);
-    ierr = PetscArraycpy(array,uu,nloc);CHKERRQ(ierr);
-    ierr = VecRestoreArray(u,&uu);CHKERRQ(ierr);
-    ierr = MatDenseRestoreColumn(U,&array);CHKERRQ(ierr);
+    CHKERRQ(VecScale(u,PETSC_SQRT2));
+    CHKERRQ(VecGetArray(u,&uu));
+    CHKERRQ(PetscArraycpy(array,uu,nloc));
+    CHKERRQ(VecRestoreArray(u,&uu));
+    CHKERRQ(MatDenseRestoreColumn(U,&array));
   }
   PetscFunctionReturn(0);
 }
@@ -245,7 +238,6 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
  */
 static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
 {
-  PetscErrorCode    ierr;
   PetscInt          n,m;
   PetscBool         create=PETSC_FALSE;
   EPS_EIG_MATSHELL  *matctx;
@@ -257,35 +249,35 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
 #endif
 
   PetscFunctionBegin;
-  ierr = MatGetSize(S,&n,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(S,&n,NULL));
   if (!*Op) create=PETSC_TRUE;
   else {
-    ierr = MatGetSize(*Op,&m,NULL);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(*Op,&m,NULL));
     if (m!=n*n) create=PETSC_TRUE;
   }
   if (create) {
-    ierr = MatDestroy(Op);CHKERRQ(ierr);
-    ierr = VecDestroy(v0);CHKERRQ(ierr);
-    ierr = PetscNew(&matctx);CHKERRQ(ierr);
+    CHKERRQ(MatDestroy(Op));
+    CHKERRQ(VecDestroy(v0));
+    CHKERRQ(PetscNew(&matctx));
 #if defined(PETSC_USE_COMPLEX)
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,&matctx->A);CHKERRQ(ierr);
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,&matctx->B);CHKERRQ(ierr);
-    ierr = MatCreateVecs(matctx->A,NULL,&matctx->w);CHKERRQ(ierr);
+    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,&matctx->A));
+    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,&matctx->B));
+    CHKERRQ(MatCreateVecs(matctx->A,NULL,&matctx->w));
 #endif
-    ierr = MatCreateShell(PETSC_COMM_SELF,n*n,n*n,PETSC_DETERMINE,PETSC_DETERMINE,matctx,Op);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(*Op,MATOP_MULT,(void(*)(void))MatMult_EigOperator);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(*Op,MATOP_DESTROY,(void(*)(void))MatDestroy_EigOperator);CHKERRQ(ierr);
-    ierr = MatCreateVecs(*Op,NULL,v0);CHKERRQ(ierr);
+    CHKERRQ(MatCreateShell(PETSC_COMM_SELF,n*n,n*n,PETSC_DETERMINE,PETSC_DETERMINE,matctx,Op));
+    CHKERRQ(MatShellSetOperation(*Op,MATOP_MULT,(void(*)(void))MatMult_EigOperator));
+    CHKERRQ(MatShellSetOperation(*Op,MATOP_DESTROY,(void(*)(void))MatDestroy_EigOperator));
+    CHKERRQ(MatCreateVecs(*Op,NULL,v0));
   } else {
-    ierr = MatShellGetContext(*Op,&matctx);CHKERRQ(ierr);
+    CHKERRQ(MatShellGetContext(*Op,&matctx));
 #if defined(PETSC_USE_COMPLEX)
-    ierr = MatZeroEntries(matctx->A);CHKERRQ(ierr);
+    CHKERRQ(MatZeroEntries(matctx->A));
 #endif
   }
 #if defined(PETSC_USE_COMPLEX)
-  ierr = MatDenseGetArray(matctx->A,&aa);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(matctx->B,&bb);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayRead(S,&ss);CHKERRQ(ierr);
+  CHKERRQ(MatDenseGetArray(matctx->A,&aa));
+  CHKERRQ(MatDenseGetArray(matctx->B,&bb));
+  CHKERRQ(MatDenseGetArrayRead(S,&ss));
   ld = n*n;
   for (f=0;f<n;f++) {
     off = f*n+f*n*ld;
@@ -297,25 +289,24 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
       for (i=0;i<n;i++) for (j=0;j<n;j++) bb[off+i+j*ld] = -2*theta*ss[i+j*n];
     }
   }
-  ierr = MatDenseRestoreArray(matctx->A,&aa);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(matctx->B,&bb);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(S,&ss);CHKERRQ(ierr);
-  ierr = ISCreateStride(PETSC_COMM_SELF,n*n,0,1,&perm);CHKERRQ(ierr);
-  ierr = MatDestroy(&matctx->F);CHKERRQ(ierr);
-  ierr = MatDuplicate(matctx->A,MAT_COPY_VALUES,&matctx->F);CHKERRQ(ierr);
-  ierr = MatLUFactor(matctx->F,perm,perm,0);CHKERRQ(ierr);
-  ierr = ISDestroy(&perm);CHKERRQ(ierr);
+  CHKERRQ(MatDenseRestoreArray(matctx->A,&aa));
+  CHKERRQ(MatDenseRestoreArray(matctx->B,&bb));
+  CHKERRQ(MatDenseRestoreArrayRead(S,&ss));
+  CHKERRQ(ISCreateStride(PETSC_COMM_SELF,n*n,0,1,&perm));
+  CHKERRQ(MatDestroy(&matctx->F));
+  CHKERRQ(MatDuplicate(matctx->A,MAT_COPY_VALUES,&matctx->F));
+  CHKERRQ(MatLUFactor(matctx->F,perm,perm,0));
+  CHKERRQ(ISDestroy(&perm));
 #endif
   matctx->lme = lme;
   matctx->S = S;
   matctx->n = n;
-  ierr = VecSet(*v0,1.0);CHKERRQ(ierr);
+  CHKERRQ(VecSet(*v0,1.0));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSolve_LyapII(EPS eps)
 {
-  PetscErrorCode      ierr;
   EPS_LYAPII          *ctx = (EPS_LYAPII*)eps->data;
   PetscInt            i,ldds,rk,nloc,mloc,nv,idx,k;
   Vec                 v,w,z=eps->work[0],v0=NULL;
@@ -330,140 +321,140 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   EPS_LYAPII_MATSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(ctx->ds,&ldds);CHKERRQ(ierr);
+  CHKERRQ(DSGetLeadingDimension(ctx->ds,&ldds));
 
   /* Operator for the Lyapunov equation */
-  ierr = PetscNew(&matctx);CHKERRQ(ierr);
-  ierr = STGetOperator(eps->st,&matctx->S);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(matctx->S,&mloc,&nloc);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)eps),mloc,nloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&S);CHKERRQ(ierr);
+  CHKERRQ(PetscNew(&matctx));
+  CHKERRQ(STGetOperator(eps->st,&matctx->S));
+  CHKERRQ(MatGetLocalSize(matctx->S,&mloc,&nloc));
+  CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)eps),mloc,nloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&S));
   matctx->Q = eps->V;
-  ierr = MatShellSetOperation(S,MATOP_MULT,(void(*)(void))MatMult_EPSLyapIIOperator);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(S,MATOP_DESTROY,(void(*)(void))MatDestroy_EPSLyapIIOperator);CHKERRQ(ierr);
-  ierr = LMESetCoefficients(ctx->lme,S,NULL,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(MatShellSetOperation(S,MATOP_MULT,(void(*)(void))MatMult_EPSLyapIIOperator));
+  CHKERRQ(MatShellSetOperation(S,MATOP_DESTROY,(void(*)(void))MatDestroy_EPSLyapIIOperator));
+  CHKERRQ(LMESetCoefficients(ctx->lme,S,NULL,NULL,NULL));
 
   /* Right-hand side */
-  ierr = BVDuplicateResize(eps->V,ctx->rkl,&V);CHKERRQ(ierr);
-  ierr = BVGetOrthogonalization(V,&type,&refine,&eta,NULL);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(V,type,refine,eta,BV_ORTHOG_BLOCK_TSQR);CHKERRQ(ierr);
-  ierr = MatCreateDense(PetscObjectComm((PetscObject)eps),eps->nloc,PETSC_DECIDE,PETSC_DECIDE,1,NULL,&Ux[0]);CHKERRQ(ierr);
-  ierr = MatCreateDense(PetscObjectComm((PetscObject)eps),eps->nloc,PETSC_DECIDE,PETSC_DECIDE,2,NULL,&Ux[1]);CHKERRQ(ierr);
+  CHKERRQ(BVDuplicateResize(eps->V,ctx->rkl,&V));
+  CHKERRQ(BVGetOrthogonalization(V,&type,&refine,&eta,NULL));
+  CHKERRQ(BVSetOrthogonalization(V,type,refine,eta,BV_ORTHOG_BLOCK_TSQR));
+  CHKERRQ(MatCreateDense(PetscObjectComm((PetscObject)eps),eps->nloc,PETSC_DECIDE,PETSC_DECIDE,1,NULL,&Ux[0]));
+  CHKERRQ(MatCreateDense(PetscObjectComm((PetscObject)eps),eps->nloc,PETSC_DECIDE,PETSC_DECIDE,2,NULL,&Ux[1]));
   nv = ctx->rkl;
-  ierr = PetscMalloc1(nv,&s);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc1(nv,&s));
 
   /* Initialize first column */
-  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
-  ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
-  ierr = BVInsertVec(V,0,v);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* no deflation at the beginning */
-  ierr = LyapIIBuildRHS(S,1,Ux[0],V,eps->work);CHKERRQ(ierr);
+  CHKERRQ(EPSGetStartVector(eps,0,NULL));
+  CHKERRQ(BVGetColumn(eps->V,0,&v));
+  CHKERRQ(BVInsertVec(V,0,v));
+  CHKERRQ(BVRestoreColumn(eps->V,0,&v));
+  CHKERRQ(BVSetActiveColumns(eps->V,0,0));  /* no deflation at the beginning */
+  CHKERRQ(LyapIIBuildRHS(S,1,Ux[0],V,eps->work));
   idx = 0;
 
   /* EPS for rank reduction */
-  ierr = EPSCreate(PETSC_COMM_SELF,&epsrr);CHKERRQ(ierr);
-  ierr = EPSSetOptionsPrefix(epsrr,((PetscObject)eps)->prefix);CHKERRQ(ierr);
-  ierr = EPSAppendOptionsPrefix(epsrr,"eps_lyapii_");CHKERRQ(ierr);
-  ierr = EPSSetDimensions(epsrr,1,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(epsrr,PETSC_MACHINE_EPSILON*100,PETSC_DEFAULT);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PETSC_COMM_SELF,&epsrr));
+  CHKERRQ(EPSSetOptionsPrefix(epsrr,((PetscObject)eps)->prefix));
+  CHKERRQ(EPSAppendOptionsPrefix(epsrr,"eps_lyapii_"));
+  CHKERRQ(EPSSetDimensions(epsrr,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  CHKERRQ(EPSSetTolerances(epsrr,PETSC_MACHINE_EPSILON*100,PETSC_DEFAULT));
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
 
     /* Matrix for placing the solution of the Lyapunov equation (an alias of V) */
-    ierr = BVSetActiveColumns(V,0,nv);CHKERRQ(ierr);
-    ierr = BVGetMat(V,&Y1);CHKERRQ(ierr);
-    ierr = MatZeroEntries(Y1);CHKERRQ(ierr);
-    ierr = MatCreateLRC(NULL,Y1,NULL,NULL,&Y);CHKERRQ(ierr);
-    ierr = LMESetSolution(ctx->lme,Y);CHKERRQ(ierr);
+    CHKERRQ(BVSetActiveColumns(V,0,nv));
+    CHKERRQ(BVGetMat(V,&Y1));
+    CHKERRQ(MatZeroEntries(Y1));
+    CHKERRQ(MatCreateLRC(NULL,Y1,NULL,NULL,&Y));
+    CHKERRQ(LMESetSolution(ctx->lme,Y));
 
     /* Solve the Lyapunov equation SY + YS' = -2*S*Z*S' */
-    ierr = MatCreateLRC(NULL,Ux[idx],NULL,NULL,&C);CHKERRQ(ierr);
-    ierr = LMESetRHS(ctx->lme,C);CHKERRQ(ierr);
-    ierr = MatDestroy(&C);CHKERRQ(ierr);
-    ierr = LMESolve(ctx->lme);CHKERRQ(ierr);
-    ierr = BVRestoreMat(V,&Y1);CHKERRQ(ierr);
-    ierr = MatDestroy(&Y);CHKERRQ(ierr);
+    CHKERRQ(MatCreateLRC(NULL,Ux[idx],NULL,NULL,&C));
+    CHKERRQ(LMESetRHS(ctx->lme,C));
+    CHKERRQ(MatDestroy(&C));
+    CHKERRQ(LMESolve(ctx->lme));
+    CHKERRQ(BVRestoreMat(V,&Y1));
+    CHKERRQ(MatDestroy(&Y));
 
     /* SVD of the solution: [Q,R]=qr(V); [U,Sigma,~]=svd(R) */
-    ierr = DSSetDimensions(ctx->ds,nv,0,0);CHKERRQ(ierr);
-    ierr = DSSVDSetDimensions(ctx->ds,nv);CHKERRQ(ierr);
-    ierr = DSGetMat(ctx->ds,DS_MAT_A,&R);CHKERRQ(ierr);
-    ierr = BVOrthogonalize(V,R);CHKERRQ(ierr);
-    ierr = DSRestoreMat(ctx->ds,DS_MAT_A,&R);CHKERRQ(ierr);
-    ierr = DSSetState(ctx->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    ierr = DSSolve(ctx->ds,s,NULL);CHKERRQ(ierr);
+    CHKERRQ(DSSetDimensions(ctx->ds,nv,0,0));
+    CHKERRQ(DSSVDSetDimensions(ctx->ds,nv));
+    CHKERRQ(DSGetMat(ctx->ds,DS_MAT_A,&R));
+    CHKERRQ(BVOrthogonalize(V,R));
+    CHKERRQ(DSRestoreMat(ctx->ds,DS_MAT_A,&R));
+    CHKERRQ(DSSetState(ctx->ds,DS_STATE_RAW));
+    CHKERRQ(DSSolve(ctx->ds,s,NULL));
 
     /* Determine rank */
     rk = nv;
     for (i=1;i<nv;i++) if (PetscAbsScalar(s[i]/s[0])<PETSC_SQRT_MACHINE_EPSILON) {rk=i; break;}
-    ierr = PetscInfo(eps,"The computed solution of the Lyapunov equation has rank %" PetscInt_FMT "\n",rk);CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(eps,"The computed solution of the Lyapunov equation has rank %" PetscInt_FMT "\n",rk));
     rk = PetscMin(rk,ctx->rkc);
-    ierr = DSGetMat(ctx->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-    ierr = BVMultInPlace(V,U,0,rk);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(V,0,rk);CHKERRQ(ierr);
-    ierr = MatDestroy(&U);CHKERRQ(ierr);
+    CHKERRQ(DSGetMat(ctx->ds,DS_MAT_U,&U));
+    CHKERRQ(BVMultInPlace(V,U,0,rk));
+    CHKERRQ(BVSetActiveColumns(V,0,rk));
+    CHKERRQ(MatDestroy(&U));
 
     /* Rank reduction */
-    ierr = DSSetDimensions(ctx->ds,rk,0,0);CHKERRQ(ierr);
-    ierr = DSSVDSetDimensions(ctx->ds,rk);CHKERRQ(ierr);
-    ierr = DSGetMat(ctx->ds,DS_MAT_A,&W);CHKERRQ(ierr);
-    ierr = BVMatProject(V,S,V,W);CHKERRQ(ierr);
-    ierr = LyapIIBuildEigenMat(ctx->lme,W,&Op,&v0);CHKERRQ(ierr); /* Op=A\B, A=kron(I,S)+kron(S,I), B=-2*kron(S,S) */
-    ierr = EPSSetOperators(epsrr,Op,NULL);CHKERRQ(ierr);
-    ierr = EPSSetInitialSpace(epsrr,1,&v0);CHKERRQ(ierr);
-    ierr = EPSSolve(epsrr);CHKERRQ(ierr);
-    ierr = MatDestroy(&W);CHKERRQ(ierr);
-    ierr = EPSComputeVectors(epsrr);CHKERRQ(ierr);
+    CHKERRQ(DSSetDimensions(ctx->ds,rk,0,0));
+    CHKERRQ(DSSVDSetDimensions(ctx->ds,rk));
+    CHKERRQ(DSGetMat(ctx->ds,DS_MAT_A,&W));
+    CHKERRQ(BVMatProject(V,S,V,W));
+    CHKERRQ(LyapIIBuildEigenMat(ctx->lme,W,&Op,&v0)); /* Op=A\B, A=kron(I,S)+kron(S,I), B=-2*kron(S,S) */
+    CHKERRQ(EPSSetOperators(epsrr,Op,NULL));
+    CHKERRQ(EPSSetInitialSpace(epsrr,1,&v0));
+    CHKERRQ(EPSSolve(epsrr));
+    CHKERRQ(MatDestroy(&W));
+    CHKERRQ(EPSComputeVectors(epsrr));
     /* Copy first eigenvector, vec(A)=x */
-    ierr = BVGetArray(epsrr->V,&xx);CHKERRQ(ierr);
-    ierr = DSGetArray(ctx->ds,DS_MAT_A,&aa);CHKERRQ(ierr);
+    CHKERRQ(BVGetArray(epsrr->V,&xx));
+    CHKERRQ(DSGetArray(ctx->ds,DS_MAT_A,&aa));
     for (i=0;i<rk;i++) {
-      ierr = PetscArraycpy(aa+i*ldds,xx+i*rk,rk);CHKERRQ(ierr);
+      CHKERRQ(PetscArraycpy(aa+i*ldds,xx+i*rk,rk));
     }
-    ierr = DSRestoreArray(ctx->ds,DS_MAT_A,&aa);CHKERRQ(ierr);
-    ierr = BVRestoreArray(epsrr->V,&xx);CHKERRQ(ierr);
-    ierr = DSSetState(ctx->ds,DS_STATE_RAW);CHKERRQ(ierr);
+    CHKERRQ(DSRestoreArray(ctx->ds,DS_MAT_A,&aa));
+    CHKERRQ(BVRestoreArray(epsrr->V,&xx));
+    CHKERRQ(DSSetState(ctx->ds,DS_STATE_RAW));
     /* Compute [U,Sigma,~] = svd(A), its rank should be 1 or 2 */
-    ierr = DSSolve(ctx->ds,s,NULL);CHKERRQ(ierr);
+    CHKERRQ(DSSolve(ctx->ds,s,NULL));
     if (PetscAbsScalar(s[1]/s[0])<PETSC_SQRT_MACHINE_EPSILON) rk=1;
     else rk = 2;
-    ierr = PetscInfo(eps,"The eigenvector has rank %" PetscInt_FMT "\n",rk);CHKERRQ(ierr);
-    ierr = DSGetMat(ctx->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-    ierr = BVMultInPlace(V,U,0,rk);CHKERRQ(ierr);
-    ierr = MatDestroy(&U);CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(eps,"The eigenvector has rank %" PetscInt_FMT "\n",rk));
+    CHKERRQ(DSGetMat(ctx->ds,DS_MAT_U,&U));
+    CHKERRQ(BVMultInPlace(V,U,0,rk));
+    CHKERRQ(MatDestroy(&U));
 
     /* Save V in Ux */
     idx = (rk==2)?1:0;
     for (i=0;i<rk;i++) {
-      ierr = BVGetColumn(V,i,&v);CHKERRQ(ierr);
-      ierr = VecGetArray(v,&uu);CHKERRQ(ierr);
-      ierr = MatDenseGetColumn(Ux[idx],i,&array);CHKERRQ(ierr);
-      ierr = PetscArraycpy(array,uu,eps->nloc);CHKERRQ(ierr);
-      ierr = MatDenseRestoreColumn(Ux[idx],&array);CHKERRQ(ierr);
-      ierr = VecRestoreArray(v,&uu);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(V,i,&v));
+      CHKERRQ(VecGetArray(v,&uu));
+      CHKERRQ(MatDenseGetColumn(Ux[idx],i,&array));
+      CHKERRQ(PetscArraycpy(array,uu,eps->nloc));
+      CHKERRQ(MatDenseRestoreColumn(Ux[idx],&array));
+      CHKERRQ(VecRestoreArray(v,&uu));
+      CHKERRQ(BVRestoreColumn(V,i,&v));
     }
 
     /* Eigenpair approximation */
-    ierr = BVGetColumn(V,0,&v);CHKERRQ(ierr);
-    ierr = MatMult(S,v,z);CHKERRQ(ierr);
-    ierr = VecDot(z,v,pM);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,0,&v);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(V,0,&v));
+    CHKERRQ(MatMult(S,v,z));
+    CHKERRQ(VecDot(z,v,pM));
+    CHKERRQ(BVRestoreColumn(V,0,&v));
     if (rk>1) {
-      ierr = BVGetColumn(V,1,&w);CHKERRQ(ierr);
-      ierr = VecDot(z,w,pM+1);CHKERRQ(ierr);
-      ierr = MatMult(S,w,z);CHKERRQ(ierr);
-      ierr = VecDot(z,w,pM+3);CHKERRQ(ierr);
-      ierr = BVGetColumn(V,0,&v);CHKERRQ(ierr);
-      ierr = VecDot(z,v,pM+2);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(V,0,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(V,1,&w);CHKERRQ(ierr);
-      ierr = EV2x2(pM,2,eigr,eigi,vec);CHKERRQ(ierr);
-      ierr = MatCreateSeqDense(PETSC_COMM_SELF,2,2,vec,&X);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(V,0,rk);CHKERRQ(ierr);
-      ierr = BVMultInPlace(V,X,0,rk);CHKERRQ(ierr);
-      ierr = MatDestroy(&X);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(V,1,&w));
+      CHKERRQ(VecDot(z,w,pM+1));
+      CHKERRQ(MatMult(S,w,z));
+      CHKERRQ(VecDot(z,w,pM+3));
+      CHKERRQ(BVGetColumn(V,0,&v));
+      CHKERRQ(VecDot(z,v,pM+2));
+      CHKERRQ(BVRestoreColumn(V,0,&v));
+      CHKERRQ(BVRestoreColumn(V,1,&w));
+      CHKERRQ(EV2x2(pM,2,eigr,eigi,vec));
+      CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,2,2,vec,&X));
+      CHKERRQ(BVSetActiveColumns(V,0,rk));
+      CHKERRQ(BVMultInPlace(V,X,0,rk));
+      CHKERRQ(MatDestroy(&X));
 #if !defined(PETSC_USE_COMPLEX)
       norm = eigr[0]*eigr[0]+eigi[0]*eigi[0];
       er = eigr[0]/norm; ei = -eigi[0]/norm;
@@ -474,17 +465,17 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       eigr[0] = pM[0]; eigi[0] = 0.0;
       er = 1.0/eigr[0]; ei = 0.0;
     }
-    ierr = BVGetColumn(V,0,&v);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(V,0,&v));
     if (eigi[0]!=0.0) {
-      ierr = BVGetColumn(V,1,&w);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(V,1,&w));
     } else w = NULL;
     eps->eigr[eps->nconv] = eigr[0]; eps->eigi[eps->nconv] = eigi[0];
-    ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,er,ei,v,w,eps->work,&norm);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,0,&v);CHKERRQ(ierr);
+    CHKERRQ(EPSComputeResidualNorm_Private(eps,PETSC_FALSE,er,ei,v,w,eps->work,&norm));
+    CHKERRQ(BVRestoreColumn(V,0,&v));
     if (w) {
-      ierr = BVRestoreColumn(V,1,&w);CHKERRQ(ierr);
+      CHKERRQ(BVRestoreColumn(V,1,&w));
     }
-    ierr = (*eps->converged)(eps,er,ei,norm,&eps->errest[eps->nconv],eps->convergedctx);CHKERRQ(ierr);
+    CHKERRQ((*eps->converged)(eps,er,ei,norm,&eps->errest[eps->nconv],eps->convergedctx));
     k = 0;
     if (eps->errest[eps->nconv]<eps->tol) {
       k++;
@@ -498,63 +489,62 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       }
       /* Store converged eigenpairs and vectors for deflation */
       for (i=0;i<k;i++) {
-        ierr = BVGetColumn(V,i,&v);CHKERRQ(ierr);
-        ierr = BVInsertVec(eps->V,eps->nconv+i,v);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
+        CHKERRQ(BVGetColumn(V,i,&v));
+        CHKERRQ(BVInsertVec(eps->V,eps->nconv+i,v));
+        CHKERRQ(BVRestoreColumn(V,i,&v));
       }
       eps->nconv += k;
-      ierr = BVSetActiveColumns(eps->V,eps->nconv-rk,eps->nconv);CHKERRQ(ierr);
-      ierr = BVOrthogonalize(eps->V,NULL);CHKERRQ(ierr);
-      ierr = DSSetDimensions(eps->ds,eps->nconv,0,0);CHKERRQ(ierr);
-      ierr = DSGetMat(eps->ds,DS_MAT_A,&W);CHKERRQ(ierr);
-      ierr = BVMatProject(eps->V,matctx->S,eps->V,W);CHKERRQ(ierr);
-      ierr = DSRestoreMat(eps->ds,DS_MAT_A,&W);CHKERRQ(ierr);
+      CHKERRQ(BVSetActiveColumns(eps->V,eps->nconv-rk,eps->nconv));
+      CHKERRQ(BVOrthogonalize(eps->V,NULL));
+      CHKERRQ(DSSetDimensions(eps->ds,eps->nconv,0,0));
+      CHKERRQ(DSGetMat(eps->ds,DS_MAT_A,&W));
+      CHKERRQ(BVMatProject(eps->V,matctx->S,eps->V,W));
+      CHKERRQ(DSRestoreMat(eps->ds,DS_MAT_A,&W));
       if (eps->nconv<eps->nev) {
         idx = 0;
-        ierr = BVSetRandomColumn(V,0);CHKERRQ(ierr);
-        ierr = BVNormColumn(V,0,NORM_2,&norm);CHKERRQ(ierr);
-        ierr = BVScaleColumn(V,0,1.0/norm);CHKERRQ(ierr);
-        ierr = LyapIIBuildRHS(S,1,Ux[idx],V,eps->work);CHKERRQ(ierr);
+        CHKERRQ(BVSetRandomColumn(V,0));
+        CHKERRQ(BVNormColumn(V,0,NORM_2,&norm));
+        CHKERRQ(BVScaleColumn(V,0,1.0/norm));
+        CHKERRQ(LyapIIBuildRHS(S,1,Ux[idx],V,eps->work));
       }
     } else {
       /* Prepare right-hand side */
-      ierr = LyapIIBuildRHS(S,rk,Ux[idx],NULL,eps->work);CHKERRQ(ierr);
+      CHKERRQ(LyapIIBuildRHS(S,rk,Ux[idx],NULL,eps->work));
     }
-    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
-    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1);CHKERRQ(ierr);
+    CHKERRQ((*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx));
+    CHKERRQ(EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1));
   }
-  ierr = STRestoreOperator(eps->st,&matctx->S);CHKERRQ(ierr);
-  ierr = MatDestroy(&S);CHKERRQ(ierr);
-  ierr = MatDestroy(&Ux[0]);CHKERRQ(ierr);
-  ierr = MatDestroy(&Ux[1]);CHKERRQ(ierr);
-  ierr = MatDestroy(&Op);CHKERRQ(ierr);
-  ierr = VecDestroy(&v0);CHKERRQ(ierr);
-  ierr = BVDestroy(&V);CHKERRQ(ierr);
-  ierr = EPSDestroy(&epsrr);CHKERRQ(ierr);
-  ierr = PetscFree(s);CHKERRQ(ierr);
+  CHKERRQ(STRestoreOperator(eps->st,&matctx->S));
+  CHKERRQ(MatDestroy(&S));
+  CHKERRQ(MatDestroy(&Ux[0]));
+  CHKERRQ(MatDestroy(&Ux[1]));
+  CHKERRQ(MatDestroy(&Op));
+  CHKERRQ(VecDestroy(&v0));
+  CHKERRQ(BVDestroy(&V));
+  CHKERRQ(EPSDestroy(&epsrr));
+  CHKERRQ(PetscFree(s));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSetFromOptions_LyapII(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
   PetscInt       k,array[2]={PETSC_DEFAULT,PETSC_DEFAULT};
   PetscBool      flg;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"EPS Lyapunov Inverse Iteration Options");CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"EPS Lyapunov Inverse Iteration Options"));
 
     k = 2;
-    ierr = PetscOptionsIntArray("-eps_lyapii_ranks","Ranks for Lyapunov equation (one or two comma-separated integers)","EPSLyapIISetRanks",array,&k,&flg);CHKERRQ(ierr);
+    CHKERRQ(PetscOptionsIntArray("-eps_lyapii_ranks","Ranks for Lyapunov equation (one or two comma-separated integers)","EPSLyapIISetRanks",array,&k,&flg));
     if (flg) {
-      ierr = EPSLyapIISetRanks(eps,array[0],array[1]);CHKERRQ(ierr);
+      CHKERRQ(EPSLyapIISetRanks(eps,array[0],array[1]));
     }
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsTail());
 
-  if (!ctx->lme) { ierr = EPSLyapIIGetLME(eps,&ctx->lme);CHKERRQ(ierr); }
-  ierr = LMESetFromOptions(ctx->lme);CHKERRQ(ierr);
+  if (!ctx->lme) CHKERRQ(EPSLyapIIGetLME(eps,&ctx->lme));
+  CHKERRQ(LMESetFromOptions(ctx->lme));
   PetscFunctionReturn(0);
 }
 
@@ -604,13 +594,11 @@ static PetscErrorCode EPSLyapIISetRanks_LyapII(EPS eps,PetscInt rkc,PetscInt rkl
 @*/
 PetscErrorCode EPSLyapIISetRanks(EPS eps,PetscInt rkc,PetscInt rkl)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,rkc,2);
   PetscValidLogicalCollectiveInt(eps,rkl,3);
-  ierr = PetscTryMethod(eps,"EPSLyapIISetRanks_C",(EPS,PetscInt,PetscInt),(eps,rkc,rkl));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(eps,"EPSLyapIISetRanks_C",(EPS,PetscInt,PetscInt),(eps,rkc,rkl)));
   PetscFunctionReturn(0);
 }
 
@@ -642,24 +630,21 @@ static PetscErrorCode EPSLyapIIGetRanks_LyapII(EPS eps,PetscInt *rkc,PetscInt *r
 @*/
 PetscErrorCode EPSLyapIIGetRanks(EPS eps,PetscInt *rkc,PetscInt *rkl)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscUseMethod(eps,"EPSLyapIIGetRanks_C",(EPS,PetscInt*,PetscInt*),(eps,rkc,rkl));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(eps,"EPSLyapIIGetRanks_C",(EPS,PetscInt*,PetscInt*),(eps,rkc,rkl)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode EPSLyapIISetLME_LyapII(EPS eps,LME lme)
 {
-  PetscErrorCode ierr;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscObjectReference((PetscObject)lme);CHKERRQ(ierr);
-  ierr = LMEDestroy(&ctx->lme);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectReference((PetscObject)lme));
+  CHKERRQ(LMEDestroy(&ctx->lme));
   ctx->lme = lme;
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->lme);CHKERRQ(ierr);
+  CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->lme));
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -680,28 +665,25 @@ static PetscErrorCode EPSLyapIISetLME_LyapII(EPS eps,LME lme)
 @*/
 PetscErrorCode EPSLyapIISetLME(EPS eps,LME lme)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(lme,LME_CLASSID,2);
   PetscCheckSameComm(eps,1,lme,2);
-  ierr = PetscTryMethod(eps,"EPSLyapIISetLME_C",(EPS,LME),(eps,lme));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(eps,"EPSLyapIISetLME_C",(EPS,LME),(eps,lme)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode EPSLyapIIGetLME_LyapII(EPS eps,LME *lme)
 {
-  PetscErrorCode ierr;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
 
   PetscFunctionBegin;
   if (!ctx->lme) {
-    ierr = LMECreate(PetscObjectComm((PetscObject)eps),&ctx->lme);CHKERRQ(ierr);
-    ierr = LMESetOptionsPrefix(ctx->lme,((PetscObject)eps)->prefix);CHKERRQ(ierr);
-    ierr = LMEAppendOptionsPrefix(ctx->lme,"eps_lyapii_");CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->lme,(PetscObject)eps,1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->lme);CHKERRQ(ierr);
+    CHKERRQ(LMECreate(PetscObjectComm((PetscObject)eps),&ctx->lme));
+    CHKERRQ(LMESetOptionsPrefix(ctx->lme,((PetscObject)eps)->prefix));
+    CHKERRQ(LMEAppendOptionsPrefix(ctx->lme,"eps_lyapii_"));
+    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)ctx->lme,(PetscObject)eps,1));
+    CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->lme));
   }
   *lme = ctx->lme;
   PetscFunctionReturn(0);
@@ -725,66 +707,59 @@ static PetscErrorCode EPSLyapIIGetLME_LyapII(EPS eps,LME *lme)
 @*/
 PetscErrorCode EPSLyapIIGetLME(EPS eps,LME *lme)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(lme,2);
-  ierr = PetscUseMethod(eps,"EPSLyapIIGetLME_C",(EPS,LME*),(eps,lme));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(eps,"EPSLyapIIGetLME_C",(EPS,LME*),(eps,lme)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSView_LyapII(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  ranks: for Lyapunov solver=%" PetscInt_FMT ", after compression=%" PetscInt_FMT "\n",ctx->rkl,ctx->rkc);CHKERRQ(ierr);
-    if (!ctx->lme) { ierr = EPSLyapIIGetLME(eps,&ctx->lme);CHKERRQ(ierr); }
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = LMEView(ctx->lme,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  ranks: for Lyapunov solver=%" PetscInt_FMT ", after compression=%" PetscInt_FMT "\n",ctx->rkl,ctx->rkc));
+    if (!ctx->lme) CHKERRQ(EPSLyapIIGetLME(eps,&ctx->lme));
+    CHKERRQ(PetscViewerASCIIPushTab(viewer));
+    CHKERRQ(LMEView(ctx->lme,viewer));
+    CHKERRQ(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSReset_LyapII(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
 
   PetscFunctionBegin;
-  if (!ctx->lme) { ierr = LMEReset(ctx->lme);CHKERRQ(ierr); }
+  if (!ctx->lme) CHKERRQ(LMEReset(ctx->lme));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSDestroy_LyapII(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
 
   PetscFunctionBegin;
-  ierr = LMEDestroy(&ctx->lme);CHKERRQ(ierr);
-  ierr = DSDestroy(&ctx->ds);CHKERRQ(ierr);
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetLME_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetLME_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetRanks_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetRanks_C",NULL);CHKERRQ(ierr);
+  CHKERRQ(LMEDestroy(&ctx->lme));
+  CHKERRQ(DSDestroy(&ctx->ds));
+  CHKERRQ(PetscFree(eps->data));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetLME_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetLME_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetRanks_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetRanks_C",NULL));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSetDefaultST_LyapII(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
+    CHKERRQ(STSetType(eps->st,STSINVERT));
   }
   PetscFunctionReturn(0);
 }
@@ -792,10 +767,9 @@ PetscErrorCode EPSSetDefaultST_LyapII(EPS eps)
 SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
 {
   EPS_LYAPII     *ctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   eps->useds = PETSC_TRUE;
@@ -811,10 +785,9 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_Schur;
 
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetLME_C",EPSLyapIISetLME_LyapII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetLME_C",EPSLyapIIGetLME_LyapII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetRanks_C",EPSLyapIISetRanks_LyapII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetRanks_C",EPSLyapIIGetRanks_LyapII);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetLME_C",EPSLyapIISetLME_LyapII));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetLME_C",EPSLyapIIGetLME_LyapII));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetRanks_C",EPSLyapIISetRanks_LyapII));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetRanks_C",EPSLyapIIGetRanks_LyapII));
   PetscFunctionReturn(0);
 }
-

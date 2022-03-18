@@ -25,125 +25,125 @@ int main(int argc,char **argv)
   PetscScalar    alpha;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-condn",&condn,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-condn",&condn,NULL));
   PetscCheck(condn>=1.0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The condition number must be > 1");
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n));
   if (condn>1.0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," - Using a random BV with condition number = %g\n",(double)condn);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - Using a random BV with condition number = %g\n",(double)condn));
   }
 
   /* Create template vector */
-  ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
-  ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(t);CHKERRQ(ierr);
+  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
+  CHKERRQ(VecSetSizes(t,PETSC_DECIDE,n));
+  CHKERRQ(VecSetFromOptions(t));
 
   /* Create BV object X */
-  ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&X));
+  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
+  CHKERRQ(BVSetSizesFromVec(X,t,k));
+  CHKERRQ(BVSetFromOptions(X));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
   if (verbose) {
-    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
   }
 
   /* Fill X entries */
   if (condn==1.0) {
     for (j=0;j<k;j++) {
-      ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-      ierr = VecSet(v,0.0);CHKERRQ(ierr);
+      CHKERRQ(BVGetColumn(X,j,&v));
+      CHKERRQ(VecSet(v,0.0));
       for (i=0;i<=n/2;i++) {
         if (i+j<n) {
           alpha = (3.0*i+j-2)/(2*(i+j+1));
-          ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
+          CHKERRQ(VecSetValue(v,i+j,alpha,INSERT_VALUES));
         }
       }
-      ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-      ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
+      CHKERRQ(VecAssemblyBegin(v));
+      CHKERRQ(VecAssemblyEnd(v));
+      CHKERRQ(BVRestoreColumn(X,j,&v));
     }
   } else {
-    ierr = BVSetRandomCond(X,condn);CHKERRQ(ierr);
+    CHKERRQ(BVSetRandomCond(X,condn));
   }
   if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(X,view));
   }
 
   /* Create copies on Y and Z */
-  ierr = BVDuplicate(X,&Y);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
-  ierr = BVCopy(X,Y);CHKERRQ(ierr);
-  ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
-  ierr = BVCopy(X,Z);CHKERRQ(ierr);
+  CHKERRQ(BVDuplicate(X,&Y));
+  CHKERRQ(PetscObjectSetName((PetscObject)Y,"Y"));
+  CHKERRQ(BVCopy(X,Y));
+  CHKERRQ(BVDuplicate(X,&Z));
+  CHKERRQ(PetscObjectSetName((PetscObject)Z,"Z"));
+  CHKERRQ(BVCopy(X,Z));
 
   /* Test BVOrthogonalizeColumn */
   for (j=0;j<k;j++) {
-    ierr = BVOrthogonalizeColumn(X,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    CHKERRQ(BVOrthogonalizeColumn(X,j,NULL,&norm,NULL));
     alpha = 1.0/norm;
-    ierr = BVScaleColumn(X,j,alpha);CHKERRQ(ierr);
+    CHKERRQ(BVScaleColumn(X,j,alpha));
   }
   if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(X,view));
   }
 
   /* Check orthogonality */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M);CHKERRQ(ierr);
-  ierr = BVDot(X,X,M);CHKERRQ(ierr);
-  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
-  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
+  CHKERRQ(BVDot(X,X,M));
+  CHKERRQ(MatShift(M,-1.0));
+  CHKERRQ(MatNorm(M,NORM_1,&norm));
   if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
   }
 
   /* Test BVOrthogonalize */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&R);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
-  ierr = BVOrthogonalize(Y,R);CHKERRQ(ierr);
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&R));
+  CHKERRQ(PetscObjectSetName((PetscObject)R,"R"));
+  CHKERRQ(BVOrthogonalize(Y,R));
   if (verbose) {
-    ierr = BVView(Y,view);CHKERRQ(ierr);
-    ierr = MatView(R,view);CHKERRQ(ierr);
+    CHKERRQ(BVView(Y,view));
+    CHKERRQ(MatView(R,view));
   }
 
   /* Check orthogonality */
-  ierr = BVDot(Y,Y,M);CHKERRQ(ierr);
-  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
-  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
+  CHKERRQ(BVDot(Y,Y,M));
+  CHKERRQ(MatShift(M,-1.0));
+  CHKERRQ(MatNorm(M,NORM_1,&norm));
   if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
   }
 
   /* Check residual */
-  ierr = BVMult(Z,-1.0,1.0,Y,R);CHKERRQ(ierr);
-  ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+  CHKERRQ(BVMult(Z,-1.0,1.0,Y,R));
+  CHKERRQ(BVNorm(Z,NORM_FROBENIUS,&norm));
   if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR|| < 100*eps\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR|| < 100*eps\n"));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR||: %g\n",(double)norm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR||: %g\n",(double)norm));
   }
 
   /* Test BVOrthogonalizeVec */
-  ierr = VecDuplicate(t,&e);CHKERRQ(ierr);
-  ierr = VecSet(e,1.0);CHKERRQ(ierr);
-  ierr = BVOrthogonalizeVec(X,e,NULL,&norm,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of ones(n,1) after orthogonalizing against X: %g\n",(double)norm);CHKERRQ(ierr);
+  CHKERRQ(VecDuplicate(t,&e));
+  CHKERRQ(VecSet(e,1.0));
+  CHKERRQ(BVOrthogonalizeVec(X,e,NULL,&norm,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of ones(n,1) after orthogonalizing against X: %g\n",(double)norm));
 
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = MatDestroy(&R);CHKERRQ(ierr);
-  ierr = BVDestroy(&X);CHKERRQ(ierr);
-  ierr = BVDestroy(&Y);CHKERRQ(ierr);
-  ierr = BVDestroy(&Z);CHKERRQ(ierr);
-  ierr = VecDestroy(&e);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&M));
+  CHKERRQ(MatDestroy(&R));
+  CHKERRQ(BVDestroy(&X));
+  CHKERRQ(BVDestroy(&Y));
+  CHKERRQ(BVDestroy(&Z));
+  CHKERRQ(VecDestroy(&e));
+  CHKERRQ(VecDestroy(&t));
   ierr = SlepcFinalize();
   return ierr;
 }

@@ -58,31 +58,31 @@ int main(int argc,char **argv)
   MatCtx         *ctx;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%" PetscInt_FMT "%s\n\n",n,split?" (in split form)":"");CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%" PetscInt_FMT "%s\n\n",n,split?" (in split form)":""));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create NEP context, configure NLEIGS with appropriate options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
-  ierr = NEPSetType(nep,NEPNLEIGS);CHKERRQ(ierr);
-  ierr = NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,NULL);CHKERRQ(ierr);
-  ierr = NEPGetRG(nep,&rg);CHKERRQ(ierr);
-  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+  CHKERRQ(NEPCreate(PETSC_COMM_WORLD,&nep));
+  CHKERRQ(NEPSetType(nep,NEPNLEIGS));
+  CHKERRQ(NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,NULL));
+  CHKERRQ(NEPGetRG(nep,&rg));
+  CHKERRQ(RGSetType(rg,RGINTERVAL));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = RGIntervalSetEndpoints(rg,0.01,16.0,-0.001,0.001);CHKERRQ(ierr);
+  CHKERRQ(RGIntervalSetEndpoints(rg,0.01,16.0,-0.001,0.001));
 #else
-  ierr = RGIntervalSetEndpoints(rg,0.01,16.0,0,0);CHKERRQ(ierr);
+  CHKERRQ(RGIntervalSetEndpoints(rg,0.01,16.0,0,0));
 #endif
-  ierr = NEPSetTarget(nep,1.1);CHKERRQ(ierr);
-  ierr = NEPNLEIGSGetKSPs(nep,&nsolve,&ksp);CHKERRQ(ierr);
+  CHKERRQ(NEPSetTarget(nep,1.1));
+  CHKERRQ(NEPNLEIGSGetKSPs(nep,&nsolve,&ksp));
   for (i=0;i<nsolve;i++) {
-   ierr = KSPSetType(ksp[i],KSPBICG);CHKERRQ(ierr);
-   ierr = KSPGetPC(ksp[i],&pc);CHKERRQ(ierr);
-   ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-   ierr = KSPSetTolerances(ksp[i],tol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+   CHKERRQ(KSPSetType(ksp[i],KSPBICG));
+   CHKERRQ(KSPGetPC(ksp[i],&pc));
+   CHKERRQ(PCSetType(pc,PCJACOBI));
+   CHKERRQ(KSPSetTolerances(ksp[i],tol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -91,60 +91,60 @@ int main(int argc,char **argv)
 
   if (split) {
     /* Create matrix A0 (tridiagonal) */
-    ierr = MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,NULL,&A[0]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[0],MATOP_MULT,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[0],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[0],MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A0);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[0],MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A0);CHKERRQ(ierr);
+    CHKERRQ(MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,NULL,&A[0]));
+    CHKERRQ(MatShellSetOperation(A[0],MATOP_MULT,(void(*)(void))MatMult_A0));
+    CHKERRQ(MatShellSetOperation(A[0],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A0));
+    CHKERRQ(MatShellSetOperation(A[0],MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A0));
+    CHKERRQ(MatShellSetOperation(A[0],MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A0));
 
     /* Create matrix A0 (identity) */
-    ierr = MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,NULL,&A[1]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[1],MATOP_MULT,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[1],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[1],MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[1],MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A1);CHKERRQ(ierr);
+    CHKERRQ(MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,NULL,&A[1]));
+    CHKERRQ(MatShellSetOperation(A[1],MATOP_MULT,(void(*)(void))MatMult_A1));
+    CHKERRQ(MatShellSetOperation(A[1],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A1));
+    CHKERRQ(MatShellSetOperation(A[1],MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1));
+    CHKERRQ(MatShellSetOperation(A[1],MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A1));
 
     /* Define functions for the split form */
-    ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
-    ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
+    CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f[0]));
+    CHKERRQ(FNSetType(f[0],FNRATIONAL));
     coeffs = 1.0;
-    ierr = FNRationalSetNumerator(f[0],1,&coeffs);CHKERRQ(ierr);
-    ierr = FNCreate(PETSC_COMM_WORLD,&f[1]);CHKERRQ(ierr);
-    ierr = FNSetType(f[1],FNSQRT);CHKERRQ(ierr);
-    ierr = NEPSetSplitOperator(nep,2,A,f,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+    CHKERRQ(FNRationalSetNumerator(f[0],1,&coeffs));
+    CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f[1]));
+    CHKERRQ(FNSetType(f[1],FNSQRT));
+    CHKERRQ(NEPSetSplitOperator(nep,2,A,f,SUBSET_NONZERO_PATTERN));
   } else {
     /* Callback form: create shell matrix for F=A0+sqrt(lambda)*A1  */
-    ierr = PetscNew(&ctx);CHKERRQ(ierr);
-    ierr = MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,(void*)ctx,&F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)(void))MatMult_F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)(void))MatDestroy_F);CHKERRQ(ierr);
+    CHKERRQ(PetscNew(&ctx));
+    CHKERRQ(MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,(void*)ctx,&F));
+    CHKERRQ(MatShellSetOperation(F,MATOP_MULT,(void(*)(void))MatMult_F));
+    CHKERRQ(MatShellSetOperation(F,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_F));
+    CHKERRQ(MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_F));
+    CHKERRQ(MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_F));
+    CHKERRQ(MatShellSetOperation(F,MATOP_DESTROY,(void(*)(void))MatDestroy_F));
     /* Set Function evaluation routine */
-    ierr = NEPSetFunction(nep,F,F,FormFunction,NULL);CHKERRQ(ierr);
+    CHKERRQ(NEPSetFunction(nep,F,F,FormFunction,NULL));
   }
 
   /* Set solver parameters at runtime */
-  ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
+  CHKERRQ(NEPSetFromOptions(nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
-  ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg);CHKERRQ(ierr);
+  CHKERRQ(NEPSolve(nep));
+  CHKERRQ(NEPGetType(nep,&type));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type));
+  CHKERRQ(NEPGetDimensions(nep,&nev,NULL,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg));
   if (flg) {
-    ierr = NEPNLEIGSGetRestart(nep,&keep);CHKERRQ(ierr);
-    ierr = NEPNLEIGSGetLocking(nep,&lock);CHKERRQ(ierr);
-    ierr = NEPNLEIGSGetInterpolation(nep,&tol,&its);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Restart factor is %3.2f",(double)keep);CHKERRQ(ierr);
-    if (lock) { ierr = PetscPrintf(PETSC_COMM_WORLD," (locking activated)");CHKERRQ(ierr); }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Divided diferences with tol=%6.2g maxit=%" PetscInt_FMT "\n",(double)tol,its);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    CHKERRQ(NEPNLEIGSGetRestart(nep,&keep));
+    CHKERRQ(NEPNLEIGSGetLocking(nep,&lock));
+    CHKERRQ(NEPNLEIGSGetInterpolation(nep,&tol,&its));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Restart factor is %3.2f",(double)keep));
+    if (lock) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," (locking activated)"));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n Divided diferences with tol=%6.2g maxit=%" PetscInt_FMT "\n",(double)tol,its));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -152,23 +152,23 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
   if (terse) {
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
   } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    CHKERRQ(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = NEPDestroy(&nep);CHKERRQ(ierr);
+  CHKERRQ(NEPDestroy(&nep));
   if (split) {
-    ierr = MatDestroy(&A[0]);CHKERRQ(ierr);
-    ierr = MatDestroy(&A[1]);CHKERRQ(ierr);
-    ierr = FNDestroy(&f[0]);CHKERRQ(ierr);
-    ierr = FNDestroy(&f[1]);CHKERRQ(ierr);
+    CHKERRQ(MatDestroy(&A[0]));
+    CHKERRQ(MatDestroy(&A[1]));
+    CHKERRQ(FNDestroy(&f[0]));
+    CHKERRQ(FNDestroy(&f[1]));
   } else {
-    ierr = MatDestroy(&F);CHKERRQ(ierr);
+    CHKERRQ(MatDestroy(&F));
   }
   ierr = SlepcFinalize();
   return ierr;
@@ -179,11 +179,10 @@ int main(int argc,char **argv)
 */
 PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 {
-  PetscErrorCode ierr;
   MatCtx         *ctxF;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(fun,&ctxF);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(fun,&ctxF));
   ctxF->t = PetscSqrtScalar(lambda);
   PetscFunctionReturn(0);
 }
@@ -210,7 +209,6 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
 
 PetscErrorCode MatMult_A0(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode    ierr;
   PetscInt          i,n;
   PetscMPIInt       rank,size,next,prev;
   const PetscScalar *px;
@@ -218,33 +216,31 @@ PetscErrorCode MatMult_A0(Mat A,Vec x,Vec y)
   MPI_Comm          comm;
 
   PetscFunctionBeginUser;
-  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
-  ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
+  CHKERRQ(PetscObjectGetComm((PetscObject)A,&comm));
+  CHKERRMPI(MPI_Comm_size(comm,&size));
+  CHKERRMPI(MPI_Comm_rank(comm,&rank));
   next = rank==size-1? MPI_PROC_NULL: rank+1;
   prev = rank==0? MPI_PROC_NULL: rank-1;
 
-  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(x,&n);CHKERRQ(ierr);
+  CHKERRQ(VecGetArrayRead(x,&px));
+  CHKERRQ(VecGetArray(y,&py));
+  CHKERRQ(VecGetLocalSize(x,&n));
 
-  ierr = MPI_Sendrecv(px,1,MPIU_SCALAR,prev,0,&lower,1,MPIU_SCALAR,next,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
-  ierr = MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,next,0,&upper,1,MPIU_SCALAR,prev,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Sendrecv(px,1,MPIU_SCALAR,prev,0,&lower,1,MPIU_SCALAR,next,0,comm,MPI_STATUS_IGNORE));
+  CHKERRMPI(MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,next,0,&upper,1,MPIU_SCALAR,prev,0,comm,MPI_STATUS_IGNORE));
 
   py[0] = upper-2.0*px[0]+px[1];
   for (i=1;i<n-1;i++) py[i] = px[i-1]-2.0*px[i]+px[i+1];
   py[n-1] = px[n-2]-2.0*px[n-1]+lower;
-  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  CHKERRQ(VecRestoreArrayRead(x,&px));
+  CHKERRQ(VecRestoreArray(y,&py));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatGetDiagonal_A0(Mat A,Vec diag)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecSet(diag,-2.0);CHKERRQ(ierr);
+  CHKERRQ(VecSet(diag,-2.0));
   PetscFunctionReturn(0);
 }
 
@@ -252,17 +248,16 @@ PetscErrorCode MatDuplicate_A0(Mat A,MatDuplicateOption op,Mat *B)
 {
   PetscInt       m,n,M,N;
   MPI_Comm       comm;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
-  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MatCreateShell(comm,m,n,M,N,NULL,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A0);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A0);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(A,&M,&N));
+  CHKERRQ(MatGetLocalSize(A,&m,&n));
+  CHKERRQ(PetscObjectGetComm((PetscObject)A,&comm));
+  CHKERRQ(MatCreateShell(comm,m,n,M,N,NULL,B));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_A0));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A0));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A0));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A0));
   PetscFunctionReturn(0);
 }
 
@@ -270,19 +265,15 @@ PetscErrorCode MatDuplicate_A0(Mat A,MatDuplicateOption op,Mat *B)
 
 PetscErrorCode MatMult_A1(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecCopy(x,y);CHKERRQ(ierr);
+  CHKERRQ(VecCopy(x,y));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatGetDiagonal_A1(Mat A,Vec diag)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecSet(diag,1.0);CHKERRQ(ierr);
+  CHKERRQ(VecSet(diag,1.0));
   PetscFunctionReturn(0);
 }
 
@@ -290,17 +281,16 @@ PetscErrorCode MatDuplicate_A1(Mat A,MatDuplicateOption op,Mat *B)
 {
   PetscInt       m,n,M,N;
   MPI_Comm       comm;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
-  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MatCreateShell(comm,m,n,M,N,NULL,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A1);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(A,&M,&N));
+  CHKERRQ(MatGetLocalSize(A,&m,&n));
+  CHKERRQ(PetscObjectGetComm((PetscObject)A,&comm));
+  CHKERRQ(MatCreateShell(comm,m,n,M,N,NULL,B));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_A1));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A1));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A1));
   PetscFunctionReturn(0);
 }
 
@@ -308,7 +298,6 @@ PetscErrorCode MatDuplicate_A1(Mat A,MatDuplicateOption op,Mat *B)
 
 PetscErrorCode MatMult_F(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode    ierr;
   PetscInt          i,n;
   PetscMPIInt       rank,size,next,prev;
   const PetscScalar *px;
@@ -317,37 +306,36 @@ PetscErrorCode MatMult_F(Mat A,Vec x,Vec y)
   MPI_Comm          comm;
 
   PetscFunctionBeginUser;
-  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(comm,&size);CHKERRMPI(ierr);
-  ierr = MPI_Comm_rank(comm,&rank);CHKERRMPI(ierr);
+  CHKERRQ(PetscObjectGetComm((PetscObject)A,&comm));
+  CHKERRMPI(MPI_Comm_size(comm,&size));
+  CHKERRMPI(MPI_Comm_rank(comm,&rank));
   next = rank==size-1? MPI_PROC_NULL: rank+1;
   prev = rank==0? MPI_PROC_NULL: rank-1;
 
-  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
-  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(x,&n);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(A,&ctx));
+  CHKERRQ(VecGetArrayRead(x,&px));
+  CHKERRQ(VecGetArray(y,&py));
+  CHKERRQ(VecGetLocalSize(x,&n));
 
-  ierr = MPI_Sendrecv(px,1,MPIU_SCALAR,prev,0,&lower,1,MPIU_SCALAR,next,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
-  ierr = MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,next,0,&upper,1,MPIU_SCALAR,prev,0,comm,MPI_STATUS_IGNORE);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Sendrecv(px,1,MPIU_SCALAR,prev,0,&lower,1,MPIU_SCALAR,next,0,comm,MPI_STATUS_IGNORE));
+  CHKERRMPI(MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,next,0,&upper,1,MPIU_SCALAR,prev,0,comm,MPI_STATUS_IGNORE));
 
   d = -2.0+ctx->t;
   py[0] = upper+d*px[0]+px[1];
   for (i=1;i<n-1;i++) py[i] = px[i-1]+d*px[i]+px[i+1];
   py[n-1] = px[n-2]+d*px[n-1]+lower;
-  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  CHKERRQ(VecRestoreArrayRead(x,&px));
+  CHKERRQ(VecRestoreArray(y,&py));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatGetDiagonal_F(Mat A,Vec diag)
 {
-  PetscErrorCode ierr;
   MatCtx         *ctx;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
-  ierr = VecSet(diag,-2.0+ctx->t);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(A,&ctx));
+  CHKERRQ(VecSet(diag,-2.0+ctx->t));
   PetscFunctionReturn(0);
 }
 
@@ -356,32 +344,30 @@ PetscErrorCode MatDuplicate_F(Mat A,MatDuplicateOption op,Mat *B)
   MatCtx         *actx,*bctx;
   PetscInt       m,n,M,N;
   MPI_Comm       comm;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,&actx);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
-  ierr = PetscNew(&bctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(A,&actx));
+  CHKERRQ(MatGetSize(A,&M,&N));
+  CHKERRQ(MatGetLocalSize(A,&m,&n));
+  CHKERRQ(PetscNew(&bctx));
   bctx->t = actx->t;
-  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
-  ierr = MatCreateShell(comm,m,n,M,N,(void*)bctx,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)(void))MatDestroy_F);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectGetComm((PetscObject)A,&comm));
+  CHKERRQ(MatCreateShell(comm,m,n,M,N,(void*)bctx,B));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_F));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_F));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_F));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_F));
+  CHKERRQ(MatShellSetOperation(*B,MATOP_DESTROY,(void(*)(void))MatDestroy_F));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatDestroy_F(Mat A)
 {
   MatCtx         *ctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  CHKERRQ(MatShellGetContext(A,&ctx));
+  CHKERRQ(PetscFree(ctx));
   PetscFunctionReturn(0);
 }
 

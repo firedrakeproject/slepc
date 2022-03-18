@@ -25,32 +25,32 @@ int main(int argc,char **argv)
   PetscScalar    ar,ai,cr[NPOINTS],ci[NPOINTS],vr[NVERTEX],vi[NVERTEX],*pr,*pi;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
+  CHKERRQ(RGCreate(PETSC_COMM_WORLD,&rg));
 
   /* ellipse */
-  ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  CHKERRQ(RGSetType(rg,RGELLIPSE));
+  CHKERRQ(RGIsTrivial(rg,&triv));
   PetscCheck(triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be trivial before setting parameters");
-  ierr = RGEllipseSetParameters(rg,1.1,2,0.1);CHKERRQ(ierr);
-  ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  CHKERRQ(RGEllipseSetParameters(rg,1.1,2,0.1));
+  CHKERRQ(RGSetFromOptions(rg));
+  CHKERRQ(RGIsTrivial(rg,&triv));
   PetscCheck(!triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be non-trivial after setting parameters");
-  ierr = RGView(rg,NULL);CHKERRQ(ierr);
-  ierr = RGViewFromOptions(rg,NULL,"-rg_ellipse_view");CHKERRQ(ierr);
+  CHKERRQ(RGView(rg,NULL));
+  CHKERRQ(RGViewFromOptions(rg,NULL,"-rg_ellipse_view"));
   re = 0.1; im = 0.3;
 #if defined(PETSC_USE_COMPLEX)
   ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif
-  ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+  CHKERRQ(RGCheckInside(rg,1,&ar,&ai,&inside));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
 
-  ierr = RGComputeBoundingBox(rg,&a,&b,&c,&d);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
+  CHKERRQ(RGComputeBoundingBox(rg,&a,&b,&c,&d));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
-  ierr = RGComputeContour(rg,NPOINTS,cr,ci);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
+  CHKERRQ(RGComputeContour(rg,NPOINTS,cr,ci));
   for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
@@ -59,34 +59,34 @@ int main(int argc,char **argv)
     re = cr[i];
     im = ci[i];
 #endif
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
   }
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
   /* interval */
-  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  CHKERRQ(RGSetType(rg,RGINTERVAL));
+  CHKERRQ(RGIsTrivial(rg,&triv));
   PetscCheck(triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be trivial before setting parameters");
-  ierr = RGIntervalSetEndpoints(rg,-1,1,-0.1,0.1);CHKERRQ(ierr);
-  ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  CHKERRQ(RGIntervalSetEndpoints(rg,-1,1,-0.1,0.1));
+  CHKERRQ(RGSetFromOptions(rg));
+  CHKERRQ(RGIsTrivial(rg,&triv));
   PetscCheck(!triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be non-trivial after setting parameters");
-  ierr = RGView(rg,NULL);CHKERRQ(ierr);
-  ierr = RGViewFromOptions(rg,NULL,"-rg_interval_view");CHKERRQ(ierr);
+  CHKERRQ(RGView(rg,NULL));
+  CHKERRQ(RGViewFromOptions(rg,NULL,"-rg_interval_view"));
   re = 0.2; im = 0;
 #if defined(PETSC_USE_COMPLEX)
   ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif
-  ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+  CHKERRQ(RGCheckInside(rg,1,&ar,&ai,&inside));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
 
-  ierr = RGComputeBoundingBox(rg,&a,&b,&c,&d);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
+  CHKERRQ(RGComputeBoundingBox(rg,&a,&b,&c,&d));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
-  ierr = RGComputeContour(rg,NPOINTS,cr,ci);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
+  CHKERRQ(RGComputeContour(rg,NPOINTS,cr,ci));
   for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
@@ -95,9 +95,9 @@ int main(int argc,char **argv)
     re = cr[i];
     im = ci[i];
 #endif
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
   }
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
   /* polygon */
 #if defined(PETSC_USE_COMPLEX)
@@ -117,29 +117,29 @@ int main(int argc,char **argv)
   vr[5] = 1.0; vi[5] = 1.0;
   vr[6] = 0.6; vi[6] = 0.8;
 #endif
-  ierr = RGSetType(rg,RGPOLYGON);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  CHKERRQ(RGSetType(rg,RGPOLYGON));
+  CHKERRQ(RGIsTrivial(rg,&triv));
   PetscCheck(triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be trivial before setting parameters");
-  ierr = RGPolygonSetVertices(rg,NVERTEX,vr,vi);CHKERRQ(ierr);
-  ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  CHKERRQ(RGPolygonSetVertices(rg,NVERTEX,vr,vi));
+  CHKERRQ(RGSetFromOptions(rg));
+  CHKERRQ(RGIsTrivial(rg,&triv));
   PetscCheck(!triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be non-trivial after setting parameters");
-  ierr = RGView(rg,NULL);CHKERRQ(ierr);
-  ierr = RGViewFromOptions(rg,NULL,"-rg_polygon_view");CHKERRQ(ierr);
+  CHKERRQ(RGView(rg,NULL));
+  CHKERRQ(RGViewFromOptions(rg,NULL,"-rg_polygon_view"));
   re = 5; im = 0.9;
 #if defined(PETSC_USE_COMPLEX)
   ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif
-  ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+  CHKERRQ(RGCheckInside(rg,1,&ar,&ai,&inside));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
 
-  ierr = RGComputeBoundingBox(rg,&a,&b,&c,&d);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
+  CHKERRQ(RGComputeBoundingBox(rg,&a,&b,&c,&d));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
-  ierr = RGComputeContour(rg,NPOINTS,cr,ci);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
+  CHKERRQ(RGComputeContour(rg,NPOINTS,cr,ci));
   for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
@@ -148,12 +148,12 @@ int main(int argc,char **argv)
     re = cr[i];
     im = ci[i];
 #endif
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
   }
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
   /* check vertices */
-  ierr = RGPolygonGetVertices(rg,&nv,&pr,&pi);CHKERRQ(ierr);
+  CHKERRQ(RGPolygonGetVertices(rg,&nv,&pr,&pi));
   PetscCheck(nv==NVERTEX,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong number of vertices: %" PetscInt_FMT,nv);
   for (i=0;i<nv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -164,11 +164,11 @@ int main(int argc,char **argv)
        SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Vertex number %" PetscInt_FMT " does not match",i);
   }
 
-  ierr = PetscFree(pr);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(pr));
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(pi);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(pi));
 #endif
-  ierr = RGDestroy(&rg);CHKERRQ(ierr);
+  CHKERRQ(RGDestroy(&rg));
   ierr = SlepcFinalize();
   return ierr;
 }

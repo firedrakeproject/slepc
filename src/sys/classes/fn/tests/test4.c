@@ -18,16 +18,16 @@ int main(int argc,char **argv)
   FN             fn1,fn2;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = FNCreate(PETSC_COMM_WORLD,&fn1);CHKERRQ(ierr);
-  ierr = FNSetOptionsPrefix(fn1,"f1_");CHKERRQ(ierr);
-  ierr = FNSetFromOptions(fn1);CHKERRQ(ierr);
-  ierr = FNView(fn1,NULL);CHKERRQ(ierr);
-  ierr = FNDestroy(&fn1);CHKERRQ(ierr);
-  ierr = FNCreate(PETSC_COMM_WORLD,&fn2);CHKERRQ(ierr);
-  ierr = FNSetOptionsPrefix(fn2,"f2_");CHKERRQ(ierr);
-  ierr = FNSetFromOptions(fn2);CHKERRQ(ierr);
-  ierr = FNView(fn2,NULL);CHKERRQ(ierr);
-  ierr = FNDestroy(&fn2);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn1));
+  CHKERRQ(FNSetOptionsPrefix(fn1,"f1_"));
+  CHKERRQ(FNSetFromOptions(fn1));
+  CHKERRQ(FNView(fn1,NULL));
+  CHKERRQ(FNDestroy(&fn1));
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn2));
+  CHKERRQ(FNSetOptionsPrefix(fn2,"f2_"));
+  CHKERRQ(FNSetFromOptions(fn2));
+  CHKERRQ(FNView(fn2,NULL));
+  CHKERRQ(FNDestroy(&fn2));
   ierr = SlepcFinalize();
   return ierr;
 }

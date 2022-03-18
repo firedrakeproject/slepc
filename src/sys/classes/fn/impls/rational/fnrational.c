@@ -47,90 +47,87 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
 
 static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,const PetscScalar *Aa,PetscScalar *Ba,PetscInt m,PetscBool firstonly)
 {
-  PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
   PetscBLASInt   n,k,ld,*ipiv,info;
   PetscInt       i,j;
   PetscScalar    *W,*P,*Q,one=1.0,zero=0.0;
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(m,&n));
   ld = n;
   k  = firstonly? 1: n;
   if (Aa==Ba) {
-    ierr = PetscMalloc4(m*m,&P,m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc4(m*m,&P,m*m,&Q,m*m,&W,ld,&ipiv));
   } else {
     P = Ba;
-    ierr = PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv));
   }
-  ierr = PetscArrayzero(P,m*m);CHKERRQ(ierr);
+  CHKERRQ(PetscArrayzero(P,m*m));
   if (!ctx->np) {
     for (i=0;i<m;i++) P[i+i*ld] = 1.0;
   } else {
     for (i=0;i<m;i++) P[i+i*ld] = ctx->pcoeff[0];
     for (j=1;j<ctx->np;j++) {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,Aa,&ld,&zero,W,&ld));
-      ierr = PetscArraycpy(P,W,m*m);CHKERRQ(ierr);
+      CHKERRQ(PetscArraycpy(P,W,m*m));
       for (i=0;i<m;i++) P[i+i*ld] += ctx->pcoeff[j];
     }
-    ierr = PetscLogFlops(2.0*n*n*n*(ctx->np-1));CHKERRQ(ierr);
+    CHKERRQ(PetscLogFlops(2.0*n*n*n*(ctx->np-1)));
   }
   if (ctx->nq) {
-    ierr = PetscArrayzero(Q,m*m);CHKERRQ(ierr);
+    CHKERRQ(PetscArrayzero(Q,m*m));
     for (i=0;i<m;i++) Q[i+i*ld] = ctx->qcoeff[0];
     for (j=1;j<ctx->nq;j++) {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,Aa,&ld,&zero,W,&ld));
-      ierr = PetscArraycpy(Q,W,m*m);CHKERRQ(ierr);
+      CHKERRQ(PetscArraycpy(Q,W,m*m));
       for (i=0;i<m;i++) Q[i+i*ld] += ctx->qcoeff[j];
     }
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&k,Q,&ld,ipiv,P,&ld,&info));
     SlepcCheckLapackInfo("gesv",info);
-    ierr = PetscLogFlops(2.0*n*n*n*(ctx->nq-1)+2.0*n*n*n/3.0+2.0*n*n*k);CHKERRQ(ierr);
+    CHKERRQ(PetscLogFlops(2.0*n*n*n*(ctx->nq-1)+2.0*n*n*n/3.0+2.0*n*n*k));
   }
   if (Aa==Ba) {
-    ierr = PetscArraycpy(Ba,P,m*k);CHKERRQ(ierr);
-    ierr = PetscFree4(P,Q,W,ipiv);CHKERRQ(ierr);
+    CHKERRQ(PetscArraycpy(Ba,P,m*k));
+    CHKERRQ(PetscFree4(P,Q,W,ipiv));
   } else {
-    ierr = PetscFree3(Q,W,ipiv);CHKERRQ(ierr);
+    CHKERRQ(PetscFree3(Q,W,ipiv));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
 {
-  PetscErrorCode    ierr;
   PetscInt          m;
   const PetscScalar *Aa;
   PetscScalar       *Ba;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArrayRead(A,&Aa);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  CHKERRQ(MatDenseGetArrayRead(A,&Aa));
+  CHKERRQ(MatDenseGetArray(B,&Ba));
+  CHKERRQ(MatGetSize(A,&m,NULL));
+  CHKERRQ(FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_FALSE));
+  CHKERRQ(MatDenseRestoreArrayRead(A,&Aa));
+  CHKERRQ(MatDenseRestoreArray(B,&Ba));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
 {
-  PetscErrorCode    ierr;
   PetscInt          m;
   const PetscScalar *Aa;
   PetscScalar       *Ba;
   Mat               B;
 
   PetscFunctionBegin;
-  ierr = FN_AllocateWorkMat(fn,A,&B);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayRead(A,&Aa);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
-  ierr = MatGetColumnVector(B,v,0);CHKERRQ(ierr);
-  ierr = FN_FreeWorkMat(fn,&B);CHKERRQ(ierr);
+  CHKERRQ(FN_AllocateWorkMat(fn,A,&B));
+  CHKERRQ(MatDenseGetArrayRead(A,&Aa));
+  CHKERRQ(MatDenseGetArray(B,&Ba));
+  CHKERRQ(MatGetSize(A,&m,NULL));
+  CHKERRQ(FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_TRUE));
+  CHKERRQ(MatDenseRestoreArrayRead(A,&Aa));
+  CHKERRQ(MatDenseRestoreArray(B,&Ba));
+  CHKERRQ(MatGetColumnVector(B,v,0));
+  CHKERRQ(FN_FreeWorkMat(fn,&B));
   PetscFunctionReturn(0);
 }
 
@@ -168,66 +165,65 @@ PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp
 
 PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
   PetscBool      isascii;
   PetscInt       i;
   char           str[50];
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->alpha!=(PetscScalar)1.0 || fn->beta!=(PetscScalar)1.0) {
-      ierr = SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"  Scale factors: alpha=%s,",str);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer," beta=%s\n",str);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+      CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_FALSE));
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Scale factors: alpha=%s,",str));
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
+      CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_FALSE));
+      CHKERRQ(PetscViewerASCIIPrintf(viewer," beta=%s\n",str));
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     }
     if (!ctx->nq) {
       if (!ctx->np) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n"));
       } else if (ctx->np==1) {
-        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[0],PETSC_FALSE);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"  Constant: %s\n",str);CHKERRQ(ierr);
+        CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[0],PETSC_FALSE));
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Constant: %s\n",str));
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Polynomial: ");CHKERRQ(ierr);
-        ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Polynomial: "));
+        CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         for (i=0;i<ctx->np-1;i++) {
-          ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
-          ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1" PetscInt_FMT,str,ctx->np-i-1);CHKERRQ(ierr);
+          CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[i],PETSC_TRUE));
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s*x^%1" PetscInt_FMT,str,ctx->np-i-1));
         }
-        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"%s\n",str);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+        CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[ctx->np-1],PETSC_TRUE));
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s\n",str));
+        CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
       }
     } else if (!ctx->np) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  Inverse polinomial: 1 / (");CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse polinomial: 1 / ("));
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
       for (i=0;i<ctx->nq-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1" PetscInt_FMT,str,ctx->nq-i-1);CHKERRQ(ierr);
+        CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[i],PETSC_TRUE));
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s*x^%1" PetscInt_FMT,str,ctx->nq-i-1));
       }
-      ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+      CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[ctx->nq-1],PETSC_TRUE));
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s)\n",str));
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  Rational function: (");CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Rational function: ("));
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
       for (i=0;i<ctx->np-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1" PetscInt_FMT,str,ctx->np-i-1);CHKERRQ(ierr);
+        CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[i],PETSC_TRUE));
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s*x^%1" PetscInt_FMT,str,ctx->np-i-1));
       }
-      ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"%s) / (",str);CHKERRQ(ierr);
+      CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[ctx->np-1],PETSC_TRUE));
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s) / (",str));
       for (i=0;i<ctx->nq-1;i++) {
-        ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1" PetscInt_FMT,str,ctx->nq-i-1);CHKERRQ(ierr);
+        CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[i],PETSC_TRUE));
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s*x^%1" PetscInt_FMT,str,ctx->nq-i-1));
       }
-      ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+      CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[ctx->nq-1],PETSC_TRUE));
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s)\n",str));
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     }
   }
   PetscFunctionReturn(0);
@@ -235,17 +231,16 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
 
 static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscScalar *pcoeff)
 {
-  PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
   PetscInt       i;
 
   PetscFunctionBegin;
   PetscCheck(np>=0,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument np cannot be negative");
   ctx->np = np;
-  ierr = PetscFree(ctx->pcoeff);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(ctx->pcoeff));
   if (np) {
-    ierr = PetscMalloc1(np,&ctx->pcoeff);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)fn,np*sizeof(PetscScalar));CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc1(np,&ctx->pcoeff));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)fn,np*sizeof(PetscScalar)));
     for (i=0;i<np;i++) ctx->pcoeff[i] = pcoeff[i];
   }
   PetscFunctionReturn(0);
@@ -277,19 +272,16 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
 @*/
 PetscErrorCode FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,np,2);
   if (np) PetscValidScalarPointer(pcoeff,3);
-  ierr = PetscTryMethod(fn,"FNRationalSetNumerator_C",(FN,PetscInt,PetscScalar*),(fn,np,pcoeff));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(fn,"FNRationalSetNumerator_C",(FN,PetscInt,PetscScalar*),(fn,np,pcoeff)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode FNRationalGetNumerator_Rational(FN fn,PetscInt *np,PetscScalar *pcoeff[])
 {
-  PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
   PetscInt       i;
 
@@ -298,7 +290,7 @@ static PetscErrorCode FNRationalGetNumerator_Rational(FN fn,PetscInt *np,PetscSc
   if (pcoeff) {
     if (!ctx->np) *pcoeff = NULL;
     else {
-      ierr = PetscMalloc1(ctx->np,pcoeff);CHKERRQ(ierr);
+      CHKERRQ(PetscMalloc1(ctx->np,pcoeff));
       for (i=0;i<ctx->np;i++) (*pcoeff)[i] = ctx->pcoeff[i];
     }
   }
@@ -329,27 +321,24 @@ static PetscErrorCode FNRationalGetNumerator_Rational(FN fn,PetscInt *np,PetscSc
 @*/
 PetscErrorCode FNRationalGetNumerator(FN fn,PetscInt *np,PetscScalar *pcoeff[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = PetscUseMethod(fn,"FNRationalGetNumerator_C",(FN,PetscInt*,PetscScalar**),(fn,np,pcoeff));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(fn,"FNRationalGetNumerator_C",(FN,PetscInt*,PetscScalar**),(fn,np,pcoeff)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscScalar *qcoeff)
 {
-  PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
   PetscInt       i;
 
   PetscFunctionBegin;
   PetscCheck(nq>=0,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nq cannot be negative");
   ctx->nq = nq;
-  ierr = PetscFree(ctx->qcoeff);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(ctx->qcoeff));
   if (nq) {
-    ierr = PetscMalloc1(nq,&ctx->qcoeff);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)fn,nq*sizeof(PetscScalar));CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc1(nq,&ctx->qcoeff));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)fn,nq*sizeof(PetscScalar)));
     for (i=0;i<nq;i++) ctx->qcoeff[i] = qcoeff[i];
   }
   PetscFunctionReturn(0);
@@ -381,19 +370,16 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
 @*/
 PetscErrorCode FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,nq,2);
   if (nq) PetscValidScalarPointer(qcoeff,3);
-  ierr = PetscTryMethod(fn,"FNRationalSetDenominator_C",(FN,PetscInt,PetscScalar*),(fn,nq,qcoeff));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(fn,"FNRationalSetDenominator_C",(FN,PetscInt,PetscScalar*),(fn,nq,qcoeff)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,PetscScalar *qcoeff[])
 {
-  PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
   PetscInt       i;
 
@@ -402,7 +388,7 @@ static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,Petsc
   if (qcoeff) {
     if (!ctx->nq) *qcoeff = NULL;
     else {
-      ierr = PetscMalloc1(ctx->nq,qcoeff);CHKERRQ(ierr);
+      CHKERRQ(PetscMalloc1(ctx->nq,qcoeff));
       for (i=0;i<ctx->nq;i++) (*qcoeff)[i] = ctx->qcoeff[i];
     }
   }
@@ -433,56 +419,52 @@ static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,Petsc
 @*/
 PetscErrorCode FNRationalGetDenominator(FN fn,PetscInt *nq,PetscScalar *qcoeff[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = PetscUseMethod(fn,"FNRationalGetDenominator_C",(FN,PetscInt*,PetscScalar**),(fn,nq,qcoeff));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(fn,"FNRationalGetDenominator_C",(FN,PetscInt*,PetscScalar**),(fn,nq,qcoeff)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNSetFromOptions_Rational(PetscOptionItems *PetscOptionsObject,FN fn)
 {
-  PetscErrorCode ierr;
 #define PARMAX 10
   PetscScalar    array[PARMAX];
   PetscInt       i,k;
   PetscBool      flg;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"FN Rational Options");CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"FN Rational Options"));
 
     k = PARMAX;
     for (i=0;i<k;i++) array[i] = 0;
-    ierr = PetscOptionsScalarArray("-fn_rational_numerator","Numerator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetNumerator",array,&k,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = FNRationalSetNumerator(fn,k,array);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsScalarArray("-fn_rational_numerator","Numerator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetNumerator",array,&k,&flg));
+    if (flg) CHKERRQ(FNRationalSetNumerator(fn,k,array));
 
     k = PARMAX;
     for (i=0;i<k;i++) array[i] = 0;
-    ierr = PetscOptionsScalarArray("-fn_rational_denominator","Denominator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetDenominator",array,&k,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = FNRationalSetDenominator(fn,k,array);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsScalarArray("-fn_rational_denominator","Denominator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetDenominator",array,&k,&flg));
+    if (flg) CHKERRQ(FNRationalSetDenominator(fn,k,array));
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
 {
-  PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data,*ctx2 = (FN_RATIONAL*)(*newfn)->data;
   PetscInt       i;
 
   PetscFunctionBegin;
   ctx2->np = ctx->np;
   if (ctx->np) {
-    ierr = PetscMalloc1(ctx->np,&ctx2->pcoeff);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)(*newfn),ctx->np*sizeof(PetscScalar));CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc1(ctx->np,&ctx2->pcoeff));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)(*newfn),ctx->np*sizeof(PetscScalar)));
     for (i=0;i<ctx->np;i++) ctx2->pcoeff[i] = ctx->pcoeff[i];
   }
   ctx2->nq = ctx->nq;
   if (ctx->nq) {
-    ierr = PetscMalloc1(ctx->nq,&ctx2->qcoeff);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)(*newfn),ctx->nq*sizeof(PetscScalar));CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc1(ctx->nq,&ctx2->qcoeff));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)(*newfn),ctx->nq*sizeof(PetscScalar)));
     for (i=0;i<ctx->nq;i++) ctx2->qcoeff[i] = ctx->qcoeff[i];
   }
   PetscFunctionReturn(0);
@@ -490,27 +472,25 @@ PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
 
 PetscErrorCode FNDestroy_Rational(FN fn)
 {
-  PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(ctx->pcoeff);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->qcoeff);CHKERRQ(ierr);
-  ierr = PetscFree(fn->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetNumerator_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetDenominator_C",NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(ctx->pcoeff));
+  CHKERRQ(PetscFree(ctx->qcoeff));
+  CHKERRQ(PetscFree(fn->data));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetNumerator_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetDenominator_C",NULL));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
 {
-  PetscErrorCode ierr;
   FN_RATIONAL    *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(fn,&ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscNewLog(fn,&ctx));
   fn->data = (void*)ctx;
 
   fn->ops->evaluatefunction          = FNEvaluateFunction_Rational;
@@ -521,10 +501,9 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
   fn->ops->view                      = FNView_Rational;
   fn->ops->duplicate                 = FNDuplicate_Rational;
   fn->ops->destroy                   = FNDestroy_Rational;
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetNumerator_C",FNRationalSetNumerator_Rational);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",FNRationalGetNumerator_Rational);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",FNRationalSetDenominator_Rational);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetDenominator_C",FNRationalGetDenominator_Rational);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetNumerator_C",FNRationalSetNumerator_Rational));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",FNRationalGetNumerator_Rational));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",FNRationalSetDenominator_Rational));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetDenominator_C",FNRationalGetDenominator_Rational));
   PetscFunctionReturn(0);
 }
-

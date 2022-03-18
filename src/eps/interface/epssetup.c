@@ -21,12 +21,10 @@
 */
 PetscErrorCode EPSSetDefaultST(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  if (eps->ops->setdefaultst) { ierr = (*eps->ops->setdefaultst)(eps);CHKERRQ(ierr); }
+  if (eps->ops->setdefaultst) CHKERRQ((*eps->ops->setdefaultst)(eps));
   if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STSHIFT);CHKERRQ(ierr);
+    CHKERRQ(STSetType(eps->st,STSHIFT));
   }
   PetscFunctionReturn(0);
 }
@@ -37,16 +35,15 @@ PetscErrorCode EPSSetDefaultST(EPS eps)
 */
 PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
 {
-  PetscErrorCode ierr;
   KSP            ksp;
 
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
+    CHKERRQ(STSetType(eps->st,STPRECOND));
   }
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  CHKERRQ(STGetKSP(eps->st,&ksp));
   if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+    CHKERRQ(KSPSetType(ksp,KSPPREONLY));
   }
   PetscFunctionReturn(0);
 }
@@ -57,18 +54,17 @@ PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
 */
 PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
 {
-  PetscErrorCode ierr;
   KSP            ksp;
 
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
+    CHKERRQ(STSetType(eps->st,STPRECOND));
   }
-  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  CHKERRQ(STPrecondSetKSPHasMat(eps->st,PETSC_TRUE));
+  CHKERRQ(STGetKSP(eps->st,&ksp));
   if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPGMRES);CHKERRQ(ierr);
-    ierr = KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,5);CHKERRQ(ierr);
+    CHKERRQ(KSPSetType(ksp,KSPGMRES));
+    CHKERRQ(KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,5));
   }
   PetscFunctionReturn(0);
 }
@@ -80,21 +76,20 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
 */
 PetscErrorCode EPSSetDefaultST_NoFactor(EPS eps)
 {
-  PetscErrorCode ierr;
   KSP            ksp;
   PC             pc;
 
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STSHIFT);CHKERRQ(ierr);
+    CHKERRQ(STSetType(eps->st,STSHIFT));
   }
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  CHKERRQ(STGetKSP(eps->st,&ksp));
   if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+    CHKERRQ(KSPSetType(ksp,KSPPREONLY));
   }
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  CHKERRQ(KSPGetPC(ksp,&pc));
   if (!((PetscObject)pc)->type_name) {
-    ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
+    CHKERRQ(PCSetType(pc,PCNONE));
   }
   PetscFunctionReturn(0);
 }
@@ -105,17 +100,16 @@ PetscErrorCode EPSSetDefaultST_NoFactor(EPS eps)
 */
 PetscErrorCode EPSCheckCompatibleST(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscBool      precond,shift,sinvert,cayley,lyapii;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&shift);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&sinvert);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&cayley);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&shift));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&sinvert));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&cayley));
 
   /* preconditioned eigensolvers */
   PetscCheck(eps->categ!=EPS_CATEGORY_PRECOND || precond,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires ST=PRECOND");
@@ -126,7 +120,7 @@ PetscErrorCode EPSCheckCompatibleST(EPS eps)
 
   /* real shifts in Hermitian problems */
 #if defined(PETSC_USE_COMPLEX)
-  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
+  CHKERRQ(STGetShift(eps->st,&sigma));
   PetscCheck(!eps->ishermitian || PetscImaginaryPart(sigma)==0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
 #endif
 
@@ -135,7 +129,7 @@ PetscErrorCode EPSCheckCompatibleST(EPS eps)
 
   /* make sure that the user does not specify smallest magnitude with shift-and-invert */
   if ((cayley || sinvert) && (eps->categ==EPS_CATEGORY_KRYLOV || eps->categ==EPS_CATEGORY_OTHER)) {
-    ierr = PetscObjectTypeCompare((PetscObject)eps,EPSLYAPII,&lyapii);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectTypeCompare((PetscObject)eps,EPSLYAPII,&lyapii));
     PetscCheck(lyapii || eps->which==EPS_TARGET_MAGNITUDE || eps->which==EPS_TARGET_REAL || eps->which==EPS_TARGET_IMAGINARY || eps->which==EPS_ALL || eps->which==EPS_WHICH_USER,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
   }
   PetscFunctionReturn(0);
@@ -243,16 +237,15 @@ PetscErrorCode EPSSetUpSort_Basic(EPS eps)
 */
 PetscErrorCode EPSSetUpSort_Default(EPS eps)
 {
-  PetscErrorCode ierr;
   SlepcSC        sc;
   PetscBool      istrivial;
 
   PetscFunctionBegin;
   /* fill sorting criterion context */
-  ierr = EPSSetUpSort_Basic(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSSetUpSort_Basic(eps));
   /* fill sorting criterion for DS */
-  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
-  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  CHKERRQ(DSGetSlepcSC(eps->ds,&sc));
+  CHKERRQ(RGIsTrivial(eps->rg,&istrivial));
   sc->rg            = istrivial? NULL: eps->rg;
   sc->comparison    = eps->sc->comparison;
   sc->comparisonctx = eps->sc->comparisonctx;
@@ -282,7 +275,6 @@ PetscErrorCode EPSSetUpSort_Default(EPS eps)
 @*/
 PetscErrorCode EPSSetUp(EPS eps)
 {
-  PetscErrorCode ierr;
   Mat            A,B;
   PetscInt       k,nmat;
   PetscBool      flg;
@@ -290,43 +282,43 @@ PetscErrorCode EPSSetUp(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->state) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(EPS_SetUp,eps,0,0,0));
 
   /* reset the convergence flag from the previous solves */
   eps->reason = EPS_CONVERGED_ITERATING;
 
   /* Set default solver type (EPSSetFromOptions was not called) */
   if (!((PetscObject)eps)->type_name) {
-    ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
+    CHKERRQ(EPSSetType(eps,EPSKRYLOVSCHUR));
   }
-  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
-  ierr = EPSSetDefaultST(eps);CHKERRQ(ierr);
+  if (!eps->st) CHKERRQ(EPSGetST(eps,&eps->st));
+  CHKERRQ(EPSSetDefaultST(eps));
 
-  ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
-  if (eps->useds && !eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
+  CHKERRQ(STSetTransform(eps->st,PETSC_TRUE));
+  if (eps->useds && !eps->ds) CHKERRQ(EPSGetDS(eps,&eps->ds));
   if (eps->twosided) {
     PetscCheck(!eps->ishermitian || (eps->isgeneralized && !eps->ispositive),PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for %s problems",SLEPC_STRING_HERMITIAN);
   }
-  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  if (!eps->rg) CHKERRQ(EPSGetRG(eps,&eps->rg));
   if (!((PetscObject)eps->rg)->type_name) {
-    ierr = RGSetType(eps->rg,RGINTERVAL);CHKERRQ(ierr);
+    CHKERRQ(RGSetType(eps->rg,RGINTERVAL));
   }
 
   /* Set problem dimensions */
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
+  CHKERRQ(STGetNumMatrices(eps->st,&nmat));
   PetscCheck(nmat,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSSetOperators must be called first");
-  ierr = STMatGetSize(eps->st,&eps->n,NULL);CHKERRQ(ierr);
-  ierr = STMatGetLocalSize(eps->st,&eps->nloc,NULL);CHKERRQ(ierr);
+  CHKERRQ(STMatGetSize(eps->st,&eps->n,NULL));
+  CHKERRQ(STMatGetLocalSize(eps->st,&eps->nloc,NULL));
 
   /* Set default problem type */
   if (!eps->problem_type) {
     if (nmat==1) {
-      ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
+      CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
     } else {
-      ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
+      CHKERRQ(EPSSetProblemType(eps,EPS_GNHEP));
     }
   } else if (nmat==1 && eps->isgeneralized) {
-    ierr = PetscInfo(eps,"Eigenproblem set as generalized but no matrix B was provided; reverting to a standard eigenproblem\n");CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(eps,"Eigenproblem set as generalized but no matrix B was provided; reverting to a standard eigenproblem\n"));
     eps->isgeneralized = PETSC_FALSE;
     eps->problem_type = eps->ishermitian? EPS_HEP: EPS_NHEP;
   } else PetscCheck(nmat==1 || eps->isgeneralized,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Inconsistent EPS state: the problem type does not match the number of matrices");
@@ -340,17 +332,17 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* initialization of matrix norms */
   if (eps->conv==EPS_CONV_NORM) {
     if (!eps->nrma) {
-      ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-      ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
+      CHKERRQ(STGetMatrix(eps->st,0,&A));
+      CHKERRQ(MatNorm(A,NORM_INFINITY,&eps->nrma));
     }
     if (nmat>1 && !eps->nrmb) {
-      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr);
+      CHKERRQ(STGetMatrix(eps->st,1,&B));
+      CHKERRQ(MatNorm(B,NORM_INFINITY,&eps->nrmb));
     }
   }
 
   /* call specific solver setup */
-  ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
+  CHKERRQ((*eps->ops->setup)(eps));
 
   /* if purification is set, check that it really makes sense */
   if (eps->purify) {
@@ -359,7 +351,7 @@ PetscErrorCode EPSSetUp(EPS eps)
       if (!eps->isgeneralized) eps->purify = PETSC_FALSE;
       else if (!eps->ishermitian && !eps->ispositive) eps->purify = PETSC_FALSE;
       else {
-        ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
+        CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg));
         if (flg) eps->purify = PETSC_FALSE;
       }
     }
@@ -370,50 +362,50 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* set up sorting criterion */
   if (eps->ops->setupsort) {
-    ierr = (*eps->ops->setupsort)(eps);CHKERRQ(ierr);
+    CHKERRQ((*eps->ops->setupsort)(eps));
   }
 
   /* Build balancing matrix if required */
   if (eps->balance!=EPS_BALANCE_USER) {
-    ierr = STSetBalanceMatrix(eps->st,NULL);CHKERRQ(ierr);
+    CHKERRQ(STSetBalanceMatrix(eps->st,NULL));
     if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
       if (!eps->D) {
-        ierr = BVCreateVec(eps->V,&eps->D);CHKERRQ(ierr);
-        ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->D);CHKERRQ(ierr);
+        CHKERRQ(BVCreateVec(eps->V,&eps->D));
+        CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->D));
       }
-      ierr = EPSBuildBalance_Krylov(eps);CHKERRQ(ierr);
-      ierr = STSetBalanceMatrix(eps->st,eps->D);CHKERRQ(ierr);
+      CHKERRQ(EPSBuildBalance_Krylov(eps));
+      CHKERRQ(STSetBalanceMatrix(eps->st,eps->D));
     }
   }
 
   /* Setup ST */
-  ierr = STSetUp(eps->st);CHKERRQ(ierr);
-  ierr = EPSCheckCompatibleST(eps);CHKERRQ(ierr);
+  CHKERRQ(STSetUp(eps->st));
+  CHKERRQ(EPSCheckCompatibleST(eps));
 
   /* process deflation and initial vectors */
   if (eps->nds<0) {
     k = -eps->nds;
-    ierr = BVInsertConstraints(eps->V,&k,eps->defl);CHKERRQ(ierr);
-    ierr = SlepcBasisDestroy_Private(&eps->nds,&eps->defl);CHKERRQ(ierr);
+    CHKERRQ(BVInsertConstraints(eps->V,&k,eps->defl));
+    CHKERRQ(SlepcBasisDestroy_Private(&eps->nds,&eps->defl));
     eps->nds = k;
-    ierr = STCheckNullSpace(eps->st,eps->V);CHKERRQ(ierr);
+    CHKERRQ(STCheckNullSpace(eps->st,eps->V));
   }
   if (eps->nini<0) {
     k = -eps->nini;
     PetscCheck(k<=eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
-    ierr = BVInsertVecs(eps->V,0,&k,eps->IS,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = SlepcBasisDestroy_Private(&eps->nini,&eps->IS);CHKERRQ(ierr);
+    CHKERRQ(BVInsertVecs(eps->V,0,&k,eps->IS,PETSC_TRUE));
+    CHKERRQ(SlepcBasisDestroy_Private(&eps->nini,&eps->IS));
     eps->nini = k;
   }
   if (eps->twosided && eps->ninil<0) {
     k = -eps->ninil;
     PetscCheck(k<=eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The number of left initial vectors is larger than ncv");
-    ierr = BVInsertVecs(eps->W,0,&k,eps->ISL,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = SlepcBasisDestroy_Private(&eps->ninil,&eps->ISL);CHKERRQ(ierr);
+    CHKERRQ(BVInsertVecs(eps->W,0,&k,eps->ISL,PETSC_TRUE));
+    CHKERRQ(SlepcBasisDestroy_Private(&eps->ninil,&eps->ISL));
     eps->ninil = k;
   }
 
-  ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventEnd(EPS_SetUp,eps,0,0,0));
   eps->state = EPS_STATE_SETUP;
   PetscFunctionReturn(0);
 }
@@ -440,7 +432,6 @@ PetscErrorCode EPSSetUp(EPS eps)
 @*/
 PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
   PetscInt       m,n,m0,mloc,nloc,mloc0,nmat;
   Mat            mat[2];
 
@@ -452,28 +443,28 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   if (B) PetscCheckSameComm(eps,1,B,3);
 
   /* Check matrix sizes */
-  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&mloc,&nloc);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(A,&m,&n));
+  CHKERRQ(MatGetLocalSize(A,&mloc,&nloc));
   PetscCheck(m==n,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   PetscCheck(mloc==nloc,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"A does not have equal row and column sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,nloc);
   if (B) {
-    ierr = MatGetSize(B,&m0,&n);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(B,&mloc0,&nloc);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(B,&m0,&n));
+    CHKERRQ(MatGetLocalSize(B,&mloc0,&nloc));
     PetscCheck(m0==n,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m0,n);
     PetscCheck(mloc0==nloc,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc0,nloc);
     PetscCheck(m==m0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",m,m0);
     PetscCheck(mloc==mloc0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Local dimensions of A and B do not match (%" PetscInt_FMT ", %" PetscInt_FMT ")",mloc,mloc0);
   }
-  if (eps->state && (n!=eps->n || nloc!=eps->nloc)) { ierr = EPSReset(eps);CHKERRQ(ierr); }
+  if (eps->state && (n!=eps->n || nloc!=eps->nloc)) CHKERRQ(EPSReset(eps));
   eps->nrma = 0.0;
   eps->nrmb = 0.0;
-  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
+  if (!eps->st) CHKERRQ(EPSGetST(eps,&eps->st));
   mat[0] = A;
   if (B) {
     mat[1] = B;
     nmat = 2;
   } else nmat = 1;
-  ierr = STSetMatrices(eps->st,nmat,mat);CHKERRQ(ierr);
+  CHKERRQ(STSetMatrices(eps->st,nmat,mat));
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -499,24 +490,23 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 @*/
 PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 {
-  PetscErrorCode ierr;
   ST             st;
   PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STGetNumMatrices(st,&k);CHKERRQ(ierr);
+  CHKERRQ(EPSGetST(eps,&st));
+  CHKERRQ(STGetNumMatrices(st,&k));
   if (A) {
     if (k<1) *A = NULL;
     else {
-      ierr = STGetMatrix(st,0,A);CHKERRQ(ierr);
+      CHKERRQ(STGetMatrix(st,0,A));
     }
   }
   if (B) {
     if (k<2) *B = NULL;
     else {
-      ierr = STGetMatrix(st,1,B);CHKERRQ(ierr);
+      CHKERRQ(STGetMatrix(st,1,B));
     }
   }
   PetscFunctionReturn(0);
@@ -551,8 +541,6 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 @*/
 PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
@@ -561,7 +549,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
     PetscValidPointer(v,3);
     PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
   }
-  ierr = SlepcBasisReference_Private(n,v,&eps->nds,&eps->defl);CHKERRQ(ierr);
+  CHKERRQ(SlepcBasisReference_Private(n,v,&eps->nds,&eps->defl));
   if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -596,8 +584,6 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
 @*/
 PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
@@ -606,7 +592,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
     PetscValidPointer(is,3);
     PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
   }
-  ierr = SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS);CHKERRQ(ierr);
+  CHKERRQ(SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS));
   if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -635,8 +621,6 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
 @*/
 PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec isl[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
@@ -645,7 +629,7 @@ PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec isl[])
     PetscValidPointer(isl,3);
     PetscValidHeaderSpecific(*isl,VEC_CLASSID,3);
   }
-  ierr = SlepcBasisReference_Private(n,isl,&eps->ninil,&eps->ISL);CHKERRQ(ierr);
+  CHKERRQ(SlepcBasisReference_Private(n,isl,&eps->ninil,&eps->ISL));
   if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -656,12 +640,11 @@ PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec isl[])
  */
 PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
-  PetscErrorCode ierr;
   PetscBool      krylov;
 
   PetscFunctionBegin;
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
-    ierr = PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,"");CHKERRQ(ierr);
+    CHKERRQ(PetscObjectTypeCompareAny((PetscObject)eps,&krylov,EPSKRYLOVSCHUR,EPSARNOLDI,EPSLANCZOS,""));
     if (krylov) {
       PetscCheck(*ncv>=nev+1 || (*ncv==nev && *ncv==eps->n),PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev+1");
     } else {
@@ -701,7 +684,6 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
 @*/
 PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 {
-  PetscErrorCode ierr;
   PetscInt       oldsize,newc,requested;
   PetscLogDouble cnt;
   PetscRandom    rand;
@@ -711,45 +693,44 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   requested = eps->ncv + extra;
 
   /* oldsize is zero if this is the first time setup is called */
-  ierr = BVGetSizes(eps->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+  CHKERRQ(BVGetSizes(eps->V,NULL,NULL,&oldsize));
   newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize || !eps->eigr) {
-    ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
-    ierr = PetscMalloc4(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->perm);CHKERRQ(ierr);
+    CHKERRQ(PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm));
+    CHKERRQ(PetscMalloc4(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->perm));
     cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
-    ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
+    CHKERRQ(PetscLogObjectMemory((PetscObject)eps,cnt));
   }
 
   /* workspace for the case of arbitrary selection */
   if (eps->arbitrary) {
     if (eps->rr) {
-      ierr = PetscFree2(eps->rr,eps->ri);CHKERRQ(ierr);
+      CHKERRQ(PetscFree2(eps->rr,eps->ri));
     }
-    ierr = PetscMalloc2(requested,&eps->rr,requested,&eps->ri);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,2*newc*sizeof(PetscScalar));CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc2(requested,&eps->rr,requested,&eps->ri));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)eps,2*newc*sizeof(PetscScalar)));
   }
 
   /* allocate V */
-  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
+  if (!eps->V) CHKERRQ(EPSGetBV(eps,&eps->V));
   if (!oldsize) {
     if (!((PetscObject)(eps->V))->type_name) {
-      ierr = BVSetType(eps->V,BVSVEC);CHKERRQ(ierr);
+      CHKERRQ(BVSetType(eps->V,BVSVEC));
     }
-    ierr = STMatCreateVecsEmpty(eps->st,&t,NULL);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(eps->V,t,requested);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    CHKERRQ(STMatCreateVecsEmpty(eps->st,&t,NULL));
+    CHKERRQ(BVSetSizesFromVec(eps->V,t,requested));
+    CHKERRQ(VecDestroy(&t));
   } else {
-    ierr = BVResize(eps->V,requested,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(BVResize(eps->V,requested,PETSC_FALSE));
   }
 
   /* allocate W */
   if (eps->twosided) {
-    ierr = BVGetRandomContext(eps->V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
-    ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
-    ierr = BVDuplicate(eps->V,&eps->W);CHKERRQ(ierr);
+    CHKERRQ(BVGetRandomContext(eps->V,&rand));  /* make sure the random context is available when duplicating */
+    CHKERRQ(BVDestroy(&eps->W));
+    CHKERRQ(BVDuplicate(eps->V,&eps->W));
   }
   PetscFunctionReturn(0);
 }
-

@@ -54,8 +54,8 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 #if defined(PETSC_HAVE_COMPLEX)
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model with matrix exponential, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model with matrix exponential, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
@@ -67,98 +67,98 @@ int main(int argc,char **argv)
   delta2 = 0.004;
   L      = 0.51302;
 
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-L",&L,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-alpha",&alpha,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-beta",&beta,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-delta1",&delta1,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-delta2",&delta2,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-L",&L,NULL));
+  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-alpha",&alpha,NULL));
+  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-beta",&beta,NULL));
+  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-delta1",&delta1,NULL));
+  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-delta2",&delta2,NULL));
 
   h = 1.0 / (PetscReal)(n+1);
   tau1 = delta1 / ((h*L)*(h*L));
   tau2 = delta2 / ((h*L)*(h*L));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,2*n,2*n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,2*n,2*n));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     if (i<n) {  /* upper blocks */
-      if (i>0) { ierr = MatSetValue(A,i,i-1,tau1,INSERT_VALUES);CHKERRQ(ierr); }
-      if (i<n-1) { ierr = MatSetValue(A,i,i+1,tau1,INSERT_VALUES);CHKERRQ(ierr); }
-      ierr = MatSetValue(A,i,i,-2.0*tau1+beta-1.0,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(A,i,i+n,alpha*alpha,INSERT_VALUES);CHKERRQ(ierr);
+      if (i>0) CHKERRQ(MatSetValue(A,i,i-1,tau1,INSERT_VALUES));
+      if (i<n-1) CHKERRQ(MatSetValue(A,i,i+1,tau1,INSERT_VALUES));
+      CHKERRQ(MatSetValue(A,i,i,-2.0*tau1+beta-1.0,INSERT_VALUES));
+      CHKERRQ(MatSetValue(A,i,i+n,alpha*alpha,INSERT_VALUES));
     } else {  /* lower blocks */
-      if (i>n) { ierr = MatSetValue(A,i,i-1,tau2,INSERT_VALUES);CHKERRQ(ierr); }
-      if (i<2*n-1) { ierr = MatSetValue(A,i,i+1,tau2,INSERT_VALUES);CHKERRQ(ierr); }
-      ierr = MatSetValue(A,i,i,-2.0*tau2-alpha*alpha,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(A,i,i-n,-beta,INSERT_VALUES);CHKERRQ(ierr);
+      if (i>n) CHKERRQ(MatSetValue(A,i,i-1,tau2,INSERT_VALUES));
+      if (i<2*n-1) CHKERRQ(MatSetValue(A,i,i+1,tau2,INSERT_VALUES));
+      CHKERRQ(MatSetValue(A,i,i,-2.0*tau2-alpha*alpha,INSERT_VALUES));
+      CHKERRQ(MatSetValue(A,i,i-n,-beta,INSERT_VALUES));
     }
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  CHKERRQ(EPSSetOperators(eps,A,NULL));
+  CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
+  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
+  CHKERRQ(EPSGetST(eps,&st));
+  CHKERRQ(STSetType(st,STSHELL));
+  CHKERRQ(EPSSetFromOptions(eps));
 
   /*
      Initialize shell spectral transformation
   */
-  ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&isShell);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)st,STSHELL,&isShell));
   if (isShell) {
 
     /* Create the MFN object to be used by the spectral transform */
-    ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
-    ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
-    ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
-    ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
-    ierr = FNSetScale(f,0.03,1.0);CHKERRQ(ierr);  /* this can be set with -fn_scale */
-    ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
+    CHKERRQ(MFNCreate(PETSC_COMM_WORLD,&mfn));
+    CHKERRQ(MFNSetOperator(mfn,A));
+    CHKERRQ(MFNGetFN(mfn,&f));
+    CHKERRQ(FNSetType(f,FNEXP));
+    CHKERRQ(FNSetScale(f,0.03,1.0));  /* this can be set with -fn_scale */
+    CHKERRQ(MFNSetFromOptions(mfn));
 
     /* Set callback functions */
-    ierr = STShellSetApply(st,STApply_Exp);CHKERRQ(ierr);
-    ierr = STShellSetBackTransform(st,STBackTransform_Exp);CHKERRQ(ierr);
-    ierr = STShellSetContext(st,mfn);CHKERRQ(ierr);
-    ierr = PetscObjectSetName((PetscObject)st,"STEXP");CHKERRQ(ierr);
+    CHKERRQ(STShellSetApply(st,STApply_Exp));
+    CHKERRQ(STShellSetBackTransform(st,STBackTransform_Exp));
+    CHKERRQ(STShellSetContext(st,mfn));
+    CHKERRQ(PetscObjectSetName((PetscObject)st,"STEXP"));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  CHKERRQ(EPSSolve(eps));
+  CHKERRQ(EPSGetType(eps,&type));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  CHKERRQ(EPSGetDimensions(eps,&nev,NULL,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
   if (terse) {
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  if (isShell) { ierr = MFNDestroy(&mfn);CHKERRQ(ierr); }
+  CHKERRQ(EPSDestroy(&eps));
+  CHKERRQ(MatDestroy(&A));
+  if (isShell) CHKERRQ(MFNDestroy(&mfn));
 #else
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires C99 complex numbers");
 #endif
@@ -181,7 +181,6 @@ int main(int argc,char **argv)
 PetscErrorCode STBackTransform_Exp(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
 #if defined(PETSC_HAVE_COMPLEX)
-  PetscErrorCode ierr;
   PetscInt       j;
   MFN            mfn;
   FN             fn;
@@ -191,9 +190,9 @@ PetscErrorCode STBackTransform_Exp(ST st,PetscInt n,PetscScalar *eigr,PetscScala
 #endif
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,&mfn);CHKERRQ(ierr);
-  ierr = MFNGetFN(mfn,&fn);CHKERRQ(ierr);
-  ierr = FNGetScale(fn,&tau,&eta);CHKERRQ(ierr);
+  CHKERRQ(STShellGetContext(st,&mfn));
+  CHKERRQ(MFNGetFN(mfn,&fn));
+  CHKERRQ(FNGetScale(fn,&tau,&eta));
   for (j=0;j<n;j++) {
 #if defined(PETSC_USE_COMPLEX)
     eigr[j] = PetscLogComplex(eigr[j]/eta)/tau;
@@ -223,11 +222,10 @@ PetscErrorCode STBackTransform_Exp(ST st,PetscInt n,PetscScalar *eigr,PetscScala
 PetscErrorCode STApply_Exp(ST st,Vec x,Vec y)
 {
   MFN            mfn;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,&mfn);CHKERRQ(ierr);
-  ierr = MFNSolve(mfn,x,y);CHKERRQ(ierr);
+  CHKERRQ(STShellGetContext(st,&mfn));
+  CHKERRQ(MFNSolve(mfn,x,y));
   PetscFunctionReturn(0);
 }
 

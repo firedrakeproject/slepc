@@ -33,7 +33,6 @@
 @*/
 PetscErrorCode NEPSetUp(NEP nep)
 {
-  PetscErrorCode ierr;
   PetscInt       k;
   SlepcSC        sc;
   Mat            T;
@@ -47,71 +46,71 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   NEPCheckProblem(nep,1);
   if (nep->state) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(NEP_SetUp,nep,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(NEP_SetUp,nep,0,0,0));
 
   /* reset the convergence flag from the previous solves */
   nep->reason = NEP_CONVERGED_ITERATING;
 
   /* set default solver type (NEPSetFromOptions was not called) */
   if (!((PetscObject)nep)->type_name) {
-    ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
+    CHKERRQ(NEPSetType(nep,NEPRII));
   }
-  if (nep->useds && !nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  if (nep->useds && !nep->ds) CHKERRQ(NEPGetDS(nep,&nep->ds));
+  if (!nep->rg) CHKERRQ(NEPGetRG(nep,&nep->rg));
   if (!((PetscObject)nep->rg)->type_name) {
-    ierr = RGSetType(nep->rg,RGINTERVAL);CHKERRQ(ierr);
+    CHKERRQ(RGSetType(nep->rg,RGINTERVAL));
   }
 
   /* set problem dimensions */
   switch (nep->fui) {
   case NEP_USER_INTERFACE_CALLBACK:
-    ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
-    ierr = MatGetSize(T,&nep->n,NULL);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(T,&nep->nloc,NULL);CHKERRQ(ierr);
+    CHKERRQ(NEPGetFunction(nep,&T,NULL,NULL,NULL));
+    CHKERRQ(MatGetSize(T,&nep->n,NULL));
+    CHKERRQ(MatGetLocalSize(T,&nep->nloc,NULL));
     break;
   case NEP_USER_INTERFACE_SPLIT:
-    ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->function);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function);CHKERRQ(ierr);
+    CHKERRQ(MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->function));
+    CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function));
     if (nep->P) {
-      ierr = MatDuplicate(nep->P[0],MAT_DO_NOT_COPY_VALUES,&nep->function_pre);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function_pre);CHKERRQ(ierr);
+      CHKERRQ(MatDuplicate(nep->P[0],MAT_DO_NOT_COPY_VALUES,&nep->function_pre));
+      CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function_pre));
     }
-    ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->jacobian);CHKERRQ(ierr);
-    ierr = MatGetSize(nep->A[0],&nep->n,NULL);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(nep->A[0],&nep->nloc,NULL);CHKERRQ(ierr);
+    CHKERRQ(MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian));
+    CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->jacobian));
+    CHKERRQ(MatGetSize(nep->A[0],&nep->n,NULL));
+    CHKERRQ(MatGetLocalSize(nep->A[0],&nep->nloc,NULL));
     break;
   }
 
   /* set default problem type */
   if (!nep->problem_type) {
-    ierr = NEPSetProblemType(nep,NEP_GENERAL);CHKERRQ(ierr);
+    CHKERRQ(NEPSetProblemType(nep,NEP_GENERAL));
   }
 
   /* check consistency of refinement options */
   if (nep->refine) {
     PetscCheck(nep->fui==NEP_USER_INTERFACE_SPLIT,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");
     if (!nep->scheme) {  /* set default scheme */
-      ierr = NEPRefineGetKSP(nep,&ksp);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+      CHKERRQ(NEPRefineGetKSP(nep,&ksp));
+      CHKERRQ(KSPGetPC(ksp,&pc));
+      CHKERRQ(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
       if (flg) {
-        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
+        CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
       }
       nep->scheme = flg? NEP_REFINE_SCHEME_MBE: NEP_REFINE_SCHEME_SCHUR;
     }
     if (nep->scheme==NEP_REFINE_SCHEME_MBE) {
-      ierr = NEPRefineGetKSP(nep,&ksp);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+      CHKERRQ(NEPRefineGetKSP(nep,&ksp));
+      CHKERRQ(KSPGetPC(ksp,&pc));
+      CHKERRQ(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
       if (flg) {
-        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
+        CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
       }
       PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
-      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size);CHKERRMPI(ierr);
+      CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size));
       if (size>1) {   /* currently selected PC is a factorization */
-        ierr = PCFactorGetMatSolverType(pc,&stype);CHKERRQ(ierr);
-        ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
+        CHKERRQ(PCFactorGetMatSolverType(pc,&stype));
+        CHKERRQ(PetscStrcmp(stype,MATSOLVERPETSC,&flg));
         PetscCheck(!flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"For Newton refinement, you chose to solve linear systems with a factorization, but in parallel runs you need to select an external package");
       }
     }
@@ -120,7 +119,7 @@ PetscErrorCode NEPSetUp(NEP nep)
     }
   }
   /* call specific solver setup */
-  ierr = (*nep->ops->setup)(nep);CHKERRQ(ierr);
+  CHKERRQ((*nep->ops->setup)(nep));
 
   /* set tolerance if not yet set */
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
@@ -182,10 +181,10 @@ PetscErrorCode NEPSetUp(NEP nep)
 
   /* fill sorting criterion for DS */
   if (nep->useds) {
-    ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
+    CHKERRQ(DSGetSlepcSC(nep->ds,&sc));
     sc->comparison    = nep->sc->comparison;
     sc->comparisonctx = nep->sc->comparisonctx;
-    ierr = PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg));
     if (!flg) {
       sc->map    = NULL;
       sc->mapobj = NULL;
@@ -197,11 +196,11 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (nep->nini<0) {
     k = -nep->nini;
     PetscCheck(k<=nep->ncv,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
-    ierr = BVInsertVecs(nep->V,0,&k,nep->IS,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = SlepcBasisDestroy_Private(&nep->nini,&nep->IS);CHKERRQ(ierr);
+    CHKERRQ(BVInsertVecs(nep->V,0,&k,nep->IS,PETSC_TRUE));
+    CHKERRQ(SlepcBasisDestroy_Private(&nep->nini,&nep->IS));
     nep->nini = k;
   }
-  ierr = PetscLogEventEnd(NEP_SetUp,nep,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventEnd(NEP_SetUp,nep,0,0,0));
   nep->state = NEP_STATE_SETUP;
   PetscFunctionReturn(0);
 }
@@ -236,8 +235,6 @@ PetscErrorCode NEPSetUp(NEP nep)
 @*/
 PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec is[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,n,2);
@@ -246,7 +243,7 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec is[])
     PetscValidPointer(is,3);
     PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
   }
-  ierr = SlepcBasisReference_Private(n,is,&nep->nini,&nep->IS);CHKERRQ(ierr);
+  CHKERRQ(SlepcBasisReference_Private(n,is,&nep->nini,&nep->IS));
   if (n>0) nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -294,7 +291,6 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
 @*/
 PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 {
-  PetscErrorCode ierr;
   PetscInt       oldsize,newc,requested;
   PetscLogDouble cnt;
   PetscRandom    rand;
@@ -305,40 +301,39 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
   requested = nep->ncv + extra;
 
   /* oldsize is zero if this is the first time setup is called */
-  ierr = BVGetSizes(nep->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+  CHKERRQ(BVGetSizes(nep->V,NULL,NULL,&oldsize));
   newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize || !nep->eigr) {
-    ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
-    ierr = PetscMalloc4(requested,&nep->eigr,requested,&nep->eigi,requested,&nep->errest,requested,&nep->perm);CHKERRQ(ierr);
+    CHKERRQ(PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm));
+    CHKERRQ(PetscMalloc4(requested,&nep->eigr,requested,&nep->eigi,requested,&nep->errest,requested,&nep->perm));
     cnt = newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
-    ierr = PetscLogObjectMemory((PetscObject)nep,cnt);CHKERRQ(ierr);
+    CHKERRQ(PetscLogObjectMemory((PetscObject)nep,cnt));
   }
 
   /* allocate V */
-  if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
+  if (!nep->V) CHKERRQ(NEPGetBV(nep,&nep->V));
   if (!oldsize) {
     if (!((PetscObject)(nep->V))->type_name) {
-      ierr = BVSetType(nep->V,BVSVEC);CHKERRQ(ierr);
+      CHKERRQ(BVSetType(nep->V,BVSVEC));
     }
     if (nep->fui==NEP_USER_INTERFACE_SPLIT) T = nep->A[0];
     else {
-      ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
+      CHKERRQ(NEPGetFunction(nep,&T,NULL,NULL,NULL));
     }
-    ierr = MatCreateVecsEmpty(T,&t,NULL);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(nep->V,t,requested);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
+    CHKERRQ(MatCreateVecsEmpty(T,&t,NULL));
+    CHKERRQ(BVSetSizesFromVec(nep->V,t,requested));
+    CHKERRQ(VecDestroy(&t));
   } else {
-    ierr = BVResize(nep->V,requested,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(BVResize(nep->V,requested,PETSC_FALSE));
   }
 
   /* allocate W */
   if (nep->twosided) {
-    ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr);  /* make sure the random context is available when duplicating */
-    ierr = BVDestroy(&nep->W);CHKERRQ(ierr);
-    ierr = BVDuplicate(nep->V,&nep->W);CHKERRQ(ierr);
+    CHKERRQ(BVGetRandomContext(nep->V,&rand));  /* make sure the random context is available when duplicating */
+    CHKERRQ(BVDestroy(&nep->W));
+    CHKERRQ(BVDuplicate(nep->V,&nep->W));
   }
   PetscFunctionReturn(0);
 }
-

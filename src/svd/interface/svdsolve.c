@@ -19,39 +19,36 @@
  */
 PetscErrorCode SVDComputeVectors_Left(SVD svd)
 {
-  PetscErrorCode ierr;
   Vec            tl;
   PetscInt       oldsize;
 
   PetscFunctionBegin;
   if (!svd->leftbasis) {
     /* generate left singular vectors on U */
-    if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
-    ierr = BVGetSizes(svd->U,NULL,NULL,&oldsize);CHKERRQ(ierr);
+    if (!svd->U) CHKERRQ(SVDGetBV(svd,NULL,&svd->U));
+    CHKERRQ(BVGetSizes(svd->U,NULL,NULL,&oldsize));
     if (!oldsize) {
       if (!((PetscObject)(svd->U))->type_name) {
-        ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
+        CHKERRQ(BVSetType(svd->U,BVSVEC));
       }
-      ierr = MatCreateVecsEmpty(svd->A,NULL,&tl);CHKERRQ(ierr);
-      ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
-      ierr = VecDestroy(&tl);CHKERRQ(ierr);
+      CHKERRQ(MatCreateVecsEmpty(svd->A,NULL,&tl));
+      CHKERRQ(BVSetSizesFromVec(svd->U,tl,svd->ncv));
+      CHKERRQ(VecDestroy(&tl));
     }
-    ierr = BVSetActiveColumns(svd->V,0,svd->nconv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(svd->U,0,svd->nconv);CHKERRQ(ierr);
-    ierr = BVMatMult(svd->V,svd->A,svd->U);CHKERRQ(ierr);
-    ierr = BVOrthogonalize(svd->U,NULL);CHKERRQ(ierr);
+    CHKERRQ(BVSetActiveColumns(svd->V,0,svd->nconv));
+    CHKERRQ(BVSetActiveColumns(svd->U,0,svd->nconv));
+    CHKERRQ(BVMatMult(svd->V,svd->A,svd->U));
+    CHKERRQ(BVOrthogonalize(svd->U,NULL));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDComputeVectors(SVD svd)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   SVDCheckSolved(svd,1);
   if (svd->state==SVD_STATE_SOLVED && svd->ops->computevectors) {
-    ierr = (*svd->ops->computevectors)(svd);CHKERRQ(ierr);
+    CHKERRQ((*svd->ops->computevectors)(svd));
   }
   svd->state = SVD_STATE_VECTORS;
   PetscFunctionReturn(0);
@@ -82,16 +79,15 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 @*/
 PetscErrorCode SVDSolve(SVD svd)
 {
-  PetscErrorCode ierr;
   PetscInt       i,*workperm;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->state>=SVD_STATE_SOLVED) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(SVD_Solve,svd,0,0,0));
 
   /* call setup */
-  ierr = SVDSetUp(svd);CHKERRQ(ierr);
+  CHKERRQ(SVDSetUp(svd));
   svd->its = 0;
   svd->nconv = 0;
   for (i=0;i<svd->ncv;i++) {
@@ -99,39 +95,39 @@ PetscErrorCode SVDSolve(SVD svd)
     svd->errest[i] = 0.0;
     svd->perm[i]   = i;
   }
-  ierr = SVDViewFromOptions(svd,NULL,"-svd_view_pre");CHKERRQ(ierr);
+  CHKERRQ(SVDViewFromOptions(svd,NULL,"-svd_view_pre"));
 
   switch (svd->problem_type) {
     case SVD_STANDARD:
-      ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
+      CHKERRQ((*svd->ops->solve)(svd));
       break;
     case SVD_GENERALIZED:
-      ierr = (*svd->ops->solveg)(svd);CHKERRQ(ierr);
+      CHKERRQ((*svd->ops->solveg)(svd));
       break;
   }
   svd->state = SVD_STATE_SOLVED;
 
   /* sort singular triplets */
   if (svd->which == SVD_SMALLEST) {
-    ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,svd->perm);CHKERRQ(ierr);
+    CHKERRQ(PetscSortRealWithPermutation(svd->nconv,svd->sigma,svd->perm));
   } else {
-    ierr = PetscMalloc1(svd->nconv,&workperm);CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc1(svd->nconv,&workperm));
     for (i=0;i<svd->nconv;i++) workperm[i] = i;
-    ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,workperm);CHKERRQ(ierr);
+    CHKERRQ(PetscSortRealWithPermutation(svd->nconv,svd->sigma,workperm));
     for (i=0;i<svd->nconv;i++) svd->perm[i] = workperm[svd->nconv-i-1];
-    ierr = PetscFree(workperm);CHKERRQ(ierr);
+    CHKERRQ(PetscFree(workperm));
   }
-  ierr = PetscLogEventEnd(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventEnd(SVD_Solve,svd,0,0,0));
 
   /* various viewers */
-  ierr = SVDViewFromOptions(svd,NULL,"-svd_view");CHKERRQ(ierr);
-  ierr = SVDConvergedReasonViewFromOptions(svd);CHKERRQ(ierr);
-  ierr = SVDErrorViewFromOptions(svd);CHKERRQ(ierr);
-  ierr = SVDValuesViewFromOptions(svd);CHKERRQ(ierr);
-  ierr = SVDVectorsViewFromOptions(svd);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat0");CHKERRQ(ierr);
+  CHKERRQ(SVDViewFromOptions(svd,NULL,"-svd_view"));
+  CHKERRQ(SVDConvergedReasonViewFromOptions(svd));
+  CHKERRQ(SVDErrorViewFromOptions(svd));
+  CHKERRQ(SVDValuesViewFromOptions(svd));
+  CHKERRQ(SVDVectorsViewFromOptions(svd));
+  CHKERRQ(MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat0"));
   if (svd->isgeneralized) {
-    ierr = MatViewFromOptions(svd->OPb,(PetscObject)svd,"-svd_view_mat1");CHKERRQ(ierr);
+    CHKERRQ(MatViewFromOptions(svd->OPb,(PetscObject)svd,"-svd_view_mat1"));
   }
 
   /* Remove the initial subspaces */
@@ -277,7 +273,6 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
 @*/
 PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,Vec v)
 {
-  PetscErrorCode ierr;
   PetscInt       M,N;
   Vec            w;
 
@@ -292,12 +287,12 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   if (sigma) *sigma = svd->sigma[svd->perm[i]];
   if (u || v) {
     if (!svd->isgeneralized) {
-      ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+      CHKERRQ(MatGetSize(svd->OP,&M,&N));
       if (M<N) { w = u; u = v; v = w; }
     }
-    ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
-    if (u) { ierr = BVCopyVec(svd->U,svd->perm[i],u);CHKERRQ(ierr); }
-    if (v) { ierr = BVCopyVec(svd->V,svd->perm[i],v);CHKERRQ(ierr); }
+    CHKERRQ(SVDComputeVectors(svd));
+    if (u) CHKERRQ(BVCopyVec(svd->U,svd->perm[i],u));
+    if (v) CHKERRQ(BVCopyVec(svd->V,svd->perm[i],v));
   }
   PetscFunctionReturn(0);
 }
@@ -313,26 +308,25 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
 */
 static PetscErrorCode SVDComputeResidualNorms_Standard(SVD svd,PetscReal sigma,Vec u,Vec v,Vec x,Vec y,PetscReal *norm1,PetscReal *norm2)
 {
-  PetscErrorCode ierr;
   PetscInt       M,N;
 
   PetscFunctionBegin;
   /* norm1 = ||A*v-sigma*u||_2 */
   if (norm1) {
-    ierr = MatMult(svd->OP,v,x);CHKERRQ(ierr);
-    ierr = VecAXPY(x,-sigma,u);CHKERRQ(ierr);
-    ierr = VecNorm(x,NORM_2,norm1);CHKERRQ(ierr);
+    CHKERRQ(MatMult(svd->OP,v,x));
+    CHKERRQ(VecAXPY(x,-sigma,u));
+    CHKERRQ(VecNorm(x,NORM_2,norm1));
   }
   /* norm2 = ||A^T*u-sigma*v||_2 */
   if (norm2) {
-    ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(svd->OP,&M,&N));
     if (M<N) {
-      ierr = MatMult(svd->A,u,y);CHKERRQ(ierr);
+      CHKERRQ(MatMult(svd->A,u,y));
     } else {
-      ierr = MatMult(svd->AT,u,y);CHKERRQ(ierr);
+      CHKERRQ(MatMult(svd->AT,u,y));
     }
-    ierr = VecAXPY(y,-sigma,v);CHKERRQ(ierr);
-    ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
+    CHKERRQ(VecAXPY(y,-sigma,v));
+    CHKERRQ(VecNorm(y,NORM_2,norm2));
   }
   PetscFunctionReturn(0);
 }
@@ -349,45 +343,44 @@ static PetscErrorCode SVDComputeResidualNorms_Standard(SVD svd,PetscReal sigma,V
 */
 static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigma,Vec uv,Vec x,Vec y,Vec z,PetscReal *norm1,PetscReal *norm2)
 {
-  PetscErrorCode ierr;
   Vec            u,v,ax,bx,nest,aux[2];
   PetscReal      c,s;
 
   PetscFunctionBegin;
-  ierr = MatCreateVecs(svd->OP,NULL,&u);CHKERRQ(ierr);
-  ierr = MatCreateVecs(svd->OPb,NULL,&v);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(svd->OP,NULL,&u));
+  CHKERRQ(MatCreateVecs(svd->OPb,NULL,&v));
   aux[0] = u;
   aux[1] = v;
-  ierr = VecCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,aux,&nest);CHKERRQ(ierr);
-  ierr = VecCopy(uv,nest);CHKERRQ(ierr);
+  CHKERRQ(VecCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,aux,&nest));
+  CHKERRQ(VecCopy(uv,nest));
 
   s = 1.0/PetscSqrtReal(1.0+sigma*sigma);
   c = sigma*s;
 
   /* norm1 = ||s^2*A'*u-c*B'*B*x||_2 */
   if (norm1) {
-    ierr = VecDuplicate(v,&bx);CHKERRQ(ierr);
-    ierr = MatMultHermitianTranspose(svd->OP,u,z);CHKERRQ(ierr);
-    ierr = MatMult(svd->OPb,x,bx);CHKERRQ(ierr);
-    ierr = MatMultHermitianTranspose(svd->OPb,bx,y);CHKERRQ(ierr);
-    ierr = VecAXPBY(y,s*s,-c,z);CHKERRQ(ierr);
-    ierr = VecNorm(y,NORM_2,norm1);CHKERRQ(ierr);
-    ierr = VecDestroy(&bx);CHKERRQ(ierr);
+    CHKERRQ(VecDuplicate(v,&bx));
+    CHKERRQ(MatMultHermitianTranspose(svd->OP,u,z));
+    CHKERRQ(MatMult(svd->OPb,x,bx));
+    CHKERRQ(MatMultHermitianTranspose(svd->OPb,bx,y));
+    CHKERRQ(VecAXPBY(y,s*s,-c,z));
+    CHKERRQ(VecNorm(y,NORM_2,norm1));
+    CHKERRQ(VecDestroy(&bx));
   }
   /* norm2 = ||c^2*B'*v-s*A'*A*x||_2 */
   if (norm2) {
-    ierr = VecDuplicate(u,&ax);CHKERRQ(ierr);
-    ierr = MatMultHermitianTranspose(svd->OPb,v,z);CHKERRQ(ierr);
-    ierr = MatMult(svd->OP,x,ax);CHKERRQ(ierr);
-    ierr = MatMultHermitianTranspose(svd->OP,ax,y);CHKERRQ(ierr);
-    ierr = VecAXPBY(y,c*c,-s,z);CHKERRQ(ierr);
-    ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
-    ierr = VecDestroy(&ax);CHKERRQ(ierr);
+    CHKERRQ(VecDuplicate(u,&ax));
+    CHKERRQ(MatMultHermitianTranspose(svd->OPb,v,z));
+    CHKERRQ(MatMult(svd->OP,x,ax));
+    CHKERRQ(MatMultHermitianTranspose(svd->OP,ax,y));
+    CHKERRQ(VecAXPBY(y,c*c,-s,z));
+    CHKERRQ(VecNorm(y,NORM_2,norm2));
+    CHKERRQ(VecDestroy(&ax));
   }
 
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&nest);CHKERRQ(ierr);
+  CHKERRQ(VecDestroy(&v));
+  CHKERRQ(VecDestroy(&u));
+  CHKERRQ(VecDestroy(&nest));
   PetscFunctionReturn(0);
 }
 
@@ -422,7 +415,6 @@ static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigm
 @*/
 PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *error)
 {
-  PetscErrorCode ierr;
   PetscReal      sigma,norm1,norm2;
   Vec            u=NULL,v=NULL,x=NULL,y=NULL;
 
@@ -436,7 +428,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   /* allocate work vectors */
   switch (svd->problem_type) {
     case SVD_STANDARD:
-      ierr = SVDSetWorkVecs(svd,2,2);CHKERRQ(ierr);
+      CHKERRQ(SVDSetWorkVecs(svd,2,2));
       u = svd->workl[0];
       v = svd->workr[0];
       x = svd->workl[1];
@@ -444,7 +436,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       break;
     case SVD_GENERALIZED:
       PetscCheck(type!=SVD_ERROR_RELATIVE,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"In GSVD the error should be either absolute or relative to the norms");
-      ierr = SVDSetWorkVecs(svd,1,3);CHKERRQ(ierr);
+      CHKERRQ(SVDSetWorkVecs(svd,1,3));
       u = svd->workl[0];
       v = svd->workr[0];
       x = svd->workr[1];
@@ -453,13 +445,13 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   }
 
   /* compute residual norm and error */
-  ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
+  CHKERRQ(SVDGetSingularTriplet(svd,i,&sigma,u,v));
   switch (svd->problem_type) {
     case SVD_STANDARD:
-      ierr = SVDComputeResidualNorms_Standard(svd,sigma,u,v,x,y,&norm1,&norm2);CHKERRQ(ierr);
+      CHKERRQ(SVDComputeResidualNorms_Standard(svd,sigma,u,v,x,y,&norm1,&norm2));
       break;
     case SVD_GENERALIZED:
-      ierr = SVDComputeResidualNorms_Generalized(svd,sigma,u,v,x,y,&norm1,&norm2);CHKERRQ(ierr);
+      CHKERRQ(SVDComputeResidualNorms_Generalized(svd,sigma,u,v,x,y,&norm1,&norm2));
       break;
   }
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
@@ -470,12 +462,8 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       *error /= sigma;
       break;
     case SVD_ERROR_NORM:
-      if (!svd->nrma) {
-        ierr = MatNorm(svd->OP,NORM_INFINITY,&svd->nrma);CHKERRQ(ierr);
-      }
-      if (svd->isgeneralized && !svd->nrmb) {
-        ierr = MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb);CHKERRQ(ierr);
-      }
+      if (!svd->nrma) CHKERRQ(MatNorm(svd->OP,NORM_INFINITY,&svd->nrma));
+      if (svd->isgeneralized && !svd->nrmb) CHKERRQ(MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb));
       *error /= PetscMax(svd->nrma,svd->nrmb);
       break;
     default:
@@ -483,4 +471,3 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   }
   PetscFunctionReturn(0);
 }
-

@@ -44,7 +44,6 @@
 @*/
 PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   const char     *type=NULL,*extr=NULL,*bal=NULL;
   char           str[50];
   PetscBool      isascii,isexternal,istrivial;
@@ -52,18 +51,18 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)eps),&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)eps),&viewer));
   }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer));
     if (eps->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPushTab(viewer));
+      CHKERRQ((*eps->ops->view)(eps,viewer));
+      CHKERRQ(PetscViewerASCIIPopTab(viewer));
     }
     if (eps->problem_type) {
       switch (eps->problem_type) {
@@ -75,7 +74,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_GHIEP:  type = "generalized " SLEPC_STRING_HERMITIAN "-indefinite eigenvalue problem"; break;
       }
     } else type = "not yet set";
-    ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type));
     if (eps->extraction) {
       switch (eps->extraction) {
         case EPS_RITZ:              extr = "Rayleigh-Ritz"; break;
@@ -86,7 +85,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_REFINED:           extr = "refined Ritz"; break;
         case EPS_REFINED_HARMONIC:  extr = "refined harmonic Ritz"; break;
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr));
     }
     if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
       switch (eps->balance) {
@@ -95,129 +94,129 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_BALANCE_TWOSIDE: bal = "two-sided Krylov"; break;
         case EPS_BALANCE_USER:    bal = "user-defined matrix"; break;
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal));
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
       if (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE) {
-        ierr = PetscViewerASCIIPrintf(viewer,", with its=%" PetscInt_FMT,eps->balance_its);CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,", with its=%" PetscInt_FMT,eps->balance_its));
       }
       if (eps->balance==EPS_BALANCE_TWOSIDE && eps->balance_cutoff!=0.0) {
-        ierr = PetscViewerASCIIPrintf(viewer," and cutoff=%g",(double)eps->balance_cutoff);CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer," and cutoff=%g",(double)eps->balance_cutoff));
       }
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
-    ierr = SlepcSNPrintfScalar(str,sizeof(str),eps->target,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: "));
+    CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),eps->target,PETSC_FALSE));
+    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     if (!eps->which) {
-      ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"not yet set\n"));
     } else switch (eps->which) {
       case EPS_WHICH_USER:
-        ierr = PetscViewerASCIIPrintf(viewer,"user defined\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"user defined\n"));
         break;
       case EPS_TARGET_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str);CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str));
         break;
       case EPS_TARGET_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the real axis)\n",str);CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the real axis)\n",str));
         break;
       case EPS_TARGET_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the imaginary axis)\n",str);CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the imaginary axis)\n",str));
         break;
       case EPS_LARGEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n"));
         break;
       case EPS_SMALLEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude\n"));
         break;
       case EPS_LARGEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest real parts\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"largest real parts\n"));
         break;
       case EPS_SMALLEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest real parts\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"smallest real parts\n"));
         break;
       case EPS_LARGEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest imaginary parts\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"largest imaginary parts\n"));
         break;
       case EPS_SMALLEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n"));
         break;
       case EPS_ALL:
         if (eps->inta || eps->intb) {
-          ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",(double)eps->inta,(double)eps->intb);CHKERRQ(ierr);
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",(double)eps->inta,(double)eps->intb));
         } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n");CHKERRQ(ierr);
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n"));
         }
         break;
     }
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     if (eps->twosided && eps->problem_type!=EPS_HEP && eps->problem_type!=EPS_GHEP) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  using two-sided variant (for left eigenvectors)\n");CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using two-sided variant (for left eigenvectors)\n"));
     }
     if (eps->purify) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  postprocessing eigenvectors with purification\n");CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  postprocessing eigenvectors with purification\n"));
     }
     if (eps->trueres) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  computing true residuals explicitly\n");CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing true residuals explicitly\n"));
     }
     if (eps->trackall) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  computing all residuals (for tracking convergence)\n");CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing all residuals (for tracking convergence)\n"));
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %" PetscInt_FMT "\n",eps->nev);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",eps->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %" PetscInt_FMT "\n",eps->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",eps->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)eps->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %" PetscInt_FMT "\n",eps->nev));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",eps->ncv));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %" PetscInt_FMT "\n",eps->mpd));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",eps->max_it));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)eps->tol));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  convergence test: "));
+    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     switch (eps->conv) {
     case EPS_CONV_ABS:
-      ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"absolute\n"));break;
     case EPS_CONV_REL:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n"));break;
     case EPS_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue and matrix norms\n");CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: norm(A)=%g",(double)eps->nrma);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue and matrix norms\n"));
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computed matrix norms: norm(A)=%g",(double)eps->nrma));
       if (eps->isgeneralized) {
-        ierr = PetscViewerASCIIPrintf(viewer,", norm(B)=%g",(double)eps->nrmb);CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,", norm(B)=%g",(double)eps->nrmb));
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
       break;
     case EPS_CONV_USER:
-      ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"user-defined\n"));break;
     }
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     if (eps->nini) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(eps->nini));CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(eps->nini)));
     }
     if (eps->ninil) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided left initial space: %" PetscInt_FMT "\n",PetscAbs(eps->ninil));CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided left initial space: %" PetscInt_FMT "\n",PetscAbs(eps->ninil)));
     }
     if (eps->nds) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %" PetscInt_FMT "\n",PetscAbs(eps->nds));CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %" PetscInt_FMT "\n",PetscAbs(eps->nds)));
     }
   } else {
     if (eps->ops->view) {
-      ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
+      CHKERRQ((*eps->ops->view)(eps,viewer));
     }
   }
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLOPEX,EPSELEMENTAL,EPSFEAST,EPSPRIMME,EPSSCALAPACK,EPSELPA,EPSEVSL,EPSTRLAN,"");CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLOPEX,EPSELEMENTAL,EPSFEAST,EPSPRIMME,EPSSCALAPACK,EPSELPA,EPSEVSL,EPSTRLAN,""));
   if (!isexternal) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-    if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
-    ierr = BVView(eps->V,viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
+    if (!eps->V) CHKERRQ(EPSGetBV(eps,&eps->V));
+    CHKERRQ(BVView(eps->V,viewer));
     if (eps->rg) {
-      ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-      if (!istrivial) { ierr = RGView(eps->rg,viewer);CHKERRQ(ierr); }
+      CHKERRQ(RGIsTrivial(eps->rg,&istrivial));
+      if (!istrivial) CHKERRQ(RGView(eps->rg,viewer));
     }
     if (eps->useds) {
-      if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
-      ierr = DSView(eps->ds,viewer);CHKERRQ(ierr);
+      if (!eps->ds) CHKERRQ(EPSGetDS(eps,&eps->ds));
+      CHKERRQ(DSView(eps->ds,viewer));
     }
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPopFormat(viewer));
   }
-  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
-  ierr = STView(eps->st,viewer);CHKERRQ(ierr);
+  if (!eps->st) CHKERRQ(EPSGetST(eps,&eps->st));
+  CHKERRQ(STView(eps->st,viewer));
   PetscFunctionReturn(0);
 }
 
@@ -237,11 +236,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 @*/
 PetscErrorCode EPSViewFromOptions(EPS eps,PetscObject obj,const char name[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscObjectViewFromOptions((PetscObject)eps,obj,name);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectViewFromOptions((PetscObject)eps,obj,name));
   PetscFunctionReturn(0);
 }
 
@@ -269,22 +266,21 @@ PetscErrorCode EPSViewFromOptions(EPS eps,PetscObject obj,const char name[])
 @*/
 PetscErrorCode EPSConvergedReasonView(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode    ierr;
   PetscBool         isAscii;
   PetscViewerFormat format;
 
   PetscFunctionBegin;
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)eps));
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii));
   if (isAscii) {
-    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerGetFormat(viewer,&format));
+    CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel));
     if (eps->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve converged (%" PetscInt_FMT " eigenpair%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",eps->nconv,(eps->nconv>1)?"s":"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve converged (%" PetscInt_FMT " eigenpair%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",eps->nconv,(eps->nconv>1)?"s":"",EPSConvergedReasons[eps->reason],eps->its));
     } else if (eps->reason <= 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its));
     }
-    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel));
   }
   PetscFunctionReturn(0);
 }
@@ -304,7 +300,6 @@ PetscErrorCode EPSConvergedReasonView(EPS eps,PetscViewer viewer)
 @*/
 PetscErrorCode EPSConvergedReasonViewFromOptions(EPS eps)
 {
-  PetscErrorCode    ierr;
   PetscViewer       viewer;
   PetscBool         flg;
   static PetscBool  incall = PETSC_FALSE;
@@ -313,12 +308,12 @@ PetscErrorCode EPSConvergedReasonViewFromOptions(EPS eps)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_converged_reason",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = EPSConvergedReasonView(eps,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,format));
+    CHKERRQ(EPSConvergedReasonView(eps,viewer));
+    CHKERRQ(PetscViewerPopFormat(viewer));
+    CHKERRQ(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -328,45 +323,43 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
 {
   PetscReal      error;
   PetscInt       i,j,k,nvals;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   nvals = (eps->which==EPS_ALL)? eps->nconv: eps->nev;
   if (eps->which!=EPS_ALL && eps->nconv<nvals) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %" PetscInt_FMT " eigenvalues converged\n\n",eps->nev);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer," Problem: less than %" PetscInt_FMT " eigenvalues converged\n\n",eps->nev));
     PetscFunctionReturn(0);
   }
   if (eps->which==EPS_ALL && !nvals) {
-    ierr = PetscViewerASCIIPrintf(viewer," No eigenvalues have been found\n\n");CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer," No eigenvalues have been found\n\n"));
     PetscFunctionReturn(0);
   }
   for (i=0;i<nvals;i++) {
-    ierr = EPSComputeError(eps,i,etype,&error);CHKERRQ(ierr);
+    CHKERRQ(EPSComputeError(eps,i,etype,&error));
     if (error>=5.0*eps->tol) {
-      ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nvals));
       PetscFunctionReturn(0);
     }
   }
   if (eps->which==EPS_ALL) {
-    ierr = PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals));
   } else {
-    ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:"));
   }
   for (i=0;i<=(nvals-1)/8;i++) {
-    ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n     "));
     for (j=0;j<PetscMin(8,nvals-8*i);j++) {
       k = eps->perm[8*i+j];
-      ierr = SlepcPrintEigenvalueASCII(viewer,eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
-      if (8*i+j+1<nvals) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
+      CHKERRQ(SlepcPrintEigenvalueASCII(viewer,eps->eigr[k],eps->eigi[k]));
+      if (8*i+j+1<nvals) CHKERRQ(PetscViewerASCIIPrintf(viewer,", "));
     }
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n\n"));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode EPSErrorView_DETAIL(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
   PetscInt       i;
@@ -376,19 +369,19 @@ static PetscErrorCode EPSErrorView_DETAIL(EPS eps,EPSErrorType etype,PetscViewer
   if (!eps->nconv) PetscFunctionReturn(0);
   switch (etype) {
     case EPS_ERROR_ABSOLUTE:
-      ierr = PetscSNPrintf(ex,sizeof(ex),"   ||Ax-k%sx||",eps->isgeneralized?"B":"");CHKERRQ(ierr);
+      CHKERRQ(PetscSNPrintf(ex,sizeof(ex),"   ||Ax-k%sx||",eps->isgeneralized?"B":""));
       break;
     case EPS_ERROR_RELATIVE:
-      ierr = PetscSNPrintf(ex,sizeof(ex),"||Ax-k%sx||/||kx||",eps->isgeneralized?"B":"");CHKERRQ(ierr);
+      CHKERRQ(PetscSNPrintf(ex,sizeof(ex),"||Ax-k%sx||/||kx||",eps->isgeneralized?"B":""));
       break;
     case EPS_ERROR_BACKWARD:
-      ierr = PetscSNPrintf(ex,sizeof(ex),"    eta(x,k)");CHKERRQ(ierr);
+      CHKERRQ(PetscSNPrintf(ex,sizeof(ex),"    eta(x,k)"));
       break;
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep));
   for (i=0;i<eps->nconv;i++) {
-    ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-    ierr = EPSComputeError(eps,i,etype,&error);CHKERRQ(ierr);
+    CHKERRQ(EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL));
+    CHKERRQ(EPSComputeError(eps,i,etype,&error));
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(kr);
     im = PetscImaginaryPart(kr);
@@ -397,30 +390,29 @@ static PetscErrorCode EPSErrorView_DETAIL(EPS eps,EPSErrorType etype,PetscViewer
     im = ki;
 #endif
     if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error));
     } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error));
     }
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%s",sep);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s",sep));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode EPSErrorView_MATLAB(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscReal      error;
   PetscInt       i;
   const char     *name;
 
   PetscFunctionBegin;
-  ierr = PetscObjectGetName((PetscObject)eps,&name);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"Error_%s = [\n",name);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectGetName((PetscObject)eps,&name));
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"Error_%s = [\n",name));
   for (i=0;i<eps->nconv;i++) {
-    ierr = EPSComputeError(eps,i,etype,&error);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)error);CHKERRQ(ierr);
+    CHKERRQ(EPSComputeError(eps,i,etype,&error));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)error));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"];\n"));
   PetscFunctionReturn(0);
 }
 
@@ -454,33 +446,32 @@ PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
   PetscBool         isascii;
   PetscViewerFormat format;
-  PetscErrorCode    ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)eps),&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)eps),&viewer));
   }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,3);
   PetscCheckSameComm(eps,1,viewer,3);
   EPSCheckSolved(eps,1);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (!isascii) PetscFunctionReturn(0);
 
-  ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerGetFormat(viewer,&format));
   switch (format) {
     case PETSC_VIEWER_DEFAULT:
     case PETSC_VIEWER_ASCII_INFO:
-      ierr = EPSErrorView_ASCII(eps,etype,viewer);CHKERRQ(ierr);
+      CHKERRQ(EPSErrorView_ASCII(eps,etype,viewer));
       break;
     case PETSC_VIEWER_ASCII_INFO_DETAIL:
-      ierr = EPSErrorView_DETAIL(eps,etype,viewer);CHKERRQ(ierr);
+      CHKERRQ(EPSErrorView_DETAIL(eps,etype,viewer));
       break;
     case PETSC_VIEWER_ASCII_MATLAB:
-      ierr = EPSErrorView_MATLAB(eps,etype,viewer);CHKERRQ(ierr);
+      CHKERRQ(EPSErrorView_MATLAB(eps,etype,viewer));
       break;
     default:
-      ierr = PetscInfo(eps,"Unsupported viewer format %s\n",PetscViewerFormats[format]);CHKERRQ(ierr);
+      CHKERRQ(PetscInfo(eps,"Unsupported viewer format %s\n",PetscViewerFormats[format]));
   }
   PetscFunctionReturn(0);
 }
@@ -500,7 +491,6 @@ PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
 @*/
 PetscErrorCode EPSErrorViewFromOptions(EPS eps)
 {
-  PetscErrorCode    ierr;
   PetscViewer       viewer;
   PetscBool         flg;
   static PetscBool  incall = PETSC_FALSE;
@@ -509,26 +499,26 @@ PetscErrorCode EPSErrorViewFromOptions(EPS eps)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_absolute",&viewer,&format,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_absolute",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = EPSErrorView(eps,EPS_ERROR_ABSOLUTE,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,format));
+    CHKERRQ(EPSErrorView(eps,EPS_ERROR_ABSOLUTE,viewer));
+    CHKERRQ(PetscViewerPopFormat(viewer));
+    CHKERRQ(PetscViewerDestroy(&viewer));
   }
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_relative",&viewer,&format,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_relative",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,format));
+    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer));
+    CHKERRQ(PetscViewerPopFormat(viewer));
+    CHKERRQ(PetscViewerDestroy(&viewer));
   }
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_backward",&viewer,&format,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_error_backward",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = EPSErrorView(eps,EPS_ERROR_BACKWARD,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,format));
+    CHKERRQ(EPSErrorView(eps,EPS_ERROR_BACKWARD,viewer));
+    CHKERRQ(PetscViewerPopFormat(viewer));
+    CHKERRQ(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -536,7 +526,6 @@ PetscErrorCode EPSErrorViewFromOptions(EPS eps)
 
 static PetscErrorCode EPSValuesView_DRAW(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   PetscReal      re,im;
@@ -544,9 +533,9 @@ static PetscErrorCode EPSValuesView_DRAW(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   if (!eps->nconv) PetscFunctionReturn(0);
-  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-  ierr = PetscDrawSetTitle(draw,"Computed Eigenvalues");CHKERRQ(ierr);
-  ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerDrawGetDraw(viewer,0,&draw));
+  CHKERRQ(PetscDrawSetTitle(draw,"Computed Eigenvalues"));
+  CHKERRQ(PetscDrawSPCreate(draw,1,&drawsp));
   for (i=0;i<eps->nconv;i++) {
     k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
@@ -556,11 +545,11 @@ static PetscErrorCode EPSValuesView_DRAW(EPS eps,PetscViewer viewer)
     re = eps->eigr[k];
     im = eps->eigi[k];
 #endif
-    ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawSPAddPoint(drawsp,&re,&im));
   }
-  ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscDrawSPSave(drawsp);CHKERRQ(ierr);
-  ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
+  CHKERRQ(PetscDrawSPDraw(drawsp,PETSC_TRUE));
+  CHKERRQ(PetscDrawSPSave(drawsp));
+  CHKERRQ(PetscDrawSPDestroy(&drawsp));
   PetscFunctionReturn(0);
 }
 
@@ -569,12 +558,11 @@ static PetscErrorCode EPSValuesView_BINARY(EPS eps,PetscViewer viewer)
 #if defined(PETSC_HAVE_COMPLEX)
   PetscInt       i,k;
   PetscComplex   *ev;
-  PetscErrorCode ierr;
 #endif
 
   PetscFunctionBegin;
 #if defined(PETSC_HAVE_COMPLEX)
-  ierr = PetscMalloc1(eps->nconv,&ev);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc1(eps->nconv,&ev));
   for (i=0;i<eps->nconv;i++) {
     k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
@@ -583,8 +571,8 @@ static PetscErrorCode EPSValuesView_BINARY(EPS eps,PetscViewer viewer)
     ev[i] = PetscCMPLX(eps->eigr[k],eps->eigi[k]);
 #endif
   }
-  ierr = PetscViewerBinaryWrite(viewer,ev,eps->nconv,PETSC_COMPLEX);CHKERRQ(ierr);
-  ierr = PetscFree(ev);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerBinaryWrite(viewer,ev,eps->nconv,PETSC_COMPLEX));
+  CHKERRQ(PetscFree(ev));
 #endif
   PetscFunctionReturn(0);
 }
@@ -592,7 +580,6 @@ static PetscErrorCode EPSValuesView_BINARY(EPS eps,PetscViewer viewer)
 #if defined(PETSC_HAVE_HDF5)
 static PetscErrorCode EPSValuesView_HDF5(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscInt       i,k,n,N;
   PetscMPIInt    rank;
   Vec            v;
@@ -600,38 +587,38 @@ static PetscErrorCode EPSValuesView_HDF5(EPS eps,PetscViewer viewer)
   const char     *ename;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank));
   N = eps->nconv;
   n = rank? 0: N;
   /* create a vector containing the eigenvalues */
-  ierr = VecCreateMPI(PetscObjectComm((PetscObject)eps),n,N,&v);CHKERRQ(ierr);
-  ierr = PetscObjectGetName((PetscObject)eps,&ename);CHKERRQ(ierr);
-  ierr = PetscSNPrintf(vname,sizeof(vname),"eigr_%s",ename);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)v,vname);CHKERRQ(ierr);
+  CHKERRQ(VecCreateMPI(PetscObjectComm((PetscObject)eps),n,N,&v));
+  CHKERRQ(PetscObjectGetName((PetscObject)eps,&ename));
+  CHKERRQ(PetscSNPrintf(vname,sizeof(vname),"eigr_%s",ename));
+  CHKERRQ(PetscObjectSetName((PetscObject)v,vname));
   if (!rank) {
     for (i=0;i<eps->nconv;i++) {
       k = eps->perm[i];
-      ierr = VecSetValue(v,i,eps->eigr[k],INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(VecSetValue(v,i,eps->eigr[k],INSERT_VALUES));
     }
   }
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecView(v,viewer);CHKERRQ(ierr);
+  CHKERRQ(VecAssemblyBegin(v));
+  CHKERRQ(VecAssemblyEnd(v));
+  CHKERRQ(VecView(v,viewer));
 #if !defined(PETSC_USE_COMPLEX)
   /* in real scalars write the imaginary part as a separate vector */
-  ierr = PetscSNPrintf(vname,sizeof(vname),"eigi_%s",ename);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)v,vname);CHKERRQ(ierr);
+  CHKERRQ(PetscSNPrintf(vname,sizeof(vname),"eigi_%s",ename));
+  CHKERRQ(PetscObjectSetName((PetscObject)v,vname));
   if (!rank) {
     for (i=0;i<eps->nconv;i++) {
       k = eps->perm[i];
-      ierr = VecSetValue(v,i,eps->eigi[k],INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(VecSetValue(v,i,eps->eigi[k],INSERT_VALUES));
     }
   }
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecView(v,viewer);CHKERRQ(ierr);
+  CHKERRQ(VecAssemblyBegin(v));
+  CHKERRQ(VecAssemblyEnd(v));
+  CHKERRQ(VecView(v,viewer));
 #endif
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  CHKERRQ(VecDestroy(&v));
   PetscFunctionReturn(0);
 }
 #endif
@@ -639,30 +626,28 @@ static PetscErrorCode EPSValuesView_HDF5(EPS eps,PetscViewer viewer)
 static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
 {
   PetscInt       i,k;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIPrintf(viewer,"Eigenvalues = \n");CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"Eigenvalues = \n"));
   for (i=0;i<eps->nconv;i++) {
     k = eps->perm[i];
-    ierr = PetscViewerASCIIPrintf(viewer,"   ");CHKERRQ(ierr);
-    ierr = SlepcPrintEigenvalueASCII(viewer,eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"   "));
+    CHKERRQ(SlepcPrintEigenvalueASCII(viewer,eps->eigr[k],eps->eigi[k]));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscInt       i,k;
   PetscReal      re,im;
   const char     *name;
 
   PetscFunctionBegin;
-  ierr = PetscObjectGetName((PetscObject)eps,&name);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"Lambda_%s = [\n",name);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectGetName((PetscObject)eps,&name));
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"Lambda_%s = [\n",name));
   for (i=0;i<eps->nconv;i++) {
     k = eps->perm[i];
 #if defined(PETSC_USE_COMPLEX)
@@ -673,12 +658,12 @@ static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
     im = eps->eigi[k];
 #endif
     if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im));
     } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)re);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)re));
     }
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"];\n"));
   PetscFunctionReturn(0);
 }
 
@@ -702,7 +687,6 @@ PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
 {
   PetscBool         isascii,isdraw,isbinary;
   PetscViewerFormat format;
-  PetscErrorCode    ierr;
 #if defined(PETSC_HAVE_HDF5)
   PetscBool         ishdf5;
 #endif
@@ -710,38 +694,38 @@ PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)eps),&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)eps),&viewer));
   }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
   EPSCheckSolved(eps,1);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERBINARY,&isbinary);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERBINARY,&isbinary));
 #if defined(PETSC_HAVE_HDF5)
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5));
 #endif
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isdraw) {
-    ierr = EPSValuesView_DRAW(eps,viewer);CHKERRQ(ierr);
+    CHKERRQ(EPSValuesView_DRAW(eps,viewer));
   } else if (isbinary) {
-    ierr = EPSValuesView_BINARY(eps,viewer);CHKERRQ(ierr);
+    CHKERRQ(EPSValuesView_BINARY(eps,viewer));
 #if defined(PETSC_HAVE_HDF5)
   } else if (ishdf5) {
-    ierr = EPSValuesView_HDF5(eps,viewer);CHKERRQ(ierr);
+    CHKERRQ(EPSValuesView_HDF5(eps,viewer));
 #endif
   } else if (isascii) {
-    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerGetFormat(viewer,&format));
     switch (format) {
       case PETSC_VIEWER_DEFAULT:
       case PETSC_VIEWER_ASCII_INFO:
       case PETSC_VIEWER_ASCII_INFO_DETAIL:
-        ierr = EPSValuesView_ASCII(eps,viewer);CHKERRQ(ierr);
+        CHKERRQ(EPSValuesView_ASCII(eps,viewer));
         break;
       case PETSC_VIEWER_ASCII_MATLAB:
-        ierr = EPSValuesView_MATLAB(eps,viewer);CHKERRQ(ierr);
+        CHKERRQ(EPSValuesView_MATLAB(eps,viewer));
         break;
       default:
-        ierr = PetscInfo(eps,"Unsupported viewer format %s\n",PetscViewerFormats[format]);CHKERRQ(ierr);
+        CHKERRQ(PetscInfo(eps,"Unsupported viewer format %s\n",PetscViewerFormats[format]));
     }
   }
   PetscFunctionReturn(0);
@@ -762,7 +746,6 @@ PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
 @*/
 PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 {
-  PetscErrorCode    ierr;
   PetscViewer       viewer;
   PetscBool         flg;
   static PetscBool  incall = PETSC_FALSE;
@@ -771,12 +754,12 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_values",&viewer,&format,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_values",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = EPSValuesView(eps,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,format));
+    CHKERRQ(EPSValuesView(eps,viewer));
+    CHKERRQ(PetscViewerPopFormat(viewer));
+    CHKERRQ(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -809,36 +792,35 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 @*/
 PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscInt       i,k;
   Vec            xr,xi=NULL;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)eps),&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)eps),&viewer));
   }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
   EPSCheckSolved(eps,1);
   if (eps->nconv) {
-    ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
-    ierr = BVCreateVec(eps->V,&xr);CHKERRQ(ierr);
+    CHKERRQ(EPSComputeVectors(eps));
+    CHKERRQ(BVCreateVec(eps->V,&xr));
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = BVCreateVec(eps->V,&xi);CHKERRQ(ierr);
+    CHKERRQ(BVCreateVec(eps->V,&xi));
 #endif
     for (i=0;i<eps->nconv;i++) {
       k = eps->perm[i];
-      ierr = BV_GetEigenvector(eps->V,k,eps->eigi[k],xr,xi);CHKERRQ(ierr);
-      ierr = SlepcViewEigenvector(viewer,xr,xi,"X",i,(PetscObject)eps);CHKERRQ(ierr);
+      CHKERRQ(BV_GetEigenvector(eps->V,k,eps->eigi[k],xr,xi));
+      CHKERRQ(SlepcViewEigenvector(viewer,xr,xi,"X",i,(PetscObject)eps));
       if (eps->twosided) {
-        ierr = BV_GetEigenvector(eps->W,k,eps->eigi[k],xr,xi);CHKERRQ(ierr);
-        ierr = SlepcViewEigenvector(viewer,xr,xi,"Y",i,(PetscObject)eps);CHKERRQ(ierr);
+        CHKERRQ(BV_GetEigenvector(eps->W,k,eps->eigi[k],xr,xi));
+        CHKERRQ(SlepcViewEigenvector(viewer,xr,xi,"Y",i,(PetscObject)eps));
       }
     }
-    ierr = VecDestroy(&xr);CHKERRQ(ierr);
+    CHKERRQ(VecDestroy(&xr));
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = VecDestroy(&xi);CHKERRQ(ierr);
+    CHKERRQ(VecDestroy(&xi));
 #endif
   }
   PetscFunctionReturn(0);
@@ -859,7 +841,6 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
 @*/
 PetscErrorCode EPSVectorsViewFromOptions(EPS eps)
 {
-  PetscErrorCode    ierr;
   PetscViewer       viewer;
   PetscBool         flg = PETSC_FALSE;
   static PetscBool  incall = PETSC_FALSE;
@@ -868,14 +849,13 @@ PetscErrorCode EPSVectorsViewFromOptions(EPS eps)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_vectors",&viewer,&format,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->options,((PetscObject)eps)->prefix,"-eps_view_vectors",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = EPSVectorsView(eps,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,format));
+    CHKERRQ(EPSVectorsView(eps,viewer));
+    CHKERRQ(PetscViewerPopFormat(viewer));
+    CHKERRQ(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
-

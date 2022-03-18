@@ -19,17 +19,16 @@ PetscErrorCode SVDMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscDraw      draw;
   PetscDrawAxis  axis;
   PetscDrawLG    lg;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
-  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
-  ierr = PetscDrawLGCreate(draw,l,&lg);CHKERRQ(ierr);
-  if (names) { ierr = PetscDrawLGSetLegend(lg,names);CHKERRQ(ierr); }
-  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
-  ierr = PetscDrawLGGetAxis(lg,&axis);CHKERRQ(ierr);
-  ierr = PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric);CHKERRQ(ierr);
-  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
+  CHKERRQ(PetscDrawCreate(comm,host,label,x,y,m,n,&draw));
+  CHKERRQ(PetscDrawSetFromOptions(draw));
+  CHKERRQ(PetscDrawLGCreate(draw,l,&lg));
+  if (names) CHKERRQ(PetscDrawLGSetLegend(lg,names));
+  CHKERRQ(PetscDrawLGSetFromOptions(lg));
+  CHKERRQ(PetscDrawLGGetAxis(lg,&axis));
+  CHKERRQ(PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric));
+  CHKERRQ(PetscDrawDestroy(&draw));
   *lgctx = lg;
   PetscFunctionReturn(0);
 }
@@ -39,12 +38,11 @@ PetscErrorCode SVDMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
 */
 PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest)
 {
-  PetscErrorCode ierr;
   PetscInt       i,n = svd->numbermonitors;
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) {
-    ierr = (*svd->monitor[i])(svd,it,nconv,sigma,errest,nest,svd->monitorcontext[i]);CHKERRQ(ierr);
+    CHKERRQ((*svd->monitor[i])(svd,it,nconv,sigma,errest,nest,svd->monitorcontext[i]));
   }
   PetscFunctionReturn(0);
 }
@@ -126,14 +124,13 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,Pets
 @*/
 PetscErrorCode SVDMonitorCancel(SVD svd)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   for (i=0; i<svd->numbermonitors; i++) {
     if (svd->monitordestroy[i]) {
-      ierr = (*svd->monitordestroy[i])(&svd->monitorcontext[i]);CHKERRQ(ierr);
+      CHKERRQ((*svd->monitordestroy[i])(&svd->monitorcontext[i]));
     }
   }
   svd->numbermonitors = 0;
@@ -188,24 +185,23 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void *ctx)
 @*/
 PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscViewer    viewer = vf->viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   if (its==1 && ((PetscObject)svd)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Singular value approximations and residual norms for %s solve.\n",((PetscObject)svd)->prefix);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Singular value approximations and residual norms for %s solve.\n",((PetscObject)svd)->prefix));
   }
   if (nconv<nest) {
-    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " SVD nconv=%" PetscInt_FMT " first unconverged value (error)",its,nconv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)\n",(double)sigma[nconv],(double)errest[nconv]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
+    CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " SVD nconv=%" PetscInt_FMT " first unconverged value (error)",its,nconv));
+    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer," %g (%10.8e)\n",(double)sigma[nconv],(double)errest[nconv]));
+    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
+    CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
+    CHKERRQ(PetscViewerPopFormat(viewer));
   }
   PetscFunctionReturn(0);
 }
@@ -234,27 +230,26 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
 @*/
 PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   PetscViewer    viewer = vf->viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
+  CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel));
   if (its==1 && ((PetscObject)svd)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Singular value approximations and residual norms for %s solve.\n",((PetscObject)svd)->prefix);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Singular value approximations and residual norms for %s solve.\n",((PetscObject)svd)->prefix));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " SVD nconv=%" PetscInt_FMT " Values (Errors)",its,nconv);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " SVD nconv=%" PetscInt_FMT " Values (Errors)",its,nconv));
+  CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
   for (i=0;i<nest;i++) {
-    ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)",(double)sigma[i],(double)errest[i]);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer," %g (%10.8e)",(double)sigma[i],(double)errest[i]));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
+  CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
+  CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
+  CHKERRQ(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -282,7 +277,6 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
 @*/
 PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   PetscViewer    viewer = vf->viewer;
   SlepcConvMon   ctx;
@@ -292,20 +286,20 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   ctx = (SlepcConvMon)vf->data;
   if (its==1 && ((PetscObject)svd)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)svd)->prefix);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)svd)->prefix));
   }
   if (its==1) ctx->oldnconv = 0;
   if (ctx->oldnconv!=nconv) {
-    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
+    CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel));
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " SVD converged value (error) #%" PetscInt_FMT,its,i);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)\n",(double)sigma[i],(double)errest[i]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " SVD converged value (error) #%" PetscInt_FMT,its,i));
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
+      CHKERRQ(PetscViewerASCIIPrintf(viewer," %g (%10.8e)\n",(double)sigma[i],(double)errest[i]));
+      CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     }
-    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
+    CHKERRQ(PetscViewerPopFormat(viewer));
     ctx->oldnconv = nconv;
   }
   PetscFunctionReturn(0);
@@ -313,12 +307,11 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
 
 PetscErrorCode SVDMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
   SlepcConvMon   mctx;
 
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
-  ierr = PetscNew(&mctx);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerAndFormatCreate(viewer,format,vf));
+  CHKERRQ(PetscNew(&mctx));
   mctx->ctx = ctx;
   (*vf)->data = (void*)mctx;
   PetscFunctionReturn(0);
@@ -326,14 +319,12 @@ PetscErrorCode SVDMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat fo
 
 PetscErrorCode SVDMonitorConvergedDestroy(PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (!*vf) PetscFunctionReturn(0);
-  ierr = PetscFree((*vf)->data);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&(*vf)->viewer);CHKERRQ(ierr);
-  ierr = PetscDrawLGDestroy(&(*vf)->lg);CHKERRQ(ierr);
-  ierr = PetscFree(*vf);CHKERRQ(ierr);
+  CHKERRQ(PetscFree((*vf)->data));
+  CHKERRQ(PetscViewerDestroy(&(*vf)->viewer));
+  CHKERRQ(PetscDrawLGDestroy(&(*vf)->lg));
+  CHKERRQ(PetscFree(*vf));
   PetscFunctionReturn(0);
 }
 
@@ -362,7 +353,6 @@ PetscErrorCode SVDMonitorConvergedDestroy(PetscViewerAndFormat **vf)
 @*/
 PetscErrorCode SVDMonitorFirstDrawLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscViewer    viewer = vf->viewer;
   PetscDrawLG    lg = vf->lg;
   PetscReal      x,y;
@@ -371,23 +361,23 @@ PetscErrorCode SVDMonitorFirstDrawLG(SVD svd,PetscInt its,PetscInt nconv,PetscRe
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,7);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
   if (its==1) {
-    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(svd->tol)-2,0.0);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawLGReset(lg));
+    CHKERRQ(PetscDrawLGSetDimension(lg,1));
+    CHKERRQ(PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(svd->tol)-2,0.0));
   }
   if (nconv<nest) {
     x = (PetscReal)its;
     if (errest[nconv] > 0.0) y = PetscLog10Real(errest[nconv]);
     else y = 0.0;
-    ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawLGAddPoint(lg,&x,&y));
     if (its <= 20 || !(its % 5) || svd->reason) {
-      ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-      ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+      CHKERRQ(PetscDrawLGDraw(lg));
+      CHKERRQ(PetscDrawLGSave(lg));
     }
   }
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -410,12 +400,10 @@ PetscErrorCode SVDMonitorFirstDrawLG(SVD svd,PetscInt its,PetscInt nconv,PetscRe
 @*/
 PetscErrorCode SVDMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
-  ierr = SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"First Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  CHKERRQ(SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"First Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
   PetscFunctionReturn(0);
 }
 
@@ -444,7 +432,6 @@ PetscErrorCode SVDMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
 @*/
 PetscErrorCode SVDMonitorAllDrawLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscViewer    viewer = vf->viewer;
   PetscDrawLG    lg = vf->lg;
   PetscInt       i,n = PetscMin(svd->nsv,255);
@@ -454,25 +441,25 @@ PetscErrorCode SVDMonitorAllDrawLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,7);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
   if (its==1) {
-    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(svd->tol)-2,0.0);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawLGReset(lg));
+    CHKERRQ(PetscDrawLGSetDimension(lg,n));
+    CHKERRQ(PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(svd->tol)-2,0.0));
   }
-  ierr = PetscMalloc2(n,&x,n,&y);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc2(n,&x,n,&y));
   for (i=0;i<n;i++) {
     x[i] = (PetscReal)its;
     if (i < nest && errest[i] > 0.0) y[i] = PetscLog10Real(errest[i]);
     else y[i] = 0.0;
   }
-  ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
+  CHKERRQ(PetscDrawLGAddPoint(lg,x,y));
   if (its <= 20 || !(its % 5) || svd->reason) {
-    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawLGDraw(lg));
+    CHKERRQ(PetscDrawLGSave(lg));
   }
-  ierr = PetscFree2(x,y);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscFree2(x,y));
+  CHKERRQ(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -495,12 +482,10 @@ PetscErrorCode SVDMonitorAllDrawLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal
 @*/
 PetscErrorCode SVDMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
-  ierr = SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"All Error Estimates","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  CHKERRQ(SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"All Error Estimates","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
   PetscFunctionReturn(0);
 }
 
@@ -529,7 +514,6 @@ PetscErrorCode SVDMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
 @*/
 PetscErrorCode SVDMonitorConvergedDrawLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode   ierr;
   PetscViewer      viewer = vf->viewer;
   PetscDrawLG      lg = vf->lg;
   PetscReal        x,y;
@@ -538,20 +522,20 @@ PetscErrorCode SVDMonitorConvergedDrawLG(SVD svd,PetscInt its,PetscInt nconv,Pet
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,7);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
   if (its==1) {
-    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1,0,svd->nsv);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawLGReset(lg));
+    CHKERRQ(PetscDrawLGSetDimension(lg,1));
+    CHKERRQ(PetscDrawLGSetLimits(lg,1,1,0,svd->nsv));
   }
   x = (PetscReal)its;
   y = (PetscReal)svd->nconv;
-  ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+  CHKERRQ(PetscDrawLGAddPoint(lg,&x,&y));
   if (its <= 20 || !(its % 5) || svd->reason) {
-    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawLGDraw(lg));
+    CHKERRQ(PetscDrawLGSave(lg));
   }
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -574,15 +558,13 @@ PetscErrorCode SVDMonitorConvergedDrawLG(SVD svd,PetscInt its,PetscInt nconv,Pet
 @*/
 PetscErrorCode SVDMonitorConvergedDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
   SlepcConvMon   mctx;
 
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
-  ierr = PetscNew(&mctx);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerAndFormatCreate(viewer,format,vf));
+  CHKERRQ(PetscNew(&mctx));
   mctx->ctx = ctx;
   (*vf)->data = (void*)mctx;
-  ierr = SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Convergence History","Number Converged",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  CHKERRQ(SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Convergence History","Number Converged",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
   PetscFunctionReturn(0);
 }
-

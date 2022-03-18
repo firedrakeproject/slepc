@@ -55,7 +55,6 @@ $                    A * V - V * H = beta*v_m * e_m^T
 @*/
 PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *beta,PetscBool *breakdown)
 {
-  PetscErrorCode    ierr;
   PetscScalar       *h;
   const PetscScalar *a;
   PetscInt          j,ldh,rows,cols;
@@ -80,18 +79,18 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
     PetscValidHeaderSpecific(H,MAT_CLASSID,3);
     PetscValidType(H,3);
     PetscCheckTypeName(H,MATSEQDENSE);
-    ierr = MatGetSize(H,&rows,&cols);CHKERRQ(ierr);
-    ierr = MatDenseGetLDA(H,&ldh);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(H,&rows,&cols));
+    CHKERRQ(MatDenseGetLDA(H,&ldh));
     PetscCheck(rows>=*m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,rows,*m);
     PetscCheck(cols>=*m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,cols,*m);
   }
 
   for (j=k;j<*m;j++) {
-    ierr = BVMatMultColumn(V,A,j);CHKERRQ(ierr);
+    CHKERRQ(BVMatMultColumn(V,A,j));
     if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
-      ierr = BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta,&lindep);CHKERRQ(ierr);
+      CHKERRQ(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta,&lindep));
     } else {
-      ierr = BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta,&lindep);CHKERRQ(ierr);
+      CHKERRQ(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta,&lindep));
     }
     if (PetscUnlikely(lindep)) {
       *m = j+1;
@@ -99,22 +98,22 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
     }
   }
   if (breakdown) *breakdown = lindep;
-  if (lindep) { ierr = PetscInfo(V,"Arnoldi finished early at m=%" PetscInt_FMT "\n",*m);CHKERRQ(ierr); }
+  if (lindep) CHKERRQ(PetscInfo(V,"Arnoldi finished early at m=%" PetscInt_FMT "\n",*m));
 
   if (H) {
-    ierr = MatDenseGetArray(H,&h);CHKERRQ(ierr);
-    ierr = BVGetBufferVec(V,&buf);CHKERRQ(ierr);
-    ierr = VecGetArrayRead(buf,&a);CHKERRQ(ierr);
+    CHKERRQ(MatDenseGetArray(H,&h));
+    CHKERRQ(BVGetBufferVec(V,&buf));
+    CHKERRQ(VecGetArrayRead(buf,&a));
     for (j=k;j<*m-1;j++) {
-      ierr = PetscArraycpy(h+j*ldh,a+V->nc+(j+1)*(V->nc+V->m),j+2);CHKERRQ(ierr);
+      CHKERRQ(PetscArraycpy(h+j*ldh,a+V->nc+(j+1)*(V->nc+V->m),j+2));
     }
-    ierr = PetscArraycpy(h+(*m-1)*ldh,a+V->nc+(*m)*(V->nc+V->m),*m);CHKERRQ(ierr);
+    CHKERRQ(PetscArraycpy(h+(*m-1)*ldh,a+V->nc+(*m)*(V->nc+V->m),*m));
     if (ldh>*m) h[(*m)+(*m-1)*ldh] = a[V->nc+(*m)+(*m)*(V->nc+V->m)];
-    ierr = VecRestoreArrayRead(buf,&a);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(H,&h);CHKERRQ(ierr);
+    CHKERRQ(VecRestoreArrayRead(buf,&a));
+    CHKERRQ(MatDenseRestoreArray(H,&h));
   }
 
-  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
 
@@ -171,7 +170,6 @@ $                    A * V - V * T = beta_m*v_m * e_m^T
 @*/
 PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt k,PetscInt *m,PetscBool *breakdown)
 {
-  PetscErrorCode ierr;
   PetscScalar    *a;
   PetscInt       j;
   PetscBool      lindep=PETSC_FALSE;
@@ -195,11 +193,11 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
   PetscCheck(*m>k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m should be at least equal to k+1");
 
   for (j=k;j<*m;j++) {
-    ierr = BVMatMultColumn(V,A,j);CHKERRQ(ierr);
+    CHKERRQ(BVMatMultColumn(V,A,j));
     if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
-      ierr = BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta+j,&lindep);CHKERRQ(ierr);
+      CHKERRQ(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta+j,&lindep));
     } else {
-      ierr = BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta+j,&lindep);CHKERRQ(ierr);
+      CHKERRQ(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta+j,&lindep));
     }
     if (PetscUnlikely(lindep)) {
       *m = j+1;
@@ -207,15 +205,14 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
     }
   }
   if (breakdown) *breakdown = lindep;
-  if (lindep) { ierr = PetscInfo(V,"Lanczos finished early at m=%" PetscInt_FMT "\n",*m);CHKERRQ(ierr); }
+  if (lindep) CHKERRQ(PetscInfo(V,"Lanczos finished early at m=%" PetscInt_FMT "\n",*m));
 
   /* extract Hessenberg matrix from the BV buffer */
-  ierr = BVGetBufferVec(V,&buf);CHKERRQ(ierr);
-  ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
+  CHKERRQ(BVGetBufferVec(V,&buf));
+  CHKERRQ(VecGetArray(buf,&a));
   for (j=k;j<*m;j++) alpha[j] = PetscRealPart(a[V->nc+j+(j+1)*(V->nc+V->m)]);
-  ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
+  CHKERRQ(VecRestoreArray(buf,&a));
 
-  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
-

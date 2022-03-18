@@ -68,10 +68,10 @@ PETSC_DEPRECATED_FUNCTION("Use STGetMatrix()") static inline PetscErrorCode STGe
 PETSC_DEPRECATED_FUNCTION("Use STGetMatrixTransformed()") static inline PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
 PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()") static inline PetscErrorCode STComputeExplicitOperator(ST st,Mat *A)
 {
-  PetscErrorCode ierr; Mat Op;
-  ierr = STGetOperator(st,&Op);CHKERRQ(ierr);
-  ierr = MatComputeOperator(Op,MATAIJ,A);CHKERRQ(ierr);
-  ierr = STRestoreOperator(st,&Op);CHKERRQ(ierr);
+  Mat Op;
+  CHKERRQ(STGetOperator(st,&Op));
+  CHKERRQ(MatComputeOperator(Op,MATAIJ,A));
+  CHKERRQ(STRestoreOperator(st,&Op));
   PetscFunctionReturn(0);
 }
 
@@ -167,4 +167,3 @@ SLEPC_EXTERN PetscErrorCode STFilterGetDegree(ST,PetscInt*);
 SLEPC_EXTERN PetscErrorCode STFilterGetThreshold(ST,PetscReal*);
 
 #endif
-

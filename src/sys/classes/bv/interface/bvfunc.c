@@ -34,12 +34,10 @@ const char *BVSVDMethods[] = {"REFINE","QR","QR_CAA","BVSVDMethod","BV_SVD_METHO
 @*/
 PetscErrorCode BVFinalizePackage(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&BVList);CHKERRQ(ierr);
-  ierr = MPI_Op_free(&MPIU_TSQR);CHKERRMPI(ierr);
-  ierr = MPI_Op_free(&MPIU_LAPY2);CHKERRMPI(ierr);
+  CHKERRQ(PetscFunctionListDestroy(&BVList));
+  CHKERRMPI(MPI_Op_free(&MPIU_TSQR));
+  CHKERRMPI(MPI_Op_free(&MPIU_LAPY2));
   BVPackageInitialized = PETSC_FALSE;
   BVRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -59,48 +57,47 @@ PetscErrorCode BVInitializePackage(void)
   char           logList[256];
   PetscBool      opt,pkg;
   PetscClassId   classids[1];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (BVPackageInitialized) PetscFunctionReturn(0);
   BVPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Basis Vectors",&BV_CLASSID);CHKERRQ(ierr);
+  CHKERRQ(PetscClassIdRegister("Basis Vectors",&BV_CLASSID));
   /* Register Constructors */
-  ierr = BVRegisterAll();CHKERRQ(ierr);
+  CHKERRQ(BVRegisterAll());
   /* Register Events */
-  ierr = PetscLogEventRegister("BVCreate",BV_CLASSID,&BV_Create);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVCopy",BV_CLASSID,&BV_Copy);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVMult",BV_CLASSID,&BV_Mult);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVMultVec",BV_CLASSID,&BV_MultVec);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVMultInPlace",BV_CLASSID,&BV_MultInPlace);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVDot",BV_CLASSID,&BV_Dot);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVDotVec",BV_CLASSID,&BV_DotVec);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVOrthogonalize",BV_CLASSID,&BV_Orthogonalize);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVOrthogonalizeV",BV_CLASSID,&BV_OrthogonalizeVec);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVScale",BV_CLASSID,&BV_Scale);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVNorm",BV_CLASSID,&BV_Norm);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVNormVec",BV_CLASSID,&BV_NormVec);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVNormalize",BV_CLASSID,&BV_Normalize);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVSetRandom",BV_CLASSID,&BV_SetRandom);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVMatMult",BV_CLASSID,&BV_MatMult);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVMatMultVec",BV_CLASSID,&BV_MatMultVec);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVMatProject",BV_CLASSID,&BV_MatProject);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("BVSVDAndRank",BV_CLASSID,&BV_SVDAndRank);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventRegister("BVCreate",BV_CLASSID,&BV_Create));
+  CHKERRQ(PetscLogEventRegister("BVCopy",BV_CLASSID,&BV_Copy));
+  CHKERRQ(PetscLogEventRegister("BVMult",BV_CLASSID,&BV_Mult));
+  CHKERRQ(PetscLogEventRegister("BVMultVec",BV_CLASSID,&BV_MultVec));
+  CHKERRQ(PetscLogEventRegister("BVMultInPlace",BV_CLASSID,&BV_MultInPlace));
+  CHKERRQ(PetscLogEventRegister("BVDot",BV_CLASSID,&BV_Dot));
+  CHKERRQ(PetscLogEventRegister("BVDotVec",BV_CLASSID,&BV_DotVec));
+  CHKERRQ(PetscLogEventRegister("BVOrthogonalize",BV_CLASSID,&BV_Orthogonalize));
+  CHKERRQ(PetscLogEventRegister("BVOrthogonalizeV",BV_CLASSID,&BV_OrthogonalizeVec));
+  CHKERRQ(PetscLogEventRegister("BVScale",BV_CLASSID,&BV_Scale));
+  CHKERRQ(PetscLogEventRegister("BVNorm",BV_CLASSID,&BV_Norm));
+  CHKERRQ(PetscLogEventRegister("BVNormVec",BV_CLASSID,&BV_NormVec));
+  CHKERRQ(PetscLogEventRegister("BVNormalize",BV_CLASSID,&BV_Normalize));
+  CHKERRQ(PetscLogEventRegister("BVSetRandom",BV_CLASSID,&BV_SetRandom));
+  CHKERRQ(PetscLogEventRegister("BVMatMult",BV_CLASSID,&BV_MatMult));
+  CHKERRQ(PetscLogEventRegister("BVMatMultVec",BV_CLASSID,&BV_MatMultVec));
+  CHKERRQ(PetscLogEventRegister("BVMatProject",BV_CLASSID,&BV_MatProject));
+  CHKERRQ(PetscLogEventRegister("BVSVDAndRank",BV_CLASSID,&BV_SVDAndRank));
   /* MPI reduction operation used in BVOrthogonalize */
-  ierr = MPI_Op_create(SlepcGivensPacked,PETSC_FALSE,&MPIU_TSQR);CHKERRMPI(ierr);
-  ierr = MPI_Op_create(SlepcPythag,PETSC_TRUE,&MPIU_LAPY2);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Op_create(SlepcGivensPacked,PETSC_FALSE,&MPIU_TSQR));
+  CHKERRMPI(MPI_Op_create(SlepcPythag,PETSC_TRUE,&MPIU_LAPY2));
   /* Process Info */
   classids[0] = BV_CLASSID;
-  ierr = PetscInfoProcessClass("bv",1,&classids[0]);CHKERRQ(ierr);
+  CHKERRQ(PetscInfoProcessClass("bv",1,&classids[0]));
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    ierr = PetscStrInList("bv",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscLogEventDeactivateClass(BV_CLASSID);CHKERRQ(ierr); }
+    CHKERRQ(PetscStrInList("bv",logList,',',&pkg));
+    if (pkg) CHKERRQ(PetscLogEventDeactivateClass(BV_CLASSID));
   }
   /* Register package finalizer */
-  ierr = PetscRegisterFinalize(BVFinalizePackage);CHKERRQ(ierr);
+  CHKERRQ(PetscRegisterFinalize(BVFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -118,29 +115,27 @@ PetscErrorCode BVInitializePackage(void)
 @*/
 PetscErrorCode BVDestroy(BV *bv)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (!*bv) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*bv,BV_CLASSID,1);
   PetscCheck(!(*bv)->lsplit,PetscObjectComm((PetscObject)(*bv)),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
   if (--((PetscObject)(*bv))->refct > 0) { *bv = 0; PetscFunctionReturn(0); }
-  if ((*bv)->ops->destroy) { ierr = (*(*bv)->ops->destroy)(*bv);CHKERRQ(ierr); }
-  ierr = VecDestroy(&(*bv)->t);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*bv)->matrix);CHKERRQ(ierr);
-  ierr = VecDestroy(&(*bv)->Bx);CHKERRQ(ierr);
-  ierr = VecDestroy(&(*bv)->buffer);CHKERRQ(ierr);
-  ierr = BVDestroy(&(*bv)->cached);CHKERRQ(ierr);
-  ierr = BVDestroy(&(*bv)->L);CHKERRQ(ierr);
-  ierr = BVDestroy(&(*bv)->R);CHKERRQ(ierr);
-  ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
-  ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
-  ierr = VecDestroy(&(*bv)->omega);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*bv)->Acreate);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*bv)->Aget);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*bv)->Abuffer);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&(*bv)->rand);CHKERRQ(ierr);
-  ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
+  if ((*bv)->ops->destroy) CHKERRQ((*(*bv)->ops->destroy)(*bv));
+  CHKERRQ(VecDestroy(&(*bv)->t));
+  CHKERRQ(MatDestroy(&(*bv)->matrix));
+  CHKERRQ(VecDestroy(&(*bv)->Bx));
+  CHKERRQ(VecDestroy(&(*bv)->buffer));
+  CHKERRQ(BVDestroy(&(*bv)->cached));
+  CHKERRQ(BVDestroy(&(*bv)->L));
+  CHKERRQ(BVDestroy(&(*bv)->R));
+  CHKERRQ(PetscFree((*bv)->work));
+  CHKERRQ(PetscFree2((*bv)->h,(*bv)->c));
+  CHKERRQ(VecDestroy(&(*bv)->omega));
+  CHKERRQ(MatDestroy(&(*bv)->Acreate));
+  CHKERRQ(MatDestroy(&(*bv)->Aget));
+  CHKERRQ(MatDestroy(&(*bv)->Abuffer));
+  CHKERRQ(PetscRandomDestroy(&(*bv)->rand));
+  CHKERRQ(PetscHeaderDestroy(bv));
   PetscFunctionReturn(0);
 }
 
@@ -161,14 +156,13 @@ PetscErrorCode BVDestroy(BV *bv)
 @*/
 PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 {
-  PetscErrorCode ierr;
   BV             bv;
 
   PetscFunctionBegin;
   PetscValidPointer(newbv,2);
   *newbv = 0;
-  ierr = BVInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView);CHKERRQ(ierr);
+  CHKERRQ(BVInitializePackage());
+  CHKERRQ(SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView));
 
   bv->t            = NULL;
   bv->n            = -1;
@@ -250,20 +244,19 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 @*/
 PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
 {
-  PetscErrorCode ierr;
   PetscInt       n,N,k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(A,MAT_CLASSID,1);
   PetscCheckTypeNames(A,MATSEQDENSE,MATMPIDENSE);
 
-  ierr = MatGetSize(A,&N,&k);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&n,NULL);CHKERRQ(ierr);
-  ierr = BVCreate(PetscObjectComm((PetscObject)A),bv);CHKERRQ(ierr);
-  ierr = BVSetSizes(*bv,n,N,k);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(A,&N,&k));
+  CHKERRQ(MatGetLocalSize(A,&n,NULL));
+  CHKERRQ(BVCreate(PetscObjectComm((PetscObject)A),bv));
+  CHKERRQ(BVSetSizes(*bv,n,N,k));
 
   (*bv)->Acreate = A;
-  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectReference((PetscObject)A));
   PetscFunctionReturn(0);
 }
 
@@ -283,7 +276,6 @@ PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
 @*/
 PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
 {
-  PetscErrorCode ierr;
   PetscInt       n,N;
   Vec            v;
 
@@ -295,15 +287,15 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
   BVCheckSizes(V,1);
   PetscCheckSameComm(V,1,w,3);
 
-  ierr = VecGetSize(w,&N);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(w,&n);CHKERRQ(ierr);
+  CHKERRQ(VecGetSize(w,&N));
+  CHKERRQ(VecGetLocalSize(w,&n));
   PetscCheck(N==V->N && n==V->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
   PetscCheck(j>=-V->nc && j<V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,j,-V->nc,V->m-1);
 
-  ierr = BVGetColumn(V,j,&v);CHKERRQ(ierr);
-  ierr = VecCopy(w,v);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(V,j,&v);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  CHKERRQ(BVGetColumn(V,j,&v));
+  CHKERRQ(VecCopy(w,v));
+  CHKERRQ(BVRestoreColumn(V,j,&v));
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
 
@@ -334,7 +326,6 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
 @*/
 PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 {
-  PetscErrorCode ierr;
   PetscInt       n,N,i,ndep;
   PetscBool      lindep;
   PetscReal      norm;
@@ -354,29 +345,29 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
   BVCheckSizes(V,1);
   PetscCheckSameComm(V,1,*W,4);
 
-  ierr = VecGetSize(*W,&N);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(*W,&n);CHKERRQ(ierr);
+  CHKERRQ(VecGetSize(*W,&N));
+  CHKERRQ(VecGetLocalSize(*W,&n));
   PetscCheck(N==V->N && n==V->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,V->N,V->n);
   PetscCheck(s>=0 && s<V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between 0 and %" PetscInt_FMT,s,V->m-1);
   PetscCheck(s+(*m)<=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Too many vectors provided, there is only room for %" PetscInt_FMT,V->m);
 
   ndep = 0;
   for (i=0;i<*m;i++) {
-    ierr = BVGetColumn(V,s+i-ndep,&v);CHKERRQ(ierr);
-    ierr = VecCopy(W[i],v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,s+i-ndep,&v);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(V,s+i-ndep,&v));
+    CHKERRQ(VecCopy(W[i],v));
+    CHKERRQ(BVRestoreColumn(V,s+i-ndep,&v));
     if (orth) {
-      ierr = BVOrthogonalizeColumn(V,s+i-ndep,NULL,&norm,&lindep);CHKERRQ(ierr);
+      CHKERRQ(BVOrthogonalizeColumn(V,s+i-ndep,NULL,&norm,&lindep));
       if (norm==0.0 || lindep) {
-        ierr = PetscInfo(V,"Removing linearly dependent vector %" PetscInt_FMT "\n",i);CHKERRQ(ierr);
+        CHKERRQ(PetscInfo(V,"Removing linearly dependent vector %" PetscInt_FMT "\n",i));
         ndep++;
       } else {
-        ierr = BVScaleColumn(V,s+i-ndep,1.0/norm);CHKERRQ(ierr);
+        CHKERRQ(BVScaleColumn(V,s+i-ndep,1.0/norm));
       }
     }
   }
   *m -= ndep;
-  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
 
@@ -417,7 +408,6 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 @*/
 PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
 {
-  PetscErrorCode ierr;
   PetscInt       msave;
 
   PetscFunctionBegin;
@@ -436,13 +426,13 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscCheck(V->ci[0]==-1 && V->ci[1]==-1,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVInsertConstraints after BVGetColumn");
 
   msave = V->m;
-  ierr = BVResize(V,*nc+V->m,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = BVInsertVecs(V,0,nc,C,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(BVResize(V,*nc+V->m,PETSC_FALSE));
+  CHKERRQ(BVInsertVecs(V,0,nc,C,PETSC_TRUE));
   V->nc = *nc;
   V->m  = msave;
   V->ci[0] = -V->nc-1;
   V->ci[1] = -V->nc-1;
-  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
 
@@ -467,11 +457,9 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
 @*/
 PetscErrorCode BVSetOptionsPrefix(BV bv,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)bv,prefix);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectSetOptionsPrefix((PetscObject)bv,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -496,11 +484,9 @@ PetscErrorCode BVSetOptionsPrefix(BV bv,const char *prefix)
 @*/
 PetscErrorCode BVAppendOptionsPrefix(BV bv,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)bv,prefix);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectAppendOptionsPrefix((PetscObject)bv,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -526,18 +512,15 @@ PetscErrorCode BVAppendOptionsPrefix(BV bv,const char *prefix)
 @*/
 PetscErrorCode BVGetOptionsPrefix(BV bv,const char *prefix[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidPointer(prefix,2);
-  ierr = PetscObjectGetOptionsPrefix((PetscObject)bv,prefix);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectGetOptionsPrefix((PetscObject)bv,prefix));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
 {
-  PetscErrorCode    ierr;
   PetscInt          j;
   Vec               v;
   PetscViewerFormat format;
@@ -545,23 +528,23 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
   const char        *bvname,*name;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerGetFormat(viewer,&format));
     if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
   }
   if (ismatlab) {
-    ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectGetName((PetscObject)bv,&bvname));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname));
   }
   for (j=-bv->nc;j<bv->m;j++) {
-    ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
-    ierr = VecView(v,viewer);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(bv,j,&v));
+    CHKERRQ(VecView(v,viewer));
     if (ismatlab) {
-      ierr = PetscObjectGetName((PetscObject)v,&name);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",bvname,bvname,name,name);CHKERRQ(ierr);
+      CHKERRQ(PetscObjectGetName((PetscObject)v,&name));
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",bvname,bvname,name,name));
     }
-    ierr = BVRestoreColumn(bv,j,&v);CHKERRQ(ierr);
+    CHKERRQ(BVRestoreColumn(bv,j,&v));
   }
   PetscFunctionReturn(0);
 }
@@ -592,7 +575,6 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
 @*/
 PetscErrorCode BVView(BV bv,PetscViewer viewer)
 {
-  PetscErrorCode    ierr;
   PetscBool         isascii;
   PetscViewerFormat format;
   const char        *orthname[2] = {"classical","modified"};
@@ -601,65 +583,65 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)bv),&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)bv),&viewer));
   }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)bv,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectPrintClassNamePrefixType((PetscObject)bv,viewer));
+    CHKERRQ(PetscViewerGetFormat(viewer,&format));
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  %" PetscInt_FMT " columns of global length %" PetscInt_FMT "%s\n",bv->m,bv->N,bv->cuda?" (CUDA)":"");CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %" PetscInt_FMT " columns of global length %" PetscInt_FMT "%s\n",bv->m,bv->N,bv->cuda?" (CUDA)":""));
       if (bv->nc>0) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  number of constraints: %" PetscInt_FMT "\n",bv->nc);CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of constraints: %" PetscInt_FMT "\n",bv->nc));
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  vector orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  vector orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]));
       switch (bv->orthog_ref) {
         case BV_ORTHOG_REFINE_IFNEEDED:
-          ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: %s (eta: %g)\n",refname[bv->orthog_ref],(double)bv->orthog_eta);CHKERRQ(ierr);
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: %s (eta: %g)\n",refname[bv->orthog_ref],(double)bv->orthog_eta));
           break;
         case BV_ORTHOG_REFINE_NEVER:
         case BV_ORTHOG_REFINE_ALWAYS:
-          ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: %s\n",refname[bv->orthog_ref]);CHKERRQ(ierr);
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: %s\n",refname[bv->orthog_ref]));
           break;
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  block orthogonalization method: %s\n",BVOrthogBlockTypes[bv->orthog_block]);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  block orthogonalization method: %s\n",BVOrthogBlockTypes[bv->orthog_block]));
       if (bv->matrix) {
         if (bv->indef) {
-          ierr = PetscViewerASCIIPrintf(viewer,"  indefinite inner product\n");CHKERRQ(ierr);
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"  indefinite inner product\n"));
         } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"  non-standard inner product\n");CHKERRQ(ierr);
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"  non-standard inner product\n"));
         }
-        ierr = PetscViewerASCIIPrintf(viewer,"  tolerance for definite inner product: %g\n",(double)bv->deftol);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"  inner product matrix:\n");CHKERRQ(ierr);
-        ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-        ierr = MatView(bv->matrix,viewer);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
-        ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  tolerance for definite inner product: %g\n",(double)bv->deftol));
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  inner product matrix:\n"));
+        CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
+        CHKERRQ(PetscViewerASCIIPushTab(viewer));
+        CHKERRQ(MatView(bv->matrix,viewer));
+        CHKERRQ(PetscViewerASCIIPopTab(viewer));
+        CHKERRQ(PetscViewerPopFormat(viewer));
       }
       switch (bv->vmm) {
         case BV_MATMULT_VECS:
-          ierr = PetscViewerASCIIPrintf(viewer,"  doing matmult as matrix-vector products\n");CHKERRQ(ierr);
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"  doing matmult as matrix-vector products\n"));
           break;
         case BV_MATMULT_MAT:
-          ierr = PetscViewerASCIIPrintf(viewer,"  doing matmult as a single matrix-matrix product\n");CHKERRQ(ierr);
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"  doing matmult as a single matrix-matrix product\n"));
           break;
         case BV_MATMULT_MAT_SAVE:
-          ierr = PetscViewerASCIIPrintf(viewer,"  mat_save is deprecated, use mat\n");CHKERRQ(ierr);
+          CHKERRQ(PetscViewerASCIIPrintf(viewer,"  mat_save is deprecated, use mat\n"));
           break;
       }
       if (bv->rrandom) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  generating random vectors independent of the number of processes\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  generating random vectors independent of the number of processes\n"));
       }
-      if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }
+      if (bv->ops->view) CHKERRQ((*bv->ops->view)(bv,viewer));
     } else {
-      if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }
-      else { ierr = BVView_Default(bv,viewer);CHKERRQ(ierr); }
+      if (bv->ops->view) CHKERRQ((*bv->ops->view)(bv,viewer));
+      else CHKERRQ(BVView_Default(bv,viewer));
     }
   } else {
-    ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);
+    CHKERRQ((*bv->ops->view)(bv,viewer));
   }
   PetscFunctionReturn(0);
 }
@@ -680,11 +662,9 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 @*/
 PetscErrorCode BVViewFromOptions(BV bv,PetscObject obj,const char name[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  ierr = PetscObjectViewFromOptions((PetscObject)bv,obj,name);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectViewFromOptions((PetscObject)bv,obj,name));
   PetscFunctionReturn(0);
 }
 
@@ -707,23 +687,19 @@ PetscErrorCode BVViewFromOptions(BV bv,PetscObject obj,const char name[])
 @*/
 PetscErrorCode BVRegister(const char *name,PetscErrorCode (*function)(BV))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = BVInitializePackage();CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(&BVList,name,function);CHKERRQ(ierr);
+  CHKERRQ(BVInitializePackage());
+  CHKERRQ(PetscFunctionListAdd(&BVList,name,function));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVAllocateWork_Private(BV bv,PetscInt s)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (s>bv->lwork) {
-    ierr = PetscFree(bv->work);CHKERRQ(ierr);
-    ierr = PetscMalloc1(s,&bv->work);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)bv,(s-bv->lwork)*sizeof(PetscScalar));CHKERRQ(ierr);
+    CHKERRQ(PetscFree(bv->work));
+    CHKERRQ(PetscMalloc1(s,&bv->work));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)bv,(s-bv->lwork)*sizeof(PetscScalar)));
     bv->lwork = s;
   }
   PetscFunctionReturn(0);
@@ -739,16 +715,14 @@ PetscErrorCode BVAllocateWork_Private(BV bv,PetscInt s)
  */
 PETSC_UNUSED PetscErrorCode SlepcDebugBVView(BV bv,PetscInt ini,PetscInt end,const char *s,const char *filename)
 {
-  PetscErrorCode ierr;
   PetscInt       N,m;
   PetscScalar    *array;
 
   PetscFunctionBegin;
-  ierr = BVGetArray(bv,&array);CHKERRQ(ierr);
-  ierr = BVGetSizes(bv,NULL,&N,&m);CHKERRQ(ierr);
-  ierr = SlepcDebugViewMatrix(N,end-ini+1,array+ini*N,NULL,N,s,filename);CHKERRQ(ierr);
-  ierr = BVRestoreArray(bv,&array);CHKERRQ(ierr);
+  CHKERRQ(BVGetArray(bv,&array));
+  CHKERRQ(BVGetSizes(bv,NULL,&N,&m));
+  CHKERRQ(SlepcDebugViewMatrix(N,end-ini+1,array+ini*N,NULL,N,s,filename));
+  CHKERRQ(BVRestoreArray(bv,&array));
   PetscFunctionReturn(0);
 }
 #endif
-

@@ -25,13 +25,11 @@ const char *const*MFNConvergedReasons = MFNConvergedReasons_Shifted + 2;
 @*/
 PetscErrorCode MFNFinalizePackage(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&MFNList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&MFNMonitorList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&MFNMonitorCreateList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&MFNMonitorDestroyList);CHKERRQ(ierr);
+  CHKERRQ(PetscFunctionListDestroy(&MFNList));
+  CHKERRQ(PetscFunctionListDestroy(&MFNMonitorList));
+  CHKERRQ(PetscFunctionListDestroy(&MFNMonitorCreateList));
+  CHKERRQ(PetscFunctionListDestroy(&MFNMonitorDestroyList));
   MFNPackageInitialized       = PETSC_FALSE;
   MFNRegisterAllCalled        = PETSC_FALSE;
   MFNMonitorRegisterAllCalled = PETSC_FALSE;
@@ -52,31 +50,30 @@ PetscErrorCode MFNInitializePackage(void)
   char           logList[256];
   PetscBool      opt,pkg;
   PetscClassId   classids[1];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (MFNPackageInitialized) PetscFunctionReturn(0);
   MFNPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Matrix Function",&MFN_CLASSID);CHKERRQ(ierr);
+  CHKERRQ(PetscClassIdRegister("Matrix Function",&MFN_CLASSID));
   /* Register Constructors */
-  ierr = MFNRegisterAll();CHKERRQ(ierr);
+  CHKERRQ(MFNRegisterAll());
   /* Register Monitors */
-  ierr = MFNMonitorRegisterAll();CHKERRQ(ierr);
+  CHKERRQ(MFNMonitorRegisterAll());
   /* Register Events */
-  ierr = PetscLogEventRegister("MFNSetUp",MFN_CLASSID,&MFN_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("MFNSolve",MFN_CLASSID,&MFN_Solve);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventRegister("MFNSetUp",MFN_CLASSID,&MFN_SetUp));
+  CHKERRQ(PetscLogEventRegister("MFNSolve",MFN_CLASSID,&MFN_Solve));
   /* Process Info */
   classids[0] = MFN_CLASSID;
-  ierr = PetscInfoProcessClass("mfn",1,&classids[0]);CHKERRQ(ierr);
+  CHKERRQ(PetscInfoProcessClass("mfn",1,&classids[0]));
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    ierr = PetscStrInList("mfn",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscLogEventDeactivateClass(MFN_CLASSID);CHKERRQ(ierr); }
+    CHKERRQ(PetscStrInList("mfn",logList,',',&pkg));
+    if (pkg) CHKERRQ(PetscLogEventDeactivateClass(MFN_CLASSID));
   }
   /* Register package finalizer */
-  ierr = PetscRegisterFinalize(MFNFinalizePackage);CHKERRQ(ierr);
+  CHKERRQ(PetscRegisterFinalize(MFNFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -90,11 +87,8 @@ PetscErrorCode MFNInitializePackage(void)
  */
 SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn()
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = MFNInitializePackage();CHKERRQ(ierr);
+  CHKERRQ(MFNInitializePackage());
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */
-

@@ -30,7 +30,6 @@ static char help[] = "Another test of a combined function.\n\n";
  */
 PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,PetscBool inplace)
 {
-  PetscErrorCode ierr;
   PetscBool      set,flg;
   PetscInt       n;
   Mat            F;
@@ -38,39 +37,39 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   PetscReal      nrm;
 
   PetscFunctionBeginUser;
-  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)F,"F");CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(A,&n,NULL));
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F));
+  CHKERRQ(PetscObjectSetName((PetscObject)F,"F"));
   /* compute matrix function */
   if (inplace) {
-    ierr = MatCopy(A,F,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-    ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
-    if (set && flg) { ierr = MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr); }
-    ierr = FNEvaluateFunctionMat(fn,F,NULL);CHKERRQ(ierr);
+    CHKERRQ(MatCopy(A,F,SAME_NONZERO_PATTERN));
+    CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
+    if (set && flg) CHKERRQ(MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE));
+    CHKERRQ(FNEvaluateFunctionMat(fn,F,NULL));
   } else {
-    ierr = FNEvaluateFunctionMat(fn,A,F);CHKERRQ(ierr);
+    CHKERRQ(FNEvaluateFunctionMat(fn,A,F));
   }
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(A,viewer);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(F,viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
+    CHKERRQ(MatView(A,viewer));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n"));
+    CHKERRQ(MatView(F,viewer));
   }
   /* print matrix norm for checking */
-  ierr = MatNorm(F,NORM_1,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %6.3f\n",(double)nrm);CHKERRQ(ierr);
+  CHKERRQ(MatNorm(F,NORM_1,&nrm));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %6.3f\n",(double)nrm));
   /* check FNEvaluateFunctionMatVec() */
-  ierr = MatCreateVecs(A,&v,&f0);CHKERRQ(ierr);
-  ierr = MatGetColumnVector(F,f0,0);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMatVec(fn,A,v);CHKERRQ(ierr);
-  ierr = VecAXPY(v,-1.0,f0);CHKERRQ(ierr);
-  ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(A,&v,&f0));
+  CHKERRQ(MatGetColumnVector(F,f0,0));
+  CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
+  CHKERRQ(VecAXPY(v,-1.0,f0));
+  CHKERRQ(VecNorm(v,NORM_2,&nrm));
   if (nrm>100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
   }
-  ierr = MatDestroy(&F);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&f0);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&F));
+  CHKERRQ(VecDestroy(&v));
+  CHKERRQ(VecDestroy(&f0));
   PetscFunctionReturn(0);
 }
 
@@ -87,90 +86,90 @@ int main(int argc,char **argv)
   PetscBool      verbose,inplace;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Phi1 via a combined function, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Phi1 via a combined function, n=%" PetscInt_FMT ".\n",n));
 
   /* Create function */
 
   /* e(x) = exp(x) */
-  ierr = FNCreate(PETSC_COMM_WORLD,&e);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)e,"e");CHKERRQ(ierr);
-  ierr = FNSetType(e,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetFromOptions(e);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&e));
+  CHKERRQ(PetscObjectSetName((PetscObject)e,"e"));
+  CHKERRQ(FNSetType(e,FNEXP));
+  CHKERRQ(FNSetFromOptions(e));
   /* c(x) = -1 */
-  ierr = FNCreate(PETSC_COMM_WORLD,&c);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)c,"c");CHKERRQ(ierr);
-  ierr = FNSetType(c,FNRATIONAL);CHKERRQ(ierr);
-  ierr = FNSetFromOptions(c);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&c));
+  CHKERRQ(PetscObjectSetName((PetscObject)c,"c"));
+  CHKERRQ(FNSetType(c,FNRATIONAL));
+  CHKERRQ(FNSetFromOptions(c));
   np = 1;
   coeffs[0] = -1.0;
-  ierr = FNRationalSetNumerator(c,np,coeffs);CHKERRQ(ierr);
+  CHKERRQ(FNRationalSetNumerator(c,np,coeffs));
   /* a(x) */
-  ierr = FNCreate(PETSC_COMM_WORLD,&a);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)a,"a");CHKERRQ(ierr);
-  ierr = FNSetType(a,FNCOMBINE);CHKERRQ(ierr);
-  ierr = FNSetFromOptions(a);CHKERRQ(ierr);
-  ierr = FNCombineSetChildren(a,FN_COMBINE_ADD,e,c);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&a));
+  CHKERRQ(PetscObjectSetName((PetscObject)a,"a"));
+  CHKERRQ(FNSetType(a,FNCOMBINE));
+  CHKERRQ(FNSetFromOptions(a));
+  CHKERRQ(FNCombineSetChildren(a,FN_COMBINE_ADD,e,c));
   /* p(x) = x */
-  ierr = FNCreate(PETSC_COMM_WORLD,&p);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)p,"p");CHKERRQ(ierr);
-  ierr = FNSetType(p,FNRATIONAL);CHKERRQ(ierr);
-  ierr = FNSetFromOptions(p);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&p));
+  CHKERRQ(PetscObjectSetName((PetscObject)p,"p"));
+  CHKERRQ(FNSetType(p,FNRATIONAL));
+  CHKERRQ(FNSetFromOptions(p));
   np = 2;
   coeffs[0] = 1.0; coeffs[1] = 0.0;
-  ierr = FNRationalSetNumerator(p,np,coeffs);CHKERRQ(ierr);
+  CHKERRQ(FNRationalSetNumerator(p,np,coeffs));
   /* f(x) */
-  ierr = FNCreate(PETSC_COMM_WORLD,&f);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)f,"f");CHKERRQ(ierr);
-  ierr = FNSetType(f,FNCOMBINE);CHKERRQ(ierr);
-  ierr = FNSetFromOptions(f);CHKERRQ(ierr);
-  ierr = FNCombineSetChildren(f,FN_COMBINE_DIVIDE,a,p);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f));
+  CHKERRQ(PetscObjectSetName((PetscObject)f,"f"));
+  CHKERRQ(FNSetType(f,FNCOMBINE));
+  CHKERRQ(FNSetFromOptions(f));
+  CHKERRQ(FNCombineSetChildren(f,FN_COMBINE_DIVIDE,a,p));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  ierr = FNCombineGetChildren(f,&ctype,&f1,&f2);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Two functions combined with division:\n");CHKERRQ(ierr);
-  ierr = FNView(f1,viewer);CHKERRQ(ierr);
-  ierr = FNView(f2,viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  CHKERRQ(FNCombineGetChildren(f,&ctype,&f1,&f2));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Two functions combined with division:\n"));
+  CHKERRQ(FNView(f1,viewer));
+  CHKERRQ(FNView(f2,viewer));
   if (verbose) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
   }
 
   /* Scalar evaluation */
   x = 2.2;
-  ierr = SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = FNEvaluateFunction(f,x,&y);CHKERRQ(ierr);
-  ierr = FNEvaluateDerivative(f,x,&yp);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
+  CHKERRQ(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
+  CHKERRQ(FNEvaluateFunction(f,x,&y));
+  CHKERRQ(FNEvaluateDerivative(f,x,&yp));
+  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
+  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
 
   /* Create matrices */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)A,"A");CHKERRQ(ierr);
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  CHKERRQ(PetscObjectSetName((PetscObject)A,"A"));
 
   /* Fill A with 1-D Laplacian matrix */
-  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  CHKERRQ(MatDenseGetArray(A,&As));
   for (i=0;i<n;i++) As[i+i*n]=2.0;
   j=1;
   for (i=0;i<n-j;i++) { As[i+(i+j)*n]=-1.0; As[(i+j)+i*n]=-1.0; }
-  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = TestMatCombine(f,A,viewer,verbose,inplace);CHKERRQ(ierr);
+  CHKERRQ(MatDenseRestoreArray(A,&As));
+  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
+  CHKERRQ(TestMatCombine(f,A,viewer,verbose,inplace));
 
   /* Repeat with same matrix as non-symmetric */
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = TestMatCombine(f,A,viewer,verbose,inplace);CHKERRQ(ierr);
+  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE));
+  CHKERRQ(TestMatCombine(f,A,viewer,verbose,inplace));
 
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = FNDestroy(&f);CHKERRQ(ierr);
-  ierr = FNDestroy(&p);CHKERRQ(ierr);
-  ierr = FNDestroy(&a);CHKERRQ(ierr);
-  ierr = FNDestroy(&e);CHKERRQ(ierr);
-  ierr = FNDestroy(&c);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(FNDestroy(&f));
+  CHKERRQ(FNDestroy(&p));
+  CHKERRQ(FNDestroy(&a));
+  CHKERRQ(FNDestroy(&e));
+  CHKERRQ(FNDestroy(&c));
   ierr = SlepcFinalize();
   return ierr;
 }

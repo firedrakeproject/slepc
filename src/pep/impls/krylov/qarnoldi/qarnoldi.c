@@ -33,20 +33,19 @@ typedef struct {
 
 PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 {
-  PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscBool      flg;
 
   PetscFunctionBegin;
   PEPCheckQuadratic(pep);
   PEPCheckShiftSinvert(pep);
-  ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
+  CHKERRQ(PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd));
   PetscCheck(ctx->lock || pep->mpd>=pep->ncv,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,4*pep->n/pep->ncv);
-  if (!pep->which) { ierr = PEPSetWhichEigenpairs_Default(pep);CHKERRQ(ierr); }
+  if (!pep->which) CHKERRQ(PEPSetWhichEigenpairs_Default(pep));
   PetscCheck(pep->which!=PEP_ALL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
 
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  CHKERRQ(STGetTransform(pep->st,&flg));
   PetscCheck(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
 
   /* set default extraction */
@@ -55,39 +54,38 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 
   if (!ctx->keep) ctx->keep = 0.5;
 
-  ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
-  ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
+  CHKERRQ(PEPAllocateSolution(pep,0));
+  CHKERRQ(PEPSetWorkVecs(pep,4));
 
-  ierr = DSSetType(pep->ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
+  CHKERRQ(DSSetType(pep->ds,DSNHEP));
+  CHKERRQ(DSSetExtraRow(pep->ds,PETSC_TRUE));
+  CHKERRQ(DSAllocate(pep->ds,pep->ncv+1));
 
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
 {
-  PetscErrorCode ierr;
   PetscInt       i,k=pep->nconv,ldds;
   PetscScalar    *X,*pX0;
   Mat            X0;
 
   PetscFunctionBegin;
   if (pep->nconv==0) PetscFunctionReturn(0);
-  ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
-  ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetArray(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  CHKERRQ(DSGetLeadingDimension(pep->ds,&ldds));
+  CHKERRQ(DSVectors(pep->ds,DS_MAT_X,NULL,NULL));
+  CHKERRQ(DSGetArray(pep->ds,DS_MAT_X,&X));
 
   /* update vectors V = V*X */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&X0);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayWrite(X0,&pX0);CHKERRQ(ierr);
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&X0));
+  CHKERRQ(MatDenseGetArrayWrite(X0,&pX0));
   for (i=0;i<k;i++) {
-    ierr = PetscArraycpy(pX0+i*k,X+i*ldds,k);CHKERRQ(ierr);
+    CHKERRQ(PetscArraycpy(pX0+i*k,X+i*ldds,k));
   }
-  ierr = MatDenseRestoreArrayWrite(X0,&pX0);CHKERRQ(ierr);
-  ierr = BVMultInPlace(pep->V,X0,0,k);CHKERRQ(ierr);
-  ierr = MatDestroy(&X0);CHKERRQ(ierr);
-  ierr = DSRestoreArray(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  CHKERRQ(MatDenseRestoreArrayWrite(X0,&pX0));
+  CHKERRQ(BVMultInPlace(pep->V,X0,0,k));
+  CHKERRQ(MatDestroy(&X0));
+  CHKERRQ(DSRestoreArray(pep->ds,DS_MAT_X,&X));
   PetscFunctionReturn(0);
 }
 
@@ -96,7 +94,6 @@ PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
 */
 static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,PetscScalar *h,PetscBLASInt j,BV V,Vec t,Vec v,Vec w,PetscReal *onorm,PetscReal *norm,PetscScalar *work)
 {
-  PetscErrorCode ierr;
   PetscBLASInt   ione = 1,j_1 = j+1;
   PetscReal      x,y;
   PetscScalar    dot,one = 1.0,zero = 0.0;
@@ -104,32 +101,32 @@ static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,Pet
   PetscFunctionBegin;
   /* compute norm of v and w */
   if (onorm) {
-    ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
-    ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
+    CHKERRQ(VecNorm(v,NORM_2,&x));
+    CHKERRQ(VecNorm(w,NORM_2,&y));
     *onorm = PetscSqrtReal(x*x+y*y);
   }
 
   /* orthogonalize: compute h */
-  ierr = BVDotVec(V,v,h);CHKERRQ(ierr);
-  ierr = BVDotVec(V,w,work);CHKERRQ(ierr);
+  CHKERRQ(BVDotVec(V,v,h));
+  CHKERRQ(BVDotVec(V,w,work));
   if (j>0)
     PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione));
-  ierr = VecDot(w,t,&dot);CHKERRQ(ierr);
+  CHKERRQ(VecDot(w,t,&dot));
   h[j] += dot;
 
   /* orthogonalize: update v and w */
-  ierr = BVMultVec(V,-1.0,1.0,v,h);CHKERRQ(ierr);
+  CHKERRQ(BVMultVec(V,-1.0,1.0,v,h));
   if (j>0) {
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&j_1,&j,&one,H,&ldh,h,&ione,&zero,work,&ione));
-    ierr = BVMultVec(V,-1.0,1.0,w,work);CHKERRQ(ierr);
+    CHKERRQ(BVMultVec(V,-1.0,1.0,w,work));
   }
-  ierr = VecAXPY(w,-h[j],t);CHKERRQ(ierr);
+  CHKERRQ(VecAXPY(w,-h[j],t));
 
   /* compute norm of v and w */
   if (norm) {
-    ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
-    ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-    *norm = PetscSqrtReal(x*x+y*y);CHKERRQ(ierr);
+    CHKERRQ(VecNorm(v,NORM_2,&x));
+    CHKERRQ(VecNorm(w,NORM_2,&y));
+    *norm = PetscSqrtReal(x*x+y*y);
   }
   PetscFunctionReturn(0);
 }
@@ -139,7 +136,6 @@ static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,Pet
 */
 static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
 {
-  PetscErrorCode     ierr;
   PetscInt           i,j,l,m = *M;
   Vec                t = pep->work[2],u = pep->work[3];
   BVOrthogRefineType refinement;
@@ -147,62 +143,62 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
   PetscScalar        *c = work + m;
 
   PetscFunctionBegin;
-  ierr = BVGetOrthogonalization(pep->V,NULL,&refinement,&eta,NULL);CHKERRQ(ierr);
-  ierr = BVInsertVec(pep->V,k,v);CHKERRQ(ierr);
+  CHKERRQ(BVGetOrthogonalization(pep->V,NULL,&refinement,&eta,NULL));
+  CHKERRQ(BVInsertVec(pep->V,k,v));
   for (j=k;j<m;j++) {
     /* apply operator */
-    ierr = VecCopy(w,t);CHKERRQ(ierr);
+    CHKERRQ(VecCopy(w,t));
     if (pep->Dr) {
-      ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
+      CHKERRQ(VecPointwiseMult(v,v,pep->Dr));
     }
-    ierr = STMatMult(pep->st,0,v,u);CHKERRQ(ierr);
-    ierr = VecCopy(t,v);CHKERRQ(ierr);
+    CHKERRQ(STMatMult(pep->st,0,v,u));
+    CHKERRQ(VecCopy(t,v));
     if (pep->Dr) {
-      ierr = VecPointwiseMult(t,t,pep->Dr);CHKERRQ(ierr);
+      CHKERRQ(VecPointwiseMult(t,t,pep->Dr));
     }
-    ierr = STMatMult(pep->st,1,t,w);CHKERRQ(ierr);
-    ierr = VecAXPY(u,pep->sfactor,w);CHKERRQ(ierr);
-    ierr = STMatSolve(pep->st,u,w);CHKERRQ(ierr);
-    ierr = VecScale(w,-1.0/(pep->sfactor*pep->sfactor));CHKERRQ(ierr);
+    CHKERRQ(STMatMult(pep->st,1,t,w));
+    CHKERRQ(VecAXPY(u,pep->sfactor,w));
+    CHKERRQ(STMatSolve(pep->st,u,w));
+    CHKERRQ(VecScale(w,-1.0/(pep->sfactor*pep->sfactor)));
     if (pep->Dr) {
-      ierr = VecPointwiseDivide(w,w,pep->Dr);CHKERRQ(ierr);
+      CHKERRQ(VecPointwiseDivide(w,w,pep->Dr));
     }
-    ierr = VecCopy(v,t);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,j+1);CHKERRQ(ierr);
+    CHKERRQ(VecCopy(v,t));
+    CHKERRQ(BVSetActiveColumns(pep->V,0,j+1));
 
     /* orthogonalize */
     switch (refinement) {
       case BV_ORTHOG_REFINE_NEVER:
-        ierr = PEPQArnoldiCGS(pep,H,ldh,H+ldh*j,j,pep->V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
+        CHKERRQ(PEPQArnoldiCGS(pep,H,ldh,H+ldh*j,j,pep->V,t,v,w,NULL,&norm,work));
         *breakdown = PETSC_FALSE;
         break;
       case BV_ORTHOG_REFINE_ALWAYS:
-        ierr = PEPQArnoldiCGS(pep,H,ldh,H+ldh*j,j,pep->V,t,v,w,NULL,NULL,work);CHKERRQ(ierr);
-        ierr = PEPQArnoldiCGS(pep,H,ldh,c,j,pep->V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
+        CHKERRQ(PEPQArnoldiCGS(pep,H,ldh,H+ldh*j,j,pep->V,t,v,w,NULL,NULL,work));
+        CHKERRQ(PEPQArnoldiCGS(pep,H,ldh,c,j,pep->V,t,v,w,&onorm,&norm,work));
         for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
         break;
       case BV_ORTHOG_REFINE_IFNEEDED:
-        ierr = PEPQArnoldiCGS(pep,H,ldh,H+ldh*j,j,pep->V,t,v,w,&onorm,&norm,work);CHKERRQ(ierr);
+        CHKERRQ(PEPQArnoldiCGS(pep,H,ldh,H+ldh*j,j,pep->V,t,v,w,&onorm,&norm,work));
         /* ||q|| < eta ||h|| */
         l = 1;
         while (l<3 && norm < eta * onorm) {
           l++;
           onorm = norm;
-          ierr = PEPQArnoldiCGS(pep,H,ldh,c,j,pep->V,t,v,w,NULL,&norm,work);CHKERRQ(ierr);
+          CHKERRQ(PEPQArnoldiCGS(pep,H,ldh,c,j,pep->V,t,v,w,NULL,&norm,work));
           for (i=0;i<=j;i++) H[ldh*j+i] += c[i];
         }
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
         break;
     }
-    ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
-    ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
+    CHKERRQ(VecScale(v,1.0/norm));
+    CHKERRQ(VecScale(w,1.0/norm));
 
     H[j+1+ldh*j] = norm;
     if (j<m-1) {
-      ierr = BVInsertVec(pep->V,j+1,v);CHKERRQ(ierr);
+      CHKERRQ(BVInsertVec(pep->V,j+1,v));
     }
   }
   *beta = norm;
@@ -211,7 +207,6 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
 
 PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 {
-  PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscInt       j,k,l,lwork,nv,ld,nconv;
   Vec            v=pep->work[0],w=pep->work[1];
@@ -221,31 +216,31 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   PetscBool      breakdown=PETSC_FALSE,sinv;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
+  CHKERRQ(DSGetLeadingDimension(pep->ds,&ld));
   lwork = 7*pep->ncv;
-  ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-  ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
-  ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc1(lwork,&work));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv));
+  CHKERRQ(RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor));
+  CHKERRQ(STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor));
 
   /* Get the starting Arnoldi vector */
   for (j=0;j<2;j++) {
     if (j>=pep->nini) {
-      ierr = BVSetRandomColumn(pep->V,j);CHKERRQ(ierr);
+      CHKERRQ(BVSetRandomColumn(pep->V,j));
     }
   }
-  ierr = BVCopyVec(pep->V,0,v);CHKERRQ(ierr);
-  ierr = BVCopyVec(pep->V,1,w);CHKERRQ(ierr);
-  ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
-  ierr = VecNorm(w,NORM_2,&y);CHKERRQ(ierr);
-  norm = PetscSqrtReal(x*x+y*y);CHKERRQ(ierr);
-  ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
-  ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
+  CHKERRQ(BVCopyVec(pep->V,0,v));
+  CHKERRQ(BVCopyVec(pep->V,1,w));
+  CHKERRQ(VecNorm(v,NORM_2,&x));
+  CHKERRQ(VecNorm(w,NORM_2,&y));
+  norm = PetscSqrtReal(x*x+y*y);
+  CHKERRQ(VecScale(v,1.0/norm));
+  CHKERRQ(VecScale(w,1.0/norm));
 
   /* clean projected matrix (including the extra-arrow) */
-  ierr = DSGetArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-  ierr = PetscArrayzero(S,ld*ld);CHKERRQ(ierr);
-  ierr = DSRestoreArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+  CHKERRQ(DSGetArray(pep->ds,DS_MAT_A,&S));
+  CHKERRQ(PetscArrayzero(S,ld*ld));
+  CHKERRQ(DSRestoreArray(pep->ds,DS_MAT_A,&S));
 
    /* Restart loop */
   l = 0;
@@ -254,62 +249,62 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
-    ierr = DSGetArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = PEPQArnoldi(pep,S,ld,pep->nconv+l,&nv,v,w,&beta,&breakdown,work);CHKERRQ(ierr);
-    ierr = DSRestoreArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
-    ierr = DSSetState(pep->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,pep->nconv,nv);CHKERRQ(ierr);
+    CHKERRQ(DSGetArray(pep->ds,DS_MAT_A,&S));
+    CHKERRQ(PEPQArnoldi(pep,S,ld,pep->nconv+l,&nv,v,w,&beta,&breakdown,work));
+    CHKERRQ(DSRestoreArray(pep->ds,DS_MAT_A,&S));
+    CHKERRQ(DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l));
+    CHKERRQ(DSSetState(pep->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE));
+    CHKERRQ(BVSetActiveColumns(pep->V,pep->nconv,nv));
 
     /* Solve projected problem */
-    ierr = DSSolve(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
-    ierr = DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSUpdateExtraRow(pep->ds);CHKERRQ(ierr);
-    ierr = DSSynchronize(pep->ds,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    CHKERRQ(DSSolve(pep->ds,pep->eigr,pep->eigi));
+    CHKERRQ(DSSort(pep->ds,pep->eigr,pep->eigi,NULL,NULL,NULL));
+    CHKERRQ(DSUpdateExtraRow(pep->ds));
+    CHKERRQ(DSSynchronize(pep->ds,pep->eigr,pep->eigi));
 
     /* Check convergence */
-    ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k);CHKERRQ(ierr);
-    ierr = (*pep->stopping)(pep,pep->its,pep->max_it,k,pep->nev,&pep->reason,pep->stoppingctx);CHKERRQ(ierr);
+    CHKERRQ(PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k));
+    CHKERRQ((*pep->stopping)(pep,pep->its,pep->max_it,k,pep->nev,&pep->reason,pep->stoppingctx));
     nconv = k;
 
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;
     else {
       l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
-      ierr = DSGetTruncateSize(pep->ds,k,nv,&l);CHKERRQ(ierr);
+      CHKERRQ(DSGetTruncateSize(pep->ds,k,nv,&l));
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
-    if (l) { ierr = PetscInfo(pep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) CHKERRQ(PetscInfo(pep,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
 
     if (pep->reason == PEP_CONVERGED_ITERATING) {
       if (PetscUnlikely(breakdown)) {
         /* Stop if breakdown */
-        ierr = PetscInfo(pep,"Breakdown Quadratic Arnoldi method (it=%" PetscInt_FMT " norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
+        CHKERRQ(PetscInfo(pep,"Breakdown Quadratic Arnoldi method (it=%" PetscInt_FMT " norm=%g)\n",pep->its,(double)beta));
         pep->reason = PEP_DIVERGED_BREAKDOWN;
       } else {
         /* Prepare the Rayleigh quotient for restart */
-        ierr = DSTruncate(pep->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
+        CHKERRQ(DSTruncate(pep->ds,k+l,PETSC_FALSE));
       }
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = DSGetMat(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = BVMultInPlace(pep->V,Q,pep->nconv,k+l);CHKERRQ(ierr);
-    ierr = MatDestroy(&Q);CHKERRQ(ierr);
+    CHKERRQ(DSGetMat(pep->ds,DS_MAT_Q,&Q));
+    CHKERRQ(BVMultInPlace(pep->V,Q,pep->nconv,k+l));
+    CHKERRQ(MatDestroy(&Q));
 
     pep->nconv = k;
-    ierr = PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
+    CHKERRQ(PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv));
   }
-  ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
+  CHKERRQ(BVSetActiveColumns(pep->V,0,pep->nconv));
   for (j=0;j<pep->nconv;j++) {
     pep->eigr[j] *= pep->sfactor;
     pep->eigi[j] *= pep->sfactor;
   }
 
-  ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
-  ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
+  CHKERRQ(STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor));
+  CHKERRQ(RGPopScale(pep->rg));
 
-  ierr = DSTruncate(pep->ds,pep->nconv,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscFree(work);CHKERRQ(ierr);
+  CHKERRQ(DSTruncate(pep->ds,pep->nconv,PETSC_TRUE));
+  CHKERRQ(PetscFree(work));
   PetscFunctionReturn(0);
 }
 
@@ -349,12 +344,10 @@ static PetscErrorCode PEPQArnoldiSetRestart_QArnoldi(PEP pep,PetscReal keep)
 @*/
 PetscErrorCode PEPQArnoldiSetRestart(PEP pep,PetscReal keep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,keep,2);
-  ierr = PetscTryMethod(pep,"PEPQArnoldiSetRestart_C",(PEP,PetscReal),(pep,keep));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(pep,"PEPQArnoldiSetRestart_C",(PEP,PetscReal),(pep,keep)));
   PetscFunctionReturn(0);
 }
 
@@ -384,12 +377,10 @@ static PetscErrorCode PEPQArnoldiGetRestart_QArnoldi(PEP pep,PetscReal *keep)
 @*/
 PetscErrorCode PEPQArnoldiGetRestart(PEP pep,PetscReal *keep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidRealPointer(keep,2);
-  ierr = PetscUseMethod(pep,"PEPQArnoldiGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(pep,"PEPQArnoldiGetRestart_C",(PEP,PetscReal*),(pep,keep)));
   PetscFunctionReturn(0);
 }
 
@@ -427,12 +418,10 @@ static PetscErrorCode PEPQArnoldiSetLocking_QArnoldi(PEP pep,PetscBool lock)
 @*/
 PetscErrorCode PEPQArnoldiSetLocking(PEP pep,PetscBool lock)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,lock,2);
-  ierr = PetscTryMethod(pep,"PEPQArnoldiSetLocking_C",(PEP,PetscBool),(pep,lock));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(pep,"PEPQArnoldiSetLocking_C",(PEP,PetscBool),(pep,lock)));
   PetscFunctionReturn(0);
 }
 
@@ -462,69 +451,62 @@ static PetscErrorCode PEPQArnoldiGetLocking_QArnoldi(PEP pep,PetscBool *lock)
 @*/
 PetscErrorCode PEPQArnoldiGetLocking(PEP pep,PetscBool *lock)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(lock,2);
-  ierr = PetscUseMethod(pep,"PEPQArnoldiGetLocking_C",(PEP,PetscBool*),(pep,lock));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(pep,"PEPQArnoldiGetLocking_C",(PEP,PetscBool*),(pep,lock)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
-  PetscErrorCode ierr;
   PetscBool      flg,lock;
   PetscReal      keep;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"PEP Q-Arnoldi Options");CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"PEP Q-Arnoldi Options"));
 
-    ierr = PetscOptionsReal("-pep_qarnoldi_restart","Proportion of vectors kept after restart","PEPQArnoldiSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPQArnoldiSetRestart(pep,keep);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsReal("-pep_qarnoldi_restart","Proportion of vectors kept after restart","PEPQArnoldiSetRestart",0.5,&keep,&flg));
+    if (flg) CHKERRQ(PEPQArnoldiSetRestart(pep,keep));
 
-    ierr = PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPQArnoldiSetLocking(pep,lock);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_FALSE,&lock,&flg));
+    if (flg) CHKERRQ(PEPQArnoldiSetLocking(pep,lock));
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep)));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-"));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFree(pep->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetLocking_C",NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(pep->data));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetLocking_C",NULL));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
 {
   PEP_QARNOLDI   *ctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscNewLog(pep,&ctx));
   pep->data = (void*)ctx;
 
   pep->lineariz = PETSC_TRUE;
@@ -540,10 +522,9 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
   pep->ops->extractvectors = PEPExtractVectors_QArnoldi;
   pep->ops->setdefaultst   = PEPSetDefaultST_Transform;
 
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",PEPQArnoldiSetRestart_QArnoldi);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",PEPQArnoldiGetRestart_QArnoldi);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",PEPQArnoldiSetLocking_QArnoldi);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetLocking_C",PEPQArnoldiGetLocking_QArnoldi);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",PEPQArnoldiSetRestart_QArnoldi));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",PEPQArnoldiGetRestart_QArnoldi));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",PEPQArnoldiSetLocking_QArnoldi));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetLocking_C",PEPQArnoldiGetLocking_QArnoldi));
   PetscFunctionReturn(0);
 }
-

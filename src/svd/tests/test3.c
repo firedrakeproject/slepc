@@ -41,85 +41,85 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&M,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD of a rectangular Grcar matrix, %" PetscInt_FMT "x%" PetscInt_FMT "\n\n",N,M);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&M,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSVD of a rectangular Grcar matrix, %" PetscInt_FMT "x%" PetscInt_FMT "\n\n",N,M));
+  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,M);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,M));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
     if (i==0) {
-      ierr = MatSetValues(A,1,&i,PetscMin(4,M-i+1),col+1,value+1,INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(MatSetValues(A,1,&i,PetscMin(4,M-i+1),col+1,value+1,INSERT_VALUES));
     } else {
-      ierr = MatSetValues(A,1,&i,PetscMin(5,M-i+1),col,value,INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,M-i+1),col,value,INSERT_VALUES));
     }
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the SVD context and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
+  CHKERRQ(SVDSetOperators(svd,A,NULL));
+  CHKERRQ(SVDSetFromOptions(svd));
 
   /*
      Set the initial vectors. This is optional, if not done the initial
      vectors are set to random values
   */
-  ierr = MatCreateVecs(A,&v0,&w0);CHKERRQ(ierr);
-  ierr = VecSet(v0,1.0);CHKERRQ(ierr);
-  ierr = VecSet(w0,1.0);CHKERRQ(ierr);
-  ierr = SVDSetInitialSpaces(svd,1,&v0,1,&w0);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(A,&v0,&w0));
+  CHKERRQ(VecSet(v0,1.0));
+  CHKERRQ(VecSet(w0,1.0));
+  CHKERRQ(SVDSetInitialSpaces(svd,1,&v0,1,&w0));
 
   /*
      Compute solution
   */
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  CHKERRQ(SVDSolve(svd));
+  CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
 
   /*
      Check orthonormality of computed singular vectors
   */
-  ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
+  CHKERRQ(SVDGetConverged(svd,&nconv));
   if (nconv>1) {
-    ierr = VecDuplicateVecs(w0,nconv,&U);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(v0,nconv,&V);CHKERRQ(ierr);
+    CHKERRQ(VecDuplicateVecs(w0,nconv,&U));
+    CHKERRQ(VecDuplicateVecs(v0,nconv,&V));
     for (i=0;i<nconv;i++) {
-      ierr = SVDGetSingularTriplet(svd,i,NULL,U[i],V[i]);CHKERRQ(ierr);
+      CHKERRQ(SVDGetSingularTriplet(svd,i,NULL,U[i],V[i]));
     }
     if (!skiporth) {
-      ierr = VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1);CHKERRQ(ierr);
-      ierr = VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2);CHKERRQ(ierr);
+      CHKERRQ(VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1));
+      CHKERRQ(VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2));
     }
     if (lev1+lev2<20*tol) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n");CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
     } else {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2));
     }
-    ierr = VecDestroyVecs(nconv,&U);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(nconv,&V);CHKERRQ(ierr);
+    CHKERRQ(VecDestroyVecs(nconv,&U));
+    CHKERRQ(VecDestroyVecs(nconv,&V));
   }
 
   /*
      Free work space
   */
-  ierr = VecDestroy(&v0);CHKERRQ(ierr);
-  ierr = VecDestroy(&w0);CHKERRQ(ierr);
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  CHKERRQ(VecDestroy(&v0));
+  CHKERRQ(VecDestroy(&w0));
+  CHKERRQ(SVDDestroy(&svd));
+  CHKERRQ(MatDestroy(&A));
   ierr = SlepcFinalize();
   return ierr;
 }

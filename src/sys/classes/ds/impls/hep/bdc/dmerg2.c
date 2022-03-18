@@ -196,7 +196,6 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
   PetscBLASInt   spneed, coltyp, tmpcut, i__1, i__2, one=1, mone=-1;
   char           defl[1];
   PetscReal      done = 1.0, dzero = 0.0;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   *info = 0;
@@ -295,10 +294,9 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
   /* call DSRTDF for deflation */
 
-  ierr = BDC_dsrtdf_(&k, n, n1, ev, q, ldq, indxq, rho, &work[iz],
+  CHKERRQ(BDC_dsrtdf_(&k, n, n1, ev, q, ldq, indxq, rho, &work[iz],
           &work[idlmda], &work[iw], &work[iq2], &iwork[indx],
-          &iwork[indxc], &iwork[indxp], &iwork[coltyp], tol, &dz, &de, info);
-          CHKERRQ(ierr);
+          &iwork[indxc], &iwork[indxp], &iwork[coltyp], tol, &dz, &de, info));
   PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_LIB,"dmerg2: error in dsrtdf, info = %" PetscBLASInt_FMT,*info);
 
   if (k < n) {
@@ -333,9 +331,9 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
     /* calling DLAED3M for solving the secular equation. */
 
-    ierr = BDC_dlaed3m_(jobz, defl, k, n, tmpcut, ev, q, ldq,
+    CHKERRQ(BDC_dlaed3m_(jobz, defl, k, n, tmpcut, ev, q, ldq,
                 *rho, &work[idlmda], &work[iq2], &iwork[indxc], &iwork[coltyp],
-                &work[iw], &work[is], info, 1, 1);CHKERRQ(ierr);
+                &work[iw], &work[is], info, 1, 1));
     PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_LIB,"dmerg2: error in dlaed3m, info = %" PetscBLASInt_FMT,*info);
 
     /* Prepare the INDXQ sorting permutation. */
@@ -353,4 +351,3 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
   }
   PetscFunctionReturn(0);
 }
-

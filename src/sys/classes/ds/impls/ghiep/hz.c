@@ -66,7 +66,6 @@ static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,Pet
 
 static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,PetscReal dt,PetscReal *aa,PetscReal *bb,PetscReal *dd,PetscScalar *uu,PetscInt n,PetscInt ld,PetscBool *flag)
 {
-  PetscErrorCode ierr;
   PetscBLASInt   one=1;
   PetscInt       k,jj,ii;
   PetscBLASInt   n_;
@@ -78,7 +77,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
   PetscFunctionBegin;
   *flag = PETSC_FALSE;
   worstcond = 1.0;
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(n,&n_));
 
   /* Build initial bulge that sets step in motion */
   bulge10 = dd[ntop+1]*(aa[ntop]*(aa[ntop] - dd[ntop]*tr) + dt*dd[ntop]*dd[ntop]) + dd[ntop]*bb[ntop]*bb[ntop];
@@ -127,7 +126,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         }
 
         /* Set up transforming matrix rot. */
-        ierr = UnifiedRotation(bulge20,bulge30,1,rot,&rcond,&swap);CHKERRQ(ierr);
+        CHKERRQ(UnifiedRotation(bulge20,bulge30,1,rot,&rcond,&swap));
 
         /* Apply transforming matrix rot to T. */
         bulge20 = rot[0]*bulge20 + rot[2]*bulge30;
@@ -154,7 +153,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 
         /* Begin by setting up transforming matrix rot */
         sygn = dd[jj]*dd[jj+1];
-        ierr = UnifiedRotation(bulge10,bulge20,sygn,rot,&rcond,&swap);CHKERRQ(ierr);
+        CHKERRQ(UnifiedRotation(bulge10,bulge20,sygn,rot,&rcond,&swap));
         if (rcond<PETSC_MACHINE_EPSILON) {
           *flag = PETSC_TRUE;
           PetscFunctionReturn(0);
@@ -223,7 +222,6 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 
 static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa,PetscReal *bb,PetscReal *dd,PetscScalar *uu,PetscBLASInt ld)
 {
-  PetscErrorCode ierr;
   PetscBLASInt   j2,one=1;
   PetscInt       its,nits,nstop,jj,ntop,nbot,ntry;
   PetscReal      htr,det,dis,dif,tn,kt,c,s,tr,dt;
@@ -275,7 +273,7 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
       tr = aa[nbot-1]*dd[nbot-1] + aa[nbot]*dd[nbot];
       dt = dd[nbot-1]*dd[nbot]*(aa[nbot-1]*aa[nbot]-bb[nbot-1]*bb[nbot-1]);
       for (ntry=1;ntry<=6;ntry++) {
-        ierr = HZStep(ntop,nbot+1,tr,dt,aa,bb,dd,uu,nn,ld,&flag);CHKERRQ(ierr);
+        CHKERRQ(HZStep(ntop,nbot+1,tr,dt,aa,bb,dd,uu,nn,ld,&flag));
         if (!flag) break;
         PetscCheck(ntry<6,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Unable to complete hz step after six tries");
         tr = 0.9*tr; dt = 0.81*dt;
@@ -287,7 +285,6 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
 
 PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscErrorCode ierr;
   PetscInt       i,off;
   PetscBLASInt   n1,ld = 0;
   PetscScalar    *A,*B,*Q;
@@ -297,7 +294,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidScalarPointer(wi,3);
 #endif
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(ds->ld,&ld));
   n1  = ds->n - ds->l;
   off = ds->l + ds->l*ld;
   A   = ds->mat[DS_MAT_A];
@@ -316,7 +313,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Quick return */
   if (n1 == 1) {
     for (i=0;i<=ds->l;i++) Q[i+i*ld] = 1.0;
-    ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);
+    CHKERRQ(DSGHIEPComplexEigs(ds,0,ds->l,wr,wi));
     if (ds->compact) {
       wr[ds->l] = d[ds->l]/s[ds->l]; wi[ds->l] = 0.0;
     } else {
@@ -326,16 +323,16 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscFunctionReturn(0);
   }
   /* Reduce to pseudotriadiagonal form */
-  ierr = DSIntermediate_GHIEP(ds);CHKERRQ(ierr);
-  ierr = HZIteration(ds->n,ds->l,d,e,s,Q,ld);CHKERRQ(ierr);
+  CHKERRQ(DSIntermediate_GHIEP(ds));
+  CHKERRQ(HZIteration(ds->n,ds->l,d,e,s,Q,ld));
   if (!ds->compact) {
-    ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(DSSwitchFormat_GHIEP(ds,PETSC_FALSE));
   }
   /* Undo from diagonal the blocks with real eigenvalues*/
-  ierr = DSGHIEPRealBlocks(ds);CHKERRQ(ierr);
+  CHKERRQ(DSGHIEPRealBlocks(ds));
 
   /* Recover eigenvalues from diagonal */
-  ierr = DSGHIEPComplexEigs(ds,0,ds->n,wr,wi);CHKERRQ(ierr);
+  CHKERRQ(DSGHIEPComplexEigs(ds,0,ds->n,wr,wi));
 #if defined(PETSC_USE_COMPLEX)
   if (wi) {
     for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;
@@ -344,4 +341,3 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   ds->t = ds->n;
   PetscFunctionReturn(0);
 }
-

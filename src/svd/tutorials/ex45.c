@@ -30,46 +30,46 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n = m;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-p",&p,&flg);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT "\n\n",m,p,n);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-p",&p,&flg));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT "\n\n",m,p,n));
+  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                           Build the matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0 && i-1<n) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i+1<n) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n) { ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>n) { ierr = MatSetValue(A,i,n-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i>0 && i-1<n) CHKERRQ(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i+1<n) CHKERRQ(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    if (i<n) CHKERRQ(MatSetValue(A,i,i,2.0,INSERT_VALUES));
+    if (i>n) CHKERRQ(MatSetValue(A,i,n-1,1.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-  ierr = MatSetUp(B);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
+  CHKERRQ(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
+  CHKERRQ(MatSetFromOptions(B));
+  CHKERRQ(MatSetUp(B));
 
-  ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
   d = PetscMax(0,n-p);
   for (i=Istart;i<Iend;i++) {
     for (j=0;j<=PetscMin(i,n-1);j++) {
-      ierr = MatSetValue(B,i,j+d,1.0,INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
     }
   }
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           Create the singular value solver and set various options
@@ -78,36 +78,36 @@ int main(int argc,char **argv)
   /*
      Create singular value solver context
   */
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
+  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
 
   /*
      Set operators and problem type
   */
-  ierr = SVDSetOperators(svd,A,B);CHKERRQ(ierr);
-  ierr = SVDSetProblemType(svd,SVD_GENERALIZED);CHKERRQ(ierr);
+  CHKERRQ(SVDSetOperators(svd,A,B));
+  CHKERRQ(SVDSetProblemType(svd,SVD_GENERALIZED));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  CHKERRQ(SVDSetFromOptions(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the singular value system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDGetIterationNumber(svd,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its);CHKERRQ(ierr);
+  CHKERRQ(SVDSolve(svd));
+  CHKERRQ(SVDGetIterationNumber(svd,&its));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = SVDGetType(svd,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = SVDGetDimensions(svd,&nsv,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %" PetscInt_FMT "\n",nsv);CHKERRQ(ierr);
-  ierr = SVDGetTolerances(svd,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
+  CHKERRQ(SVDGetType(svd,&type));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  CHKERRQ(SVDGetDimensions(svd,&nsv,NULL,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %" PetscInt_FMT "\n",nsv));
+  CHKERRQ(SVDGetTolerances(svd,&tol,&maxit));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -116,72 +116,72 @@ int main(int argc,char **argv)
   /*
      Get number of converged singular triplets
   */
-  ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate singular triplets: %" PetscInt_FMT "\n\n",nconv);CHKERRQ(ierr);
+  CHKERRQ(SVDGetConverged(svd,&nconv));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate singular triplets: %" PetscInt_FMT "\n\n",nconv));
 
   if (nconv>0) {
     /*
        Create vectors. The interface returns u and v as stacked on top of each other
        [u;v] so need to create a special vector (VecNest) to extract them
     */
-    ierr = MatCreateVecs(A,&x,&u);CHKERRQ(ierr);
-    ierr = MatCreateVecs(B,NULL,&v);CHKERRQ(ierr);
+    CHKERRQ(MatCreateVecs(A,&x,&u));
+    CHKERRQ(MatCreateVecs(B,NULL,&v));
     aux[0] = u;
     aux[1] = v;
-    ierr = VecCreateNest(PETSC_COMM_WORLD,2,NULL,aux,&uv);CHKERRQ(ierr);
+    CHKERRQ(VecCreateNest(PETSC_COMM_WORLD,2,NULL,aux,&uv));
 
-    ierr = VecDuplicateVecs(u,nconv,&U);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(v,nconv,&V);CHKERRQ(ierr);
+    CHKERRQ(VecDuplicateVecs(u,nconv,&U));
+    CHKERRQ(VecDuplicateVecs(v,nconv,&V));
 
     /*
        Display singular values and errors relative to the norms
     */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,
          "          sigma           ||r||/||[A;B]||\n"
-         "  --------------------- ------------------\n");CHKERRQ(ierr);
+         "  --------------------- ------------------\n"));
     for (i=0;i<nconv;i++) {
       /*
          Get converged singular triplets: i-th singular value is stored in sigma
       */
-      ierr = SVDGetSingularTriplet(svd,i,&sigma,uv,x);CHKERRQ(ierr);
+      CHKERRQ(SVDGetSingularTriplet(svd,i,&sigma,uv,x));
 
       /* at this point, u and v can be used normally as individual vectors */
-      ierr = VecCopy(u,U[i]);CHKERRQ(ierr);
-      ierr = VecCopy(v,V[i]);CHKERRQ(ierr);
+      CHKERRQ(VecCopy(u,U[i]));
+      CHKERRQ(VecCopy(v,V[i]));
 
       /*
          Compute the error associated to each singular triplet
       */
-      ierr = SVDComputeError(svd,i,SVD_ERROR_NORM,&error);CHKERRQ(ierr);
+      CHKERRQ(SVDComputeError(svd,i,SVD_ERROR_NORM,&error));
 
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",(double)sigma);CHKERRQ(ierr);
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   % 12g\n",(double)error);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",(double)sigma));
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   % 12g\n",(double)error));
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
     if (!skiporth) {
-      ierr = VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1);CHKERRQ(ierr);
-      ierr = VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2);CHKERRQ(ierr);
+      CHKERRQ(VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1));
+      CHKERRQ(VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2));
     }
     if (lev1+lev2<20*tol) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n");CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
     } else {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2));
     }
-    ierr = VecDestroyVecs(nconv,&U);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(nconv,&V);CHKERRQ(ierr);
-    ierr = VecDestroy(&x);CHKERRQ(ierr);
-    ierr = VecDestroy(&u);CHKERRQ(ierr);
-    ierr = VecDestroy(&v);CHKERRQ(ierr);
-    ierr = VecDestroy(&uv);CHKERRQ(ierr);
+    CHKERRQ(VecDestroyVecs(nconv,&U));
+    CHKERRQ(VecDestroyVecs(nconv,&V));
+    CHKERRQ(VecDestroy(&x));
+    CHKERRQ(VecDestroy(&u));
+    CHKERRQ(VecDestroy(&v));
+    CHKERRQ(VecDestroy(&uv));
   }
 
   /*
      Free work space
   */
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
+  CHKERRQ(SVDDestroy(&svd));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&B));
   ierr = SlepcFinalize();
   return ierr;
 }

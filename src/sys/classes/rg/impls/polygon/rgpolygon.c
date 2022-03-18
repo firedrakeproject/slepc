@@ -48,7 +48,6 @@ static PetscBool CheckSymmetry(PetscInt n,PetscScalar *vr,PetscScalar *vi)
 
 static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar *vr,PetscScalar *vi)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
 
@@ -59,15 +58,15 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
   PetscCheck(CheckSymmetry(n,vr,vi),PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
 #endif
   if (ctx->n) {
-    ierr = PetscFree(ctx->vr);CHKERRQ(ierr);
+    CHKERRQ(PetscFree(ctx->vr));
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = PetscFree(ctx->vi);CHKERRQ(ierr);
+    CHKERRQ(PetscFree(ctx->vi));
 #endif
   }
   ctx->n = n;
-  ierr = PetscMalloc1(n,&ctx->vr);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc1(n,&ctx->vr));
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc1(n,&ctx->vi);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc1(n,&ctx->vi));
 #endif
   for (i=0;i<n;i++) {
     ctx->vr[i] = vr[i];
@@ -110,8 +109,6 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
 @*/
 PetscErrorCode RGPolygonSetVertices(RG rg,PetscInt n,PetscScalar vr[],PetscScalar vi[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidLogicalCollectiveInt(rg,n,2);
@@ -119,13 +116,12 @@ PetscErrorCode RGPolygonSetVertices(RG rg,PetscInt n,PetscScalar vr[],PetscScala
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidScalarPointer(vi,4);
 #endif
-  ierr = PetscTryMethod(rg,"RGPolygonSetVertices_C",(RG,PetscInt,PetscScalar*,PetscScalar*),(rg,n,vr,vi));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(rg,"RGPolygonSetVertices_C",(RG,PetscInt,PetscScalar*,PetscScalar*),(rg,n,vr,vi)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar **vr,PetscScalar **vi)
 {
-  PetscErrorCode ierr;
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
   PetscInt       i;
 
@@ -134,7 +130,7 @@ static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar
   if (vr) {
     if (!ctx->n) *vr = NULL;
     else {
-      ierr = PetscMalloc1(ctx->n,vr);CHKERRQ(ierr);
+      CHKERRQ(PetscMalloc1(ctx->n,vr));
       for (i=0;i<ctx->n;i++) (*vr)[i] = ctx->vr[i];
     }
   }
@@ -142,7 +138,7 @@ static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar
   if (vi) {
     if (!ctx->n) *vi = NULL;
     else {
-      ierr = PetscMalloc1(ctx->n,vi);CHKERRQ(ierr);
+      CHKERRQ(PetscMalloc1(ctx->n,vi));
       for (i=0;i<ctx->n;i++) (*vi)[i] = ctx->vi[i];
     }
   }
@@ -174,17 +170,14 @@ static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar
 @*/
 PetscErrorCode RGPolygonGetVertices(RG rg,PetscInt *n,PetscScalar **vr,PetscScalar **vi)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = PetscUseMethod(rg,"RGPolygonGetVertices_C",(RG,PetscInt*,PetscScalar**,PetscScalar**),(rg,n,vr,vi));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(rg,"RGPolygonGetVertices_C",(RG,PetscInt*,PetscScalar**,PetscScalar**),(rg,n,vr,vi)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
   PetscBool      isdraw,isascii;
   int            winw,winh;
@@ -195,34 +188,34 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
   char           str[50];
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  vertices: ");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  vertices: "));
+    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     for (i=0;i<ctx->n;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      ierr = SlepcSNPrintfScalar(str,sizeof(str),ctx->vr[i],PETSC_FALSE);CHKERRQ(ierr);
+      CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->vr[i],PETSC_FALSE));
 #else
       if (ctx->vi[i]!=0.0) {
-        ierr = PetscSNPrintf(str,sizeof(str),"%g%+gi",(double)ctx->vr[i],(double)ctx->vi[i]);CHKERRQ(ierr);
+        CHKERRQ(PetscSNPrintf(str,sizeof(str),"%g%+gi",(double)ctx->vr[i],(double)ctx->vi[i]));
       } else {
-        ierr = PetscSNPrintf(str,sizeof(str),"%g",(double)ctx->vr[i]);CHKERRQ(ierr);
+        CHKERRQ(PetscSNPrintf(str,sizeof(str),"%g",(double)ctx->vr[i]));
       }
 #endif
-      ierr = PetscViewerASCIIPrintf(viewer,"%s%s",str,(i<ctx->n-1)?", ":"");CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s%s",str,(i<ctx->n-1)?", ":""));
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
+    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
   } else if (isdraw) {
-    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-    ierr = PetscDrawCheckResizedWindow(draw);CHKERRQ(ierr);
-    ierr = PetscDrawGetWindowSize(draw,&winw,&winh);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerDrawGetDraw(viewer,0,&draw));
+    CHKERRQ(PetscDrawCheckResizedWindow(draw));
+    CHKERRQ(PetscDrawGetWindowSize(draw,&winw,&winh));
     winw = PetscMax(winw,1); winh = PetscMax(winh,1);
-    ierr = PetscDrawClear(draw);CHKERRQ(ierr);
-    ierr = PetscDrawSetTitle(draw,"Polygonal region");CHKERRQ(ierr);
-    ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
-    ierr = RGComputeBoundingBox_Polygon(rg,&a,&b,&c,&d);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawClear(draw));
+    CHKERRQ(PetscDrawSetTitle(draw,"Polygonal region"));
+    CHKERRQ(PetscDrawAxisCreate(draw,&axis));
+    CHKERRQ(RGComputeBoundingBox_Polygon(rg,&a,&b,&c,&d));
     a *= rg->sfactor;
     b *= rg->sfactor;
     c *= rg->sfactor;
@@ -232,9 +225,9 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
     ab = (a+b)/2;
     cd = (c+d)/2;
     w  = scale*PetscMax(lx/winw,ly/winh)/2;
-    ierr = PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh);CHKERRQ(ierr);
-    ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
-    ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh));
+    CHKERRQ(PetscDrawAxisDraw(axis));
+    CHKERRQ(PetscDrawAxisDestroy(&axis));
     for (i=0;i<ctx->n;i++) {
 #if defined(PETSC_USE_COMPLEX)
       x0 = PetscRealPart(ctx->vr[i]); y0 = PetscImaginaryPart(ctx->vr[i]);
@@ -251,11 +244,11 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
         x1 = ctx->vr[0]; y1 = ctx->vi[0];
       }
 #endif
-      ierr = PetscDrawLine(draw,x0*rg->sfactor,y0*rg->sfactor,x1*rg->sfactor,y1*rg->sfactor,PETSC_DRAW_MAGENTA);CHKERRQ(ierr);
+      CHKERRQ(PetscDrawLine(draw,x0*rg->sfactor,y0*rg->sfactor,x1*rg->sfactor,y1*rg->sfactor,PETSC_DRAW_MAGENTA));
     }
-    ierr = PetscDrawFlush(draw);CHKERRQ(ierr);
-    ierr = PetscDrawSave(draw);CHKERRQ(ierr);
-    ierr = PetscDrawPause(draw);CHKERRQ(ierr);
+    CHKERRQ(PetscDrawFlush(draw));
+    CHKERRQ(PetscDrawSave(draw));
+    CHKERRQ(PetscDrawPause(draw));
   }
   PetscFunctionReturn(0);
 }
@@ -271,7 +264,6 @@ PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
 
 PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscScalar *uci)
 {
-  PetscErrorCode ierr;
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
   PetscReal      length,h,d,rem=0.0;
   PetscInt       k=1,idx=ctx->n-1,i;
@@ -286,8 +278,8 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscS
   length = SlepcAbsEigenvalue(ctx->vr[0]-ctx->vr[ctx->n-1],ctx->vi[0]-ctx->vi[ctx->n-1]);
   for (i=0;i<ctx->n-1;i++) length += SlepcAbsEigenvalue(ctx->vr[i]-ctx->vr[i+1],ctx->vi[i]-ctx->vi[i+1]);
   h = length/n;
-  if (!ucr) { ierr = PetscMalloc1(n,&cr);CHKERRQ(ierr); }
-  if (!uci) { ierr = PetscMalloc1(n,&ci);CHKERRQ(ierr); }
+  if (!ucr) CHKERRQ(PetscMalloc1(n,&cr));
+  if (!uci) CHKERRQ(PetscMalloc1(n,&ci));
   cr[0] = ctx->vr[0];
 #if !defined(PETSC_USE_COMPLEX)
   ci[0] = ctx->vi[0];
@@ -335,8 +327,8 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *ucr,PetscS
       } else {ini = PETSC_TRUE; idx--;}
     }
   }
-  if (!ucr) { ierr = PetscFree(cr);CHKERRQ(ierr); }
-  if (!uci) { ierr = PetscFree(ci);CHKERRQ(ierr); }
+  if (!ucr) CHKERRQ(PetscFree(cr));
+  if (!uci) CHKERRQ(PetscFree(ci));
   PetscFunctionReturn(0);
 }
 
@@ -406,7 +398,6 @@ PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *i
 
 PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG rg)
 {
-  PetscErrorCode ierr;
   PetscScalar    array[VERTMAX];
   PetscInt       i,k;
   PetscBool      flg,flgi=PETSC_FALSE;
@@ -418,48 +409,46 @@ PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG 
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"RG Polygon Options");CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"RG Polygon Options"));
 
     k = VERTMAX;
     for (i=0;i<k;i++) array[i] = 0;
-    ierr = PetscOptionsScalarArray("-rg_polygon_vertices","Vertices of polygon","RGPolygonSetVertices",array,&k,&flg);CHKERRQ(ierr);
+    CHKERRQ(PetscOptionsScalarArray("-rg_polygon_vertices","Vertices of polygon","RGPolygonSetVertices",array,&k,&flg));
 #if !defined(PETSC_USE_COMPLEX)
     ki = VERTMAX;
     for (i=0;i<ki;i++) arrayi[i] = 0;
-    ierr = PetscOptionsScalarArray("-rg_polygon_verticesi","Vertices of polygon (imaginary part)","RGPolygonSetVertices",arrayi,&ki,&flgi);CHKERRQ(ierr);
+    CHKERRQ(PetscOptionsScalarArray("-rg_polygon_verticesi","Vertices of polygon (imaginary part)","RGPolygonSetVertices",arrayi,&ki,&flgi));
     PetscCheck(ki==k,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"The number of real %" PetscInt_FMT " and imaginary %" PetscInt_FMT " parts do not match",k,ki);
 #endif
-    if (flg || flgi) { ierr = RGPolygonSetVertices(rg,k,array,arrayi);CHKERRQ(ierr); }
+    if (flg || flgi) CHKERRQ(RGPolygonSetVertices(rg,k,array,arrayi));
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode RGDestroy_Polygon(RG rg)
 {
-  PetscErrorCode ierr;
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
 
   PetscFunctionBegin;
   if (ctx->n) {
-    ierr = PetscFree(ctx->vr);CHKERRQ(ierr);
+    CHKERRQ(PetscFree(ctx->vr));
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = PetscFree(ctx->vi);CHKERRQ(ierr);
+    CHKERRQ(PetscFree(ctx->vi));
 #endif
   }
-  ierr = PetscFree(rg->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGPolygonSetVertices_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGPolygonGetVertices_C",NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(rg->data));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGPolygonSetVertices_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGPolygonGetVertices_C",NULL));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
 {
   RG_POLYGON     *polygon;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(rg,&polygon);CHKERRQ(ierr);
+  CHKERRQ(PetscNewLog(rg,&polygon));
   rg->data = (void*)polygon;
 
   rg->ops->istrivial      = RGIsTrivial_Polygon;
@@ -469,8 +458,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
   rg->ops->setfromoptions = RGSetFromOptions_Polygon;
   rg->ops->view           = RGView_Polygon;
   rg->ops->destroy        = RGDestroy_Polygon;
-  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGPolygonSetVertices_C",RGPolygonSetVertices_Polygon);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)rg,"RGPolygonGetVertices_C",RGPolygonGetVertices_Polygon);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGPolygonSetVertices_C",RGPolygonSetVertices_Polygon));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGPolygonGetVertices_C",RGPolygonGetVertices_Polygon));
   PetscFunctionReturn(0);
 }
-

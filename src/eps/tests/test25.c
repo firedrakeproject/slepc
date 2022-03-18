@@ -28,35 +28,35 @@ int main(int argc,char **argv)
   PetscErrorCode    ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGNHEP problem with contour integral\n\n");CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGNHEP problem with contour integral\n\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
   PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name for matrix A with the -f1 option");
 
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n");CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n"));
 #else
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n");CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n"));
 #endif
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatLoad(A,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatLoad(A,viewer));
+  CHKERRQ(PetscViewerDestroy(&viewer));
 
-  ierr = PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
   if (flg) {
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-    ierr = MatLoad(B,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
+    CHKERRQ(MatSetFromOptions(B));
+    CHKERRQ(MatLoad(B,viewer));
+    CHKERRQ(PetscViewerDestroy(&viewer));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n"));
     B = NULL;
   }
 
@@ -64,38 +64,38 @@ int main(int argc,char **argv)
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,1e-9,PETSC_DEFAULT);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  CHKERRQ(EPSSetOperators(eps,A,B));
+  CHKERRQ(EPSSetProblemType(eps,EPS_GNHEP));
+  CHKERRQ(EPSSetTolerances(eps,1e-9,PETSC_DEFAULT));
 
   /* set CISS solver with various options */
-  ierr = EPSSetType(eps,EPSCISS);CHKERRQ(ierr);
-  ierr = EPSCISSSetExtraction(eps,EPS_CISS_EXTRACTION_HANKEL);CHKERRQ(ierr);
-  ierr = EPSCISSSetQuadRule(eps,EPS_CISS_QUADRULE_CHEBYSHEV);CHKERRQ(ierr);
-  ierr = EPSCISSSetUseST(eps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = EPSGetRG(eps,&rg);CHKERRQ(ierr);
-  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-  ierr = RGIntervalSetEndpoints(rg,-3000.0,0.0,0.0,0.0);CHKERRQ(ierr);
+  CHKERRQ(EPSSetType(eps,EPSCISS));
+  CHKERRQ(EPSCISSSetExtraction(eps,EPS_CISS_EXTRACTION_HANKEL));
+  CHKERRQ(EPSCISSSetQuadRule(eps,EPS_CISS_QUADRULE_CHEBYSHEV));
+  CHKERRQ(EPSCISSSetUseST(eps,PETSC_TRUE));
+  CHKERRQ(EPSGetRG(eps,&rg));
+  CHKERRQ(RGSetType(rg,RGINTERVAL));
+  CHKERRQ(RGIntervalSetEndpoints(rg,-3000.0,0.0,0.0,0.0));
 
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSSetFromOptions(eps));
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps,EPSCISS,&flg);CHKERRQ(ierr);
+  CHKERRQ(EPSSolve(eps));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps,EPSCISS,&flg));
   if (flg) {
-    ierr = EPSCISSGetExtraction(eps,&extr);CHKERRQ(ierr);
-    ierr = EPSCISSGetQuadRule(eps,&quad);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Solved with CISS using %s extraction with %s quadrature rule\n\n",EPSCISSExtractions[extr],EPSCISSQuadRules[quad]);CHKERRQ(ierr);
+    CHKERRQ(EPSCISSGetExtraction(eps,&extr));
+    CHKERRQ(EPSCISSGetQuadRule(eps,&quad));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solved with CISS using %s extraction with %s quadrature rule\n\n",EPSCISSExtractions[extr],EPSCISSQuadRules[quad]));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSErrorView(eps,EPS_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
+  CHKERRQ(EPSErrorView(eps,EPS_ERROR_BACKWARD,NULL));
+  CHKERRQ(EPSDestroy(&eps));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&B));
   ierr = SlepcFinalize();
   return ierr;
 }

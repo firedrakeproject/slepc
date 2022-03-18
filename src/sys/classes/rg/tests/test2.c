@@ -16,7 +16,6 @@ static char help[] = "Test the ring region.\n\n";
 
 PetscErrorCode CheckPoint(RG rg,PetscReal re,PetscReal im)
 {
-  PetscErrorCode ierr;
   PetscInt       inside;
   PetscScalar    ar,ai;
 
@@ -26,8 +25,8 @@ PetscErrorCode CheckPoint(RG rg,PetscReal re,PetscReal im)
 #else
   ar = re; ai = im;
 #endif
-  ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+  CHKERRQ(RGCheckInside(rg,1,&ar,&ai,&inside));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
   PetscFunctionReturn(0);
 }
 
@@ -42,30 +41,30 @@ int main(int argc,char **argv)
   PetscScalar    center,cr[NPOINTS],ci[NPOINTS];
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
+  CHKERRQ(RGCreate(PETSC_COMM_WORLD,&rg));
 
-  ierr = RGSetType(rg,RGRING);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  CHKERRQ(RGSetType(rg,RGRING));
+  CHKERRQ(RGIsTrivial(rg,&triv));
   PetscCheck(triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be trivial before setting parameters");
-  ierr = RGRingSetParameters(rg,2,PETSC_DEFAULT,0.5,0.25,0.75,0.1);CHKERRQ(ierr);
-  ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  CHKERRQ(RGRingSetParameters(rg,2,PETSC_DEFAULT,0.5,0.25,0.75,0.1));
+  CHKERRQ(RGSetFromOptions(rg));
+  CHKERRQ(RGIsTrivial(rg,&triv));
   PetscCheck(!triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be non-trivial after setting parameters");
-  ierr = RGView(rg,NULL);CHKERRQ(ierr);
-  ierr = RGViewFromOptions(rg,NULL,"-rg_view");CHKERRQ(ierr);
+  CHKERRQ(RGView(rg,NULL));
+  CHKERRQ(RGViewFromOptions(rg,NULL,"-rg_view"));
 
-  ierr = RGGetType(rg,&rtype);CHKERRQ(ierr);
-  ierr = RGRingGetParameters(rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"%s region: \n  center=%g, radius=%g, vscale=%g\n  start angle=%g, end angle=%g, width=%g\n\n",rtype,(double)PetscRealPart(center),(double)radius,(double)vscale,(double)start_ang,(double)end_ang,(double)width);
+  CHKERRQ(RGGetType(rg,&rtype));
+  CHKERRQ(RGRingGetParameters(rg,&center,&radius,&vscale,&start_ang,&end_ang,&width));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%s region: \n  center=%g, radius=%g, vscale=%g\n  start angle=%g, end angle=%g, width=%g\n\n",rtype,(double)PetscRealPart(center),(double)radius,(double)vscale,(double)start_ang,(double)end_ang,(double)width));
 
-  ierr = CheckPoint(rg,3.0,0.3);CHKERRQ(ierr);
-  ierr = CheckPoint(rg,1.1747,0.28253);CHKERRQ(ierr);
+  CHKERRQ(CheckPoint(rg,3.0,0.3));
+  CHKERRQ(CheckPoint(rg,1.1747,0.28253));
 
-  ierr = RGComputeBoundingBox(rg,&a,&b,&c,&d);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
+  CHKERRQ(RGComputeBoundingBox(rg,&a,&b,&c,&d));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
-  ierr = RGComputeContour(rg,NPOINTS,cr,ci);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
+  CHKERRQ(RGComputeContour(rg,NPOINTS,cr,ci));
   for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
@@ -74,11 +73,11 @@ int main(int argc,char **argv)
     re = cr[i];
     im = ci[i];
 #endif
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
   }
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
-  ierr = RGDestroy(&rg);CHKERRQ(ierr);
+  CHKERRQ(RGDestroy(&rg));
   ierr = SlepcFinalize();
   return ierr;
 }

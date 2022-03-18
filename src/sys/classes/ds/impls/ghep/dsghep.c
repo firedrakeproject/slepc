@@ -13,30 +13,27 @@
 
 PetscErrorCode DSAllocate_GHEP(DS ds,PetscInt ld)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr);
-  ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr);
-  ierr = DSAllocateMat_Private(ds,DS_MAT_Q);CHKERRQ(ierr);
-  ierr = PetscFree(ds->perm);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ld,&ds->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt));CHKERRQ(ierr);
+  CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_A));
+  CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_B));
+  CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_Q));
+  CHKERRQ(PetscFree(ds->perm));
+  CHKERRQ(PetscMalloc1(ld,&ds->perm));
+  CHKERRQ(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
 {
-  PetscErrorCode    ierr;
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerGetFormat(viewer,&format));
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
-  ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
-  ierr = DSViewMat(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
-  if (ds->state>DS_STATE_INTERMEDIATE) { ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr); }
-  if (ds->mat[DS_MAT_X]) { ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr); }
+  CHKERRQ(DSViewMat(ds,viewer,DS_MAT_A));
+  CHKERRQ(DSViewMat(ds,viewer,DS_MAT_B));
+  if (ds->state>DS_STATE_INTERMEDIATE) CHKERRQ(DSViewMat(ds,viewer,DS_MAT_Q));
+  if (ds->mat[DS_MAT_X]) CHKERRQ(DSViewMat(ds,viewer,DS_MAT_X));
   PetscFunctionReturn(0);
 }
 
@@ -44,7 +41,6 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscScalar    *Q = ds->mat[DS_MAT_Q];
   PetscInt       ld = ds->ld;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscCheck(!rnorm,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
@@ -53,16 +49,16 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     case DS_MAT_Y:
       if (j) {
         if (ds->state>=DS_STATE_CONDENSED) {
-          ierr = PetscArraycpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld);CHKERRQ(ierr);
+          CHKERRQ(PetscArraycpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld));
         } else {
-          ierr = PetscArrayzero(ds->mat[mat]+(*j)*ld,ld);CHKERRQ(ierr);
+          CHKERRQ(PetscArrayzero(ds->mat[mat]+(*j)*ld,ld));
           *(ds->mat[mat]+(*j)+(*j)*ld) = 1.0;
         }
       } else {
         if (ds->state>=DS_STATE_CONDENSED) {
-          ierr = PetscArraycpy(ds->mat[mat],Q,ld*ld);CHKERRQ(ierr);
+          CHKERRQ(PetscArraycpy(ds->mat[mat],Q,ld*ld));
         } else {
-          ierr = DSSetIdentity(ds,mat);CHKERRQ(ierr);
+          CHKERRQ(DSSetIdentity(ds,mat));
         }
       }
       break;
@@ -77,7 +73,6 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 
 PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
-  PetscErrorCode ierr;
   PetscInt       n,l,i,*perm,ld=ds->ld;
   PetscScalar    *A;
 
@@ -89,19 +84,18 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   perm = ds->perm;
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
   if (rr) {
-    ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
   } else {
-    ierr = DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE);CHKERRQ(ierr);
+    CHKERRQ(DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE));
   }
   for (i=l;i<n;i++) A[i+i*ld] = wr[perm[i]];
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
-  ierr = DSPermuteColumns_Private(ds,l,n,n,DS_MAT_Q,perm);CHKERRQ(ierr);
+  CHKERRQ(DSPermuteColumns_Private(ds,l,n,n,DS_MAT_Q,perm));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscErrorCode ierr;
   PetscScalar    *work,*A,*B,*Q;
   PetscBLASInt   itype = 1,*iwork,info,n1,liwork,ld,lrwork=0,lwork;
   PetscInt       off,i;
@@ -110,16 +104,16 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(5*ds->n+3,&liwork);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(ds->n-ds->l,&n1));
+  CHKERRQ(PetscBLASIntCast(ds->ld,&ld));
+  CHKERRQ(PetscBLASIntCast(5*ds->n+3,&liwork));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscBLASIntCast(ds->n*ds->n+2*ds->n,&lwork);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(2*ds->n*ds->n+5*ds->n+1+n1,&lrwork);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(ds->n*ds->n+2*ds->n,&lwork));
+  CHKERRQ(PetscBLASIntCast(2*ds->n*ds->n+5*ds->n+1+n1,&lrwork));
 #else
-  ierr = PetscBLASIntCast(2*ds->n*ds->n+6*ds->n+1,&lwork);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(2*ds->n*ds->n+6*ds->n+1,&lwork));
 #endif
-  ierr = DSAllocateWork_Private(ds,lwork,lrwork,liwork);CHKERRQ(ierr);
+  CHKERRQ(DSAllocateWork_Private(ds,lwork,lrwork,liwork));
   work = ds->work;
   iwork = ds->iwork;
   off = ds->l+ds->l*ld;
@@ -136,12 +130,12 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCallBLAS("LAPACKsygvd",LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,wr+ds->l,work,&lwork,iwork,&liwork,&info));
 #endif
   SlepcCheckLapackInfo("sygvd",info);
-  ierr = PetscArrayzero(Q+ds->l*ld,n1*ld);CHKERRQ(ierr);
+  CHKERRQ(PetscArrayzero(Q+ds->l*ld,n1*ld));
   for (i=ds->l;i<ds->n;i++) {
-    ierr = PetscArraycpy(Q+ds->l+i*ld,A+ds->l+i*ld,n1);CHKERRQ(ierr);
+    CHKERRQ(PetscArraycpy(Q+ds->l+i*ld,A+ds->l+i*ld,n1));
   }
-  ierr = PetscArrayzero(B+ds->l*ld,n1*ld);CHKERRQ(ierr);
-  ierr = PetscArrayzero(A+ds->l*ld,n1*ld);CHKERRQ(ierr);
+  CHKERRQ(PetscArrayzero(B+ds->l*ld,n1*ld));
+  CHKERRQ(PetscArrayzero(A+ds->l*ld,n1*ld));
   for (i=ds->l;i<ds->n;i++) {
     if (wi) wi[i] = 0.0;
     B[i+i*ld] = 1.0;
@@ -152,7 +146,6 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
 PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
-  PetscErrorCode ierr;
   PetscInt       ld=ds->ld,l=ds->l,k;
   PetscMPIInt    n,rank,off=0,size,ldn;
 
@@ -160,30 +153,30 @@ PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   k = 2*(ds->n-l)*ld;
   if (ds->state>DS_STATE_RAW) k += (ds->n-l)*ld;
   if (eigr) k += (ds->n-l);
-  ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
-  ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
-  ierr = PetscMPIIntCast(ds->n-l,&n);CHKERRQ(ierr);
-  ierr = PetscMPIIntCast(ld*(ds->n-l),&ldn);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank);CHKERRMPI(ierr);
+  CHKERRQ(DSAllocateWork_Private(ds,k,0,0));
+  CHKERRQ(PetscMPIIntCast(k*sizeof(PetscScalar),&size));
+  CHKERRQ(PetscMPIIntCast(ds->n-l,&n));
+  CHKERRQ(PetscMPIIntCast(ld*(ds->n-l),&ldn));
+  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    ierr = MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-    ierr = MPI_Pack(ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+    CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) {
-      ierr = MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     }
     if (eigr) {
-      ierr = MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     }
   }
-  ierr = MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-    ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+    CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) {
-      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     }
     if (eigr) {
-      ierr = MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+      CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     }
   }
   PetscFunctionReturn(0);
@@ -232,4 +225,3 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
   ds->ops->hermitian     = DSHermitian_GHEP;
   PetscFunctionReturn(0);
 }
-

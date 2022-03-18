@@ -26,79 +26,79 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type PEP - n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type PEP - n=%" PetscInt_FMT ".\n",n));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
 
   /* Create DS object */
-  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
-  ierr = DSSetType(ds,DSPEP);CHKERRQ(ierr);
-  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
-  ierr = DSPEPSetDegree(ds,d);CHKERRQ(ierr);
+  CHKERRQ(DSCreate(PETSC_COMM_WORLD,&ds));
+  CHKERRQ(DSSetType(ds,DSPEP));
+  CHKERRQ(DSSetFromOptions(ds));
+  CHKERRQ(DSPEPSetDegree(ds,d));
 
   /* Set dimensions */
   ld = n+2;  /* test leading dimension larger than n */
-  ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
+  CHKERRQ(DSAllocate(ds,ld));
+  CHKERRQ(DSSetDimensions(ds,n,0,0));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = DSView(ds,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
+  CHKERRQ(DSView(ds,viewer));
+  CHKERRQ(PetscViewerPopFormat(viewer));
   if (verbose) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
   }
 
   /* Fill matrices */
-  ierr = DSGetArray(ds,DS_MAT_E0,&K);CHKERRQ(ierr);
+  CHKERRQ(DSGetArray(ds,DS_MAT_E0,&K));
   for (i=0;i<n-1;i++) K[i+i*ld] = 2.0*n;
   K[n-1+(n-1)*ld] = 1.0*n;
   for (i=1;i<n;i++) {
     K[i+(i-1)*ld] = -1.0*n;
     K[(i-1)+i*ld] = -1.0*n;
   }
-  ierr = DSRestoreArray(ds,DS_MAT_E0,&K);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,DS_MAT_E1,&C);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(ds,DS_MAT_E0,&K));
+  CHKERRQ(DSGetArray(ds,DS_MAT_E1,&C));
   C[n-1+(n-1)*ld] = 2.0*PETSC_PI/z;
-  ierr = DSRestoreArray(ds,DS_MAT_E1,&C);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,DS_MAT_E2,&M);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(ds,DS_MAT_E1,&C));
+  CHKERRQ(DSGetArray(ds,DS_MAT_E2,&M));
   for (i=0;i<n-1;i++) M[i+i*ld] = -4.0*PETSC_PI*PETSC_PI/n;
   M[i+i*ld] = -2.0*PETSC_PI*PETSC_PI/n;
-  ierr = DSRestoreArray(ds,DS_MAT_E2,&M);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(ds,DS_MAT_E2,&M));
 
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
+    CHKERRQ(DSView(ds,viewer));
   }
 
   /* Solve */
-  ierr = PetscMalloc2(d*n,&wr,d*n,&wi);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc2(d*n,&wr,d*n,&wi));
+  CHKERRQ(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestReal;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
-  ierr = DSSort(ds,wr,wi,NULL,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(DSSolve(ds,wr,wi));
+  CHKERRQ(DSSort(ds,wr,wi,NULL,NULL,NULL));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n"));
+    CHKERRQ(DSView(ds,viewer));
   }
 
   /* Print polynomial coefficients */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Polynomial coefficients (alpha,beta,gamma) =\n");CHKERRQ(ierr);
-  ierr = DSPEPGetCoefficients(ds,&pbc);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Polynomial coefficients (alpha,beta,gamma) =\n"));
+  CHKERRQ(DSPEPGetCoefficients(ds,&pbc));
   for (j=0;j<3;j++) {
     for (i=0;i<d+1;i++) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f",(double)pbc[j+3*i]);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f",(double)pbc[j+3*i]));
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
   }
-  ierr = PetscFree(pbc);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(pbc));
 
   /* Print eigenvalues */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n");CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
   for (i=0;i<d*n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(wr[i]);
@@ -108,28 +108,28 @@ int main(int argc,char **argv)
     im = wi[i];
 #endif
     if (PetscAbs(im)<1e-10) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
     } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
     }
   }
 
   /* Eigenvectors */
-  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all eigenvectors */
-  ierr = DSGetMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
-  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
-  ierr = VecNorm(x0,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = MatDestroy(&X);CHKERRQ(ierr);
-  ierr = VecDestroy(&x0);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st vector = %.3f\n",(double)nrm);CHKERRQ(ierr);
+  CHKERRQ(DSVectors(ds,DS_MAT_X,NULL,NULL));  /* all eigenvectors */
+  CHKERRQ(DSGetMat(ds,DS_MAT_X,&X));
+  CHKERRQ(MatCreateVecs(X,NULL,&x0));
+  CHKERRQ(MatGetColumnVector(X,x0,0));
+  CHKERRQ(VecNorm(x0,NORM_2,&nrm));
+  CHKERRQ(MatDestroy(&X));
+  CHKERRQ(VecDestroy(&x0));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st vector = %.3f\n",(double)nrm));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n"));
+    CHKERRQ(DSView(ds,viewer));
   }
 
-  ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
-  ierr = DSDestroy(&ds);CHKERRQ(ierr);
+  CHKERRQ(PetscFree2(wr,wi));
+  CHKERRQ(DSDestroy(&ds));
   ierr = SlepcFinalize();
   return ierr;
 }

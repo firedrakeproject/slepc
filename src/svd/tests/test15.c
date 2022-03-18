@@ -29,87 +29,87 @@ int main(int argc,char **argv)
   PetscErrorCode      ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT "\n\n",m,p,n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT "\n\n",m,p,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                      Generate the matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0 && i-1<n) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i+1<n) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n) { ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>n) { ierr = MatSetValue(A,i,n-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i>0 && i-1<n) CHKERRQ(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i+1<n) CHKERRQ(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    if (i<n) CHKERRQ(MatSetValue(A,i,i,2.0,INSERT_VALUES));
+    if (i>n) CHKERRQ(MatSetValue(A,i,n-1,1.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-  ierr = MatSetUp(B);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
+  CHKERRQ(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
+  CHKERRQ(MatSetFromOptions(B));
+  CHKERRQ(MatSetUp(B));
 
-  ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
   d = PetscMax(0,n-p);
   for (i=Istart;i<Iend;i++) {
     for (j=0;j<=PetscMin(i,n-1);j++) {
-      ierr = MatSetValue(B,i,j+d,1.0,INSERT_VALUES);CHKERRQ(ierr);
+      CHKERRQ(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
     }
   }
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Create the singular value solver, set options and solve
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,B);CHKERRQ(ierr);
-  ierr = SVDSetDimensions(svd,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = SVDSetConvergenceTest(svd,SVD_CONV_NORM);CHKERRQ(ierr);
+  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
+  CHKERRQ(SVDSetOperators(svd,A,B));
+  CHKERRQ(SVDSetDimensions(svd,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  CHKERRQ(SVDSetConvergenceTest(svd,SVD_CONV_NORM));
 
-  ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);
-  ierr = SVDTRLanczosSetGBidiag(svd,SVD_TRLANCZOS_GBIDIAG_UPPER);CHKERRQ(ierr);
+  CHKERRQ(SVDSetType(svd,SVDTRLANCZOS));
+  CHKERRQ(SVDTRLanczosSetGBidiag(svd,SVD_TRLANCZOS_GBIDIAG_UPPER));
 
   /* create a standalone KSP with appropriate settings */
-  ierr = KSPCreate(PETSC_COMM_WORLD,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPLSQR);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp,PETSC_SMALL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
-  ierr = SVDTRLanczosSetKSP(svd,ksp);CHKERRQ(ierr);
-  ierr = SVDTRLanczosSetRestart(svd,0.4);CHKERRQ(ierr);
-  ierr = SVDTRLanczosSetLocking(svd,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(KSPCreate(PETSC_COMM_WORLD,&ksp));
+  CHKERRQ(KSPSetType(ksp,KSPLSQR));
+  CHKERRQ(KSPGetPC(ksp,&pc));
+  CHKERRQ(PCSetType(pc,PCNONE));
+  CHKERRQ(KSPSetTolerances(ksp,PETSC_SMALL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  CHKERRQ(KSPSetFromOptions(ksp));
+  CHKERRQ(SVDTRLanczosSetKSP(svd,ksp));
+  CHKERRQ(SVDTRLanczosSetRestart(svd,0.4));
+  CHKERRQ(SVDTRLanczosSetLocking(svd,PETSC_TRUE));
 
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  CHKERRQ(SVDSetFromOptions(svd));
 
-  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDTRLANCZOS,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)svd,SVDTRLANCZOS,&flg));
   if (flg) {
-    ierr = SVDTRLanczosGetGBidiag(svd,&bidiag);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: using %s bidiagonalization\n",SVDTRLanczosGBidiags[bidiag]);CHKERRQ(ierr);
-    ierr = SVDTRLanczosGetRestart(svd,&keep);CHKERRQ(ierr);
-    ierr = SVDTRLanczosGetLocking(svd,&lock);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: restarting parameter %.2f %s\n",(double)keep,lock?"(locking)":"");CHKERRQ(ierr);
+    CHKERRQ(SVDTRLanczosGetGBidiag(svd,&bidiag));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: using %s bidiagonalization\n",SVDTRLanczosGBidiags[bidiag]));
+    CHKERRQ(SVDTRLanczosGetRestart(svd,&keep));
+    CHKERRQ(SVDTRLanczosGetLocking(svd,&lock));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: restarting parameter %.2f %s\n",(double)keep,lock?"(locking)":""));
   }
 
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_NORM,NULL);CHKERRQ(ierr);
+  CHKERRQ(SVDSolve(svd));
+  CHKERRQ(SVDErrorView(svd,SVD_ERROR_NORM,NULL));
 
   /* Free work space */
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
+  CHKERRQ(SVDDestroy(&svd));
+  CHKERRQ(KSPDestroy(&ksp));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&B));
   ierr = SlepcFinalize();
   return ierr;
 }

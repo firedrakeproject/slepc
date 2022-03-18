@@ -27,9 +27,9 @@ int main(int argc,char **argv)
 
 #if defined(PETSC_USE_DEBUG)
 #if defined(PETSC_USE_COMPLEX)
-  ierr = SlepcDebugViewMatrix(2,3,Xr,NULL,2,"M",NULL);CHKERRQ(ierr);
+  CHKERRQ(SlepcDebugViewMatrix(2,3,Xr,NULL,2,"M",NULL));
 #else
-  ierr = SlepcDebugViewMatrix(2,3,Xr,Xi,2,"M",NULL);CHKERRQ(ierr);
+  CHKERRQ(SlepcDebugViewMatrix(2,3,Xr,Xi,2,"M",NULL));
 #endif
 #endif
 

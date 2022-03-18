@@ -16,29 +16,27 @@
 
 PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 {
-  PetscErrorCode ierr;
   PetscInt       M,N,P=0;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(svd->A,&M,&N));
   if (!svd->isgeneralized) svd->ncv = N;
   else {
-    ierr = MatGetSize(svd->OPb,&P,NULL);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(svd->OPb,&P,NULL));
     svd->ncv = PetscMin(M,PetscMin(N,P));
   }
-  if (svd->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (svd->mpd!=PETSC_DEFAULT) CHKERRQ(PetscInfo(svd,"Warning: parameter mpd ignored\n"));
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
-  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
-  ierr = DSSetType(svd->ds,svd->isgeneralized?DSGSVD:DSSVD);CHKERRQ(ierr);
-  ierr = DSAllocate(svd->ds,PetscMax(N,PetscMax(M,P)));CHKERRQ(ierr);
+  CHKERRQ(SVDAllocateSolution(svd,0));
+  CHKERRQ(DSSetType(svd->ds,svd->isgeneralized?DSGSVD:DSSVD));
+  CHKERRQ(DSAllocate(svd->ds,PetscMax(N,PetscMax(M,P))));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDSolve_LAPACK(SVD svd)
 {
-  PetscErrorCode    ierr;
   PetscInt          M,N,n,i,j,k,ld,lowu,lowv,highu,highv;
   Mat               Ar,mat;
   Vec               u,v;
@@ -46,41 +44,41 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   const PetscScalar *pmat;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = MatCreateRedundantMatrix(svd->OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
-  ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
-  ierr = MatDestroy(&Ar);CHKERRQ(ierr);
-  ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
-  ierr = DSSetDimensions(svd->ds,M,0,0);CHKERRQ(ierr);
-  ierr = DSSVDSetDimensions(svd->ds,N);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayRead(mat,&pmat);CHKERRQ(ierr);
-  ierr = DSGetArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  CHKERRQ(DSGetLeadingDimension(svd->ds,&ld));
+  CHKERRQ(MatCreateRedundantMatrix(svd->OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar));
+  CHKERRQ(MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat));
+  CHKERRQ(MatDestroy(&Ar));
+  CHKERRQ(MatGetSize(mat,&M,&N));
+  CHKERRQ(DSSetDimensions(svd->ds,M,0,0));
+  CHKERRQ(DSSVDSetDimensions(svd->ds,N));
+  CHKERRQ(MatDenseGetArrayRead(mat,&pmat));
+  CHKERRQ(DSGetArray(svd->ds,DS_MAT_A,&A));
   for (i=0;i<M;i++)
     for (j=0;j<N;j++)
       A[i+j*ld] = pmat[i+j*M];
-  ierr = DSRestoreArray(svd->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(mat,&pmat);CHKERRQ(ierr);
-  ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(svd->ds,DS_MAT_A,&A));
+  CHKERRQ(MatDenseRestoreArrayRead(mat,&pmat));
+  CHKERRQ(DSSetState(svd->ds,DS_STATE_RAW));
 
   n = PetscMin(M,N);
-  ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);
-  ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
-  ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc1(n,&w));
+  CHKERRQ(DSSolve(svd->ds,w,NULL));
+  CHKERRQ(DSSort(svd->ds,w,NULL,NULL,NULL,NULL));
+  CHKERRQ(DSSynchronize(svd->ds,w,NULL));
 
   /* copy singular vectors */
-  ierr = DSGetArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);
-  ierr = DSGetArray(svd->ds,DS_MAT_V,&pV);CHKERRQ(ierr);
+  CHKERRQ(DSGetArray(svd->ds,DS_MAT_U,&pU));
+  CHKERRQ(DSGetArray(svd->ds,DS_MAT_V,&pV));
   for (i=0;i<n;i++) {
     if (svd->which == SVD_SMALLEST) k = n - i - 1;
     else k = i;
     svd->sigma[k] = PetscRealPart(w[i]);
-    ierr = BVGetColumn(svd->U,k,&u);CHKERRQ(ierr);
-    ierr = BVGetColumn(svd->V,k,&v);CHKERRQ(ierr);
-    ierr = VecGetOwnershipRange(u,&lowu,&highu);CHKERRQ(ierr);
-    ierr = VecGetOwnershipRange(v,&lowv,&highv);CHKERRQ(ierr);
-    ierr = VecGetArray(u,&pu);CHKERRQ(ierr);
-    ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(svd->U,k,&u));
+    CHKERRQ(BVGetColumn(svd->V,k,&v));
+    CHKERRQ(VecGetOwnershipRange(u,&lowu,&highu));
+    CHKERRQ(VecGetOwnershipRange(v,&lowv,&highv));
+    CHKERRQ(VecGetArray(u,&pu));
+    CHKERRQ(VecGetArray(v,&pv));
     if (M>=N) {
       for (j=lowu;j<highu;j++) pu[j-lowu] = pU[i*ld+j];
       for (j=lowv;j<highv;j++) pv[j-lowv] = pV[i*ld+j];
@@ -88,26 +86,25 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
       for (j=lowu;j<highu;j++) pu[j-lowu] = pV[i*ld+j];
       for (j=lowv;j<highv;j++) pv[j-lowv] = pU[i*ld+j];
     }
-    ierr = VecRestoreArray(u,&pu);CHKERRQ(ierr);
-    ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->U,k,&u);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->V,k,&v);CHKERRQ(ierr);
+    CHKERRQ(VecRestoreArray(u,&pu));
+    CHKERRQ(VecRestoreArray(v,&pv));
+    CHKERRQ(BVRestoreColumn(svd->U,k,&u));
+    CHKERRQ(BVRestoreColumn(svd->V,k,&v));
   }
-  ierr = DSRestoreArray(svd->ds,DS_MAT_U,&pU);CHKERRQ(ierr);
-  ierr = DSRestoreArray(svd->ds,DS_MAT_V,&pV);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(svd->ds,DS_MAT_U,&pU));
+  CHKERRQ(DSRestoreArray(svd->ds,DS_MAT_V,&pV));
 
   svd->nconv  = n;
   svd->its    = 1;
   svd->reason = SVD_CONVERGED_TOL;
 
-  ierr = MatDestroy(&mat);CHKERRQ(ierr);
-  ierr = PetscFree(w);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&mat));
+  CHKERRQ(PetscFree(w));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
 {
-  PetscErrorCode    ierr;
   PetscInt          nsv,m,n,p,i,j,mlocal,plocal,ld,lowx,lowu,lowv,highx;
   Mat               Ar,A,Br,B;
   Vec               uv,x;
@@ -115,72 +112,72 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   const PetscScalar *pA,*pB;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = MatCreateRedundantMatrix(svd->OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
-  ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&Ar);CHKERRQ(ierr);
-  ierr = MatCreateRedundantMatrix(svd->OPb,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
-  ierr = MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&B);CHKERRQ(ierr);
-  ierr = MatDestroy(&Br);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(svd->OP,&mlocal,NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(svd->OPb,&plocal,NULL);CHKERRQ(ierr);
-  ierr = MatGetSize(B,&p,NULL);CHKERRQ(ierr);
-  ierr = DSSetDimensions(svd->ds,m,0,0);CHKERRQ(ierr);
-  ierr = DSGSVDSetDimensions(svd->ds,n,p);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayRead(A,&pA);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayRead(B,&pB);CHKERRQ(ierr);
-  ierr = DSGetArray(svd->ds,DS_MAT_A,&Ads);CHKERRQ(ierr);
-  ierr = DSGetArray(svd->ds,DS_MAT_B,&Bds);CHKERRQ(ierr);
+  CHKERRQ(DSGetLeadingDimension(svd->ds,&ld));
+  CHKERRQ(MatCreateRedundantMatrix(svd->OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar));
+  CHKERRQ(MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&A));
+  CHKERRQ(MatDestroy(&Ar));
+  CHKERRQ(MatCreateRedundantMatrix(svd->OPb,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Br));
+  CHKERRQ(MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&B));
+  CHKERRQ(MatDestroy(&Br));
+  CHKERRQ(MatGetSize(A,&m,&n));
+  CHKERRQ(MatGetLocalSize(svd->OP,&mlocal,NULL));
+  CHKERRQ(MatGetLocalSize(svd->OPb,&plocal,NULL));
+  CHKERRQ(MatGetSize(B,&p,NULL));
+  CHKERRQ(DSSetDimensions(svd->ds,m,0,0));
+  CHKERRQ(DSGSVDSetDimensions(svd->ds,n,p));
+  CHKERRQ(MatDenseGetArrayRead(A,&pA));
+  CHKERRQ(MatDenseGetArrayRead(B,&pB));
+  CHKERRQ(DSGetArray(svd->ds,DS_MAT_A,&Ads));
+  CHKERRQ(DSGetArray(svd->ds,DS_MAT_B,&Bds));
   for (j=0;j<n;j++) {
     for (i=0;i<m;i++) Ads[i+j*ld] = pA[i+j*m];
     for (i=0;i<p;i++) Bds[i+j*ld] = pB[i+j*p];
   }
-  ierr = DSRestoreArray(svd->ds,DS_MAT_B,&Bds);CHKERRQ(ierr);
-  ierr = DSRestoreArray(svd->ds,DS_MAT_A,&Ads);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(B,&pB);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(A,&pA);CHKERRQ(ierr);
-  ierr = DSSetState(svd->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(svd->ds,DS_MAT_B,&Bds));
+  CHKERRQ(DSRestoreArray(svd->ds,DS_MAT_A,&Ads));
+  CHKERRQ(MatDenseRestoreArrayRead(B,&pB));
+  CHKERRQ(MatDenseRestoreArrayRead(A,&pA));
+  CHKERRQ(DSSetState(svd->ds,DS_STATE_RAW));
 
   nsv  = PetscMin(n,PetscMin(p,m));
-  ierr = PetscMalloc1(nsv,&w);CHKERRQ(ierr);
-  ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
-  ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
-  ierr = DSGetDimensions(svd->ds,NULL,NULL,NULL,&nsv);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc1(nsv,&w));
+  CHKERRQ(DSSolve(svd->ds,w,NULL));
+  CHKERRQ(DSSort(svd->ds,w,NULL,NULL,NULL,NULL));
+  CHKERRQ(DSSynchronize(svd->ds,w,NULL));
+  CHKERRQ(DSGetDimensions(svd->ds,NULL,NULL,NULL,&nsv));
 
   /* copy singular vectors */
-  ierr = MatGetOwnershipRange(svd->OP,&lowu,NULL);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(svd->OPb,&lowv,NULL);CHKERRQ(ierr);
-  ierr = DSGetArray(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = DSGetArray(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-  ierr = DSGetArray(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(svd->OP,&lowu,NULL));
+  CHKERRQ(MatGetOwnershipRange(svd->OPb,&lowv,NULL));
+  CHKERRQ(DSGetArray(svd->ds,DS_MAT_X,&X));
+  CHKERRQ(DSGetArray(svd->ds,DS_MAT_U,&U));
+  CHKERRQ(DSGetArray(svd->ds,DS_MAT_V,&V));
   for (j=0;j<nsv;j++) {
     svd->sigma[j] = PetscRealPart(w[j]);
-    ierr = BVGetColumn(svd->V,j,&x);CHKERRQ(ierr);
-    ierr = VecGetOwnershipRange(x,&lowx,&highx);CHKERRQ(ierr);
-    ierr = VecGetArrayWrite(x,&px);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(svd->V,j,&x));
+    CHKERRQ(VecGetOwnershipRange(x,&lowx,&highx));
+    CHKERRQ(VecGetArrayWrite(x,&px));
     for (i=lowx;i<highx;i++) px[i-lowx] = X[i+j*ld];
-    ierr = VecRestoreArrayWrite(x,&px);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->V,j,&x);CHKERRQ(ierr);
-    ierr = BVGetColumn(svd->U,j,&uv);CHKERRQ(ierr);
-    ierr = VecGetArrayWrite(uv,&puv);CHKERRQ(ierr);
+    CHKERRQ(VecRestoreArrayWrite(x,&px));
+    CHKERRQ(BVRestoreColumn(svd->V,j,&x));
+    CHKERRQ(BVGetColumn(svd->U,j,&uv));
+    CHKERRQ(VecGetArrayWrite(uv,&puv));
     for (i=0;i<mlocal;i++) puv[i] = U[i+lowu+j*ld];
     for (i=0;i<plocal;i++) puv[i+mlocal] = V[i+lowv+j*ld];
-    ierr = VecRestoreArrayWrite(uv,&puv);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(svd->U,j,&uv);CHKERRQ(ierr);
+    CHKERRQ(VecRestoreArrayWrite(uv,&puv));
+    CHKERRQ(BVRestoreColumn(svd->U,j,&uv));
   }
-  ierr = DSRestoreArray(svd->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = DSRestoreArray(svd->ds,DS_MAT_U,&U);CHKERRQ(ierr);
-  ierr = DSRestoreArray(svd->ds,DS_MAT_V,&V);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(svd->ds,DS_MAT_X,&X));
+  CHKERRQ(DSRestoreArray(svd->ds,DS_MAT_U,&U));
+  CHKERRQ(DSRestoreArray(svd->ds,DS_MAT_V,&V));
 
   svd->nconv  = nsv;
   svd->its    = 1;
   svd->reason = SVD_CONVERGED_TOL;
 
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = PetscFree(w);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(MatDestroy(&B));
+  CHKERRQ(PetscFree(w));
   PetscFunctionReturn(0);
 }
 
@@ -192,4 +189,3 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
   svd->ops->solveg  = SVDSolve_LAPACK_GSVD;
   PetscFunctionReturn(0);
 }
-

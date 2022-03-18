@@ -23,223 +23,223 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
-  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
+  CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
   PetscCheck(size<=2,PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This test needs one or two processes");
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"VecComp test\n");CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"VecComp test\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create standard vectors
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = VecCreate(PETSC_COMM_WORLD,&v);CHKERRQ(ierr);
-  ierr = VecSetSizes(v,8/size,8);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(v);CHKERRQ(ierr);
+  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&v));
+  CHKERRQ(VecSetSizes(v,8/size,8));
+  CHKERRQ(VecSetFromOptions(v));
 
   if (!rank) {
-    ierr = VecSetValue(v,0,2.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(v,1,-1.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(v,2,3.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(v,3,3.5,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(VecSetValue(v,0,2.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(v,1,-1.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(v,2,3.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(v,3,3.5,INSERT_VALUES));
   }
   if ((!rank && size==1) || (rank && size==2)) {
-    ierr = VecSetValue(v,4,1.2,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(v,5,1.8,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(v,6,-2.2,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(v,7,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(VecSetValue(v,4,1.2,INSERT_VALUES));
+    CHKERRQ(VecSetValue(v,5,1.8,INSERT_VALUES));
+    CHKERRQ(VecSetValue(v,6,-2.2,INSERT_VALUES));
+    CHKERRQ(VecSetValue(v,7,2.0,INSERT_VALUES));
   }
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
-  ierr = VecSet(w,1.0);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&x);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
+  CHKERRQ(VecAssemblyBegin(v));
+  CHKERRQ(VecAssemblyEnd(v));
+  CHKERRQ(VecDuplicate(v,&w));
+  CHKERRQ(VecSet(w,1.0));
+  CHKERRQ(VecDuplicate(v,&x));
+  CHKERRQ(VecDuplicate(v,&y));
   if (!rank) {
-    ierr = VecSetValue(y,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(VecSetValue(y,0,1.0,INSERT_VALUES));
   }
-  ierr = VecAssemblyBegin(y);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(y);CHKERRQ(ierr);
+  CHKERRQ(VecAssemblyBegin(y));
+  CHKERRQ(VecAssemblyEnd(y));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create veccomp vectors
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = VecCreate(PETSC_COMM_WORLD,&vparent);CHKERRQ(ierr);
-  ierr = VecSetSizes(vparent,4/size,4);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(vparent);CHKERRQ(ierr);
+  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&vparent));
+  CHKERRQ(VecSetSizes(vparent,4/size,4));
+  CHKERRQ(VecSetFromOptions(vparent));
 
   /* create a veccomp vector with two subvectors */
-  ierr = VecDuplicate(vparent,&vchild[0]);CHKERRQ(ierr);
-  ierr = VecDuplicate(vparent,&vchild[1]);CHKERRQ(ierr);
+  CHKERRQ(VecDuplicate(vparent,&vchild[0]));
+  CHKERRQ(VecDuplicate(vparent,&vchild[1]));
   if (!rank) {
-    ierr = VecSetValue(vchild[0],0,2.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(vchild[0],1,-1.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(vchild[1],0,1.2,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(vchild[1],1,1.8,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(VecSetValue(vchild[0],0,2.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(vchild[0],1,-1.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(vchild[1],0,1.2,INSERT_VALUES));
+    CHKERRQ(VecSetValue(vchild[1],1,1.8,INSERT_VALUES));
   }
   if ((!rank && size==1) || (rank && size==2)) {
-    ierr = VecSetValue(vchild[0],2,3.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(vchild[0],3,3.5,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(vchild[1],2,-2.2,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(vchild[1],3,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(VecSetValue(vchild[0],2,3.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(vchild[0],3,3.5,INSERT_VALUES));
+    CHKERRQ(VecSetValue(vchild[1],2,-2.2,INSERT_VALUES));
+    CHKERRQ(VecSetValue(vchild[1],3,2.0,INSERT_VALUES));
   }
-  ierr = VecAssemblyBegin(vchild[0]);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(vchild[1]);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(vchild[0]);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(vchild[1]);CHKERRQ(ierr);
-  ierr = VecCreateCompWithVecs(vchild,2,vparent,&vc);CHKERRQ(ierr);
-  ierr = VecDestroy(&vchild[0]);CHKERRQ(ierr);
-  ierr = VecDestroy(&vchild[1]);CHKERRQ(ierr);
-  ierr = VecView(vc,NULL);CHKERRQ(ierr);
+  CHKERRQ(VecAssemblyBegin(vchild[0]));
+  CHKERRQ(VecAssemblyBegin(vchild[1]));
+  CHKERRQ(VecAssemblyEnd(vchild[0]));
+  CHKERRQ(VecAssemblyEnd(vchild[1]));
+  CHKERRQ(VecCreateCompWithVecs(vchild,2,vparent,&vc));
+  CHKERRQ(VecDestroy(&vchild[0]));
+  CHKERRQ(VecDestroy(&vchild[1]));
+  CHKERRQ(VecView(vc,NULL));
 
-  ierr = VecGetSize(vc,&k);CHKERRQ(ierr);
+  CHKERRQ(VecGetSize(vc,&k));
   PetscCheck(k==8,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Vector global length should be 8");
 
   /* create an empty veccomp vector with two subvectors */
   Nx[0] = 4;
   Nx[1] = 4;
-  ierr = VecCreateComp(PETSC_COMM_WORLD,Nx,2,VECSTANDARD,vparent,&wc);CHKERRQ(ierr);
-  ierr = VecCompGetSubVecs(wc,&n,&varray);CHKERRQ(ierr);
+  CHKERRQ(VecCreateComp(PETSC_COMM_WORLD,Nx,2,VECSTANDARD,vparent,&wc));
+  CHKERRQ(VecCompGetSubVecs(wc,&n,&varray));
   PetscCheck(n==2,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"n should be 2");
   for (i=0;i<2;i++) {
-    ierr = VecSet(varray[i],1.0);CHKERRQ(ierr);
+    CHKERRQ(VecSet(varray[i],1.0));
   }
 
-  ierr = VecGetSize(wc,&k);CHKERRQ(ierr);
+  CHKERRQ(VecGetSize(wc,&k));
   PetscCheck(k==8,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Vector global length should be 8");
 
   /* duplicate a veccomp */
-  ierr = VecDuplicate(vc,&xc);CHKERRQ(ierr);
+  CHKERRQ(VecDuplicate(vc,&xc));
 
   /* create a veccomp via VecSetType */
-  ierr = VecCreate(PETSC_COMM_WORLD,&yc);CHKERRQ(ierr);
-  ierr = VecSetType(yc,VECCOMP);CHKERRQ(ierr);
-  ierr = VecSetSizes(yc,8/size,8);CHKERRQ(ierr);
-  ierr = VecCompSetSubVecs(yc,2,NULL);CHKERRQ(ierr);
+  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&yc));
+  CHKERRQ(VecSetType(yc,VECCOMP));
+  CHKERRQ(VecSetSizes(yc,8/size,8));
+  CHKERRQ(VecCompSetSubVecs(yc,2,NULL));
 
-  ierr = VecCompGetSubVecs(yc,&n,&varray);CHKERRQ(ierr);
+  CHKERRQ(VecCompGetSubVecs(yc,&n,&varray));
   PetscCheck(n==2,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"n should be 2");
   if (!rank) {
-    ierr = VecSetValue(varray[0],0,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(VecSetValue(varray[0],0,1.0,INSERT_VALUES));
   }
-  ierr = VecAssemblyBegin(varray[0]);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(varray[0]);CHKERRQ(ierr);
+  CHKERRQ(VecAssemblyBegin(varray[0]));
+  CHKERRQ(VecAssemblyEnd(varray[0]));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Operate with vectors
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = VecCopy(w,x);CHKERRQ(ierr);
-  ierr = VecAXPBY(x,1.0,-2.0,v);CHKERRQ(ierr);
-  ierr = VecNorm(x,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = VecCopy(wc,xc);CHKERRQ(ierr);
-  ierr = VecAXPBY(xc,1.0,-2.0,vc);CHKERRQ(ierr);
-  ierr = VecNorm(xc,NORM_2,&normc);CHKERRQ(ierr);
+  CHKERRQ(VecCopy(w,x));
+  CHKERRQ(VecAXPBY(x,1.0,-2.0,v));
+  CHKERRQ(VecNorm(x,NORM_2,&norm));
+  CHKERRQ(VecCopy(wc,xc));
+  CHKERRQ(VecAXPBY(xc,1.0,-2.0,vc));
+  CHKERRQ(VecNorm(xc,NORM_2,&normc));
   PetscCheck(PetscAbsReal(norm-normc)<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
-  ierr = VecCopy(w,x);CHKERRQ(ierr);
-  ierr = VecWAXPY(x,-2.0,w,v);CHKERRQ(ierr);
-  ierr = VecNorm(x,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = VecCopy(wc,xc);CHKERRQ(ierr);
-  ierr = VecWAXPY(xc,-2.0,wc,vc);CHKERRQ(ierr);
-  ierr = VecNorm(xc,NORM_2,&normc);CHKERRQ(ierr);
+  CHKERRQ(VecCopy(w,x));
+  CHKERRQ(VecWAXPY(x,-2.0,w,v));
+  CHKERRQ(VecNorm(x,NORM_2,&norm));
+  CHKERRQ(VecCopy(wc,xc));
+  CHKERRQ(VecWAXPY(xc,-2.0,wc,vc));
+  CHKERRQ(VecNorm(xc,NORM_2,&normc));
   PetscCheck(PetscAbsReal(norm-normc)<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
-  ierr = VecAXPBYPCZ(y,3.0,-1.0,1.0,w,v);CHKERRQ(ierr);
-  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = VecAXPBYPCZ(yc,3.0,-1.0,1.0,wc,vc);CHKERRQ(ierr);
-  ierr = VecNorm(yc,NORM_2,&normc);CHKERRQ(ierr);
+  CHKERRQ(VecAXPBYPCZ(y,3.0,-1.0,1.0,w,v));
+  CHKERRQ(VecNorm(y,NORM_2,&norm));
+  CHKERRQ(VecAXPBYPCZ(yc,3.0,-1.0,1.0,wc,vc));
+  CHKERRQ(VecNorm(yc,NORM_2,&normc));
   PetscCheck(PetscAbsReal(norm-normc)<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
-  ierr = VecMax(xc,NULL,&vmax);CHKERRQ(ierr);
-  ierr = VecMin(xc,NULL,&vmin);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"xc has max value %g min value %g\n",(double)vmax,(double)vmin);CHKERRQ(ierr);
+  CHKERRQ(VecMax(xc,NULL,&vmax));
+  CHKERRQ(VecMin(xc,NULL,&vmin));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"xc has max value %g min value %g\n",(double)vmax,(double)vmin));
 
-  ierr = VecMaxPointwiseDivide(wc,xc,&vmax);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"wc/xc has max value %g\n",(double)vmax);CHKERRQ(ierr);
+  CHKERRQ(VecMaxPointwiseDivide(wc,xc,&vmax));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"wc/xc has max value %g\n",(double)vmax));
 
-  ierr = VecDot(x,y,&dot[0]);CHKERRQ(ierr);
-  ierr = VecDot(xc,yc,&dotc[0]);CHKERRQ(ierr);
+  CHKERRQ(VecDot(x,y,&dot[0]));
+  CHKERRQ(VecDot(xc,yc,&dotc[0]));
   PetscCheck(PetscAbsScalar(dot[0]-dotc[0])<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
-  ierr = VecTDot(x,y,&dot[0]);CHKERRQ(ierr);
-  ierr = VecTDot(xc,yc,&dotc[0]);CHKERRQ(ierr);
+  CHKERRQ(VecTDot(x,y,&dot[0]));
+  CHKERRQ(VecTDot(xc,yc,&dotc[0]));
   PetscCheck(PetscAbsScalar(dot[0]-dotc[0])<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
 
   vecs[0] = w; vecs[1] = y;
-  ierr = VecMDot(x,2,vecs,dot);CHKERRQ(ierr);
+  CHKERRQ(VecMDot(x,2,vecs,dot));
   vecs[0] = wc; vecs[1] = yc;
-  ierr = VecMDot(xc,2,vecs,dotc);CHKERRQ(ierr);
+  CHKERRQ(VecMDot(xc,2,vecs,dotc));
   PetscCheck(PetscAbsScalar(dot[0]-dotc[0])<10*PETSC_MACHINE_EPSILON || PetscAbsScalar(dot[1]-dotc[1])>10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
   vecs[0] = w; vecs[1] = y;
-  ierr = VecMTDot(x,2,vecs,dot);CHKERRQ(ierr);
+  CHKERRQ(VecMTDot(x,2,vecs,dot));
   vecs[0] = wc; vecs[1] = yc;
-  ierr = VecMTDot(xc,2,vecs,dotc);CHKERRQ(ierr);
+  CHKERRQ(VecMTDot(xc,2,vecs,dotc));
   PetscCheck(PetscAbsScalar(dot[0]-dotc[0])<10*PETSC_MACHINE_EPSILON || PetscAbsScalar(dot[1]-dotc[1])>10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
 
-  ierr = VecDotNorm2(x,y,&dot[0],&norm);CHKERRQ(ierr);
-  ierr = VecDotNorm2(xc,yc,&dotc[0],&normc);CHKERRQ(ierr);
+  CHKERRQ(VecDotNorm2(x,y,&dot[0],&norm));
+  CHKERRQ(VecDotNorm2(xc,yc,&dotc[0],&normc));
   PetscCheck(PetscAbsScalar(dot[0]-dotc[0])<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Dots are different");
   PetscCheck(PetscAbsReal(norm-normc)<100*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
-  ierr = VecAbs(w);CHKERRQ(ierr);
-  ierr = VecAbs(wc);CHKERRQ(ierr);
-  ierr = VecConjugate(x);CHKERRQ(ierr);
-  ierr = VecConjugate(xc);CHKERRQ(ierr);
-  ierr = VecShift(y,0.5);CHKERRQ(ierr);
-  ierr = VecShift(yc,0.5);CHKERRQ(ierr);
-  ierr = VecReciprocal(y);CHKERRQ(ierr);
-  ierr = VecReciprocal(yc);CHKERRQ(ierr);
-  ierr = VecExp(y);CHKERRQ(ierr);
-  ierr = VecExp(yc);CHKERRQ(ierr);
-  ierr = VecLog(y);CHKERRQ(ierr);
-  ierr = VecLog(yc);CHKERRQ(ierr);
-  ierr = VecNorm(y,NORM_1,&norm);CHKERRQ(ierr);
-  ierr = VecNorm(yc,NORM_1,&normc);CHKERRQ(ierr);
+  CHKERRQ(VecAbs(w));
+  CHKERRQ(VecAbs(wc));
+  CHKERRQ(VecConjugate(x));
+  CHKERRQ(VecConjugate(xc));
+  CHKERRQ(VecShift(y,0.5));
+  CHKERRQ(VecShift(yc,0.5));
+  CHKERRQ(VecReciprocal(y));
+  CHKERRQ(VecReciprocal(yc));
+  CHKERRQ(VecExp(y));
+  CHKERRQ(VecExp(yc));
+  CHKERRQ(VecLog(y));
+  CHKERRQ(VecLog(yc));
+  CHKERRQ(VecNorm(y,NORM_1,&norm));
+  CHKERRQ(VecNorm(yc,NORM_1,&normc));
   PetscCheck(PetscAbsReal(norm-normc)<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
-  ierr = VecPointwiseMult(w,x,y);CHKERRQ(ierr);
-  ierr = VecPointwiseMult(wc,xc,yc);CHKERRQ(ierr);
-  ierr = VecNorm(w,NORM_INFINITY,&norm);CHKERRQ(ierr);
-  ierr = VecNorm(wc,NORM_INFINITY,&normc);CHKERRQ(ierr);
+  CHKERRQ(VecPointwiseMult(w,x,y));
+  CHKERRQ(VecPointwiseMult(wc,xc,yc));
+  CHKERRQ(VecNorm(w,NORM_INFINITY,&norm));
+  CHKERRQ(VecNorm(wc,NORM_INFINITY,&normc));
   PetscCheck(PetscAbsReal(norm-normc)<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
-  ierr = VecPointwiseMax(w,x,y);CHKERRQ(ierr);
-  ierr = VecPointwiseMax(wc,xc,yc);CHKERRQ(ierr);
-  ierr = VecNorm(w,NORM_INFINITY,&norm);CHKERRQ(ierr);
-  ierr = VecNorm(wc,NORM_INFINITY,&normc);CHKERRQ(ierr);
+  CHKERRQ(VecPointwiseMax(w,x,y));
+  CHKERRQ(VecPointwiseMax(wc,xc,yc));
+  CHKERRQ(VecNorm(w,NORM_INFINITY,&norm));
+  CHKERRQ(VecNorm(wc,NORM_INFINITY,&normc));
   PetscCheck(PetscAbsReal(norm-normc)<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
-  ierr = VecSwap(x,y);CHKERRQ(ierr);
-  ierr = VecSwap(xc,yc);CHKERRQ(ierr);
-  ierr = VecPointwiseDivide(w,x,y);CHKERRQ(ierr);
-  ierr = VecPointwiseDivide(wc,xc,yc);CHKERRQ(ierr);
-  ierr = VecScale(w,0.3);CHKERRQ(ierr);
-  ierr = VecScale(wc,0.3);CHKERRQ(ierr);
-  ierr = VecSqrtAbs(w);CHKERRQ(ierr);
-  ierr = VecSqrtAbs(wc);CHKERRQ(ierr);
-  ierr = VecNorm(w,NORM_1_AND_2,norm12);CHKERRQ(ierr);
-  ierr = VecNorm(wc,NORM_1_AND_2,norm12c);CHKERRQ(ierr);
+  CHKERRQ(VecSwap(x,y));
+  CHKERRQ(VecSwap(xc,yc));
+  CHKERRQ(VecPointwiseDivide(w,x,y));
+  CHKERRQ(VecPointwiseDivide(wc,xc,yc));
+  CHKERRQ(VecScale(w,0.3));
+  CHKERRQ(VecScale(wc,0.3));
+  CHKERRQ(VecSqrtAbs(w));
+  CHKERRQ(VecSqrtAbs(wc));
+  CHKERRQ(VecNorm(w,NORM_1_AND_2,norm12));
+  CHKERRQ(VecNorm(wc,NORM_1_AND_2,norm12c));
   PetscCheck(PetscAbsReal(norm12[0]-norm12c[0])<10*PETSC_MACHINE_EPSILON || PetscAbsReal(norm12[1]-norm12c[1])>10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
-  ierr = VecPointwiseMin(w,x,y);CHKERRQ(ierr);
-  ierr = VecPointwiseMin(wc,xc,yc);CHKERRQ(ierr);
-  ierr = VecPointwiseMaxAbs(x,y,w);CHKERRQ(ierr);
-  ierr = VecPointwiseMaxAbs(xc,yc,wc);CHKERRQ(ierr);
-  ierr = VecNorm(x,NORM_INFINITY,&norm);CHKERRQ(ierr);
-  ierr = VecNorm(xc,NORM_INFINITY,&normc);CHKERRQ(ierr);
+  CHKERRQ(VecPointwiseMin(w,x,y));
+  CHKERRQ(VecPointwiseMin(wc,xc,yc));
+  CHKERRQ(VecPointwiseMaxAbs(x,y,w));
+  CHKERRQ(VecPointwiseMaxAbs(xc,yc,wc));
+  CHKERRQ(VecNorm(x,NORM_INFINITY,&norm));
+  CHKERRQ(VecNorm(xc,NORM_INFINITY,&normc));
   PetscCheck(PetscAbsReal(norm-normc)<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Norms are different");
 
-  ierr = VecSetRandom(wc,NULL);CHKERRQ(ierr);
+  CHKERRQ(VecSetRandom(wc,NULL));
 
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
-  ierr = VecDestroy(&vparent);CHKERRQ(ierr);
-  ierr = VecDestroy(&vc);CHKERRQ(ierr);
-  ierr = VecDestroy(&wc);CHKERRQ(ierr);
-  ierr = VecDestroy(&xc);CHKERRQ(ierr);
-  ierr = VecDestroy(&yc);CHKERRQ(ierr);
+  CHKERRQ(VecDestroy(&v));
+  CHKERRQ(VecDestroy(&w));
+  CHKERRQ(VecDestroy(&x));
+  CHKERRQ(VecDestroy(&y));
+  CHKERRQ(VecDestroy(&vparent));
+  CHKERRQ(VecDestroy(&vc));
+  CHKERRQ(VecDestroy(&wc));
+  CHKERRQ(VecDestroy(&xc));
+  CHKERRQ(VecDestroy(&yc));
   ierr = SlepcFinalize();
   return ierr;
 }

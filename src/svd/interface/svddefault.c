@@ -87,18 +87,16 @@ PetscErrorCode SVDConvergedMaxIt(SVD svd,PetscReal sigma,PetscReal res,PetscReal
 @*/
 PetscErrorCode SVDStoppingBasic(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   *reason = SVD_CONVERGED_ITERATING;
   if (nconv >= nsv) {
-    ierr = PetscInfo(svd,"Singular value solver finished successfully: %" PetscInt_FMT " singular triplets converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
+    CHKERRQ(PetscInfo(svd,"Singular value solver finished successfully: %" PetscInt_FMT " singular triplets converged at iteration %" PetscInt_FMT "\n",nconv,its));
     *reason = SVD_CONVERGED_TOL;
   } else if (its >= max_it) {
     if (svd->conv == SVD_CONV_MAXIT) *reason = SVD_CONVERGED_MAXIT;
     else {
       *reason = SVD_DIVERGED_ITS;
-      ierr = PetscInfo(svd,"Singular value solver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
+      CHKERRQ(PetscInfo(svd,"Singular value solver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
     }
   }
   PetscFunctionReturn(0);
@@ -124,7 +122,6 @@ PetscErrorCode SVDStoppingBasic(SVD svd,PetscInt its,PetscInt max_it,PetscInt nc
 @*/
 PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
 {
-  PetscErrorCode ierr;
   Vec            t;
 
   PetscFunctionBegin;
@@ -134,22 +131,21 @@ PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
   PetscCheck(nleft>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nleft must be > 0: nleft = %" PetscInt_FMT,nleft);
   PetscCheck(nright>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nright must be > 0: nright = %" PetscInt_FMT,nright);
   if (svd->nworkl < nleft) {
-    ierr = VecDestroyVecs(svd->nworkl,&svd->workl);CHKERRQ(ierr);
+    CHKERRQ(VecDestroyVecs(svd->nworkl,&svd->workl));
     svd->nworkl = nleft;
-    if (svd->isgeneralized) { ierr = SVDCreateLeftTemplate(svd,&t);CHKERRQ(ierr); }
-    else { ierr = MatCreateVecsEmpty(svd->OP,NULL,&t);CHKERRQ(ierr); }
-    ierr = VecDuplicateVecs(t,nleft,&svd->workl);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(svd,nleft,svd->workl);CHKERRQ(ierr);
+    if (svd->isgeneralized) CHKERRQ(SVDCreateLeftTemplate(svd,&t));
+    else CHKERRQ(MatCreateVecsEmpty(svd->OP,NULL,&t));
+    CHKERRQ(VecDuplicateVecs(t,nleft,&svd->workl));
+    CHKERRQ(VecDestroy(&t));
+    CHKERRQ(PetscLogObjectParents(svd,nleft,svd->workl));
   }
   if (svd->nworkr < nright) {
-    ierr = VecDestroyVecs(svd->nworkr,&svd->workr);CHKERRQ(ierr);
+    CHKERRQ(VecDestroyVecs(svd->nworkr,&svd->workr));
     svd->nworkr = nright;
-    ierr = MatCreateVecsEmpty(svd->OP,&t,NULL);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(t,nright,&svd->workr);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(svd,nright,svd->workr);CHKERRQ(ierr);
+    CHKERRQ(MatCreateVecsEmpty(svd->OP,&t,NULL));
+    CHKERRQ(VecDuplicateVecs(t,nright,&svd->workr));
+    CHKERRQ(VecDestroy(&t));
+    CHKERRQ(PetscLogObjectParents(svd,nright,svd->workr));
   }
   PetscFunctionReturn(0);
 }
-

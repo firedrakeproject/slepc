@@ -30,99 +30,99 @@ int main(int argc,char **argv)
   PetscViewerAndFormat *vf;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   N = n*n;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,n);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-test_prefix",&testprefix,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,n));
+  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-test_prefix",&testprefix,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Compute the discrete 2-D Laplacian, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<n-1) CHKERRQ(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    CHKERRQ(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
 
-  ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
-  ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(A,NULL,&v));
+  CHKERRQ(VecSetValue(v,0,1.0,INSERT_VALUES));
+  CHKERRQ(VecAssemblyBegin(v));
+  CHKERRQ(VecAssemblyEnd(v));
+  CHKERRQ(VecDuplicate(v,&y));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the solver, set the matrix and the function
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
-  ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
-  ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
-  ierr = FNSetType(f,FNSQRT);CHKERRQ(ierr);
+  CHKERRQ(MFNCreate(PETSC_COMM_WORLD,&mfn));
+  CHKERRQ(MFNSetOperator(mfn,A));
+  CHKERRQ(MFNGetFN(mfn,&f));
+  CHKERRQ(FNSetType(f,FNSQRT));
 
-  ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
-  ierr = MFNGetType(mfn,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Type set to %s\n",type);CHKERRQ(ierr);
+  CHKERRQ(MFNSetType(mfn,MFNKRYLOV));
+  CHKERRQ(MFNGetType(mfn,&type));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Type set to %s\n",type));
 
   /* test prefix usage */
   if (testprefix) {
-    ierr = MFNSetOptionsPrefix(mfn,"check_");CHKERRQ(ierr);
-    ierr = MFNAppendOptionsPrefix(mfn,"myprefix_");CHKERRQ(ierr);
-    ierr = MFNGetOptionsPrefix(mfn,&prefix);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," MFN prefix is currently: %s\n",prefix);CHKERRQ(ierr);
+    CHKERRQ(MFNSetOptionsPrefix(mfn,"check_"));
+    CHKERRQ(MFNAppendOptionsPrefix(mfn,"myprefix_"));
+    CHKERRQ(MFNGetOptionsPrefix(mfn,&prefix));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," MFN prefix is currently: %s\n",prefix));
   }
 
   /* test some interface functions */
-  ierr = MFNGetOperator(mfn,&B);CHKERRQ(ierr);
-  ierr = MatView(B,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  ierr = MFNSetTolerances(mfn,1e-4,500);CHKERRQ(ierr);
-  ierr = MFNSetDimensions(mfn,6);CHKERRQ(ierr);
-  ierr = MFNSetErrorIfNotConverged(mfn,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(MFNGetOperator(mfn,&B));
+  CHKERRQ(MatView(B,PETSC_VIEWER_STDOUT_WORLD));
+  CHKERRQ(MFNSetTolerances(mfn,1e-4,500));
+  CHKERRQ(MFNSetDimensions(mfn,6));
+  CHKERRQ(MFNSetErrorIfNotConverged(mfn,PETSC_TRUE));
   /* test monitors */
-  ierr = PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf);CHKERRQ(ierr);
-  ierr = MFNMonitorSet(mfn,(PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*))MFNMonitorDefault,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
-  /* ierr = MFNMonitorCancel(mfn);CHKERRQ(ierr); */
-  ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf));
+  CHKERRQ(MFNMonitorSet(mfn,(PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*))MFNMonitorDefault,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy));
+  /* CHKERRQ(MFNMonitorCancel(mfn)); */
+  CHKERRQ(MFNSetFromOptions(mfn));
 
   /* query properties and print them */
-  ierr = MFNGetTolerances(mfn,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
-  ierr = MFNGetDimensions(mfn,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv);CHKERRQ(ierr);
-  ierr = MFNGetErrorIfNotConverged(mfn,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," Erroring out if convergence fails\n");CHKERRQ(ierr); }
+  CHKERRQ(MFNGetTolerances(mfn,&tol,&maxit));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %" PetscInt_FMT "\n",(double)tol,maxit));
+  CHKERRQ(MFNGetDimensions(mfn,&ncv));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv));
+  CHKERRQ(MFNGetErrorIfNotConverged(mfn,&flg));
+  if (flg) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Erroring out if convergence fails\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                            Solve  y=sqrt(A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
-  ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-  ierr = MFNGetIterationNumber(mfn,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason);CHKERRQ(ierr);
-  /* ierr = PetscPrintf(PETSC_COMM_WORLD," its = %" PetscInt_FMT "\n",its);CHKERRQ(ierr); */
-  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," sqrt(A)*v has norm %g\n",(double)norm);CHKERRQ(ierr);
+  CHKERRQ(MFNSolve(mfn,v,y));
+  CHKERRQ(MFNGetConvergedReason(mfn,&reason));
+  CHKERRQ(MFNGetIterationNumber(mfn,&its));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason));
+  /* CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," its = %" PetscInt_FMT "\n",its)); */
+  CHKERRQ(VecNorm(y,NORM_2,&norm));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," sqrt(A)*v has norm %g\n",(double)norm));
 
   /*
      Free work space
   */
-  ierr = MFNDestroy(&mfn);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
+  CHKERRQ(MFNDestroy(&mfn));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(VecDestroy(&v));
+  CHKERRQ(VecDestroy(&y));
   ierr = SlepcFinalize();
   return ierr;
 }

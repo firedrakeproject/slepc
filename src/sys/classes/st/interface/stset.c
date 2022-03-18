@@ -45,27 +45,27 @@ PetscFunctionList STList = 0;
 @*/
 PetscErrorCode STSetType(ST st,STType type)
 {
-  PetscErrorCode ierr,(*r)(ST);
+  PetscErrorCode (*r)(ST);
   PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)st,type,&match));
   if (match) PetscFunctionReturn(0);
   STCheckNotSeized(st,1);
 
-  ierr =  PetscFunctionListFind(STList,type,&r);CHKERRQ(ierr);
+  CHKERRQ(PetscFunctionListFind(STList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
 
-  if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
-  ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
+  if (st->ops->destroy) CHKERRQ((*st->ops->destroy)(st));
+  CHKERRQ(PetscMemzero(st->ops,sizeof(struct _STOps)));
 
   st->state   = ST_STATE_INITIAL;
   st->opready = PETSC_FALSE;
-  ierr = PetscObjectChangeTypeName((PetscObject)st,type);CHKERRQ(ierr);
-  ierr = (*r)(st);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectChangeTypeName((PetscObject)st,type));
+  CHKERRQ((*r)(st));
   PetscFunctionReturn(0);
 }
 
@@ -119,36 +119,36 @@ PetscErrorCode STSetFromOptions(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = STRegisterAll();CHKERRQ(ierr);
+  CHKERRQ(STRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)st);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-st_type","Spectral transformation","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,sizeof(type),&flg);CHKERRQ(ierr);
+    CHKERRQ(PetscOptionsFList("-st_type","Spectral transformation","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,sizeof(type),&flg));
     if (flg) {
-      ierr = STSetType(st,type);CHKERRQ(ierr);
+      CHKERRQ(STSetType(st,type));
     } else if (!((PetscObject)st)->type_name) {
-      ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
+      CHKERRQ(STSetType(st,STSHIFT));
     }
 
-    ierr = PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = STSetShift(st,s);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg));
+    if (flg) CHKERRQ(STSetShift(st,s));
 
-    ierr = PetscOptionsEnum("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",STMatModes,(PetscEnum)st->matmode,(PetscEnum*)&mode,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = STSetMatMode(st,mode);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsEnum("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",STMatModes,(PetscEnum)st->matmode,(PetscEnum*)&mode,&flg));
+    if (flg) CHKERRQ(STSetMatMode(st,mode));
 
-    ierr = PetscOptionsEnum("-st_matstructure","Relation of the sparsity pattern of the matrices","STSetMatStructure",MatStructures,(PetscEnum)st->str,(PetscEnum*)&mstr,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = STSetMatStructure(st,mstr);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsEnum("-st_matstructure","Relation of the sparsity pattern of the matrices","STSetMatStructure",MatStructures,(PetscEnum)st->str,(PetscEnum*)&mstr,&flg));
+    if (flg) CHKERRQ(STSetMatStructure(st,mstr));
 
-    ierr = PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&bval,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = STSetTransform(st,bval);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&bval,&flg));
+    if (flg) CHKERRQ(STSetTransform(st,bval));
 
     if (st->ops->setfromoptions) {
-      ierr = (*st->ops->setfromoptions)(PetscOptionsObject,st);CHKERRQ(ierr);
+      CHKERRQ((*st->ops->setfromoptions)(PetscOptionsObject,st));
     }
-    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (st->usesksp) {
-    ierr = STSetDefaultKSP(st);CHKERRQ(ierr);
-    ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr);
+    CHKERRQ(STSetDefaultKSP(st));
+    CHKERRQ(KSPSetFromOptions(st->ksp));
   }
   PetscFunctionReturn(0);
 }
@@ -367,4 +367,3 @@ PetscErrorCode STGetTransform(ST st,PetscBool *flg)
   *flg = st->transform;
   PetscFunctionReturn(0);
 }
-

@@ -21,7 +21,6 @@ typedef struct {
 
 PetscErrorCode EPSSetUp_ELPA(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_ELPA       *ctx = (EPS_ELPA*)eps->data;
   Mat            A,B;
   PetscInt       nmat;
@@ -30,33 +29,33 @@ PetscErrorCode EPSSetUp_ELPA(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
   PetscCheck(isshift,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support spectral transformations");
   eps->ncv = eps->n;
-  if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (eps->mpd!=PETSC_DEFAULT) CHKERRQ(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
-  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
+  if (!eps->which) CHKERRQ(EPSSetWhichEigenpairs_Default(eps));
   PetscCheck(eps->which!=EPS_ALL || eps->inta==eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support interval computation");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION | EPS_FEATURE_CONVERGENCE);
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  CHKERRQ(EPSAllocateSolution(eps,0));
 
   /* convert matrices */
-  ierr = MatDestroy(&ctx->As);CHKERRQ(ierr);
-  ierr = MatDestroy(&ctx->Bs);CHKERRQ(ierr);
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = MatConvert(A,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->As);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&ctx->As));
+  CHKERRQ(MatDestroy(&ctx->Bs));
+  CHKERRQ(STGetNumMatrices(eps->st,&nmat));
+  CHKERRQ(STGetMatrix(eps->st,0,&A));
+  CHKERRQ(MatConvert(A,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->As));
   if (nmat>1) {
-    ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
-    ierr = MatConvert(B,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->Bs);CHKERRQ(ierr);
+    CHKERRQ(STGetMatrix(eps->st,1,&B));
+    CHKERRQ(MatConvert(B,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->Bs));
   }
-  ierr = STGetShift(eps->st,&shift);CHKERRQ(ierr);
+  CHKERRQ(STGetShift(eps->st,&shift));
   if (shift != 0.0) {
     if (nmat>1) {
-      ierr = MatAXPY(ctx->As,-shift,ctx->Bs,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+      CHKERRQ(MatAXPY(ctx->As,-shift,ctx->Bs,SAME_NONZERO_PATTERN));
     } else {
-      ierr = MatShift(ctx->As,-shift);CHKERRQ(ierr);
+      CHKERRQ(MatShift(ctx->As,-shift));
     }
   }
   PetscFunctionReturn(0);
@@ -73,10 +72,10 @@ PetscErrorCode EPSSolve_ELPA(EPS eps)
   elpa_t         handle;
 
   PetscFunctionBegin;
-  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q);CHKERRQ(ierr);
+  CHKERRQ(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q));
   q = (Mat_ScaLAPACK*)Q->data;
 
-  ierr = elpa_init(20200417);CHKERRQ(ierr);    /* 20171201 */
+  CHKERRQ(elpa_init(20200417));    /* 20171201 */
   handle = elpa_allocate(&ierr);CHKERRQ(ierr);
 
   /* set parameters of the matrix and its MPI distribution */
@@ -84,14 +83,14 @@ PetscErrorCode EPSSolve_ELPA(EPS eps)
   elpa_set(handle,"nev",a->N,&ierr);CHKERRQ(ierr);               /* number of eigenvectors to be computed (1<=nev<=na) */
   elpa_set(handle,"local_nrows",a->locr,&ierr);CHKERRQ(ierr);    /* number of local rows of the distributed matrix on this MPI task  */
   elpa_set(handle,"local_ncols",a->locc,&ierr);CHKERRQ(ierr);    /* number of local columns of the distributed matrix on this MPI task */
-  elpa_set(handle,"nblk",a->mb,&ierr);CHKERRQ(ierr);              /* size of the BLACS block cyclic distribution */
+  elpa_set(handle,"nblk",a->mb,&ierr);CHKERRQ(ierr);             /* size of the BLACS block cyclic distribution */
   elpa_set(handle,"mpi_comm_parent",MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&ierr);CHKERRQ(ierr);
   elpa_set(handle,"process_row",a->grid->myrow,&ierr);CHKERRQ(ierr);    /* row coordinate of MPI process */
   elpa_set(handle,"process_col",a->grid->mycol,&ierr);CHKERRQ(ierr);    /* column coordinate of MPI process */
   if (B) { elpa_set(handle,"blacs_context",a->grid->ictxt,&ierr);CHKERRQ(ierr); }
 
   /* setup and set tunable run-time options */
-  ierr = elpa_setup(handle);CHKERRQ(ierr);
+  CHKERRQ(elpa_setup(handle));
   elpa_set(handle,"solver",ELPA_SOLVER_2STAGE,&ierr);CHKERRQ(ierr);
   /* elpa_print_settings(handle,&ierr);CHKERRQ(ierr); */
 
@@ -112,10 +111,10 @@ PetscErrorCode EPSSolve_ELPA(EPS eps)
     eps->errest[i] = PETSC_MACHINE_EPSILON;
   }
 
-  ierr = BVGetMat(eps->V,&V);CHKERRQ(ierr);
-  ierr = MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V);CHKERRQ(ierr);
-  ierr = BVRestoreMat(eps->V,&V);CHKERRQ(ierr);
-  ierr = MatDestroy(&Q);CHKERRQ(ierr);
+  CHKERRQ(BVGetMat(eps->V,&V));
+  CHKERRQ(MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V));
+  CHKERRQ(BVRestoreMat(eps->V,&V));
+  CHKERRQ(MatDestroy(&Q));
 
   eps->nconv  = eps->ncv;
   eps->its    = 1;
@@ -125,31 +124,27 @@ PetscErrorCode EPSSolve_ELPA(EPS eps)
 
 PetscErrorCode EPSDestroy_ELPA(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
+  CHKERRQ(PetscFree(eps->data));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSReset_ELPA(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_ELPA       *ctx = (EPS_ELPA*)eps->data;
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&ctx->As);CHKERRQ(ierr);
-  ierr = MatDestroy(&ctx->Bs);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&ctx->As));
+  CHKERRQ(MatDestroy(&ctx->Bs));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_ELPA(EPS eps)
 {
   EPS_ELPA       *ctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   eps->categ = EPS_CATEGORY_OTHER;
@@ -163,4 +158,3 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_ELPA(EPS eps)
   eps->ops->setdefaultst   = EPSSetDefaultST_NoFactor;
   PetscFunctionReturn(0);
 }
-

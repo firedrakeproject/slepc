@@ -32,10 +32,8 @@ const char *FNParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","FNParallelType","FN
 @*/
 PetscErrorCode FNFinalizePackage(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&FNList);CHKERRQ(ierr);
+  CHKERRQ(PetscFunctionListDestroy(&FNList));
   FNPackageInitialized = PETSC_FALSE;
   FNRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -55,28 +53,27 @@ PetscErrorCode FNInitializePackage(void)
   char           logList[256];
   PetscBool      opt,pkg;
   PetscClassId   classids[1];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (FNPackageInitialized) PetscFunctionReturn(0);
   FNPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Math Function",&FN_CLASSID);CHKERRQ(ierr);
+  CHKERRQ(PetscClassIdRegister("Math Function",&FN_CLASSID));
   /* Register Constructors */
-  ierr = FNRegisterAll();CHKERRQ(ierr);
+  CHKERRQ(FNRegisterAll());
   /* Register Events */
-  ierr = PetscLogEventRegister("FNEvaluate",FN_CLASSID,&FN_Evaluate);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventRegister("FNEvaluate",FN_CLASSID,&FN_Evaluate));
   /* Process Info */
   classids[0] = FN_CLASSID;
-  ierr = PetscInfoProcessClass("fn",1,&classids[0]);CHKERRQ(ierr);
+  CHKERRQ(PetscInfoProcessClass("fn",1,&classids[0]));
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    ierr = PetscStrInList("fn",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscLogEventDeactivateClass(FN_CLASSID);CHKERRQ(ierr); }
+    CHKERRQ(PetscStrInList("fn",logList,',',&pkg));
+    if (pkg) CHKERRQ(PetscLogEventDeactivateClass(FN_CLASSID));
   }
   /* Register package finalizer */
-  ierr = PetscRegisterFinalize(FNFinalizePackage);CHKERRQ(ierr);
+  CHKERRQ(PetscRegisterFinalize(FNFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -98,13 +95,12 @@ PetscErrorCode FNInitializePackage(void)
 PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
 {
   FN             fn;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidPointer(newfn,2);
   *newfn = 0;
-  ierr = FNInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView);CHKERRQ(ierr);
+  CHKERRQ(FNInitializePackage());
+  CHKERRQ(SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView));
 
   fn->alpha    = 1.0;
   fn->beta     = 1.0;
@@ -139,11 +135,9 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
 @*/
 PetscErrorCode FNSetOptionsPrefix(FN fn,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)fn,prefix);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectSetOptionsPrefix((PetscObject)fn,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -167,11 +161,9 @@ PetscErrorCode FNSetOptionsPrefix(FN fn,const char *prefix)
 @*/
 PetscErrorCode FNAppendOptionsPrefix(FN fn,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)fn,prefix);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectAppendOptionsPrefix((PetscObject)fn,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -197,12 +189,10 @@ PetscErrorCode FNAppendOptionsPrefix(FN fn,const char *prefix)
 @*/
 PetscErrorCode FNGetOptionsPrefix(FN fn,const char *prefix[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidPointer(prefix,2);
-  ierr = PetscObjectGetOptionsPrefix((PetscObject)fn,prefix);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectGetOptionsPrefix((PetscObject)fn,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -225,24 +215,24 @@ PetscErrorCode FNGetOptionsPrefix(FN fn,const char *prefix[])
 @*/
 PetscErrorCode FNSetType(FN fn,FNType type)
 {
-  PetscErrorCode ierr,(*r)(FN);
+  PetscErrorCode (*r)(FN);
   PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)fn,type,&match);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)fn,type,&match));
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFunctionListFind(FNList,type,&r);CHKERRQ(ierr);
+  CHKERRQ(PetscFunctionListFind(FNList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested FN type %s",type);
 
-  if (fn->ops->destroy) { ierr = (*fn->ops->destroy)(fn);CHKERRQ(ierr); }
-  ierr = PetscMemzero(fn->ops,sizeof(struct _FNOps));CHKERRQ(ierr);
+  if (fn->ops->destroy) CHKERRQ((*fn->ops->destroy)(fn));
+  CHKERRQ(PetscMemzero(fn->ops,sizeof(struct _FNOps)));
 
-  ierr = PetscObjectChangeTypeName((PetscObject)fn,type);CHKERRQ(ierr);
-  ierr = (*r)(fn);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectChangeTypeName((PetscObject)fn,type));
+  CHKERRQ((*r)(fn));
   PetscFunctionReturn(0);
 }
 
@@ -475,18 +465,17 @@ PetscErrorCode FNGetParallel(FN fn,FNParallelType *pmode)
 @*/
 PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
 {
-  PetscErrorCode ierr;
   PetscScalar    xf,yf;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidType(fn,1);
   PetscValidScalarPointer(y,3);
-  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(FN_Evaluate,fn,0,0,0));
   xf = fn->alpha*x;
-  ierr = (*fn->ops->evaluatefunction)(fn,xf,&yf);CHKERRQ(ierr);
+  CHKERRQ((*fn->ops->evaluatefunction)(fn,xf,&yf));
   *y = fn->beta*yf;
-  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventEnd(FN_Evaluate,fn,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -512,24 +501,22 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
 @*/
 PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 {
-  PetscErrorCode ierr;
   PetscScalar    xf,yf;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidType(fn,1);
   PetscValidScalarPointer(y,3);
-  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(FN_Evaluate,fn,0,0,0));
   xf = fn->alpha*x;
-  ierr = (*fn->ops->evaluatederivative)(fn,xf,&yf);CHKERRQ(ierr);
+  CHKERRQ((*fn->ops->evaluatederivative)(fn,xf,&yf));
   *y = fn->alpha*fn->beta*yf;
-  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventEnd(FN_Evaluate,fn,0,0,0));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,const PetscScalar *As,PetscScalar *Bs,PetscInt m,PetscBool firstonly)
 {
-  PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   n,k,ld,lwork,info;
   PetscScalar    *Q,*W,*work,adummy,a,x,y,one=1.0,zero=0.0;
@@ -539,7 +526,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,const PetscScalar 
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast(m,&n));
   ld = n;
   k = firstonly? 1: n;
 
@@ -547,12 +534,12 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,const PetscScalar 
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,&adummy,&ld,&dummy,&a,&lwork,&rdummy,&info));
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc5(m,&eig,m*m,&Q,m*k,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork));
+  CHKERRQ(PetscMalloc5(m,&eig,m*m,&Q,m*k,&W,lwork,&work,PetscMax(1,3*m-2),&rwork));
 #else
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,&adummy,&ld,&dummy,&a,&lwork,&info));
-  ierr = PetscBLASIntCast((PetscInt)a,&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc4(m,&eig,m*m,&Q,m*k,&W,lwork,&work);CHKERRQ(ierr);
+  CHKERRQ(PetscBLASIntCast((PetscInt)a,&lwork));
+  CHKERRQ(PetscMalloc4(m,&eig,m*m,&Q,m*k,&W,lwork,&work));
 #endif
 
   /* compute eigendecomposition */
@@ -567,17 +554,17 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,const PetscScalar 
   /* W = f(Lambda)*Q' */
   for (i=0;i<n;i++) {
     x = fn->alpha*eig[i];
-    ierr = (*fn->ops->evaluatefunction)(fn,x,&y);CHKERRQ(ierr);  /* y = f(x) */
+    CHKERRQ((*fn->ops->evaluatefunction)(fn,x,&y));  /* y = f(x) */
     for (j=0;j<k;j++) W[i+j*ld] = PetscConj(Q[j+i*ld])*fn->beta*y;
   }
   /* Bs = Q*W */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k,&n,&one,Q,&ld,W,&ld,&zero,Bs,&ld));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree5(eig,Q,W,work,rwork);CHKERRQ(ierr);
+  CHKERRQ(PetscFree5(eig,Q,W,work,rwork));
 #else
-  ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
+  CHKERRQ(PetscFree4(eig,Q,W,work));
 #endif
-  ierr = PetscLogFlops(9.0*n*n*n+2.0*n*n*n);CHKERRQ(ierr);
+  CHKERRQ(PetscLogFlops(9.0*n*n*n+2.0*n*n*n));
   PetscFunctionReturn(0);
 }
 
@@ -588,24 +575,22 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,const PetscScalar 
 */
 static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 {
-  PetscErrorCode    ierr;
   PetscInt          m;
   const PetscScalar *As;
   PetscScalar       *Bs;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArrayRead(A,&As);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(B,&Bs);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMat_Sym_Private(fn,As,Bs,m,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(A,&As);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(B,&Bs);CHKERRQ(ierr);
+  CHKERRQ(MatDenseGetArrayRead(A,&As));
+  CHKERRQ(MatDenseGetArray(B,&Bs));
+  CHKERRQ(MatGetSize(A,&m,NULL));
+  CHKERRQ(FNEvaluateFunctionMat_Sym_Private(fn,As,Bs,m,PETSC_FALSE));
+  CHKERRQ(MatDenseRestoreArrayRead(A,&As));
+  CHKERRQ(MatDenseRestoreArray(B,&Bs));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
 {
-  PetscErrorCode ierr;
   PetscBool      set,flg,symm=PETSC_FALSE;
   PetscInt       m,n;
   PetscMPIInt    size,rank;
@@ -617,42 +602,42 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
   F = B?B:A;
 
   /* check symmetry of A */
-  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+  CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
   symm = set? flg: PETSC_FALSE;
 
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRMPI(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size));
+  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank));
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
 
-    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
     if (symm && !fn->method) {  /* prefer diagonalization */
-      ierr = PetscInfo(fn,"Computing matrix function via diagonalization\n");CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat_Sym_Default(fn,A,F);CHKERRQ(ierr);
+      CHKERRQ(PetscInfo(fn,"Computing matrix function via diagonalization\n"));
+      CHKERRQ(FNEvaluateFunctionMat_Sym_Default(fn,A,F));
     } else {
       /* scale argument */
       if (fn->alpha!=(PetscScalar)1.0) {
-        ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
-        ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
+        CHKERRQ(FN_AllocateWorkMat(fn,A,&M));
+        CHKERRQ(MatScale(M,fn->alpha));
       } else M = A;
       if (fn->ops->evaluatefunctionmat[fn->method]) {
-        ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F);CHKERRQ(ierr);
+        CHKERRQ((*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F));
       } else {
         PetscCheck(fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in this FN type");
         PetscCheck(!fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN type");
       }
       if (fn->alpha!=(PetscScalar)1.0) {
-        ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+        CHKERRQ(FN_FreeWorkMat(fn,&M));
       }
       /* scale result */
-      ierr = MatScale(F,fn->beta);CHKERRQ(ierr);
+      CHKERRQ(MatScale(F,fn->beta));
     }
-    ierr = PetscFPTrapPop();CHKERRQ(ierr);
+    CHKERRQ(PetscFPTrapPop());
   }
   if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) {  /* synchronize */
-    ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(F,&pF);CHKERRQ(ierr);
-    ierr = MPI_Bcast(pF,n*n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRMPI(ierr);
-    ierr = MatDenseRestoreArray(F,&pF);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(A,&m,&n));
+    CHKERRQ(MatDenseGetArray(F,&pF));
+    CHKERRMPI(MPI_Bcast(pF,n*n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn)));
+    CHKERRQ(MatDenseRestoreArray(F,&pF));
   }
   PetscFunctionReturn(0);
 }
@@ -690,7 +675,6 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
 @*/
 PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
   PetscBool      inplace=PETSC_FALSE;
   PetscInt       m,n,n1;
 
@@ -704,20 +688,20 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
     PetscValidType(B,3);
   } else inplace = PETSC_TRUE;
   PetscCheckTypeName(A,MATSEQDENSE);
-  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   if (!inplace) {
     PetscCheckTypeName(B,MATSEQDENSE);
     n1 = n;
-    ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(B,&m,&n));
     PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
     PetscCheck(n1==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
   }
 
   /* evaluate matrix function */
-  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMat_Private(fn,A,B,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(FN_Evaluate,fn,0,0,0));
+  CHKERRQ(FNEvaluateFunctionMat_Private(fn,A,B,PETSC_TRUE));
+  CHKERRQ(PetscLogEventEnd(FN_Evaluate,fn,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -727,19 +711,18 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 */
 static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v)
 {
-  PetscErrorCode ierr;
   Mat            F;
 
   PetscFunctionBegin;
-  ierr = FN_AllocateWorkMat(fn,A,&F);CHKERRQ(ierr);
+  CHKERRQ(FN_AllocateWorkMat(fn,A,&F));
   if (fn->ops->evaluatefunctionmat[fn->method]) {
-    ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,A,F);CHKERRQ(ierr);
+    CHKERRQ((*fn->ops->evaluatefunctionmat[fn->method])(fn,A,F));
   } else {
     PetscCheck(fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in this FN type");
     PetscCheck(!fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN type");
   }
-  ierr = MatGetColumnVector(F,v,0);CHKERRQ(ierr);
-  ierr = FN_FreeWorkMat(fn,&F);CHKERRQ(ierr);
+  CHKERRQ(MatGetColumnVector(F,v,0));
+  CHKERRQ(FN_FreeWorkMat(fn,&F));
   PetscFunctionReturn(0);
 }
 
@@ -750,24 +733,22 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v)
 */
 static PetscErrorCode FNEvaluateFunctionMatVec_Sym_Default(FN fn,Mat A,Vec v)
 {
-  PetscErrorCode    ierr;
   PetscInt          m;
   const PetscScalar *As;
   PetscScalar       *vs;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArrayRead(A,&As);CHKERRQ(ierr);
-  ierr = VecGetArray(v,&vs);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMat_Sym_Private(fn,As,vs,m,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(A,&As);CHKERRQ(ierr);
-  ierr = VecRestoreArray(v,&vs);CHKERRQ(ierr);
+  CHKERRQ(MatDenseGetArrayRead(A,&As));
+  CHKERRQ(VecGetArray(v,&vs));
+  CHKERRQ(MatGetSize(A,&m,NULL));
+  CHKERRQ(FNEvaluateFunctionMat_Sym_Private(fn,As,vs,m,PETSC_TRUE));
+  CHKERRQ(MatDenseRestoreArrayRead(A,&As));
+  CHKERRQ(VecRestoreArray(v,&vs));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync)
 {
-  PetscErrorCode ierr;
   PetscBool      set,flg,symm=PETSC_FALSE;
   PetscInt       m,n;
   Mat            M;
@@ -776,43 +757,43 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
 
   PetscFunctionBegin;
   /* check symmetry of A */
-  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+  CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
   symm = set? flg: PETSC_FALSE;
 
   /* evaluate matrix function */
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRMPI(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRMPI(ierr);
+  CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size));
+  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank));
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
-    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
     if (symm && !fn->method) {  /* prefer diagonalization */
-      ierr = PetscInfo(fn,"Computing matrix function via diagonalization\n");CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,A,v);CHKERRQ(ierr);
+      CHKERRQ(PetscInfo(fn,"Computing matrix function via diagonalization\n"));
+      CHKERRQ(FNEvaluateFunctionMatVec_Sym_Default(fn,A,v));
     } else {
       /* scale argument */
       if (fn->alpha!=(PetscScalar)1.0) {
-        ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
-        ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
+        CHKERRQ(FN_AllocateWorkMat(fn,A,&M));
+        CHKERRQ(MatScale(M,fn->alpha));
       } else M = A;
       if (fn->ops->evaluatefunctionmatvec[fn->method]) {
-        ierr = (*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v);CHKERRQ(ierr);
+        CHKERRQ((*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v));
       } else {
-        ierr = FNEvaluateFunctionMatVec_Default(fn,M,v);CHKERRQ(ierr);
+        CHKERRQ(FNEvaluateFunctionMatVec_Default(fn,M,v));
       }
       if (fn->alpha!=(PetscScalar)1.0) {
-        ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+        CHKERRQ(FN_FreeWorkMat(fn,&M));
       }
       /* scale result */
-      ierr = VecScale(v,fn->beta);CHKERRQ(ierr);
+      CHKERRQ(VecScale(v,fn->beta));
     }
-    ierr = PetscFPTrapPop();CHKERRQ(ierr);
+    CHKERRQ(PetscFPTrapPop());
   }
 
   /* synchronize */
   if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) {
-    ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-    ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
-    ierr = MPI_Bcast(pv,n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRMPI(ierr);
-    ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(A,&m,&n));
+    CHKERRQ(VecGetArray(v,&pv));
+    CHKERRMPI(MPI_Bcast(pv,n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn)));
+    CHKERRQ(VecRestoreArray(v,&pv));
   }
   PetscFunctionReturn(0);
 }
@@ -840,7 +821,6 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
 @*/
 PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
 {
-  PetscErrorCode ierr;
   PetscInt       m,n;
 
   PetscFunctionBegin;
@@ -851,13 +831,13 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   PetscValidType(A,2);
   PetscValidType(v,3);
   PetscCheckTypeName(A,MATSEQDENSE);
-  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
-  ierr = VecGetSize(v,&m);CHKERRQ(ierr);
+  CHKERRQ(VecGetSize(v,&m));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrix A and vector v must have the same size");
-  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMatVec_Private(fn,A,v,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(FN_Evaluate,fn,0,0,0));
+  CHKERRQ(FNEvaluateFunctionMatVec_Private(fn,A,v,PETSC_TRUE));
+  CHKERRQ(PetscLogEventEnd(FN_Evaluate,fn,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -887,33 +867,33 @@ PetscErrorCode FNSetFromOptions(FN fn)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = FNRegisterAll();CHKERRQ(ierr);
+  CHKERRQ(FNRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)fn);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-fn_type","Math function type","FNSetType",FNList,(char*)(((PetscObject)fn)->type_name?((PetscObject)fn)->type_name:FNRATIONAL),type,sizeof(type),&flg);CHKERRQ(ierr);
+    CHKERRQ(PetscOptionsFList("-fn_type","Math function type","FNSetType",FNList,(char*)(((PetscObject)fn)->type_name?((PetscObject)fn)->type_name:FNRATIONAL),type,sizeof(type),&flg));
     if (flg) {
-      ierr = FNSetType(fn,type);CHKERRQ(ierr);
+      CHKERRQ(FNSetType(fn,type));
     } else if (!((PetscObject)fn)->type_name) {
-      ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
+      CHKERRQ(FNSetType(fn,FNRATIONAL));
     }
 
     k = 2;
     array[0] = 0.0; array[1] = 0.0;
-    ierr = PetscOptionsScalarArray("-fn_scale","Scale factors (one or two scalar values separated with a comma without spaces)","FNSetScale",array,&k,&flg);CHKERRQ(ierr);
+    CHKERRQ(PetscOptionsScalarArray("-fn_scale","Scale factors (one or two scalar values separated with a comma without spaces)","FNSetScale",array,&k,&flg));
     if (flg) {
       if (k<2) array[1] = 1.0;
-      ierr = FNSetScale(fn,array[0],array[1]);CHKERRQ(ierr);
+      CHKERRQ(FNSetScale(fn,array[0],array[1]));
     }
 
-    ierr = PetscOptionsInt("-fn_method","Method to be used for computing matrix functions","FNSetMethod",fn->method,&meth,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = FNSetMethod(fn,meth);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsInt("-fn_method","Method to be used for computing matrix functions","FNSetMethod",fn->method,&meth,&flg));
+    if (flg) CHKERRQ(FNSetMethod(fn,meth));
 
-    ierr = PetscOptionsEnum("-fn_parallel","Operation mode in parallel runs","FNSetParallel",FNParallelTypes,(PetscEnum)fn->pmode,(PetscEnum*)&pmode,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = FNSetParallel(fn,pmode);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsEnum("-fn_parallel","Operation mode in parallel runs","FNSetParallel",FNParallelTypes,(PetscEnum)fn->pmode,(PetscEnum*)&pmode,&flg));
+    if (flg) CHKERRQ(FNSetParallel(fn,pmode));
 
     if (fn->ops->setfromoptions) {
-      ierr = (*fn->ops->setfromoptions)(PetscOptionsObject,fn);CHKERRQ(ierr);
+      CHKERRQ((*fn->ops->setfromoptions)(PetscOptionsObject,fn));
     }
-    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)fn);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)fn));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -945,27 +925,26 @@ PetscErrorCode FNSetFromOptions(FN fn)
 PetscErrorCode FNView(FN fn,PetscViewer viewer)
 {
   PetscBool      isascii;
-  PetscErrorCode ierr;
   PetscMPIInt    size;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)fn),&viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)fn),&viewer));
   }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(fn,1,viewer,2);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)fn,viewer);CHKERRQ(ierr);
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRMPI(ierr);
+    CHKERRQ(PetscObjectPrintClassNamePrefixType((PetscObject)fn,viewer));
+    CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size));
     if (size>1) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",FNParallelTypes[fn->pmode]);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",FNParallelTypes[fn->pmode]));
     }
     if (fn->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*fn->ops->view)(fn,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+      CHKERRQ(PetscViewerASCIIPushTab(viewer));
+      CHKERRQ((*fn->ops->view)(fn,viewer));
+      CHKERRQ(PetscViewerASCIIPopTab(viewer));
     }
   }
   PetscFunctionReturn(0);
@@ -987,11 +966,9 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
 @*/
 PetscErrorCode FNViewFromOptions(FN fn,PetscObject obj,const char name[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = PetscObjectViewFromOptions((PetscObject)fn,obj,name);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectViewFromOptions((PetscObject)fn,obj,name));
   PetscFunctionReturn(0);
 }
 
@@ -1018,7 +995,6 @@ PetscErrorCode FNViewFromOptions(FN fn,PetscObject obj,const char name[])
 @*/
 PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
 {
-  PetscErrorCode ierr;
   FNType         type;
   PetscScalar    alpha,beta;
   PetscInt       meth;
@@ -1028,17 +1004,17 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidType(fn,1);
   PetscValidPointer(newfn,3);
-  ierr = FNCreate(comm,newfn);CHKERRQ(ierr);
-  ierr = FNGetType(fn,&type);CHKERRQ(ierr);
-  ierr = FNSetType(*newfn,type);CHKERRQ(ierr);
-  ierr = FNGetScale(fn,&alpha,&beta);CHKERRQ(ierr);
-  ierr = FNSetScale(*newfn,alpha,beta);CHKERRQ(ierr);
-  ierr = FNGetMethod(fn,&meth);CHKERRQ(ierr);
-  ierr = FNSetMethod(*newfn,meth);CHKERRQ(ierr);
-  ierr = FNGetParallel(fn,&ptype);CHKERRQ(ierr);
-  ierr = FNSetParallel(*newfn,ptype);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(comm,newfn));
+  CHKERRQ(FNGetType(fn,&type));
+  CHKERRQ(FNSetType(*newfn,type));
+  CHKERRQ(FNGetScale(fn,&alpha,&beta));
+  CHKERRQ(FNSetScale(*newfn,alpha,beta));
+  CHKERRQ(FNGetMethod(fn,&meth));
+  CHKERRQ(FNSetMethod(*newfn,meth));
+  CHKERRQ(FNGetParallel(fn,&ptype));
+  CHKERRQ(FNSetParallel(*newfn,ptype));
   if (fn->ops->duplicate) {
-    ierr = (*fn->ops->duplicate)(fn,comm,newfn);CHKERRQ(ierr);
+    CHKERRQ((*fn->ops->duplicate)(fn,comm,newfn));
   }
   PetscFunctionReturn(0);
 }
@@ -1057,18 +1033,17 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
 @*/
 PetscErrorCode FNDestroy(FN *fn)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
   if (!*fn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
   if (--((PetscObject)(*fn))->refct > 0) { *fn = 0; PetscFunctionReturn(0); }
-  if ((*fn)->ops->destroy) { ierr = (*(*fn)->ops->destroy)(*fn);CHKERRQ(ierr); }
+  if ((*fn)->ops->destroy) CHKERRQ((*(*fn)->ops->destroy)(*fn));
   for (i=0;i<(*fn)->nw;i++) {
-    ierr = MatDestroy(&(*fn)->W[i]);CHKERRQ(ierr);
+    CHKERRQ(MatDestroy(&(*fn)->W[i]));
   }
-  ierr = PetscHeaderDestroy(fn);CHKERRQ(ierr);
+  CHKERRQ(PetscHeaderDestroy(fn));
   PetscFunctionReturn(0);
 }
 
@@ -1090,11 +1065,8 @@ PetscErrorCode FNDestroy(FN *fn)
 @*/
 PetscErrorCode FNRegister(const char *name,PetscErrorCode (*function)(FN))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = FNInitializePackage();CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(&FNList,name,function);CHKERRQ(ierr);
+  CHKERRQ(FNInitializePackage());
+  CHKERRQ(PetscFunctionListAdd(&FNList,name,function));
   PetscFunctionReturn(0);
 }
-

@@ -37,67 +37,67 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",N,m);CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",N,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatMarkovModel(m,A);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,NULL,&t);CHKERRQ(ierr);
+  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
+  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  CHKERRQ(MatSetFromOptions(A));
+  CHKERRQ(MatSetUp(A));
+  CHKERRQ(MatMarkovModel(m,A));
+  CHKERRQ(MatCreateVecs(A,NULL,&t));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  CHKERRQ(EPSSetOperators(eps,A,NULL));
+  CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
 
   /* use a two-sided algorithm to compute left eigenvectors as well */
-  ierr = EPSSetTwoSided(eps,PETSC_TRUE);CHKERRQ(ierr);
+  CHKERRQ(EPSSetTwoSided(eps,PETSC_TRUE));
 
   /* allow user to change settings at run time */
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
-  ierr = EPSGetTwoSided(eps,&twosided);CHKERRQ(ierr);
+  CHKERRQ(EPSSetFromOptions(eps));
+  CHKERRQ(EPSGetTwoSided(eps,&twosided));
 
   /*
      Set the initial vectors. This is optional, if not done the initial
      vectors are set to random values
   */
-  ierr = MatCreateVecs(A,&v0,&w0);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
+  CHKERRQ(MatCreateVecs(A,&v0,&w0));
+  CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
   if (!rank) {
-    ierr = VecSetValue(v0,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(v0,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(v0,2,1.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(w0,0,2.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(w0,2,0.5,INSERT_VALUES);CHKERRQ(ierr);
+    CHKERRQ(VecSetValue(v0,0,1.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(v0,1,1.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(v0,2,1.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(w0,0,2.0,INSERT_VALUES));
+    CHKERRQ(VecSetValue(w0,2,0.5,INSERT_VALUES));
   }
-  ierr = VecAssemblyBegin(v0);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(w0);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v0);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(w0);CHKERRQ(ierr);
-  ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
-  ierr = EPSSetLeftInitialSpace(eps,1,&w0);CHKERRQ(ierr);
+  CHKERRQ(VecAssemblyBegin(v0));
+  CHKERRQ(VecAssemblyBegin(w0));
+  CHKERRQ(VecAssemblyEnd(v0));
+  CHKERRQ(VecAssemblyEnd(w0));
+  CHKERRQ(EPSSetInitialSpace(eps,1,&v0));
+  CHKERRQ(EPSSetLeftInitialSpace(eps,1,&w0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  CHKERRQ(EPSSolve(eps));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
+  CHKERRQ(EPSGetType(eps,&type));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -106,39 +106,39 @@ int main(int argc,char **argv)
   /*
      Get number of converged approximate eigenpairs
   */
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv);CHKERRQ(ierr);
-  ierr = PetscMalloc2(nconv,&kr,nconv,&ki);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(t,nconv,&xr);CHKERRQ(ierr);
-  ierr = VecDuplicateVecs(t,nconv,&xi);CHKERRQ(ierr);
+  CHKERRQ(EPSGetConverged(eps,&nconv));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv));
+  CHKERRQ(PetscMalloc2(nconv,&kr,nconv,&ki));
+  CHKERRQ(VecDuplicateVecs(t,nconv,&xr));
+  CHKERRQ(VecDuplicateVecs(t,nconv,&xi));
   if (twosided) {
-    ierr = VecDuplicateVecs(t,nconv,&yr);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(t,nconv,&yi);CHKERRQ(ierr);
+    CHKERRQ(VecDuplicateVecs(t,nconv,&yr));
+    CHKERRQ(VecDuplicateVecs(t,nconv,&yi));
   }
 
   if (nconv>0) {
     /*
        Display eigenvalues and relative errors
     */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,
          "           k            ||Ax-kx||         ||y'A-y'k||\n"
-         "   ---------------- ------------------ ------------------\n");CHKERRQ(ierr);
+         "   ---------------- ------------------ ------------------\n"));
 
     for (i=0;i<nconv;i++) {
       /*
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
       */
-      ierr = EPSGetEigenpair(eps,i,&kr[i],&ki[i],xr[i],xi[i]);CHKERRQ(ierr);
+      CHKERRQ(EPSGetEigenpair(eps,i,&kr[i],&ki[i],xr[i],xi[i]));
       if (twosided) {
-        ierr = EPSGetLeftEigenvector(eps,i,yr[i],yi[i]);CHKERRQ(ierr);
+        CHKERRQ(EPSGetLeftEigenvector(eps,i,yr[i],yi[i]));
       }
       /*
          Compute the residual norms associated to each eigenpair
       */
-      ierr = ComputeResidualNorm(A,PETSC_FALSE,kr[i],ki[i],xr[i],xi[i],t,&nrmr);CHKERRQ(ierr);
+      CHKERRQ(ComputeResidualNorm(A,PETSC_FALSE,kr[i],ki[i],xr[i],xi[i],t,&nrmr));
       if (twosided) {
-        ierr = ComputeResidualNorm(A,PETSC_TRUE,kr[i],ki[i],yr[i],yi[i],t,&nrml);CHKERRQ(ierr);
+        CHKERRQ(ComputeResidualNorm(A,PETSC_TRUE,kr[i],ki[i],yr[i],yi[i],t,&nrml));
       }
 
 #if defined(PETSC_USE_COMPLEX)
@@ -149,36 +149,36 @@ int main(int argc,char **argv)
       im = ki[i];
 #endif
       if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml);CHKERRQ(ierr);
+        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml));
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g       %12g\n",(double)re,(double)nrmr,(double)nrml);CHKERRQ(ierr);
+        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g       %12g\n",(double)re,(double)nrmr,(double)nrml));
       }
     }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     /*
        Check bi-orthogonality of eigenvectors
     */
     if (twosided) {
-      ierr = VecCheckOrthogonality(xr,nconv,yr,nconv,NULL,NULL,&lev);CHKERRQ(ierr);
+      CHKERRQ(VecCheckOrthogonality(xr,nconv,yr,nconv,NULL,NULL,&lev));
       if (lev<100*PETSC_MACHINE_EPSILON) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors < 100*eps\n\n");CHKERRQ(ierr);
+        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors < 100*eps\n\n"));
       } else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors: %g\n\n",(double)lev);CHKERRQ(ierr);
+        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors: %g\n\n",(double)lev));
       }
     }
   }
 
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v0);CHKERRQ(ierr);
-  ierr = VecDestroy(&w0);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
-  ierr = PetscFree2(kr,ki);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(nconv,&xr);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(nconv,&xi);CHKERRQ(ierr);
+  CHKERRQ(EPSDestroy(&eps));
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(VecDestroy(&v0));
+  CHKERRQ(VecDestroy(&w0));
+  CHKERRQ(VecDestroy(&t));
+  CHKERRQ(PetscFree2(kr,ki));
+  CHKERRQ(VecDestroyVecs(nconv,&xr));
+  CHKERRQ(VecDestroyVecs(nconv,&xi));
   if (twosided) {
-    ierr = VecDestroyVecs(nconv,&yr);CHKERRQ(ierr);
-    ierr = VecDestroyVecs(nconv,&yi);CHKERRQ(ierr);
+    CHKERRQ(VecDestroyVecs(nconv,&yr));
+    CHKERRQ(VecDestroyVecs(nconv,&yi));
   }
   ierr = SlepcFinalize();
   return ierr;
@@ -208,10 +208,9 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   const PetscReal cst = 0.5/(PetscReal)(m-1);
   PetscReal       pd,pu;
   PetscInt        Istart,Iend,i,j,jmax,ix=0;
-  PetscErrorCode  ierr;
 
   PetscFunctionBeginUser;
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=1;i<=m;i++) {
     jmax = m-i+1;
     for (j=1;j<=jmax;j++) {
@@ -221,30 +220,30 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
         pd = cst*(PetscReal)(i+j-1);
         /* north */
         if (i==1) {
-          ierr = MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES);CHKERRQ(ierr);
+          CHKERRQ(MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES));
         } else {
-          ierr = MatSetValue(A,ix-1,ix,pd,INSERT_VALUES);CHKERRQ(ierr);
+          CHKERRQ(MatSetValue(A,ix-1,ix,pd,INSERT_VALUES));
         }
         /* east */
         if (j==1) {
-          ierr = MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES);CHKERRQ(ierr);
+          CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES));
         } else {
-          ierr = MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES);CHKERRQ(ierr);
+          CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES));
         }
       }
       /* south */
       pu = 0.5 - cst*(PetscReal)(i+j-3);
       if (j>1) {
-        ierr = MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES));
       }
       /* west */
       if (i>1) {
-        ierr = MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES);CHKERRQ(ierr);
+        CHKERRQ(MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES));
       }
     }
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
 }
 
@@ -260,7 +259,6 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
 */
 PetscErrorCode ComputeResidualNorm(Mat A,PetscBool trans,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec u,PetscReal *norm)
 {
-  PetscErrorCode ierr;
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal      ni,nr;
 #endif
@@ -270,25 +268,25 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscBool trans,PetscScalar kr,PetscSca
 #if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    ierr = (*matmult)(A,xr,u);CHKERRQ(ierr);
+    CHKERRQ((*matmult)(A,xr,u));
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      ierr = VecAXPY(u,-kr,xr);CHKERRQ(ierr);
+      CHKERRQ(VecAXPY(u,-kr,xr));
     }
-    ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
+    CHKERRQ(VecNorm(u,NORM_2,norm));
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    ierr = (*matmult)(A,xr,u);CHKERRQ(ierr);
+    CHKERRQ((*matmult)(A,xr,u));
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      ierr = VecAXPY(u,-kr,xr);CHKERRQ(ierr);
-      ierr = VecAXPY(u,ki,xi);CHKERRQ(ierr);
+      CHKERRQ(VecAXPY(u,-kr,xr));
+      CHKERRQ(VecAXPY(u,ki,xi));
     }
-    ierr = VecNorm(u,NORM_2,&nr);CHKERRQ(ierr);
-    ierr = (*matmult)(A,xi,u);CHKERRQ(ierr);
+    CHKERRQ(VecNorm(u,NORM_2,&nr));
+    CHKERRQ((*matmult)(A,xi,u));
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      ierr = VecAXPY(u,-kr,xi);CHKERRQ(ierr);
-      ierr = VecAXPY(u,-ki,xr);CHKERRQ(ierr);
+      CHKERRQ(VecAXPY(u,-kr,xi));
+      CHKERRQ(VecAXPY(u,-ki,xr));
     }
-    ierr = VecNorm(u,NORM_2,&ni);CHKERRQ(ierr);
+    CHKERRQ(VecNorm(u,NORM_2,&ni));
     *norm = SlepcAbsEigenvalue(nr,ni);
   }
 #endif

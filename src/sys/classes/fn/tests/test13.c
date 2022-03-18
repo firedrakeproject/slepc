@@ -17,7 +17,6 @@ static char help[] = "Test matrix logarithm.\n\n";
  */
 PetscErrorCode TestMatLog(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,PetscBool inplace)
 {
-  PetscErrorCode ierr;
   PetscBool      set,flg;
   PetscScalar    tau,eta;
   PetscInt       n;
@@ -27,56 +26,56 @@ PetscErrorCode TestMatLog(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   PetscReal      nrm;
 
   PetscFunctionBeginUser;
-  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)F,"F");CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&R);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
-  ierr = FNGetScale(fn,&tau,&eta);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(A,&n,NULL));
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F));
+  CHKERRQ(PetscObjectSetName((PetscObject)F,"F"));
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&R));
+  CHKERRQ(PetscObjectSetName((PetscObject)R,"R"));
+  CHKERRQ(FNGetScale(fn,&tau,&eta));
   /* compute matrix logarithm */
   if (inplace) {
-    ierr = MatCopy(A,F,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-    ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
-    if (set && flg) { ierr = MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr); }
-    ierr = FNEvaluateFunctionMat(fn,F,NULL);CHKERRQ(ierr);
+    CHKERRQ(MatCopy(A,F,SAME_NONZERO_PATTERN));
+    CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
+    if (set && flg) CHKERRQ(MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE));
+    CHKERRQ(FNEvaluateFunctionMat(fn,F,NULL));
   } else {
-    ierr = FNEvaluateFunctionMat(fn,A,F);CHKERRQ(ierr);
+    CHKERRQ(FNEvaluateFunctionMat(fn,A,F));
   }
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(A,viewer);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed logm(A) - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(F,viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
+    CHKERRQ(MatView(A,viewer));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed logm(A) - - - - - - -\n"));
+    CHKERRQ(MatView(F,viewer));
   }
   /* check error ||expm(F)-A||_F */
-  ierr = FNCreate(PETSC_COMM_WORLD,&fnexp);CHKERRQ(ierr);
-  ierr = FNSetType(fnexp,FNEXP);CHKERRQ(ierr);
-  ierr = MatCopy(F,R,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fnexp));
+  CHKERRQ(FNSetType(fnexp,FNEXP));
+  CHKERRQ(MatCopy(F,R,SAME_NONZERO_PATTERN));
   if (eta!=1.0) {
-    ierr = MatScale(R,1.0/eta);CHKERRQ(ierr);
+    CHKERRQ(MatScale(R,1.0/eta));
   }
-  ierr = FNEvaluateFunctionMat(fnexp,R,NULL);CHKERRQ(ierr);
-  ierr = FNDestroy(&fnexp);CHKERRQ(ierr);
-  ierr = MatAXPY(R,-tau,A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = MatNorm(R,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
+  CHKERRQ(FNEvaluateFunctionMat(fnexp,R,NULL));
+  CHKERRQ(FNDestroy(&fnexp));
+  CHKERRQ(MatAXPY(R,-tau,A,SAME_NONZERO_PATTERN));
+  CHKERRQ(MatNorm(R,NORM_FROBENIUS,&nrm));
   if (nrm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F < 100*eps\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F < 100*eps\n"));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F = %g\n",(double)nrm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F = %g\n",(double)nrm));
   }
   /* check FNEvaluateFunctionMatVec() */
-  ierr = MatCreateVecs(A,&v,&f0);CHKERRQ(ierr);
-  ierr = MatGetColumnVector(F,f0,0);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMatVec(fn,A,v);CHKERRQ(ierr);
-  ierr = VecAXPY(v,-1.0,f0);CHKERRQ(ierr);
-  ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecs(A,&v,&f0));
+  CHKERRQ(MatGetColumnVector(F,f0,0));
+  CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
+  CHKERRQ(VecAXPY(v,-1.0,f0));
+  CHKERRQ(VecNorm(v,NORM_2,&nrm));
   if (nrm>100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
   }
-  ierr = MatDestroy(&F);CHKERRQ(ierr);
-  ierr = MatDestroy(&R);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&f0);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&F));
+  CHKERRQ(MatDestroy(&R));
+  CHKERRQ(VecDestroy(&v));
+  CHKERRQ(VecDestroy(&f0));
   PetscFunctionReturn(0);
 }
 
@@ -91,34 +90,34 @@ int main(int argc,char **argv)
   PetscBool      verbose,inplace,random,triang;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-random",&random);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-triang",&triang);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix logarithm, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-random",&random));
+  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-triang",&triang));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix logarithm, n=%" PetscInt_FMT ".\n",n));
 
   /* Create logarithm function object */
-  ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
-  ierr = FNSetType(fn,FNLOG);CHKERRQ(ierr);
-  ierr = FNSetFromOptions(fn);CHKERRQ(ierr);
+  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn));
+  CHKERRQ(FNSetType(fn,FNLOG));
+  CHKERRQ(FNSetFromOptions(fn));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  ierr = FNView(fn,viewer);CHKERRQ(ierr);
+  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  CHKERRQ(FNView(fn,viewer));
   if (verbose) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
   }
 
   /* Create matrices */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)A,"A");CHKERRQ(ierr);
+  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  CHKERRQ(PetscObjectSetName((PetscObject)A,"A"));
 
   if (random) {
-    ierr = MatSetRandom(A,NULL);CHKERRQ(ierr);
+    CHKERRQ(MatSetRandom(A,NULL));
   } else {
     /* Fill A with a non-symmetric Toeplitz matrix */
-    ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+    CHKERRQ(MatDenseGetArray(A,&As));
     for (i=0;i<n;i++) As[i+i*n]=2.0;
     for (j=1;j<3;j++) {
       for (i=0;i<n-j;i++) {
@@ -128,12 +127,12 @@ int main(int argc,char **argv)
     }
     As[(n-1)*n] = -5.0;
     As[0] = 2.01;
-    ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+    CHKERRQ(MatDenseRestoreArray(A,&As));
   }
-  ierr = TestMatLog(fn,A,viewer,verbose,inplace);CHKERRQ(ierr);
+  CHKERRQ(TestMatLog(fn,A,viewer,verbose,inplace));
 
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = FNDestroy(&fn);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&A));
+  CHKERRQ(FNDestroy(&fn));
   ierr = SlepcFinalize();
   return ierr;
 }

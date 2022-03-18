@@ -262,7 +262,6 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
   PetscBLASInt   ldvt, ksum=0, kskp1, spneed, nrblks, liwmin, isvals;
   PetscReal      p, d2, eps, dmax, emax, done = 1.0;
   PetscReal      dnrm, tiny, anorm, exdnrm=0, dropsv, absdiff;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   /* Determine machine epsilon. */
@@ -609,10 +608,9 @@ L20:
     /* call the block-tridiagonal divide-and-conquer on the */
     /* irreducible subproblem which has been identified */
 
-    ierr = BDC_dibtdc_(jobz, nk, nrblks, &ksizes[start], &d[start*l1d*l2d], l1d, l2d,
+    CHKERRQ(BDC_dibtdc_(jobz, nk, nrblks, &ksizes[start], &d[start*l1d*l2d], l1d, l2d,
                 &e[start*l2e*l1e], &iwork[start], l1e, l2e, tau2, &ev[np],
-                &z[np + np*ldz], ldz, work, lwork, &iwork[nblks-1], liwork, info, 1);
-                CHKERRQ(ierr);
+                &z[np + np*ldz], ldz, work, lwork, &iwork[nblks-1], liwork, info, 1));
     PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_LIB,"dsbtdc: Error in DIBTDC, info = %" PetscBLASInt_FMT,*info);
 
 /* ************************************************************************** */
@@ -678,4 +676,3 @@ L20:
   if (*mingap <= tol / 10) *info = -103;
   PetscFunctionReturn(0);
 }
-

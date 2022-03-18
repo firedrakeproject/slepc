@@ -44,14 +44,13 @@ PetscBool         NEPMonitorRegisterAllCalled = PETSC_FALSE;
 @*/
 PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 {
-  PetscErrorCode ierr;
   NEP            nep;
 
   PetscFunctionBegin;
   PetscValidPointer(outnep,2);
   *outnep = 0;
-  ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
+  CHKERRQ(NEPInitializePackage());
+  CHKERRQ(SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView));
 
   nep->max_it          = PETSC_DEFAULT;
   nep->nev             = 1;
@@ -119,7 +118,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->resolvent       = NULL;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
-  ierr = PetscNewLog(nep,&nep->sc);CHKERRQ(ierr);
+  CHKERRQ(PetscNewLog(nep,&nep->sc));
   *outnep = nep;
   PetscFunctionReturn(0);
 }
@@ -154,25 +153,25 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 @*/
 PetscErrorCode NEPSetType(NEP nep,NEPType type)
 {
-  PetscErrorCode ierr,(*r)(NEP);
+  PetscErrorCode (*r)(NEP);
   PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)nep,type,&match);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)nep,type,&match));
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(NEPList,type,&r);CHKERRQ(ierr);
+  CHKERRQ(PetscFunctionListFind(NEPList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown NEP type given: %s",type);
 
-  if (nep->ops->destroy) { ierr = (*nep->ops->destroy)(nep);CHKERRQ(ierr); }
-  ierr = PetscMemzero(nep->ops,sizeof(struct _NEPOps));CHKERRQ(ierr);
+  if (nep->ops->destroy) CHKERRQ((*nep->ops->destroy)(nep));
+  CHKERRQ(PetscMemzero(nep->ops,sizeof(struct _NEPOps)));
 
   nep->state = NEP_STATE_INITIAL;
-  ierr = PetscObjectChangeTypeName((PetscObject)nep,type);CHKERRQ(ierr);
-  ierr = (*r)(nep);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectChangeTypeName((PetscObject)nep,type));
+  CHKERRQ((*r)(nep));
   PetscFunctionReturn(0);
 }
 
@@ -228,11 +227,9 @@ $     -nep_type my_solver
 @*/
 PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(&NEPList,name,function);CHKERRQ(ierr);
+  CHKERRQ(NEPInitializePackage());
+  CHKERRQ(PetscFunctionListAdd(&NEPList,name,function));
   PetscFunctionReturn(0);
 }
 
@@ -269,14 +266,13 @@ $      -nep_monitor_my_monitor
 PetscErrorCode NEPMonitorRegister(const char name[],PetscViewerType vtype,PetscViewerFormat format,PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscErrorCode (*create)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode (*destroy)(PetscViewerAndFormat**))
 {
   char           key[PETSC_MAX_PATH_LEN];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(&NEPMonitorList,key,monitor);CHKERRQ(ierr);
-  if (create)  { ierr = PetscFunctionListAdd(&NEPMonitorCreateList,key,create);CHKERRQ(ierr); }
-  if (destroy) { ierr = PetscFunctionListAdd(&NEPMonitorDestroyList,key,destroy);CHKERRQ(ierr); }
+  CHKERRQ(NEPInitializePackage());
+  CHKERRQ(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
+  CHKERRQ(PetscFunctionListAdd(&NEPMonitorList,key,monitor));
+  if (create)  CHKERRQ(PetscFunctionListAdd(&NEPMonitorCreateList,key,create));
+  if (destroy) CHKERRQ(PetscFunctionListAdd(&NEPMonitorDestroyList,key,destroy));
   PetscFunctionReturn(0);
 }
 
@@ -285,22 +281,21 @@ PetscErrorCode NEPMonitorRegister(const char name[],PetscViewerType vtype,PetscV
 */
 PetscErrorCode NEPReset_Problem(NEP nep)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
-  ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
-  ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
+  CHKERRQ(MatDestroy(&nep->function));
+  CHKERRQ(MatDestroy(&nep->function_pre));
+  CHKERRQ(MatDestroy(&nep->jacobian));
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-    ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
+    CHKERRQ(MatDestroyMatrices(nep->nt,&nep->A));
     for (i=0;i<nep->nt;i++) {
-      ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
+      CHKERRQ(FNDestroy(&nep->f[i]));
     }
-    ierr = PetscFree(nep->f);CHKERRQ(ierr);
-    ierr = PetscFree(nep->nrma);CHKERRQ(ierr);
-    if (nep->P) { ierr = MatDestroyMatrices(nep->nt,&nep->P);CHKERRQ(ierr); }
+    CHKERRQ(PetscFree(nep->f));
+    CHKERRQ(PetscFree(nep->nrma));
+    if (nep->P) CHKERRQ(MatDestroyMatrices(nep->nt,&nep->P));
     nep->nt = 0;
   }
   PetscFunctionReturn(0);
@@ -320,18 +315,16 @@ PetscErrorCode NEPReset_Problem(NEP nep)
 @*/
 PetscErrorCode NEPReset(NEP nep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (nep) PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (!nep) PetscFunctionReturn(0);
-  if (nep->ops->reset) { ierr = (nep->ops->reset)(nep);CHKERRQ(ierr); }
-  if (nep->refineksp) { ierr = KSPReset(nep->refineksp);CHKERRQ(ierr); }
-  ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
-  ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
-  ierr = BVDestroy(&nep->W);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
-  ierr = MatDestroy(&nep->resolvent);CHKERRQ(ierr);
+  if (nep->ops->reset) CHKERRQ((nep->ops->reset)(nep));
+  if (nep->refineksp) CHKERRQ(KSPReset(nep->refineksp));
+  CHKERRQ(NEPReset_Problem(nep));
+  CHKERRQ(BVDestroy(&nep->V));
+  CHKERRQ(BVDestroy(&nep->W));
+  CHKERRQ(VecDestroyVecs(nep->nwork,&nep->work));
+  CHKERRQ(MatDestroy(&nep->resolvent));
   nep->nwork = 0;
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -351,29 +344,27 @@ PetscErrorCode NEPReset(NEP nep)
 @*/
 PetscErrorCode NEPDestroy(NEP *nep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (!*nep) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*nep,NEP_CLASSID,1);
   if (--((PetscObject)(*nep))->refct > 0) { *nep = 0; PetscFunctionReturn(0); }
-  ierr = NEPReset(*nep);CHKERRQ(ierr);
-  if ((*nep)->ops->destroy) { ierr = (*(*nep)->ops->destroy)(*nep);CHKERRQ(ierr); }
+  CHKERRQ(NEPReset(*nep));
+  if ((*nep)->ops->destroy) CHKERRQ((*(*nep)->ops->destroy)(*nep));
   if ((*nep)->eigr) {
-    ierr = PetscFree4((*nep)->eigr,(*nep)->eigi,(*nep)->errest,(*nep)->perm);CHKERRQ(ierr);
+    CHKERRQ(PetscFree4((*nep)->eigr,(*nep)->eigi,(*nep)->errest,(*nep)->perm));
   }
-  ierr = RGDestroy(&(*nep)->rg);CHKERRQ(ierr);
-  ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
-  ierr = KSPDestroy(&(*nep)->refineksp);CHKERRQ(ierr);
-  ierr = PetscSubcommDestroy(&(*nep)->refinesubc);CHKERRQ(ierr);
-  ierr = PetscFree((*nep)->sc);CHKERRQ(ierr);
+  CHKERRQ(RGDestroy(&(*nep)->rg));
+  CHKERRQ(DSDestroy(&(*nep)->ds));
+  CHKERRQ(KSPDestroy(&(*nep)->refineksp));
+  CHKERRQ(PetscSubcommDestroy(&(*nep)->refinesubc));
+  CHKERRQ(PetscFree((*nep)->sc));
   /* just in case the initial vectors have not been used */
-  ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
+  CHKERRQ(SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS));
   if ((*nep)->convergeddestroy) {
-    ierr = (*(*nep)->convergeddestroy)((*nep)->convergedctx);CHKERRQ(ierr);
+    CHKERRQ((*(*nep)->convergeddestroy)((*nep)->convergedctx));
   }
-  ierr = NEPMonitorCancel(*nep);CHKERRQ(ierr);
-  ierr = PetscHeaderDestroy(nep);CHKERRQ(ierr);
+  CHKERRQ(NEPMonitorCancel(*nep));
+  CHKERRQ(PetscHeaderDestroy(nep));
   PetscFunctionReturn(0);
 }
 
@@ -396,16 +387,14 @@ PetscErrorCode NEPDestroy(NEP *nep)
 @*/
 PetscErrorCode NEPSetBV(NEP nep,BV bv)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidHeaderSpecific(bv,BV_CLASSID,2);
   PetscCheckSameComm(nep,1,bv,2);
-  ierr = PetscObjectReference((PetscObject)bv);CHKERRQ(ierr);
-  ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectReference((PetscObject)bv));
+  CHKERRQ(BVDestroy(&nep->V));
   nep->V = bv;
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V);CHKERRQ(ierr);
+  CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V));
   PetscFunctionReturn(0);
 }
 
@@ -427,16 +416,14 @@ PetscErrorCode NEPSetBV(NEP nep,BV bv)
 @*/
 PetscErrorCode NEPGetBV(NEP nep,BV *bv)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(bv,2);
   if (!nep->V) {
-    ierr = BVCreate(PetscObjectComm((PetscObject)nep),&nep->V);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->V,(PetscObject)nep,0);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)nep->V,((PetscObject)nep)->options);CHKERRQ(ierr);
+    CHKERRQ(BVCreate(PetscObjectComm((PetscObject)nep),&nep->V));
+    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)nep->V,(PetscObject)nep,0));
+    CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V));
+    CHKERRQ(PetscObjectSetOptions((PetscObject)nep->V,((PetscObject)nep)->options));
   }
   *bv = nep->V;
   PetscFunctionReturn(0);
@@ -461,18 +448,16 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
 @*/
 PetscErrorCode NEPSetRG(NEP nep,RG rg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (rg) {
     PetscValidHeaderSpecific(rg,RG_CLASSID,2);
     PetscCheckSameComm(nep,1,rg,2);
   }
-  ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
-  ierr = RGDestroy(&nep->rg);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectReference((PetscObject)rg));
+  CHKERRQ(RGDestroy(&nep->rg));
   nep->rg = rg;
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg);CHKERRQ(ierr);
+  CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg));
   PetscFunctionReturn(0);
 }
 
@@ -494,16 +479,14 @@ PetscErrorCode NEPSetRG(NEP nep,RG rg)
 @*/
 PetscErrorCode NEPGetRG(NEP nep,RG *rg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(rg,2);
   if (!nep->rg) {
-    ierr = RGCreate(PetscObjectComm((PetscObject)nep),&nep->rg);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->rg,(PetscObject)nep,0);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)nep->rg,((PetscObject)nep)->options);CHKERRQ(ierr);
+    CHKERRQ(RGCreate(PetscObjectComm((PetscObject)nep),&nep->rg));
+    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)nep->rg,(PetscObject)nep,0));
+    CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg));
+    CHKERRQ(PetscObjectSetOptions((PetscObject)nep->rg,((PetscObject)nep)->options));
   }
   *rg = nep->rg;
   PetscFunctionReturn(0);
@@ -528,16 +511,14 @@ PetscErrorCode NEPGetRG(NEP nep,RG *rg)
 @*/
 PetscErrorCode NEPSetDS(NEP nep,DS ds)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidHeaderSpecific(ds,DS_CLASSID,2);
   PetscCheckSameComm(nep,1,ds,2);
-  ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
-  ierr = DSDestroy(&nep->ds);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectReference((PetscObject)ds));
+  CHKERRQ(DSDestroy(&nep->ds));
   nep->ds = ds;
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds);CHKERRQ(ierr);
+  CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds));
   PetscFunctionReturn(0);
 }
 
@@ -559,16 +540,14 @@ PetscErrorCode NEPSetDS(NEP nep,DS ds)
 @*/
 PetscErrorCode NEPGetDS(NEP nep,DS *ds)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(ds,2);
   if (!nep->ds) {
-    ierr = DSCreate(PetscObjectComm((PetscObject)nep),&nep->ds);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->ds,(PetscObject)nep,0);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)nep->ds,((PetscObject)nep)->options);CHKERRQ(ierr);
+    CHKERRQ(DSCreate(PetscObjectComm((PetscObject)nep),&nep->ds));
+    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)nep->ds,(PetscObject)nep,0));
+    CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds));
+    CHKERRQ(PetscObjectSetOptions((PetscObject)nep->ds,((PetscObject)nep)->options));
   }
   *ds = nep->ds;
   PetscFunctionReturn(0);
@@ -592,7 +571,6 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
 @*/
 PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
 {
-  PetscErrorCode ierr;
   MPI_Comm       comm;
 
   PetscFunctionBegin;
@@ -601,21 +579,21 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
   if (!nep->refineksp) {
     if (nep->npart>1) {
       /* Split in subcomunicators */
-      ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&nep->refinesubc);CHKERRQ(ierr);
-      ierr = PetscSubcommSetNumber(nep->refinesubc,nep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
-      ierr = PetscSubcommSetType(nep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
-      ierr = PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm));CHKERRQ(ierr);
-      ierr = PetscSubcommGetChild(nep->refinesubc,&comm);CHKERRQ(ierr);
+      CHKERRQ(PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&nep->refinesubc));
+      CHKERRQ(PetscSubcommSetNumber(nep->refinesubc,nep->npart));
+      CHKERRQ(PetscSubcommSetType(nep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS));
+      CHKERRQ(PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm)));
+      CHKERRQ(PetscSubcommGetChild(nep->refinesubc,&comm));
     } else {
-      ierr = PetscObjectGetComm((PetscObject)nep,&comm);CHKERRQ(ierr);
+      CHKERRQ(PetscObjectGetComm((PetscObject)nep,&comm));
     }
-    ierr = KSPCreate(comm,&nep->refineksp);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->refineksp,(PetscObject)nep,0);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->refineksp);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)nep->refineksp,((PetscObject)nep)->options);CHKERRQ(ierr);
-    ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
-    ierr = KSPAppendOptionsPrefix(*ksp,"nep_refine_");CHKERRQ(ierr);
-    ierr = KSPSetTolerances(nep->refineksp,SlepcDefaultTol(nep->rtol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    CHKERRQ(KSPCreate(comm,&nep->refineksp));
+    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)nep->refineksp,(PetscObject)nep,0));
+    CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->refineksp));
+    CHKERRQ(PetscObjectSetOptions((PetscObject)nep->refineksp,((PetscObject)nep)->options));
+    CHKERRQ(KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix));
+    CHKERRQ(KSPAppendOptionsPrefix(*ksp,"nep_refine_"));
+    CHKERRQ(KSPSetTolerances(nep->refineksp,SlepcDefaultTol(nep->rtol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = nep->refineksp;
   PetscFunctionReturn(0);
@@ -712,8 +690,6 @@ $   fun(NEP nep,PetscScalar lambda,Mat F,Mat P,void *ctx)
 @*/
 PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,PetscScalar,Mat,Mat,void*),void *ctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
@@ -721,19 +697,19 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
   if (A) PetscCheckSameComm(nep,1,A,2);
   if (B) PetscCheckSameComm(nep,1,B,3);
 
-  if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
-  else if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) { ierr = NEPReset_Problem(nep);CHKERRQ(ierr); }
+  if (nep->state) CHKERRQ(NEPReset(nep));
+  else if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) CHKERRQ(NEPReset_Problem(nep));
 
   if (fun) nep->computefunction = fun;
   if (ctx) nep->functionctx     = ctx;
   if (A) {
-    ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-    ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectReference((PetscObject)A));
+    CHKERRQ(MatDestroy(&nep->function));
     nep->function = A;
   }
   if (B) {
-    ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr);
-    ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectReference((PetscObject)B));
+    CHKERRQ(MatDestroy(&nep->function_pre));
     nep->function_pre = B;
   }
   nep->fui   = NEP_USER_INTERFACE_CALLBACK;
@@ -801,21 +777,19 @@ $   jac(NEP nep,PetscScalar lambda,Mat J,void *ctx)
 @*/
 PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScalar,Mat,void*),void *ctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   if (A) PetscCheckSameComm(nep,1,A,2);
 
-  if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
-  else if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) { ierr = NEPReset_Problem(nep);CHKERRQ(ierr); }
+  if (nep->state) CHKERRQ(NEPReset(nep));
+  else if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) CHKERRQ(NEPReset_Problem(nep));
 
   if (jac) nep->computejacobian = jac;
   if (ctx) nep->jacobianctx     = ctx;
   if (A) {
-    ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-    ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectReference((PetscObject)A));
+    CHKERRQ(MatDestroy(&nep->jacobian));
     nep->jacobian = A;
   }
   nep->fui   = NEP_USER_INTERFACE_CALLBACK;
@@ -888,7 +862,6 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
 PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructure str)
 {
   PetscInt       i,n=0,m,m0=0,mloc,nloc,mloc0=0;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -903,29 +876,29 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructu
     PetscCheckSameComm(nep,1,A[i],3);
     PetscValidHeaderSpecific(f[i],FN_CLASSID,4);
     PetscCheckSameComm(nep,1,f[i],4);
-    ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(A[i],&mloc,&nloc);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(A[i],&m,&n));
+    CHKERRQ(MatGetLocalSize(A[i],&mloc,&nloc));
     PetscCheck(m==n,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
     PetscCheck(mloc==nloc,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
     if (!i) { m0 = m; mloc0 = mloc; }
     PetscCheck(m==m0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
     PetscCheck(mloc==mloc0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
-    ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
-    ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectReference((PetscObject)A[i]));
+    CHKERRQ(PetscObjectReference((PetscObject)f[i]));
   }
 
-  if (nep->state && (n!=nep->n || nloc!=nep->nloc)) { ierr = NEPReset(nep);CHKERRQ(ierr); }
-  else { ierr = NEPReset_Problem(nep);CHKERRQ(ierr); }
+  if (nep->state && (n!=nep->n || nloc!=nep->nloc)) CHKERRQ(NEPReset(nep));
+  else CHKERRQ(NEPReset_Problem(nep));
 
   /* allocate space and copy matrices and functions */
-  ierr = PetscMalloc1(nt,&nep->A);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,nt*sizeof(Mat));CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc1(nt,&nep->A));
+  CHKERRQ(PetscLogObjectMemory((PetscObject)nep,nt*sizeof(Mat)));
   for (i=0;i<nt;i++) nep->A[i] = A[i];
-  ierr = PetscMalloc1(nt,&nep->f);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,nt*sizeof(FN));CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc1(nt,&nep->f));
+  CHKERRQ(PetscLogObjectMemory((PetscObject)nep,nt*sizeof(FN)));
   for (i=0;i<nt;i++) nep->f[i] = f[i];
-  ierr = PetscCalloc1(nt,&nep->nrma);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,nt*sizeof(PetscReal));CHKERRQ(ierr);
+  CHKERRQ(PetscCalloc1(nt,&nep->nrma));
+  CHKERRQ(PetscLogObjectMemory((PetscObject)nep,nt*sizeof(PetscReal)));
   nep->nt    = nt;
   nep->mstr  = str;
   nep->fui   = NEP_USER_INTERFACE_SPLIT;
@@ -1027,7 +1000,6 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
 PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructure strp)
 {
   PetscInt       i,n=0,m,m0=0,mloc,nloc,mloc0=0;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -1041,23 +1013,23 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
   for (i=0;i<ntp;i++) {
     PetscValidHeaderSpecific(P[i],MAT_CLASSID,3);
     PetscCheckSameComm(nep,1,P[i],3);
-    ierr = MatGetSize(P[i],&m,&n);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(P[i],&mloc,&nloc);CHKERRQ(ierr);
+    CHKERRQ(MatGetSize(P[i],&m,&n));
+    CHKERRQ(MatGetLocalSize(P[i],&mloc,&nloc));
     PetscCheck(m==n,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"P[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
     PetscCheck(mloc==nloc,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"P[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
     if (!i) { m0 = m; mloc0 = mloc; }
     PetscCheck(m==m0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Dimensions of P[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
     PetscCheck(mloc==mloc0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_INCOMP,"Local dimensions of P[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
-    ierr = PetscObjectReference((PetscObject)P[i]);CHKERRQ(ierr);
+    CHKERRQ(PetscObjectReference((PetscObject)P[i]));
   }
 
   PetscCheck(!nep->state,PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"To call this function after NEPSetUp(), you must call NEPSetSplitOperator() again");
-  if (nep->P) { ierr = MatDestroyMatrices(nep->nt,&nep->P);CHKERRQ(ierr); }
+  if (nep->P) CHKERRQ(MatDestroyMatrices(nep->nt,&nep->P));
 
   /* allocate space and copy matrices */
   if (ntp) {
-    ierr = PetscMalloc1(ntp,&nep->P);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)nep,ntp*sizeof(Mat));CHKERRQ(ierr);
+    CHKERRQ(PetscMalloc1(ntp,&nep->P));
+    CHKERRQ(PetscLogObjectMemory((PetscObject)nep,ntp*sizeof(Mat)));
     for (i=0;i<ntp;i++) nep->P[i] = P[i];
   }
   nep->mstrp = strp;
@@ -1121,4 +1093,3 @@ PetscErrorCode NEPGetSplitPreconditionerInfo(NEP nep,PetscInt *n,MatStructure *s
   if (strp) *strp = nep->mstrp;
   PetscFunctionReturn(0);
 }
-

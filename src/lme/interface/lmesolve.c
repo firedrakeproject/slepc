@@ -40,34 +40,32 @@
 @*/
 PetscErrorCode LMESolve(LME lme)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
 
   /* call setup */
-  ierr = LMESetUp(lme);CHKERRQ(ierr);
+  CHKERRQ(LMESetUp(lme));
   lme->its    = 0;
   lme->errest = 0.0;
 
-  ierr = LMEViewFromOptions(lme,NULL,"-lme_view_pre");CHKERRQ(ierr);
+  CHKERRQ(LMEViewFromOptions(lme,NULL,"-lme_view_pre"));
 
   /* call solver */
   PetscCheck(lme->ops->solve[lme->problem_type],PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"The specified solver does not support equation type %s",LMEProblemTypes[lme->problem_type]);
-  ierr = PetscLogEventBegin(LME_Solve,lme,0,0,0);CHKERRQ(ierr);
-  ierr = (*lme->ops->solve[lme->problem_type])(lme);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(LME_Solve,lme,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(LME_Solve,lme,0,0,0));
+  CHKERRQ((*lme->ops->solve[lme->problem_type])(lme));
+  CHKERRQ(PetscLogEventEnd(LME_Solve,lme,0,0,0));
 
   PetscCheck(lme->reason,PetscObjectComm((PetscObject)lme),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   PetscCheck(!lme->errorifnotconverged || lme->reason>=0,PetscObjectComm((PetscObject)lme),PETSC_ERR_NOT_CONVERGED,"LMESolve has not converged");
 
   /* various viewers */
-  ierr = LMEViewFromOptions(lme,NULL,"-lme_view");CHKERRQ(ierr);
-  ierr = LMEConvergedReasonViewFromOptions(lme);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(lme->A,(PetscObject)lme,"-lme_view_mat");CHKERRQ(ierr);
-  ierr = MatViewFromOptions(lme->C,(PetscObject)lme,"-lme_view_rhs");CHKERRQ(ierr);
-  ierr = MatViewFromOptions(lme->X,(PetscObject)lme,"-lme_view_solution");CHKERRQ(ierr);
+  CHKERRQ(LMEViewFromOptions(lme,NULL,"-lme_view"));
+  CHKERRQ(LMEConvergedReasonViewFromOptions(lme));
+  CHKERRQ(MatViewFromOptions(lme->A,(PetscObject)lme,"-lme_view_mat"));
+  CHKERRQ(MatViewFromOptions(lme->C,(PetscObject)lme,"-lme_view_rhs"));
+  CHKERRQ(MatViewFromOptions(lme->X,(PetscObject)lme,"-lme_view_solution"));
   PetscFunctionReturn(0);
 }
 
@@ -173,7 +171,6 @@ PetscErrorCode LMEGetErrorEstimate(LME lme,PetscReal *errest)
 */
 PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
 {
-  PetscErrorCode    ierr;
   PetscInt          j,n,N,k,l;
   PetscBLASInt      n_,N_,k_,l_;
   PetscScalar       *Rarray,alpha=1.0,beta=0.0;
@@ -184,99 +181,99 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   VecScatter        vscat;
 
   PetscFunctionBegin;
-  ierr = MatLRCGetMats(lme->C,NULL,&C1m,NULL,NULL);CHKERRQ(ierr);
-  ierr = MatLRCGetMats(lme->X,NULL,&X1m,NULL,NULL);CHKERRQ(ierr);
-  ierr = BVCreateFromMat(C1m,&C1);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(C1);CHKERRQ(ierr);
-  ierr = BVCreateFromMat(X1m,&X1);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(X1);CHKERRQ(ierr);
-  ierr = BVGetSizes(X1,&n,&N,&k);CHKERRQ(ierr);
-  ierr = BVGetSizes(C1,NULL,NULL,&l);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(N,&N_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(l,&l_);CHKERRQ(ierr);
+  CHKERRQ(MatLRCGetMats(lme->C,NULL,&C1m,NULL,NULL));
+  CHKERRQ(MatLRCGetMats(lme->X,NULL,&X1m,NULL,NULL));
+  CHKERRQ(BVCreateFromMat(C1m,&C1));
+  CHKERRQ(BVSetFromOptions(C1));
+  CHKERRQ(BVCreateFromMat(X1m,&X1));
+  CHKERRQ(BVSetFromOptions(X1));
+  CHKERRQ(BVGetSizes(X1,&n,&N,&k));
+  CHKERRQ(BVGetSizes(C1,NULL,NULL,&l));
+  CHKERRQ(PetscBLASIntCast(n,&n_));
+  CHKERRQ(PetscBLASIntCast(N,&N_));
+  CHKERRQ(PetscBLASIntCast(k,&k_));
+  CHKERRQ(PetscBLASIntCast(l,&l_));
 
   /* create W to store a redundant copy of a BV in each process */
-  ierr = BVCreate(PETSC_COMM_SELF,&W);CHKERRQ(ierr);
-  ierr = BVSetSizes(W,N,N,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(W);CHKERRQ(ierr);
-  ierr = BVGetColumn(X1,0,&v);CHKERRQ(ierr);
-  ierr = VecScatterCreateToAll(v,&vscat,NULL);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(X1,0,&v);CHKERRQ(ierr);
+  CHKERRQ(BVCreate(PETSC_COMM_SELF,&W));
+  CHKERRQ(BVSetSizes(W,N,N,k));
+  CHKERRQ(BVSetFromOptions(W));
+  CHKERRQ(BVGetColumn(X1,0,&v));
+  CHKERRQ(VecScatterCreateToAll(v,&vscat,NULL));
+  CHKERRQ(BVRestoreColumn(X1,0,&v));
 
   /* create AX to hold the product A*X1 */
-  ierr = BVDuplicate(X1,&AX);CHKERRQ(ierr);
-  ierr = BVMatMult(X1,lme->A,AX);CHKERRQ(ierr);
+  CHKERRQ(BVDuplicate(X1,&AX));
+  CHKERRQ(BVMatMult(X1,lme->A,AX));
 
   /* create dense matrix to hold the residual R=C1*C1'+AX*X1'+X1*AX' */
-  ierr = MatCreateDense(PetscObjectComm((PetscObject)lme),n,n,N,N,NULL,&R);CHKERRQ(ierr);
+  CHKERRQ(MatCreateDense(PetscObjectComm((PetscObject)lme),n,n,N,N,NULL,&R));
 
   /* R=C1*C1' */
-  ierr = MatDenseGetArrayWrite(R,&Rarray);CHKERRQ(ierr);
+  CHKERRQ(MatDenseGetArrayWrite(R,&Rarray));
   for (j=0;j<l;j++) {
-    ierr = BVGetColumn(C1,j,&v);CHKERRQ(ierr);
-    ierr = BVGetColumn(W,j,&w);CHKERRQ(ierr);
-    ierr = VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(C1,j,&v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(W,j,&w);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(C1,j,&v));
+    CHKERRQ(BVGetColumn(W,j,&w));
+    CHKERRQ(VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    CHKERRQ(VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    CHKERRQ(BVRestoreColumn(C1,j,&v));
+    CHKERRQ(BVRestoreColumn(W,j,&w));
   }
   if (n) {
-    ierr = BVGetArrayRead(C1,&A);CHKERRQ(ierr);
-    ierr = BVGetArrayRead(W,&B);CHKERRQ(ierr);
+    CHKERRQ(BVGetArrayRead(C1,&A));
+    CHKERRQ(BVGetArrayRead(W,&B));
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&l_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
-    ierr = BVRestoreArrayRead(C1,&A);CHKERRQ(ierr);
-    ierr = BVRestoreArrayRead(W,&B);CHKERRQ(ierr);
+    CHKERRQ(BVRestoreArrayRead(C1,&A));
+    CHKERRQ(BVRestoreArrayRead(W,&B));
   }
   beta = 1.0;
 
   /* R+=AX*X1' */
   for (j=0;j<k;j++) {
-    ierr = BVGetColumn(X1,j,&v);CHKERRQ(ierr);
-    ierr = BVGetColumn(W,j,&w);CHKERRQ(ierr);
-    ierr = VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(X1,j,&v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(W,j,&w);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(X1,j,&v));
+    CHKERRQ(BVGetColumn(W,j,&w));
+    CHKERRQ(VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    CHKERRQ(VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    CHKERRQ(BVRestoreColumn(X1,j,&v));
+    CHKERRQ(BVRestoreColumn(W,j,&w));
   }
   if (n) {
-    ierr = BVGetArrayRead(AX,&A);CHKERRQ(ierr);
-    ierr = BVGetArrayRead(W,&B);CHKERRQ(ierr);
+    CHKERRQ(BVGetArrayRead(AX,&A));
+    CHKERRQ(BVGetArrayRead(W,&B));
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
-    ierr = BVRestoreArrayRead(AX,&A);CHKERRQ(ierr);
-    ierr = BVRestoreArrayRead(W,&B);CHKERRQ(ierr);
+    CHKERRQ(BVRestoreArrayRead(AX,&A));
+    CHKERRQ(BVRestoreArrayRead(W,&B));
   }
 
   /* R+=X1*AX' */
   for (j=0;j<k;j++) {
-    ierr = BVGetColumn(AX,j,&v);CHKERRQ(ierr);
-    ierr = BVGetColumn(W,j,&w);CHKERRQ(ierr);
-    ierr = VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(AX,j,&v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(W,j,&w);CHKERRQ(ierr);
+    CHKERRQ(BVGetColumn(AX,j,&v));
+    CHKERRQ(BVGetColumn(W,j,&w));
+    CHKERRQ(VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    CHKERRQ(VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    CHKERRQ(BVRestoreColumn(AX,j,&v));
+    CHKERRQ(BVRestoreColumn(W,j,&w));
   }
   if (n) {
-    ierr = BVGetArrayRead(X1,&A);CHKERRQ(ierr);
-    ierr = BVGetArrayRead(W,&B);CHKERRQ(ierr);
+    CHKERRQ(BVGetArrayRead(X1,&A));
+    CHKERRQ(BVGetArrayRead(W,&B));
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
-    ierr = BVRestoreArrayRead(X1,&A);CHKERRQ(ierr);
-    ierr = BVRestoreArrayRead(W,&B);CHKERRQ(ierr);
+    CHKERRQ(BVRestoreArrayRead(X1,&A));
+    CHKERRQ(BVRestoreArrayRead(W,&B));
   }
-  ierr = MatDenseRestoreArrayWrite(R,&Rarray);CHKERRQ(ierr);
+  CHKERRQ(MatDenseRestoreArrayWrite(R,&Rarray));
 
   /* compute ||R||_F */
-  ierr = MatAssemblyBegin(R,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(R,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatNorm(R,NORM_FROBENIUS,norm);CHKERRQ(ierr);
+  CHKERRQ(MatAssemblyBegin(R,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatAssemblyEnd(R,MAT_FINAL_ASSEMBLY));
+  CHKERRQ(MatNorm(R,NORM_FROBENIUS,norm));
 
-  ierr = BVDestroy(&W);CHKERRQ(ierr);
-  ierr = VecScatterDestroy(&vscat);CHKERRQ(ierr);
-  ierr = BVDestroy(&AX);CHKERRQ(ierr);
-  ierr = MatDestroy(&R);CHKERRQ(ierr);
-  ierr = BVDestroy(&C1);CHKERRQ(ierr);
-  ierr = BVDestroy(&X1);CHKERRQ(ierr);
+  CHKERRQ(BVDestroy(&W));
+  CHKERRQ(VecScatterDestroy(&vscat));
+  CHKERRQ(BVDestroy(&AX));
+  CHKERRQ(MatDestroy(&R));
+  CHKERRQ(BVDestroy(&C1));
+  CHKERRQ(BVDestroy(&X1));
   PetscFunctionReturn(0);
 }
 
@@ -303,17 +300,15 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
 @*/
 PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidRealPointer(error,2);
 
-  ierr = PetscLogEventBegin(LME_ComputeError,lme,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventBegin(LME_ComputeError,lme,0,0,0));
   /* compute residual norm */
   switch (lme->problem_type) {
     case LME_LYAPUNOV:
-      ierr = LMEComputeResidualNorm_Lyapunov(lme,error);CHKERRQ(ierr);
+      CHKERRQ(LMEComputeResidualNorm_Lyapunov(lme,error));
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"Not implemented for equation type %s",LMEProblemTypes[lme->problem_type]);
@@ -321,7 +316,6 @@ PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
 
   /* compute error */
   /* currently we only support absolute error, so just return the norm */
-  ierr = PetscLogEventEnd(LME_ComputeError,lme,0,0,0);CHKERRQ(ierr);
+  CHKERRQ(PetscLogEventEnd(LME_ComputeError,lme,0,0,0));
   PetscFunctionReturn(0);
 }
-

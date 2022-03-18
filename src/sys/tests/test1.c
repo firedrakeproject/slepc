@@ -21,12 +21,12 @@ int main(int argc,char **argv)
   ierr = SlepcInitialized(&isInitialized);if (ierr) return ierr;
   if (!isInitialized) {
     ierr = SlepcInitializeNoArguments();if (ierr) return ierr;
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Initialize SLEPc.\n");CHKERRQ(ierr);
-    ierr = SlepcInitialized(&isInitialized);CHKERRQ(ierr);
-    ierr = SlepcFinalized(&isFinalized);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"SlepcInitialized=%d, SlepcFinalized=%d.\n",(int)isInitialized,(int)isFinalized);CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Initialize SLEPc.\n"));
+    CHKERRQ(SlepcInitialized(&isInitialized));
+    CHKERRQ(SlepcFinalized(&isFinalized));
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"SlepcInitialized=%d, SlepcFinalized=%d.\n",(int)isInitialized,(int)isFinalized));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"SLEPc was already initialized.\n");CHKERRQ(ierr);
+    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"SLEPc was already initialized.\n"));
   }
   ierr = SlepcFinalize();if (ierr) return ierr;
   ierr = SlepcFinalized(&isFinalized);

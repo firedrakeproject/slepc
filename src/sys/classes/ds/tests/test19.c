@@ -22,37 +22,37 @@ int main(int argc,char **argv)
   PetscInt       i,j,n=12,*perm;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n));
 
   /* Create DS object */
-  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
-  ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
-  ierr = DSAllocate(ds,n);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
+  CHKERRQ(DSCreate(PETSC_COMM_WORLD,&ds));
+  CHKERRQ(DSSetType(ds,DSNHEP));
+  CHKERRQ(DSSetFromOptions(ds));
+  CHKERRQ(DSAllocate(ds,n));
+  CHKERRQ(DSSetDimensions(ds,n,0,0));
 
   /* Fill with Grcar matrix */
-  ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  CHKERRQ(DSGetArray(ds,DS_MAT_A,&A));
   for (i=1;i<n;i++) A[i+(i-1)*n]=-1.0;
   for (j=0;j<4;j++) {
     for (i=0;i<n-j;i++) A[i+(i+j)*n]=1.0;
   }
-  ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = DSSetState(ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+  CHKERRQ(DSRestoreArray(ds,DS_MAT_A,&A));
+  CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
 
   /* Solve */
-  ierr = PetscMalloc3(n,&wr,n,&wi,n,&perm);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc3(n,&wr,n,&wi,n,&perm));
+  CHKERRQ(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
-  ierr = DSSort(ds,wr,wi,NULL,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(DSSolve(ds,wr,wi));
+  CHKERRQ(DSSort(ds,wr,wi,NULL,NULL,NULL));
 
   /* Print eigenvalues */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n");CHKERRQ(ierr);
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(wr[i]);
@@ -62,17 +62,17 @@ int main(int argc,char **argv)
     im = wi[i];
 #endif
     if (PetscAbs(im)<1e-10) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
     } else {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
     }
   }
 
   /* Reorder eigenvalues */
   for (i=0;i<n/2;i++) perm[i] = n/2+i;
   for (i=0;i<n/2;i++) perm[i+n/2] = i;
-  ierr = DSSortWithPermutation(ds,perm,wr,wi);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Reordered eigenvalues =\n");CHKERRQ(ierr);
+  CHKERRQ(DSSortWithPermutation(ds,perm,wr,wi));
+  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Reordered eigenvalues =\n"));
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(wr[i]);
@@ -82,14 +82,14 @@ int main(int argc,char **argv)
     im = wi[i];
 #endif
     if (PetscAbs(im)<1e-10) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
     } else {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
+      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
     }
   }
 
-  ierr = PetscFree3(wr,wi,perm);CHKERRQ(ierr);
-  ierr = DSDestroy(&ds);CHKERRQ(ierr);
+  CHKERRQ(PetscFree3(wr,wi,perm));
+  CHKERRQ(DSDestroy(&ds));
   ierr = SlepcFinalize();
   return ierr;
 }

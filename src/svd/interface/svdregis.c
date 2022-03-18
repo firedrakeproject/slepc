@@ -37,25 +37,23 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD);
 @*/
 PetscErrorCode SVDRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (SVDRegisterAllCalled) PetscFunctionReturn(0);
   SVDRegisterAllCalled = PETSC_TRUE;
-  ierr = SVDRegister(SVDCROSS,SVDCreate_Cross);CHKERRQ(ierr);
-  ierr = SVDRegister(SVDCYCLIC,SVDCreate_Cyclic);CHKERRQ(ierr);
-  ierr = SVDRegister(SVDLAPACK,SVDCreate_LAPACK);CHKERRQ(ierr);
-  ierr = SVDRegister(SVDLANCZOS,SVDCreate_Lanczos);CHKERRQ(ierr);
-  ierr = SVDRegister(SVDTRLANCZOS,SVDCreate_TRLanczos);CHKERRQ(ierr);
-  ierr = SVDRegister(SVDRANDOMIZED,SVDCreate_Randomized);CHKERRQ(ierr);
+  CHKERRQ(SVDRegister(SVDCROSS,SVDCreate_Cross));
+  CHKERRQ(SVDRegister(SVDCYCLIC,SVDCreate_Cyclic));
+  CHKERRQ(SVDRegister(SVDLAPACK,SVDCreate_LAPACK));
+  CHKERRQ(SVDRegister(SVDLANCZOS,SVDCreate_Lanczos));
+  CHKERRQ(SVDRegister(SVDTRLANCZOS,SVDCreate_TRLanczos));
+  CHKERRQ(SVDRegister(SVDRANDOMIZED,SVDCreate_Randomized));
 #if defined(SLEPC_HAVE_SCALAPACK)
-  ierr = SVDRegister(SVDSCALAPACK,SVDCreate_ScaLAPACK);CHKERRQ(ierr);
+  CHKERRQ(SVDRegister(SVDSCALAPACK,SVDCreate_ScaLAPACK));
 #endif
 #if defined(SLEPC_HAVE_ELEMENTAL)
-  ierr = SVDRegister(SVDELEMENTAL,SVDCreate_Elemental);CHKERRQ(ierr);
+  CHKERRQ(SVDRegister(SVDELEMENTAL,SVDCreate_Elemental));
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
-  ierr = SVDRegister(SVDPRIMME,SVDCreate_PRIMME);CHKERRQ(ierr);
+  CHKERRQ(SVDRegister(SVDPRIMME,SVDCreate_PRIMME));
 #endif
   PetscFunctionReturn(0);
 }
@@ -71,18 +69,15 @@ PetscErrorCode SVDRegisterAll(void)
 @*/
 PetscErrorCode SVDMonitorRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (SVDMonitorRegisterAllCalled) PetscFunctionReturn(0);
   SVDMonitorRegisterAllCalled = PETSC_TRUE;
 
-  ierr = SVDMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorFirst,NULL,NULL);CHKERRQ(ierr);
-  ierr = SVDMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorFirstDrawLG,SVDMonitorFirstDrawLGCreate,NULL);CHKERRQ(ierr);
-  ierr = SVDMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorAll,NULL,NULL);CHKERRQ(ierr);
-  ierr = SVDMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorAllDrawLG,SVDMonitorAllDrawLGCreate,NULL);CHKERRQ(ierr);
-  ierr = SVDMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorConverged,SVDMonitorConvergedCreate,SVDMonitorConvergedDestroy);CHKERRQ(ierr);
-  ierr = SVDMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorConvergedDrawLG,SVDMonitorConvergedDrawLGCreate,SVDMonitorConvergedDestroy);CHKERRQ(ierr);
+  CHKERRQ(SVDMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorFirst,NULL,NULL));
+  CHKERRQ(SVDMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorFirstDrawLG,SVDMonitorFirstDrawLGCreate,NULL));
+  CHKERRQ(SVDMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorAll,NULL,NULL));
+  CHKERRQ(SVDMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorAllDrawLG,SVDMonitorAllDrawLGCreate,NULL));
+  CHKERRQ(SVDMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorConverged,SVDMonitorConvergedCreate,SVDMonitorConvergedDestroy));
+  CHKERRQ(SVDMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorConvergedDrawLG,SVDMonitorConvergedDrawLGCreate,SVDMonitorConvergedDestroy));
   PetscFunctionReturn(0);
 }
-

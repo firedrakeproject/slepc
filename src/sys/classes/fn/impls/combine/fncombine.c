@@ -27,28 +27,27 @@ typedef struct {
 
 PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
 {
-  PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscScalar    a,b;
 
   PetscFunctionBegin;
-  ierr = FNEvaluateFunction(ctx->f1,x,&a);CHKERRQ(ierr);
+  CHKERRQ(FNEvaluateFunction(ctx->f1,x,&a));
   switch (ctx->comb) {
     case FN_COMBINE_ADD:
-      ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunction(ctx->f2,x,&b));
       *y = a+b;
       break;
     case FN_COMBINE_MULTIPLY:
-      ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunction(ctx->f2,x,&b));
       *y = a*b;
       break;
     case FN_COMBINE_DIVIDE:
-      ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunction(ctx->f2,x,&b));
       PetscCheck(b!=0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Function not defined in the requested value");
       *y = a/b;
       break;
     case FN_COMBINE_COMPOSE:
-      ierr = FNEvaluateFunction(ctx->f2,a,y);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunction(ctx->f2,a,y));
       break;
   }
   PetscFunctionReturn(0);
@@ -56,36 +55,35 @@ PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
 
 PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
 {
-  PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscScalar    a,b,ap,bp;
 
   PetscFunctionBegin;
   switch (ctx->comb) {
     case FN_COMBINE_ADD:
-      ierr = FNEvaluateDerivative(ctx->f1,x,&ap);CHKERRQ(ierr);
-      ierr = FNEvaluateDerivative(ctx->f2,x,&bp);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateDerivative(ctx->f1,x,&ap));
+      CHKERRQ(FNEvaluateDerivative(ctx->f2,x,&bp));
       *yp = ap+bp;
       break;
     case FN_COMBINE_MULTIPLY:
-      ierr = FNEvaluateDerivative(ctx->f1,x,&ap);CHKERRQ(ierr);
-      ierr = FNEvaluateDerivative(ctx->f2,x,&bp);CHKERRQ(ierr);
-      ierr = FNEvaluateFunction(ctx->f1,x,&a);CHKERRQ(ierr);
-      ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateDerivative(ctx->f1,x,&ap));
+      CHKERRQ(FNEvaluateDerivative(ctx->f2,x,&bp));
+      CHKERRQ(FNEvaluateFunction(ctx->f1,x,&a));
+      CHKERRQ(FNEvaluateFunction(ctx->f2,x,&b));
       *yp = ap*b+a*bp;
       break;
     case FN_COMBINE_DIVIDE:
-      ierr = FNEvaluateDerivative(ctx->f1,x,&ap);CHKERRQ(ierr);
-      ierr = FNEvaluateDerivative(ctx->f2,x,&bp);CHKERRQ(ierr);
-      ierr = FNEvaluateFunction(ctx->f1,x,&a);CHKERRQ(ierr);
-      ierr = FNEvaluateFunction(ctx->f2,x,&b);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateDerivative(ctx->f1,x,&ap));
+      CHKERRQ(FNEvaluateDerivative(ctx->f2,x,&bp));
+      CHKERRQ(FNEvaluateFunction(ctx->f1,x,&a));
+      CHKERRQ(FNEvaluateFunction(ctx->f2,x,&b));
       PetscCheck(b!=0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Derivative not defined in the requested value");
       *yp = (ap*b-a*bp)/(b*b);
       break;
     case FN_COMBINE_COMPOSE:
-      ierr = FNEvaluateFunction(ctx->f1,x,&a);CHKERRQ(ierr);
-      ierr = FNEvaluateDerivative(ctx->f1,x,&ap);CHKERRQ(ierr);
-      ierr = FNEvaluateDerivative(ctx->f2,a,yp);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunction(ctx->f1,x,&a));
+      CHKERRQ(FNEvaluateDerivative(ctx->f1,x,&ap));
+      CHKERRQ(FNEvaluateDerivative(ctx->f2,a,yp));
       *yp *= ap;
       break;
   }
@@ -94,7 +92,6 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
 
 PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 {
-  PetscErrorCode    ierr;
   FN_COMBINE        *ctx = (FN_COMBINE*)fn->data;
   PetscScalar       *Ba,*Wa,one=1.0,zero=0.0;
   const PetscScalar *Za;
@@ -103,63 +100,62 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
   Mat               W,Z;
 
   PetscFunctionBegin;
-  ierr = FN_AllocateWorkMat(fn,A,&W);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  CHKERRQ(FN_AllocateWorkMat(fn,A,&W));
+  CHKERRQ(MatGetSize(A,&m,NULL));
+  CHKERRQ(PetscBLASIntCast(m,&n));
   ld  = n;
   ld2 = ld*ld;
 
   switch (ctx->comb) {
     case FN_COMBINE_ADD:
-      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,B,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE));
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f2,A,B,PETSC_FALSE));
+      CHKERRQ(MatDenseGetArray(B,&Ba));
+      CHKERRQ(MatDenseGetArray(W,&Wa));
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&one,Wa,&inc,Ba,&inc));
-      ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
+      CHKERRQ(PetscLogFlops(1.0*n*n));
+      CHKERRQ(MatDenseRestoreArray(B,&Ba));
+      CHKERRQ(MatDenseRestoreArray(W,&Wa));
       break;
     case FN_COMBINE_MULTIPLY:
-      ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,Z,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
-      ierr = MatDenseGetArrayRead(Z,&Za);CHKERRQ(ierr);
+      CHKERRQ(FN_AllocateWorkMat(fn,A,&Z));
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE));
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f2,A,Z,PETSC_FALSE));
+      CHKERRQ(MatDenseGetArray(B,&Ba));
+      CHKERRQ(MatDenseGetArray(W,&Wa));
+      CHKERRQ(MatDenseGetArrayRead(Z,&Za));
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Wa,&ld,Za,&ld,&zero,Ba,&ld));
-      ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArrayRead(Z,&Za);CHKERRQ(ierr);
-      ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
+      CHKERRQ(PetscLogFlops(2.0*n*n*n));
+      CHKERRQ(MatDenseRestoreArray(B,&Ba));
+      CHKERRQ(MatDenseRestoreArray(W,&Wa));
+      CHKERRQ(MatDenseRestoreArrayRead(Z,&Za));
+      CHKERRQ(FN_FreeWorkMat(fn,&Z));
       break;
     case FN_COMBINE_DIVIDE:
-      ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,W,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,B,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f2,A,W,PETSC_FALSE));
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f1,A,B,PETSC_FALSE));
+      CHKERRQ(PetscMalloc1(ld,&ipiv));
+      CHKERRQ(MatDenseGetArray(B,&Ba));
+      CHKERRQ(MatDenseGetArray(W,&Wa));
       PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
       SlepcCheckLapackInfo("gesv",info);
-      ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
-      ierr = PetscFree(ipiv);CHKERRQ(ierr);
+      CHKERRQ(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
+      CHKERRQ(MatDenseRestoreArray(B,&Ba));
+      CHKERRQ(MatDenseRestoreArray(W,&Wa));
+      CHKERRQ(PetscFree(ipiv));
       break;
     case FN_COMBINE_COMPOSE:
-      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat_Private(ctx->f2,W,B,PETSC_FALSE);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE));
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f2,W,B,PETSC_FALSE));
       break;
   }
 
-  ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
+  CHKERRQ(FN_FreeWorkMat(fn,&W));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
 {
-  PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscScalar    *va,*Za;
   PetscBLASInt   n,ld,*ipiv,info,one=1;
@@ -168,49 +164,49 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
   Vec            w;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  CHKERRQ(MatGetSize(A,&m,NULL));
+  CHKERRQ(PetscBLASIntCast(m,&n));
   ld = n;
 
   switch (ctx->comb) {
     case FN_COMBINE_ADD:
-      ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMatVec(ctx->f1,A,w);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMatVec(ctx->f2,A,v);CHKERRQ(ierr);
-      ierr = VecAXPY(v,1.0,w);CHKERRQ(ierr);
-      ierr = VecDestroy(&w);CHKERRQ(ierr);
+      CHKERRQ(VecDuplicate(v,&w));
+      CHKERRQ(FNEvaluateFunctionMatVec(ctx->f1,A,w));
+      CHKERRQ(FNEvaluateFunctionMatVec(ctx->f2,A,v));
+      CHKERRQ(VecAXPY(v,1.0,w));
+      CHKERRQ(VecDestroy(&w));
       break;
     case FN_COMBINE_MULTIPLY:
-      ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
-      ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,Z,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMatVec_Private(ctx->f2,A,w,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = MatMult(Z,w,v);CHKERRQ(ierr);
-      ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
-      ierr = VecDestroy(&w);CHKERRQ(ierr);
+      CHKERRQ(VecDuplicate(v,&w));
+      CHKERRQ(FN_AllocateWorkMat(fn,A,&Z));
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f1,A,Z,PETSC_FALSE));
+      CHKERRQ(FNEvaluateFunctionMatVec_Private(ctx->f2,A,w,PETSC_FALSE));
+      CHKERRQ(MatMult(Z,w,v));
+      CHKERRQ(FN_FreeWorkMat(fn,&Z));
+      CHKERRQ(VecDestroy(&w));
       break;
     case FN_COMBINE_DIVIDE:
-      ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
-      ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,Z,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMatVec_Private(ctx->f1,A,v,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(Z,&Za);CHKERRQ(ierr);
-      ierr = VecGetArray(v,&va);CHKERRQ(ierr);
+      CHKERRQ(VecDuplicate(v,&w));
+      CHKERRQ(FN_AllocateWorkMat(fn,A,&Z));
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f2,A,Z,PETSC_FALSE));
+      CHKERRQ(FNEvaluateFunctionMatVec_Private(ctx->f1,A,v,PETSC_FALSE));
+      CHKERRQ(PetscMalloc1(ld,&ipiv));
+      CHKERRQ(MatDenseGetArray(Z,&Za));
+      CHKERRQ(VecGetArray(v,&va));
       PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Za,&ld,ipiv,va,&ld,&info));
       SlepcCheckLapackInfo("gesv",info);
-      ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n);CHKERRQ(ierr);
-      ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(Z,&Za);CHKERRQ(ierr);
-      ierr = PetscFree(ipiv);CHKERRQ(ierr);
-      ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
-      ierr = VecDestroy(&w);CHKERRQ(ierr);
+      CHKERRQ(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n));
+      CHKERRQ(VecRestoreArray(v,&va));
+      CHKERRQ(MatDenseRestoreArray(Z,&Za));
+      CHKERRQ(PetscFree(ipiv));
+      CHKERRQ(FN_FreeWorkMat(fn,&Z));
+      CHKERRQ(VecDestroy(&w));
       break;
     case FN_COMBINE_COMPOSE:
-      ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,Z,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMatVec_Private(ctx->f2,Z,v,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
+      CHKERRQ(FN_AllocateWorkMat(fn,A,&Z));
+      CHKERRQ(FNEvaluateFunctionMat_Private(ctx->f1,A,Z,PETSC_FALSE));
+      CHKERRQ(FNEvaluateFunctionMatVec_Private(ctx->f2,Z,v,PETSC_FALSE));
+      CHKERRQ(FN_FreeWorkMat(fn,&Z));
       break;
   }
   PetscFunctionReturn(0);
@@ -218,50 +214,48 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
 
 PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     switch (ctx->comb) {
       case FN_COMBINE_ADD:
-        ierr = PetscViewerASCIIPrintf(viewer,"  Two added functions f1+f2\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Two added functions f1+f2\n"));
         break;
       case FN_COMBINE_MULTIPLY:
-        ierr = PetscViewerASCIIPrintf(viewer,"  Two multiplied functions f1*f2\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Two multiplied functions f1*f2\n"));
         break;
       case FN_COMBINE_DIVIDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"  A quotient of two functions f1/f2\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  A quotient of two functions f1/f2\n"));
         break;
       case FN_COMBINE_COMPOSE:
-        ierr = PetscViewerASCIIPrintf(viewer,"  Two composed functions f2(f1(.))\n");CHKERRQ(ierr);
+        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Two composed functions f2(f1(.))\n"));
         break;
     }
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = FNView(ctx->f1,viewer);CHKERRQ(ierr);
-    ierr = FNView(ctx->f2,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    CHKERRQ(PetscViewerASCIIPushTab(viewer));
+    CHKERRQ(FNView(ctx->f1,viewer));
+    CHKERRQ(FNView(ctx->f2,viewer));
+    CHKERRQ(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode FNCombineSetChildren_Combine(FN fn,FNCombineType comb,FN f1,FN f2)
 {
-  PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
 
   PetscFunctionBegin;
   ctx->comb = comb;
-  ierr = PetscObjectReference((PetscObject)f1);CHKERRQ(ierr);
-  ierr = FNDestroy(&ctx->f1);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectReference((PetscObject)f1));
+  CHKERRQ(FNDestroy(&ctx->f1));
   ctx->f1 = f1;
-  ierr = PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f1);CHKERRQ(ierr);
-  ierr = PetscObjectReference((PetscObject)f2);CHKERRQ(ierr);
-  ierr = FNDestroy(&ctx->f2);CHKERRQ(ierr);
+  CHKERRQ(PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f1));
+  CHKERRQ(PetscObjectReference((PetscObject)f2));
+  CHKERRQ(FNDestroy(&ctx->f2));
   ctx->f2 = f2;
-  ierr = PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f2);CHKERRQ(ierr);
+  CHKERRQ(PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f2));
   PetscFunctionReturn(0);
 }
 
@@ -283,35 +277,32 @@ static PetscErrorCode FNCombineSetChildren_Combine(FN fn,FNCombineType comb,FN f
 @*/
 PetscErrorCode FNCombineSetChildren(FN fn,FNCombineType comb,FN f1,FN f2)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveEnum(fn,comb,2);
   PetscValidHeaderSpecific(f1,FN_CLASSID,3);
   PetscValidHeaderSpecific(f2,FN_CLASSID,4);
-  ierr = PetscTryMethod(fn,"FNCombineSetChildren_C",(FN,FNCombineType,FN,FN),(fn,comb,f1,f2));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(fn,"FNCombineSetChildren_C",(FN,FNCombineType,FN,FN),(fn,comb,f1,f2)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode FNCombineGetChildren_Combine(FN fn,FNCombineType *comb,FN *f1,FN *f2)
 {
-  PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
 
   PetscFunctionBegin;
   if (comb) *comb = ctx->comb;
   if (f1) {
     if (!ctx->f1) {
-      ierr = FNCreate(PetscObjectComm((PetscObject)fn),&ctx->f1);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f1);CHKERRQ(ierr);
+      CHKERRQ(FNCreate(PetscObjectComm((PetscObject)fn),&ctx->f1));
+      CHKERRQ(PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f1));
     }
     *f1 = ctx->f1;
   }
   if (f2) {
     if (!ctx->f2) {
-      ierr = FNCreate(PetscObjectComm((PetscObject)fn),&ctx->f2);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f2);CHKERRQ(ierr);
+      CHKERRQ(FNCreate(PetscObjectComm((PetscObject)fn),&ctx->f2));
+      CHKERRQ(PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f2));
     }
     *f2 = ctx->f2;
   }
@@ -338,47 +329,42 @@ static PetscErrorCode FNCombineGetChildren_Combine(FN fn,FNCombineType *comb,FN 
 @*/
 PetscErrorCode FNCombineGetChildren(FN fn,FNCombineType *comb,FN *f1,FN *f2)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = PetscUseMethod(fn,"FNCombineGetChildren_C",(FN,FNCombineType*,FN*,FN*),(fn,comb,f1,f2));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(fn,"FNCombineGetChildren_C",(FN,FNCombineType*,FN*,FN*),(fn,comb,f1,f2)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNDuplicate_Combine(FN fn,MPI_Comm comm,FN *newfn)
 {
-  PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data,*ctx2 = (FN_COMBINE*)(*newfn)->data;
 
   PetscFunctionBegin;
   ctx2->comb = ctx->comb;
-  ierr = FNDuplicate(ctx->f1,comm,&ctx2->f1);CHKERRQ(ierr);
-  ierr = FNDuplicate(ctx->f2,comm,&ctx2->f2);CHKERRQ(ierr);
+  CHKERRQ(FNDuplicate(ctx->f1,comm,&ctx2->f1));
+  CHKERRQ(FNDuplicate(ctx->f2,comm,&ctx2->f2));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNDestroy_Combine(FN fn)
 {
-  PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
 
   PetscFunctionBegin;
-  ierr = FNDestroy(&ctx->f1);CHKERRQ(ierr);
-  ierr = FNDestroy(&ctx->f2);CHKERRQ(ierr);
-  ierr = PetscFree(fn->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNCombineSetChildren_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNCombineGetChildren_C",NULL);CHKERRQ(ierr);
+  CHKERRQ(FNDestroy(&ctx->f1));
+  CHKERRQ(FNDestroy(&ctx->f2));
+  CHKERRQ(PetscFree(fn->data));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNCombineSetChildren_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNCombineGetChildren_C",NULL));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
 {
-  PetscErrorCode ierr;
   FN_COMBINE     *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(fn,&ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscNewLog(fn,&ctx));
   fn->data = (void*)ctx;
 
   fn->ops->evaluatefunction          = FNEvaluateFunction_Combine;
@@ -388,8 +374,7 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
   fn->ops->view                      = FNView_Combine;
   fn->ops->duplicate                 = FNDuplicate_Combine;
   fn->ops->destroy                   = FNDestroy_Combine;
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNCombineSetChildren_C",FNCombineSetChildren_Combine);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNCombineGetChildren_C",FNCombineGetChildren_Combine);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNCombineSetChildren_C",FNCombineSetChildren_Combine));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)fn,"FNCombineGetChildren_C",FNCombineGetChildren_Combine));
   PetscFunctionReturn(0);
 }
-

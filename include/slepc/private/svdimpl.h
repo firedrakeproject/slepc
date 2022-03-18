@@ -153,10 +153,9 @@ struct _p_SVD {
 /* Check for ignored features */
 #define SVDCheckIgnoredCondition(svd,mask,condition,msg) \
   do { \
-    PetscErrorCode __ierr; \
     if (condition) { \
-      if (((mask) & SVD_FEATURE_CONVERGENCE) && (svd)->converged!=SVDConvergedRelative) { __ierr = PetscInfo((svd),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(svd))->type_name,(msg)); } \
-      if (((mask) & SVD_FEATURE_STOPPING) && (svd)->stopping!=SVDStoppingBasic) { __ierr = PetscInfo((svd),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(svd))->type_name,(msg)); } \
+      if (((mask) & SVD_FEATURE_CONVERGENCE) && (svd)->converged!=SVDConvergedRelative) CHKERRQ(PetscInfo((svd),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(svd))->type_name,(msg))); \
+      if (((mask) & SVD_FEATURE_STOPPING) && (svd)->stopping!=SVDStoppingBasic) CHKERRQ(PetscInfo((svd),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(svd))->type_name,(msg))); \
     } \
   } while (0)
 #define SVDCheckIgnored(svd,mask) SVDCheckIgnoredCondition(svd,mask,PETSC_TRUE,"")
@@ -166,17 +165,16 @@ struct _p_SVD {
 */
 static inline PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
   const char     *prefix;
 
   PetscFunctionBegin;
-  ierr = KSPSetOperators(ksp,A,B);CHKERRQ(ierr);
-  ierr = MatGetOptionsPrefix(B,&prefix);CHKERRQ(ierr);
+  CHKERRQ(KSPSetOperators(ksp,A,B));
+  CHKERRQ(MatGetOptionsPrefix(B,&prefix));
   if (!prefix) {
     /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
        only applies if the Mat has no user-defined prefix */
-    ierr = KSPGetOptionsPrefix(ksp,&prefix);CHKERRQ(ierr);
-    ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+    CHKERRQ(KSPGetOptionsPrefix(ksp,&prefix));
+    CHKERRQ(MatSetOptionsPrefix(B,prefix));
   }
   PetscFunctionReturn(0);
 }
@@ -187,25 +185,24 @@ static inline PetscErrorCode SVD_KSPSetOperators(KSP ksp,Mat A,Mat B)
  */
 static inline PetscErrorCode SVDCreateLeftTemplate(SVD svd,Vec *t)
 {
-  PetscErrorCode ierr;
   PetscInt       M,P,m,p;
   Vec            v1,v2;
   VecType        vec_type;
 
   PetscFunctionBegin;
-  ierr = MatCreateVecsEmpty(svd->OP,NULL,&v1);CHKERRQ(ierr);
-  ierr = VecGetSize(v1,&M);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(v1,&m);CHKERRQ(ierr);
-  ierr = VecGetType(v1,&vec_type);CHKERRQ(ierr);
-  ierr = MatCreateVecsEmpty(svd->OPb,NULL,&v2);CHKERRQ(ierr);
-  ierr = VecGetSize(v2,&P);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(v2,&p);CHKERRQ(ierr);
-  ierr = VecCreate(PetscObjectComm((PetscObject)(v1)),t);CHKERRQ(ierr);
-  ierr = VecSetType(*t,vec_type);CHKERRQ(ierr);
-  ierr = VecSetSizes(*t,m+p,M+P);CHKERRQ(ierr);
-  ierr = VecSetUp(*t);CHKERRQ(ierr);
-  ierr = VecDestroy(&v1);CHKERRQ(ierr);
-  ierr = VecDestroy(&v2);CHKERRQ(ierr);
+  CHKERRQ(MatCreateVecsEmpty(svd->OP,NULL,&v1));
+  CHKERRQ(VecGetSize(v1,&M));
+  CHKERRQ(VecGetLocalSize(v1,&m));
+  CHKERRQ(VecGetType(v1,&vec_type));
+  CHKERRQ(MatCreateVecsEmpty(svd->OPb,NULL,&v2));
+  CHKERRQ(VecGetSize(v2,&P));
+  CHKERRQ(VecGetLocalSize(v2,&p));
+  CHKERRQ(VecCreate(PetscObjectComm((PetscObject)(v1)),t));
+  CHKERRQ(VecSetType(*t,vec_type));
+  CHKERRQ(VecSetSizes(*t,m+p,M+P));
+  CHKERRQ(VecSetUp(*t));
+  CHKERRQ(VecDestroy(&v1));
+  CHKERRQ(VecDestroy(&v2));
   PetscFunctionReturn(0);
 }
 

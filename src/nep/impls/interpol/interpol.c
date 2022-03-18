@@ -35,7 +35,6 @@ typedef struct {
 
 PetscErrorCode NEPSetUp_Interpol(NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   ST             st;
   RG             rg;
@@ -45,7 +44,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   PetscInt       its,in;
 
   PetscFunctionBegin;
-  ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
+  CHKERRQ(NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd));
   PetscCheck(nep->ncv<=nep->nev+nep->mpd,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
@@ -53,42 +52,42 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   NEPCheckUnsupported(nep,NEP_FEATURE_CALLBACK | NEP_FEATURE_STOPPING | NEP_FEATURE_TWOSIDED);
 
   /* transfer PEP options */
-  if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
-  ierr = PEPSetBasis(ctx->pep,PEP_BASIS_CHEBYSHEV1);CHKERRQ(ierr);
-  ierr = PEPSetWhichEigenpairs(ctx->pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)ctx->pep,PEPJD,&flg);CHKERRQ(ierr);
+  if (!ctx->pep) CHKERRQ(NEPInterpolGetPEP(nep,&ctx->pep));
+  CHKERRQ(PEPSetBasis(ctx->pep,PEP_BASIS_CHEBYSHEV1));
+  CHKERRQ(PEPSetWhichEigenpairs(ctx->pep,PEP_TARGET_MAGNITUDE));
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)ctx->pep,PEPJD,&flg));
   if (!flg) {
-    ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
-    ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+    CHKERRQ(PEPGetST(ctx->pep,&st));
+    CHKERRQ(STSetType(st,STSINVERT));
   }
-  ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv,nep->mpd);CHKERRQ(ierr);
-  ierr = PEPGetTolerances(ctx->pep,&tol,&its);CHKERRQ(ierr);
+  CHKERRQ(PEPSetDimensions(ctx->pep,nep->nev,nep->ncv,nep->mpd));
+  CHKERRQ(PEPGetTolerances(ctx->pep,&tol,&its));
   if (tol==PETSC_DEFAULT) tol = SlepcDefaultTol(nep->tol);
   if (ctx->tol==PETSC_DEFAULT) ctx->tol = tol;
   if (its==PETSC_DEFAULT) its = nep->max_it;
-  ierr = PEPSetTolerances(ctx->pep,tol,its);CHKERRQ(ierr);
-  ierr = NEPGetTrackAll(nep,&trackall);CHKERRQ(ierr);
-  ierr = PEPSetTrackAll(ctx->pep,trackall);CHKERRQ(ierr);
+  CHKERRQ(PEPSetTolerances(ctx->pep,tol,its));
+  CHKERRQ(NEPGetTrackAll(nep,&trackall));
+  CHKERRQ(PEPSetTrackAll(ctx->pep,trackall));
 
   /* transfer region options */
-  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
+  CHKERRQ(RGIsTrivial(nep->rg,&istrivial));
   PetscCheck(!istrivial,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPINTERPOL requires a nontrivial region");
-  ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGINTERVAL,&flg);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)nep->rg,RGINTERVAL,&flg));
   PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for interval regions");
-  ierr = RGIntervalGetEndpoints(nep->rg,&a,&b,&c,&d);CHKERRQ(ierr);
+  CHKERRQ(RGIntervalGetEndpoints(nep->rg,&a,&b,&c,&d));
   PetscCheck(a>-PETSC_MAX_REAL && b<PETSC_MAX_REAL,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for bounded intervals");
-  ierr = PEPGetRG(ctx->pep,&rg);CHKERRQ(ierr);
-  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+  CHKERRQ(PEPGetRG(ctx->pep,&rg));
+  CHKERRQ(RGSetType(rg,RGINTERVAL));
   PetscCheck(a!=b,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for intervals on the real axis");
   s = 2.0/(b-a);
   c = c*s;
   d = d*s;
-  ierr = RGIntervalSetEndpoints(rg,-1.0,1.0,c,d);CHKERRQ(ierr);
-  ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
+  CHKERRQ(RGIntervalSetEndpoints(rg,-1.0,1.0,c,d));
+  CHKERRQ(RGCheckInside(nep->rg,1,&nep->target,&zero,&in));
   PetscCheck(in>=0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
-  ierr = PEPSetTarget(ctx->pep,(nep->target-(a+b)/2)*s);CHKERRQ(ierr);
+  CHKERRQ(PEPSetTarget(ctx->pep,(nep->target-(a+b)/2)*s));
 
-  ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
+  CHKERRQ(NEPAllocateSolution(nep,0));
   PetscFunctionReturn(0);
 }
 
@@ -116,7 +115,6 @@ static PetscErrorCode ChebyshevNodes(PetscInt d,PetscReal a,PetscReal b,PetscSca
 
 PetscErrorCode NEPSolve_Interpol(NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   Mat            *A,*P;
   PetscScalar    *x,*fx,t;
@@ -127,80 +125,80 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   ST             st;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc4((deg+1)*(deg+1),&cs,deg+1,&x,(deg+1)*nep->nt,&fx,nep->nt,&matnorm);CHKERRQ(ierr);
+  CHKERRQ(PetscMalloc4((deg+1)*(deg+1),&cs,deg+1,&x,(deg+1)*nep->nt,&fx,nep->nt,&matnorm));
   for  (j=0;j<nep->nt;j++) {
-    ierr = MatHasOperation(nep->A[j],MATOP_NORM,&hasmnorm);CHKERRQ(ierr);
+    CHKERRQ(MatHasOperation(nep->A[j],MATOP_NORM,&hasmnorm));
     if (!hasmnorm) break;
-    ierr = MatNorm(nep->A[j],NORM_INFINITY,matnorm+j);CHKERRQ(ierr);
+    CHKERRQ(MatNorm(nep->A[j],NORM_INFINITY,matnorm+j));
   }
   if (!hasmnorm) for (j=0;j<nep->nt;j++) matnorm[j] = 1.0;
-  ierr = RGIntervalGetEndpoints(nep->rg,&a,&b,NULL,NULL);CHKERRQ(ierr);
-  ierr = ChebyshevNodes(deg,a,b,x,cs);CHKERRQ(ierr);
+  CHKERRQ(RGIntervalGetEndpoints(nep->rg,&a,&b,NULL,NULL));
+  CHKERRQ(ChebyshevNodes(deg,a,b,x,cs));
   for (j=0;j<nep->nt;j++) {
     for (i=0;i<=deg;i++) {
-      ierr = FNEvaluateFunction(nep->f[j],x[i],&fx[i+j*(deg+1)]);CHKERRQ(ierr);
+      CHKERRQ(FNEvaluateFunction(nep->f[j],x[i],&fx[i+j*(deg+1)]));
     }
   }
   /* Polynomial coefficients */
-  ierr = PetscMalloc1(deg+1,&A);CHKERRQ(ierr);
-  if (nep->P) { ierr = PetscMalloc1(deg+1,&P);CHKERRQ(ierr); }
+  CHKERRQ(PetscMalloc1(deg+1,&A));
+  if (nep->P) CHKERRQ(PetscMalloc1(deg+1,&P));
   ctx->deg = deg;
   for (k=0;k<=deg;k++) {
-    ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&A[k]);CHKERRQ(ierr);
-    if (nep->P) { ierr = MatDuplicate(nep->P[0],MAT_COPY_VALUES,&P[k]);CHKERRQ(ierr); }
+    CHKERRQ(MatDuplicate(nep->A[0],MAT_COPY_VALUES,&A[k]));
+    if (nep->P) CHKERRQ(MatDuplicate(nep->P[0],MAT_COPY_VALUES,&P[k]));
     t = 0.0;
     for (i=0;i<deg+1;i++) t += fx[i]*cs[i*(deg+1)+k];
     t *= 2.0/(deg+1);
     if (k==0) t /= 2.0;
     aprox = matnorm[0]*PetscAbsScalar(t);
-    ierr = MatScale(A[k],t);CHKERRQ(ierr);
-    if (nep->P) { ierr = MatScale(P[k],t);CHKERRQ(ierr); }
+    CHKERRQ(MatScale(A[k],t));
+    if (nep->P) CHKERRQ(MatScale(P[k],t));
     for (j=1;j<nep->nt;j++) {
       t = 0.0;
       for (i=0;i<deg+1;i++) t += fx[i+j*(deg+1)]*cs[i*(deg+1)+k];
       t *= 2.0/(deg+1);
       if (k==0) t /= 2.0;
       aprox += matnorm[j]*PetscAbsScalar(t);
-      ierr = MatAXPY(A[k],t,nep->A[j],nep->mstr);CHKERRQ(ierr);
-      if (nep->P) { ierr = MatAXPY(P[k],t,nep->P[j],nep->mstrp);CHKERRQ(ierr); }
+      CHKERRQ(MatAXPY(A[k],t,nep->A[j],nep->mstr));
+      if (nep->P) CHKERRQ(MatAXPY(P[k],t,nep->P[j],nep->mstrp));
     }
     if (k==0) aprox0 = aprox;
     if (k>1 && aprox/aprox0<ctx->tol) { ctx->deg = k; deg = k; break; }
   }
-  ierr = PEPSetOperators(ctx->pep,deg+1,A);CHKERRQ(ierr);
-  ierr = MatDestroyMatrices(deg+1,&A);CHKERRQ(ierr);
+  CHKERRQ(PEPSetOperators(ctx->pep,deg+1,A));
+  CHKERRQ(MatDestroyMatrices(deg+1,&A));
   if (nep->P) {
-    ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
-    ierr = STSetSplitPreconditioner(st,deg+1,P,nep->mstrp);CHKERRQ(ierr);
-    ierr = MatDestroyMatrices(deg+1,&P);CHKERRQ(ierr);
+    CHKERRQ(PEPGetST(ctx->pep,&st));
+    CHKERRQ(STSetSplitPreconditioner(st,deg+1,P,nep->mstrp));
+    CHKERRQ(MatDestroyMatrices(deg+1,&P));
   }
-  ierr = PetscFree4(cs,x,fx,matnorm);CHKERRQ(ierr);
+  CHKERRQ(PetscFree4(cs,x,fx,matnorm));
 
   /* Solve polynomial eigenproblem */
-  ierr = PEPSolve(ctx->pep);CHKERRQ(ierr);
-  ierr = PEPGetConverged(ctx->pep,&nep->nconv);CHKERRQ(ierr);
-  ierr = PEPGetIterationNumber(ctx->pep,&nep->its);CHKERRQ(ierr);
-  ierr = PEPGetConvergedReason(ctx->pep,(PEPConvergedReason*)&nep->reason);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
-  ierr = BVCreateVec(nep->V,&vr);CHKERRQ(ierr);
+  CHKERRQ(PEPSolve(ctx->pep));
+  CHKERRQ(PEPGetConverged(ctx->pep,&nep->nconv));
+  CHKERRQ(PEPGetIterationNumber(ctx->pep,&nep->its));
+  CHKERRQ(PEPGetConvergedReason(ctx->pep,(PEPConvergedReason*)&nep->reason));
+  CHKERRQ(BVSetActiveColumns(nep->V,0,nep->nconv));
+  CHKERRQ(BVCreateVec(nep->V,&vr));
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = VecDuplicate(vr,&vi);CHKERRQ(ierr);
+  CHKERRQ(VecDuplicate(vr,&vi));
 #endif
   s = 2.0/(b-a);
   for (i=0;i<nep->nconv;i++) {
-    ierr = PEPGetEigenpair(ctx->pep,i,&nep->eigr[i],&nep->eigi[i],vr,vi);CHKERRQ(ierr);
+    CHKERRQ(PEPGetEigenpair(ctx->pep,i,&nep->eigr[i],&nep->eigi[i],vr,vi));
     nep->eigr[i] /= s;
     nep->eigr[i] += (a+b)/2.0;
     nep->eigi[i] /= s;
-    ierr = BVInsertVec(nep->V,i,vr);CHKERRQ(ierr);
+    CHKERRQ(BVInsertVec(nep->V,i,vr));
 #if !defined(PETSC_USE_COMPLEX)
     if (nep->eigi[i]!=0.0) {
-      ierr = BVInsertVec(nep->V,++i,vi);CHKERRQ(ierr);
+      CHKERRQ(BVInsertVec(nep->V,++i,vi));
     }
 #endif
   }
-  ierr = VecDestroy(&vr);CHKERRQ(ierr);
-  ierr = VecDestroy(&vi);CHKERRQ(ierr);
+  CHKERRQ(VecDestroy(&vr));
+  CHKERRQ(VecDestroy(&vi));
 
   nep->state = NEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
@@ -212,7 +210,6 @@ static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,Pe
   NEP            nep = (NEP)ctx;
   PetscReal      a,b,s;
   ST             st;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   n = PetscMin(nest,nep->ncv);
@@ -221,46 +218,44 @@ static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,Pe
     nep->eigi[i]   = eigi[i];
     nep->errest[i] = errest[i];
   }
-  ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
-  ierr = STBackTransform(st,n,nep->eigr,nep->eigi);CHKERRQ(ierr);
-  ierr = RGIntervalGetEndpoints(nep->rg,&a,&b,NULL,NULL);CHKERRQ(ierr);
+  CHKERRQ(PEPGetST(pep,&st));
+  CHKERRQ(STBackTransform(st,n,nep->eigr,nep->eigi));
+  CHKERRQ(RGIntervalGetEndpoints(nep->rg,&a,&b,NULL,NULL));
   s = 2.0/(b-a);
   for (i=0;i<n;i++) {
     nep->eigr[i] /= s;
     nep->eigr[i] += (a+b)/2.0;
     nep->eigi[i] /= s;
   }
-  ierr = NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest);CHKERRQ(ierr);
+  CHKERRQ(NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   PetscInt       i;
   PetscBool      flg1,flg2;
   PetscReal      r;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"NEP Interpol Options");CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"NEP Interpol Options"));
 
-    ierr = NEPInterpolGetInterpolation(nep,&r,&i);CHKERRQ(ierr);
+    CHKERRQ(NEPInterpolGetInterpolation(nep,&r,&i));
     if (!i) i = PETSC_DEFAULT;
-    ierr = PetscOptionsInt("-nep_interpol_interpolation_degree","Maximum degree of polynomial interpolation","NEPInterpolSetInterpolation",i,&i,&flg1);CHKERRQ(ierr);
-    ierr = PetscOptionsReal("-nep_interpol_interpolation_tol","Tolerance for interpolation coefficients","NEPInterpolSetInterpolation",r,&r,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) { ierr = NEPInterpolSetInterpolation(nep,r,i);CHKERRQ(ierr); }
+    CHKERRQ(PetscOptionsInt("-nep_interpol_interpolation_degree","Maximum degree of polynomial interpolation","NEPInterpolSetInterpolation",i,&i,&flg1));
+    CHKERRQ(PetscOptionsReal("-nep_interpol_interpolation_tol","Tolerance for interpolation coefficients","NEPInterpolSetInterpolation",r,&r,&flg2));
+    if (flg1 || flg2) CHKERRQ(NEPInterpolSetInterpolation(nep,r,i));
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  CHKERRQ(PetscOptionsTail());
 
-  if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
-  ierr = PEPSetFromOptions(ctx->pep);CHKERRQ(ierr);
+  if (!ctx->pep) CHKERRQ(NEPInterpolGetPEP(nep,&ctx->pep));
+  CHKERRQ(PEPSetFromOptions(ctx->pep));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol,PetscInt degree)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
@@ -273,13 +268,13 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
   }
   if (degree == PETSC_DEFAULT || degree == PETSC_DECIDE) {
     ctx->maxdeg = 0;
-    if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
+    if (nep->state) CHKERRQ(NEPReset(nep));
     nep->state = NEP_STATE_INITIAL;
   } else {
     PetscCheck(degree>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
     if (ctx->maxdeg != degree) {
       ctx->maxdeg = degree;
-      if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
+      if (nep->state) CHKERRQ(NEPReset(nep));
       nep->state = NEP_STATE_INITIAL;
     }
   }
@@ -310,13 +305,11 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
 @*/
 PetscErrorCode NEPInterpolSetInterpolation(NEP nep,PetscReal tol,PetscInt deg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,tol,2);
   PetscValidLogicalCollectiveInt(nep,deg,3);
-  ierr = PetscTryMethod(nep,"NEPInterpolSetInterpolation_C",(NEP,PetscReal,PetscInt),(nep,tol,deg));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(nep,"NEPInterpolSetInterpolation_C",(NEP,PetscReal,PetscInt),(nep,tol,deg)));
   PetscFunctionReturn(0);
 }
 
@@ -349,24 +342,21 @@ static PetscErrorCode NEPInterpolGetInterpolation_Interpol(NEP nep,PetscReal *to
 @*/
 PetscErrorCode NEPInterpolGetInterpolation(NEP nep,PetscReal *tol,PetscInt *deg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  ierr = PetscUseMethod(nep,"NEPInterpolGetInterpolation_C",(NEP,PetscReal*,PetscInt*),(nep,tol,deg));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(nep,"NEPInterpolGetInterpolation_C",(NEP,PetscReal*,PetscInt*),(nep,tol,deg)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPInterpolSetPEP_Interpol(NEP nep,PEP pep)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
-  ierr = PetscObjectReference((PetscObject)pep);CHKERRQ(ierr);
-  ierr = PEPDestroy(&ctx->pep);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectReference((PetscObject)pep));
+  CHKERRQ(PEPDestroy(&ctx->pep));
   ctx->pep = pep;
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
+  CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep));
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -387,30 +377,27 @@ static PetscErrorCode NEPInterpolSetPEP_Interpol(NEP nep,PEP pep)
 @*/
 PetscErrorCode NEPInterpolSetPEP(NEP nep,PEP pep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidHeaderSpecific(pep,PEP_CLASSID,2);
   PetscCheckSameComm(nep,1,pep,2);
-  ierr = PetscTryMethod(nep,"NEPInterpolSetPEP_C",(NEP,PEP),(nep,pep));CHKERRQ(ierr);
+  CHKERRQ(PetscTryMethod(nep,"NEPInterpolSetPEP_C",(NEP,PEP),(nep,pep)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
   if (!ctx->pep) {
-    ierr = PEPCreate(PetscObjectComm((PetscObject)nep),&ctx->pep);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1);CHKERRQ(ierr);
-    ierr = PEPSetOptionsPrefix(ctx->pep,((PetscObject)nep)->prefix);CHKERRQ(ierr);
-    ierr = PEPAppendOptionsPrefix(ctx->pep,"nep_interpol_");CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)ctx->pep,((PetscObject)nep)->options);CHKERRQ(ierr);
-    ierr = PEPMonitorSet(ctx->pep,PEPMonitor_Interpol,nep,NULL);CHKERRQ(ierr);
+    CHKERRQ(PEPCreate(PetscObjectComm((PetscObject)nep),&ctx->pep));
+    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1));
+    CHKERRQ(PEPSetOptionsPrefix(ctx->pep,((PetscObject)nep)->prefix));
+    CHKERRQ(PEPAppendOptionsPrefix(ctx->pep,"nep_interpol_"));
+    CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep));
+    CHKERRQ(PetscObjectSetOptions((PetscObject)ctx->pep,((PetscObject)nep)->options));
+    CHKERRQ(PEPMonitorSet(ctx->pep,PEPMonitor_Interpol,nep,NULL));
   }
   *pep = ctx->pep;
   PetscFunctionReturn(0);
@@ -434,66 +421,60 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
 @*/
 PetscErrorCode NEPInterpolGetPEP(NEP nep,PEP *pep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(pep,2);
-  ierr = PetscUseMethod(nep,"NEPInterpolGetPEP_C",(NEP,PEP*),(nep,pep));CHKERRQ(ierr);
+  CHKERRQ(PetscUseMethod(nep,"NEPInterpolGetPEP_C",(NEP,PEP*),(nep,pep)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
-    ierr = PetscViewerASCIIPrintf(viewer,"  polynomial degree %" PetscInt_FMT ", max=%" PetscInt_FMT "\n",ctx->deg,ctx->maxdeg);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance for norm of polynomial coefficients %g\n",(double)ctx->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = PEPView(ctx->pep,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    if (!ctx->pep) CHKERRQ(NEPInterpolGetPEP(nep,&ctx->pep));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  polynomial degree %" PetscInt_FMT ", max=%" PetscInt_FMT "\n",ctx->deg,ctx->maxdeg));
+    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  tolerance for norm of polynomial coefficients %g\n",(double)ctx->tol));
+    CHKERRQ(PetscViewerASCIIPushTab(viewer));
+    CHKERRQ(PEPView(ctx->pep,viewer));
+    CHKERRQ(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPReset_Interpol(NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
-  ierr = PEPReset(ctx->pep);CHKERRQ(ierr);
+  CHKERRQ(PEPReset(ctx->pep));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPDestroy_Interpol(NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
-  ierr = PEPDestroy(&ctx->pep);CHKERRQ(ierr);
-  ierr = PetscFree(nep->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetInterpolation_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetInterpolation_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetPEP_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetPEP_C",NULL);CHKERRQ(ierr);
+  CHKERRQ(PEPDestroy(&ctx->pep));
+  CHKERRQ(PetscFree(nep->data));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetInterpolation_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetInterpolation_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetPEP_C",NULL));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetPEP_C",NULL));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_INTERPOL   *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
+  CHKERRQ(PetscNewLog(nep,&ctx));
   nep->data   = (void*)ctx;
   ctx->maxdeg = 5;
   ctx->tol    = PETSC_DEFAULT;
@@ -505,10 +486,9 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
   nep->ops->destroy        = NEPDestroy_Interpol;
   nep->ops->view           = NEPView_Interpol;
 
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetInterpolation_C",NEPInterpolSetInterpolation_Interpol);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetInterpolation_C",NEPInterpolGetInterpolation_Interpol);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetPEP_C",NEPInterpolSetPEP_Interpol);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetPEP_C",NEPInterpolGetPEP_Interpol);CHKERRQ(ierr);
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetInterpolation_C",NEPInterpolSetInterpolation_Interpol));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetInterpolation_C",NEPInterpolGetInterpolation_Interpol));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetPEP_C",NEPInterpolSetPEP_Interpol));
+  CHKERRQ(PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetPEP_C",NEPInterpolGetPEP_Interpol));
   PetscFunctionReturn(0);
 }
-
