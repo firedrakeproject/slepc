@@ -978,6 +978,117 @@ PetscErrorCode MatMult_FILTLAN(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
+/* Block version of FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProduct */
+static PetscErrorCode FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProductBlock(Mat A,Mat B,Mat C,PetscReal *baseFilter,PetscInt nbase,PetscReal *intv,PetscInt nintv,PetscReal *intervalWeights,PetscInt niter,Vec *work,Mat R,Mat P,Mat AP,Mat W)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j,srpol,scpol,sarpol,sppol,sappol,ld;
+  PetscReal      rho,rho0,rho00,rho1,den,bet,alp,alp0,*cpol,*ppol,*rpol,*appol,*arpol,tol=0.0;
+  PetscScalar    alpha;
+
+  PetscFunctionBegin;
+  ld = niter+3;  /* leading dimension */
+  ierr = PetscCalloc5(ld*nintv,&ppol,ld*nintv,&rpol,ld*nintv,&cpol,ld*nintv,&appol,ld*nintv,&arpol);CHKERRQ(ierr);
+  /* initialize polynomial ppol to be 1 (i.e. multiplicative identity) in all intervals */
+  sppol = 2;
+  srpol = 2;
+  scpol = 2;
+  for (j=0;j<nintv;j++) {
+    ppol[j*ld] = 1.0;
+    rpol[j*ld] = 1.0;
+    cpol[j*ld] = 1.0;
+  }
+  /* ppol is the initial p-polynomial (corresponding to the A-conjugate vector p in CG)
+     rpol is the r-polynomial (corresponding to the residual vector r in CG)
+     cpol is the "corrected" residual polynomial */
+  sappol = 3;
+  sarpol = 3;
+  ierr = FILTLAN_PiecewisePolynomialInChebyshevBasisMultiplyX(ppol,sppol,ld,intv,nintv,appol,ld);CHKERRQ(ierr);
+  for (i=0;i<3;i++) for (j=0;j<nintv;j++) arpol[i+j*ld] = appol[i+j*ld];
+  rho00 = FILTLAN_PiecewisePolynomialInnerProductInChebyshevBasis(rpol,srpol,nintv,ld,arpol,sarpol,nintv,ld,intervalWeights);
+  rho = rho00;
+
+  /* corrected CR in vector space */
+  /* we assume x0 is always 0 */
+  ierr = MatZeroEntries(C);CHKERRQ(ierr);
+  ierr = MatCopy(B,R,SAME_NONZERO_PATTERN);CHKERRQ(ierr);     /* initial residual r = b-A*x0 */
+  ierr = MatCopy(R,P,SAME_NONZERO_PATTERN);CHKERRQ(ierr);     /* p = r */
+  ierr = MatMatMult(A,P,MAT_REUSE_MATRIX,PETSC_DEFAULT,&AP);CHKERRQ(ierr);  /* ap = A*p */
+
+  for (i=0;i<niter;i++) {
+    /* iteration in the polynomial space */
+    den = FILTLAN_PiecewisePolynomialInnerProductInChebyshevBasis(appol,sappol,nintv,ld,appol,sappol,nintv,ld,intervalWeights);
+    alp0 = rho/den;
+    rho1 = FILTLAN_PiecewisePolynomialInnerProductInChebyshevBasis(baseFilter,nbase,nintv,nbase,appol,sappol,nintv,ld,intervalWeights);
+    alp  = (rho-rho1)/den;
+    srpol++;
+    scpol++;
+    ierr = Mat_AXPY_BLAS(srpol,nintv,-alp0,appol,ld,1.0,rpol,ld);CHKERRQ(ierr);
+    ierr = Mat_AXPY_BLAS(scpol,nintv,-alp,appol,ld,1.0,cpol,ld);CHKERRQ(ierr);
+    sarpol++;
+    ierr = FILTLAN_PiecewisePolynomialInChebyshevBasisMultiplyX(rpol,srpol,ld,intv,nintv,arpol,ld);CHKERRQ(ierr);
+    rho0 = rho;
+    rho = FILTLAN_PiecewisePolynomialInnerProductInChebyshevBasis(rpol,srpol,nintv,ld,arpol,sarpol,nintv,ld,intervalWeights);
+
+    /* update x in the vector space */
+    alpha = alp;
+    ierr = MatAXPY(C,alpha,P,SAME_NONZERO_PATTERN);CHKERRQ(ierr);   /* x += alp*p */
+    if (rho < tol*rho00) break;
+
+    /* finish the iteration in the polynomial space */
+    bet = rho / rho0;
+    sppol++;
+    sappol++;
+    ierr = Mat_AXPY_BLAS(sppol,nintv,1.0,rpol,ld,bet,ppol,ld);CHKERRQ(ierr);
+    ierr = Mat_AXPY_BLAS(sappol,nintv,1.0,arpol,ld,bet,appol,ld);CHKERRQ(ierr);
+
+    /* finish the iteration in the vector space */
+    alpha = -alp0;
+    ierr = MatAXPY(R,alpha,AP,SAME_NONZERO_PATTERN);CHKERRQ(ierr);    /* r -= alp0*ap */
+    alpha = bet;
+    ierr = MatAYPX(P,alpha,R,SAME_NONZERO_PATTERN);CHKERRQ(ierr);     /* p = r + bet*p */
+    ierr = MatMatMult(A,R,MAT_REUSE_MATRIX,PETSC_DEFAULT,&W);CHKERRQ(ierr);         /* ap = A*r + bet*ap */
+    ierr = MatAYPX(AP,alpha,W,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  }
+  ierr = PetscFree5(ppol,rpol,cpol,appol,arpol);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
+   Gateway to FILTLAN for evaluating C=p(A)*B
+*/
+PetscErrorCode MatMatMult_FILTLAN(Mat A,Mat B,Mat C,void *pctx)
+{
+  PetscErrorCode ierr;
+  ST             st;
+  ST_FILTER      *ctx;
+  PetscInt       i,m1,m2,npoints;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,&st);CHKERRQ(ierr);
+  ctx = (ST_FILTER*)st->data;
+  npoints = (ctx->filterInfo->filterType == 2)? 6: 4;
+  if (ctx->nW) {  /* check if work matrices must be resized */
+    ierr = MatGetSize(B,NULL,&m1);CHKERRQ(ierr);
+    ierr = MatGetSize(ctx->W[0],NULL,&m2);CHKERRQ(ierr);
+    if (m1!=m2) {
+      ierr = MatDestroyMatrices(ctx->nW,&ctx->W);CHKERRQ(ierr);
+      ctx->nW = 0;
+    }
+  }
+  if (!ctx->nW) {  /* allocate work matrices */
+    ctx->nW = 4;
+    ierr = PetscMalloc1(ctx->nW,&ctx->W);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)st,ctx->nW*sizeof(Mat));CHKERRQ(ierr);
+    for (i=0;i<ctx->nW;i++) {
+      ierr = MatDuplicate(B,MAT_DO_NOT_COPY_VALUES,&ctx->W[i]);CHKERRQ(ierr);
+    }
+  }
+  ierr = FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProductBlock(ctx->T,B,ctx->W[0],ctx->baseFilter,2*ctx->baseDegree+2,ctx->intervals,npoints-1,ctx->opts->intervalWeights,ctx->polyDegree,st->work,C,ctx->W[1],ctx->W[2],ctx->W[3]);CHKERRQ(ierr);
+  ierr = MatMatMult(ctx->T,ctx->W[0],MAT_REUSE_MATRIX,PETSC_DEFAULT,&C);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*
    FILTLAN function PolynomialFilterInterface::setFilter
 
@@ -1046,6 +1157,7 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
     ierr = MatGetLocalSize(ctx->T,&n,&m);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,N,M,st,G);CHKERRQ(ierr);
     ierr = MatShellSetOperation(*G,MATOP_MULT,(void(*)(void))MatMult_FILTLAN);CHKERRQ(ierr);
+    ierr = MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSE,MATDENSE);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*G);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

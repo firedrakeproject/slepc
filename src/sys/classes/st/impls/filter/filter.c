@@ -384,6 +384,8 @@ PetscErrorCode STReset_Filter(ST st)
   ctx->left  = 0.0;
   ctx->right = 0.0;
   ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
+  ierr = MatDestroyMatrices(ctx->nW,&ctx->W);CHKERRQ(ierr);
+  ctx->nW = 0;
   PetscFunctionReturn(0);
 }
 
