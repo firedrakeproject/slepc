@@ -15,6 +15,29 @@
 #include <slepc/private/slepcscalapack.h>
 #include <elpa/elpa.h>
 
+#define CHKERRELPA(func, ...) do {                                                   \
+    PetscErrorCode elpa_ierr_; \
+    PetscStackPush(PetscStringize(func));                                   \
+    func(__VA_ARGS__,&elpa_ierr_);                                              \
+    PetscStackPop;                                                                             \
+    PetscCheck(!elpa_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(__VA_ARGS__,&elpa_ierr)),elpa_ierr_); \
+  } while (0)
+
+#define CHKERRELPARET(func, ...) do {                                                   \
+    PetscStackPush(PetscStringize(func));                                                      \
+    PetscErrorCode elpa_ierr_ = func(__VA_ARGS__);                                              \
+    PetscStackPop;                                                                             \
+    PetscCheck(!elpa_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(__VA_ARGS__)),elpa_ierr_); \
+  } while (0)
+
+#define CHKERRELPANOARG(func) do {                                                   \
+    PetscErrorCode elpa_ierr_; \
+    PetscStackPush(PetscStringize(func));                                   \
+    func(&elpa_ierr_);                                              \
+    PetscStackPop;                                                                             \
+    PetscCheck(!elpa_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(&elpa_ierr)),elpa_ierr_); \
+  } while (0)
+
 typedef struct {
   Mat As,Bs;        /* converted matrices */
 } EPS_ELPA;
@@ -63,7 +86,6 @@ PetscErrorCode EPSSetUp_ELPA(EPS eps)
 
 PetscErrorCode EPSSolve_ELPA(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_ELPA       *ctx = (EPS_ELPA*)eps->data;
   Mat            A = ctx->As,B = ctx->Bs,Q,V;
   Mat_ScaLAPACK  *a = (Mat_ScaLAPACK*)A->data,*b,*q;
@@ -75,36 +97,34 @@ PetscErrorCode EPSSolve_ELPA(EPS eps)
   CHKERRQ(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q));
   q = (Mat_ScaLAPACK*)Q->data;
 
-  CHKERRQ(elpa_init(20200417));    /* 20171201 */
-  handle = elpa_allocate(&ierr);CHKERRQ(ierr);
+  CHKERRELPARET(elpa_init,20200417);    /* 20171201 */
+  CHKERRELPANOARG(handle = elpa_allocate);
 
   /* set parameters of the matrix and its MPI distribution */
-  elpa_set(handle,"na",a->N,&ierr);CHKERRQ(ierr);                /* matrix size */
-  elpa_set(handle,"nev",a->N,&ierr);CHKERRQ(ierr);               /* number of eigenvectors to be computed (1<=nev<=na) */
-  elpa_set(handle,"local_nrows",a->locr,&ierr);CHKERRQ(ierr);    /* number of local rows of the distributed matrix on this MPI task  */
-  elpa_set(handle,"local_ncols",a->locc,&ierr);CHKERRQ(ierr);    /* number of local columns of the distributed matrix on this MPI task */
-  elpa_set(handle,"nblk",a->mb,&ierr);CHKERRQ(ierr);             /* size of the BLACS block cyclic distribution */
-  elpa_set(handle,"mpi_comm_parent",MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&ierr);CHKERRQ(ierr);
-  elpa_set(handle,"process_row",a->grid->myrow,&ierr);CHKERRQ(ierr);    /* row coordinate of MPI process */
-  elpa_set(handle,"process_col",a->grid->mycol,&ierr);CHKERRQ(ierr);    /* column coordinate of MPI process */
-  if (B) { elpa_set(handle,"blacs_context",a->grid->ictxt,&ierr);CHKERRQ(ierr); }
+  CHKERRELPA(elpa_set,handle,"na",a->N);                         /* matrix size */
+  CHKERRELPA(elpa_set,handle,"nev",a->N);                        /* number of eigenvectors to be computed (1<=nev<=na) */
+  CHKERRELPA(elpa_set,handle,"local_nrows",a->locr);             /* number of local rows of the distributed matrix on this MPI task  */
+  CHKERRELPA(elpa_set,handle,"local_ncols",a->locc);             /* number of local columns of the distributed matrix on this MPI task */
+  CHKERRELPA(elpa_set,handle,"nblk",a->mb);                      /* size of the BLACS block cyclic distribution */
+  CHKERRELPA(elpa_set,handle,"mpi_comm_parent",MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)));
+  CHKERRELPA(elpa_set,handle,"process_row",a->grid->myrow);      /* row coordinate of MPI process */
+  CHKERRELPA(elpa_set,handle,"process_col",a->grid->mycol);      /* column coordinate of MPI process */
+  if (B) CHKERRELPA(elpa_set,handle,"blacs_context",a->grid->ictxt);
 
   /* setup and set tunable run-time options */
-  CHKERRQ(elpa_setup(handle));
-  elpa_set(handle,"solver",ELPA_SOLVER_2STAGE,&ierr);CHKERRQ(ierr);
-  /* elpa_print_settings(handle,&ierr);CHKERRQ(ierr); */
+  CHKERRELPARET(elpa_setup,handle);
+  CHKERRELPA(elpa_set,handle,"solver",ELPA_SOLVER_2STAGE);
+  /* CHKERRELPA(elpa_print_settings,handle); */
 
   /* solve the eigenvalue problem */
   if (B) {
     b = (Mat_ScaLAPACK*)B->data;
-    elpa_generalized_eigenvectors(handle,a->loc,b->loc,w,q->loc,0,&ierr);CHKERRQ(ierr);
-  } else {
-    elpa_eigenvectors(handle,a->loc,w,q->loc,&ierr);CHKERRQ(ierr);
-  }
+    CHKERRELPA(elpa_generalized_eigenvectors,handle,a->loc,b->loc,w,q->loc,0);
+  } else CHKERRELPA(elpa_eigenvectors,handle,a->loc,w,q->loc);
 
   /* cleanup */
-  elpa_deallocate(handle,&ierr);CHKERRQ(ierr);
-  elpa_uninit(&ierr);CHKERRQ(ierr);
+  CHKERRELPA(elpa_deallocate,handle);
+  CHKERRELPANOARG(elpa_uninit);
 
   for (i=0;i<eps->ncv;i++) {
     eps->eigr[i]   = eps->errest[i];

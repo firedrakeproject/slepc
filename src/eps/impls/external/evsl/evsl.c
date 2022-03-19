@@ -14,6 +14,13 @@
 #include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
 #include <evsl.h>
 
+#define CHKERREVSL(func, ...) do {                                                   \
+    PetscStackPush(PetscStringize(func));                                                      \
+    PetscErrorCode evsl_ierr_ = func(__VA_ARGS__);                                              \
+    PetscStackPop;                                                                             \
+    PetscCheck(!evsl_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(__VA_ARGS__)),evsl_ierr_); \
+  } while (0)
+
 typedef struct {
   PetscBool         initialized;
   Mat               A;           /* problem matrix */
@@ -107,7 +114,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
     CHKERRQ(BVGetRandomContext(eps->V,&rnd));
     CHKERRQ(VecSetRandom(v0,rnd));
     CHKERRQ(VecGetArray(v0,&vinit));
-    CHKERRQ(LanTrbounds(50,200,eps->tol,vinit,1,&ctx->lmin,&ctx->lmax,NULL));
+    CHKERREVSL(LanTrbounds,50,200,eps->tol,vinit,1,&ctx->lmin,&ctx->lmax,NULL);
     CHKERRQ(VecRestoreArray(v0,&vinit));
     CHKERRQ(VecDestroy(&v0));
     ctx->estimrange = PETSC_TRUE;   /* estimate if called again with another matrix */
@@ -122,12 +129,12 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   switch (ctx->dos) {
     case EPS_EVSL_DOS_KPM:
       CHKERRQ(PetscMalloc1(ctx->deg+1,&mu));
-      if (!rank) CHKERRQ(kpmdos(ctx->deg,(int)ctx->damping,ctx->nvec,xintv,mu,&ecount));
+      if (!rank) CHKERREVSL(kpmdos,ctx->deg,(int)ctx->damping,ctx->nvec,xintv,mu,&ecount);
       CHKERRMPI(MPI_Bcast(mu,ctx->deg+1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
       break;
     case EPS_EVSL_DOS_LANCZOS:
       CHKERRQ(PetscMalloc2(ctx->npoints,&xdos,ctx->npoints,&ydos));
-      if (!rank) CHKERRQ(LanDos(ctx->nvec,PetscMin(ctx->steps,eps->n/2),ctx->npoints,xdos,ydos,&ecount,xintv));
+      if (!rank) CHKERREVSL(LanDos,ctx->nvec,PetscMin(ctx->steps,eps->n/2),ctx->npoints,xdos,ydos,&ecount,xintv);
       CHKERRMPI(MPI_Bcast(xdos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
       CHKERRMPI(MPI_Bcast(ydos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
       break;
@@ -143,7 +150,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   CHKERRQ(PetscFree(ctx->sli));
   CHKERRQ(PetscMalloc1(ctx->nslices+1,&ctx->sli));
   if (ctx->dos == EPS_EVSL_DOS_KPM) {
-    CHKERRQ(spslicer(ctx->sli,mu,ctx->deg,xintv,ctx->nslices,10*(PetscInt)ecount));
+    CHKERREVSL(spslicer,ctx->sli,mu,ctx->deg,xintv,ctx->nslices,10*(PetscInt)ecount);
     CHKERRQ(PetscFree(mu));
   } else if (ctx->dos == EPS_EVSL_DOS_LANCZOS) {
     spslicer2(xdos,ydos,ctx->nslices,ctx->npoints,ctx->sli);
@@ -195,7 +202,7 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
     pol.thresh_int = ctx->thresh;
     find_pol(xintv,&pol);
     CHKERRQ(PetscInfo(ctx->A,"Polynomial [type = %" PetscInt_FMT "], deg %" PetscInt_FMT ", bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam));
-    CHKERRQ(ChebLanNr(xintv,mlan,eps->tol,vinit,&pol,&nevout,&lam,&Y,&res,NULL));
+    CHKERREVSL(ChebLanNr,xintv,mlan,eps->tol,vinit,&pol,&nevout,&lam,&Y,&res,NULL);
     PetscCheck(k+nevout<=nevmax,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
     free_pol(&pol);
     CHKERRQ(PetscInfo(ctx->A,"Computed %" PetscInt_FMT " eigenvalues\n",nevout));
