@@ -313,7 +313,7 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
   PetscBLASInt   i, j, k, np, rp1, ksk, one=1;
   PetscBLASInt   cut, mat1, kchk, kbrk, blks, kmax, icut, size, ksum, lsum;
   PetscBLASInt   lblks, rblks, isize, lwmin, ilsum;
-  PetscBLASInt   start, vstrt, istck1, istck2, istck3, merged;
+  PetscBLASInt   start, istck1, istck2, istck3, merged;
   PetscBLASInt   liwmin, matsiz, startp, istrtp;
   PetscReal      rho, done=1.0, dmone=-1.0;
   PetscErrorCode ierr;
@@ -712,7 +712,6 @@ L200:
 
   /* Perform all the merging operations. */
 
-  vstrt = 0;
   for (i = 0; i < nblks-1; ++i) {
 
     /* MATSIZ = total size of the current rank RANK modification problem */
@@ -721,7 +720,6 @@ L200:
     np = iwork[istrtp + i - 1];
     kbrk = iwork[icut + i - 1];
     mat1 = iwork[ilsum + i - 1];
-    vstrt += np;
 
     for (j = 0; j < rank[kbrk-1]; ++j) {
 
