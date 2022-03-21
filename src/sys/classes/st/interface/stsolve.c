@@ -363,6 +363,7 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
 #endif
     if (!st->D && st->ops->apply==STApply_Generic) {
       ierr = MatShellSetMatProductOperation(st->Op,MATPRODUCT_AB,NULL,MatMatMult_STOperator,NULL,MATDENSE,MATDENSE);CHKERRQ(ierr);
+      ierr = MatShellSetMatProductOperation(st->Op,MATPRODUCT_AB,NULL,MatMatMult_STOperator,NULL,MATDENSECUDA,MATDENSECUDA);CHKERRQ(ierr);
     }
     /* make sure the shell matrix generates a vector of the same type as the problem matrices */
     ierr = MatCreateVecs(st->A[0],&v,NULL);CHKERRQ(ierr);

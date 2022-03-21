@@ -178,6 +178,10 @@ int main(int argc,char **argv)
          suffix: 4_filter
          args: -eps_type {{krylovschur subspace}} -st_type filter -st_filter_degree 200
       test:
+         suffix: 4_filter_cuda
+         args: -eps_type {{krylovschur subspace}} -st_type filter -st_filter_degree 200 -mat_type aijcusparse
+         requires: cuda
+      test:
          suffix: 4_evsl
          args: -eps_type evsl
          requires: evsl

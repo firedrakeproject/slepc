@@ -1158,6 +1158,7 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,N,M,st,G);CHKERRQ(ierr);
     ierr = MatShellSetOperation(*G,MATOP_MULT,(void(*)(void))MatMult_FILTLAN);CHKERRQ(ierr);
     ierr = MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSE,MATDENSE);CHKERRQ(ierr);
+    ierr = MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSECUDA,MATDENSECUDA);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*G);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
