@@ -67,6 +67,8 @@ typedef struct {
   PetscReal   *baseFilter;         /* coefficients of the base filter (a piecewise polynomial) */
   Mat         T;                   /* the matrix used to build the filter */
   PetscBool   filtch;              /* filter parameters have changed since last setup */
+  Mat         *W;                  /* work matrices for the matrix-matrix application of the filter */
+  PetscInt    nW;                  /* number of W matrices */
 } ST_FILTER;
 
 SLEPC_INTERN PetscErrorCode STFilter_FILTLAN_Apply(ST,Vec,Vec);

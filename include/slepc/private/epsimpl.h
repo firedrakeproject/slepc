@@ -337,6 +337,7 @@ SLEPC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscBool,PetscSc
 SLEPC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,BV,Vec,Vec);
 SLEPC_INTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,PetscBool*);
 SLEPC_INTERN PetscErrorCode EPSGetLeftStartVector(EPS,PetscInt,PetscBool*);
+SLEPC_INTERN PetscErrorCode MatEstimateSpectralRange_EPS(Mat,PetscReal*,PetscReal*);
 
 /* Private functions of the solver implementations */
 

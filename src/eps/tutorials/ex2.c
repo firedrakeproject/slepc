@@ -157,13 +157,33 @@ int main(int argc,char **argv)
       args: -n 30 -m 30 -eps_interval 3.9,4.15 -terse
       output_file: output/ex2_3.out
       filter: grep -v Solution
+      requires: !single
       test:
          suffix: 3
          args: -st_type sinvert -st_pc_type cholesky
-         requires: !single
       test:
          suffix: 3_evsl
          args: -eps_type evsl -eps_evsl_slices 6
+         requires: evsl
+
+   testset:
+      args: -n 45 -m 46 -eps_interval 4.54,4.57 -eps_ncv 24 -terse
+      output_file: output/ex2_4.out
+      filter: grep -v Solution
+      requires: !single
+      test:
+         suffix: 4
+         args: -st_type sinvert -st_pc_type cholesky
+      test:
+         suffix: 4_filter
+         args: -eps_type {{krylovschur subspace}} -st_type filter -st_filter_degree 200
+      test:
+         suffix: 4_filter_cuda
+         args: -eps_type {{krylovschur subspace}} -st_type filter -st_filter_degree 200 -mat_type aijcusparse
+         requires: cuda
+      test:
+         suffix: 4_evsl
+         args: -eps_type evsl
          requires: evsl
 
 TEST*/

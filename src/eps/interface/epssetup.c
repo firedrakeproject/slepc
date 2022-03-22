@@ -142,6 +142,46 @@ PetscErrorCode EPSCheckCompatibleST(EPS eps)
 }
 
 /*
+   MatEstimateSpectralRange_EPS: estimate the spectral range [left,right] of a
+   symmetric/Hermitian matrix A using an auxiliary EPS object
+*/
+PetscErrorCode MatEstimateSpectralRange_EPS(Mat A,PetscReal *left,PetscReal *right)
+{
+  PetscErrorCode ierr;
+  PetscInt       nconv;
+  PetscScalar    eig0;
+  PetscReal      tol=1e-3,errest=tol;
+  EPS            eps;
+
+  PetscFunctionBegin;
+  *left = 0.0; *right = 0.0;
+  ierr = EPSCreate(PetscObjectComm((PetscObject)A),&eps);CHKERRQ(ierr);
+  ierr = EPSSetOptionsPrefix(eps,"eps_filter_");CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
+  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,50);CHKERRQ(ierr);
+  ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = EPSGetEigenvalue(eps,0,&eig0,NULL);CHKERRQ(ierr);
+    ierr = EPSGetErrorEstimate(eps,0,&errest);CHKERRQ(ierr);
+  } else eig0 = eps->eigr[0];
+  *left = PetscRealPart(eig0)-errest;
+  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = EPSGetEigenvalue(eps,0,&eig0,NULL);CHKERRQ(ierr);
+    ierr = EPSGetErrorEstimate(eps,0,&errest);CHKERRQ(ierr);
+  } else eig0 = eps->eigr[0];
+  *right = PetscRealPart(eig0)+errest;
+  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
    EPSSetUpSort_Basic: configure the EPS sorting criterion according to 'which'
 */
 PetscErrorCode EPSSetUpSort_Basic(EPS eps)
