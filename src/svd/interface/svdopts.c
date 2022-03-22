@@ -711,6 +711,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDConvergedReasonView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
 
     if (svd->ops->setfromoptions) {
       ierr = (*svd->ops->setfromoptions)(PetscOptionsObject,svd);CHKERRQ(ierr);

@@ -6,7 +6,7 @@ Generalized singular value decomposition, (20+6)x10
  Stopping condition: tol=1e-08
  Number of converged approximate singular triplets: 6
 
-          sigma           relative error
+          sigma           ||r||/||[A;B]||
   --------------------- ------------------
         7.616935          removed
         6.168214          removed

@@ -73,7 +73,8 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 .  -svd_view_values - print computed singular values
 .  -svd_converged_reason - print reason for convergence, and number of iterations
 .  -svd_error_absolute - print absolute errors of each singular triplet
--  -svd_error_relative - print relative errors of each singular triplet
+.  -svd_error_relative - print relative errors of each singular triplet
+-  -svd_error_norm     - print errors relative to the matrix norms of each singular triplet
 
    Level: beginner
 

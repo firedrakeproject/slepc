@@ -134,10 +134,10 @@ int main(int argc,char **argv)
     ierr = VecDuplicateVecs(v,nconv,&V);CHKERRQ(ierr);
 
     /*
-       Display singular values and relative errors
+       Display singular values and errors relative to the norms
     */
     ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "          sigma           relative error\n"
+         "          sigma           ||r||/||[A;B]||\n"
          "  --------------------- ------------------\n");CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
       /*
