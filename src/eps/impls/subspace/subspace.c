@@ -190,7 +190,8 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   PetscBool      indef;
   PetscInt       i,k,ld,ngrp,nogrp,*itrsd,*itrsdold;
   PetscInt       nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its,ninside;
-  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,tcond=1.0,gamma;
+  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,*orsd,tcond=1.0,gamma;
+  PetscScalar    *oeigr,*oeigi;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5;    /* Max num of iter before next SRR step */
@@ -203,7 +204,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
   PetscFunctionBegin;
   its = 0;
-  ierr = PetscMalloc3(ncv,&rsd,ncv,&itrsd,ncv,&itrsdold);CHKERRQ(ierr);
+  ierr = PetscMalloc6(ncv,&rsd,ncv,&orsd,ncv,&oeigr,ncv,&oeigi,ncv,&itrsd,ncv,&itrsdold);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = BVDuplicate(eps->V,&AV);CHKERRQ(ierr);
   ierr = BVDuplicate(eps->V,&R);CHKERRQ(ierr);
@@ -225,8 +226,11 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
     ierr = DSSetDimensions(eps->ds,nv,eps->nconv,0);CHKERRQ(ierr);
 
-    /* Find group in previously computed eigenvalues */
-    ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
+    for (i=eps->nconv;i<nv;i++) {
+      oeigr[i] = eps->eigr[i];
+      oeigi[i] = eps->eigi[i];
+      orsd[i]  = rsd[i];
+    }
 
     /* AV(:,idx) = OP * V(:,idx) */
     ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
@@ -275,8 +279,10 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     }
 
     for (;;) {
-      /* Find group in currently computed eigenvalues */
+      /* Find clusters of computed eigenvalues */
       ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd);CHKERRQ(ierr);
+      ierr = EPSSubspaceFindGroup(eps->nconv,nv,oeigr,oeigi,orsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
+
       if (ngrp!=nogrp) break;
       if (ngrp==0) break;
       if (PetscAbsReal(ae-oae)>ctr*cnvtol*(itrsd[eps->nconv]-itrsdold[eps->nconv])) break;
@@ -304,6 +310,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     ierr = DSCond(eps->ds,&tcond);CHKERRQ(ierr);
     idort = PetscMax(1,(PetscInt)PetscFloorReal(orttol/PetscMax(1,PetscLog10Real(tcond))));
     nxtort = PetscMin(its+idort,nxtsrr);
+    ierr = PetscInfo(eps,"Updated iteration counts: nxtort=%" PetscInt_FMT ", nxtsrr=%" PetscInt_FMT "\n",nxtort,nxtsrr);CHKERRQ(ierr);
 
     /* V(:,idx) = AV(:,idx) */
     ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
@@ -329,7 +336,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     } while (its<nxtsrr);
   }
 
-  ierr = PetscFree3(rsd,itrsd,itrsdold);CHKERRQ(ierr);
+  ierr = PetscFree6(rsd,orsd,oeigr,oeigi,itrsd,itrsdold);CHKERRQ(ierr);
   ierr = BVDestroy(&AV);CHKERRQ(ierr);
   ierr = BVDestroy(&R);CHKERRQ(ierr);
   ierr = STRestoreOperator(eps->st,&S);CHKERRQ(ierr);
