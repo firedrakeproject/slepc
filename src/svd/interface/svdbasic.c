@@ -65,7 +65,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->nini             = 0;
   svd->ninil            = 0;
   svd->tol              = PETSC_DEFAULT;
-  svd->conv             = (SVDConv)0;
+  svd->conv             = (SVDConv)-1;
   svd->stop             = SVD_STOP_BASIC;
   svd->which            = SVD_LARGEST;
   svd->problem_type     = (SVDProblemType)0;

@@ -236,7 +236,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscCheck(svd->ncv==PETSC_DEFAULT || svd->nsv<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   /* relative convergence criterion is not allowed in GSVD */
-  if (!svd->conv) {
+  if (svd->conv==(SVDConv)-1) {
     ierr = SVDSetConvergenceTest(svd,svd->isgeneralized?SVD_CONV_NORM:SVD_CONV_REL);CHKERRQ(ierr);
   }
   PetscCheck(!svd->isgeneralized || svd->conv!=SVD_CONV_REL,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Relative convergence criterion is not allowed in GSVD");
