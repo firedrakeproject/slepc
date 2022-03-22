@@ -106,11 +106,11 @@ int main(int argc,char **argv)
   /* show detailed info unless -terse option is given by user */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {
-    ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+    ierr = SVDErrorView(svd,SVD_ERROR_NORM,NULL);CHKERRQ(ierr);
   } else {
     ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
     ierr = SVDConvergedReasonView(svd,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = SVDErrorView(svd,SVD_ERROR_NORM,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
@@ -145,12 +145,13 @@ int main(int argc,char **argv)
       requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
       args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -svd_nsv 3 -terse
       output_file: output/ex48_2.out
+      filter: sed -e "s/30749/30748/"
       test:
          suffix: 2
-         args: -svd_type trlanczos -svd_tol 1e-10 -svd_trlanczos_explicitmatrix {{0 1}} -svd_trlanczos_ksp_rtol 1e-11
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -svd_trlanczos_ksp_rtol 1e-10
       test:
          suffix: 2_spqr
-         args: -svd_type trlanczos -svd_tol 1e-10 -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr -svd_trlanczos_ksp_rtol 1e-11
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr -svd_trlanczos_ksp_rtol 1e-10
          requires: suitesparse
       test:
          suffix: 2_cross

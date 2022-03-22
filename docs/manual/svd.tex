@@ -93,7 +93,7 @@ Computing the SVD via the cross product approach may be adequate for determining
 \label{eq:cyclic}
 H(A)=\begin{bmatrix}0&A\\A^*&0\end{bmatrix},
 \end{equation}
-which is a Hermitian matrix of order $(m+n)$. It can be shown that $\pm\sigma_i$ is a pair of eigenvalues of $H(A)$ for $i=1,\ldots,r$ and the other $m+n-2r$ eigenvalues are zero. The unit eigenvectors associated with $\pm\sigma_i$ are $\frac{1}{\sqrt{2}}\left[\begin{smallmatrix}\pm u_i\\v_i\end{smallmatrix}\right]$. Thus it is possible to extract the singular values and the left and right singular vectors of $A$ directly from the eigenvalues and eigenvectors of $H(A)$. Note that in this case singular values are not squared, and therefore the computed values will be more accurate (especially the small ones). The drawback in this case is that small eigenvalues are located in the interior of the spectrum.
+which is a Hermitian matrix of order $(m+n)$. It can be shown that $\pm\sigma_i$ is a pair of eigenvalues of $H(A)$ for $i=1,\ldots,r$ and the other $m+n-2r$ eigenvalues are zero. The unit eigenvectors associated with $\pm\sigma_i$ are $\frac{1}{\sqrt{2}}\left[\begin{smallmatrix}\pm u_i\\v_i\end{smallmatrix}\right]$. Thus it is possible to extract the singular values and the left and right singular vectors of $A$ directly from the eigenvalues and eigenvectors of $H(A)$. Note that in this case the singular values are not squared, and therefore the computed values will be more accurate (especially the small ones). The drawback in this case is that small eigenvalues are located in the interior of the spectrum.
 
 \subsection{\label{sec:gsvd}The Generalized Singular Value Decomposition (GSVD)}
 
@@ -104,16 +104,16 @@ Consider two matrices, $A\in\mathbb{C}^{m\times n}$ with $m\geq n$ and $B\in\mat
 \label{eq:gsvd}
 U^*AX=C,\qquad V^*BX=S,
 \end{equation}
-where $C=\mathrm{diag}(c_1,\dots,c_n)$ and $S=\mathrm{diag}(s_1,\dots,s_q)$ with $q=\min(p,n)$. The values $c_i$ and $s_i$ are real and nonnegative, and the ratios define the generalized singular values,
+where $C=\mathrm{diag}(c_1,\dots,c_n)$ and $S=\mathrm{diag}(s_{n-q+1},\dots,s_n)$ with $q=\min(p,n)$. The values $c_i$ and $s_i$ are real and nonnegative, and the ratios define the generalized singular values,
 \begin{equation}
 \label{eq:gsvd-values}
 \sigma(A,B)\equiv\{c_1/s_1,\dots,c_q/s_q\},
 \end{equation}
-and if $p<n$ we can consider that there are $n-p$ infinite generalized singular values, that is, $s_{q+1}=\dots=s_n=0$. Note that if $B$ is the identity matrix, $X$ can be taken to be unitary and then we recover the standard SVD, $\sigma(A,I)=\sigma(A)$, that is why \eqref{eq:gsvd} is considered a generalization of the SVD.
+and if $p<n$ we can consider that the first $n-p$ generalized singular values are infinite, as if $s_1=\dots=s_{n-p}=0$. Note that if $B$ is the identity matrix, $X$ can be taken to be unitary and then we recover the standard SVD, $\sigma(A,I)=\sigma(A)$, that is why \eqref{eq:gsvd} is considered a generalization of the SVD.
 
 The diagonal matrices $C$ and $S$ satisfy $C^*C+S^*S=I$, and are related to the CS decomposition~\citep[\S 2.6.4]{Golub:1996:MC} associated with the orthogonal factor of the QR factorization of matrices $A$ and $B$ stacked, that is, if
 \begin{equation}
-\label{eq:cs}
+\label{eq:qr}
 Z:=\begin{bmatrix}A\\B\end{bmatrix}=\begin{bmatrix}Q_1\\Q_2\end{bmatrix}R,
 \end{equation}
 then $C$ and $S$ can be obtained from the singular values of $Q_1$ and $Q_2$, respectively. The matrix $Z$ is relevant for algorithms and is often built explicitly.
@@ -132,7 +132,7 @@ then $C$ and $S$ can be obtained from the singular values of $Q_1$ and $Q_2$, re
   \draw[fill=black!5] (0,1) rectangle node {$B$} +(3,2);
   \draw[fill=black!5] (3.25,0) rectangle node {$X$} +(3,3);
   \node at (6.75,1.75) {=};
-  \draw (7.25,1) rectangle +(3,2) (7.25,3) -- +(2,-2);
+  \draw (7.25,1) rectangle +(3,2) ++(3,0) -- +(-2,2);
   \node[below] at (8.75,1) {$S$};
   \end{scope}
 \end{tikzpicture}
@@ -273,10 +273,10 @@ which can also be specified at the command line. This criterion is used both for
 %---------------------------------------------------
 \section{Selecting the SVD Solver}
 
-The available methods for computing the partial SVD are shown in Table \ref{tab:svdsolvers}. These methods can be classified in the following three groups:
+The available methods for computing the partial SVD are shown in Table \ref{tab:svdsolvers}. These methods can be classified in the following categories:
 \begin{itemize}
 \item Solvers based on \ident{EPS}. These solvers set up an \ident{EPS} object internally, thus using the available eigensolvers for solving the SVD problem. The two possible approaches in this case are the cross product matrix and the cyclic matrix, as described in \S\ref{sec:svd}.
-\item Specific SVD solvers. These are typically eigensolvers that have been adapted algorithmically to exploit the structure of the SVD problem. There are currently two solvers in this category: Lanczos and thick-restart Lanczos. A detailed description of these methods can be found in \hyperlink{str}{[STR-8]}.
+\item Specific SVD solvers. These are typically eigensolvers that have been adapted algorithmically to exploit the structure of the SVD or GSVD problems. There are two Lanczos-type solvers in this category: Lanczos and thick-restart Lanczos, see \hyperlink{str}{[STR-8]} for a detailed description of these methods. In this category, we could also add the randomized SVD (RSVD), a special solver that does not compute individual singular vectors accurately, but rather a low-rank approximation of $A$ by means of randomized techniques.
 \item The \lapack solver. This is an interface to some LAPACK routines, analog of those in the case of eigenproblems. These routines operate in dense mode with only one processor and therefore are suitable only for moderate size problems. This solver should be used only for debugging purposes.
 \item External packages: \scalapack and \elemental are dense packages and compute the complete SVD, while \primme offers Davidson-type methods to compute only a few singular triplets.
 \end{itemize}
@@ -309,7 +309,7 @@ while the user writes the options database command \Verb!-svd_type! followed by 
 
 Note that not all solvers in the \ident{SVD} module support the GSVD problem of \S\ref{sec:gsvd}. Table \ref{tab:svdsolvers} indicates which solvers can be used for this.
 
-The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP}. These solvers implement the cross product matrix approach \eqref{eq:eigleft}, and the cyclic matrix approach \eqref{eq:cyclic}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver.
+The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP} (or \ident{EPS\_GHEP} in the case of the GSVD). These solvers implement the cross product matrix approach \eqref{eq:eigleft}, and the cyclic matrix approach \eqref{eq:cyclic}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver.
 
 In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explicitly by default, since the resulting matrix may be much less sparse than the original matrix. By default, a shell matrix is created internally in the \ident{SVD} object and passed to the \ident{EPS} object. Still, the user may choose to force the computation of $A^*A$ explicitly, by means of \petsc's sparse matrix-matrix product subroutines. This is set with
 	\findex{SVDCrossSetExplicitMatrix}
@@ -340,6 +340,14 @@ At this point, one may consider changing also the options of the \ident{ST} obje
                     -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0
                     -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu
 \end{Verbatim}
+
+Similarly, in the case of GSVD the thick-restart Lanczos solver uses a \ident{KSP} solver internally, that can be configured by accessing it with
+	\findex{SVDTRLanczosGetKSP}
+	\begin{Verbatim}[fontsize=\small]
+	SVDTRLanczosGetKSP(SVD svd,KSP *ksp);
+	\end{Verbatim}
+or with the corresponding command-line options prefixed with \texttt{-svd\_trlanczos\_}. This \ident{KSP} object is used to solve a linear least squares problem at each Lanczos step with coefficient matrix $Z$
+~\eqref{eq:qr}.
 
 %---------------------------------------------------
 \section{Retrieving the Solution}
@@ -384,13 +392,13 @@ where $\sigma$ is an exact singular value. The associated error can be obtained 
 
 In the case of the GSVD, the function \ident{SVDComputeError} will compute a residual norm based on the two relations~\eqref{eq:gsvd},
 \begin{equation}
-\|r_\mathrm{GSVD}\|_2=\left(\|A\tilde{x}-\tilde{c}\tilde{u}\|_2^2+\|B\tilde{x}-\tilde{s}\tilde{v}\|_2^2\right)^{\frac{1}{2}},
+\|r_\mathrm{GSVD}\|_2=\left(\|\tilde{s}^2A^*\tilde{u}-\tilde{c}B^*B\tilde{x}\|_2^2+\|\tilde{c}^2B^*\tilde{v}-\tilde{s}A^*A\tilde{x}\|_2^2\right)^{\frac{1}{2}},
 \end{equation}
-where $\tilde{x}$, $\tilde{u}$, $\tilde{v}$ are the computed singular vectors corresponding to $\tilde{\sigma}$, and $\tilde{c}$, $\tilde{s}$ are obtained from $\tilde{\sigma}$ as $\tilde{s}=1/\sqrt{1+\tilde{\sigma}^2}$ and $\tilde{c}=\tilde{\sigma}\tilde{s}$.
+where $\tilde{x}$, $\tilde{u}$, $\tilde{v}$ are the computed singular vectors corresponding to $\tilde{\sigma}$, and $\tilde{c}$, $\tilde{s}$ are obtained from $\tilde{\sigma}$ as $\tilde{s}=1/\sqrt{1+\tilde{\sigma}^2}$ and $\tilde{c}=\tilde{\sigma}\tilde{s}$. See~\citep{Alvarruiz:2022:TRL} for details.
 
 \paragraph{Controlling and Monitoring Convergence.}
 
-Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations carried out by the solver can be determined with \ident{SVDGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{SVDSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-svd_monitor!, \Verb!-svd_monitor_all!, \Verb!-svd_monitor_conv!, or graphically with \Verb!-svd_monitor draw::draw_lg!, or \Verb!-svd_monitor_all draw::draw_lg!. See \S\ref{sec:monitor} for additional details.
+Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations carried out by the solver can be determined with \ident{SVDGetIterationNumber}, and the tolerance and maximum number of iterations can be set with \ident{SVDSetTolerances}. Also, convergence can be monitored with command-line keys \Verb!-svd_monitor!, \Verb!-svd_monitor_all!, \Verb!-svd_monitor_conv!, or graphically with \Verb!-svd_monitor draw::draw_lg!, or alternatively with \Verb!-svd_monitor_all draw::draw_lg!. See \S\ref{sec:monitor} for additional details.
 
 \begin{table}
 \centering
@@ -398,12 +406,12 @@ Similarly to the case of eigensolvers, in \ident{SVD} the number of iterations c
 Convergence criterion      & \texttt{SVDConv}          & Command line key           & Error bound \\\hline
 Absolute                   & \texttt{SVD\_CONV\_ABS}   & \texttt{-svd\_conv\_abs}   & $\|r\|$ \\
 Relative to eigenvalue     & \texttt{SVD\_CONV\_REL}   & \texttt{-svd\_conv\_rel}   & $\|r\|/|\lambda|$ \\
-Relative to matrix norms   & \texttt{SVD\_CONV\_NORM}  & \texttt{-svd\_conv\_norm}  & $\|r\|/\|A\|$ \\
+Relative to matrix norms   & \texttt{SVD\_CONV\_NORM}  & \texttt{-svd\_conv\_norm}  & $\|r\|/\|Z\|$ \\
 Fixed number of iterations & \texttt{SVD\_CONV\_MAXIT} & \texttt{-svd\_conv\_maxit} & $\infty$ \\
 User-defined               & \texttt{SVD\_CONV\_USER}  & \texttt{-svd\_conv\_user}  & user function \\
 \hline
 \end{tabular} }
-\caption{\label{tab:svdconvergence}Available possibilities for the convergence criterion.}
+\caption{\label{tab:svdconvergence}Available possibilities for the convergence criterion, with $Z=A$ in the standard SVD or as defined in~\eqref{eq:qr} for the GSVD.}
 \end{table}
 
 As in the case of eigensolvers, the user can choose different convergence tests, based on an error bound obtained from the computed residual norm, $\|r\|$. Table \ref{tab:svdconvergence} lists the available options. It is worth mentioning the \texttt{SVD\_CONV\_MAXIT} convergence criterion, which is a bit special. With this criterion, the solver will not compute any residual norms and will stop with a successful status when the maximum number of iterations is reached. This is intended for the \texttt{SVDRANDOMIZED} solver in cases when a low-rank approximation of a matrix needs to be computed instead of accurate singular vectors.

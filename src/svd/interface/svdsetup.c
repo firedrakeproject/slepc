@@ -235,14 +235,15 @@ PetscErrorCode SVDSetUp(SVD svd)
   svd->nsv = PetscMin(svd->nsv,maxnsol);
   PetscCheck(svd->ncv==PETSC_DEFAULT || svd->nsv<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
-  /* initialization of matrix norms */
-  if (svd->conv==SVD_CONV_NORM) {
-    if (!svd->nrma) {
-      ierr = MatNorm(svd->OP,NORM_INFINITY,&svd->nrma);CHKERRQ(ierr);
-    }
-    if (svd->isgeneralized && !svd->nrmb) {
-      ierr = MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb);CHKERRQ(ierr);
-    }
+  /* relative convergence criterion is not allowed in GSVD */
+  if (svd->conv==(SVDConv)-1) {
+    ierr = SVDSetConvergenceTest(svd,svd->isgeneralized?SVD_CONV_NORM:SVD_CONV_REL);CHKERRQ(ierr);
+  }
+  PetscCheck(!svd->isgeneralized || svd->conv!=SVD_CONV_REL,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Relative convergence criterion is not allowed in GSVD");
+
+  /* initialization of matrix norm (stardard case only, for GSVD it is done inside setup()) */
+  if (!svd->isgeneralized && svd->conv==SVD_CONV_NORM && !svd->nrma) {
+    ierr = MatNorm(svd->OP,NORM_INFINITY,&svd->nrma);CHKERRQ(ierr);
   }
 
   /* call specific solver setup */

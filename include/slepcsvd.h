@@ -80,7 +80,8 @@ typedef enum { SVD_LARGEST,
 .seealso: SVDComputeError()
 E*/
 typedef enum { SVD_ERROR_ABSOLUTE,
-               SVD_ERROR_RELATIVE } SVDErrorType;
+               SVD_ERROR_RELATIVE,
+               SVD_ERROR_NORM } SVDErrorType;
 SLEPC_EXTERN const char *SVDErrorTypes[];
 
 /*E

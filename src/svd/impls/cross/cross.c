@@ -147,6 +147,16 @@ static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
   PetscFunctionReturn(0);
 }
 
+/* Convergence test relative to the norm of R (used in GSVD only) */
+static PetscErrorCode EPSConv_Cross(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+{
+  SVD svd = (SVD)ctx;
+
+  PetscFunctionBegin;
+  *errest = res/PetscMax(svd->nrma,svd->nrmb);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode SVDSetUp_Cross(SVD svd)
 {
   PetscErrorCode ierr;
@@ -189,7 +199,14 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     case SVD_CONV_REL:
       ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_REL);CHKERRQ(ierr);break;
     case SVD_CONV_NORM:
-      ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_NORM);CHKERRQ(ierr);break;
+      if (svd->isgeneralized) {
+        if (!svd->nrma) { ierr = MatNorm(svd->OP,NORM_INFINITY,&svd->nrma);CHKERRQ(ierr); }
+        if (!svd->nrmb) { ierr = MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb);CHKERRQ(ierr); }
+        ierr = EPSSetConvergenceTestFunction(cross->eps,EPSConv_Cross,svd,NULL);CHKERRQ(ierr);
+      } else {
+        ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_NORM);CHKERRQ(ierr);
+      }
+      break;
     case SVD_CONV_MAXIT:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Maxit convergence test not supported in this solver");
     case SVD_CONV_USER:

@@ -384,13 +384,15 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,
 .  -svd_conv_maxit - Forces the maximum number of iterations as set by -svd_max_it
 -  -svd_conv_user  - Selects the user-defined convergence test
 
-   Note:
+   Notes:
    The parameter 'conv' can have one of these values
 +     SVD_CONV_ABS   - absolute error ||r||
 .     SVD_CONV_REL   - error relative to the singular value sigma, ||r||/sigma
-.     SVD_CONV_NORM  - error relative to the matrix norm, ||r||/||A||
+.     SVD_CONV_NORM  - error relative to the matrix norms, ||r||/||Z||, with Z=A or Z=[A;B]
 .     SVD_CONV_MAXIT - no convergence until maximum number of iterations has been reached
 -     SVD_CONV_USER  - function set by SVDSetConvergenceTestFunction()
+
+   The default in standard SVD is SVD_CONV_REL, while in GSVD the default is SVD_CONV_NORM.
 
    Level: intermediate
 
@@ -709,6 +711,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDConvergedReasonView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
 
     if (svd->ops->setfromoptions) {
       ierr = (*svd->ops->setfromoptions)(PetscOptionsObject,svd);CHKERRQ(ierr);

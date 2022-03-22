@@ -73,7 +73,8 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 .  -svd_view_values - print computed singular values
 .  -svd_converged_reason - print reason for convergence, and number of iterations
 .  -svd_error_absolute - print absolute errors of each singular triplet
--  -svd_error_relative - print relative errors of each singular triplet
+.  -svd_error_relative - print relative errors of each singular triplet
+-  -svd_error_norm     - print errors relative to the matrix norms of each singular triplet
 
    Level: beginner
 
@@ -338,13 +339,15 @@ static PetscErrorCode SVDComputeResidualNorms_Standard(SVD svd,PetscReal sigma,V
 
 /*
    SVDComputeResidualNorms_Generalized - In GSVD, compute the residual norms
-   norm1 = ||A*x-c*u||_2 and norm2 = ||B*x-s*v||_2.
+   norm1 = ||s^2*A'*u-c*B'*B*x||_2 and norm2 = ||c^2*B'*v-s*A'*A*x||_2.
 
    Input Parameters:
      sigma - singular value
+     uv    - left singular vectors [u;v]
      x     - right singular vector
+     y,z   - two work vectors with the same dimension as x
 */
-static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigma,Vec uv,Vec x,PetscReal *norm1,PetscReal *norm2)
+static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigma,Vec uv,Vec x,Vec y,Vec z,PetscReal *norm1,PetscReal *norm2)
 {
   PetscErrorCode ierr;
   Vec            u,v,ax,bx,nest,aux[2];
@@ -357,30 +360,34 @@ static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigm
   aux[1] = v;
   ierr = VecCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,aux,&nest);CHKERRQ(ierr);
   ierr = VecCopy(uv,nest);CHKERRQ(ierr);
-  ierr = VecDuplicate(u,&ax);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&bx);CHKERRQ(ierr);
 
   s = 1.0/PetscSqrtReal(1.0+sigma*sigma);
   c = sigma*s;
 
-  /* norm1 = ||A*x-c*u||_2 */
+  /* norm1 = ||s^2*A'*u-c*B'*B*x||_2 */
   if (norm1) {
-    ierr = MatMult(svd->OP,x,ax);CHKERRQ(ierr);
-    ierr = VecAXPY(ax,-c,u);CHKERRQ(ierr);
-    ierr = VecNorm(ax,NORM_2,norm1);CHKERRQ(ierr);
-  }
-  /* norm2 = ||B*x-s*v||_2 */
-  if (norm2) {
+    ierr = VecDuplicate(v,&bx);CHKERRQ(ierr);
+    ierr = MatMultHermitianTranspose(svd->OP,u,z);CHKERRQ(ierr);
     ierr = MatMult(svd->OPb,x,bx);CHKERRQ(ierr);
-    ierr = VecAXPY(bx,-s,v);CHKERRQ(ierr);
-    ierr = VecNorm(bx,NORM_2,norm2);CHKERRQ(ierr);
+    ierr = MatMultHermitianTranspose(svd->OPb,bx,y);CHKERRQ(ierr);
+    ierr = VecAXPBY(y,s*s,-c,z);CHKERRQ(ierr);
+    ierr = VecNorm(y,NORM_2,norm1);CHKERRQ(ierr);
+    ierr = VecDestroy(&bx);CHKERRQ(ierr);
+  }
+  /* norm2 = ||c^2*B'*v-s*A'*A*x||_2 */
+  if (norm2) {
+    ierr = VecDuplicate(u,&ax);CHKERRQ(ierr);
+    ierr = MatMultHermitianTranspose(svd->OPb,v,z);CHKERRQ(ierr);
+    ierr = MatMult(svd->OP,x,ax);CHKERRQ(ierr);
+    ierr = MatMultHermitianTranspose(svd->OP,ax,y);CHKERRQ(ierr);
+    ierr = VecAXPBY(y,c*c,-s,z);CHKERRQ(ierr);
+    ierr = VecNorm(y,NORM_2,norm2);CHKERRQ(ierr);
+    ierr = VecDestroy(&ax);CHKERRQ(ierr);
   }
 
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = VecDestroy(&nest);CHKERRQ(ierr);
-  ierr = VecDestroy(&ax);CHKERRQ(ierr);
-  ierr = VecDestroy(&bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -404,6 +411,11 @@ static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigm
    n2 = ||A^T*u-sigma*v||_2, where sigma is the singular value, u is the left
    singular vector and v is the right singular vector.
 
+   In the case of the GSVD, the two components of the residual norm are
+   n1 = ||s^2*A'*u-c*B'*B*x||_2 and n2 = ||c^2*B'*v-s*A'*A*x||_2, where [u;v]
+   are the left singular vectors and x is the right singular vector, with
+   sigma=c/s.
+
    Level: beginner
 
 .seealso: SVDErrorType, SVDSolve()
@@ -412,7 +424,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
 {
   PetscErrorCode ierr;
   PetscReal      sigma,norm1,norm2;
-  Vec            u,v,x,y;
+  Vec            u=NULL,v=NULL,x=NULL,y=NULL;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -422,11 +434,23 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   SVDCheckSolved(svd,1);
 
   /* allocate work vectors */
-  ierr = SVDSetWorkVecs(svd,2,2);CHKERRQ(ierr);
-  u = svd->workl[0];
-  v = svd->workr[0];
-  x = svd->workl[1];
-  y = svd->workr[1];
+  switch (svd->problem_type) {
+    case SVD_STANDARD:
+      ierr = SVDSetWorkVecs(svd,2,2);CHKERRQ(ierr);
+      u = svd->workl[0];
+      v = svd->workr[0];
+      x = svd->workl[1];
+      y = svd->workr[1];
+      break;
+    case SVD_GENERALIZED:
+      PetscCheck(type!=SVD_ERROR_RELATIVE,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"In GSVD the error should be either absolute or relative to the norms");
+      ierr = SVDSetWorkVecs(svd,1,3);CHKERRQ(ierr);
+      u = svd->workl[0];
+      v = svd->workr[0];
+      x = svd->workr[1];
+      y = svd->workr[2];
+      break;
+  }
 
   /* compute residual norm and error */
   ierr = SVDGetSingularTriplet(svd,i,&sigma,u,v);CHKERRQ(ierr);
@@ -435,7 +459,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       ierr = SVDComputeResidualNorms_Standard(svd,sigma,u,v,x,y,&norm1,&norm2);CHKERRQ(ierr);
       break;
     case SVD_GENERALIZED:
-      ierr = SVDComputeResidualNorms_Generalized(svd,sigma,u,v,&norm1,&norm2);CHKERRQ(ierr);
+      ierr = SVDComputeResidualNorms_Generalized(svd,sigma,u,v,x,y,&norm1,&norm2);CHKERRQ(ierr);
       break;
   }
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
@@ -444,6 +468,15 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       break;
     case SVD_ERROR_RELATIVE:
       *error /= sigma;
+      break;
+    case SVD_ERROR_NORM:
+      if (!svd->nrma) {
+        ierr = MatNorm(svd->OP,NORM_INFINITY,&svd->nrma);CHKERRQ(ierr);
+      }
+      if (svd->isgeneralized && !svd->nrmb) {
+        ierr = MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb);CHKERRQ(ierr);
+      }
+      *error /= PetscMax(svd->nrma,svd->nrmb);
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");

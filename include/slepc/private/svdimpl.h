@@ -209,7 +209,7 @@ static inline PetscErrorCode SVDCreateLeftTemplate(SVD svd,Vec *t)
   PetscFunctionReturn(0);
 }
 
-SLEPC_INTERN PetscErrorCode SVDKrylovConvergence(SVD,PetscBool,PetscInt,PetscInt,PetscInt*);
+SLEPC_INTERN PetscErrorCode SVDKrylovConvergence(SVD,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);
 SLEPC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt*,PetscBool*);
 SLEPC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
 SLEPC_INTERN PetscErrorCode SVDComputeVectors(SVD);

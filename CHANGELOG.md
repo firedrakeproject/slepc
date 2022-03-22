@@ -8,6 +8,8 @@
   Support for preconditioner matrix different from the function matrix has also been
   improved for the callback interface.
 - Add support for split preconditioner in `EPS` and `PEP` via `STSetSplitPreconditioner()`.
+- `SVD`: clarify convergence test for GSVD, now the default is relative to the matrix norms,
+  and relative to the singular value is not allowed.
 
 ## [3.16] - 2021-09-30
 
