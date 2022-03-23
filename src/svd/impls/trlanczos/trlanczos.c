@@ -1035,11 +1035,30 @@ static inline PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,PetscInt 
   const PetscScalar *carr;
   PetscScalar       *arr;
   PetscReal         *alpha;
+  PetscRandom       rand;
   PetscInt          j,m;
   Vec               u,v,ut=svd->workl[0],x=svd->workr[0];
 
   PetscFunctionBegin;
-  PetscCall(BVSetRandomColumn(U1,k));
+  /* Form ut=[0;uh] with uh random unit vector */
+  PetscCall(MatGetLocalSize(svd->A,&m,NULL));
+  PetscCall(BVGetRandomContext(V,&rand));
+  PetscCall(VecSetRandom(ut,rand));
+  PetscCall(VecGetArray(ut,&arr));
+  for (j=0; j<m; j++) arr[j] = 0.0;
+  PetscCall(VecRestoreArray(ut,&arr));
+  PetscCall(VecNormalize(ut,NULL));
+  /* Solve least squares problem Z*x=ut for x. Then set ut=Z*x */
+  PetscCall(KSPSolve(lanczos->ksp,ut,x));
+  PetscCall(MatMult(lanczos->Z,x,ut));
+  /* Form u, column k of BV U1, as the upper part of ut and orthonormalize */
+  PetscCall(MatCreateVecsEmpty(svd->A,NULL,&u));
+  PetscCall(VecGetArrayRead(ut,&carr));
+  PetscCall(VecPlaceArray(u,carr));
+  PetscCall(BVInsertVec(U1,k,u));
+  PetscCall(VecResetArray(u));
+  PetscCall(VecRestoreArrayRead(ut,&carr));
+  PetscCall(VecDestroy(&u));
   if (breakdown) PetscCall(BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,breakdown));
   else PetscCall(BVOrthonormalizeColumn(U1,k,PETSC_TRUE,NULL,NULL));
 
