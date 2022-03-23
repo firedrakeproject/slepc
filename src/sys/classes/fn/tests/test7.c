@@ -36,9 +36,7 @@ PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Pets
     CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
     if (set && flg) CHKERRQ(MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE));
     CHKERRQ(FNEvaluateFunctionMat(fn,S,NULL));
-  } else {
-    CHKERRQ(FNEvaluateFunctionMat(fn,A,S));
-  }
+  } else CHKERRQ(FNEvaluateFunctionMat(fn,A,S));
   if (verbose) {
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
     CHKERRQ(MatView(A,viewer));
@@ -47,25 +45,18 @@ PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Pets
   }
   /* check error ||S*S-A||_F */
   CHKERRQ(MatMatMult(S,S,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R));
-  if (eta!=1.0) {
-    CHKERRQ(MatScale(R,1.0/(eta*eta)));
-  }
+  if (eta!=1.0) CHKERRQ(MatScale(R,1.0/(eta*eta)));
   CHKERRQ(MatAXPY(R,-tau,A,SAME_NONZERO_PATTERN));
   CHKERRQ(MatNorm(R,NORM_FROBENIUS,&nrm));
-  if (nrm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S-A||_F < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S-A||_F = %g\n",(double)nrm));
-  }
+  if (nrm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S-A||_F < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S-A||_F = %g\n",(double)nrm));
   /* check FNEvaluateFunctionMatVec() */
   CHKERRQ(MatCreateVecs(A,&v,&f0));
   CHKERRQ(MatGetColumnVector(S,f0,0));
   CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
   CHKERRQ(VecAXPY(v,-1.0,f0));
   CHKERRQ(VecNorm(v,NORM_2,&nrm));
-  if (nrm>100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
-  }
+  if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
   CHKERRQ(MatDestroy(&S));
   CHKERRQ(MatDestroy(&R));
   CHKERRQ(VecDestroy(&v));
@@ -99,9 +90,7 @@ int main(int argc,char **argv)
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
   CHKERRQ(FNView(fn,viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Create matrix */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));

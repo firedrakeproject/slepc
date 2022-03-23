@@ -160,9 +160,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
   CHKERRQ(EPSConvergedReasonView(eps,viewer));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (!terse) {
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer));
-  }
+  if (!terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer));
   CHKERRQ(PetscViewerPopFormat(viewer));
 
   CHKERRQ(EPSDestroy(&eps));

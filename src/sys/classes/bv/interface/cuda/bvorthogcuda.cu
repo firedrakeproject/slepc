@@ -235,9 +235,7 @@ PetscErrorCode BV_SquareRoot_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *bet
     CHKERRQ(PetscLogGpuTimeEnd());
     CHKERRQ(BV_SafeSqrt(bv,hh,beta));
     CHKERRQ(VecCUDARestoreArrayRead(bv->buffer,&d_h));
-  } else {
-    CHKERRQ(BV_SafeSqrt(bv,h[bv->nc+j],beta));
-  }
+  } else CHKERRQ(BV_SafeSqrt(bv,h[bv->nc+j],beta));
   PetscFunctionReturn(0);
 }
 

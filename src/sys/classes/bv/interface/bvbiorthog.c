@@ -71,9 +71,7 @@ static PetscErrorCode BVBiorthogonalizeGS(BV V,BV W,Vec v)
   c = V->c;
   CHKERRQ(BV_CleanCoefficients(V,V->k,h));
   CHKERRQ(BVBiorthogonalizeGS1(V,W,v,h,c));
-  if (V->orthog_ref!=BV_ORTHOG_REFINE_NEVER) {
-    CHKERRQ(BVBiorthogonalizeGS1(V,W,v,h,c));
-  }
+  if (V->orthog_ref!=BV_ORTHOG_REFINE_NEVER) CHKERRQ(BVBiorthogonalizeGS1(V,W,v,h,c));
   PetscFunctionReturn(0);
 }
 

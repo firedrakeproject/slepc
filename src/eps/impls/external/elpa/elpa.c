@@ -75,11 +75,8 @@ PetscErrorCode EPSSetUp_ELPA(EPS eps)
   }
   CHKERRQ(STGetShift(eps->st,&shift));
   if (shift != 0.0) {
-    if (nmat>1) {
-      CHKERRQ(MatAXPY(ctx->As,-shift,ctx->Bs,SAME_NONZERO_PATTERN));
-    } else {
-      CHKERRQ(MatShift(ctx->As,-shift));
-    }
+    if (nmat>1) CHKERRQ(MatAXPY(ctx->As,-shift,ctx->Bs,SAME_NONZERO_PATTERN));
+    else CHKERRQ(MatShift(ctx->As,-shift));
   }
   PetscFunctionReturn(0);
 }

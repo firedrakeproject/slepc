@@ -159,9 +159,8 @@ int main(int argc,char **argv)
   CHKERRQ(MFNCreate(PETSC_COMM_WORLD,&mfnphi));
   CHKERRQ(MFNSetOperator(mfnphi,L));
   CHKERRQ(MFNGetFN(mfnphi,&fphi));
-  if (combine) {
-    CHKERRQ(BuildFNPhi(fphi));
-  } else {
+  if (combine) CHKERRQ(BuildFNPhi(fphi));
+  else {
     CHKERRQ(FNSetType(fphi,FNPHI));
     CHKERRQ(FNPhiSetIndex(fphi,1));
   }

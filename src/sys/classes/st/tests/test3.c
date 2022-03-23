@@ -46,9 +46,7 @@ int main(int argc,char **argv)
     if (i>0) {
       CHKERRQ(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
       CHKERRQ(MatSetValue(B,i,i,(PetscScalar)i,INSERT_VALUES));
-    } else {
-      CHKERRQ(MatSetValue(B,i,i,-1.0,INSERT_VALUES));
-    }
+    } else CHKERRQ(MatSetValue(B,i,i,-1.0,INSERT_VALUES));
     if (i<n-1) CHKERRQ(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));

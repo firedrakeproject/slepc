@@ -200,11 +200,8 @@ PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
   switch (mat) {
     case DS_MAT_X:
     case DS_MAT_Y:
-      if (k) {
-        CHKERRQ(DSVectors_GNHEP_Eigen_Some(ds,k,rnorm,mat == DS_MAT_Y?PETSC_TRUE:PETSC_FALSE));
-      } else {
-        CHKERRQ(DSVectors_GNHEP_Eigen_All(ds,mat == DS_MAT_Y?PETSC_TRUE:PETSC_FALSE));
-      }
+      if (k) CHKERRQ(DSVectors_GNHEP_Eigen_Some(ds,k,rnorm,mat == DS_MAT_Y?PETSC_TRUE:PETSC_FALSE));
+      else CHKERRQ(DSVectors_GNHEP_Eigen_All(ds,mat == DS_MAT_Y?PETSC_TRUE:PETSC_FALSE));
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
@@ -352,11 +349,8 @@ static PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscFunctionBegin;
-  if (!rr || wr == rr) {
-    CHKERRQ(DSSort_GNHEP_Total(ds,wr,wi));
-  } else {
-    CHKERRQ(DSSort_GNHEP_Arbitrary(ds,wr,wi,rr,ri,k));
-  }
+  if (!rr || wr == rr) CHKERRQ(DSSort_GNHEP_Total(ds,wr,wi));
+  else CHKERRQ(DSSort_GNHEP_Arbitrary(ds,wr,wi,rr,ri,k));
   PetscFunctionReturn(0);
 }
 
@@ -531,13 +525,9 @@ PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
       CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
       CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_Z]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     }
-    if (eigr) {
-      CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigr) CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) {
-      CHKERRMPI(MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigi) CHKERRMPI(MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #endif
   }
   CHKERRMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
@@ -548,13 +538,9 @@ PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
       CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
       CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Z]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     }
-    if (eigr) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigr) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigi) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #endif
   }
   PetscFunctionReturn(0);

@@ -454,9 +454,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
   if (inv) {  /* start recurrence with I instead of A */
     CHKERRCUDA(cudaMemset(d_T,zero,sizeof(PetscScalar)*N));
     CHKERRQ(set_diagonal(n,d_T,ld,1.0));
-  } else {
-    CHKERRCUDA(cudaMemcpy(d_T,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice));
-  }
+  } else CHKERRCUDA(cudaMemcpy(d_T,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice));
 
   for (it=0;it<DBMAXIT && !converged;it++) {
 
@@ -658,9 +656,7 @@ PetscErrorCode SlepcNormAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar 
       CHKERRQ(PetscLogFlops(2.0*n*n*m));
       *nrm = 0.0;
       for (i=0;i<n;i++) if ((tmp = PetscAbsScalar(v[i])) > *nrm) *nrm = tmp;   /* norm(v,inf) */
-    } else {
-      CHKERRQ(SlepcNormEst1(n,A,m,work,rand,nrm));
-    }
+    } else CHKERRQ(SlepcNormEst1(n,A,m,work,rand,nrm));
   }
   PetscFunctionReturn(0);
 }

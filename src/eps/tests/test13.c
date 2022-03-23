@@ -82,9 +82,7 @@ int main(int argc,char **argv)
     CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE));
     CHKERRQ(EPSSolve(eps));
     CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Problem: no eigenpairs converged.\n"));
-  }
+  } else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Problem: no eigenpairs converged.\n"));
 
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(VecDestroy(&sxr));

@@ -159,9 +159,7 @@ int main(int argc,char **argv)
   if (n<=150) {
     CHKERRQ(LMEComputeError(lme,&error));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %.4g\n\n",(double)error));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Matrix too large to compute residual norm\n\n"));
-  }
+  } else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Matrix too large to compute residual norm\n\n"));
 
   /*
      Free work space

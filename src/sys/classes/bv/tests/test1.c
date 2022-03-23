@@ -57,17 +57,13 @@ int main(int argc,char **argv)
     CHKERRQ(BVGetColumn(X,j,&v));
     CHKERRQ(VecSet(v,0.0));
     for (i=0;i<4;i++) {
-      if (i+j<n) {
-        CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
-      }
+      if (i+j<n) CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
     }
     CHKERRQ(VecAssemblyBegin(v));
     CHKERRQ(VecAssemblyEnd(v));
     CHKERRQ(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Create BV object Y */
   CHKERRQ(BVCreate(PETSC_COMM_WORLD,&Y));
@@ -81,27 +77,21 @@ int main(int argc,char **argv)
     CHKERRQ(VecSet(v,(PetscScalar)(j+1)/4.0));
     CHKERRQ(BVRestoreColumn(Y,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(Y,view));
-  }
+  if (verbose) CHKERRQ(BVView(Y,view));
 
   /* Create Mat */
   if (matcuda) {
 #if defined(PETSC_HAVE_CUDA)
     CHKERRQ(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,k,l,NULL,&Q));
 #endif
-  } else {
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q));
-  }
+  } else CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q));
   CHKERRQ(PetscObjectSetName((PetscObject)Q,"Q"));
   CHKERRQ(MatDenseGetArray(Q,&q));
   for (i=0;i<k;i++)
     for (j=0;j<l;j++)
       q[i+j*k] = (i<j)? 2.0: -0.5;
   CHKERRQ(MatDenseRestoreArray(Q,&q));
-  if (verbose) {
-    CHKERRQ(MatView(Q,NULL));
-  }
+  if (verbose) CHKERRQ(MatView(Q,NULL));
 
   /* Test BVMult */
   CHKERRQ(BVMult(Y,2.0,1.0,X,Q));
@@ -128,9 +118,7 @@ int main(int argc,char **argv)
 #if defined(PETSC_HAVE_CUDA)
     CHKERRQ(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,l,k,NULL,&M));
 #endif
-  } else {
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,l,k,NULL,&M));
-  }
+  } else CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,l,k,NULL,&M));
   CHKERRQ(PetscObjectSetName((PetscObject)M,"M"));
   CHKERRQ(BVDot(X,Y,M));
   if (verbose) {
@@ -171,9 +159,7 @@ int main(int argc,char **argv)
   if (!rank) {
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"First row of X =\n"));
     CHKERRQ(BVGetArrayRead(X,&pX));
-    for (i=0;i<k;i++) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%g ",(double)PetscRealPart(pX[i*nloc])));
-    }
+    for (i=0;i<k;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%g ",(double)PetscRealPart(pX[i*nloc])));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     CHKERRQ(BVRestoreArrayRead(X,&pX));
   }

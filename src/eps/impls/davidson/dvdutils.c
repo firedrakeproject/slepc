@@ -164,9 +164,7 @@ static PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 
   PetscFunctionBegin;
   /* Update the target if it is necessary */
-  if (!data->withTarget) {
-    CHKERRQ(dvd_harm_transf(data,d->eigr[0]));
-  }
+  if (!data->withTarget) CHKERRQ(dvd_harm_transf(data,d->eigr[0]));
 
   /* W(i) <- Wa*AV(i) - Wb*BV(i) */
   CHKERRQ(BVGetActiveColumns(d->eps->V,&l,&k));
@@ -295,9 +293,7 @@ static PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
 
   PetscFunctionBegin;
   CHKERRQ(BVGetActiveColumns(d->eps->V,&l,&k));
-  for (i=0;i<k-l;i++) {
-    CHKERRQ(dvd_harm_backtrans(data,&d->eigr[i],&d->eigi[i]));
-  }
+  for (i=0;i<k-l;i++) CHKERRQ(dvd_harm_backtrans(data,&d->eigr[i],&d->eigi[i]));
   PetscFunctionReturn(0);
 }
 

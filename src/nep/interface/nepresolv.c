@@ -45,9 +45,7 @@ static PetscErrorCode MatMult_Resolvent(Mat M,Vec v,Vec r)
   }
   CHKERRQ(VecSet(r,0.0));
   for (i=0;i<nep->nconv;i++) {
-    if (ctx->rg) {
-      CHKERRQ(RGCheckInside(ctx->rg,1,&nep->eigr[i],&nep->eigi[i],&inside));
-    }
+    if (ctx->rg) CHKERRQ(RGCheckInside(ctx->rg,1,&nep->eigr[i],&nep->eigi[i],&inside));
     if (inside>=0) {
       CHKERRQ(BVGetColumn(nep->V,i,&x));
       CHKERRQ(BVGetColumn(nep->W,i,&y));
@@ -127,9 +125,7 @@ PetscErrorCode NEPApplyResolvent(NEP nep,RG rg,PetscScalar omega,Vec v,Vec r)
     CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)nep),nep->nloc,nep->nloc,nep->n,nep->n,ctx,&nep->resolvent));
     CHKERRQ(MatShellSetOperation(nep->resolvent,MATOP_MULT,(void(*)(void))MatMult_Resolvent));
     CHKERRQ(MatShellSetOperation(nep->resolvent,MATOP_DESTROY,(void(*)(void))MatDestroy_Resolvent));
-  } else {
-    CHKERRQ(MatShellGetContext(nep->resolvent,&ctx));
-  }
+  } else CHKERRQ(MatShellGetContext(nep->resolvent,&ctx));
   CHKERRQ(NEPComputeVectors(nep));
   CHKERRQ(NEPSetWorkVecs(nep,2));
   ctx->rg    = rg;

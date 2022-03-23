@@ -56,9 +56,8 @@ static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,const PetscSc
   CHKERRQ(PetscBLASIntCast(m,&n));
   ld = n;
   k  = firstonly? 1: n;
-  if (Aa==Ba) {
-    CHKERRQ(PetscMalloc4(m*m,&P,m*m,&Q,m*m,&W,ld,&ipiv));
-  } else {
+  if (Aa==Ba) CHKERRQ(PetscMalloc4(m*m,&P,m*m,&Q,m*m,&W,ld,&ipiv));
+  else {
     P = Ba;
     CHKERRQ(PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv));
   }
@@ -89,9 +88,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,const PetscSc
   if (Aa==Ba) {
     CHKERRQ(PetscArraycpy(Ba,P,m*k));
     CHKERRQ(PetscFree4(P,Q,W,ipiv));
-  } else {
-    CHKERRQ(PetscFree3(Q,W,ipiv));
-  }
+  } else CHKERRQ(PetscFree3(Q,W,ipiv));
   PetscFunctionReturn(0);
 }
 
@@ -182,9 +179,8 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
       CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     }
     if (!ctx->nq) {
-      if (!ctx->np) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n"));
-      } else if (ctx->np==1) {
+      if (!ctx->np) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n"));
+      else if (ctx->np==1) {
         CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[0],PETSC_FALSE));
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Constant: %s\n",str));
       } else {

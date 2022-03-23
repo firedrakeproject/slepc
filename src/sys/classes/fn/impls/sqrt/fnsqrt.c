@@ -391,17 +391,15 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->beta==(PetscScalar)1.0) {
-      if (fn->alpha==(PetscScalar)1.0) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Square root: sqrt(x)\n"));
-      } else {
+      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Square root: sqrt(x)\n"));
+      else {
         CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Square root: sqrt(%s*x)\n",str));
       }
     } else {
       CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
-      if (fn->alpha==(PetscScalar)1.0) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Square root: %s*sqrt(x)\n",str));
-      } else {
+      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Square root: %s*sqrt(x)\n",str));
+      else {
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Square root: %s",str));
         CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
@@ -409,9 +407,7 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
         CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
       }
     }
-    if (fn->method<nmeth) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
-    }
+    if (fn->method<nmeth) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
   }
   PetscFunctionReturn(0);
 }

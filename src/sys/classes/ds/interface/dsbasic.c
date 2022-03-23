@@ -314,9 +314,7 @@ PetscErrorCode DSDuplicate(DS ds,DS *dsnew)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(dsnew,2);
   CHKERRQ(DSCreate(PetscObjectComm((PetscObject)ds),dsnew));
-  if (((PetscObject)ds)->type_name) {
-    CHKERRQ(DSSetType(*dsnew,((PetscObject)ds)->type_name));
-  }
+  if (((PetscObject)ds)->type_name) CHKERRQ(DSSetType(*dsnew,((PetscObject)ds)->type_name));
   (*dsnew)->method   = ds->method;
   (*dsnew)->compact  = ds->compact;
   (*dsnew)->refined  = ds->refined;
@@ -677,9 +675,7 @@ PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(sc,2);
-  if (ds->sc && !ds->scset) {
-    CHKERRQ(PetscFree(ds->sc));
-  }
+  if (ds->sc && !ds->scset) CHKERRQ(PetscFree(ds->sc));
   ds->sc    = sc;
   ds->scset = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -705,9 +701,7 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(sc,2);
-  if (!ds->sc) {
-    CHKERRQ(PetscNewLog(ds,&ds->sc));
-  }
+  if (!ds->sc) CHKERRQ(PetscNewLog(ds,&ds->sc));
   *sc = ds->sc;
   PetscFunctionReturn(0);
 }
@@ -738,9 +732,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   CHKERRQ(DSRegisterAll());
   /* Set default type (we do not allow changing it with -ds_type) */
-  if (!((PetscObject)ds)->type_name) {
-    CHKERRQ(DSSetType(ds,DSNHEP));
-  }
+  if (!((PetscObject)ds)->type_name) CHKERRQ(DSSetType(ds,DSNHEP));
   ierr = PetscObjectOptionsBegin((PetscObject)ds);CHKERRQ(ierr);
 
     CHKERRQ(PetscOptionsInt("-ds_block_size","Block size for the dense system solver","DSSetBlockSize",ds->bs,&bs,&flag));
@@ -752,9 +744,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
     CHKERRQ(PetscOptionsEnum("-ds_parallel","Operation mode in parallel runs","DSSetParallel",DSParallelTypes,(PetscEnum)ds->pmode,(PetscEnum*)&pmode,&flag));
     if (flag) CHKERRQ(DSSetParallel(ds,pmode));
 
-    if (ds->ops->setfromoptions) {
-      CHKERRQ((*ds->ops->setfromoptions)(PetscOptionsObject,ds));
-    }
+    if (ds->ops->setfromoptions) CHKERRQ((*ds->ops->setfromoptions)(PetscOptionsObject,ds));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)ds));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -792,9 +782,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)ds),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)ds),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ds,1,viewer,2);
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
@@ -802,17 +790,12 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     CHKERRQ(PetscObjectPrintClassNamePrefixType((PetscObject)ds,viewer));
     CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size));
-    if (size>1) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",DSParallelTypes[ds->pmode]));
-    }
+    if (size>1) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",DSParallelTypes[ds->pmode]));
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  current state: %s\n",DSStateTypes[ds->state]));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%" PetscInt_FMT ", n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT,ds->ld,ds->n,ds->l,ds->k));
-      if (ds->state==DS_STATE_TRUNCATED) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,", t=%" PetscInt_FMT "\n",ds->t));
-      } else {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
-      }
+      if (ds->state==DS_STATE_TRUNCATED) CHKERRQ(PetscViewerASCIIPrintf(viewer,", t=%" PetscInt_FMT "\n",ds->t));
+      else CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  flags:%s%s%s\n",ds->compact?" compact":"",ds->extrarow?" extrarow":"",ds->refined?" refined":""));
     }
     if (ds->ops->view) {

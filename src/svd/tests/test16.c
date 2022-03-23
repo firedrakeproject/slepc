@@ -55,11 +55,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(A1,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) {
-      CHKERRQ(MatSetValues(A1,1,&i,2,col,valsa,INSERT_VALUES));
-    } else if (i==n-1) {
-      CHKERRQ(MatSetValue(A1,i,col[0],valsa[0],INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValues(A1,1,&i,2,col,valsa,INSERT_VALUES));
+    else if (i==n-1) CHKERRQ(MatSetValue(A1,i,col[0],valsa[0],INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY));
@@ -71,13 +68,9 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(A2,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i;
-    if (i==0) {
-      CHKERRQ(MatSetValue(A2,i,col[1],valsb[1],INSERT_VALUES));
-    } else if (i<n) {
-      CHKERRQ(MatSetValues(A2,1,&i,2,col,valsb,INSERT_VALUES));
-    } else if (i==n) {
-      CHKERRQ(MatSetValue(A2,i,col[0],valsb[0],INSERT_VALUES));
-    }
+    if (i==0) CHKERRQ(MatSetValue(A2,i,col[1],valsb[1],INSERT_VALUES));
+    else if (i<n) CHKERRQ(MatSetValues(A2,1,&i,2,col,valsb,INSERT_VALUES));
+    else if (i==n) CHKERRQ(MatSetValue(A2,i,col[0],valsb[0],INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(A2,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(A2,MAT_FINAL_ASSEMBLY));
@@ -89,9 +82,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
   d = PetscMax(0,n-p);
   for (i=Istart;i<Iend;i++) {
-    for (j=0;j<=PetscMin(i,n-1);j++) {
-      CHKERRQ(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
-    }
+    for (j=0;j<=PetscMin(i,n-1);j++) CHKERRQ(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));

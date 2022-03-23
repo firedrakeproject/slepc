@@ -23,9 +23,7 @@ PetscErrorCode EPSSetDefaultST(EPS eps)
 {
   PetscFunctionBegin;
   if (eps->ops->setdefaultst) CHKERRQ((*eps->ops->setdefaultst)(eps));
-  if (!((PetscObject)eps->st)->type_name) {
-    CHKERRQ(STSetType(eps->st,STSHIFT));
-  }
+  if (!((PetscObject)eps->st)->type_name) CHKERRQ(STSetType(eps->st,STSHIFT));
   PetscFunctionReturn(0);
 }
 
@@ -38,13 +36,9 @@ PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
   KSP            ksp;
 
   PetscFunctionBegin;
-  if (!((PetscObject)eps->st)->type_name) {
-    CHKERRQ(STSetType(eps->st,STPRECOND));
-  }
+  if (!((PetscObject)eps->st)->type_name) CHKERRQ(STSetType(eps->st,STPRECOND));
   CHKERRQ(STGetKSP(eps->st,&ksp));
-  if (!((PetscObject)ksp)->type_name) {
-    CHKERRQ(KSPSetType(ksp,KSPPREONLY));
-  }
+  if (!((PetscObject)ksp)->type_name) CHKERRQ(KSPSetType(ksp,KSPPREONLY));
   PetscFunctionReturn(0);
 }
 
@@ -57,9 +51,7 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
   KSP            ksp;
 
   PetscFunctionBegin;
-  if (!((PetscObject)eps->st)->type_name) {
-    CHKERRQ(STSetType(eps->st,STPRECOND));
-  }
+  if (!((PetscObject)eps->st)->type_name) CHKERRQ(STSetType(eps->st,STPRECOND));
   CHKERRQ(STPrecondSetKSPHasMat(eps->st,PETSC_TRUE));
   CHKERRQ(STGetKSP(eps->st,&ksp));
   if (!((PetscObject)ksp)->type_name) {
@@ -80,17 +72,11 @@ PetscErrorCode EPSSetDefaultST_NoFactor(EPS eps)
   PC             pc;
 
   PetscFunctionBegin;
-  if (!((PetscObject)eps->st)->type_name) {
-    CHKERRQ(STSetType(eps->st,STSHIFT));
-  }
+  if (!((PetscObject)eps->st)->type_name) CHKERRQ(STSetType(eps->st,STSHIFT));
   CHKERRQ(STGetKSP(eps->st,&ksp));
-  if (!((PetscObject)ksp)->type_name) {
-    CHKERRQ(KSPSetType(ksp,KSPPREONLY));
-  }
+  if (!((PetscObject)ksp)->type_name) CHKERRQ(KSPSetType(ksp,KSPPREONLY));
   CHKERRQ(KSPGetPC(ksp,&pc));
-  if (!((PetscObject)pc)->type_name) {
-    CHKERRQ(PCSetType(pc,PCNONE));
-  }
+  if (!((PetscObject)pc)->type_name) CHKERRQ(PCSetType(pc,PCNONE));
   PetscFunctionReturn(0);
 }
 #endif
@@ -141,7 +127,6 @@ PetscErrorCode EPSCheckCompatibleST(EPS eps)
 */
 PetscErrorCode MatEstimateSpectralRange_EPS(Mat A,PetscReal *left,PetscReal *right)
 {
-  PetscErrorCode ierr;
   PetscInt       nconv;
   PetscScalar    eig0;
   PetscReal      tol=1e-3,errest=tol;
@@ -149,29 +134,29 @@ PetscErrorCode MatEstimateSpectralRange_EPS(Mat A,PetscReal *left,PetscReal *rig
 
   PetscFunctionBegin;
   *left = 0.0; *right = 0.0;
-  ierr = EPSCreate(PetscObjectComm((PetscObject)A),&eps);CHKERRQ(ierr);
-  ierr = EPSSetOptionsPrefix(eps,"eps_filter_");CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,50);CHKERRQ(ierr);
-  ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  CHKERRQ(EPSCreate(PetscObjectComm((PetscObject)A),&eps));
+  CHKERRQ(EPSSetOptionsPrefix(eps,"eps_filter_"));
+  CHKERRQ(EPSSetOperators(eps,A,NULL));
+  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
+  CHKERRQ(EPSSetTolerances(eps,tol,50));
+  CHKERRQ(EPSSetConvergenceTest(eps,EPS_CONV_ABS));
+  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
+  CHKERRQ(EPSSolve(eps));
+  CHKERRQ(EPSGetConverged(eps,&nconv));
   if (nconv>0) {
-    ierr = EPSGetEigenvalue(eps,0,&eig0,NULL);CHKERRQ(ierr);
-    ierr = EPSGetErrorEstimate(eps,0,&errest);CHKERRQ(ierr);
+    CHKERRQ(EPSGetEigenvalue(eps,0,&eig0,NULL));
+    CHKERRQ(EPSGetErrorEstimate(eps,0,&errest));
   } else eig0 = eps->eigr[0];
   *left = PetscRealPart(eig0)-errest;
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
+  CHKERRQ(EPSSolve(eps));
+  CHKERRQ(EPSGetConverged(eps,&nconv));
   if (nconv>0) {
-    ierr = EPSGetEigenvalue(eps,0,&eig0,NULL);CHKERRQ(ierr);
-    ierr = EPSGetErrorEstimate(eps,0,&errest);CHKERRQ(ierr);
+    CHKERRQ(EPSGetEigenvalue(eps,0,&eig0,NULL));
+    CHKERRQ(EPSGetErrorEstimate(eps,0,&errest));
   } else eig0 = eps->eigr[0];
   *right = PetscRealPart(eig0)+errest;
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
+  CHKERRQ(EPSDestroy(&eps));
   PetscFunctionReturn(0);
 }
 
@@ -288,9 +273,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   eps->reason = EPS_CONVERGED_ITERATING;
 
   /* Set default solver type (EPSSetFromOptions was not called) */
-  if (!((PetscObject)eps)->type_name) {
-    CHKERRQ(EPSSetType(eps,EPSKRYLOVSCHUR));
-  }
+  if (!((PetscObject)eps)->type_name) CHKERRQ(EPSSetType(eps,EPSKRYLOVSCHUR));
   if (!eps->st) CHKERRQ(EPSGetST(eps,&eps->st));
   CHKERRQ(EPSSetDefaultST(eps));
 
@@ -300,9 +283,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     PetscCheck(!eps->ishermitian || (eps->isgeneralized && !eps->ispositive),PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for %s problems",SLEPC_STRING_HERMITIAN);
   }
   if (!eps->rg) CHKERRQ(EPSGetRG(eps,&eps->rg));
-  if (!((PetscObject)eps->rg)->type_name) {
-    CHKERRQ(RGSetType(eps->rg,RGINTERVAL));
-  }
+  if (!((PetscObject)eps->rg)->type_name) CHKERRQ(RGSetType(eps->rg,RGINTERVAL));
 
   /* Set problem dimensions */
   CHKERRQ(STGetNumMatrices(eps->st,&nmat));
@@ -312,11 +293,8 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* Set default problem type */
   if (!eps->problem_type) {
-    if (nmat==1) {
-      CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
-    } else {
-      CHKERRQ(EPSSetProblemType(eps,EPS_GNHEP));
-    }
+    if (nmat==1) CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
+    else CHKERRQ(EPSSetProblemType(eps,EPS_GNHEP));
   } else if (nmat==1 && eps->isgeneralized) {
     CHKERRQ(PetscInfo(eps,"Eigenproblem set as generalized but no matrix B was provided; reverting to a standard eigenproblem\n"));
     eps->isgeneralized = PETSC_FALSE;
@@ -361,9 +339,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
 
   /* set up sorting criterion */
-  if (eps->ops->setupsort) {
-    CHKERRQ((*eps->ops->setupsort)(eps));
-  }
+  if (eps->ops->setupsort) CHKERRQ((*eps->ops->setupsort)(eps));
 
   /* Build balancing matrix if required */
   if (eps->balance!=EPS_BALANCE_USER) {
@@ -499,15 +475,11 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
   CHKERRQ(STGetNumMatrices(st,&k));
   if (A) {
     if (k<1) *A = NULL;
-    else {
-      CHKERRQ(STGetMatrix(st,0,A));
-    }
+    else CHKERRQ(STGetMatrix(st,0,A));
   }
   if (B) {
     if (k<2) *B = NULL;
-    else {
-      CHKERRQ(STGetMatrix(st,1,B));
-    }
+    else CHKERRQ(STGetMatrix(st,1,B));
   }
   PetscFunctionReturn(0);
 }
@@ -706,9 +678,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 
   /* workspace for the case of arbitrary selection */
   if (eps->arbitrary) {
-    if (eps->rr) {
-      CHKERRQ(PetscFree2(eps->rr,eps->ri));
-    }
+    if (eps->rr) CHKERRQ(PetscFree2(eps->rr,eps->ri));
     CHKERRQ(PetscMalloc2(requested,&eps->rr,requested,&eps->ri));
     CHKERRQ(PetscLogObjectMemory((PetscObject)eps,2*newc*sizeof(PetscScalar)));
   }
@@ -716,15 +686,11 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   /* allocate V */
   if (!eps->V) CHKERRQ(EPSGetBV(eps,&eps->V));
   if (!oldsize) {
-    if (!((PetscObject)(eps->V))->type_name) {
-      CHKERRQ(BVSetType(eps->V,BVSVEC));
-    }
+    if (!((PetscObject)(eps->V))->type_name) CHKERRQ(BVSetType(eps->V,BVSVEC));
     CHKERRQ(STMatCreateVecsEmpty(eps->st,&t,NULL));
     CHKERRQ(BVSetSizesFromVec(eps->V,t,requested));
     CHKERRQ(VecDestroy(&t));
-  } else {
-    CHKERRQ(BVResize(eps->V,requested,PETSC_FALSE));
-  }
+  } else CHKERRQ(BVResize(eps->V,requested,PETSC_FALSE));
 
   /* allocate W */
   if (eps->twosided) {

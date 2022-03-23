@@ -61,11 +61,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     CHKERRQ(DSRestoreArrayReal(eps->ds,DS_MAT_T,&a));
     CHKERRQ(DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega));
     CHKERRQ(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
-    if (l==0) {
-      CHKERRQ(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
-    } else {
-      CHKERRQ(DSSetState(eps->ds,DS_STATE_RAW));
-    }
+    if (l==0) CHKERRQ(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
+    else CHKERRQ(DSSetState(eps->ds,DS_STATE_RAW));
     CHKERRQ(BVSetActiveColumns(eps->V,eps->nconv,nv));
 
     /* Solve projected problem */

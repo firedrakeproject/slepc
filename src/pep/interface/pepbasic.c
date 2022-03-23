@@ -336,9 +336,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
   if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
   CHKERRQ(PEPReset(*pep));
   if ((*pep)->ops->destroy) CHKERRQ((*(*pep)->ops->destroy)(*pep));
-  if ((*pep)->eigr) {
-    CHKERRQ(PetscFree4((*pep)->eigr,(*pep)->eigi,(*pep)->errest,(*pep)->perm));
-  }
+  if ((*pep)->eigr) CHKERRQ(PetscFree4((*pep)->eigr,(*pep)->eigi,(*pep)->errest,(*pep)->perm));
   CHKERRQ(STDestroy(&(*pep)->st));
   CHKERRQ(RGDestroy(&(*pep)->rg));
   CHKERRQ(DSDestroy(&(*pep)->ds));
@@ -347,9 +345,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
   CHKERRQ(PetscFree((*pep)->sc));
   /* just in case the initial vectors have not been used */
   CHKERRQ(SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS));
-  if ((*pep)->convergeddestroy) {
-    CHKERRQ((*(*pep)->convergeddestroy)((*pep)->convergedctx));
-  }
+  if ((*pep)->convergeddestroy) CHKERRQ((*(*pep)->convergeddestroy)((*pep)->convergedctx));
   CHKERRQ(PEPMonitorCancel(*pep));
   CHKERRQ(PetscHeaderDestroy(pep));
   PetscFunctionReturn(0);
@@ -632,9 +628,7 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
       CHKERRQ(PetscSubcommSetType(pep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS));
       CHKERRQ(PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm)));
       CHKERRQ(PetscSubcommGetChild(pep->refinesubc,&comm));
-    } else {
-      CHKERRQ(PetscObjectGetComm((PetscObject)pep,&comm));
-    }
+    } else CHKERRQ(PetscObjectGetComm((PetscObject)pep,&comm));
     CHKERRQ(KSPCreate(comm,&pep->refineksp));
     CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)pep->refineksp,(PetscObject)pep,0));
     CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp));

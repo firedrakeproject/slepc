@@ -153,9 +153,7 @@ int LOBPCG_InitRandomContext(MPI_Comm comm,PetscRandom rand)
     CHKERRQ(PetscObjectReference((PetscObject)rand));
     CHKERRQ(PetscRandomDestroy(&LOBPCG_RandomContext));
     LOBPCG_RandomContext = rand;
-  } else {
-    CHKERRQ(PetscRandomCreate(comm,&LOBPCG_RandomContext));
-  }
+  } else CHKERRQ(PetscRandomCreate(comm,&LOBPCG_RandomContext));
   return 0;
 }
 

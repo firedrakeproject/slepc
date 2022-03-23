@@ -62,17 +62,12 @@ int main(int argc,char **argv)
   CHKERRQ(BVCreateMat(X,&B));
   CHKERRQ(MatAXPY(B,-1.0,A,SAME_NONZERO_PATTERN));
   CHKERRQ(MatNorm(B,NORM_1,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference: %g\n",(double)norm));
-  }
+  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference: %g\n",(double)norm));
 
   /* Test BVOrthogonalize */
   CHKERRQ(BVOrthogonalize(X,NULL));
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Check orthogonality */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
@@ -80,11 +75,8 @@ int main(int argc,char **argv)
   CHKERRQ(BVDot(X,X,M));
   CHKERRQ(MatShift(M,-1.0));
   CHKERRQ(MatNorm(M,NORM_1,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
-  }
+  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
 
   CHKERRQ(MatDestroy(&M));
   CHKERRQ(MatDestroy(&A));

@@ -141,12 +141,8 @@ static PetscErrorCode MatCreateVecs_Z(Mat Z,Vec *right,Vec *left)
 
   PetscFunctionBegin;
   CHKERRQ(MatShellGetContext(Z,&zdata));
-  if (right) {
-    CHKERRQ(MatCreateVecs(zdata->A,right,NULL));
-  }
-  if (left) {
-    CHKERRQ(VecDuplicate(zdata->y,left));
-  }
+  if (right) CHKERRQ(MatCreateVecs(zdata->A,right,NULL));
+  if (left) CHKERRQ(VecDuplicate(zdata->y,left));
   PetscFunctionReturn(0);
 }
 
@@ -304,9 +300,7 @@ static PetscErrorCode SVDOrthogonalizeCGS(BV V,PetscInt i,PetscScalar* h,PetscRe
     }
     *norm = PetscRealPart(dot)/(a*a) - sum;
     if (*norm>0.0) *norm = PetscSqrtReal(*norm);
-    else {
-      CHKERRQ(BVNormColumn(V,i,NORM_2,norm));
-    }
+    else CHKERRQ(BVNormColumn(V,i,NORM_2,norm));
     if (*norm < eta*onorm) {
       CHKERRQ(BVSetActiveColumns(V,0,i));
       CHKERRQ(BVDotColumn(V,i,h));
@@ -358,9 +352,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
       CHKERRQ(BVDotVecEnd(V,vi,work));
       CHKERRQ(BVRestoreColumn(V,i,&vi));
       CHKERRQ(BVSetActiveColumns(V,0,i));
-    } else {
-      CHKERRQ(BVDotColumnEnd(V,i,work));
-    }
+    } else CHKERRQ(BVDotColumnEnd(V,i,work));
 
     CHKERRQ(BVScaleColumn(U,i-1,1.0/a));
     for (j=0;j<i;j++) work[j] = work[j] / a;
@@ -401,9 +393,7 @@ static PetscErrorCode SVDOneSideTRLanczosCGS(SVD svd,PetscReal *alpha,PetscReal 
   if (refine == BV_ORTHOG_REFINE_IFNEEDED) {
     CHKERRQ(BVDotVecEnd(V,vi,work));
     CHKERRQ(BVRestoreColumn(V,n,&vi));
-  } else {
-    CHKERRQ(BVDotColumnEnd(V,n,work));
-  }
+  } else CHKERRQ(BVDotColumnEnd(V,n,work));
 
   CHKERRQ(BVScaleColumn(U,n-1,1.0/a));
   for (j=0;j<n;j++) work[j] = work[j] / a;
@@ -431,9 +421,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   CHKERRQ(DSGetLeadingDimension(svd->ds,&ld));
   CHKERRQ(BVGetOrthogonalization(svd->V,&orthog,NULL,NULL,NULL));
   CHKERRQ(PetscMalloc1(ld,&w));
-  if (lanczos->oneside) {
-    CHKERRQ(PetscMalloc1(svd->ncv+1,&swork));
-  }
+  if (lanczos->oneside) CHKERRQ(PetscMalloc1(svd->ncv+1,&swork));
 
   /* normalize start vector */
   if (!svd->nini) {
@@ -450,14 +438,9 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     CHKERRQ(DSGetArrayReal(svd->ds,DS_MAT_T,&alpha));
     beta = alpha + ld;
     if (lanczos->oneside) {
-      if (orthog == BV_ORTHOG_MGS) {
-        CHKERRQ(SVDOneSideTRLanczosMGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv,swork));
-      } else {
-        CHKERRQ(SVDOneSideTRLanczosCGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv,swork));
-      }
-    } else {
-      CHKERRQ(SVDTwoSideLanczos(svd,alpha,beta,svd->V,svd->U,svd->nconv+l,&nv,&breakdown));
-    }
+      if (orthog == BV_ORTHOG_MGS) CHKERRQ(SVDOneSideTRLanczosMGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv,swork));
+      else CHKERRQ(SVDOneSideTRLanczosCGS(svd,alpha,beta,svd->V,svd->U,svd->nconv,l,nv,swork));
+    } else CHKERRQ(SVDTwoSideLanczos(svd,alpha,beta,svd->V,svd->U,svd->nconv+l,&nv,&breakdown));
     CHKERRQ(DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha));
     CHKERRQ(BVScaleColumn(svd->V,nv,1.0/beta[nv-1]));
     CHKERRQ(BVSetActiveColumns(svd->V,svd->nconv,nv));
@@ -495,9 +478,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
             CHKERRQ(PetscInfo(svd,"Unable to generate more start vectors\n"));
           }
         }
-      } else {
-        CHKERRQ(DSTruncate(svd->ds,k+l,PETSC_FALSE));
-      }
+      } else CHKERRQ(DSTruncate(svd->ds,k+l,PETSC_FALSE));
     }
 
     /* compute converged singular vectors and restart vectors */
@@ -509,9 +490,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     CHKERRQ(MatDestroy(&U));
 
     /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) {
-      CHKERRQ(BVCopyColumn(svd->V,nv,k+l));
-    }
+    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) CHKERRQ(BVCopyColumn(svd->V,nv,k+l));
 
     svd->nconv = k;
     CHKERRQ(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv));
@@ -519,9 +498,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 
   /* orthonormalize U columns in one side method */
   if (lanczos->oneside) {
-    for (i=0;i<svd->nconv;i++) {
-      CHKERRQ(BVOrthonormalizeColumn(svd->U,i,PETSC_FALSE,NULL,NULL));
-    }
+    for (i=0;i<svd->nconv;i++) CHKERRQ(BVOrthonormalizeColumn(svd->U,i,PETSC_FALSE,NULL,NULL));
   }
 
   /* free working space */
@@ -691,9 +668,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
             CHKERRQ(PetscInfo(svd,"Unable to generate more start vectors\n"));
           }
         }
-      } else {
-        CHKERRQ(DSTruncate(svd->ds,k+l,PETSC_FALSE));
-      }
+      } else CHKERRQ(DSTruncate(svd->ds,k+l,PETSC_FALSE));
     }
 
     /* compute converged singular vectors and restart vectors */
@@ -705,9 +680,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
     CHKERRQ(MatDestroy(&VV));
 
     /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) {
-      CHKERRQ(BVCopyColumn(U1,nv,k+l));
-    }
+    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) CHKERRQ(BVCopyColumn(U1,nv,k+l));
 
     svd->nconv = k;
     CHKERRQ(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv));
@@ -876,9 +849,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
   normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb): 1.0;
 
   /* normalize start vector */
-  if (!svd->nini) {
-    CHKERRQ(SVDInitialVectorGUpper(svd,V,U1,0,NULL));
-  }
+  if (!svd->nini) CHKERRQ(SVDInitialVectorGUpper(svd,V,U1,0,NULL));
 
   l = 0;
   while (svd->reason == SVD_CONVERGED_ITERATING) {
@@ -928,9 +899,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
             CHKERRQ(PetscInfo(svd,"Unable to generate more start vectors\n"));
           }
         }
-      } else {
-        CHKERRQ(DSTruncate(svd->ds,k+l,PETSC_FALSE));
-      }
+      } else CHKERRQ(DSTruncate(svd->ds,k+l,PETSC_FALSE));
     }
     /* compute converged singular vectors and restart vectors */
     CHKERRQ(DSGetMat(svd->ds,DS_MAT_X,&X));
@@ -944,9 +913,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
     CHKERRQ(MatDestroy(&Vmat));
 
     /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) {
-      CHKERRQ(BVCopyColumn(V,nv,k+l));
-    }
+    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) CHKERRQ(BVCopyColumn(V,nv,k+l));
 
     svd->nconv = k;
     CHKERRQ(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv));
@@ -1117,9 +1084,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
   normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb): 1.0;
 
   /* normalize start vector */
-  if (!svd->nini) {
-    CHKERRQ(SVDInitialVectorGLower(svd,V,U1,0,NULL));
-  }
+  if (!svd->nini) CHKERRQ(SVDInitialVectorGLower(svd,V,U1,0,NULL));
 
   l = 0;
   while (svd->reason == SVD_CONVERGED_ITERATING) {
@@ -1169,9 +1134,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
             CHKERRQ(PetscInfo(svd,"Unable to generate more start vectors\n"));
           }
         }
-      } else {
-        CHKERRQ(DSTruncate(svd->ds,k+l,PETSC_FALSE));
-      }
+      } else CHKERRQ(DSTruncate(svd->ds,k+l,PETSC_FALSE));
     }
 
     /* compute converged singular vectors and restart vectors */
@@ -1186,9 +1149,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
     CHKERRQ(MatDestroy(&Vmat));
 
     /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) {
-      CHKERRQ(BVCopyColumn(V,nv,k+l));
-    }
+    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) CHKERRQ(BVCopyColumn(V,nv,k+l));
 
     svd->nconv = k;
     CHKERRQ(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv));
@@ -1794,9 +1755,7 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  if (svd->isgeneralized) {
-    CHKERRQ(KSPDestroy(&lanczos->ksp));
-  }
+  if (svd->isgeneralized) CHKERRQ(KSPDestroy(&lanczos->ksp));
   CHKERRQ(PetscFree(svd->data));
   CHKERRQ(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetOneSide_C",NULL));
   CHKERRQ(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetOneSide_C",NULL));
@@ -1837,9 +1796,7 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
       CHKERRQ(PetscViewerASCIIPushTab(viewer));
       CHKERRQ(KSPView(lanczos->ksp,viewer));
       CHKERRQ(PetscViewerASCIIPopTab(viewer));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %s-sided reorthogonalization\n",lanczos->oneside? "one": "two"));
-    }
+    } else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %s-sided reorthogonalization\n",lanczos->oneside? "one": "two"));
   }
   PetscFunctionReturn(0);
 }

@@ -70,13 +70,9 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetUp(K));
   CHKERRQ(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
     CHKERRQ(MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY));
@@ -88,13 +84,9 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetUp(C));
   CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
     CHKERRQ(MatSetValue(C,i,i,tau*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
@@ -105,9 +97,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(M));
   CHKERRQ(MatSetUp(M));
   CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(M,i,i,mu,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(M,i,i,mu,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
@@ -158,9 +148,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
   CHKERRQ(PEPConvergedReasonView(pep,viewer));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (!terse) {
-    CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,viewer));
-  }
+  if (!terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,viewer));
   CHKERRQ(PetscViewerPopFormat(viewer));
 
   CHKERRQ(PEPDestroy(&pep));

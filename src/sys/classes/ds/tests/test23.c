@@ -65,9 +65,7 @@ int main(int argc,char **argv)
   CHKERRQ(DSNEPGetSamplingSize(ds,&spls));
   if (meth==1) {
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Contour integral method with %" PetscInt_FMT " integration points, minimality index %" PetscInt_FMT ", and sampling size %" PetscInt_FMT "\n",ip,midx,spls));
-    if (rits) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Doing %" PetscInt_FMT " iterations of Newton refinement\n",rits));
-    }
+    if (rits) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Doing %" PetscInt_FMT " iterations of Newton refinement\n",rits));
   }
 
   /* Set functions (prior to DSAllocate) */
@@ -99,9 +97,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
   CHKERRQ(PetscViewerPopFormat(viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill matrices */
   CHKERRQ(DSGetArray(ds,DS_MAT_E0,&Id));
@@ -181,14 +177,9 @@ int main(int argc,char **argv)
       nrm += aux*aux;
     }
     nrm = PetscSqrtReal(nrm);
-    if (nrm>1000*n*PETSC_MACHINE_EPSILON) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %" PetscInt_FMT "-th computed eigenpair %g\n",i,(double)nrm));
-    }
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
-    }
+    if (nrm>1000*n*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %" PetscInt_FMT "-th computed eigenpair %g\n",i,(double)nrm));
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
   CHKERRQ(PetscFree(W));
   CHKERRQ(DSRestoreArray(ds,DS_MAT_X,&X));

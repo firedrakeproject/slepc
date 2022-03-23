@@ -87,9 +87,7 @@ int main(int argc,char **argv)
   */
   CHKERRQ(PetscObjectComposeFunction((PetscObject)A,"formFunction",FormFunctionA));
   CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-form_function_ab",&flg,NULL));
-  if (flg) {
-    CHKERRQ(PetscObjectComposeFunction((PetscObject)A,"formFunctionAB",FormFunctionAB));
-  }
+  if (flg) CHKERRQ(PetscObjectComposeFunction((PetscObject)A,"formFunctionAB",FormFunctionAB));
   CHKERRQ(PetscObjectComposeFunction((PetscObject)A,"formJacobian",FormJacobianA));
   CHKERRQ(PetscObjectComposeFunction((PetscObject)B,"formFunction",FormFunctionB));
   CHKERRQ(PetscContainerCreate(comm,&container));
@@ -150,9 +148,7 @@ int main(int argc,char **argv)
     CHKERRQ(EPSSolve(eps));
     /* Number of Newton iterations supposes to be zero */
     CHKERRQ(SNESGetIterationNumber(snes,&nits));
-    if (nits) {
-      CHKERRQ(PetscPrintf(comm," Number of Newton iterations %" PetscInt_FMT " should be zero \n",nits));
-    }
+    if (nits) CHKERRQ(PetscPrintf(comm," Number of Newton iterations %" PetscInt_FMT " should be zero \n",nits));
   }
 
   /*
@@ -182,23 +178,16 @@ int main(int argc,char **argv)
     CHKERRQ(VecNorm(a,NORM_2,&na));
     CHKERRQ(VecNorm(b,NORM_2,&nb));
     relerr = na/(nb*PetscAbsScalar(k));
-    if (relerr<10*tol) {
-      CHKERRQ(PetscPrintf(comm,"k: %g, relative error below tol\n",(double)PetscRealPart(k)));
-    } else {
-      CHKERRQ(PetscPrintf(comm,"k: %g, relative error: %g\n",(double)PetscRealPart(k),(double)relerr));
-    }
+    if (relerr<10*tol) CHKERRQ(PetscPrintf(comm,"k: %g, relative error below tol\n",(double)PetscRealPart(k)));
+    else CHKERRQ(PetscPrintf(comm,"k: %g, relative error: %g\n",(double)PetscRealPart(k),(double)relerr));
     CHKERRQ(VecDestroy(&a));
     CHKERRQ(VecDestroy(&b));
     CHKERRQ(VecDestroy(&eigen));
-  } else {
-    CHKERRQ(PetscPrintf(comm,"Solver did not converge\n"));
-  }
+  } else CHKERRQ(PetscPrintf(comm,"Solver did not converge\n"));
 
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
-  if (use_shell_matrix) {
-    CHKERRQ(MatDestroy(&P));
-  }
+  if (use_shell_matrix) CHKERRQ(MatDestroy(&P));
   CHKERRQ(DMDestroy(&dm));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(ISDestroy(&user.bdis));
@@ -441,9 +430,7 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   CHKERRQ(FormFunction(snes,X,F,ctx));
   /* Boundary condition */
   CHKERRQ(VecLockGet(X,&vecstate));
-  if (vecstate>0) {
-    CHKERRQ(VecLockReadPop(X));
-  }
+  if (vecstate>0) CHKERRQ(VecLockReadPop(X));
   CHKERRQ(VecGetOwnershipRange(X,&iStart,&iEnd));
   CHKERRQ(VecGetArray(X,&array));
   CHKERRQ(ISGetLocalSize(userctx->bdis,&nindices));
@@ -454,9 +441,7 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   }
   CHKERRQ(ISRestoreIndices(userctx->bdis,&indices));
   CHKERRQ(VecRestoreArray(X,&array));
-  if (vecstate>0) {
-    CHKERRQ(VecLockReadPush(X));
-  }
+  if (vecstate>0) CHKERRQ(VecLockReadPush(X));
   CHKERRQ(VecAssemblyBegin(F));
   CHKERRQ(VecAssemblyEnd(F));
   PetscFunctionReturn(0);

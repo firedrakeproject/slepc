@@ -491,9 +491,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     if (shift) {
       PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,sMaux,&one));
       CHKERRQ(PetscLogFlops(1.0*(n+n2)));
-    } else {
-      CHKERRQ(PetscLogFlops(1.0*n));
-    }
+    } else CHKERRQ(PetscLogFlops(1.0*n));
     CHKERRQ(PetscArraycpy(Ba,sMaux,n2));
     CHKERRQ(PetscFree2(sMaux,Maux));
     CHKERRQ(MatDenseRestoreArrayRead(A,&Aa));
@@ -1060,11 +1058,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
     CHKERRCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_P,ld,&szero,d_W,ld));
     CHKERRCUDA(cudaMemcpy(d_P,d_W,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToDevice));
   }
-  if (d_P!=d_Ba) {
-    CHKERRCUDA(cudaMemcpy(Ba,d_P,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost));
-  } else {
-    CHKERRCUDA(cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost));
-  }
+  if (d_P!=d_Ba) CHKERRCUDA(cudaMemcpy(Ba,d_P,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost));
+  else CHKERRCUDA(cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost));
   CHKERRQ(PetscLogGpuFlops(2.0*n*n*n*sexp));
 
   CHKERRQ(PetscLogGpuTimeEnd());
@@ -1186,11 +1181,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
     CHKERRCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_P,ld,&szero,d_W,ld));
     CHKERRCUDA(cudaMemcpy(d_P,d_W,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToDevice));
   }
-  if (d_P!=d_Ba) {
-    CHKERRCUDA(cudaMemcpy(Ba,d_P,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost));
-  } else {
-    CHKERRCUDA(cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost));
-  }
+  if (d_P!=d_Ba) CHKERRCUDA(cudaMemcpy(Ba,d_P,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost));
+  else CHKERRCUDA(cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost));
   CHKERRQ(PetscLogGpuFlops(2.0*n*n*n*sexp));
 
   CHKERRQ(PetscLogGpuTimeEnd());
@@ -1358,11 +1350,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
     CHKERRCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_P,n_,d_P,n_,&szero,d_W,n_));
     SWAP(d_P,d_W,aux);
   }
-  if (d_P!=d_Ba) {
-    CHKERRCUDA(cudaMemcpy(Ba,d_P,n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
-  } else {
-    CHKERRCUDA(cudaMemcpy(Ba,d_Ba,n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
-  }
+  if (d_P!=d_Ba) CHKERRCUDA(cudaMemcpy(Ba,d_P,n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
+  else CHKERRCUDA(cudaMemcpy(Ba,d_Ba,n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
   CHKERRQ(PetscLogGpuFlops(2.0*n*n*n*s));
   CHKERRQ(PetscLogGpuTimeEnd());
 
@@ -1472,9 +1461,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     if (shift) {
       CHKERRCUBLAS(cublasXscal(cublasv2handle,n2,&expshift,d_sMaux,one));
       CHKERRQ(PetscLogGpuFlops(1.0*(n+n2)));
-    } else {
-      CHKERRQ(PetscLogGpuFlops(1.0*n));
-    }
+    } else CHKERRQ(PetscLogGpuFlops(1.0*n));
     CHKERRCUDA(cudaMemcpy(Ba,d_sMaux,sizeof(PetscScalar)*n2,cudaMemcpyDeviceToHost));
     CHKERRCUDA(cudaFree(d_Ba));
     CHKERRCUDA(cudaFree(d_isreal));
@@ -1684,17 +1671,15 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->beta==(PetscScalar)1.0) {
-      if (fn->alpha==(PetscScalar)1.0) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Exponential: exp(x)\n"));
-      } else {
+      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Exponential: exp(x)\n"));
+      else {
         CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Exponential: exp(%s*x)\n",str));
       }
     } else {
       CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
-      if (fn->alpha==(PetscScalar)1.0) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Exponential: %s*exp(x)\n",str));
-      } else {
+      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Exponential: %s*exp(x)\n",str));
+      else {
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Exponential: %s",str));
         CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
@@ -1702,9 +1687,7 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
         CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
       }
     }
-    if (fn->method<nmeth) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
-    }
+    if (fn->method<nmeth) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
   }
   PetscFunctionReturn(0);
 }

@@ -130,16 +130,12 @@ int main(int argc,char **argv)
         ki (imaginary part)
       */
       CHKERRQ(EPSGetEigenpair(eps,i,&kr[i],&ki[i],xr[i],xi[i]));
-      if (twosided) {
-        CHKERRQ(EPSGetLeftEigenvector(eps,i,yr[i],yi[i]));
-      }
+      if (twosided) CHKERRQ(EPSGetLeftEigenvector(eps,i,yr[i],yi[i]));
       /*
          Compute the residual norms associated to each eigenpair
       */
       CHKERRQ(ComputeResidualNorm(A,PETSC_FALSE,kr[i],ki[i],xr[i],xi[i],t,&nrmr));
-      if (twosided) {
-        CHKERRQ(ComputeResidualNorm(A,PETSC_TRUE,kr[i],ki[i],yr[i],yi[i],t,&nrml));
-      }
+      if (twosided) CHKERRQ(ComputeResidualNorm(A,PETSC_TRUE,kr[i],ki[i],yr[i],yi[i],t,&nrml));
 
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr[i]);
@@ -148,11 +144,8 @@ int main(int argc,char **argv)
       re = kr[i];
       im = ki[i];
 #endif
-      if (im!=0.0) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml));
-      } else {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g       %12g\n",(double)re,(double)nrmr,(double)nrml));
-      }
+      if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml));
+      else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g       %12g\n",(double)re,(double)nrmr,(double)nrml));
     }
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     /*
@@ -160,11 +153,8 @@ int main(int argc,char **argv)
     */
     if (twosided) {
       CHKERRQ(VecCheckOrthogonality(xr,nconv,yr,nconv,NULL,NULL,&lev));
-      if (lev<100*PETSC_MACHINE_EPSILON) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors < 100*eps\n\n"));
-      } else {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors: %g\n\n",(double)lev));
-      }
+      if (lev<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors < 100*eps\n\n"));
+      else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors: %g\n\n",(double)lev));
     }
   }
 
@@ -219,27 +209,17 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
       if (j!=jmax) {
         pd = cst*(PetscReal)(i+j-1);
         /* north */
-        if (i==1) {
-          CHKERRQ(MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES));
-        } else {
-          CHKERRQ(MatSetValue(A,ix-1,ix,pd,INSERT_VALUES));
-        }
+        if (i==1) CHKERRQ(MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES));
+        else CHKERRQ(MatSetValue(A,ix-1,ix,pd,INSERT_VALUES));
         /* east */
-        if (j==1) {
-          CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES));
-        } else {
-          CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES));
-        }
+        if (j==1) CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES));
+        else CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES));
       }
       /* south */
       pu = 0.5 - cst*(PetscReal)(i+j-3);
-      if (j>1) {
-        CHKERRQ(MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES));
-      }
+      if (j>1) CHKERRQ(MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES));
       /* west */
-      if (i>1) {
-        CHKERRQ(MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES));
-      }
+      if (i>1) CHKERRQ(MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES));
     }
   }
   CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
@@ -269,9 +249,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscBool trans,PetscScalar kr,PetscSca
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
     CHKERRQ((*matmult)(A,xr,u));
-    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      CHKERRQ(VecAXPY(u,-kr,xr));
-    }
+    if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) CHKERRQ(VecAXPY(u,-kr,xr));
     CHKERRQ(VecNorm(u,NORM_2,norm));
 #if !defined(PETSC_USE_COMPLEX)
   } else {

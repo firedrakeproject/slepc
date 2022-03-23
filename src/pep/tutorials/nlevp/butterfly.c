@@ -108,12 +108,8 @@ int main(int argc,char **argv)
   }
 
   /* assemble matrices */
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
-  }
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
-  }
+  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
+  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
@@ -130,18 +126,15 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
-  } else {
+  if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
   CHKERRQ(PEPDestroy(&pep));
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatDestroy(&A[i]));
-  }
+  for (i=0;i<NMAT;i++) CHKERRQ(MatDestroy(&A[i]));
   ierr = SlepcFinalize();
   return ierr;
 }

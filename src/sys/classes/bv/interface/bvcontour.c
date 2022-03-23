@@ -134,9 +134,7 @@ PetscErrorCode BVSumQuadrature(BV S,BV Y,PetscInt M,PetscInt L,PetscInt L_max,Pe
       if (PetscUnlikely(scat)) {
         CHKERRQ(VecScatterBegin(scat,v,sj,ADD_VALUES,SCATTER_REVERSE));
         CHKERRQ(VecScatterEnd(scat,v,sj,ADD_VALUES,SCATTER_REVERSE));
-      } else {
-        CHKERRQ(VecCopy(v,sj));
-      }
+      } else CHKERRQ(VecCopy(v,sj));
       CHKERRQ(BVRestoreColumn(S,k*L+j,&sj));
     }
     for (i=0;i<npoints;i++) ppk[i] *= zn[p_id(i)];
@@ -296,9 +294,7 @@ PetscErrorCode BVTraceQuadrature(BV Y,BV V,PetscInt L,PetscInt L_max,PetscScalar
       CHKERRQ(VecScatterBegin(scat,y,yall,ADD_VALUES,SCATTER_REVERSE));
       CHKERRQ(VecScatterEnd(scat,y,yall,ADD_VALUES,SCATTER_REVERSE));
       CHKERRQ(VecDot(vj,yall,&dot));
-    } else {
-      CHKERRQ(VecDot(vj,y,&dot));
-    }
+    } else CHKERRQ(VecDot(vj,y,&dot));
     CHKERRQ(BVRestoreColumn(V,j,&vj));
     if (useconj) sum += 2.0*PetscRealPart(dot);
     else sum += dot;
@@ -477,9 +473,7 @@ PetscErrorCode BVSVDAndRank_QR_CAA(BV S,PetscInt M,PetscInt L,PetscReal delta,Pe
   /* SVD of first (M-1)*L diagonal block */
   CHKERRQ(PetscBLASIntCast((M-1)*L,&m));
   CHKERRQ(PetscMalloc5(m*m,&T,m*m,&R,m*m,&U,5*ml,&work,5*ml,&rwork));
-  for (j=0;j<m;j++) {
-    CHKERRQ(PetscArraycpy(R+j*m,pA+j*ml,m));
-  }
+  for (j=0;j<m;j++) CHKERRQ(PetscArraycpy(R+j*m,pA+j*ml,m));
   lwork = 5*m;
   CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined (PETSC_USE_COMPLEX)
@@ -613,9 +607,7 @@ PetscErrorCode BVCISSResizeBases(BV S,BV V,BV Y,PetscInt Lold,PetscInt Lnew,Pets
   CHKERRQ(BVResize(Y,Lnew*npoints,PETSC_TRUE));
   /* columns of Y are interleaved */
   for (i=npoints-1;i>=0;i--) {
-    for (j=Lold-1;j>=0;j--) {
-      CHKERRQ(BVCopyColumn(Y,i*Lold+j,i*Lnew+j));
-    }
+    for (j=Lold-1;j>=0;j--) CHKERRQ(BVCopyColumn(Y,i*Lold+j,i*Lnew+j));
   }
   PetscFunctionReturn(0);
 }

@@ -116,13 +116,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   CHKERRQ(BVDuplicateResize(eps->V,ctx->bs,&R));
   CHKERRQ(BVDuplicateResize(eps->V,ctx->bs,&P));
   CHKERRQ(BVDuplicateResize(eps->V,ctx->bs,&AX));
-  if (B) {
-    CHKERRQ(BVDuplicateResize(eps->V,ctx->bs,&BX));
-  }
+  if (B) CHKERRQ(BVDuplicateResize(eps->V,ctx->bs,&BX));
   nc = eps->nds;
-  if (nc>0 || eps->nev>ctx->bs-ctx->guard) {
-    CHKERRQ(BVDuplicateResize(eps->V,nc+eps->nev,&Y));
-  }
+  if (nc>0 || eps->nev>ctx->bs-ctx->guard) CHKERRQ(BVDuplicateResize(eps->V,nc+eps->nev,&Y));
   if (nc>0) {
     for (j=0;j<nc;j++) {
       CHKERRQ(BVGetColumn(eps->V,-nc+j,&v));
@@ -174,9 +170,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     if (ctx->lock) {
       CHKERRQ(BVSetActiveColumns(R,nconv,ctx->bs));
       CHKERRQ(BVSetActiveColumns(AX,nconv,ctx->bs));
-      if (B) {
-        CHKERRQ(BVSetActiveColumns(BX,nconv,ctx->bs));
-      }
+      if (B) CHKERRQ(BVSetActiveColumns(BX,nconv,ctx->bs));
     }
 
     /* 7. Compute residuals */
@@ -208,9 +202,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     }
     nconv = k;
     eps->nconv = locked + nconv;
-    if (its) {
-      CHKERRQ(EPSMonitor(eps,eps->its+its,eps->nconv,eps->eigr,eps->eigi,eps->errest,locked+ctx->bs));
-    }
+    if (its) CHKERRQ(EPSMonitor(eps,eps->its+its,eps->nconv,eps->eigr,eps->eigi,eps->errest,locked+ctx->bs));
     CHKERRQ((*eps->stopping)(eps,eps->its+its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx));
     if (eps->reason != EPS_CONVERGED_ITERATING || nconv >= ctx->bs-ctx->guard) {
       CHKERRQ(BVSetActiveColumns(eps->V,locked,eps->nconv));
@@ -237,9 +229,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
         CHKERRQ(BVCopyColumn(R,j,j-nconv));
         CHKERRQ(BVCopyColumn(P,j,j-nconv));
         CHKERRQ(BVCopyColumn(AX,j,j-nconv));
-        if (B) {
-          CHKERRQ(BVCopyColumn(BX,j,j-nconv));
-        }
+        if (B) CHKERRQ(BVCopyColumn(BX,j,j-nconv));
       }
 
       /* set new initial vectors */
@@ -249,9 +239,8 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       for (j=ctx->bs-nconv;j<ctx->bs;j++) {
         CHKERRQ(BVGetColumn(X,j,&v));
         CHKERRQ(BVOrthogonalizeVec(Y,v,NULL,&norm,&breakdown));
-        if (norm>0.0 && !breakdown) {
-          CHKERRQ(VecScale(v,1.0/norm));
-        } else {
+        if (norm>0.0 && !breakdown) CHKERRQ(VecScale(v,1.0/norm));
+        else {
           CHKERRQ(PetscInfo(eps,"Orthogonalization of initial vector failed\n"));
           eps->reason = EPS_DIVERGED_BREAKDOWN;
           goto diverged;
@@ -296,9 +285,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       CHKERRQ(BVSetActiveColumns(R,nconv,ctx->bs));
       CHKERRQ(BVSetActiveColumns(P,nconv,ctx->bs));
       CHKERRQ(BVSetActiveColumns(AX,nconv,ctx->bs));
-      if (B) {
-        CHKERRQ(BVSetActiveColumns(BX,nconv,ctx->bs));
-      }
+      if (B) CHKERRQ(BVSetActiveColumns(BX,nconv,ctx->bs));
     }
 
     /* 9. Apply preconditioner to the residuals */
@@ -327,9 +314,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       for (j=ini;j<ctx->bs;j++) {
         CHKERRQ(MatDenseGetColumnVecWrite(W,j-ini,&w));
         CHKERRQ(BVOrthogonalizeVec(Y,w,NULL,&norm,&breakdown));
-        if (norm>0.0 && !breakdown) {
-          CHKERRQ(VecScale(w,1.0/norm));
-        }
+        if (norm>0.0 && !breakdown) CHKERRQ(VecScale(w,1.0/norm));
         CHKERRQ(MatDenseRestoreColumnVecWrite(W,j-ini,&w));
         if (norm<=0.0 || breakdown) {
           CHKERRQ(PetscInfo(eps,"Orthogonalization of preconditioned residual failed\n"));
@@ -345,9 +330,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     CHKERRQ(BVOrthogonalize(R,NULL));
 
     /* 13-16. B-orthonormalize conjugate directions */
-    if (its>1) {
-      CHKERRQ(BVOrthogonalize(P,NULL));
-    }
+    if (its>1) CHKERRQ(BVOrthogonalize(P,NULL));
 
     /* 17-23. Compute symmetric Gram matrices */
     CHKERRQ(BVSetActiveColumns(Z,0,ctx->bs));
@@ -384,19 +367,13 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     /* 25-33. Compute Ritz vectors */
     CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&M));
     CHKERRQ(BVSetActiveColumns(Z,ctx->bs,nv));
-    if (ctx->lock) {
-      CHKERRQ(BVSetActiveColumns(P,0,ctx->bs));
-    }
+    if (ctx->lock) CHKERRQ(BVSetActiveColumns(P,0,ctx->bs));
     CHKERRQ(BVMult(P,1.0,0.0,Z,M));
     CHKERRQ(BVCopy(P,X));
-    if (ctx->lock) {
-      CHKERRQ(BVSetActiveColumns(P,nconv,ctx->bs));
-    }
+    if (ctx->lock) CHKERRQ(BVSetActiveColumns(P,nconv,ctx->bs));
     CHKERRQ(BVSetActiveColumns(Z,0,ctx->bs));
     CHKERRQ(BVMult(X,1.0,1.0,Z,M));
-    if (ctx->lock) {
-      CHKERRQ(BVSetActiveColumns(X,nconv,ctx->bs));
-    }
+    if (ctx->lock) CHKERRQ(BVSetActiveColumns(X,nconv,ctx->bs));
     CHKERRQ(BVMatMult(X,A,AX));
     CHKERRQ(MatDestroy(&M));
   }
@@ -407,20 +384,14 @@ diverged:
   if (flip) sc->comparison = SlepcCompareLargestReal;
   CHKERRQ(PetscFree(eigr));
   CHKERRQ(MatDestroy(&W));
-  if (V) { /* only needed when goto diverged is reached */
-    CHKERRQ(BVRestoreMat(R,&V));
-  }
+  if (V) CHKERRQ(BVRestoreMat(R,&V)); /* only needed when goto diverged is reached */
   CHKERRQ(BVDestroy(&Z));
   CHKERRQ(BVDestroy(&X));
   CHKERRQ(BVDestroy(&R));
   CHKERRQ(BVDestroy(&P));
   CHKERRQ(BVDestroy(&AX));
-  if (B) {
-    CHKERRQ(BVDestroy(&BX));
-  }
-  if (nc>0 || eps->nev>ctx->bs-ctx->guard) {
-    CHKERRQ(BVDestroy(&Y));
-  }
+  if (B) CHKERRQ(BVDestroy(&BX));
+  if (nc>0 || eps->nev>ctx->bs-ctx->guard) CHKERRQ(BVDestroy(&Y));
   PetscFunctionReturn(0);
 }
 

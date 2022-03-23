@@ -104,9 +104,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       if (!ctx->herm) {
         CHKERRQ(NEPDeflationFunctionSolve(extop,r,delta));
         CHKERRQ(KSPGetConvergedReason(ctx->ksp,&kspreason));
-        if (kspreason<0) {
-          CHKERRQ(PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its));
-        }
+        if (kspreason<0) CHKERRQ(PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its));
         t = delta;
       } else t = r;
       CHKERRQ(VecDot(t,u,&a1));
@@ -115,9 +113,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       if (!ctx->herm) {
         CHKERRQ(NEPDeflationFunctionSolve(extop,r,delta));
         CHKERRQ(KSPGetConvergedReason(ctx->ksp,&kspreason));
-        if (kspreason<0) {
-          CHKERRQ(PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its));
-        }
+        if (kspreason<0) CHKERRQ(PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its));
         t = delta;
       } else t = r;
       CHKERRQ(VecDot(t,u,&a2));
@@ -154,16 +150,12 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       lock = PETSC_FALSE;
     }
     CHKERRQ((*nep->stopping)(nep,nep->its+its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx));
-    if (!skip || nep->reason>0) {
-      CHKERRQ(NEPMonitor(nep,nep->its+its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
-    }
+    if (!skip || nep->reason>0) CHKERRQ(NEPMonitor(nep,nep->its+its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
         /* update preconditioner and set adaptive tolerance */
-        if (ctx->lag && !(its%ctx->lag) && its>=2*ctx->lag && perr && nep->errest[nep->nconv]>.5*perr) {
-          CHKERRQ(NEPDeflationSolveSetUp(extop,lambda2));
-        }
+        if (ctx->lag && !(its%ctx->lag) && its>=2*ctx->lag && perr && nep->errest[nep->nconv]>.5*perr) CHKERRQ(NEPDeflationSolveSetUp(extop,lambda2));
         if (!ctx->cctol) {
           ktol = PetscMax(ktol/2.0,rtol);
           CHKERRQ(KSPSetTolerances(ctx->ksp,ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
@@ -711,18 +703,10 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  maximum number of inner iterations: %" PetscInt_FMT "\n",ctx->max_inner_it));
-    if (ctx->cctol) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n"));
-    }
-    if (ctx->herm) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using the Hermitian version of the scalar nonlinear equation\n"));
-    }
-    if (ctx->lag) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %" PetscInt_FMT " iterations\n",ctx->lag));
-    }
-    if (ctx->deftol) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  deflation threshold: %g\n",(double)ctx->deftol));
-    }
+    if (ctx->cctol) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n"));
+    if (ctx->herm) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using the Hermitian version of the scalar nonlinear equation\n"));
+    if (ctx->lag) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %" PetscInt_FMT " iterations\n",ctx->lag));
+    if (ctx->deftol) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  deflation threshold: %g\n",(double)ctx->deftol));
     if (!ctx->ksp) CHKERRQ(NEPRIIGetKSP(nep,&ctx->ksp));
     CHKERRQ(PetscViewerASCIIPushTab(viewer));
     CHKERRQ(KSPView(ctx->ksp,viewer));

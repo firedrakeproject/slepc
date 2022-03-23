@@ -100,11 +100,8 @@ static PetscErrorCode NEPComputeFunctionSubcomm(NEP nep,PetscScalar lambda,Mat T
   CHKERRQ(MatZeroEntries(T));
   if (!deriv && T != P) CHKERRQ(MatZeroEntries(P));
   for (i=0;i<nep->nt;i++) {
-    if (!deriv) {
-      CHKERRQ(FNEvaluateFunction(nep->f[i],lambda,&alpha));
-    } else {
-      CHKERRQ(FNEvaluateDerivative(nep->f[i],lambda,&alpha));
-    }
+    if (!deriv) CHKERRQ(FNEvaluateFunction(nep->f[i],lambda,&alpha));
+    else CHKERRQ(FNEvaluateDerivative(nep->f[i],lambda,&alpha));
     CHKERRQ(MatAXPY(T,alpha,ctx->contour->pA[i],nep->mstr));
     if (!deriv && T != P) CHKERRQ(MatAXPY(P,alpha,ctx->contour->pP[i],nep->mstrp));
   }
@@ -128,11 +125,8 @@ static PetscErrorCode NEPCISSSetUp(NEP nep,Mat T,Mat P)
     p_id = i*contour->subcomm->n + contour->subcomm->color;
     CHKERRQ(MatDuplicate(T,MAT_DO_NOT_COPY_VALUES,&Amat));
     if (T != P) CHKERRQ(MatDuplicate(P,MAT_DO_NOT_COPY_VALUES,&Pmat)); else Pmat = Amat;
-    if (contour->subcomm->n == 1 || nep->fui==NEP_USER_INTERFACE_CALLBACK) {
-      CHKERRQ(NEPComputeFunction(nep,ctx->omega[p_id],Amat,Pmat));
-    } else {
-      CHKERRQ(NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],Amat,Pmat,PETSC_FALSE));
-    }
+    if (contour->subcomm->n == 1 || nep->fui==NEP_USER_INTERFACE_CALLBACK) CHKERRQ(NEPComputeFunction(nep,ctx->omega[p_id],Amat,Pmat));
+    else CHKERRQ(NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],Amat,Pmat,PETSC_FALSE));
     CHKERRQ(NEP_KSPSetOperators(contour->ksp[i],Amat,Pmat));
     CHKERRQ(MatDestroy(&Amat));
     if (T != P) CHKERRQ(MatDestroy(&Pmat));
@@ -155,11 +149,8 @@ static PetscErrorCode NEPCISSSolve(NEP nep,Mat dT,BV V,PetscInt L_start,PetscInt
   CHKERRQ(BVGetMat(V,&MV));
   for (i=0;i<contour->npoints;i++) {
     p_id = i*contour->subcomm->n + contour->subcomm->color;
-    if (contour->subcomm->n==1 || nep->fui==NEP_USER_INTERFACE_CALLBACK) {
-      CHKERRQ(NEPComputeJacobian(nep,ctx->omega[p_id],dT));
-    } else {
-      CHKERRQ(NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],dT,NULL,PETSC_TRUE));
-    }
+    if (contour->subcomm->n==1 || nep->fui==NEP_USER_INTERFACE_CALLBACK) CHKERRQ(NEPComputeJacobian(nep,ctx->omega[p_id],dT));
+    else CHKERRQ(NEPComputeFunctionSubcomm(nep,ctx->omega[p_id],dT,NULL,PETSC_TRUE));
     CHKERRQ(BVSetActiveColumns(ctx->Y,i*ctx->L+L_start,i*ctx->L+L_end));
     CHKERRQ(BVGetMat(ctx->Y,&MC));
     if (!i) {
@@ -244,9 +235,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   if (contour->subcomm && contour->subcomm->n != 1 && nep->fui==NEP_USER_INTERFACE_CALLBACK) {
     CHKERRQ(NEPComputeFunction(nep,0,nep->function,nep->function_pre));
     CHKERRQ(SlepcContourRedundantMat(contour,1,&nep->function,(nep->function!=nep->function_pre)?&nep->function_pre:NULL));
-  } else {
-    CHKERRQ(SlepcContourRedundantMat(contour,nep->nt,nep->A,nep->P));
-  }
+  } else CHKERRQ(SlepcContourRedundantMat(contour,nep->nt,nep->A,nep->P));
   if (contour->pA) {
     if (!ctx->J) {
       CHKERRQ(MatDuplicate(contour->pA[0],MAT_DO_NOT_COPY_VALUES,&ctx->J));
@@ -269,21 +258,16 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
     CHKERRQ(BVSetSizesFromVec(ctx->Y,contour->xsub,nep->n));
     CHKERRQ(BVSetFromOptions(ctx->Y));
     CHKERRQ(BVResize(ctx->Y,contour->npoints*ctx->L,PETSC_FALSE));
-  } else {
-    CHKERRQ(BVDuplicateResize(nep->V,contour->npoints*ctx->L,&ctx->Y));
-  }
+  } else CHKERRQ(BVDuplicateResize(nep->V,contour->npoints*ctx->L,&ctx->Y));
 
-  if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
-    CHKERRQ(DSSetType(nep->ds,DSGNHEP));
-  } else if (ctx->extraction == NEP_CISS_EXTRACTION_CAA) {
-    CHKERRQ(DSSetType(nep->ds,DSNHEP));
-  } else {
+  if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) CHKERRQ(DSSetType(nep->ds,DSGNHEP));
+  else if (ctx->extraction == NEP_CISS_EXTRACTION_CAA) CHKERRQ(DSSetType(nep->ds,DSNHEP));
+  else {
     CHKERRQ(DSSetType(nep->ds,DSNEP));
     CHKERRQ(DSSetMethod(nep->ds,1));
     CHKERRQ(DSNEPSetRG(nep->ds,nep->rg));
-    if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-      CHKERRQ(DSNEPSetFN(nep->ds,nep->nt,nep->f));
-    } else {
+    if (nep->fui==NEP_USER_INTERFACE_SPLIT) CHKERRQ(DSNEPSetFN(nep->ds,nep->nt,nep->f));
+    else {
       CHKERRQ(PetscNew(&dsctxf));
       CHKERRQ(DSNEPSetComputeMatrixFunction(nep->ds,NEPContourDSComputeMatrix,dsctxf));
       dsctxf->nep = nep;
@@ -387,9 +371,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   CHKERRQ(RGGetScale(nep->rg,&rgscale));
   CHKERRQ(RGEllipseGetParameters(nep->rg,&center,&radius,NULL));
 
-  if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
-    CHKERRQ(PetscMalloc1(ctx->L*ctx->M*ctx->L*ctx->M,&H1));
-  }
+  if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) CHKERRQ(PetscMalloc1(ctx->L*ctx->M*ctx->L*ctx->M,&H1));
 
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
@@ -437,9 +419,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       } else if (ctx->extraction == NEP_CISS_EXTRACTION_CAA) {
         CHKERRQ(BVSetActiveColumns(ctx->S,0,nv));
         CHKERRQ(DSGetArray(nep->ds,DS_MAT_A,&temp));
-        for (i=0;i<nv;i++) {
-          CHKERRQ(PetscArraycpy(temp+i*ld,H0+i*nv,nv));
-        }
+        for (i=0;i<nv;i++) CHKERRQ(PetscArraycpy(temp+i*ld,H0+i*nv,nv));
         CHKERRQ(DSRestoreArray(nep->ds,DS_MAT_A,&temp));
       } else {
         CHKERRQ(BVSetActiveColumns(ctx->S,0,nv));
@@ -523,9 +503,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     }
   }
   CHKERRQ(PetscFree2(Mu,H0));
-  if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) {
-    CHKERRQ(PetscFree(H1));
-  }
+  if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) CHKERRQ(PetscFree(H1));
   PetscFunctionReturn(0);
 }
 
@@ -1002,9 +980,7 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   CHKERRQ(SlepcContourDataReset(ctx->contour));
   CHKERRQ(MatDestroy(&ctx->J));
   CHKERRQ(BVDestroy(&ctx->pV));
-  if (ctx->extraction == NEP_CISS_EXTRACTION_RITZ && nep->fui==NEP_USER_INTERFACE_CALLBACK) {
-    CHKERRQ(PetscFree(ctx->dsctxf));
-  }
+  if (ctx->extraction == NEP_CISS_EXTRACTION_RITZ && nep->fui==NEP_USER_INTERFACE_CALLBACK) CHKERRQ(PetscFree(ctx->dsctxf));
   PetscFunctionReturn(0);
 }
 
@@ -1046,9 +1022,7 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   if (!nep->rg) CHKERRQ(NEPGetRG(nep,&nep->rg));
   CHKERRQ(RGSetFromOptions(nep->rg)); /* this is necessary here to set useconj */
   if (!ctx->contour || !ctx->contour->ksp) CHKERRQ(NEPCISSGetKSPs(nep,NULL,NULL));
-  for (i=0;i<ctx->contour->npoints;i++) {
-    CHKERRQ(KSPSetFromOptions(ctx->contour->ksp[i]));
-  }
+  for (i=0;i<ctx->contour->npoints;i++) CHKERRQ(KSPSetFromOptions(ctx->contour->ksp[i]));
   CHKERRQ(PetscSubcommSetFromOptions(ctx->contour->subcomm));
   PetscFunctionReturn(0);
 }
@@ -1083,9 +1057,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %" PetscInt_FMT ", block size: %" PetscInt_FMT ", moment size: %" PetscInt_FMT ", partitions: %" PetscInt_FMT ", maximum block size: %" PetscInt_FMT " }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max));
-    if (ctx->isreal) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  exploiting symmetry of integration points\n"));
-    }
+    if (ctx->isreal) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  exploiting symmetry of integration points\n"));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  iterative refinement  { inner: %" PetscInt_FMT ", blocksize: %" PetscInt_FMT " }\n",ctx->refine_inner, ctx->refine_blocksize));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",NEPCISSExtractions[ctx->extraction]));
@@ -1093,17 +1065,13 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     CHKERRQ(PetscViewerASCIIPushTab(viewer));
     if (ctx->npart>1 && ctx->contour->subcomm) {
       CHKERRQ(PetscViewerGetSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
-      if (!ctx->contour->subcomm->color) {
-        CHKERRQ(KSPView(ctx->contour->ksp[0],sviewer));
-      }
+      if (!ctx->contour->subcomm->color) CHKERRQ(KSPView(ctx->contour->ksp[0],sviewer));
       CHKERRQ(PetscViewerFlush(sviewer));
       CHKERRQ(PetscViewerRestoreSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
       CHKERRQ(PetscViewerFlush(viewer));
       /* extra call needed because of the two calls to PetscViewerASCIIPushSynchronized() in PetscViewerGetSubViewer() */
       CHKERRQ(PetscViewerASCIIPopSynchronized(viewer));
-    } else {
-      CHKERRQ(KSPView(ctx->contour->ksp[0],viewer));
-    }
+    } else CHKERRQ(KSPView(ctx->contour->ksp[0],viewer));
     CHKERRQ(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);

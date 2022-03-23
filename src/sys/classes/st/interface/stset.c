@@ -122,11 +122,8 @@ PetscErrorCode STSetFromOptions(ST st)
   CHKERRQ(STRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)st);CHKERRQ(ierr);
     CHKERRQ(PetscOptionsFList("-st_type","Spectral transformation","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,sizeof(type),&flg));
-    if (flg) {
-      CHKERRQ(STSetType(st,type));
-    } else if (!((PetscObject)st)->type_name) {
-      CHKERRQ(STSetType(st,STSHIFT));
-    }
+    if (flg) CHKERRQ(STSetType(st,type));
+    else if (!((PetscObject)st)->type_name) CHKERRQ(STSetType(st,STSHIFT));
 
     CHKERRQ(PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg));
     if (flg) CHKERRQ(STSetShift(st,s));
@@ -140,9 +137,7 @@ PetscErrorCode STSetFromOptions(ST st)
     CHKERRQ(PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&bval,&flg));
     if (flg) CHKERRQ(STSetTransform(st,bval));
 
-    if (st->ops->setfromoptions) {
-      CHKERRQ((*st->ops->setfromoptions)(PetscOptionsObject,st));
-    }
+    if (st->ops->setfromoptions) CHKERRQ((*st->ops->setfromoptions)(PetscOptionsObject,st));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 

@@ -88,11 +88,8 @@ PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
 
   PetscFunctionBegin;
   CHKERRQ(MatDenseGetArray(ctx->S,&pS));
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVScale_BLAS_Private(bv,(bv->k-bv->l)*lds,pS+(bv->nc+bv->l)*lds,alpha));
-  } else {
-    CHKERRQ(BVScale_BLAS_Private(bv,lds,pS+(bv->nc+j)*lds,alpha));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVScale_BLAS_Private(bv,(bv->k-bv->l)*lds,pS+(bv->nc+bv->l)*lds,alpha));
+  else CHKERRQ(BVScale_BLAS_Private(bv,lds,pS+(bv->nc+j)*lds,alpha));
   CHKERRQ(MatDenseRestoreArray(ctx->S,&pS));
   PetscFunctionReturn(0);
 }
@@ -105,11 +102,8 @@ PetscErrorCode BVNorm_Tensor(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   CHKERRQ(MatDenseGetArrayRead(ctx->S,&pS));
-  if (j<0) {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,lds,bv->k-bv->l,pS+(bv->nc+bv->l)*lds,type,val,PETSC_FALSE));
-  } else {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,lds,1,pS+(bv->nc+j)*lds,type,val,PETSC_FALSE));
-  }
+  if (j<0) CHKERRQ(BVNorm_LAPACK_Private(bv,lds,bv->k-bv->l,pS+(bv->nc+bv->l)*lds,type,val,PETSC_FALSE));
+  else CHKERRQ(BVNorm_LAPACK_Private(bv,lds,1,pS+(bv->nc+j)*lds,type,val,PETSC_FALSE));
   CHKERRQ(MatDenseRestoreArrayRead(ctx->S,&pS));
   PetscFunctionReturn(0);
 }
@@ -176,9 +170,8 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
   PetscFunctionBegin;
   PetscCheck(!v,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Orthogonalization against an external vector is not allowed in BVTENSOR");
   CHKERRQ(MatDenseGetArray(ctx->S,&pS));
-  if (!c) {
-    CHKERRQ(VecGetArray(bv->buffer,&cc));
-  } else cc = c;
+  if (!c) CHKERRQ(VecGetArray(bv->buffer,&cc));
+  else cc = c;
   CHKERRQ(PetscBLASIntCast(lds,&lds_));
   CHKERRQ(PetscBLASIntCast(k,&k_));
 
@@ -203,9 +196,7 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
       dot = -dot;
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&lds_,&dot,pS+i*lds,&one,pS+k*lds,&one));
     }
-    if (PetscUnlikely(bv->indef)) {
-      CHKERRQ(VecRestoreArrayRead(bv->omega,&omega));
-    }
+    if (PetscUnlikely(bv->indef)) CHKERRQ(VecRestoreArrayRead(bv->omega,&omega));
 
   } else {  /* classical Gram-Schmidt */
     if (ctx->qB) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
@@ -313,11 +304,8 @@ static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
   PetscFunctionBegin;
   CHKERRQ(MatDenseGetArray(ctx->S,&pS));
   for (i=0;i<ctx->d;i++) {
-    if (i>=k) {
-      CHKERRQ(BVSetRandomColumn(ctx->U,nq));
-    } else {
-      CHKERRQ(BVCopyColumn(ctx->U,i,nq));
-    }
+    if (i>=k) CHKERRQ(BVSetRandomColumn(ctx->U,nq));
+    else CHKERRQ(BVCopyColumn(ctx->U,i,nq));
     CHKERRQ(BVOrthogonalizeColumn(ctx->U,nq,pS+i*ctx->ld,&norm,&breakdown));
     if (!breakdown) {
       CHKERRQ(BVScaleColumn(ctx->U,nq,1.0/norm));
@@ -414,9 +402,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   if (newc>0) {
     /* truncate columns associated with new converged eigenpairs */
     for (j=0;j<deg;j++) {
-      for (i=lock;i<lock+newc;i++) {
-        CHKERRQ(PetscArraycpy(M+(i-lock+j*newc)*nrow,S+i*lds+j*ctx->ld+lock,nrow));
-      }
+      for (i=lock;i<lock+newc;i++) CHKERRQ(PetscArraycpy(M+(i-lock+j*newc)*nrow,S+i*lds+j*ctx->ld+lock,nrow));
     }
     CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined (PETSC_USE_COMPLEX)
@@ -454,9 +440,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 
   /* truncate columns associated with non-converged eigenpairs */
   for (j=0;j<deg;j++) {
-    for (i=lock+newc;i<cs1;i++) {
-      CHKERRQ(PetscArraycpy(M+(i-lock-newc+j*nnc)*nrow,S+i*lds+j*ctx->ld+lock,nrow));
-    }
+    for (i=lock+newc;i<cs1;i++) CHKERRQ(PetscArraycpy(M+(i-lock-newc+j*nnc)*nrow,S+i*lds+j*ctx->ld+lock,nrow));
   }
   CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined (PETSC_USE_COMPLEX)
@@ -530,12 +514,8 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
             for (j=0;j<i;j++) qB[i+j*lds] = PetscConj(qB[j+i*lds]);
             qB[i+i*lds] = PetscRealPart(qB[i+i*lds]);
           }
-          for (i=rk;i<ctx->ld;i++) {
-            CHKERRQ(PetscArrayzero(qB+i*lds,ctx->ld));
-          }
-          for (i=0;i<rk;i++) {
-            CHKERRQ(PetscArrayzero(qB+i*lds+rk,(ctx->ld-rk)));
-          }
+          for (i=rk;i<ctx->ld;i++) CHKERRQ(PetscArrayzero(qB+i*lds,ctx->ld));
+          for (i=0;i<rk;i++) CHKERRQ(PetscArrayzero(qB+i*lds+rk,(ctx->ld-rk)));
           if (c!=r) {
             sqB = ctx->qB+r*ctx->ld*lds+c*ctx->ld;
             for (i=0;i<ctx->ld;i++) for (j=0;j<ctx->ld;j++) sqB[i+j*lds] = PetscConj(qB[j+i*lds]);

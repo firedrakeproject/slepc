@@ -61,9 +61,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
   d = PetscMax(0,n-p);
   for (i=Istart;i<Iend;i++) {
-    for (j=0;j<=PetscMin(i,n-1);j++) {
-      CHKERRQ(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
-    }
+    for (j=0;j<=PetscMin(i,n-1);j++) CHKERRQ(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));

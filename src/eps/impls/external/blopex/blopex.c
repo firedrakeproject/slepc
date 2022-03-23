@@ -65,11 +65,8 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   CHKERRABORT(comm,MatMult(A,(Vec)x,(Vec)y));
   CHKERRABORT(comm,STGetShift(blopex->st,&sigma));
   if (sigma != 0.0) {
-    if (nmat>1) {
-      CHKERRABORT(comm,MatMult(B,(Vec)x,blopex->w));
-    } else {
-      CHKERRABORT(comm,VecCopy((Vec)x,blopex->w));
-    }
+    if (nmat>1) CHKERRABORT(comm,MatMult(B,(Vec)x,blopex->w));
+    else CHKERRABORT(comm,VecCopy((Vec)x,blopex->w));
     CHKERRABORT(comm,VecAXPY((Vec)y,-sigma,blopex->w));
   }
   PetscFunctionReturnVoid();
@@ -192,17 +189,13 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   PetscFunctionBegin;
   CHKERRQ(STGetShift(eps->st,&sigma));
   CHKERRQ(PetscMalloc1(blopex->bs,&lambda));
-  if (eps->numbermonitors>0) {
-    CHKERRQ(PetscMalloc4(blopex->bs*(eps->max_it+1),&lambdahist,eps->ncv,&eigr,blopex->bs*(eps->max_it+1),&residhist,eps->ncv,&errest));
-  }
+  if (eps->numbermonitors>0) CHKERRQ(PetscMalloc4(blopex->bs*(eps->max_it+1),&lambdahist,eps->ncv,&eigr,blopex->bs*(eps->max_it+1),&residhist,eps->ncv,&errest));
 
   /* Complete the initial basis with random vectors */
   for (i=0;i<eps->nini;i++) {  /* in case the initial vectors were also set with VecSetRandom */
     CHKERRQ(BVSetRandomColumn(eps->V,eps->nini));
   }
-  for (i=eps->nini;i<eps->ncv;i++) {
-    CHKERRQ(BVSetRandomColumn(eps->V,i));
-  }
+  for (i=eps->nini;i<eps->ncv;i++) CHKERRQ(BVSetRandomColumn(eps->V,i));
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
 
@@ -271,9 +264,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   }
 
   CHKERRQ(PetscFree(lambda));
-  if (eps->numbermonitors>0) {
-    CHKERRQ(PetscFree4(lambdahist,eigr,residhist,errest));
-  }
+  if (eps->numbermonitors>0) CHKERRQ(PetscFree4(lambdahist,eigr,residhist,errest));
   PetscFunctionReturn(0);
 }
 
@@ -376,9 +367,7 @@ PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isascii) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  block size %" PetscInt_FMT "\n",ctx->bs));
-  }
+  if (isascii) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  block size %" PetscInt_FMT "\n",ctx->bs));
   PetscFunctionReturn(0);
 }
 

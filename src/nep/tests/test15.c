@@ -167,9 +167,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
   CHKERRQ(NEPConvergedReasonView(nep,viewer));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (!terse) {
-    CHKERRQ(NEPErrorView(nep,NEP_ERROR_BACKWARD,viewer));
-  }
+  if (!terse) CHKERRQ(NEPErrorView(nep,NEP_ERROR_BACKWARD,viewer));
   CHKERRQ(PetscViewerPopFormat(viewer));
 
   CHKERRQ(NEPDestroy(&nep));

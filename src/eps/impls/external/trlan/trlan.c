@@ -40,11 +40,8 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_EXTRACTION);
 
   tr->restart = 0;
-  if (tr->maxlan+1-eps->ncv<=0) {
-    CHKERRQ(PetscBLASIntCast(tr->maxlan*(tr->maxlan+10),&tr->lwork));
-  } else {
-    CHKERRQ(PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork));
-  }
+  if (tr->maxlan+1-eps->ncv<=0) CHKERRQ(PetscBLASIntCast(tr->maxlan*(tr->maxlan+10),&tr->lwork));
+  else CHKERRQ(PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork));
   if (tr->work) CHKERRQ(PetscFree(tr->work));
   CHKERRQ(PetscMalloc1(tr->lwork,&tr->work));
   CHKERRQ(PetscLogObjectMemory((PetscObject)eps,tr->lwork*sizeof(PetscReal)));

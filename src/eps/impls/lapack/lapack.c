@@ -66,24 +66,14 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (denseok) {
     if (eps->isgeneralized) {
       if (eps->ishermitian) {
-        if (eps->ispositive) {
-          CHKERRQ(DSSetType(eps->ds,DSGHEP));
-        } else {
-          CHKERRQ(DSSetType(eps->ds,DSGNHEP)); /* TODO: should be DSGHIEP */
-        }
-      } else {
-        CHKERRQ(DSSetType(eps->ds,DSGNHEP));
-      }
+        if (eps->ispositive) CHKERRQ(DSSetType(eps->ds,DSGHEP));
+        else CHKERRQ(DSSetType(eps->ds,DSGNHEP)); /* TODO: should be DSGHIEP */
+      } else CHKERRQ(DSSetType(eps->ds,DSGNHEP));
     } else {
-      if (eps->ishermitian) {
-        CHKERRQ(DSSetType(eps->ds,DSHEP));
-      } else {
-        CHKERRQ(DSSetType(eps->ds,DSNHEP));
-      }
+      if (eps->ishermitian) CHKERRQ(DSSetType(eps->ds,DSHEP));
+      else CHKERRQ(DSSetType(eps->ds,DSNHEP));
     }
-  } else {
-    CHKERRQ(DSSetType(eps->ds,DSNHEP));
-  }
+  } else CHKERRQ(DSSetType(eps->ds,DSNHEP));
   CHKERRQ(DSAllocate(eps->ds,eps->ncv));
   CHKERRQ(DSGetLeadingDimension(eps->ds,&ld));
   CHKERRQ(DSSetDimensions(eps->ds,eps->ncv,0,0));
@@ -91,11 +81,8 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (denseok) {
     CHKERRQ(STGetShift(eps->st,&shift));
     if (shift != 0.0) {
-      if (nmat>1) {
-        CHKERRQ(MatAXPY(Adense,-shift,Bdense,SAME_NONZERO_PATTERN));
-      } else {
-        CHKERRQ(MatShift(Adense,-shift));
-      }
+      if (nmat>1) CHKERRQ(MatAXPY(Adense,-shift,Bdense,SAME_NONZERO_PATTERN));
+      else CHKERRQ(MatShift(Adense,-shift));
     }
     /* use dummy pc and ksp to avoid problems when B is not positive definite */
     CHKERRQ(STGetKSP(eps->st,&ksp));

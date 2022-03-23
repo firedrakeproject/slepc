@@ -600,9 +600,7 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetSchurComplement(J,is1,is1,is0,is0,MAT_IGNORE_MATRIX,NULL,MAT_SCHUR_COMPLEMENT_AINV_DIAG,MAT_INITIAL_MATRIX,&Jred));
 
-  if (!terse) {
-    CHKERRQ(MatView(Jred,NULL));
-  }
+  if (!terse) CHKERRQ(MatView(Jred,NULL));
 
   CHKERRQ(MatCreateVecs(Jred,NULL,&Xr));
   CHKERRQ(MatCreateVecs(Jred,NULL,&Xi));
@@ -626,9 +624,8 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  if (terse) {
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
     /* Get number of converged approximate eigenpairs */
     CHKERRQ(EPSGetConverged(eps,&nconv));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv));
@@ -653,11 +650,8 @@ int main(int argc,char **argv)
         re = kr;
         im = ki;
 #endif
-        if (im!=0.0) {
-          CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi %12g\n",(double)re,(double)im,(double)error));
-        } else {
-          CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error));
-        }
+        if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi %12g\n",(double)re,(double)im,(double)error));
+        else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error));
       }
       CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     }

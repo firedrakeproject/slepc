@@ -53,9 +53,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(nep,1,viewer,2);
 
@@ -85,15 +83,12 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"    nonzero pattern of the matrices: %s\n",MatStructures[nep->mstr]));
         break;
       }
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  nonlinear operator not specified yet\n"));
-    }
+    } else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  nonlinear operator not specified yet\n"));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: "));
     CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),nep->target,PETSC_FALSE));
-    if (!nep->which) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"not yet set\n"));
-    } else switch (nep->which) {
+    if (!nep->which) CHKERRQ(PetscViewerASCIIPrintf(viewer,"not yet set\n"));
+    else switch (nep->which) {
       case NEP_WHICH_USER:
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"user defined\n"));
         break;
@@ -129,9 +124,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
         break;
     }
     CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
-    if (nep->twosided) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using two-sided variant (for left eigenvectors)\n"));
-    }
+    if (nep->twosided) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using two-sided variant (for left eigenvectors)\n"));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %" PetscInt_FMT "\n",nep->nev));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",nep->ncv));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %" PetscInt_FMT "\n",nep->mpd));
@@ -148,9 +141,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n"));
       if (nep->nrma) {
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)nep->nrma[0]));
-        for (i=1;i<nep->nt;i++) {
-          CHKERRQ(PetscViewerASCIIPrintf(viewer,", %g",(double)nep->nrma[i]));
-        }
+        for (i=1;i<nep->nt;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,", %g",(double)nep->nrma[i]));
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
       }
       break;
@@ -161,17 +152,11 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     if (nep->refine) {
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s, with %s scheme\n",NEPRefineTypes[nep->refine],NEPRefineSchemes[nep->scheme]));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%" PetscInt_FMT "\n",(double)nep->rtol,nep->rits));
-      if (nep->npart>1) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  splitting communicator in %" PetscInt_FMT " partitions for refinement\n",nep->npart));
-      }
+      if (nep->npart>1) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  splitting communicator in %" PetscInt_FMT " partitions for refinement\n",nep->npart));
     }
-    if (nep->nini) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(nep->nini)));
-    }
+    if (nep->nini) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(nep->nini)));
   } else {
-    if (nep->ops->view) {
-      CHKERRQ((*nep->ops->view)(nep,viewer));
-    }
+    if (nep->ops->view) CHKERRQ((*nep->ops->view)(nep,viewer));
   }
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
   if (!nep->V) CHKERRQ(NEPGetBV(nep,&nep->V));
@@ -192,9 +177,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
         CHKERRQ(PetscViewerASCIIGetStdout(child,&sviewer));
         CHKERRQ(KSPView(nep->refineksp,sviewer));
       }
-    } else {
-      CHKERRQ(KSPView(nep->refineksp,viewer));
-    }
+    } else CHKERRQ(KSPView(nep->refineksp,viewer));
     CHKERRQ(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
@@ -255,11 +238,8 @@ PetscErrorCode NEPConvergedReasonView(NEP nep,PetscViewer viewer)
   if (isAscii) {
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel));
-    if (nep->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve converged (%" PetscInt_FMT " eigenpair%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",nep->nconv,(nep->nconv>1)?"s":"",NEPConvergedReasons[nep->reason],nep->its));
-    } else if (nep->reason <= 0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its));
-    }
+    if (nep->reason > 0 && format != PETSC_VIEWER_FAILED) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve converged (%" PetscInt_FMT " eigenpair%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",nep->nconv,(nep->nconv>1)?"s":"",NEPConvergedReasons[nep->reason],nep->its));
+    else if (nep->reason <= 0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its));
     CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel));
   }
   PetscFunctionReturn(0);
@@ -321,11 +301,8 @@ static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer 
       PetscFunctionReturn(0);
     }
   }
-  if (nep->which==NEP_ALL) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals));
-  } else {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:"));
-  }
+  if (nep->which==NEP_ALL) CHKERRQ(PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals));
+  else CHKERRQ(PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:"));
   for (i=0;i<=(nvals-1)/8;i++) {
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n     "));
     for (j=0;j<PetscMin(8,nvals-8*i);j++) {
@@ -369,11 +346,8 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
     re = kr;
     im = ki;
 #endif
-    if (im!=0.0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error));
-    }
+    if (im!=0.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error));
   }
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s",sep));
   PetscFunctionReturn(0);
@@ -429,9 +403,7 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,3);
   PetscCheckSameComm(nep,1,viewer,3);
   NEPCheckSolved(nep,1);
@@ -637,11 +609,8 @@ static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
     re = nep->eigr[k];
     im = nep->eigi[k];
 #endif
-    if (im!=0.0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)re));
-    }
+    if (im!=0.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)re));
   }
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"];\n"));
   PetscFunctionReturn(0);
@@ -673,9 +642,7 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(nep,1,viewer,2);
   NEPCheckSolved(nep,1);
@@ -685,15 +652,12 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5));
 #endif
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isdraw) {
-    CHKERRQ(NEPValuesView_DRAW(nep,viewer));
-  } else if (isbinary) {
-    CHKERRQ(NEPValuesView_BINARY(nep,viewer));
+  if (isdraw) CHKERRQ(NEPValuesView_DRAW(nep,viewer));
+  else if (isbinary) CHKERRQ(NEPValuesView_BINARY(nep,viewer));
 #if defined(PETSC_HAVE_HDF5)
-  } else if (ishdf5) {
-    CHKERRQ(NEPValuesView_HDF5(nep,viewer));
+  else if (ishdf5) CHKERRQ(NEPValuesView_HDF5(nep,viewer));
 #endif
-  } else if (isascii) {
+  else if (isascii) {
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     switch (format) {
       case PETSC_VIEWER_DEFAULT:
@@ -777,9 +741,7 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(nep,1,viewer,2);
   NEPCheckSolved(nep,1);

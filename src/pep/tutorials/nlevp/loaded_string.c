@@ -76,17 +76,11 @@ int main(int argc,char **argv)
   }
 
   /* A2 */
-  if (Istart<=n-1 && n-1<Iend) {
-    CHKERRQ(MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES));
-  }
+  if (Istart<=n-1 && n-1<Iend) CHKERRQ(MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES));
 
   /* assemble matrices */
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
-  }
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
-  }
+  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
+  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
 
   /* build matrices for the QEP */
   CHKERRQ(MatAXPY(A[2],1.0,A[0],DIFFERENT_NONZERO_PATTERN));
@@ -112,18 +106,15 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
-  } else {
+  if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
   CHKERRQ(PEPDestroy(&pep));
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatDestroy(&A[i]));
-  }
+  for (i=0;i<NMAT;i++) CHKERRQ(MatDestroy(&A[i]));
   ierr = SlepcFinalize();
   return ierr;
 }

@@ -25,9 +25,7 @@ int main(int argc,char **argv)
     CHKERRQ(SlepcInitialized(&isInitialized));
     CHKERRQ(SlepcFinalized(&isFinalized));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"SlepcInitialized=%d, SlepcFinalized=%d.\n",(int)isInitialized,(int)isFinalized));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"SLEPc was already initialized.\n"));
-  }
+  } else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"SLEPc was already initialized.\n"));
   ierr = SlepcFinalize();if (ierr) return ierr;
   ierr = SlepcFinalized(&isFinalized);
   if (!isFinalized) printf("Unexpected value: SlepcFinalized() returned False after SlepcFinalize()\n");

@@ -42,9 +42,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   CHKERRQ(EPSAllocateSolution(eps,1));
   CHKERRQ(EPS_SetInnerProduct(eps));
   CHKERRQ(DSSetType(eps->ds,DSNHEP));
-  if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) {
-    CHKERRQ(DSSetRefined(eps->ds,PETSC_TRUE));
-  }
+  if (eps->extraction==EPS_REFINED || eps->extraction==EPS_REFINED_HARMONIC) CHKERRQ(DSSetRefined(eps->ds,PETSC_TRUE));
   CHKERRQ(DSSetExtraRow(eps->ds,PETSC_TRUE));
   CHKERRQ(DSAllocate(eps->ds,eps->ncv+1));
   PetscFunctionReturn(0);
@@ -95,9 +93,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     CHKERRQ(BVSetActiveColumns(eps->V,eps->nconv,nv));
 
     /* Compute translation of Krylov decomposition if harmonic extraction used */
-    if (harmonic) {
-      CHKERRQ(DSTranslateHarmonic(eps->ds,eps->target,beta,PETSC_FALSE,NULL,&gamma));
-    }
+    if (harmonic) CHKERRQ(DSTranslateHarmonic(eps->ds,eps->target,beta,PETSC_FALSE,NULL,&gamma));
 
     /* Solve projected problem */
     CHKERRQ(DSSolve(eps->ds,eps->eigr,eps->eigi));
@@ -238,9 +234,7 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isascii && arnoldi->delayed) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using delayed reorthogonalization\n"));
-  }
+  if (isascii && arnoldi->delayed) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using delayed reorthogonalization\n"));
   PetscFunctionReturn(0);
 }
 

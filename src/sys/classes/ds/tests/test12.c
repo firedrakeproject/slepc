@@ -80,9 +80,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
   CHKERRQ(DSView(ds,viewer));
   CHKERRQ(PetscViewerPopFormat(viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Show info about functions */
   CHKERRQ(DSNEPGetNumFN(ds,&nfun));
@@ -169,14 +167,9 @@ int main(int argc,char **argv)
       nrm += aux*aux;
     }
     nrm = PetscSqrtReal(nrm);
-    if (nrm/SlepcAbsEigenvalue(wr[i],wi[i])>tol) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %" PetscInt_FMT "-th computed eigenpair %g\n",i,(double)nrm));
-    }
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
-    }
+    if (nrm/SlepcAbsEigenvalue(wr[i],wi[i])>tol) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %" PetscInt_FMT "-th computed eigenpair %g\n",i,(double)nrm));
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
   CHKERRQ(PetscFree(W));
   CHKERRQ(DSRestoreArray(ds,DS_MAT_X,&X));

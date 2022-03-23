@@ -53,9 +53,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)pep),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)pep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(pep,1,viewer,2);
 
@@ -93,9 +91,8 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: "));
     CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),pep->target,PETSC_FALSE));
-    if (!pep->which) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"not yet set\n"));
-    } else switch (pep->which) {
+    if (!pep->which) CHKERRQ(PetscViewerASCIIPrintf(viewer,"not yet set\n"));
+    else switch (pep->which) {
       case PEP_WHICH_USER:
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"user defined\n"));
         break;
@@ -127,11 +124,8 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n"));
         break;
       case PEP_ALL:
-        if (pep->inta || pep->intb) {
-          CHKERRQ(PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",(double)pep->inta,(double)pep->intb));
-        } else {
-          CHKERRQ(PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n"));
-        }
+        if (pep->inta || pep->intb) CHKERRQ(PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",(double)pep->inta,(double)pep->intb));
+        else CHKERRQ(PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n"));
         break;
     }
     CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
@@ -151,9 +145,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n"));
       if (pep->nrma) {
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]));
-        for (i=1;i<pep->nmat;i++) {
-          CHKERRQ(PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]));
-        }
+        for (i=1;i<pep->nmat;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]));
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
       }
       break;
@@ -165,17 +157,11 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (pep->refine) {
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s, with %s scheme\n",PEPRefineTypes[pep->refine],PEPRefineSchemes[pep->scheme]));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%" PetscInt_FMT "\n",(double)pep->rtol,pep->rits));
-      if (pep->npart>1) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  splitting communicator in %" PetscInt_FMT " partitions for refinement\n",pep->npart));
-      }
+      if (pep->npart>1) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  splitting communicator in %" PetscInt_FMT " partitions for refinement\n",pep->npart));
     }
-    if (pep->nini) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(pep->nini)));
-    }
+    if (pep->nini) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(pep->nini)));
   } else {
-    if (pep->ops->view) {
-      CHKERRQ((*pep->ops->view)(pep,viewer));
-    }
+    if (pep->ops->view) CHKERRQ((*pep->ops->view)(pep,viewer));
   }
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
   if (!pep->V) CHKERRQ(PEPGetBV(pep,&pep->V));
@@ -199,9 +185,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         CHKERRQ(PetscViewerASCIIGetStdout(child,&sviewer));
         CHKERRQ(KSPView(pep->refineksp,sviewer));
       }
-    } else {
-      CHKERRQ(KSPView(pep->refineksp,viewer));
-    }
+    } else CHKERRQ(KSPView(pep->refineksp,viewer));
     CHKERRQ(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
@@ -262,11 +246,8 @@ PetscErrorCode PEPConvergedReasonView(PEP pep,PetscViewer viewer)
   if (isAscii) {
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel));
-    if (pep->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve converged (%" PetscInt_FMT " eigenpair%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",pep->nconv,(pep->nconv>1)?"s":"",PEPConvergedReasons[pep->reason],pep->its));
-    } else if (pep->reason <= 0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its));
-    }
+    if (pep->reason > 0 && format != PETSC_VIEWER_FAILED) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve converged (%" PetscInt_FMT " eigenpair%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",pep->nconv,(pep->nconv>1)?"s":"",PEPConvergedReasons[pep->reason],pep->its));
+    else if (pep->reason <= 0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its));
     CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)pep)->tablevel));
   }
   PetscFunctionReturn(0);
@@ -328,11 +309,8 @@ static PetscErrorCode PEPErrorView_ASCII(PEP pep,PEPErrorType etype,PetscViewer 
       PetscFunctionReturn(0);
     }
   }
-  if (pep->which==PEP_ALL) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals));
-  } else {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:"));
-  }
+  if (pep->which==PEP_ALL) CHKERRQ(PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals));
+  else CHKERRQ(PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:"));
   for (i=0;i<=(nvals-1)/8;i++) {
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n     "));
     for (j=0;j<PetscMin(8,nvals-8*i);j++) {
@@ -376,11 +354,8 @@ static PetscErrorCode PEPErrorView_DETAIL(PEP pep,PEPErrorType etype,PetscViewer
     re = kr;
     im = ki;
 #endif
-    if (im!=0.0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error));
-    }
+    if (im!=0.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error));
   }
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s",sep));
   PetscFunctionReturn(0);
@@ -436,9 +411,7 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)pep),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)pep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,3);
   PetscCheckSameComm(pep,1,viewer,3);
   PEPCheckSolved(pep,1);
@@ -644,11 +617,8 @@ static PetscErrorCode PEPValuesView_MATLAB(PEP pep,PetscViewer viewer)
     re = pep->eigr[k];
     im = pep->eigi[k];
 #endif
-    if (im!=0.0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)re));
-    }
+    if (im!=0.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)re));
   }
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"];\n"));
   PetscFunctionReturn(0);
@@ -680,9 +650,7 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)pep),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)pep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(pep,1,viewer,2);
   PEPCheckSolved(pep,1);
@@ -692,15 +660,12 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5));
 #endif
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isdraw) {
-    CHKERRQ(PEPValuesView_DRAW(pep,viewer));
-  } else if (isbinary) {
-    CHKERRQ(PEPValuesView_BINARY(pep,viewer));
+  if (isdraw) CHKERRQ(PEPValuesView_DRAW(pep,viewer));
+  else if (isbinary) CHKERRQ(PEPValuesView_BINARY(pep,viewer));
 #if defined(PETSC_HAVE_HDF5)
-  } else if (ishdf5) {
-    CHKERRQ(PEPValuesView_HDF5(pep,viewer));
+  else if (ishdf5) CHKERRQ(PEPValuesView_HDF5(pep,viewer));
 #endif
-  } else if (isascii) {
+  else if (isascii) {
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     switch (format) {
       case PETSC_VIEWER_DEFAULT:
@@ -780,9 +745,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)pep),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)pep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(pep,1,viewer,2);
   PEPCheckSolved(pep,1);

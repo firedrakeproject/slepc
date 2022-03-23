@@ -65,11 +65,8 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
   CHKERRQ(EPSSetOperators(eps,A,NULL));
-  if (symm) {
-    CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
-  } else {
-    CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
-  }
+  if (symm) CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
+  else CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
   CHKERRQ(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
   CHKERRQ(EPSSetFromOptions(eps));
 

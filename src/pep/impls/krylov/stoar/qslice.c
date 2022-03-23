@@ -110,9 +110,8 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
   CHKERRQ(BVCreate(PetscObjectComm((PetscObject)pep),&sr->V));
   CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)sr->V));
   if (!pep->V) CHKERRQ(PEPGetBV(pep,&pep->V));
-  if (!((PetscObject)(pep->V))->type_name) {
-    CHKERRQ(BVSetType(sr->V,BVSVEC));
-  } else {
+  if (!((PetscObject)(pep->V))->type_name) CHKERRQ(BVSetType(sr->V,BVSVEC));
+  else {
     CHKERRQ(BVGetType(pep->V,&type));
     CHKERRQ(BVSetType(sr->V,type));
   }
@@ -141,14 +140,10 @@ static PetscErrorCode PEPQSliceMatGetInertia(PEP pep,PetscReal shift,PetscInt *i
   PetscBool      flg;
 
   PetscFunctionBegin;
-  if (!pep->solvematcoeffs) {
-    CHKERRQ(PetscMalloc1(pep->nmat,&pep->solvematcoeffs));
-  }
+  if (!pep->solvematcoeffs) CHKERRQ(PetscMalloc1(pep->nmat,&pep->solvematcoeffs));
   if (shift==PETSC_MAX_REAL) { /* Inertia of matrix A[2] */
     pep->solvematcoeffs[0] = 0.0; pep->solvematcoeffs[1] = 0.0; pep->solvematcoeffs[2] = 1.0;
-  } else {
-    CHKERRQ(PEPEvaluateBasis(pep,shift,0,pep->solvematcoeffs,NULL));
-  }
+  } else CHKERRQ(PEPEvaluateBasis(pep,shift,0,pep->solvematcoeffs,NULL));
   CHKERRQ(STMatSetUp(pep->st,pep->sfactor,pep->solvematcoeffs));
   CHKERRQ(STGetKSP(pep->st,&ksp));
   CHKERRQ(KSPGetPC(ksp,&pc));
@@ -541,9 +536,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   /* compute inertia0 */
   CHKERRQ(PEPQSliceGetInertia(pep,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1));
   PetscCheck(!zeros || (sr->int0!=pep->inta && sr->int0!=pep->intb),((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
-  if (!ctx->hyperbolic && ctx->checket) {
-    CHKERRQ(PEPQSliceCheckEigenvalueType(pep,sr->int0,0.0,PETSC_TRUE));
-  }
+  if (!ctx->hyperbolic && ctx->checket) CHKERRQ(PEPQSliceCheckEigenvalueType(pep,sr->int0,0.0,PETSC_TRUE));
 
   /* compute inertia1 */
   CHKERRQ(PEPQSliceGetInertia(pep,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1));
@@ -1230,11 +1223,8 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
     CHKERRQ(DSRestoreArrayReal(pep->ds,DS_MAT_T,&a));
     CHKERRQ(DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega));
     CHKERRQ(DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l));
-    if (l==0) {
-      CHKERRQ(DSSetState(pep->ds,DS_STATE_INTERMEDIATE));
-    } else {
-      CHKERRQ(DSSetState(pep->ds,DS_STATE_RAW));
-    }
+    if (l==0) CHKERRQ(DSSetState(pep->ds,DS_STATE_INTERMEDIATE));
+    else CHKERRQ(DSSetState(pep->ds,DS_STATE_RAW));
 
     /* Solve projected problem */
     CHKERRQ(DSSolve(pep->ds,pep->eigr,pep->eigi));
@@ -1298,11 +1288,8 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
     CHKERRQ(BVGetActiveColumns(pep->V,NULL,&nq));
     if (k+l+deg<=nq) {
       CHKERRQ(BVSetActiveColumns(ctx->V,pep->nconv,k+l+1));
-      if (!falselock && ctx->lock) {
-        CHKERRQ(BVTensorCompress(ctx->V,k-pep->nconv));
-      } else {
-        CHKERRQ(BVTensorCompress(ctx->V,0));
-      }
+      if (!falselock && ctx->lock) CHKERRQ(BVTensorCompress(ctx->V,k-pep->nconv));
+      else CHKERRQ(BVTensorCompress(ctx->V,0));
     }
     pep->nconv = k;
     CHKERRQ(PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv));

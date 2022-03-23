@@ -244,17 +244,15 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->beta==(PetscScalar)1.0) {
-      if (fn->alpha==(PetscScalar)1.0) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: x^(-1/2)\n"));
-      } else {
+      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: x^(-1/2)\n"));
+      else {
         CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: (%s*x)^(-1/2)\n",str));
       }
     } else {
       CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
-      if (fn->alpha==(PetscScalar)1.0) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: %s*x^(-1/2)\n",str));
-      } else {
+      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: %s*x^(-1/2)\n",str));
+      else {
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: %s",str));
         CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
@@ -262,9 +260,7 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
         CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
       }
     }
-    if (fn->method<nmeth) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
-    }
+    if (fn->method<nmeth) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
   }
   PetscFunctionReturn(0);
 }

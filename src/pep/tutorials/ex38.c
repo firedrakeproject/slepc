@@ -46,13 +46,9 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
     CHKERRQ(MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
@@ -66,13 +62,9 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
     CHKERRQ(MatSetValue(C,i,i,tau*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
@@ -84,9 +76,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(M));
   CHKERRQ(MatSetUp(M));
   CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(M,i,i,mu,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(M,i,i,mu,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
@@ -189,9 +179,8 @@ int main(int argc,char **argv)
   /*
      Show detailed info unless -terse option is given by user
    */
-  if (terse) {
-    CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
-  } else {
+  if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));

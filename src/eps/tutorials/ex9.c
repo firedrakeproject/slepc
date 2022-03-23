@@ -169,9 +169,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
     CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
     CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(EPSConvergedReasonView(eps,viewer));

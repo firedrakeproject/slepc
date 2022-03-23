@@ -28,9 +28,7 @@ PetscErrorCode SVDComputeVectors_Left(SVD svd)
     if (!svd->U) CHKERRQ(SVDGetBV(svd,NULL,&svd->U));
     CHKERRQ(BVGetSizes(svd->U,NULL,NULL,&oldsize));
     if (!oldsize) {
-      if (!((PetscObject)(svd->U))->type_name) {
-        CHKERRQ(BVSetType(svd->U,BVSVEC));
-      }
+      if (!((PetscObject)(svd->U))->type_name) CHKERRQ(BVSetType(svd->U,BVSVEC));
       CHKERRQ(MatCreateVecsEmpty(svd->A,NULL,&tl));
       CHKERRQ(BVSetSizesFromVec(svd->U,tl,svd->ncv));
       CHKERRQ(VecDestroy(&tl));
@@ -47,9 +45,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 {
   PetscFunctionBegin;
   SVDCheckSolved(svd,1);
-  if (svd->state==SVD_STATE_SOLVED && svd->ops->computevectors) {
-    CHKERRQ((*svd->ops->computevectors)(svd));
-  }
+  if (svd->state==SVD_STATE_SOLVED && svd->ops->computevectors) CHKERRQ((*svd->ops->computevectors)(svd));
   svd->state = SVD_STATE_VECTORS;
   PetscFunctionReturn(0);
 }
@@ -108,9 +104,8 @@ PetscErrorCode SVDSolve(SVD svd)
   svd->state = SVD_STATE_SOLVED;
 
   /* sort singular triplets */
-  if (svd->which == SVD_SMALLEST) {
-    CHKERRQ(PetscSortRealWithPermutation(svd->nconv,svd->sigma,svd->perm));
-  } else {
+  if (svd->which == SVD_SMALLEST) CHKERRQ(PetscSortRealWithPermutation(svd->nconv,svd->sigma,svd->perm));
+  else {
     CHKERRQ(PetscMalloc1(svd->nconv,&workperm));
     for (i=0;i<svd->nconv;i++) workperm[i] = i;
     CHKERRQ(PetscSortRealWithPermutation(svd->nconv,svd->sigma,workperm));
@@ -126,9 +121,7 @@ PetscErrorCode SVDSolve(SVD svd)
   CHKERRQ(SVDValuesViewFromOptions(svd));
   CHKERRQ(SVDVectorsViewFromOptions(svd));
   CHKERRQ(MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat0"));
-  if (svd->isgeneralized) {
-    CHKERRQ(MatViewFromOptions(svd->OPb,(PetscObject)svd,"-svd_view_mat1"));
-  }
+  if (svd->isgeneralized) CHKERRQ(MatViewFromOptions(svd->OPb,(PetscObject)svd,"-svd_view_mat1"));
 
   /* Remove the initial subspaces */
   svd->nini = 0;
@@ -320,11 +313,8 @@ static PetscErrorCode SVDComputeResidualNorms_Standard(SVD svd,PetscReal sigma,V
   /* norm2 = ||A^T*u-sigma*v||_2 */
   if (norm2) {
     CHKERRQ(MatGetSize(svd->OP,&M,&N));
-    if (M<N) {
-      CHKERRQ(MatMult(svd->A,u,y));
-    } else {
-      CHKERRQ(MatMult(svd->AT,u,y));
-    }
+    if (M<N) CHKERRQ(MatMult(svd->A,u,y));
+    else CHKERRQ(MatMult(svd->AT,u,y));
     CHKERRQ(VecAXPY(y,-sigma,v));
     CHKERRQ(VecNorm(y,NORM_2,norm2));
   }

@@ -348,9 +348,7 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (svd->convergeddestroy) {
-    CHKERRQ((*svd->convergeddestroy)(svd->convergedctx));
-  }
+  if (svd->convergeddestroy) CHKERRQ((*svd->convergeddestroy)(svd->convergedctx));
   svd->convergeduser    = func;
   svd->convergeddestroy = destroy;
   svd->convergedctx     = ctx;
@@ -479,9 +477,7 @@ PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD,Pet
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (svd->stoppingdestroy) {
-    CHKERRQ((*svd->stoppingdestroy)(svd->stoppingctx));
-  }
+  if (svd->stoppingdestroy) CHKERRQ((*svd->stoppingdestroy)(svd->stoppingctx));
   svd->stoppinguser    = func;
   svd->stoppingdestroy = destroy;
   svd->stoppingctx     = ctx;
@@ -604,9 +600,7 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
   CHKERRQ((*cfunc)(viewer,format,ctx,&vf));
   CHKERRQ(PetscObjectDereference((PetscObject)viewer));
   CHKERRQ(SVDMonitorSet(svd,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
-  if (trackall) {
-    CHKERRQ(SVDSetTrackAll(svd,PETSC_TRUE));
-  }
+  if (trackall) CHKERRQ(SVDSetTrackAll(svd,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -640,11 +634,8 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   CHKERRQ(SVDRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)svd);CHKERRQ(ierr);
     CHKERRQ(PetscOptionsFList("-svd_type","SVD solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,sizeof(type),&flg));
-    if (flg) {
-      CHKERRQ(SVDSetType(svd,type));
-    } else if (!((PetscObject)svd)->type_name) {
-      CHKERRQ(SVDSetType(svd,SVDCROSS));
-    }
+    if (flg) CHKERRQ(SVDSetType(svd,type));
+    else if (!((PetscObject)svd)->type_name) CHKERRQ(SVDSetType(svd,SVDCROSS));
 
     CHKERRQ(PetscOptionsBoolGroupBegin("-svd_standard","Singular value decomposition (SVD)","SVDSetProblemType",&flg));
     if (flg) CHKERRQ(SVDSetProblemType(svd,SVD_STANDARD));
@@ -708,9 +699,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     CHKERRQ(PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL));
     CHKERRQ(PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",NULL));
 
-    if (svd->ops->setfromoptions) {
-      CHKERRQ((*svd->ops->setfromoptions)(PetscOptionsObject,svd));
-    }
+    if (svd->ops->setfromoptions) CHKERRQ((*svd->ops->setfromoptions)(PetscOptionsObject,svd));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)svd));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 

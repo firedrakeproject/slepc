@@ -41,9 +41,7 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
   PetscInt       i,n = svd->numbermonitors;
 
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    CHKERRQ((*svd->monitor[i])(svd,it,nconv,sigma,errest,nest,svd->monitorcontext[i]));
-  }
+  for (i=0;i<n;i++) CHKERRQ((*svd->monitor[i])(svd,it,nconv,sigma,errest,nest,svd->monitorcontext[i]));
   PetscFunctionReturn(0);
 }
 
@@ -129,9 +127,7 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   for (i=0; i<svd->numbermonitors; i++) {
-    if (svd->monitordestroy[i]) {
-      CHKERRQ((*svd->monitordestroy[i])(&svd->monitorcontext[i]));
-    }
+    if (svd->monitordestroy[i]) CHKERRQ((*svd->monitordestroy[i])(&svd->monitorcontext[i]));
   }
   svd->numbermonitors = 0;
   PetscFunctionReturn(0);
@@ -190,9 +186,7 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
-  if (its==1 && ((PetscObject)svd)->prefix) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Singular value approximations and residual norms for %s solve.\n",((PetscObject)svd)->prefix));
-  }
+  if (its==1 && ((PetscObject)svd)->prefix) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Singular value approximations and residual norms for %s solve.\n",((PetscObject)svd)->prefix));
   if (nconv<nest) {
     CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
     CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel));
@@ -238,14 +232,10 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
   CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel));
-  if (its==1 && ((PetscObject)svd)->prefix) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Singular value approximations and residual norms for %s solve.\n",((PetscObject)svd)->prefix));
-  }
+  if (its==1 && ((PetscObject)svd)->prefix) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Singular value approximations and residual norms for %s solve.\n",((PetscObject)svd)->prefix));
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " SVD nconv=%" PetscInt_FMT " Values (Errors)",its,nconv));
   CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
-  for (i=0;i<nest;i++) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer," %g (%10.8e)",(double)sigma[i],(double)errest[i]));
-  }
+  for (i=0;i<nest;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer," %g (%10.8e)",(double)sigma[i],(double)errest[i]));
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
   CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
   CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
@@ -285,9 +275,7 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   ctx = (SlepcConvMon)vf->data;
-  if (its==1 && ((PetscObject)svd)->prefix) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)svd)->prefix));
-  }
+  if (its==1 && ((PetscObject)svd)->prefix) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)svd)->prefix));
   if (its==1) ctx->oldnconv = 0;
   if (ctx->oldnconv!=nconv) {
     CHKERRQ(PetscViewerPushFormat(viewer,vf->format));

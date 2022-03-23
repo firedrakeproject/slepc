@@ -49,9 +49,7 @@ PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *
     CHKERRQ(VecScale(xi,alpha));
   } else
 #endif
-  {
     CHKERRQ(VecNormalize(xr,norm));
-  }
   PetscFunctionReturn(0);
 }
 
@@ -64,9 +62,7 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
 
   PetscFunctionBegin;
   if (!lev) {
-    if (!viewer) {
-      CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)*V),&viewer));
-    }
+    if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)*V),&viewer));
     PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,6);
     PetscCheckSameComm(*V,1,viewer,6);
     CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
@@ -74,17 +70,12 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
   }
 
   CHKERRQ(PetscMalloc1(nv,&vals));
-  if (B) {
-    CHKERRQ(VecDuplicate(V[0],&w));
-  }
+  if (B) CHKERRQ(VecDuplicate(V[0],&w));
   if (lev) *lev = 0.0;
   for (i=0;i<nw;i++) {
     if (B) {
-      if (W) {
-        CHKERRQ(MatMultTranspose(B,W[i],w));
-      } else {
-        CHKERRQ(MatMultTranspose(B,V[i],w));
-      }
+      if (W) CHKERRQ(MatMultTranspose(B,W[i],w));
+      else CHKERRQ(MatMultTranspose(B,V[i],w));
     } else {
       if (W) w = W[i];
       else w = V[i];
@@ -105,9 +96,7 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
     if (!lev) CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
   }
   CHKERRQ(PetscFree(vals));
-  if (B) {
-    CHKERRQ(VecDestroy(&w));
-  }
+  if (B) CHKERRQ(VecDestroy(&w));
   PetscFunctionReturn(0);
 }
 
@@ -241,22 +230,14 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
     CHKERRQ(VecGetBlockSize(v,&bs));
     if (cuda) {
 #if defined(PETSC_HAVE_CUDA)
-      if (mpi) {
-        CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
-      } else {
-        CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
-      }
+      if (mpi) CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
+      else CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
 #endif
     } else {
-      if (mpi) {
-        CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
-      } else {
-        CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
-      }
+      if (mpi) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
+      else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
     }
-  } else {  /* standard duplicate, with internal array */
-    CHKERRQ(VecDuplicate(v,newv));
-  }
+  } else CHKERRQ(VecDuplicate(v,newv)); /* standard duplicate, with internal array */
   PetscFunctionReturn(0);
 }
 
@@ -332,8 +313,6 @@ PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
 
   CHKERRQ(VecDestroy(&v1));
   CHKERRQ(VecDestroy(&v2));
-  if (!rctx) {
-    CHKERRQ(PetscRandomDestroy(&rand));
-  }
+  if (!rctx) CHKERRQ(PetscRandomDestroy(&rand));
   PetscFunctionReturn(0);
 }

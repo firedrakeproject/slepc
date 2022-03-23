@@ -95,9 +95,7 @@ int main(int argc,char **argv)
     CHKERRQ(DSGetArray(ds,DS_MAT_U,&U));
     d = 0.0;
     for (i=0;i<n;i++) d += A[i+m*ld]-U[n-2+i*ld]-U[n-1+i*ld];
-    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d)));
-    }
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d)));
     CHKERRQ(DSRestoreArray(ds,DS_MAT_A,&A));
     CHKERRQ(DSRestoreArray(ds,DS_MAT_U,&U));
   }

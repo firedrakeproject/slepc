@@ -82,11 +82,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) {
-      CHKERRQ(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
-    } else if (i==n-1) {
-      CHKERRQ(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
+    else if (i==n-1) CHKERRQ(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
@@ -112,9 +109,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
-  } else {
+  if (terse) CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+  else {
     CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
     CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(SVDGetConvergedReason(svd,&reason));

@@ -55,11 +55,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
-    if (i==0) {
-      CHKERRQ(MatSetValues(A,1,&i,4,col+1,value+1,INSERT_VALUES));
-    } else {
-      CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
-    }
+    if (i==0) CHKERRQ(MatSetValues(A,1,&i,4,col+1,value+1,INSERT_VALUES));
+    else CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));

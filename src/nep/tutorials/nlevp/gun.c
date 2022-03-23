@@ -116,9 +116,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
@@ -129,9 +128,7 @@ int main(int argc,char **argv)
     CHKERRQ(MatDestroy(&A[i]));
     CHKERRQ(FNDestroy(&f[i]));
   }
-  for (i=0;i<2;i++) {
-    CHKERRQ(FNDestroy(&ff[i]));
-  }
+  for (i=0;i<2;i++) CHKERRQ(FNDestroy(&ff[i]));
   ierr = SlepcFinalize();
   return ierr;
 }

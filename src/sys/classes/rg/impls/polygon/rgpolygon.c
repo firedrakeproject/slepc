@@ -197,11 +197,8 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
 #if defined(PETSC_USE_COMPLEX)
       CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->vr[i],PETSC_FALSE));
 #else
-      if (ctx->vi[i]!=0.0) {
-        CHKERRQ(PetscSNPrintf(str,sizeof(str),"%g%+gi",(double)ctx->vr[i],(double)ctx->vi[i]));
-      } else {
-        CHKERRQ(PetscSNPrintf(str,sizeof(str),"%g",(double)ctx->vr[i]));
-      }
+      if (ctx->vi[i]!=0.0) CHKERRQ(PetscSNPrintf(str,sizeof(str),"%g%+gi",(double)ctx->vr[i],(double)ctx->vi[i]));
+      else CHKERRQ(PetscSNPrintf(str,sizeof(str),"%g",(double)ctx->vr[i]));
 #endif
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s%s",str,(i<ctx->n-1)?", ":""));
     }

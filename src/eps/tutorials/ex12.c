@@ -105,9 +105,7 @@ int main(int argc,char **argv)
   if (showinertia) {
     CHKERRQ(EPSKrylovSchurGetInertias(eps,&k,&shifts,&inertias));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",k));
-    for (i=0;i<k;i++) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
-    }
+    for (i=0;i<k;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
     CHKERRQ(PetscFree(shifts));
     CHKERRQ(PetscFree(inertias));
   }
@@ -123,9 +121,7 @@ int main(int argc,char **argv)
   if (showinertia) {
     CHKERRQ(EPSKrylovSchurGetInertias(eps,&k,&shifts,&inertias));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",k));
-    for (i=0;i<k;i++) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
-    }
+    for (i=0;i<k;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
     CHKERRQ(PetscFree(shifts));
     CHKERRQ(PetscFree(inertias));
   }

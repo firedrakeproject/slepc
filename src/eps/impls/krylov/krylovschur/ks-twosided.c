@@ -162,11 +162,8 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     /* Make sure both factorizations have the same length */
     nv = PetscMin(nv,nvt);
     CHKERRQ(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
-    if (l==0) {
-      CHKERRQ(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
-    } else {
-      CHKERRQ(DSSetState(eps->ds,DS_STATE_RAW));
-    }
+    if (l==0) CHKERRQ(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
+    else CHKERRQ(DSSetState(eps->ds,DS_STATE_RAW));
     breakdown = (breakdown || breakdownt)? PETSC_TRUE: PETSC_FALSE;
 
     /* Update M, modify Rayleigh quotients S and T */

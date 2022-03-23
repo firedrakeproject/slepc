@@ -89,12 +89,8 @@ int main(int argc,char **argv)
     CHKERRQ(STSetType(st,STSINVERT));
   } else {
     CHKERRQ(PetscObjectTypeCompare((PetscObject)eps,EPSKRYLOVSCHUR,&flg));
-    if (!flg) {
-      CHKERRQ(PetscObjectTypeCompare((PetscObject)eps,EPSARNOLDI,&flg));
-    }
-    if (flg) {
-      CHKERRQ(EPSSetExtraction(eps,EPS_HARMONIC));
-    }
+    if (!flg) CHKERRQ(PetscObjectTypeCompare((PetscObject)eps,EPSARNOLDI,&flg));
+    if (flg) CHKERRQ(EPSSetExtraction(eps,EPS_HARMONIC));
   }
   CHKERRQ(EPSSolve(eps));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - - - Interior eigenvalues - - -\n"));

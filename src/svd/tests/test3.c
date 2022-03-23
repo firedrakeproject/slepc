@@ -58,11 +58,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
-    if (i==0) {
-      CHKERRQ(MatSetValues(A,1,&i,PetscMin(4,M-i+1),col+1,value+1,INSERT_VALUES));
-    } else {
-      CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,M-i+1),col,value,INSERT_VALUES));
-    }
+    if (i==0) CHKERRQ(MatSetValues(A,1,&i,PetscMin(4,M-i+1),col+1,value+1,INSERT_VALUES));
+    else CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,M-i+1),col,value,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
@@ -97,18 +94,13 @@ int main(int argc,char **argv)
   if (nconv>1) {
     CHKERRQ(VecDuplicateVecs(w0,nconv,&U));
     CHKERRQ(VecDuplicateVecs(v0,nconv,&V));
-    for (i=0;i<nconv;i++) {
-      CHKERRQ(SVDGetSingularTriplet(svd,i,NULL,U[i],V[i]));
-    }
+    for (i=0;i<nconv;i++) CHKERRQ(SVDGetSingularTriplet(svd,i,NULL,U[i],V[i]));
     if (!skiporth) {
       CHKERRQ(VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1));
       CHKERRQ(VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2));
     }
-    if (lev1+lev2<20*tol) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
-    } else {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2));
-    }
+    if (lev1+lev2<20*tol) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
+    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2));
     CHKERRQ(VecDestroyVecs(nconv,&U));
     CHKERRQ(VecDestroyVecs(nconv,&V));
   }

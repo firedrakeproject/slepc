@@ -76,17 +76,11 @@ int main(int argc,char **argv)
   }
 
   /* A2 */
-  if (Istart<=n-1 && n-1<Iend) {
-    CHKERRQ(MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES));
-  }
+  if (Istart<=n-1 && n-1<Iend) CHKERRQ(MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES));
 
   /* assemble matrices */
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
-  }
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
-  }
+  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
+  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the problem functions
@@ -128,9 +122,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));

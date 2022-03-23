@@ -31,9 +31,7 @@ int main(int argc,char **argv)
   PetscCheck(condn>=1.0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The condition number must be > 1");
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BV bi-orthogonalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n));
-  if (condn>1.0) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - Using random BVs with condition number = %g\n",(double)condn));
-  }
+  if (condn>1.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - Using random BVs with condition number = %g\n",(double)condn));
 
   /* Create template vector */
   CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
@@ -48,9 +46,7 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   if (condn==1.0) {
@@ -70,12 +66,8 @@ int main(int argc,char **argv)
       CHKERRQ(VecAssemblyEnd(v));
       CHKERRQ(BVRestoreColumn(X,j,&v));
     }
-  } else {
-    CHKERRQ(BVSetRandomCond(X,condn));
-  }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  } else CHKERRQ(BVSetRandomCond(X,condn));
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Create Y and fill its entries */
   CHKERRQ(BVDuplicate(X,&Y));
@@ -94,17 +86,11 @@ int main(int argc,char **argv)
       CHKERRQ(VecAssemblyEnd(v));
       CHKERRQ(BVRestoreColumn(Y,j,&v));
     }
-  } else {
-    CHKERRQ(BVSetRandomCond(Y,condn));
-  }
-  if (verbose) {
-    CHKERRQ(BVView(Y,view));
-  }
+  } else CHKERRQ(BVSetRandomCond(Y,condn));
+  if (verbose) CHKERRQ(BVView(Y,view));
 
   /* Test BVBiorthonormalizeColumn */
-  for (j=0;j<k;j++) {
-    CHKERRQ(BVBiorthonormalizeColumn(X,Y,j,NULL));
-  }
+  for (j=0;j<k;j++) CHKERRQ(BVBiorthonormalizeColumn(X,Y,j,NULL));
   if (verbose) {
     CHKERRQ(BVView(X,view));
     CHKERRQ(BVView(Y,view));
@@ -114,16 +100,11 @@ int main(int argc,char **argv)
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
   CHKERRQ(PetscObjectSetName((PetscObject)M,"M"));
   CHKERRQ(BVDot(X,Y,M));
-  if (verbose) {
-    CHKERRQ(MatView(M,view));
-  }
+  if (verbose) CHKERRQ(MatView(M,view));
   CHKERRQ(MatShift(M,-1.0));
   CHKERRQ(MatNorm(M,NORM_1,&norm));
-  if (norm<200*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality < 200*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality: %g\n",(double)norm));
-  }
+  if (norm<200*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality < 200*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality: %g\n",(double)norm));
 
   CHKERRQ(MatDestroy(&M));
   CHKERRQ(BVDestroy(&X));

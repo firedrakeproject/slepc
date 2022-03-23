@@ -117,9 +117,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
       CHKERRQ(MFN_CreateDenseMat(mx,&M));
       CHKERRQ(MFN_CreateDenseMat(mx,&K));
       CHKERRQ(MatDenseGetArray(M,&F));
-      for (j=0;j<mx;j++) {
-        CHKERRQ(PetscArraycpy(F+j*mx,Harray+j*ld,mx));
-      }
+      for (j=0;j<mx;j++) CHKERRQ(PetscArraycpy(F+j*mx,Harray+j*ld,mx));
       CHKERRQ(MatDenseRestoreArray(M,&F));
       CHKERRQ(FNEvaluateFunctionMat(fn,M,K));
 

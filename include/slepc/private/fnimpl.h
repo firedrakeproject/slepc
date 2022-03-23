@@ -75,9 +75,7 @@ static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
   if (create) {
     CHKERRQ(MatDuplicate(A,MAT_COPY_VALUES,&fn->W[fn->cw]));
     CHKERRQ(PetscLogObjectParent((PetscObject)fn,(PetscObject)fn->W[fn->cw]));
-  } else {
-    CHKERRQ(MatCopy(A,fn->W[fn->cw],SAME_NONZERO_PATTERN));
-  }
+  } else CHKERRQ(MatCopy(A,fn->W[fn->cw],SAME_NONZERO_PATTERN));
   *M = fn->W[fn->cw];
   fn->cw++;
   PetscFunctionReturn(0);

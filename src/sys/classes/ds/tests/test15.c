@@ -46,9 +46,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
   CHKERRQ(DSView(ds,viewer));
   CHKERRQ(PetscViewerPopFormat(viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill matrices */
   CHKERRQ(DSGetArray(ds,DS_MAT_E0,&K));
@@ -90,9 +88,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Polynomial coefficients (alpha,beta,gamma) =\n"));
   CHKERRQ(DSPEPGetCoefficients(ds,&pbc));
   for (j=0;j<3;j++) {
-    for (i=0;i<d+1;i++) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f",(double)pbc[j+3*i]));
-    }
+    for (i=0;i<d+1;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f",(double)pbc[j+3*i]));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
   }
   CHKERRQ(PetscFree(pbc));
@@ -107,11 +103,8 @@ int main(int argc,char **argv)
     re = wr[i];
     im = wi[i];
 #endif
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
-    }
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
 
   /* Eigenvectors */

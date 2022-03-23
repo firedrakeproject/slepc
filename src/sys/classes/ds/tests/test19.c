@@ -61,11 +61,8 @@ int main(int argc,char **argv)
     re = wr[i];
     im = wi[i];
 #endif
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
-    }
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
 
   /* Reorder eigenvalues */
@@ -81,11 +78,8 @@ int main(int argc,char **argv)
     re = wr[i];
     im = wi[i];
 #endif
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
-    }
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
 
   CHKERRQ(PetscFree3(wr,wi,perm));

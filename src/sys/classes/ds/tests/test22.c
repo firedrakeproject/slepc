@@ -87,11 +87,8 @@ int main(int argc,char **argv)
   for (i=0;i<l;i++) w[i] = T[i]/D[i];
   CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_D,&D));
-  if (l==0 && k==0) {
-    CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
-  } else {
-    CHKERRQ(DSSetState(ds,DS_STATE_RAW));
-  }
+  if (l==0 && k==0) CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
+  else CHKERRQ(DSSetState(ds,DS_STATE_RAW));
   if (verbose) {
     CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
@@ -127,14 +124,10 @@ int main(int argc,char **argv)
     CHKERRQ(DSGetArray(ds,DS_MAT_V,&V));
     d = 0.0;
     for (i=0;i<n;i++) d += T[i+ld]+U[n-1+i*ld];
-    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in A's extra row of %g\n",(double)PetscAbsScalar(d)));
-    }
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in A's extra row of %g\n",(double)PetscAbsScalar(d)));
     d = 0.0;
     for (i=0;i<n;i++) d += T[i+2*ld]-V[n-1+i*ld];
-    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in B's extra row of %g\n",(double)PetscAbsScalar(d)));
-    }
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in B's extra row of %g\n",(double)PetscAbsScalar(d)));
     CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_T,&T));
     CHKERRQ(DSRestoreArray(ds,DS_MAT_U,&U));
     CHKERRQ(DSRestoreArray(ds,DS_MAT_V,&V));
@@ -156,9 +149,7 @@ int main(int argc,char **argv)
   CHKERRQ(VecNorm(x0,NORM_2,&rnorm));
   CHKERRQ(MatDestroy(&X));
   CHKERRQ(VecDestroy(&x0));
-  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm));
-  }
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm));
 
   CHKERRQ(DSGetMat(ds,DS_MAT_V,&X));
   CHKERRQ(MatCreateVecs(X,NULL,&x0));
@@ -166,9 +157,7 @@ int main(int argc,char **argv)
   CHKERRQ(VecNorm(x0,NORM_2,&rnorm));
   CHKERRQ(MatDestroy(&X));
   CHKERRQ(VecDestroy(&x0));
-  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm));
-  }
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm));
 
   CHKERRQ(PetscFree(w));
   CHKERRQ(DSDestroy(&ds));

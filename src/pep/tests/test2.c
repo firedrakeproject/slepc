@@ -63,9 +63,7 @@ PetscErrorCode CheckNormalizedVectors(PEP pep)
     }
     CHKERRQ(VecDestroy(&xr));
     CHKERRQ(VecDestroy(&xi));
-    if (error>100*PETSC_MACHINE_EPSILON) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Vectors are not normalized. Error=%g\n",(double)error));
-    }
+    if (error>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Vectors are not normalized. Error=%g\n",(double)error));
   }
   PetscFunctionReturn(0);
 }
@@ -101,13 +99,9 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
     CHKERRQ(MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
@@ -121,13 +115,9 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
     CHKERRQ(MatSetValue(C,i,i,tau*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
@@ -139,9 +129,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(M));
   CHKERRQ(MatSetUp(M));
   CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(M,i,i,mu,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(M,i,i,mu,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 

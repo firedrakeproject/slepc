@@ -72,9 +72,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   CHKERRQ(DSSetType(eps->ds,DSHEP));
   CHKERRQ(DSSetCompact(eps->ds,PETSC_TRUE));
   CHKERRQ(DSAllocate(eps->ds,eps->ncv+1));
-  if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
-    CHKERRQ(EPSSetWorkVecs(eps,1));
-  }
+  if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) CHKERRQ(EPSSetWorkVecs(eps,1));
   PetscFunctionReturn(0);
 }
 
@@ -95,9 +93,8 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
   PetscScalar    *hwork,lhwork[100];
 
   PetscFunctionBegin;
-  if (m > 100) {
-    CHKERRQ(PetscMalloc2(m,&which,m,&hwork));
-  } else {
+  if (m > 100) CHKERRQ(PetscMalloc2(m,&which,m,&hwork));
+  else {
     which = lwhich;
     hwork = lhwork;
   }
@@ -114,14 +111,10 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
     if (PetscUnlikely(*breakdown)) {
       *M = j+1;
       break;
-    } else {
-      CHKERRQ(BVScaleColumn(eps->V,j+1,1/beta[j]));
-    }
+    } else CHKERRQ(BVScaleColumn(eps->V,j+1,1/beta[j]));
   }
   CHKERRQ(STRestoreOperator(eps->st,&Op));
-  if (m > 100) {
-    CHKERRQ(PetscFree2(which,hwork));
-  }
+  if (m > 100) CHKERRQ(PetscFree2(which,hwork));
   PetscFunctionReturn(0);
 }
 
@@ -353,9 +346,8 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   PetscScalar    *hwork,lhwork[100];
 
   PetscFunctionBegin;
-  if (m>100) {
-    CHKERRQ(PetscMalloc5(m,&omega,m,&omega_old,m,&which,m,&which2,m,&hwork));
-  } else {
+  if (m>100) CHKERRQ(PetscMalloc5(m,&omega,m,&omega_old,m,&which,m,&which2,m,&hwork));
+  else {
     omega     = lomega;
     omega_old = lomega_old;
     which     = lwhich;
@@ -439,9 +431,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   }
 
   CHKERRQ(STRestoreOperator(eps->st,&Op));
-  if (m>100) {
-    CHKERRQ(PetscFree5(omega,omega_old,which,which2,hwork));
-  }
+  if (m>100) CHKERRQ(PetscFree5(omega,omega_old,which,which2,hwork));
   PetscFunctionReturn(0);
 }
 
@@ -491,11 +481,8 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
     case EPS_LANCZOS_REORTHOG_DELAYED:
       CHKERRQ(PetscMalloc1(n*n,&T));
       CHKERRQ(BVGetOrthogonalization(eps->V,NULL,&orthog_ref,NULL,NULL));
-      if (orthog_ref == BV_ORTHOG_REFINE_NEVER) {
-        CHKERRQ(EPSDelayedArnoldi1(eps,T,n,k,m,&betam,breakdown));
-      } else {
-        CHKERRQ(EPSDelayedArnoldi(eps,T,n,k,m,&betam,breakdown));
-      }
+      if (orthog_ref == BV_ORTHOG_REFINE_NEVER) CHKERRQ(EPSDelayedArnoldi1(eps,T,n,k,m,&betam,breakdown));
+      else CHKERRQ(EPSDelayedArnoldi(eps,T,n,k,m,&betam,breakdown));
       for (i=k;i<n-1;i++) {
         alpha[i] = PetscRealPart(T[n*i+i]);
         beta[i] = PetscRealPart(T[n*i+i+1]);
@@ -571,9 +558,8 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     }
 
     /* Compute restart vector */
-    if (breakdown) {
-      CHKERRQ(PetscInfo(eps,"Breakdown in Lanczos method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta));
-    } else {
+    if (breakdown) CHKERRQ(PetscInfo(eps,"Breakdown in Lanczos method (it=%" PetscInt_FMT " norm=%g)\n",eps->its,(double)beta));
+    else {
       restart = nconv;
       while (restart<n && conv[restart] != 'N') restart++;
       if (restart >= n) {

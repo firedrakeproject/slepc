@@ -361,9 +361,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
       if (norm==0.0 || lindep) {
         CHKERRQ(PetscInfo(V,"Removing linearly dependent vector %" PetscInt_FMT "\n",i));
         ndep++;
-      } else {
-        CHKERRQ(BVScaleColumn(V,s+i-ndep,1.0/norm));
-      }
+      } else CHKERRQ(BVScaleColumn(V,s+i-ndep,1.0/norm));
     }
   }
   *m -= ndep;
@@ -582,9 +580,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)bv),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)bv),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
 
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
@@ -593,9 +589,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %" PetscInt_FMT " columns of global length %" PetscInt_FMT "%s\n",bv->m,bv->N,bv->cuda?" (CUDA)":""));
-      if (bv->nc>0) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of constraints: %" PetscInt_FMT "\n",bv->nc));
-      }
+      if (bv->nc>0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of constraints: %" PetscInt_FMT "\n",bv->nc));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  vector orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]));
       switch (bv->orthog_ref) {
         case BV_ORTHOG_REFINE_IFNEEDED:
@@ -608,11 +602,8 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
       }
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  block orthogonalization method: %s\n",BVOrthogBlockTypes[bv->orthog_block]));
       if (bv->matrix) {
-        if (bv->indef) {
-          CHKERRQ(PetscViewerASCIIPrintf(viewer,"  indefinite inner product\n"));
-        } else {
-          CHKERRQ(PetscViewerASCIIPrintf(viewer,"  non-standard inner product\n"));
-        }
+        if (bv->indef) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  indefinite inner product\n"));
+        else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  non-standard inner product\n"));
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  tolerance for definite inner product: %g\n",(double)bv->deftol));
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  inner product matrix:\n"));
         CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
@@ -632,17 +623,13 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
           CHKERRQ(PetscViewerASCIIPrintf(viewer,"  mat_save is deprecated, use mat\n"));
           break;
       }
-      if (bv->rrandom) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  generating random vectors independent of the number of processes\n"));
-      }
+      if (bv->rrandom) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  generating random vectors independent of the number of processes\n"));
       if (bv->ops->view) CHKERRQ((*bv->ops->view)(bv,viewer));
     } else {
       if (bv->ops->view) CHKERRQ((*bv->ops->view)(bv,viewer));
       else CHKERRQ(BVView_Default(bv,viewer));
     }
-  } else {
-    CHKERRQ((*bv->ops->view)(bv,viewer));
-  }
+  } else CHKERRQ((*bv->ops->view)(bv,viewer));
   PetscFunctionReturn(0);
 }
 

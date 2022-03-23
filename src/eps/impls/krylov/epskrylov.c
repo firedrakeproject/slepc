@@ -31,9 +31,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
 
   PetscFunctionBegin;
   if (m<=100) lhh = shh;
-  else {
-    CHKERRQ(PetscMalloc1(m,&lhh));
-  }
+  else CHKERRQ(PetscMalloc1(m,&lhh));
   CHKERRQ(BVCreateVec(eps->V,&u));
   CHKERRQ(BVCreateVec(eps->V,&t));
 
@@ -70,9 +68,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
       CHKERRQ(BVCopyVec(eps->V,j,t));
       CHKERRQ(BVScaleColumn(eps->V,j,1.0/norm1));
       CHKERRQ(BVScaleColumn(eps->V,j+1,1.0/norm1));
-    } else {  /* j==k */
-      CHKERRQ(BVDotColumnEnd(eps->V,j+1,H+ldh*j));
-    }
+    } else CHKERRQ(BVDotColumnEnd(eps->V,j+1,H+ldh*j)); /* j==k */
 
     CHKERRQ(BVMultColumn(eps->V,-1.0,1.0,j+1,H+ldh*j));
 
@@ -80,8 +76,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
       CHKERRQ(BVSetActiveColumns(eps->V,0,j));
       CHKERRQ(BVMultVec(eps->V,-1.0,1.0,t,lhh));
       CHKERRQ(BVSetActiveColumns(eps->V,0,m));
-      for (i=0;i<j;i++)
-        H[ldh*(j-1)+i] += lhh[i];
+      for (i=0;i<j;i++) H[ldh*(j-1)+i] += lhh[i];
     }
 
     if (j>k+1) {
@@ -92,9 +87,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
       H[ldh*(j-2)+j-1] = norm2;
     }
 
-    if (j<m-1) {
-      CHKERRQ(VecCopy(t,u));
-    }
+    if (j<m-1) CHKERRQ(VecCopy(t,u));
   }
 
   CHKERRQ(BVNormVec(eps->V,t,NORM_2,&norm2));
@@ -249,9 +242,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     /* eigenvalue */
     re = eps->eigr[k];
     im = eps->eigi[k];
-    if (!istrivial || eps->trueres || isshift || eps->conv==EPS_CONV_NORM) {
-      CHKERRQ(STBackTransform(eps->st,1,&re,&im));
-    }
+    if (!istrivial || eps->trueres || isshift || eps->conv==EPS_CONV_NORM) CHKERRQ(STBackTransform(eps->st,1,&re,&im));
     if (PetscUnlikely(!istrivial)) {
       CHKERRQ(RGCheckInside(eps->rg,1,&re,&im,&inside));
       if (marker==-1 && inside<0) marker = k;
@@ -315,9 +306,8 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
   CHKERRQ(DSGetLeadingDimension(eps->ds,&ld));
   CHKERRQ(DSGetDimensions(eps->ds,NULL,&l,NULL,NULL));
   if (cos) *cos = 1.0;
-  if (m > 100) {
-    CHKERRQ(PetscMalloc1(m,&hwork));
-  } else hwork = lhwork;
+  if (m > 100) CHKERRQ(PetscMalloc1(m,&hwork));
+  else hwork = lhwork;
 
   CHKERRQ(BVSetActiveColumns(eps->V,0,m));
   for (j=k;j<m;j++) {
@@ -356,8 +346,6 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
       if (*cos>t) *cos = t;
     }
   }
-  if (m > 100) {
-    CHKERRQ(PetscFree(hwork));
-  }
+  if (m > 100) CHKERRQ(PetscFree(hwork));
   PetscFunctionReturn(0);
 }

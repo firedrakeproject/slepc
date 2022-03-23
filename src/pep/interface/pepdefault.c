@@ -207,9 +207,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   CHKERRQ(PetscMPIIntCast(pep->n,&n));
   CHKERRQ(STGetMatStructure(pep->st,&str));
   CHKERRQ(PetscMalloc1(nmat,&T));
-  for (k=0;k<nmat;k++) {
-    CHKERRQ(STGetMatrixTransformed(pep->st,k,&T[k]));
-  }
+  for (k=0;k<nmat;k++) CHKERRQ(STGetMatrixTransformed(pep->st,k,&T[k]));
   /* Form local auxiliary matrix M */
   CHKERRQ(PetscObjectBaseTypeCompareAny((PetscObject)T[0],&cont,MATMPIAIJ,MATSEQAIJ,""));
   PetscCheck(cont,PetscObjectComm((PetscObject)T[0]),PETSC_ERR_SUP,"Only for MPIAIJ or SEQAIJ matrix types");
@@ -217,9 +215,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   if (cont) {
     CHKERRQ(MatMPIAIJGetLocalMat(T[0],MAT_INITIAL_MATRIX,&M));
     flg = PETSC_TRUE;
-  } else {
-    CHKERRQ(MatDuplicate(T[0],MAT_COPY_VALUES,&M));
-  }
+  } else CHKERRQ(MatDuplicate(T[0],MAT_COPY_VALUES,&M));
   CHKERRQ(MatGetInfo(M,MAT_LOCAL,&info));
   nz = (PetscInt)info.nz_used;
   CHKERRQ(MatSeqAIJGetArray(M,&array));
@@ -229,14 +225,10 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   }
   CHKERRQ(MatSeqAIJRestoreArray(M,&array));
   for (k=1;k<nmat;k++) {
-    if (flg) {
-      CHKERRQ(MatMPIAIJGetLocalMat(T[k],MAT_INITIAL_MATRIX,&A));
-    } else {
-      if (str==SAME_NONZERO_PATTERN) {
-        CHKERRQ(MatCopy(T[k],A,SAME_NONZERO_PATTERN));
-      } else {
-        CHKERRQ(MatDuplicate(T[k],MAT_COPY_VALUES,&A));
-      }
+    if (flg) CHKERRQ(MatMPIAIJGetLocalMat(T[k],MAT_INITIAL_MATRIX,&A));
+    else {
+      if (str==SAME_NONZERO_PATTERN) CHKERRQ(MatCopy(T[k],A,SAME_NONZERO_PATTERN));
+      else CHKERRQ(MatDuplicate(T[k],MAT_COPY_VALUES,&A));
     }
     CHKERRQ(MatGetInfo(A,MAT_LOCAL,&info));
     nz = (PetscInt)info.nz_used;
@@ -248,9 +240,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     CHKERRQ(MatSeqAIJRestoreArray(A,&array));
     w *= pep->slambda*pep->slambda*pep->sfactor;
     CHKERRQ(MatAXPY(M,w,A,str));
-    if (flg || str!=SAME_NONZERO_PATTERN || k==nmat-2) {
-      CHKERRQ(MatDestroy(&A));
-    }
+    if (flg || str!=SAME_NONZERO_PATTERN || k==nmat-2) CHKERRQ(MatDestroy(&A));
   }
   CHKERRQ(MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont));
   PetscCheck(cont,PetscObjectComm((PetscObject)T[0]),PETSC_ERR_SUP,"It is not possible to compute scaling diagonals for these PEP matrices");

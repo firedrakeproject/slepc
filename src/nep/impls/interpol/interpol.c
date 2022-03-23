@@ -135,9 +135,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   CHKERRQ(RGIntervalGetEndpoints(nep->rg,&a,&b,NULL,NULL));
   CHKERRQ(ChebyshevNodes(deg,a,b,x,cs));
   for (j=0;j<nep->nt;j++) {
-    for (i=0;i<=deg;i++) {
-      CHKERRQ(FNEvaluateFunction(nep->f[j],x[i],&fx[i+j*(deg+1)]));
-    }
+    for (i=0;i<=deg;i++) CHKERRQ(FNEvaluateFunction(nep->f[j],x[i],&fx[i+j*(deg+1)]));
   }
   /* Polynomial coefficients */
   CHKERRQ(PetscMalloc1(deg+1,&A));
@@ -192,9 +190,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
     nep->eigi[i] /= s;
     CHKERRQ(BVInsertVec(nep->V,i,vr));
 #if !defined(PETSC_USE_COMPLEX)
-    if (nep->eigi[i]!=0.0) {
-      CHKERRQ(BVInsertVec(nep->V,++i,vi));
-    }
+    if (nep->eigi[i]!=0.0) CHKERRQ(BVInsertVec(nep->V,++i,vi));
 #endif
   }
   CHKERRQ(VecDestroy(&vr));

@@ -139,9 +139,8 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
         for (i=0;i<eps->nloc;i++) pz[i] = ctx->work2[eps->nloc*k+i].real;
 #endif
         CHKERRQ(VecRestoreArray(z,&pz));
-        if (ijob == 11) {
-          CHKERRQ(STMatSolve(eps->st,z,w));
-        } else {
+        if (ijob == 11) CHKERRQ(STMatSolve(eps->st,z,w));
+        else {
           CHKERRQ(VecConjugate(z));
           CHKERRQ(STMatSolveTranspose(eps->st,z,w));
           CHKERRQ(VecConjugate(w));
@@ -162,13 +161,9 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
       for (k=fpm[23]-1;k<fpm[23]+fpm[24]-1;k++) {
         CHKERRQ(VecPlaceArray(x,&pV[k*eps->nloc]));
         CHKERRQ(VecPlaceArray(y,&ctx->work1[k*eps->nloc]));
-        if (ijob == 30) {
-          CHKERRQ(MatMult(A,x,y));
-        } else if (nmat>1) {
-          CHKERRQ(MatMult(B,x,y));
-        } else {
-          CHKERRQ(VecCopy(x,y));
-        }
+        if (ijob == 30) CHKERRQ(MatMult(A,x,y));
+        else if (nmat>1) CHKERRQ(MatMult(B,x,y));
+        else CHKERRQ(VecCopy(x,y));
         CHKERRQ(VecResetArray(x));
         CHKERRQ(VecResetArray(y));
       }
@@ -243,18 +238,14 @@ PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isascii) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of contour integration points=%" PetscInt_FMT "\n",ctx->npoints));
-  }
+  if (isascii) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of contour integration points=%" PetscInt_FMT "\n",ctx->npoints));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
 {
   PetscFunctionBegin;
-  if (!((PetscObject)eps->st)->type_name) {
-    CHKERRQ(STSetType(eps->st,STSINVERT));
-  }
+  if (!((PetscObject)eps->st)->type_name) CHKERRQ(STSetType(eps->st,STSINVERT));
   PetscFunctionReturn(0);
 }
 

@@ -67,11 +67,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
-    if (i==0) {
-      CHKERRQ(MatSetValues(A,1,&i,PetscMin(4,N-i),col+1,value+1,INSERT_VALUES));
-    } else {
-      CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
-    }
+    if (i==0) CHKERRQ(MatSetValues(A,1,&i,PetscMin(4,N-i),col+1,value+1,INSERT_VALUES));
+    else CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
@@ -92,22 +89,16 @@ int main(int argc,char **argv)
   CHKERRQ(SVDSetWhichSingularTriplets(svd,SVD_LARGEST));
   CHKERRQ(SVDSolve(svd));
   CHKERRQ(SVDGetConverged(svd,&nconv1));
-  if (nconv1 > 0) {
-    CHKERRQ(SVDGetSingularTriplet(svd,0,&sigma_1,NULL,NULL));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Unable to compute large singular value!\n\n"));
-  }
+  if (nconv1 > 0) CHKERRQ(SVDGetSingularTriplet(svd,0,&sigma_1,NULL,NULL));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Unable to compute large singular value!\n\n"));
 
   /* compute smallest singular value relative to the matrix norm */
   CHKERRQ(SVDSetConvergenceTestFunction(svd,MyConvergedRel,&sigma_1,NULL));
   CHKERRQ(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
   CHKERRQ(SVDSolve(svd));
   CHKERRQ(SVDGetConverged(svd,&nconv2));
-  if (nconv2 > 0) {
-    CHKERRQ(SVDGetSingularTriplet(svd,0,&sigma_n,NULL,NULL));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Unable to compute small singular value!\n\n"));
-  }
+  if (nconv2 > 0) CHKERRQ(SVDGetSingularTriplet(svd,0,&sigma_n,NULL,NULL));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Unable to compute small singular value!\n\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up

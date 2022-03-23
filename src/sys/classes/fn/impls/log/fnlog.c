@@ -118,12 +118,8 @@ static PetscErrorCode FNlogm_params(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
   if (*s == maxroots) CHKERRQ(PetscInfo(fn,"Too many matrix square roots\n"));
 
   /* Troot = T */
-  for (j=0;j<n;j++) {
-    CHKERRQ(PetscArraycpy(Troot+j*ld,T+j*ld,PetscMin(j+2,n)));
-  }
-  for (k=1;k<=PetscMin(*s,maxroots);k++) {
-    CHKERRQ(FNSqrtmSchur(fn,n,Troot,ld,PETSC_FALSE));
-  }
+  for (j=0;j<n;j++) CHKERRQ(PetscArraycpy(Troot+j*ld,T+j*ld,PetscMin(j+2,n)));
+  for (k=1;k<=PetscMin(*s,maxroots);k++) CHKERRQ(FNSqrtmSchur(fn,n,Troot,ld,PETSC_FALSE));
   /* Compute value of s and m needed */
   /* TrootmI = Troot - I */
   for (j=0;j<n;j++) {
@@ -661,17 +657,15 @@ PetscErrorCode FNView_Log(FN fn,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->beta==(PetscScalar)1.0) {
-      if (fn->alpha==(PetscScalar)1.0) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Logarithm: log(x)\n"));
-      } else {
+      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Logarithm: log(x)\n"));
+      else {
         CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Logarithm: log(%s*x)\n",str));
       }
     } else {
       CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
-      if (fn->alpha==(PetscScalar)1.0) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Logarithm: %s*log(x)\n",str));
-      } else {
+      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Logarithm: %s*log(x)\n",str));
+      else {
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Logarithm: %s",str));
         CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
@@ -679,9 +673,7 @@ PetscErrorCode FNView_Log(FN fn,PetscViewer viewer)
         CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
       }
     }
-    if (fn->method<nmeth) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
-    }
+    if (fn->method<nmeth) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
   }
   PetscFunctionReturn(0);
 }

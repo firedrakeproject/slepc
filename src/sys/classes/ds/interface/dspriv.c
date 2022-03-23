@@ -23,12 +23,8 @@ PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep));
   CHKERRQ(PetscObjectTypeCompare((PetscObject)ds,DSNEP,&isnep));
-  if (ispep) {
-    CHKERRQ(DSPEPGetDegree(ds,&d));
-  }
-  if (isnep) {
-    CHKERRQ(DSNEPGetMinimality(ds,&d));
-  }
+  if (ispep) CHKERRQ(DSPEPGetDegree(ds,&d));
+  if (isnep) CHKERRQ(DSNEPGetMinimality(ds,&d));
   if ((ispep || isnep) && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_U || m==DS_MAT_X || m==DS_MAT_Y)) n = d*ds->ld;
   else n = ds->ld;
 
@@ -50,19 +46,13 @@ PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
   }
   if (isreal) {
     sz = nelem*sizeof(PetscReal);
-    if (ds->rmat[m]) {
-      CHKERRQ(PetscFree(ds->rmat[m]));
-    } else {
-      CHKERRQ(PetscLogObjectMemory((PetscObject)ds,sz));
-    }
+    if (ds->rmat[m]) CHKERRQ(PetscFree(ds->rmat[m]));
+    else CHKERRQ(PetscLogObjectMemory((PetscObject)ds,sz));
     CHKERRQ(PetscCalloc1(nelem,&ds->rmat[m]));
   } else {
     sz = nelem*sizeof(PetscScalar);
-    if (ds->mat[m]) {
-      CHKERRQ(PetscFree(ds->mat[m]));
-    } else {
-      CHKERRQ(PetscLogObjectMemory((PetscObject)ds,sz));
-    }
+    if (ds->mat[m]) CHKERRQ(PetscFree(ds->mat[m]));
+    else CHKERRQ(PetscLogObjectMemory((PetscObject)ds,sz));
     CHKERRQ(PetscCalloc1(nelem,&ds->mat[m]));
   }
   PetscFunctionReturn(0);
@@ -123,9 +113,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(ds,m,3);
   DSCheckValidMat(ds,m,3);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)ds),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)ds),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ds,1,viewer,2);
   CHKERRQ(PetscViewerGetFormat(viewer,&format));
@@ -142,19 +130,14 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rows,cols));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s = [\n",DSMatName[m]));
-  } else {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",DSMatName[m]));
-  }
+  } else CHKERRQ(PetscViewerASCIIPrintf(viewer,"Matrix %s =\n",DSMatName[m]));
 
   for (i=0;i<rows;i++) {
     v = ds->mat[m]+i;
     for (j=0;j<cols;j++) {
 #if defined(PETSC_USE_COMPLEX)
-      if (allreal) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)PetscRealPart(*v)));
-      } else {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",(double)PetscRealPart(*v),(double)PetscImaginaryPart(*v)));
-      }
+      if (allreal) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)PetscRealPart(*v)));
+      else CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",(double)PetscRealPart(*v),(double)PetscImaginaryPart(*v)));
 #else
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)*v));
 #endif
@@ -163,9 +146,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
   }
 
-  if (format == PETSC_VIEWER_ASCII_MATLAB) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"];\n"));
-  }
+  if (format == PETSC_VIEWER_ASCII_MATLAB) CHKERRQ(PetscViewerASCIIPrintf(viewer,"];\n"));
   CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
   CHKERRQ(PetscViewerFlush(viewer));
   PetscFunctionReturn(0);
@@ -238,9 +219,7 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
     CHKERRQ(SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result));
     while (result<0 && j>=l) {
       tmp = perm[j]; perm[j] = perm[j+1]; perm[j+1] = tmp; j--;
-      if (j>=l) {
-        CHKERRQ(SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result));
-      }
+      if (j>=l) CHKERRQ(SlepcSCCompare(ds->sc,re,0.0,eig[perm[j]],0.0,&result));
     }
   }
   PetscFunctionReturn(0);
@@ -261,9 +240,7 @@ PetscErrorCode DSCopyMatrix_Private(DS ds,DSMatType dst,DSMatType src)
   off = ds->l+ds->l*ld;
   S   = ds->mat[src];
   D   = ds->mat[dst];
-  for (j=0;j<m;j++) {
-    CHKERRQ(PetscArraycpy(D+off+j*ld,S+off+j*ld,m));
-  }
+  for (j=0;j<m;j++) CHKERRQ(PetscArraycpy(D+off+j*ld,S+off+j*ld,m));
   PetscFunctionReturn(0);
 }
 

@@ -59,9 +59,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetUp(Pa));
 
   CHKERRQ(MatGetOwnershipRange(Pa,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(Pa,i,i,2.0,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(Pa,i,i,2.0,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(Pa,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(Pa,MAT_FINAL_ASSEMBLY));
 

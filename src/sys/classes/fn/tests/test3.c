@@ -41,9 +41,7 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
     /* check that A has not been modified */
     CHKERRQ(MatAXPY(Acopy,-1.0,A,SAME_NONZERO_PATTERN));
     CHKERRQ(MatNorm(Acopy,NORM_1,&nrm));
-    if (nrm>100*PETSC_MACHINE_EPSILON) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the input matrix has changed by %g\n",(double)nrm));
-    }
+    if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the input matrix has changed by %g\n",(double)nrm));
     CHKERRQ(MatDestroy(&Acopy));
   }
   if (verbose) {
@@ -69,19 +67,14 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
       CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
       if (set && flg) CHKERRQ(MatSetOption(Finv,MAT_HERMITIAN,PETSC_TRUE));
       CHKERRQ(FNEvaluateFunctionMat(finv,Finv,NULL));
-    } else {
-      CHKERRQ(FNEvaluateFunctionMat(finv,A,Finv));
-    }
+    } else CHKERRQ(FNEvaluateFunctionMat(finv,A,Finv));
     CHKERRQ(FNDestroy(&finv));
     /* check error ||F*Finv-I||_F */
     CHKERRQ(MatMatMult(F,Finv,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R));
     CHKERRQ(MatShift(R,-1.0));
     CHKERRQ(MatNorm(R,NORM_FROBENIUS,&nrm));
-    if (nrm<100*PETSC_MACHINE_EPSILON) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||exp(A)*exp(-A)-I||_F < 100*eps\n"));
-    } else {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||exp(A)*exp(-A)-I||_F = %g\n",(double)nrm));
-    }
+    if (nrm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||exp(A)*exp(-A)-I||_F < 100*eps\n"));
+    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||exp(A)*exp(-A)-I||_F = %g\n",(double)nrm));
     CHKERRQ(MatDestroy(&R));
     CHKERRQ(MatDestroy(&Finv));
   }
@@ -91,9 +84,7 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
   CHKERRQ(VecAXPY(v,-1.0,f0));
   CHKERRQ(VecNorm(v,NORM_2,&nrm));
-  if (nrm/nrmf>100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
-  }
+  if (nrm/nrmf>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
   CHKERRQ(MatDestroy(&F));
   CHKERRQ(VecDestroy(&v));
   CHKERRQ(VecDestroy(&f0));
@@ -125,9 +116,7 @@ int main(int argc,char **argv)
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
   CHKERRQ(FNView(fn,viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Create matrices */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));

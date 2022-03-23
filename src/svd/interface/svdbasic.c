@@ -170,9 +170,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   if (--((PetscObject)(*svd))->refct > 0) { *svd = 0; PetscFunctionReturn(0); }
   CHKERRQ(SVDReset(*svd));
   if ((*svd)->ops->destroy) CHKERRQ((*(*svd)->ops->destroy)(*svd));
-  if ((*svd)->sigma) {
-    CHKERRQ(PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest));
-  }
+  if ((*svd)->sigma) CHKERRQ(PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest));
   CHKERRQ(DSDestroy(&(*svd)->ds));
   CHKERRQ(PetscFree((*svd)->sc));
   /* just in case the initial vectors have not been used */

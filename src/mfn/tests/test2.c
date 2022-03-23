@@ -97,11 +97,8 @@ int main(int argc,char **argv)
   /* compute norm of difference */
   CHKERRQ(VecAXPY(y,-1.0,v));
   CHKERRQ(VecNorm(y,NORM_2,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <100*eps\n\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is %g\n\n",(double)norm));
-  }
+  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <100*eps\n\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is %g\n\n",(double)norm));
 
   /*
      Free work space

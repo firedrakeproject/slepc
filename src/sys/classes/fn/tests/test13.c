@@ -38,9 +38,7 @@ PetscErrorCode TestMatLog(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
     CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
     if (set && flg) CHKERRQ(MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE));
     CHKERRQ(FNEvaluateFunctionMat(fn,F,NULL));
-  } else {
-    CHKERRQ(FNEvaluateFunctionMat(fn,A,F));
-  }
+  } else CHKERRQ(FNEvaluateFunctionMat(fn,A,F));
   if (verbose) {
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
     CHKERRQ(MatView(A,viewer));
@@ -51,27 +49,20 @@ PetscErrorCode TestMatLog(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fnexp));
   CHKERRQ(FNSetType(fnexp,FNEXP));
   CHKERRQ(MatCopy(F,R,SAME_NONZERO_PATTERN));
-  if (eta!=1.0) {
-    CHKERRQ(MatScale(R,1.0/eta));
-  }
+  if (eta!=1.0) CHKERRQ(MatScale(R,1.0/eta));
   CHKERRQ(FNEvaluateFunctionMat(fnexp,R,NULL));
   CHKERRQ(FNDestroy(&fnexp));
   CHKERRQ(MatAXPY(R,-tau,A,SAME_NONZERO_PATTERN));
   CHKERRQ(MatNorm(R,NORM_FROBENIUS,&nrm));
-  if (nrm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F = %g\n",(double)nrm));
-  }
+  if (nrm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F = %g\n",(double)nrm));
   /* check FNEvaluateFunctionMatVec() */
   CHKERRQ(MatCreateVecs(A,&v,&f0));
   CHKERRQ(MatGetColumnVector(F,f0,0));
   CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
   CHKERRQ(VecAXPY(v,-1.0,f0));
   CHKERRQ(VecNorm(v,NORM_2,&nrm));
-  if (nrm>100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
-  }
+  if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
   CHKERRQ(MatDestroy(&F));
   CHKERRQ(MatDestroy(&R));
   CHKERRQ(VecDestroy(&v));
@@ -105,17 +96,14 @@ int main(int argc,char **argv)
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
   CHKERRQ(FNView(fn,viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Create matrices */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
   CHKERRQ(PetscObjectSetName((PetscObject)A,"A"));
 
-  if (random) {
-    CHKERRQ(MatSetRandom(A,NULL));
-  } else {
+  if (random) CHKERRQ(MatSetRandom(A,NULL));
+  else {
     /* Fill A with a non-symmetric Toeplitz matrix */
     CHKERRQ(MatDenseGetArray(A,&As));
     for (i=0;i<n;i++) As[i+i*n]=2.0;

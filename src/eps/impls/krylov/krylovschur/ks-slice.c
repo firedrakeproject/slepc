@@ -140,9 +140,8 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   CHKERRQ(BVCreate(PetscObjectComm((PetscObject)eps),&sr->V));
   CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)sr->V));
   if (!eps->V) CHKERRQ(EPSGetBV(eps,&eps->V));
-  if (!((PetscObject)(eps->V))->type_name) {
-    CHKERRQ(BVSetType(sr->V,BVSVEC));
-  } else {
+  if (!((PetscObject)(eps->V))->type_name) CHKERRQ(BVSetType(sr->V,BVSVEC));
+  else {
     CHKERRQ(BVGetType(eps->V,&type));
     CHKERRQ(BVSetType(sr->V,type));
   }
@@ -204,9 +203,8 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   CHKERRQ(EPSGetBV(ctx->eps,&V));
   CHKERRQ(BVGetRandomContext(V,&rand));  /* make sure the random context is available when duplicating */
   if (!eps->V) CHKERRQ(EPSGetBV(eps,&eps->V));
-  if (!((PetscObject)(eps->V))->type_name) {
-    CHKERRQ(BVSetType(V,BVSVEC));
-  } else {
+  if (!((PetscObject)(eps->V))->type_name) CHKERRQ(BVSetType(V,BVSVEC));
+  else {
     CHKERRQ(BVGetType(eps->V,&type));
     CHKERRQ(BVSetType(V,type));
   }
@@ -347,9 +345,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       CHKERRQ(PetscSubcommGetChild(ctx->subc,&child));
       if ((sr->dir>0&&ctx->subc->color==0)||(sr->dir<0&&ctx->subc->color==ctx->npart-1)) sr->inertia0 = sr_loc->inertia0;
       CHKERRMPI(MPI_Comm_rank(child,&rank));
-      if (!rank) {
-        CHKERRMPI(MPI_Bcast(&sr->inertia0,1,MPIU_INT,(sr->dir>0)?0:ctx->npart-1,ctx->commrank));
-      }
+      if (!rank) CHKERRMPI(MPI_Bcast(&sr->inertia0,1,MPIU_INT,(sr->dir>0)?0:ctx->npart-1,ctx->commrank));
       CHKERRMPI(MPI_Bcast(&sr->inertia0,1,MPIU_INT,0,child));
       CHKERRQ(PetscFree(ctx->nconv_loc));
       CHKERRQ(PetscMalloc1(ctx->npart,&ctx->nconv_loc));
@@ -884,11 +880,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     beta = b[nv-1];
     CHKERRQ(DSRestoreArrayReal(eps->ds,DS_MAT_T,&a));
     CHKERRQ(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
-    if (l==0) {
-      CHKERRQ(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
-    } else {
-      CHKERRQ(DSSetState(eps->ds,DS_STATE_RAW));
-    }
+    if (l==0) CHKERRQ(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
+    else CHKERRQ(DSSetState(eps->ds,DS_STATE_RAW));
     CHKERRQ(BVSetActiveColumns(eps->V,eps->nconv,nv));
 
     /* Solve projected problem and compute residual norm estimates */
@@ -984,9 +977,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     CHKERRQ(MatDestroy(&U));
 
     /* Normalize u and append it to V */
-    if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
-      CHKERRQ(BVCopyColumn(eps->V,nv,k+l));
-    }
+    if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) CHKERRQ(BVCopyColumn(eps->V,nv,k+l));
     eps->nconv = k;
     if (eps->reason != EPS_CONVERGED_ITERATING) {
       /* Store approximated values for next shift */
@@ -1141,9 +1132,7 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
         CHKERRQ(BVGetColumn(sr->V,count,&v));
         CHKERRQ(STApply(eps->st,w,v));
         CHKERRQ(BVRestoreColumn(sr->V,count,&v));
-      } else {
-        CHKERRQ(BVInsertVec(sr->V,count,w));
-      }
+      } else CHKERRQ(BVInsertVec(sr->V,count,w));
       CHKERRQ(BVRestoreColumn(eps->V,eps->perm[i],&w));
       CHKERRQ(BVNormColumn(sr->V,count,NORM_2,&norm));
       CHKERRQ(BVScaleColumn(sr->V,count,1.0/norm));
@@ -1215,9 +1204,7 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   }
 
   /* For rational Krylov */
-  if (sr->nS>0 && (sr->sPrev == sr->sPres->neighb[0] || sr->sPrev == sr->sPres->neighb[1])) {
-    CHKERRQ(EPSPrepareRational(eps));
-  }
+  if (sr->nS>0 && (sr->sPrev == sr->sPres->neighb[0] || sr->sPrev == sr->sPres->neighb[1])) CHKERRQ(EPSPrepareRational(eps));
   eps->nconv = 0;
   /* Get rid of temporary Vnext */
   CHKERRQ(BVDestroy(&eps->V));

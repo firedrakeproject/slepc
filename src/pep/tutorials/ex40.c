@@ -59,13 +59,9 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
     CHKERRQ(MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
@@ -79,13 +75,9 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
     CHKERRQ(MatSetValue(C,i,i,tau*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
@@ -97,9 +89,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(M));
   CHKERRQ(MatSetUp(M));
   CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(M,i,i,muu,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(M,i,i,muu,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
@@ -207,9 +197,8 @@ int main(int argc,char **argv)
   /* show detailed info unless -terse option is given by user */
   if (def!=1) {
     CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-    if (terse) {
-      CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
-    } else {
+    if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+    else {
       CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
       CHKERRQ(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
       CHKERRQ(PEPErrorView(pep,PEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
@@ -232,9 +221,7 @@ int main(int argc,char **argv)
     CHKERRQ(PEPSetTarget(pep,target));
     CHKERRQ(PEPSetProblemType(pep,type));
     CHKERRQ(PEPSTOARSetLinearization(pep,alpha,beta));
-    if (inta!=intb) {
-      CHKERRQ(PEPSetInterval(pep,inta,intb));
-    }
+    if (inta!=intb) CHKERRQ(PEPSetInterval(pep,inta,intb));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -316,9 +303,7 @@ PetscErrorCode TransformMatricesMoebius(Mat A[3],MatStructure str,PetscReal a,Pe
   PetscReal      cf[9];
 
   PetscFunctionBegin;
-  for (i=0;i<3;i++) {
-    CHKERRQ(MatDuplicate(A[2],MAT_COPY_VALUES,&B[i]));
-  }
+  for (i=0;i<3;i++) CHKERRQ(MatDuplicate(A[2],MAT_COPY_VALUES,&B[i]));
   /* Ct = b*b*A+b*d*B+d*d*C */
   cf[0] = d*d; cf[1] = b*d; cf[2] = b*b;
   /* Bt = 2*a*b*A+(b*c+a*d)*B+2*c*d*C*/
@@ -327,9 +312,7 @@ PetscErrorCode TransformMatricesMoebius(Mat A[3],MatStructure str,PetscReal a,Pe
   cf[6] = c*c; cf[7] = a*c; cf[8] = a*a;
   for (k=0;k<3;k++) {
     CHKERRQ(MatScale(B[k],cf[k*3+2]));
-    for (i=0;i<2;i++) {
-      CHKERRQ(MatAXPY(B[k],cf[3*k+i],A[i],str));
-    }
+    for (i=0;i<2;i++) CHKERRQ(MatAXPY(B[k],cf[3*k+i],A[i],str));
   }
   PetscFunctionReturn(0);
 }
@@ -356,9 +339,7 @@ PetscErrorCode QEPDefiniteTransformGetMatrices(PEP pep,PetscBool hyperbolic,Pets
   Mat            A[3];
 
   PetscFunctionBegin;
-  for (i=2;i>=0;i--) {
-    CHKERRQ(PEPGetOperators(pep,i,&A[i]));
-  }
+  for (i=2;i>=0;i--) CHKERRQ(PEPGetOperators(pep,i,&A[i]));
   if (hyperbolic) { a = 1.0; b = xi; c =0.0; d = 1.0; }
   else {
     xit = xi;
@@ -417,17 +398,13 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
     if (imag) {
       if (ivals[i]!=0 || vals[i]!=0) {
         CHKERRQ(MatMult(A[i],xi,wi));
-        if (vals[i]==0) {
-          CHKERRQ(MatMult(A[i],xr,w));
-        }
+        if (vals[i]==0) CHKERRQ(MatMult(A[i],xr,w));
       }
       if (ivals[i]!=0) {
         CHKERRQ(VecAXPY(u,-ivals[i],wi));
         CHKERRQ(VecAXPY(ui,ivals[i],w));
       }
-      if (vals[i]!=0) {
-        CHKERRQ(VecAXPY(ui,vals[i],wi));
-      }
+      if (vals[i]!=0) CHKERRQ(VecAXPY(ui,vals[i],wi));
     }
 #endif
   }
@@ -480,11 +457,8 @@ PetscErrorCode QEPDefiniteCheckError(Mat *A,PEP pep,PetscBool hyperbolic,PetscRe
     re = er;
     im = ei;
 #endif
-    if (im!=0.0) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error));
-    } else {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"    % 12f           %12g\n",(double)re,(double)error));
-    }
+    if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error));
+    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"    % 12f           %12g\n",(double)re,(double)error));
   }
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%s",sep));
   for (i=0;i<4;i++) CHKERRQ(VecDestroy(w+i));

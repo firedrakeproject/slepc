@@ -273,20 +273,15 @@ PetscErrorCode RGSetFromOptions(RG rg)
   CHKERRQ(RGRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)rg);CHKERRQ(ierr);
     CHKERRQ(PetscOptionsFList("-rg_type","Region type","RGSetType",RGList,(char*)(((PetscObject)rg)->type_name?((PetscObject)rg)->type_name:RGINTERVAL),type,sizeof(type),&flg));
-    if (flg) {
-      CHKERRQ(RGSetType(rg,type));
-    } else if (!((PetscObject)rg)->type_name) {
-      CHKERRQ(RGSetType(rg,RGINTERVAL));
-    }
+    if (flg) CHKERRQ(RGSetType(rg,type));
+    else if (!((PetscObject)rg)->type_name) CHKERRQ(RGSetType(rg,RGINTERVAL));
 
     CHKERRQ(PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,NULL));
 
     CHKERRQ(PetscOptionsReal("-rg_scale","Scaling factor","RGSetScale",1.0,&sfactor,&flg));
     if (flg) CHKERRQ(RGSetScale(rg,sfactor));
 
-    if (rg->ops->setfromoptions) {
-      CHKERRQ((*rg->ops->setfromoptions)(PetscOptionsObject,rg));
-    }
+    if (rg->ops->setfromoptions) CHKERRQ((*rg->ops->setfromoptions)(PetscOptionsObject,rg));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)rg));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -322,9 +317,7 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)rg),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)rg),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(rg,1,viewer,2);
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
@@ -336,12 +329,8 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
       CHKERRQ((*rg->ops->view)(rg,viewer));
       CHKERRQ(PetscViewerASCIIPopTab(viewer));
     }
-    if (rg->complement) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  selected region is the complement of the specified one\n"));
-    }
-    if (rg->sfactor!=1.0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  scaling factor = %g\n",(double)rg->sfactor));
-    }
+    if (rg->complement) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  selected region is the complement of the specified one\n"));
+    if (rg->sfactor!=1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  scaling factor = %g\n",(double)rg->sfactor));
   } else if (isdraw) {
     if (rg->ops->view) CHKERRQ((*rg->ops->view)(rg,viewer));
   }
@@ -393,9 +382,8 @@ PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
   PetscValidBoolPointer(trivial,2);
-  if (rg->ops->istrivial) {
-    CHKERRQ((*rg->ops->istrivial)(rg,trivial));
-  } else *trivial = PETSC_FALSE;
+  if (rg->ops->istrivial) CHKERRQ((*rg->ops->istrivial)(rg,trivial));
+  else *trivial = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -484,9 +472,8 @@ PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
   PetscValidType(rg,1);
   PetscValidBoolPointer(symm,3);
 
-  if (rg->ops->isaxisymmetric) {
-    CHKERRQ((*rg->ops->isaxisymmetric)(rg,vertical,symm));
-  } else *symm = PETSC_FALSE;
+  if (rg->ops->isaxisymmetric) CHKERRQ((*rg->ops->isaxisymmetric)(rg,vertical,symm));
+  else *symm = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

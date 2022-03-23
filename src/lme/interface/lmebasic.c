@@ -68,9 +68,7 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)lme),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)lme),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(lme,1,viewer,2);
 
@@ -87,9 +85,7 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",lme->max_it));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)lme->tol));
   } else {
-    if (lme->ops->view) {
-      CHKERRQ((*lme->ops->view)(lme,viewer));
-    }
+    if (lme->ops->view) CHKERRQ((*lme->ops->view)(lme,viewer));
   }
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
   if (!lme->V) CHKERRQ(LMEGetBV(lme,&lme->V));
@@ -152,11 +148,8 @@ PetscErrorCode LMEConvergedReasonView(LME lme,PetscViewer viewer)
   if (isAscii) {
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)lme)->tablevel));
-    if (lme->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve converged due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its));
-    } else if (lme->reason <= 0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its));
-    }
+    if (lme->reason > 0 && format != PETSC_VIEWER_FAILED) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve converged due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its));
+    else if (lme->reason <= 0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Linear matrix equation solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)lme)->prefix?((PetscObject)lme)->prefix:"",LMEConvergedReasons[lme->reason],lme->its));
     CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)lme)->tablevel));
   }
   PetscFunctionReturn(0);

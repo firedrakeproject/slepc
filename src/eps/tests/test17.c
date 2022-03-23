@@ -97,9 +97,7 @@ int main(int argc,char **argv)
   CHKERRQ(EPSSetInterval(eps,int0,int1));
   CHKERRQ(EPSGetST(eps,&st));
   CHKERRQ(STSetType(st,STSINVERT));
-  if (size>1) {
-    CHKERRQ(EPSKrylovSchurSetPartitions(eps,size));
-  }
+  if (size>1) CHKERRQ(EPSKrylovSchurSetPartitions(eps,size));
   CHKERRQ(EPSKrylovSchurGetKSP(eps,&ksp));
   CHKERRQ(KSPGetPC(ksp,&pc));
   CHKERRQ(KSPSetType(ksp,KSPPREONLY));
@@ -158,9 +156,7 @@ int main(int argc,char **argv)
   CHKERRQ(EPSSetUp(eps));
   CHKERRQ(EPSKrylovSchurGetInertias(eps,&k,&shifts,&inertias));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Inertias after EPSSetUp:\n"));
-  for (i=0;i<k;i++) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
-  }
+  for (i=0;i<k;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
   CHKERRQ(PetscFree(shifts));
   CHKERRQ(PetscFree(inertias));
 
@@ -172,9 +168,7 @@ int main(int argc,char **argv)
   if (showinertia) {
     CHKERRQ(EPSKrylovSchurGetInertias(eps,&k,&shifts,&inertias));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",k));
-    for (i=0;i<k;i++) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
-    }
+    for (i=0;i<k;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
     CHKERRQ(PetscFree(shifts));
     CHKERRQ(PetscFree(inertias));
   }
@@ -206,9 +200,7 @@ int main(int argc,char **argv)
     CHKERRQ(MatSetFromOptions(Au));
     CHKERRQ(MatSetUp(Au));
     CHKERRQ(MatGetOwnershipRange(Au,&Istart,&Iend));
-    for (II=Istart;II<Iend;II++) {
-      CHKERRQ(MatSetValue(Au,II,II,0.5,INSERT_VALUES));
-    }
+    for (II=Istart;II<Iend;II++) CHKERRQ(MatSetValue(Au,II,II,0.5,INSERT_VALUES));
     CHKERRQ(MatAssemblyBegin(Au,MAT_FINAL_ASSEMBLY));
     CHKERRQ(MatAssemblyEnd(Au,MAT_FINAL_ASSEMBLY));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Updating internal matrices\n"));

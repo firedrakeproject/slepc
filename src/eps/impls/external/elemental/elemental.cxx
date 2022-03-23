@@ -51,11 +51,8 @@ PetscErrorCode EPSSetUp_Elemental(EPS eps)
   }
   CHKERRQ(STGetShift(eps->st,&shift));
   if (shift != 0.0) {
-    if (nmat>1) {
-      CHKERRQ(MatAXPY(ctx->Ae,-shift,ctx->Be,SAME_NONZERO_PATTERN));
-    } else {
-      CHKERRQ(MatShift(ctx->Ae,-shift));
-    }
+    if (nmat>1) CHKERRQ(MatAXPY(ctx->Ae,-shift,ctx->Be,SAME_NONZERO_PATTERN));
+    else CHKERRQ(MatShift(ctx->Ae,-shift));
   }
   PetscFunctionReturn(0);
 }

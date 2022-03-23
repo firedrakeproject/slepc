@@ -349,11 +349,8 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   CHKERRQ(MatSetUp(*G));
 
   CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)*G),&size));
-  if (size>1) {
-    CHKERRQ(MatCreateTile_MPI(a,A,b,B,c,C,d,D,*G));
-  } else {
-    CHKERRQ(MatCreateTile_Seq(a,A,b,B,c,C,d,D,*G));
-  }
+  if (size>1) CHKERRQ(MatCreateTile_MPI(a,A,b,B,c,C,d,D,*G));
+  else CHKERRQ(MatCreateTile_Seq(a,A,b,B,c,C,d,D,*G));
   CHKERRQ(MatAssemblyBegin(*G,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(*G,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
@@ -414,35 +411,23 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
     if (right) {
       if (cuda) {
 #if defined(PETSC_HAVE_CUDA)
-        if (size>1) {
-          CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right));
-        } else {
-          CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right));
-        }
+        if (size>1) CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right));
+        else CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right));
 #endif
       } else {
-        if (size>1) {
-          CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right));
-        } else {
-          CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right));
-        }
+        if (size>1) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right));
+        else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right));
       }
     }
     if (left) {
       if (cuda) {
 #if defined(PETSC_HAVE_CUDA)
-        if (size>1) {
-          CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left));
-        } else {
-          CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left));
-        }
+        if (size>1) CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left));
+        else CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left));
 #endif
       } else {
-        if (size>1) {
-          CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left));
-        } else {
-          CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left));
-        }
+        if (size>1) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left));
+        else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left));
       }
     }
   }

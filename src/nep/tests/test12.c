@@ -100,9 +100,7 @@ int main(int argc,char **argv)
   CHKERRQ(NEPNLEIGSGetRKShifts(nep,&ns,&rkshifts));
   if (ns) {
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Using %" PetscInt_FMT " RK shifts =",ns));
-    for (i=0;i<ns;i++) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %g",(double)PetscRealPart(rkshifts[i])));
-    }
+    for (i=0;i<ns;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %g",(double)PetscRealPart(rkshifts[i])));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     CHKERRQ(PetscFree(rkshifts));
   }
@@ -118,9 +116,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(NEPErrorView(nep,NEP_ERROR_BACKWARD,NULL));
-  } else {
+  if (terse) CHKERRQ(NEPErrorView(nep,NEP_ERROR_BACKWARD,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(NEPErrorView(nep,NEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));

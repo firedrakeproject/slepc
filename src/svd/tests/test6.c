@@ -57,11 +57,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) {
-      CHKERRQ(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
-    } else if (i==n-1) {
-      CHKERRQ(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
+    else if (i==n-1) CHKERRQ(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
@@ -92,9 +89,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)svd,SVDCROSS,&flg));
   if (flg) {
     CHKERRQ(SVDCrossGetExplicitMatrix(svd,&expmat));
-    if (expmat) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cross solver\n"));
-    }
+    if (expmat) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cross solver\n"));
   }
   CHKERRQ(SVDSolve(svd));
 

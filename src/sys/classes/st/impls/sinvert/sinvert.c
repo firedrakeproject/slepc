@@ -42,11 +42,8 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
 {
   PetscFunctionBegin;
   if (st->matmode == ST_MATMODE_INPLACE) {
-    if (st->nmat>1) {
-      CHKERRQ(MatAXPY(st->A[0],st->sigma,st->A[1],st->str));
-    } else {
-      CHKERRQ(MatShift(st->A[0],st->sigma));
-    }
+    if (st->nmat>1) CHKERRQ(MatAXPY(st->A[0],st->sigma,st->A[1],st->str));
+    else CHKERRQ(MatShift(st->A[0],st->sigma));
     st->Astate[0] = ((PetscObject)st->A[0])->state;
     st->state   = ST_STATE_INITIAL;
     st->opready = PETSC_FALSE;
@@ -85,9 +82,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscScalar    *coeffs=NULL;
 
   PetscFunctionBegin;
-  if (nmat>1) {
-    CHKERRQ(STSetWorkVecs(st,1));
-  }
+  if (nmat>1) CHKERRQ(STSetWorkVecs(st,1));
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
   if (nmat>2) {  /* set-up matrices for polynomial eigenproblems */
@@ -101,9 +96,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
       CHKERRQ(PetscObjectReference((PetscObject)st->A[k]));
       CHKERRQ(MatDestroy(&st->T[0]));
       st->T[0] = st->A[k];
-      for (k=1;k<nmat;k++) {
-        CHKERRQ(STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[k]));
-      }
+      for (k=1;k<nmat;k++) CHKERRQ(STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[k]));
       CHKERRQ(PetscFree(coeffs));
       CHKERRQ(PetscObjectReference((PetscObject)st->T[nmat-1]));
       CHKERRQ(MatDestroy(&st->P));
@@ -120,9 +113,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
       }
     }
   }
-  if (st->P) {
-    CHKERRQ(KSPSetUp(st->ksp));
-  }
+  if (st->P) CHKERRQ(KSPSetUp(st->ksp));
   PetscFunctionReturn(0);
 }
 
@@ -139,12 +130,8 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       /* Compute coeffs */
       CHKERRQ(STCoeffs_Monomial(st,coeffs));
     }
-    for (k=1;k<nmat;k++) {
-      CHKERRQ(STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_FALSE,PETSC_FALSE,&st->T[k]));
-    }
-    if (st->matmode == ST_MATMODE_COPY && nmat>2) {
-      CHKERRQ(PetscFree(coeffs));
-    }
+    for (k=1;k<nmat;k++) CHKERRQ(STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_FALSE,PETSC_FALSE,&st->T[k]));
+    if (st->matmode == ST_MATMODE_COPY && nmat>2) CHKERRQ(PetscFree(coeffs));
     if (st->P!=st->T[nmat-1]) {
       CHKERRQ(PetscObjectReference((PetscObject)st->T[nmat-1]));
       CHKERRQ(MatDestroy(&st->P));

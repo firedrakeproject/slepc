@@ -163,19 +163,14 @@ int main(int argc,char **argv)
       CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,
            "           k              ||Ax-kx||\n"
            "   ----------------- ------------------\n"));
-      for (i=0;i<nconv;i++) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12.2g\n",(double)evals[i],(double)error[i]));
-      }
+      for (i=0;i<nconv;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12.2g\n",(double)evals[i],(double)error[i]));
     } else {
       errok = PETSC_TRUE;
       for (i=0;i<nconv;i++) errok = (errok && error[i]<5.0*tol)? PETSC_TRUE: PETSC_FALSE;
-      if (!errok) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nconv));
-      } else {
+      if (!errok) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nconv));
+      else {
         CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," nconv=%" PetscInt_FMT " eigenvalues computed up to the required tolerance:",nconv));
-        for (i=0;i<nconv;i++) {
-          CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %.5f",(double)evals[i]));
-        }
+        for (i=0;i<nconv;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %.5f",(double)evals[i]));
       }
     }
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));

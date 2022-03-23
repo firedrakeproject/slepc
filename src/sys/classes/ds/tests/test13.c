@@ -45,9 +45,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
   CHKERRQ(DSView(ds,viewer));
   CHKERRQ(PetscViewerPopFormat(viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill with a symmetric band Toeplitz matrix */
   CHKERRQ(DSGetArray(ds,DS_MAT_A,&A));
@@ -78,9 +76,7 @@ int main(int argc,char **argv)
 
   /* Print eigenvalues */
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
-  for (i=0;i<n;i++) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)PetscRealPart(eig[i])));
-  }
+  for (i=0;i<n;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)PetscRealPart(eig[i])));
 
   CHKERRQ(PetscFree(eig));
   CHKERRQ(DSDestroy(&ds));

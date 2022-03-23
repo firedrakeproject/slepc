@@ -40,9 +40,7 @@ PetscErrorCode TestPhiFunction(FN fn,PetscScalar x,Mat A,PetscBool verbose)
   CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
   CHKERRQ(VecAXPY(v,-1.0,f));
   CHKERRQ(VecNorm(v,NORM_2,&nrm));
-  if (nrm>100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-ref is %g\n",(double)nrm));
-  }
+  if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-ref is %g\n",(double)nrm));
   if (verbose) {
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"f(A)*e_1 =\n"));
     CHKERRQ(VecView(v,NULL));

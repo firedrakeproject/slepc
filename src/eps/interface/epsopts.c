@@ -60,9 +60,7 @@ PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char opt[],const char name
   CHKERRQ((*cfunc)(viewer,format,ctx,&vf));
   CHKERRQ(PetscObjectDereference((PetscObject)viewer));
   CHKERRQ(EPSMonitorSet(eps,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
-  if (trackall) {
-    CHKERRQ(EPSSetTrackAll(eps,PETSC_TRUE));
-  }
+  if (trackall) CHKERRQ(EPSSetTrackAll(eps,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -98,11 +96,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   CHKERRQ(EPSRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)eps);CHKERRQ(ierr);
     CHKERRQ(PetscOptionsFList("-eps_type","Eigensolver method","EPSSetType",EPSList,(char*)(((PetscObject)eps)->type_name?((PetscObject)eps)->type_name:EPSKRYLOVSCHUR),type,sizeof(type),&flg));
-    if (flg) {
-      CHKERRQ(EPSSetType(eps,type));
-    } else if (!((PetscObject)eps)->type_name) {
-      CHKERRQ(EPSSetType(eps,EPSKRYLOVSCHUR));
-    }
+    if (flg) CHKERRQ(EPSSetType(eps,type));
+    else if (!((PetscObject)eps)->type_name) CHKERRQ(EPSSetType(eps,EPSKRYLOVSCHUR));
 
     CHKERRQ(PetscOptionsBoolGroupBegin("-eps_hermitian","Hermitian eigenvalue problem","EPSSetProblemType",&flg));
     if (flg) CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
@@ -191,9 +186,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
     CHKERRQ(PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg));
     if (flg) {
-      if (eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY) {
-        CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE));
-      }
+      if (eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY) CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE));
       CHKERRQ(EPSSetTarget(eps,s));
     }
 
@@ -230,9 +223,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     CHKERRQ(PetscOptionsName("-eps_error_relative","Print relative errors of each eigenpair","EPSErrorView",NULL));
     CHKERRQ(PetscOptionsName("-eps_error_backward","Print backward errors of each eigenpair","EPSErrorView",NULL));
 
-    if (eps->ops->setfromoptions) {
-      CHKERRQ((*eps->ops->setfromoptions)(PetscOptionsObject,eps));
-    }
+    if (eps->ops->setfromoptions) CHKERRQ((*eps->ops->setfromoptions)(PetscOptionsObject,eps));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)eps));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
@@ -669,9 +660,7 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->convergeddestroy) {
-    CHKERRQ((*eps->convergeddestroy)(eps->convergedctx));
-  }
+  if (eps->convergeddestroy) CHKERRQ((*eps->convergeddestroy)(eps->convergedctx));
   eps->convergeduser    = func;
   eps->convergeddestroy = destroy;
   eps->convergedctx     = ctx;
@@ -794,9 +783,7 @@ PetscErrorCode EPSSetStoppingTestFunction(EPS eps,PetscErrorCode (*func)(EPS,Pet
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  if (eps->stoppingdestroy) {
-    CHKERRQ((*eps->stoppingdestroy)(eps->stoppingctx));
-  }
+  if (eps->stoppingdestroy) CHKERRQ((*eps->stoppingdestroy)(eps->stoppingctx));
   eps->stoppinguser    = func;
   eps->stoppingdestroy = destroy;
   eps->stoppingctx     = ctx;

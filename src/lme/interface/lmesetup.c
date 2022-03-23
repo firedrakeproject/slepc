@@ -62,9 +62,7 @@ PetscErrorCode LMESetUp(LME lme)
   CHKERRQ(PetscLogEventBegin(LME_SetUp,lme,0,0,0));
 
   /* Set default solver type (LMESetFromOptions was not called) */
-  if (!((PetscObject)lme)->type_name) {
-    CHKERRQ(LMESetType(lme,LMEKRYLOV));
-  }
+  if (!((PetscObject)lme)->type_name) CHKERRQ(LMESetType(lme,LMEKRYLOV));
 
   /* Check problem dimensions */
   PetscCheck(lme->A,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"LMESetCoefficients must be called first");
@@ -380,14 +378,10 @@ PetscErrorCode LMEAllocateSolution(LME lme,PetscInt extra)
   /* allocate basis vectors */
   if (!lme->V) CHKERRQ(LMEGetBV(lme,&lme->V));
   if (!oldsize) {
-    if (!((PetscObject)(lme->V))->type_name) {
-      CHKERRQ(BVSetType(lme->V,BVSVEC));
-    }
+    if (!((PetscObject)(lme->V))->type_name) CHKERRQ(BVSetType(lme->V,BVSVEC));
     CHKERRQ(MatCreateVecsEmpty(lme->A,&t,NULL));
     CHKERRQ(BVSetSizesFromVec(lme->V,t,requested));
     CHKERRQ(VecDestroy(&t));
-  } else {
-    CHKERRQ(BVResize(lme->V,requested,PETSC_FALSE));
-  }
+  } else CHKERRQ(BVResize(lme->V,requested,PETSC_FALSE));
   PetscFunctionReturn(0);
 }

@@ -55,9 +55,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,4,2,NULL,&M));
 
   /* Compute the eigenvectors of the selected pairs */
-  for (i=r_s;i<r_s+n; i++) {
-    CHKERRQ(DSVectors(d->eps->ds,DS_MAT_X,&i,NULL));
-  }
+  for (i=r_s;i<r_s+n; i++) CHKERRQ(DSVectors(d->eps->ds,DS_MAT_X,&i,NULL));
   CHKERRQ(DSGetArray(d->eps->ds,DS_MAT_X,&pX));
   CHKERRQ(DSGetLeadingDimension(d->eps->ds,&ld));
 
@@ -67,14 +65,11 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   /* Bx <- B*X(i) */
   if (d->BX) {
     /* Compute the norms of the eigenvectors */
-    if (d->correctXnorm) {
-      CHKERRQ(dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld));
-    } else {
+    if (d->correctXnorm) CHKERRQ(dvd_improvex_compute_X(d,r_s,r_s+n,Bx,pX,ld));
+    else {
       for (i=0;i<n;i++) d->nX[r_s+i] = 1.0;
     }
-    for (i=0;i<n;i++) {
-      CHKERRQ(BVMultVec(d->BX,1.0,0.0,Bx[i],&pX[ld*(r_s+i)]));
-    }
+    for (i=0;i<n;i++) CHKERRQ(BVMultVec(d->BX,1.0,0.0,Bx[i],&pX[ld*(r_s+i)]));
   } else if (d->B) {
     CHKERRQ(SlepcVecPoolGetVecs(d->auxV,1,&x));
     for (i=0;i<n;i++) {
@@ -90,9 +85,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   }
 
   /* Ax <- A*X(i) */
-  for (i=0;i<n;i++) {
-    CHKERRQ(BVMultVec(d->AX,1.0,0.0,Ax[i],&pX[ld*(i+r_s)]));
-  }
+  for (i=0;i<n;i++) CHKERRQ(BVMultVec(d->AX,1.0,0.0,Ax[i],&pX[ld*(i+r_s)]));
 
   CHKERRQ(DSRestoreArray(d->eps->ds,DS_MAT_X,&pX));
 
@@ -172,9 +165,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
     }
     /* Prevent that short vectors are discarded in the orthogonalization */
     for (i=0; i<s && i<*size_D; i++) {
-      if (d->eps->errest[d->nconv+r_s+i] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s+i] < PETSC_MAX_REAL) {
-        CHKERRQ(BVScaleColumn(d->eps->V,i+kv,1.0/d->eps->errest[d->nconv+r_s+i]));
-      }
+      if (d->eps->errest[d->nconv+r_s+i] > PETSC_MACHINE_EPSILON && d->eps->errest[d->nconv+r_s+i] < PETSC_MAX_REAL) CHKERRQ(BVScaleColumn(d->eps->V,i+kv,1.0/d->eps->errest[d->nconv+r_s+i]));
     }
   } else *size_D = 0;
 
@@ -209,9 +200,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
   if (ksp) {
     CHKERRQ(KSPGetPC(ksp,&pc));
     CHKERRQ(dvd_static_precond_PC(d,b,pc));
-  } else {
-    CHKERRQ(dvd_static_precond_PC(d,b,0));
-  }
+  } else CHKERRQ(dvd_static_precond_PC(d,b,0));
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {

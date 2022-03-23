@@ -355,9 +355,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 #else
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
 #endif
-    } else {
-      CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,m,&v));
-    }
+    } else CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,m,&v));
     CHKERRQ(PetscLogObjectParent((PetscObject)bv,(PetscObject)v));
     if (copy) {
       CHKERRQ(VecGetArray(v,&array));
@@ -365,9 +363,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
       CHKERRQ(PetscArraycpy(array,omega,PetscMin(m,bv->m)));
       CHKERRQ(VecRestoreArrayRead(bv->omega,&omega));
       CHKERRQ(VecRestoreArray(v,&array));
-    } else {
-      CHKERRQ(VecSet(v,1.0));
-    }
+    } else CHKERRQ(VecSet(v,1.0));
     CHKERRQ(VecDestroy(&bv->omega));
     bv->omega = v;
   }
@@ -561,9 +557,7 @@ PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
   if (bv->matrix) {
     CHKERRQ(BV_IPMatMult(bv,x));
     CHKERRQ(VecCopy(bv->Bx,y));
-  } else {
-    CHKERRQ(VecCopy(x,y));
-  }
+  } else CHKERRQ(VecCopy(x,y));
   PetscFunctionReturn(0);
 }
 
@@ -596,14 +590,9 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
   if (Y) {
     PetscValidHeaderSpecific(Y,BV_CLASSID,2);
-    if (X->matrix) {
-      CHKERRQ(BVMatMult(X,X->matrix,Y));
-    } else {
-      CHKERRQ(BVCopy(X,Y));
-    }
-  } else {
-    CHKERRQ(BV_IPMatMultBV(X));
-  }
+    if (X->matrix) CHKERRQ(BVMatMult(X,X->matrix,Y));
+    else CHKERRQ(BVCopy(X,Y));
+  } else CHKERRQ(BV_IPMatMultBV(X));
   PetscFunctionReturn(0);
 }
 
@@ -644,9 +633,7 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
     for (i=0;i<n;i++) intern[bv->nc+i] = pomega[i];
     CHKERRQ(VecRestoreArray(bv->omega,&intern));
     CHKERRQ(VecRestoreArrayRead(omega,&pomega));
-  } else {
-    CHKERRQ(PetscInfo(bv,"Ignoring signature because BV is not indefinite\n"));
-  }
+  } else CHKERRQ(PetscInfo(bv,"Ignoring signature because BV is not indefinite\n"));
   CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
@@ -689,9 +676,7 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
     for (i=0;i<n;i++) pomega[i] = intern[bv->nc+i];
     CHKERRQ(VecRestoreArrayRead(bv->omega,&intern));
     CHKERRQ(VecRestoreArray(omega,&pomega));
-  } else {
-    CHKERRQ(VecSet(omega,1.0));
-  }
+  } else CHKERRQ(VecSet(omega,1.0));
   PetscFunctionReturn(0);
 }
 
@@ -879,11 +864,8 @@ PetscErrorCode BVSetFromOptions(BV bv)
   CHKERRQ(BVRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)bv);CHKERRQ(ierr);
     CHKERRQ(PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,sizeof(type),&flg1));
-    if (flg1) {
-      CHKERRQ(BVSetType(bv,type));
-    } else if (!((PetscObject)bv)->type_name) {
-      CHKERRQ(BVSetType(bv,BVSVEC));
-    }
+    if (flg1) CHKERRQ(BVSetType(bv,type));
+    else if (!((PetscObject)bv)->type_name) CHKERRQ(BVSetType(bv,BVSVEC));
 
     otype = bv->orthog_type;
     CHKERRQ(PetscOptionsEnum("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",BVOrthogTypes,(PetscEnum)otype,(PetscEnum*)&otype,&flg1));
@@ -904,9 +886,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
     CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-bv_reproducible_random",&bv->rrandom,NULL));
 
     if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
-    else if (bv->ops->setfromoptions) {
-      CHKERRQ((*bv->ops->setfromoptions)(PetscOptionsObject,bv));
-    }
+    else if (bv->ops->setfromoptions) CHKERRQ((*bv->ops->setfromoptions)(PetscOptionsObject,bv));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)bv));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   bv->sfocalled = PETSC_TRUE;
@@ -1181,12 +1161,9 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   CHKERRQ(PetscObjectGetId((PetscObject)*v,&id));
   PetscCheck(id==bv->id[l],PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same Vec that was obtained with BVGetColumn");
   CHKERRQ(PetscObjectStateGet((PetscObject)*v,&st));
-  if (st!=bv->st[l]) {
-    CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
-  }
-  if (bv->ops->restorecolumn) {
-    CHKERRQ((*bv->ops->restorecolumn)(bv,j,v));
-  } else bv->cv[l] = NULL;
+  if (st!=bv->st[l]) CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  if (bv->ops->restorecolumn) CHKERRQ((*bv->ops->restorecolumn)(bv,j,v));
+  else bv->cv[l] = NULL;
   bv->ci[l] = -bv->nc-1;
   bv->st[l] = -1;
   bv->id[l] = 0;
@@ -1252,9 +1229,7 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  if (bv->ops->restorearray) {
-    CHKERRQ((*bv->ops->restorearray)(bv,a));
-  }
+  if (bv->ops->restorearray) CHKERRQ((*bv->ops->restorearray)(bv,a));
   if (a) *a = NULL;
   CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
@@ -1315,9 +1290,7 @@ PetscErrorCode BVRestoreArrayRead(BV bv,const PetscScalar **a)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  if (bv->ops->restorearrayread) {
-    CHKERRQ((*bv->ops->restorearrayread)(bv,a));
-  }
+  if (bv->ops->restorearrayread) CHKERRQ((*bv->ops->restorearrayread)(bv,a));
   if (a) *a = NULL;
   PetscFunctionReturn(0);
 }
@@ -1427,9 +1400,8 @@ PetscErrorCode BVGetMat(BV bv,Mat *A)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscValidPointer(A,2);
-  if (bv->ops->getmat) {
-    CHKERRQ((*bv->ops->getmat)(bv,A));
-  } else {
+  if (bv->ops->getmat) CHKERRQ((*bv->ops->getmat)(bv,A));
+  else {
     m = bv->k-bv->l;
     if (!bv->Aget) create=PETSC_TRUE;
     else {
@@ -1481,9 +1453,8 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
   PetscValidPointer(A,2);
   PetscCheck(bv->Aget,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVRestoreMat must match a previous call to BVGetMat");
   PetscCheck(bv->Aget==*A,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with BVGetMat");
-  if (bv->ops->restoremat) {
-    CHKERRQ((*bv->ops->restoremat)(bv,A));
-  } else {
+  if (bv->ops->restoremat) CHKERRQ((*bv->ops->restoremat)(bv,A));
+  else {
     CHKERRQ(MatDenseGetArray(bv->Aget,&aa));
     vv = aa-(bv->nc+bv->l)*bv->n;
     CHKERRQ(MatDenseResetArray(bv->Aget));
@@ -1757,9 +1728,8 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
     omega[i] = omega[j];
     CHKERRQ(VecRestoreArray(V->omega,&omega));
   }
-  if (V->ops->copycolumn) {
-    CHKERRQ((*V->ops->copycolumn)(V,j,i));
-  } else {
+  if (V->ops->copycolumn) CHKERRQ((*V->ops->copycolumn)(V,j,i));
+  else {
     CHKERRQ(BVGetColumn(V,j,&z));
     CHKERRQ(BVGetColumn(V,i,&w));
     CHKERRQ(VecCopy(z,w));
@@ -1794,11 +1764,8 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
     (*split)->ci[0] = -(*split)->nc-1;
     (*split)->ci[1] = -(*split)->nc-1;
   }
-  if (left) {
-    CHKERRQ(PetscObjectStateGet((PetscObject)*split,&bv->lstate));
-  } else {
-    CHKERRQ(PetscObjectStateGet((PetscObject)*split,&bv->rstate));
-  }
+  if (left) CHKERRQ(PetscObjectStateGet((PetscObject)*split,&bv->lstate));
+  else CHKERRQ(PetscObjectStateGet((PetscObject)*split,&bv->rstate));
   PetscFunctionReturn(0);
 }
 
@@ -1879,9 +1846,7 @@ PetscErrorCode BVRestoreSplit(BV bv,BV *L,BV *R)
   PetscCheck(!L || ((*L)->ci[0]<=(*L)->nc-1 && (*L)->ci[1]<=(*L)->nc-1),PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Argument 2 has unrestored columns, use BVRestoreColumn()");
   PetscCheck(!R || ((*R)->ci[0]<=(*R)->nc-1 && (*R)->ci[1]<=(*R)->nc-1),PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Argument 3 has unrestored columns, use BVRestoreColumn()");
 
-  if (bv->ops->restoresplit) {
-    CHKERRQ((*bv->ops->restoresplit)(bv,L,R));
-  }
+  if (bv->ops->restoresplit) CHKERRQ((*bv->ops->restoresplit)(bv,L,R));
   bv->lsplit = 0;
   if (L) *L = NULL;
   if (R) *R = NULL;

@@ -46,9 +46,7 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
     CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
     if (set && flg) CHKERRQ(MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE));
     CHKERRQ(FNEvaluateFunctionMat(fn,F,NULL));
-  } else {
-    CHKERRQ(FNEvaluateFunctionMat(fn,A,F));
-  }
+  } else CHKERRQ(FNEvaluateFunctionMat(fn,A,F));
   if (verbose) {
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
     CHKERRQ(MatView(A,viewer));
@@ -64,9 +62,7 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
   CHKERRQ(VecAXPY(v,-1.0,f0));
   CHKERRQ(VecNorm(v,NORM_2,&nrm));
-  if (nrm>100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
-  }
+  if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
   CHKERRQ(MatDestroy(&F));
   CHKERRQ(VecDestroy(&v));
   CHKERRQ(VecDestroy(&f0));
@@ -126,9 +122,7 @@ int main(int argc,char **argv)
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
   CHKERRQ(FNView(f,viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Scalar evaluation */
   x = 2.2;

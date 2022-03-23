@@ -40,9 +40,7 @@ PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ld
     ca = pep->pbc; cb = pep->pbc+pep->nmat; cg = pep->pbc+2*pep->nmat;
     for (i=0;i<k;i++) T[i*ldt+i] -= cb[idx-1];
     if (idx>1) {
-      for (i=0;i<k;i++) {
-        CHKERRQ(PetscArraycpy(Tj+i*ldtj,Tpp+i*ldtpp,k));
-      }
+      for (i=0;i<k;i++) CHKERRQ(PetscArraycpy(Tj+i*ldtj,Tpp+i*ldtpp,k));
     }
     a = 1/ca[idx-1];
     g = (idx==1)?0.0:-cg[idx-1]/ca[idx-1];

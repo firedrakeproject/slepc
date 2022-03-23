@@ -57,9 +57,7 @@ static PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
   restart = (k+2 > d->eps->ncv)? PETSC_TRUE: PETSC_FALSE;
 
   /* Check old isRestarting function */
-  if (PetscUnlikely(!restart && data->old_isRestarting)) {
-    CHKERRQ(data->old_isRestarting(d,&restart));
-  }
+  if (PetscUnlikely(!restart && data->old_isRestarting)) CHKERRQ(data->old_isRestarting(d,&restart));
   *r = restart;
   PetscFunctionReturn(0);
 }
@@ -118,11 +116,8 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_Q,0,npreconv,Z,0,npreconv,nV,cMT,PETSC_FALSE));
     CHKERRQ(MatDestroy(&Z));
   }
-  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    CHKERRQ(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds));
-  } else {
-    CHKERRQ(DSOrthogonalize(d->eps->ds,DS_MAT_Q,nV,&cMTX));
-  }
+  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) CHKERRQ(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds));
+  else CHKERRQ(DSOrthogonalize(d->eps->ds,DS_MAT_Q,nV,&cMTX));
   cMT = cMTX - npreconv;
 
   if (d->W) {
@@ -178,14 +173,9 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
     CHKERRQ(MatDestroy(&Z));
   }
   PetscCheck(size_plusk<=0 || !DVD_IS(d->sEP,DVD_EP_INDEFINITE),PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
-  if (size_plusk > 0) {
-    CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_Q,0,size_X,data->oldU,0,0,nV,size_plusk,PETSC_FALSE));
-  }
-  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
-    CHKERRQ(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBds,&cMTX,d->nBds));
-  } else {
-    CHKERRQ(DSOrthogonalize(d->eps->ds,DS_MAT_Q,size_X+size_plusk,&cMTX));
-  }
+  if (size_plusk > 0) CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_Q,0,size_X,data->oldU,0,0,nV,size_plusk,PETSC_FALSE));
+  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) CHKERRQ(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBds,&cMTX,d->nBds));
+  else CHKERRQ(DSOrthogonalize(d->eps->ds,DS_MAT_Q,size_X+size_plusk,&cMTX));
 
   if (d->W && size_plusk > 0) {
     /* ps.Z <- orth([ps.Z(0:size_X-1) [oldV(0:size_plusk-1); 0] ]) */
@@ -222,9 +212,7 @@ static PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt p
 #else
     b = 1;
 #endif
-    if (i+b-1 >= pre) {
-      CHKERRQ(d->calcpairs_residual(d,i,i+b));
-    }
+    if (i+b-1 >= pre) CHKERRQ(d->calcpairs_residual(d,i,i+b));
     /* Test the Schur vector */
     for (j=0,c=PETSC_TRUE;j<b && c;j++) {
       norm = d->nR[i+j]/d->nX[i+j];

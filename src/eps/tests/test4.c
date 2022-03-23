@@ -73,22 +73,16 @@ int main(int argc,char **argv)
     CHKERRQ(EPSSetType(eps,EPSGD));
     CHKERRQ(EPSGDSetDoubleExpansion(eps,PETSC_TRUE));
     CHKERRQ(EPSGDGetDoubleExpansion(eps,&gd2));  /* not used */
-  } else {
-    CHKERRQ(EPSSetType(eps,epstype));
-  }
+  } else CHKERRQ(EPSSetType(eps,epstype));
   CHKERRQ(PetscStrcmp(epstype,"jd",&flg));
   if (flg) {
     CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE));
     CHKERRQ(EPSSetTarget(eps,4.0));
   }
   CHKERRQ(PetscStrcmp(epstype,"lanczos",&flg));
-  if (flg) {
-    CHKERRQ(EPSLanczosSetReorthog(eps,EPS_LANCZOS_REORTHOG_LOCAL));
-  }
+  if (flg) CHKERRQ(EPSLanczosSetReorthog(eps,EPS_LANCZOS_REORTHOG_LOCAL));
   CHKERRQ(PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSRQCG,EPSLOBPCG,""));
-  if (flg) {
-    CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  }
+  if (flg) CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem

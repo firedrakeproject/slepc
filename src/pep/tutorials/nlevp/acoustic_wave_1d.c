@@ -57,15 +57,11 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(K,i,i-1,-1.0*n,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(K,i,i-1,-1.0*n,INSERT_VALUES));
     if (i<n-1) {
       CHKERRQ(MatSetValue(K,i,i,2.0*n,INSERT_VALUES));
       CHKERRQ(MatSetValue(K,i,i+1,-1.0*n,INSERT_VALUES));
-    } else {
-      CHKERRQ(MatSetValue(K,i,i,1.0*n,INSERT_VALUES));
-    }
+    } else CHKERRQ(MatSetValue(K,i,i,1.0*n,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
@@ -78,9 +74,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetUp(C));
 
   CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
-  if (n-1>=Istart && n-1<Iend) {
-    CHKERRQ(MatSetValue(C,n-1,n-1,-2*PETSC_PI/z,INSERT_VALUES));
-  }
+  if (n-1>=Istart && n-1<Iend) CHKERRQ(MatSetValue(C,n-1,n-1,-2*PETSC_PI/z,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
 
@@ -92,11 +86,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(M,i,i,4*PETSC_PI*PETSC_PI/n,INSERT_VALUES));
-    } else {
-      CHKERRQ(MatSetValue(M,i,i,2*PETSC_PI*PETSC_PI/n,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(M,i,i,4*PETSC_PI*PETSC_PI/n,INSERT_VALUES));
+    else CHKERRQ(MatSetValue(M,i,i,2*PETSC_PI*PETSC_PI/n,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
@@ -117,9 +108,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
-  } else {
+  if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));

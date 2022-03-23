@@ -115,28 +115,18 @@ PetscErrorCode DSView_GSVD(DS ds,PetscViewer viewer)
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rowsa,colsa));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"zzz = zeros(%" PetscInt_FMT ",3);\n",2*ds->n));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"zzz = [\n"));
-      for (i=0;i<PetscMin(rowsa,colsa);i++) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i)));
-      }
-      for (i=0;i<k;i++) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i)));
-      }
+      for (i=0;i<PetscMin(rowsa,colsa);i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i)));
+      for (i=0;i<k;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,k+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i)));
       if (n>m) { /* A lower bidiagonal */
-        for (i=k;i<rowsa-1;i++) {
-          CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+2,i+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i)));
-        }
+        for (i=k;i<rowsa-1;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+2,i+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i)));
       } else { /* A (square) upper bidiagonal */
-        for (i=k;i<colsa-1;i++) {
-          CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+2,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i)));
-        }
+        for (i=k;i<colsa-1;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+2,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i)));
       }
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rowsb,colsb));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"zzz = zeros(%" PetscInt_FMT ",3);\n",2*ds->n));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"zzz = [\n"));
-      for (i=0;i<rowsb;i++) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_D]+i)));
-      }
+      for (i=0;i<rowsb;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_D]+i)));
       for (i=0;i<colsb-1;i++) {
         r = PetscMax(i+2,ds->k+1);
         CHKERRQ(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,r,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i)));
@@ -511,34 +501,24 @@ PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   CHKERRQ(PetscMPIIntCast(3*ld,&ld3));
   CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    if (ds->compact) {
-      CHKERRMPI(MPI_Pack(ds->rmat[DS_MAT_T],ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    } else {
-      CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (ds->compact) CHKERRMPI(MPI_Pack(ds->rmat[DS_MAT_T],ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    else CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) {
       CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_U]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
       CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_V]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
       CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_X]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     }
-    if (eigr) {
-      CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigr) CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
   }
   CHKERRMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    if (ds->compact) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->rmat[DS_MAT_T],ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
-    } else {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (ds->compact) CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->rmat[DS_MAT_T],ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
+    else CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) {
       CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_U]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
       CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_V]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     }
-    if (eigr) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigr) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
   }
   PetscFunctionReturn(0);
 }

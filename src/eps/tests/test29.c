@@ -125,16 +125,12 @@ int main(int argc,char **argv)
         ki (imaginary part)
       */
       CHKERRQ(EPSGetEigenpair(eps,i,&kr[i],&ki[i],xr[i],xi[i]));
-      if (twosided) {
-        CHKERRQ(EPSGetLeftEigenvector(eps,i,yr[i],yi[i]));
-      }
+      if (twosided) CHKERRQ(EPSGetLeftEigenvector(eps,i,yr[i],yi[i]));
       /*
          Compute the residual norms associated to each eigenpair
       */
       CHKERRQ(ComputeResidualNorm(A,B,PETSC_FALSE,kr[i],ki[i],xr[i],xi[i],z,&nrmr));
-      if (twosided) {
-        CHKERRQ(ComputeResidualNorm(A,B,PETSC_TRUE,kr[i],ki[i],yr[i],yi[i],z,&nrml));
-      }
+      if (twosided) CHKERRQ(ComputeResidualNorm(A,B,PETSC_TRUE,kr[i],ki[i],yr[i],yi[i],z,&nrml));
 
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr[i]);
@@ -143,11 +139,8 @@ int main(int argc,char **argv)
       re = kr[i];
       im = ki[i];
 #endif
-      if (im!=0.0) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g       %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml));
-      } else {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g       %12g\n",(double)re,(double)nrmr,(double)nrml));
-      }
+      if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g       %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml));
+      else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g       %12g\n",(double)re,(double)nrmr,(double)nrml));
     }
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     /*
@@ -155,11 +148,8 @@ int main(int argc,char **argv)
     */
     if (twosided) {
       CHKERRQ(VecCheckOrthogonality(xr,nconv,yr,nconv,B,NULL,&lev));
-      if (lev<100*PETSC_MACHINE_EPSILON) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors < 100*eps\n\n"));
-      } else {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors: %g\n\n",(double)lev));
-      }
+      if (lev<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors < 100*eps\n\n"));
+      else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors: %g\n\n",(double)lev));
     }
   }
 

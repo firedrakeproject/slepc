@@ -112,11 +112,8 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ishermitian) {
-    if (eps->isgeneralized && !eps->ispositive) {
-      CHKERRQ(EPSComputeVectors_Indefinite(eps));
-    } else {
-      CHKERRQ(EPSComputeVectors_Hermitian(eps));
-    }
+    if (eps->isgeneralized && !eps->ispositive) CHKERRQ(EPSComputeVectors_Indefinite(eps));
+    else CHKERRQ(EPSComputeVectors_Hermitian(eps));
     PetscFunctionReturn(0);
   }
 
@@ -141,9 +138,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   }
 
   /* normalize eigenvectors (when using purification or balancing) */
-  if (eps->purify || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
-    CHKERRQ(BVNormalize(eps->V,eps->eigi));
-  }
+  if (eps->purify || (eps->balance!=EPS_BALANCE_NONE && eps->D)) CHKERRQ(BVNormalize(eps->V,eps->eigi));
 
   /* left eigenvectors */
   if (eps->twosided) {
@@ -335,18 +330,13 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
   /* purify eigenvector if necessary */
   if (eps->purify) {
     CHKERRQ(STApply(eps->st,x,y));
-    if (eps->ishermitian) {
-      CHKERRQ(BVNormVec(eps->V,y,NORM_2,&norm));
-    } else {
-      CHKERRQ(VecNorm(y,NORM_2,&norm));
-    }
+    if (eps->ishermitian) CHKERRQ(BVNormVec(eps->V,y,NORM_2,&norm));
+    else CHKERRQ(VecNorm(y,NORM_2,&norm));
     CHKERRQ(VecScale(y,1.0/norm));
     CHKERRQ(VecCopy(y,x));
   }
   /* fix eigenvector if balancing is used */
-  if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE && eps->D) {
-    CHKERRQ(VecPointwiseDivide(x,x,eps->D));
-  }
+  if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE && eps->D) CHKERRQ(VecPointwiseDivide(x,x,eps->D));
 #if !defined(PETSC_USE_COMPLEX)
   /* compute imaginary part of eigenvector */
   if (Zi) {
@@ -359,23 +349,18 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
       CHKERRQ(VecCopy(z,y));
       CHKERRQ(VecDestroy(&z));
     }
-    if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-      CHKERRQ(VecPointwiseDivide(y,y,eps->D));
-    }
+    if (eps->balance!=EPS_BALANCE_NONE && eps->D) CHKERRQ(VecPointwiseDivide(y,y,eps->D));
   } else
 #endif
-  CHKERRQ(VecSet(y,0.0));
+    CHKERRQ(VecSet(y,0.0));
 
   /* normalize eigenvectors (when using balancing) */
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
 #if !defined(PETSC_USE_COMPLEX)
-    if (Zi) {
-      CHKERRQ(VecNormalizeComplex(x,y,PETSC_TRUE,NULL));
-    } else
+    if (Zi) CHKERRQ(VecNormalizeComplex(x,y,PETSC_TRUE,NULL));
+    else
 #endif
-    {
-      CHKERRQ(VecNormalize(x,NULL));
-    }
+    CHKERRQ(VecNormalize(x,NULL));
   }
   CHKERRQ(BVSetActiveColumns(V,l,k));
   PetscFunctionReturn(0);

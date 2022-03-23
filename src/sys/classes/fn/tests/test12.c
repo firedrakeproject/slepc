@@ -43,9 +43,7 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Create a symmetric/Hermitian Toeplitz matrix */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
@@ -89,11 +87,8 @@ int main(int argc,char **argv)
   /* compare the two results */
   CHKERRQ(MatAXPY(F,-1.0,G,SAME_NONZERO_PATTERN));
   CHKERRQ(MatNorm(F,NORM_FROBENIUS,&nrm));
-  if (nrm>100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of F-G is %g\n",(double)nrm));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed results match.\n"));
-  }
+  if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of F-G is %g\n",(double)nrm));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed results match.\n"));
 
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&F));

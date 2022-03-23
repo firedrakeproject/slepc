@@ -102,9 +102,7 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
   while (pool->next) pool = pool->next;
   if (pool->n-pool->used < n) {
     pool->guess = PetscMax(p->guess,pool->used+n);
-    if (pool->vecs && pool->used == 0) {
-      CHKERRQ(VecDestroyVecs(pool->n,&pool->vecs));
-    }
+    if (pool->vecs && pool->used == 0) CHKERRQ(VecDestroyVecs(pool->n,&pool->vecs));
     if (pool->vecs) {
       CHKERRQ(SlepcVecPoolCreate(p->v,pool->guess-pool->used,&pool->next));
       pool = pool->next;

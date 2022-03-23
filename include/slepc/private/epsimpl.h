@@ -275,9 +275,7 @@ static inline PetscErrorCode EPS_SetInnerProduct(EPS eps)
     CHKERRQ(STGetBilinearForm(eps->st,&B));
     CHKERRQ(BVSetMatrix(eps->V,B,PetscNot(eps->ispositive)));
     CHKERRQ(MatDestroy(&B));
-  } else {
-    CHKERRQ(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
-  }
+  } else CHKERRQ(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
   PetscFunctionReturn(0);
 }
 

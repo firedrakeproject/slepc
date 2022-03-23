@@ -68,9 +68,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatCreateVecs(A,&t,NULL));
   if (nini) {
     CHKERRQ(VecDuplicateVecs(t,nini,&vi));
-    for (i=0;i<nini;i++) {
-      CHKERRQ(VecSetRandom(vi[i],NULL));
-    }
+    for (i=0;i<nini;i++) CHKERRQ(VecSetRandom(vi[i],NULL));
     CHKERRQ(EPSSetInitialSpace(eps,nini,vi));
   }
   if (ncon) {   /* constraints are exact eigenvectors of lowest eigenvalues */
@@ -78,9 +76,7 @@ int main(int argc,char **argv)
     beta  = PetscSqrtReal(2.0/(n+1));
     CHKERRQ(VecDuplicateVecs(t,ncon,&vc));
     for (i=0;i<ncon;i++) {
-      for (j=0;j<n;j++) {
-        CHKERRQ(VecSetValue(vc[i],j,PetscSinReal(alpha*(j+1)*(i+1))*beta,INSERT_VALUES));
-      }
+      for (j=0;j<n;j++) CHKERRQ(VecSetValue(vc[i],j,PetscSinReal(alpha*(j+1)*(i+1))*beta,INSERT_VALUES));
       CHKERRQ(VecAssemblyBegin(vc[i]));
       CHKERRQ(VecAssemblyEnd(vc[i]));
     }

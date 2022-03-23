@@ -48,9 +48,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
 
@@ -70,11 +68,8 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     } else type = "not yet set";
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  transpose mode: %s\n",svd->impltrans?"implicit":"explicit"));
-    if (svd->which == SVD_LARGEST) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: largest\n"));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: smallest\n"));
-    }
+    if (svd->which == SVD_LARGEST) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: largest\n"));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: smallest\n"));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of singular values (nsv): %" PetscInt_FMT "\n",svd->nsv));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",svd->ncv));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %" PetscInt_FMT "\n",svd->mpd));
@@ -90,9 +85,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     case SVD_CONV_NORM:
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n"));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computed matrix norms: norm(A)=%g",(double)svd->nrma));
-      if (svd->isgeneralized) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,", norm(B)=%g",(double)svd->nrmb));
-      }
+      if (svd->isgeneralized) CHKERRQ(PetscViewerASCIIPrintf(viewer,", norm(B)=%g",(double)svd->nrmb));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
       break;
     case SVD_CONV_MAXIT:
@@ -101,16 +94,10 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"user-defined\n"));break;
     }
     CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
-    if (svd->nini) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(svd->nini)));
-    }
-    if (svd->ninil) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %" PetscInt_FMT "\n",PetscAbs(svd->ninil)));
-    }
+    if (svd->nini) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(svd->nini)));
+    if (svd->ninil) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %" PetscInt_FMT "\n",PetscAbs(svd->ninil)));
   } else {
-    if (svd->ops->view) {
-      CHKERRQ((*svd->ops->view)(svd,viewer));
-    }
+    if (svd->ops->view) CHKERRQ((*svd->ops->view)(svd,viewer));
   }
   CHKERRQ(PetscObjectTypeCompareAny((PetscObject)svd,&isshell,SVDCROSS,SVDCYCLIC,SVDSCALAPACK,SVDELEMENTAL,SVDPRIMME,""));
   if (!isshell) {
@@ -179,11 +166,8 @@ PetscErrorCode SVDConvergedReasonView(SVD svd,PetscViewer viewer)
   if (isAscii) {
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel));
-    if (svd->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s SVD solve converged (%" PetscInt_FMT " singular triplet%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",svd->nconv,(svd->nconv>1)?"s":"",SVDConvergedReasons[svd->reason],svd->its));
-    } else if (svd->reason <= 0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s SVD solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its));
-    }
+    if (svd->reason > 0 && format != PETSC_VIEWER_FAILED) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s SVD solve converged (%" PetscInt_FMT " singular triplet%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",svd->nconv,(svd->nconv>1)?"s":"",SVDConvergedReasons[svd->reason],svd->its));
+    else if (svd->reason <= 0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s SVD solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its));
     CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
   }
   PetscFunctionReturn(0);
@@ -333,9 +317,7 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,3);
   PetscCheckSameComm(svd,1,viewer,3);
   SVDCheckSolved(svd,1);
@@ -484,9 +466,7 @@ static PetscErrorCode SVDValuesView_ASCII(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"Singular values = \n"));
-  for (i=0;i<svd->nconv;i++) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"   %.5f\n",(double)svd->sigma[svd->perm[i]]));
-  }
+  for (i=0;i<svd->nconv;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"   %.5f\n",(double)svd->sigma[svd->perm[i]]));
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
   PetscFunctionReturn(0);
 }
@@ -499,9 +479,7 @@ static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
   PetscFunctionBegin;
   CHKERRQ(PetscObjectGetName((PetscObject)svd,&name));
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"Sigma_%s = [\n",name));
-  for (i=0;i<svd->nconv;i++) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)svd->sigma[svd->perm[i]]));
-  }
+  for (i=0;i<svd->nconv;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)svd->sigma[svd->perm[i]]));
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"];\n"));
   PetscFunctionReturn(0);
 }
@@ -532,9 +510,7 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
   SVDCheckSolved(svd,1);
@@ -544,15 +520,12 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5));
 #endif
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isdraw) {
-    CHKERRQ(SVDValuesView_DRAW(svd,viewer));
-  } else if (isbinary) {
-    CHKERRQ(SVDValuesView_BINARY(svd,viewer));
+  if (isdraw) CHKERRQ(SVDValuesView_DRAW(svd,viewer));
+  else if (isbinary) CHKERRQ(SVDValuesView_BINARY(svd,viewer));
 #if defined(PETSC_HAVE_HDF5)
-  } else if (ishdf5) {
-    CHKERRQ(SVDValuesView_HDF5(svd,viewer));
+  else if (ishdf5) CHKERRQ(SVDValuesView_HDF5(svd,viewer));
 #endif
-  } else if (isascii) {
+  else if (isascii) {
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     switch (format) {
       case PETSC_VIEWER_DEFAULT:
@@ -633,9 +606,7 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
   SVDCheckSolved(svd,1);

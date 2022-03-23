@@ -37,9 +37,7 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Create non-symmetric matrix G (Toeplitz) */
   CHKERRQ(MatCreate(PETSC_COMM_WORLD,&G));
@@ -51,17 +49,12 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(G,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
-    if (i==0) {
-      CHKERRQ(MatSetValues(G,1,&i,PetscMin(4,n-i),col+1,value+1,INSERT_VALUES));
-    } else {
-      CHKERRQ(MatSetValues(G,1,&i,PetscMin(5,n-i+1),col,value,INSERT_VALUES));
-    }
+    if (i==0) CHKERRQ(MatSetValues(G,1,&i,PetscMin(4,n-i),col+1,value+1,INSERT_VALUES));
+    else CHKERRQ(MatSetValues(G,1,&i,PetscMin(5,n-i+1),col,value,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(G,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(G,MAT_FINAL_ASSEMBLY));
-  if (verbose) {
-    CHKERRQ(MatView(G,view));
-  }
+  if (verbose) CHKERRQ(MatView(G,view));
 
   /* Create symmetric matrix B (1-D Laplacian) */
   CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
@@ -79,9 +72,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatCreateVecs(B,&t,NULL));
-  if (verbose) {
-    CHKERRQ(MatView(B,view));
-  }
+  if (verbose) CHKERRQ(MatView(B,view));
 
   /* Create BV object X */
   CHKERRQ(BVCreate(PETSC_COMM_WORLD,&X));
@@ -107,9 +98,7 @@ int main(int argc,char **argv)
     CHKERRQ(VecAssemblyEnd(v));
     CHKERRQ(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Duplicate BV object and store Z=G*X */
   CHKERRQ(BVDuplicate(X,&Z));
@@ -138,34 +127,25 @@ int main(int argc,char **argv)
     CHKERRQ(VecSet(v,(PetscScalar)(j+1)/4.0));
     CHKERRQ(BVRestoreColumn(Y,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(Y,view));
-  }
+  if (verbose) CHKERRQ(BVView(Y,view));
 
   /* Test BVMatProject for non-symmetric matrix G */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H0));
   CHKERRQ(PetscObjectSetName((PetscObject)H0,"H0"));
   CHKERRQ(BVMatProject(X,G,Y,H0));
-  if (verbose) {
-    CHKERRQ(MatView(H0,view));
-  }
+  if (verbose) CHKERRQ(MatView(H0,view));
 
   /* Test BVMatProject with previously stored G*X */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H1));
   CHKERRQ(PetscObjectSetName((PetscObject)H1,"H1"));
   CHKERRQ(BVMatProject(Z,NULL,Y,H1));
-  if (verbose) {
-    CHKERRQ(MatView(H1,view));
-  }
+  if (verbose) CHKERRQ(MatView(H1,view));
 
   /* Check that H0 and H1 are equal */
   CHKERRQ(MatAXPY(H0,-1.0,H1,SAME_NONZERO_PATTERN));
   CHKERRQ(MatNorm(H0,NORM_1,&norm));
-  if (norm<10*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||H0-H1|| < 10*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||H0-H1||=%g\n",(double)norm));
-  }
+  if (norm<10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||H0-H1|| < 10*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||H0-H1||=%g\n",(double)norm));
   CHKERRQ(MatDestroy(&H0));
   CHKERRQ(MatDestroy(&H1));
 
@@ -173,27 +153,20 @@ int main(int argc,char **argv)
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,kx,kx,NULL,&H0));
   CHKERRQ(PetscObjectSetName((PetscObject)H0,"H0"));
   CHKERRQ(BVMatProject(X,B,X,H0));
-  if (verbose) {
-    CHKERRQ(MatView(H0,view));
-  }
+  if (verbose) CHKERRQ(MatView(H0,view));
 
   /* Repeat previous test with symmetry flag set */
   CHKERRQ(MatSetOption(B,MAT_HERMITIAN,PETSC_TRUE));
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,kx,kx,NULL,&H1));
   CHKERRQ(PetscObjectSetName((PetscObject)H1,"H1"));
   CHKERRQ(BVMatProject(X,B,X,H1));
-  if (verbose) {
-    CHKERRQ(MatView(H1,view));
-  }
+  if (verbose) CHKERRQ(MatView(H1,view));
 
   /* Check that H0 and H1 are equal */
   CHKERRQ(MatAXPY(H0,-1.0,H1,SAME_NONZERO_PATTERN));
   CHKERRQ(MatNorm(H0,NORM_1,&norm));
-  if (norm<10*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||H0-H1|| < 10*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||H0-H1||=%g\n",(double)norm));
-  }
+  if (norm<10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||H0-H1|| < 10*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||H0-H1||=%g\n",(double)norm));
   CHKERRQ(MatDestroy(&H0));
   CHKERRQ(MatDestroy(&H1));
 

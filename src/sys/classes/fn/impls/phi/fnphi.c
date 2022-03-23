@@ -81,9 +81,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
   }
   CHKERRQ(MatDenseGetArray(ctx->H,&Ha));
   CHKERRQ(MatDenseGetArrayRead(A,&Aa));
-  for (j=0;j<m;j++) {
-    CHKERRQ(PetscArraycpy(Ha+j*n,Aa+j*m,m));
-  }
+  for (j=0;j<m;j++) CHKERRQ(PetscArraycpy(Ha+j*n,Aa+j*m,m));
   CHKERRQ(MatDenseRestoreArrayRead(A,&Aa));
   if (ctx->k) {
     for (j=0;j<m;j++) for (i=m;i<n;i++) Ha[i+j*n] = 0.0;
@@ -201,19 +199,14 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
       CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s*",str));
     }
-    if (fn->alpha==(PetscScalar)1.0) {
-      CHKERRQ(PetscSNPrintf(strx,sizeof(strx),"x"));
-    } else {
+    if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscSNPrintf(strx,sizeof(strx),"x"));
+    else {
       CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
       CHKERRQ(PetscSNPrintf(strx,sizeof(strx),"(%s*x)",str));
     }
-    if (!ctx->k) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"exp(%s)\n",strx));
-    } else if (ctx->k==1) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"(exp(%s)-1)/%s\n",strx,strx));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"(phi_%" PetscInt_FMT "(%s)-1/%" PetscInt_FMT "!)/%s\n",ctx->k-1,strx,ctx->k-1,strx));
-    }
+    if (!ctx->k) CHKERRQ(PetscViewerASCIIPrintf(viewer,"exp(%s)\n",strx));
+    else if (ctx->k==1) CHKERRQ(PetscViewerASCIIPrintf(viewer,"(exp(%s)-1)/%s\n",strx,strx));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"(phi_%" PetscInt_FMT "(%s)-1/%" PetscInt_FMT "!)/%s\n",ctx->k-1,strx,ctx->k-1,strx));
     CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
   }
   PetscFunctionReturn(0);

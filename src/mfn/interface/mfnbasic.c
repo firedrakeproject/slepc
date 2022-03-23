@@ -60,9 +60,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)mfn),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)mfn),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(mfn,1,viewer,2);
 
@@ -78,9 +76,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",mfn->max_it));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)mfn->tol));
   } else {
-    if (mfn->ops->view) {
-      CHKERRQ((*mfn->ops->view)(mfn,viewer));
-    }
+    if (mfn->ops->view) CHKERRQ((*mfn->ops->view)(mfn,viewer));
   }
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
   if (!mfn->V) CHKERRQ(MFNGetFN(mfn,&mfn->fn));
@@ -145,11 +141,8 @@ PetscErrorCode MFNConvergedReasonView(MFN mfn,PetscViewer viewer)
   if (isAscii) {
     CHKERRQ(PetscViewerGetFormat(viewer,&format));
     CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel));
-    if (mfn->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Matrix function solve converged due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its));
-    } else if (mfn->reason <= 0) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Matrix function solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its));
-    }
+    if (mfn->reason > 0 && format != PETSC_VIEWER_FAILED) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Matrix function solve converged due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its));
+    else if (mfn->reason <= 0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Matrix function solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its));
     CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel));
   }
   PetscFunctionReturn(0);

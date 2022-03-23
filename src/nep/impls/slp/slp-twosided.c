@@ -80,12 +80,8 @@ static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
 
   PetscFunctionBegin;
   CHKERRQ(MatShellGetContext(M,&ctx));
-  if (right) {
-    CHKERRQ(VecDuplicate(ctx->w,right));
-  }
-  if (left) {
-    CHKERRQ(VecDuplicate(ctx->w,left));
-  }
+  if (right) CHKERRQ(VecDuplicate(ctx->w,right));
+  if (left) CHKERRQ(VecDuplicate(ctx->w,left));
   PetscFunctionReturn(0);
 }
 #endif
@@ -103,11 +99,8 @@ static PetscErrorCode NEPSLPSetUpEPSMat(NEP nep,Mat F,Mat J,PetscBool left,Mat *
   shellctx->Jt = J;
   CHKERRQ(MatGetLocalSize(nep->function,&mloc,&nloc));
   CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,shellctx,&Mshell));
-  if (left) {
-    CHKERRQ(MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Left));
-  } else {
-    CHKERRQ(MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Right));
-  }
+  if (left) CHKERRQ(MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Left));
+  else CHKERRQ(MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Right));
   CHKERRQ(MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_SLPTS));
 #if defined(PETSC_HAVE_CUDA)
   CHKERRQ(MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_SLPTS));
@@ -187,9 +180,7 @@ static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
       CHKERRQ(VecAXPY(r,1.0,t));
     }
     CHKERRQ(PetscFree2(h,alpha));
-  } else {
-    CHKERRQ(MatMult(matctx->isJ?matctx->J:matctx->F,x,r));
-  }
+  } else CHKERRQ(MatMult(matctx->isJ?matctx->J:matctx->F,x,r));
   PetscFunctionReturn(0);
 }
 
@@ -225,9 +216,7 @@ static PetscErrorCode MatMultTranspose_NEPDeflationNE(Mat M,Vec x,Vec r)
       CHKERRQ(VecAXPY(r,1.0,t));
     }
     CHKERRQ(PetscFree2(h,alphaC));
-  } else {
-    CHKERRQ(MatMultTranspose(matctx->isJ?matctx->J:matctx->F,t,r));
-  }
+  } else CHKERRQ(MatMultTranspose(matctx->isJ?matctx->J:matctx->F,t,r));
   PetscFunctionReturn(0);
 }
 
@@ -402,9 +391,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
   PetscFunctionBegin;
   /* get initial approximation of eigenvalue and eigenvector */
   CHKERRQ(NEPGetDefaultShift(nep,&sigma));
-  if (!nep->nini) {
-    CHKERRQ(BVSetRandomColumn(nep->V,0));
-  }
+  if (!nep->nini) CHKERRQ(BVSetRandomColumn(nep->V,0));
   CHKERRQ(BVSetRandomColumn(nep->W,0));
   lambda = sigma;
   if (!ctx->ksp) CHKERRQ(NEPSLPGetKSP(nep,&ctx->ksp));
@@ -468,9 +455,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
       nep->nconv = nep->nconv + 1;
     }
     CHKERRQ((*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx));
-    if (!skip || nep->reason>0) {
-      CHKERRQ(NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
-    }
+    if (!skip || nep->reason>0) CHKERRQ(NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {

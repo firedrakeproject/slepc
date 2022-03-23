@@ -306,9 +306,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   else st->state = ST_STATE_INITIAL;
   PetscCheck(!same || !st->Psplit,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Support for changing the matrices while using a split preconditioner is not implemented yet");
   st->opready = PETSC_FALSE;
-  if (!same) {
-    CHKERRQ(STMatIsSymmetricKnown(st,&st->asymm,&st->aherm));
-  }
+  if (!same) CHKERRQ(STMatIsSymmetricKnown(st,&st->asymm,&st->aherm));
   PetscFunctionReturn(0);
 }
 
@@ -660,9 +658,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscValidLogicalCollectiveScalar(st,shift,2);
   if (st->sigma != shift) {
     STCheckNotSeized(st,1);
-    if (st->state==ST_STATE_SETUP && st->ops->setshift) {
-      CHKERRQ((*st->ops->setshift)(st,shift));
-    }
+    if (st->state==ST_STATE_SETUP && st->ops->setshift) CHKERRQ((*st->ops->setshift)(st,shift));
     st->sigma = shift;
   }
   st->sigma_set = PETSC_TRUE;
@@ -1029,9 +1025,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!viewer) {
-    CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)st),&viewer));
-  }
+  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)st),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(st,1,viewer,2);
 
@@ -1057,15 +1051,9 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n"));
       break;
     }
-    if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  nonzero pattern of the matrices: %s\n",MatStructures[st->str]));
-    }
-    if (st->Psplit) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using split preconditioner matrices with %s\n",MatStructures[st->strp]));
-    }
-    if (st->transform && st->nmat>2) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n"));
-    }
+    if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  nonzero pattern of the matrices: %s\n",MatStructures[st->str]));
+    if (st->Psplit) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using split preconditioner matrices with %s\n",MatStructures[st->strp]));
+    if (st->transform && st->nmat>2) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n"));
   } else if (isstring) {
     CHKERRQ(STGetType(st,&cstr));
     CHKERRQ(PetscViewerStringSPrintf(viewer," %-7.7s",cstr));

@@ -91,12 +91,8 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
   CHKERRQ(VecLockReadPush(x));
   CHKERRQ(PetscLogEventBegin(ST_MatMult,st,x,y,0));
-  if (!st->T[k]) {
-    /* T[k]=NULL means identity matrix */
-    CHKERRQ(VecCopy(x,y));
-  } else {
-    CHKERRQ(MatMult(st->T[k],x,y));
-  }
+  if (!st->T[k]) CHKERRQ(VecCopy(x,y)); /* T[k]=NULL means identity matrix */
+  else CHKERRQ(MatMult(st->T[k],x,y));
   CHKERRQ(PetscLogEventEnd(ST_MatMult,st,x,y,0));
   CHKERRQ(VecLockReadPop(x));
   PetscFunctionReturn(0);
@@ -135,12 +131,8 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
   CHKERRQ(VecLockReadPush(x));
   CHKERRQ(PetscLogEventBegin(ST_MatMultTranspose,st,x,y,0));
-  if (!st->T[k]) {
-    /* T[k]=NULL means identity matrix */
-    CHKERRQ(VecCopy(x,y));
-  } else {
-    CHKERRQ(MatMultTranspose(st->T[k],x,y));
-  }
+  if (!st->T[k]) CHKERRQ(VecCopy(x,y)); /* T[k]=NULL means identity matrix */
+  else CHKERRQ(MatMultTranspose(st->T[k],x,y));
   CHKERRQ(PetscLogEventEnd(ST_MatMultTranspose,st,x,y,0));
   CHKERRQ(VecLockReadPop(x));
   PetscFunctionReturn(0);
@@ -176,12 +168,8 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
   CHKERRQ(VecLockReadPush(b));
   CHKERRQ(PetscLogEventBegin(ST_MatSolve,st,b,x,0));
-  if (!st->P) {
-    /* P=NULL means identity matrix */
-    CHKERRQ(VecCopy(b,x));
-  } else {
-    CHKERRQ(KSPSolve(st->ksp,b,x));
-  }
+  if (!st->P) CHKERRQ(VecCopy(b,x)); /* P=NULL means identity matrix */
+  else CHKERRQ(KSPSolve(st->ksp,b,x));
   CHKERRQ(PetscLogEventEnd(ST_MatSolve,st,b,x,0));
   CHKERRQ(VecLockReadPop(b));
   PetscFunctionReturn(0);
@@ -214,12 +202,8 @@ PetscErrorCode STMatMatSolve(ST st,Mat B,Mat X)
 
   if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
   CHKERRQ(PetscLogEventBegin(ST_MatSolve,st,B,X,0));
-  if (!st->P) {
-    /* P=NULL means identity matrix */
-    CHKERRQ(MatCopy(B,X,SAME_NONZERO_PATTERN));
-  } else {
-    CHKERRQ(KSPMatSolve(st->ksp,B,X));
-  }
+  if (!st->P) CHKERRQ(MatCopy(B,X,SAME_NONZERO_PATTERN)); /* P=NULL means identity matrix */
+  else CHKERRQ(KSPMatSolve(st->ksp,B,X));
   CHKERRQ(PetscLogEventEnd(ST_MatSolve,st,B,X,0));
   PetscFunctionReturn(0);
 }
@@ -254,12 +238,8 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
   CHKERRQ(VecLockReadPush(b));
   CHKERRQ(PetscLogEventBegin(ST_MatSolveTranspose,st,b,x,0));
-  if (!st->P) {
-    /* P=NULL means identity matrix */
-    CHKERRQ(VecCopy(b,x));
-  } else {
-    CHKERRQ(KSPSolveTranspose(st->ksp,b,x));
-  }
+  if (!st->P) CHKERRQ(VecCopy(b,x)); /* P=NULL means identity matrix */
+  else CHKERRQ(KSPSolveTranspose(st->ksp,b,x));
   CHKERRQ(PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0));
   CHKERRQ(VecLockReadPop(b));
   PetscFunctionReturn(0);
@@ -373,9 +353,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
       CHKERRQ(VecCopy(vi,T[c]));
       CHKERRQ(VecNormalize(T[c],NULL));
       c++;
-    } else {
-      CHKERRQ(PetscInfo(st,"Vector %" PetscInt_FMT " discarded as possible nullspace of OP, norm=%g\n",i,(double)norm));
-    }
+    } else CHKERRQ(PetscInfo(st,"Vector %" PetscInt_FMT " discarded as possible nullspace of OP, norm=%g\n",i,(double)norm));
     CHKERRQ(BVRestoreColumn(V,-nc+i,&vi));
   }
   CHKERRQ(VecDestroy(&w));
@@ -384,9 +362,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
     CHKERRQ(MatSetNullSpace(A,nullsp));
     CHKERRQ(MatNullSpaceDestroy(&nullsp));
     CHKERRQ(VecDestroyVecs(c,&T));
-  } else {
-    CHKERRQ(PetscFree(T));
-  }
+  } else CHKERRQ(PetscFree(T));
   PetscFunctionReturn(0);
 }
 
@@ -424,8 +400,6 @@ PetscErrorCode STCheckNullSpace(ST st,BV V)
   PetscCheck(st->state,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must call STSetUp() first");
 
   CHKERRQ(BVGetNumConstraints(V,&nc));
-  if (nc && st->ops->checknullspace) {
-    CHKERRQ((*st->ops->checknullspace)(st,V));
-  }
+  if (nc && st->ops->checknullspace) CHKERRQ((*st->ops->checknullspace)(st,V));
   PetscFunctionReturn(0);
 }

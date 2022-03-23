@@ -178,12 +178,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 #endif
 
     if (ido == -1 || ido == 1 || ido == 2) {
-      if (ido == 1 && iparam[6] == 3 && bmat[0] == 'G') {
-        /* special case for shift-and-invert with B semi-positive definite*/
-        CHKERRQ(VecPlaceArray(x,&ar->workd[ipntr[2]-1]));
-      } else {
-        CHKERRQ(VecPlaceArray(x,&ar->workd[ipntr[0]-1]));
-      }
+      if (ido == 1 && iparam[6] == 3 && bmat[0] == 'G') CHKERRQ(VecPlaceArray(x,&ar->workd[ipntr[2]-1])); /* special case for shift-and-invert with B semi-positive definite*/
+      else CHKERRQ(VecPlaceArray(x,&ar->workd[ipntr[0]-1]));
       CHKERRQ(VecPlaceArray(y,&ar->workd[ipntr[1]-1]));
 
       if (ido == -1) {
@@ -256,9 +252,7 @@ PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&isSinv));
-  if (!isSinv) {
-    CHKERRQ(EPSBackTransform_Default(eps));
-  }
+  if (!isSinv) CHKERRQ(EPSBackTransform_Default(eps));
   PetscFunctionReturn(0);
 }
 

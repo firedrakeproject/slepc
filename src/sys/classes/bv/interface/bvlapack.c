@@ -46,9 +46,8 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
   CHKERRQ(PetscBLASIntCast(n_,&n));
   if (type==NORM_FROBENIUS || type==NORM_2) {
     lnrm = LAPACKlange_("F",&m,&n,(PetscScalar*)A,&m,rwork);
-    if (mpi) {
-      CHKERRMPI(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv)));
-    } else *nrm = lnrm;
+    if (mpi) CHKERRMPI(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv)));
+    else *nrm = lnrm;
     CHKERRQ(PetscLogFlops(2.0*m*n));
   } else if (type==NORM_1) {
     if (mpi) {
@@ -74,9 +73,8 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
     CHKERRQ(BVAllocateWork_Private(bv,m_));
     rwork = (PetscReal*)bv->work;
     lnrm = LAPACKlange_("I",&m,&n,(PetscScalar*)A,&m,rwork);
-    if (mpi) {
-      CHKERRMPI(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)bv)));
-    } else *nrm = lnrm;
+    if (mpi) CHKERRMPI(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)bv)));
+    else *nrm = lnrm;
     CHKERRQ(PetscLogFlops(1.0*m*n));
   }
   CHKERRQ(PetscFPTrapPop());
@@ -162,9 +160,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   }
 
   /* save a copy of matrix in S */
-  for (i=l;i<k;i++) {
-    CHKERRQ(PetscArraycpy(pS+i*lds+l,pR+i*ld+l,n));
-  }
+  for (i=l;i<k;i++) CHKERRQ(PetscArraycpy(pS+i*lds+l,pR+i*ld+l,n));
 
   /* compute upper Cholesky factor in R */
   CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
@@ -186,9 +182,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pR+l*ld+l,&ld_,&info));
   } else {
     CHKERRQ(PetscArrayzero(pS+l*lds,(k-l)*k));
-    for (i=l;i<k;i++) {
-      CHKERRQ(PetscArraycpy(pS+i*lds+l,pR+i*ld+l,n));
-    }
+    for (i=l;i<k;i++) CHKERRQ(PetscArraycpy(pS+i*lds+l,pR+i*ld+l,n));
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*lds+l,&lds_,&info));
   }
   SlepcCheckLapackInfo("trtri",info);
@@ -243,9 +237,7 @@ PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pR+l*ld+l,&ld_,&info));
   } else {
     CHKERRQ(PetscArrayzero(pS+l*lds,(k-l)*k));
-    for (i=l;i<k;i++) {
-      CHKERRQ(PetscArraycpy(pS+i*lds+l,pR+i*ld+l,n));
-    }
+    for (i=l;i<k;i++) CHKERRQ(PetscArraycpy(pS+i*lds+l,pR+i*ld+l,n));
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*lds+l,&lds_,&info));
   }
   SlepcCheckLapackInfo("trtri",info);

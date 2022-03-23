@@ -76,18 +76,15 @@ int main(int argc,char **argv)
   CHKERRQ(EPSGetConverged(eps,&nconv));
   PetscCheck(nconv>=neigs,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Only %" PetscInt_FMT " eigenvalues have converged, %" PetscInt_FMT " requested",nconv,neigs);
   CHKERRQ(VecDuplicateVecs(v,neigs,&X));
-  for (i=0;i<neigs;i++) {
-    CHKERRQ(EPSGetEigenvector(eps,i,X[i],NULL));
-  }
+  for (i=0;i<neigs;i++) CHKERRQ(EPSGetEigenvector(eps,i,X[i],NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution of first solve
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
@@ -102,9 +99,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSSetInitialSpace(eps,neigs,X));
   CHKERRQ(EPSSolve(eps));
 
-  if (terse) {
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));

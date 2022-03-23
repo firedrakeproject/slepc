@@ -129,9 +129,8 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isascii) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  region: [%g,%g]x[%g,%g]\n",RGShowReal(ctx->a),RGShowReal(ctx->b),RGShowReal(ctx->c),RGShowReal(ctx->d)));
-  } else if (isdraw) {
+  if (isascii) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  region: [%g,%g]x[%g,%g]\n",RGShowReal(ctx->a),RGShowReal(ctx->b),RGShowReal(ctx->c),RGShowReal(ctx->d)));
+  else if (isdraw) {
     CHKERRQ(PetscViewerDrawGetDraw(viewer,0,&draw));
     CHKERRQ(PetscDrawCheckResizedWindow(draw));
     CHKERRQ(PetscDrawGetWindowSize(draw,&winw,&winh));

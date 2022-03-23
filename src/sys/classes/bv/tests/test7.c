@@ -78,17 +78,13 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
     CHKERRQ(BVGetColumn(X,j,&v));
     CHKERRQ(VecSet(v,0.0));
-    for (i=Istart;i<PetscMin(j+1,Iend);i++) {
-      CHKERRQ(VecSetValue(v,i,1.0,INSERT_VALUES));
-    }
+    for (i=Istart;i<PetscMin(j+1,Iend);i++) CHKERRQ(VecSetValue(v,i,1.0,INSERT_VALUES));
     CHKERRQ(VecAssemblyBegin(v));
     CHKERRQ(VecAssemblyEnd(v));
     CHKERRQ(BVRestoreColumn(X,j,&v));
@@ -107,37 +103,27 @@ int main(int argc,char **argv)
   CHKERRQ(BVSetActiveColumns(Y,2,k+2));
 
   /* Test BVMatMult */
-  for (i=0;i<rep;i++) {
-    CHKERRQ(BVMatMult(X,B,Y));
-  }
-  if (verbose) {
-    CHKERRQ(BVView(Y,view));
-  }
+  for (i=0;i<rep;i++) CHKERRQ(BVMatMult(X,B,Y));
+  if (verbose) CHKERRQ(BVView(Y,view));
 
   if (fromfile) {
     /* Test BVMatMultTranspose */
     CHKERRQ(BVDuplicate(X,&Z));
     CHKERRQ(BVSetRandom(Z));
-    for (i=0;i<rep;i++) {
-      CHKERRQ(BVMatMultTranspose(Z,B,Y));
-    }
+    for (i=0;i<rep;i++) CHKERRQ(BVMatMultTranspose(Z,B,Y));
     if (verbose) {
       CHKERRQ(BVView(Z,view));
       CHKERRQ(BVView(Y,view));
     }
     CHKERRQ(BVDestroy(&Z));
     CHKERRQ(BVMatMultTransposeColumn(Y,B,2));
-    if (verbose) {
-      CHKERRQ(BVView(Y,view));
-    }
+    if (verbose) CHKERRQ(BVView(Y,view));
   }
 
   /* Test BVGetMat/RestoreMat */
   CHKERRQ(BVGetMat(Y,&Ymat));
   CHKERRQ(PetscObjectSetName((PetscObject)Ymat,"Ymat"));
-  if (verbose) {
-    CHKERRQ(MatView(Ymat,view));
-  }
+  if (verbose) CHKERRQ(MatView(Ymat,view));
   CHKERRQ(BVRestoreMat(Y,&Ymat));
 
   if (!fromfile) {
@@ -156,9 +142,7 @@ int main(int argc,char **argv)
       CHKERRQ(VecAssemblyEnd(v));
       CHKERRQ(BVRestoreColumn(Z,j,&v));
     }
-    if (verbose) {
-      CHKERRQ(BVView(Z,view));
-    }
+    if (verbose) CHKERRQ(BVView(Z,view));
 
     /* Save a copy of Z */
     CHKERRQ(BVDuplicate(Z,&Zcopy));
@@ -173,9 +157,7 @@ int main(int argc,char **argv)
   /* Test BVMatMultColumn, multiply Y(:,2), result in Y(:,3) */
   if (m==n) {
     CHKERRQ(BVMatMultColumn(Y,B,2));
-    if (verbose) {
-      CHKERRQ(BVView(Y,view));
-    }
+    if (verbose) CHKERRQ(BVView(Y,view));
 
     if (!fromfile) {
       /* Test BVGetArray, modify Z to match Y */
@@ -188,9 +170,7 @@ int main(int argc,char **argv)
         pZ[Iend+2] = 1.0;
       }
       CHKERRQ(BVRestoreArray(Z,&pZ));
-      if (verbose) {
-        CHKERRQ(BVView(Z,view));
-      }
+      if (verbose) CHKERRQ(BVView(Z,view));
 
       /* Check result again with BVMult */
       CHKERRQ(BVMult(Z,-1.0,1.0,Y,NULL));

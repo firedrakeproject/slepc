@@ -27,13 +27,11 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
   CHKERRQ(KSPGetPC(st->ksp,&pc));
   CHKERRQ(PCGetType(pc,&pctype));
   if (!pctype && st->A && st->A[0]) {
-    if (st->matmode == ST_MATMODE_SHELL) {
-      CHKERRQ(PCSetType(pc,PCJACOBI));
-    } else {
+    if (st->matmode == ST_MATMODE_SHELL) CHKERRQ(PCSetType(pc,PCJACOBI));
+    else {
       CHKERRQ(MatHasOperation(st->A[0],MATOP_DUPLICATE,&t0));
-      if (st->nmat>1) {
-        CHKERRQ(MatHasOperation(st->A[0],MATOP_AXPY,&t1));
-      } else t1 = PETSC_TRUE;
+      if (st->nmat>1) CHKERRQ(MatHasOperation(st->A[0],MATOP_AXPY,&t1));
+      else t1 = PETSC_TRUE;
       CHKERRQ(PCSetType(pc,(t0 && t1)?PCBJACOBI:PCNONE));
     }
   }
@@ -45,11 +43,8 @@ PetscErrorCode STPostSolve_Precond(ST st)
 {
   PetscFunctionBegin;
   if (st->matmode == ST_MATMODE_INPLACE && !(st->Pmat || (PetscAbsScalar(st->sigma)>=PETSC_MAX_REAL && st->nmat>1))) {
-    if (st->nmat>1) {
-      CHKERRQ(MatAXPY(st->A[0],st->sigma,st->A[1],st->str));
-    } else {
-      CHKERRQ(MatShift(st->A[0],st->sigma));
-    }
+    if (st->nmat>1) CHKERRQ(MatAXPY(st->A[0],st->sigma,st->A[1],st->str));
+    else CHKERRQ(MatShift(st->A[0],st->sigma));
     st->Astate[0] = ((PetscObject)st->A[0])->state;
     st->state   = ST_STATE_INITIAL;
     st->opready = PETSC_FALSE;
@@ -76,9 +71,7 @@ PetscErrorCode STComputeOperator_Precond(ST st)
       CHKERRQ(PetscObjectReference((PetscObject)st->Psplit[0]));
       CHKERRQ(MatDestroy(&st->Pmat));
       st->Pmat = st->Psplit[0];
-    } else if (PetscAbsScalar(st->sigma)<PETSC_MAX_REAL) {
-      CHKERRQ(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
-    }
+    } else if (PetscAbsScalar(st->sigma)<PETSC_MAX_REAL) CHKERRQ(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
   }
 
   /* P = A-sigma*B */
@@ -122,9 +115,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   if (st->Psplit) { /* update custom preconditioner from the split matrices */
-    if (PetscAbsScalar(st->sigma)<PETSC_MAX_REAL || st->nmat==1) {
-      CHKERRQ(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_FALSE,PETSC_TRUE,&st->Pmat));
-    }
+    if (PetscAbsScalar(st->sigma)<PETSC_MAX_REAL || st->nmat==1) CHKERRQ(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_FALSE,PETSC_TRUE,&st->Pmat));
   }
   if (st->transform && !st->Pmat) {
     CHKERRQ(STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[1]));
@@ -134,9 +125,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
       st->P = st->T[1];
     }
   }
-  if (st->P) {
-    CHKERRQ(ST_KSPSetOperators(st,ctx->ksphasmat?st->P:NULL,st->P));
-  }
+  if (st->P) CHKERRQ(ST_KSPSetOperators(st,ctx->ksphasmat?st->P:NULL,st->P));
   PetscFunctionReturn(0);
 }
 

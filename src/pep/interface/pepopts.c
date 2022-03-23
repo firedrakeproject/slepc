@@ -60,9 +60,7 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char opt[],const char name
   CHKERRQ((*cfunc)(viewer,format,ctx,&vf));
   CHKERRQ(PetscObjectDereference((PetscObject)viewer));
   CHKERRQ(PEPMonitorSet(pep,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
-  if (trackall) {
-    CHKERRQ(PEPSetTrackAll(pep,PETSC_TRUE));
-  }
+  if (trackall) CHKERRQ(PEPSetTrackAll(pep,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -100,11 +98,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   CHKERRQ(PEPRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)pep);CHKERRQ(ierr);
     CHKERRQ(PetscOptionsFList("-pep_type","Polynomial eigensolver method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,sizeof(type),&flg));
-    if (flg) {
-      CHKERRQ(PEPSetType(pep,type));
-    } else if (!((PetscObject)pep)->type_name) {
-      CHKERRQ(PEPSetType(pep,PEPTOAR));
-    }
+    if (flg) CHKERRQ(PEPSetType(pep,type));
+    else if (!((PetscObject)pep)->type_name) CHKERRQ(PEPSetType(pep,PEPTOAR));
 
     CHKERRQ(PetscOptionsBoolGroupBegin("-pep_general","General polynomial eigenvalue problem","PEPSetProblemType",&flg));
     if (flg) CHKERRQ(PEPSetProblemType(pep,PEP_GENERAL));
@@ -193,9 +188,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     CHKERRQ(PetscOptionsScalar("-pep_target","Value of the target","PEPSetTarget",pep->target,&s,&flg));
     if (flg) {
-      if (pep->which!=PEP_TARGET_REAL && pep->which!=PEP_TARGET_IMAGINARY) {
-        CHKERRQ(PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE));
-      }
+      if (pep->which!=PEP_TARGET_REAL && pep->which!=PEP_TARGET_IMAGINARY) CHKERRQ(PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE));
       CHKERRQ(PEPSetTarget(pep,s));
     }
 
@@ -226,9 +219,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     CHKERRQ(PetscOptionsName("-pep_error_relative","Print relative errors of each eigenpair","PEPErrorView",NULL));
     CHKERRQ(PetscOptionsName("-pep_error_backward","Print backward errors of each eigenpair","PEPErrorView",NULL));
 
-    if (pep->ops->setfromoptions) {
-      CHKERRQ((*pep->ops->setfromoptions)(PetscOptionsObject,pep));
-    }
+    if (pep->ops->setfromoptions) CHKERRQ((*pep->ops->setfromoptions)(PetscOptionsObject,pep));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)pep));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
@@ -791,9 +782,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (pep->convergeddestroy) {
-    CHKERRQ((*pep->convergeddestroy)(pep->convergedctx));
-  }
+  if (pep->convergeddestroy) CHKERRQ((*pep->convergeddestroy)(pep->convergedctx));
   pep->convergeduser    = func;
   pep->convergeddestroy = destroy;
   pep->convergedctx     = ctx;
@@ -916,9 +905,7 @@ PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*func)(PEP,Pet
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (pep->stoppingdestroy) {
-    CHKERRQ((*pep->stoppingdestroy)(pep->stoppingctx));
-  }
+  if (pep->stoppingdestroy) CHKERRQ((*pep->stoppingdestroy)(pep->stoppingctx));
   pep->stoppinguser    = func;
   pep->stoppingdestroy = destroy;
   pep->stoppingctx     = ctx;

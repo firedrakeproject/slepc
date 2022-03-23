@@ -43,9 +43,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
   CHKERRQ(DSView(ds,viewer));
   CHKERRQ(PetscViewerPopFormat(viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill with a symmetric Toeplitz matrix */
   CHKERRQ(DSGetArray(ds,DS_MAT_A,&A));
@@ -94,11 +92,8 @@ int main(int argc,char **argv)
     re = eigr[i];
     im = eigi[i];
 #endif
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
-    }
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
 
   if (extrarow) {
@@ -107,9 +102,7 @@ int main(int argc,char **argv)
     CHKERRQ(DSGetArray(ds,DS_MAT_Q,&Q));
     d = 0.0;
     for (i=0;i<n;i++) d += A[n+i*ld]+Q[n-1+i*ld];
-    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d)));
-    }
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d)));
     CHKERRQ(DSRestoreArray(ds,DS_MAT_A,&A));
     CHKERRQ(DSRestoreArray(ds,DS_MAT_Q,&Q));
   }

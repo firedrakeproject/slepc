@@ -50,9 +50,7 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
@@ -68,9 +66,7 @@ int main(int argc,char **argv)
     CHKERRQ(VecAssemblyEnd(v));
     CHKERRQ(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Create copies on Y and Z */
   CHKERRQ(BVDuplicate(X,&Y));
@@ -85,9 +81,7 @@ int main(int argc,char **argv)
 
   /* Test BVNormalize */
   CHKERRQ(BVNormalize(X,NULL));
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Check unit norm of columns */
   error = 0.0;
@@ -95,11 +89,8 @@ int main(int argc,char **argv)
     CHKERRQ(BVNormColumn(X,j,NORM_2,&norm));
     error = PetscMax(error,PetscAbsReal(norm-PetscRealConstant(1.0)));
   }
-  if (error<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized vectors < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized vectors: %g\n",(double)norm));
-  }
+  if (error<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized vectors < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized vectors: %g\n",(double)norm));
 
   /* Create inner product matrix */
   CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
@@ -116,16 +107,12 @@ int main(int argc,char **argv)
   }
   CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
-  if (verbose) {
-    CHKERRQ(MatView(B,view));
-  }
+  if (verbose) CHKERRQ(MatView(B,view));
 
   /* Test BVNormalize with B-norm */
   CHKERRQ(BVSetMatrix(Y,B,PETSC_FALSE));
   CHKERRQ(BVNormalize(Y,NULL));
-  if (verbose) {
-    CHKERRQ(BVView(Y,view));
-  }
+  if (verbose) CHKERRQ(BVView(Y,view));
 
   /* Check unit B-norm of columns */
   error = 0.0;
@@ -133,11 +120,8 @@ int main(int argc,char **argv)
     CHKERRQ(BVNormColumn(Y,j,NORM_2,&norm));
     error = PetscMax(error,PetscAbsReal(norm-PetscRealConstant(1.0)));
   }
-  if (error<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from B-normalized vectors < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from B-normalized vectors: %g\n",(double)norm));
-  }
+  if (error<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from B-normalized vectors < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from B-normalized vectors: %g\n",(double)norm));
 
 #if !defined(PETSC_USE_COMPLEX)
   /* fill imaginary parts */
@@ -158,9 +142,7 @@ int main(int argc,char **argv)
 
   /* Test BVNormalize with complex conjugate columns */
   CHKERRQ(BVNormalize(Z,eigi));
-  if (verbose) {
-    CHKERRQ(BVView(Z,view));
-  }
+  if (verbose) CHKERRQ(BVView(Z,view));
 
   /* Check unit norm of (complex conjugate) columns */
   error = 0.0;
@@ -183,11 +165,8 @@ int main(int argc,char **argv)
     }
     error = PetscMax(error,PetscAbsReal(norm-PetscRealConstant(1.0)));
   }
-  if (error<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized conjugate vectors < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized conjugate vectors: %g\n",(double)norm));
-  }
+  if (error<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized conjugate vectors < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized conjugate vectors: %g\n",(double)norm));
   CHKERRQ(PetscFree(eigi));
 #endif
 

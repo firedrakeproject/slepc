@@ -48,26 +48,20 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<kx+2;j++) {
     CHKERRQ(BVGetColumn(X,j,&v));
     CHKERRQ(VecSet(v,0.0));
     for (i=0;i<4;i++) {
-      if (i+j<n) {
-        CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
-      }
+      if (i+j<n) CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
     }
     CHKERRQ(VecAssemblyBegin(v));
     CHKERRQ(VecAssemblyEnd(v));
     CHKERRQ(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Create BV object Y */
   CHKERRQ(BVCreate(PETSC_COMM_WORLD,&Y));
@@ -82,9 +76,7 @@ int main(int argc,char **argv)
     CHKERRQ(VecSet(v,(PetscScalar)(j+1)/4.0));
     CHKERRQ(BVRestoreColumn(Y,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(Y,view));
-  }
+  if (verbose) CHKERRQ(BVView(Y,view));
 
   /* Create Mat */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,kx,ky,NULL,&Q));
@@ -94,9 +86,7 @@ int main(int argc,char **argv)
     for (j=0;j<ky;j++)
       q[i+j*kx] = (i<j)? 2.0: -0.5;
   CHKERRQ(MatDenseRestoreArray(Q,&q));
-  if (verbose) {
-    CHKERRQ(MatView(Q,NULL));
-  }
+  if (verbose) CHKERRQ(MatView(Q,NULL));
 
   /* Test BVResize */
   CHKERRQ(BVResize(X,kx+4,PETSC_TRUE));
@@ -151,9 +141,7 @@ int main(int argc,char **argv)
     CHKERRQ(MatTranspose(Q,MAT_INITIAL_MATRIX,&Qt));
     CHKERRQ(BVMultInPlaceHermitianTranspose(X,Qt,lx+1,ky));
     CHKERRQ(MatDestroy(&Qt));
-  } else {
-    CHKERRQ(BVMultInPlace(X,Q,lx+1,ky));
-  }
+  } else CHKERRQ(BVMultInPlace(X,Q,lx+1,ky));
   CHKERRQ(BVScale(X,2.0));
   if (verbose) {
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n"));

@@ -41,9 +41,7 @@ PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W
   PetscInt       i;
 
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    CHKERRQ(PetscObjectReference((PetscObject)V[i]));
-  }
+  for (i=0;i<n;i++) CHKERRQ(PetscObjectReference((PetscObject)V[i]));
   CHKERRQ(SlepcBasisDestroy_Private(m,W));
   if (n>0) {
     CHKERRQ(PetscMalloc1(n,W));
@@ -63,9 +61,7 @@ PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
 
   PetscFunctionBegin;
   if (*m<0) {
-    for (i=0;i<-(*m);i++) {
-      CHKERRQ(VecDestroy(&(*W)[i]));
-    }
+    for (i=0;i<-(*m);i++) CHKERRQ(VecDestroy(&(*W)[i]));
     CHKERRQ(PetscFree(*W));
   }
   *m = 0;
@@ -97,26 +93,17 @@ PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBoo
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  if (exp) {
-    CHKERRQ(PetscSNPrintf(str,len,"%+g",(double)val));
-  } else {
-    CHKERRQ(PetscSNPrintf(str,len,"%g",(double)val));
-  }
+  if (exp) CHKERRQ(PetscSNPrintf(str,len,"%+g",(double)val));
+  else CHKERRQ(PetscSNPrintf(str,len,"%g",(double)val));
 #else
   re = PetscRealPart(val);
   im = PetscImaginaryPart(val);
   if (im!=0.0) {
-    if (exp) {
-      CHKERRQ(PetscSNPrintf(str,len,"+(%g%+gi)",(double)re,(double)im));
-    } else {
-      CHKERRQ(PetscSNPrintf(str,len,"%g%+gi",(double)re,(double)im));
-    }
+    if (exp) CHKERRQ(PetscSNPrintf(str,len,"+(%g%+gi)",(double)re,(double)im));
+    else CHKERRQ(PetscSNPrintf(str,len,"%g%+gi",(double)re,(double)im));
   } else {
-    if (exp) {
-      CHKERRQ(PetscSNPrintf(str,len,"%+g",(double)re));
-    } else {
-      CHKERRQ(PetscSNPrintf(str,len,"%g",(double)re));
-    }
+    if (exp) CHKERRQ(PetscSNPrintf(str,len,"%+g",(double)re));
+    else CHKERRQ(PetscSNPrintf(str,len,"%g",(double)re));
   }
 #endif
   PetscFunctionReturn(0);
@@ -182,11 +169,8 @@ PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *X
   PetscViewer    viewer;
 
   PetscFunctionBegin;
-  if (filename) {
-    CHKERRQ(PetscViewerASCIIOpen(PETSC_COMM_WORLD,filename,&viewer));
-  } else {
-    CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  }
+  if (filename) CHKERRQ(PetscViewerASCIIOpen(PETSC_COMM_WORLD,filename,&viewer));
+  else CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s = [\n",s));
   for (i=0;i<nrows;i++) {
     for (j=0;j<ncols;j++) {

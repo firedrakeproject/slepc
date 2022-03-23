@@ -103,9 +103,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
@@ -153,27 +152,17 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
       if (j!=jmax) {
         pd = cst*(PetscReal)(i+j-1);
         /* north */
-        if (i==1) {
-          CHKERRQ(MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES));
-        } else {
-          CHKERRQ(MatSetValue(A,ix-1,ix,pd,INSERT_VALUES));
-        }
+        if (i==1) CHKERRQ(MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES));
+        else CHKERRQ(MatSetValue(A,ix-1,ix,pd,INSERT_VALUES));
         /* east */
-        if (j==1) {
-          CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES));
-        } else {
-          CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES));
-        }
+        if (j==1) CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES));
+        else CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES));
       }
       /* south */
       pu = 0.5 - cst*(PetscReal)(i+j-3);
-      if (j>1) {
-        CHKERRQ(MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES));
-      }
+      if (j>1) CHKERRQ(MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES));
       /* west */
-      if (i>1) {
-        CHKERRQ(MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES));
-      }
+      if (i>1) CHKERRQ(MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES));
     }
   }
   CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));

@@ -122,11 +122,8 @@ int main(int argc,char **argv)
       re = kr;
       im = ki;
 #endif
-      if (im!=0.0) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi %12g\n",(double)re,(double)im,(double)error));
-      } else {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error));
-      }
+      if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi %12g\n",(double)re,(double)im,(double)error));
+      else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error));
     }
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
   }

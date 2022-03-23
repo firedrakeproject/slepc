@@ -129,9 +129,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSGetDimensions(eps,&nev,NULL,NULL));
   CHKERRQ(EPSGetTolerances(eps,&tol,NULL));
   CHKERRQ(EPSGetConverged(eps,&nconv));
-  if (nconv<nev) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem: less than %" PetscInt_FMT " eigenvalues converged\n\n",nev));
-  } else {
+  if (nconv<nev) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem: less than %" PetscInt_FMT " eigenvalues converged\n\n",nev));
+  else {
     /* Check that all converged eigenpairs satisfy the requested tolerance
        (in this example we use the solver's error estimate instead of computing
        the residual norm explicitly) */
@@ -141,9 +140,8 @@ int main(int argc,char **argv)
       CHKERRQ(EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL));
       errok = (errok && errest<5.0*SlepcAbsEigenvalue(kr,ki)*tol)? PETSC_TRUE: PETSC_FALSE;
     }
-    if (!errok) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nev));
-    } else {
+    if (!errok) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nev));
+    else {
       CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," All requested eigenvalues computed up to the required tolerance:"));
       for (i=0;i<=(nev-1)/8;i++) {
         CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n     "));
@@ -158,11 +156,8 @@ int main(int argc,char **argv)
 #endif
           if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
           if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
-          if (im!=0.0) {
-            CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%.5f%+.5fi",(double)re,(double)im));
-          } else {
-            CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%.5f",(double)re));
-          }
+          if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%.5f%+.5fi",(double)re,(double)im));
+          else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%.5f",(double)re));
           if (8*i+j+1<nev) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,", "));
         }
       }
@@ -177,11 +172,8 @@ int main(int argc,char **argv)
     CHKERRQ(VecDuplicateVecs(v,nconv,&Q));
     CHKERRQ(EPSGetInvariantSubspace(eps,Q));
     CHKERRQ(VecCheckOrthonormality(Q,nconv,NULL,nconv,NULL,NULL,&lev));
-    if (lev<10*tol) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
-    } else {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)lev));
-    }
+    if (lev<10*tol) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
+    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)lev));
     CHKERRQ(VecDestroyVecs(nconv,&Q));
     CHKERRQ(VecDestroy(&v));
   }

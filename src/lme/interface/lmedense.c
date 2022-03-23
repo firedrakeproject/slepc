@@ -101,9 +101,7 @@ static PetscErrorCode LyapunovResidual(PetscInt m,PetscScalar *A,PetscInt lda,Pe
   CHKERRQ(PetscMalloc1(m*m,&R));
 
   /* R = B+A*X */
-  for (i=0;i<m;i++) {
-    CHKERRQ(PetscArraycpy(R+i*m,B+i*ldb,m));
-  }
+  for (i=0;i<m;i++) CHKERRQ(PetscArraycpy(R+i*m,B+i*ldb,m));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,A,&la,X,&lx,&done,R,&n));
   /* R = R+X*A' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,X,&lx,A,&la,&done,R,&n));
@@ -186,9 +184,7 @@ static PetscErrorCode CholeskyFactor(PetscInt m,PetscScalar *A,PetscInt lda)
   CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 
   /* save a copy of matrix in S */
-  for (i=0;i<m;i++) {
-    CHKERRQ(PetscArraycpy(S+i*m,A+i*lda,m));
-  }
+  for (i=0;i<m;i++) CHKERRQ(PetscArraycpy(S+i*m,A+i*lda,m));
 
   /* compute upper Cholesky factor in R */
   PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n,A,&ld,&info));
@@ -205,9 +201,7 @@ static PetscErrorCode CholeskyFactor(PetscInt m,PetscScalar *A,PetscInt lda)
   }
 
   /* Zero out entries below the diagonal */
-  for (i=0;i<m-1;i++) {
-    CHKERRQ(PetscArrayzero(A+i*lda+i+1,m-i-1));
-  }
+  for (i=0;i<m-1;i++) CHKERRQ(PetscArrayzero(A+i*lda+i+1,m-i-1));
   CHKERRQ(PetscFPTrapPop());
   CHKERRQ(PetscFree(S));
   PetscFunctionReturn(0);

@@ -33,14 +33,11 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
 
     /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
     CHKERRQ(dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE)));
-    if (harmMode != DVD_HARM_NONE) {
-      CHKERRQ(dvd_harm_conf(d,b,harmMode,PETSC_FALSE,0.0));
-    }
+    if (harmMode != DVD_HARM_NONE) CHKERRQ(dvd_harm_conf(d,b,harmMode,PETSC_FALSE,0.0));
 
     /* Setup the method for improving the eigenvectors */
-    if (doubleexp) {
-      CHKERRQ(dvd_improvex_gd2(d,b,ksp,bs));
-    } else {
+    if (doubleexp) CHKERRQ(dvd_improvex_gd2(d,b,ksp,bs));
+    else {
       CHKERRQ(dvd_improvex_jd(d,b,ksp,bs,PETSC_FALSE));
       CHKERRQ(dvd_improvex_jd_proj_uv(d,b));
       CHKERRQ(dvd_improvex_jd_lit_const(d,b,0,0.0,0.0));
@@ -69,14 +66,11 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
 
   /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
   CHKERRQ(dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE)));
-  if (harmMode != DVD_HARM_NONE) {
-    CHKERRQ(dvd_harm_conf(d,b,harmMode,fixedTarget,t));
-  }
+  if (harmMode != DVD_HARM_NONE) CHKERRQ(dvd_harm_conf(d,b,harmMode,fixedTarget,t));
 
   /* Setup the method for improving the eigenvectors */
-  if (doubleexp) {
-    CHKERRQ(dvd_improvex_gd2(d,b,ksp,bs));
-  } else {
+  if (doubleexp) CHKERRQ(dvd_improvex_gd2(d,b,ksp,bs));
+  else {
     CHKERRQ(dvd_improvex_jd(d,b,ksp,bs,dynamic));
     CHKERRQ(dvd_improvex_jd_proj_uv(d,b));
     CHKERRQ(KSPGetTolerances(ksp,&tol,NULL,NULL,&maxits));

@@ -92,11 +92,8 @@ PetscErrorCode LMESetFromOptions(LME lme)
   CHKERRQ(LMERegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)lme);CHKERRQ(ierr);
     CHKERRQ(PetscOptionsFList("-lme_type","Linear matrix equation","LMESetType",LMEList,(char*)(((PetscObject)lme)->type_name?((PetscObject)lme)->type_name:LMEKRYLOV),type,sizeof(type),&flg));
-    if (flg) {
-      CHKERRQ(LMESetType(lme,type));
-    } else if (!((PetscObject)lme)->type_name) {
-      CHKERRQ(LMESetType(lme,LMEKRYLOV));
-    }
+    if (flg) CHKERRQ(LMESetType(lme,type));
+    else if (!((PetscObject)lme)->type_name) CHKERRQ(LMESetType(lme,LMEKRYLOV));
 
     CHKERRQ(PetscOptionsBoolGroupBegin("-lme_lyapunov","Continuous-time Lyapunov equation","LMESetProblemType",&flg));
     if (flg) CHKERRQ(LMESetProblemType(lme,LME_LYAPUNOV));
@@ -134,9 +131,7 @@ PetscErrorCode LMESetFromOptions(LME lme)
     /* -----------------------------------------------------------------------*/
     CHKERRQ(PetscOptionsName("-lme_view","Print detailed information on solver used","LMEView",NULL));
 
-    if (lme->ops->setfromoptions) {
-      CHKERRQ((*lme->ops->setfromoptions)(PetscOptionsObject,lme));
-    }
+    if (lme->ops->setfromoptions) CHKERRQ((*lme->ops->setfromoptions)(PetscOptionsObject,lme));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)lme));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 

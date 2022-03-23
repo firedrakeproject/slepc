@@ -180,11 +180,8 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
       CHKERRQ(EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_REAL));
     } else {
       CHKERRQ(PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv));
-      if (issinv) {
-        CHKERRQ(EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_MAGNITUDE));
-      } else {
-        CHKERRQ(EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL));
-      }
+      if (issinv) CHKERRQ(EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_MAGNITUDE));
+      else CHKERRQ(EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL));
     }
     CHKERRQ(EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd));
     CHKERRQ(EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it));

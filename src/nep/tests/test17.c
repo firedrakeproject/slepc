@@ -92,9 +92,7 @@ PetscErrorCode BuildSplitPreconditioner(PetscInt n,PetscReal a,Mat *Ap)
   CHKERRQ(MatSetFromOptions(*Ap));
   CHKERRQ(MatSetUp(*Ap));
   CHKERRQ(MatGetOwnershipRange(*Ap,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(*Ap,i,i,-2.0/(h*h)+a,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(*Ap,i,i,-2.0/(h*h)+a,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(*Ap,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(*Ap,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatSetOption(*Ap,MAT_HERMITIAN,PETSC_TRUE));

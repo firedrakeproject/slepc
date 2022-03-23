@@ -79,9 +79,7 @@ PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
   /* update vectors V = V*X */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&X0));
   CHKERRQ(MatDenseGetArrayWrite(X0,&pX0));
-  for (i=0;i<k;i++) {
-    CHKERRQ(PetscArraycpy(pX0+i*k,X+i*ldds,k));
-  }
+  for (i=0;i<k;i++) CHKERRQ(PetscArraycpy(pX0+i*k,X+i*ldds,k));
   CHKERRQ(MatDenseRestoreArrayWrite(X0,&pX0));
   CHKERRQ(BVMultInPlace(pep->V,X0,0,k));
   CHKERRQ(MatDestroy(&X0));
@@ -148,21 +146,15 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
   for (j=k;j<m;j++) {
     /* apply operator */
     CHKERRQ(VecCopy(w,t));
-    if (pep->Dr) {
-      CHKERRQ(VecPointwiseMult(v,v,pep->Dr));
-    }
+    if (pep->Dr) CHKERRQ(VecPointwiseMult(v,v,pep->Dr));
     CHKERRQ(STMatMult(pep->st,0,v,u));
     CHKERRQ(VecCopy(t,v));
-    if (pep->Dr) {
-      CHKERRQ(VecPointwiseMult(t,t,pep->Dr));
-    }
+    if (pep->Dr) CHKERRQ(VecPointwiseMult(t,t,pep->Dr));
     CHKERRQ(STMatMult(pep->st,1,t,w));
     CHKERRQ(VecAXPY(u,pep->sfactor,w));
     CHKERRQ(STMatSolve(pep->st,u,w));
     CHKERRQ(VecScale(w,-1.0/(pep->sfactor*pep->sfactor)));
-    if (pep->Dr) {
-      CHKERRQ(VecPointwiseDivide(w,w,pep->Dr));
-    }
+    if (pep->Dr) CHKERRQ(VecPointwiseDivide(w,w,pep->Dr));
     CHKERRQ(VecCopy(v,t));
     CHKERRQ(BVSetActiveColumns(pep->V,0,j+1));
 
@@ -197,9 +189,7 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
     CHKERRQ(VecScale(w,1.0/norm));
 
     H[j+1+ldh*j] = norm;
-    if (j<m-1) {
-      CHKERRQ(BVInsertVec(pep->V,j+1,v));
-    }
+    if (j<m-1) CHKERRQ(BVInsertVec(pep->V,j+1,v));
   }
   *beta = norm;
   PetscFunctionReturn(0);
@@ -225,9 +215,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 
   /* Get the starting Arnoldi vector */
   for (j=0;j<2;j++) {
-    if (j>=pep->nini) {
-      CHKERRQ(BVSetRandomColumn(pep->V,j));
-    }
+    if (j>=pep->nini) CHKERRQ(BVSetRandomColumn(pep->V,j));
   }
   CHKERRQ(BVCopyVec(pep->V,0,v));
   CHKERRQ(BVCopyVec(pep->V,1,w));

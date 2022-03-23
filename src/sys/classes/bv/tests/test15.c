@@ -31,9 +31,7 @@ PetscErrorCode PrintFirstRow(BV X)
     CHKERRQ(PetscObjectGetName((PetscObject)X,&name));
     CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"First row of %s =\n",name));
     CHKERRQ(BVGetArrayRead(X,&pX));
-    for (i=0;i<nc+k;i++) {
-      CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"%g ",(double)PetscRealPart(pX[i*nloc])));
-    }
+    for (i=0;i<nc+k;i++) CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"%g ",(double)PetscRealPart(pX[i*nloc])));
     CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"\n"));
     CHKERRQ(BVRestoreArrayRead(X,&pX));
   }
@@ -75,9 +73,7 @@ int main(int argc,char **argv)
   if (nc>0) {
     CHKERRQ(VecDuplicateVecs(t,nc,&C));
     for (j=0;j<nc;j++) {
-      for (i=0;i<=j;i++) {
-        CHKERRQ(VecSetValue(C[j],nc-i+1,1.0,INSERT_VALUES));
-      }
+      for (i=0;i<=j;i++) CHKERRQ(VecSetValue(C[j],nc-i+1,1.0,INSERT_VALUES));
       CHKERRQ(VecAssemblyBegin(C[j]));
       CHKERRQ(VecAssemblyEnd(C[j]));
     }
@@ -87,26 +83,20 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
     CHKERRQ(BVGetColumn(X,j,&v));
     CHKERRQ(VecSet(v,0.0));
     for (i=0;i<4;i++) {
-      if (i+j<n) {
-        CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
-      }
+      if (i+j<n) CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
     }
     CHKERRQ(VecAssemblyBegin(v));
     CHKERRQ(VecAssemblyEnd(v));
     CHKERRQ(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Get split BVs */
   CHKERRQ(BVSetActiveColumns(X,l,k));
@@ -127,9 +117,7 @@ int main(int argc,char **argv)
   /* Finished using the split BVs */
   CHKERRQ(BVRestoreSplit(X,&L,&R));
   CHKERRQ(PrintFirstRow(X));
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Get the left split BV only */
   CHKERRQ(BVGetSplit(X,&L,NULL));
@@ -140,9 +128,7 @@ int main(int argc,char **argv)
   }
   CHKERRQ(BVRestoreSplit(X,&L,NULL));
   CHKERRQ(PrintFirstRow(X));
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Now get the right split BV after changing the number of leading columns */
   CHKERRQ(BVSetActiveColumns(X,l-1,k));
@@ -152,9 +138,7 @@ int main(int argc,char **argv)
   CHKERRQ(BVRestoreColumn(R,0,&v));
   CHKERRQ(BVRestoreSplit(X,NULL,&R));
   CHKERRQ(PrintFirstRow(X));
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   CHKERRQ(BVDestroy(&X));
   CHKERRQ(VecDestroy(&t));

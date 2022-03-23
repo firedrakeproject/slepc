@@ -60,9 +60,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   if (pep->max_it==PETSC_DEFAULT) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
   if (!pep->which) CHKERRQ(PEPSetWhichEigenpairs_Default(pep));
   PetscCheck(pep->which!=PEP_ALL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
-  if (pep->problem_type!=PEP_GENERAL) {
-    CHKERRQ(PetscInfo(pep,"Problem type ignored, performing a non-symmetric linearization\n"));
-  }
+  if (pep->problem_type!=PEP_GENERAL) CHKERRQ(PetscInfo(pep,"Problem type ignored, performing a non-symmetric linearization\n"));
 
   if (!ctx->keep) ctx->keep = 0.5;
 
@@ -79,9 +77,8 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
     CHKERRQ(PetscMalloc1(pep->nmat,&pep->solvematcoeffs));
     CHKERRQ(PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar)));
     CHKERRQ(PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv));
-    if (sinv) {
-      CHKERRQ(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
-    } else {
+    if (sinv) CHKERRQ(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
+    else {
       for (i=0;i<pep->nmat-1;i++) pep->solvematcoeffs[i] = 0.0;
       pep->solvematcoeffs[pep->nmat-1] = 1.0;
     }
@@ -136,26 +133,20 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
   CHKERRQ(VecScale(q,a));
   for (j=1+off;j<deg+off-1;j++) {
     CHKERRQ(BVMultVec(V,1.0,0.0,v,ss+j*lss));
-    if (PetscUnlikely(pep->Dr)) {
-      CHKERRQ(VecPointwiseMult(v,v,pep->Dr));
-    }
+    if (PetscUnlikely(pep->Dr)) CHKERRQ(VecPointwiseMult(v,v,pep->Dr));
     CHKERRQ(STMatMult(pep->st,j,v,t));
     a *= pep->sfactor;
     CHKERRQ(VecAXPY(q,a,t));
   }
   if (sinvert) {
     CHKERRQ(BVMultVec(V,1.0,0.0,v,ss));
-    if (PetscUnlikely(pep->Dr)) {
-      CHKERRQ(VecPointwiseMult(v,v,pep->Dr));
-    }
+    if (PetscUnlikely(pep->Dr)) CHKERRQ(VecPointwiseMult(v,v,pep->Dr));
     CHKERRQ(STMatMult(pep->st,deg,v,t));
     a *= pep->sfactor;
     CHKERRQ(VecAXPY(q,a,t));
   } else {
     CHKERRQ(BVMultVec(V,1.0,0.0,ve,ss+(deg-1)*lss));
-    if (PetscUnlikely(pep->Dr)) {
-      CHKERRQ(VecPointwiseMult(ve,ve,pep->Dr));
-    }
+    if (PetscUnlikely(pep->Dr)) CHKERRQ(VecPointwiseMult(ve,ve,pep->Dr));
     a *= pep->sfactor;
     CHKERRQ(STMatMult(pep->st,deg-1,ve,t));
     CHKERRQ(VecAXPY(q,a,t));
@@ -168,9 +159,7 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
     CHKERRQ(VecAXPY(t,cg[deg-1],v));
     CHKERRQ(VecAXPY(t,cb[deg-1],ve));
   }
-  if (PetscUnlikely(pep->Dr)) {
-    CHKERRQ(VecPointwiseDivide(t,t,pep->Dr));
-  }
+  if (PetscUnlikely(pep->Dr)) CHKERRQ(VecPointwiseDivide(t,t,pep->Dr));
   PetscFunctionReturn(0);
 }
 
@@ -320,9 +309,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
   if (transf) {
     CHKERRQ(PetscMalloc1(k*k,&T));
     ldt = k;
-    for (i=0;i<k;i++) {
-      CHKERRQ(PetscArraycpy(T+k*i,H+i*ldh,k));
-    }
+    for (i=0;i<k;i++) CHKERRQ(PetscArraycpy(T+k*i,H+i*ldh,k));
     if (flg) {
       CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&k_,&k_,T,&k_,p,&info));
@@ -363,23 +350,17 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     }
     if (idxcpy>0) {
       /* copy block idxcpy of S to the first one */
-      for (j=0;j<k;j++) {
-        CHKERRQ(PetscArraycpy(S+j*lds,S+idxcpy*ld+j*lds,sr));
-      }
+      for (j=0;j<k;j++) CHKERRQ(PetscArraycpy(S+j*lds,S+idxcpy*ld+j*lds,sr));
     }
     break;
   case PEP_EXTRACT_RESIDUAL:
     CHKERRQ(STGetTransform(pep->st,&flg));
     if (flg) {
       CHKERRQ(PetscMalloc1(pep->nmat,&A));
-      for (i=0;i<pep->nmat;i++) {
-        CHKERRQ(STGetMatrixTransformed(pep->st,i,A+i));
-      }
+      for (i=0;i<pep->nmat;i++) CHKERRQ(STGetMatrixTransformed(pep->st,i,A+i));
     } else A = pep->A;
     CHKERRQ(PetscMalloc1(pep->nmat-1,&R));
-    for (i=0;i<pep->nmat-1;i++) {
-      CHKERRQ(BVDuplicateResize(pep->V,k,R+i));
-    }
+    for (i=0;i<pep->nmat-1;i++) CHKERRQ(BVDuplicateResize(pep->V,k,R+i));
     CHKERRQ(BVDuplicateResize(pep->V,sr,&Y));
     CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,sr,k,NULL,&M));
     g = 0.0; a = 1.0;
@@ -390,9 +371,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
       for (i=0;i<pep->nmat-1;i++) {
         PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&sr_,&k_,&k_,&a,S+i*ld,&lds_,Hj,&k_,&g,At,&sr_));
         CHKERRQ(MatDenseGetArray(M,&pM));
-        for (jj=0;jj<k;jj++) {
-          CHKERRQ(PetscArraycpy(pM+jj*sr,At+jj*sr,sr));
-        }
+        for (jj=0;jj<k;jj++) CHKERRQ(PetscArraycpy(pM+jj*sr,At+jj*sr,sr));
         CHKERRQ(MatDenseRestoreArray(M,&pM));
         CHKERRQ(BVMult(R[i],1.0,(i==0)?0.0:1.0,Y,M));
       }
@@ -409,14 +388,10 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     }
     if (idxcpy>0) {
       /* copy block idxcpy of S to the first one */
-      for (j=0;j<k;j++) {
-        CHKERRQ(PetscArraycpy(S+j*lds,S+idxcpy*ld+j*lds,sr));
-      }
+      for (j=0;j<k;j++) CHKERRQ(PetscArraycpy(S+j*lds,S+idxcpy*ld+j*lds,sr));
     }
     if (flg) CHKERRQ(PetscFree(A));
-    for (i=0;i<pep->nmat-1;i++) {
-      CHKERRQ(BVDestroy(&R[i]));
-    }
+    for (i=0;i<pep->nmat-1;i++) CHKERRQ(BVDestroy(&R[i]));
     CHKERRQ(PetscFree(R));
     CHKERRQ(BVDestroy(&Y));
     CHKERRQ(MatDestroy(&M));
@@ -552,11 +527,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     CHKERRQ(BVGetActiveColumns(pep->V,NULL,&nq));
     if (k+l+deg<=nq) {
       CHKERRQ(BVSetActiveColumns(ctx->V,pep->nconv,k+l+1));
-      if (!falselock && ctx->lock) {
-        CHKERRQ(BVTensorCompress(ctx->V,k-pep->nconv));
-      } else {
-        CHKERRQ(BVTensorCompress(ctx->V,0));
-      }
+      if (!falselock && ctx->lock) CHKERRQ(BVTensorCompress(ctx->V,k-pep->nconv));
+      else CHKERRQ(BVTensorCompress(ctx->V,0));
     }
     pep->nconv = k;
     CHKERRQ(PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv));
@@ -597,9 +569,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   }
   CHKERRQ(STGetTransform(pep->st,&flg));
   if (pep->refine!=PEP_REFINE_MULTIPLE || pep->rits==0) {
-    if (!flg && pep->ops->backtransform) {
-        CHKERRQ((*pep->ops->backtransform)(pep));
-    }
+    if (!flg && pep->ops->backtransform) CHKERRQ((*pep->ops->backtransform)(pep));
     if (pep->sfactor!=1.0) {
       for (j=0;j<pep->nconv;j++) {
         pep->eigr[j] *= pep->sfactor;

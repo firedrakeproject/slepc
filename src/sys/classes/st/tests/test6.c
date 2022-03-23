@@ -95,9 +95,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetUp(P));
 
   CHKERRQ(MatGetOwnershipRange(P,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(P,i,i,2.0,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(P,i,i,2.0,INSERT_VALUES));
   if (Istart==0) {
     CHKERRQ(MatSetValue(P,1,0,-1.0,INSERT_VALUES));
     CHKERRQ(MatSetValue(P,0,1,-1.0,INSERT_VALUES));

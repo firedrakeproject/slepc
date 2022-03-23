@@ -183,9 +183,8 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  if (terse) {
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
     /*
        Get number of converged approximate eigenpairs
     */
@@ -232,9 +231,7 @@ int main(int argc,char **argv)
      Show computing times
   */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-showtimes",&flg));
-  if (flg) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %g (setup), %g (solve)\n",(double)(t2-t1),(double)(t3-t2)));
-  }
+  if (flg) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %g (setup), %g (solve)\n",(double)(t2-t1),(double)(t3-t2)));
 
   /*
      Free work space

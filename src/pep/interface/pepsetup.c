@@ -23,9 +23,7 @@ PetscErrorCode PEPSetDefaultST(PEP pep)
 {
   PetscFunctionBegin;
   if (pep->ops->setdefaultst) CHKERRQ((*pep->ops->setdefaultst)(pep));
-  if (!((PetscObject)pep->st)->type_name) {
-    CHKERRQ(STSetType(pep->st,STSHIFT));
-  }
+  if (!((PetscObject)pep->st)->type_name) CHKERRQ(STSetType(pep->st,STSHIFT));
   PetscFunctionReturn(0);
 }
 
@@ -77,16 +75,12 @@ PetscErrorCode PEPSetUp(PEP pep)
   pep->reason = PEP_CONVERGED_ITERATING;
 
   /* set default solver type (PEPSetFromOptions was not called) */
-  if (!((PetscObject)pep)->type_name) {
-    CHKERRQ(PEPSetType(pep,PEPTOAR));
-  }
+  if (!((PetscObject)pep)->type_name) CHKERRQ(PEPSetType(pep,PEPTOAR));
   if (!pep->st) CHKERRQ(PEPGetST(pep,&pep->st));
   CHKERRQ(PEPSetDefaultST(pep));
   if (!pep->ds) CHKERRQ(PEPGetDS(pep,&pep->ds));
   if (!pep->rg) CHKERRQ(PEPGetRG(pep,&pep->rg));
-  if (!((PetscObject)pep->rg)->type_name) {
-    CHKERRQ(RGSetType(pep->rg,RGINTERVAL));
-  }
+  if (!((PetscObject)pep->rg)->type_name) CHKERRQ(RGSetType(pep->rg,RGINTERVAL));
 
   /* check matrices, transfer them to ST */
   PetscCheck(pep->A,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");
@@ -97,9 +91,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   CHKERRQ(MatGetLocalSize(pep->A[0],&pep->nloc,NULL));
 
   /* set default problem type */
-  if (!pep->problem_type) {
-    CHKERRQ(PEPSetProblemType(pep,PEP_GENERAL));
-  }
+  if (!pep->problem_type) CHKERRQ(PEPSetProblemType(pep,PEP_GENERAL));
   if (pep->nev > (pep->nmat-1)*pep->n) pep->nev = (pep->nmat-1)*pep->n;
   if (pep->ncv > (pep->nmat-1)*pep->n) pep->ncv = (pep->nmat-1)*pep->n;
 
@@ -109,18 +101,14 @@ PetscErrorCode PEPSetUp(PEP pep)
       CHKERRQ(PEPRefineGetKSP(pep,&ksp));
       CHKERRQ(KSPGetPC(ksp,&pc));
       CHKERRQ(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
-      if (flg) {
-        CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
-      }
+      if (flg) CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
       pep->scheme = flg? PEP_REFINE_SCHEME_MBE: PEP_REFINE_SCHEME_SCHUR;
     }
     if (pep->scheme==PEP_REFINE_SCHEME_MBE) {
       CHKERRQ(PEPRefineGetKSP(pep,&ksp));
       CHKERRQ(KSPGetPC(ksp,&pc));
       CHKERRQ(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
-      if (flg) {
-        CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
-      }
+      if (flg) CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
       PetscCheck(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
       CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size));
       if (size>1) {   /* currently selected PC is a factorization */
@@ -480,14 +468,10 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
   /* allocate V */
   if (!pep->V) CHKERRQ(PEPGetBV(pep,&pep->V));
   if (!oldsize) {
-    if (!((PetscObject)(pep->V))->type_name) {
-      CHKERRQ(BVSetType(pep->V,BVSVEC));
-    }
+    if (!((PetscObject)(pep->V))->type_name) CHKERRQ(BVSetType(pep->V,BVSVEC));
     CHKERRQ(STMatCreateVecsEmpty(pep->st,&t,NULL));
     CHKERRQ(BVSetSizesFromVec(pep->V,t,requestedbv));
     CHKERRQ(VecDestroy(&t));
-  } else {
-    CHKERRQ(BVResize(pep->V,requestedbv,PETSC_FALSE));
-  }
+  } else CHKERRQ(BVResize(pep->V,requestedbv,PETSC_FALSE));
   PetscFunctionReturn(0);
 }

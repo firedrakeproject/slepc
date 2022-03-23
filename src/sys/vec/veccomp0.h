@@ -78,11 +78,8 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   for (i=0;i<n;i++) r[i] = 0.0;
   for (j=0;j<as->n->n;j++) {
     for (i=0;i<n;i++) bx[i] = ((Vec_Comp*)b[i]->data)->x[j];
-    if (as->x[0]->ops->mdot_local) {
-      CHKERRQ(as->x[j]->ops->mdot_local(as->x[j],n,bx,work));
-    } else {
-      CHKERRQ(VecMDot(as->x[j],n,bx,work));
-    }
+    if (as->x[0]->ops->mdot_local) CHKERRQ(as->x[j]->ops->mdot_local(as->x[j],n,bx,work));
+    else CHKERRQ(VecMDot(as->x[j],n,bx,work));
     for (i=0;i<n;i++) r[i] += work[i];
   }
 
@@ -157,11 +154,8 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
   for (i=0;i<n;i++) r[i] = 0.0;
   for (j=0;j<as->n->n;j++) {
     for (i=0;i<n;i++) bx[i] = ((Vec_Comp*)b[i]->data)->x[j];
-    if (as->x[0]->ops->mtdot_local) {
-      CHKERRQ(as->x[j]->ops->mtdot_local(as->x[j],n,bx,work));
-    } else {
-      CHKERRQ(VecMTDot(as->x[j],n,bx,work));
-    }
+    if (as->x[0]->ops->mtdot_local) CHKERRQ(as->x[j]->ops->mtdot_local(as->x[j],n,bx,work));
+    else CHKERRQ(VecMTDot(as->x[j],n,bx,work));
     for (i=0;i<n;i++) r[i] += work[i];
   }
 
@@ -192,11 +186,8 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
     case NORM_1_AND_2: norm[0] = 0.0; norm[1] = 1.0; s = 0.0; break;
   }
   for (i=0;i<as->n->n;i++) {
-    if (as->x[0]->ops->norm_local) {
-      CHKERRQ(as->x[0]->ops->norm_local(as->x[i],t,work));
-    } else {
-      CHKERRQ(VecNorm(as->x[i],t,work));
-    }
+    if (as->x[0]->ops->norm_local) CHKERRQ(as->x[0]->ops->norm_local(as->x[i],t,work));
+    else CHKERRQ(VecNorm(as->x[i],t,work));
     /* norm+= work */
     switch (t) {
       case NORM_1: *norm+= *work; break;

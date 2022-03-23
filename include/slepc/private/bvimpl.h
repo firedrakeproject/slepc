@@ -120,9 +120,7 @@ static inline PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
   PetscFunctionBegin;
   absal = PetscAbsScalar(alpha);
   realp = PetscRealPart(alpha);
-  if (PetscUnlikely(absal<PETSC_MACHINE_EPSILON)) {
-    CHKERRQ(PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n"));
-  }
+  if (PetscUnlikely(absal<PETSC_MACHINE_EPSILON)) CHKERRQ(PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n"));
 #if defined(PETSC_USE_COMPLEX)
   PetscCheck(PetscAbsReal(PetscImaginaryPart(alpha))<bv->deftol || PetscAbsReal(PetscImaginaryPart(alpha))/absal<10*bv->deftol,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
 #endif
@@ -164,11 +162,8 @@ static inline PetscErrorCode BV_IPMatMultBV(BV bv)
   CHKERRQ(BVGetCachedBV(bv,&bv->cached));
   if (((PetscObject)bv)->state != bv->bvstate || bv->l != bv->cached->l || bv->k != bv->cached->k) {
     CHKERRQ(BVSetActiveColumns(bv->cached,bv->l,bv->k));
-    if (bv->matrix) {
-      CHKERRQ(BVMatMult(bv,bv->matrix,bv->cached));
-    } else {
-      CHKERRQ(BVCopy(bv,bv->cached));
-    }
+    if (bv->matrix) CHKERRQ(BVMatMult(bv,bv->matrix,bv->cached));
+    else CHKERRQ(BVCopy(bv,bv->cached));
     bv->bvstate = ((PetscObject)bv)->state;
   }
   PetscFunctionReturn(0);
@@ -200,9 +195,7 @@ static inline PetscErrorCode BV_AllocateSignature(BV bv)
 #else
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
 #endif
-    } else {
-      CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega));
-    }
+    } else CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega));
     CHKERRQ(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->omega));
     CHKERRQ(VecSet(bv->omega,1.0));
   }

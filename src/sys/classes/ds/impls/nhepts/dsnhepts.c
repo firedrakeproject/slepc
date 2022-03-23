@@ -183,20 +183,14 @@ PetscErrorCode DSVectors_NHEPTS(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm
     case DS_MAT_X:
       PetscCheck(!ds->refined,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
       else {
-        if (j) {
-          CHKERRQ(DSVectors_NHEPTS_Eigen_Some(ds,j,rnorm,PETSC_FALSE));
-        } else {
-          CHKERRQ(DSVectors_NHEPTS_Eigen_All(ds,PETSC_FALSE));
-        }
+        if (j) CHKERRQ(DSVectors_NHEPTS_Eigen_Some(ds,j,rnorm,PETSC_FALSE));
+        else CHKERRQ(DSVectors_NHEPTS_Eigen_All(ds,PETSC_FALSE));
       }
       break;
     case DS_MAT_Y:
       PetscCheck(!ds->refined,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
-      if (j) {
-        CHKERRQ(DSVectors_NHEPTS_Eigen_Some(ds,j,rnorm,PETSC_TRUE));
-      } else {
-        CHKERRQ(DSVectors_NHEPTS_Eigen_All(ds,PETSC_TRUE));
-      }
+      if (j) CHKERRQ(DSVectors_NHEPTS_Eigen_Some(ds,j,rnorm,PETSC_TRUE));
+      else CHKERRQ(DSVectors_NHEPTS_Eigen_All(ds,PETSC_TRUE));
       break;
     case DS_MAT_U:
     case DS_MAT_V:
@@ -322,20 +316,12 @@ PetscErrorCode DSSynchronize_NHEPTS(DS ds,PetscScalar eigr[],PetscScalar eigi[])
       CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
       CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_Z]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     }
-    if (eigr) {
-      CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigr) CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) {
-      CHKERRMPI(MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigi) CHKERRMPI(MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #endif
-    if (ctx->wr) {
-      CHKERRMPI(MPI_Pack(ctx->wr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
-    if (ctx->wi) {
-      CHKERRMPI(MPI_Pack(ctx->wi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (ctx->wr) CHKERRMPI(MPI_Pack(ctx->wr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (ctx->wi) CHKERRMPI(MPI_Pack(ctx->wi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
   }
   CHKERRMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
@@ -345,20 +331,12 @@ PetscErrorCode DSSynchronize_NHEPTS(DS ds,PetscScalar eigr[],PetscScalar eigi[])
       CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
       CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Z]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     }
-    if (eigr) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigr) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigi) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #endif
-    if (ctx->wr) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,ctx->wr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
-    if (ctx->wi) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,ctx->wi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (ctx->wr) CHKERRMPI(MPI_Unpack(ds->work,size,&off,ctx->wr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (ctx->wi) CHKERRMPI(MPI_Unpack(ds->work,size,&off,ctx->wi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
   }
   PetscFunctionReturn(0);
 }

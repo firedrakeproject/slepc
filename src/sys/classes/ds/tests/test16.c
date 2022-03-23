@@ -36,9 +36,7 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill with a symmetric Toeplitz matrix */
   CHKERRQ(DSGetArray(ds,DS_MAT_A,&A));
@@ -67,9 +65,7 @@ int main(int argc,char **argv)
     CHKERRQ(DSView(ds,viewer));
   }
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Resulting signature:\n"));
-  for (i=0;i<n;i++) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%g\n",(double)ns[i]));
-  }
+  for (i=0;i<n;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%g\n",(double)ns[i]));
   CHKERRQ(PetscFree2(s,ns));
 
   CHKERRQ(DSDestroy(&ds));

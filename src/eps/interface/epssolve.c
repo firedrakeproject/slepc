@@ -19,9 +19,7 @@ PetscErrorCode EPSComputeVectors(EPS eps)
 {
   PetscFunctionBegin;
   EPSCheckSolved(eps,1);
-  if (eps->state==EPS_STATE_SOLVED && eps->ops->computevectors) {
-    CHKERRQ((*eps->ops->computevectors)(eps));
-  }
+  if (eps->state==EPS_STATE_SOLVED && eps->ops->computevectors) CHKERRQ((*eps->ops->computevectors)(eps));
   eps->state = EPS_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
@@ -79,9 +77,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
               if (i<eps->nconv) { SWAP(eps->perm[i],eps->perm[eps->nconv],aux); i--; }
             }
           }
-          if (nconv0>eps->nconv) {
-            CHKERRQ(PetscInfo(eps,"Discarded %" PetscInt_FMT " computed eigenvalues lying outside the interval\n",nconv0-eps->nconv));
-          }
+          if (nconv0>eps->nconv) CHKERRQ(PetscInfo(eps,"Discarded %" PetscInt_FMT " computed eigenvalues lying outside the interval\n",nconv0-eps->nconv));
         }
       }
       break;
@@ -151,9 +147,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* If inplace, purify eigenvectors before reverting operator */
   CHKERRQ(STGetMatMode(eps->st,&matmode));
-  if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
-    CHKERRQ(EPSComputeVectors(eps));
-  }
+  if (matmode == ST_MATMODE_INPLACE && eps->ispositive) CHKERRQ(EPSComputeVectors(eps));
   CHKERRQ(STPostSolve(eps->st));
 
   /* Map eigenvalues back to the original problem if appropriate */
@@ -187,9 +181,7 @@ PetscErrorCode EPSSolve(EPS eps)
   CHKERRQ(EPSVectorsViewFromOptions(eps));
   CHKERRQ(EPSGetOperators(eps,&A,&B));
   CHKERRQ(MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0"));
-  if (eps->isgeneralized) {
-    CHKERRQ(MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1"));
-  }
+  if (eps->isgeneralized) CHKERRQ(MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1"));
 
   /* Remove deflation and initial subspaces */
   if (eps->nds) {
@@ -349,12 +341,8 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
     }
     CHKERRQ(BVOrthogonalize(V,NULL));
   }
-  for (i=0;i<eps->nconv;i++) {
-    CHKERRQ(BVCopyVec(V,i,v[i]));
-  }
-  if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-    CHKERRQ(BVDestroy(&V));
-  }
+  for (i=0;i<eps->nconv;i++) CHKERRQ(BVCopyVec(V,i,v[i]));
+  if (eps->balance!=EPS_BALANCE_NONE && eps->D) CHKERRQ(BVDestroy(&V));
   PetscFunctionReturn(0);
 }
 
@@ -629,7 +617,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
     CHKERRQ((*matmult)(A,xr,u));                          /* u=A*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
       if (nmat>1) CHKERRQ((*matmult)(B,xr,w));
-      else CHKERRQ(VecCopy(xr,w));                    /* w=B*x */
+      else CHKERRQ(VecCopy(xr,w));                        /* w=B*x */
       alpha = trans? -PetscConj(kr): -kr;
       CHKERRQ(VecAXPY(u,alpha,w));                        /* u=A*x-k*B*x */
     }
@@ -639,10 +627,10 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
     CHKERRQ((*matmult)(A,xr,u));                          /* u=A*xr */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
       if (nmat>1) CHKERRQ((*matmult)(B,xr,v));
-      else CHKERRQ(VecCopy(xr,v));                    /* v=B*xr */
+      else CHKERRQ(VecCopy(xr,v));                        /* v=B*xr */
       CHKERRQ(VecAXPY(u,-kr,v));                          /* u=A*xr-kr*B*xr */
       if (nmat>1) CHKERRQ((*matmult)(B,xi,w));
-      else CHKERRQ(VecCopy(xi,w));                    /* w=B*xi */
+      else CHKERRQ(VecCopy(xi,w));                        /* w=B*xi */
       CHKERRQ(VecAXPY(u,trans?-ki:ki,w));                 /* u=A*xr-kr*B*xr+ki*B*xi */
     }
     CHKERRQ(VecNorm(u,NORM_2,&nr));
@@ -714,9 +702,7 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   CHKERRQ(EPSComputeResidualNorm_Private(eps,PETSC_FALSE,kr,ki,xr,xi,w,error));
 
   /* compute 2-norm of eigenvector */
-  if (eps->problem_type==EPS_GHEP) {
-    CHKERRQ(VecNorm(xr,NORM_2,&vecnorm));
-  }
+  if (eps->problem_type==EPS_GHEP) CHKERRQ(VecNorm(xr,NORM_2,&vecnorm));
 
   /* if two-sided, compute left residual norm and take the maximum */
   if (eps->twosided) {
@@ -792,9 +778,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   PetscValidLogicalCollectiveInt(eps,i,2);
 
   /* For the first step, use the first initial vector, otherwise a random one */
-  if (i>0 || eps->nini==0) {
-    CHKERRQ(BVSetRandomColumn(eps->V,i));
-  }
+  if (i>0 || eps->nini==0) CHKERRQ(BVSetRandomColumn(eps->V,i));
 
   /* Force the vector to be in the range of OP for definite generalized problems */
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
@@ -831,9 +815,7 @@ PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   PetscValidLogicalCollectiveInt(eps,i,2);
 
   /* For the first step, use the first initial vector, otherwise a random one */
-  if (i>0 || eps->ninil==0) {
-    CHKERRQ(BVSetRandomColumn(eps->W,i));
-  }
+  if (i>0 || eps->ninil==0) CHKERRQ(BVSetRandomColumn(eps->W,i));
 
   /* Orthonormalize the vector with respect to previous vectors */
   CHKERRQ(BVOrthogonalizeColumn(eps->W,i,NULL,&norm,&lindep));

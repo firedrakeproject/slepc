@@ -78,9 +78,7 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i%m==m-1) {
-      CHKERRQ(MatSetValue(C,i,i,-2*PETSC_PI*h/z,INSERT_VALUES));
-    }
+    if (i%m==m-1) CHKERRQ(MatSetValue(C,i,i,-2*PETSC_PI*h/z,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
@@ -93,11 +91,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i%m==m-1) {
-      CHKERRQ(MatSetValue(M,i,i,2*PETSC_PI*PETSC_PI*h*h,INSERT_VALUES));
-    } else {
-      CHKERRQ(MatSetValue(M,i,i,4*PETSC_PI*PETSC_PI*h*h,INSERT_VALUES));
-    }
+    if (i%m==m-1) CHKERRQ(MatSetValue(M,i,i,2*PETSC_PI*PETSC_PI*h*h,INSERT_VALUES));
+    else CHKERRQ(MatSetValue(M,i,i,4*PETSC_PI*PETSC_PI*h*h,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
@@ -118,9 +113,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
-  } else {
+  if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));

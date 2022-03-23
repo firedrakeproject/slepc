@@ -38,9 +38,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscObjectSetName((PetscObject)B,"B"));
 
   CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(B,i,n-i-1,1.0,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(B,i,n-i-1,1.0,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatCreateVecs(B,&t,NULL));
@@ -54,9 +52,7 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   l = -3;
@@ -88,9 +84,7 @@ int main(int argc,char **argv)
     alpha = 1.0/nrm;
     CHKERRQ(BVScaleColumn(X,j,alpha));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Create a copy on Y */
   CHKERRQ(BVDuplicate(X,&Y));
@@ -105,11 +99,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecScale(omega,-1.0));
   CHKERRQ(MatDiagonalSet(M,omega,ADD_VALUES));
   CHKERRQ(MatNorm(M,NORM_1,&nrm));
-  if (nrm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)nrm));
-  }
+  if (nrm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)nrm));
 
   /* Test BVSetSignature */
   CHKERRQ(VecScale(omega,-1.0));

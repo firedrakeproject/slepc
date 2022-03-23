@@ -60,11 +60,8 @@ int main(int argc,char **argv)
   s[k+1] = -1.0;
   CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_D,&s));
-  if (l==0 && k==0) {
-    CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
-  } else {
-    CHKERRQ(DSSetState(ds,DS_STATE_RAW));
-  }
+  if (l==0 && k==0) CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
+  else CHKERRQ(DSSetState(ds,DS_STATE_RAW));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
   CHKERRQ(DSView(ds,viewer));
 
@@ -92,11 +89,8 @@ int main(int argc,char **argv)
     re = eigr[i];
     im = eigi[i];
 #endif
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
-    }
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
   CHKERRQ(PetscFree2(eigr,eigi));
   CHKERRQ(DSDestroy(&ds));

@@ -29,9 +29,7 @@ static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
   CHKERRQ(MatShellGetContext(M,&ctx));
   pep = ctx->pep;
   CHKERRQ(STGetTransform(pep->st,&flg));
-  if (!flg) {
-    CHKERRQ(STGetShift(pep->st,&sigma));
-  }
+  if (!flg) CHKERRQ(STGetShift(pep->st,&sigma));
   nmat = pep->nmat;
   deg = nmat-1;
   m = pep->nloc;
@@ -306,9 +304,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
 
   } else {   /* implicit matrix */
     PetscCheck(pep->problem_type==PEP_GENERAL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option if problem type is not general");
-    if (!((PetscObject)(ctx->eps))->type_name) {
-      CHKERRQ(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
-    } else {
+    if (!((PetscObject)(ctx->eps))->type_name) CHKERRQ(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
+    else {
       CHKERRQ(PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks));
       PetscCheck(ks,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option only implemented for Krylov-Schur");
     }
@@ -322,11 +319,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     CHKERRQ(MatCreateVecs(pep->A[0],&ctx->w[4],&ctx->w[5]));
     CHKERRQ(PetscLogObjectParents(pep,6,ctx->w));
     CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)pep),deg*pep->nloc,deg*pep->nloc,deg*pep->n,deg*pep->n,ctx,&ctx->A));
-    if (sinv && !transf) {
-      CHKERRQ(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert));
-    } else {
-      CHKERRQ(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Shift));
-    }
+    if (sinv && !transf) CHKERRQ(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert));
+    else CHKERRQ(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Shift));
     CHKERRQ(STShellSetApply(st,Apply_Linear));
     CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A));
     ctx->pep = pep;
@@ -335,9 +329,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (!transf) {
       CHKERRQ(PetscMalloc1(pep->nmat,&pep->solvematcoeffs));
       CHKERRQ(PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar)));
-      if (sinv) {
-        CHKERRQ(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
-      } else {
+      if (sinv) CHKERRQ(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
+      else {
         for (i=0;i<deg;i++) pep->solvematcoeffs[i] = 0.0;
         pep->solvematcoeffs[deg] = 1.0;
       }
@@ -355,11 +348,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   CHKERRQ(EPSSetOperators(ctx->eps,ctx->A,ctx->B));
   CHKERRQ(EPSGetProblemType(ctx->eps,&ptype));
   if (!ptype) {
-    if (ctx->explicitmatrix) {
-      CHKERRQ(EPSSetProblemType(ctx->eps,EPS_GNHEP));
-    } else {
-      CHKERRQ(EPSSetProblemType(ctx->eps,EPS_NHEP));
-    }
+    if (ctx->explicitmatrix) CHKERRQ(EPSSetProblemType(ctx->eps,EPS_GNHEP));
+    else CHKERRQ(EPSSetProblemType(ctx->eps,EPS_NHEP));
   }
   if (!ctx->usereps) {
     if (transf) which = EPS_LARGEST_MAGNITUDE;
@@ -690,22 +680,16 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   CHKERRQ(EPSSetTarget(ctx->eps,sigma*pep->sfactor));
 
   CHKERRQ(STGetTransform(pep->st,&flg));
-  if (flg && pep->ops->backtransform) {
-    CHKERRQ((*pep->ops->backtransform)(pep));
-  }
+  if (flg && pep->ops->backtransform) CHKERRQ((*pep->ops->backtransform)(pep));
   if (pep->sfactor!=1.0) {
     /* Restore original values */
     for (i=0;i<pep->nmat;i++) {
       pep->pbc[pep->nmat+i] *= pep->sfactor;
       pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
     }
-    if (!flg && !ctx->explicitmatrix) {
-      CHKERRQ(STScaleShift(pep->st,pep->sfactor));
-    }
+    if (!flg && !ctx->explicitmatrix) CHKERRQ(STScaleShift(pep->st,pep->sfactor));
   }
-  if (ctx->explicitmatrix || !flg) {
-    CHKERRQ(RGPopScale(pep->rg));
-  }
+  if (ctx->explicitmatrix || !flg) CHKERRQ(RGPopScale(pep->rg));
   PetscFunctionReturn(0);
 }
 
@@ -731,9 +715,7 @@ PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP
 
     k = 2;
     CHKERRQ(PetscOptionsRealArray("-pep_linear_linearization","Parameters of the linearization","PEPLinearSetLinearization",array,&k,&flg));
-    if (flg) {
-      CHKERRQ(PEPLinearSetLinearization(pep,array[0],array[1]));
-    }
+    if (flg) CHKERRQ(PEPLinearSetLinearization(pep,array[0],array[1]));
 
     CHKERRQ(PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set));
     if (set) CHKERRQ(PEPLinearSetExplicitMatrix(pep,val));

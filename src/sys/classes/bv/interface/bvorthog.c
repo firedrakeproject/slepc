@@ -61,9 +61,7 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   if (!v) CHKERRQ(BVGetColumn(bv,j,&w));
   if (onrm) CHKERRQ(BVNormVec(bv,w,NORM_2,onrm));
   z = w;
-  if (indef) {
-    CHKERRQ(VecGetArrayRead(bv->omega,&omega));
-  }
+  if (indef) CHKERRQ(VecGetArrayRead(bv->omega,&omega));
   for (i=-bv->nc;i<j;i++) {
     if (which && i>=0 && !which[i]) continue;
     CHKERRQ(BVGetColumn(bv,i,&vi));
@@ -82,9 +80,7 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   if (nrm) CHKERRQ(BVNormVec(bv,w,NORM_2,nrm));
   if (!v) CHKERRQ(BVRestoreColumn(bv,j,&w));
   CHKERRQ(BV_AddCoefficients(bv,j,h,c));
-  if (indef) {
-    CHKERRQ(VecRestoreArrayRead(bv->omega,&omega));
-  }
+  if (indef) CHKERRQ(VecRestoreArrayRead(bv->omega,&omega));
   PetscFunctionReturn(0);
 }
 
@@ -122,15 +118,13 @@ static PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   if (onorm) *onorm = beta;
 
   if (norm) {
-    if (PetscUnlikely(bv->indef)) {
-      CHKERRQ(BV_NormVecOrColumn(bv,j,v,norm));
-    } else {
+    if (PetscUnlikely(bv->indef)) CHKERRQ(BV_NormVecOrColumn(bv,j,v,norm));
+    else {
       /* estimate |v'| from |v| */
       CHKERRQ(BV_SquareSum(bv,j,c,&sum));
       *norm = beta*beta-sum;
-      if (PetscUnlikely(*norm <= 0.0)) {
-        CHKERRQ(BV_NormVecOrColumn(bv,j,v,norm));
-      } else *norm = PetscSqrtReal(*norm);
+      if (PetscUnlikely(*norm <= 0.0)) CHKERRQ(BV_NormVecOrColumn(bv,j,v,norm));
+      else *norm = PetscSqrtReal(*norm);
     }
   }
   CHKERRQ(BV_AddCoefficients(bv,j,h,c));
@@ -195,9 +189,7 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
   case BV_ORTHOG_REFINE_NEVER:
     CHKERRQ(BVOrthogonalizeGS1(bv,k,v,which,h,c,NULL,NULL));
     /* compute ||v|| */
-    if (norm || dolindep || signature) {
-      CHKERRQ(BV_NormVecOrColumn(bv,k,v,&nrm));
-    }
+    if (norm || dolindep || signature) CHKERRQ(BV_NormVecOrColumn(bv,k,v,&nrm));
     /* linear dependence check: just test for exactly zero norm */
     if (dolindep) *lindep = PetscNot(nrm);
     break;
@@ -425,9 +417,7 @@ PetscErrorCode BVOrthonormalizeColumn(BV bv,PetscInt j,PetscBool replace,PetscRe
   if (nrm!=1.0 && nrm!=0.0) {
     alpha = 1.0/nrm;
     CHKERRQ(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-    if (bv->n) {
-      CHKERRQ((*bv->ops->scale)(bv,j,alpha));
-    }
+    if (bv->n) CHKERRQ((*bv->ops->scale)(bv,j,alpha));
     CHKERRQ(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   }
   if (norm) *norm = nrm;
@@ -545,9 +535,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
       CHKERRQ(BV_StoreCoefficients(V,j,NULL,r+j*ldr));
       V->l = lsave;
       r[j+j*ldr] = norm;
-    } else {
-      CHKERRQ(BVOrthogonalizeColumn(V,j,NULL,&norm,NULL));
-    }
+    } else CHKERRQ(BVOrthogonalizeColumn(V,j,NULL,&norm,NULL));
     PetscCheck(norm,PetscObjectComm((PetscObject)V),PETSC_ERR_CONV_FAILED,"Breakdown in BVOrthogonalize due to a linearly dependent column");
     if (V->matrix && V->orthog_type==BV_ORTHOG_CGS) {  /* fill cached BV */
       CHKERRQ(BVGetColumn(V->cached,j,&v));
@@ -596,9 +584,7 @@ static inline PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R,PetscBool t
   CHKERRQ(MatDenseGetArray(R,&rr));
   ldb  = bv->m+bv->nc;
   CHKERRQ(VecGetArrayRead(bv->buffer,&bb));
-  for (j=bv->l;j<bv->k;j++) {
-    CHKERRQ(PetscArraycpy(rr+j*ldr,bb+j*ldb,(tri?(j+1):bv->k)+bv->nc));
-  }
+  for (j=bv->l;j<bv->k;j++) CHKERRQ(PetscArraycpy(rr+j*ldr,bb+j*ldb,(tri?(j+1):bv->k)+bv->nc));
   CHKERRQ(VecRestoreArrayRead(bv->buffer,&bb));
   CHKERRQ(MatDenseRestoreArray(R,&rr));
   PetscFunctionReturn(0);

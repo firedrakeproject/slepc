@@ -47,9 +47,7 @@ int main(int argc,char **argv)
   if (nc>0) {
     CHKERRQ(VecDuplicateVecs(t,nc,&C));
     for (j=0;j<nc;j++) {
-      for (i=0;i<=j;i++) {
-        CHKERRQ(VecSetValue(C[j],i,1.0,INSERT_VALUES));
-      }
+      for (i=0;i<=j;i++) CHKERRQ(VecSetValue(C[j],i,1.0,INSERT_VALUES));
       CHKERRQ(VecAssemblyBegin(C[j]));
       CHKERRQ(VecAssemblyEnd(C[j]));
     }
@@ -59,9 +57,7 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
@@ -77,9 +73,7 @@ int main(int argc,char **argv)
     CHKERRQ(VecAssemblyEnd(v));
     CHKERRQ(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Test BVOrthogonalizeColumn */
   for (j=0;j<k;j++) {
@@ -87,20 +81,15 @@ int main(int argc,char **argv)
     alpha = 1.0/norm;
     CHKERRQ(BVScaleColumn(X,j,alpha));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Check orthogonality */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
   CHKERRQ(BVDot(X,X,M));
   CHKERRQ(MatShift(M,-1.0));
   CHKERRQ(MatNorm(M,NORM_1,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
-  }
+  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
 
   CHKERRQ(MatDestroy(&M));
   CHKERRQ(BVDestroy(&X));

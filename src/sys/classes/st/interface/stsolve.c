@@ -19,11 +19,8 @@ PetscErrorCode STApply_Generic(ST st,Vec x,Vec y)
   if (st->M && st->P) {
     CHKERRQ(MatMult(st->M,x,st->work[0]));
     CHKERRQ(STMatSolve(st,st->work[0],y));
-  } else if (st->M) {
-    CHKERRQ(MatMult(st->M,x,y));
-  } else {
-    CHKERRQ(STMatSolve(st,x,y));
-  }
+  } else if (st->M) CHKERRQ(MatMult(st->M,x,y));
+  else CHKERRQ(STMatSolve(st,x,y));
   PetscFunctionReturn(0);
 }
 
@@ -72,11 +69,8 @@ PetscErrorCode STApplyMat_Generic(ST st,Mat B,Mat C)
     CHKERRQ(MatMatMult(st->M,B,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&work));
     CHKERRQ(STMatMatSolve(st,work,C));
     CHKERRQ(MatDestroy(&work));
-  } else if (st->M) {
-    CHKERRQ(MatMatMult(st->M,B,MAT_REUSE_MATRIX,PETSC_DEFAULT,&C));
-  } else {
-    CHKERRQ(STMatMatSolve(st,B,C));
-  }
+  } else if (st->M) CHKERRQ(MatMatMult(st->M,B,MAT_REUSE_MATRIX,PETSC_DEFAULT,&C));
+  else CHKERRQ(STMatMatSolve(st,B,C));
   PetscFunctionReturn(0);
 }
 
@@ -118,11 +112,8 @@ PetscErrorCode STApplyTranspose_Generic(ST st,Vec x,Vec y)
   if (st->M && st->P) {
     CHKERRQ(STMatSolveTranspose(st,x,st->work[0]));
     CHKERRQ(MatMultTranspose(st->M,st->work[0],y));
-  } else if (st->M) {
-    CHKERRQ(MatMultTranspose(st->M,x,y));
-  } else {
-    CHKERRQ(STMatSolveTranspose(st,x,y));
-  }
+  } else if (st->M) CHKERRQ(MatMultTranspose(st->M,x,y));
+  else CHKERRQ(STMatSolveTranspose(st,x,y));
   PetscFunctionReturn(0);
 }
 
@@ -255,9 +246,7 @@ static PetscErrorCode MatMult_STOperator(Mat Op,Vec x,Vec y)
     CHKERRQ(VecPointwiseDivide(st->wb,x,st->D));
     CHKERRQ((*st->ops->apply)(st,st->wb,y));
     CHKERRQ(VecPointwiseMult(y,y,st->D));
-  } else {
-    CHKERRQ((*st->ops->apply)(st,x,y));
-  }
+  } else CHKERRQ((*st->ops->apply)(st,x,y));
   CHKERRQ(PetscLogEventEnd(ST_Apply,st,x,y,0));
   PetscFunctionReturn(0);
 }
@@ -274,9 +263,7 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
     CHKERRQ(VecPointwiseMult(st->wb,x,st->D));
     CHKERRQ((*st->ops->applytrans)(st,st->wb,y));
     CHKERRQ(VecPointwiseDivide(y,y,st->D));
-  } else {
-    CHKERRQ((*st->ops->applytrans)(st,x,y));
-  }
+  } else CHKERRQ((*st->ops->applytrans)(st,x,y));
   CHKERRQ(PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0));
   PetscFunctionReturn(0);
 }
@@ -300,9 +287,7 @@ static PetscErrorCode MatMultHermitianTranspose_STOperator(Mat Op,Vec x,Vec y)
     CHKERRQ(VecPointwiseMult(st->wb,st->wht,st->D));
     CHKERRQ((*st->ops->applytrans)(st,st->wb,y));
     CHKERRQ(VecPointwiseDivide(y,y,st->D));
-  } else {
-    CHKERRQ((*st->ops->applytrans)(st,st->wht,y));
-  }
+  } else CHKERRQ((*st->ops->applytrans)(st,st->wht,y));
   CHKERRQ(VecConjugate(y));
   CHKERRQ(PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0));
   PetscFunctionReturn(0);
@@ -519,9 +504,7 @@ PetscErrorCode STSetUp(ST st)
   switch (st->state) {
     case ST_STATE_INITIAL:
       CHKERRQ(PetscInfo(st,"Setting up new ST\n"));
-      if (!((PetscObject)st)->type_name) {
-        CHKERRQ(STSetType(st,STSHIFT));
-      }
+      if (!((PetscObject)st)->type_name) CHKERRQ(STSetType(st,STSHIFT));
       break;
     case ST_STATE_SETUP:
       PetscFunctionReturn(0);
@@ -533,9 +516,7 @@ PetscErrorCode STSetUp(ST st)
   if (st->state!=ST_STATE_UPDATED) {
     if (!(st->nmat<3 && st->opready)) {
       if (st->T) {
-        for (i=0;i<PetscMax(2,st->nmat);i++) {
-          CHKERRQ(MatDestroy(&st->T[i]));
-        }
+        for (i=0;i<PetscMax(2,st->nmat);i++) CHKERRQ(MatDestroy(&st->T[i]));
       }
       CHKERRQ(MatDestroy(&st->P));
     }
@@ -549,9 +530,8 @@ PetscErrorCode STSetUp(ST st)
       CHKERRQ(PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb));
     }
   }
-  if (st->nmat<3 && st->transform) {
-    CHKERRQ(STComputeOperator(st));
-  } else {
+  if (st->nmat<3 && st->transform) CHKERRQ(STComputeOperator(st));
+  else {
     if (!st->T) {
       CHKERRQ(PetscCalloc1(PetscMax(2,st->nmat),&st->T));
       CHKERRQ(PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat)));
@@ -594,11 +574,8 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       gamma = alpha;
     } else gamma = alpha-beta;
     if (gamma != 0.0) {
-      if (st->nmat>1) {
-        CHKERRQ(MatAXPY(*S,gamma,A[1],str));
-      } else {
-        CHKERRQ(MatShift(*S,gamma));
-      }
+      if (st->nmat>1) CHKERRQ(MatAXPY(*S,gamma,A[1],str));
+      else CHKERRQ(MatShift(*S,gamma));
     }
     break;
   case ST_MATMODE_SHELL:
@@ -611,9 +588,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       CHKERRQ(STMatShellCreate(st,alpha,nmat,matIdx,coeffs,S));
       CHKERRQ(PetscLogObjectParent((PetscObject)st,(PetscObject)*S));
       if (st->nmat>2) CHKERRQ(PetscFree(matIdx));
-    } else {
-      CHKERRQ(STMatShellShift(*S,alpha));
-    }
+    } else CHKERRQ(STMatShellShift(*S,alpha));
     break;
   case ST_MATMODE_COPY:
     if (coeffs) {
@@ -638,19 +613,14 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
         CHKERRQ(MatSetOption(*S,MAT_NEW_NONZERO_ALLOCATION_ERR,PETSC_FALSE));
         CHKERRQ(PetscLogObjectParent((PetscObject)st,(PetscObject)*S));
       }
-      if (coeffs && coeffs[ini]!=1.0) {
-        CHKERRQ(MatScale(*S,coeffs[ini]));
-      }
+      if (coeffs && coeffs[ini]!=1.0) CHKERRQ(MatScale(*S,coeffs[ini]));
       for (i=ini+k+1;i<PetscMax(2,st->nmat);i++) {
         t *= alpha;
         ta = t;
         if (coeffs) ta *= coeffs[i-k];
         if (ta!=0.0) {
-          if (st->nmat>1) {
-            CHKERRQ(MatAXPY(*S,ta,A[i],str));
-          } else {
-            CHKERRQ(MatShift(*S,ta));
-          }
+          if (st->nmat>1) CHKERRQ(MatAXPY(*S,ta,A[i],str));
+          else CHKERRQ(MatShift(*S,ta));
         }
       }
     }
@@ -699,9 +669,7 @@ PetscErrorCode STPostSolve(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  if (st->ops->postsolve) {
-    CHKERRQ((*st->ops->postsolve)(st));
-  }
+  if (st->ops->postsolve) CHKERRQ((*st->ops->postsolve)(st));
   PetscFunctionReturn(0);
 }
 
@@ -727,9 +695,7 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  if (st->ops->backtransform) {
-    CHKERRQ((*st->ops->backtransform)(st,n,eigr,eigi));
-  }
+  if (st->ops->backtransform) CHKERRQ((*st->ops->backtransform)(st,n,eigr,eigi));
   PetscFunctionReturn(0);
 }
 
@@ -760,9 +726,8 @@ PetscErrorCode STIsInjective(ST st,PetscBool* is)
   PetscValidBoolPointer(is,2);
 
   CHKERRQ(PetscObjectTypeCompare((PetscObject)st,STSHELL,&shell));
-  if (shell) {
-    CHKERRQ(STIsInjective_Shell(st,is));
-  } else *is = st->ops->backtransform? PETSC_TRUE: PETSC_FALSE;
+  if (shell) CHKERRQ(STIsInjective_Shell(st,is));
+  else *is = st->ops->backtransform? PETSC_TRUE: PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -797,9 +762,7 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 
   CHKERRQ(PetscLogEventBegin(ST_MatSetUp,st,0,0,0));
   CHKERRQ(STMatMAXPY_Private(st,sigma,0.0,0,coeffs,PETSC_TRUE,PETSC_FALSE,&st->P));
-  if (st->Psplit) {
-    CHKERRQ(STMatMAXPY_Private(st,sigma,0.0,0,coeffs,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
-  }
+  if (st->Psplit) CHKERRQ(STMatMAXPY_Private(st,sigma,0.0,0,coeffs,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
   CHKERRQ(ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P));
   CHKERRQ(KSPSetUp(st->ksp));
   CHKERRQ(PetscLogEventEnd(ST_MatSetUp,st,0,0,0));

@@ -38,9 +38,7 @@ PetscErrorCode NEPComputeVectors(NEP nep)
 {
   PetscFunctionBegin;
   NEPCheckSolved(nep,1);
-  if (nep->state==NEP_STATE_SOLVED && nep->ops->computevectors) {
-    CHKERRQ((*nep->ops->computevectors)(nep));
-  }
+  if (nep->state==NEP_STATE_SOLVED && nep->ops->computevectors) CHKERRQ((*nep->ops->computevectors)(nep));
   nep->state = NEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
@@ -598,11 +596,8 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscBool adj,PetscScalar 
   PetscFunctionBegin;
   y = w[0];
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) z = w[1];
-  if (adj) {
-    CHKERRQ(NEPApplyAdjoint(nep,lambda,x,z,y,NULL,NULL));
-  } else {
-    CHKERRQ(NEPApplyFunction(nep,lambda,x,z,y,NULL,NULL));
-  }
+  if (adj) CHKERRQ(NEPApplyAdjoint(nep,lambda,x,z,y,NULL,NULL));
+  else CHKERRQ(NEPApplyFunction(nep,lambda,x,z,y,NULL,NULL));
   CHKERRQ(VecNorm(y,NORM_2,norm));
   PetscFunctionReturn(0);
 }

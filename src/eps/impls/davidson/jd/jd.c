@@ -116,19 +116,13 @@ PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     CHKERRQ(EPSXDGetBOrth_XD(eps,&opb));
-    if (opb) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  search subspace is B-orthogonalized\n"));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  search subspace is orthogonalized\n"));
-    }
+    if (opb) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  search subspace is B-orthogonalized\n"));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  search subspace is orthogonalized\n"));
     CHKERRQ(EPSXDGetBlockSize_XD(eps,&opi));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  block size=%" PetscInt_FMT "\n",opi));
     CHKERRQ(EPSXDGetKrylovStart_XD(eps,&opb));
-    if (!opb) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: non-Krylov\n"));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: Krylov\n"));
-    }
+    if (!opb) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: non-Krylov\n"));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: Krylov\n"));
     CHKERRQ(EPSXDGetRestart_XD(eps,&opi,&opi0));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  size of the subspace after restarting: %" PetscInt_FMT "\n",opi));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of vectors after restarting from the previous iteration: %" PetscInt_FMT "\n",opi0));

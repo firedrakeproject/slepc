@@ -249,9 +249,8 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     CHKERRQ(BVSetActiveColumns(svd->V,svd->nconv,nv));
     CHKERRQ(DSGetArrayReal(svd->ds,DS_MAT_T,&alpha));
     beta = alpha + ld;
-    if (lanczos->oneside) {
-      CHKERRQ(SVDOneSideLanczos(svd,alpha,beta,svd->V,u,u_1,svd->nconv,nv,swork));
-    } else {
+    if (lanczos->oneside) CHKERRQ(SVDOneSideLanczos(svd,alpha,beta,svd->V,u,u_1,svd->nconv,nv,swork));
+    else {
       CHKERRQ(BVSetActiveColumns(svd->U,svd->nconv,nv));
       CHKERRQ(SVDTwoSideLanczos(svd,alpha,beta,svd->V,svd->U,svd->nconv,&nv,NULL));
     }
@@ -296,9 +295,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     }
 
     /* copy restart vector from the last column */
-    if (svd->reason == SVD_CONVERGED_ITERATING) {
-      CHKERRQ(BVCopyColumn(svd->V,nv,k));
-    }
+    if (svd->reason == SVD_CONVERGED_ITERATING) CHKERRQ(BVCopyColumn(svd->V,nv,k));
 
     svd->nconv = k;
     CHKERRQ(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv));
@@ -420,9 +417,7 @@ PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isascii) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %s-sided reorthogonalization\n",lanczos->oneside? "one": "two"));
-  }
+  if (isascii) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %s-sided reorthogonalization\n",lanczos->oneside? "one": "two"));
   PetscFunctionReturn(0);
 }
 

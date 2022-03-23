@@ -31,9 +31,7 @@ static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
   /* User vectors are added at the beginning, so no active column should be in V */
   PetscAssert(data->user==0 || l==0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
   /* Generate a set of random initial vectors and orthonormalize them */
-  for (i=l+user;i<l+data->k && i<d->eps->ncv && i-l<d->eps->mpd;i++) {
-    CHKERRQ(BVSetRandomColumn(d->eps->V,i));
-  }
+  for (i=l+user;i<l+data->k && i<d->eps->ncv && i-l<d->eps->mpd;i++) CHKERRQ(BVSetRandomColumn(d->eps->V,i));
   d->V_tra_s = 0; d->V_tra_e = 0;
   d->V_new_s = 0; d->V_new_e = i-l;
 
@@ -129,8 +127,6 @@ PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e)
   PetscInt       i;
 
   PetscFunctionBegin;
-  for (i=V_new_s;i<V_new_e;i++) {
-    CHKERRQ(BVOrthonormalizeColumn(V,i,PETSC_TRUE,NULL,NULL));
-  }
+  for (i=V_new_s;i<V_new_e;i++) CHKERRQ(BVOrthonormalizeColumn(V,i,PETSC_TRUE,NULL,NULL));
   PetscFunctionReturn(0);
 }

@@ -61,9 +61,8 @@ PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
 
   CHKERRQ(PetscObjectReference((PetscObject)A));
   if (B) CHKERRQ(PetscObjectReference((PetscObject)B));
-  if (svd->state && !samesize) {
-    CHKERRQ(SVDReset(svd));
-  } else {
+  if (svd->state && !samesize) CHKERRQ(SVDReset(svd));
+  else {
     CHKERRQ(MatDestroy(&svd->OP));
     CHKERRQ(MatDestroy(&svd->OPb));
     CHKERRQ(MatDestroy(&svd->A));
@@ -139,9 +138,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   svd->reason = SVD_CONVERGED_ITERATING;
 
   /* Set default solver type (SVDSetFromOptions was not called) */
-  if (!((PetscObject)svd)->type_name) {
-    CHKERRQ(SVDSetType(svd,SVDCROSS));
-  }
+  if (!((PetscObject)svd)->type_name) CHKERRQ(SVDSetType(svd,SVDCROSS));
   if (!svd->ds) CHKERRQ(SVDGetDS(svd,&svd->ds));
 
   /* check matrices */
@@ -149,11 +146,8 @@ PetscErrorCode SVDSetUp(SVD svd)
 
   /* Set default problem type */
   if (!svd->problem_type) {
-    if (svd->OPb) {
-      CHKERRQ(SVDSetProblemType(svd,SVD_GENERALIZED));
-    } else {
-      CHKERRQ(SVDSetProblemType(svd,SVD_STANDARD));
-    }
+    if (svd->OPb) CHKERRQ(SVDSetProblemType(svd,SVD_GENERALIZED));
+    else CHKERRQ(SVDSetProblemType(svd,SVD_STANDARD));
   } else if (!svd->OPb && svd->isgeneralized) {
     CHKERRQ(PetscInfo(svd,"Problem type set as generalized but no matrix B was provided; reverting to a standard singular value problem\n"));
     svd->isgeneralized = PETSC_FALSE;
@@ -267,9 +261,7 @@ PetscErrorCode SVDSetUp(SVD svd)
       k = -svd->ninil;
       PetscCheck(k<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The number of left initial vectors is larger than ncv");
       CHKERRQ(BVInsertVecs(svd->U,0,&k,svd->ISL,PETSC_TRUE));
-    } else {
-      CHKERRQ(PetscInfo(svd,"Ignoring initial left vectors\n"));
-    }
+    } else CHKERRQ(PetscInfo(svd,"Ignoring initial left vectors\n"));
     CHKERRQ(SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL));
     svd->ninil = k;
   }
@@ -406,40 +398,28 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
   /* allocate V */
   if (!svd->V) CHKERRQ(SVDGetBV(svd,&svd->V,NULL));
   if (!oldsize) {
-    if (!((PetscObject)(svd->V))->type_name) {
-      CHKERRQ(BVSetType(svd->V,BVSVEC));
-    }
+    if (!((PetscObject)(svd->V))->type_name) CHKERRQ(BVSetType(svd->V,BVSVEC));
     CHKERRQ(MatCreateVecsEmpty(svd->A,&tr,NULL));
     CHKERRQ(BVSetSizesFromVec(svd->V,tr,requested));
     CHKERRQ(VecDestroy(&tr));
-  } else {
-    CHKERRQ(BVResize(svd->V,requested,PETSC_FALSE));
-  }
+  } else CHKERRQ(BVResize(svd->V,requested,PETSC_FALSE));
   /* allocate U */
   if (svd->leftbasis && !svd->isgeneralized) {
     if (!svd->U) CHKERRQ(SVDGetBV(svd,NULL,&svd->U));
     if (!oldsize) {
-      if (!((PetscObject)(svd->U))->type_name) {
-        CHKERRQ(BVSetType(svd->U,BVSVEC));
-      }
+      if (!((PetscObject)(svd->U))->type_name) CHKERRQ(BVSetType(svd->U,BVSVEC));
       CHKERRQ(MatCreateVecsEmpty(svd->A,NULL,&tl));
       CHKERRQ(BVSetSizesFromVec(svd->U,tl,requested));
       CHKERRQ(VecDestroy(&tl));
-    } else {
-      CHKERRQ(BVResize(svd->U,requested,PETSC_FALSE));
-    }
+    } else CHKERRQ(BVResize(svd->U,requested,PETSC_FALSE));
   } else if (svd->isgeneralized) {  /* left basis for the GSVD */
     if (!svd->U) CHKERRQ(SVDGetBV(svd,NULL,&svd->U));
     if (!oldsize) {
-      if (!((PetscObject)(svd->U))->type_name) {
-        CHKERRQ(BVSetType(svd->U,BVSVEC));
-      }
+      if (!((PetscObject)(svd->U))->type_name) CHKERRQ(BVSetType(svd->U,BVSVEC));
       CHKERRQ(SVDCreateLeftTemplate(svd,&tl));
       CHKERRQ(BVSetSizesFromVec(svd->U,tl,requested));
       CHKERRQ(VecDestroy(&tl));
-    } else {
-      CHKERRQ(BVResize(svd->U,requested,PETSC_FALSE));
-    }
+    } else CHKERRQ(BVResize(svd->U,requested,PETSC_FALSE));
   }
   PetscFunctionReturn(0);
 }

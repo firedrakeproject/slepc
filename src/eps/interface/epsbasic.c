@@ -336,12 +336,8 @@ PetscErrorCode EPSDestroy(EPS *eps)
   if (--((PetscObject)(*eps))->refct > 0) { *eps = 0; PetscFunctionReturn(0); }
   CHKERRQ(EPSReset(*eps));
   if ((*eps)->ops->destroy) CHKERRQ((*(*eps)->ops->destroy)(*eps));
-  if ((*eps)->eigr) {
-    CHKERRQ(PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm));
-  }
-  if ((*eps)->rr) {
-    CHKERRQ(PetscFree2((*eps)->rr,(*eps)->ri));
-  }
+  if ((*eps)->eigr) CHKERRQ(PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm));
+  if ((*eps)->rr) CHKERRQ(PetscFree2((*eps)->rr,(*eps)->ri));
   CHKERRQ(STDestroy(&(*eps)->st));
   CHKERRQ(RGDestroy(&(*eps)->rg));
   CHKERRQ(DSDestroy(&(*eps)->ds));
@@ -350,9 +346,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   CHKERRQ(SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl));
   CHKERRQ(SlepcBasisDestroy_Private(&(*eps)->nini,&(*eps)->IS));
   CHKERRQ(SlepcBasisDestroy_Private(&(*eps)->ninil,&(*eps)->ISL));
-  if ((*eps)->convergeddestroy) {
-    CHKERRQ((*(*eps)->convergeddestroy)((*eps)->convergedctx));
-  }
+  if ((*eps)->convergeddestroy) CHKERRQ((*(*eps)->convergeddestroy)((*eps)->convergedctx));
   CHKERRQ(EPSMonitorCancel(*eps));
   CHKERRQ(PetscHeaderDestroy(eps));
   PetscFunctionReturn(0);

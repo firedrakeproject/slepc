@@ -61,9 +61,7 @@ static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   n = kV-lV;
   CHKERRQ(DSSetDimensions(d->eps->ds,n,0,0));
   CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,lV,lV,n,n,PETSC_FALSE));
-  if (d->G) {
-    CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,lV,lV,n,n,PETSC_FALSE));
-  }
+  if (d->G) CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,lV,lV,n,n,PETSC_FALSE));
   /* Set the signature on projected matrix B */
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     CHKERRQ(DSGetLeadingDimension(d->eps->ds,&ld));
@@ -274,9 +272,7 @@ static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     if (d->W) CHKERRQ(BVSetActiveColumns(d->W,l,k));
 
     /* Perform the transformation on the projected problem */
-    if (d->W) {
-      CHKERRQ(d->calcpairs_proj_trans(d));
-    }
+    if (d->W) CHKERRQ(d->calcpairs_proj_trans(d));
     k = l+d->V_new_e;
   }
   CHKERRQ(BVSetActiveColumns(d->eps->V,l,k));
@@ -309,9 +305,7 @@ static PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s
 
   /* Quick exit without arbitrary selection, but with harmonic extraction */
   if (d->calcpairs_eig_backtrans) {
-    for (i=r_s; i<r_e; i++) {
-      CHKERRQ(d->calcpairs_eig_backtrans(d,d->eigr[i],d->eigi[i],&rr[i-r_s],&ri[i-r_s]));
-    }
+    for (i=r_s; i<r_e; i++) CHKERRQ(d->calcpairs_eig_backtrans(d,d->eigr[i],d->eigi[i],&rr[i-r_s],&ri[i-r_s]));
   }
   if (!d->eps->arbitrary) PetscFunctionReturn(0);
 
@@ -325,21 +319,15 @@ static PetscErrorCode dvd_calcpairs_apply_arbitrary(dvdDashboard *d,PetscInt r_s
     CHKERRQ(DSRestoreArray(d->eps->ds,DS_MAT_X,&pX));
 #if !defined(PETSC_USE_COMPLEX)
     if (d->nX[i] != 1.0) {
-      for (j=i;j<k+1;j++) {
-        CHKERRQ(VecScale(X[j-i],1.0/d->nX[i]));
-      }
+      for (j=i;j<k+1;j++) CHKERRQ(VecScale(X[j-i],1.0/d->nX[i]));
     }
     xr = X[0];
     xi = X[1];
-    if (i == k) {
-      CHKERRQ(VecSet(xi,0.0));
-    }
+    if (i == k) CHKERRQ(VecSet(xi,0.0));
 #else
     xr = X[0];
     xi = NULL;
-    if (d->nX[i] != 1.0) {
-      CHKERRQ(VecScale(xr,1.0/d->nX[i]));
-    }
+    if (d->nX[i] != 1.0) CHKERRQ(VecScale(xr,1.0/d->nX[i]));
 #endif
     CHKERRQ((d->eps->arbitrary)(rr[i-r_s],ri[i-r_s],xr,xi,&rr[i-r_s],&ri[i-r_s],d->eps->arbitraryctx));
 #if !defined(PETSC_USE_COMPLEX)
@@ -388,9 +376,7 @@ static PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
   }
   CHKERRQ(DSSynchronize(d->eps->ds,d->eigr,d->eigi));
 
-  if (d->calcpairs_eigs_trans) {
-    CHKERRQ(d->calcpairs_eigs_trans(d));
-  }
+  if (d->calcpairs_eigs_trans) CHKERRQ(d->calcpairs_eigs_trans(d));
   if (d->eps->arbitrary || d->calcpairs_eig_backtrans) {
     CHKERRQ(PetscFree(rr));
     CHKERRQ(PetscFree(ri));
@@ -412,9 +398,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   if (symm) PetscFunctionReturn(0);
   CHKERRQ(DSSetDimensions(d->eps->ds,d->eps->nconv,0,0));
   CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE));
-  if (d->G) {
-    CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE));
-  }
+  if (d->G) CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE));
   /* Set the signature on projected matrix B */
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     CHKERRQ(DSGetLeadingDimension(d->eps->ds,&ld));
@@ -432,9 +416,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   CHKERRQ(DSSolve(d->eps->ds,d->eps->eigr,d->eps->eigi));
   CHKERRQ(DSSynchronize(d->eps->ds,d->eps->eigr,d->eps->eigi));
   if (d->W) {
-    for (i=0; i<d->eps->nconv; i++) {
-      CHKERRQ(d->calcpairs_eig_backtrans(d,d->eps->eigr[i],d->eps->eigi[i],&d->eps->eigr[i],&d->eps->eigi[i]));
-    }
+    for (i=0;i<d->eps->nconv;i++) CHKERRQ(d->calcpairs_eig_backtrans(d,d->eps->eigr[i],d->eps->eigi[i],&d->eps->eigr[i],&d->eps->eigi[i]));
   }
   PetscFunctionReturn(0);
 }
@@ -482,20 +464,12 @@ static PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscI
   if (cX) {
     CHKERRQ(BVGetActiveColumns(cX,&l,&k));
     CHKERRQ(BVSetActiveColumns(cX,0,l));
-    for (i=0;i<r_e-r_s;i++) {
-      CHKERRQ(BVOrthogonalizeVec(cX,R[i],NULL,&d->nR[r_s+i],&lindep));
-    }
+    for (i=0;i<r_e-r_s;i++) CHKERRQ(BVOrthogonalizeVec(cX,R[i],NULL,&d->nR[r_s+i],&lindep));
     CHKERRQ(BVSetActiveColumns(cX,l,k));
-    if (lindep || (PetscAbs(d->nR[r_s+i]) < PETSC_MACHINE_EPSILON)) {
-      CHKERRQ(PetscInfo(d->eps,"The computed eigenvector residual %" PetscInt_FMT " is too low, %g!\n",r_s+i,(double)(d->nR[r_s+i])));
-    }
+    if (lindep || (PetscAbs(d->nR[r_s+i]) < PETSC_MACHINE_EPSILON)) CHKERRQ(PetscInfo(d->eps,"The computed eigenvector residual %" PetscInt_FMT " is too low, %g!\n",r_s+i,(double)(d->nR[r_s+i])));
   } else {
-    for (i=0;i<r_e-r_s;i++) {
-      CHKERRQ(VecNormBegin(R[i],NORM_2,&d->nR[r_s+i]));
-    }
-    for (i=0;i<r_e-r_s;i++) {
-      CHKERRQ(VecNormEnd(R[i],NORM_2,&d->nR[r_s+i]));
-    }
+    for (i=0;i<r_e-r_s;i++) CHKERRQ(VecNormBegin(R[i],NORM_2,&d->nR[r_s+i]));
+    for (i=0;i<r_e-r_s;i++) CHKERRQ(VecNormEnd(R[i],NORM_2,&d->nR[r_s+i]));
   }
   PetscFunctionReturn(0);
 }
@@ -551,17 +525,15 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool borth
     CHKERRQ(VecDestroy(&v1));
     /* Create projected problem matrices */
     CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&d->H));
-    if (!std_probl) {
-      CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&d->G));
-    } else d->G = NULL;
+    if (!std_probl) CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&d->G));
+    else d->G = NULL;
     if (her_probl) {
       CHKERRQ(MatSetOption(d->H,MAT_HERMITIAN,PETSC_TRUE));
       if (d->G) CHKERRQ(MatSetOption(d->G,MAT_HERMITIAN,PETSC_TRUE));
     }
 
-    if (ind_probl) {
-      CHKERRQ(PetscMalloc1(d->eps->ncv,&d->nBds));
-    } else d->nBds = NULL;
+    if (ind_probl) CHKERRQ(PetscMalloc1(d->eps->ncv,&d->nBds));
+    else d->nBds = NULL;
     CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&d->auxM));
 
     CHKERRQ(EPSDavidsonFLAdd(&d->startList,dvd_calcpairs_qz_start));

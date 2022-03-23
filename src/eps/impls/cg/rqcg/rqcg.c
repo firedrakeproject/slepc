@@ -69,9 +69,7 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   } else if (ctx->allocsize!=eps->mpd) {
     ctx->allocsize = eps->mpd;
     CHKERRQ(BVResize(ctx->AV,eps->mpd,PETSC_FALSE));
-    if (nmat>1) {
-      CHKERRQ(BVResize(ctx->W,eps->mpd,PETSC_FALSE));
-    }
+    if (nmat>1) CHKERRQ(BVResize(ctx->W,eps->mpd,PETSC_FALSE));
     CHKERRQ(BVResize(ctx->P,eps->mpd,PETSC_FALSE));
     CHKERRQ(BVResize(ctx->G,eps->mpd,PETSC_FALSE));
   }
@@ -95,9 +93,7 @@ static PetscErrorCode ExtractSubmatrix(Mat A,PetscInt k,Mat *B)
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,m-k,n-k,NULL,B));
   CHKERRQ(MatDenseGetArrayRead(A,&pA));
   CHKERRQ(MatDenseGetArrayWrite(*B,&pB));
-  for (j=k;j<n;j++) {
-    CHKERRQ(PetscArraycpy(pB+(j-k)*(m-k),pA+j*m+k,m-k));
-  }
+  for (j=k;j<n;j++) CHKERRQ(PetscArraycpy(pB+(j-k)*(m-k),pA+j*m+k,m-k));
   CHKERRQ(MatDenseRestoreArrayRead(A,&pA));
   CHKERRQ(MatDenseRestoreArrayWrite(*B,&pB));
   PetscFunctionReturn(0);
@@ -187,9 +183,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         CHKERRQ(MatMult(B,v,bv));
         CHKERRQ(VecWAXPY(p,-eps->eigr[i],bv,av));
         CHKERRQ(BVRestoreColumn(ctx->W,i-eps->nconv,&bv));
-      } else {
-        CHKERRQ(VecWAXPY(p,-eps->eigr[i],v,av));
-      }
+      } else CHKERRQ(VecWAXPY(p,-eps->eigr[i],v,av));
       CHKERRQ(BVRestoreColumn(eps->V,i,&v));
       CHKERRQ(BVRestoreColumn(ctx->AV,i-eps->nconv,&av));
       CHKERRQ(VecNorm(p,NORM_2,&resnorm));
@@ -257,9 +251,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         else if (b!=d) alpha = 2.0*c/(b-d);
         else alpha = 0;
         /* Next iterate */
-        if (alpha!=0.0) {
-          CHKERRQ(VecAXPY(v,alpha,p));
-        }
+        if (alpha!=0.0) CHKERRQ(VecAXPY(v,alpha,p));
         CHKERRQ(BVRestoreColumn(eps->V,i,&v));
         CHKERRQ(BVRestoreColumn(ctx->P,i-eps->nconv,&p));
         CHKERRQ(BVOrthonormalizeColumn(eps->V,i,PETSC_TRUE,NULL,NULL));
@@ -392,9 +384,7 @@ PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isascii) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  reset every %" PetscInt_FMT " iterations\n",ctx->nrest));
-  }
+  if (isascii) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  reset every %" PetscInt_FMT " iterations\n",ctx->nrest));
   PetscFunctionReturn(0);
 }
 

@@ -41,9 +41,7 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
   PetscInt       i,n = eps->numbermonitors;
 
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    CHKERRQ((*eps->monitor[i])(eps,it,nconv,eigr,eigi,errest,nest,eps->monitorcontext[i]));
-  }
+  for (i=0;i<n;i++) CHKERRQ((*eps->monitor[i])(eps,it,nconv,eigr,eigi,errest,nest,eps->monitorcontext[i]));
   PetscFunctionReturn(0);
 }
 
@@ -130,9 +128,7 @@ PetscErrorCode EPSMonitorCancel(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   for (i=0; i<eps->numbermonitors; i++) {
-    if (eps->monitordestroy[i]) {
-      CHKERRQ((*eps->monitordestroy[i])(&eps->monitorcontext[i]));
-    }
+    if (eps->monitordestroy[i]) CHKERRQ((*eps->monitordestroy[i])(&eps->monitorcontext[i]));
   }
   eps->numbermonitors = 0;
   PetscFunctionReturn(0);
@@ -193,9 +189,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  if (its==1 && ((PetscObject)eps)->prefix) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix));
-  }
+  if (its==1 && ((PetscObject)eps)->prefix) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix));
   if (nconv<nest) {
     CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
     CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel));
@@ -251,9 +245,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
   CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel));
-  if (its==1 && ((PetscObject)eps)->prefix) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix));
-  }
+  if (its==1 && ((PetscObject)eps)->prefix) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix));
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS nconv=%" PetscInt_FMT " Values (Errors)",its,nconv));
   CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
   for (i=0;i<nest;i++) {
@@ -308,9 +300,7 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   ctx = (SlepcConvMon)vf->data;
-  if (its==1 && ((PetscObject)eps)->prefix) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)eps)->prefix));
-  }
+  if (its==1 && ((PetscObject)eps)->prefix) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)eps)->prefix));
   if (its==1) ctx->oldnconv = 0;
   if (ctx->oldnconv!=nconv) {
     CHKERRQ(PetscViewerPushFormat(viewer,vf->format));

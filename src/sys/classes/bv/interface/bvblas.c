@@ -91,15 +91,11 @@ PetscErrorCode BVMultInPlace_BLAS_Private(BV bv,PetscInt m_,PetscInt k_,PetscInt
   l = m % bs;
   if (l) {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N",bt,&l,&n,&k,&one,A,&m,pb,&ldb,&zero,bv->work,&l));
-    for (j=0;j<n;j++) {
-      CHKERRQ(PetscArraycpy(A+(s+j)*m,bv->work+j*l,l));
-    }
+    for (j=0;j<n;j++) CHKERRQ(PetscArraycpy(A+(s+j)*m,bv->work+j*l,l));
   }
   for (;l<m;l+=bs) {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N",bt,&bs,&n,&k,&one,A+l,&m,pb,&ldb,&zero,bv->work,&bs));
-    for (j=0;j<n;j++) {
-      CHKERRQ(PetscArraycpy(A+(s+j)*m+l,bv->work+j*bs,bs));
-    }
+    for (j=0;j<n;j++) CHKERRQ(PetscArraycpy(A+(s+j)*m+l,bv->work+j*bs,bs));
   }
   CHKERRQ(PetscLogFlops(2.0*m*n*k));
   PetscFunctionReturn(0);
@@ -207,9 +203,7 @@ PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pets
       else CHKERRQ(PetscArrayzero(bv->work,m*n));
       CHKERRQ(PetscMPIIntCast(m*n,&len));
       CHKERRMPI(MPIU_Allreduce(bv->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
-      for (j=0;j<n;j++) {
-        CHKERRQ(PetscArraycpy(C+j*ldc,CC+j*m,m));
-      }
+      for (j=0;j<n;j++) CHKERRQ(PetscArraycpy(C+j*ldc,CC+j*m,m));
     }
   } else {
     if (k) PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&k,(PetscScalar*)B,&k,&zero,C,&ldc));
@@ -234,11 +228,8 @@ PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscSc
   CHKERRQ(PetscBLASIntCast(k_,&k));
   if (mpi) {
     CHKERRQ(BVAllocateWork_Private(bv,k));
-    if (n) {
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,x,&one,&zero,bv->work,&one));
-    } else {
-      CHKERRQ(PetscArrayzero(bv->work,k));
-    }
+    if (n) PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,x,&one,&zero,bv->work,&one));
+    else CHKERRQ(PetscArrayzero(bv->work,k));
     CHKERRQ(PetscMPIIntCast(k,&len));
     CHKERRMPI(MPIU_Allreduce(bv->work,y,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
   } else {
@@ -256,9 +247,8 @@ PetscErrorCode BVScale_BLAS_Private(BV bv,PetscInt n_,PetscScalar *A,PetscScalar
   PetscBLASInt   n,one=1;
 
   PetscFunctionBegin;
-  if (PetscUnlikely(alpha == (PetscScalar)0.0)) {
-    CHKERRQ(PetscArrayzero(A,n_));
-  } else if (alpha!=(PetscScalar)1.0) {
+  if (PetscUnlikely(alpha == (PetscScalar)0.0)) CHKERRQ(PetscArrayzero(A,n_));
+  else if (alpha!=(PetscScalar)1.0) {
     CHKERRQ(PetscBLASIntCast(n_,&n));
     PetscStackCallBLAS("BLASscal",BLASscal_(&n,&alpha,A,&one));
     CHKERRQ(PetscLogFlops(n));

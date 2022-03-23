@@ -92,11 +92,8 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   CHKERRQ(MFNRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)mfn);CHKERRQ(ierr);
     CHKERRQ(PetscOptionsFList("-mfn_type","Matrix Function method","MFNSetType",MFNList,(char*)(((PetscObject)mfn)->type_name?((PetscObject)mfn)->type_name:MFNKRYLOV),type,sizeof(type),&flg));
-    if (flg) {
-      CHKERRQ(MFNSetType(mfn,type));
-    } else if (!((PetscObject)mfn)->type_name) {
-      CHKERRQ(MFNSetType(mfn,MFNKRYLOV));
-    }
+    if (flg) CHKERRQ(MFNSetType(mfn,type));
+    else if (!((PetscObject)mfn)->type_name) CHKERRQ(MFNSetType(mfn,MFNKRYLOV));
 
     i = mfn->max_it;
     CHKERRQ(PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,&flg1));
@@ -121,9 +118,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     /* -----------------------------------------------------------------------*/
     CHKERRQ(PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",NULL));
 
-    if (mfn->ops->setfromoptions) {
-      CHKERRQ((*mfn->ops->setfromoptions)(PetscOptionsObject,mfn));
-    }
+    if (mfn->ops->setfromoptions) CHKERRQ((*mfn->ops->setfromoptions)(PetscOptionsObject,mfn));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)mfn));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 

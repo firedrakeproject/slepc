@@ -320,9 +320,7 @@ PetscErrorCode BVScale(BV bv,PetscScalar alpha)
   if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   CHKERRQ(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-  if (bv->n) {
-    CHKERRQ((*bv->ops->scale)(bv,-1,alpha));
-  }
+  if (bv->n) CHKERRQ((*bv->ops->scale)(bv,-1,alpha));
   CHKERRQ(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
@@ -355,9 +353,7 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   CHKERRQ(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-  if (bv->n) {
-    CHKERRQ((*bv->ops->scale)(bv,j,alpha));
-  }
+  if (bv->n) CHKERRQ((*bv->ops->scale)(bv,j,alpha));
   CHKERRQ(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
@@ -379,9 +375,7 @@ static inline PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
       if (i>=low && i<high) px[i-low] = t;
     }
     CHKERRQ(VecRestoreArray(x,&px));
-  } else {
-    CHKERRQ(VecSetRandom(x,bv->rand));
-  }
+  } else CHKERRQ(VecSetRandom(x,bv->rand));
   CHKERRQ(BVRestoreColumn(bv,k,&x));
   PetscFunctionReturn(0);
 }
@@ -409,9 +403,7 @@ static inline PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscInt k,Ve
       }
     }
     CHKERRQ(VecRestoreArray(x,&px));
-  } else {
-    CHKERRQ(VecSetRandomNormal(x,bv->rand,w1,w2));
-  }
+  } else CHKERRQ(VecSetRandomNormal(x,bv->rand,w1,w2));
   CHKERRQ(BVRestoreColumn(bv,k,&x));
   PetscFunctionReturn(0);
 }
@@ -470,9 +462,7 @@ PetscErrorCode BVSetRandom(BV bv)
 
   CHKERRQ(BVGetRandomContext(bv,&bv->rand));
   CHKERRQ(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
-  for (k=bv->l;k<bv->k;k++) {
-    CHKERRQ(BVSetRandomColumn_Private(bv,k));
-  }
+  for (k=bv->l;k<bv->k;k++) CHKERRQ(BVSetRandomColumn_Private(bv,k));
   CHKERRQ(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
   CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
@@ -548,9 +538,7 @@ PetscErrorCode BVSetRandomNormal(BV bv)
     CHKERRQ(BVCreateVec(bv,&w2));
   }
   CHKERRQ(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
-  for (k=bv->l;k<bv->k;k++) {
-    CHKERRQ(BVSetRandomNormalColumn_Private(bv,k,w1,w2));
-  }
+  for (k=bv->l;k<bv->k;k++) CHKERRQ(BVSetRandomNormalColumn_Private(bv,k,w1,w2));
   CHKERRQ(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
   if (!bv->rrandom) {
     CHKERRQ(VecDestroy(&w1));
@@ -598,9 +586,7 @@ PetscErrorCode BVSetRandomSign(BV bv)
   CHKERRQ(PetscRandomGetInterval(bv->rand,&low,&high));
   PetscCheck(PetscRealPart(low)==0.0 && PetscRealPart(high)==1.0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"The PetscRandom object in the BV must have interval [0,1]");
   CHKERRQ(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
-  for (k=bv->l;k<bv->k;k++) {
-    CHKERRQ(BVSetRandomSignColumn_Private(bv,k));
-  }
+  for (k=bv->l;k<bv->k;k++) CHKERRQ(BVSetRandomSignColumn_Private(bv,k));
   CHKERRQ(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
   CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
@@ -638,9 +624,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   CHKERRQ(BVGetRandomContext(bv,&bv->rand));
   CHKERRQ(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
   /* B = rand(n,k) */
-  for (k=bv->l;k<bv->k;k++) {
-    CHKERRQ(BVSetRandomColumn_Private(bv,k));
-  }
+  for (k=bv->l;k<bv->k;k++) CHKERRQ(BVSetRandomColumn_Private(bv,k));
   CHKERRQ(DSCreate(PetscObjectComm((PetscObject)bv),&ds));
   CHKERRQ(DSSetType(ds,DSHEP));
   CHKERRQ(DSAllocate(ds,bv->m));

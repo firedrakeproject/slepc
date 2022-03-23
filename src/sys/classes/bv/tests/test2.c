@@ -31,9 +31,7 @@ int main(int argc,char **argv)
   PetscCheck(condn>=1.0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The condition number must be > 1");
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n));
-  if (condn>1.0) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - Using a random BV with condition number = %g\n",(double)condn));
-  }
+  if (condn>1.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - Using a random BV with condition number = %g\n",(double)condn));
 
   /* Create template vector */
   CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
@@ -48,9 +46,7 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   if (condn==1.0) {
@@ -67,12 +63,8 @@ int main(int argc,char **argv)
       CHKERRQ(VecAssemblyEnd(v));
       CHKERRQ(BVRestoreColumn(X,j,&v));
     }
-  } else {
-    CHKERRQ(BVSetRandomCond(X,condn));
-  }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  } else CHKERRQ(BVSetRandomCond(X,condn));
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Create copies on Y and Z */
   CHKERRQ(BVDuplicate(X,&Y));
@@ -88,20 +80,15 @@ int main(int argc,char **argv)
     alpha = 1.0/norm;
     CHKERRQ(BVScaleColumn(X,j,alpha));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Check orthogonality */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
   CHKERRQ(BVDot(X,X,M));
   CHKERRQ(MatShift(M,-1.0));
   CHKERRQ(MatNorm(M,NORM_1,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
-  }
+  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
 
   /* Test BVOrthogonalize */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&R));
@@ -116,20 +103,14 @@ int main(int argc,char **argv)
   CHKERRQ(BVDot(Y,Y,M));
   CHKERRQ(MatShift(M,-1.0));
   CHKERRQ(MatNorm(M,NORM_1,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
-  }
+  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
 
   /* Check residual */
   CHKERRQ(BVMult(Z,-1.0,1.0,Y,R));
   CHKERRQ(BVNorm(Z,NORM_FROBENIUS,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR|| < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR||: %g\n",(double)norm));
-  }
+  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR|| < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR||: %g\n",(double)norm));
 
   /* Test BVOrthogonalizeVec */
   CHKERRQ(VecDuplicate(t,&e));

@@ -78,17 +78,11 @@ int main(int argc,char **argv)
   }
 
   /* A2 */
-  if (Istart<=n-1 && n-1<Iend) {
-    CHKERRQ(MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES));
-  }
+  if (Istart<=n-1 && n-1<Iend) CHKERRQ(MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES));
 
   /* assemble matrices */
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
-  }
-  for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
-  }
+  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
+  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the problem functions
@@ -152,9 +146,7 @@ int main(int argc,char **argv)
     CHKERRQ(NEPGetLeftEigenvector(nep,i,v,NULL));
     CHKERRQ(NEPApplyAdjoint(nep,lambda,v,w,r,NULL,NULL));
     CHKERRQ(VecNorm(r,NORM_2,&nrm));
-    if (nrm>tol*PetscAbsScalar(lambda)) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Left residual i=%" PetscInt_FMT " is above tolerance --> %g\n",i,(double)(nrm/PetscAbsScalar(lambda))));
-    }
+    if (nrm>tol*PetscAbsScalar(lambda)) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Left residual i=%" PetscInt_FMT " is above tolerance --> %g\n",i,(double)(nrm/PetscAbsScalar(lambda))));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

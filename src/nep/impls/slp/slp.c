@@ -105,12 +105,8 @@ static PetscErrorCode MatCreateVecs_SLP(Mat M,Vec *left,Vec *right)
 
   PetscFunctionBegin;
   CHKERRQ(MatShellGetContext(M,&ctx));
-  if (right) {
-    CHKERRQ(VecDuplicate(ctx->w,right));
-  }
-  if (left) {
-    CHKERRQ(VecDuplicate(ctx->w,left));
-  }
+  if (right) CHKERRQ(VecDuplicate(ctx->w,right));
+  if (left) CHKERRQ(VecDuplicate(ctx->w,left));
   PetscFunctionReturn(0);
 }
 #endif
@@ -160,9 +156,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscFunctionBegin;
   /* get initial approximation of eigenvalue and eigenvector */
   CHKERRQ(NEPGetDefaultShift(nep,&sigma));
-  if (!nep->nini) {
-    CHKERRQ(BVSetRandomColumn(nep->V,0));
-  }
+  if (!nep->nini) CHKERRQ(BVSetRandomColumn(nep->V,0));
   lambda = sigma;
   if (!ctx->ksp) CHKERRQ(NEPSLPGetKSP(nep,&ctx->ksp));
   CHKERRQ(NEPDeflationInitialize(nep,nep->V,ctx->ksp,PETSC_TRUE,nep->nev,&extop));
@@ -203,9 +197,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
       CHKERRQ(NEPDeflationLocking(extop,u,lambda));
     }
     CHKERRQ((*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx));
-    if (!skip || nep->reason>0) {
-      CHKERRQ(NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
-    }
+    if (!skip || nep->reason>0) CHKERRQ(NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
@@ -617,9 +609,7 @@ PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    if (ctx->deftol) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  deflation threshold: %g\n",(double)ctx->deftol));
-    }
+    if (ctx->deftol) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  deflation threshold: %g\n",(double)ctx->deftol));
     if (!ctx->eps) CHKERRQ(NEPSLPGetEPS(nep,&ctx->eps));
     CHKERRQ(PetscViewerASCIIPushTab(viewer));
     CHKERRQ(EPSView(ctx->eps,viewer));

@@ -45,9 +45,7 @@ int main(int argc,char **argv)
     CHKERRQ(BVGetColumn(X,j,&w));
     CHKERRQ(VecSet(w,0.0));
     for (i=0;i<4;i++) {
-      if (i+j<n) {
-        CHKERRQ(VecSetValue(w,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
-      }
+      if (i+j<n) CHKERRQ(VecSetValue(w,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
     }
     CHKERRQ(VecAssemblyBegin(w));
     CHKERRQ(VecAssemblyEnd(w));

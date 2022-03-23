@@ -83,14 +83,10 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
         /* glue together the previous H and the new H obtained with Arnoldi */
         ldg = n+m+1;
         CHKERRQ(PetscCalloc1(ldg*(n+m),&Gnew));
-        for (j=0;j<m;j++) {
-          CHKERRQ(PetscArraycpy(Gnew+n+(j+n)*ldg,Harray+j*ldh,m));
-        }
+        for (j=0;j<m;j++) CHKERRQ(PetscArraycpy(Gnew+n+(j+n)*ldg,Harray+j*ldh,m));
         Gnew[n+m+(n+m-1)*ldg] = beta;
         if (G) {
-          for (j=0;j<n;j++) {
-            CHKERRQ(PetscArraycpy(Gnew+j*ldg,G+j*(n+1),n+1));
-          }
+          for (j=0;j<n;j++) CHKERRQ(PetscArraycpy(Gnew+j*ldg,G+j*(n+1),n+1));
           CHKERRQ(PetscFree(G));
         }
         G = Gnew;
@@ -136,11 +132,8 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
           its = -1;
           if (!fixed) {  /* X1 was not set by user, allocate it with rank columns */
             rank = lrank;
-            if (*col) {
-              CHKERRQ(BVResize(*X1,*col+rank,PETSC_TRUE));
-            } else {
-              CHKERRQ(BVDuplicateResize(C1,rank,X1));
-            }
+            if (*col) CHKERRQ(BVResize(*X1,*col+rank,PETSC_TRUE));
+            else CHKERRQ(BVDuplicateResize(C1,rank,X1));
           } else rank = PetscMin(lrank,rrank);
           CHKERRQ(PetscFree(G));
           break;
@@ -151,9 +144,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
       }
 
       /* restart with vector v_{m+1} */
-      if (!*fail) {
-        CHKERRQ(BVCopyColumn(lme->V,m,0));
-      }
+      if (!*fail) CHKERRQ(BVCopyColumn(lme->V,m,0));
     }
   }
 
@@ -197,11 +188,8 @@ PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
   }
   if (lme->reason==LME_CONVERGED_ITERATING) lme->reason = LME_CONVERGED_TOL;
   CHKERRQ(BVCreateMat(X1,&X1t));
-  if (fixed) {
-    CHKERRQ(MatCopy(X1t,X1m,SAME_NONZERO_PATTERN));
-  } else {
-    CHKERRQ(MatCreateLRC(NULL,X1t,NULL,NULL,&lme->X));
-  }
+  if (fixed) CHKERRQ(MatCopy(X1t,X1m,SAME_NONZERO_PATTERN));
+  else CHKERRQ(MatCreateLRC(NULL,X1t,NULL,NULL,&lme->X));
   CHKERRQ(MatDestroy(&X1t));
   CHKERRQ(BVDestroy(&C1));
   CHKERRQ(BVDestroy(&X1));

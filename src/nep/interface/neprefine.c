@@ -74,9 +74,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
 
     /* Duplicate FNs */
     CHKERRQ(PetscMalloc1(nep->nt,&ctx->fn));
-    for (i=0;i<nep->nt;i++) {
-      CHKERRQ(FNDuplicate(nep->f[i],child,&ctx->fn[i]));
-    }
+    for (i=0;i<nep->nt;i++) CHKERRQ(FNDuplicate(nep->f[i],child,&ctx->fn[i]));
 
     /* Create scatters for sending vectors to each subcommucator */
     CHKERRQ(BVGetColumn(nep->V,0,&v));
@@ -105,9 +103,8 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ctx->A[0]),&rank));
     CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ctx->A[0]),&size));
     if (size>1) {
-      if (nep->npart==1) {
-        CHKERRQ(BVGetColumn(nep->V,0,&v));
-      } else v = ctx->v;
+      if (nep->npart==1) CHKERRQ(BVGetColumn(nep->V,0,&v));
+      else v = ctx->v;
       CHKERRQ(VecGetOwnershipRange(v,&n0,&m0));
       ne = (rank == size-1)?nep->n:0;
       CHKERRQ(VecCreateMPI(PetscObjectComm((PetscObject)ctx->A[0]),ne,PETSC_DECIDE,&ctx->nv));
@@ -117,9 +114,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
       }
       CHKERRQ(ISCreateGeneral(PetscObjectComm((PetscObject)ctx->A[0]),(m0-n0),idx1,PETSC_COPY_VALUES,&is1));
       CHKERRQ(VecScatterCreate(v,is1,ctx->nv,is1,&ctx->nst));
-      if (nep->npart==1) {
-        CHKERRQ(BVRestoreColumn(nep->V,0,&v));
-      }
+      if (nep->npart==1) CHKERRQ(BVRestoreColumn(nep->V,0,&v));
       CHKERRQ(PetscFree(idx1));
       CHKERRQ(ISDestroy(&is1));
     }
@@ -160,9 +155,7 @@ static PetscErrorCode NEPSimpleNRefGatherEigenpair(NEP nep,NEPSimpNRefctx *ctx,P
       CHKERRQ(BVRestoreColumn(nep->V,idx,&v));
     }
   } else {
-    if (nep->scheme==NEP_REFINE_SCHEME_EXPLICIT && !(*fail)) {
-      CHKERRMPI(MPI_Bcast(&nep->eigr[idx],1,MPIU_SCALAR,p,comm));
-    }
+    if (nep->scheme==NEP_REFINE_SCHEME_EXPLICIT && !(*fail)) CHKERRMPI(MPI_Bcast(&nep->eigr[idx],1,MPIU_SCALAR,p,comm));
   }
   PetscFunctionReturn(0);
 }
@@ -213,9 +206,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
       CHKERRQ(MatGetSize(A[0],&m0,&n0));
       CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)A[0]),PETSC_DECIDE,PETSC_DECIDE,m0,n0,fctx,T));
       CHKERRQ(MatShellSetOperation(*T,MATOP_MULT,(void(*)(void))MatMult_FS));
-    } else {
-      CHKERRQ(MatShellGetContext(*T,&fctx));
-    }
+    } else CHKERRQ(MatShellGetContext(*T,&fctx));
     M=fctx->M1;
     break;
   case NEP_REFINE_SCHEME_MBE:
@@ -225,29 +216,16 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
     M=*Mt;
     break;
   }
-  if (ini) {
-    CHKERRQ(MatDuplicate(A[0],MAT_COPY_VALUES,&M));
-  } else {
-    CHKERRQ(MatCopy(A[0],M,DIFFERENT_NONZERO_PATTERN));
-  }
-  for (i=0;i<nt;i++) {
-    CHKERRQ(FNEvaluateFunction(ctx->fn[i],nep->eigr[idx],coeffs+i));
-  }
-  if (coeffs[0]!=1.0) {
-    CHKERRQ(MatScale(M,coeffs[0]));
-  }
-  for (i=1;i<nt;i++) {
-    CHKERRQ(MatAXPY(M,coeffs[i],A[i],(ini)?nep->mstr:SUBSET_NONZERO_PATTERN));
-  }
-  for (i=0;i<nt;i++) {
-    CHKERRQ(FNEvaluateDerivative(ctx->fn[i],nep->eigr[idx],coeffs2+i));
-  }
+  if (ini) CHKERRQ(MatDuplicate(A[0],MAT_COPY_VALUES,&M));
+  else CHKERRQ(MatCopy(A[0],M,DIFFERENT_NONZERO_PATTERN));
+  for (i=0;i<nt;i++) CHKERRQ(FNEvaluateFunction(ctx->fn[i],nep->eigr[idx],coeffs+i));
+  if (coeffs[0]!=1.0) CHKERRQ(MatScale(M,coeffs[0]));
+  for (i=1;i<nt;i++) CHKERRQ(MatAXPY(M,coeffs[i],A[i],(ini)?nep->mstr:SUBSET_NONZERO_PATTERN));
+  for (i=0;i<nt;i++) CHKERRQ(FNEvaluateDerivative(ctx->fn[i],nep->eigr[idx],coeffs2+i));
   st = 0;
   for (i=0;i<nt && PetscAbsScalar(coeffs2[i])==0.0;i++) st++;
   CHKERRQ(MatMult(A[st],v,w));
-  if (coeffs2[st]!=1.0) {
-    CHKERRQ(VecScale(w,coeffs2[st]));
-  }
+  if (coeffs2[st]!=1.0) CHKERRQ(VecScale(w,coeffs2[st]));
   for (i=st+1;i<nt;i++) {
     CHKERRQ(MatMult(A[i],v,t));
     CHKERRQ(VecAXPY(w,coeffs2[i],t));
@@ -343,11 +321,8 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
     fctx->m3 = 1.0+PetscConj(nep->eigr[idx])*nep->eigr[idx];
     fctx->M4 = PetscConj(nep->eigr[idx]);
     fctx->M1 = M;
-    if (ini) {
-      CHKERRQ(MatDuplicate(M,MAT_COPY_VALUES,P));
-    } else {
-      CHKERRQ(MatCopy(M,*P,SAME_NONZERO_PATTERN));
-    }
+    if (ini) CHKERRQ(MatDuplicate(M,MAT_COPY_VALUES,P));
+    else CHKERRQ(MatCopy(M,*P,SAME_NONZERO_PATTERN));
     if (fctx->M4!=0.0) {
       CHKERRQ(VecConjugate(v));
       CHKERRQ(VecPointwiseMult(t,v,w));
@@ -385,9 +360,8 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   CHKERRQ(NEPSimpleNRefSetUp(nep,&ctx));
   its = (maxits)?*maxits:NREF_MAXIT;
   if (!nep->refineksp) CHKERRQ(NEPRefineGetKSP(nep,&nep->refineksp));
-  if (nep->npart==1) {
-    CHKERRQ(BVGetColumn(nep->V,0,&v));
-  } else v = ctx->v;
+  if (nep->npart==1) CHKERRQ(BVGetColumn(nep->V,0,&v));
+  else v = ctx->v;
   CHKERRQ(VecDuplicate(v,&ctx->w));
   CHKERRQ(VecDuplicate(v,&r));
   CHKERRQ(VecDuplicate(v,&dv));
@@ -396,9 +370,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   if (nep->npart==1) {
     CHKERRQ(BVRestoreColumn(nep->V,0,&v));
     CHKERRQ(PetscObjectGetComm((PetscObject)nep,&comm));
-  } else {
-    CHKERRQ(PetscSubcommGetChild(nep->refinesubc,&comm));
-  }
+  } else CHKERRQ(PetscSubcommGetChild(nep->refinesubc,&comm));
   CHKERRMPI(MPI_Comm_size(comm,&size));
   CHKERRMPI(MPI_Comm_rank(comm,&rank));
   CHKERRQ(VecGetLocalSize(r,&n));
@@ -415,16 +387,12 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
         idx_sc[i] = idx++;
         if (idx_sc[i]>=k) {
           sc_pend = PETSC_FALSE;
-        } else {
-          CHKERRQ(NEPSimpleNRefScatterEigenvector(nep,ctx,i,idx_sc[i]));
-        }
+        } else CHKERRQ(NEPSimpleNRefScatterEigenvector(nep,ctx,i,idx_sc[i]));
       }  else { /* Gather Eigenpair from subcommunicator i */
         CHKERRQ(NEPSimpleNRefGatherEigenpair(nep,ctx,i,idx_sc[i],&fail_sc[i]));
       }
       while (sc_pend) {
-        if (!fail_sc[i]) {
-          CHKERRQ(NEPComputeError(nep,idx_sc[i],NEP_ERROR_RELATIVE,&error));
-        }
+        if (!fail_sc[i]) CHKERRQ(NEPComputeError(nep,idx_sc[i],NEP_ERROR_RELATIVE,&error));
         if (error<=tol || its_sc[i]>=its || fail_sc[i]) {
           idx_sc[i] = idx++;
           its_sc[i] = 0;
@@ -443,9 +411,8 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
 #if !defined(PETSC_USE_COMPLEX)
       PetscCheck(nep->eigi[idx_sc[color]]==0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Simple Refinement not implemented in real scalar for complex eigenvalues");
 #endif
-      if (nep->npart==1) {
-        CHKERRQ(BVGetColumn(nep->V,idx_sc[color],&v));
-      } else v = ctx->v;
+      if (nep->npart==1) CHKERRQ(BVGetColumn(nep->V,idx_sc[color],&v));
+      else v = ctx->v;
       CHKERRQ(NEPSimpleNRefSetUpSystem(nep,ctx,ctx->A,idx_sc[color],&Mt,&T,&P,ini,t[0],v));
       CHKERRQ(NEP_KSPSetOperators(nep->refineksp,T,P));
       if (ini) {
@@ -465,15 +432,11 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
           CHKERRQ(PetscArraycpy(array2,array,n));
           array2[n] = 0.0;
           CHKERRQ(VecRestoreArray(rr,&array2));
-        } else {
-          CHKERRQ(VecPlaceArray(rr,array));
-        }
+        } else CHKERRQ(VecPlaceArray(rr,array));
         CHKERRQ(KSPSolve(nep->refineksp,rr,dvv));
         CHKERRQ(KSPGetConvergedReason(nep->refineksp,&reason));
         if (reason>0) {
-          if (rank != size-1) {
-            CHKERRQ(VecResetArray(rr));
-          }
+          if (rank != size-1) CHKERRQ(VecResetArray(rr));
           CHKERRQ(VecRestoreArrayRead(r,&array));
           CHKERRQ(VecGetArrayRead(dvv,&array));
           CHKERRQ(VecPlaceArray(dv,array));
@@ -553,12 +516,8 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   if (nep->npart>1) {
     CHKERRQ(VecDestroy(&ctx->vg));
     CHKERRQ(VecDestroy(&ctx->v));
-    for (i=0;i<nep->nt;i++) {
-      CHKERRQ(MatDestroy(&ctx->A[i]));
-    }
-    for (i=0;i<nep->npart;i++) {
-      CHKERRQ(VecScatterDestroy(&ctx->scatter_id[i]));
-    }
+    for (i=0;i<nep->nt;i++) CHKERRQ(MatDestroy(&ctx->A[i]));
+    for (i=0;i<nep->npart;i++) CHKERRQ(VecScatterDestroy(&ctx->scatter_id[i]));
     CHKERRQ(PetscFree2(ctx->A,ctx->scatter_id));
   }
   if (fctx && nep->scheme==NEP_REFINE_SCHEME_SCHUR) {

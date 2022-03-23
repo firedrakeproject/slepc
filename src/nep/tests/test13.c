@@ -144,9 +144,7 @@ int main(int argc,char **argv)
     CHKERRQ(DSGetArray(ds,DSMatExtra[k],&M));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nMatrix E%" PetscInt_FMT " = \n",k));
     for (i=0;i<nc;i++) {
-      for (j=0;j<nc;j++) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5g",(double)PetscRealPart(M[i+j*nc])));
-      }
+      for (j=0;j<nc;j++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5g",(double)PetscRealPart(M[i+j*nc])));
       CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     }
     CHKERRQ(DSRestoreArray(ds,DSMatExtra[k],&M));

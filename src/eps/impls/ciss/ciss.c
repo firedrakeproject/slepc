@@ -84,18 +84,12 @@ static PetscErrorCode EPSCISSSetUp(EPS eps,Mat A,Mat B,Mat Pa,Mat Pb)
   for (i=0;i<contour->npoints;i++) {
     p_id = i*contour->subcomm->n + contour->subcomm->color;
     CHKERRQ(MatDuplicate(A,MAT_COPY_VALUES,&Amat));
-    if (B) {
-      CHKERRQ(MatAXPY(Amat,-ctx->omega[p_id],B,str));
-    } else {
-      CHKERRQ(MatShift(Amat,-ctx->omega[p_id]));
-    }
+    if (B) CHKERRQ(MatAXPY(Amat,-ctx->omega[p_id],B,str));
+    else CHKERRQ(MatShift(Amat,-ctx->omega[p_id]));
     if (nsplit) {
       CHKERRQ(MatDuplicate(Pa,MAT_COPY_VALUES,&Pmat));
-      if (Pb) {
-        CHKERRQ(MatAXPY(Pmat,-ctx->omega[p_id],Pb,strp));
-      } else {
-        CHKERRQ(MatShift(Pmat,-ctx->omega[p_id]));
-      }
+      if (Pb) CHKERRQ(MatAXPY(Pmat,-ctx->omega[p_id],Pb,strp));
+      else CHKERRQ(MatShift(Pmat,-ctx->omega[p_id]));
     } else Pmat = Amat;
     CHKERRQ(EPS_KSPSetOperators(contour->ksp[i],Amat,Amat));
     CHKERRQ(MatDestroy(&Amat));
@@ -137,9 +131,7 @@ static PetscErrorCode EPSCISSSolve(EPS eps,Mat B,BV V,PetscInt L_start,PetscInt 
       }
       CHKERRQ(MatProductNumeric(BMV));
       CHKERRQ(KSPMatSolve(ksp,BMV,MC));
-    } else {
-      CHKERRQ(KSPMatSolve(ksp,MV,MC));
-    }
+    } else CHKERRQ(KSPMatSolve(ksp,MV,MC));
     CHKERRQ(BVRestoreMat(ctx->Y,&MC));
     if (ctx->usest && i<contour->npoints-1) CHKERRQ(KSPReset(ksp));
   }
@@ -340,25 +332,16 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     CHKERRQ(BVSetSizesFromVec(ctx->Y,contour->xsub,eps->n));
     CHKERRQ(BVSetFromOptions(ctx->Y));
     CHKERRQ(BVResize(ctx->Y,contour->npoints*ctx->L,PETSC_FALSE));
-  } else {
-    CHKERRQ(BVDuplicateResize(eps->V,contour->npoints*ctx->L,&ctx->Y));
-  }
+  } else CHKERRQ(BVDuplicateResize(eps->V,contour->npoints*ctx->L,&ctx->Y));
   CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->Y));
 
-  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-    CHKERRQ(DSSetType(eps->ds,DSGNHEP));
-  } else if (eps->isgeneralized) {
-    if (eps->ishermitian && eps->ispositive) {
-      CHKERRQ(DSSetType(eps->ds,DSGHEP));
-    } else {
-      CHKERRQ(DSSetType(eps->ds,DSGNHEP));
-    }
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) CHKERRQ(DSSetType(eps->ds,DSGNHEP));
+  else if (eps->isgeneralized) {
+    if (eps->ishermitian && eps->ispositive) CHKERRQ(DSSetType(eps->ds,DSGHEP));
+    else CHKERRQ(DSSetType(eps->ds,DSGNHEP));
   } else {
-    if (eps->ishermitian) {
-      CHKERRQ(DSSetType(eps->ds,DSHEP));
-    } else {
-      CHKERRQ(DSSetType(eps->ds,DSNHEP));
-    }
+    if (eps->ishermitian) CHKERRQ(DSSetType(eps->ds,DSHEP));
+    else CHKERRQ(DSSetType(eps->ds,DSNHEP));
   }
   CHKERRQ(DSAllocate(eps->ds,eps->ncv));
 
@@ -491,9 +474,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       CHKERRQ(PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0));
     }
   }
-  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-    CHKERRQ(PetscMalloc1(ctx->L*ctx->M*ctx->L*ctx->M,&H1));
-  }
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) CHKERRQ(PetscMalloc1(ctx->L*ctx->M*ctx->L*ctx->M,&H1));
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
@@ -586,9 +567,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       CHKERRQ(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
       CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&X));
       CHKERRQ(BVMultInPlace(ctx->S,X,0,eps->nconv));
-      if (eps->ishermitian) {
-        CHKERRQ(BVMultInPlace(eps->V,X,0,eps->nconv));
-      }
+      if (eps->ishermitian) CHKERRQ(BVMultInPlace(eps->V,X,0,eps->nconv));
       CHKERRQ(MatDestroy(&X));
       max_error = 0.0;
       for (i=0;i<eps->nconv;i++) {
@@ -637,9 +616,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       }
     }
   }
-  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-    CHKERRQ(PetscFree(H1));
-  }
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) CHKERRQ(PetscFree(H1));
   CHKERRQ(PetscFree2(Mu,H0));
   PetscFunctionReturn(0);
 }
@@ -652,11 +629,8 @@ PetscErrorCode EPSComputeVectors_CISS(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ishermitian) {
-    if (eps->isgeneralized && !eps->ispositive) {
-      CHKERRQ(EPSComputeVectors_Indefinite(eps));
-    } else {
-      CHKERRQ(EPSComputeVectors_Hermitian(eps));
-    }
+    if (eps->isgeneralized && !eps->ispositive) CHKERRQ(EPSComputeVectors_Indefinite(eps));
+    else CHKERRQ(EPSComputeVectors_Hermitian(eps));
     if (eps->isgeneralized && eps->ispositive && ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
       /* normalize to have unit B-norm */
       CHKERRQ(STGetMatrix(eps->st,1,&B));
@@ -679,9 +653,7 @@ PetscErrorCode EPSComputeVectors_CISS(EPS eps)
   CHKERRQ(BVSetActiveColumns(eps->V,0,eps->nconv));
 
   /* normalize */
-  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-    CHKERRQ(BVNormalize(eps->V,NULL));
-  }
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) CHKERRQ(BVNormalize(eps->V,NULL));
   PetscFunctionReturn(0);
 }
 
@@ -1301,9 +1273,7 @@ PetscErrorCode EPSReset_CISS(EPS eps)
   CHKERRQ(BVDestroy(&ctx->S));
   CHKERRQ(BVDestroy(&ctx->V));
   CHKERRQ(BVDestroy(&ctx->Y));
-  if (!ctx->usest) {
-    CHKERRQ(SlepcContourDataReset(ctx->contour));
-  }
+  if (!ctx->usest) CHKERRQ(SlepcContourDataReset(ctx->contour));
   CHKERRQ(BVDestroy(&ctx->pV));
   PetscFunctionReturn(0);
 }
@@ -1354,9 +1324,7 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
   if (!eps->rg) CHKERRQ(EPSGetRG(eps,&eps->rg));
   CHKERRQ(RGSetFromOptions(eps->rg)); /* this is necessary here to set useconj */
   if (!ctx->contour || !ctx->contour->ksp) CHKERRQ(EPSCISSGetKSPs(eps,NULL,NULL));
-  for (i=0;i<ctx->contour->npoints;i++) {
-    CHKERRQ(KSPSetFromOptions(ctx->contour->ksp[i]));
-  }
+  for (i=0;i<ctx->contour->npoints;i++) CHKERRQ(KSPSetFromOptions(ctx->contour->ksp[i]));
   CHKERRQ(PetscSubcommSetFromOptions(ctx->contour->subcomm));
   PetscFunctionReturn(0);
 }
@@ -1395,31 +1363,24 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %" PetscInt_FMT ", block size: %" PetscInt_FMT ", moment size: %" PetscInt_FMT ", partitions: %" PetscInt_FMT ", maximum block size: %" PetscInt_FMT " }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max));
-    if (ctx->isreal) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  exploiting symmetry of integration points\n"));
-    }
+    if (ctx->isreal) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  exploiting symmetry of integration points\n"));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  iterative refinement { inner: %" PetscInt_FMT ", blocksize: %" PetscInt_FMT " }\n",ctx->refine_inner, ctx->refine_blocksize));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",EPSCISSExtractions[ctx->extraction]));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  quadrature rule: %s\n",EPSCISSQuadRules[ctx->quad]));
-    if (ctx->usest) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using ST for linear solves\n"));
-    } else {
+    if (ctx->usest) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using ST for linear solves\n"));
+    else {
       if (!ctx->contour || !ctx->contour->ksp) CHKERRQ(EPSCISSGetKSPs(eps,NULL,NULL));
       CHKERRQ(PetscViewerASCIIPushTab(viewer));
       if (ctx->npart>1 && ctx->contour->subcomm) {
         CHKERRQ(PetscViewerGetSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
-        if (!ctx->contour->subcomm->color) {
-          CHKERRQ(KSPView(ctx->contour->ksp[0],sviewer));
-        }
+        if (!ctx->contour->subcomm->color) CHKERRQ(KSPView(ctx->contour->ksp[0],sviewer));
         CHKERRQ(PetscViewerFlush(sviewer));
         CHKERRQ(PetscViewerRestoreSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
         CHKERRQ(PetscViewerFlush(viewer));
         /* extra call needed because of the two calls to PetscViewerASCIIPushSynchronized() in PetscViewerGetSubViewer() */
         CHKERRQ(PetscViewerASCIIPopSynchronized(viewer));
-      } else {
-        CHKERRQ(KSPView(ctx->contour->ksp[0],viewer));
-      }
+      } else CHKERRQ(KSPView(ctx->contour->ksp[0],viewer));
       CHKERRQ(PetscViewerASCIIPopTab(viewer));
     }
   }
@@ -1436,9 +1397,8 @@ PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
     if (!ctx->usest_set) usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;
-    if (usest) {
-      CHKERRQ(STSetType(eps->st,STSINVERT));
-    } else {
+    if (usest) CHKERRQ(STSetType(eps->st,STSINVERT));
+    else {
       /* we are not going to use ST, so avoid factorizing the matrix */
       CHKERRQ(STSetType(eps->st,STSHIFT));
       if (eps->isgeneralized) {

@@ -114,11 +114,8 @@ PetscErrorCode STPostSolve_Cayley(ST st)
 {
   PetscFunctionBegin;
   if (st->matmode == ST_MATMODE_INPLACE) {
-    if (st->nmat>1) {
-      CHKERRQ(MatAXPY(st->A[0],st->sigma,st->A[1],st->str));
-    } else {
-      CHKERRQ(MatShift(st->A[0],st->sigma));
-    }
+    if (st->nmat>1) CHKERRQ(MatAXPY(st->A[0],st->sigma,st->A[1],st->str));
+    else CHKERRQ(MatShift(st->A[0],st->sigma));
     st->Astate[0] = ((PetscObject)st->A[0])->state;
     st->state   = ST_STATE_INITIAL;
     st->opready = PETSC_FALSE;
@@ -152,9 +149,7 @@ PetscErrorCode STComputeOperator_Cayley(ST st)
     CHKERRQ(MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley));
     CHKERRQ(MatShellSetOperation(st->T[0],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Cayley));
     CHKERRQ(PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[0]));
-  } else {
-    CHKERRQ(STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[0]));
-  }
+  } else CHKERRQ(STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[0]));
   st->M = st->T[0];
 
   /* T[1] = A-sigma*B */
@@ -186,9 +181,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   PetscCheck(ctx->nu!=-newshift,PetscObjectComm((PetscObject)st),PETSC_ERR_USER_INPUT,"It is not allowed to set the shift equal to minus the antishift");
 
   if (!ctx->nu_set) {
-    if (st->matmode!=ST_MATMODE_INPLACE) {
-      CHKERRQ(STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]));
-    }
+    if (st->matmode!=ST_MATMODE_INPLACE) CHKERRQ(STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]));
     ctx->nu = newshift;
   }
   CHKERRQ(STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[1]));
@@ -228,9 +221,7 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   PetscFunctionBegin;
   if (ctx->nu != newshift) {
     STCheckNotSeized(st,1);
-    if (st->state && st->matmode!=ST_MATMODE_INPLACE) {
-      CHKERRQ(STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]));
-    }
+    if (st->state && st->matmode!=ST_MATMODE_INPLACE) CHKERRQ(STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,PETSC_FALSE,&st->T[0]));
     ctx->nu = newshift;
   }
   ctx->nu_set = PETSC_TRUE;

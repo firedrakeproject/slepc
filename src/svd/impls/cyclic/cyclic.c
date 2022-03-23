@@ -91,9 +91,7 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
     CHKERRQ(MatSetFromOptions(Zm));
     CHKERRQ(MatSetUp(Zm));
     CHKERRQ(MatGetOwnershipRange(Zm,&Istart,&Iend));
-    for (i=Istart;i<Iend;i++) {
-      CHKERRQ(MatSetValue(Zm,i,i,0.0,INSERT_VALUES));
-    }
+    for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(Zm,i,i,0.0,INSERT_VALUES));
     CHKERRQ(MatAssemblyBegin(Zm,MAT_FINAL_ASSEMBLY));
     CHKERRQ(MatAssemblyEnd(Zm,MAT_FINAL_ASSEMBLY));
     CHKERRQ(MatCreate(PetscObjectComm((PetscObject)svd),&Zn));
@@ -101,9 +99,7 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
     CHKERRQ(MatSetFromOptions(Zn));
     CHKERRQ(MatSetUp(Zn));
     CHKERRQ(MatGetOwnershipRange(Zn,&Istart,&Iend));
-    for (i=Istart;i<Iend;i++) {
-      CHKERRQ(MatSetValue(Zn,i,i,0.0,INSERT_VALUES));
-    }
+    for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(Zn,i,i,0.0,INSERT_VALUES));
     CHKERRQ(MatAssemblyBegin(Zn,MAT_FINAL_ASSEMBLY));
     CHKERRQ(MatAssemblyEnd(Zn,MAT_FINAL_ASSEMBLY));
     CHKERRQ(MatCreateTile(1.0,Zm,1.0,A,1.0,AT,1.0,Zn,C));
@@ -125,13 +121,10 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
     CHKERRQ(MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_Cyclic));
 #if defined(PETSC_HAVE_CUDA)
     CHKERRQ(PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,""));
-    if (cuda) {
-      CHKERRQ(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cyclic_CUDA));
-    } else
+    if (cuda) CHKERRQ(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cyclic_CUDA));
+    else
 #endif
-    {
       CHKERRQ(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cyclic));
-    }
     CHKERRQ(MatGetVecType(A,&vtype));
     CHKERRQ(MatSetVecType(*C,vtype));
   }
@@ -313,13 +306,10 @@ static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
     CHKERRQ(MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_ECross));
 #if defined(PETSC_HAVE_CUDA)
     CHKERRQ(PetscObjectTypeCompareAny((PetscObject)(svd->swapped?AT:A),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,""));
-    if (cuda) {
-      CHKERRQ(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_ECross_CUDA));
-    } else
+    if (cuda) CHKERRQ(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_ECross_CUDA));
+    else
 #endif
-    {
       CHKERRQ(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_ECross));
-    }
     CHKERRQ(MatGetVecType(A,&vtype));
     CHKERRQ(MatSetVecType(*C,vtype));
   }
@@ -375,11 +365,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     if (svd->which == SVD_LARGEST) {
       CHKERRQ(EPSGetST(cyclic->eps,&st));
       CHKERRQ(PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv));
-      if (issinv) {
-        CHKERRQ(EPSSetWhichEigenpairs(cyclic->eps,EPS_TARGET_MAGNITUDE));
-      } else {
-        CHKERRQ(EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL));
-      }
+      if (issinv) CHKERRQ(EPSSetWhichEigenpairs(cyclic->eps,EPS_TARGET_MAGNITUDE));
+      else CHKERRQ(EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL));
     } else {
       if (svd->isgeneralized) {  /* computes sigma^{-1} via alternative pencil */
         CHKERRQ(EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL));
@@ -425,18 +412,14 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
         CHKERRQ(VecGetArrayRead(svd->ISL[i],&isa));
         CHKERRQ(PetscArraycpy(va,isa,m));
         CHKERRQ(VecRestoreArrayRead(svd->IS[i],&isa));
-      } else {
-        CHKERRQ(PetscArrayzero(&va,m));
-      }
+      } else CHKERRQ(PetscArrayzero(&va,m));
       if (i<-svd->nini) {
         CHKERRQ(VecGetSize(svd->IS[i],&isl));
         PetscCheck(isl==n,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for right initial vector");
         CHKERRQ(VecGetArrayRead(svd->IS[i],&isa));
         CHKERRQ(PetscArraycpy(va+m,isa,n));
         CHKERRQ(VecRestoreArrayRead(svd->IS[i],&isa));
-      } else {
-        CHKERRQ(PetscArrayzero(va+m,n));
-      }
+      } else CHKERRQ(PetscArrayzero(va+m,n));
       CHKERRQ(VecRestoreArrayWrite(v,&va));
       CHKERRQ(VecDestroy(&svd->IS[i]));
       svd->IS[i] = v;
@@ -492,11 +475,8 @@ PetscErrorCode SVDComputeVectors_Cyclic(SVD svd)
   CHKERRQ(EPSGetConverged(cyclic->eps,&nconv));
   CHKERRQ(MatCreateVecs(cyclic->C,&x,NULL));
   CHKERRQ(MatGetLocalSize(svd->A,&m,NULL));
-  if (svd->isgeneralized && svd->which==SVD_SMALLEST) {
-    CHKERRQ(MatCreateVecsEmpty(svd->B,&x1,&x2));
-  } else {
-    CHKERRQ(MatCreateVecsEmpty(svd->A,&x2,&x1));
-  }
+  if (svd->isgeneralized && svd->which==SVD_SMALLEST) CHKERRQ(MatCreateVecsEmpty(svd->B,&x1,&x2));
+  else CHKERRQ(MatCreateVecsEmpty(svd->A,&x2,&x1));
   if (svd->isgeneralized) {
     CHKERRQ(MatCreateVecs(svd->A,NULL,&u));
     CHKERRQ(MatCreateVecs(svd->B,NULL,&v));

@@ -90,9 +90,7 @@ static inline PetscErrorCode MFN_CreateDenseMat(PetscInt k,Mat *A)
       create=PETSC_TRUE;
     }
   }
-  if (create) {
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,A));
-  }
+  if (create) CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,A));
   PetscFunctionReturn(0);
 }
 
@@ -113,9 +111,7 @@ static inline PetscErrorCode MFN_CreateVec(PetscInt k,Vec *v)
       create=PETSC_TRUE;
     }
   }
-  if (create) {
-    CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,k,v));
-  }
+  if (create) CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,k,v));
   PetscFunctionReturn(0);
 }
 

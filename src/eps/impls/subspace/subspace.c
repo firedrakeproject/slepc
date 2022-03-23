@@ -80,11 +80,8 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
 
   CHKERRQ(EPSAllocateSolution(eps,0));
   CHKERRQ(EPS_SetInnerProduct(eps));
-  if (eps->ishermitian) {
-    CHKERRQ(DSSetType(eps->ds,DSHEP));
-  } else {
-    CHKERRQ(DSSetType(eps->ds,DSNHEP));
-  }
+  if (eps->ishermitian) CHKERRQ(DSSetType(eps->ds,DSHEP));
+  else CHKERRQ(DSSetType(eps->ds,DSNHEP));
   CHKERRQ(DSAllocate(eps->ds,eps->ncv));
   PetscFunctionReturn(0);
 }

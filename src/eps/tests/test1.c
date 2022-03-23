@@ -100,15 +100,10 @@ int main(int argc,char **argv)
   CHKERRQ(EPSGetConverged(eps,&nconv));
   if (nconv>1) {
     CHKERRQ(VecDuplicateVecs(v,nconv,&X));
-    for (i=0;i<nconv;i++) {
-      CHKERRQ(EPSGetEigenvector(eps,i,X[i],NULL));
-    }
+    for (i=0;i<nconv;i++) CHKERRQ(EPSGetEigenvector(eps,i,X[i],NULL));
     if (!skiporth) CHKERRQ(VecCheckOrthonormality(X,nconv,NULL,nconv,B,NULL,&lev));
-    if (lev<10*tol) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
-    } else {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)lev));
-    }
+    if (lev<10*tol) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
+    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)lev));
     CHKERRQ(VecDestroyVecs(nconv,&X));
   }
 

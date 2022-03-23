@@ -83,9 +83,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(M));
   CHKERRQ(MatSetUp(M));
   CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
-  for (II=Istart;II<Iend;II++) {
-    CHKERRQ(MatSetValue(M,II,II,(PetscReal)(II+1),INSERT_VALUES));
-  }
+  for (II=Istart;II<Iend;II++) CHKERRQ(MatSetValue(M,II,II,(PetscReal)(II+1),INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
@@ -112,9 +110,7 @@ int main(int argc,char **argv)
       if (isgd2) {
         CHKERRQ(EPSSetType(eps,EPSGD));
         CHKERRQ(EPSGDSetDoubleExpansion(eps,PETSC_TRUE));
-      } else {
-        CHKERRQ(EPSSetType(eps,epstype));
-      }
+      } else CHKERRQ(EPSSetType(eps,epstype));
       CHKERRQ(EPSGetST(eps,&st));
       CHKERRQ(STGetKSP(st,&ksp));
       CHKERRQ(KSPGetPC(ksp,&pc));
@@ -131,17 +127,13 @@ int main(int argc,char **argv)
     CHKERRQ(STDestroy(&st));
     CHKERRQ(PEPQArnoldiGetRestart(pep,&keep));
     CHKERRQ(PEPQArnoldiGetLocking(pep,&lock));
-    if (!lock && keep<0.6) {
-      CHKERRQ(PEPQArnoldiSetRestart(pep,0.6));
-    }
+    if (!lock && keep<0.6) CHKERRQ(PEPQArnoldiSetRestart(pep,0.6));
   }
   CHKERRQ(PetscObjectTypeCompare((PetscObject)pep,PEPTOAR,&flag));
   if (flag) {
     CHKERRQ(PEPTOARGetRestart(pep,&keep));
     CHKERRQ(PEPTOARGetLocking(pep,&lock));
-    if (!lock && keep<0.6) {
-      CHKERRQ(PEPTOARSetRestart(pep,0.6));
-    }
+    if (!lock && keep<0.6) CHKERRQ(PEPTOARSetRestart(pep,0.6));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

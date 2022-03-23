@@ -49,9 +49,7 @@ int main(int argc,char **argv)
     CHKERRQ(BVGetColumn(U,j,&v));
     CHKERRQ(VecSet(v,0.0));
     for (i=0;i<4;i++) {
-      if (i+j<n) {
-        CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
-      }
+      if (i+j<n) CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
     }
     CHKERRQ(VecAssemblyBegin(v));
     CHKERRQ(VecAssemblyEnd(v));
@@ -92,9 +90,7 @@ int main(int argc,char **argv)
     CHKERRQ(BVGetColumn(UU,j,&v));
     CHKERRQ(VecSet(v,0.0));
     for (i=0;i<4;i++) {
-      if (i+j<n) {
-        CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
-      }
+      if (i+j<n) CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
     }
     CHKERRQ(VecAssemblyBegin(v));
     CHKERRQ(VecAssemblyEnd(v));
@@ -123,11 +119,8 @@ int main(int argc,char **argv)
   CHKERRQ(BVDot(V,V,M));
   CHKERRQ(MatShift(M,-1.0));
   CHKERRQ(MatNorm(M,NORM_1,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
-  }
+  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
 
   /* Test BVTensorCompress */
   CHKERRQ(BVSetActiveColumns(V,0,l));
@@ -145,9 +138,7 @@ int main(int argc,char **argv)
     for (j=0;j<l;j++)
       q[i+j*k] = (i<j)? 2.0: -0.5;
   CHKERRQ(MatDenseRestoreArray(Q,&q));
-  if (verbose) {
-    CHKERRQ(MatView(Q,NULL));
-  }
+  if (verbose) CHKERRQ(MatView(Q,NULL));
 
   /* Test BVMultInPlace */
   CHKERRQ(BVMultInPlace(V,Q,1,l));

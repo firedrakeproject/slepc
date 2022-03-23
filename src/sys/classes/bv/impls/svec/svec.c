@@ -29,9 +29,7 @@ PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
     CHKERRQ(MatDenseGetArrayRead(Q,&q));
     CHKERRQ(BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n));
     CHKERRQ(MatDenseRestoreArrayRead(Q,&q));
-  } else {
-    CHKERRQ(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,beta,py+(Y->nc+Y->l)*Y->n));
-  }
+  } else CHKERRQ(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,beta,py+(Y->nc+Y->l)*Y->n));
   CHKERRQ(VecRestoreArrayRead(x->v,&px));
   CHKERRQ(VecRestoreArray(y->v,&py));
   PetscFunctionReturn(0);
@@ -154,11 +152,8 @@ PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
 
   PetscFunctionBegin;
   CHKERRQ(VecGetArray(ctx->v,&array));
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,array+(bv->nc+bv->l)*bv->n,alpha));
-  } else {
-    CHKERRQ(BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->n,alpha));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,array+(bv->nc+bv->l)*bv->n,alpha));
+  else CHKERRQ(BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->n,alpha));
   CHKERRQ(VecRestoreArray(ctx->v,&array));
   PetscFunctionReturn(0);
 }
@@ -170,11 +165,8 @@ PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   CHKERRQ(VecGetArray(ctx->v,&array));
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
-  } else {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
+  else CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
   CHKERRQ(VecRestoreArray(ctx->v,&array));
   PetscFunctionReturn(0);
 }
@@ -186,11 +178,8 @@ PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   CHKERRQ(VecGetArray(ctx->v,&array));
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
-  } else {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
+  else CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
   CHKERRQ(VecRestoreArray(ctx->v,&array));
   PetscFunctionReturn(0);
 }
@@ -376,13 +365,9 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
       CHKERRQ(PetscObjectGetName((PetscObject)bv,&bvname));
       CHKERRQ(PetscObjectGetName((PetscObject)ctx->v,&name));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s=reshape(%s,%" PetscInt_FMT ",%" PetscInt_FMT ");clear %s\n",bvname,name,bv->N,bv->nc+bv->m,name));
-      if (bv->nc) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s=%s(:,%" PetscInt_FMT ":end);\n",bvname,bvname,bv->nc+1));
-      }
+      if (bv->nc) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s=%s(:,%" PetscInt_FMT ":end);\n",bvname,bvname,bv->nc+1));
     }
-  } else {
-    CHKERRQ(VecView(ctx->v,viewer));
-  }
+  } else CHKERRQ(VecView(ctx->v,viewer));
   PetscFunctionReturn(0);
 }
 
@@ -439,22 +424,16 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
       CHKERRQ(VecCUDAGetArray(vpar,&gpuarray));
       gptr = (bv->issplit==1)? gpuarray: gpuarray+lsplit*nloc;
       CHKERRQ(VecCUDARestoreArray(vpar,&gpuarray));
-      if (ctx->mpi) {
-        CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v));
-      } else {
-        CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v));
-      }
+      if (ctx->mpi) CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v));
+      else CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v));
       CHKERRQ(VecCUDAPlaceArray(ctx->v,gptr));
 #endif
     } else {
       CHKERRQ(VecGetArrayRead(vpar,&array));
       ptr = (bv->issplit==1)? array: array+lsplit*nloc;
       CHKERRQ(VecRestoreArrayRead(vpar,&array));
-      if (ctx->mpi) {
-        CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v));
-      } else {
-        CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v));
-      }
+      if (ctx->mpi) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v));
+      else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v));
       CHKERRQ(VecPlaceArray(ctx->v,ptr));
     }
   } else {

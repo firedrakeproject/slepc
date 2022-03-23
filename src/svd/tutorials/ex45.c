@@ -64,9 +64,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
   d = PetscMax(0,n-p);
   for (i=Istart;i<Iend;i++) {
-    for (j=0;j<=PetscMin(i,n-1);j++) {
-      CHKERRQ(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
-    }
+    for (j=0;j<=PetscMin(i,n-1);j++) CHKERRQ(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
   }
   CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
@@ -163,11 +161,8 @@ int main(int argc,char **argv)
       CHKERRQ(VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1));
       CHKERRQ(VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2));
     }
-    if (lev1+lev2<20*tol) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
-    } else {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2));
-    }
+    if (lev1+lev2<20*tol) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
+    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2));
     CHKERRQ(VecDestroyVecs(nconv,&U));
     CHKERRQ(VecDestroyVecs(nconv,&V));
     CHKERRQ(VecDestroy(&x));

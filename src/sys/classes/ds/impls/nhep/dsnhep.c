@@ -90,9 +90,7 @@ static PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
   PetscInt       i;
 
   PetscFunctionBegin;
-  for (i=0;i<ds->n;i++) {
-    CHKERRQ(DSVectors_NHEP_Refined_Some(ds,&i,NULL,left));
-  }
+  for (i=0;i<ds->n;i++) CHKERRQ(DSVectors_NHEP_Refined_Some(ds,&i,NULL,left));
   PetscFunctionReturn(0);
 }
 
@@ -220,26 +218,17 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     case DS_MAT_X:
       if (ds->refined) {
         PetscCheck(ds->extrarow,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Refined vectors require activating the extra row");
-        if (j) {
-          CHKERRQ(DSVectors_NHEP_Refined_Some(ds,j,rnorm,PETSC_FALSE));
-        } else {
-          CHKERRQ(DSVectors_NHEP_Refined_All(ds,PETSC_FALSE));
-        }
+        if (j) CHKERRQ(DSVectors_NHEP_Refined_Some(ds,j,rnorm,PETSC_FALSE));
+        else CHKERRQ(DSVectors_NHEP_Refined_All(ds,PETSC_FALSE));
       } else {
-        if (j) {
-          CHKERRQ(DSVectors_NHEP_Eigen_Some(ds,j,rnorm,PETSC_FALSE));
-        } else {
-          CHKERRQ(DSVectors_NHEP_Eigen_All(ds,PETSC_FALSE));
-        }
+        if (j) CHKERRQ(DSVectors_NHEP_Eigen_Some(ds,j,rnorm,PETSC_FALSE));
+        else CHKERRQ(DSVectors_NHEP_Eigen_All(ds,PETSC_FALSE));
       }
       break;
     case DS_MAT_Y:
       PetscCheck(!ds->refined,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
-      if (j) {
-        CHKERRQ(DSVectors_NHEP_Eigen_Some(ds,j,rnorm,PETSC_TRUE));
-      } else {
-        CHKERRQ(DSVectors_NHEP_Eigen_All(ds,PETSC_TRUE));
-      }
+      if (j) CHKERRQ(DSVectors_NHEP_Eigen_Some(ds,j,rnorm,PETSC_TRUE));
+      else CHKERRQ(DSVectors_NHEP_Eigen_All(ds,PETSC_TRUE));
       break;
     case DS_MAT_U:
     case DS_MAT_V:
@@ -296,11 +285,8 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
 PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscFunctionBegin;
-  if (!rr || wr == rr) {
-    CHKERRQ(DSSort_NHEP_Total(ds,ds->mat[DS_MAT_A],ds->mat[DS_MAT_Q],wr,wi));
-  } else {
-    CHKERRQ(DSSort_NHEP_Arbitrary(ds,wr,wi,rr,ri,k));
-  }
+  if (!rr || wr == rr) CHKERRQ(DSSort_NHEP_Total(ds,ds->mat[DS_MAT_A],ds->mat[DS_MAT_Q],wr,wi));
+  else CHKERRQ(DSSort_NHEP_Arbitrary(ds,wr,wi,rr,ri,k));
   PetscFunctionReturn(0);
 }
 
@@ -359,31 +345,19 @@ PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
     CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    if (ds->state>DS_STATE_RAW) {
-      CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
-    if (eigr) {
-      CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (ds->state>DS_STATE_RAW) CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (eigr) CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) {
-      CHKERRMPI(MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigi) CHKERRMPI(MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #endif
   }
   CHKERRMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
     CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    if (ds->state>DS_STATE_RAW) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
-    if (eigr) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (ds->state>DS_STATE_RAW) CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (eigr) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (eigi) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #endif
   }
   PetscFunctionReturn(0);

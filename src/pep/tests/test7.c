@@ -44,13 +44,9 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
     CHKERRQ(MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
@@ -64,13 +60,9 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
-    }
+    if (i>0) CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
     CHKERRQ(MatSetValue(C,i,i,tau*3.0,INSERT_VALUES));
-    if (i<n-1) {
-      CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
-    }
+    if (i<n-1) CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
   }
 
   CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
@@ -82,9 +74,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(M));
   CHKERRQ(MatSetUp(M));
   CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(M,i,i,mu,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(M,i,i,mu,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
@@ -148,9 +138,7 @@ int main(int argc,char **argv)
   CHKERRQ(PEPSetUp(pep));
   CHKERRQ(PEPSTOARGetInertias(pep,&ns,&shifts,&inertias));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Inertias (after setup):\n"));
-  for (i=0;i<ns;i++) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
-  }
+  for (i=0;i<ns;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
   CHKERRQ(PetscFree(shifts));
   CHKERRQ(PetscFree(inertias));
 
@@ -162,9 +150,7 @@ int main(int argc,char **argv)
   if (showinertia) {
     CHKERRQ(PEPSTOARGetInertias(pep,&ns,&shifts,&inertias));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",ns));
-    for (i=0;i<ns;i++) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
-    }
+    for (i=0;i<ns;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
     CHKERRQ(PetscFree(shifts));
     CHKERRQ(PetscFree(inertias));
   }

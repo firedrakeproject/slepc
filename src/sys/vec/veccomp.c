@@ -114,12 +114,8 @@ PetscErrorCode VecDestroy_Comp(Vec v)
 #if defined(PETSC_USE_LOG)
   PetscLogObjectState((PetscObject)v,"Length=%" PetscInt_FMT,v->map->n);
 #endif
-  for (i=0;i<vs->nx;i++) {
-    CHKERRQ(VecDestroy(&vs->x[i]));
-  }
-  if (--vs->n->friends <= 0) {
-    CHKERRQ(PetscFree(vs->n));
-  }
+  for (i=0;i<vs->nx;i++) CHKERRQ(VecDestroy(&vs->x[i]));
+  if (--vs->n->friends <= 0) CHKERRQ(PetscFree(vs->n));
   CHKERRQ(PetscFree(vs->x));
   CHKERRQ(PetscFree(vs));
   CHKERRQ(PetscObjectComposeFunction((PetscObject)v,"VecCompSetSubVecs_C",NULL));
@@ -359,9 +355,7 @@ PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
   PetscValidHeaderSpecific(*x,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(*x,n,2);
   CHKERRQ(VecCreate(PetscObjectComm((PetscObject)x[0]),V));
-  for (i=0;i<n;i++) {
-    CHKERRQ(PetscObjectReference((PetscObject)x[i]));
-  }
+  for (i=0;i<n;i++) CHKERRQ(PetscObjectReference((PetscObject)x[i]));
   CHKERRQ(VecCreate_Comp_Private(*V,x,n,PETSC_FALSE,Vparent?((Vec_Comp*)Vparent->data)->n:NULL));
   PetscFunctionReturn(0);
 }
@@ -378,9 +372,8 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
   CHKERRQ(PetscMalloc1(s->nx,&x));
   CHKERRQ(PetscLogObjectMemory((PetscObject)*V,s->nx*sizeof(Vec)));
   for (i=0;i<s->nx;i++) {
-    if (s->x[i]) {
-      CHKERRQ(VecDuplicate(s->x[i],&x[i]));
-    } else x[i] = NULL;
+    if (s->x[i]) CHKERRQ(VecDuplicate(s->x[i],&x[i]));
+    else x[i] = NULL;
   }
   CHKERRQ(VecCreate_Comp_Private(*V,x,s->nx,PETSC_TRUE,s->n));
   PetscFunctionReturn(0);
@@ -451,9 +444,7 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
       nn->friends = 1;
     }
   } else PetscCheck(n<=s->nx,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Number of child vectors cannot be larger than %" PetscInt_FMT,s->nx);
-  if (x) {
-    CHKERRQ(PetscArraycpy(s->x,x,n));
-  }
+  if (x) CHKERRQ(PetscArraycpy(s->x,x,n));
   s->n->n = n;
   PetscFunctionReturn(0);
 }
@@ -494,9 +485,7 @@ PetscErrorCode VecAXPY_Comp(Vec v,PetscScalar alpha,Vec w)
   PetscFunctionBegin;
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,3);
-  for (i=0;i<vs->n->n;i++) {
-    CHKERRQ(VecAXPY(vs->x[i],alpha,ws->x[i]));
-  }
+  for (i=0;i<vs->n->n;i++) CHKERRQ(VecAXPY(vs->x[i],alpha,ws->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -508,9 +497,7 @@ PetscErrorCode VecAYPX_Comp(Vec v,PetscScalar alpha,Vec w)
   PetscFunctionBegin;
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,3);
-  for (i=0;i<vs->n->n;i++) {
-    CHKERRQ(VecAYPX(vs->x[i],alpha,ws->x[i]));
-  }
+  for (i=0;i<vs->n->n;i++) CHKERRQ(VecAYPX(vs->x[i],alpha,ws->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -522,9 +509,7 @@ PetscErrorCode VecAXPBY_Comp(Vec v,PetscScalar alpha,PetscScalar beta,Vec w)
   PetscFunctionBegin;
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,4);
-  for (i=0;i<vs->n->n;i++) {
-    CHKERRQ(VecAXPBY(vs->x[i],alpha,beta,ws->x[i]));
-  }
+  for (i=0;i<vs->n->n;i++) CHKERRQ(VecAXPBY(vs->x[i],alpha,beta,ws->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -558,9 +543,7 @@ PetscErrorCode VecWAXPY_Comp(Vec v,PetscScalar alpha,Vec w,Vec z)
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,3);
   SlepcValidVecComp(z,4);
-  for (i=0;i<vs->n->n;i++) {
-    CHKERRQ(VecWAXPY(vs->x[i],alpha,ws->x[i],zs->x[i]));
-  }
+  for (i=0;i<vs->n->n;i++) CHKERRQ(VecWAXPY(vs->x[i],alpha,ws->x[i],zs->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -573,9 +556,7 @@ PetscErrorCode VecAXPBYPCZ_Comp(Vec v,PetscScalar alpha,PetscScalar beta,PetscSc
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,5);
   SlepcValidVecComp(z,6);
-  for (i=0;i<vs->n->n;i++) {
-    CHKERRQ(VecAXPBYPCZ(vs->x[i],alpha,beta,gamma,ws->x[i],zs->x[i]));
-  }
+  for (i=0;i<vs->n->n;i++) CHKERRQ(VecAXPBYPCZ(vs->x[i],alpha,beta,gamma,ws->x[i],zs->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -616,9 +597,8 @@ PetscErrorCode VecMax_Comp(Vec v,PetscInt *idx,PetscReal *z)
   SlepcValidVecComp(v,1);
   if (!idx && !z) PetscFunctionReturn(0);
 
-  if (vs->n->n > 0) {
-    CHKERRQ(VecMax(vs->x[0],idx?&idxp:NULL,&zp));
-  } else {
+  if (vs->n->n > 0) CHKERRQ(VecMax(vs->x[0],idx?&idxp:NULL,&zp));
+  else {
     zp = PETSC_MIN_REAL;
     if (idx) idxp = -1;
   }
@@ -646,9 +626,8 @@ PetscErrorCode VecMin_Comp(Vec v,PetscInt *idx,PetscReal *z)
   SlepcValidVecComp(v,1);
   if (!idx && !z) PetscFunctionReturn(0);
 
-  if (vs->n->n > 0) {
-    CHKERRQ(VecMin(vs->x[0],idx?&idxp:NULL,&zp));
-  } else {
+  if (vs->n->n > 0) CHKERRQ(VecMin(vs->x[0],idx?&idxp:NULL,&zp));
+  else {
     zp = PETSC_MAX_REAL;
     if (idx) idxp = -1;
   }

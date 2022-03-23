@@ -158,9 +158,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   /* update vectors V = V*S */
   CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,nq,k,NULL,&S0));
   CHKERRQ(MatDenseGetArrayWrite(S0,&pS0));
-  for (i=0;i<k;i++) {
-    CHKERRQ(PetscArraycpy(pS0+i*nq,SS+i*nq,nq));
-  }
+  for (i=0;i<k;i++) CHKERRQ(PetscArraycpy(pS0+i*nq,SS+i*nq,nq));
   CHKERRQ(MatDenseRestoreArrayWrite(S0,&pS0));
   CHKERRQ(BVMultInPlace(pep->V,S0,0,k));
   CHKERRQ(MatDestroy(&S0));

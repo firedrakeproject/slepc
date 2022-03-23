@@ -43,9 +43,7 @@ PetscErrorCode SlepcContourDataReset(SlepcContourData contour)
 
   PetscFunctionBegin;
   if (contour->ksp) {
-    for (i=0;i<contour->npoints;i++) {
-      CHKERRQ(KSPReset(contour->ksp[i]));
-    }
+    for (i=0;i<contour->npoints;i++) CHKERRQ(KSPReset(contour->ksp[i]));
   }
   if (contour->pA) {
     CHKERRQ(MatDestroyMatrices(contour->nmat,&contour->pA));
@@ -68,9 +66,7 @@ PetscErrorCode SlepcContourDataDestroy(SlepcContourData *contour)
   PetscFunctionBegin;
   if (!(*contour)) PetscFunctionReturn(0);
   if ((*contour)->ksp) {
-    for (i=0;i<(*contour)->npoints;i++) {
-      CHKERRQ(KSPDestroy(&(*contour)->ksp[i]));
-    }
+    for (i=0;i<(*contour)->npoints;i++) CHKERRQ(KSPDestroy(&(*contour)->ksp[i]));
     CHKERRQ(PetscFree((*contour)->ksp));
   }
   CHKERRQ(PetscSubcommDestroy(&(*contour)->subcomm));

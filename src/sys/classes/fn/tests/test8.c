@@ -36,9 +36,7 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
     CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
     if (set && flg) CHKERRQ(MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE));
     CHKERRQ(FNEvaluateFunctionMat(fn,S,NULL));
-  } else {
-    CHKERRQ(FNEvaluateFunctionMat(fn,A,S));
-  }
+  } else CHKERRQ(FNEvaluateFunctionMat(fn,A,S));
   if (verbose) {
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
     CHKERRQ(MatView(A,viewer));
@@ -47,32 +45,23 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   }
   /* check error ||S*S*A-I||_F */
   CHKERRQ(MatMatMult(S,S,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R));
-  if (eta!=1.0) {
-    CHKERRQ(MatScale(R,1.0/(eta*eta)));
-  }
+  if (eta!=1.0) CHKERRQ(MatScale(R,1.0/(eta*eta)));
   CHKERRQ(MatCreateVecs(A,&v,&f0));
   CHKERRQ(MatGetColumnVector(S,f0,0));
   CHKERRQ(MatCopy(R,S,SAME_NONZERO_PATTERN));
   CHKERRQ(MatDestroy(&R));
-  if (tau!=1.0) {
-    CHKERRQ(MatScale(S,tau));
-  }
+  if (tau!=1.0) CHKERRQ(MatScale(S,tau));
   CHKERRQ(MatMatMult(S,A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R));
   CHKERRQ(MatShift(R,-1.0));
   CHKERRQ(MatNorm(R,NORM_FROBENIUS,&nrm));
   CHKERRQ(MatDestroy(&R));
-  if (nrm<100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F < 100*eps\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F = %g\n",(double)nrm));
-  }
+  if (nrm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F < 100*eps\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F = %g\n",(double)nrm));
   /* check FNEvaluateFunctionMatVec() */
   CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
   CHKERRQ(VecAXPY(v,-1.0,f0));
   CHKERRQ(VecNorm(v,NORM_2,&nrm));
-  if (nrm>100*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
-  }
+  if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
   CHKERRQ(MatDestroy(&S));
   CHKERRQ(VecDestroy(&v));
   CHKERRQ(VecDestroy(&f0));
@@ -106,9 +95,7 @@ int main(int argc,char **argv)
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
   CHKERRQ(FNView(fn,viewer));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Scalar evaluation */
   x = 2.2;

@@ -78,9 +78,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(M));
   CHKERRQ(MatSetUp(M));
   CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
-  for (II=Istart;II<Iend;II++) {
-    CHKERRQ(MatSetValue(M,II,II,(PetscReal)(II+1),INSERT_VALUES));
-  }
+  for (II=Istart;II<Iend;II++) CHKERRQ(MatSetValue(M,II,II,(PetscReal)(II+1),INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
@@ -132,9 +130,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
-  } else {
+  if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  else {
     CHKERRQ(PEPGetConverged(pep,&nconv));
     if (nconv>0) {
       CHKERRQ(MatCreateVecs(M,&xr,&xi));
@@ -154,11 +151,8 @@ int main(int argc,char **argv)
         re = kr;
         im = ki;
 #endif
-        if (im!=0.0) {
-          CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi   %12g\n",(double)re,(double)im,(double)error));
-        } else {
-          CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error));
-        }
+        if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi   %12g\n",(double)re,(double)im,(double)error));
+        else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error));
       }
       CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
       CHKERRQ(VecDestroy(&xr));

@@ -115,9 +115,7 @@ int main(int argc,char **argv)
   CHKERRQ(VecNorm(x0,NORM_2,&rnorm));
   CHKERRQ(MatDestroy(&X));
   CHKERRQ(VecDestroy(&x0));
-  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm));
-  }
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm));
 
   CHKERRQ(DSGetMat(ds,DS_MAT_V,&X));
   CHKERRQ(MatCreateVecs(X,NULL,&x0));
@@ -125,9 +123,7 @@ int main(int argc,char **argv)
   CHKERRQ(VecNorm(x0,NORM_2,&rnorm));
   CHKERRQ(MatDestroy(&X));
   CHKERRQ(VecDestroy(&x0));
-  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm));
-  }
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm));
 
   CHKERRQ(PetscFree(w));
   CHKERRQ(DSDestroy(&ds));

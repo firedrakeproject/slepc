@@ -54,9 +54,7 @@ int main(int argc,char **argv)
   CHKERRQ(VecSet(w,1.0));
   CHKERRQ(VecDuplicate(v,&x));
   CHKERRQ(VecDuplicate(v,&y));
-  if (!rank) {
-    CHKERRQ(VecSetValue(y,0,1.0,INSERT_VALUES));
-  }
+  if (!rank) CHKERRQ(VecSetValue(y,0,1.0,INSERT_VALUES));
   CHKERRQ(VecAssemblyBegin(y));
   CHKERRQ(VecAssemblyEnd(y));
 
@@ -101,9 +99,7 @@ int main(int argc,char **argv)
   CHKERRQ(VecCreateComp(PETSC_COMM_WORLD,Nx,2,VECSTANDARD,vparent,&wc));
   CHKERRQ(VecCompGetSubVecs(wc,&n,&varray));
   PetscCheck(n==2,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"n should be 2");
-  for (i=0;i<2;i++) {
-    CHKERRQ(VecSet(varray[i],1.0));
-  }
+  for (i=0;i<2;i++) CHKERRQ(VecSet(varray[i],1.0));
 
   CHKERRQ(VecGetSize(wc,&k));
   PetscCheck(k==8,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Vector global length should be 8");
@@ -119,9 +115,7 @@ int main(int argc,char **argv)
 
   CHKERRQ(VecCompGetSubVecs(yc,&n,&varray));
   PetscCheck(n==2,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"n should be 2");
-  if (!rank) {
-    CHKERRQ(VecSetValue(varray[0],0,1.0,INSERT_VALUES));
-  }
+  if (!rank) CHKERRQ(VecSetValue(varray[0],0,1.0,INSERT_VALUES));
   CHKERRQ(VecAssemblyBegin(varray[0]));
   CHKERRQ(VecAssemblyEnd(varray[0]));
 

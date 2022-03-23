@@ -31,9 +31,7 @@ PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Ma
     CHKERRQ(MatDenseGetArrayRead(Q,&q));
     CHKERRQ(BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,x->array+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,y->array+(Y->nc+Y->l)*Y->n));
     CHKERRQ(MatDenseRestoreArrayRead(Q,&q));
-  } else {
-    CHKERRQ(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,x->array+(X->nc+X->l)*X->n,beta,y->array+(Y->nc+Y->l)*Y->n));
-  }
+  } else CHKERRQ(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,x->array+(X->nc+X->l)*X->n,beta,y->array+(Y->nc+Y->l)*Y->n));
   PetscFunctionReturn(0);
 }
 
@@ -135,11 +133,8 @@ PetscErrorCode BVScale_Contiguous(BV bv,PetscInt j,PetscScalar alpha)
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,ctx->array+(bv->nc+bv->l)*bv->n,alpha));
-  } else {
-    CHKERRQ(BVScale_BLAS_Private(bv,bv->n,ctx->array+(bv->nc+j)*bv->n,alpha));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,ctx->array+(bv->nc+bv->l)*bv->n,alpha));
+  else CHKERRQ(BVScale_BLAS_Private(bv,bv->n,ctx->array+(bv->nc+j)*bv->n,alpha));
   PetscFunctionReturn(0);
 }
 
@@ -148,11 +143,8 @@ PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
-  } else {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
+  else CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
   PetscFunctionReturn(0);
 }
 
@@ -161,11 +153,8 @@ PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal 
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
-  } else {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
+  else CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
   PetscFunctionReturn(0);
 }
 
@@ -199,9 +188,7 @@ PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
     CHKERRQ(BVRestoreMat(V,&Vmat));
     CHKERRQ(BVRestoreMat(W,&Wmat));
   } else {
-    for (j=0;j<V->k-V->l;j++) {
-      CHKERRQ(MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]));
-    }
+    for (j=0;j<V->k-V->l;j++) CHKERRQ(MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]));
   }
   PetscFunctionReturn(0);
 }
@@ -241,11 +228,8 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
   CHKERRQ(PetscArrayzero(newarray,m*bv->n));
   CHKERRQ(PetscMalloc1(m,&newV));
   for (j=0;j<m;j++) {
-    if (ctx->mpi) {
-      CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,PETSC_DECIDE,newarray+j*bv->n,newV+j));
-    } else {
-      CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,newarray+j*bv->n,newV+j));
-    }
+    if (ctx->mpi) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,PETSC_DECIDE,newarray+j*bv->n,newV+j));
+    else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,newarray+j*bv->n,newV+j));
   }
   CHKERRQ(PetscLogObjectParents(bv,m,newV));
   if (((PetscObject)bv)->name) {
@@ -254,9 +238,7 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
       CHKERRQ(PetscObjectSetName((PetscObject)newV[j],str));
     }
   }
-  if (copy) {
-    CHKERRQ(PetscArraycpy(newarray,ctx->array,PetscMin(m,bv->m)*bv->n));
-  }
+  if (copy) CHKERRQ(PetscArraycpy(newarray,ctx->array,PetscMin(m,bv->m)*bv->n));
   CHKERRQ(VecDestroyVecs(bv->m,&ctx->V));
   ctx->V = newV;
   CHKERRQ(PetscFree(ctx->array));
@@ -343,11 +325,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
     CHKERRQ(PetscCalloc1(bv->m*nloc,&ctx->array));
     CHKERRQ(PetscMalloc1(bv->m,&ctx->V));
     for (j=0;j<bv->m;j++) {
-      if (ctx->mpi) {
-        CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*nloc,ctx->V+j));
-      } else {
-        CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*nloc,ctx->V+j));
-      }
+      if (ctx->mpi) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*nloc,ctx->V+j));
+      else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*nloc,ctx->V+j));
     }
     CHKERRQ(PetscLogObjectParents(bv,bv->m,ctx->V));
   }

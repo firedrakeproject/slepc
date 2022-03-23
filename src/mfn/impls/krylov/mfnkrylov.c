@@ -76,14 +76,10 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 
     /* glue together the previous H and the new H obtained with Arnoldi */
     CHKERRQ(MatDenseGetArray(H,&harray));
-    for (j=0;j<m;j++) {
-      CHKERRQ(PetscArraycpy(harray+n+(j+n)*ldh,marray+j*ld,m));
-    }
+    for (j=0;j<m;j++) CHKERRQ(PetscArraycpy(harray+n+(j+n)*ldh,marray+j*ld,m));
     if (mfn->its>1) {
       CHKERRQ(MatDenseGetArrayRead(G,&garray));
-      for (j=0;j<n;j++) {
-        CHKERRQ(PetscArraycpy(harray+j*ldh,garray+j*n,n));
-      }
+      for (j=0;j<n;j++) CHKERRQ(PetscArraycpy(harray+j*ldh,garray+j*n,n));
       CHKERRQ(MatDenseRestoreArrayRead(G,&garray));
       CHKERRQ(MatDestroy(&G));
       harray[n+(n-1)*ldh] = betaold;

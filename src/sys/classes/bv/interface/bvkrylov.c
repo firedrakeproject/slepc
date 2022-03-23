@@ -87,11 +87,8 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
 
   for (j=k;j<*m;j++) {
     CHKERRQ(BVMatMultColumn(V,A,j));
-    if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
-      CHKERRQ(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta,&lindep));
-    } else {
-      CHKERRQ(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta,&lindep));
-    }
+    if (PetscUnlikely(j==V->N-1)) CHKERRQ(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta,&lindep)); /* safeguard in case the full basis is requested */
+    else CHKERRQ(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta,&lindep));
     if (PetscUnlikely(lindep)) {
       *m = j+1;
       break;
@@ -104,9 +101,7 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
     CHKERRQ(MatDenseGetArray(H,&h));
     CHKERRQ(BVGetBufferVec(V,&buf));
     CHKERRQ(VecGetArrayRead(buf,&a));
-    for (j=k;j<*m-1;j++) {
-      CHKERRQ(PetscArraycpy(h+j*ldh,a+V->nc+(j+1)*(V->nc+V->m),j+2));
-    }
+    for (j=k;j<*m-1;j++) CHKERRQ(PetscArraycpy(h+j*ldh,a+V->nc+(j+1)*(V->nc+V->m),j+2));
     CHKERRQ(PetscArraycpy(h+(*m-1)*ldh,a+V->nc+(*m)*(V->nc+V->m),*m));
     if (ldh>*m) h[(*m)+(*m-1)*ldh] = a[V->nc+(*m)+(*m)*(V->nc+V->m)];
     CHKERRQ(VecRestoreArrayRead(buf,&a));
@@ -194,11 +189,8 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
 
   for (j=k;j<*m;j++) {
     CHKERRQ(BVMatMultColumn(V,A,j));
-    if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
-      CHKERRQ(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta+j,&lindep));
-    } else {
-      CHKERRQ(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta+j,&lindep));
-    }
+    if (PetscUnlikely(j==V->N-1)) CHKERRQ(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta+j,&lindep)); /* safeguard in case the full basis is requested */
+    else CHKERRQ(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta+j,&lindep));
     if (PetscUnlikely(lindep)) {
       *m = j+1;
       break;

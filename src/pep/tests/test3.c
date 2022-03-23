@@ -44,9 +44,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(A[0]));
   CHKERRQ(MatSetUp(A[0]));
   CHKERRQ(MatGetOwnershipRange(A[0],&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(A[0],i,i,i+1,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(A[0],i,i,i+1,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(A[0],MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(A[0],MAT_FINAL_ASSEMBLY));
 
@@ -55,9 +53,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(A[1]));
   CHKERRQ(MatSetUp(A[1]));
   CHKERRQ(MatGetOwnershipRange(A[1],&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(A[1],i,i,1.0,INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(A[1],i,i,1.0,INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(A[1],MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(A[1],MAT_FINAL_ASSEMBLY));
 
@@ -66,9 +62,7 @@ int main(int argc,char **argv)
   CHKERRQ(MatSetFromOptions(A[2]));
   CHKERRQ(MatSetUp(A[2]));
   CHKERRQ(MatGetOwnershipRange(A[1],&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(A[2],i,i,n/(PetscReal)(i+1),INSERT_VALUES));
-  }
+  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(A[2],i,i,n/(PetscReal)(i+1),INSERT_VALUES));
   CHKERRQ(MatAssemblyBegin(A[2],MAT_FINAL_ASSEMBLY));
   CHKERRQ(MatAssemblyEnd(A[2],MAT_FINAL_ASSEMBLY));
 

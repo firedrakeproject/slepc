@@ -91,9 +91,8 @@ int main(int argc,char **argv)
 
   /* show detailed info unless -terse option is given by user */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(SVDConvergedReasonView(svd,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));

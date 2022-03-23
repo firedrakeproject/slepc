@@ -43,9 +43,7 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-  }
+  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
@@ -61,9 +59,7 @@ int main(int argc,char **argv)
     CHKERRQ(VecAssemblyEnd(v));
     CHKERRQ(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Orthonormalize first k-1 columns */
   for (j=0;j<k-1;j++) {
@@ -71,18 +67,14 @@ int main(int argc,char **argv)
     alpha = 1.0/norm;
     CHKERRQ(BVScaleColumn(X,j,alpha));
   }
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Select odd columns and orthogonalize last column against those only */
   CHKERRQ(PetscMalloc1(k,&which));
   for (i=0;i<k;i++) which[i] = (i%2)? PETSC_TRUE: PETSC_FALSE;
   CHKERRQ(BVOrthogonalizeSomeColumn(X,k-1,which,NULL,NULL,NULL));
   CHKERRQ(PetscFree(which));
-  if (verbose) {
-    CHKERRQ(BVView(X,view));
-  }
+  if (verbose) CHKERRQ(BVView(X,view));
 
   /* Check orthogonality */
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Orthogonalization coefficients:\n"));

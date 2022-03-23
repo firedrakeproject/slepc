@@ -41,9 +41,7 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
   PetscInt       i,n = mfn->numbermonitors;
 
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    CHKERRQ((*mfn->monitor[i])(mfn,it,errest,mfn->monitorcontext[i]));
-  }
+  for (i=0;i<n;i++) CHKERRQ((*mfn->monitor[i])(mfn,it,errest,mfn->monitorcontext[i]));
   PetscFunctionReturn(0);
 }
 
@@ -119,9 +117,7 @@ PetscErrorCode MFNMonitorCancel(MFN mfn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   for (i=0; i<mfn->numbermonitors; i++) {
-    if (mfn->monitordestroy[i]) {
-      CHKERRQ((*mfn->monitordestroy[i])(&mfn->monitorcontext[i]));
-    }
+    if (mfn->monitordestroy[i]) CHKERRQ((*mfn->monitordestroy[i])(&mfn->monitorcontext[i]));
   }
   mfn->numbermonitors = 0;
   PetscFunctionReturn(0);
@@ -179,9 +175,7 @@ PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,PetscView
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,4);
   CHKERRQ(PetscViewerPushFormat(viewer,vf->format));
   CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel));
-  if (its == 1 && ((PetscObject)mfn)->prefix) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Error estimates for %s solve.\n",((PetscObject)mfn)->prefix));
-  }
+  if (its == 1 && ((PetscObject)mfn)->prefix) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Error estimates for %s solve.\n",((PetscObject)mfn)->prefix));
   CHKERRQ(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " MFN Error estimate %14.12e\n",its,(double)errest));
   CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel));
   CHKERRQ(PetscViewerPopFormat(viewer));

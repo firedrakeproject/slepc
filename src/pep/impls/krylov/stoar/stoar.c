@@ -146,9 +146,8 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
       CHKERRQ(PetscMalloc1(pep->nmat,&pep->solvematcoeffs));
       CHKERRQ(PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar)));
       CHKERRQ(PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv));
-      if (sinv) {
-        CHKERRQ(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
-      } else {
+      if (sinv) CHKERRQ(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
+      else {
         for (i=0;i<pep->nmat-1;i++) pep->solvematcoeffs[i] = 0.0;
         pep->solvematcoeffs[pep->nmat-1] = 1.0;
       }
@@ -385,11 +384,8 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     CHKERRQ(DSRestoreArrayReal(pep->ds,DS_MAT_T,&a));
     CHKERRQ(DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega));
     CHKERRQ(DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l));
-    if (l==0) {
-      CHKERRQ(DSSetState(pep->ds,DS_STATE_INTERMEDIATE));
-    } else {
-      CHKERRQ(DSSetState(pep->ds,DS_STATE_RAW));
-    }
+    if (l==0) CHKERRQ(DSSetState(pep->ds,DS_STATE_INTERMEDIATE));
+    else CHKERRQ(DSSetState(pep->ds,DS_STATE_RAW));
 
     /* Solve projected problem */
     CHKERRQ(DSSolve(pep->ds,pep->eigr,pep->eigi));
@@ -445,11 +441,8 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     CHKERRQ(BVGetActiveColumns(pep->V,NULL,&nq));
     if (k+l+deg<=nq) {
       CHKERRQ(BVSetActiveColumns(ctx->V,pep->nconv,k+l+1));
-      if (!falselock && ctx->lock) {
-        CHKERRQ(BVTensorCompress(ctx->V,k-pep->nconv));
-      } else {
-        CHKERRQ(BVTensorCompress(ctx->V,0));
-      }
+      if (!falselock && ctx->lock) CHKERRQ(BVTensorCompress(ctx->V,k-pep->nconv));
+      else CHKERRQ(BVTensorCompress(ctx->V,0));
     }
     pep->nconv = k;
     CHKERRQ(PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv));
@@ -465,9 +458,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     }
   }
   CHKERRQ(STGetTransform(pep->st,&flg));
-  if (!flg && pep->ops->backtransform) {
-      CHKERRQ((*pep->ops->backtransform)(pep));
-  }
+  if (!flg && pep->ops->backtransform) CHKERRQ((*pep->ops->backtransform)(pep));
   if (pep->sfactor!=1.0) {
     for (j=0;j<pep->nconv;j++) {
       pep->eigr[j] *= pep->sfactor;
@@ -514,9 +505,7 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
 
     k = 2;
     CHKERRQ(PetscOptionsRealArray("-pep_stoar_linearization","Parameters of the linearization","PEPSTOARSetLinearization",array,&k,&flg));
-    if (flg) {
-      CHKERRQ(PEPSTOARSetLinearization(pep,array[0],array[1]));
-    }
+    if (flg) CHKERRQ(PEPSTOARSetLinearization(pep,array[0],array[1]));
 
     b = ctx->checket;
     CHKERRQ(PetscOptionsBool("-pep_stoar_check_eigenvalue_type","Check eigenvalue type during spectrum slicing","PEPSTOARSetCheckEigenvalueType",ctx->checket,&b,&flg));
@@ -1035,9 +1024,7 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
   if (isascii) {
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-"));
     CHKERRQ(PetscViewerASCIIPrintf(viewer,"  linearization parameters: alpha=%g beta=%g\n",(double)ctx->alpha,(double)ctx->beta));
-    if (pep->which==PEP_ALL && !ctx->hyperbolic) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  checking eigenvalue type: %s\n",ctx->checket?"enabled":"disabled"));
-    }
+    if (pep->which==PEP_ALL && !ctx->hyperbolic) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  checking eigenvalue type: %s\n",ctx->checket?"enabled":"disabled"));
   }
   PetscFunctionReturn(0);
 }
@@ -1045,9 +1032,7 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
 PetscErrorCode PEPReset_STOAR(PEP pep)
 {
   PetscFunctionBegin;
-  if (pep->which==PEP_ALL) {
-    CHKERRQ(PEPReset_STOAR_QSlice(pep));
-  }
+  if (pep->which==PEP_ALL) CHKERRQ(PEPReset_STOAR_QSlice(pep));
   PetscFunctionReturn(0);
 }
 

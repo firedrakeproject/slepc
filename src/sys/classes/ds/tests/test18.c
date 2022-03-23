@@ -22,18 +22,15 @@ PetscErrorCode CheckArray(PetscScalar *A,const char *label,PetscInt k)
   PetscFunctionBeginUser;
   CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
-  if (rank) {
-    CHKERRMPI(MPI_Send(A,k,MPIU_SCALAR,0,111,PETSC_COMM_WORLD));
-  } else {
+  if (rank) CHKERRMPI(MPI_Send(A,k,MPIU_SCALAR,0,111,PETSC_COMM_WORLD));
+  else {
     CHKERRQ(PetscMalloc1(k,&buf));
     for (p=1;p<size;p++) {
       CHKERRMPI(MPI_Recv(buf,k,MPIU_SCALAR,p,111,PETSC_COMM_WORLD,MPI_STATUS_IGNORE));
       dif = 0.0;
       for (j=0;j<k;j++) dif += A[j]-buf[j];
       error = PetscAbsScalar(dif);
-      if (error>10*PETSC_MACHINE_EPSILON) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Array %s differs in proc %d: %g\n",label,(int)p,(double)error));
-      }
+      if (error>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Array %s differs in proc %d: %g\n",label,(int)p,(double)error));
     }
     CHKERRQ(PetscFree(buf));
   }
@@ -90,11 +87,8 @@ int main(int argc,char **argv)
     re = wr[i];
     im = wi[i];
 #endif
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
-    }
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
 
   /* Synchronize data and check */

@@ -38,9 +38,7 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 {
   PetscFunctionBegin;
   PEPCheckSolved(pep,1);
-  if (pep->state==PEP_STATE_SOLVED && pep->ops->computevectors) {
-    CHKERRQ((*pep->ops->computevectors)(pep));
-  }
+  if (pep->state==PEP_STATE_SOLVED && pep->ops->computevectors) CHKERRQ((*pep->ops->computevectors)(pep));
   pep->state = PEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
@@ -49,9 +47,7 @@ PetscErrorCode PEPExtractVectors(PEP pep)
 {
   PetscFunctionBegin;
   PEPCheckSolved(pep,1);
-  if (pep->state==PEP_STATE_SOLVED && pep->ops->extractvectors) {
-    CHKERRQ((*pep->ops->extractvectors)(pep));
-  }
+  if (pep->state==PEP_STATE_SOLVED && pep->ops->extractvectors) CHKERRQ((*pep->ops->extractvectors)(pep));
   PetscFunctionReturn(0);
 }
 
@@ -116,9 +112,7 @@ PetscErrorCode PEPSolve(PEP pep)
     CHKERRQ(STPostSolve(pep->st));
     /* Map eigenvalues back to the original problem */
     CHKERRQ(STGetTransform(pep->st,&flg));
-    if (flg && pep->ops->backtransform) {
-      CHKERRQ((*pep->ops->backtransform)(pep));
-    }
+    if (flg && pep->ops->backtransform) CHKERRQ((*pep->ops->backtransform)(pep));
   }
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -137,9 +131,7 @@ PetscErrorCode PEPSolve(PEP pep)
   }
 #endif
 
-  if (pep->refine!=PEP_REFINE_NONE) {
-    CHKERRQ(PetscCitationsRegister(citation,&cited));
-  }
+  if (pep->refine!=PEP_REFINE_NONE) CHKERRQ(PetscCitationsRegister(citation,&cited));
 
   if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0 && pep->nconv>0) {
     CHKERRQ(PEPComputeVectors(pep));
@@ -416,17 +408,13 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
     if (imag) {
       if (ivals[i]!=0 || vals[i]!=0) {
         CHKERRQ(MatMult(A[i],xi,wi));
-        if (vals[i]==0) {
-          CHKERRQ(MatMult(A[i],xr,w));
-        }
+        if (vals[i]==0) CHKERRQ(MatMult(A[i],xr,w));
       }
       if (ivals[i]!=0) {
         CHKERRQ(VecAXPY(u,-ivals[i],wi));
         CHKERRQ(VecAXPY(ui,ivals[i],w));
       }
-      if (vals[i]!=0) {
-        CHKERRQ(VecAXPY(ui,vals[i],wi));
-      }
+      if (vals[i]!=0) CHKERRQ(VecAXPY(ui,vals[i],wi));
     }
 #endif
   }

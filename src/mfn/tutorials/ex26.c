@@ -97,11 +97,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecAXPY(y,-1.0,z));
   CHKERRQ(VecNorm(y,NORM_2,&norm));
 
-  if (norm<tol) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n"));
-  } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm));
-  }
+  if (norm<tol) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n"));
+  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm));
 
   /*
      Free work space

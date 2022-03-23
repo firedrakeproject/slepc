@@ -143,9 +143,7 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
       CHKERRQ(MatMult(nep->A[k],z0,w));
       CHKERRQ(VecAXPY(yy,ctx->coeffD[k],w));
     }
-  } else {
-    CHKERRQ(MatMultTranspose(ctx->D[0],z0,yy));
-  }
+  } else CHKERRQ(MatMultTranspose(ctx->D[0],z0,yy));
   CHKERRQ(VecPlaceArray(xx,px));
   CHKERRQ(VecAXPY(yy,-1.0,xx));
   CHKERRQ(VecResetArray(xx));
@@ -159,9 +157,7 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
         CHKERRQ(MatMult(nep->A[k],z0,w));
         CHKERRQ(VecAXPY(yy,ctx->coeffD[k+(i-1)*nep->nt],w));
       }
-    } else {
-      CHKERRQ(MatMultTranspose(ctx->D[i-1],z0,yy));
-    }
+    } else CHKERRQ(MatMultTranspose(ctx->D[i-1],z0,yy));
     CHKERRQ(VecPlaceArray(yyy,py+(i-2)*m));
     CHKERRQ(VecAXPY(yy,beta[i-1]*(1.0-sigma/xi[i-2]),yyy));
     CHKERRQ(VecResetArray(yyy));
@@ -178,9 +174,7 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
       CHKERRQ(MatMult(nep->A[k],z0,w));
       CHKERRQ(VecAXPY(yy,ctx->coeffD[k+d*nep->nt],w));
     }
-  } else {
-    CHKERRQ(MatMultTranspose(ctx->D[d],z0,yy));
-  }
+  } else CHKERRQ(MatMultTranspose(ctx->D[d],z0,yy));
   CHKERRQ(VecScale(yy,-1.0/beta[d]));
   CHKERRQ(VecPlaceArray(yyy,py+(d-2)*m));
   CHKERRQ(VecAXPY(yy,beta[d-1]/xi[d-2],yyy));
@@ -252,9 +246,8 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   CHKERRQ(EPSGetST(ctx->eps,&st));
   CHKERRQ(EPSSetTarget(ctx->eps,nep->target));
   CHKERRQ(STSetDefaultShift(st,nep->target));
-  if (!((PetscObject)(ctx->eps))->type_name) {
-    CHKERRQ(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
-  } else {
+  if (!((PetscObject)(ctx->eps))->type_name) CHKERRQ(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
+  else {
     CHKERRQ(PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks));
     PetscCheck(ks,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Full-basis option only implemented for Krylov-Schur");
   }

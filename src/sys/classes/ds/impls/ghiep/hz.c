@@ -325,9 +325,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Reduce to pseudotriadiagonal form */
   CHKERRQ(DSIntermediate_GHIEP(ds));
   CHKERRQ(HZIteration(ds->n,ds->l,d,e,s,Q,ld));
-  if (!ds->compact) {
-    CHKERRQ(DSSwitchFormat_GHIEP(ds,PETSC_FALSE));
-  }
+  if (!ds->compact) CHKERRQ(DSSwitchFormat_GHIEP(ds,PETSC_FALSE));
   /* Undo from diagonal the blocks with real eigenvalues*/
   CHKERRQ(DSGHIEPRealBlocks(ds));
 

@@ -290,9 +290,7 @@ PetscErrorCode NEPReset_Problem(NEP nep)
   CHKERRQ(MatDestroy(&nep->jacobian));
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     CHKERRQ(MatDestroyMatrices(nep->nt,&nep->A));
-    for (i=0;i<nep->nt;i++) {
-      CHKERRQ(FNDestroy(&nep->f[i]));
-    }
+    for (i=0;i<nep->nt;i++) CHKERRQ(FNDestroy(&nep->f[i]));
     CHKERRQ(PetscFree(nep->f));
     CHKERRQ(PetscFree(nep->nrma));
     if (nep->P) CHKERRQ(MatDestroyMatrices(nep->nt,&nep->P));
@@ -350,9 +348,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   if (--((PetscObject)(*nep))->refct > 0) { *nep = 0; PetscFunctionReturn(0); }
   CHKERRQ(NEPReset(*nep));
   if ((*nep)->ops->destroy) CHKERRQ((*(*nep)->ops->destroy)(*nep));
-  if ((*nep)->eigr) {
-    CHKERRQ(PetscFree4((*nep)->eigr,(*nep)->eigi,(*nep)->errest,(*nep)->perm));
-  }
+  if ((*nep)->eigr) CHKERRQ(PetscFree4((*nep)->eigr,(*nep)->eigi,(*nep)->errest,(*nep)->perm));
   CHKERRQ(RGDestroy(&(*nep)->rg));
   CHKERRQ(DSDestroy(&(*nep)->ds));
   CHKERRQ(KSPDestroy(&(*nep)->refineksp));
@@ -360,9 +356,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   CHKERRQ(PetscFree((*nep)->sc));
   /* just in case the initial vectors have not been used */
   CHKERRQ(SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS));
-  if ((*nep)->convergeddestroy) {
-    CHKERRQ((*(*nep)->convergeddestroy)((*nep)->convergedctx));
-  }
+  if ((*nep)->convergeddestroy) CHKERRQ((*(*nep)->convergeddestroy)((*nep)->convergedctx));
   CHKERRQ(NEPMonitorCancel(*nep));
   CHKERRQ(PetscHeaderDestroy(nep));
   PetscFunctionReturn(0);
@@ -584,9 +578,7 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
       CHKERRQ(PetscSubcommSetType(nep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS));
       CHKERRQ(PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm)));
       CHKERRQ(PetscSubcommGetChild(nep->refinesubc,&comm));
-    } else {
-      CHKERRQ(PetscObjectGetComm((PetscObject)nep,&comm));
-    }
+    } else CHKERRQ(PetscObjectGetComm((PetscObject)nep,&comm));
     CHKERRQ(KSPCreate(comm,&nep->refineksp));
     CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)nep->refineksp,(PetscObject)nep,0));
     CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->refineksp));

@@ -48,9 +48,7 @@ int main(int argc,char **argv)
     CHKERRQ(DSSetType(ds,DSNEP));
     CHKERRQ(DSSetMethod(ds,1));
     CHKERRQ(DSNEPSetRefine(ds,tol,PETSC_DECIDE));
-  } else {
-    CHKERRQ(DSSetType(ds,DSPEP));
-  }
+  } else CHKERRQ(DSSetType(ds,DSPEP));
   CHKERRQ(DSSetFromOptions(ds));
 
   /* Set functions (prior to DSAllocate) f_i=x^i */
@@ -63,9 +61,7 @@ int main(int argc,char **argv)
       CHKERRQ(FNRationalSetNumerator(f[i],i+1,numer));
     }
     CHKERRQ(DSNEPSetFN(ds,NMAT,f));
-  } else {
-    CHKERRQ(DSPEPSetDegree(ds,NMAT-1));
-  }
+  } else CHKERRQ(DSPEPSetDegree(ds,NMAT-1));
 
   /* Set dimensions */
   ld = n+2;  /* test leading dimension larger than n */
@@ -77,9 +73,7 @@ int main(int argc,char **argv)
   CHKERRQ(RGSetType(rg,RGELLIPSE));
   CHKERRQ(RGEllipseSetParameters(rg,1.5,radius,.5));
   CHKERRQ(RGSetFromOptions(rg));
-  if (isnep) {
-    CHKERRQ(DSNEPSetRG(ds,rg));
-  }
+  if (isnep) CHKERRQ(DSNEPSetRG(ds,rg));
 
   /* Set up viewer */
   CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
@@ -162,11 +156,8 @@ int main(int argc,char **argv)
   }
 
   /* Solve */
-  if (isnep) {
-    CHKERRQ(DSNEPGetMinimality(ds,&d));
-  } else {
-    CHKERRQ(DSPEPGetDegree(ds,&d));
-  }
+  if (isnep) CHKERRQ(DSNEPGetMinimality(ds,&d));
+  else CHKERRQ(DSPEPGetDegree(ds,&d));
   CHKERRQ(PetscCalloc3(n*d,&wr,n*d,&wi,n*d,&inside));
   CHKERRQ(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestMagnitude;
@@ -224,9 +215,7 @@ int main(int argc,char **argv)
       }
 #endif
       CHKERRQ(DSRestoreArray(ds,mat[k],&A));
-      if (isnep) {
-        CHKERRQ(FNEvaluateFunction(f[k],wr[inside[i]],&alpha));
-      }
+      if (isnep) CHKERRQ(FNEvaluateFunction(f[k],wr[inside[i]],&alpha));
       for (ii=0;ii<n;ii++) r[ii] += alpha*y[ii];
 #if !defined(PETSC_USE_COMPLEX)
       for (ii=0;ii<n;ii++) r[ii]  -= alphai*yi[ii];
@@ -251,21 +240,13 @@ int main(int argc,char **argv)
 #endif
     }
     nrm = PetscSqrtReal(nrm);
-    if (nrm/SlepcAbsEigenvalue(wr[inside[i]],wi[inside[i]])>tol) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %" PetscInt_FMT "-th computed eigenpair %g\n",i,(double)nrm));
-    }
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
-    }
+    if (nrm/SlepcAbsEigenvalue(wr[inside[i]],wi[inside[i]])>tol) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the residual norm of the %" PetscInt_FMT "-th computed eigenpair %g\n",i,(double)nrm));
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
 #if !defined(PETSC_USE_COMPLEX)
     if (im!=0.0) i++;
-    if (PetscAbs(im)<1e-10) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
-    } else {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)-im));
-    }
+    if (PetscAbs(im)<1e-10) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
+    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)-im));
 #endif
   }
   CHKERRQ(DSRestoreArray(ds,DS_MAT_X,&X));
@@ -275,9 +256,7 @@ int main(int argc,char **argv)
   CHKERRQ(PetscFree2(yi,ri));
 #endif
   if (isnep) {
-    for (i=0;i<NMAT;i++) {
-      CHKERRQ(FNDestroy(&f[i]));
-    }
+    for (i=0;i<NMAT;i++) CHKERRQ(FNDestroy(&f[i]));
   }
   CHKERRQ(DSDestroy(&ds));
   CHKERRQ(RGDestroy(&rg));

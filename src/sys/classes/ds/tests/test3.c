@@ -55,11 +55,8 @@ int main(int argc,char **argv)
   for (i=l;i<n-1;i++) T[i+ld] = 1.0;
   if (extrarow) T[n-1+ld] = 1.0;
   CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  if (l==0 && k==0) {
-    CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
-  } else {
-    CHKERRQ(DSSetState(ds,DS_STATE_RAW));
-  }
+  if (l==0 && k==0) CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
+  else CHKERRQ(DSSetState(ds,DS_STATE_RAW));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
   CHKERRQ(DSView(ds,viewer));
 
@@ -80,9 +77,7 @@ int main(int argc,char **argv)
 
   /* Print eigenvalues */
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
-  for (i=0;i<n;i++) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)PetscRealPart(eig[i])));
-  }
+  for (i=0;i<n;i++) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)PetscRealPart(eig[i])));
 
   if (extrarow) {
     /* Check that extra row is correct */
@@ -90,9 +85,7 @@ int main(int argc,char **argv)
     CHKERRQ(DSGetArray(ds,DS_MAT_Q,&Q));
     d = 0.0;
     for (i=l;i<n;i++) d += T[i+ld]-Q[n-1+i*ld];
-    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d)));
-    }
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d)));
     CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_T,&T));
     CHKERRQ(DSRestoreArray(ds,DS_MAT_Q,&Q));
   }

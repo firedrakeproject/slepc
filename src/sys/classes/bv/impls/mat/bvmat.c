@@ -33,9 +33,7 @@ PetscErrorCode BVMult_Mat(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
     CHKERRQ(MatDenseGetArrayRead(Q,&q));
     CHKERRQ(BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n));
     CHKERRQ(MatDenseRestoreArrayRead(Q,&q));
-  } else {
-    CHKERRQ(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,beta,py+(Y->nc+Y->l)*Y->n));
-  }
+  } else CHKERRQ(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,beta,py+(Y->nc+Y->l)*Y->n));
   CHKERRQ(MatDenseRestoreArrayRead(x->A,&px));
   CHKERRQ(MatDenseRestoreArray(y->A,&py));
   PetscFunctionReturn(0);
@@ -159,11 +157,8 @@ PetscErrorCode BVScale_Mat(BV bv,PetscInt j,PetscScalar alpha)
 
   PetscFunctionBegin;
   CHKERRQ(MatDenseGetArray(ctx->A,&array));
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,array+(bv->nc+bv->l)*bv->n,alpha));
-  } else {
-    CHKERRQ(BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->n,alpha));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,array+(bv->nc+bv->l)*bv->n,alpha));
+  else CHKERRQ(BVScale_BLAS_Private(bv,bv->n,array+(bv->nc+j)*bv->n,alpha));
   CHKERRQ(MatDenseRestoreArray(ctx->A,&array));
   PetscFunctionReturn(0);
 }
@@ -175,11 +170,8 @@ PetscErrorCode BVNorm_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   CHKERRQ(MatDenseGetArrayRead(ctx->A,&array));
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
-  } else {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
+  else CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
   CHKERRQ(MatDenseRestoreArrayRead(ctx->A,&array));
   PetscFunctionReturn(0);
 }
@@ -191,11 +183,8 @@ PetscErrorCode BVNorm_Local_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscFunctionBegin;
   CHKERRQ(MatDenseGetArrayRead(ctx->A,&array));
-  if (PetscUnlikely(j<0)) {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
-  } else {
-    CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
-  }
+  if (PetscUnlikely(j<0)) CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
+  else CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
   CHKERRQ(MatDenseRestoreArrayRead(ctx->A,&array));
   PetscFunctionReturn(0);
 }
@@ -380,13 +369,9 @@ PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
       CHKERRQ(PetscObjectGetName((PetscObject)bv,&bvname));
       CHKERRQ(PetscObjectGetName((PetscObject)ctx->A,&name));
       CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s=%s;clear %s\n",bvname,name,name));
-      if (bv->nc) {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s=%s(:,%" PetscInt_FMT ":end);\n",bvname,bvname,bv->nc+1));
-      }
+      if (bv->nc) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s=%s(:,%" PetscInt_FMT ":end);\n",bvname,bvname,bv->nc+1));
     }
-  } else {
-    CHKERRQ(MatView(ctx->A,viewer));
-  }
+  } else CHKERRQ(MatView(ctx->A,viewer));
   PetscFunctionReturn(0);
 }
 

@@ -52,14 +52,10 @@ PetscErrorCode NEPSetUp(NEP nep)
   nep->reason = NEP_CONVERGED_ITERATING;
 
   /* set default solver type (NEPSetFromOptions was not called) */
-  if (!((PetscObject)nep)->type_name) {
-    CHKERRQ(NEPSetType(nep,NEPRII));
-  }
+  if (!((PetscObject)nep)->type_name) CHKERRQ(NEPSetType(nep,NEPRII));
   if (nep->useds && !nep->ds) CHKERRQ(NEPGetDS(nep,&nep->ds));
   if (!nep->rg) CHKERRQ(NEPGetRG(nep,&nep->rg));
-  if (!((PetscObject)nep->rg)->type_name) {
-    CHKERRQ(RGSetType(nep->rg,RGINTERVAL));
-  }
+  if (!((PetscObject)nep->rg)->type_name) CHKERRQ(RGSetType(nep->rg,RGINTERVAL));
 
   /* set problem dimensions */
   switch (nep->fui) {
@@ -83,9 +79,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   }
 
   /* set default problem type */
-  if (!nep->problem_type) {
-    CHKERRQ(NEPSetProblemType(nep,NEP_GENERAL));
-  }
+  if (!nep->problem_type) CHKERRQ(NEPSetProblemType(nep,NEP_GENERAL));
 
   /* check consistency of refinement options */
   if (nep->refine) {
@@ -94,18 +88,14 @@ PetscErrorCode NEPSetUp(NEP nep)
       CHKERRQ(NEPRefineGetKSP(nep,&ksp));
       CHKERRQ(KSPGetPC(ksp,&pc));
       CHKERRQ(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
-      if (flg) {
-        CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
-      }
+      if (flg) CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
       nep->scheme = flg? NEP_REFINE_SCHEME_MBE: NEP_REFINE_SCHEME_SCHUR;
     }
     if (nep->scheme==NEP_REFINE_SCHEME_MBE) {
       CHKERRQ(NEPRefineGetKSP(nep,&ksp));
       CHKERRQ(KSPGetPC(ksp,&pc));
       CHKERRQ(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
-      if (flg) {
-        CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
-      }
+      if (flg) CHKERRQ(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
       PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
       CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size));
       if (size>1) {   /* currently selected PC is a factorization */
@@ -315,19 +305,13 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
   /* allocate V */
   if (!nep->V) CHKERRQ(NEPGetBV(nep,&nep->V));
   if (!oldsize) {
-    if (!((PetscObject)(nep->V))->type_name) {
-      CHKERRQ(BVSetType(nep->V,BVSVEC));
-    }
+    if (!((PetscObject)(nep->V))->type_name) CHKERRQ(BVSetType(nep->V,BVSVEC));
     if (nep->fui==NEP_USER_INTERFACE_SPLIT) T = nep->A[0];
-    else {
-      CHKERRQ(NEPGetFunction(nep,&T,NULL,NULL,NULL));
-    }
+    else CHKERRQ(NEPGetFunction(nep,&T,NULL,NULL,NULL));
     CHKERRQ(MatCreateVecsEmpty(T,&t,NULL));
     CHKERRQ(BVSetSizesFromVec(nep->V,t,requested));
     CHKERRQ(VecDestroy(&t));
-  } else {
-    CHKERRQ(BVResize(nep->V,requested,PETSC_FALSE));
-  }
+  } else CHKERRQ(BVResize(nep->V,requested,PETSC_FALSE));
 
   /* allocate W */
   if (nep->twosided) {

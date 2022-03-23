@@ -210,18 +210,14 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
   CHKERRQ(MatGetLocalSize(U,&nloc,NULL));
   for (i=0;i<rk;i++) {
     CHKERRQ(MatDenseGetColumn(U,i,&array));
-    if (V) {
-      CHKERRQ(BVGetColumn(V,i,&v));
-    } else {
+    if (V) CHKERRQ(BVGetColumn(V,i,&v));
+    else {
       v = work[1];
       CHKERRQ(VecPlaceArray(v,array));
     }
     CHKERRQ(MatMult(S,v,u));
-    if (V) {
-      CHKERRQ(BVRestoreColumn(V,i,&v));
-    } else {
-      CHKERRQ(VecResetArray(v));
-    }
+    if (V) CHKERRQ(BVRestoreColumn(V,i,&v));
+    else CHKERRQ(VecResetArray(v));
     CHKERRQ(VecScale(u,PETSC_SQRT2));
     CHKERRQ(VecGetArray(u,&uu));
     CHKERRQ(PetscArraycpy(array,uu,nloc));
@@ -409,9 +405,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     /* Copy first eigenvector, vec(A)=x */
     CHKERRQ(BVGetArray(epsrr->V,&xx));
     CHKERRQ(DSGetArray(ctx->ds,DS_MAT_A,&aa));
-    for (i=0;i<rk;i++) {
-      CHKERRQ(PetscArraycpy(aa+i*ldds,xx+i*rk,rk));
-    }
+    for (i=0;i<rk;i++) CHKERRQ(PetscArraycpy(aa+i*ldds,xx+i*rk,rk));
     CHKERRQ(DSRestoreArray(ctx->ds,DS_MAT_A,&aa));
     CHKERRQ(BVRestoreArray(epsrr->V,&xx));
     CHKERRQ(DSSetState(ctx->ds,DS_STATE_RAW));
@@ -466,15 +460,12 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       er = 1.0/eigr[0]; ei = 0.0;
     }
     CHKERRQ(BVGetColumn(V,0,&v));
-    if (eigi[0]!=0.0) {
-      CHKERRQ(BVGetColumn(V,1,&w));
-    } else w = NULL;
+    if (eigi[0]!=0.0) CHKERRQ(BVGetColumn(V,1,&w));
+    else w = NULL;
     eps->eigr[eps->nconv] = eigr[0]; eps->eigi[eps->nconv] = eigi[0];
     CHKERRQ(EPSComputeResidualNorm_Private(eps,PETSC_FALSE,er,ei,v,w,eps->work,&norm));
     CHKERRQ(BVRestoreColumn(V,0,&v));
-    if (w) {
-      CHKERRQ(BVRestoreColumn(V,1,&w));
-    }
+    if (w) CHKERRQ(BVRestoreColumn(V,1,&w));
     CHKERRQ((*eps->converged)(eps,er,ei,norm,&eps->errest[eps->nconv],eps->convergedctx));
     k = 0;
     if (eps->errest[eps->nconv]<eps->tol) {
@@ -537,9 +528,7 @@ PetscErrorCode EPSSetFromOptions_LyapII(PetscOptionItems *PetscOptionsObject,EPS
 
     k = 2;
     CHKERRQ(PetscOptionsIntArray("-eps_lyapii_ranks","Ranks for Lyapunov equation (one or two comma-separated integers)","EPSLyapIISetRanks",array,&k,&flg));
-    if (flg) {
-      CHKERRQ(EPSLyapIISetRanks(eps,array[0],array[1]));
-    }
+    if (flg) CHKERRQ(EPSLyapIISetRanks(eps,array[0],array[1]));
 
   CHKERRQ(PetscOptionsTail());
 
@@ -758,9 +747,7 @@ PetscErrorCode EPSDestroy_LyapII(EPS eps)
 PetscErrorCode EPSSetDefaultST_LyapII(EPS eps)
 {
   PetscFunctionBegin;
-  if (!((PetscObject)eps->st)->type_name) {
-    CHKERRQ(STSetType(eps->st,STSINVERT));
-  }
+  if (!((PetscObject)eps->st)->type_name) CHKERRQ(STSetType(eps->st,STSINVERT));
   PetscFunctionReturn(0);
 }
 

@@ -60,9 +60,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name
   CHKERRQ((*cfunc)(viewer,format,ctx,&vf));
   CHKERRQ(PetscObjectDereference((PetscObject)viewer));
   CHKERRQ(NEPMonitorSet(nep,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
-  if (trackall) {
-    CHKERRQ(NEPSetTrackAll(nep,PETSC_TRUE));
-  }
+  if (trackall) CHKERRQ(NEPSetTrackAll(nep,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -99,11 +97,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   CHKERRQ(NEPRegisterAll());
   ierr = PetscObjectOptionsBegin((PetscObject)nep);CHKERRQ(ierr);
     CHKERRQ(PetscOptionsFList("-nep_type","Nonlinear eigensolver method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,sizeof(type),&flg));
-    if (flg) {
-      CHKERRQ(NEPSetType(nep,type));
-    } else if (!((PetscObject)nep)->type_name) {
-      CHKERRQ(NEPSetType(nep,NEPRII));
-    }
+    if (flg) CHKERRQ(NEPSetType(nep,type));
+    else if (!((PetscObject)nep)->type_name) CHKERRQ(NEPSetType(nep,NEPRII));
 
     CHKERRQ(PetscOptionsBoolGroupBegin("-nep_general","General nonlinear eigenvalue problem","NEPSetProblemType",&flg));
     if (flg) CHKERRQ(NEPSetProblemType(nep,NEP_GENERAL));
@@ -148,9 +143,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     CHKERRQ(PetscOptionsInt("-nep_ncv","Number of basis vectors","NEPSetDimensions",nep->ncv,&j,&flg2));
     k = nep->mpd;
     CHKERRQ(PetscOptionsInt("-nep_mpd","Maximum dimension of projected problem","NEPSetDimensions",nep->mpd,&k,&flg3));
-    if (flg1 || flg2 || flg3) {
-      CHKERRQ(NEPSetDimensions(nep,i,j,k));
-    }
+    if (flg1 || flg2 || flg3) CHKERRQ(NEPSetDimensions(nep,i,j,k));
 
     CHKERRQ(PetscOptionsBoolGroupBegin("-nep_largest_magnitude","Compute largest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg));
     if (flg) CHKERRQ(NEPSetWhichEigenpairs(nep,NEP_LARGEST_MAGNITUDE));
@@ -175,9 +168,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
     CHKERRQ(PetscOptionsScalar("-nep_target","Value of the target","NEPSetTarget",nep->target,&s,&flg));
     if (flg) {
-      if (nep->which!=NEP_TARGET_REAL && nep->which!=NEP_TARGET_IMAGINARY) {
-        CHKERRQ(NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE));
-      }
+      if (nep->which!=NEP_TARGET_REAL && nep->which!=NEP_TARGET_IMAGINARY) CHKERRQ(NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE));
       CHKERRQ(NEPSetTarget(nep,s));
     }
 
@@ -202,9 +193,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     CHKERRQ(PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",NULL));
     CHKERRQ(PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",NULL));
 
-    if (nep->ops->setfromoptions) {
-      CHKERRQ((*nep->ops->setfromoptions)(PetscOptionsObject,nep));
-    }
+    if (nep->ops->setfromoptions) CHKERRQ((*nep->ops->setfromoptions)(PetscOptionsObject,nep));
     CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)nep));
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
@@ -699,9 +688,7 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nep->convergeddestroy) {
-    CHKERRQ((*nep->convergeddestroy)(nep->convergedctx));
-  }
+  if (nep->convergeddestroy) CHKERRQ((*nep->convergeddestroy)(nep->convergedctx));
   nep->convergeduser    = func;
   nep->convergeddestroy = destroy;
   nep->convergedctx     = ctx;
@@ -823,9 +810,7 @@ PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP,Pet
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nep->stoppingdestroy) {
-    CHKERRQ((*nep->stoppingdestroy)(nep->stoppingctx));
-  }
+  if (nep->stoppingdestroy) CHKERRQ((*nep->stoppingdestroy)(nep->stoppingctx));
   nep->stoppinguser    = func;
   nep->stoppingdestroy = destroy;
   nep->stoppingctx     = ctx;

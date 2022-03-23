@@ -76,9 +76,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   PetscCheck(eps->mpd>=initv,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The initv parameter has to be less than or equal to mpd");
 
   /* Change the default sigma to inf if necessary */
-  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) {
-    CHKERRQ(STSetDefaultShift(eps->st,PETSC_MAX_REAL));
-  }
+  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) CHKERRQ(STSetDefaultShift(eps->st,PETSC_MAX_REAL));
 
   /* Set up preconditioner */
   CHKERRQ(STSetUp(eps->st));
@@ -182,9 +180,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Setup orthogonalization */
   CHKERRQ(EPS_SetInnerProduct(eps));
-  if (!(ipB && dvd->B)) {
-    CHKERRQ(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
-  }
+  if (!(ipB && dvd->B)) CHKERRQ(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
 
   /* Configure dvd for a basic GD */
   CHKERRQ(dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,data->fix,init,eps->trackall,data->ipB,data->dynamic,data->doubleexp));

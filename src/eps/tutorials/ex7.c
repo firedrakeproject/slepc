@@ -80,9 +80,7 @@ int main(int argc,char **argv)
     PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file storing the constraints");
     CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
     CHKERRQ(VecDuplicateVecs(xr,ncon,&Cv));
-    for (i=0;i<ncon;i++) {
-      CHKERRQ(VecLoad(Cv[i],viewer));
-    }
+    for (i=0;i<ncon;i++) CHKERRQ(VecLoad(Cv[i],viewer));
     CHKERRQ(PetscViewerDestroy(&viewer));
   }
 
@@ -96,9 +94,7 @@ int main(int argc,char **argv)
     PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file containing the initial vectors");
     CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
     CHKERRQ(VecDuplicateVecs(xr,nini,&Iv));
-    for (i=0;i<nini;i++) {
-      CHKERRQ(VecLoad(Iv[i],viewer));
-    }
+    for (i=0;i<nini;i++) CHKERRQ(VecLoad(Iv[i],viewer));
     CHKERRQ(PetscViewerDestroy(&viewer));
   }
 
@@ -157,9 +153,8 @@ int main(int argc,char **argv)
      Show detailed info unless -terse option is given by user
    */
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) {
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  } else {
+  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
     CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
     CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
     CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
@@ -192,12 +187,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&B));
   CHKERRQ(VecDestroy(&xr));
   CHKERRQ(VecDestroy(&xi));
-  if (nini > 0) {
-    CHKERRQ(VecDestroyVecs(nini,&Iv));
-  }
-  if (ncon > 0) {
-    CHKERRQ(VecDestroyVecs(ncon,&Cv));
-  }
+  if (nini > 0) CHKERRQ(VecDestroyVecs(nini,&Iv));
+  if (ncon > 0) CHKERRQ(VecDestroyVecs(ncon,&Cv));
   ierr = SlepcFinalize();
   return ierr;
 }

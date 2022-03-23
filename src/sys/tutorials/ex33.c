@@ -24,9 +24,7 @@ int main(int argc,char **argv)
 
   CHKERRQ(SlepcGetVersion(version,sizeof(version)));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Version information:\n%s\n",version));
-  }
+  if (verbose) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Version information:\n%s\n",version));
 
   CHKERRQ(SlepcGetVersionNumber(&major,&minor,&subminor,NULL));
   PetscCheck(major==SLEPC_VERSION_MAJOR,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Library major %" PetscInt_FMT " does not equal include %d",major,SLEPC_VERSION_MAJOR);

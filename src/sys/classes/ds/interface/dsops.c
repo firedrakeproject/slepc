@@ -157,9 +157,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
     PetscCheck(k>=0 || k<=ds->n,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of k. Must be between 0 and n");
     ds->k = k;
   }
-  if (on!=ds->n || ol!=ds->l || ok!=ds->k) {
-    CHKERRQ(PetscInfo(ds,"New dimensions are: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k));
-  }
+  if (on!=ds->n || ol!=ds->l || ok!=ds->k) CHKERRQ(PetscInfo(ds,"New dimensions are: n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT "\n",ds->n,ds->l,ds->k));
   PetscFunctionReturn(0);
 }
 
@@ -248,9 +246,7 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n,PetscBool trim)
   CHKERRQ(PetscInfo(ds,"Decomposition %s to size n=%" PetscInt_FMT "\n",trim?"trimmed":"truncated",ds->n));
   old = ds->state;
   ds->state = trim? DS_STATE_RAW: DS_STATE_TRUNCATED;
-  if (old!=ds->state) {
-    CHKERRQ(PetscInfo(ds,"State has changed from %s to %s\n",DSStateTypes[old],DSStateTypes[ds->state]));
-  }
+  if (old!=ds->state) CHKERRQ(PetscInfo(ds,"State has changed from %s to %s\n",DSStateTypes[old],DSStateTypes[ds->state]));
   CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
@@ -283,9 +279,8 @@ PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckValidMat(ds,t,2);
-  if (ds->ops->matgetsize) {
-    CHKERRQ((*ds->ops->matgetsize)(ds,t,&rows,&cols));
-  } else {
+  if (ds->ops->matgetsize) CHKERRQ((*ds->ops->matgetsize)(ds,t,&rows,&cols));
+  else {
     if (ds->state==DS_STATE_TRUNCATED && t>=DS_MAT_Q) rows = ds->t;
     else rows = (t==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
     cols = ds->n;
@@ -322,9 +317,8 @@ PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
   PetscValidType(ds,1);
   DSCheckValidMat(ds,t,2);
   PetscValidBoolPointer(flg,3);
-  if (ds->ops->hermitian) {
-    CHKERRQ((*ds->ops->hermitian)(ds,t,flg));
-  } else *flg = PETSC_FALSE;
+  if (ds->ops->hermitian) CHKERRQ((*ds->ops->hermitian)(ds,t,flg));
+  else *flg = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -380,9 +374,7 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
   PetscValidLogicalCollectiveInt(ds,l,2);
   PetscValidLogicalCollectiveInt(ds,n,3);
   PetscValidIntPointer(k,4);
-  if (ds->ops->gettruncatesize) {
-    CHKERRQ((*ds->ops->gettruncatesize)(ds,l?l:ds->l,n?n:ds->n,k));
-  }
+  if (ds->ops->gettruncatesize) CHKERRQ((*ds->ops->gettruncatesize)(ds,l?l:ds->l,n?n:ds->n,k));
   PetscFunctionReturn(0);
 }
 
@@ -435,9 +427,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
       create=PETSC_TRUE;
     }
   }
-  if (create) {
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]));
-  }
+  if (create) CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]));
 
   /* set Hermitian flag */
   CHKERRQ(DSMatIsHermitian(ds,m,&flg));
@@ -448,9 +438,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   *A = ds->omat[m];
   M  = ds->mat[m];
   CHKERRQ(MatDenseGetArray(*A,&pA));
-  for (j=0;j<cols;j++) {
-    CHKERRQ(PetscArraycpy(pA+j*rows,M+j*ds->ld,rows));
-  }
+  for (j=0;j<cols;j++) CHKERRQ(PetscArraycpy(pA+j*rows,M+j*ds->ld,rows));
   CHKERRQ(MatDenseRestoreArray(*A,&pA));
   PetscFunctionReturn(0);
 }
@@ -493,9 +481,7 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
   CHKERRQ(MatGetSize(*A,&rows,&cols));
   M  = ds->mat[m];
   CHKERRQ(MatDenseGetArray(*A,&pA));
-  for (j=0;j<cols;j++) {
-    CHKERRQ(PetscArraycpy(M+j*ds->ld,pA+j*rows,rows));
-  }
+  for (j=0;j<cols;j++) CHKERRQ(PetscArraycpy(M+j*ds->ld,pA+j*rows,rows));
   CHKERRQ(MatDenseRestoreArray(*A,&pA));
   CHKERRQ(MatDestroy(A));
   PetscFunctionReturn(0);
@@ -798,9 +784,7 @@ PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size));
   if (size>1 && ds->pmode==DS_PARALLEL_SYNCHRONIZED) {
     CHKERRQ(PetscLogEventBegin(DS_Synchronize,ds,0,0,0));
-    if (ds->ops->synchronize) {
-      CHKERRQ((*ds->ops->synchronize)(ds,eigr,eigi));
-    }
+    if (ds->ops->synchronize) CHKERRQ((*ds->ops->synchronize)(ds,eigr,eigi));
     CHKERRQ(PetscLogEventEnd(DS_Synchronize,ds,0,0,0));
     CHKERRQ(PetscObjectStateIncrease((PetscObject)ds));
     CHKERRQ(PetscInfo(ds,"Synchronization completed (%s)\n",DSParallelTypes[ds->pmode]));
@@ -1082,11 +1066,8 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   M  = ds->mat[m];
   CHKERRQ(MatDenseGetArray(A,&pA));
   for (j=0;j<cols;j++) {
-    if (out) {
-      CHKERRQ(PetscArraycpy(pA+(Ac+j)*arows+Ar,M+(mc+j)*ds->ld+mr,rows));
-    } else {
-      CHKERRQ(PetscArraycpy(M+(mc+j)*ds->ld+mr,pA+(Ac+j)*arows+Ar,rows));
-    }
+    if (out) CHKERRQ(PetscArraycpy(pA+(Ac+j)*arows+Ar,M+(mc+j)*ds->ld+mr,rows));
+    else CHKERRQ(PetscArraycpy(M+(mc+j)*ds->ld+mr,pA+(Ac+j)*arows+Ar,rows));
   }
   CHKERRQ(MatDenseRestoreArray(A,&pA));
   PetscFunctionReturn(0);

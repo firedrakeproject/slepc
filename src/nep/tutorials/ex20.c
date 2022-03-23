@@ -176,11 +176,8 @@ int main(int argc,char **argv)
       re = lambda;
       im = 0.0;
 #endif
-      if (im!=0.0) {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi %12g     %12g\n",(double)re,(double)im,(double)norm,(double)error));
-      } else {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g     %12g\n",(double)re,(double)norm,(double)error));
-      }
+      if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi %12g     %12g\n",(double)re,(double)im,(double)norm,(double)error));
+      else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g     %12g\n",(double)re,(double)norm,(double)error));
       if (draw_sol) {
         CHKERRQ(PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1));
         CHKERRQ(VecView(x,PETSC_VIEWER_DRAW_WORLD));

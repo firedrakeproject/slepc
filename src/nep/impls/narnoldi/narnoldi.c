@@ -138,9 +138,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
       skip = PETSC_TRUE;
     }
     CHKERRQ((*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx));
-    if (!skip || nep->reason>0) {
-      CHKERRQ(NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
-    }
+    if (!skip || nep->reason>0) CHKERRQ(NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
@@ -148,9 +146,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
           nep->reason = NEP_DIVERGED_SUBSPACE_EXHAUSTED;
           break;
         }
-        if (ctx->lag && !(nep->its%ctx->lag) && nep->its>=2*ctx->lag && perr && nep->errest[nep->nconv]>.5*perr) {
-          CHKERRQ(NEPDeflationSolveSetUp(extop,lambda2));
-        }
+        if (ctx->lag && !(nep->its%ctx->lag) && nep->its>=2*ctx->lag && perr && nep->errest[nep->nconv]>.5*perr) CHKERRQ(NEPDeflationSolveSetUp(extop,lambda2));
 
         /* continuation vector: f = T(sigma)\r */
         CHKERRQ(BVGetColumn(Vext,n,&f));
@@ -399,9 +395,7 @@ PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
   PetscFunctionBegin;
   CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    if (ctx->lag) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %" PetscInt_FMT " iterations\n",ctx->lag));
-    }
+    if (ctx->lag) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %" PetscInt_FMT " iterations\n",ctx->lag));
     if (!ctx->ksp) CHKERRQ(NEPNArnoldiGetKSP(nep,&ctx->ksp));
     CHKERRQ(PetscViewerASCIIPushTab(viewer));
     CHKERRQ(KSPView(ctx->ksp,viewer));

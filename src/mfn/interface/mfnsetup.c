@@ -45,13 +45,9 @@ PetscErrorCode MFNSetUp(MFN mfn)
   CHKERRQ(PetscLogEventBegin(MFN_SetUp,mfn,0,0,0));
 
   /* Set default solver type (MFNSetFromOptions was not called) */
-  if (!((PetscObject)mfn)->type_name) {
-    CHKERRQ(MFNSetType(mfn,MFNKRYLOV));
-  }
+  if (!((PetscObject)mfn)->type_name) CHKERRQ(MFNSetType(mfn,MFNKRYLOV));
   if (!mfn->fn) CHKERRQ(MFNGetFN(mfn,&mfn->fn));
-  if (!((PetscObject)mfn->fn)->type_name) {
-    CHKERRQ(FNSetFromOptions(mfn->fn));
-  }
+  if (!((PetscObject)mfn->fn)->type_name) CHKERRQ(FNSetFromOptions(mfn->fn));
 
   /* Check problem dimensions */
   PetscCheck(mfn->A,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
@@ -162,14 +158,10 @@ PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
   /* allocate basis vectors */
   if (!mfn->V) CHKERRQ(MFNGetBV(mfn,&mfn->V));
   if (!oldsize) {
-    if (!((PetscObject)(mfn->V))->type_name) {
-      CHKERRQ(BVSetType(mfn->V,BVSVEC));
-    }
+    if (!((PetscObject)(mfn->V))->type_name) CHKERRQ(BVSetType(mfn->V,BVSVEC));
     CHKERRQ(MatCreateVecsEmpty(mfn->A,&t,NULL));
     CHKERRQ(BVSetSizesFromVec(mfn->V,t,requested));
     CHKERRQ(VecDestroy(&t));
-  } else {
-    CHKERRQ(BVResize(mfn->V,requested,PETSC_FALSE));
-  }
+  } else CHKERRQ(BVResize(mfn->V,requested,PETSC_FALSE));
   PetscFunctionReturn(0);
 }
