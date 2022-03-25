@@ -1086,7 +1086,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
 {
-  PetscBLASInt   n=0,ld,ld2,*piv,info,one=1,zero=0;
+  PetscBLASInt   n=0,ld,ld2,*piv,one=1,zero=0;
   PetscInt       m,k,sexp;
   PetscBool      odd;
   const PetscInt p=MAX_PADE;
@@ -1161,8 +1161,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Q,ld,d_As,ld,&szero,d_W,ld));
     SWAP(d_Q,d_W,aux);
     PetscCallCUBLAS(cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one));
-    CHKERRMAGMA(magma_xgesv_gpu(n,n,d_Q,ld,piv,d_P,ld,&info));
-    PetscCheck(!info,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %" PetscBLASInt_FMT,info);
+    PetscCallMAGMA(magma_xgesv_gpu,n,n,d_Q,ld,piv,d_P,ld);
     PetscCallCUBLAS(cublasXscal(cublasv2handle,ld2,&stwo,d_P,one));
     PetscCall(shift_diagonal(n,d_P,ld,sone));
     PetscCallCUBLAS(cublasXscal(cublasv2handle,ld2,&smone,d_P,one));
@@ -1170,8 +1169,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_As,ld,&szero,d_W,ld));
     SWAP(d_P,d_W,aux);
     PetscCallCUBLAS(cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one));
-    CHKERRMAGMA(magma_xgesv_gpu(n,n,d_Q,ld,piv,d_P,ld,&info));
-    PetscCheck(!info,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %" PetscBLASInt_FMT,info);
+    PetscCallMAGMA(magma_xgesv_gpu,n,n,d_Q,ld,piv,d_P,ld);
     PetscCallCUBLAS(cublasXscal(cublasv2handle,ld2,&stwo,d_P,one));
     PetscCall(shift_diagonal(n,d_P,ld,sone));
   }
@@ -1207,7 +1205,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
  */
 PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
 {
-  PetscBLASInt      n_=0,n2,*ipiv,info,one=1;
+  PetscBLASInt      n_=0,n2,*ipiv,one=1;
   PetscInt          n,m,j,s,zero=0;
   PetscScalar       scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
   PetscScalar       *Aa,*Ba,*d_Ba,*Apowers[5],*d_Apowers[5],*d_Q,*d_P,*d_W,*work,*d_work,*aux;
@@ -1338,8 +1336,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   }
   PetscCallCUBLAS(cublasXaxpy(cublasv2handle,n2,&smone,d_P,one,d_Q,one));
 
-  CHKERRMAGMA(magma_xgesv_gpu(n_,n_,d_Q,n_,ipiv,d_P,n_,&info));
-  PetscCheck(!info,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %" PetscBLASInt_FMT,info);
+  PetscCallMAGMA(magma_xgesv_gpu,n_,n_,d_Q,n_,ipiv,d_P,n_);
 
   PetscCallCUBLAS(cublasXscal(cublasv2handle,n2,&stwo,d_P,one));
   PetscCall(shift_diagonal(n,d_P,n,sone));
@@ -1376,7 +1373,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscInt       i,j,n_,s,k,m,zero=0,mod;
-  PetscBLASInt   n=0,n2=0,irsize=0,rsizediv2,ipsize=0,iremainsize=0,query=-1,info,*piv,minlen,lwork=0,one=1;
+  PetscBLASInt   n=0,n2=0,irsize=0,rsizediv2,ipsize=0,iremainsize=0,query=-1,*piv,minlen,lwork=0,one=1;
   PetscReal      nrm,shift=0.0,rone=1.0,rzero=0.0;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork=NULL;
@@ -1413,22 +1410,19 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     PetscCall(PetscArraycpy(sMaux,Aa,n2));
     /* estimate rightmost eigenvalue and shift A with it */
 #if !defined(PETSC_USE_COMPLEX)
-    CHKERRMAGMA(magma_xgeev(MagmaNoVec,MagmaNoVec,n,sMaux,n,wr,wi,NULL,n,NULL,n,&work1,query,&info));
-    SlepcCheckLapackInfo("geev",info);
+    PetscCallMAGMA(magma_xgeev,MagmaNoVec,MagmaNoVec,n,sMaux,n,wr,wi,NULL,n,NULL,n,&work1,query);
     PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork));
     PetscCall(PetscMalloc1(lwork,&work));
-    CHKERRMAGMA(magma_xgeev(MagmaNoVec,MagmaNoVec,n,sMaux,n,wr,wi,NULL,n,NULL,n,work,lwork,&info));
+    PetscCallMAGMA(magma_xgeev,MagmaNoVec,MagmaNoVec,n,sMaux,n,wr,wi,NULL,n,NULL,n,work,lwork);
     PetscCall(PetscFree(work));
 #else
     PetscCall(PetscArraycpy(Maux,Aa,n2));
-    CHKERRMAGMA(magma_xgeev(MagmaNoVec,MagmaNoVec,n,Maux,n,wr,NULL,n,NULL,n,&work1,query,rwork,&info));
-    SlepcCheckLapackInfo("geev",info);
+    PetscCallMAGMA(magma_xgeev,MagmaNoVec,MagmaNoVec,n,Maux,n,wr,NULL,n,NULL,n,&work1,query,rwork);
     PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork));
     PetscCall(PetscMalloc2(2*n,&rwork,lwork,&work));
-    CHKERRMAGMA(magma_xgeev(MagmaNoVec,MagmaNoVec,n,Maux,n,wr,NULL,n,NULL,n,work,lwork,rwork,&info));
+    PetscCallMAGMA(magma_xgeev,MagmaNoVec,MagmaNoVec,n,Maux,n,wr,NULL,n,NULL,n,work,lwork,rwork);
     PetscCall(PetscFree2(rwork,work));
 #endif
-    SlepcCheckLapackInfo("geev",info);
     PetscCall(PetscLogGpuFlops(25.0*n*n*n+(n*n*n)/3.0+1.0*n*n*n));
 
     shift = PetscRealPart(wr[0]);
@@ -1510,8 +1504,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
         PetscCallCUDA(cudaMemset(d_RR,zero,sizeof(PetscComplex)*n2));
         PetscCall(shift_Cdiagonal(n,d_Maux,n,-PetscRealPartComplex(p[2*i]),-PetscImaginaryPartComplex(p[2*i])));
         PetscCall(set_Cdiagonal(n,d_RR,n,PetscRealPartComplex(r[2*i]),PetscImaginaryPartComplex(r[2*i])));
-        CHKERRMAGMA(magma_Cgesv_gpu(n,n,d_Maux,n,piv,d_RR,n,&info));
-        SlepcCheckLapackInfo("gesv",info);
+        PetscCallMAGMA(magma_Cgesv_gpu,n,n,d_Maux,n,piv,d_RR,n);
         PetscCall(add_array2D_Conj(n,n,d_RR,n));
         PetscCallCUBLAS(cublasXCaxpy(cublasv2handle,n2,&cone,d_RR,one,d_expmA,one));
         /* shift(n) + gesv + axpy(n2) */
@@ -1524,8 +1517,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
         PetscCallCUDA(cudaMemset(d_RR,zero,sizeof(PetscComplex)*n2));
         PetscCall(shift_Cdiagonal(n,d_Maux,n,-PetscRealPartComplex(p[ipsize-1]),-PetscImaginaryPartComplex(p[ipsize-1])));
         PetscCall(set_Cdiagonal(n,d_RR,n,PetscRealPartComplex(r[irsize-1]),PetscImaginaryPartComplex(r[irsize-1])));
-        CHKERRMAGMA(magma_Cgesv_gpu(n,n,d_Maux,n,piv,d_RR,n,&info));
-        SlepcCheckLapackInfo("gesv",info);
+        PetscCallMAGMA(magma_Cgesv_gpu,n,n,d_Maux,n,piv,d_RR,n);
         PetscCallCUBLAS(cublasXCaxpy(cublasv2handle,n2,&cone,d_RR,one,d_expmA,one));
         PetscCall(SlepcLogGpuFlopsComplex(1.0*n+(2.0*n*n*n/3.0+2.0*n*n*n)+1.0*n2));
       }
@@ -1535,8 +1527,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
         PetscCallCUDA(cudaMemset(d_RR,zero,sizeof(PetscComplex)*n2));
         PetscCall(shift_Cdiagonal(n,d_Maux,n,-PetscRealPartComplex(p[i]),-PetscImaginaryPartComplex(p[i])));
         PetscCall(set_Cdiagonal(n,d_RR,n,PetscRealPartComplex(r[i]),PetscImaginaryPartComplex(r[i])));
-        CHKERRMAGMA(magma_Cgesv_gpu(n,n,d_Maux,n,piv,d_RR,n,&info));
-        SlepcCheckLapackInfo("gesv",info);
+        PetscCallMAGMA(magma_Cgesv_gpu,n,n,d_Maux,n,piv,d_RR,n);
         PetscCallCUBLAS(cublasXCaxpy(cublasv2handle,n2,&cone,d_RR,one,d_expmA,one));
         PetscCall(SlepcLogGpuFlopsComplex(1.0*n+(2.0*n*n*n/3.0+2.0*n*n*n)+1.0*n2));
       }
@@ -1576,8 +1567,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
       SWAP(d_expmA,d_Maux,aux);
       PetscCallCUDA(cudaMemcpy(d_RR,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
       PetscCall(shift_Cdiagonal(n,d_RR,n,-PetscRealPartComplex(rootq[i]),-PetscImaginaryPartComplex(rootq[i])));
-      CHKERRMAGMA(magma_Cgesv_gpu(n,n,d_RR,n,piv,d_expmA,n,&info));
-      SlepcCheckLapackInfo("gesv",info);
+      PetscCallMAGMA(magma_Cgesv_gpu,n,n,d_RR,n,piv,d_expmA,n);
       /* shift(n) + gemm + shift(n) + gesv */
       PetscCall(SlepcLogGpuFlopsComplex(1.0*n+(2.0*n*n*n)+1.0*n+(2.0*n*n*n/3.0+2.0*n*n*n)));
     }
@@ -1593,8 +1583,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     for (i=minlen;i<ipsize;i++) {
       PetscCallCUDA(cudaMemcpy(d_RR,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
       PetscCall(shift_Cdiagonal(n,d_RR,n,-PetscRealPartComplex(rootq[i]),-PetscImaginaryPartComplex(rootq[i])));
-      CHKERRMAGMA(magma_Cgesv_gpu(n,n,d_RR,n,piv,d_expmA,n,&info));
-      SlepcCheckLapackInfo("gesv",info);
+      PetscCallMAGMA(magma_Cgesv_gpu,n,n,d_RR,n,piv,d_expmA,n);
       PetscCall(SlepcLogGpuFlopsComplex(1.0*n+(2.0*n*n*n/3.0+2.0*n*n*n)));
     }
     PetscCallCUBLAS(cublasXCscal(cublasv2handle,n2,&mult,d_expmA,one));

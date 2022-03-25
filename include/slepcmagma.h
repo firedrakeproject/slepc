@@ -15,7 +15,15 @@
 #define SLEPCMAGMA_H
 
 #include <magma_v2.h>
-#define CHKERRMAGMA(mierr) PetscCallAbort(PETSC_COMM_SELF,mierr)
+
+#define PetscCallMAGMA(func, ...) do { \
+    PetscErrorCode magma_ierr_; \
+    PetscStackPush(PetscStringize(func)); \
+    func(__VA_ARGS__,&magma_ierr_); \
+    PetscStackPop; \
+    PetscCheck(!magma_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(__VA_ARGS__,&magma_ierr)),magma_ierr_); \
+  } while (0)
+#define CHKERRMAGMA(...) PetscCall(__VA_ARGS__)
 
 #if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_REAL_SINGLE)

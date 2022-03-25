@@ -428,7 +428,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
   PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
   PetscReal      tol,Mres=0.0,detM,g,reldiff,fnormdiff,fnormT,prod;
   PetscInt       i,it,lwork,nb;
-  PetscBLASInt   N,one=1,info,*piv=NULL;
+  PetscBLASInt   N,one=1,*piv=NULL;
   PetscBool      converged=PETSC_FALSE,scale=PETSC_FALSE;
   cublasHandle_t cublasv2handle;
 
@@ -460,9 +460,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
 
     if (scale) { /* g = (abs(det(M)))^(-1/(2*n)); */
       PetscCallCUDA(cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
-      CHKERRMAGMA(magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info));
-      PetscCheck(info>=0,PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
-      PetscCheck(info<=0,PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
+      PetscCallMAGMA(magma_xgetrf_gpu,n,n,d_invM,ld,piv);
 
       /* XXX pending */
 //      PetscCall(mult_diagonal(d_invM,n,ld,&detM));
@@ -481,12 +479,8 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     PetscCallCUDA(cudaMemcpy(d_Told,d_T,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
     PetscCallCUDA(cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
 
-    CHKERRMAGMA(magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info));
-    PetscCheck(info>=0,PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
-    PetscCheck(info<=0,PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
-    CHKERRMAGMA(magma_xgetri_gpu(n,d_invM,ld,piv,d_work,lwork,&info));
-    PetscCheck(info>=0,PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %" PetscBLASInt_FMT,PetscAbsInt(info));
-    PetscCheck(info<=0,PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%" PetscBLASInt_FMT ",%" PetscBLASInt_FMT ") is zero",info,info);
+    PetscCallMAGMA(magma_xgetrf_gpu,n,n,d_invM,ld,piv);
+    PetscCallMAGMA(magma_xgetri_gpu,n,d_invM,ld,piv,d_work,lwork);
     PetscCall(PetscLogGpuFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0));
 
     PetscCall(shift_diagonal(n,d_invM,ld,sone));
