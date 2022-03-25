@@ -23,8 +23,8 @@ PetscErrorCode STSetDefaultKSP(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  if (!st->ksp) CHKERRQ(STGetKSP(st,&st->ksp));
-  if (st->ops->setdefaultksp) CHKERRQ((*st->ops->setdefaultksp)(st));
+  if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
+  if (st->ops->setdefaultksp) PetscCall((*st->ops->setdefaultksp)(st));
   PetscFunctionReturn(0);
 }
 
@@ -39,22 +39,22 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
   KSPType        ksptype;
 
   PetscFunctionBegin;
-  CHKERRQ(KSPGetPC(st->ksp,&pc));
-  CHKERRQ(KSPGetType(st->ksp,&ksptype));
-  CHKERRQ(PCGetType(pc,&pctype));
+  PetscCall(KSPGetPC(st->ksp,&pc));
+  PetscCall(KSPGetType(st->ksp,&ksptype));
+  PetscCall(PCGetType(pc,&pctype));
   if (!pctype && !ksptype) {
     if (st->Pmat || st->Psplit) {
-      CHKERRQ(KSPSetType(st->ksp,KSPBCGS));
-      CHKERRQ(PCSetType(pc,PCBJACOBI));
+      PetscCall(KSPSetType(st->ksp,KSPBCGS));
+      PetscCall(PCSetType(pc,PCBJACOBI));
     } else if (st->matmode == ST_MATMODE_SHELL) {
-      CHKERRQ(KSPSetType(st->ksp,KSPGMRES));
-      CHKERRQ(PCSetType(pc,PCJACOBI));
+      PetscCall(KSPSetType(st->ksp,KSPGMRES));
+      PetscCall(PCSetType(pc,PCJACOBI));
     } else {
-      CHKERRQ(KSPSetType(st->ksp,KSPPREONLY));
-      CHKERRQ(PCSetType(pc,st->asymm?PCCHOLESKY:PCLU));
+      PetscCall(KSPSetType(st->ksp,KSPPREONLY));
+      PetscCall(PCSetType(pc,st->asymm?PCCHOLESKY:PCLU));
     }
   }
-  CHKERRQ(KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE));
+  PetscCall(KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -86,15 +86,15 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   STCheckMatrices(st,1);
   PetscCheck(k>=0 && k<PetscMax(2,st->nmat),PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat);
   PetscCheck(x!=y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
-  CHKERRQ(VecSetErrorIfLocked(y,3));
+  PetscCall(VecSetErrorIfLocked(y,3));
 
-  if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
-  CHKERRQ(VecLockReadPush(x));
-  CHKERRQ(PetscLogEventBegin(ST_MatMult,st,x,y,0));
-  if (!st->T[k]) CHKERRQ(VecCopy(x,y)); /* T[k]=NULL means identity matrix */
-  else CHKERRQ(MatMult(st->T[k],x,y));
-  CHKERRQ(PetscLogEventEnd(ST_MatMult,st,x,y,0));
-  CHKERRQ(VecLockReadPop(x));
+  if (st->state!=ST_STATE_SETUP) PetscCall(STSetUp(st));
+  PetscCall(VecLockReadPush(x));
+  PetscCall(PetscLogEventBegin(ST_MatMult,st,x,y,0));
+  if (!st->T[k]) PetscCall(VecCopy(x,y)); /* T[k]=NULL means identity matrix */
+  else PetscCall(MatMult(st->T[k],x,y));
+  PetscCall(PetscLogEventEnd(ST_MatMult,st,x,y,0));
+  PetscCall(VecLockReadPop(x));
   PetscFunctionReturn(0);
 }
 
@@ -126,15 +126,15 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   STCheckMatrices(st,1);
   PetscCheck(k>=0 && k<PetscMax(2,st->nmat),PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %" PetscInt_FMT,st->nmat);
   PetscCheck(x!=y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
-  CHKERRQ(VecSetErrorIfLocked(y,3));
+  PetscCall(VecSetErrorIfLocked(y,3));
 
-  if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
-  CHKERRQ(VecLockReadPush(x));
-  CHKERRQ(PetscLogEventBegin(ST_MatMultTranspose,st,x,y,0));
-  if (!st->T[k]) CHKERRQ(VecCopy(x,y)); /* T[k]=NULL means identity matrix */
-  else CHKERRQ(MatMultTranspose(st->T[k],x,y));
-  CHKERRQ(PetscLogEventEnd(ST_MatMultTranspose,st,x,y,0));
-  CHKERRQ(VecLockReadPop(x));
+  if (st->state!=ST_STATE_SETUP) PetscCall(STSetUp(st));
+  PetscCall(VecLockReadPush(x));
+  PetscCall(PetscLogEventBegin(ST_MatMultTranspose,st,x,y,0));
+  if (!st->T[k]) PetscCall(VecCopy(x,y)); /* T[k]=NULL means identity matrix */
+  else PetscCall(MatMultTranspose(st->T[k],x,y));
+  PetscCall(PetscLogEventEnd(ST_MatMultTranspose,st,x,y,0));
+  PetscCall(VecLockReadPop(x));
   PetscFunctionReturn(0);
 }
 
@@ -163,15 +163,15 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   STCheckMatrices(st,1);
   PetscCheck(x!=b,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
-  CHKERRQ(VecSetErrorIfLocked(x,3));
+  PetscCall(VecSetErrorIfLocked(x,3));
 
-  if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
-  CHKERRQ(VecLockReadPush(b));
-  CHKERRQ(PetscLogEventBegin(ST_MatSolve,st,b,x,0));
-  if (!st->P) CHKERRQ(VecCopy(b,x)); /* P=NULL means identity matrix */
-  else CHKERRQ(KSPSolve(st->ksp,b,x));
-  CHKERRQ(PetscLogEventEnd(ST_MatSolve,st,b,x,0));
-  CHKERRQ(VecLockReadPop(b));
+  if (st->state!=ST_STATE_SETUP) PetscCall(STSetUp(st));
+  PetscCall(VecLockReadPush(b));
+  PetscCall(PetscLogEventBegin(ST_MatSolve,st,b,x,0));
+  if (!st->P) PetscCall(VecCopy(b,x)); /* P=NULL means identity matrix */
+  else PetscCall(KSPSolve(st->ksp,b,x));
+  PetscCall(PetscLogEventEnd(ST_MatSolve,st,b,x,0));
+  PetscCall(VecLockReadPop(b));
   PetscFunctionReturn(0);
 }
 
@@ -200,11 +200,11 @@ PetscErrorCode STMatMatSolve(ST st,Mat B,Mat X)
   PetscValidHeaderSpecific(X,MAT_CLASSID,3);
   STCheckMatrices(st,1);
 
-  if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
-  CHKERRQ(PetscLogEventBegin(ST_MatSolve,st,B,X,0));
-  if (!st->P) CHKERRQ(MatCopy(B,X,SAME_NONZERO_PATTERN)); /* P=NULL means identity matrix */
-  else CHKERRQ(KSPMatSolve(st->ksp,B,X));
-  CHKERRQ(PetscLogEventEnd(ST_MatSolve,st,B,X,0));
+  if (st->state!=ST_STATE_SETUP) PetscCall(STSetUp(st));
+  PetscCall(PetscLogEventBegin(ST_MatSolve,st,B,X,0));
+  if (!st->P) PetscCall(MatCopy(B,X,SAME_NONZERO_PATTERN)); /* P=NULL means identity matrix */
+  else PetscCall(KSPMatSolve(st->ksp,B,X));
+  PetscCall(PetscLogEventEnd(ST_MatSolve,st,B,X,0));
   PetscFunctionReturn(0);
 }
 
@@ -233,15 +233,15 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   STCheckMatrices(st,1);
   PetscCheck(x!=b,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and b must be different vectors");
-  CHKERRQ(VecSetErrorIfLocked(x,3));
+  PetscCall(VecSetErrorIfLocked(x,3));
 
-  if (st->state!=ST_STATE_SETUP) CHKERRQ(STSetUp(st));
-  CHKERRQ(VecLockReadPush(b));
-  CHKERRQ(PetscLogEventBegin(ST_MatSolveTranspose,st,b,x,0));
-  if (!st->P) CHKERRQ(VecCopy(b,x)); /* P=NULL means identity matrix */
-  else CHKERRQ(KSPSolveTranspose(st->ksp,b,x));
-  CHKERRQ(PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0));
-  CHKERRQ(VecLockReadPop(b));
+  if (st->state!=ST_STATE_SETUP) PetscCall(STSetUp(st));
+  PetscCall(VecLockReadPush(b));
+  PetscCall(PetscLogEventBegin(ST_MatSolveTranspose,st,b,x,0));
+  if (!st->P) PetscCall(VecCopy(b,x)); /* P=NULL means identity matrix */
+  else PetscCall(KSPSolveTranspose(st->ksp,b,x));
+  PetscCall(PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0));
+  PetscCall(VecLockReadPop(b));
   PetscFunctionReturn(0);
 }
 
@@ -253,12 +253,12 @@ PetscErrorCode STCheckFactorPackage(ST st)
   MatSolverType  stype;
 
   PetscFunctionBegin;
-  CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)st),&size));
+  PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)st),&size));
   if (size==1) PetscFunctionReturn(0);
-  CHKERRQ(KSPGetPC(st->ksp,&pc));
-  CHKERRQ(PCFactorGetMatSolverType(pc,&stype));
+  PetscCall(KSPGetPC(st->ksp,&pc));
+  PetscCall(PCFactorGetMatSolverType(pc,&stype));
   if (stype) {   /* currently selected PC is a factorization */
-    CHKERRQ(PetscStrcmp(stype,MATSOLVERPETSC,&flg));
+    PetscCall(PetscStrcmp(stype,MATSOLVERPETSC,&flg));
     PetscCheck(!flg,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"You chose to solve linear systems with a factorization, but in parallel runs you need to select an external package; see the users guide for details");
   }
   PetscFunctionReturn(0);
@@ -285,10 +285,10 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(st,1,ksp,2);
   STCheckNotSeized(st,1);
-  CHKERRQ(PetscObjectReference((PetscObject)ksp));
-  CHKERRQ(KSPDestroy(&st->ksp));
+  PetscCall(PetscObjectReference((PetscObject)ksp));
+  PetscCall(KSPDestroy(&st->ksp));
   st->ksp = ksp;
-  CHKERRQ(PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp));
+  PetscCall(PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp));
   PetscFunctionReturn(0);
 }
 
@@ -314,13 +314,13 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(ksp,2);
   if (!st->ksp) {
-    CHKERRQ(KSPCreate(PetscObjectComm((PetscObject)st),&st->ksp));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1));
-    CHKERRQ(KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix));
-    CHKERRQ(KSPAppendOptionsPrefix(st->ksp,"st_"));
-    CHKERRQ(PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)st->ksp,((PetscObject)st)->options));
-    CHKERRQ(KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPCreate(PetscObjectComm((PetscObject)st),&st->ksp));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1));
+    PetscCall(KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix));
+    PetscCall(KSPAppendOptionsPrefix(st->ksp,"st_"));
+    PetscCall(PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp));
+    PetscCall(PetscObjectSetOptions((PetscObject)st->ksp,((PetscObject)st)->options));
+    PetscCall(KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = st->ksp;
   PetscFunctionReturn(0);
@@ -336,33 +336,33 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
   MatNullSpace   nullsp;
 
   PetscFunctionBegin;
-  CHKERRQ(BVGetNumConstraints(V,&nc));
-  CHKERRQ(PetscMalloc1(nc,&T));
-  if (!st->ksp) CHKERRQ(STGetKSP(st,&st->ksp));
-  CHKERRQ(KSPGetPC(st->ksp,&pc));
-  CHKERRQ(PCGetOperators(pc,&A,NULL));
-  CHKERRQ(MatCreateVecs(A,NULL,&w));
+  PetscCall(BVGetNumConstraints(V,&nc));
+  PetscCall(PetscMalloc1(nc,&T));
+  if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
+  PetscCall(KSPGetPC(st->ksp,&pc));
+  PetscCall(PCGetOperators(pc,&A,NULL));
+  PetscCall(MatCreateVecs(A,NULL,&w));
   c = 0;
   for (i=0;i<nc;i++) {
-    CHKERRQ(BVGetColumn(V,-nc+i,&vi));
-    CHKERRQ(MatMult(A,vi,w));
-    CHKERRQ(VecNorm(w,NORM_2,&norm));
+    PetscCall(BVGetColumn(V,-nc+i,&vi));
+    PetscCall(MatMult(A,vi,w));
+    PetscCall(VecNorm(w,NORM_2,&norm));
     if (norm < 10.0*PETSC_SQRT_MACHINE_EPSILON) {
-      CHKERRQ(PetscInfo(st,"Vector %" PetscInt_FMT " included in the nullspace of OP, norm=%g\n",i,(double)norm));
-      CHKERRQ(BVCreateVec(V,T+c));
-      CHKERRQ(VecCopy(vi,T[c]));
-      CHKERRQ(VecNormalize(T[c],NULL));
+      PetscCall(PetscInfo(st,"Vector %" PetscInt_FMT " included in the nullspace of OP, norm=%g\n",i,(double)norm));
+      PetscCall(BVCreateVec(V,T+c));
+      PetscCall(VecCopy(vi,T[c]));
+      PetscCall(VecNormalize(T[c],NULL));
       c++;
-    } else CHKERRQ(PetscInfo(st,"Vector %" PetscInt_FMT " discarded as possible nullspace of OP, norm=%g\n",i,(double)norm));
-    CHKERRQ(BVRestoreColumn(V,-nc+i,&vi));
+    } else PetscCall(PetscInfo(st,"Vector %" PetscInt_FMT " discarded as possible nullspace of OP, norm=%g\n",i,(double)norm));
+    PetscCall(BVRestoreColumn(V,-nc+i,&vi));
   }
-  CHKERRQ(VecDestroy(&w));
+  PetscCall(VecDestroy(&w));
   if (c>0) {
-    CHKERRQ(MatNullSpaceCreate(PetscObjectComm((PetscObject)st),PETSC_FALSE,c,T,&nullsp));
-    CHKERRQ(MatSetNullSpace(A,nullsp));
-    CHKERRQ(MatNullSpaceDestroy(&nullsp));
-    CHKERRQ(VecDestroyVecs(c,&T));
-  } else CHKERRQ(PetscFree(T));
+    PetscCall(MatNullSpaceCreate(PetscObjectComm((PetscObject)st),PETSC_FALSE,c,T,&nullsp));
+    PetscCall(MatSetNullSpace(A,nullsp));
+    PetscCall(MatNullSpaceDestroy(&nullsp));
+    PetscCall(VecDestroyVecs(c,&T));
+  } else PetscCall(PetscFree(T));
   PetscFunctionReturn(0);
 }
 
@@ -399,7 +399,7 @@ PetscErrorCode STCheckNullSpace(ST st,BV V)
   PetscCheckSameComm(st,1,V,2);
   PetscCheck(st->state,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must call STSetUp() first");
 
-  CHKERRQ(BVGetNumConstraints(V,&nc));
-  if (nc && st->ops->checknullspace) CHKERRQ((*st->ops->checknullspace)(st,V));
+  PetscCall(BVGetNumConstraints(V,&nc));
+  if (nc && st->ops->checknullspace) PetscCall((*st->ops->checknullspace)(st,V));
   PetscFunctionReturn(0);
 }

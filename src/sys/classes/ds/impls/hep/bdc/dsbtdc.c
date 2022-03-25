@@ -608,7 +608,7 @@ L20:
     /* call the block-tridiagonal divide-and-conquer on the */
     /* irreducible subproblem which has been identified */
 
-    CHKERRQ(BDC_dibtdc_(jobz, nk, nrblks, &ksizes[start], &d[start*l1d*l2d], l1d, l2d,
+    PetscCall(BDC_dibtdc_(jobz, nk, nrblks, &ksizes[start], &d[start*l1d*l2d], l1d, l2d,
                 &e[start*l2e*l1e], &iwork[start], l1e, l2e, tau2, &ev[np],
                 &z[np + np*ldz], ldz, work, lwork, &iwork[nblks-1], liwork, info, 1));
     PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_LIB,"dsbtdc: Error in DIBTDC, info = %" PetscBLASInt_FMT,*info);

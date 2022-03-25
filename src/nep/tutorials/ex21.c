@@ -64,11 +64,11 @@ int main(int argc,char **argv)
   PetscMPIInt    rank,size;
   PetscBool      terse;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
-  CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
+  PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
   ctx.h = 1.0/(PetscReal)n;
   ctx.kappa = 1.0;
 
@@ -76,92 +76,92 @@ int main(int argc,char **argv)
      Create nonlinear eigensolver context
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(NEPCreate(PETSC_COMM_WORLD,&nep));
+  PetscCall(NEPCreate(PETSC_COMM_WORLD,&nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create matrix data structure; set Function evaluation routine
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PetscNew(&ctxF));
+  PetscCall(PetscNew(&ctxF));
   ctxF->h = ctx.h;
   ctxF->kappa = ctx.kappa;
   ctxF->next = rank==size-1? MPI_PROC_NULL: rank+1;
   ctxF->prev = rank==0? MPI_PROC_NULL: rank-1;
 
-  CHKERRQ(MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,(void*)ctxF,&F));
-  CHKERRQ(MatShellSetOperation(F,MATOP_MULT,(void(*)(void))MatMult_Fun));
-  CHKERRQ(MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun));
-  CHKERRQ(MatShellSetOperation(F,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun));
-  CHKERRQ(MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Fun));
+  PetscCall(MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,(void*)ctxF,&F));
+  PetscCall(MatShellSetOperation(F,MATOP_MULT,(void(*)(void))MatMult_Fun));
+  PetscCall(MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun));
+  PetscCall(MatShellSetOperation(F,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun));
+  PetscCall(MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Fun));
 
   /*
      Set Function matrix data structure and default Function evaluation
      routine
   */
-  CHKERRQ(NEPSetFunction(nep,F,F,FormFunction,NULL));
+  PetscCall(NEPSetFunction(nep,F,F,FormFunction,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create matrix data structure; set Jacobian evaluation routine
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PetscNew(&ctxJ));
+  PetscCall(PetscNew(&ctxJ));
   ctxJ->h = ctx.h;
   ctxJ->kappa = ctx.kappa;
   ctxJ->next = rank==size-1? MPI_PROC_NULL: rank+1;
   ctxJ->prev = rank==0? MPI_PROC_NULL: rank-1;
 
-  CHKERRQ(MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,(void*)ctxJ,&J));
-  CHKERRQ(MatShellSetOperation(J,MATOP_MULT,(void(*)(void))MatMult_Jac));
-  CHKERRQ(MatShellSetOperation(J,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Jac));
-  CHKERRQ(MatShellSetOperation(J,MATOP_DESTROY,(void(*)(void))MatDestroy_Jac));
+  PetscCall(MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,(void*)ctxJ,&J));
+  PetscCall(MatShellSetOperation(J,MATOP_MULT,(void(*)(void))MatMult_Jac));
+  PetscCall(MatShellSetOperation(J,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Jac));
+  PetscCall(MatShellSetOperation(J,MATOP_DESTROY,(void(*)(void))MatDestroy_Jac));
 
   /*
      Set Jacobian matrix data structure and default Jacobian evaluation
      routine
   */
-  CHKERRQ(NEPSetJacobian(nep,J,FormJacobian,NULL));
+  PetscCall(NEPSetJacobian(nep,J,FormJacobian,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(NEPSetType(nep,NEPRII));
-  CHKERRQ(NEPRIISetLagPreconditioner(nep,0));
-  CHKERRQ(NEPRIIGetKSP(nep,&ksp));
-  CHKERRQ(KSPSetType(ksp,KSPBCGS));
-  CHKERRQ(KSPGetPC(ksp,&pc));
-  CHKERRQ(PCSetType(pc,PCJACOBI));
+  PetscCall(NEPSetType(nep,NEPRII));
+  PetscCall(NEPRIISetLagPreconditioner(nep,0));
+  PetscCall(NEPRIIGetKSP(nep,&ksp));
+  PetscCall(KSPSetType(ksp,KSPBCGS));
+  PetscCall(KSPGetPC(ksp,&pc));
+  PetscCall(PCSetType(pc,PCJACOBI));
 
   /*
      Set solver parameters at runtime
   */
-  CHKERRQ(NEPSetFromOptions(nep));
+  PetscCall(NEPSetFromOptions(nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(NEPSolve(nep));
-  CHKERRQ(NEPGetDimensions(nep,&nev,NULL,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(NEPSolve(nep));
+  PetscCall(NEPGetDimensions(nep,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
   else {
-    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  CHKERRQ(NEPDestroy(&nep));
-  CHKERRQ(MatDestroy(&F));
-  CHKERRQ(MatDestroy(&J));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(NEPDestroy(&nep));
+  PetscCall(MatDestroy(&F));
+  PetscCall(MatDestroy(&J));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 
@@ -183,7 +183,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   MatCtx         *ctxF;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(fun,&ctxF));
+  PetscCall(MatShellGetContext(fun,&ctxF));
   ctxF->lambda = lambda;
   PetscFunctionReturn(0);
 }
@@ -205,7 +205,7 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   MatCtx         *ctxJ;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(jac,&ctxJ));
+  PetscCall(MatShellGetContext(jac,&ctxJ));
   ctxJ->lambda = lambda;
   PetscFunctionReturn(0);
 }
@@ -221,15 +221,15 @@ PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
   MPI_Comm          comm;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(VecGetArrayRead(x,&px));
-  CHKERRQ(VecGetArray(y,&py));
-  CHKERRQ(VecGetSize(x,&N));
-  CHKERRQ(VecGetLocalSize(x,&n));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
+  PetscCall(VecGetSize(x,&N));
+  PetscCall(VecGetLocalSize(x,&n));
 
-  CHKERRQ(PetscObjectGetComm((PetscObject)A,&comm));
-  CHKERRMPI(MPI_Sendrecv(px,1,MPIU_SCALAR,ctx->prev,0,&lower,1,MPIU_SCALAR,ctx->next,0,comm,MPI_STATUS_IGNORE));
-  CHKERRMPI(MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,ctx->next,0,&upper,1,MPIU_SCALAR,ctx->prev,0,comm,MPI_STATUS_IGNORE));
+  PetscCall(PetscObjectGetComm((PetscObject)A,&comm));
+  PetscCallMPI(MPI_Sendrecv(px,1,MPIU_SCALAR,ctx->prev,0,&lower,1,MPIU_SCALAR,ctx->next,0,comm,MPI_STATUS_IGNORE));
+  PetscCallMPI(MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,ctx->next,0,&upper,1,MPIU_SCALAR,ctx->prev,0,comm,MPI_STATUS_IGNORE));
 
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
@@ -241,8 +241,8 @@ PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
   if (ctx->next==MPI_PROC_NULL) de = d-ctx->lambda*h/3.0+ctx->lambda*c;   /* diagonal entry of last row */
   py[n-1] = oe*px[n-2] + de*px[n-1] + oe*lower;
 
-  CHKERRQ(VecRestoreArrayRead(x,&px));
-  CHKERRQ(VecRestoreArray(y,&py));
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
   PetscFunctionReturn(0);
 }
 
@@ -255,16 +255,16 @@ PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
   PetscReal      h;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(VecGetSize(diag,&N));
-  CHKERRQ(VecGetLocalSize(diag,&n));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(VecGetSize(diag,&N));
+  PetscCall(VecGetLocalSize(diag,&n));
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
   d = N;
-  CHKERRQ(VecSet(diag,2.0*(d-ctx->lambda*h/3.0)));
-  CHKERRQ(VecGetArray(diag,&pd));
+  PetscCall(VecSet(diag,2.0*(d-ctx->lambda*h/3.0)));
+  PetscCall(VecGetArray(diag,&pd));
   pd[n-1] = d-ctx->lambda*h/3.0+ctx->lambda*c;
-  CHKERRQ(VecRestoreArray(diag,&pd));
+  PetscCall(VecRestoreArray(diag,&pd));
   PetscFunctionReturn(0);
 }
 
@@ -274,8 +274,8 @@ PetscErrorCode MatDestroy_Fun(Mat A)
   MatCtx         *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(PetscFree(ctx));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(PetscFree(ctx));
   PetscFunctionReturn(0);
 }
 
@@ -287,23 +287,23 @@ PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   MPI_Comm       comm;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(A,&actx));
-  CHKERRQ(MatGetSize(A,&M,&N));
-  CHKERRQ(MatGetLocalSize(A,&m,&n));
+  PetscCall(MatShellGetContext(A,&actx));
+  PetscCall(MatGetSize(A,&M,&N));
+  PetscCall(MatGetLocalSize(A,&m,&n));
 
-  CHKERRQ(PetscNew(&bctx));
+  PetscCall(PetscNew(&bctx));
   bctx->h      = actx->h;
   bctx->kappa  = actx->kappa;
   bctx->lambda = actx->lambda;
   bctx->next   = actx->next;
   bctx->prev   = actx->prev;
 
-  CHKERRQ(PetscObjectGetComm((PetscObject)A,&comm));
-  CHKERRQ(MatCreateShell(comm,m,n,M,N,(void*)bctx,B));
-  CHKERRQ(MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_Fun));
-  CHKERRQ(MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun));
-  CHKERRQ(MatShellSetOperation(*B,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun));
-  CHKERRQ(MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Fun));
+  PetscCall(PetscObjectGetComm((PetscObject)A,&comm));
+  PetscCall(MatCreateShell(comm,m,n,M,N,(void*)bctx,B));
+  PetscCall(MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_Fun));
+  PetscCall(MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun));
+  PetscCall(MatShellSetOperation(*B,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun));
+  PetscCall(MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Fun));
   PetscFunctionReturn(0);
 }
 
@@ -318,14 +318,14 @@ PetscErrorCode MatMult_Jac(Mat A,Vec x,Vec y)
   MPI_Comm          comm;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(VecGetArrayRead(x,&px));
-  CHKERRQ(VecGetArray(y,&py));
-  CHKERRQ(VecGetLocalSize(x,&n));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
+  PetscCall(VecGetLocalSize(x,&n));
 
-  CHKERRQ(PetscObjectGetComm((PetscObject)A,&comm));
-  CHKERRMPI(MPI_Sendrecv(px,1,MPIU_SCALAR,ctx->prev,0,&lower,1,MPIU_SCALAR,ctx->next,0,comm,MPI_STATUS_IGNORE));
-  CHKERRMPI(MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,ctx->next,0,&upper,1,MPIU_SCALAR,ctx->prev,0,comm,MPI_STATUS_IGNORE));
+  PetscCall(PetscObjectGetComm((PetscObject)A,&comm));
+  PetscCallMPI(MPI_Sendrecv(px,1,MPIU_SCALAR,ctx->prev,0,&lower,1,MPIU_SCALAR,ctx->next,0,comm,MPI_STATUS_IGNORE));
+  PetscCallMPI(MPI_Sendrecv(px+n-1,1,MPIU_SCALAR,ctx->next,0,&upper,1,MPIU_SCALAR,ctx->prev,0,comm,MPI_STATUS_IGNORE));
 
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
@@ -336,8 +336,8 @@ PetscErrorCode MatMult_Jac(Mat A,Vec x,Vec y)
   if (ctx->next==MPI_PROC_NULL) de = -h/3.0-c*c;    /* diagonal entry of last row */
   py[n-1] = oe*px[n-2] + de*px[n-1] + oe*lower;
 
-  CHKERRQ(VecRestoreArrayRead(x,&px));
-  CHKERRQ(VecRestoreArray(y,&py));
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
   PetscFunctionReturn(0);
 }
 
@@ -350,14 +350,14 @@ PetscErrorCode MatGetDiagonal_Jac(Mat A,Vec diag)
   PetscReal      h;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(VecGetLocalSize(diag,&n));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(VecGetLocalSize(diag,&n));
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
-  CHKERRQ(VecSet(diag,-2.0*h/3.0));
-  CHKERRQ(VecGetArray(diag,&pd));
+  PetscCall(VecSet(diag,-2.0*h/3.0));
+  PetscCall(VecGetArray(diag,&pd));
   pd[n-1] = -h/3.0-c*c;
-  CHKERRQ(VecRestoreArray(diag,&pd));
+  PetscCall(VecRestoreArray(diag,&pd));
   PetscFunctionReturn(0);
 }
 
@@ -367,8 +367,8 @@ PetscErrorCode MatDestroy_Jac(Mat A)
   MatCtx         *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(PetscFree(ctx));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(PetscFree(ctx));
   PetscFunctionReturn(0);
 }
 

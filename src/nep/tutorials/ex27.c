@@ -40,31 +40,31 @@ int main(int argc,char **argv)
   FN             f[2];
   PetscScalar    coeffs;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%" PetscInt_FMT "%s\n\n",n,split?" (in split form)":""));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%" PetscInt_FMT "%s\n\n",n,split?" (in split form)":""));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create nonlinear eigensolver context
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(NEPCreate(PETSC_COMM_WORLD,&nep));
+  PetscCall(NEPCreate(PETSC_COMM_WORLD,&nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Select the NLEIGS solver and set required options for it
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(NEPSetType(nep,NEPNLEIGS));
-  CHKERRQ(NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,NULL));
-  CHKERRQ(NEPGetRG(nep,&rg));
-  CHKERRQ(RGSetType(rg,RGINTERVAL));
+  PetscCall(NEPSetType(nep,NEPNLEIGS));
+  PetscCall(NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,NULL));
+  PetscCall(NEPGetRG(nep,&rg));
+  PetscCall(RGSetType(rg,RGINTERVAL));
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(RGIntervalSetEndpoints(rg,0.01,16.0,-0.001,0.001));
+  PetscCall(RGIntervalSetEndpoints(rg,0.01,16.0,-0.001,0.001));
 #else
-  CHKERRQ(RGIntervalSetEndpoints(rg,0.01,16.0,0,0));
+  PetscCall(RGIntervalSetEndpoints(rg,0.01,16.0,0,0));
 #endif
-  CHKERRQ(NEPSetTarget(nep,1.1));
+  PetscCall(NEPSetTarget(nep,1.1));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Define the nonlinear problem
@@ -74,91 +74,91 @@ int main(int argc,char **argv)
     /*
        Create matrices for the split form
     */
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A[0]));
-    CHKERRQ(MatSetSizes(A[0],PETSC_DECIDE,PETSC_DECIDE,n,n));
-    CHKERRQ(MatSetFromOptions(A[0]));
-    CHKERRQ(MatSetUp(A[0]));
-    CHKERRQ(MatGetOwnershipRange(A[0],&Istart,&Iend));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A[0]));
+    PetscCall(MatSetSizes(A[0],PETSC_DECIDE,PETSC_DECIDE,n,n));
+    PetscCall(MatSetFromOptions(A[0]));
+    PetscCall(MatSetUp(A[0]));
+    PetscCall(MatGetOwnershipRange(A[0],&Istart,&Iend));
     for (i=Istart;i<Iend;i++) {
-      if (i>0) CHKERRQ(MatSetValue(A[0],i,i-1,1.0,INSERT_VALUES));
-      if (i<n-1) CHKERRQ(MatSetValue(A[0],i,i+1,1.0,INSERT_VALUES));
-      CHKERRQ(MatSetValue(A[0],i,i,-2.0,INSERT_VALUES));
+      if (i>0) PetscCall(MatSetValue(A[0],i,i-1,1.0,INSERT_VALUES));
+      if (i<n-1) PetscCall(MatSetValue(A[0],i,i+1,1.0,INSERT_VALUES));
+      PetscCall(MatSetValue(A[0],i,i,-2.0,INSERT_VALUES));
     }
-    CHKERRQ(MatAssemblyBegin(A[0],MAT_FINAL_ASSEMBLY));
-    CHKERRQ(MatAssemblyEnd(A[0],MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyBegin(A[0],MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyEnd(A[0],MAT_FINAL_ASSEMBLY));
 
-    CHKERRQ(MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,1.0,&A[1]));
+    PetscCall(MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,1.0,&A[1]));
 
     /*
        Define functions for the split form
      */
-    CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f[0]));
-    CHKERRQ(FNSetType(f[0],FNRATIONAL));
+    PetscCall(FNCreate(PETSC_COMM_WORLD,&f[0]));
+    PetscCall(FNSetType(f[0],FNRATIONAL));
     coeffs = 1.0;
-    CHKERRQ(FNRationalSetNumerator(f[0],1,&coeffs));
-    CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f[1]));
-    CHKERRQ(FNSetType(f[1],FNSQRT));
-    CHKERRQ(NEPSetSplitOperator(nep,2,A,f,SUBSET_NONZERO_PATTERN));
+    PetscCall(FNRationalSetNumerator(f[0],1,&coeffs));
+    PetscCall(FNCreate(PETSC_COMM_WORLD,&f[1]));
+    PetscCall(FNSetType(f[1],FNSQRT));
+    PetscCall(NEPSetSplitOperator(nep,2,A,f,SUBSET_NONZERO_PATTERN));
 
   } else {
     /*
        Callback form: create matrix and set Function evaluation routine
      */
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&F));
-    CHKERRQ(MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n));
-    CHKERRQ(MatSetFromOptions(F));
-    CHKERRQ(MatSeqAIJSetPreallocation(F,3,NULL));
-    CHKERRQ(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
-    CHKERRQ(MatSetUp(F));
-    CHKERRQ(NEPSetFunction(nep,F,F,FormFunction,NULL));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&F));
+    PetscCall(MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n));
+    PetscCall(MatSetFromOptions(F));
+    PetscCall(MatSeqAIJSetPreallocation(F,3,NULL));
+    PetscCall(MatMPIAIJSetPreallocation(F,3,NULL,1,NULL));
+    PetscCall(MatSetUp(F));
+    PetscCall(NEPSetFunction(nep,F,F,FormFunction,NULL));
 
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&J));
-    CHKERRQ(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n));
-    CHKERRQ(MatSetFromOptions(J));
-    CHKERRQ(MatSeqAIJSetPreallocation(J,1,NULL));
-    CHKERRQ(MatMPIAIJSetPreallocation(J,1,NULL,1,NULL));
-    CHKERRQ(MatSetUp(J));
-    CHKERRQ(NEPSetJacobian(nep,J,FormJacobian,NULL));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&J));
+    PetscCall(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n));
+    PetscCall(MatSetFromOptions(J));
+    PetscCall(MatSeqAIJSetPreallocation(J,1,NULL));
+    PetscCall(MatMPIAIJSetPreallocation(J,1,NULL,1,NULL));
+    PetscCall(MatSetUp(J));
+    PetscCall(NEPSetJacobian(nep,J,FormJacobian,NULL));
   }
 
   /*
      Set solver parameters at runtime
   */
-  CHKERRQ(NEPSetFromOptions(nep));
+  PetscCall(NEPSetFromOptions(nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(NEPSolve(nep));
-  CHKERRQ(NEPGetType(nep,&type));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type));
-  CHKERRQ(NEPGetDimensions(nep,&nev,NULL,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(NEPSolve(nep));
+  PetscCall(NEPGetType(nep,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type));
+  PetscCall(NEPGetDimensions(nep,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(NEPErrorView(nep,NEP_ERROR_BACKWARD,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(NEPErrorView(nep,NEP_ERROR_BACKWARD,NULL));
   else {
-    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(NEPErrorView(nep,NEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(NEPErrorView(nep,NEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  CHKERRQ(NEPDestroy(&nep));
+  PetscCall(NEPDestroy(&nep));
   if (split) {
-    CHKERRQ(MatDestroy(&A[0]));
-    CHKERRQ(MatDestroy(&A[1]));
-    CHKERRQ(FNDestroy(&f[0]));
-    CHKERRQ(FNDestroy(&f[1]));
+    PetscCall(MatDestroy(&A[0]));
+    PetscCall(MatDestroy(&A[1]));
+    PetscCall(FNDestroy(&f[0]));
+    PetscCall(FNDestroy(&f[1]));
   } else {
-    CHKERRQ(MatDestroy(&F));
-    CHKERRQ(MatDestroy(&J));
+    PetscCall(MatDestroy(&F));
+    PetscCall(MatDestroy(&J));
   }
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SlepcFinalize());
   return 0;
 }
 
@@ -177,32 +177,32 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
      Compute Function entries and insert into matrix
   */
   t = PetscSqrtScalar(lambda);
-  CHKERRQ(MatGetSize(fun,&n,NULL));
-  CHKERRQ(MatGetOwnershipRange(fun,&Istart,&Iend));
+  PetscCall(MatGetSize(fun,&n,NULL));
+  PetscCall(MatGetOwnershipRange(fun,&Istart,&Iend));
   if (Istart==0) FirstBlock=PETSC_TRUE;
   if (Iend==n) LastBlock=PETSC_TRUE;
   value[0]=1.0; value[1]=t-2.0; value[2]=1.0;
   for (i=(FirstBlock? Istart+1: Istart); i<(LastBlock? Iend-1: Iend); i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1;
-    CHKERRQ(MatSetValues(fun,1,&i,3,col,value,INSERT_VALUES));
+    PetscCall(MatSetValues(fun,1,&i,3,col,value,INSERT_VALUES));
   }
   if (LastBlock) {
     i=n-1; col[0]=n-2; col[1]=n-1;
-    CHKERRQ(MatSetValues(fun,1,&i,2,col,value,INSERT_VALUES));
+    PetscCall(MatSetValues(fun,1,&i,2,col,value,INSERT_VALUES));
   }
   if (FirstBlock) {
     i=0; col[0]=0; col[1]=1; value[0]=t-2.0; value[1]=1.0;
-    CHKERRQ(MatSetValues(fun,1,&i,2,col,value,INSERT_VALUES));
+    PetscCall(MatSetValues(fun,1,&i,2,col,value,INSERT_VALUES));
   }
 
   /*
      Assemble matrix
   */
-  CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
   if (fun != B) {
-    CHKERRQ(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY));
-    CHKERRQ(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY));
   }
   PetscFunctionReturn(0);
 }
@@ -216,10 +216,10 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   Vec            d;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatCreateVecs(jac,&d,NULL));
-  CHKERRQ(VecSet(d,0.5/PetscSqrtScalar(lambda)));
-  CHKERRQ(MatDiagonalSet(jac,d,INSERT_VALUES));
-  CHKERRQ(VecDestroy(&d));
+  PetscCall(MatCreateVecs(jac,&d,NULL));
+  PetscCall(VecSet(d,0.5/PetscSqrtScalar(lambda)));
+  PetscCall(MatDiagonalSet(jac,d,INSERT_VALUES));
+  PetscCall(VecDestroy(&d));
   PetscFunctionReturn(0);
 }
 

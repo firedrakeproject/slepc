@@ -27,11 +27,11 @@ PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Ma
 
   PetscFunctionBegin;
   if (Q) {
-    CHKERRQ(MatGetSize(Q,&ldq,NULL));
-    CHKERRQ(MatDenseGetArrayRead(Q,&q));
-    CHKERRQ(BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,x->array+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,y->array+(Y->nc+Y->l)*Y->n));
-    CHKERRQ(MatDenseRestoreArrayRead(Q,&q));
-  } else CHKERRQ(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,x->array+(X->nc+X->l)*X->n,beta,y->array+(Y->nc+Y->l)*Y->n));
+    PetscCall(MatGetSize(Q,&ldq,NULL));
+    PetscCall(MatDenseGetArrayRead(Q,&q));
+    PetscCall(BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,x->array+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,y->array+(Y->nc+Y->l)*Y->n));
+    PetscCall(MatDenseRestoreArrayRead(Q,&q));
+  } else PetscCall(BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,x->array+(X->nc+X->l)*X->n,beta,y->array+(Y->nc+Y->l)*Y->n));
   PetscFunctionReturn(0);
 }
 
@@ -41,11 +41,11 @@ PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec 
   PetscScalar    *py,*qq=q;
 
   PetscFunctionBegin;
-  CHKERRQ(VecGetArray(y,&py));
-  if (!q) CHKERRQ(VecGetArray(X->buffer,&qq));
-  CHKERRQ(BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,x->array+(X->nc+X->l)*X->n,qq,beta,py));
-  if (!q) CHKERRQ(VecRestoreArray(X->buffer,&qq));
-  CHKERRQ(VecRestoreArray(y,&py));
+  PetscCall(VecGetArray(y,&py));
+  if (!q) PetscCall(VecGetArray(X->buffer,&qq));
+  PetscCall(BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,x->array+(X->nc+X->l)*X->n,qq,beta,py));
+  if (!q) PetscCall(VecRestoreArray(X->buffer,&qq));
+  PetscCall(VecRestoreArray(y,&py));
   PetscFunctionReturn(0);
 }
 
@@ -56,10 +56,10 @@ PetscErrorCode BVMultInPlace_Contiguous(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(Q,&ldq,NULL));
-  CHKERRQ(MatDenseGetArrayRead(Q,&q));
-  CHKERRQ(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_FALSE));
-  CHKERRQ(MatDenseRestoreArrayRead(Q,&q));
+  PetscCall(MatGetSize(Q,&ldq,NULL));
+  PetscCall(MatDenseGetArrayRead(Q,&q));
+  PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_FALSE));
+  PetscCall(MatDenseRestoreArrayRead(Q,&q));
   PetscFunctionReturn(0);
 }
 
@@ -70,10 +70,10 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Contiguous(BV V,Mat Q,PetscInt s,
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(Q,&ldq,NULL));
-  CHKERRQ(MatDenseGetArrayRead(Q,&q));
-  CHKERRQ(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE));
-  CHKERRQ(MatDenseRestoreArrayRead(Q,&q));
+  PetscCall(MatGetSize(Q,&ldq,NULL));
+  PetscCall(MatDenseGetArrayRead(Q,&q));
+  PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE));
+  PetscCall(MatDenseRestoreArrayRead(Q,&q));
   PetscFunctionReturn(0);
 }
 
@@ -84,10 +84,10 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
   PetscInt       ldm;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(M,&ldm,NULL));
-  CHKERRQ(MatDenseGetArray(M,&m));
-  CHKERRQ(BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,ldm,y->array+(Y->nc+Y->l)*Y->n,x->array+(X->nc+X->l)*X->n,m+X->l*ldm+Y->l,x->mpi));
-  CHKERRQ(MatDenseRestoreArray(M,&m));
+  PetscCall(MatGetSize(M,&ldm,NULL));
+  PetscCall(MatDenseGetArray(M,&m));
+  PetscCall(BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,X->n,ldm,y->array+(Y->nc+Y->l)*Y->n,x->array+(X->nc+X->l)*X->n,m+X->l*ldm+Y->l,x->mpi));
+  PetscCall(MatDenseRestoreArray(M,&m));
   PetscFunctionReturn(0);
 }
 
@@ -100,14 +100,14 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *q)
 
   PetscFunctionBegin;
   if (PetscUnlikely(X->matrix)) {
-    CHKERRQ(BV_IPMatMult(X,y));
+    PetscCall(BV_IPMatMult(X,y));
     z = X->Bx;
   }
-  CHKERRQ(VecGetArrayRead(z,&py));
-  if (!q) CHKERRQ(VecGetArray(X->buffer,&qq));
-  CHKERRQ(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,qq,x->mpi));
-  if (!q) CHKERRQ(VecRestoreArray(X->buffer,&qq));
-  CHKERRQ(VecRestoreArrayRead(z,&py));
+  PetscCall(VecGetArrayRead(z,&py));
+  if (!q) PetscCall(VecGetArray(X->buffer,&qq));
+  PetscCall(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,qq,x->mpi));
+  if (!q) PetscCall(VecRestoreArray(X->buffer,&qq));
+  PetscCall(VecRestoreArrayRead(z,&py));
   PetscFunctionReturn(0);
 }
 
@@ -119,12 +119,12 @@ PetscErrorCode BVDotVec_Local_Contiguous(BV X,Vec y,PetscScalar *m)
 
   PetscFunctionBegin;
   if (PetscUnlikely(X->matrix)) {
-    CHKERRQ(BV_IPMatMult(X,y));
+    PetscCall(BV_IPMatMult(X,y));
     z = X->Bx;
   }
-  CHKERRQ(VecGetArray(z,&py));
-  CHKERRQ(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,m,PETSC_FALSE));
-  CHKERRQ(VecRestoreArray(z,&py));
+  PetscCall(VecGetArray(z,&py));
+  PetscCall(BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,m,PETSC_FALSE));
+  PetscCall(VecRestoreArray(z,&py));
   PetscFunctionReturn(0);
 }
 
@@ -133,8 +133,8 @@ PetscErrorCode BVScale_Contiguous(BV bv,PetscInt j,PetscScalar alpha)
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  if (PetscUnlikely(j<0)) CHKERRQ(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,ctx->array+(bv->nc+bv->l)*bv->n,alpha));
-  else CHKERRQ(BVScale_BLAS_Private(bv,bv->n,ctx->array+(bv->nc+j)*bv->n,alpha));
+  if (PetscUnlikely(j<0)) PetscCall(BVScale_BLAS_Private(bv,(bv->k-bv->l)*bv->n,ctx->array+(bv->nc+bv->l)*bv->n,alpha));
+  else PetscCall(BVScale_BLAS_Private(bv,bv->n,ctx->array+(bv->nc+j)*bv->n,alpha));
   PetscFunctionReturn(0);
 }
 
@@ -143,8 +143,8 @@ PetscErrorCode BVNorm_Contiguous(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  if (PetscUnlikely(j<0)) CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
-  else CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
+  if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,ctx->mpi));
+  else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,ctx->mpi));
   PetscFunctionReturn(0);
 }
 
@@ -153,8 +153,8 @@ PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal 
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  if (PetscUnlikely(j<0)) CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
-  else CHKERRQ(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
+  if (PetscUnlikely(j<0)) PetscCall(BVNorm_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,type,val,PETSC_FALSE));
+  else PetscCall(BVNorm_LAPACK_Private(bv,bv->n,1,ctx->array+(bv->nc+j)*bv->n,type,val,PETSC_FALSE));
   PetscFunctionReturn(0);
 }
 
@@ -165,7 +165,7 @@ PetscErrorCode BVNormalize_Contiguous(BV bv,PetscScalar *eigi)
 
   PetscFunctionBegin;
   if (eigi) wi = eigi+bv->l;
-  CHKERRQ(BVNormalize_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,wi,ctx->mpi));
+  PetscCall(BVNormalize_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,wi,ctx->mpi));
   PetscFunctionReturn(0);
 }
 
@@ -177,18 +177,18 @@ PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
 
   PetscFunctionBegin;
   if (V->vmm) {
-    CHKERRQ(BVGetMat(V,&Vmat));
-    CHKERRQ(BVGetMat(W,&Wmat));
-    CHKERRQ(MatProductCreateWithMat(A,Vmat,NULL,Wmat));
-    CHKERRQ(MatProductSetType(Wmat,MATPRODUCT_AB));
-    CHKERRQ(MatProductSetFromOptions(Wmat));
-    CHKERRQ(MatProductSymbolic(Wmat));
-    CHKERRQ(MatProductNumeric(Wmat));
-    CHKERRQ(MatProductClear(Wmat));
-    CHKERRQ(BVRestoreMat(V,&Vmat));
-    CHKERRQ(BVRestoreMat(W,&Wmat));
+    PetscCall(BVGetMat(V,&Vmat));
+    PetscCall(BVGetMat(W,&Wmat));
+    PetscCall(MatProductCreateWithMat(A,Vmat,NULL,Wmat));
+    PetscCall(MatProductSetType(Wmat,MATPRODUCT_AB));
+    PetscCall(MatProductSetFromOptions(Wmat));
+    PetscCall(MatProductSymbolic(Wmat));
+    PetscCall(MatProductNumeric(Wmat));
+    PetscCall(MatProductClear(Wmat));
+    PetscCall(BVRestoreMat(V,&Vmat));
+    PetscCall(BVRestoreMat(W,&Wmat));
   } else {
-    for (j=0;j<V->k-V->l;j++) CHKERRQ(MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]));
+    for (j=0;j<V->k-V->l;j++) PetscCall(MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]));
   }
   PetscFunctionReturn(0);
 }
@@ -201,7 +201,7 @@ PetscErrorCode BVCopy_Contiguous(BV V,BV W)
   PetscFunctionBegin;
   pvc = v->array+(V->nc+V->l)*V->n;
   pwc = w->array+(W->nc+W->l)*W->n;
-  CHKERRQ(PetscArraycpy(pwc,pvc,(V->k-V->l)*V->n));
+  PetscCall(PetscArraycpy(pwc,pvc,(V->k-V->l)*V->n));
   PetscFunctionReturn(0);
 }
 
@@ -210,7 +210,7 @@ PetscErrorCode BVCopyColumn_Contiguous(BV V,PetscInt j,PetscInt i)
   BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscArraycpy(v->array+(V->nc+i)*V->n,v->array+(V->nc+j)*V->n,V->n));
+  PetscCall(PetscArraycpy(v->array+(V->nc+i)*V->n,v->array+(V->nc+j)*V->n,V->n));
   PetscFunctionReturn(0);
 }
 
@@ -223,25 +223,25 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
   char           str[50];
 
   PetscFunctionBegin;
-  CHKERRQ(VecGetBlockSize(bv->t,&bs));
-  CHKERRQ(PetscMalloc1(m*bv->n,&newarray));
-  CHKERRQ(PetscArrayzero(newarray,m*bv->n));
-  CHKERRQ(PetscMalloc1(m,&newV));
+  PetscCall(VecGetBlockSize(bv->t,&bs));
+  PetscCall(PetscMalloc1(m*bv->n,&newarray));
+  PetscCall(PetscArrayzero(newarray,m*bv->n));
+  PetscCall(PetscMalloc1(m,&newV));
   for (j=0;j<m;j++) {
-    if (ctx->mpi) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,PETSC_DECIDE,newarray+j*bv->n,newV+j));
-    else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,newarray+j*bv->n,newV+j));
+    if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,PETSC_DECIDE,newarray+j*bv->n,newV+j));
+    else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,newarray+j*bv->n,newV+j));
   }
-  CHKERRQ(PetscLogObjectParents(bv,m,newV));
+  PetscCall(PetscLogObjectParents(bv,m,newV));
   if (((PetscObject)bv)->name) {
     for (j=0;j<m;j++) {
-      CHKERRQ(PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j));
-      CHKERRQ(PetscObjectSetName((PetscObject)newV[j],str));
+      PetscCall(PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j));
+      PetscCall(PetscObjectSetName((PetscObject)newV[j],str));
     }
   }
-  if (copy) CHKERRQ(PetscArraycpy(newarray,ctx->array,PetscMin(m,bv->m)*bv->n));
-  CHKERRQ(VecDestroyVecs(bv->m,&ctx->V));
+  if (copy) PetscCall(PetscArraycpy(newarray,ctx->array,PetscMin(m,bv->m)*bv->n));
+  PetscCall(VecDestroyVecs(bv->m,&ctx->V));
   ctx->V = newV;
-  CHKERRQ(PetscFree(ctx->array));
+  PetscCall(PetscFree(ctx->array));
   ctx->array = newarray;
   PetscFunctionReturn(0);
 }
@@ -281,10 +281,10 @@ PetscErrorCode BVDestroy_Contiguous(BV bv)
 
   PetscFunctionBegin;
   if (!bv->issplit) {
-    CHKERRQ(VecDestroyVecs(bv->nc+bv->m,&ctx->V));
-    CHKERRQ(PetscFree(ctx->array));
+    PetscCall(VecDestroyVecs(bv->nc+bv->m,&ctx->V));
+    PetscCall(PetscFree(ctx->array));
   }
-  CHKERRQ(PetscFree(bv->data));
+  PetscCall(PetscFree(bv->data));
   PetscFunctionReturn(0);
 }
 
@@ -300,17 +300,17 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   Vec            *Vpar;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(bv,&ctx));
+  PetscCall(PetscNewLog(bv,&ctx));
   bv->data = (void*)ctx;
 
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi));
+  PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi));
   if (!ctx->mpi) {
-    CHKERRQ(PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq));
+    PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq));
     PetscCheck(seq,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot create a contiguous BV from a non-standard template vector");
   }
 
-  CHKERRQ(VecGetLocalSize(bv->t,&nloc));
-  CHKERRQ(VecGetBlockSize(bv->t,&bs));
+  PetscCall(VecGetLocalSize(bv->t,&nloc));
+  PetscCall(VecGetBlockSize(bv->t,&bs));
 
   if (PetscUnlikely(bv->issplit)) {
     /* split BV: share memory and Vecs of the parent BV */
@@ -322,26 +322,26 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
     ctx->array = (bv->issplit==1)? array: array+lsplit*nloc;
   } else {
     /* regular BV: allocate memory and Vecs for the BV entries */
-    CHKERRQ(PetscCalloc1(bv->m*nloc,&ctx->array));
-    CHKERRQ(PetscMalloc1(bv->m,&ctx->V));
+    PetscCall(PetscCalloc1(bv->m*nloc,&ctx->array));
+    PetscCall(PetscMalloc1(bv->m,&ctx->V));
     for (j=0;j<bv->m;j++) {
-      if (ctx->mpi) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*nloc,ctx->V+j));
-      else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*nloc,ctx->V+j));
+      if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*nloc,ctx->V+j));
+      else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*nloc,ctx->V+j));
     }
-    CHKERRQ(PetscLogObjectParents(bv,bv->m,ctx->V));
+    PetscCall(PetscLogObjectParents(bv,bv->m,ctx->V));
   }
   if (((PetscObject)bv)->name) {
     for (j=0;j<bv->m;j++) {
-      CHKERRQ(PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j));
-      CHKERRQ(PetscObjectSetName((PetscObject)ctx->V[j],str));
+      PetscCall(PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j));
+      PetscCall(PetscObjectSetName((PetscObject)ctx->V[j],str));
     }
   }
 
   if (PetscUnlikely(bv->Acreate)) {
-    CHKERRQ(MatDenseGetArray(bv->Acreate,&aa));
-    CHKERRQ(PetscArraycpy(ctx->array,aa,bv->m*nloc));
-    CHKERRQ(MatDenseRestoreArray(bv->Acreate,&aa));
-    CHKERRQ(MatDestroy(&bv->Acreate));
+    PetscCall(MatDenseGetArray(bv->Acreate,&aa));
+    PetscCall(PetscArraycpy(ctx->array,aa,bv->m*nloc));
+    PetscCall(MatDenseRestoreArray(bv->Acreate,&aa));
+    PetscCall(MatDestroy(&bv->Acreate));
   }
 
   bv->ops->mult             = BVMult_Contiguous;

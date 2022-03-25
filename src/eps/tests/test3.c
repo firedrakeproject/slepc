@@ -21,80 +21,80 @@ int main(int argc,char **argv)
   PetscInt       n=30,i,Istart,Iend;
   PetscRandom    myrand;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
            Create matrix tridiag([-1 0 -1])
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A1));
-  CHKERRQ(MatSetSizes(A1,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(A1));
-  CHKERRQ(MatSetUp(A1));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A1));
+  PetscCall(MatSetSizes(A1,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A1));
+  PetscCall(MatSetUp(A1));
 
-  CHKERRQ(MatGetOwnershipRange(A1,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A1,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) CHKERRQ(MatSetValue(A1,i,i-1,-1.0,INSERT_VALUES));
-    if (i<n-1) CHKERRQ(MatSetValue(A1,i,i+1,-1.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A1,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A1,i,i+1,-1.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
        Create two matrices by filling the diagonal with rand values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(MatDuplicate(A1,MAT_COPY_VALUES,&A2));
-  CHKERRQ(MatCreateVecs(A1,NULL,&d));
-  CHKERRQ(PetscRandomCreate(PETSC_COMM_WORLD,&myrand));
-  CHKERRQ(PetscRandomSetFromOptions(myrand));
-  CHKERRQ(PetscRandomSetInterval(myrand,0.0,1.0));
+  PetscCall(MatDuplicate(A1,MAT_COPY_VALUES,&A2));
+  PetscCall(MatCreateVecs(A1,NULL,&d));
+  PetscCall(PetscRandomCreate(PETSC_COMM_WORLD,&myrand));
+  PetscCall(PetscRandomSetFromOptions(myrand));
+  PetscCall(PetscRandomSetInterval(myrand,0.0,1.0));
   for (i=Istart;i<Iend;i++) {
-    CHKERRQ(PetscRandomGetValueReal(myrand,&v));
-    CHKERRQ(VecSetValue(d,i,v,INSERT_VALUES));
+    PetscCall(PetscRandomGetValueReal(myrand,&v));
+    PetscCall(VecSetValue(d,i,v,INSERT_VALUES));
   }
-  CHKERRQ(VecAssemblyBegin(d));
-  CHKERRQ(VecAssemblyEnd(d));
-  CHKERRQ(MatDiagonalSet(A1,d,INSERT_VALUES));
+  PetscCall(VecAssemblyBegin(d));
+  PetscCall(VecAssemblyEnd(d));
+  PetscCall(MatDiagonalSet(A1,d,INSERT_VALUES));
   for (i=Istart;i<Iend;i++) {
-    CHKERRQ(PetscRandomGetValueReal(myrand,&v));
-    CHKERRQ(VecSetValue(d,i,v,INSERT_VALUES));
+    PetscCall(PetscRandomGetValueReal(myrand,&v));
+    PetscCall(VecSetValue(d,i,v,INSERT_VALUES));
   }
-  CHKERRQ(VecAssemblyBegin(d));
-  CHKERRQ(VecAssemblyEnd(d));
-  CHKERRQ(MatDiagonalSet(A2,d,INSERT_VALUES));
-  CHKERRQ(VecDestroy(&d));
-  CHKERRQ(PetscRandomDestroy(&myrand));
+  PetscCall(VecAssemblyBegin(d));
+  PetscCall(VecAssemblyEnd(d));
+  PetscCall(MatDiagonalSet(A2,d,INSERT_VALUES));
+  PetscCall(VecDestroy(&d));
+  PetscCall(PetscRandomDestroy(&myrand));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Create the eigensolver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
-  CHKERRQ(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
-  CHKERRQ(EPSSetOperators(eps,A1,NULL));
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetOperators(eps,A1,NULL));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Solve first eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - - - First matrix - - -\n"));
-  CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSSolve(eps));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," - - - First matrix - - -\n"));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Solve second eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(EPSSetOperators(eps,A2,NULL));
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," - - - Second matrix - - -\n"));
-  CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSSetOperators(eps,A2,NULL));
+  PetscCall(EPSSolve(eps));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," - - - Second matrix - - -\n"));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
 
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A1));
-  CHKERRQ(MatDestroy(&A2));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A1));
+  PetscCall(MatDestroy(&A2));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

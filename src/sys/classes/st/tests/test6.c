@@ -22,117 +22,117 @@ int main(int argc,char **argv)
   PetscInt       n=10,i,Istart,Iend;
   STMatMode      matmode;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nPreconditioner for 1-D Laplacian, n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nPreconditioner for 1-D Laplacian, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Compute the operator matrix for the 1-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) CHKERRQ(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
-    if (i<n-1) CHKERRQ(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(A,i,i,2.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,i,i,2.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatCreateVecs(A,&v,&w));
-  CHKERRQ(VecSet(v,1.0));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,&v,&w));
+  PetscCall(VecSet(v,1.0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the spectral transformation object
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(STCreate(PETSC_COMM_WORLD,&st));
+  PetscCall(STCreate(PETSC_COMM_WORLD,&st));
   mat[0] = A;
-  CHKERRQ(STSetMatrices(st,1,mat));
-  CHKERRQ(STSetType(st,STPRECOND));
-  CHKERRQ(STGetKSP(st,&ksp));
-  CHKERRQ(KSPSetType(ksp,KSPPREONLY));
-  CHKERRQ(STSetFromOptions(st));
+  PetscCall(STSetMatrices(st,1,mat));
+  PetscCall(STSetType(st,STPRECOND));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPSetType(ksp,KSPPREONLY));
+  PetscCall(STSetFromOptions(st));
 
   /* set up */
   /* - the transform flag is necessary so that A-sigma*I is built explicitly */
-  CHKERRQ(STSetTransform(st,PETSC_TRUE));
+  PetscCall(STSetTransform(st,PETSC_TRUE));
   /* - the ksphasmat flag is necessary when using STApply(), otherwise can only use PCApply() */
-  CHKERRQ(STPrecondSetKSPHasMat(st,PETSC_TRUE));
+  PetscCall(STPrecondSetKSPHasMat(st,PETSC_TRUE));
   /* no need to call STSetUp() explicitly */
-  CHKERRQ(STSetUp(st));
+  PetscCall(STSetUp(st));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Apply the preconditioner
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* default shift */
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"With default shift\n"));
-  CHKERRQ(STApply(st,v,w));
-  CHKERRQ(VecView(w,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With default shift\n"));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* change shift */
   sigma = 0.1;
-  CHKERRQ(STSetShift(st,sigma));
-  CHKERRQ(STGetShift(st,&sigma));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
-  CHKERRQ(STApply(st,v,w));
-  CHKERRQ(VecView(w,NULL));
-  CHKERRQ(STPostSolve(st));   /* undo changes if inplace */
+  PetscCall(STSetShift(st,sigma));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
+  PetscCall(STPostSolve(st));   /* undo changes if inplace */
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Test a user-provided preconditioner matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&P));
-  CHKERRQ(MatSetSizes(P,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(P));
-  CHKERRQ(MatSetUp(P));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&P));
+  PetscCall(MatSetSizes(P,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(P));
+  PetscCall(MatSetUp(P));
 
-  CHKERRQ(MatGetOwnershipRange(P,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(P,i,i,2.0,INSERT_VALUES));
+  PetscCall(MatGetOwnershipRange(P,&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(P,i,i,2.0,INSERT_VALUES));
   if (Istart==0) {
-    CHKERRQ(MatSetValue(P,1,0,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(P,0,1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(P,1,0,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(P,0,1,-1.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(P,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(P,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(P,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(P,MAT_FINAL_ASSEMBLY));
 
   /* apply new preconditioner */
-  CHKERRQ(STSetPreconditionerMat(st,P));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"With user-provided matrix\n"));
-  CHKERRQ(STApply(st,v,w));
-  CHKERRQ(VecView(w,NULL));
+  PetscCall(STSetPreconditionerMat(st,P));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With user-provided matrix\n"));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             Test a user-provided preconditioner in split form
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(STGetMatMode(st,&matmode));
+  PetscCall(STGetMatMode(st,&matmode));
   if (matmode==ST_MATMODE_COPY) {
-    CHKERRQ(STSetPreconditionerMat(st,NULL));
+    PetscCall(STSetPreconditionerMat(st,NULL));
     mat[0] = P;
-    CHKERRQ(STSetSplitPreconditioner(st,1,mat,SAME_NONZERO_PATTERN));
+    PetscCall(STSetSplitPreconditioner(st,1,mat,SAME_NONZERO_PATTERN));
 
     /* apply new preconditioner */
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"With split preconditioner\n"));
-    CHKERRQ(STApply(st,v,w));
-    CHKERRQ(VecView(w,NULL));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With split preconditioner\n"));
+    PetscCall(STApply(st,v,w));
+    PetscCall(VecView(w,NULL));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                              Clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(STDestroy(&st));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&P));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(VecDestroy(&w));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(STDestroy(&st));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&P));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&w));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

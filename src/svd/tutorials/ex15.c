@@ -24,31 +24,31 @@ int main(int argc,char **argv)
   PetscReal      error,tol,sigma,mu=PETSC_SQRT_MACHINE_EPSILON;
   PetscInt       n=100,i,j,Istart,Iend,nsv,maxit,its,nconv;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nLauchli singular value decomposition, (%" PetscInt_FMT " x %" PetscInt_FMT ") mu=%g\n\n",n+1,n,(double)mu));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nLauchli singular value decomposition, (%" PetscInt_FMT " x %" PetscInt_FMT ") mu=%g\n\n",n+1,n,(double)mu));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                           Build the Lauchli matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n+1,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n+1,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     if (i == 0) {
-      for (j=0;j<n;j++) CHKERRQ(MatSetValue(A,0,j,1.0,INSERT_VALUES));
-    } else CHKERRQ(MatSetValue(A,i,i-1,mu,INSERT_VALUES));
+      for (j=0;j<n;j++) PetscCall(MatSetValue(A,0,j,1.0,INSERT_VALUES));
+    } else PetscCall(MatSetValue(A,i,i-1,mu,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatCreateVecs(A,&v,&u));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,&v,&u));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           Create the singular value solver and set various options
@@ -57,41 +57,41 @@ int main(int argc,char **argv)
   /*
      Create singular value solver context
   */
-  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
 
   /*
      Set operators and problem type
   */
-  CHKERRQ(SVDSetOperators(svd,A,NULL));
-  CHKERRQ(SVDSetProblemType(svd,SVD_STANDARD));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetProblemType(svd,SVD_STANDARD));
 
   /*
      Use thick-restart Lanczos as default solver
   */
-  CHKERRQ(SVDSetType(svd,SVDTRLANCZOS));
+  PetscCall(SVDSetType(svd,SVDTRLANCZOS));
 
   /*
      Set solver parameters at runtime
   */
-  CHKERRQ(SVDSetFromOptions(svd));
+  PetscCall(SVDSetFromOptions(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the singular value system
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDSolve(svd));
-  CHKERRQ(SVDGetIterationNumber(svd,&its));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDGetIterationNumber(svd,&its));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  CHKERRQ(SVDGetType(svd,&type));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
-  CHKERRQ(SVDGetDimensions(svd,&nsv,NULL,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %" PetscInt_FMT "\n",nsv));
-  CHKERRQ(SVDGetTolerances(svd,&tol,&maxit));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
+  PetscCall(SVDGetType(svd,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(SVDGetDimensions(svd,&nsv,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %" PetscInt_FMT "\n",nsv));
+  PetscCall(SVDGetTolerances(svd,&tol,&maxit));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -100,41 +100,41 @@ int main(int argc,char **argv)
   /*
      Get number of converged singular triplets
   */
-  CHKERRQ(SVDGetConverged(svd,&nconv));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate singular triplets: %" PetscInt_FMT "\n\n",nconv));
+  PetscCall(SVDGetConverged(svd,&nconv));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate singular triplets: %" PetscInt_FMT "\n\n",nconv));
 
   if (nconv>0) {
     /*
        Display singular values and relative errors
     */
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,
          "          sigma           relative error\n"
          "  --------------------- ------------------\n"));
     for (i=0;i<nconv;i++) {
       /*
          Get converged singular triplets: i-th singular value is stored in sigma
       */
-      CHKERRQ(SVDGetSingularTriplet(svd,i,&sigma,u,v));
+      PetscCall(SVDGetSingularTriplet(svd,i,&sigma,u,v));
 
       /*
          Compute the error associated to each singular triplet
       */
-      CHKERRQ(SVDComputeError(svd,i,SVD_ERROR_RELATIVE,&error));
+      PetscCall(SVDComputeError(svd,i,SVD_ERROR_RELATIVE,&error));
 
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",(double)sigma));
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," % 12g\n",(double)error));
+      PetscCall(PetscPrintf(PETSC_COMM_WORLD,"       % 6f      ",(double)sigma));
+      PetscCall(PetscPrintf(PETSC_COMM_WORLD," % 12g\n",(double)error));
     }
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
   }
 
   /*
      Free work space
   */
-  CHKERRQ(SVDDestroy(&svd));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(VecDestroy(&u));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&u));
+  PetscCall(VecDestroy(&v));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

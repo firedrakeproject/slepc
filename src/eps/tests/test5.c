@@ -25,13 +25,13 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      flg,symm;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-symm",&symm));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-herm",&flg));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-symm",&symm));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-herm",&flg));
   if (flg) symm=PETSC_TRUE;
 #if defined(PETSC_USE_COMPLEX)
   prefix = symm? "hpd": "nh";
@@ -51,32 +51,32 @@ int main(int argc,char **argv)
   floats = "float32";
 #endif
 
-  CHKERRQ(PetscSNPrintf(filename,sizeof(filename),"%s/share/petsc/datafiles/matrices/%s-%s-%s-%s",PETSC_DIR,prefix,scalar,ints,floats));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nReading matrix from binary file...\n\n"));
-  CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatLoad(A,viewer));
-  CHKERRQ(PetscViewerDestroy(&viewer));
+  PetscCall(PetscSNPrintf(filename,sizeof(filename),"%s/share/petsc/datafiles/matrices/%s-%s-%s-%s",PETSC_DIR,prefix,scalar,ints,floats));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nReading matrix from binary file...\n\n"));
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatLoad(A,viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                      Create the eigensolver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  if (symm) CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
-  else CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
-  CHKERRQ(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  if (symm) PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  else PetscCall(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Solve the eigensystem and display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

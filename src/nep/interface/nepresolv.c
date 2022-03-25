@@ -34,34 +34,34 @@ static PetscErrorCode MatMult_Resolvent(Mat M,Vec v,Vec r)
   Vec                    x,y,z,w;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(M,&ctx));
+  PetscCall(MatShellGetContext(M,&ctx));
   nep = ctx->nep;
   w = nep->work[0];
   z = nep->work[1];
   if (((PetscObject)v)->id != ctx->vid || ((PetscObject)v)->state != ctx->vstate) {
-    CHKERRQ(PetscArrayzero(ctx->dots_avail,ctx->nep->nconv));
-    CHKERRQ(PetscObjectGetId((PetscObject)v,&ctx->vid));
-    CHKERRQ(PetscObjectStateGet((PetscObject)v,&ctx->vstate));
+    PetscCall(PetscArrayzero(ctx->dots_avail,ctx->nep->nconv));
+    PetscCall(PetscObjectGetId((PetscObject)v,&ctx->vid));
+    PetscCall(PetscObjectStateGet((PetscObject)v,&ctx->vstate));
   }
-  CHKERRQ(VecSet(r,0.0));
+  PetscCall(VecSet(r,0.0));
   for (i=0;i<nep->nconv;i++) {
-    if (ctx->rg) CHKERRQ(RGCheckInside(ctx->rg,1,&nep->eigr[i],&nep->eigi[i],&inside));
+    if (ctx->rg) PetscCall(RGCheckInside(ctx->rg,1,&nep->eigr[i],&nep->eigi[i],&inside));
     if (inside>=0) {
-      CHKERRQ(BVGetColumn(nep->V,i,&x));
-      CHKERRQ(BVGetColumn(nep->W,i,&y));
-      CHKERRQ(NEPApplyJacobian(nep,nep->eigr[i],x,z,w,NULL));
+      PetscCall(BVGetColumn(nep->V,i,&x));
+      PetscCall(BVGetColumn(nep->W,i,&y));
+      PetscCall(NEPApplyJacobian(nep,nep->eigr[i],x,z,w,NULL));
       if (!ctx->dots_avail[i]) {
-        CHKERRQ(VecDot(v,y,&ctx->dots[i]));
+        PetscCall(VecDot(v,y,&ctx->dots[i]));
         ctx->dots_avail[i] = PETSC_TRUE;
       }
       if (!ctx->nfactor_avail[i]) {
-        CHKERRQ(VecDot(w,y,&ctx->nfactor[i]));
+        PetscCall(VecDot(w,y,&ctx->nfactor[i]));
         ctx->nfactor_avail[i] = PETSC_TRUE;
       }
       alpha = ctx->dots[i]/(ctx->nfactor[i]*(ctx->omega-nep->eigr[i]));
-      CHKERRQ(VecAXPY(r,alpha,x));
-      CHKERRQ(BVRestoreColumn(nep->V,i,&x));
-      CHKERRQ(BVRestoreColumn(nep->W,i,&y));
+      PetscCall(VecAXPY(r,alpha,x));
+      PetscCall(BVRestoreColumn(nep->V,i,&x));
+      PetscCall(BVRestoreColumn(nep->W,i,&y));
     }
   }
   PetscFunctionReturn(0);
@@ -73,9 +73,9 @@ static PetscErrorCode MatDestroy_Resolvent(Mat M)
 
   PetscFunctionBegin;
   if (M) {
-    CHKERRQ(MatShellGetContext(M,&ctx));
-    CHKERRQ(PetscFree4(ctx->nfactor,ctx->nfactor_avail,ctx->dots,ctx->dots_avail));
-    CHKERRQ(PetscFree(ctx));
+    PetscCall(MatShellGetContext(M,&ctx));
+    PetscCall(PetscFree4(ctx->nfactor,ctx->nfactor_avail,ctx->dots,ctx->dots_avail));
+    PetscCall(PetscFree(ctx));
   }
   PetscFunctionReturn(0);
 }
@@ -117,20 +117,20 @@ PetscErrorCode NEPApplyResolvent(NEP nep,RG rg,PetscScalar omega,Vec v,Vec r)
   PetscValidHeaderSpecific(r,VEC_CLASSID,5);
   NEPCheckSolved(nep,1);
 
-  CHKERRQ(PetscLogEventBegin(NEP_Resolvent,nep,0,0,0));
+  PetscCall(PetscLogEventBegin(NEP_Resolvent,nep,0,0,0));
   if (!nep->resolvent) {
-    CHKERRQ(PetscNew(&ctx));
+    PetscCall(PetscNew(&ctx));
     ctx->nep = nep;
-    CHKERRQ(PetscCalloc4(nep->nconv,&ctx->nfactor,nep->nconv,&ctx->nfactor_avail,nep->nconv,&ctx->dots,nep->nconv,&ctx->dots_avail));
-    CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)nep),nep->nloc,nep->nloc,nep->n,nep->n,ctx,&nep->resolvent));
-    CHKERRQ(MatShellSetOperation(nep->resolvent,MATOP_MULT,(void(*)(void))MatMult_Resolvent));
-    CHKERRQ(MatShellSetOperation(nep->resolvent,MATOP_DESTROY,(void(*)(void))MatDestroy_Resolvent));
-  } else CHKERRQ(MatShellGetContext(nep->resolvent,&ctx));
-  CHKERRQ(NEPComputeVectors(nep));
-  CHKERRQ(NEPSetWorkVecs(nep,2));
+    PetscCall(PetscCalloc4(nep->nconv,&ctx->nfactor,nep->nconv,&ctx->nfactor_avail,nep->nconv,&ctx->dots,nep->nconv,&ctx->dots_avail));
+    PetscCall(MatCreateShell(PetscObjectComm((PetscObject)nep),nep->nloc,nep->nloc,nep->n,nep->n,ctx,&nep->resolvent));
+    PetscCall(MatShellSetOperation(nep->resolvent,MATOP_MULT,(void(*)(void))MatMult_Resolvent));
+    PetscCall(MatShellSetOperation(nep->resolvent,MATOP_DESTROY,(void(*)(void))MatDestroy_Resolvent));
+  } else PetscCall(MatShellGetContext(nep->resolvent,&ctx));
+  PetscCall(NEPComputeVectors(nep));
+  PetscCall(NEPSetWorkVecs(nep,2));
   ctx->rg    = rg;
   ctx->omega = omega;
-  CHKERRQ(MatMult(nep->resolvent,v,r));
-  CHKERRQ(PetscLogEventEnd(NEP_Resolvent,nep,0,0,0));
+  PetscCall(MatMult(nep->resolvent,v,r));
+  PetscCall(PetscLogEventEnd(NEP_Resolvent,nep,0,0,0));
   PetscFunctionReturn(0);
 }

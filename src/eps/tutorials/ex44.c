@@ -28,33 +28,33 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      flg,terse;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-file",filename,sizeof(filename),&flg));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-file",filename,sizeof(filename),&flg));
   if (flg) {
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Load the matrix from file
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nEigenproblem stored in file.\n\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nEigenproblem stored in file.\n\n"));
 #if defined(PETSC_USE_COMPLEX)
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n"));
 #else
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n"));
 #endif
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-    CHKERRQ(MatSetFromOptions(A));
-    CHKERRQ(MatLoad(A,viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+    PetscCall(MatSetFromOptions(A));
+    PetscCall(MatLoad(A,viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
 
   } else {
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           Generate Brusselator matrix
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-    CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",n));
+    PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",n));
 
     alpha  = 2.0;
     beta   = 5.45;
@@ -66,69 +66,69 @@ int main(int argc,char **argv)
     tau1 = delta1 / ((h*L)*(h*L));
     tau2 = delta2 / ((h*L)*(h*L));
 
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-    CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,2*n,2*n));
-    CHKERRQ(MatSetFromOptions(A));
-    CHKERRQ(MatSetUp(A));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+    PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,2*n,2*n));
+    PetscCall(MatSetFromOptions(A));
+    PetscCall(MatSetUp(A));
 
-    CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+    PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
     for (i=Istart;i<Iend;i++) {
       if (i<n) {  /* upper blocks */
-        if (i>0) CHKERRQ(MatSetValue(A,i,i-1,tau1,INSERT_VALUES));
-        if (i<n-1) CHKERRQ(MatSetValue(A,i,i+1,tau1,INSERT_VALUES));
-        CHKERRQ(MatSetValue(A,i,i,-2.0*tau1+beta-1.0,INSERT_VALUES));
-        CHKERRQ(MatSetValue(A,i,i+n,alpha*alpha,INSERT_VALUES));
+        if (i>0) PetscCall(MatSetValue(A,i,i-1,tau1,INSERT_VALUES));
+        if (i<n-1) PetscCall(MatSetValue(A,i,i+1,tau1,INSERT_VALUES));
+        PetscCall(MatSetValue(A,i,i,-2.0*tau1+beta-1.0,INSERT_VALUES));
+        PetscCall(MatSetValue(A,i,i+n,alpha*alpha,INSERT_VALUES));
       } else {  /* lower blocks */
-        if (i>n) CHKERRQ(MatSetValue(A,i,i-1,tau2,INSERT_VALUES));
-        if (i<2*n-1) CHKERRQ(MatSetValue(A,i,i+1,tau2,INSERT_VALUES));
-        CHKERRQ(MatSetValue(A,i,i,-2.0*tau2-alpha*alpha,INSERT_VALUES));
-        CHKERRQ(MatSetValue(A,i,i-n,-beta,INSERT_VALUES));
+        if (i>n) PetscCall(MatSetValue(A,i,i-1,tau2,INSERT_VALUES));
+        if (i<2*n-1) PetscCall(MatSetValue(A,i,i+1,tau2,INSERT_VALUES));
+        PetscCall(MatSetValue(A,i,i,-2.0*tau2-alpha*alpha,INSERT_VALUES));
+        PetscCall(MatSetValue(A,i,i-n,-beta,INSERT_VALUES));
       }
     }
-    CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-    CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   }
 
   /* Shift the matrix to make it stable, A-sigma*I */
-  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-shift",&sigma,NULL));
-  CHKERRQ(MatShift(A,-sigma));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-shift",&sigma,NULL));
+  PetscCall(MatShift(A,-sigma));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
-  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(EPSGetType(eps,&type));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
-  CHKERRQ(EPSGetDimensions(eps,&nev,NULL,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSGetType(eps,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   else {
-    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

@@ -21,54 +21,54 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test pseudo-orthogonalization for GHIEP - dimension %" PetscInt_FMT ".\n",n));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test pseudo-orthogonalization for GHIEP - dimension %" PetscInt_FMT ".\n",n));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
 
   /* Create DS object */
-  CHKERRQ(DSCreate(PETSC_COMM_WORLD,&ds));
-  CHKERRQ(DSSetType(ds,DSGHIEP));
-  CHKERRQ(DSSetFromOptions(ds));
-  CHKERRQ(DSAllocate(ds,n));
-  CHKERRQ(DSSetDimensions(ds,n,0,0));
+  PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
+  PetscCall(DSSetType(ds,DSGHIEP));
+  PetscCall(DSSetFromOptions(ds));
+  PetscCall(DSAllocate(ds,n));
+  PetscCall(DSSetDimensions(ds,n,0,0));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  if (verbose) PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill with a symmetric Toeplitz matrix */
-  CHKERRQ(DSGetArray(ds,DS_MAT_A,&A));
+  PetscCall(DSGetArray(ds,DS_MAT_A,&A));
   for (i=0;i<n;i++) A[i+i*n]=2.0;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) { A[i+(i+j)*n]=1.0; A[(i+j)+i*n]=1.0; }
   }
   for (j=1;j<3;j++) { A[0+j*n]=-1.0*(j+2); A[j+0*n]=-1.0*(j+2); }
-  CHKERRQ(DSRestoreArray(ds,DS_MAT_A,&A));
-  CHKERRQ(DSSetState(ds,DS_STATE_RAW));
+  PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
+  PetscCall(DSSetState(ds,DS_STATE_RAW));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
-    CHKERRQ(DSView(ds,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
+    PetscCall(DSView(ds,viewer));
   }
 
   /* Signature matrix */
-  CHKERRQ(PetscMalloc2(n,&s,n,&ns));
+  PetscCall(PetscMalloc2(n,&s,n,&ns));
   s[0] = -1.0;
   for (i=1;i<n-1;i++) s[i]=1.0;
   s[n-1] = -1.0;
 
   /* Orthogonalize and show signature */
-  CHKERRQ(DSPseudoOrthogonalize(ds,DS_MAT_A,n,s,NULL,ns));
+  PetscCall(DSPseudoOrthogonalize(ds,DS_MAT_A,n,s,NULL,ns));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After pseudo-orthogonalize - - - - - - - - -\n"));
-    CHKERRQ(DSView(ds,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After pseudo-orthogonalize - - - - - - - - -\n"));
+    PetscCall(DSView(ds,viewer));
   }
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Resulting signature:\n"));
-  for (i=0;i<n;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%g\n",(double)ns[i]));
-  CHKERRQ(PetscFree2(s,ns));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Resulting signature:\n"));
+  for (i=0;i<n;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%g\n",(double)ns[i]));
+  PetscCall(PetscFree2(s,ns));
 
-  CHKERRQ(DSDestroy(&ds));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(DSDestroy(&ds));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

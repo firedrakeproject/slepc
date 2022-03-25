@@ -24,48 +24,48 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,test_dsview,extrarow;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD with compact storage - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n,n));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD with compact storage - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n,n));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   PetscCheck(l<=n && k<=n && l<=k,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Wrong value of dimensions");
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-test_dsview",&test_dsview));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-extrarow",&extrarow));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-test_dsview",&test_dsview));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-extrarow",&extrarow));
 
   /* Create DS object */
-  CHKERRQ(DSCreate(PETSC_COMM_WORLD,&ds));
-  CHKERRQ(DSSetType(ds,DSGSVD));
-  CHKERRQ(DSSetFromOptions(ds));
+  PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
+  PetscCall(DSSetType(ds,DSGSVD));
+  PetscCall(DSSetFromOptions(ds));
   ld = n+2;  /* test leading dimension larger than n */
-  CHKERRQ(DSAllocate(ds,ld));
-  CHKERRQ(DSSetDimensions(ds,n,l,k));
-  CHKERRQ(DSGSVDSetDimensions(ds,n,PETSC_DECIDE));
-  CHKERRQ(DSSetCompact(ds,PETSC_TRUE));
-  CHKERRQ(DSSetExtraRow(ds,extrarow));
+  PetscCall(DSAllocate(ds,ld));
+  PetscCall(DSSetDimensions(ds,n,l,k));
+  PetscCall(DSGSVDSetDimensions(ds,n,PETSC_DECIDE));
+  PetscCall(DSSetCompact(ds,PETSC_TRUE));
+  PetscCall(DSSetExtraRow(ds,extrarow));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
-  CHKERRQ(DSView(ds,viewer));
-  CHKERRQ(PetscViewerPopFormat(viewer));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
+  PetscCall(DSView(ds,viewer));
+  PetscCall(PetscViewerPopFormat(viewer));
 
   if (test_dsview) {
     /* Fill A and B with dummy values to test DSView */
-    CHKERRQ(DSGetArrayReal(ds,DS_MAT_T,&T));
-    CHKERRQ(DSGetArrayReal(ds,DS_MAT_D,&D));
+    PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+    PetscCall(DSGetArrayReal(ds,DS_MAT_D,&D));
     for (i=0;i<n;i++) { T[i] = i+1; D[i] = -i-1; }
     for (i=0;i<n-1;i++) { T[i+ld] = -1.0; T[i+2*ld] = 1.0; }
-    CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-    CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_D,&D));
-    CHKERRQ(DSView(ds,viewer));
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
+    PetscCall(DSView(ds,viewer));
   }
 
   /* Fill A and B with upper arrow-bidiagonal matrices
      verifying that [A;B] has orthonormal columns */
-  CHKERRQ(DSGetArrayReal(ds,DS_MAT_T,&T));
-  CHKERRQ(DSGetArrayReal(ds,DS_MAT_D,&D));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&D));
   for (i=0;i<n;i++) T[i] = (PetscReal)(i+1)/(n+1); /* diagonal of matrix A */
   for (i=0;i<k;i++) D[i] = PetscSqrtReal(1.0-T[i]*T[i]);
   for (i=l;i<k;i++) {
@@ -82,85 +82,85 @@ int main(int argc,char **argv)
   }
   if (extrarow) { T[n-1+ld]=-1.0; T[n-1+2*ld]=1.0; }
   /* Fill locked eigenvalues */
-  CHKERRQ(PetscMalloc1(n,&w));
+  PetscCall(PetscMalloc1(n,&w));
   for (i=0;i<l;i++) w[i] = T[i]/D[i];
-  CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_D,&D));
-  if (l==0 && k==0) CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
-  else CHKERRQ(DSSetState(ds,DS_STATE_RAW));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
+  if (l==0 && k==0) PetscCall(DSSetState(ds,DS_STATE_INTERMEDIATE));
+  else PetscCall(DSSetState(ds,DS_STATE_RAW));
   if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
-    CHKERRQ(DSView(ds,viewer));
+    PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
+    PetscCall(DSView(ds,viewer));
   }
 
   /* Solve */
-  CHKERRQ(DSGetSlepcSC(ds,&sc));
+  PetscCall(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestReal;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  CHKERRQ(DSSolve(ds,w,NULL));
-  CHKERRQ(DSSort(ds,w,NULL,NULL,NULL,NULL));
-  if (extrarow) CHKERRQ(DSUpdateExtraRow(ds));
-  CHKERRQ(DSSynchronize(ds,w,NULL));
+  PetscCall(DSSolve(ds,w,NULL));
+  PetscCall(DSSort(ds,w,NULL,NULL,NULL,NULL));
+  if (extrarow) PetscCall(DSUpdateExtraRow(ds));
+  PetscCall(DSSynchronize(ds,w,NULL));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n"));
-    CHKERRQ(DSView(ds,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n"));
+    PetscCall(DSView(ds,viewer));
   }
 
   /* Print singular values */
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed singular values =\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed singular values =\n"));
   for (i=0;i<n;i++) {
     sigma = PetscRealPart(w[i]);
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma));
   }
 
   if (extrarow) {
     /* Check that extra row is correct */
-    CHKERRQ(DSGetArrayReal(ds,DS_MAT_T,&T));
-    CHKERRQ(DSGetArray(ds,DS_MAT_U,&U));
-    CHKERRQ(DSGetArray(ds,DS_MAT_V,&V));
+    PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+    PetscCall(DSGetArray(ds,DS_MAT_U,&U));
+    PetscCall(DSGetArray(ds,DS_MAT_V,&V));
     d = 0.0;
     for (i=0;i<n;i++) d += T[i+ld]+U[n-1+i*ld];
-    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in A's extra row of %g\n",(double)PetscAbsScalar(d)));
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in A's extra row of %g\n",(double)PetscAbsScalar(d)));
     d = 0.0;
     for (i=0;i<n;i++) d += T[i+2*ld]-V[n-1+i*ld];
-    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in B's extra row of %g\n",(double)PetscAbsScalar(d)));
-    CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-    CHKERRQ(DSRestoreArray(ds,DS_MAT_U,&U));
-    CHKERRQ(DSRestoreArray(ds,DS_MAT_V,&V));
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in B's extra row of %g\n",(double)PetscAbsScalar(d)));
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
+    PetscCall(DSRestoreArray(ds,DS_MAT_U,&U));
+    PetscCall(DSRestoreArray(ds,DS_MAT_V,&V));
   }
 
   /* Singular vectors */
-  CHKERRQ(DSVectors(ds,DS_MAT_X,NULL,NULL));  /* all singular vectors */
-  CHKERRQ(DSGetMat(ds,DS_MAT_X,&X));
-  CHKERRQ(MatCreateVecs(X,NULL,&x0));
-  CHKERRQ(MatGetColumnVector(X,x0,0));
-  CHKERRQ(VecNorm(x0,NORM_2,&rnorm));
-  CHKERRQ(MatDestroy(&X));
-  CHKERRQ(VecDestroy(&x0));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st X vector = %.3f\n",(double)rnorm));
+  PetscCall(DSVectors(ds,DS_MAT_X,NULL,NULL));  /* all singular vectors */
+  PetscCall(DSGetMat(ds,DS_MAT_X,&X));
+  PetscCall(MatCreateVecs(X,NULL,&x0));
+  PetscCall(MatGetColumnVector(X,x0,0));
+  PetscCall(VecNorm(x0,NORM_2,&rnorm));
+  PetscCall(MatDestroy(&X));
+  PetscCall(VecDestroy(&x0));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st X vector = %.3f\n",(double)rnorm));
 
-  CHKERRQ(DSGetMat(ds,DS_MAT_U,&X));
-  CHKERRQ(MatCreateVecs(X,NULL,&x0));
-  CHKERRQ(MatGetColumnVector(X,x0,0));
-  CHKERRQ(VecNorm(x0,NORM_2,&rnorm));
-  CHKERRQ(MatDestroy(&X));
-  CHKERRQ(VecDestroy(&x0));
-  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm));
+  PetscCall(DSGetMat(ds,DS_MAT_U,&X));
+  PetscCall(MatCreateVecs(X,NULL,&x0));
+  PetscCall(MatGetColumnVector(X,x0,0));
+  PetscCall(VecNorm(x0,NORM_2,&rnorm));
+  PetscCall(MatDestroy(&X));
+  PetscCall(VecDestroy(&x0));
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm));
 
-  CHKERRQ(DSGetMat(ds,DS_MAT_V,&X));
-  CHKERRQ(MatCreateVecs(X,NULL,&x0));
-  CHKERRQ(MatGetColumnVector(X,x0,0));
-  CHKERRQ(VecNorm(x0,NORM_2,&rnorm));
-  CHKERRQ(MatDestroy(&X));
-  CHKERRQ(VecDestroy(&x0));
-  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm));
+  PetscCall(DSGetMat(ds,DS_MAT_V,&X));
+  PetscCall(MatCreateVecs(X,NULL,&x0));
+  PetscCall(MatGetColumnVector(X,x0,0));
+  PetscCall(VecNorm(x0,NORM_2,&rnorm));
+  PetscCall(MatDestroy(&X));
+  PetscCall(VecDestroy(&x0));
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm));
 
-  CHKERRQ(PetscFree(w));
-  CHKERRQ(DSDestroy(&ds));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(PetscFree(w));
+  PetscCall(DSDestroy(&ds));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

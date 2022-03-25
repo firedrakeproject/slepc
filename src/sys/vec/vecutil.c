@@ -38,18 +38,18 @@ PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *
 #if !defined(PETSC_USE_COMPLEX)
   if (iscomplex) {
     PetscValidHeaderSpecific(xi,VEC_CLASSID,2);
-    CHKERRQ(VecNormBegin(xr,NORM_2,&normr));
-    CHKERRQ(VecNormBegin(xi,NORM_2,&normi));
-    CHKERRQ(VecNormEnd(xr,NORM_2,&normr));
-    CHKERRQ(VecNormEnd(xi,NORM_2,&normi));
+    PetscCall(VecNormBegin(xr,NORM_2,&normr));
+    PetscCall(VecNormBegin(xi,NORM_2,&normi));
+    PetscCall(VecNormEnd(xr,NORM_2,&normr));
+    PetscCall(VecNormEnd(xi,NORM_2,&normi));
     alpha = SlepcAbsEigenvalue(normr,normi);
     if (norm) *norm = alpha;
     alpha = 1.0 / alpha;
-    CHKERRQ(VecScale(xr,alpha));
-    CHKERRQ(VecScale(xi,alpha));
+    PetscCall(VecScale(xr,alpha));
+    PetscCall(VecScale(xi,alpha));
   } else
 #endif
-    CHKERRQ(VecNormalize(xr,norm));
+    PetscCall(VecNormalize(xr,norm));
   PetscFunctionReturn(0);
 }
 
@@ -62,41 +62,41 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
 
   PetscFunctionBegin;
   if (!lev) {
-    if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)*V),&viewer));
+    if (!viewer) PetscCall(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)*V),&viewer));
     PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,6);
     PetscCheckSameComm(*V,1,viewer,6);
-    CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+    PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
     if (!isascii) PetscFunctionReturn(0);
   }
 
-  CHKERRQ(PetscMalloc1(nv,&vals));
-  if (B) CHKERRQ(VecDuplicate(V[0],&w));
+  PetscCall(PetscMalloc1(nv,&vals));
+  if (B) PetscCall(VecDuplicate(V[0],&w));
   if (lev) *lev = 0.0;
   for (i=0;i<nw;i++) {
     if (B) {
-      if (W) CHKERRQ(MatMultTranspose(B,W[i],w));
-      else CHKERRQ(MatMultTranspose(B,V[i],w));
+      if (W) PetscCall(MatMultTranspose(B,W[i],w));
+      else PetscCall(MatMultTranspose(B,V[i],w));
     } else {
       if (W) w = W[i];
       else w = V[i];
     }
-    CHKERRQ(VecMDot(w,nv,V,vals));
+    PetscCall(VecMDot(w,nv,V,vals));
     for (j=0;j<nv;j++) {
       if (lev) {
         if (i!=j) *lev = PetscMax(*lev,PetscAbsScalar(vals[j]));
         else if (norm) *lev = PetscMax(*lev,PetscAbsScalar(vals[j]-PetscRealConstant(1.0)));
       } else {
 #if !defined(PETSC_USE_COMPLEX)
-        CHKERRQ(PetscViewerASCIIPrintf(viewer," %12g  ",(double)vals[j]));
+        PetscCall(PetscViewerASCIIPrintf(viewer," %12g  ",(double)vals[j]));
 #else
-        CHKERRQ(PetscViewerASCIIPrintf(viewer," %12g%+12gi ",(double)PetscRealPart(vals[j]),(double)PetscImaginaryPart(vals[j])));
+        PetscCall(PetscViewerASCIIPrintf(viewer," %12g%+12gi ",(double)PetscRealPart(vals[j]),(double)PetscImaginaryPart(vals[j])));
 #endif
       }
     }
-    if (!lev) CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
+    if (!lev) PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
   }
-  CHKERRQ(PetscFree(vals));
-  if (B) CHKERRQ(VecDestroy(&w));
+  PetscCall(PetscFree(vals));
+  if (B) PetscCall(VecDestroy(&w));
   PetscFunctionReturn(0);
 }
 
@@ -145,7 +145,7 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
     PetscValidHeaderSpecific(*W,VEC_CLASSID,3);
     PetscCheckSameComm(*V,1,*W,3);
   }
-  CHKERRQ(VecCheckOrthogonality_Private(V,nv,W,nw,B,viewer,lev,PETSC_FALSE));
+  PetscCall(VecCheckOrthogonality_Private(V,nv,W,nw,B,viewer,lev,PETSC_FALSE));
   PetscFunctionReturn(0);
 }
 
@@ -187,7 +187,7 @@ PetscErrorCode VecCheckOrthonormality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Ma
     PetscValidHeaderSpecific(*W,VEC_CLASSID,3);
     PetscCheckSameComm(*V,1,*W,3);
   }
-  CHKERRQ(VecCheckOrthogonality_Private(V,nv,W,nw,B,viewer,lev,PETSC_TRUE));
+  PetscCall(VecCheckOrthogonality_Private(V,nv,W,nw,B,viewer,lev,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -221,23 +221,23 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
   PetscValidPointer(newv,2);
   PetscValidType(v,1);
 
-  CHKERRQ(PetscObjectTypeCompareAny((PetscObject)v,&standard,VECSEQ,VECMPI,""));
-  CHKERRQ(PetscObjectTypeCompareAny((PetscObject)v,&cuda,VECSEQCUDA,VECMPICUDA,""));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&standard,VECSEQ,VECMPI,""));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&cuda,VECSEQCUDA,VECMPICUDA,""));
   if (standard || cuda) {
-    CHKERRQ(PetscObjectTypeCompareAny((PetscObject)v,&mpi,VECMPI,VECMPICUDA,""));
-    CHKERRQ(VecGetLocalSize(v,&nloc));
-    CHKERRQ(VecGetSize(v,&N));
-    CHKERRQ(VecGetBlockSize(v,&bs));
+    PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&mpi,VECMPI,VECMPICUDA,""));
+    PetscCall(VecGetLocalSize(v,&nloc));
+    PetscCall(VecGetSize(v,&N));
+    PetscCall(VecGetBlockSize(v,&bs));
     if (cuda) {
 #if defined(PETSC_HAVE_CUDA)
-      if (mpi) CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
-      else CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
+      if (mpi) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
+      else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
 #endif
     } else {
-      if (mpi) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
-      else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
+      if (mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv));
+      else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv));
     }
-  } else CHKERRQ(VecDuplicate(v,newv)); /* standard duplicate, with internal array */
+  } else PetscCall(VecDuplicate(v,newv)); /* standard duplicate, with internal array */
   PetscFunctionReturn(0);
 }
 
@@ -279,27 +279,27 @@ PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
   if (w2) PetscValidHeaderSpecific(w2,VEC_CLASSID,4);
 
   if (!rctx) {
-    CHKERRQ(PetscRandomCreate(PetscObjectComm((PetscObject)v),&rand));
-    CHKERRQ(PetscRandomSetFromOptions(rand));
+    PetscCall(PetscRandomCreate(PetscObjectComm((PetscObject)v),&rand));
+    PetscCall(PetscRandomSetFromOptions(rand));
     rctx = rand;
   }
   if (!w1) {
-    CHKERRQ(VecDuplicate(v,&v1));
+    PetscCall(VecDuplicate(v,&v1));
     w1 = v1;
   }
   if (!w2) {
-    CHKERRQ(VecDuplicate(v,&v2));
+    PetscCall(VecDuplicate(v,&v2));
     w2 = v2;
   }
   PetscCheckSameTypeAndComm(v,1,w1,3);
   PetscCheckSameTypeAndComm(v,1,w2,4);
 
-  CHKERRQ(VecSetRandom(w1,rctx));
-  CHKERRQ(VecSetRandom(w2,rctx));
-  CHKERRQ(VecGetLocalSize(v,&n));
-  CHKERRQ(VecGetArrayWrite(v,&z));
-  CHKERRQ(VecGetArrayRead(w1,&x));
-  CHKERRQ(VecGetArrayRead(w2,&y));
+  PetscCall(VecSetRandom(w1,rctx));
+  PetscCall(VecSetRandom(w2,rctx));
+  PetscCall(VecGetLocalSize(v,&n));
+  PetscCall(VecGetArrayWrite(v,&z));
+  PetscCall(VecGetArrayRead(w1,&x));
+  PetscCall(VecGetArrayRead(w2,&y));
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     z[i] = PetscCMPLX(PetscSqrtReal(-2.0*PetscLogReal(PetscRealPart(x[i])))*PetscCosReal(2.0*PETSC_PI*PetscRealPart(y[i])),PetscSqrtReal(-2.0*PetscLogReal(PetscImaginaryPart(x[i])))*PetscCosReal(2.0*PETSC_PI*PetscImaginaryPart(y[i])));
@@ -307,12 +307,12 @@ PetscErrorCode VecSetRandomNormal(Vec v,PetscRandom rctx,Vec w1,Vec w2)
     z[i] = PetscSqrtReal(-2.0*PetscLogReal(x[i]))*PetscCosReal(2.0*PETSC_PI*y[i]);
 #endif
   }
-  CHKERRQ(VecRestoreArrayWrite(v,&z));
-  CHKERRQ(VecRestoreArrayRead(w1,&x));
-  CHKERRQ(VecRestoreArrayRead(w2,&y));
+  PetscCall(VecRestoreArrayWrite(v,&z));
+  PetscCall(VecRestoreArrayRead(w1,&x));
+  PetscCall(VecRestoreArrayRead(w2,&y));
 
-  CHKERRQ(VecDestroy(&v1));
-  CHKERRQ(VecDestroy(&v2));
-  if (!rctx) CHKERRQ(PetscRandomDestroy(&rand));
+  PetscCall(VecDestroy(&v1));
+  PetscCall(VecDestroy(&v2));
+  if (!rctx) PetscCall(PetscRandomDestroy(&rand));
   PetscFunctionReturn(0);
 }

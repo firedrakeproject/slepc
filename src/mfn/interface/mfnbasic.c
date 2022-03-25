@@ -60,30 +60,30 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)mfn),&viewer));
+  if (!viewer) PetscCall(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)mfn),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(mfn,1,viewer,2);
 
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    CHKERRQ(PetscObjectPrintClassNamePrefixType((PetscObject)mfn,viewer));
+    PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)mfn,viewer));
     if (mfn->ops->view) {
-      CHKERRQ(PetscViewerASCIIPushTab(viewer));
-      CHKERRQ((*mfn->ops->view)(mfn,viewer));
-      CHKERRQ(PetscViewerASCIIPopTab(viewer));
+      PetscCall(PetscViewerASCIIPushTab(viewer));
+      PetscCall((*mfn->ops->view)(mfn,viewer));
+      PetscCall(PetscViewerASCIIPopTab(viewer));
     }
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",mfn->ncv));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",mfn->max_it));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)mfn->tol));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",mfn->ncv));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",mfn->max_it));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)mfn->tol));
   } else {
-    if (mfn->ops->view) CHKERRQ((*mfn->ops->view)(mfn,viewer));
+    if (mfn->ops->view) PetscCall((*mfn->ops->view)(mfn,viewer));
   }
-  CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
-  if (!mfn->V) CHKERRQ(MFNGetFN(mfn,&mfn->fn));
-  CHKERRQ(FNView(mfn->fn,viewer));
-  if (!mfn->V) CHKERRQ(MFNGetBV(mfn,&mfn->V));
-  CHKERRQ(BVView(mfn->V,viewer));
-  CHKERRQ(PetscViewerPopFormat(viewer));
+  PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
+  if (!mfn->V) PetscCall(MFNGetFN(mfn,&mfn->fn));
+  PetscCall(FNView(mfn->fn,viewer));
+  if (!mfn->V) PetscCall(MFNGetBV(mfn,&mfn->V));
+  PetscCall(BVView(mfn->V,viewer));
+  PetscCall(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -105,7 +105,7 @@ PetscErrorCode MFNViewFromOptions(MFN mfn,PetscObject obj,const char name[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  CHKERRQ(PetscObjectViewFromOptions((PetscObject)mfn,obj,name));
+  PetscCall(PetscObjectViewFromOptions((PetscObject)mfn,obj,name));
   PetscFunctionReturn(0);
 }
 /*@C
@@ -137,13 +137,13 @@ PetscErrorCode MFNConvergedReasonView(MFN mfn,PetscViewer viewer)
 
   PetscFunctionBegin;
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii));
   if (isAscii) {
-    CHKERRQ(PetscViewerGetFormat(viewer,&format));
-    CHKERRQ(PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel));
-    if (mfn->reason > 0 && format != PETSC_VIEWER_FAILED) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Matrix function solve converged due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its));
-    else if (mfn->reason <= 0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%s Matrix function solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its));
-    CHKERRQ(PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel));
+    PetscCall(PetscViewerGetFormat(viewer,&format));
+    PetscCall(PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel));
+    if (mfn->reason > 0 && format != PETSC_VIEWER_FAILED) PetscCall(PetscViewerASCIIPrintf(viewer,"%s Matrix function solve converged due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its));
+    else if (mfn->reason <= 0) PetscCall(PetscViewerASCIIPrintf(viewer,"%s Matrix function solve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)mfn)->prefix?((PetscObject)mfn)->prefix:"",MFNConvergedReasons[mfn->reason],mfn->its));
+    PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel));
   }
   PetscFunctionReturn(0);
 }
@@ -171,12 +171,12 @@ PetscErrorCode MFNConvergedReasonViewFromOptions(MFN mfn)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  CHKERRQ(PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->options,((PetscObject)mfn)->prefix,"-mfn_converged_reason",&viewer,&format,&flg));
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->options,((PetscObject)mfn)->prefix,"-mfn_converged_reason",&viewer,&format,&flg));
   if (flg) {
-    CHKERRQ(PetscViewerPushFormat(viewer,format));
-    CHKERRQ(MFNConvergedReasonView(mfn,viewer));
-    CHKERRQ(PetscViewerPopFormat(viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerPushFormat(viewer,format));
+    PetscCall(MFNConvergedReasonView(mfn,viewer));
+    PetscCall(PetscViewerPopFormat(viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -207,8 +207,8 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   PetscFunctionBegin;
   PetscValidPointer(outmfn,2);
   *outmfn = 0;
-  CHKERRQ(MFNInitializePackage());
-  CHKERRQ(SlepcHeaderCreate(mfn,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView));
+  PetscCall(MFNInitializePackage());
+  PetscCall(SlepcHeaderCreate(mfn,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView));
 
   mfn->A               = NULL;
   mfn->fn              = NULL;
@@ -272,18 +272,18 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)mfn,type,&match));
+  PetscCall(PetscObjectTypeCompare((PetscObject)mfn,type,&match));
   if (match) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscFunctionListFind(MFNList,type,&r));
+  PetscCall(PetscFunctionListFind(MFNList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown MFN type given: %s",type);
 
-  if (mfn->ops->destroy) CHKERRQ((*mfn->ops->destroy)(mfn));
-  CHKERRQ(PetscMemzero(mfn->ops,sizeof(struct _MFNOps)));
+  if (mfn->ops->destroy) PetscCall((*mfn->ops->destroy)(mfn));
+  PetscCall(PetscMemzero(mfn->ops,sizeof(struct _MFNOps)));
 
   mfn->setupcalled = 0;
-  CHKERRQ(PetscObjectChangeTypeName((PetscObject)mfn,type));
-  CHKERRQ((*r)(mfn));
+  PetscCall(PetscObjectChangeTypeName((PetscObject)mfn,type));
+  PetscCall((*r)(mfn));
   PetscFunctionReturn(0);
 }
 
@@ -340,8 +340,8 @@ $     -mfn_type my_solver
 PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
 {
   PetscFunctionBegin;
-  CHKERRQ(MFNInitializePackage());
-  CHKERRQ(PetscFunctionListAdd(&MFNList,name,function));
+  PetscCall(MFNInitializePackage());
+  PetscCall(PetscFunctionListAdd(&MFNList,name,function));
   PetscFunctionReturn(0);
 }
 
@@ -380,11 +380,11 @@ PetscErrorCode MFNMonitorRegister(const char name[],PetscViewerType vtype,PetscV
   char           key[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  CHKERRQ(MFNInitializePackage());
-  CHKERRQ(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
-  CHKERRQ(PetscFunctionListAdd(&MFNMonitorList,key,monitor));
-  if (create)  CHKERRQ(PetscFunctionListAdd(&MFNMonitorCreateList,key,create));
-  if (destroy) CHKERRQ(PetscFunctionListAdd(&MFNMonitorDestroyList,key,destroy));
+  PetscCall(MFNInitializePackage());
+  PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
+  PetscCall(PetscFunctionListAdd(&MFNMonitorList,key,monitor));
+  if (create)  PetscCall(PetscFunctionListAdd(&MFNMonitorCreateList,key,create));
+  if (destroy) PetscCall(PetscFunctionListAdd(&MFNMonitorDestroyList,key,destroy));
   PetscFunctionReturn(0);
 }
 
@@ -406,10 +406,10 @@ PetscErrorCode MFNReset(MFN mfn)
   PetscFunctionBegin;
   if (mfn) PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (!mfn) PetscFunctionReturn(0);
-  if (mfn->ops->reset) CHKERRQ((mfn->ops->reset)(mfn));
-  CHKERRQ(MatDestroy(&mfn->A));
-  CHKERRQ(BVDestroy(&mfn->V));
-  CHKERRQ(VecDestroyVecs(mfn->nwork,&mfn->work));
+  if (mfn->ops->reset) PetscCall((mfn->ops->reset)(mfn));
+  PetscCall(MatDestroy(&mfn->A));
+  PetscCall(BVDestroy(&mfn->V));
+  PetscCall(VecDestroyVecs(mfn->nwork,&mfn->work));
   mfn->nwork = 0;
   mfn->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -433,12 +433,12 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   if (!*mfn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*mfn,MFN_CLASSID,1);
   if (--((PetscObject)(*mfn))->refct > 0) { *mfn = 0; PetscFunctionReturn(0); }
-  CHKERRQ(MFNReset(*mfn));
-  if ((*mfn)->ops->destroy) CHKERRQ((*(*mfn)->ops->destroy)(*mfn));
-  CHKERRQ(FNDestroy(&(*mfn)->fn));
-  CHKERRQ(MatDestroy(&(*mfn)->AT));
-  CHKERRQ(MFNMonitorCancel(*mfn));
-  CHKERRQ(PetscHeaderDestroy(mfn));
+  PetscCall(MFNReset(*mfn));
+  if ((*mfn)->ops->destroy) PetscCall((*(*mfn)->ops->destroy)(*mfn));
+  PetscCall(FNDestroy(&(*mfn)->fn));
+  PetscCall(MatDestroy(&(*mfn)->AT));
+  PetscCall(MFNMonitorCancel(*mfn));
+  PetscCall(PetscHeaderDestroy(mfn));
   PetscFunctionReturn(0);
 }
 
@@ -465,10 +465,10 @@ PetscErrorCode MFNSetBV(MFN mfn,BV bv)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidHeaderSpecific(bv,BV_CLASSID,2);
   PetscCheckSameComm(mfn,1,bv,2);
-  CHKERRQ(PetscObjectReference((PetscObject)bv));
-  CHKERRQ(BVDestroy(&mfn->V));
+  PetscCall(PetscObjectReference((PetscObject)bv));
+  PetscCall(BVDestroy(&mfn->V));
   mfn->V = bv;
-  CHKERRQ(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->V));
+  PetscCall(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->V));
   PetscFunctionReturn(0);
 }
 
@@ -494,10 +494,10 @@ PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(bv,2);
   if (!mfn->V) {
-    CHKERRQ(BVCreate(PetscObjectComm((PetscObject)mfn),&mfn->V));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)mfn->V,(PetscObject)mfn,0));
-    CHKERRQ(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->V));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)mfn->V,((PetscObject)mfn)->options));
+    PetscCall(BVCreate(PetscObjectComm((PetscObject)mfn),&mfn->V));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)mfn->V,(PetscObject)mfn,0));
+    PetscCall(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->V));
+    PetscCall(PetscObjectSetOptions((PetscObject)mfn->V,((PetscObject)mfn)->options));
   }
   *bv = mfn->V;
   PetscFunctionReturn(0);
@@ -526,10 +526,10 @@ PetscErrorCode MFNSetFN(MFN mfn,FN fn)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidHeaderSpecific(fn,FN_CLASSID,2);
   PetscCheckSameComm(mfn,1,fn,2);
-  CHKERRQ(PetscObjectReference((PetscObject)fn));
-  CHKERRQ(FNDestroy(&mfn->fn));
+  PetscCall(PetscObjectReference((PetscObject)fn));
+  PetscCall(FNDestroy(&mfn->fn));
   mfn->fn = fn;
-  CHKERRQ(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->fn));
+  PetscCall(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->fn));
   PetscFunctionReturn(0);
 }
 
@@ -554,10 +554,10 @@ PetscErrorCode MFNGetFN(MFN mfn,FN *fn)
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(fn,2);
   if (!mfn->fn) {
-    CHKERRQ(FNCreate(PetscObjectComm((PetscObject)mfn),&mfn->fn));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)mfn->fn,(PetscObject)mfn,0));
-    CHKERRQ(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->fn));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)mfn->fn,((PetscObject)mfn)->options));
+    PetscCall(FNCreate(PetscObjectComm((PetscObject)mfn),&mfn->fn));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)mfn->fn,(PetscObject)mfn,0));
+    PetscCall(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->fn));
+    PetscCall(PetscObjectSetOptions((PetscObject)mfn->fn,((PetscObject)mfn)->options));
   }
   *fn = mfn->fn;
   PetscFunctionReturn(0);

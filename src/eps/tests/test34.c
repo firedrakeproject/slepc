@@ -26,74 +26,74 @@ int main(int argc,char **argv)
   PetscBool       flag;
   EPSPRIMMEMethod meth;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with PRIMME, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with PRIMME, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Compute the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
-    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
-    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
-    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(A,II,II,4.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
-  CHKERRQ(EPSSetType(eps,EPSPRIMME));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetType(eps,EPSPRIMME));
 
   /*
      Set several options
   */
-  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  CHKERRQ(EPSGetST(eps,&st));
-  CHKERRQ(STSetType(st,STPRECOND));
-  CHKERRQ(STGetKSP(st,&ksp));
-  CHKERRQ(KSPGetPC(ksp,&pc));
-  CHKERRQ(KSPSetType(ksp,KSPPREONLY));
-  CHKERRQ(PCSetType(pc,PCICC));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
+  PetscCall(EPSGetST(eps,&st));
+  PetscCall(STSetType(st,STPRECOND));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPGetPC(ksp,&pc));
+  PetscCall(KSPSetType(ksp,KSPPREONLY));
+  PetscCall(PCSetType(pc,PCICC));
 
-  CHKERRQ(EPSPRIMMESetBlockSize(eps,4));
-  CHKERRQ(EPSPRIMMESetMethod(eps,EPS_PRIMME_GD_OLSEN_PLUSK));
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSPRIMMESetBlockSize(eps,4));
+  PetscCall(EPSPRIMMESetMethod(eps,EPS_PRIMME_GD_OLSEN_PLUSK));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Compute eigenvalues and display info
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(EPSPRIMMEGetBlockSize(eps,&bs));
-  CHKERRQ(EPSPRIMMEGetMethod(eps,&meth));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," PRIMME: using block size %" PetscInt_FMT ", method %s\n",bs,EPSPRIMMEMethods[meth]));
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSPRIMMEGetBlockSize(eps,&bs));
+  PetscCall(EPSPRIMMEGetMethod(eps,&meth));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," PRIMME: using block size %" PetscInt_FMT ", method %s\n",bs,EPSPRIMMEMethods[meth]));
 
-  CHKERRQ(EPSErrorView(eps,EPS_ERROR_ABSOLUTE,NULL));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_ABSOLUTE,NULL));
 
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

@@ -81,7 +81,7 @@ void *PETSC_MimicVector(void *vvector)
 {
   Vec temp;
 
-  CHKERRABORT(PETSC_COMM_SELF,VecDuplicate((Vec)vvector,&temp));
+  PetscCallAbort(PETSC_COMM_SELF,VecDuplicate((Vec)vvector,&temp));
   return (void*)temp;
 }
 
@@ -89,28 +89,28 @@ BlopexInt PETSC_DestroyVector(void *vvector)
 {
   Vec v = (Vec)vvector;
 
-  CHKERRQ(VecDestroy(&v));
+  PetscCall(VecDestroy(&v));
   return 0;
 }
 
 BlopexInt PETSC_InnerProd(void *x,void *y,void *result)
 {
 
-  CHKERRQ(VecDot((Vec)x,(Vec)y,(PetscScalar*)result));
+  PetscCall(VecDot((Vec)x,(Vec)y,(PetscScalar*)result));
   return 0;
 }
 
 BlopexInt PETSC_CopyVector(void *x,void *y)
 {
 
-  CHKERRQ(VecCopy((Vec)x,(Vec)y));
+  PetscCall(VecCopy((Vec)x,(Vec)y));
   return 0;
 }
 
 BlopexInt PETSC_ClearVector(void *x)
 {
 
-  CHKERRQ(VecSet((Vec)x,0.0));
+  PetscCall(VecSet((Vec)x,0.0));
   return 0;
 }
 
@@ -120,21 +120,21 @@ BlopexInt PETSC_SetRandomValues(void* v,BlopexInt seed)
   /* note: without previous call to LOBPCG_InitRandomContext LOBPCG_RandomContext will be null,
     and VecSetRandom will use internal petsc random context */
 
-  CHKERRQ(VecSetRandom((Vec)v,LOBPCG_RandomContext));
+  PetscCall(VecSetRandom((Vec)v,LOBPCG_RandomContext));
   return 0;
 }
 
 BlopexInt PETSC_ScaleVector(double alpha,void *x)
 {
 
-  CHKERRQ(VecScale((Vec)x,alpha));
+  PetscCall(VecScale((Vec)x,alpha));
   return 0;
 }
 
 BlopexInt PETSC_Axpy(void *alpha,void *x,void *y)
 {
 
-  CHKERRQ(VecAXPY((Vec)y,*(PetscScalar*)alpha,(Vec)x));
+  PetscCall(VecAXPY((Vec)y,*(PetscScalar*)alpha,(Vec)x));
   return 0;
 }
 
@@ -150,21 +150,21 @@ int LOBPCG_InitRandomContext(MPI_Comm comm,PetscRandom rand)
   /* PetscScalar rnd_bound = 1.0; */
 
   if (rand) {
-    CHKERRQ(PetscObjectReference((PetscObject)rand));
-    CHKERRQ(PetscRandomDestroy(&LOBPCG_RandomContext));
+    PetscCall(PetscObjectReference((PetscObject)rand));
+    PetscCall(PetscRandomDestroy(&LOBPCG_RandomContext));
     LOBPCG_RandomContext = rand;
-  } else CHKERRQ(PetscRandomCreate(comm,&LOBPCG_RandomContext));
+  } else PetscCall(PetscRandomCreate(comm,&LOBPCG_RandomContext));
   return 0;
 }
 
 int LOBPCG_SetFromOptionsRandomContext(void)
 {
-  CHKERRQ(PetscRandomSetFromOptions(LOBPCG_RandomContext));
+  PetscCall(PetscRandomSetFromOptions(LOBPCG_RandomContext));
 
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)PetscCMPLX(-1.0,-1.0),(PetscScalar)PetscCMPLX(1.0,1.0)));
+  PetscCall(PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)PetscCMPLX(-1.0,-1.0),(PetscScalar)PetscCMPLX(1.0,1.0)));
 #else
-  CHKERRQ(PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0));
+  PetscCall(PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0));
 #endif
   return 0;
 }
@@ -172,7 +172,7 @@ int LOBPCG_SetFromOptionsRandomContext(void)
 int LOBPCG_DestroyRandomContext(void)
 {
 
-  CHKERRQ(PetscRandomDestroy(&LOBPCG_RandomContext));
+  PetscCall(PetscRandomDestroy(&LOBPCG_RandomContext));
   return 0;
 }
 

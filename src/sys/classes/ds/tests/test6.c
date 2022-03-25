@@ -22,33 +22,33 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GHIEP with compact storage - dimension %" PetscInt_FMT ".\n",n));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GHIEP with compact storage - dimension %" PetscInt_FMT ".\n",n));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   PetscCheck(l<=n && k<=n && l<=k,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Wrong value of dimensions");
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
 
   /* Create DS object */
-  CHKERRQ(DSCreate(PETSC_COMM_WORLD,&ds));
-  CHKERRQ(DSSetType(ds,DSGHIEP));
-  CHKERRQ(DSSetFromOptions(ds));
+  PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
+  PetscCall(DSSetType(ds,DSGHIEP));
+  PetscCall(DSSetFromOptions(ds));
   ld = n+2;  /* test leading dimension larger than n */
-  CHKERRQ(DSAllocate(ds,ld));
-  CHKERRQ(DSSetDimensions(ds,n,l,k));
-  CHKERRQ(DSSetCompact(ds,PETSC_TRUE));
+  PetscCall(DSAllocate(ds,ld));
+  PetscCall(DSSetDimensions(ds,n,l,k));
+  PetscCall(DSSetCompact(ds,PETSC_TRUE));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
-  CHKERRQ(DSView(ds,viewer));
-  CHKERRQ(PetscViewerPopFormat(viewer));
-  CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
+  PetscCall(DSView(ds,viewer));
+  PetscCall(PetscViewerPopFormat(viewer));
+  PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill arrow-tridiagonal matrix */
-  CHKERRQ(DSGetArrayReal(ds,DS_MAT_T,&T));
-  CHKERRQ(DSGetArrayReal(ds,DS_MAT_D,&s));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&s));
   for (i=0;i<n;i++) T[i] = (PetscReal)(i+1);
   for (i=k;i<n-1;i++) T[i+ld] = 1.0;
   for (i=l;i<k;i++) T[i+2*ld] = 1.0;
@@ -57,29 +57,29 @@ int main(int argc,char **argv)
   for (i=0;i<n;i++) s[i] = 1.0;
   s[l+1] = -1.0;
   s[k+1] = -1.0;
-  CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  CHKERRQ(DSRestoreArrayReal(ds,DS_MAT_D,&s));
-  if (l==0 && k==0) CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
-  else CHKERRQ(DSSetState(ds,DS_STATE_RAW));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
-  CHKERRQ(DSView(ds,viewer));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
+  if (l==0 && k==0) PetscCall(DSSetState(ds,DS_STATE_INTERMEDIATE));
+  else PetscCall(DSSetState(ds,DS_STATE_RAW));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
+  PetscCall(DSView(ds,viewer));
 
   /* Solve */
-  CHKERRQ(PetscCalloc2(n,&eigr,n,&eigi));
-  CHKERRQ(DSGetSlepcSC(ds,&sc));
+  PetscCall(PetscCalloc2(n,&eigr,n,&eigi));
+  PetscCall(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  CHKERRQ(DSSolve(ds,eigr,eigi));
-  CHKERRQ(DSSort(ds,eigr,eigi,NULL,NULL,NULL));
+  PetscCall(DSSolve(ds,eigr,eigi));
+  PetscCall(DSSort(ds,eigr,eigi,NULL,NULL,NULL));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n"));
-    CHKERRQ(DSView(ds,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n"));
+    PetscCall(DSView(ds,viewer));
   }
 
   /* Print eigenvalues */
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(eigr[i]);
@@ -88,12 +88,12 @@ int main(int argc,char **argv)
     re = eigr[i];
     im = eigi[i];
 #endif
-    if (PetscAbs(im)<1e-10) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
-    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
+    if (PetscAbs(im)<1e-10) PetscCall(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re));
+    else PetscCall(PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
-  CHKERRQ(PetscFree2(eigr,eigi));
-  CHKERRQ(DSDestroy(&ds));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(PetscFree2(eigr,eigi));
+  PetscCall(DSDestroy(&ds));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

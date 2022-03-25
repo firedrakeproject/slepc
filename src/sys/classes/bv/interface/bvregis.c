@@ -30,10 +30,10 @@ PetscErrorCode BVRegisterAll(void)
   PetscFunctionBegin;
   if (BVRegisterAllCalled) PetscFunctionReturn(0);
   BVRegisterAllCalled = PETSC_TRUE;
-  CHKERRQ(BVRegister(BVVECS,BVCreate_Vecs));
-  CHKERRQ(BVRegister(BVCONTIGUOUS,BVCreate_Contiguous));
-  CHKERRQ(BVRegister(BVSVEC,BVCreate_Svec));
-  CHKERRQ(BVRegister(BVMAT,BVCreate_Mat));
-  CHKERRQ(BVRegister(BVTENSOR,BVCreate_Tensor));
+  PetscCall(BVRegister(BVVECS,BVCreate_Vecs));
+  PetscCall(BVRegister(BVCONTIGUOUS,BVCreate_Contiguous));
+  PetscCall(BVRegister(BVSVEC,BVCreate_Svec));
+  PetscCall(BVRegister(BVMAT,BVCreate_Mat));
+  PetscCall(BVRegister(BVTENSOR,BVCreate_Tensor));
   PetscFunctionReturn(0);
 }

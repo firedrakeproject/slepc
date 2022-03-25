@@ -43,78 +43,78 @@ int main(int argc,char **argv)
   const char           *ctest[] = { "absolute", "relative to the singular value", "user-defined" };
   const char           *stest[] = { "basic", "user-defined" };
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) CHKERRQ(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
-    else if (i==n-1) CHKERRQ(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
+    else if (i==n-1) PetscCall(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
-  CHKERRQ(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
 
   /* test some interface functions */
-  CHKERRQ(SVDGetOperators(svd,&B,NULL));
-  CHKERRQ(MatView(B,PETSC_VIEWER_STDOUT_WORLD));
-  CHKERRQ(SVDSetConvergenceTest(svd,SVD_CONV_ABS));
-  CHKERRQ(SVDSetStoppingTest(svd,SVD_STOP_BASIC));
+  PetscCall(SVDGetOperators(svd,&B,NULL));
+  PetscCall(MatView(B,PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(SVDSetConvergenceTest(svd,SVD_CONV_ABS));
+  PetscCall(SVDSetStoppingTest(svd,SVD_STOP_BASIC));
   /* test monitors */
-  CHKERRQ(PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf));
-  CHKERRQ(SVDMonitorSet(svd,(PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*))SVDMonitorFirst,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy));
-  /* CHKERRQ(SVDMonitorCancel(svd)); */
-  CHKERRQ(SVDSetFromOptions(svd));
+  PetscCall(PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf));
+  PetscCall(SVDMonitorSet(svd,(PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*))SVDMonitorFirst,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy));
+  /* PetscCall(SVDMonitorCancel(svd)); */
+  PetscCall(SVDSetFromOptions(svd));
 
   /* query properties and print them */
-  CHKERRQ(SVDGetProblemType(svd,&ptype));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem type = %d",(int)ptype));
-  CHKERRQ(SVDIsGeneralized(svd,&flg));
-  if (flg) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," generalized"));
-  CHKERRQ(SVDGetImplicitTranspose(svd,&tmode));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n Transpose mode is %s\n",tmode?"implicit":"explicit"));
-  CHKERRQ(SVDGetConvergenceTest(svd,&conv));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Convergence test is %s\n",ctest[conv]));
-  CHKERRQ(SVDGetStoppingTest(svd,&stop));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Stopping test is %s\n",stest[stop]));
-  CHKERRQ(SVDGetWhichSingularTriplets(svd,&which));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Which = %s\n",which?"smallest":"largest"));
+  PetscCall(SVDGetProblemType(svd,&ptype));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Problem type = %d",(int)ptype));
+  PetscCall(SVDIsGeneralized(svd,&flg));
+  if (flg) PetscCall(PetscPrintf(PETSC_COMM_WORLD," generalized"));
+  PetscCall(SVDGetImplicitTranspose(svd,&tmode));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n Transpose mode is %s\n",tmode?"implicit":"explicit"));
+  PetscCall(SVDGetConvergenceTest(svd,&conv));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Convergence test is %s\n",ctest[conv]));
+  PetscCall(SVDGetStoppingTest(svd,&stop));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping test is %s\n",stest[stop]));
+  PetscCall(SVDGetWhichSingularTriplets(svd,&which));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Which = %s\n",which?"smallest":"largest"));
 
   /* call the solver */
-  CHKERRQ(SVDSolve(svd));
-  CHKERRQ(SVDGetConvergedReason(svd,&reason));
-  CHKERRQ(SVDGetIterationNumber(svd,&its));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason));
-  /* CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," its = %" PetscInt_FMT "\n",its)); */
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDGetConvergedReason(svd,&reason));
+  PetscCall(SVDGetIterationNumber(svd,&its));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason));
+  /* PetscCall(PetscPrintf(PETSC_COMM_WORLD," its = %" PetscInt_FMT "\n",its)); */
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
-  CHKERRQ(SVDDestroy(&svd));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

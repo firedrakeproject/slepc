@@ -30,7 +30,7 @@ const char *STMatModes[] = {"COPY","INPLACE","SHELL","STMatMode","ST_MATMODE_",0
 PetscErrorCode STFinalizePackage(void)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFunctionListDestroy(&STList));
+  PetscCall(PetscFunctionListDestroy(&STList));
   STPackageInitialized = PETSC_FALSE;
   STRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -55,30 +55,30 @@ PetscErrorCode STInitializePackage(void)
   if (STPackageInitialized) PetscFunctionReturn(0);
   STPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  CHKERRQ(PetscClassIdRegister("Spectral Transform",&ST_CLASSID));
+  PetscCall(PetscClassIdRegister("Spectral Transform",&ST_CLASSID));
   /* Register Constructors */
-  CHKERRQ(STRegisterAll());
+  PetscCall(STRegisterAll());
   /* Register Events */
-  CHKERRQ(PetscLogEventRegister("STSetUp",ST_CLASSID,&ST_SetUp));
-  CHKERRQ(PetscLogEventRegister("STComputeOperatr",ST_CLASSID,&ST_ComputeOperator));
-  CHKERRQ(PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply));
-  CHKERRQ(PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose));
-  CHKERRQ(PetscLogEventRegister("STMatSetUp",ST_CLASSID,&ST_MatSetUp));
-  CHKERRQ(PetscLogEventRegister("STMatMult",ST_CLASSID,&ST_MatMult));
-  CHKERRQ(PetscLogEventRegister("STMatMultTranspose",ST_CLASSID,&ST_MatMultTranspose));
-  CHKERRQ(PetscLogEventRegister("STMatSolve",ST_CLASSID,&ST_MatSolve));
-  CHKERRQ(PetscLogEventRegister("STMatSolveTranspose",ST_CLASSID,&ST_MatSolveTranspose));
+  PetscCall(PetscLogEventRegister("STSetUp",ST_CLASSID,&ST_SetUp));
+  PetscCall(PetscLogEventRegister("STComputeOperatr",ST_CLASSID,&ST_ComputeOperator));
+  PetscCall(PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply));
+  PetscCall(PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose));
+  PetscCall(PetscLogEventRegister("STMatSetUp",ST_CLASSID,&ST_MatSetUp));
+  PetscCall(PetscLogEventRegister("STMatMult",ST_CLASSID,&ST_MatMult));
+  PetscCall(PetscLogEventRegister("STMatMultTranspose",ST_CLASSID,&ST_MatMultTranspose));
+  PetscCall(PetscLogEventRegister("STMatSolve",ST_CLASSID,&ST_MatSolve));
+  PetscCall(PetscLogEventRegister("STMatSolveTranspose",ST_CLASSID,&ST_MatSolveTranspose));
   /* Process Info */
   classids[0] = ST_CLASSID;
-  CHKERRQ(PetscInfoProcessClass("st",1,&classids[0]));
+  PetscCall(PetscInfoProcessClass("st",1,&classids[0]));
   /* Process summary exclusions */
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    CHKERRQ(PetscStrInList("st",logList,',',&pkg));
-    if (pkg) CHKERRQ(PetscLogEventDeactivateClass(ST_CLASSID));
+    PetscCall(PetscStrInList("st",logList,',',&pkg));
+    if (pkg) PetscCall(PetscLogEventDeactivateClass(ST_CLASSID));
   }
   /* Register package finalizer */
-  CHKERRQ(PetscRegisterFinalize(STFinalizePackage));
+  PetscCall(PetscRegisterFinalize(STFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -101,22 +101,22 @@ PetscErrorCode STReset(ST st)
   if (st) PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (!st) PetscFunctionReturn(0);
   STCheckNotSeized(st,1);
-  if (st->ops->reset) CHKERRQ((*st->ops->reset)(st));
-  if (st->ksp) CHKERRQ(KSPReset(st->ksp));
-  CHKERRQ(MatDestroyMatrices(PetscMax(2,st->nmat),&st->T));
-  CHKERRQ(MatDestroyMatrices(PetscMax(2,st->nmat),&st->A));
+  if (st->ops->reset) PetscCall((*st->ops->reset)(st));
+  if (st->ksp) PetscCall(KSPReset(st->ksp));
+  PetscCall(MatDestroyMatrices(PetscMax(2,st->nmat),&st->T));
+  PetscCall(MatDestroyMatrices(PetscMax(2,st->nmat),&st->A));
   st->nmat = 0;
-  CHKERRQ(PetscFree(st->Astate));
-  CHKERRQ(MatDestroy(&st->Op));
-  CHKERRQ(MatDestroy(&st->P));
-  CHKERRQ(MatDestroy(&st->Pmat));
-  CHKERRQ(MatDestroyMatrices(st->nsplit,&st->Psplit));
+  PetscCall(PetscFree(st->Astate));
+  PetscCall(MatDestroy(&st->Op));
+  PetscCall(MatDestroy(&st->P));
+  PetscCall(MatDestroy(&st->Pmat));
+  PetscCall(MatDestroyMatrices(st->nsplit,&st->Psplit));
   st->nsplit = 0;
-  CHKERRQ(VecDestroyVecs(st->nwork,&st->work));
+  PetscCall(VecDestroyVecs(st->nwork,&st->work));
   st->nwork = 0;
-  CHKERRQ(VecDestroy(&st->wb));
-  CHKERRQ(VecDestroy(&st->wht));
-  CHKERRQ(VecDestroy(&st->D));
+  PetscCall(VecDestroy(&st->wb));
+  PetscCall(VecDestroy(&st->wht));
+  PetscCall(VecDestroy(&st->D));
   st->state   = ST_STATE_INITIAL;
   st->opready = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -140,10 +140,10 @@ PetscErrorCode STDestroy(ST *st)
   if (!*st) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*st,ST_CLASSID,1);
   if (--((PetscObject)(*st))->refct > 0) { *st = 0; PetscFunctionReturn(0); }
-  CHKERRQ(STReset(*st));
-  if ((*st)->ops->destroy) CHKERRQ((*(*st)->ops->destroy)(*st));
-  CHKERRQ(KSPDestroy(&(*st)->ksp));
-  CHKERRQ(PetscHeaderDestroy(st));
+  PetscCall(STReset(*st));
+  if ((*st)->ops->destroy) PetscCall((*(*st)->ops->destroy)(*st));
+  PetscCall(KSPDestroy(&(*st)->ksp));
+  PetscCall(PetscHeaderDestroy(st));
   PetscFunctionReturn(0);
 }
 
@@ -169,8 +169,8 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscFunctionBegin;
   PetscValidPointer(newst,2);
   *newst = 0;
-  CHKERRQ(STInitializePackage());
-  CHKERRQ(SlepcHeaderCreate(st,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView));
+  PetscCall(STInitializePackage());
+  PetscCall(SlepcHeaderCreate(st,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView));
 
   st->A            = NULL;
   st->nmat         = 0;
@@ -220,13 +220,13 @@ static inline PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm,PetscBo
   PetscFunctionBegin;
   /* check if problem matrices are all sbaij */
   for (i=0;i<st->nmat;i++) {
-    CHKERRQ(PetscObjectTypeCompareAny((PetscObject)st->A[i],&sbaij,MATSEQSBAIJ,MATMPISBAIJ,""));
+    PetscCall(PetscObjectTypeCompareAny((PetscObject)st->A[i],&sbaij,MATSEQSBAIJ,MATMPISBAIJ,""));
     if (!sbaij) break;
   }
   /* check if user has set the symmetric flag */
   *symm = PETSC_TRUE;
   for (i=0;i<st->nmat;i++) {
-    CHKERRQ(MatIsSymmetricKnown(st->A[i],&set,&flg));
+    PetscCall(MatIsSymmetricKnown(st->A[i],&set,&flg));
     if (!set || !flg) { *symm = PETSC_FALSE; break; }
   }
   if (sbaij) *symm = PETSC_TRUE;
@@ -234,7 +234,7 @@ static inline PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm,PetscBo
   /* check if user has set the hermitian flag */
   *herm = PETSC_TRUE;
   for (i=0;i<st->nmat;i++) {
-    CHKERRQ(MatIsHermitianKnown(st->A[i],&set,&flg));
+    PetscCall(MatIsHermitianKnown(st->A[i],&set,&flg));
     if (!set || !flg) { *herm = PETSC_FALSE; break; }
   }
 #else
@@ -280,20 +280,20 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
     for (i=0;same&&i<n;i++) {
       if (A[i]!=st->A[i]) same = PETSC_FALSE;
     }
-    if (!same) CHKERRQ(STReset(st));
+    if (!same) PetscCall(STReset(st));
   } else same = PETSC_FALSE;
   if (!same) {
-    CHKERRQ(MatDestroyMatrices(PetscMax(2,st->nmat),&st->A));
-    CHKERRQ(PetscCalloc1(PetscMax(2,n),&st->A));
-    CHKERRQ(PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(Mat)));
-    CHKERRQ(PetscFree(st->Astate));
-    CHKERRQ(PetscMalloc1(PetscMax(2,n),&st->Astate));
-    CHKERRQ(PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(PetscInt)));
+    PetscCall(MatDestroyMatrices(PetscMax(2,st->nmat),&st->A));
+    PetscCall(PetscCalloc1(PetscMax(2,n),&st->A));
+    PetscCall(PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(Mat)));
+    PetscCall(PetscFree(st->Astate));
+    PetscCall(PetscMalloc1(PetscMax(2,n),&st->Astate));
+    PetscCall(PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(PetscInt)));
   }
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
-    CHKERRQ(PetscObjectReference((PetscObject)A[i]));
-    CHKERRQ(MatDestroy(&st->A[i]));
+    PetscCall(PetscObjectReference((PetscObject)A[i]));
+    PetscCall(MatDestroy(&st->A[i]));
     st->A[i] = A[i];
     st->Astate[i] = ((PetscObject)A[i])->state;
   }
@@ -306,7 +306,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   else st->state = ST_STATE_INITIAL;
   PetscCheck(!same || !st->Psplit,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Support for changing the matrices while using a split preconditioner is not implemented yet");
   st->opready = PETSC_FALSE;
-  if (!same) CHKERRQ(STMatIsSymmetricKnown(st,&st->asymm,&st->aherm));
+  if (!same) PetscCall(STMatIsSymmetricKnown(st,&st->asymm,&st->aherm));
   PetscFunctionReturn(0);
 }
 
@@ -465,8 +465,8 @@ PetscErrorCode STSetPreconditionerMat(ST st,Mat mat)
   }
   STCheckNotSeized(st,1);
   PetscCheck(!mat || !st->Psplit,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cannot call both STSetPreconditionerMat and STSetSplitPreconditioner");
-  if (mat) CHKERRQ(PetscObjectReference((PetscObject)mat));
-  CHKERRQ(MatDestroy(&st->Pmat));
+  if (mat) PetscCall(PetscObjectReference((PetscObject)mat));
+  PetscCall(MatDestroy(&st->Pmat));
   st->Pmat     = mat;
   st->Pmat_set = mat? PETSC_TRUE: PETSC_FALSE;
   st->state    = ST_STATE_INITIAL;
@@ -551,22 +551,22 @@ PetscErrorCode STSetSplitPreconditioner(ST st,PetscInt n,Mat Psplit[],MatStructu
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(Psplit[i],MAT_CLASSID,3);
     PetscCheckSameComm(st,1,Psplit[i],3);
-    CHKERRQ(MatGetSize(Psplit[i],&M,&N));
-    CHKERRQ(MatGetLocalSize(Psplit[i],&mloc,&nloc));
+    PetscCall(MatGetSize(Psplit[i],&M,&N));
+    PetscCall(MatGetLocalSize(Psplit[i],&mloc,&nloc));
     PetscCheck(M==N,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Psplit[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,M,N);
     PetscCheck(mloc==nloc,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Psplit[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
     if (!i) { M0 = M; mloc0 = mloc; }
     PetscCheck(M==M0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_INCOMP,"Dimensions of Psplit[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,M,M0);
     PetscCheck(mloc==mloc0,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_INCOMP,"Local dimensions of Psplit[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
-    CHKERRQ(PetscObjectReference((PetscObject)Psplit[i]));
+    PetscCall(PetscObjectReference((PetscObject)Psplit[i]));
   }
 
-  if (st->Psplit) CHKERRQ(MatDestroyMatrices(st->nsplit,&st->Psplit));
+  if (st->Psplit) PetscCall(MatDestroyMatrices(st->nsplit,&st->Psplit));
 
   /* allocate space and copy matrices */
   if (n) {
-    CHKERRQ(PetscMalloc1(n,&st->Psplit));
-    CHKERRQ(PetscLogObjectMemory((PetscObject)st,n*sizeof(Mat)));
+    PetscCall(PetscMalloc1(n,&st->Psplit));
+    PetscCall(PetscLogObjectMemory((PetscObject)st,n*sizeof(Mat)));
     for (i=0;i<n;i++) st->Psplit[i] = Psplit[i];
   }
   st->nsplit = n;
@@ -658,7 +658,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscValidLogicalCollectiveScalar(st,shift,2);
   if (st->sigma != shift) {
     STCheckNotSeized(st,1);
-    if (st->state==ST_STATE_SETUP && st->ops->setshift) CHKERRQ((*st->ops->setshift)(st,shift));
+    if (st->state==ST_STATE_SETUP && st->ops->setshift) PetscCall((*st->ops->setshift)(st,shift));
     st->sigma = shift;
   }
   st->sigma_set = PETSC_TRUE;
@@ -771,9 +771,9 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   if (D) {
     PetscValidHeaderSpecific(D,VEC_CLASSID,2);
     PetscCheckSameComm(st,1,D,2);
-    CHKERRQ(PetscObjectReference((PetscObject)D));
+    PetscCall(PetscObjectReference((PetscObject)D));
   }
-  CHKERRQ(VecDestroy(&st->D));
+  PetscCall(VecDestroy(&st->D));
   st->D = D;
   st->state   = ST_STATE_INITIAL;
   st->opready = PETSC_FALSE;
@@ -827,7 +827,7 @@ PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
 {
   PetscFunctionBegin;
   STCheckMatrices(st,1);
-  CHKERRQ(MatCreateVecs(st->A[0],right,left));
+  PetscCall(MatCreateVecs(st->A[0],right,left));
   PetscFunctionReturn(0);
 }
 
@@ -852,7 +852,7 @@ PetscErrorCode STMatCreateVecsEmpty(ST st,Vec *right,Vec *left)
 {
   PetscFunctionBegin;
   STCheckMatrices(st,1);
-  CHKERRQ(MatCreateVecsEmpty(st->A[0],right,left));
+  PetscCall(MatCreateVecsEmpty(st->A[0],right,left));
   PetscFunctionReturn(0);
 }
 
@@ -876,7 +876,7 @@ PetscErrorCode STMatGetSize(ST st,PetscInt *m,PetscInt *n)
 {
   PetscFunctionBegin;
   STCheckMatrices(st,1);
-  CHKERRQ(MatGetSize(st->A[0],m,n));
+  PetscCall(MatGetSize(st->A[0],m,n));
   PetscFunctionReturn(0);
 }
 
@@ -900,7 +900,7 @@ PetscErrorCode STMatGetLocalSize(ST st,PetscInt *m,PetscInt *n)
 {
   PetscFunctionBegin;
   STCheckMatrices(st,1);
-  CHKERRQ(MatGetLocalSize(st->A[0],m,n));
+  PetscCall(MatGetLocalSize(st->A[0],m,n));
   PetscFunctionReturn(0);
 }
 
@@ -927,10 +927,10 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!st->ksp) CHKERRQ(STGetKSP(st,&st->ksp));
-  CHKERRQ(KSPSetOptionsPrefix(st->ksp,prefix));
-  CHKERRQ(KSPAppendOptionsPrefix(st->ksp,"st_"));
-  CHKERRQ(PetscObjectSetOptionsPrefix((PetscObject)st,prefix));
+  if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
+  PetscCall(KSPSetOptionsPrefix(st->ksp,prefix));
+  PetscCall(KSPAppendOptionsPrefix(st->ksp,"st_"));
+  PetscCall(PetscObjectSetOptionsPrefix((PetscObject)st,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -957,10 +957,10 @@ PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  CHKERRQ(PetscObjectAppendOptionsPrefix((PetscObject)st,prefix));
-  if (!st->ksp) CHKERRQ(STGetKSP(st,&st->ksp));
-  CHKERRQ(KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix));
-  CHKERRQ(KSPAppendOptionsPrefix(st->ksp,"st_"));
+  PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)st,prefix));
+  if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
+  PetscCall(KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix));
+  PetscCall(KSPAppendOptionsPrefix(st->ksp,"st_"));
   PetscFunctionReturn(0);
 }
 
@@ -989,7 +989,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(prefix,2);
-  CHKERRQ(PetscObjectGetOptionsPrefix((PetscObject)st,prefix));
+  PetscCall(PetscObjectGetOptionsPrefix((PetscObject)st,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -1025,45 +1025,45 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)st),&viewer));
+  if (!viewer) PetscCall(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)st),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(st,1,viewer,2);
 
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring));
   if (isascii) {
-    CHKERRQ(PetscObjectPrintClassNamePrefixType((PetscObject)st,viewer));
+    PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)st,viewer));
     if (st->ops->view) {
-      CHKERRQ(PetscViewerASCIIPushTab(viewer));
-      CHKERRQ((*st->ops->view)(st,viewer));
-      CHKERRQ(PetscViewerASCIIPopTab(viewer));
+      PetscCall(PetscViewerASCIIPushTab(viewer));
+      PetscCall((*st->ops->view)(st,viewer));
+      PetscCall(PetscViewerASCIIPopTab(viewer));
     }
-    CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),st->sigma,PETSC_FALSE));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  shift: %s\n",str));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of matrices: %" PetscInt_FMT "\n",st->nmat));
+    PetscCall(SlepcSNPrintfScalar(str,sizeof(str),st->sigma,PETSC_FALSE));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  shift: %s\n",str));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  number of matrices: %" PetscInt_FMT "\n",st->nmat));
     switch (st->matmode) {
     case ST_MATMODE_COPY:
       break;
     case ST_MATMODE_INPLACE:
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  shifting the matrix and unshifting at exit\n"));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  shifting the matrix and unshifting at exit\n"));
       break;
     case ST_MATMODE_SHELL:
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n"));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n"));
       break;
     }
-    if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  nonzero pattern of the matrices: %s\n",MatStructures[st->str]));
-    if (st->Psplit) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using split preconditioner matrices with %s\n",MatStructures[st->strp]));
-    if (st->transform && st->nmat>2) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n"));
+    if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) PetscCall(PetscViewerASCIIPrintf(viewer,"  nonzero pattern of the matrices: %s\n",MatStructures[st->str]));
+    if (st->Psplit) PetscCall(PetscViewerASCIIPrintf(viewer,"  using split preconditioner matrices with %s\n",MatStructures[st->strp]));
+    if (st->transform && st->nmat>2) PetscCall(PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n"));
   } else if (isstring) {
-    CHKERRQ(STGetType(st,&cstr));
-    CHKERRQ(PetscViewerStringSPrintf(viewer," %-7.7s",cstr));
-    if (st->ops->view) CHKERRQ((*st->ops->view)(st,viewer));
+    PetscCall(STGetType(st,&cstr));
+    PetscCall(PetscViewerStringSPrintf(viewer," %-7.7s",cstr));
+    if (st->ops->view) PetscCall((*st->ops->view)(st,viewer));
   }
   if (st->usesksp) {
-    if (!st->ksp) CHKERRQ(STGetKSP(st,&st->ksp));
-    CHKERRQ(PetscViewerASCIIPushTab(viewer));
-    CHKERRQ(KSPView(st->ksp,viewer));
-    CHKERRQ(PetscViewerASCIIPopTab(viewer));
+    if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscCall(KSPView(st->ksp,viewer));
+    PetscCall(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
@@ -1086,7 +1086,7 @@ PetscErrorCode STViewFromOptions(ST st,PetscObject obj,const char name[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  CHKERRQ(PetscObjectViewFromOptions((PetscObject)st,obj,name));
+  PetscCall(PetscObjectViewFromOptions((PetscObject)st,obj,name));
   PetscFunctionReturn(0);
 }
 
@@ -1120,7 +1120,7 @@ $     -st_type my_transform
 PetscErrorCode STRegister(const char *name,PetscErrorCode (*function)(ST))
 {
   PetscFunctionBegin;
-  CHKERRQ(STInitializePackage());
-  CHKERRQ(PetscFunctionListAdd(&STList,name,function));
+  PetscCall(STInitializePackage());
+  PetscCall(PetscFunctionListAdd(&STList,name,function));
   PetscFunctionReturn(0);
 }

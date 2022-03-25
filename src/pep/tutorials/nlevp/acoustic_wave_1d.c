@@ -37,88 +37,88 @@ int main(int argc,char **argv)
   char           str[50];
   PetscBool      terse;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-z",&z,NULL));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),z,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nAcoustic wave 1-D, n=%" PetscInt_FMT " z=%s\n\n",n,str));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-z",&z,NULL));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),z,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nAcoustic wave 1-D, n=%" PetscInt_FMT " z=%s\n\n",n,str));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* K is a tridiagonal */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&K));
-  CHKERRQ(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(K));
-  CHKERRQ(MatSetUp(K));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&K));
+  PetscCall(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(K));
+  PetscCall(MatSetUp(K));
 
-  CHKERRQ(MatGetOwnershipRange(K,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) CHKERRQ(MatSetValue(K,i,i-1,-1.0*n,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(K,i,i-1,-1.0*n,INSERT_VALUES));
     if (i<n-1) {
-      CHKERRQ(MatSetValue(K,i,i,2.0*n,INSERT_VALUES));
-      CHKERRQ(MatSetValue(K,i,i+1,-1.0*n,INSERT_VALUES));
-    } else CHKERRQ(MatSetValue(K,i,i,1.0*n,INSERT_VALUES));
+      PetscCall(MatSetValue(K,i,i,2.0*n,INSERT_VALUES));
+      PetscCall(MatSetValue(K,i,i+1,-1.0*n,INSERT_VALUES));
+    } else PetscCall(MatSetValue(K,i,i,1.0*n,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY));
 
   /* C is the zero matrix but one element*/
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&C));
-  CHKERRQ(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(C));
-  CHKERRQ(MatSetUp(C));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&C));
+  PetscCall(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(C));
+  PetscCall(MatSetUp(C));
 
-  CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
-  if (n-1>=Istart && n-1<Iend) CHKERRQ(MatSetValue(C,n-1,n-1,-2*PETSC_PI/z,INSERT_VALUES));
-  CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatGetOwnershipRange(C,&Istart,&Iend));
+  if (n-1>=Istart && n-1<Iend) PetscCall(MatSetValue(C,n-1,n-1,-2*PETSC_PI/z,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
 
   /* M is a diagonal matrix */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&M));
-  CHKERRQ(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(M));
-  CHKERRQ(MatSetUp(M));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&M));
+  PetscCall(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(M));
+  PetscCall(MatSetUp(M));
 
-  CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(M,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i<n-1) CHKERRQ(MatSetValue(M,i,i,4*PETSC_PI*PETSC_PI/n,INSERT_VALUES));
-    else CHKERRQ(MatSetValue(M,i,i,2*PETSC_PI*PETSC_PI/n,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(M,i,i,4*PETSC_PI*PETSC_PI/n,INSERT_VALUES));
+    else PetscCall(MatSetValue(M,i,i,2*PETSC_PI*PETSC_PI/n,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PEPCreate(PETSC_COMM_WORLD,&pep));
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
   A[0] = K; A[1] = C; A[2] = M;
-  CHKERRQ(PEPSetOperators(pep,3,A));
-  CHKERRQ(PEPSetFromOptions(pep));
-  CHKERRQ(PEPSolve(pep));
+  PetscCall(PEPSetOperators(pep,3,A));
+  PetscCall(PEPSetFromOptions(pep));
+  PetscCall(PEPSolve(pep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
   else {
-    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  CHKERRQ(PEPDestroy(&pep));
-  CHKERRQ(MatDestroy(&M));
-  CHKERRQ(MatDestroy(&C));
-  CHKERRQ(MatDestroy(&K));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(PEPDestroy(&pep));
+  PetscCall(MatDestroy(&M));
+  PetscCall(MatDestroy(&C));
+  PetscCall(MatDestroy(&K));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

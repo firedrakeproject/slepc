@@ -17,16 +17,16 @@ int main(int argc,char **argv)
   RG             rg;
   PetscBool      vertical=PETSC_FALSE,symm;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-vertical",&vertical,NULL));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-vertical",&vertical,NULL));
 
-  CHKERRQ(RGCreate(PETSC_COMM_WORLD,&rg));
-  CHKERRQ(RGSetFromOptions(rg));
-  CHKERRQ(RGViewFromOptions(rg,NULL,"-rg_view"));
-  CHKERRQ(RGIsAxisymmetric(rg,vertical,&symm));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The region is %saxisymmetric with respect to the %s axis\n",symm?"":"NOT ",vertical?"vertical":"horizontal"));
-  CHKERRQ(RGDestroy(&rg));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(RGCreate(PETSC_COMM_WORLD,&rg));
+  PetscCall(RGSetFromOptions(rg));
+  PetscCall(RGViewFromOptions(rg,NULL,"-rg_view"));
+  PetscCall(RGIsAxisymmetric(rg,vertical,&symm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"The region is %saxisymmetric with respect to the %s axis\n",symm?"":"NOT ",vertical?"vertical":"horizontal"));
+  PetscCall(RGDestroy(&rg));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

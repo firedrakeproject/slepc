@@ -39,10 +39,10 @@ PetscErrorCode MyStoppingTest(SVD svd,PetscInt its,PetscInt max_it,PetscInt ncon
 
   PetscFunctionBeginUser;
   /* check if usual termination conditions are met */
-  CHKERRQ(SVDStoppingBasic(svd,its,max_it,nconv,nev,reason,NULL));
+  PetscCall(SVDStoppingBasic(svd,its,max_it,nconv,nev,reason,NULL));
   if (*reason==SVD_CONVERGED_ITERATING) {
     /* check if deadline has expired */
-    CHKERRQ(PetscTime(&now));
+    PetscCall(PetscTime(&now));
     if (now>deadline) *reason = SVD_CONVERGED_USER;
   }
   PetscFunctionReturn(0);
@@ -60,71 +60,71 @@ int main(int argc,char **argv)
   PetscBool          terse,flg;
   PetscViewer        viewer;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
-  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-seconds",&seconds,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-seconds",&seconds,NULL));
   deadline = seconds;
-  CHKERRQ(PetscTimeAdd(&deadline));
+  PetscCall(PetscTimeAdd(&deadline));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) CHKERRQ(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
-    else if (i==n-1) CHKERRQ(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
+    else if (i==n-1) PetscCall(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
-  CHKERRQ(SVDSetOperators(svd,A,NULL));
-  CHKERRQ(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
-  CHKERRQ(SVDSetTolerances(svd,PETSC_DEFAULT,1000));
-  CHKERRQ(SVDSetType(svd,SVDTRLANCZOS));
-  CHKERRQ(SVDSetStoppingTestFunction(svd,MyStoppingTest,&deadline,NULL));
-  CHKERRQ(SVDSetFromOptions(svd));
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
+  PetscCall(SVDSetTolerances(svd,PETSC_DEFAULT,1000));
+  PetscCall(SVDSetType(svd,SVDTRLANCZOS));
+  PetscCall(SVDSetStoppingTestFunction(svd,MyStoppingTest,&deadline,NULL));
+  PetscCall(SVDSetFromOptions(svd));
 
   /* call the solver */
-  CHKERRQ(SVDSolve(svd));
+  PetscCall(SVDSolve(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
   else {
-    CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(SVDGetConvergedReason(svd,&reason));
+    PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+    PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(SVDGetConvergedReason(svd,&reason));
     if (reason!=SVD_CONVERGED_USER) {
-      CHKERRQ(SVDConvergedReasonView(svd,viewer));
-      CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,viewer));
+      PetscCall(SVDConvergedReasonView(svd,viewer));
+      PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,viewer));
     } else {
-      CHKERRQ(SVDGetConverged(svd,&nconv));
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"SVD solve finished with %" PetscInt_FMT " converged eigenpairs; reason=%s\n",nconv,SVDConvergedReasons[reason]));
+      PetscCall(SVDGetConverged(svd,&nconv));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"SVD solve finished with %" PetscInt_FMT " converged eigenpairs; reason=%s\n",nconv,SVDConvergedReasons[reason]));
     }
-    CHKERRQ(PetscViewerPopFormat(viewer));
+    PetscCall(PetscViewerPopFormat(viewer));
   }
-  CHKERRQ(SVDDestroy(&svd));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

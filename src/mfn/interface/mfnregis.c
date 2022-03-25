@@ -27,8 +27,8 @@ PetscErrorCode MFNRegisterAll(void)
   PetscFunctionBegin;
   if (MFNRegisterAllCalled) PetscFunctionReturn(0);
   MFNRegisterAllCalled = PETSC_TRUE;
-  CHKERRQ(MFNRegister(MFNKRYLOV,MFNCreate_Krylov));
-  CHKERRQ(MFNRegister(MFNEXPOKIT,MFNCreate_Expokit));
+  PetscCall(MFNRegister(MFNKRYLOV,MFNCreate_Krylov));
+  PetscCall(MFNRegister(MFNEXPOKIT,MFNCreate_Expokit));
   PetscFunctionReturn(0);
 }
 
@@ -47,7 +47,7 @@ PetscErrorCode MFNMonitorRegisterAll(void)
   if (MFNMonitorRegisterAllCalled) PetscFunctionReturn(0);
   MFNMonitorRegisterAllCalled = PETSC_TRUE;
 
-  CHKERRQ(MFNMonitorRegister("error_estimate",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,MFNMonitorDefault,NULL,NULL));
-  CHKERRQ(MFNMonitorRegister("error_estimate",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,MFNMonitorDefaultDrawLG,MFNMonitorDefaultDrawLGCreate,NULL));
+  PetscCall(MFNMonitorRegister("error_estimate",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,MFNMonitorDefault,NULL,NULL));
+  PetscCall(MFNMonitorRegister("error_estimate",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,MFNMonitorDefaultDrawLG,MFNMonitorDefaultDrawLGCreate,NULL));
   PetscFunctionReturn(0);
 }

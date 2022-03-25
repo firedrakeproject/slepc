@@ -18,100 +18,100 @@ static PetscErrorCode MatCreateTile_Seq(PetscScalar a,Mat A,PetscScalar b,Mat B,
   const PetscScalar *vals;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(A,&M1,&N1));
-  CHKERRQ(MatGetSize(D,&M2,&N2));
-  CHKERRQ(MatGetBlockSize(A,&bs));
+  PetscCall(MatGetSize(A,&M1,&N1));
+  PetscCall(MatGetSize(D,&M2,&N2));
+  PetscCall(MatGetBlockSize(A,&bs));
 
-  CHKERRQ(PetscCalloc1((M1+M2)/bs,&nnz));
+  PetscCall(PetscCalloc1((M1+M2)/bs,&nnz));
   /* Preallocate for A */
   if (a!=0.0) {
     for (i=0;i<(M1+bs-1)/bs;i++) {
-      CHKERRQ(MatGetRow(A,i*bs,&ncols,NULL,NULL));
+      PetscCall(MatGetRow(A,i*bs,&ncols,NULL,NULL));
       nnz[i] += ncols/bs;
-      CHKERRQ(MatRestoreRow(A,i*bs,&ncols,NULL,NULL));
+      PetscCall(MatRestoreRow(A,i*bs,&ncols,NULL,NULL));
     }
   }
   /* Preallocate for B */
   if (b!=0.0) {
     for (i=0;i<(M1+bs-1)/bs;i++) {
-      CHKERRQ(MatGetRow(B,i*bs,&ncols,NULL,NULL));
+      PetscCall(MatGetRow(B,i*bs,&ncols,NULL,NULL));
       nnz[i] += ncols/bs;
-      CHKERRQ(MatRestoreRow(B,i*bs,&ncols,NULL,NULL));
+      PetscCall(MatRestoreRow(B,i*bs,&ncols,NULL,NULL));
     }
   }
   /* Preallocate for C */
   if (c!=0.0) {
     for (i=0;i<(M2+bs-1)/bs;i++) {
-      CHKERRQ(MatGetRow(C,i*bs,&ncols,NULL,NULL));
+      PetscCall(MatGetRow(C,i*bs,&ncols,NULL,NULL));
       nnz[i+M1/bs] += ncols/bs;
-      CHKERRQ(MatRestoreRow(C,i*bs,&ncols,NULL,NULL));
+      PetscCall(MatRestoreRow(C,i*bs,&ncols,NULL,NULL));
     }
   }
   /* Preallocate for D */
   if (d!=0.0) {
     for (i=0;i<(M2+bs-1)/bs;i++) {
-      CHKERRQ(MatGetRow(D,i*bs,&ncols,NULL,NULL));
+      PetscCall(MatGetRow(D,i*bs,&ncols,NULL,NULL));
       nnz[i+M1/bs] += ncols/bs;
-      CHKERRQ(MatRestoreRow(D,i*bs,&ncols,NULL,NULL));
+      PetscCall(MatRestoreRow(D,i*bs,&ncols,NULL,NULL));
     }
   }
-  CHKERRQ(MatXAIJSetPreallocation(G,bs,nnz,NULL,NULL,NULL));
-  CHKERRQ(PetscFree(nnz));
+  PetscCall(MatXAIJSetPreallocation(G,bs,nnz,NULL,NULL,NULL));
+  PetscCall(PetscFree(nnz));
 
-  CHKERRQ(PetscMalloc2(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols));
+  PetscCall(PetscMalloc2(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols));
   /* Transfer A */
   if (a!=0.0) {
     for (i=0;i<M1;i++) {
-      CHKERRQ(MatGetRow(A,i,&ncols,&cols,&vals));
+      PetscCall(MatGetRow(A,i,&ncols,&cols,&vals));
       if (a!=1.0) {
         svals=buf;
         for (j=0;j<ncols;j++) svals[j] = vals[j]*a;
       } else svals=(PetscScalar*)vals;
-      CHKERRQ(MatSetValues(G,1,&i,ncols,cols,svals,INSERT_VALUES));
-      CHKERRQ(MatRestoreRow(A,i,&ncols,&cols,&vals));
+      PetscCall(MatSetValues(G,1,&i,ncols,cols,svals,INSERT_VALUES));
+      PetscCall(MatRestoreRow(A,i,&ncols,&cols,&vals));
     }
   }
   /* Transfer B */
   if (b!=0.0) {
     for (i=0;i<M1;i++) {
-      CHKERRQ(MatGetRow(B,i,&ncols,&cols,&vals));
+      PetscCall(MatGetRow(B,i,&ncols,&cols,&vals));
       if (b!=1.0) {
         svals=buf;
         for (j=0;j<ncols;j++) svals[j] = vals[j]*b;
       } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = cols[j]+N1;
-      CHKERRQ(MatSetValues(G,1,&i,ncols,scols,svals,INSERT_VALUES));
-      CHKERRQ(MatRestoreRow(B,i,&ncols,&cols,&vals));
+      PetscCall(MatSetValues(G,1,&i,ncols,scols,svals,INSERT_VALUES));
+      PetscCall(MatRestoreRow(B,i,&ncols,&cols,&vals));
     }
   }
   /* Transfer C */
   if (c!=0.0) {
     for (i=0;i<M2;i++) {
-      CHKERRQ(MatGetRow(C,i,&ncols,&cols,&vals));
+      PetscCall(MatGetRow(C,i,&ncols,&cols,&vals));
       if (c!=1.0) {
         svals=buf;
         for (j=0;j<ncols;j++) svals[j] = vals[j]*c;
       } else svals=(PetscScalar*)vals;
       j = i+M1;
-      CHKERRQ(MatSetValues(G,1,&j,ncols,cols,svals,INSERT_VALUES));
-      CHKERRQ(MatRestoreRow(C,i,&ncols,&cols,&vals));
+      PetscCall(MatSetValues(G,1,&j,ncols,cols,svals,INSERT_VALUES));
+      PetscCall(MatRestoreRow(C,i,&ncols,&cols,&vals));
     }
   }
   /* Transfer D */
   if (d!=0.0) {
     for (i=0;i<M2;i++) {
-      CHKERRQ(MatGetRow(D,i,&ncols,&cols,&vals));
+      PetscCall(MatGetRow(D,i,&ncols,&cols,&vals));
       if (d!=1.0) {
         svals=buf;
         for (j=0;j<ncols;j++) svals[j] = vals[j]*d;
       } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = cols[j]+N1;
       j = i+M1;
-      CHKERRQ(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
-      CHKERRQ(MatRestoreRow(D,i,&ncols,&cols,&vals));
+      PetscCall(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
+      PetscCall(MatRestoreRow(D,i,&ncols,&cols,&vals));
     }
   }
-  CHKERRQ(PetscFree2(buf,scols));
+  PetscCall(PetscFree2(buf,scols));
   PetscFunctionReturn(0);
 }
 
@@ -126,16 +126,16 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
   const PetscScalar *vals;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(A,NULL,&N1));
-  CHKERRQ(MatGetLocalSize(A,&m1,&n1));
-  CHKERRQ(MatGetSize(D,NULL,&N2));
-  CHKERRQ(MatGetLocalSize(D,&m2,&n2));
+  PetscCall(MatGetSize(A,NULL,&N1));
+  PetscCall(MatGetLocalSize(A,&m1,&n1));
+  PetscCall(MatGetSize(D,NULL,&N2));
+  PetscCall(MatGetLocalSize(D,&m2,&n2));
 
   /* Create mappings */
-  CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)G),&np));
-  CHKERRQ(MatGetOwnershipRangesColumn(A,&mapptr1));
-  CHKERRQ(MatGetOwnershipRangesColumn(B,&mapptr2));
-  CHKERRQ(PetscMalloc4(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols,N1,&map1,N2,&map2));
+  PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)G),&np));
+  PetscCall(MatGetOwnershipRangesColumn(A,&mapptr1));
+  PetscCall(MatGetOwnershipRangesColumn(B,&mapptr2));
+  PetscCall(PetscMalloc4(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols,N1,&map1,N2,&map2));
   for (p=0;p<np;p++) {
     for (i=mapptr1[p];i<mapptr1[p+1];i++) map1[i] = i+mapptr2[p];
   }
@@ -143,112 +143,112 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
     for (i=mapptr2[p];i<mapptr2[p+1];i++) map2[i] = i+mapptr1[p+1];
   }
 
-  ierr = MatPreallocateInitialize(PetscObjectComm((PetscObject)G),m1+m2,n1+n2,dnz,onz);CHKERRQ(ierr);
-  CHKERRQ(MatGetOwnershipRange(G,&gstart,NULL));
+  ierr = MatPreallocateInitialize(PetscObjectComm((PetscObject)G),m1+m2,n1+n2,dnz,onz);PetscCall(ierr);
+  PetscCall(MatGetOwnershipRange(G,&gstart,NULL));
   /* Preallocate for A */
   if (a!=0.0) {
-    CHKERRQ(MatGetOwnershipRange(A,&start,NULL));
+    PetscCall(MatGetOwnershipRange(A,&start,NULL));
     for (i=0;i<m1;i++) {
-      CHKERRQ(MatGetRow(A,i+start,&ncols,&cols,NULL));
+      PetscCall(MatGetRow(A,i+start,&ncols,&cols,NULL));
       for (j=0;j<ncols;j++) scols[j] = map1[cols[j]];
-      CHKERRQ(MatPreallocateSet(gstart+i,ncols,scols,dnz,onz));
-      CHKERRQ(MatRestoreRow(A,i+start,&ncols,&cols,NULL));
+      PetscCall(MatPreallocateSet(gstart+i,ncols,scols,dnz,onz));
+      PetscCall(MatRestoreRow(A,i+start,&ncols,&cols,NULL));
     }
   }
   /* Preallocate for B */
   if (b!=0.0) {
-    CHKERRQ(MatGetOwnershipRange(B,&start,NULL));
+    PetscCall(MatGetOwnershipRange(B,&start,NULL));
     for (i=0;i<m1;i++) {
-      CHKERRQ(MatGetRow(B,i+start,&ncols,&cols,NULL));
+      PetscCall(MatGetRow(B,i+start,&ncols,&cols,NULL));
       for (j=0;j<ncols;j++) scols[j] = map2[cols[j]];
-      CHKERRQ(MatPreallocateSet(gstart+i,ncols,scols,dnz,onz));
-      CHKERRQ(MatRestoreRow(B,i+start,&ncols,&cols,NULL));
+      PetscCall(MatPreallocateSet(gstart+i,ncols,scols,dnz,onz));
+      PetscCall(MatRestoreRow(B,i+start,&ncols,&cols,NULL));
     }
   }
   /* Preallocate for C */
   if (c!=0.0) {
-    CHKERRQ(MatGetOwnershipRange(C,&start,NULL));
+    PetscCall(MatGetOwnershipRange(C,&start,NULL));
     for (i=0;i<m2;i++) {
-      CHKERRQ(MatGetRow(C,i+start,&ncols,&cols,NULL));
+      PetscCall(MatGetRow(C,i+start,&ncols,&cols,NULL));
       for (j=0;j<ncols;j++) scols[j] = map1[cols[j]];
-      CHKERRQ(MatPreallocateSet(gstart+m1+i,ncols,scols,dnz,onz));
-      CHKERRQ(MatRestoreRow(C,i+start,&ncols,&cols,NULL));
+      PetscCall(MatPreallocateSet(gstart+m1+i,ncols,scols,dnz,onz));
+      PetscCall(MatRestoreRow(C,i+start,&ncols,&cols,NULL));
     }
   }
   /* Preallocate for D */
   if (d!=0.0) {
-    CHKERRQ(MatGetOwnershipRange(D,&start,NULL));
+    PetscCall(MatGetOwnershipRange(D,&start,NULL));
     for (i=0;i<m2;i++) {
-      CHKERRQ(MatGetRow(D,i+start,&ncols,&cols,NULL));
+      PetscCall(MatGetRow(D,i+start,&ncols,&cols,NULL));
       for (j=0;j<ncols;j++) scols[j] = map2[cols[j]];
-      CHKERRQ(MatPreallocateSet(gstart+m1+i,ncols,scols,dnz,onz));
-      CHKERRQ(MatRestoreRow(D,i+start,&ncols,&cols,NULL));
+      PetscCall(MatPreallocateSet(gstart+m1+i,ncols,scols,dnz,onz));
+      PetscCall(MatRestoreRow(D,i+start,&ncols,&cols,NULL));
     }
   }
-  CHKERRQ(MatMPIAIJSetPreallocation(G,0,dnz,0,onz));
-  ierr = MatPreallocateFinalize(dnz,onz);CHKERRQ(ierr);
+  PetscCall(MatMPIAIJSetPreallocation(G,0,dnz,0,onz));
+  ierr = MatPreallocateFinalize(dnz,onz);PetscCall(ierr);
 
   /* Transfer A */
   if (a!=0.0) {
-    CHKERRQ(MatGetOwnershipRange(A,&start,NULL));
+    PetscCall(MatGetOwnershipRange(A,&start,NULL));
     for (i=0;i<m1;i++) {
-      CHKERRQ(MatGetRow(A,i+start,&ncols,&cols,&vals));
+      PetscCall(MatGetRow(A,i+start,&ncols,&cols,&vals));
       if (a!=1.0) {
         svals=buf;
         for (j=0;j<ncols;j++) svals[j] = vals[j]*a;
       } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = map1[cols[j]];
       j = gstart+i;
-      CHKERRQ(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
-      CHKERRQ(MatRestoreRow(A,i+start,&ncols,&cols,&vals));
+      PetscCall(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
+      PetscCall(MatRestoreRow(A,i+start,&ncols,&cols,&vals));
     }
   }
   /* Transfer B */
   if (b!=0.0) {
-    CHKERRQ(MatGetOwnershipRange(B,&start,NULL));
+    PetscCall(MatGetOwnershipRange(B,&start,NULL));
     for (i=0;i<m1;i++) {
-      CHKERRQ(MatGetRow(B,i+start,&ncols,&cols,&vals));
+      PetscCall(MatGetRow(B,i+start,&ncols,&cols,&vals));
       if (b!=1.0) {
         svals=buf;
         for (j=0;j<ncols;j++) svals[j] = vals[j]*b;
       } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = map2[cols[j]];
       j = gstart+i;
-      CHKERRQ(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
-      CHKERRQ(MatRestoreRow(B,i+start,&ncols,&cols,&vals));
+      PetscCall(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
+      PetscCall(MatRestoreRow(B,i+start,&ncols,&cols,&vals));
     }
   }
   /* Transfer C */
   if (c!=0.0) {
-    CHKERRQ(MatGetOwnershipRange(C,&start,NULL));
+    PetscCall(MatGetOwnershipRange(C,&start,NULL));
     for (i=0;i<m2;i++) {
-      CHKERRQ(MatGetRow(C,i+start,&ncols,&cols,&vals));
+      PetscCall(MatGetRow(C,i+start,&ncols,&cols,&vals));
       if (c!=1.0) {
         svals=buf;
         for (j=0;j<ncols;j++) svals[j] = vals[j]*c;
       } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = map1[cols[j]];
       j = gstart+m1+i;
-      CHKERRQ(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
-      CHKERRQ(MatRestoreRow(C,i+start,&ncols,&cols,&vals));
+      PetscCall(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
+      PetscCall(MatRestoreRow(C,i+start,&ncols,&cols,&vals));
     }
   }
   /* Transfer D */
   if (d!=0.0) {
-    CHKERRQ(MatGetOwnershipRange(D,&start,NULL));
+    PetscCall(MatGetOwnershipRange(D,&start,NULL));
     for (i=0;i<m2;i++) {
-      CHKERRQ(MatGetRow(D,i+start,&ncols,&cols,&vals));
+      PetscCall(MatGetRow(D,i+start,&ncols,&cols,&vals));
       if (d!=1.0) {
         svals=buf;
         for (j=0;j<ncols;j++) svals[j] = vals[j]*d;
       } else svals=(PetscScalar*)vals;
       for (j=0;j<ncols;j++) scols[j] = map2[cols[j]];
       j = gstart+m1+i;
-      CHKERRQ(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
-      CHKERRQ(MatRestoreRow(D,i+start,&ncols,&cols,&vals));
+      PetscCall(MatSetValues(G,1,&j,ncols,scols,svals,INSERT_VALUES));
+      PetscCall(MatRestoreRow(D,i+start,&ncols,&cols,&vals));
     }
   }
-  CHKERRQ(PetscFree4(buf,scols,map1,map2));
+  PetscCall(PetscFree4(buf,scols,map1,map2));
   PetscFunctionReturn(0);
 }
 
@@ -309,50 +309,50 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   PetscValidPointer(G,9);
 
   /* check row 1 */
-  CHKERRQ(MatGetSize(A,&M1,NULL));
-  CHKERRQ(MatGetLocalSize(A,&m1,NULL));
-  CHKERRQ(MatGetSize(B,&M,NULL));
-  CHKERRQ(MatGetLocalSize(B,&m,NULL));
+  PetscCall(MatGetSize(A,&M1,NULL));
+  PetscCall(MatGetLocalSize(A,&m1,NULL));
+  PetscCall(MatGetSize(B,&M,NULL));
+  PetscCall(MatGetLocalSize(B,&m,NULL));
   PetscCheck(M==M1 && m==m1,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
   /* check row 2 */
-  CHKERRQ(MatGetSize(C,&M2,NULL));
-  CHKERRQ(MatGetLocalSize(C,&m2,NULL));
-  CHKERRQ(MatGetSize(D,&M,NULL));
-  CHKERRQ(MatGetLocalSize(D,&m,NULL));
+  PetscCall(MatGetSize(C,&M2,NULL));
+  PetscCall(MatGetLocalSize(C,&m2,NULL));
+  PetscCall(MatGetSize(D,&M,NULL));
+  PetscCall(MatGetLocalSize(D,&m,NULL));
   PetscCheck(M==M2 && m==m2,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
   /* check column 1 */
-  CHKERRQ(MatGetSize(A,NULL,&N1));
-  CHKERRQ(MatGetLocalSize(A,NULL,&n1));
-  CHKERRQ(MatGetSize(C,NULL,&N));
-  CHKERRQ(MatGetLocalSize(C,NULL,&n));
+  PetscCall(MatGetSize(A,NULL,&N1));
+  PetscCall(MatGetLocalSize(A,NULL,&n1));
+  PetscCall(MatGetSize(C,NULL,&N));
+  PetscCall(MatGetLocalSize(C,NULL,&n));
   PetscCheck(N==N1 && n==n1,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
   /* check column 2 */
-  CHKERRQ(MatGetSize(B,NULL,&N2));
-  CHKERRQ(MatGetLocalSize(B,NULL,&n2));
-  CHKERRQ(MatGetSize(D,NULL,&N));
-  CHKERRQ(MatGetLocalSize(D,NULL,&n));
+  PetscCall(MatGetSize(B,NULL,&N2));
+  PetscCall(MatGetLocalSize(B,NULL,&n2));
+  PetscCall(MatGetSize(D,NULL,&N));
+  PetscCall(MatGetLocalSize(D,NULL,&n));
   PetscCheck(N==N2 && n==n2,PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
 
   /* check matrix types */
   for (i=0;i<4;i++) {
-    CHKERRQ(MatGetType(block[i],&type[i]));
-    CHKERRQ(PetscStrcmp(type[i],MATCONSTANTDIAGONAL,&diag[i]));
+    PetscCall(MatGetType(block[i],&type[i]));
+    PetscCall(PetscStrcmp(type[i],MATCONSTANTDIAGONAL,&diag[i]));
   }
   for (k=0;k<4;k++) if (!diag[k]) break;
   PetscCheck(k<4,PetscObjectComm((PetscObject)A),PETSC_ERR_SUP,"Not implemented for 4 diagonal blocks");
 
-  CHKERRQ(MatGetBlockSize(block[k],&bs));
-  CHKERRQ(MatCreate(PetscObjectComm((PetscObject)block[k]),G));
-  CHKERRQ(MatSetSizes(*G,m1+m2,n1+n2,M1+M2,N1+N2));
-  CHKERRQ(MatSetType(*G,type[k]));
-  CHKERRQ(MatSetBlockSize(*G,bs));
-  CHKERRQ(MatSetUp(*G));
+  PetscCall(MatGetBlockSize(block[k],&bs));
+  PetscCall(MatCreate(PetscObjectComm((PetscObject)block[k]),G));
+  PetscCall(MatSetSizes(*G,m1+m2,n1+n2,M1+M2,N1+N2));
+  PetscCall(MatSetType(*G,type[k]));
+  PetscCall(MatSetBlockSize(*G,bs));
+  PetscCall(MatSetUp(*G));
 
-  CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)*G),&size));
-  if (size>1) CHKERRQ(MatCreateTile_MPI(a,A,b,B,c,C,d,D,*G));
-  else CHKERRQ(MatCreateTile_Seq(a,A,b,B,c,C,d,D,*G));
-  CHKERRQ(MatAssemblyBegin(*G,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(*G,MAT_FINAL_ASSEMBLY));
+  PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)*G),&size));
+  if (size>1) PetscCall(MatCreateTile_MPI(a,A,b,B,c,C,d,D,*G));
+  else PetscCall(MatCreateTile_Seq(a,A,b,B,c,C,d,D,*G));
+  PetscCall(MatAssemblyBegin(*G,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(*G,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
 }
 
@@ -388,46 +388,46 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
   PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
   PetscValidType(mat,1);
 
-  CHKERRQ(PetscObjectTypeCompareAny((PetscObject)mat,&standard,MATSEQAIJ,MATMPIAIJ,MATSEQBAIJ,MATMPIBAIJ,MATSEQSBAIJ,MATMPISBAIJ,MATSEQDENSE,MATMPIDENSE,""));
-  CHKERRQ(PetscObjectTypeCompareAny((PetscObject)mat,&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,""));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)mat,&standard,MATSEQAIJ,MATMPIAIJ,MATSEQBAIJ,MATMPIBAIJ,MATSEQSBAIJ,MATMPISBAIJ,MATSEQDENSE,MATMPIDENSE,""));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)mat,&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,""));
   if (!standard && !cuda) {
-    CHKERRQ(MatCreateVecs(mat,right,left));
+    PetscCall(MatCreateVecs(mat,right,left));
     v = right? *right: *left;
     if (v) {
-      CHKERRQ(PetscObjectTypeCompareAny((PetscObject)v,&standard,VECSEQ,VECMPI,""));
-      CHKERRQ(PetscObjectTypeCompareAny((PetscObject)v,&cuda,VECSEQCUDA,VECMPICUDA,""));
+      PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&standard,VECSEQ,VECMPI,""));
+      PetscCall(PetscObjectTypeCompareAny((PetscObject)v,&cuda,VECSEQCUDA,VECMPICUDA,""));
     }
     if (!standard && !cuda) skip = PETSC_TRUE;
     else {
-      if (right) CHKERRQ(VecDestroy(right));
-      if (left) CHKERRQ(VecDestroy(left));
+      if (right) PetscCall(VecDestroy(right));
+      if (left) PetscCall(VecDestroy(left));
     }
   }
   if (!skip) {
-    CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size));
-    CHKERRQ(MatGetLocalSize(mat,&mloc,&nloc));
-    CHKERRQ(MatGetSize(mat,&M,&N));
-    CHKERRQ(MatGetBlockSizes(mat,&rbs,&cbs));
+    PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size));
+    PetscCall(MatGetLocalSize(mat,&mloc,&nloc));
+    PetscCall(MatGetSize(mat,&M,&N));
+    PetscCall(MatGetBlockSizes(mat,&rbs,&cbs));
     if (right) {
       if (cuda) {
 #if defined(PETSC_HAVE_CUDA)
-        if (size>1) CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right));
-        else CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right));
+        if (size>1) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right));
+        else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right));
 #endif
       } else {
-        if (size>1) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right));
-        else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right));
+        if (size>1) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right));
+        else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right));
       }
     }
     if (left) {
       if (cuda) {
 #if defined(PETSC_HAVE_CUDA)
-        if (size>1) CHKERRQ(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left));
-        else CHKERRQ(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left));
+        if (size>1) PetscCall(VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left));
+        else PetscCall(VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left));
 #endif
       } else {
-        if (size>1) CHKERRQ(VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left));
-        else CHKERRQ(VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left));
+        if (size>1) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left));
+        else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left));
       }
     }
   }
@@ -471,22 +471,22 @@ PetscErrorCode MatNormEstimate(Mat A,Vec vrn,Vec w,PetscReal *nrm)
   PetscValidRealPointer(nrm,4);
 
   if (!vrn) {
-    CHKERRQ(MatCreateVecs(A,&vv,NULL));
+    PetscCall(MatCreateVecs(A,&vv,NULL));
     vrn = vv;
-    CHKERRQ(VecSetRandomNormal(vv,NULL,NULL,NULL));
-    CHKERRQ(VecNormalize(vv,NULL));
+    PetscCall(VecSetRandomNormal(vv,NULL,NULL,NULL));
+    PetscCall(VecNormalize(vv,NULL));
   }
   if (!w) {
-    CHKERRQ(MatCreateVecs(A,&ww,NULL));
+    PetscCall(MatCreateVecs(A,&ww,NULL));
     w = ww;
   }
 
-  CHKERRQ(MatGetSize(A,&n,NULL));
-  CHKERRQ(MatMult(A,vrn,w));
-  CHKERRQ(VecNorm(w,NORM_2,nrm));
+  PetscCall(MatGetSize(A,&n,NULL));
+  PetscCall(MatMult(A,vrn,w));
+  PetscCall(VecNorm(w,NORM_2,nrm));
   *nrm *= PetscSqrtReal((PetscReal)n);
 
-  CHKERRQ(VecDestroy(&vv));
-  CHKERRQ(VecDestroy(&ww));
+  PetscCall(VecDestroy(&vv));
+  PetscCall(VecDestroy(&ww));
   PetscFunctionReturn(0);
 }

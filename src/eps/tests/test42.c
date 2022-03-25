@@ -24,62 +24,62 @@ int main(int argc,char **argv)
   PetscInt       n=30,i,seed=0x12345678;
   PetscMPIInt    rank;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nOrthogonal eigenproblem, n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nOrthogonal eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PetscRandomCreate(PETSC_COMM_WORLD,&rand));
-  CHKERRQ(PetscRandomSetFromOptions(rand));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL));
-  CHKERRQ(PetscRandomSetSeed(rand,seed));
-  CHKERRQ(PetscRandomSeed(rand));
-  CHKERRQ(PetscRandomSetInterval(rand,0,2*PETSC_PI));
+  PetscCall(PetscRandomCreate(PETSC_COMM_WORLD,&rand));
+  PetscCall(PetscRandomSetFromOptions(rand));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL));
+  PetscCall(PetscRandomSetSeed(rand,seed));
+  PetscCall(PetscRandomSeed(rand));
+  PetscCall(PetscRandomSetInterval(rand,0,2*PETSC_PI));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
   if (!rank) {
     for (i=0;i<n/2;i++) {
-      CHKERRQ(PetscRandomGetValue(rand,&val));
+      PetscCall(PetscRandomGetValue(rand,&val));
       c = PetscCosReal(PetscRealPart(val));
       s = PetscSinReal(PetscRealPart(val));
-      CHKERRQ(MatSetValue(A,2*i,2*i,c,INSERT_VALUES));
-      CHKERRQ(MatSetValue(A,2*i+1,2*i+1,c,INSERT_VALUES));
-      CHKERRQ(MatSetValue(A,2*i,2*i+1,s,INSERT_VALUES));
-      CHKERRQ(MatSetValue(A,2*i+1,2*i,-s,INSERT_VALUES));
+      PetscCall(MatSetValue(A,2*i,2*i,c,INSERT_VALUES));
+      PetscCall(MatSetValue(A,2*i+1,2*i+1,c,INSERT_VALUES));
+      PetscCall(MatSetValue(A,2*i,2*i+1,s,INSERT_VALUES));
+      PetscCall(MatSetValue(A,2*i+1,2*i,-s,INSERT_VALUES));
     }
-    if (n%2) CHKERRQ(MatSetValue(A,n-1,n-1,-1.0,INSERT_VALUES));
+    if (n%2) PetscCall(MatSetValue(A,n-1,n-1,-1.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
-  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
-  CHKERRQ(EPSSetFromOptions(eps));
-  CHKERRQ(EPSSolve(eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
+  PetscCall(EPSSetFromOptions(eps));
+  PetscCall(EPSSolve(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(PetscRandomDestroy(&rand));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(PetscRandomDestroy(&rand));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

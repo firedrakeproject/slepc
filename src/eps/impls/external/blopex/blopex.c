@@ -36,8 +36,8 @@ static void Precond_FnSingleVector(void *data,void *x,void *y)
   KSP            ksp;
 
   PetscFunctionBegin;
-  CHKERRABORT(comm,STGetKSP(blopex->st,&ksp));
-  CHKERRABORT(comm,KSPSolve(ksp,(Vec)x,(Vec)y));
+  PetscCallAbort(comm,STGetKSP(blopex->st,&ksp));
+  PetscCallAbort(comm,KSPSolve(ksp,(Vec)x,(Vec)y));
   PetscFunctionReturnVoid();
 }
 
@@ -59,15 +59,15 @@ static void OperatorASingleVector(void *data,void *x,void *y)
   PetscInt       nmat;
 
   PetscFunctionBegin;
-  CHKERRABORT(comm,STGetNumMatrices(blopex->st,&nmat));
-  CHKERRABORT(comm,STGetMatrix(blopex->st,0,&A));
-  if (nmat>1) CHKERRABORT(comm,STGetMatrix(blopex->st,1,&B));
-  CHKERRABORT(comm,MatMult(A,(Vec)x,(Vec)y));
-  CHKERRABORT(comm,STGetShift(blopex->st,&sigma));
+  PetscCallAbort(comm,STGetNumMatrices(blopex->st,&nmat));
+  PetscCallAbort(comm,STGetMatrix(blopex->st,0,&A));
+  if (nmat>1) PetscCallAbort(comm,STGetMatrix(blopex->st,1,&B));
+  PetscCallAbort(comm,MatMult(A,(Vec)x,(Vec)y));
+  PetscCallAbort(comm,STGetShift(blopex->st,&sigma));
   if (sigma != 0.0) {
-    if (nmat>1) CHKERRABORT(comm,MatMult(B,(Vec)x,blopex->w));
-    else CHKERRABORT(comm,VecCopy((Vec)x,blopex->w));
-    CHKERRABORT(comm,VecAXPY((Vec)y,-sigma,blopex->w));
+    if (nmat>1) PetscCallAbort(comm,MatMult(B,(Vec)x,blopex->w));
+    else PetscCallAbort(comm,VecCopy((Vec)x,blopex->w));
+    PetscCallAbort(comm,VecAXPY((Vec)y,-sigma,blopex->w));
   }
   PetscFunctionReturnVoid();
 }
@@ -88,8 +88,8 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
   Mat            B;
 
   PetscFunctionBegin;
-  CHKERRABORT(comm,STGetMatrix(blopex->st,1,&B));
-  CHKERRABORT(comm,MatMult(B,(Vec)x,(Vec)y));
+  PetscCallAbort(comm,STGetMatrix(blopex->st,1,&B));
+  PetscCallAbort(comm,MatMult(B,(Vec)x,(Vec)y));
   PetscFunctionReturnVoid();
 }
 
@@ -113,7 +113,7 @@ PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
     PetscCheck(*ncv>=k,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv is not sufficiently large");
   } else *ncv = k;
   if (*mpd==PETSC_DEFAULT) *mpd = *ncv;
-  else CHKERRQ(PetscInfo(eps,"Warning: given value of mpd ignored\n"));
+  else PetscCall(PetscInfo(eps,"Warning: given value of mpd ignored\n"));
   PetscFunctionReturn(0);
 }
 
@@ -126,7 +126,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
   if (!blopex->bs) blopex->bs = PetscMin(16,eps->nev);
-  CHKERRQ(EPSSetDimensions_BLOPEX(eps,eps->nev,&eps->ncv,&eps->mpd));
+  PetscCall(EPSSetDimensions_BLOPEX(eps,eps->nev,&eps->ncv,&eps->mpd));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   PetscCheck(eps->which==EPS_SMALLEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real eigenvalues");
@@ -146,20 +146,20 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 
   SLEPCSetupInterpreter(&blopex->ii);
 
-  CHKERRQ(STGetKSP(eps->st,&ksp));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
-  if (!flg) CHKERRQ(PetscInfo(eps,"Warning: ignoring KSP, should use KSPPREONLY\n"));
+  PetscCall(STGetKSP(eps->st,&ksp));
+  PetscCall(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
+  if (!flg) PetscCall(PetscInfo(eps,"Warning: ignoring KSP, should use KSPPREONLY\n"));
 
   /* allocate memory */
-  if (!eps->V) CHKERRQ(EPSGetBV(eps,&eps->V));
-  CHKERRQ(PetscObjectTypeCompareAny((PetscObject)eps->V,&flg,BVVECS,BVCONTIGUOUS,""));
+  if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)eps->V,&flg,BVVECS,BVCONTIGUOUS,""));
   if (!flg) {  /* blopex only works with BVVECS or BVCONTIGUOUS */
-    CHKERRQ(BVSetType(eps->V,BVCONTIGUOUS));
+    PetscCall(BVSetType(eps->V,BVCONTIGUOUS));
   }
-  CHKERRQ(EPSAllocateSolution(eps,0));
+  PetscCall(EPSAllocateSolution(eps,0));
   if (!blopex->w) {
-    CHKERRQ(BVCreateVec(eps->V,&blopex->w));
-    CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->w));
+    PetscCall(BVCreateVec(eps->V,&blopex->w));
+    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->w));
   }
 
 #if defined(PETSC_USE_COMPLEX)
@@ -187,26 +187,26 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 #endif
 
   PetscFunctionBegin;
-  CHKERRQ(STGetShift(eps->st,&sigma));
-  CHKERRQ(PetscMalloc1(blopex->bs,&lambda));
-  if (eps->numbermonitors>0) CHKERRQ(PetscMalloc4(blopex->bs*(eps->max_it+1),&lambdahist,eps->ncv,&eigr,blopex->bs*(eps->max_it+1),&residhist,eps->ncv,&errest));
+  PetscCall(STGetShift(eps->st,&sigma));
+  PetscCall(PetscMalloc1(blopex->bs,&lambda));
+  if (eps->numbermonitors>0) PetscCall(PetscMalloc4(blopex->bs*(eps->max_it+1),&lambdahist,eps->ncv,&eigr,blopex->bs*(eps->max_it+1),&residhist,eps->ncv,&errest));
 
   /* Complete the initial basis with random vectors */
   for (i=0;i<eps->nini;i++) {  /* in case the initial vectors were also set with VecSetRandom */
-    CHKERRQ(BVSetRandomColumn(eps->V,eps->nini));
+    PetscCall(BVSetRandomColumn(eps->V,eps->nini));
   }
-  for (i=eps->nini;i<eps->ncv;i++) CHKERRQ(BVSetRandomColumn(eps->V,i));
+  for (i=eps->nini;i<eps->ncv;i++) PetscCall(BVSetRandomColumn(eps->V,i));
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
 
     /* Create multivector of constraints from leading columns of V */
-    CHKERRQ(PetscObjectComposedDataSetInt((PetscObject)eps->V,slepc_blopex_useconstr,1));
-    CHKERRQ(BVSetActiveColumns(eps->V,0,eps->nconv));
+    PetscCall(PetscObjectComposedDataSetInt((PetscObject)eps->V,slepc_blopex_useconstr,1));
+    PetscCall(BVSetActiveColumns(eps->V,0,eps->nconv));
     constraints = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds+eps->nconv,eps->V);
 
     /* Create multivector where eigenvectors of this run will be stored */
-    CHKERRQ(PetscObjectComposedDataSetInt((PetscObject)eps->V,slepc_blopex_useconstr,0));
-    CHKERRQ(BVSetActiveColumns(eps->V,eps->nconv,eps->nconv+blopex->bs));
+    PetscCall(PetscObjectComposedDataSetInt((PetscObject)eps->V,slepc_blopex_useconstr,0));
+    PetscCall(BVSetActiveColumns(eps->V,eps->nconv,eps->nconv+blopex->bs));
     eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,blopex->bs,eps->V);
 
 #if defined(PETSC_USE_COMPLEX)
@@ -246,7 +246,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
           errest[eps->nconv+j] = residhist[j+i*blopex->bs];
           if (residhist[j+i*blopex->bs]<=eps->tol) nconv++;
         }
-        CHKERRQ(EPSMonitor(eps,eps->its+i,eps->nconv+nconv,eigr,eps->eigi,errest,eps->nconv+blopex->bs));
+        PetscCall(EPSMonitor(eps,eps->its+i,eps->nconv+nconv,eigr,eps->eigi,errest,eps->nconv+blopex->bs));
       }
     }
 
@@ -263,8 +263,8 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
     }
   }
 
-  CHKERRQ(PetscFree(lambda));
-  if (eps->numbermonitors>0) CHKERRQ(PetscFree4(lambdahist,eigr,residhist,errest));
+  PetscCall(PetscFree(lambda));
+  if (eps->numbermonitors>0) PetscCall(PetscFree4(lambdahist,eigr,residhist,errest));
   PetscFunctionReturn(0);
 }
 
@@ -304,7 +304,7 @@ PetscErrorCode EPSBLOPEXSetBlockSize(EPS eps,PetscInt bs)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,bs,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSBLOPEXSetBlockSize_C",(EPS,PetscInt),(eps,bs)));
+  PetscCall(PetscTryMethod(eps,"EPSBLOPEXSetBlockSize_C",(EPS,PetscInt),(eps,bs)));
   PetscFunctionReturn(0);
 }
 
@@ -337,7 +337,7 @@ PetscErrorCode EPSBLOPEXGetBlockSize(EPS eps,PetscInt *bs)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(bs,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSBLOPEXGetBlockSize_C",(EPS,PetscInt*),(eps,bs)));
+  PetscCall(PetscUseMethod(eps,"EPSBLOPEXGetBlockSize_C",(EPS,PetscInt*),(eps,bs)));
   PetscFunctionReturn(0);
 }
 
@@ -346,7 +346,7 @@ PetscErrorCode EPSReset_BLOPEX(EPS eps)
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(VecDestroy(&blopex->w));
+  PetscCall(VecDestroy(&blopex->w));
   PetscFunctionReturn(0);
 }
 
@@ -354,9 +354,9 @@ PetscErrorCode EPSDestroy_BLOPEX(EPS eps)
 {
   PetscFunctionBegin;
   LOBPCG_DestroyRandomContext();
-  CHKERRQ(PetscFree(eps->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",NULL));
+  PetscCall(PetscFree(eps->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -366,8 +366,8 @@ PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isascii) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  block size %" PetscInt_FMT "\n",ctx->bs));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  if (isascii) PetscCall(PetscViewerASCIIPrintf(viewer,"  block size %" PetscInt_FMT "\n",ctx->bs));
   PetscFunctionReturn(0);
 }
 
@@ -377,12 +377,12 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptionItems *PetscOptionsObject,EPS
   PetscInt       bs;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"EPS BLOPEX Options"));
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS BLOPEX Options"));
 
-    CHKERRQ(PetscOptionsInt("-eps_blopex_blocksize","Block size","EPSBLOPEXSetBlockSize",20,&bs,&flg));
-    if (flg) CHKERRQ(EPSBLOPEXSetBlockSize(eps,bs));
+    PetscCall(PetscOptionsInt("-eps_blopex_blocksize","Block size","EPSBLOPEXSetBlockSize",20,&bs,&flg));
+    if (flg) PetscCall(EPSBLOPEXSetBlockSize(eps,bs));
 
-  CHKERRQ(PetscOptionsTail());
+  PetscCall(PetscOptionsTail());
 
   LOBPCG_SetFromOptionsRandomContext();
   PetscFunctionReturn(0);
@@ -393,7 +393,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   EPS_BLOPEX     *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   eps->categ = EPS_CATEGORY_PRECOND;
@@ -409,8 +409,8 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->ops->setdefaultst   = EPSSetDefaultST_GMRES;
 
   LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),NULL);
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",EPSBLOPEXSetBlockSize_BLOPEX));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",EPSBLOPEXGetBlockSize_BLOPEX));
-  if (slepc_blopex_useconstr < 0) CHKERRQ(PetscObjectComposedDataRegister(&slepc_blopex_useconstr));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",EPSBLOPEXSetBlockSize_BLOPEX));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",EPSBLOPEXGetBlockSize_BLOPEX));
+  if (slepc_blopex_useconstr < 0) PetscCall(PetscObjectComposedDataRegister(&slepc_blopex_useconstr));
   PetscFunctionReturn(0);
 }

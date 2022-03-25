@@ -129,15 +129,15 @@ static inline PetscErrorCode ST_KSPSetOperators(ST st,Mat A,Mat B)
   const char     *prefix;
 
   PetscFunctionBegin;
-  if (!st->ksp) CHKERRQ(STGetKSP(st,&st->ksp));
-  CHKERRQ(STCheckFactorPackage(st));
-  CHKERRQ(KSPSetOperators(st->ksp,A,B));
-  CHKERRQ(MatGetOptionsPrefix(B,&prefix));
+  if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
+  PetscCall(STCheckFactorPackage(st));
+  PetscCall(KSPSetOperators(st->ksp,A,B));
+  PetscCall(MatGetOptionsPrefix(B,&prefix));
   if (!prefix) {
     /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
        only applies if the Mat has no user-defined prefix */
-    CHKERRQ(KSPGetOptionsPrefix(st->ksp,&prefix));
-    CHKERRQ(MatSetOptionsPrefix(B,prefix));
+    PetscCall(KSPGetOptionsPrefix(st->ksp,&prefix));
+    PetscCall(MatSetOptionsPrefix(B,prefix));
   }
   PetscFunctionReturn(0);
 }

@@ -66,16 +66,16 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscCheck(X!=Y,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
   if (Q) {
     PetscCheckTypeNames(Q,MATSEQDENSE,MATSEQDENSECUDA);
-    CHKERRQ(MatGetSize(Q,&m,&n));
+    PetscCall(MatGetSize(Q,&m,&n));
     PetscCheck(m>=X->k,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,X->k);
     PetscCheck(n>=Y->k,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,Y->k);
   }
   PetscCheck(X->n==Y->n,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", Y %" PetscInt_FMT,X->n,Y->n);
 
-  CHKERRQ(PetscLogEventBegin(BV_Mult,X,Y,0,0));
-  CHKERRQ((*Y->ops->mult)(Y,alpha,beta,X,Q));
-  CHKERRQ(PetscLogEventEnd(BV_Mult,X,Y,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)Y));
+  PetscCall(PetscLogEventBegin(BV_Mult,X,Y,0,0));
+  PetscCall((*Y->ops->mult)(Y,alpha,beta,X,Q));
+  PetscCall(PetscLogEventEnd(BV_Mult,X,Y,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)Y));
   PetscFunctionReturn(0);
 }
 
@@ -123,13 +123,13 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
   PetscValidType(y,4);
   PetscCheckSameComm(X,1,y,4);
 
-  CHKERRQ(VecGetSize(y,&N));
-  CHKERRQ(VecGetLocalSize(y,&n));
+  PetscCall(VecGetSize(y,&N));
+  PetscCall(VecGetLocalSize(y,&n));
   PetscCheck(N==X->N && n==X->n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,X->N,X->n);
 
-  CHKERRQ(PetscLogEventBegin(BV_MultVec,X,y,0,0));
-  CHKERRQ((*X->ops->multvec)(X,alpha,beta,y,q));
-  CHKERRQ(PetscLogEventEnd(BV_MultVec,X,y,0,0));
+  PetscCall(PetscLogEventBegin(BV_MultVec,X,y,0,0));
+  PetscCall((*X->ops->multvec)(X,alpha,beta,y,q));
+  PetscCall(PetscLogEventEnd(BV_MultVec,X,y,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -178,16 +178,16 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   PetscCheck(j>=0,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   PetscCheck(j<X->m,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,X->m);
 
-  CHKERRQ(PetscLogEventBegin(BV_MultVec,X,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_MultVec,X,0,0,0));
   ksave = X->k;
   X->k = j;
-  if (!q && !X->buffer) CHKERRQ(BVGetBufferVec(X,&X->buffer));
-  CHKERRQ(BVGetColumn(X,j,&y));
-  CHKERRQ((*X->ops->multvec)(X,alpha,beta,y,q));
-  CHKERRQ(BVRestoreColumn(X,j,&y));
+  if (!q && !X->buffer) PetscCall(BVGetBufferVec(X,&X->buffer));
+  PetscCall(BVGetColumn(X,j,&y));
+  PetscCall((*X->ops->multvec)(X,alpha,beta,y,q));
+  PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
-  CHKERRQ(PetscLogEventEnd(BV_MultVec,X,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)X));
+  PetscCall(PetscLogEventEnd(BV_MultVec,X,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)X));
   PetscFunctionReturn(0);
 }
 
@@ -233,15 +233,15 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 
   PetscCheck(s>=V->l && s<=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,s,V->l,V->m);
   PetscCheck(e>=V->l && e<=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,e,V->l,V->m);
-  CHKERRQ(MatGetSize(Q,&m,&n));
+  PetscCall(MatGetSize(Q,&m,&n));
   PetscCheck(m>=V->k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,V->k);
   PetscCheck(e<=n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %" PetscInt_FMT " columns, the requested value of e is larger: %" PetscInt_FMT,n,e);
   if (s>=e) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
-  CHKERRQ((*V->ops->multinplace)(V,Q,s,e));
-  CHKERRQ(PetscLogEventEnd(BV_MultInPlace,V,Q,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
+  PetscCall((*V->ops->multinplace)(V,Q,s,e));
+  PetscCall(PetscLogEventEnd(BV_MultInPlace,V,Q,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
 
@@ -282,15 +282,15 @@ PetscErrorCode BVMultInPlaceHermitianTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
 
   PetscCheck(s>=V->l && s<=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument s has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,s,V->l,V->m);
   PetscCheck(e>=V->l && e<=V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument e has wrong value %" PetscInt_FMT ", should be between %" PetscInt_FMT " and %" PetscInt_FMT,e,V->l,V->m);
-  CHKERRQ(MatGetSize(Q,&m,&n));
+  PetscCall(MatGetSize(Q,&m,&n));
   PetscCheck(n>=V->k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,V->k);
   PetscCheck(e<=m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %" PetscInt_FMT " rows, the requested value of e is larger: %" PetscInt_FMT,m,e);
   if (s>=e || !V->n) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
-  CHKERRQ((*V->ops->multinplacetrans)(V,Q,s,e));
-  CHKERRQ(PetscLogEventEnd(BV_MultInPlace,V,Q,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
+  PetscCall((*V->ops->multinplacetrans)(V,Q,s,e));
+  PetscCall(PetscLogEventEnd(BV_MultInPlace,V,Q,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
 
@@ -319,10 +319,10 @@ PetscErrorCode BVScale(BV bv,PetscScalar alpha)
   BVCheckSizes(bv,1);
   if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-  if (bv->n) CHKERRQ((*bv->ops->scale)(bv,-1,alpha));
-  CHKERRQ(PetscLogEventEnd(BV_Scale,bv,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
+  if (bv->n) PetscCall((*bv->ops->scale)(bv,-1,alpha));
+  PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -352,10 +352,10 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   PetscCheck(j>=0 && j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", the number of columns is %" PetscInt_FMT,j,bv->m);
   if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-  if (bv->n) CHKERRQ((*bv->ops->scale)(bv,j,alpha));
-  CHKERRQ(PetscLogEventEnd(BV_Scale,bv,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
+  if (bv->n) PetscCall((*bv->ops->scale)(bv,j,alpha));
+  PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -366,17 +366,17 @@ static inline PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
   Vec            x;
 
   PetscFunctionBegin;
-  CHKERRQ(BVGetColumn(bv,k,&x));
+  PetscCall(BVGetColumn(bv,k,&x));
   if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
-    CHKERRQ(VecGetOwnershipRange(x,&low,&high));
-    CHKERRQ(VecGetArray(x,&px));
+    PetscCall(VecGetOwnershipRange(x,&low,&high));
+    PetscCall(VecGetArray(x,&px));
     for (i=0;i<bv->N;i++) {
-      CHKERRQ(PetscRandomGetValue(bv->rand,&t));
+      PetscCall(PetscRandomGetValue(bv->rand,&t));
       if (i>=low && i<high) px[i-low] = t;
     }
-    CHKERRQ(VecRestoreArray(x,&px));
-  } else CHKERRQ(VecSetRandom(x,bv->rand));
-  CHKERRQ(BVRestoreColumn(bv,k,&x));
+    PetscCall(VecRestoreArray(x,&px));
+  } else PetscCall(VecSetRandom(x,bv->rand));
+  PetscCall(BVRestoreColumn(bv,k,&x));
   PetscFunctionReturn(0);
 }
 
@@ -387,13 +387,13 @@ static inline PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscInt k,Ve
   Vec            x;
 
   PetscFunctionBegin;
-  CHKERRQ(BVGetColumn(bv,k,&x));
+  PetscCall(BVGetColumn(bv,k,&x));
   if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
-    CHKERRQ(VecGetOwnershipRange(x,&low,&high));
-    CHKERRQ(VecGetArray(x,&px));
+    PetscCall(VecGetOwnershipRange(x,&low,&high));
+    PetscCall(VecGetArray(x,&px));
     for (i=0;i<bv->N;i++) {
-      CHKERRQ(PetscRandomGetValue(bv->rand,&s));
-      CHKERRQ(PetscRandomGetValue(bv->rand,&t));
+      PetscCall(PetscRandomGetValue(bv->rand,&s));
+      PetscCall(PetscRandomGetValue(bv->rand,&t));
       if (i>=low && i<high) {
 #if defined(PETSC_USE_COMPLEX)
         px[i-low] = PetscCMPLX(PetscSqrtReal(-2.0*PetscLogReal(PetscRealPart(s)))*PetscCosReal(2.0*PETSC_PI*PetscRealPart(t)),PetscSqrtReal(-2.0*PetscLogReal(PetscImaginaryPart(s)))*PetscCosReal(2.0*PETSC_PI*PetscImaginaryPart(t)));
@@ -402,9 +402,9 @@ static inline PetscErrorCode BVSetRandomNormalColumn_Private(BV bv,PetscInt k,Ve
 #endif
       }
     }
-    CHKERRQ(VecRestoreArray(x,&px));
-  } else CHKERRQ(VecSetRandomNormal(x,bv->rand,w1,w2));
-  CHKERRQ(BVRestoreColumn(bv,k,&x));
+    PetscCall(VecRestoreArray(x,&px));
+  } else PetscCall(VecSetRandomNormal(x,bv->rand,w1,w2));
+  PetscCall(BVRestoreColumn(bv,k,&x));
   PetscFunctionReturn(0);
 }
 
@@ -415,24 +415,24 @@ static inline PetscErrorCode BVSetRandomSignColumn_Private(BV bv,PetscInt k)
   Vec            x;
 
   PetscFunctionBegin;
-  CHKERRQ(BVGetColumn(bv,k,&x));
-  CHKERRQ(VecGetOwnershipRange(x,&low,&high));
+  PetscCall(BVGetColumn(bv,k,&x));
+  PetscCall(VecGetOwnershipRange(x,&low,&high));
   if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
-    CHKERRQ(VecGetArray(x,&px));
+    PetscCall(VecGetArray(x,&px));
     for (i=0;i<bv->N;i++) {
-      CHKERRQ(PetscRandomGetValue(bv->rand,&t));
+      PetscCall(PetscRandomGetValue(bv->rand,&t));
       if (i>=low && i<high) px[i-low] = (PetscRealPart(t)<0.5)? -1.0: 1.0;
     }
-    CHKERRQ(VecRestoreArray(x,&px));
+    PetscCall(VecRestoreArray(x,&px));
   } else {
-    CHKERRQ(VecSetRandom(x,bv->rand));
-    CHKERRQ(VecGetArray(x,&px));
+    PetscCall(VecSetRandom(x,bv->rand));
+    PetscCall(VecGetArray(x,&px));
     for (i=low;i<high;i++) {
       px[i-low] = (PetscRealPart(px[i-low])<0.5)? -1.0: 1.0;
     }
-    CHKERRQ(VecRestoreArray(x,&px));
+    PetscCall(VecRestoreArray(x,&px));
   }
-  CHKERRQ(BVRestoreColumn(bv,k,&x));
+  PetscCall(BVRestoreColumn(bv,k,&x));
   PetscFunctionReturn(0);
 }
 
@@ -460,11 +460,11 @@ PetscErrorCode BVSetRandom(BV bv)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  CHKERRQ(BVGetRandomContext(bv,&bv->rand));
-  CHKERRQ(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
-  for (k=bv->l;k<bv->k;k++) CHKERRQ(BVSetRandomColumn_Private(bv,k));
-  CHKERRQ(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  PetscCall(BVGetRandomContext(bv,&bv->rand));
+  PetscCall(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
+  for (k=bv->l;k<bv->k;k++) PetscCall(BVSetRandomColumn_Private(bv,k));
+  PetscCall(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -490,11 +490,11 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
   BVCheckSizes(bv,1);
   PetscCheck(j>=0 && j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", the number of columns is %" PetscInt_FMT,j,bv->m);
 
-  CHKERRQ(BVGetRandomContext(bv,&bv->rand));
-  CHKERRQ(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
-  CHKERRQ(BVSetRandomColumn_Private(bv,j));
-  CHKERRQ(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  PetscCall(BVGetRandomContext(bv,&bv->rand));
+  PetscCall(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
+  PetscCall(BVSetRandomColumn_Private(bv,j));
+  PetscCall(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -532,19 +532,19 @@ PetscErrorCode BVSetRandomNormal(BV bv)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  CHKERRQ(BVGetRandomContext(bv,&bv->rand));
+  PetscCall(BVGetRandomContext(bv,&bv->rand));
   if (!bv->rrandom) {
-    CHKERRQ(BVCreateVec(bv,&w1));
-    CHKERRQ(BVCreateVec(bv,&w2));
+    PetscCall(BVCreateVec(bv,&w1));
+    PetscCall(BVCreateVec(bv,&w2));
   }
-  CHKERRQ(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
-  for (k=bv->l;k<bv->k;k++) CHKERRQ(BVSetRandomNormalColumn_Private(bv,k,w1,w2));
-  CHKERRQ(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
+  for (k=bv->l;k<bv->k;k++) PetscCall(BVSetRandomNormalColumn_Private(bv,k,w1,w2));
+  PetscCall(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
   if (!bv->rrandom) {
-    CHKERRQ(VecDestroy(&w1));
-    CHKERRQ(VecDestroy(&w2));
+    PetscCall(VecDestroy(&w1));
+    PetscCall(VecDestroy(&w2));
   }
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -582,13 +582,13 @@ PetscErrorCode BVSetRandomSign(BV bv)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  CHKERRQ(BVGetRandomContext(bv,&bv->rand));
-  CHKERRQ(PetscRandomGetInterval(bv->rand,&low,&high));
+  PetscCall(BVGetRandomContext(bv,&bv->rand));
+  PetscCall(PetscRandomGetInterval(bv->rand,&low,&high));
   PetscCheck(PetscRealPart(low)==0.0 && PetscRealPart(high)==1.0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"The PetscRandom object in the BV must have interval [0,1]");
-  CHKERRQ(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
-  for (k=bv->l;k<bv->k;k++) CHKERRQ(BVSetRandomSignColumn_Private(bv,k));
-  CHKERRQ(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  PetscCall(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
+  for (k=bv->l;k<bv->k;k++) PetscCall(BVSetRandomSignColumn_Private(bv,k));
+  PetscCall(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -621,48 +621,48 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  CHKERRQ(BVGetRandomContext(bv,&bv->rand));
-  CHKERRQ(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
+  PetscCall(BVGetRandomContext(bv,&bv->rand));
+  PetscCall(PetscLogEventBegin(BV_SetRandom,bv,0,0,0));
   /* B = rand(n,k) */
-  for (k=bv->l;k<bv->k;k++) CHKERRQ(BVSetRandomColumn_Private(bv,k));
-  CHKERRQ(DSCreate(PetscObjectComm((PetscObject)bv),&ds));
-  CHKERRQ(DSSetType(ds,DSHEP));
-  CHKERRQ(DSAllocate(ds,bv->m));
-  CHKERRQ(DSSetDimensions(ds,bv->k,bv->l,bv->k));
+  for (k=bv->l;k<bv->k;k++) PetscCall(BVSetRandomColumn_Private(bv,k));
+  PetscCall(DSCreate(PetscObjectComm((PetscObject)bv),&ds));
+  PetscCall(DSSetType(ds,DSHEP));
+  PetscCall(DSAllocate(ds,bv->m));
+  PetscCall(DSSetDimensions(ds,bv->k,bv->l,bv->k));
   /* [V,S] = eig(B'*B) */
-  CHKERRQ(DSGetMat(ds,DS_MAT_A,&A));
-  CHKERRQ(BVDot(bv,bv,A));
-  CHKERRQ(DSRestoreMat(ds,DS_MAT_A,&A));
-  CHKERRQ(PetscMalloc1(bv->m,&eig));
-  CHKERRQ(DSSolve(ds,eig,NULL));
-  CHKERRQ(DSSynchronize(ds,eig,NULL));
-  CHKERRQ(DSVectors(ds,DS_MAT_X,NULL,NULL));
+  PetscCall(DSGetMat(ds,DS_MAT_A,&A));
+  PetscCall(BVDot(bv,bv,A));
+  PetscCall(DSRestoreMat(ds,DS_MAT_A,&A));
+  PetscCall(PetscMalloc1(bv->m,&eig));
+  PetscCall(DSSolve(ds,eig,NULL));
+  PetscCall(DSSynchronize(ds,eig,NULL));
+  PetscCall(DSVectors(ds,DS_MAT_X,NULL,NULL));
   /* M = diag(linspace(1/condn,1,n)./sqrt(diag(S)))' */
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&M));
-  CHKERRQ(MatZeroEntries(M));
-  CHKERRQ(MatDenseGetArray(M,&d));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&M));
+  PetscCall(MatZeroEntries(M));
+  PetscCall(MatDenseGetArray(M,&d));
   for (i=0;i<bv->k;i++) d[i+i*bv->m] = (1.0/condn+(1.0-1.0/condn)/(bv->k-1)*i)/PetscSqrtScalar(eig[i]);
-  CHKERRQ(MatDenseRestoreArray(M,&d));
+  PetscCall(MatDenseRestoreArray(M,&d));
   /* G = X*M*X' */
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&Xt));
-  CHKERRQ(DSGetMat(ds,DS_MAT_X,&X));
-  CHKERRQ(MatTranspose(X,MAT_REUSE_MATRIX,&Xt));
-  CHKERRQ(MatProductCreate(Xt,M,NULL,&G));
-  CHKERRQ(MatProductSetType(G,MATPRODUCT_PtAP));
-  CHKERRQ(MatProductSetFromOptions(G));
-  CHKERRQ(MatProductSymbolic(G));
-  CHKERRQ(MatProductNumeric(G));
-  CHKERRQ(MatProductClear(G));
-  CHKERRQ(MatDestroy(&X));
-  CHKERRQ(MatDestroy(&Xt));
-  CHKERRQ(MatDestroy(&M));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&Xt));
+  PetscCall(DSGetMat(ds,DS_MAT_X,&X));
+  PetscCall(MatTranspose(X,MAT_REUSE_MATRIX,&Xt));
+  PetscCall(MatProductCreate(Xt,M,NULL,&G));
+  PetscCall(MatProductSetType(G,MATPRODUCT_PtAP));
+  PetscCall(MatProductSetFromOptions(G));
+  PetscCall(MatProductSymbolic(G));
+  PetscCall(MatProductNumeric(G));
+  PetscCall(MatProductClear(G));
+  PetscCall(MatDestroy(&X));
+  PetscCall(MatDestroy(&Xt));
+  PetscCall(MatDestroy(&M));
   /* B = B*G */
-  CHKERRQ(BVMultInPlace(bv,G,bv->l,bv->k));
-  CHKERRQ(MatDestroy(&G));
-  CHKERRQ(PetscFree(eig));
-  CHKERRQ(DSDestroy(&ds));
-  CHKERRQ(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  PetscCall(BVMultInPlace(bv,G,bv->l,bv->k));
+  PetscCall(MatDestroy(&G));
+  PetscCall(PetscFree(eig));
+  PetscCall(DSDestroy(&ds));
+  PetscCall(PetscLogEventEnd(BV_SetRandom,bv,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -709,18 +709,18 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   PetscCheckSameComm(V,1,A,2);
   PetscCheckSameTypeAndComm(V,1,Y,3);
 
-  CHKERRQ(MatGetSize(A,&M,&N));
-  CHKERRQ(MatGetLocalSize(A,&m,&n));
+  PetscCall(MatGetSize(A,&M,&N));
+  PetscCall(MatGetLocalSize(A,&m,&n));
   PetscCheck(M==Y->N,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,M,Y->N);
   PetscCheck(m==Y->n,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,m,Y->n);
   PetscCheck(N==V->N,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,N,V->N);
   PetscCheck(n==V->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,n,V->n);
   PetscCheck(V->k-V->l==Y->k-Y->l,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %" PetscInt_FMT " active columns, should match %" PetscInt_FMT " active columns in V",Y->k-Y->l,V->k-V->l);
 
-  CHKERRQ(PetscLogEventBegin(BV_MatMult,V,A,Y,0));
-  CHKERRQ((*V->ops->matmult)(V,A,Y));
-  CHKERRQ(PetscLogEventEnd(BV_MatMult,V,A,Y,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)Y));
+  PetscCall(PetscLogEventBegin(BV_MatMult,V,A,Y,0));
+  PetscCall((*V->ops->matmult)(V,A,Y));
+  PetscCall(PetscLogEventEnd(BV_MatMult,V,A,Y,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)Y));
   PetscFunctionReturn(0);
 }
 
@@ -767,17 +767,17 @@ PetscErrorCode BVMatMultTranspose(BV V,Mat A,BV Y)
   PetscCheckSameComm(V,1,A,2);
   PetscCheckSameTypeAndComm(V,1,Y,3);
 
-  CHKERRQ(MatGetSize(A,&M,&N));
-  CHKERRQ(MatGetLocalSize(A,&m,&n));
+  PetscCall(MatGetSize(A,&M,&N));
+  PetscCall(MatGetLocalSize(A,&m,&n));
   PetscCheck(M==V->N,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,M,V->N);
   PetscCheck(m==V->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,m,V->n);
   PetscCheck(N==Y->N,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,N,Y->N);
   PetscCheck(n==Y->n,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,n,Y->n);
   PetscCheck(V->k-V->l==Y->k-Y->l,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %" PetscInt_FMT " active columns, should match %" PetscInt_FMT " active columns in V",Y->k-Y->l,V->k-V->l);
 
-  CHKERRQ(MatCreateTranspose(A,&AT));
-  CHKERRQ(BVMatMult(V,AT,Y));
-  CHKERRQ(MatDestroy(&AT));
+  PetscCall(MatCreateTranspose(A,&AT));
+  PetscCall(BVMatMult(V,AT,Y));
+  PetscCall(MatDestroy(&AT));
   PetscFunctionReturn(0);
 }
 
@@ -824,17 +824,17 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
   PetscCheckSameComm(V,1,A,2);
   PetscCheckSameTypeAndComm(V,1,Y,3);
 
-  CHKERRQ(MatGetSize(A,&M,&N));
-  CHKERRQ(MatGetLocalSize(A,&m,&n));
+  PetscCall(MatGetSize(A,&M,&N));
+  PetscCall(MatGetLocalSize(A,&m,&n));
   PetscCheck(M==V->N,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching row dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,M,V->N);
   PetscCheck(m==V->n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local row dimension A %" PetscInt_FMT ", V %" PetscInt_FMT,m,V->n);
   PetscCheck(N==Y->N,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching column dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,N,Y->N);
   PetscCheck(n==Y->n,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,n,Y->n);
   PetscCheck(V->k-V->l==Y->k-Y->l,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %" PetscInt_FMT " active columns, should match %" PetscInt_FMT " active columns in V",Y->k-Y->l,V->k-V->l);
 
-  CHKERRQ(MatCreateHermitianTranspose(A,&AH));
-  CHKERRQ(BVMatMult(V,AH,Y));
-  CHKERRQ(MatDestroy(&AH));
+  PetscCall(MatCreateHermitianTranspose(A,&AH));
+  PetscCall(BVMatMult(V,AH,Y));
+  PetscCall(MatDestroy(&AH));
   PetscFunctionReturn(0);
 }
 
@@ -867,14 +867,14 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
   PetscCheck(j>=0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   PetscCheck(j+1<V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j+1,V->m);
 
-  CHKERRQ(PetscLogEventBegin(BV_MatMultVec,V,A,0,0));
-  CHKERRQ(BVGetColumn(V,j,&vj));
-  CHKERRQ(BVGetColumn(V,j+1,&vj1));
-  CHKERRQ(MatMult(A,vj,vj1));
-  CHKERRQ(BVRestoreColumn(V,j,&vj));
-  CHKERRQ(BVRestoreColumn(V,j+1,&vj1));
-  CHKERRQ(PetscLogEventEnd(BV_MatMultVec,V,A,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscLogEventBegin(BV_MatMultVec,V,A,0,0));
+  PetscCall(BVGetColumn(V,j,&vj));
+  PetscCall(BVGetColumn(V,j+1,&vj1));
+  PetscCall(MatMult(A,vj,vj1));
+  PetscCall(BVRestoreColumn(V,j,&vj));
+  PetscCall(BVRestoreColumn(V,j+1,&vj1));
+  PetscCall(PetscLogEventEnd(BV_MatMultVec,V,A,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
 
@@ -907,14 +907,14 @@ PetscErrorCode BVMatMultTransposeColumn(BV V,Mat A,PetscInt j)
   PetscCheck(j>=0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   PetscCheck(j+1<V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j+1,V->m);
 
-  CHKERRQ(PetscLogEventBegin(BV_MatMultVec,V,A,0,0));
-  CHKERRQ(BVGetColumn(V,j,&vj));
-  CHKERRQ(BVGetColumn(V,j+1,&vj1));
-  CHKERRQ(MatMultTranspose(A,vj,vj1));
-  CHKERRQ(BVRestoreColumn(V,j,&vj));
-  CHKERRQ(BVRestoreColumn(V,j+1,&vj1));
-  CHKERRQ(PetscLogEventEnd(BV_MatMultVec,V,A,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscLogEventBegin(BV_MatMultVec,V,A,0,0));
+  PetscCall(BVGetColumn(V,j,&vj));
+  PetscCall(BVGetColumn(V,j+1,&vj1));
+  PetscCall(MatMultTranspose(A,vj,vj1));
+  PetscCall(BVRestoreColumn(V,j,&vj));
+  PetscCall(BVRestoreColumn(V,j+1,&vj1));
+  PetscCall(PetscLogEventEnd(BV_MatMultVec,V,A,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
 
@@ -947,13 +947,13 @@ PetscErrorCode BVMatMultHermitianTransposeColumn(BV V,Mat A,PetscInt j)
   PetscCheck(j>=0,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   PetscCheck(j+1<V->m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j+1,V->m);
 
-  CHKERRQ(PetscLogEventBegin(BV_MatMultVec,V,A,0,0));
-  CHKERRQ(BVGetColumn(V,j,&vj));
-  CHKERRQ(BVGetColumn(V,j+1,&vj1));
-  CHKERRQ(MatMultHermitianTranspose(A,vj,vj1));
-  CHKERRQ(BVRestoreColumn(V,j,&vj));
-  CHKERRQ(BVRestoreColumn(V,j+1,&vj1));
-  CHKERRQ(PetscLogEventEnd(BV_MatMultVec,V,A,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscLogEventBegin(BV_MatMultVec,V,A,0,0));
+  PetscCall(BVGetColumn(V,j,&vj));
+  PetscCall(BVGetColumn(V,j+1,&vj1));
+  PetscCall(MatMultHermitianTranspose(A,vj,vj1));
+  PetscCall(BVRestoreColumn(V,j,&vj));
+  PetscCall(BVRestoreColumn(V,j+1,&vj1));
+  PetscCall(PetscLogEventEnd(BV_MatMultVec,V,A,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }

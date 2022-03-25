@@ -120,7 +120,7 @@ static inline PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
   PetscFunctionBegin;
   absal = PetscAbsScalar(alpha);
   realp = PetscRealPart(alpha);
-  if (PetscUnlikely(absal<PETSC_MACHINE_EPSILON)) CHKERRQ(PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n"));
+  if (PetscUnlikely(absal<PETSC_MACHINE_EPSILON)) PetscCall(PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n"));
 #if defined(PETSC_USE_COMPLEX)
   PetscCheck(PetscAbsReal(PetscImaginaryPart(alpha))<bv->deftol || PetscAbsReal(PetscImaginaryPart(alpha))/absal<10*bv->deftol,PetscObjectComm((PetscObject)bv),PETSC_ERR_USER_INPUT,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
 #endif
@@ -142,12 +142,12 @@ static inline PetscErrorCode BV_IPMatMult(BV bv,Vec x)
   PetscFunctionBegin;
   if (((PetscObject)x)->id != bv->xid || ((PetscObject)x)->state != bv->xstate) {
     if (PetscUnlikely(!bv->Bx)) {
-      CHKERRQ(MatCreateVecs(bv->matrix,&bv->Bx,NULL));
-      CHKERRQ(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx));
+      PetscCall(MatCreateVecs(bv->matrix,&bv->Bx,NULL));
+      PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx));
     }
-    CHKERRQ(MatMult(bv->matrix,x,bv->Bx));
-    CHKERRQ(PetscObjectGetId((PetscObject)x,&bv->xid));
-    CHKERRQ(PetscObjectStateGet((PetscObject)x,&bv->xstate));
+    PetscCall(MatMult(bv->matrix,x,bv->Bx));
+    PetscCall(PetscObjectGetId((PetscObject)x,&bv->xid));
+    PetscCall(PetscObjectStateGet((PetscObject)x,&bv->xstate));
   }
   PetscFunctionReturn(0);
 }
@@ -159,11 +159,11 @@ static inline PetscErrorCode BV_IPMatMult(BV bv,Vec x)
 static inline PetscErrorCode BV_IPMatMultBV(BV bv)
 {
   PetscFunctionBegin;
-  CHKERRQ(BVGetCachedBV(bv,&bv->cached));
+  PetscCall(BVGetCachedBV(bv,&bv->cached));
   if (((PetscObject)bv)->state != bv->bvstate || bv->l != bv->cached->l || bv->k != bv->cached->k) {
-    CHKERRQ(BVSetActiveColumns(bv->cached,bv->l,bv->k));
-    if (bv->matrix) CHKERRQ(BVMatMult(bv,bv->matrix,bv->cached));
-    else CHKERRQ(BVCopy(bv,bv->cached));
+    PetscCall(BVSetActiveColumns(bv->cached,bv->l,bv->k));
+    if (bv->matrix) PetscCall(BVMatMult(bv,bv->matrix,bv->cached));
+    else PetscCall(BVCopy(bv,bv->cached));
     bv->bvstate = ((PetscObject)bv)->state;
   }
   PetscFunctionReturn(0);
@@ -176,8 +176,8 @@ static inline PetscErrorCode BV_AllocateCoeffs(BV bv)
 {
   PetscFunctionBegin;
   if (!bv->h) {
-    CHKERRQ(PetscMalloc2(bv->nc+bv->m,&bv->h,bv->nc+bv->m,&bv->c));
-    CHKERRQ(PetscLogObjectMemory((PetscObject)bv,2*bv->m*sizeof(PetscScalar)));
+    PetscCall(PetscMalloc2(bv->nc+bv->m,&bv->h,bv->nc+bv->m,&bv->c));
+    PetscCall(PetscLogObjectMemory((PetscObject)bv,2*bv->m*sizeof(PetscScalar)));
   }
   PetscFunctionReturn(0);
 }
@@ -191,13 +191,13 @@ static inline PetscErrorCode BV_AllocateSignature(BV bv)
   if (bv->indef && !bv->omega) {
     if (bv->cuda) {
 #if defined(PETSC_HAVE_CUDA)
-      CHKERRQ(VecCreateSeqCUDA(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega));
+      PetscCall(VecCreateSeqCUDA(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega));
 #else
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
 #endif
-    } else CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega));
-    CHKERRQ(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->omega));
-    CHKERRQ(VecSet(bv->omega,1.0));
+    } else PetscCall(VecCreateSeq(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega));
+    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->omega));
+    PetscCall(VecSet(bv->omega,1.0));
   }
   PetscFunctionReturn(0);
 }
@@ -265,11 +265,11 @@ static inline PetscErrorCode BV_CleanCoefficients_Default(BV bv,PetscInt j,Petsc
 
   PetscFunctionBegin;
   if (!h) {
-    CHKERRQ(VecGetArray(bv->buffer,&a));
+    PetscCall(VecGetArray(bv->buffer,&a));
     hh = a + j*(bv->nc+bv->m);
   }
   for (i=0;i<bv->nc+j;i++) hh[i] = 0.0;
-  if (!h) CHKERRQ(VecRestoreArray(bv->buffer,&a));
+  if (!h) PetscCall(VecRestoreArray(bv->buffer,&a));
   PetscFunctionReturn(0);
 }
 
@@ -284,12 +284,12 @@ static inline PetscErrorCode BV_AddCoefficients_Default(BV bv,PetscInt j,PetscSc
 
   PetscFunctionBegin;
   if (!h) {
-    CHKERRQ(VecGetArray(bv->buffer,&cc));
+    PetscCall(VecGetArray(bv->buffer,&cc));
     hh = cc + j*(bv->nc+bv->m);
   }
   for (i=0;i<bv->nc+j;i++) hh[i] += cc[i];
-  if (!h) CHKERRQ(VecRestoreArray(bv->buffer,&cc));
-  CHKERRQ(PetscLogFlops(1.0*(bv->nc+j)));
+  if (!h) PetscCall(VecRestoreArray(bv->buffer,&cc));
+  PetscCall(PetscLogFlops(1.0*(bv->nc+j)));
   PetscFunctionReturn(0);
 }
 
@@ -303,11 +303,11 @@ static inline PetscErrorCode BV_SetValue_Default(BV bv,PetscInt j,PetscInt k,Pet
 
   PetscFunctionBegin;
   if (!h) {
-    CHKERRQ(VecGetArray(bv->buffer,&a));
+    PetscCall(VecGetArray(bv->buffer,&a));
     hh = a + k*(bv->nc+bv->m);
   }
   hh[bv->nc+j] = value;
-  if (!h) CHKERRQ(VecRestoreArray(bv->buffer,&a));
+  if (!h) PetscCall(VecRestoreArray(bv->buffer,&a));
   PetscFunctionReturn(0);
 }
 
@@ -322,10 +322,10 @@ static inline PetscErrorCode BV_SquareSum_Default(BV bv,PetscInt j,PetscScalar *
 
   PetscFunctionBegin;
   *sum = 0.0;
-  if (!h) CHKERRQ(VecGetArray(bv->buffer,&hh));
+  if (!h) PetscCall(VecGetArray(bv->buffer,&hh));
   for (i=0;i<bv->nc+j;i++) *sum += PetscRealPart(hh[i]*PetscConj(hh[i]));
-  if (!h) CHKERRQ(VecRestoreArray(bv->buffer,&hh));
-  CHKERRQ(PetscLogFlops(2.0*(bv->nc+j)));
+  if (!h) PetscCall(VecRestoreArray(bv->buffer,&hh));
+  PetscCall(PetscLogFlops(2.0*(bv->nc+j)));
   PetscFunctionReturn(0);
 }
 
@@ -342,13 +342,13 @@ static inline PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,PetscSca
 
   PetscFunctionBegin;
   if (PetscUnlikely(!(bv->nc+j))) PetscFunctionReturn(0);
-  if (!h) CHKERRQ(VecGetArray(bv->buffer,&hh));
-  CHKERRQ(VecGetArrayRead(bv->omega,&omega));
+  if (!h) PetscCall(VecGetArray(bv->buffer,&hh));
+  PetscCall(VecGetArrayRead(bv->omega,&omega));
   if (inverse) for (i=0;i<bv->nc+j;i++) hh[i] /= PetscRealPart(omega[i]);
   else for (i=0;i<bv->nc+j;i++) hh[i] *= PetscRealPart(omega[i]);
-  CHKERRQ(VecRestoreArrayRead(bv->omega,&omega));
-  if (!h) CHKERRQ(VecRestoreArray(bv->buffer,&hh));
-  CHKERRQ(PetscLogFlops(1.0*(bv->nc+j)));
+  PetscCall(VecRestoreArrayRead(bv->omega,&omega));
+  if (!h) PetscCall(VecRestoreArray(bv->buffer,&hh));
+  PetscCall(PetscLogFlops(1.0*(bv->nc+j)));
   PetscFunctionReturn(0);
 }
 
@@ -361,9 +361,9 @@ static inline PetscErrorCode BV_SquareRoot_Default(BV bv,PetscInt j,PetscScalar 
   PetscScalar    *hh=h;
 
   PetscFunctionBegin;
-  if (!h) CHKERRQ(VecGetArray(bv->buffer,&hh));
-  CHKERRQ(BV_SafeSqrt(bv,hh[bv->nc+j],beta));
-  if (!h) CHKERRQ(VecRestoreArray(bv->buffer,&hh));
+  if (!h) PetscCall(VecGetArray(bv->buffer,&hh));
+  PetscCall(BV_SafeSqrt(bv,hh[bv->nc+j],beta));
+  if (!h) PetscCall(VecRestoreArray(bv->buffer,&hh));
   PetscFunctionReturn(0);
 }
 
@@ -378,11 +378,11 @@ static inline PetscErrorCode BV_StoreCoefficients_Default(BV bv,PetscInt j,Petsc
 
   PetscFunctionBegin;
   if (!h) {
-    CHKERRQ(VecGetArray(bv->buffer,&a));
+    PetscCall(VecGetArray(bv->buffer,&a));
     hh = a + j*(bv->nc+bv->m);
   }
   for (i=bv->l;i<j;i++) dest[i-bv->l] = hh[bv->nc+i];
-  if (!h) CHKERRQ(VecRestoreArray(bv->buffer,&a));
+  if (!h) PetscCall(VecRestoreArray(bv->buffer,&a));
   PetscFunctionReturn(0);
 }
 
@@ -394,21 +394,21 @@ static inline PetscErrorCode BV_GetEigenvector(BV V,PetscInt k,PetscScalar eigi,
 {
   PetscFunctionBegin;
 #if defined(PETSC_USE_COMPLEX)
-  if (Vr) CHKERRQ(BVCopyVec(V,k,Vr));
-  if (Vi) CHKERRQ(VecSet(Vi,0.0));
+  if (Vr) PetscCall(BVCopyVec(V,k,Vr));
+  if (Vi) PetscCall(VecSet(Vi,0.0));
 #else
   if (eigi > 0.0) { /* first value of conjugate pair */
-    if (Vr) CHKERRQ(BVCopyVec(V,k,Vr));
-    if (Vi) CHKERRQ(BVCopyVec(V,k+1,Vi));
+    if (Vr) PetscCall(BVCopyVec(V,k,Vr));
+    if (Vi) PetscCall(BVCopyVec(V,k+1,Vi));
   } else if (eigi < 0.0) { /* second value of conjugate pair */
-    if (Vr) CHKERRQ(BVCopyVec(V,k-1,Vr));
+    if (Vr) PetscCall(BVCopyVec(V,k-1,Vr));
     if (Vi) {
-      CHKERRQ(BVCopyVec(V,k,Vi));
-      CHKERRQ(VecScale(Vi,-1.0));
+      PetscCall(BVCopyVec(V,k,Vi));
+      PetscCall(VecScale(Vi,-1.0));
     }
   } else { /* real eigenvalue */
-    if (Vr) CHKERRQ(BVCopyVec(V,k,Vr));
-    if (Vi) CHKERRQ(VecSet(Vi,0.0));
+    if (Vr) PetscCall(BVCopyVec(V,k,Vr));
+    if (Vi) PetscCall(VecSet(Vi,0.0));
   }
 #endif
   PetscFunctionReturn(0);
@@ -425,10 +425,10 @@ static inline PetscErrorCode BV_OrthogonalizeColumn_Safe(BV bv,PetscInt j,PetscS
   BVOrthogRefineType orthog_ref;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscInfo(bv,"Orthogonalizing column %" PetscInt_FMT " without refinement\n",j));
+  PetscCall(PetscInfo(bv,"Orthogonalizing column %" PetscInt_FMT " without refinement\n",j));
   orthog_ref     = bv->orthog_ref;
   bv->orthog_ref = BV_ORTHOG_REFINE_NEVER;  /* avoid refinement */
-  CHKERRQ(BVOrthogonalizeColumn(bv,j,H,NULL,NULL));
+  PetscCall(BVOrthogonalizeColumn(bv,j,H,NULL,NULL));
   bv->orthog_ref = orthog_ref;  /* restore refinement setting */
   if (norm)   *norm  = 0.0;
   if (lindep) *lindep = PETSC_TRUE;

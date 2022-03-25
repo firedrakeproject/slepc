@@ -18,7 +18,7 @@ static char help[] = "Diagonal eigenproblem. Illustrates use of shell preconditi
 PetscErrorCode PCApply_User(PC pc,Vec x,Vec y)
 {
   PetscFunctionBeginUser;
-  CHKERRQ(VecCopy(x,y));
+  PetscCall(VecCopy(x,y));
   PetscFunctionReturn(0);
 }
 
@@ -34,55 +34,55 @@ int main(int argc,char **argv)
   KSP            ksp;
   PC             pc;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(A,i,i,i+1,INSERT_VALUES));
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(A,i,i,i+1,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
-  CHKERRQ(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
-  CHKERRQ(EPSSetFromOptions(eps));
-  CHKERRQ(EPSGetST(eps,&st));
-  CHKERRQ(STGetKSP(st,&ksp));
-  CHKERRQ(KSPGetPC(ksp,&pc));
-  CHKERRQ(PCSetType(pc,PCSHELL));
-  CHKERRQ(PCShellSetApply(pc,PCApply_User));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetFromOptions(eps));
+  PetscCall(EPSGetST(eps,&st));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPGetPC(ksp,&pc));
+  PetscCall(PCSetType(pc,PCSHELL));
+  PetscCall(PCShellSetApply(pc,PCApply_User));
 
   /* set random initial vector */
-  CHKERRQ(MatCreateVecs(A,&v0,NULL));
-  CHKERRQ(PetscRandomCreate(PETSC_COMM_WORLD,&rand));
-  CHKERRQ(PetscRandomSetFromOptions(rand));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL));
-  CHKERRQ(PetscRandomSetSeed(rand,seed));
-  CHKERRQ(PetscRandomSeed(rand));
-  CHKERRQ(VecSetRandom(v0,rand));
-  CHKERRQ(EPSSetInitialSpace(eps,1,&v0));
+  PetscCall(MatCreateVecs(A,&v0,NULL));
+  PetscCall(PetscRandomCreate(PETSC_COMM_WORLD,&rand));
+  PetscCall(PetscRandomSetFromOptions(rand));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL));
+  PetscCall(PetscRandomSetSeed(rand,seed));
+  PetscCall(PetscRandomSeed(rand));
+  PetscCall(VecSetRandom(v0,rand));
+  PetscCall(EPSSetInitialSpace(eps,1,&v0));
   /* call the solver */
-  CHKERRQ(EPSSolve(eps));
+  PetscCall(EPSSolve(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(VecDestroy(&v0));
-  CHKERRQ(PetscRandomDestroy(&rand));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v0));
+  PetscCall(PetscRandomDestroy(&rand));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

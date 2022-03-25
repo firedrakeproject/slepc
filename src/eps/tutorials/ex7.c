@@ -33,68 +33,68 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      flg,evecs,ishermitian,terse;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized eigenproblem stored in file.\n\n"));
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized eigenproblem stored in file.\n\n"));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
   PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name for matrix A with the -f1 option");
 
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n"));
 #else
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n"));
 #endif
-  CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatLoad(A,viewer));
-  CHKERRQ(PetscViewerDestroy(&viewer));
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatLoad(A,viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
 
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
   if (flg) {
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-    CHKERRQ(MatSetFromOptions(B));
-    CHKERRQ(MatLoad(B,viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+    PetscCall(MatSetFromOptions(B));
+    PetscCall(MatLoad(B,viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n"));
     B = NULL;
   }
 
-  CHKERRQ(MatCreateVecs(A,NULL,&xr));
-  CHKERRQ(MatCreateVecs(A,NULL,&xi));
+  PetscCall(MatCreateVecs(A,NULL,&xr));
+  PetscCall(MatCreateVecs(A,NULL,&xi));
 
   /*
      Read user constraints if available
   */
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-nconstr",&ncon,&flg));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-nconstr",&ncon,&flg));
   if (flg) {
     PetscCheck(ncon>0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The number of constraints must be >0");
-    CHKERRQ(PetscOptionsGetString(NULL,NULL,"-fconstr",filename,sizeof(filename),&flg));
+    PetscCall(PetscOptionsGetString(NULL,NULL,"-fconstr",filename,sizeof(filename),&flg));
     PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file storing the constraints");
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    CHKERRQ(VecDuplicateVecs(xr,ncon,&Cv));
-    for (i=0;i<ncon;i++) CHKERRQ(VecLoad(Cv[i],viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(VecDuplicateVecs(xr,ncon,&Cv));
+    for (i=0;i<ncon;i++) PetscCall(VecLoad(Cv[i],viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
 
   /*
      Read initial guesses if available
   */
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-ninitial",&nini,&flg));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-ninitial",&nini,&flg));
   if (flg) {
     PetscCheck(nini>0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The number of initial vectors must be >0");
-    CHKERRQ(PetscOptionsGetString(NULL,NULL,"-finitial",filename,sizeof(filename),&flg));
+    PetscCall(PetscOptionsGetString(NULL,NULL,"-finitial",filename,sizeof(filename),&flg));
     PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file containing the initial vectors");
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    CHKERRQ(VecDuplicateVecs(xr,nini,&Iv));
-    for (i=0;i<nini;i++) CHKERRQ(VecLoad(Iv[i],viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(VecDuplicateVecs(xr,nini,&Iv));
+    for (i=0;i<nini;i++) PetscCall(VecLoad(Iv[i],viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -104,45 +104,45 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators. In this case, it is a generalized eigenvalue problem
   */
-  CHKERRQ(EPSSetOperators(eps,A,B));
+  PetscCall(EPSSetOperators(eps,A,B));
 
   /*
      If the user provided initial guesses or constraints, pass them here
   */
-  CHKERRQ(EPSSetInitialSpace(eps,nini,Iv));
-  CHKERRQ(EPSSetDeflationSpace(eps,ncon,Cv));
+  PetscCall(EPSSetInitialSpace(eps,nini,Iv));
+  PetscCall(EPSSetDeflationSpace(eps,ncon,Cv));
 
   /*
      Set solver parameters at runtime
   */
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSSolve(eps));
+  PetscCall(EPSSolve(eps));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  CHKERRQ(EPSGetIterationNumber(eps,&its));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
-  CHKERRQ(EPSGetST(eps,&st));
-  CHKERRQ(STGetKSP(st,&ksp));
-  CHKERRQ(KSPGetTotalIterations(ksp,&lits));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of linear iterations of the method: %" PetscInt_FMT "\n",lits));
-  CHKERRQ(EPSGetType(eps,&type));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
-  CHKERRQ(EPSGetDimensions(eps,&nev,NULL,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
-  CHKERRQ(EPSGetTolerances(eps,&tol,&maxit));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
+  PetscCall(EPSGetIterationNumber(eps,&its));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
+  PetscCall(EPSGetST(eps,&st));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPGetTotalIterations(ksp,&lits));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of linear iterations of the method: %" PetscInt_FMT "\n",lits));
+  PetscCall(EPSGetType(eps,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(EPSGetTolerances(eps,&tol,&maxit));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -151,44 +151,44 @@ int main(int argc,char **argv)
   /*
      Show detailed info unless -terse option is given by user
    */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   else {
-    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
 
   /*
      Save eigenvectors, if requested
   */
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-evecs",filename,sizeof(filename),&evecs));
-  CHKERRQ(EPSGetConverged(eps,&nconv));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-evecs",filename,sizeof(filename),&evecs));
+  PetscCall(EPSGetConverged(eps,&nconv));
   if (nconv>0 && evecs) {
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_WRITE,&viewer));
-    CHKERRQ(EPSIsHermitian(eps,&ishermitian));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_WRITE,&viewer));
+    PetscCall(EPSIsHermitian(eps,&ishermitian));
     for (i=0;i<nconv;i++) {
-      CHKERRQ(EPSGetEigenvector(eps,i,xr,xi));
-      CHKERRQ(VecView(xr,viewer));
+      PetscCall(EPSGetEigenvector(eps,i,xr,xi));
+      PetscCall(VecView(xr,viewer));
 #if !defined(PETSC_USE_COMPLEX)
-      if (!ishermitian) CHKERRQ(VecView(xi,viewer));
+      if (!ishermitian) PetscCall(VecView(xi,viewer));
 #endif
     }
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
 
   /*
      Free work space
   */
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(VecDestroy(&xr));
-  CHKERRQ(VecDestroy(&xi));
-  if (nini > 0) CHKERRQ(VecDestroyVecs(nini,&Iv));
-  if (ncon > 0) CHKERRQ(VecDestroyVecs(ncon,&Cv));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(VecDestroy(&xr));
+  PetscCall(VecDestroy(&xi));
+  if (nini > 0) PetscCall(VecDestroyVecs(nini,&Iv));
+  if (ncon > 0) PetscCall(VecDestroyVecs(ncon,&Cv));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

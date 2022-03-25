@@ -50,15 +50,15 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
 #endif
   re[0] = ar; re[1] = br;
   im[0] = ai; im[1] = bi;
-  if (sc->map) CHKERRQ((*sc->map)(sc->mapobj,2,re,im));
+  if (sc->map) PetscCall((*sc->map)(sc->mapobj,2,re,im));
   if (sc->rg) {
-    CHKERRQ(RGCheckInside(sc->rg,2,re,im,cin));
+    PetscCall(RGCheckInside(sc->rg,2,re,im,cin));
     inside[0] = PetscNot(cin[0]<0);
     inside[1] = PetscNot(cin[1]<0);
     if (inside[0] && !inside[1]) *res = -1;
     else if (!inside[0] && inside[1]) *res = 1;
-    else CHKERRQ((*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx));
-  } else CHKERRQ((*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx));
+    else PetscCall((*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx));
+  } else PetscCall((*sc->comparison)(re[0],im[0],re[1],im[1],res,sc->comparisonctx));
   PetscFunctionReturn(0);
 }
 
@@ -109,7 +109,7 @@ PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,Pets
     }
 #endif
     while (j<n) {
-      CHKERRQ(SlepcSCCompare(sc,re,im,eigr[perm[j]],eigi[perm[j]],&result));
+      PetscCall(SlepcSCCompare(sc,re,im,eigr[perm[j]],eigi[perm[j]],&result));
       if (result<=0) break;
 #if !defined(PETSC_USE_COMPLEX)
       /* keep together every complex conjugated eigenpair */
@@ -145,7 +145,7 @@ PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,Pets
 PetscErrorCode SlepcMap_ST(PetscObject obj,PetscInt n,PetscScalar* eigr,PetscScalar* eigi)
 {
   PetscFunctionBegin;
-  CHKERRQ(STBackTransform((ST)obj,n,eigr,eigi));
+  PetscCall(STBackTransform((ST)obj,n,eigr,eigi));
   PetscFunctionReturn(0);
 }
 

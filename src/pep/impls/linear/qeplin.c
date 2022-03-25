@@ -42,20 +42,20 @@ PetscErrorCode MatCreateExplicit_Linear_NA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
   PetscScalar    scalt=1.0;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(ctx->M,&M,&N));
-  CHKERRQ(MatGetLocalSize(ctx->M,&m,&n));
-  CHKERRQ(MatCreateConstantDiagonal(PetscObjectComm((PetscObject)ctx->M),m,n,M,N,1.0,&Id));
+  PetscCall(MatGetSize(ctx->M,&M,&N));
+  PetscCall(MatGetLocalSize(ctx->M,&m,&n));
+  PetscCall(MatCreateConstantDiagonal(PetscObjectComm((PetscObject)ctx->M),m,n,M,N,1.0,&Id));
   if (a!=0.0 && b!=0.0) {
-    CHKERRQ(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
-    CHKERRQ(MatScale(T,-a*ctx->dsfactor*ctx->sfactor));
-    CHKERRQ(MatShift(T,b));
+    PetscCall(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
+    PetscCall(MatScale(T,-a*ctx->dsfactor*ctx->sfactor));
+    PetscCall(MatShift(T,b));
   } else {
     if (a==0.0) { T = Id; scalt = b; }
     else { T = ctx->C; scalt = -a*ctx->dsfactor*ctx->sfactor; }
   }
-  CHKERRQ(MatCreateTile(-b*ctx->dsfactor,ctx->K,a,Id,-ctx->dsfactor*a,ctx->K,scalt,T,A));
-  CHKERRQ(MatDestroy(&Id));
-  if (a!=0.0 && b!=0.0) CHKERRQ(MatDestroy(&T));
+  PetscCall(MatCreateTile(-b*ctx->dsfactor,ctx->K,a,Id,-ctx->dsfactor*a,ctx->K,scalt,T,A));
+  PetscCall(MatDestroy(&Id));
+  if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
   PetscFunctionReturn(0);
 }
 
@@ -67,20 +67,20 @@ PetscErrorCode MatCreateExplicit_Linear_NB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
   PetscScalar    scalt=1.0;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(ctx->M,&M,&N));
-  CHKERRQ(MatGetLocalSize(ctx->M,&m,&n));
-  CHKERRQ(MatCreateConstantDiagonal(PetscObjectComm((PetscObject)ctx->M),m,n,M,N,1.0,&Id));
+  PetscCall(MatGetSize(ctx->M,&M,&N));
+  PetscCall(MatGetLocalSize(ctx->M,&m,&n));
+  PetscCall(MatCreateConstantDiagonal(PetscObjectComm((PetscObject)ctx->M),m,n,M,N,1.0,&Id));
   if (a!=0.0 && b!=0.0) {
-    CHKERRQ(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
-    CHKERRQ(MatScale(T,b*ctx->dsfactor*ctx->sfactor));
-    CHKERRQ(MatShift(T,a));
+    PetscCall(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
+    PetscCall(MatScale(T,b*ctx->dsfactor*ctx->sfactor));
+    PetscCall(MatShift(T,a));
   } else {
     if (b==0.0) { T = Id; scalt = a; }
     else { T = ctx->C; scalt = b*ctx->dsfactor*ctx->sfactor; }
   }
-  CHKERRQ(MatCreateTile(scalt,T,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,b,Id,a*ctx->sfactor*ctx->sfactor*ctx->dsfactor,ctx->M,B));
-  CHKERRQ(MatDestroy(&Id));
-  if (a!=0.0 && b!=0.0) CHKERRQ(MatDestroy(&T));
+  PetscCall(MatCreateTile(scalt,T,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,b,Id,a*ctx->sfactor*ctx->sfactor*ctx->dsfactor,ctx->M,B));
+  PetscCall(MatDestroy(&Id));
+  if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
   PetscFunctionReturn(0);
 }
 
@@ -94,15 +94,15 @@ PetscErrorCode MatCreateExplicit_Linear_SA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 
   PetscFunctionBegin;
   if (a!=0.0 && b!=0.0) {
-    CHKERRQ(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
-    CHKERRQ(MatScale(T,a*ctx->dsfactor*ctx->sfactor));
-    CHKERRQ(MatAXPY(T,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,UNKNOWN_NONZERO_PATTERN));
+    PetscCall(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
+    PetscCall(MatScale(T,a*ctx->dsfactor*ctx->sfactor));
+    PetscCall(MatAXPY(T,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,UNKNOWN_NONZERO_PATTERN));
   } else {
     if (a==0.0) { T = ctx->M; scalt = -b*ctx->dsfactor*ctx->sfactor*ctx->sfactor; }
     else { T = ctx->C; scalt = a*ctx->dsfactor*ctx->sfactor; }
   }
-  CHKERRQ(MatCreateTile(b*ctx->dsfactor,ctx->K,a*ctx->dsfactor,ctx->K,a*ctx->dsfactor,ctx->K,scalt,T,A));
-  if (a!=0.0 && b!=0.0) CHKERRQ(MatDestroy(&T));
+  PetscCall(MatCreateTile(b*ctx->dsfactor,ctx->K,a*ctx->dsfactor,ctx->K,a*ctx->dsfactor,ctx->K,scalt,T,A));
+  if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
   PetscFunctionReturn(0);
 }
 
@@ -114,15 +114,15 @@ PetscErrorCode MatCreateExplicit_Linear_SB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 
   PetscFunctionBegin;
   if (a!=0.0 && b!=0.0) {
-    CHKERRQ(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
-    CHKERRQ(MatScale(T,-b*ctx->dsfactor*ctx->sfactor));
-    CHKERRQ(MatAXPY(T,a*ctx->dsfactor,ctx->K,UNKNOWN_NONZERO_PATTERN));
+    PetscCall(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
+    PetscCall(MatScale(T,-b*ctx->dsfactor*ctx->sfactor));
+    PetscCall(MatAXPY(T,a*ctx->dsfactor,ctx->K,UNKNOWN_NONZERO_PATTERN));
   } else {
     if (b==0.0) { T = ctx->K; scalt = a*ctx->dsfactor; }
     else { T = ctx->C; scalt = -b*ctx->dsfactor*ctx->sfactor; }
   }
-  CHKERRQ(MatCreateTile(scalt,T,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,-a*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,B));
-  if (a!=0.0 && b!=0.0) CHKERRQ(MatDestroy(&T));
+  PetscCall(MatCreateTile(scalt,T,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,-b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,-a*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,B));
+  if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
   PetscFunctionReturn(0);
 }
 
@@ -136,15 +136,15 @@ PetscErrorCode MatCreateExplicit_Linear_HA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 
   PetscFunctionBegin;
   if (a!=0.0 && b!=0.0) {
-    CHKERRQ(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
-    CHKERRQ(MatScale(T,a*ctx->dsfactor*ctx->sfactor));
-    CHKERRQ(MatAXPY(T,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,UNKNOWN_NONZERO_PATTERN));
+    PetscCall(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
+    PetscCall(MatScale(T,a*ctx->dsfactor*ctx->sfactor));
+    PetscCall(MatAXPY(T,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,UNKNOWN_NONZERO_PATTERN));
   } else {
     if (a==0.0) { T = ctx->M; scalt = b*ctx->dsfactor*ctx->sfactor*ctx->sfactor; }
     else { T = ctx->C; scalt = a*ctx->dsfactor*ctx->sfactor; }
   }
-  CHKERRQ(MatCreateTile(a*ctx->dsfactor,ctx->K,-b*ctx->dsfactor,ctx->K,scalt,T,a*ctx->dsfactor,ctx->K,A));
-  if (a!=0.0 && b!=0.0) CHKERRQ(MatDestroy(&T));
+  PetscCall(MatCreateTile(a*ctx->dsfactor,ctx->K,-b*ctx->dsfactor,ctx->K,scalt,T,a*ctx->dsfactor,ctx->K,A));
+  if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
   PetscFunctionReturn(0);
 }
 
@@ -156,14 +156,14 @@ PetscErrorCode MatCreateExplicit_Linear_HB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 
   PetscFunctionBegin;
   if (a!=0.0 && b!=0.0) {
-    CHKERRQ(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
-    CHKERRQ(MatScale(T,b*ctx->dsfactor*ctx->sfactor));
-    CHKERRQ(MatAXPY(T,a*ctx->dsfactor,ctx->K,UNKNOWN_NONZERO_PATTERN));
+    PetscCall(MatDuplicate(ctx->C,MAT_COPY_VALUES,&T));
+    PetscCall(MatScale(T,b*ctx->dsfactor*ctx->sfactor));
+    PetscCall(MatAXPY(T,a*ctx->dsfactor,ctx->K,UNKNOWN_NONZERO_PATTERN));
   } else {
     if (b==0.0) { T = ctx->K; scalt = a*ctx->dsfactor; }
     else { T = ctx->C; scalt = b*ctx->dsfactor*ctx->sfactor; }
   }
-  CHKERRQ(MatCreateTile(b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,scalt,T,-a*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,B));
-  if (a!=0.0 && b!=0.0) CHKERRQ(MatDestroy(&T));
+  PetscCall(MatCreateTile(b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,scalt,T,-a*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,b*ctx->dsfactor*ctx->sfactor*ctx->sfactor,ctx->M,B));
+  if (a!=0.0 && b!=0.0) PetscCall(MatDestroy(&T));
   PetscFunctionReturn(0);
 }

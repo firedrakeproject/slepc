@@ -51,31 +51,31 @@ PetscErrorCode BuildFNPhi(FN fphi)
   PetscScalar    coeffs[2];
 
   PetscFunctionBeginUser;
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fexp));
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fconst));
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&faux));
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fpol));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fexp));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fconst));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&faux));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fpol));
 
-  CHKERRQ(FNSetType(fexp,FNEXP));
+  PetscCall(FNSetType(fexp,FNEXP));
 
-  CHKERRQ(FNSetType(fconst,FNRATIONAL));
+  PetscCall(FNSetType(fconst,FNRATIONAL));
   coeffs[0] = -1.0;
-  CHKERRQ(FNRationalSetNumerator(fconst,1,coeffs));
+  PetscCall(FNRationalSetNumerator(fconst,1,coeffs));
 
-  CHKERRQ(FNSetType(faux,FNCOMBINE));
-  CHKERRQ(FNCombineSetChildren(faux,FN_COMBINE_ADD,fexp,fconst));
+  PetscCall(FNSetType(faux,FNCOMBINE));
+  PetscCall(FNCombineSetChildren(faux,FN_COMBINE_ADD,fexp,fconst));
 
-  CHKERRQ(FNSetType(fpol,FNRATIONAL));
+  PetscCall(FNSetType(fpol,FNRATIONAL));
   coeffs[0] = 1.0; coeffs[1] = 0.0;
-  CHKERRQ(FNRationalSetNumerator(fpol,2,coeffs));
+  PetscCall(FNRationalSetNumerator(fpol,2,coeffs));
 
-  CHKERRQ(FNSetType(fphi,FNCOMBINE));
-  CHKERRQ(FNCombineSetChildren(fphi,FN_COMBINE_DIVIDE,faux,fpol));
+  PetscCall(FNSetType(fphi,FNCOMBINE));
+  PetscCall(FNCombineSetChildren(fphi,FN_COMBINE_DIVIDE,faux,fpol));
 
-  CHKERRQ(FNDestroy(&faux));
-  CHKERRQ(FNDestroy(&fpol));
-  CHKERRQ(FNDestroy(&fconst));
-  CHKERRQ(FNDestroy(&fexp));
+  PetscCall(FNDestroy(&faux));
+  PetscCall(FNDestroy(&fpol));
+  PetscCall(FNDestroy(&fconst));
+  PetscCall(FNDestroy(&fexp));
   PetscFunctionReturn(0);
 }
 
@@ -92,38 +92,38 @@ int main(int argc,char **argv)
   PetscScalar       value,c,uval,*warray;
   const PetscScalar *uarray;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-tend",&tend,NULL));
-  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-deltat",&deltat,NULL));
-  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-combine",&combine,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-tend",&tend,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-deltat",&deltat,NULL));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-combine",&combine,NULL));
   h = 1.0/(n+1.0);
   c = (n+1)*(n+1);
 
   steps = (PetscInt)(tend/deltat);
   PetscCheck(PetscAbsReal(tend-steps*deltat)<10*PETSC_MACHINE_EPSILON,PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires tend being a multiple of deltat");
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nHeat equation via phi functions, n=%" PetscInt_FMT ", tend=%g, deltat=%g%s\n\n",n,(double)tend,(double)deltat,combine?" (combine)":""));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nHeat equation via phi functions, n=%" PetscInt_FMT ", tend=%g, deltat=%g%s\n\n",n,(double)tend,(double)deltat,combine?" (combine)":""));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Build the 1-D Laplacian and various vectors
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&L));
-  CHKERRQ(MatSetSizes(L,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(L));
-  CHKERRQ(MatSetUp(L));
-  CHKERRQ(MatGetOwnershipRange(L,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&L));
+  PetscCall(MatSetSizes(L,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(L));
+  PetscCall(MatSetUp(L));
+  PetscCall(MatGetOwnershipRange(L,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) CHKERRQ(MatSetValue(L,i,i-1,c,INSERT_VALUES));
-    if (i<n-1) CHKERRQ(MatSetValue(L,i,i+1,c,INSERT_VALUES));
-    CHKERRQ(MatSetValue(L,i,i,-2.0*c,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(L,i,i-1,c,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(L,i,i+1,c,INSERT_VALUES));
+    PetscCall(MatSetValue(L,i,i,-2.0*c,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(L,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(L,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatCreateVecs(L,NULL,&u));
-  CHKERRQ(VecDuplicate(u,&yex));
-  CHKERRQ(VecDuplicate(u,&w));
-  CHKERRQ(VecDuplicate(u,&z));
+  PetscCall(MatAssemblyBegin(L,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(L,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(L,NULL,&u));
+  PetscCall(VecDuplicate(u,&yex));
+  PetscCall(VecDuplicate(u,&w));
+  PetscCall(VecDuplicate(u,&z));
 
   /*
      Compute various vectors:
@@ -133,39 +133,39 @@ int main(int argc,char **argv)
   for (i=Istart;i<Iend;i++) {
     x = (i+1)*h;
     value = x*(1.0-x)*PetscExpReal(tend);
-    CHKERRQ(VecSetValue(yex,i,value,INSERT_VALUES));
+    PetscCall(VecSetValue(yex,i,value,INSERT_VALUES));
     value = PetscAbsReal(x-half)-half;
-    CHKERRQ(VecSetValue(u,i,value,INSERT_VALUES));
+    PetscCall(VecSetValue(u,i,value,INSERT_VALUES));
   }
-  CHKERRQ(VecAssemblyBegin(yex));
-  CHKERRQ(VecAssemblyBegin(u));
-  CHKERRQ(VecAssemblyEnd(yex));
-  CHKERRQ(VecAssemblyEnd(u));
-  CHKERRQ(VecViewFromOptions(yex,NULL,"-exact_sol"));
-  CHKERRQ(VecViewFromOptions(u,NULL,"-initial_cond"));
+  PetscCall(VecAssemblyBegin(yex));
+  PetscCall(VecAssemblyBegin(u));
+  PetscCall(VecAssemblyEnd(yex));
+  PetscCall(VecAssemblyEnd(u));
+  PetscCall(VecViewFromOptions(yex,NULL,"-exact_sol"));
+  PetscCall(VecViewFromOptions(u,NULL,"-initial_cond"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Create two MFN solvers, for exp() and phi_1()
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(MFNCreate(PETSC_COMM_WORLD,&mfnexp));
-  CHKERRQ(MFNSetOperator(mfnexp,L));
-  CHKERRQ(MFNGetFN(mfnexp,&fexp));
-  CHKERRQ(FNSetType(fexp,FNEXP));
-  CHKERRQ(FNSetScale(fexp,deltat,1.0));
-  CHKERRQ(MFNSetErrorIfNotConverged(mfnexp,PETSC_TRUE));
-  CHKERRQ(MFNSetFromOptions(mfnexp));
+  PetscCall(MFNCreate(PETSC_COMM_WORLD,&mfnexp));
+  PetscCall(MFNSetOperator(mfnexp,L));
+  PetscCall(MFNGetFN(mfnexp,&fexp));
+  PetscCall(FNSetType(fexp,FNEXP));
+  PetscCall(FNSetScale(fexp,deltat,1.0));
+  PetscCall(MFNSetErrorIfNotConverged(mfnexp,PETSC_TRUE));
+  PetscCall(MFNSetFromOptions(mfnexp));
 
-  CHKERRQ(MFNCreate(PETSC_COMM_WORLD,&mfnphi));
-  CHKERRQ(MFNSetOperator(mfnphi,L));
-  CHKERRQ(MFNGetFN(mfnphi,&fphi));
-  if (combine) CHKERRQ(BuildFNPhi(fphi));
+  PetscCall(MFNCreate(PETSC_COMM_WORLD,&mfnphi));
+  PetscCall(MFNSetOperator(mfnphi,L));
+  PetscCall(MFNGetFN(mfnphi,&fphi));
+  if (combine) PetscCall(BuildFNPhi(fphi));
   else {
-    CHKERRQ(FNSetType(fphi,FNPHI));
-    CHKERRQ(FNPhiSetIndex(fphi,1));
+    PetscCall(FNSetType(fphi,FNPHI));
+    PetscCall(FNPhiSetIndex(fphi,1));
   }
-  CHKERRQ(FNSetScale(fphi,deltat,1.0));
-  CHKERRQ(MFNSetErrorIfNotConverged(mfnphi,PETSC_TRUE));
-  CHKERRQ(MFNSetFromOptions(mfnphi));
+  PetscCall(FNSetScale(fphi,deltat,1.0));
+  PetscCall(MFNSetErrorIfNotConverged(mfnphi,PETSC_TRUE));
+  PetscCall(MFNSetFromOptions(mfnphi));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Solve the problem with the Norsett-Euler scheme
@@ -174,8 +174,8 @@ int main(int argc,char **argv)
   for (k=0;k<steps;k++) {
 
     /* evaluate nonlinear part */
-    CHKERRQ(VecGetArrayRead(u,&uarray));
-    CHKERRQ(VecGetArray(w,&warray));
+    PetscCall(VecGetArrayRead(u,&uarray));
+    PetscCall(VecGetArray(w,&warray));
     for (i=Istart;i<Iend;i++) {
       x = (i+1)*h;
       uval = uarray[i-Istart];
@@ -184,38 +184,38 @@ int main(int argc,char **argv)
       value = value + 1.0/(1.0+uval*uval);
       warray[i-Istart] = deltat*value;
     }
-    CHKERRQ(VecRestoreArrayRead(u,&uarray));
-    CHKERRQ(VecRestoreArray(w,&warray));
-    CHKERRQ(MFNSolve(mfnphi,w,z));
+    PetscCall(VecRestoreArrayRead(u,&uarray));
+    PetscCall(VecRestoreArray(w,&warray));
+    PetscCall(MFNSolve(mfnphi,w,z));
 
     /* evaluate linear part */
-    CHKERRQ(MFNSolve(mfnexp,u,u));
-    CHKERRQ(VecAXPY(u,1.0,z));
+    PetscCall(MFNSolve(mfnexp,u,u));
+    PetscCall(VecAXPY(u,1.0,z));
     t = t + deltat;
 
   }
-  CHKERRQ(VecViewFromOptions(u,NULL,"-computed_sol"));
+  PetscCall(VecViewFromOptions(u,NULL,"-computed_sol"));
 
   /*
      Compare with exact solution and show error norm
   */
-  CHKERRQ(VecCopy(u,z));
-  CHKERRQ(VecAXPY(z,-1.0,yex));
-  CHKERRQ(VecNorm(z,NORM_2,&nrmd));
-  CHKERRQ(VecNorm(u,NORM_2,&nrmu));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," The relative error at t=%g is %.4f\n\n",(double)t,(double)(nrmd/nrmu)));
+  PetscCall(VecCopy(u,z));
+  PetscCall(VecAXPY(z,-1.0,yex));
+  PetscCall(VecNorm(z,NORM_2,&nrmd));
+  PetscCall(VecNorm(u,NORM_2,&nrmu));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," The relative error at t=%g is %.4f\n\n",(double)t,(double)(nrmd/nrmu)));
 
   /*
      Free work space
   */
-  CHKERRQ(MFNDestroy(&mfnexp));
-  CHKERRQ(MFNDestroy(&mfnphi));
-  CHKERRQ(MatDestroy(&L));
-  CHKERRQ(VecDestroy(&u));
-  CHKERRQ(VecDestroy(&yex));
-  CHKERRQ(VecDestroy(&w));
-  CHKERRQ(VecDestroy(&z));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(MFNDestroy(&mfnexp));
+  PetscCall(MFNDestroy(&mfnphi));
+  PetscCall(MatDestroy(&L));
+  PetscCall(VecDestroy(&u));
+  PetscCall(VecDestroy(&yex));
+  PetscCall(VecDestroy(&w));
+  PetscCall(VecDestroy(&z));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

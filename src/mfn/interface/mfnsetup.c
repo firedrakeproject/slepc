@@ -42,25 +42,25 @@ PetscErrorCode MFNSetUp(MFN mfn)
   mfn->reason = MFN_CONVERGED_ITERATING;
 
   if (mfn->setupcalled) PetscFunctionReturn(0);
-  CHKERRQ(PetscLogEventBegin(MFN_SetUp,mfn,0,0,0));
+  PetscCall(PetscLogEventBegin(MFN_SetUp,mfn,0,0,0));
 
   /* Set default solver type (MFNSetFromOptions was not called) */
-  if (!((PetscObject)mfn)->type_name) CHKERRQ(MFNSetType(mfn,MFNKRYLOV));
-  if (!mfn->fn) CHKERRQ(MFNGetFN(mfn,&mfn->fn));
-  if (!((PetscObject)mfn->fn)->type_name) CHKERRQ(FNSetFromOptions(mfn->fn));
+  if (!((PetscObject)mfn)->type_name) PetscCall(MFNSetType(mfn,MFNKRYLOV));
+  if (!mfn->fn) PetscCall(MFNGetFN(mfn,&mfn->fn));
+  if (!((PetscObject)mfn->fn)->type_name) PetscCall(FNSetFromOptions(mfn->fn));
 
   /* Check problem dimensions */
   PetscCheck(mfn->A,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");
-  CHKERRQ(MatGetSize(mfn->A,&N,NULL));
+  PetscCall(MatGetSize(mfn->A,&N,NULL));
   if (mfn->ncv > N) mfn->ncv = N;
 
   /* call specific solver setup */
-  CHKERRQ((*mfn->ops->setup)(mfn));
+  PetscCall((*mfn->ops->setup)(mfn));
 
   /* set tolerance if not yet set */
   if (mfn->tol==PETSC_DEFAULT) mfn->tol = SLEPC_DEFAULT_TOL;
 
-  CHKERRQ(PetscLogEventEnd(MFN_SetUp,mfn,0,0,0));
+  PetscCall(PetscLogEventEnd(MFN_SetUp,mfn,0,0,0));
   mfn->setupcalled = 1;
   PetscFunctionReturn(0);
 }
@@ -91,11 +91,11 @@ PetscErrorCode MFNSetOperator(MFN mfn,Mat A)
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   PetscCheckSameComm(mfn,1,A,2);
 
-  CHKERRQ(MatGetSize(A,&m,&n));
+  PetscCall(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"A is a non-square matrix");
-  CHKERRQ(PetscObjectReference((PetscObject)A));
-  if (mfn->setupcalled) CHKERRQ(MFNReset(mfn));
-  else CHKERRQ(MatDestroy(&mfn->A));
+  PetscCall(PetscObjectReference((PetscObject)A));
+  if (mfn->setupcalled) PetscCall(MFNReset(mfn));
+  else PetscCall(MatDestroy(&mfn->A));
   mfn->A = A;
   mfn->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -153,15 +153,15 @@ PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
   requested = mfn->ncv + extra;
 
   /* oldsize is zero if this is the first time setup is called */
-  CHKERRQ(BVGetSizes(mfn->V,NULL,NULL,&oldsize));
+  PetscCall(BVGetSizes(mfn->V,NULL,NULL,&oldsize));
 
   /* allocate basis vectors */
-  if (!mfn->V) CHKERRQ(MFNGetBV(mfn,&mfn->V));
+  if (!mfn->V) PetscCall(MFNGetBV(mfn,&mfn->V));
   if (!oldsize) {
-    if (!((PetscObject)(mfn->V))->type_name) CHKERRQ(BVSetType(mfn->V,BVSVEC));
-    CHKERRQ(MatCreateVecsEmpty(mfn->A,&t,NULL));
-    CHKERRQ(BVSetSizesFromVec(mfn->V,t,requested));
-    CHKERRQ(VecDestroy(&t));
-  } else CHKERRQ(BVResize(mfn->V,requested,PETSC_FALSE));
+    if (!((PetscObject)(mfn->V))->type_name) PetscCall(BVSetType(mfn->V,BVSVEC));
+    PetscCall(MatCreateVecsEmpty(mfn->A,&t,NULL));
+    PetscCall(BVSetSizesFromVec(mfn->V,t,requested));
+    PetscCall(VecDestroy(&t));
+  } else PetscCall(BVResize(mfn->V,requested,PETSC_FALSE));
   PetscFunctionReturn(0);
 }

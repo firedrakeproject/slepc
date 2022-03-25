@@ -22,17 +22,17 @@ int main(int argc,char **argv)
 #endif
 #endif
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
 #if defined(PETSC_USE_DEBUG)
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(SlepcDebugViewMatrix(2,3,Xr,NULL,2,"M",NULL));
+  PetscCall(SlepcDebugViewMatrix(2,3,Xr,NULL,2,"M",NULL));
 #else
-  CHKERRQ(SlepcDebugViewMatrix(2,3,Xr,Xi,2,"M",NULL));
+  PetscCall(SlepcDebugViewMatrix(2,3,Xr,Xi,2,"M",NULL));
 #endif
 #endif
 
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

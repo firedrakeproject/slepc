@@ -44,9 +44,9 @@ int main(int argc,char **argv)
   PetscInt       i;
   PetscViewer    viewer;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"GUN problem\n\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"GUN problem\n\n"));
 #if !defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires complex scalars!");
 #endif
@@ -56,13 +56,13 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   for (i=0;i<NMAT;i++) {
-    CHKERRQ(PetscOptionsGetString(NULL,NULL,string[i],filename,sizeof(filename),&flg));
+    PetscCall(PetscOptionsGetString(NULL,NULL,string[i],filename,sizeof(filename),&flg));
     PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a filename with the %s option",string[i]);
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A[i]));
-    CHKERRQ(MatSetFromOptions(A[i]));
-    CHKERRQ(MatLoad(A[i],viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A[i]));
+    PetscCall(MatSetFromOptions(A[i]));
+    PetscCall(MatLoad(A[i],viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -70,65 +70,65 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* f1=1 */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f[0]));
-  CHKERRQ(FNSetType(f[0],FNRATIONAL));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[0]));
+  PetscCall(FNSetType(f[0],FNRATIONAL));
   numer[0] = 1.0;
-  CHKERRQ(FNRationalSetNumerator(f[0],1,numer));
+  PetscCall(FNRationalSetNumerator(f[0],1,numer));
 
   /* f2=-lambda */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f[1]));
-  CHKERRQ(FNSetType(f[1],FNRATIONAL));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[1]));
+  PetscCall(FNSetType(f[1],FNRATIONAL));
   numer[0] = -1.0; numer[1] = 0.0;
-  CHKERRQ(FNRationalSetNumerator(f[1],2,numer));
+  PetscCall(FNRationalSetNumerator(f[1],2,numer));
 
   /* f3=i*sqrt(lambda) */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f[2]));
-  CHKERRQ(FNSetType(f[2],FNSQRT));
-  CHKERRQ(FNSetScale(f[2],1.0,PETSC_i));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[2]));
+  PetscCall(FNSetType(f[2],FNSQRT));
+  PetscCall(FNSetScale(f[2],1.0,PETSC_i));
 
   /* f4=i*sqrt(lambda-sigma^2) */
   sigma = SIGMA*SIGMA;
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&ff[0]));
-  CHKERRQ(FNSetType(ff[0],FNSQRT));
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&ff[1]));
-  CHKERRQ(FNSetType(ff[1],FNRATIONAL));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&ff[0]));
+  PetscCall(FNSetType(ff[0],FNSQRT));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&ff[1]));
+  PetscCall(FNSetType(ff[1],FNRATIONAL));
   numer[0] = 1.0; numer[1] = -sigma;
-  CHKERRQ(FNRationalSetNumerator(ff[1],2,numer));
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f[3]));
-  CHKERRQ(FNSetType(f[3],FNCOMBINE));
-  CHKERRQ(FNCombineSetChildren(f[3],FN_COMBINE_COMPOSE,ff[1],ff[0]));
-  CHKERRQ(FNSetScale(f[3],1.0,PETSC_i));
+  PetscCall(FNRationalSetNumerator(ff[1],2,numer));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[3]));
+  PetscCall(FNSetType(f[3],FNCOMBINE));
+  PetscCall(FNCombineSetChildren(f[3],FN_COMBINE_COMPOSE,ff[1],ff[0]));
+  PetscCall(FNSetScale(f[3],1.0,PETSC_i));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(NEPCreate(PETSC_COMM_WORLD,&nep));
-  CHKERRQ(NEPSetSplitOperator(nep,4,A,f,UNKNOWN_NONZERO_PATTERN));
-  CHKERRQ(NEPSetFromOptions(nep));
+  PetscCall(NEPCreate(PETSC_COMM_WORLD,&nep));
+  PetscCall(NEPSetSplitOperator(nep,4,A,f,UNKNOWN_NONZERO_PATTERN));
+  PetscCall(NEPSetFromOptions(nep));
 
-  CHKERRQ(NEPSolve(nep));
+  PetscCall(NEPSolve(nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
   else {
-    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  CHKERRQ(NEPDestroy(&nep));
+  PetscCall(NEPDestroy(&nep));
   for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatDestroy(&A[i]));
-    CHKERRQ(FNDestroy(&f[i]));
+    PetscCall(MatDestroy(&A[i]));
+    PetscCall(FNDestroy(&f[i]));
   }
-  for (i=0;i<2;i++) CHKERRQ(FNDestroy(&ff[i]));
-  CHKERRQ(SlepcFinalize());
+  for (i=0;i<2;i++) PetscCall(FNDestroy(&ff[i]));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

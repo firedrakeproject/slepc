@@ -27,59 +27,59 @@ int main(int argc,char **argv)
   BV             V;
   PetscRandom    rand;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* K is the 2-D Laplacian */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&K));
-  CHKERRQ(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(K));
-  CHKERRQ(MatSetUp(K));
-  CHKERRQ(MatGetOwnershipRange(K,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&K));
+  PetscCall(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(K));
+  PetscCall(MatSetUp(K));
+  PetscCall(MatGetOwnershipRange(K,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) CHKERRQ(MatSetValue(K,II,II-n,-1.0,INSERT_VALUES));
-    if (i<m-1) CHKERRQ(MatSetValue(K,II,II+n,-1.0,INSERT_VALUES));
-    if (j>0) CHKERRQ(MatSetValue(K,II,II-1,-1.0,INSERT_VALUES));
-    if (j<n-1) CHKERRQ(MatSetValue(K,II,II+1,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(K,II,II,4.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(K,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(K,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(K,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(K,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(K,II,II,4.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY));
 
   /* C is the 1-D Laplacian on horizontal lines */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&C));
-  CHKERRQ(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(C));
-  CHKERRQ(MatSetUp(C));
-  CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&C));
+  PetscCall(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(C));
+  PetscCall(MatSetUp(C));
+  PetscCall(MatGetOwnershipRange(C,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (j>0) CHKERRQ(MatSetValue(C,II,II-1,-1.0,INSERT_VALUES));
-    if (j<n-1) CHKERRQ(MatSetValue(C,II,II+1,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(C,II,II,2.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(C,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(C,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(C,II,II,2.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
 
   /* M is a diagonal matrix */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&M));
-  CHKERRQ(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(M));
-  CHKERRQ(MatSetUp(M));
-  CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
-  for (II=Istart;II<Iend;II++) CHKERRQ(MatSetValue(M,II,II,(PetscReal)(II+1),INSERT_VALUES));
-  CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&M));
+  PetscCall(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(M));
+  PetscCall(MatSetUp(M));
+  PetscCall(MatGetOwnershipRange(M,&Istart,&Iend));
+  for (II=Istart;II<Iend;II++) PetscCall(MatSetValue(M,II,II,(PetscReal)(II+1),INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -88,61 +88,61 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  CHKERRQ(PEPCreate(PETSC_COMM_WORLD,&pep));
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
 
   /*
      Set matrices and problem type
   */
   A[0] = K; A[1] = C; A[2] = M;
-  CHKERRQ(PEPSetOperators(pep,3,A));
-  CHKERRQ(PEPSetProblemType(pep,PEP_HERMITIAN));
+  PetscCall(PEPSetOperators(pep,3,A));
+  PetscCall(PEPSetProblemType(pep,PEP_HERMITIAN));
 
   /*
      In complex scalars, use a real initial vector since in this example
      the matrices are all real, then all vectors generated by the solver
      will have a zero imaginary part. This is not really necessary.
   */
-  CHKERRQ(PEPGetBV(pep,&V));
-  CHKERRQ(BVGetRandomContext(V,&rand));
-  CHKERRQ(PetscRandomSetInterval(rand,-1,1));
+  PetscCall(PEPGetBV(pep,&V));
+  PetscCall(BVGetRandomContext(V,&rand));
+  PetscCall(PetscRandomSetInterval(rand,-1,1));
 
   /*
      Set solver parameters at runtime
   */
-  CHKERRQ(PEPSetFromOptions(pep));
+  PetscCall(PEPSetFromOptions(pep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PEPSolve(pep));
+  PetscCall(PEPSolve(pep));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  CHKERRQ(PEPGetDimensions(pep,&nev,NULL,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(PEPGetDimensions(pep,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
   else {
-    CHKERRQ(PEPGetConverged(pep,&nconv));
+    PetscCall(PEPGetConverged(pep,&nconv));
     if (nconv>0) {
-      CHKERRQ(MatCreateVecs(M,&xr,&xi));
+      PetscCall(MatCreateVecs(M,&xr,&xi));
       /* display eigenvalues and relative errors */
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,
+      PetscCall(PetscPrintf(PETSC_COMM_WORLD,
            "\n           k          ||P(k)x||/||kx||\n"
            "   ----------------- ------------------\n"));
       for (i=0;i<nconv;i++) {
         /* get converged eigenpairs */
-        CHKERRQ(PEPGetEigenpair(pep,i,&kr,&ki,xr,xi));
+        PetscCall(PEPGetEigenpair(pep,i,&kr,&ki,xr,xi));
         /* compute the relative error associated to each eigenpair */
-        CHKERRQ(PEPComputeError(pep,i,PEP_ERROR_BACKWARD,&error));
+        PetscCall(PEPComputeError(pep,i,PEP_ERROR_BACKWARD,&error));
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
         im = PetscImaginaryPart(kr);
@@ -150,19 +150,19 @@ int main(int argc,char **argv)
         re = kr;
         im = ki;
 #endif
-        if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi   %12g\n",(double)re,(double)im,(double)error));
-        else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error));
+        if (im!=0.0) PetscCall(PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi   %12g\n",(double)re,(double)im,(double)error));
+        else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error));
       }
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
-      CHKERRQ(VecDestroy(&xr));
-      CHKERRQ(VecDestroy(&xi));
+      PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+      PetscCall(VecDestroy(&xr));
+      PetscCall(VecDestroy(&xi));
     }
   }
-  CHKERRQ(PEPDestroy(&pep));
-  CHKERRQ(MatDestroy(&M));
-  CHKERRQ(MatDestroy(&C));
-  CHKERRQ(MatDestroy(&K));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(PEPDestroy(&pep));
+  PetscCall(MatDestroy(&M));
+  PetscCall(MatDestroy(&C));
+  PetscCall(MatDestroy(&K));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

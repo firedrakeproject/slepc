@@ -32,16 +32,16 @@ PetscErrorCode SVDSetUp_Randomized(SVD svd)
 
   PetscFunctionBegin;
   PetscCheck(svd->which==SVD_LARGEST,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"This solver supports only largest singular values");
-  CHKERRQ(MatGetSize(svd->A,NULL,&N));
-  CHKERRQ(SVDSetDimensions_Default(svd));
+  PetscCall(MatGetSize(svd->A,NULL,&N));
+  PetscCall(SVDSetDimensions_Default(svd));
   PetscCheck(svd->ncv>=svd->nsv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be smaller than nsv");
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = PetscMax(N/svd->ncv,100);
   svd->leftbasis = PETSC_TRUE;
   svd->mpd = svd->ncv;
-  CHKERRQ(SVDAllocateSolution(svd,0));
-  CHKERRQ(DSSetType(svd->ds,DSSVD));
-  CHKERRQ(DSAllocate(svd->ds,svd->ncv));
-  CHKERRQ(SVDSetWorkVecs(svd,1,1));
+  PetscCall(SVDAllocateSolution(svd,0));
+  PetscCall(DSSetType(svd->ds,DSSVD));
+  PetscCall(DSAllocate(svd->ds,svd->ncv));
+  PetscCall(SVDSetWorkVecs(svd,1,1));
   PetscFunctionReturn(0);
 }
 
@@ -54,18 +54,18 @@ static PetscErrorCode SVDRandomizedResidualNorm(SVD svd,PetscInt i,PetscScalar s
   wu = svd->swapped? svd->workr[0]: svd->workl[0];
   wv = svd->swapped? svd->workl[0]: svd->workr[0];
   if (svd->conv!=SVD_CONV_MAXIT) {
-    CHKERRQ(BVGetColumn(svd->V,i,&v));
-    CHKERRQ(BVGetColumn(svd->U,i,&u));
+    PetscCall(BVGetColumn(svd->V,i,&v));
+    PetscCall(BVGetColumn(svd->U,i,&u));
     /* norm1 = ||A*v-sigma*u||_2 */
-    CHKERRQ(MatMult(svd->A,v,wu));
-    CHKERRQ(VecAXPY(wu,-sigma,u));
-    CHKERRQ(VecNorm(wu,NORM_2,&norm1));
+    PetscCall(MatMult(svd->A,v,wu));
+    PetscCall(VecAXPY(wu,-sigma,u));
+    PetscCall(VecNorm(wu,NORM_2,&norm1));
     /* norm2 = ||A^T*u-sigma*v||_2 */
-    CHKERRQ(MatMult(svd->AT,u,wv));
-    CHKERRQ(VecAXPY(wv,-sigma,v));
-    CHKERRQ(VecNorm(wv,NORM_2,&norm2));
-    CHKERRQ(BVRestoreColumn(svd->V,i,&v));
-    CHKERRQ(BVRestoreColumn(svd->U,i,&u));
+    PetscCall(MatMult(svd->AT,u,wv));
+    PetscCall(VecAXPY(wv,-sigma,v));
+    PetscCall(VecNorm(wv,NORM_2,&norm2));
+    PetscCall(BVRestoreColumn(svd->V,i,&v));
+    PetscCall(BVRestoreColumn(svd->U,i,&u));
     *res = PetscSqrtReal(norm1*norm1+norm2*norm2);
   } else {
     *res = 1.0;
@@ -82,44 +82,44 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
 
   PetscFunctionBegin;
   /* Form random matrix, G. Complete the initial basis with random vectors */
-  CHKERRQ(BVSetActiveColumns(svd->V,svd->nini,svd->ncv));
-  CHKERRQ(BVSetRandomNormal(svd->V));
-  CHKERRQ(PetscCalloc1(svd->ncv,&w));
+  PetscCall(BVSetActiveColumns(svd->V,svd->nini,svd->ncv));
+  PetscCall(BVSetRandomNormal(svd->V));
+  PetscCall(PetscCalloc1(svd->ncv,&w));
 
   /* Subspace Iteration */
   do {
     svd->its++;
-    CHKERRQ(BVSetActiveColumns(svd->V,svd->nconv,svd->ncv));
-    CHKERRQ(BVSetActiveColumns(svd->U,svd->nconv,svd->ncv));
+    PetscCall(BVSetActiveColumns(svd->V,svd->nconv,svd->ncv));
+    PetscCall(BVSetActiveColumns(svd->U,svd->nconv,svd->ncv));
     /* Form AG */
-    CHKERRQ(BVMatMult(svd->V,svd->A,svd->U));
+    PetscCall(BVMatMult(svd->V,svd->A,svd->U));
     /* Orthogonalization Q=qr(AG)*/
-    CHKERRQ(BVOrthogonalize(svd->U,NULL));
+    PetscCall(BVOrthogonalize(svd->U,NULL));
     /* Form B^*= AQ */
-    CHKERRQ(BVMatMult(svd->U,svd->AT,svd->V));
+    PetscCall(BVMatMult(svd->U,svd->AT,svd->V));
 
-    CHKERRQ(DSSetDimensions(svd->ds,svd->ncv,svd->nconv,svd->ncv));
-    CHKERRQ(DSSVDSetDimensions(svd->ds,svd->ncv));
-    CHKERRQ(DSGetMat(svd->ds,DS_MAT_A,&A));
-    CHKERRQ(MatZeroEntries(A));
-    CHKERRQ(BVOrthogonalize(svd->V,A));
-    CHKERRQ(DSRestoreMat(svd->ds,DS_MAT_A,&A));
-    CHKERRQ(DSSetState(svd->ds,DS_STATE_RAW));
-    CHKERRQ(DSSolve(svd->ds,w,NULL));
-    CHKERRQ(DSSort(svd->ds,w,NULL,NULL,NULL,NULL));
-    CHKERRQ(DSSynchronize(svd->ds,w,NULL));
-    CHKERRQ(DSGetMat(svd->ds,DS_MAT_U,&U));
-    CHKERRQ(DSGetMat(svd->ds,DS_MAT_V,&V));
-    CHKERRQ(BVMultInPlace(svd->U,V,svd->nconv,svd->ncv));
-    CHKERRQ(BVMultInPlace(svd->V,U,svd->nconv,svd->ncv));
-    CHKERRQ(MatDestroy(&U));
-    CHKERRQ(MatDestroy(&V));
+    PetscCall(DSSetDimensions(svd->ds,svd->ncv,svd->nconv,svd->ncv));
+    PetscCall(DSSVDSetDimensions(svd->ds,svd->ncv));
+    PetscCall(DSGetMat(svd->ds,DS_MAT_A,&A));
+    PetscCall(MatZeroEntries(A));
+    PetscCall(BVOrthogonalize(svd->V,A));
+    PetscCall(DSRestoreMat(svd->ds,DS_MAT_A,&A));
+    PetscCall(DSSetState(svd->ds,DS_STATE_RAW));
+    PetscCall(DSSolve(svd->ds,w,NULL));
+    PetscCall(DSSort(svd->ds,w,NULL,NULL,NULL,NULL));
+    PetscCall(DSSynchronize(svd->ds,w,NULL));
+    PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
+    PetscCall(DSGetMat(svd->ds,DS_MAT_V,&V));
+    PetscCall(BVMultInPlace(svd->U,V,svd->nconv,svd->ncv));
+    PetscCall(BVMultInPlace(svd->V,U,svd->nconv,svd->ncv));
+    PetscCall(MatDestroy(&U));
+    PetscCall(MatDestroy(&V));
     /* Check convergence */
     k = 0;
     for (i=svd->nconv;i<svd->ncv;i++) {
-      CHKERRQ(SVDRandomizedResidualNorm(svd,i,w[i],&res));
+      PetscCall(SVDRandomizedResidualNorm(svd,i,w[i],&res));
       svd->sigma[i] = PetscRealPart(w[i]);
-      CHKERRQ((*svd->converged)(svd,svd->sigma[i],res,&svd->errest[i],svd->convergedctx));
+      PetscCall((*svd->converged)(svd,svd->sigma[i],res,&svd->errest[i],svd->convergedctx));
       if (svd->errest[i] < svd->tol) k++;
       else break;
     }
@@ -127,11 +127,11 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
       k = svd->nsv;
       for (i=0;i<svd->ncv;i++) svd->sigma[i] = PetscRealPart(w[i]);
     }
-    CHKERRQ((*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx));
+    PetscCall((*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx));
     svd->nconv += k;
-    CHKERRQ(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv));
+    PetscCall(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv));
   } while (svd->reason == SVD_CONVERGED_ITERATING);
-  CHKERRQ(PetscFree(w));
+  PetscCall(PetscFree(w));
   PetscFunctionReturn(0);
 }
 

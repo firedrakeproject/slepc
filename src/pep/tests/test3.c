@@ -35,119 +35,119 @@ int main(int argc,char **argv)
   PEPProblemType     ptype;
   PetscViewerAndFormat *vf;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Quadratic Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Quadratic Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A[0]));
-  CHKERRQ(MatSetSizes(A[0],PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(A[0]));
-  CHKERRQ(MatSetUp(A[0]));
-  CHKERRQ(MatGetOwnershipRange(A[0],&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(A[0],i,i,i+1,INSERT_VALUES));
-  CHKERRQ(MatAssemblyBegin(A[0],MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A[0],MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A[0]));
+  PetscCall(MatSetSizes(A[0],PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A[0]));
+  PetscCall(MatSetUp(A[0]));
+  PetscCall(MatGetOwnershipRange(A[0],&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(A[0],i,i,i+1,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(A[0],MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A[0],MAT_FINAL_ASSEMBLY));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A[1]));
-  CHKERRQ(MatSetSizes(A[1],PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(A[1]));
-  CHKERRQ(MatSetUp(A[1]));
-  CHKERRQ(MatGetOwnershipRange(A[1],&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(A[1],i,i,1.0,INSERT_VALUES));
-  CHKERRQ(MatAssemblyBegin(A[1],MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A[1],MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A[1]));
+  PetscCall(MatSetSizes(A[1],PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A[1]));
+  PetscCall(MatSetUp(A[1]));
+  PetscCall(MatGetOwnershipRange(A[1],&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(A[1],i,i,1.0,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(A[1],MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A[1],MAT_FINAL_ASSEMBLY));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A[2]));
-  CHKERRQ(MatSetSizes(A[2],PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(A[2]));
-  CHKERRQ(MatSetUp(A[2]));
-  CHKERRQ(MatGetOwnershipRange(A[1],&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(A[2],i,i,n/(PetscReal)(i+1),INSERT_VALUES));
-  CHKERRQ(MatAssemblyBegin(A[2],MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A[2],MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A[2]));
+  PetscCall(MatSetSizes(A[2],PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A[2]));
+  PetscCall(MatSetUp(A[2]));
+  PetscCall(MatGetOwnershipRange(A[1],&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(A[2],i,i,n/(PetscReal)(i+1),INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(A[2],MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A[2],MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create eigensolver and test interface functions
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(PEPCreate(PETSC_COMM_WORLD,&pep));
-  CHKERRQ(PEPSetOperators(pep,3,A));
-  CHKERRQ(PEPGetNumMatrices(pep,&nmat));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Polynomial of degree %" PetscInt_FMT "\n",nmat-1));
-  CHKERRQ(PEPGetOperators(pep,0,&B));
-  CHKERRQ(MatView(B,NULL));
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
+  PetscCall(PEPSetOperators(pep,3,A));
+  PetscCall(PEPGetNumMatrices(pep,&nmat));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Polynomial of degree %" PetscInt_FMT "\n",nmat-1));
+  PetscCall(PEPGetOperators(pep,0,&B));
+  PetscCall(MatView(B,NULL));
 
-  CHKERRQ(PEPSetType(pep,PEPTOAR));
-  CHKERRQ(PEPGetType(pep,&type));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Type set to %s\n",type));
+  PetscCall(PEPSetType(pep,PEPTOAR));
+  PetscCall(PEPGetType(pep,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Type set to %s\n",type));
 
-  CHKERRQ(PEPGetProblemType(pep,&ptype));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem type before changing = %d",(int)ptype));
-  CHKERRQ(PEPSetProblemType(pep,PEP_HERMITIAN));
-  CHKERRQ(PEPGetProblemType(pep,&ptype));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d.\n",(int)ptype));
+  PetscCall(PEPGetProblemType(pep,&ptype));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Problem type before changing = %d",(int)ptype));
+  PetscCall(PEPSetProblemType(pep,PEP_HERMITIAN));
+  PetscCall(PEPGetProblemType(pep,&ptype));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d.\n",(int)ptype));
 
-  CHKERRQ(PEPGetExtract(pep,&extr));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Extraction before changing = %d",(int)extr));
-  CHKERRQ(PEPSetExtract(pep,PEP_EXTRACT_STRUCTURED));
-  CHKERRQ(PEPGetExtract(pep,&extr));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)extr));
+  PetscCall(PEPGetExtract(pep,&extr));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Extraction before changing = %d",(int)extr));
+  PetscCall(PEPSetExtract(pep,PEP_EXTRACT_STRUCTURED));
+  PetscCall(PEPGetExtract(pep,&extr));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)extr));
 
-  CHKERRQ(PEPSetScale(pep,PEP_SCALE_SCALAR,.1,NULL,NULL,5,1.0));
-  CHKERRQ(PEPGetScale(pep,&scale,&alpha,NULL,NULL,&its,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Scaling: %s, alpha=%g, its=%" PetscInt_FMT "\n",PEPScaleTypes[scale],(double)alpha,its));
+  PetscCall(PEPSetScale(pep,PEP_SCALE_SCALAR,.1,NULL,NULL,5,1.0));
+  PetscCall(PEPGetScale(pep,&scale,&alpha,NULL,NULL,&its,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Scaling: %s, alpha=%g, its=%" PetscInt_FMT "\n",PEPScaleTypes[scale],(double)alpha,its));
 
-  CHKERRQ(PEPSetBasis(pep,PEP_BASIS_CHEBYSHEV1));
-  CHKERRQ(PEPGetBasis(pep,&basis));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Polynomial basis: %s\n",PEPBasisTypes[basis]));
+  PetscCall(PEPSetBasis(pep,PEP_BASIS_CHEBYSHEV1));
+  PetscCall(PEPGetBasis(pep,&basis));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Polynomial basis: %s\n",PEPBasisTypes[basis]));
 
-  CHKERRQ(PEPSetRefine(pep,PEP_REFINE_SIMPLE,1,1e-9,2,PEP_REFINE_SCHEME_SCHUR));
-  CHKERRQ(PEPGetRefine(pep,&refine,NULL,&tol,&its,&rscheme));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Refinement: %s, tol=%g, its=%" PetscInt_FMT ", scheme=%s\n",PEPRefineTypes[refine],(double)tol,its,PEPRefineSchemes[rscheme]));
+  PetscCall(PEPSetRefine(pep,PEP_REFINE_SIMPLE,1,1e-9,2,PEP_REFINE_SCHEME_SCHUR));
+  PetscCall(PEPGetRefine(pep,&refine,NULL,&tol,&its,&rscheme));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Refinement: %s, tol=%g, its=%" PetscInt_FMT ", scheme=%s\n",PEPRefineTypes[refine],(double)tol,its,PEPRefineSchemes[rscheme]));
 
-  CHKERRQ(PEPSetTarget(pep,4.8));
-  CHKERRQ(PEPGetTarget(pep,&target));
-  CHKERRQ(PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE));
-  CHKERRQ(PEPGetWhichEigenpairs(pep,&which));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Which = %d, target = %g\n",(int)which,(double)PetscRealPart(target)));
+  PetscCall(PEPSetTarget(pep,4.8));
+  PetscCall(PEPGetTarget(pep,&target));
+  PetscCall(PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE));
+  PetscCall(PEPGetWhichEigenpairs(pep,&which));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Which = %d, target = %g\n",(int)which,(double)PetscRealPart(target)));
 
-  CHKERRQ(PEPSetDimensions(pep,4,PETSC_DEFAULT,PETSC_DEFAULT));
-  CHKERRQ(PEPGetDimensions(pep,&nev,&ncv,&mpd));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%" PetscInt_FMT ", ncv=%" PetscInt_FMT ", mpd=%" PetscInt_FMT "\n",nev,ncv,mpd));
+  PetscCall(PEPSetDimensions(pep,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(PEPGetDimensions(pep,&nev,&ncv,&mpd));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Dimensions: nev=%" PetscInt_FMT ", ncv=%" PetscInt_FMT ", mpd=%" PetscInt_FMT "\n",nev,ncv,mpd));
 
-  CHKERRQ(PEPSetTolerances(pep,2.2e-4,200));
-  CHKERRQ(PEPGetTolerances(pep,&tol,&its));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5f, max_its = %" PetscInt_FMT "\n",(double)tol,its));
+  PetscCall(PEPSetTolerances(pep,2.2e-4,200));
+  PetscCall(PEPGetTolerances(pep,&tol,&its));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Tolerance = %.5f, max_its = %" PetscInt_FMT "\n",(double)tol,its));
 
-  CHKERRQ(PEPSetConvergenceTest(pep,PEP_CONV_ABS));
-  CHKERRQ(PEPGetConvergenceTest(pep,&conv));
-  CHKERRQ(PEPSetStoppingTest(pep,PEP_STOP_BASIC));
-  CHKERRQ(PEPGetStoppingTest(pep,&stop));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Convergence test = %d, stopping test = %d\n",(int)conv,(int)stop));
+  PetscCall(PEPSetConvergenceTest(pep,PEP_CONV_ABS));
+  PetscCall(PEPGetConvergenceTest(pep,&conv));
+  PetscCall(PEPSetStoppingTest(pep,PEP_STOP_BASIC));
+  PetscCall(PEPGetStoppingTest(pep,&stop));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Convergence test = %d, stopping test = %d\n",(int)conv,(int)stop));
 
-  CHKERRQ(PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf));
-  CHKERRQ(PEPMonitorSet(pep,(PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))PEPMonitorFirst,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy));
-  CHKERRQ(PEPMonitorCancel(pep));
+  PetscCall(PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf));
+  PetscCall(PEPMonitorSet(pep,(PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))PEPMonitorFirst,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy));
+  PetscCall(PEPMonitorCancel(pep));
 
-  CHKERRQ(PEPGetST(pep,&st));
-  CHKERRQ(STGetKSP(st,&ksp));
-  CHKERRQ(KSPSetTolerances(ksp,1e-8,1e-35,PETSC_DEFAULT,PETSC_DEFAULT));
-  CHKERRQ(STView(st,NULL));
-  CHKERRQ(PEPGetDS(pep,&ds));
-  CHKERRQ(DSView(ds,NULL));
+  PetscCall(PEPGetST(pep,&st));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPSetTolerances(ksp,1e-8,1e-35,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(STView(st,NULL));
+  PetscCall(PEPGetDS(pep,&ds));
+  PetscCall(DSView(ds,NULL));
 
-  CHKERRQ(PEPSetFromOptions(pep));
-  CHKERRQ(PEPSolve(pep));
-  CHKERRQ(PEPGetConvergedReason(pep,&reason));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason));
+  PetscCall(PEPSetFromOptions(pep));
+  PetscCall(PEPSolve(pep));
+  PetscCall(PEPGetConvergedReason(pep,&reason));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(PEPErrorView(pep,PEP_ERROR_RELATIVE,NULL));
-  CHKERRQ(PEPDestroy(&pep));
-  CHKERRQ(MatDestroy(&A[0]));
-  CHKERRQ(MatDestroy(&A[1]));
-  CHKERRQ(MatDestroy(&A[2]));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(PEPErrorView(pep,PEP_ERROR_RELATIVE,NULL));
+  PetscCall(PEPDestroy(&pep));
+  PetscCall(MatDestroy(&A[0]));
+  PetscCall(MatDestroy(&A[1]));
+  PetscCall(MatDestroy(&A[2]));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

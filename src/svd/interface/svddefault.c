@@ -90,13 +90,13 @@ PetscErrorCode SVDStoppingBasic(SVD svd,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionBegin;
   *reason = SVD_CONVERGED_ITERATING;
   if (nconv >= nsv) {
-    CHKERRQ(PetscInfo(svd,"Singular value solver finished successfully: %" PetscInt_FMT " singular triplets converged at iteration %" PetscInt_FMT "\n",nconv,its));
+    PetscCall(PetscInfo(svd,"Singular value solver finished successfully: %" PetscInt_FMT " singular triplets converged at iteration %" PetscInt_FMT "\n",nconv,its));
     *reason = SVD_CONVERGED_TOL;
   } else if (its >= max_it) {
     if (svd->conv == SVD_CONV_MAXIT) *reason = SVD_CONVERGED_MAXIT;
     else {
       *reason = SVD_DIVERGED_ITS;
-      CHKERRQ(PetscInfo(svd,"Singular value solver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
+      PetscCall(PetscInfo(svd,"Singular value solver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
     }
   }
   PetscFunctionReturn(0);
@@ -131,21 +131,21 @@ PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
   PetscCheck(nleft>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nleft must be > 0: nleft = %" PetscInt_FMT,nleft);
   PetscCheck(nright>0,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nright must be > 0: nright = %" PetscInt_FMT,nright);
   if (svd->nworkl < nleft) {
-    CHKERRQ(VecDestroyVecs(svd->nworkl,&svd->workl));
+    PetscCall(VecDestroyVecs(svd->nworkl,&svd->workl));
     svd->nworkl = nleft;
-    if (svd->isgeneralized) CHKERRQ(SVDCreateLeftTemplate(svd,&t));
-    else CHKERRQ(MatCreateVecsEmpty(svd->OP,NULL,&t));
-    CHKERRQ(VecDuplicateVecs(t,nleft,&svd->workl));
-    CHKERRQ(VecDestroy(&t));
-    CHKERRQ(PetscLogObjectParents(svd,nleft,svd->workl));
+    if (svd->isgeneralized) PetscCall(SVDCreateLeftTemplate(svd,&t));
+    else PetscCall(MatCreateVecsEmpty(svd->OP,NULL,&t));
+    PetscCall(VecDuplicateVecs(t,nleft,&svd->workl));
+    PetscCall(VecDestroy(&t));
+    PetscCall(PetscLogObjectParents(svd,nleft,svd->workl));
   }
   if (svd->nworkr < nright) {
-    CHKERRQ(VecDestroyVecs(svd->nworkr,&svd->workr));
+    PetscCall(VecDestroyVecs(svd->nworkr,&svd->workr));
     svd->nworkr = nright;
-    CHKERRQ(MatCreateVecsEmpty(svd->OP,&t,NULL));
-    CHKERRQ(VecDuplicateVecs(t,nright,&svd->workr));
-    CHKERRQ(VecDestroy(&t));
-    CHKERRQ(PetscLogObjectParents(svd,nright,svd->workr));
+    PetscCall(MatCreateVecsEmpty(svd->OP,&t,NULL));
+    PetscCall(VecDuplicateVecs(t,nright,&svd->workr));
+    PetscCall(VecDestroy(&t));
+    PetscCall(PetscLogObjectParents(svd,nright,svd->workr));
   }
   PetscFunctionReturn(0);
 }

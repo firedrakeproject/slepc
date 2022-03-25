@@ -17,7 +17,7 @@ PetscErrorCode MyArbitrarySelection(PetscScalar eigr,PetscScalar eigi,Vec xr,Vec
   Vec             xref = *(Vec*)ctx;
 
   PetscFunctionBeginUser;
-  CHKERRQ(VecDot(xr,xref,rr));
+  PetscCall(VecDot(xr,xref,rr));
   *rr = PetscAbsScalar(*rr);
   if (ri) *ri = 0.0;
   PetscFunctionReturn(0);
@@ -32,62 +32,62 @@ int main(int argc,char **argv)
   Vec            sxr,sxi;
   PetscInt       n=30,i,Istart,Iend,nconv;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with zero diagonal, n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with zero diagonal, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
            Create matrix tridiag([-1 0 -1])
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) CHKERRQ(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
-    if (i<n-1) CHKERRQ(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Create the eigensolver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
-  CHKERRQ(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Solve eigenproblem and store some solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(MatCreateVecs(A,&sxr,NULL));
-  CHKERRQ(MatCreateVecs(A,&sxi,NULL));
-  CHKERRQ(EPSGetConverged(eps,&nconv));
+  PetscCall(EPSSolve(eps));
+  PetscCall(MatCreateVecs(A,&sxr,NULL));
+  PetscCall(MatCreateVecs(A,&sxi,NULL));
+  PetscCall(EPSGetConverged(eps,&nconv));
   if (nconv>0) {
-    CHKERRQ(EPSGetEigenpair(eps,0,&seigr,&seigi,sxr,sxi));
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+    PetscCall(EPSGetEigenpair(eps,0,&seigr,&seigi,sxr,sxi));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Solve eigenproblem using an arbitrary selection
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-    CHKERRQ(EPSSetArbitrarySelection(eps,MyArbitrarySelection,&sxr));
-    CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE));
-    CHKERRQ(EPSSolve(eps));
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  } else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Problem: no eigenpairs converged.\n"));
+    PetscCall(EPSSetArbitrarySelection(eps,MyArbitrarySelection,&sxr));
+    PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE));
+    PetscCall(EPSSolve(eps));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  } else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Problem: no eigenpairs converged.\n"));
 
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(VecDestroy(&sxr));
-  CHKERRQ(VecDestroy(&sxi));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(VecDestroy(&sxr));
+  PetscCall(VecDestroy(&sxi));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

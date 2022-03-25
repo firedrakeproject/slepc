@@ -26,7 +26,7 @@ PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nco
   ay = PETSC_PI/2/(N+1);
   az = PETSC_PI/2/(P+1);
   n = PetscCeilReal(PetscPowReal((PetscReal)nconv,0.33333)+1);
-  CHKERRQ(PetscMalloc1(n*n*n,&evals));
+  PetscCall(PetscMalloc1(n*n*n,&evals));
   l = 0;
   for (i=1;i<=n;i++) {
     sx = PetscSinReal(ax*i);
@@ -38,9 +38,9 @@ PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nco
       }
     }
   }
-  CHKERRQ(PetscSortReal(n*n*n,evals));
+  PetscCall(PetscSortReal(n*n*n,evals));
   for (i=0;i<nconv;i++) exact[i] = evals[i];
-  CHKERRQ(PetscFree(evals));
+  PetscCall(PetscFree(evals));
   PetscFunctionReturn(0);
 }
 
@@ -51,8 +51,8 @@ PetscErrorCode FillMatrix(DM da,Mat A)
   MatStencil     row,col[7];
 
   PetscFunctionBeginUser;
-  CHKERRQ(DMDAGetInfo(da,0,&mx,&my,&mz,0,0,0,0,0,0,0,0,0));
-  CHKERRQ(DMDAGetCorners(da,&xs,&ys,&zs,&xm,&ym,&zm));
+  PetscCall(DMDAGetInfo(da,0,&mx,&my,&mz,0,0,0,0,0,0,0,0,0));
+  PetscCall(DMDAGetCorners(da,&xs,&ys,&zs,&xm,&ym,&zm));
 
   for (k=zs;k<zs+zm;k++) {
     for (j=ys;j<ys+ym;j++) {
@@ -67,12 +67,12 @@ PetscErrorCode FillMatrix(DM da,Mat A)
         if (i<mx-1) { v[idx]=-1.0; col[idx].i=i+1; col[idx].j=j; col[idx].k=k; idx++; }
         if (j<my-1) { v[idx]=-1.0; col[idx].i=i; col[idx].j=j+1; col[idx].k=k; idx++; }
         if (k<mz-1) { v[idx]=-1.0; col[idx].i=i; col[idx].j=j; col[idx].k=k+1; idx++; }
-        CHKERRQ(MatSetValuesStencil(A,1,&row,idx,col,v,INSERT_VALUES));
+        PetscCall(MatSetValuesStencil(A,1,&row,idx,col,v,INSERT_VALUES));
       }
     }
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
 }
 
@@ -90,41 +90,41 @@ int main(int argc,char **argv)
   PetscBool      flg,terse;
   PetscRandom    rctx;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n3-D Laplacian Eigenproblem\n\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n3-D Laplacian Eigenproblem\n\n"));
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(DMDACreate3d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,
+  PetscCall(DMDACreate3d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,
                       DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,10,10,10,
                       PETSC_DECIDE,PETSC_DECIDE,PETSC_DECIDE,
                       1,1,NULL,NULL,NULL,&da));
-  CHKERRQ(DMSetFromOptions(da));
-  CHKERRQ(DMSetUp(da));
+  PetscCall(DMSetFromOptions(da));
+  PetscCall(DMSetUp(da));
 
   /* print DM information */
-  CHKERRQ(DMDAGetInfo(da,NULL,&M,&N,&P,&m,&n,&p,NULL,NULL,NULL,NULL,NULL,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Grid partitioning: %" PetscInt_FMT " %" PetscInt_FMT " %" PetscInt_FMT "\n",m,n,p));
+  PetscCall(DMDAGetInfo(da,NULL,&M,&N,&P,&m,&n,&p,NULL,NULL,NULL,NULL,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Grid partitioning: %" PetscInt_FMT " %" PetscInt_FMT " %" PetscInt_FMT "\n",m,n,p));
 
   /* create and fill the matrix */
-  CHKERRQ(DMCreateMatrix(da,&A));
-  CHKERRQ(FillMatrix(da,A));
+  PetscCall(DMCreateMatrix(da,&A));
+  PetscCall(FillMatrix(da,A));
 
   /* create random initial vector */
   seed = 1;
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL));
   PetscCheck(seed>=0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Seed must be >=0");
-  CHKERRQ(MatCreateVecs(A,&v0,NULL));
-  CHKERRQ(PetscRandomCreate(PETSC_COMM_WORLD,&rctx));
-  CHKERRQ(PetscRandomSetFromOptions(rctx));
+  PetscCall(MatCreateVecs(A,&v0,NULL));
+  PetscCall(PetscRandomCreate(PETSC_COMM_WORLD,&rctx));
+  PetscCall(PetscRandomSetFromOptions(rctx));
   for (i=0;i<seed;i++) {   /* simulate different seeds in the random generator */
-    CHKERRQ(VecSetRandom(v0,rctx));
+    PetscCall(VecSetRandom(v0,rctx));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -134,69 +134,69 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
 
   /*
      Set specific solver options
   */
-  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  CHKERRQ(EPSSetTolerances(eps,1e-8,PETSC_DEFAULT));
-  CHKERRQ(EPSSetInitialSpace(eps,1,&v0));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
+  PetscCall(EPSSetTolerances(eps,1e-8,PETSC_DEFAULT));
+  PetscCall(EPSSetInitialSpace(eps,1,&v0));
 
   /*
      Set solver parameters at runtime
   */
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PetscTime(&t1));
-  CHKERRQ(EPSSetUp(eps));
-  CHKERRQ(PetscTime(&t2));
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(PetscTime(&t3));
+  PetscCall(PetscTime(&t1));
+  PetscCall(EPSSetUp(eps));
+  PetscCall(PetscTime(&t2));
+  PetscCall(EPSSolve(eps));
+  PetscCall(PetscTime(&t3));
   if (!terse) {
-    CHKERRQ(EPSGetIterationNumber(eps,&its));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
+    PetscCall(EPSGetIterationNumber(eps,&its));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
 
     /*
        Optional: Get some information from the solver and display it
     */
-    CHKERRQ(EPSGetType(eps,&type));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
-    CHKERRQ(EPSGetDimensions(eps,&nev,NULL,NULL));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
-    CHKERRQ(EPSGetTolerances(eps,&tol,&maxit));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
+    PetscCall(EPSGetType(eps,&type));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+    PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+    PetscCall(EPSGetTolerances(eps,&tol,&maxit));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   else {
     /*
        Get number of converged approximate eigenpairs
     */
-    CHKERRQ(EPSGetConverged(eps,&nconv));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %" PetscInt_FMT "\n\n",nconv));
+    PetscCall(EPSGetConverged(eps,&nconv));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %" PetscInt_FMT "\n\n",nconv));
 
     if (nconv>0) {
-      CHKERRQ(PetscMalloc1(nconv,&exact));
-      CHKERRQ(GetExactEigenvalues(M,N,P,nconv,exact));
+      PetscCall(PetscMalloc1(nconv,&exact));
+      PetscCall(GetExactEigenvalues(M,N,P,nconv,exact));
       /*
          Display eigenvalues and relative errors
       */
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,
+      PetscCall(PetscPrintf(PETSC_COMM_WORLD,
            "           k          ||Ax-kx||/||kx||   Eigenvalue Error \n"
            "   ----------------- ------------------ ------------------\n"));
 
@@ -205,11 +205,11 @@ int main(int argc,char **argv)
           Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
           ki (imaginary part)
         */
-        CHKERRQ(EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL));
+        PetscCall(EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL));
         /*
            Compute the relative error associated to each eigenpair
         */
-        CHKERRQ(EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error));
+        PetscCall(EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error));
 
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
@@ -219,28 +219,28 @@ int main(int argc,char **argv)
         im = ki;
 #endif
         PetscCheck(im==0.0,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Eigenvalue should be real");
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g        %12g\n",(double)re,(double)error,(double)PetscAbsReal(re-exact[i])));
+        PetscCall(PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g        %12g\n",(double)re,(double)error,(double)PetscAbsReal(re-exact[i])));
       }
-      CHKERRQ(PetscFree(exact));
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+      PetscCall(PetscFree(exact));
+      PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     }
   }
 
   /*
      Show computing times
   */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-showtimes",&flg));
-  if (flg) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %g (setup), %g (solve)\n",(double)(t2-t1),(double)(t3-t2)));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-showtimes",&flg));
+  if (flg) PetscCall(PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %g (setup), %g (solve)\n",(double)(t2-t1),(double)(t3-t2)));
 
   /*
      Free work space
   */
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(VecDestroy(&v0));
-  CHKERRQ(PetscRandomDestroy(&rctx));
-  CHKERRQ(DMDestroy(&da));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v0));
+  PetscCall(PetscRandomDestroy(&rctx));
+  PetscCall(DMDestroy(&da));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

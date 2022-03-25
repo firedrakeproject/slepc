@@ -28,12 +28,12 @@ int main(int argc,char **argv)
   Vec                v;
   MFNConvergedReason reason;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
-  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-peclet",&peclet,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-steps",&steps,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-peclet",&peclet,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-steps",&steps,NULL));
   m = n;
   N = m*n;
   /* interval [0,1], homogeneous Dirichlet boundary conditions */
@@ -44,27 +44,27 @@ int main(int argc,char **argv)
   diag = 2.0*(-2.0*epsilon/h2);
   lower = epsilon/h2-c/(2.0*h);
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nAdvection diffusion via y=exp(%g*A), n=%" PetscInt_FMT ", steps=%" PetscInt_FMT ", Peclet=%g\n\n",(double)PetscRealPart(t),n,steps,(double)peclet));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nAdvection diffusion via y=exp(%g*A), n=%" PetscInt_FMT ", steps=%" PetscInt_FMT ", Peclet=%g\n\n",(double)PetscRealPart(t),n,steps,(double)peclet));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Generate matrix A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,lower,INSERT_VALUES));
-    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,upper,INSERT_VALUES));
-    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,lower,INSERT_VALUES));
-    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,upper,INSERT_VALUES));
-    CHKERRQ(MatSetValue(A,II,II,diag,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,lower,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,upper,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,lower,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,upper,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,diag,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatCreateVecs(A,NULL,&v));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,NULL,&v));
 
   /*
      Set initial condition v = 256*i^2*(1-i)^2*j^2*(1-j)^2
@@ -73,50 +73,50 @@ int main(int argc,char **argv)
     i = II/n; j = II-i*n;
     i1h = (i+1)*h; j1h = (j+1)*h;
     value = 256.0*i1h*i1h*(1.0-i1h)*(1.0-i1h)*(j1h*j1h)*(1.0-j1h)*(1.0-j1h);
-    CHKERRQ(VecSetValue(v,i+j*n,value,INSERT_VALUES));
+    PetscCall(VecSetValue(v,i+j*n,value,INSERT_VALUES));
   }
-  CHKERRQ(VecAssemblyBegin(v));
-  CHKERRQ(VecAssemblyEnd(v));
+  PetscCall(VecAssemblyBegin(v));
+  PetscCall(VecAssemblyEnd(v));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(MFNCreate(PETSC_COMM_WORLD,&mfn));
-  CHKERRQ(MFNSetOperator(mfn,A));
-  CHKERRQ(MFNGetFN(mfn,&f));
-  CHKERRQ(FNSetType(f,FNEXP));
-  CHKERRQ(FNSetScale(f,t,sone));
-  CHKERRQ(MFNSetFromOptions(mfn));
+  PetscCall(MFNCreate(PETSC_COMM_WORLD,&mfn));
+  PetscCall(MFNSetOperator(mfn,A));
+  PetscCall(MFNGetFN(mfn,&f));
+  PetscCall(FNSetType(f,FNEXP));
+  PetscCall(FNSetScale(f,t,sone));
+  PetscCall(MFNSetFromOptions(mfn));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   for (i=0;i<steps;i++) {
-    CHKERRQ(MFNSolve(mfn,v,v));
-    CHKERRQ(MFNGetConvergedReason(mfn,&reason));
+    PetscCall(MFNSolve(mfn,v,v));
+    PetscCall(MFNGetConvergedReason(mfn,&reason));
     PetscCheck(reason>=0,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
-    CHKERRQ(MFNGetIterationNumber(mfn,&its));
+    PetscCall(MFNGetIterationNumber(mfn,&its));
     totits += its;
   }
 
   /*
      Optional: Get some information from the solver and display it
   */
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",totits));
-  CHKERRQ(MFNGetDimensions(mfn,&ncv));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv));
-  CHKERRQ(MFNGetTolerances(mfn,&tol,&maxit));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
-  CHKERRQ(VecNorm(v,NORM_2,&norm));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n",(double)PetscRealPart(t)*steps,(double)norm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",totits));
+  PetscCall(MFNGetDimensions(mfn,&ncv));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv));
+  PetscCall(MFNGetTolerances(mfn,&tol,&maxit));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
+  PetscCall(VecNorm(v,NORM_2,&norm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n",(double)PetscRealPart(t)*steps,(double)norm));
 
   /*
      Free work space
   */
-  CHKERRQ(MFNDestroy(&mfn));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(MFNDestroy(&mfn));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

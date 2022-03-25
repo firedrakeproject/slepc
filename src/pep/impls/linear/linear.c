@@ -26,10 +26,10 @@ static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
   PetscBool         flg;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(M,&ctx));
+  PetscCall(MatShellGetContext(M,&ctx));
   pep = ctx->pep;
-  CHKERRQ(STGetTransform(pep->st,&flg));
-  if (!flg) CHKERRQ(STGetShift(pep->st,&sigma));
+  PetscCall(STGetTransform(pep->st,&flg));
+  if (!flg) PetscCall(STGetShift(pep->st,&sigma));
   nmat = pep->nmat;
   deg = nmat-1;
   m = pep->nloc;
@@ -38,58 +38,58 @@ static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
   cg = pep->pbc+2*nmat;
   x1=ctx->w[0];x2=ctx->w[1];x3=ctx->w[2];y1=ctx->w[3];aux=ctx->w[4];
 
-  CHKERRQ(VecSet(y,0.0));
-  CHKERRQ(VecGetArrayRead(x,&px));
-  CHKERRQ(VecGetArray(y,&py));
+  PetscCall(VecSet(y,0.0));
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
   a = 1.0;
 
   /* first block */
-  CHKERRQ(VecPlaceArray(x2,px));
-  CHKERRQ(VecPlaceArray(x3,px+m));
-  CHKERRQ(VecPlaceArray(y1,py));
-  CHKERRQ(VecAXPY(y1,cb[0]-sigma,x2));
-  CHKERRQ(VecAXPY(y1,ca[0],x3));
-  CHKERRQ(VecResetArray(x2));
-  CHKERRQ(VecResetArray(x3));
-  CHKERRQ(VecResetArray(y1));
+  PetscCall(VecPlaceArray(x2,px));
+  PetscCall(VecPlaceArray(x3,px+m));
+  PetscCall(VecPlaceArray(y1,py));
+  PetscCall(VecAXPY(y1,cb[0]-sigma,x2));
+  PetscCall(VecAXPY(y1,ca[0],x3));
+  PetscCall(VecResetArray(x2));
+  PetscCall(VecResetArray(x3));
+  PetscCall(VecResetArray(y1));
 
   /* inner blocks */
   for (i=1;i<deg-1;i++) {
-    CHKERRQ(VecPlaceArray(x1,px+(i-1)*m));
-    CHKERRQ(VecPlaceArray(x2,px+i*m));
-    CHKERRQ(VecPlaceArray(x3,px+(i+1)*m));
-    CHKERRQ(VecPlaceArray(y1,py+i*m));
-    CHKERRQ(VecAXPY(y1,cg[i],x1));
-    CHKERRQ(VecAXPY(y1,cb[i]-sigma,x2));
-    CHKERRQ(VecAXPY(y1,ca[i],x3));
-    CHKERRQ(VecResetArray(x1));
-    CHKERRQ(VecResetArray(x2));
-    CHKERRQ(VecResetArray(x3));
-    CHKERRQ(VecResetArray(y1));
+    PetscCall(VecPlaceArray(x1,px+(i-1)*m));
+    PetscCall(VecPlaceArray(x2,px+i*m));
+    PetscCall(VecPlaceArray(x3,px+(i+1)*m));
+    PetscCall(VecPlaceArray(y1,py+i*m));
+    PetscCall(VecAXPY(y1,cg[i],x1));
+    PetscCall(VecAXPY(y1,cb[i]-sigma,x2));
+    PetscCall(VecAXPY(y1,ca[i],x3));
+    PetscCall(VecResetArray(x1));
+    PetscCall(VecResetArray(x2));
+    PetscCall(VecResetArray(x3));
+    PetscCall(VecResetArray(y1));
   }
 
   /* last block */
-  CHKERRQ(VecPlaceArray(y1,py+(deg-1)*m));
+  PetscCall(VecPlaceArray(y1,py+(deg-1)*m));
   for (i=0;i<deg;i++) {
-    CHKERRQ(VecPlaceArray(x1,px+i*m));
-    CHKERRQ(STMatMult(pep->st,i,x1,aux));
-    CHKERRQ(VecAXPY(y1,a,aux));
-    CHKERRQ(VecResetArray(x1));
+    PetscCall(VecPlaceArray(x1,px+i*m));
+    PetscCall(STMatMult(pep->st,i,x1,aux));
+    PetscCall(VecAXPY(y1,a,aux));
+    PetscCall(VecResetArray(x1));
     a *= pep->sfactor;
   }
-  CHKERRQ(VecCopy(y1,aux));
-  CHKERRQ(STMatSolve(pep->st,aux,y1));
-  CHKERRQ(VecScale(y1,-ca[deg-1]/a));
-  CHKERRQ(VecPlaceArray(x1,px+(deg-2)*m));
-  CHKERRQ(VecPlaceArray(x2,px+(deg-1)*m));
-  CHKERRQ(VecAXPY(y1,cg[deg-1],x1));
-  CHKERRQ(VecAXPY(y1,cb[deg-1]-sigma,x2));
-  CHKERRQ(VecResetArray(x1));
-  CHKERRQ(VecResetArray(x2));
-  CHKERRQ(VecResetArray(y1));
+  PetscCall(VecCopy(y1,aux));
+  PetscCall(STMatSolve(pep->st,aux,y1));
+  PetscCall(VecScale(y1,-ca[deg-1]/a));
+  PetscCall(VecPlaceArray(x1,px+(deg-2)*m));
+  PetscCall(VecPlaceArray(x2,px+(deg-1)*m));
+  PetscCall(VecAXPY(y1,cg[deg-1],x1));
+  PetscCall(VecAXPY(y1,cb[deg-1]-sigma,x2));
+  PetscCall(VecResetArray(x1));
+  PetscCall(VecResetArray(x2));
+  PetscCall(VecResetArray(y1));
 
-  CHKERRQ(VecRestoreArrayRead(x,&px));
-  CHKERRQ(VecRestoreArray(y,&py));
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
   PetscFunctionReturn(0);
 }
 
@@ -104,7 +104,7 @@ static PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
   PetscReal         *ca,*cb,*cg;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(M,&ctx));
+  PetscCall(MatShellGetContext(M,&ctx));
   pep = ctx->pep;
   nmat = pep->nmat;
   deg = nmat-1;
@@ -113,96 +113,96 @@ static PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
   cb = pep->pbc+nmat;
   cg = pep->pbc+2*nmat;
   x1=ctx->w[0];y1=ctx->w[1];y2=ctx->w[2];y3=ctx->w[3];aux=ctx->w[4];aux2=ctx->w[5];
-  CHKERRQ(EPSGetTarget(ctx->eps,&sigma));
-  CHKERRQ(VecSet(y,0.0));
-  CHKERRQ(VecGetArrayRead(x,&px));
-  CHKERRQ(VecGetArray(y,&py));
+  PetscCall(EPSGetTarget(ctx->eps,&sigma));
+  PetscCall(VecSet(y,0.0));
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
   a = pep->sfactor;
 
   /* first block */
-  CHKERRQ(VecPlaceArray(x1,px));
-  CHKERRQ(VecPlaceArray(y1,py+m));
-  CHKERRQ(VecCopy(x1,y1));
-  CHKERRQ(VecScale(y1,1.0/ca[0]));
-  CHKERRQ(VecResetArray(x1));
-  CHKERRQ(VecResetArray(y1));
+  PetscCall(VecPlaceArray(x1,px));
+  PetscCall(VecPlaceArray(y1,py+m));
+  PetscCall(VecCopy(x1,y1));
+  PetscCall(VecScale(y1,1.0/ca[0]));
+  PetscCall(VecResetArray(x1));
+  PetscCall(VecResetArray(y1));
 
   /* second block */
   if (deg>2) {
-    CHKERRQ(VecPlaceArray(x1,px+m));
-    CHKERRQ(VecPlaceArray(y1,py+m));
-    CHKERRQ(VecPlaceArray(y2,py+2*m));
-    CHKERRQ(VecCopy(x1,y2));
-    CHKERRQ(VecAXPY(y2,sigma-cb[1],y1));
-    CHKERRQ(VecScale(y2,1.0/ca[1]));
-    CHKERRQ(VecResetArray(x1));
-    CHKERRQ(VecResetArray(y1));
-    CHKERRQ(VecResetArray(y2));
+    PetscCall(VecPlaceArray(x1,px+m));
+    PetscCall(VecPlaceArray(y1,py+m));
+    PetscCall(VecPlaceArray(y2,py+2*m));
+    PetscCall(VecCopy(x1,y2));
+    PetscCall(VecAXPY(y2,sigma-cb[1],y1));
+    PetscCall(VecScale(y2,1.0/ca[1]));
+    PetscCall(VecResetArray(x1));
+    PetscCall(VecResetArray(y1));
+    PetscCall(VecResetArray(y2));
   }
 
   /* inner blocks */
   for (i=2;i<deg-1;i++) {
-    CHKERRQ(VecPlaceArray(x1,px+i*m));
-    CHKERRQ(VecPlaceArray(y1,py+(i-1)*m));
-    CHKERRQ(VecPlaceArray(y2,py+i*m));
-    CHKERRQ(VecPlaceArray(y3,py+(i+1)*m));
-    CHKERRQ(VecCopy(x1,y3));
-    CHKERRQ(VecAXPY(y3,sigma-cb[i],y2));
-    CHKERRQ(VecAXPY(y3,-cg[i],y1));
-    CHKERRQ(VecScale(y3,1.0/ca[i]));
-    CHKERRQ(VecResetArray(x1));
-    CHKERRQ(VecResetArray(y1));
-    CHKERRQ(VecResetArray(y2));
-    CHKERRQ(VecResetArray(y3));
+    PetscCall(VecPlaceArray(x1,px+i*m));
+    PetscCall(VecPlaceArray(y1,py+(i-1)*m));
+    PetscCall(VecPlaceArray(y2,py+i*m));
+    PetscCall(VecPlaceArray(y3,py+(i+1)*m));
+    PetscCall(VecCopy(x1,y3));
+    PetscCall(VecAXPY(y3,sigma-cb[i],y2));
+    PetscCall(VecAXPY(y3,-cg[i],y1));
+    PetscCall(VecScale(y3,1.0/ca[i]));
+    PetscCall(VecResetArray(x1));
+    PetscCall(VecResetArray(y1));
+    PetscCall(VecResetArray(y2));
+    PetscCall(VecResetArray(y3));
   }
 
   /* last block */
-  CHKERRQ(VecPlaceArray(y1,py));
+  PetscCall(VecPlaceArray(y1,py));
   for (i=0;i<deg-2;i++) {
-    CHKERRQ(VecPlaceArray(y2,py+(i+1)*m));
-    CHKERRQ(STMatMult(pep->st,i+1,y2,aux));
-    CHKERRQ(VecAXPY(y1,a,aux));
-    CHKERRQ(VecResetArray(y2));
+    PetscCall(VecPlaceArray(y2,py+(i+1)*m));
+    PetscCall(STMatMult(pep->st,i+1,y2,aux));
+    PetscCall(VecAXPY(y1,a,aux));
+    PetscCall(VecResetArray(y2));
     a *= pep->sfactor;
   }
   i = deg-2;
-  CHKERRQ(VecPlaceArray(y2,py+(i+1)*m));
-  CHKERRQ(VecPlaceArray(y3,py+i*m));
-  CHKERRQ(VecCopy(y2,aux2));
-  CHKERRQ(VecAXPY(aux2,cg[i+1]/ca[i+1],y3));
-  CHKERRQ(STMatMult(pep->st,i+1,aux2,aux));
-  CHKERRQ(VecAXPY(y1,a,aux));
-  CHKERRQ(VecResetArray(y2));
-  CHKERRQ(VecResetArray(y3));
+  PetscCall(VecPlaceArray(y2,py+(i+1)*m));
+  PetscCall(VecPlaceArray(y3,py+i*m));
+  PetscCall(VecCopy(y2,aux2));
+  PetscCall(VecAXPY(aux2,cg[i+1]/ca[i+1],y3));
+  PetscCall(STMatMult(pep->st,i+1,aux2,aux));
+  PetscCall(VecAXPY(y1,a,aux));
+  PetscCall(VecResetArray(y2));
+  PetscCall(VecResetArray(y3));
   a *= pep->sfactor;
   i = deg-1;
-  CHKERRQ(VecPlaceArray(x1,px+i*m));
-  CHKERRQ(VecPlaceArray(y3,py+i*m));
-  CHKERRQ(VecCopy(x1,aux2));
-  CHKERRQ(VecAXPY(aux2,sigma-cb[i],y3));
-  CHKERRQ(VecScale(aux2,1.0/ca[i]));
-  CHKERRQ(STMatMult(pep->st,i+1,aux2,aux));
-  CHKERRQ(VecAXPY(y1,a,aux));
-  CHKERRQ(VecResetArray(x1));
-  CHKERRQ(VecResetArray(y3));
+  PetscCall(VecPlaceArray(x1,px+i*m));
+  PetscCall(VecPlaceArray(y3,py+i*m));
+  PetscCall(VecCopy(x1,aux2));
+  PetscCall(VecAXPY(aux2,sigma-cb[i],y3));
+  PetscCall(VecScale(aux2,1.0/ca[i]));
+  PetscCall(STMatMult(pep->st,i+1,aux2,aux));
+  PetscCall(VecAXPY(y1,a,aux));
+  PetscCall(VecResetArray(x1));
+  PetscCall(VecResetArray(y3));
 
-  CHKERRQ(VecCopy(y1,aux));
-  CHKERRQ(STMatSolve(pep->st,aux,y1));
-  CHKERRQ(VecScale(y1,-1.0));
+  PetscCall(VecCopy(y1,aux));
+  PetscCall(STMatSolve(pep->st,aux,y1));
+  PetscCall(VecScale(y1,-1.0));
 
   /* final update */
   for (i=1;i<deg;i++) {
-    CHKERRQ(VecPlaceArray(y2,py+i*m));
+    PetscCall(VecPlaceArray(y2,py+i*m));
     tt = t;
     t = ((sigma-cb[i-1])*t-cg[i-1]*tp)/ca[i-1]; /* i-th basis polynomial */
     tp = tt;
-    CHKERRQ(VecAXPY(y2,t,y1));
-    CHKERRQ(VecResetArray(y2));
+    PetscCall(VecAXPY(y2,t,y1));
+    PetscCall(VecResetArray(y2));
   }
-  CHKERRQ(VecResetArray(y1));
+  PetscCall(VecResetArray(y1));
 
-  CHKERRQ(VecRestoreArrayRead(x,&px));
-  CHKERRQ(VecRestoreArray(y,&py));
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
   PetscFunctionReturn(0);
 }
 
@@ -212,9 +212,9 @@ static PetscErrorCode BackTransform_Linear(ST st,PetscInt n,PetscScalar *eigr,Pe
   ST             stctx;
 
   PetscFunctionBegin;
-  CHKERRQ(STShellGetContext(st,&ctx));
-  CHKERRQ(PEPGetST(ctx->pep,&stctx));
-  CHKERRQ(STBackTransform(stctx,n,eigr,eigi));
+  PetscCall(STShellGetContext(st,&ctx));
+  PetscCall(PEPGetST(ctx->pep,&stctx));
+  PetscCall(STBackTransform(stctx,n,eigr,eigi));
   PetscFunctionReturn(0);
 }
 
@@ -232,8 +232,8 @@ static PetscErrorCode Apply_Linear(ST st,Vec x,Vec y)
   PEP_LINEAR     *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(STShellGetContext(st,&ctx));
-  CHKERRQ(MatMult(ctx->A,x,y));
+  PetscCall(STShellGetContext(st,&ctx));
+  PetscCall(MatMult(ctx->A,x,y));
   PetscFunctionReturn(0);
 }
 
@@ -258,37 +258,37 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PEPCheckShiftSinvert(pep);
   PEPCheckUnsupported(pep,PEP_FEATURE_STOPPING);
   PEPCheckIgnored(pep,PEP_FEATURE_CONVERGENCE);
-  CHKERRQ(STGetTransform(pep->st,&transf));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv));
-  if (!pep->which) CHKERRQ(PEPSetWhichEigenpairs_Default(pep));
+  PetscCall(STGetTransform(pep->st,&transf));
+  PetscCall(PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv));
+  if (!pep->which) PetscCall(PEPSetWhichEigenpairs_Default(pep));
   PetscCheck(pep->which!=PEP_ALL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
-  CHKERRQ(STSetUp(pep->st));
-  if (!ctx->eps) CHKERRQ(PEPLinearGetEPS(pep,&ctx->eps));
-  CHKERRQ(EPSGetST(ctx->eps,&st));
-  if (!transf && !ctx->usereps) CHKERRQ(EPSSetTarget(ctx->eps,pep->target));
-  if (sinv && !transf && !ctx->usereps) CHKERRQ(STSetDefaultShift(st,pep->target));
+  PetscCall(STSetUp(pep->st));
+  if (!ctx->eps) PetscCall(PEPLinearGetEPS(pep,&ctx->eps));
+  PetscCall(EPSGetST(ctx->eps,&st));
+  if (!transf && !ctx->usereps) PetscCall(EPSSetTarget(ctx->eps,pep->target));
+  if (sinv && !transf && !ctx->usereps) PetscCall(STSetDefaultShift(st,pep->target));
   /* compute scale factor if not set by user */
-  CHKERRQ(PEPComputeScaleFactor(pep));
+  PetscCall(PEPComputeScaleFactor(pep));
 
   if (ctx->explicitmatrix) {
     PEPCheckQuadraticCondition(pep,PETSC_TRUE," (with explicit matrix)");
     PEPCheckUnsupportedCondition(pep,PEP_FEATURE_NONMONOMIAL,PETSC_TRUE," (with explicit matrix)");
     PetscCheck(!transf,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-transform flag active");
     PetscCheck(pep->scale!=PEP_SCALE_DIAGONAL && pep->scale!=PEP_SCALE_BOTH,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
-    if (sinv && !transf) CHKERRQ(STSetType(st,STSINVERT));
-    CHKERRQ(RGPushScale(pep->rg,1.0/pep->sfactor));
-    CHKERRQ(STGetMatrixTransformed(pep->st,0,&ctx->K));
-    CHKERRQ(STGetMatrixTransformed(pep->st,1,&ctx->C));
-    CHKERRQ(STGetMatrixTransformed(pep->st,2,&ctx->M));
+    if (sinv && !transf) PetscCall(STSetType(st,STSINVERT));
+    PetscCall(RGPushScale(pep->rg,1.0/pep->sfactor));
+    PetscCall(STGetMatrixTransformed(pep->st,0,&ctx->K));
+    PetscCall(STGetMatrixTransformed(pep->st,1,&ctx->C));
+    PetscCall(STGetMatrixTransformed(pep->st,2,&ctx->M));
     ctx->sfactor = pep->sfactor;
     ctx->dsfactor = pep->dsfactor;
 
-    CHKERRQ(MatDestroy(&ctx->A));
-    CHKERRQ(MatDestroy(&ctx->B));
-    CHKERRQ(VecDestroy(&ctx->w[0]));
-    CHKERRQ(VecDestroy(&ctx->w[1]));
-    CHKERRQ(VecDestroy(&ctx->w[2]));
-    CHKERRQ(VecDestroy(&ctx->w[3]));
+    PetscCall(MatDestroy(&ctx->A));
+    PetscCall(MatDestroy(&ctx->B));
+    PetscCall(VecDestroy(&ctx->w[0]));
+    PetscCall(VecDestroy(&ctx->w[1]));
+    PetscCall(VecDestroy(&ctx->w[2]));
+    PetscCall(VecDestroy(&ctx->w[3]));
 
     switch (pep->problem_type) {
       case PEP_GENERAL:    i = 0; break;
@@ -297,45 +297,45 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       case PEP_GYROSCOPIC: i = 2; break;
     }
 
-    CHKERRQ((*fcreate[i][0])(PetscObjectComm((PetscObject)pep),ctx,&ctx->A));
-    CHKERRQ((*fcreate[i][1])(PetscObjectComm((PetscObject)pep),ctx,&ctx->B));
-    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A));
-    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B));
+    PetscCall((*fcreate[i][0])(PetscObjectComm((PetscObject)pep),ctx,&ctx->A));
+    PetscCall((*fcreate[i][1])(PetscObjectComm((PetscObject)pep),ctx,&ctx->B));
+    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A));
+    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B));
 
   } else {   /* implicit matrix */
     PetscCheck(pep->problem_type==PEP_GENERAL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option if problem type is not general");
-    if (!((PetscObject)(ctx->eps))->type_name) CHKERRQ(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
+    if (!((PetscObject)(ctx->eps))->type_name) PetscCall(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
     else {
-      CHKERRQ(PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks));
+      PetscCall(PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks));
       PetscCheck(ks,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option only implemented for Krylov-Schur");
     }
     PetscCheck(ctx->alpha==1.0 && ctx->beta==0.0,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option does not support setting alpha,beta parameters of the linearization");
-    CHKERRQ(STSetType(st,STSHELL));
-    CHKERRQ(STShellSetContext(st,ctx));
-    if (!transf) CHKERRQ(STShellSetBackTransform(st,BackTransform_Linear));
-    else CHKERRQ(STShellSetBackTransform(st,BackTransform_Skip));
-    CHKERRQ(MatCreateVecsEmpty(pep->A[0],&ctx->w[0],&ctx->w[1]));
-    CHKERRQ(MatCreateVecsEmpty(pep->A[0],&ctx->w[2],&ctx->w[3]));
-    CHKERRQ(MatCreateVecs(pep->A[0],&ctx->w[4],&ctx->w[5]));
-    CHKERRQ(PetscLogObjectParents(pep,6,ctx->w));
-    CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)pep),deg*pep->nloc,deg*pep->nloc,deg*pep->n,deg*pep->n,ctx,&ctx->A));
-    if (sinv && !transf) CHKERRQ(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert));
-    else CHKERRQ(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Shift));
-    CHKERRQ(STShellSetApply(st,Apply_Linear));
-    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A));
+    PetscCall(STSetType(st,STSHELL));
+    PetscCall(STShellSetContext(st,ctx));
+    if (!transf) PetscCall(STShellSetBackTransform(st,BackTransform_Linear));
+    else PetscCall(STShellSetBackTransform(st,BackTransform_Skip));
+    PetscCall(MatCreateVecsEmpty(pep->A[0],&ctx->w[0],&ctx->w[1]));
+    PetscCall(MatCreateVecsEmpty(pep->A[0],&ctx->w[2],&ctx->w[3]));
+    PetscCall(MatCreateVecs(pep->A[0],&ctx->w[4],&ctx->w[5]));
+    PetscCall(PetscLogObjectParents(pep,6,ctx->w));
+    PetscCall(MatCreateShell(PetscObjectComm((PetscObject)pep),deg*pep->nloc,deg*pep->nloc,deg*pep->n,deg*pep->n,ctx,&ctx->A));
+    if (sinv && !transf) PetscCall(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert));
+    else PetscCall(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Shift));
+    PetscCall(STShellSetApply(st,Apply_Linear));
+    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A));
     ctx->pep = pep;
 
-    CHKERRQ(PEPBasisCoefficients(pep,pep->pbc));
+    PetscCall(PEPBasisCoefficients(pep,pep->pbc));
     if (!transf) {
-      CHKERRQ(PetscMalloc1(pep->nmat,&pep->solvematcoeffs));
-      CHKERRQ(PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar)));
-      if (sinv) CHKERRQ(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
+      PetscCall(PetscMalloc1(pep->nmat,&pep->solvematcoeffs));
+      PetscCall(PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar)));
+      if (sinv) PetscCall(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
       else {
         for (i=0;i<deg;i++) pep->solvematcoeffs[i] = 0.0;
         pep->solvematcoeffs[deg] = 1.0;
       }
-      CHKERRQ(STScaleShift(pep->st,1.0/pep->sfactor));
-      CHKERRQ(RGPushScale(pep->rg,1.0/pep->sfactor));
+      PetscCall(STScaleShift(pep->st,1.0/pep->sfactor));
+      PetscCall(RGPushScale(pep->rg,1.0/pep->sfactor));
     }
     if (pep->sfactor!=1.0) {
       for (i=0;i<pep->nmat;i++) {
@@ -345,11 +345,11 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     }
   }
 
-  CHKERRQ(EPSSetOperators(ctx->eps,ctx->A,ctx->B));
-  CHKERRQ(EPSGetProblemType(ctx->eps,&ptype));
+  PetscCall(EPSSetOperators(ctx->eps,ctx->A,ctx->B));
+  PetscCall(EPSGetProblemType(ctx->eps,&ptype));
   if (!ptype) {
-    if (ctx->explicitmatrix) CHKERRQ(EPSSetProblemType(ctx->eps,EPS_GNHEP));
-    else CHKERRQ(EPSSetProblemType(ctx->eps,EPS_NHEP));
+    if (ctx->explicitmatrix) PetscCall(EPSSetProblemType(ctx->eps,EPS_GNHEP));
+    else PetscCall(EPSSetProblemType(ctx->eps,EPS_NHEP));
   }
   if (!ctx->usereps) {
     if (transf) which = EPS_LARGEST_MAGNITUDE;
@@ -366,58 +366,58 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
         case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
         case PEP_ALL:                which = EPS_ALL; break;
         case PEP_WHICH_USER:         which = EPS_WHICH_USER;
-          CHKERRQ(EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx));
+          PetscCall(EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx));
           break;
       }
     }
-    CHKERRQ(EPSSetWhichEigenpairs(ctx->eps,which));
+    PetscCall(EPSSetWhichEigenpairs(ctx->eps,which));
 
-    CHKERRQ(EPSSetDimensions(ctx->eps,pep->nev,pep->ncv,pep->mpd));
-    CHKERRQ(EPSSetTolerances(ctx->eps,SlepcDefaultTol(pep->tol),pep->max_it));
+    PetscCall(EPSSetDimensions(ctx->eps,pep->nev,pep->ncv,pep->mpd));
+    PetscCall(EPSSetTolerances(ctx->eps,SlepcDefaultTol(pep->tol),pep->max_it));
   }
-  CHKERRQ(RGIsTrivial(pep->rg,&istrivial));
+  PetscCall(RGIsTrivial(pep->rg,&istrivial));
   if (!istrivial) {
     PetscCheck(!transf,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPLINEAR does not support a nontrivial region with st-transform");
-    CHKERRQ(EPSSetRG(ctx->eps,pep->rg));
+    PetscCall(EPSSetRG(ctx->eps,pep->rg));
   }
   /* Transfer the trackall option from pep to eps */
-  CHKERRQ(PEPGetTrackAll(pep,&trackall));
-  CHKERRQ(EPSSetTrackAll(ctx->eps,trackall));
+  PetscCall(PEPGetTrackAll(pep,&trackall));
+  PetscCall(EPSSetTrackAll(ctx->eps,trackall));
 
   /* temporary change of target */
   if (pep->sfactor!=1.0) {
-    CHKERRQ(EPSGetTarget(ctx->eps,&sigma));
-    CHKERRQ(EPSSetTarget(ctx->eps,sigma/pep->sfactor));
+    PetscCall(EPSGetTarget(ctx->eps,&sigma));
+    PetscCall(EPSSetTarget(ctx->eps,sigma/pep->sfactor));
   }
 
   /* process initial vector */
   if (pep->nini<0) {
-    CHKERRQ(VecCreateMPI(PetscObjectComm((PetscObject)ctx->eps),deg*pep->nloc,deg*pep->n,&veps));
-    CHKERRQ(VecGetArray(veps,&epsarray));
+    PetscCall(VecCreateMPI(PetscObjectComm((PetscObject)ctx->eps),deg*pep->nloc,deg*pep->n,&veps));
+    PetscCall(VecGetArray(veps,&epsarray));
     for (i=0;i<deg;i++) {
       if (i<-pep->nini) {
-        CHKERRQ(VecGetArray(pep->IS[i],&peparray));
-        CHKERRQ(PetscArraycpy(epsarray+i*pep->nloc,peparray,pep->nloc));
-        CHKERRQ(VecRestoreArray(pep->IS[i],&peparray));
+        PetscCall(VecGetArray(pep->IS[i],&peparray));
+        PetscCall(PetscArraycpy(epsarray+i*pep->nloc,peparray,pep->nloc));
+        PetscCall(VecRestoreArray(pep->IS[i],&peparray));
       } else {
-        if (!w) CHKERRQ(VecDuplicate(pep->IS[0],&w));
-        CHKERRQ(VecSetRandom(w,NULL));
-        CHKERRQ(VecGetArray(w,&peparray));
-        CHKERRQ(PetscArraycpy(epsarray+i*pep->nloc,peparray,pep->nloc));
-        CHKERRQ(VecRestoreArray(w,&peparray));
+        if (!w) PetscCall(VecDuplicate(pep->IS[0],&w));
+        PetscCall(VecSetRandom(w,NULL));
+        PetscCall(VecGetArray(w,&peparray));
+        PetscCall(PetscArraycpy(epsarray+i*pep->nloc,peparray,pep->nloc));
+        PetscCall(VecRestoreArray(w,&peparray));
       }
     }
-    CHKERRQ(VecRestoreArray(veps,&epsarray));
-    CHKERRQ(EPSSetInitialSpace(ctx->eps,1,&veps));
-    CHKERRQ(VecDestroy(&veps));
-    CHKERRQ(VecDestroy(&w));
-    CHKERRQ(SlepcBasisDestroy_Private(&pep->nini,&pep->IS));
+    PetscCall(VecRestoreArray(veps,&epsarray));
+    PetscCall(EPSSetInitialSpace(ctx->eps,1,&veps));
+    PetscCall(VecDestroy(&veps));
+    PetscCall(VecDestroy(&w));
+    PetscCall(SlepcBasisDestroy_Private(&pep->nini,&pep->IS));
   }
 
-  CHKERRQ(EPSSetUp(ctx->eps));
-  CHKERRQ(EPSGetDimensions(ctx->eps,NULL,&pep->ncv,&pep->mpd));
-  CHKERRQ(EPSGetTolerances(ctx->eps,NULL,&pep->max_it));
-  CHKERRQ(PEPAllocateSolution(pep,0));
+  PetscCall(EPSSetUp(ctx->eps));
+  PetscCall(EPSGetDimensions(ctx->eps,NULL,&pep->ncv,&pep->mpd));
+  PetscCall(EPSGetTolerances(ctx->eps,NULL,&pep->max_it));
+  PetscCall(PEPAllocateSolution(pep,0));
   PetscFunctionReturn(0);
 }
 
@@ -446,74 +446,74 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
 
   PetscFunctionBegin;
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PEPSetWorkVecs(pep,2));
+  PetscCall(PEPSetWorkVecs(pep,2));
 #else
-  CHKERRQ(PEPSetWorkVecs(pep,4));
+  PetscCall(PEPSetWorkVecs(pep,4));
 #endif
-  CHKERRQ(EPSGetOperators(eps,&A,NULL));
-  CHKERRQ(MatCreateVecs(A,&xr,NULL));
-  CHKERRQ(MatCreateVecsEmpty(pep->A[0],&wr,NULL));
+  PetscCall(EPSGetOperators(eps,&A,NULL));
+  PetscCall(MatCreateVecs(A,&xr,NULL));
+  PetscCall(MatCreateVecsEmpty(pep->A[0],&wr,NULL));
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(VecDuplicate(xr,&xi));
-  CHKERRQ(VecDuplicateEmpty(wr,&wi));
+  PetscCall(VecDuplicate(xr,&xi));
+  PetscCall(VecDuplicateEmpty(wr,&wi));
 #endif
   for (i=0;i<pep->nconv;i++) {
-    CHKERRQ(EPSGetEigenpair(eps,i,NULL,NULL,xr,xi));
+    PetscCall(EPSGetEigenpair(eps,i,NULL,NULL,xr,xi));
 #if !defined(PETSC_USE_COMPLEX)
     if (ei[i]!=0.0) {   /* complex conjugate pair */
-      CHKERRQ(VecGetArrayRead(xr,&px));
-      CHKERRQ(VecGetArrayRead(xi,&py));
-      CHKERRQ(VecPlaceArray(wr,px));
-      CHKERRQ(VecPlaceArray(wi,py));
-      CHKERRQ(VecNormalizeComplex(wr,wi,PETSC_TRUE,NULL));
-      CHKERRQ(PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,wi,pep->work,&rn1));
-      CHKERRQ(BVInsertVec(pep->V,i,wr));
-      CHKERRQ(BVInsertVec(pep->V,i+1,wi));
+      PetscCall(VecGetArrayRead(xr,&px));
+      PetscCall(VecGetArrayRead(xi,&py));
+      PetscCall(VecPlaceArray(wr,px));
+      PetscCall(VecPlaceArray(wi,py));
+      PetscCall(VecNormalizeComplex(wr,wi,PETSC_TRUE,NULL));
+      PetscCall(PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,wi,pep->work,&rn1));
+      PetscCall(BVInsertVec(pep->V,i,wr));
+      PetscCall(BVInsertVec(pep->V,i+1,wi));
       for (k=1;k<pep->nmat-1;k++) {
-        CHKERRQ(VecResetArray(wr));
-        CHKERRQ(VecResetArray(wi));
-        CHKERRQ(VecPlaceArray(wr,px+k*pep->nloc));
-        CHKERRQ(VecPlaceArray(wi,py+k*pep->nloc));
-        CHKERRQ(VecNormalizeComplex(wr,wi,PETSC_TRUE,NULL));
-        CHKERRQ(PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,wi,pep->work,&rn2));
+        PetscCall(VecResetArray(wr));
+        PetscCall(VecResetArray(wi));
+        PetscCall(VecPlaceArray(wr,px+k*pep->nloc));
+        PetscCall(VecPlaceArray(wi,py+k*pep->nloc));
+        PetscCall(VecNormalizeComplex(wr,wi,PETSC_TRUE,NULL));
+        PetscCall(PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,wi,pep->work,&rn2));
         if (rn1>rn2) {
-          CHKERRQ(BVInsertVec(pep->V,i,wr));
-          CHKERRQ(BVInsertVec(pep->V,i+1,wi));
+          PetscCall(BVInsertVec(pep->V,i,wr));
+          PetscCall(BVInsertVec(pep->V,i+1,wi));
           rn1 = rn2;
         }
       }
-      CHKERRQ(VecResetArray(wr));
-      CHKERRQ(VecResetArray(wi));
-      CHKERRQ(VecRestoreArrayRead(xr,&px));
-      CHKERRQ(VecRestoreArrayRead(xi,&py));
+      PetscCall(VecResetArray(wr));
+      PetscCall(VecResetArray(wi));
+      PetscCall(VecRestoreArrayRead(xr,&px));
+      PetscCall(VecRestoreArrayRead(xi,&py));
       i++;
     } else   /* real eigenvalue */
 #endif
     {
-      CHKERRQ(VecGetArrayRead(xr,&px));
-      CHKERRQ(VecPlaceArray(wr,px));
-      CHKERRQ(VecNormalizeComplex(wr,NULL,PETSC_FALSE,NULL));
-      CHKERRQ(PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,NULL,pep->work,&rn1));
-      CHKERRQ(BVInsertVec(pep->V,i,wr));
+      PetscCall(VecGetArrayRead(xr,&px));
+      PetscCall(VecPlaceArray(wr,px));
+      PetscCall(VecNormalizeComplex(wr,NULL,PETSC_FALSE,NULL));
+      PetscCall(PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,NULL,pep->work,&rn1));
+      PetscCall(BVInsertVec(pep->V,i,wr));
       for (k=1;k<pep->nmat-1;k++) {
-        CHKERRQ(VecResetArray(wr));
-        CHKERRQ(VecPlaceArray(wr,px+k*pep->nloc));
-        CHKERRQ(VecNormalizeComplex(wr,NULL,PETSC_FALSE,NULL));
-        CHKERRQ(PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,NULL,pep->work,&rn2));
+        PetscCall(VecResetArray(wr));
+        PetscCall(VecPlaceArray(wr,px+k*pep->nloc));
+        PetscCall(VecNormalizeComplex(wr,NULL,PETSC_FALSE,NULL));
+        PetscCall(PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,NULL,pep->work,&rn2));
         if (rn1>rn2) {
-          CHKERRQ(BVInsertVec(pep->V,i,wr));
+          PetscCall(BVInsertVec(pep->V,i,wr));
           rn1 = rn2;
         }
       }
-      CHKERRQ(VecResetArray(wr));
-      CHKERRQ(VecRestoreArrayRead(xr,&px));
+      PetscCall(VecResetArray(wr));
+      PetscCall(VecRestoreArrayRead(xr,&px));
     }
   }
-  CHKERRQ(VecDestroy(&wr));
-  CHKERRQ(VecDestroy(&xr));
+  PetscCall(VecDestroy(&wr));
+  PetscCall(VecDestroy(&xr));
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(VecDestroy(&wi));
-  CHKERRQ(VecDestroy(&xi));
+  PetscCall(VecDestroy(&wi));
+  PetscCall(VecDestroy(&xi));
 #endif
   PetscFunctionReturn(0);
 }
@@ -533,41 +533,41 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
 #endif
 
   PetscFunctionBegin;
-  CHKERRQ(EPSGetOperators(eps,&A,NULL));
-  CHKERRQ(MatCreateVecs(A,&xr,NULL));
+  PetscCall(EPSGetOperators(eps,&A,NULL));
+  PetscCall(MatCreateVecs(A,&xr,NULL));
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(VecDuplicate(xr,&xi));
+  PetscCall(VecDuplicate(xr,&xi));
 #endif
-  CHKERRQ(MatCreateVecsEmpty(pep->A[0],&w,NULL));
+  PetscCall(MatCreateVecsEmpty(pep->A[0],&w,NULL));
   for (i=0;i<pep->nconv;i++) {
-    CHKERRQ(EPSGetEigenvector(eps,i,xr,xi));
+    PetscCall(EPSGetEigenvector(eps,i,xr,xi));
 #if !defined(PETSC_USE_COMPLEX)
     if (ei[i]!=0.0) {   /* complex conjugate pair */
-      CHKERRQ(VecGetArrayRead(xr,&px));
-      CHKERRQ(VecPlaceArray(w,px));
-      CHKERRQ(BVInsertVec(pep->V,i,w));
-      CHKERRQ(VecResetArray(w));
-      CHKERRQ(VecRestoreArrayRead(xr,&px));
-      CHKERRQ(VecGetArrayRead(xi,&px));
-      CHKERRQ(VecPlaceArray(w,px));
-      CHKERRQ(BVInsertVec(pep->V,i+1,w));
-      CHKERRQ(VecResetArray(w));
-      CHKERRQ(VecRestoreArrayRead(xi,&px));
+      PetscCall(VecGetArrayRead(xr,&px));
+      PetscCall(VecPlaceArray(w,px));
+      PetscCall(BVInsertVec(pep->V,i,w));
+      PetscCall(VecResetArray(w));
+      PetscCall(VecRestoreArrayRead(xr,&px));
+      PetscCall(VecGetArrayRead(xi,&px));
+      PetscCall(VecPlaceArray(w,px));
+      PetscCall(BVInsertVec(pep->V,i+1,w));
+      PetscCall(VecResetArray(w));
+      PetscCall(VecRestoreArrayRead(xi,&px));
       i++;
     } else   /* real eigenvalue */
 #endif
     {
-      CHKERRQ(VecGetArrayRead(xr,&px));
-      CHKERRQ(VecPlaceArray(w,px));
-      CHKERRQ(BVInsertVec(pep->V,i,w));
-      CHKERRQ(VecResetArray(w));
-      CHKERRQ(VecRestoreArrayRead(xr,&px));
+      PetscCall(VecGetArrayRead(xr,&px));
+      PetscCall(VecPlaceArray(w,px));
+      PetscCall(BVInsertVec(pep->V,i,w));
+      PetscCall(VecResetArray(w));
+      PetscCall(VecRestoreArrayRead(xr,&px));
     }
   }
-  CHKERRQ(VecDestroy(&w));
-  CHKERRQ(VecDestroy(&xr));
+  PetscCall(VecDestroy(&w));
+  PetscCall(VecDestroy(&xr));
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(VecDestroy(&xi));
+  PetscCall(VecDestroy(&xi));
 #endif
   PetscFunctionReturn(0);
 }
@@ -593,43 +593,43 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
 #endif
 
   PetscFunctionBegin;
-  CHKERRQ(EPSGetOperators(eps,&A,NULL));
-  CHKERRQ(MatCreateVecs(A,&xr,NULL));
+  PetscCall(EPSGetOperators(eps,&A,NULL));
+  PetscCall(MatCreateVecs(A,&xr,NULL));
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(VecDuplicate(xr,&xi));
+  PetscCall(VecDuplicate(xr,&xi));
 #endif
-  CHKERRQ(MatCreateVecsEmpty(pep->A[0],&w,NULL));
+  PetscCall(MatCreateVecsEmpty(pep->A[0],&w,NULL));
   for (i=0;i<pep->nconv;i++) {
-    CHKERRQ(EPSGetEigenpair(eps,i,NULL,NULL,xr,xi));
+    PetscCall(EPSGetEigenpair(eps,i,NULL,NULL,xr,xi));
     if (SlepcAbsEigenvalue(er[i],ei[i])>1.0) offset = (pep->nmat-2)*pep->nloc;
     else offset = 0;
 #if !defined(PETSC_USE_COMPLEX)
     if (ei[i]!=0.0) {   /* complex conjugate pair */
-      CHKERRQ(VecGetArrayRead(xr,&px));
-      CHKERRQ(VecPlaceArray(w,px+offset));
-      CHKERRQ(BVInsertVec(pep->V,i,w));
-      CHKERRQ(VecResetArray(w));
-      CHKERRQ(VecRestoreArrayRead(xr,&px));
-      CHKERRQ(VecGetArrayRead(xi,&px));
-      CHKERRQ(VecPlaceArray(w,px+offset));
-      CHKERRQ(BVInsertVec(pep->V,i+1,w));
-      CHKERRQ(VecResetArray(w));
-      CHKERRQ(VecRestoreArrayRead(xi,&px));
+      PetscCall(VecGetArrayRead(xr,&px));
+      PetscCall(VecPlaceArray(w,px+offset));
+      PetscCall(BVInsertVec(pep->V,i,w));
+      PetscCall(VecResetArray(w));
+      PetscCall(VecRestoreArrayRead(xr,&px));
+      PetscCall(VecGetArrayRead(xi,&px));
+      PetscCall(VecPlaceArray(w,px+offset));
+      PetscCall(BVInsertVec(pep->V,i+1,w));
+      PetscCall(VecResetArray(w));
+      PetscCall(VecRestoreArrayRead(xi,&px));
       i++;
     } else /* real eigenvalue */
 #endif
     {
-      CHKERRQ(VecGetArrayRead(xr,&px));
-      CHKERRQ(VecPlaceArray(w,px+offset));
-      CHKERRQ(BVInsertVec(pep->V,i,w));
-      CHKERRQ(VecResetArray(w));
-      CHKERRQ(VecRestoreArrayRead(xr,&px));
+      PetscCall(VecGetArrayRead(xr,&px));
+      PetscCall(VecPlaceArray(w,px+offset));
+      PetscCall(BVInsertVec(pep->V,i,w));
+      PetscCall(VecResetArray(w));
+      PetscCall(VecRestoreArrayRead(xr,&px));
     }
   }
-  CHKERRQ(VecDestroy(&w));
-  CHKERRQ(VecDestroy(&xr));
+  PetscCall(VecDestroy(&w));
+  PetscCall(VecDestroy(&xr));
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(VecDestroy(&xi));
+  PetscCall(VecDestroy(&xi));
 #endif
   PetscFunctionReturn(0);
 }
@@ -641,13 +641,13 @@ PetscErrorCode PEPExtractVectors_Linear(PEP pep)
   PetscFunctionBegin;
   switch (pep->extract) {
   case PEP_EXTRACT_NONE:
-    CHKERRQ(PEPLinearExtract_None(pep,ctx->eps));
+    PetscCall(PEPLinearExtract_None(pep,ctx->eps));
     break;
   case PEP_EXTRACT_NORM:
-    CHKERRQ(PEPLinearExtract_Norm(pep,ctx->eps));
+    PetscCall(PEPLinearExtract_Norm(pep,ctx->eps));
     break;
   case PEP_EXTRACT_RESIDUAL:
-    CHKERRQ(PEPLinearExtract_Residual(pep,ctx->eps));
+    PetscCall(PEPLinearExtract_Residual(pep,ctx->eps));
     break;
   case PEP_EXTRACT_STRUCTURED:
     SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
@@ -663,33 +663,33 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   PetscInt       i;
 
   PetscFunctionBegin;
-  CHKERRQ(EPSSolve(ctx->eps));
-  CHKERRQ(EPSGetConverged(ctx->eps,&pep->nconv));
-  CHKERRQ(EPSGetIterationNumber(ctx->eps,&pep->its));
-  CHKERRQ(EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&pep->reason));
+  PetscCall(EPSSolve(ctx->eps));
+  PetscCall(EPSGetConverged(ctx->eps,&pep->nconv));
+  PetscCall(EPSGetIterationNumber(ctx->eps,&pep->its));
+  PetscCall(EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&pep->reason));
 
   /* recover eigenvalues */
   for (i=0;i<pep->nconv;i++) {
-    CHKERRQ(EPSGetEigenpair(ctx->eps,i,&pep->eigr[i],&pep->eigi[i],NULL,NULL));
+    PetscCall(EPSGetEigenpair(ctx->eps,i,&pep->eigr[i],&pep->eigi[i],NULL,NULL));
     pep->eigr[i] *= pep->sfactor;
     pep->eigi[i] *= pep->sfactor;
   }
 
   /* restore target */
-  CHKERRQ(EPSGetTarget(ctx->eps,&sigma));
-  CHKERRQ(EPSSetTarget(ctx->eps,sigma*pep->sfactor));
+  PetscCall(EPSGetTarget(ctx->eps,&sigma));
+  PetscCall(EPSSetTarget(ctx->eps,sigma*pep->sfactor));
 
-  CHKERRQ(STGetTransform(pep->st,&flg));
-  if (flg && pep->ops->backtransform) CHKERRQ((*pep->ops->backtransform)(pep));
+  PetscCall(STGetTransform(pep->st,&flg));
+  if (flg && pep->ops->backtransform) PetscCall((*pep->ops->backtransform)(pep));
   if (pep->sfactor!=1.0) {
     /* Restore original values */
     for (i=0;i<pep->nmat;i++) {
       pep->pbc[pep->nmat+i] *= pep->sfactor;
       pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
     }
-    if (!flg && !ctx->explicitmatrix) CHKERRQ(STScaleShift(pep->st,pep->sfactor));
+    if (!flg && !ctx->explicitmatrix) PetscCall(STScaleShift(pep->st,pep->sfactor));
   }
-  if (ctx->explicitmatrix || !flg) CHKERRQ(RGPopScale(pep->rg));
+  if (ctx->explicitmatrix || !flg) PetscCall(RGPopScale(pep->rg));
   PetscFunctionReturn(0);
 }
 
@@ -698,7 +698,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
   PEP            pep = (PEP)ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PEPMonitor(pep,its,nconv,eigr,eigi,errest,nest));
+  PetscCall(PEPMonitor(pep,its,nconv,eigr,eigi,errest,nest));
   PetscFunctionReturn(0);
 }
 
@@ -711,19 +711,19 @@ PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"PEP Linear Options"));
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"PEP Linear Options"));
 
     k = 2;
-    CHKERRQ(PetscOptionsRealArray("-pep_linear_linearization","Parameters of the linearization","PEPLinearSetLinearization",array,&k,&flg));
-    if (flg) CHKERRQ(PEPLinearSetLinearization(pep,array[0],array[1]));
+    PetscCall(PetscOptionsRealArray("-pep_linear_linearization","Parameters of the linearization","PEPLinearSetLinearization",array,&k,&flg));
+    if (flg) PetscCall(PEPLinearSetLinearization(pep,array[0],array[1]));
 
-    CHKERRQ(PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set));
-    if (set) CHKERRQ(PEPLinearSetExplicitMatrix(pep,val));
+    PetscCall(PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set));
+    if (set) PetscCall(PEPLinearSetExplicitMatrix(pep,val));
 
-  CHKERRQ(PetscOptionsTail());
+  PetscCall(PetscOptionsTail());
 
-  if (!ctx->eps) CHKERRQ(PEPLinearGetEPS(pep,&ctx->eps));
-  CHKERRQ(EPSSetFromOptions(ctx->eps));
+  if (!ctx->eps) PetscCall(PEPLinearGetEPS(pep,&ctx->eps));
+  PetscCall(EPSSetFromOptions(ctx->eps));
   PetscFunctionReturn(0);
 }
 
@@ -766,7 +766,7 @@ PetscErrorCode PEPLinearSetLinearization(PEP pep,PetscReal alpha,PetscReal beta)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,alpha,2);
   PetscValidLogicalCollectiveReal(pep,beta,3);
-  CHKERRQ(PetscTryMethod(pep,"PEPLinearSetLinearization_C",(PEP,PetscReal,PetscReal),(pep,alpha,beta)));
+  PetscCall(PetscTryMethod(pep,"PEPLinearSetLinearization_C",(PEP,PetscReal,PetscReal),(pep,alpha,beta)));
   PetscFunctionReturn(0);
 }
 
@@ -801,7 +801,7 @@ PetscErrorCode PEPLinearGetLinearization(PEP pep,PetscReal *alpha,PetscReal *bet
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  CHKERRQ(PetscUseMethod(pep,"PEPLinearGetLinearization_C",(PEP,PetscReal*,PetscReal*),(pep,alpha,beta)));
+  PetscCall(PetscUseMethod(pep,"PEPLinearGetLinearization_C",(PEP,PetscReal*,PetscReal*),(pep,alpha,beta)));
   PetscFunctionReturn(0);
 }
 
@@ -839,7 +839,7 @@ PetscErrorCode PEPLinearSetExplicitMatrix(PEP pep,PetscBool explicitmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,explicitmat,2);
-  CHKERRQ(PetscTryMethod(pep,"PEPLinearSetExplicitMatrix_C",(PEP,PetscBool),(pep,explicitmat)));
+  PetscCall(PetscTryMethod(pep,"PEPLinearSetExplicitMatrix_C",(PEP,PetscBool),(pep,explicitmat)));
   PetscFunctionReturn(0);
 }
 
@@ -873,7 +873,7 @@ PetscErrorCode PEPLinearGetExplicitMatrix(PEP pep,PetscBool *explicitmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(explicitmat,2);
-  CHKERRQ(PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmat)));
+  PetscCall(PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmat)));
   PetscFunctionReturn(0);
 }
 
@@ -882,11 +882,11 @@ static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectReference((PetscObject)eps));
-  CHKERRQ(EPSDestroy(&ctx->eps));
+  PetscCall(PetscObjectReference((PetscObject)eps));
+  PetscCall(EPSDestroy(&ctx->eps));
   ctx->eps = eps;
   ctx->usereps = PETSC_TRUE;
-  CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps));
+  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps));
   pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -911,7 +911,7 @@ PetscErrorCode PEPLinearSetEPS(PEP pep,EPS eps)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(pep,1,eps,2);
-  CHKERRQ(PetscTryMethod(pep,"PEPLinearSetEPS_C",(PEP,EPS),(pep,eps)));
+  PetscCall(PetscTryMethod(pep,"PEPLinearSetEPS_C",(PEP,EPS),(pep,eps)));
   PetscFunctionReturn(0);
 }
 
@@ -921,13 +921,13 @@ static PetscErrorCode PEPLinearGetEPS_Linear(PEP pep,EPS *eps)
 
   PetscFunctionBegin;
   if (!ctx->eps) {
-    CHKERRQ(EPSCreate(PetscObjectComm((PetscObject)pep),&ctx->eps));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)pep,1));
-    CHKERRQ(EPSSetOptionsPrefix(ctx->eps,((PetscObject)pep)->prefix));
-    CHKERRQ(EPSAppendOptionsPrefix(ctx->eps,"pep_linear_"));
-    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)ctx->eps,((PetscObject)pep)->options));
-    CHKERRQ(EPSMonitorSet(ctx->eps,EPSMonitor_Linear,pep,NULL));
+    PetscCall(EPSCreate(PetscObjectComm((PetscObject)pep),&ctx->eps));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)pep,1));
+    PetscCall(EPSSetOptionsPrefix(ctx->eps,((PetscObject)pep)->prefix));
+    PetscCall(EPSAppendOptionsPrefix(ctx->eps,"pep_linear_"));
+    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps));
+    PetscCall(PetscObjectSetOptions((PetscObject)ctx->eps,((PetscObject)pep)->options));
+    PetscCall(EPSMonitorSet(ctx->eps,EPSMonitor_Linear,pep,NULL));
   }
   *eps = ctx->eps;
   PetscFunctionReturn(0);
@@ -954,7 +954,7 @@ PetscErrorCode PEPLinearGetEPS(PEP pep,EPS *eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(eps,2);
-  CHKERRQ(PetscUseMethod(pep,"PEPLinearGetEPS_C",(PEP,EPS*),(pep,eps)));
+  PetscCall(PetscUseMethod(pep,"PEPLinearGetEPS_C",(PEP,EPS*),(pep,eps)));
   PetscFunctionReturn(0);
 }
 
@@ -964,14 +964,14 @@ PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    if (!ctx->eps) CHKERRQ(PEPLinearGetEPS(pep,&ctx->eps));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  %s matrices\n",ctx->explicitmatrix? "explicit": "implicit"));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  linearization parameters: alpha=%g beta=%g\n",(double)ctx->alpha,(double)ctx->beta));
-    CHKERRQ(PetscViewerASCIIPushTab(viewer));
-    CHKERRQ(EPSView(ctx->eps,viewer));
-    CHKERRQ(PetscViewerASCIIPopTab(viewer));
+    if (!ctx->eps) PetscCall(PEPLinearGetEPS(pep,&ctx->eps));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  %s matrices\n",ctx->explicitmatrix? "explicit": "implicit"));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  linearization parameters: alpha=%g beta=%g\n",(double)ctx->alpha,(double)ctx->beta));
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscCall(EPSView(ctx->eps,viewer));
+    PetscCall(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
@@ -981,15 +981,15 @@ PetscErrorCode PEPReset_Linear(PEP pep)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  if (!ctx->eps) CHKERRQ(EPSReset(ctx->eps));
-  CHKERRQ(MatDestroy(&ctx->A));
-  CHKERRQ(MatDestroy(&ctx->B));
-  CHKERRQ(VecDestroy(&ctx->w[0]));
-  CHKERRQ(VecDestroy(&ctx->w[1]));
-  CHKERRQ(VecDestroy(&ctx->w[2]));
-  CHKERRQ(VecDestroy(&ctx->w[3]));
-  CHKERRQ(VecDestroy(&ctx->w[4]));
-  CHKERRQ(VecDestroy(&ctx->w[5]));
+  if (!ctx->eps) PetscCall(EPSReset(ctx->eps));
+  PetscCall(MatDestroy(&ctx->A));
+  PetscCall(MatDestroy(&ctx->B));
+  PetscCall(VecDestroy(&ctx->w[0]));
+  PetscCall(VecDestroy(&ctx->w[1]));
+  PetscCall(VecDestroy(&ctx->w[2]));
+  PetscCall(VecDestroy(&ctx->w[3]));
+  PetscCall(VecDestroy(&ctx->w[4]));
+  PetscCall(VecDestroy(&ctx->w[5]));
   PetscFunctionReturn(0);
 }
 
@@ -998,14 +998,14 @@ PetscErrorCode PEPDestroy_Linear(PEP pep)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  CHKERRQ(EPSDestroy(&ctx->eps));
-  CHKERRQ(PetscFree(pep->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetLinearization_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetLinearization_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetEPS_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetEPS_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetExplicitMatrix_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetExplicitMatrix_C",NULL));
+  PetscCall(EPSDestroy(&ctx->eps));
+  PetscCall(PetscFree(pep->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetLinearization_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetLinearization_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetEPS_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetEPS_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetExplicitMatrix_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetExplicitMatrix_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -1014,7 +1014,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
   PEP_LINEAR     *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(pep,&ctx));
+  PetscCall(PetscNewLog(pep,&ctx));
   pep->data = (void*)ctx;
 
   pep->lineariz       = PETSC_TRUE;
@@ -1032,11 +1032,11 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
   pep->ops->computevectors = PEPComputeVectors_Default;
   pep->ops->extractvectors = PEPExtractVectors_Linear;
 
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetLinearization_C",PEPLinearSetLinearization_Linear));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetLinearization_C",PEPLinearGetLinearization_Linear));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetEPS_C",PEPLinearSetEPS_Linear));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetEPS_C",PEPLinearGetEPS_Linear));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetExplicitMatrix_C",PEPLinearSetExplicitMatrix_Linear));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetExplicitMatrix_C",PEPLinearGetExplicitMatrix_Linear));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetLinearization_C",PEPLinearSetLinearization_Linear));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetLinearization_C",PEPLinearGetLinearization_Linear));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetEPS_C",PEPLinearSetEPS_Linear));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetEPS_C",PEPLinearGetEPS_Linear));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetExplicitMatrix_C",PEPLinearSetExplicitMatrix_Linear));
+  PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetExplicitMatrix_C",PEPLinearGetExplicitMatrix_Linear));
   PetscFunctionReturn(0);
 }

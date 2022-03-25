@@ -26,7 +26,7 @@ PetscErrorCode LMERegisterAll(void)
   PetscFunctionBegin;
   if (LMERegisterAllCalled) PetscFunctionReturn(0);
   LMERegisterAllCalled = PETSC_TRUE;
-  CHKERRQ(LMERegister(LMEKRYLOV,LMECreate_Krylov));
+  PetscCall(LMERegister(LMEKRYLOV,LMECreate_Krylov));
   PetscFunctionReturn(0);
 }
 
@@ -45,7 +45,7 @@ PetscErrorCode LMEMonitorRegisterAll(void)
   if (LMEMonitorRegisterAllCalled) PetscFunctionReturn(0);
   LMEMonitorRegisterAllCalled = PETSC_TRUE;
 
-  CHKERRQ(LMEMonitorRegister("error_estimate",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,LMEMonitorDefault,NULL,NULL));
-  CHKERRQ(LMEMonitorRegister("error_estimate",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,LMEMonitorDefaultDrawLG,LMEMonitorDefaultDrawLGCreate,NULL));
+  PetscCall(LMEMonitorRegister("error_estimate",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,LMEMonitorDefault,NULL,NULL));
+  PetscCall(LMEMonitorRegister("error_estimate",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,LMEMonitorDefaultDrawLG,LMEMonitorDefaultDrawLGCreate,NULL));
   PetscFunctionReturn(0);
 }

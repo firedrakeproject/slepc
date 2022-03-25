@@ -39,29 +39,29 @@ int main(int argc,char **argv)
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
   PetscReal      sigma_1,sigma_n;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
-    if (i==0) CHKERRQ(MatSetValues(A,1,&i,PetscMin(4,N-i),col+1,value+1,INSERT_VALUES));
-    else CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
+    if (i==0) PetscCall(MatSetValues(A,1,&i,PetscMin(4,N-i),col+1,value+1,INSERT_VALUES));
+    else PetscCall(MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the singular value solver and set the solution method
@@ -70,18 +70,18 @@ int main(int argc,char **argv)
   /*
      Create singular value context
   */
-  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
 
   /*
      Set operator
   */
-  CHKERRQ(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetOperators(svd,A,NULL));
 
   /*
      Set solver parameters at runtime
   */
-  CHKERRQ(SVDSetFromOptions(svd));
-  CHKERRQ(SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(SVDSetFromOptions(svd));
+  PetscCall(SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the singular value problem
@@ -90,49 +90,49 @@ int main(int argc,char **argv)
   /*
      First request a singular value from one end of the spectrum
   */
-  CHKERRQ(SVDSetWhichSingularTriplets(svd,SVD_LARGEST));
-  CHKERRQ(SVDSolve(svd));
+  PetscCall(SVDSetWhichSingularTriplets(svd,SVD_LARGEST));
+  PetscCall(SVDSolve(svd));
   /*
      Get number of converged singular values
   */
-  CHKERRQ(SVDGetConverged(svd,&nconv1));
+  PetscCall(SVDGetConverged(svd,&nconv1));
   /*
      Get converged singular values: largest singular value is stored in sigma_1.
      In this example, we are not interested in the singular vectors
   */
-  if (nconv1 > 0) CHKERRQ(SVDGetSingularTriplet(svd,0,&sigma_1,NULL,NULL));
-  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Unable to compute large singular value!\n\n"));
+  if (nconv1 > 0) PetscCall(SVDGetSingularTriplet(svd,0,&sigma_1,NULL,NULL));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD," Unable to compute large singular value!\n\n"));
 
   /*
      Request a singular value from the other end of the spectrum
   */
-  CHKERRQ(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
-  CHKERRQ(SVDSolve(svd));
+  PetscCall(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
+  PetscCall(SVDSolve(svd));
   /*
      Get number of converged singular triplets
   */
-  CHKERRQ(SVDGetConverged(svd,&nconv2));
+  PetscCall(SVDGetConverged(svd,&nconv2));
   /*
      Get converged singular values: smallest singular value is stored in sigma_n.
      As before, we are not interested in the singular vectors
   */
-  if (nconv2 > 0) CHKERRQ(SVDGetSingularTriplet(svd,0,&sigma_n,NULL,NULL));
-  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Unable to compute small singular value!\n\n"));
+  if (nconv2 > 0) PetscCall(SVDGetSingularTriplet(svd,0,&sigma_n,NULL,NULL));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD," Unable to compute small singular value!\n\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (nconv1 > 0 && nconv2 > 0) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%.4f, sigma_n=%.4f\n",(double)sigma_1,(double)sigma_n));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%.4f\n\n",(double)(sigma_1/sigma_n)));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%.4f, sigma_n=%.4f\n",(double)sigma_1,(double)sigma_n));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%.4f\n\n",(double)(sigma_1/sigma_n)));
   }
 
   /*
      Free work space
   */
-  CHKERRQ(SVDDestroy(&svd));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

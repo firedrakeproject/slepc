@@ -24,17 +24,17 @@ static PetscErrorCode BVBiorthogonalizeMGS1(BV V,BV W,Vec v,PetscScalar *h,Petsc
 
   PetscFunctionBegin;
   for (i=-V->nc;i<V->k;i++) {
-    CHKERRQ(BVGetColumn(W,i,&wi));
+    PetscCall(BVGetColumn(W,i,&wi));
     /* h_i = (v, w_i) */
-    CHKERRQ(VecDot(v,wi,&dot));
-    CHKERRQ(BVRestoreColumn(W,i,&wi));
+    PetscCall(VecDot(v,wi,&dot));
+    PetscCall(BVRestoreColumn(W,i,&wi));
     /* v <- v - h_i v_i */
-    CHKERRQ(BV_SetValue(V,i,0,c,dot));
-    CHKERRQ(BVGetColumn(V,i,&vi));
-    CHKERRQ(VecAXPY(v,-dot,vi));
-    CHKERRQ(BVRestoreColumn(V,i,&vi));
+    PetscCall(BV_SetValue(V,i,0,c,dot));
+    PetscCall(BVGetColumn(V,i,&vi));
+    PetscCall(VecAXPY(v,-dot,vi));
+    PetscCall(BVRestoreColumn(V,i,&vi));
   }
-  CHKERRQ(BV_AddCoefficients(V,V->k,h,c));
+  PetscCall(BV_AddCoefficients(V,V->k,h,c));
   PetscFunctionReturn(0);
 }
 
@@ -45,12 +45,12 @@ static PetscErrorCode BVBiorthogonalizeCGS1(BV V,BV W,Vec v,PetscScalar *h,Petsc
 {
   PetscFunctionBegin;
   /* h = W'*v */
-  CHKERRQ(BVDotVec(W,v,c));
+  PetscCall(BVDotVec(W,v,c));
 
   /* v = v - V h */
-  CHKERRQ(BVMultVec(V,-1.0,1.0,v,c));
+  PetscCall(BVMultVec(V,-1.0,1.0,v,c));
 
-  CHKERRQ(BV_AddCoefficients(V,V->k,h,c));
+  PetscCall(BV_AddCoefficients(V,V->k,h,c));
   PetscFunctionReturn(0);
 }
 
@@ -69,9 +69,9 @@ static PetscErrorCode BVBiorthogonalizeGS(BV V,BV W,Vec v)
   PetscFunctionBegin;
   h = V->h;
   c = V->c;
-  CHKERRQ(BV_CleanCoefficients(V,V->k,h));
-  CHKERRQ(BVBiorthogonalizeGS1(V,W,v,h,c));
-  if (V->orthog_ref!=BV_ORTHOG_REFINE_NEVER) CHKERRQ(BVBiorthogonalizeGS1(V,W,v,h,c));
+  PetscCall(BV_CleanCoefficients(V,V->k,h));
+  PetscCall(BVBiorthogonalizeGS1(V,W,v,h,c));
+  if (V->orthog_ref!=BV_ORTHOG_REFINE_NEVER) PetscCall(BVBiorthogonalizeGS1(V,W,v,h,c));
   PetscFunctionReturn(0);
 }
 
@@ -116,7 +116,7 @@ PetscErrorCode BVBiorthogonalizeColumn(BV V,BV W,PetscInt j)
   PetscCheck(!V->ops->gramschmidt && !W->ops->gramschmidt,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Object has a special GS function");
 
   /* bi-orthogonalize */
-  CHKERRQ(PetscLogEventBegin(BV_OrthogonalizeVec,V,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_OrthogonalizeVec,V,0,0,0));
   ksavev = V->k;
   lsavev = V->l;
   ksavew = W->k;
@@ -125,21 +125,21 @@ PetscErrorCode BVBiorthogonalizeColumn(BV V,BV W,PetscInt j)
   V->l = -V->nc;  /* must also bi-orthogonalize against constraints and leading columns */
   W->k = j;
   W->l = -W->nc;
-  CHKERRQ(BV_AllocateCoeffs(V));
-  CHKERRQ(BV_AllocateCoeffs(W));
-  CHKERRQ(BVGetColumn(V,j,&y));
-  CHKERRQ(BVBiorthogonalizeGS(V,W,y));
-  CHKERRQ(BVRestoreColumn(V,j,&y));
-  CHKERRQ(BVGetColumn(W,j,&z));
-  CHKERRQ(BVBiorthogonalizeGS(W,V,z));
-  CHKERRQ(BVRestoreColumn(W,j,&z));
+  PetscCall(BV_AllocateCoeffs(V));
+  PetscCall(BV_AllocateCoeffs(W));
+  PetscCall(BVGetColumn(V,j,&y));
+  PetscCall(BVBiorthogonalizeGS(V,W,y));
+  PetscCall(BVRestoreColumn(V,j,&y));
+  PetscCall(BVGetColumn(W,j,&z));
+  PetscCall(BVBiorthogonalizeGS(W,V,z));
+  PetscCall(BVRestoreColumn(W,j,&z));
   V->k = ksavev;
   V->l = lsavev;
   W->k = ksavew;
   W->l = lsavew;
-  CHKERRQ(PetscLogEventEnd(BV_OrthogonalizeVec,V,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)W));
+  PetscCall(PetscLogEventEnd(BV_OrthogonalizeVec,V,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscObjectStateIncrease((PetscObject)W));
   PetscFunctionReturn(0);
 }
 
@@ -190,7 +190,7 @@ PetscErrorCode BVBiorthonormalizeColumn(BV V,BV W,PetscInt j,PetscReal *delta)
   PetscCheck(!V->ops->gramschmidt && !W->ops->gramschmidt,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Object has a special GS function");
 
   /* bi-orthogonalize */
-  CHKERRQ(PetscLogEventBegin(BV_OrthogonalizeVec,V,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_OrthogonalizeVec,V,0,0,0));
   ksavev = V->k;
   lsavev = V->l;
   ksavew = W->k;
@@ -199,33 +199,33 @@ PetscErrorCode BVBiorthonormalizeColumn(BV V,BV W,PetscInt j,PetscReal *delta)
   V->l = -V->nc;  /* must also bi-orthogonalize against constraints and leading columns */
   W->k = j;
   W->l = -W->nc;
-  CHKERRQ(BV_AllocateCoeffs(V));
-  CHKERRQ(BV_AllocateCoeffs(W));
-  CHKERRQ(BVGetColumn(V,j,&y));
-  CHKERRQ(BVBiorthogonalizeGS(V,W,y));
-  CHKERRQ(BVRestoreColumn(V,j,&y));
-  CHKERRQ(BVGetColumn(W,j,&z));
-  CHKERRQ(BVBiorthogonalizeGS(W,V,z));
-  CHKERRQ(BVRestoreColumn(W,j,&z));
+  PetscCall(BV_AllocateCoeffs(V));
+  PetscCall(BV_AllocateCoeffs(W));
+  PetscCall(BVGetColumn(V,j,&y));
+  PetscCall(BVBiorthogonalizeGS(V,W,y));
+  PetscCall(BVRestoreColumn(V,j,&y));
+  PetscCall(BVGetColumn(W,j,&z));
+  PetscCall(BVBiorthogonalizeGS(W,V,z));
+  PetscCall(BVRestoreColumn(W,j,&z));
   V->k = ksavev;
   V->l = lsavev;
   W->k = ksavew;
   W->l = lsavew;
-  CHKERRQ(PetscLogEventEnd(BV_OrthogonalizeVec,V,0,0,0));
+  PetscCall(PetscLogEventEnd(BV_OrthogonalizeVec,V,0,0,0));
 
   /* scale */
-  CHKERRQ(PetscLogEventBegin(BV_Scale,V,0,0,0));
-  CHKERRQ(BVGetColumn(V,j,&y));
-  CHKERRQ(BVGetColumn(W,j,&z));
-  CHKERRQ(VecDot(z,y,&alpha));
-  CHKERRQ(BVRestoreColumn(V,j,&y));
-  CHKERRQ(BVRestoreColumn(W,j,&z));
+  PetscCall(PetscLogEventBegin(BV_Scale,V,0,0,0));
+  PetscCall(BVGetColumn(V,j,&y));
+  PetscCall(BVGetColumn(W,j,&z));
+  PetscCall(VecDot(z,y,&alpha));
+  PetscCall(BVRestoreColumn(V,j,&y));
+  PetscCall(BVRestoreColumn(W,j,&z));
   deltat = PetscSqrtReal(PetscAbsScalar(alpha));
-  if (V->n) CHKERRQ((*V->ops->scale)(V,j,1.0/PetscConj(alpha/deltat)));
-  if (W->n) CHKERRQ((*W->ops->scale)(W,j,1.0/deltat));
-  CHKERRQ(PetscLogEventEnd(BV_Scale,V,0,0,0));
+  if (V->n) PetscCall((*V->ops->scale)(V,j,1.0/PetscConj(alpha/deltat)));
+  if (W->n) PetscCall((*W->ops->scale)(W,j,1.0/deltat));
+  PetscCall(PetscLogEventEnd(BV_Scale,V,0,0,0));
   if (delta) *delta = deltat;
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)W));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscObjectStateIncrease((PetscObject)W));
   PetscFunctionReturn(0);
 }

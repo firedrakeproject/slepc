@@ -28,9 +28,9 @@ PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
   ST_MATSHELL    *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(A,&ctx));
+  PetscCall(MatShellGetContext(A,&ctx));
   ctx->alpha = alpha;
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)A));
+  PetscCall(PetscObjectStateIncrease((PetscObject)A));
   PetscFunctionReturn(0);
 }
 
@@ -46,18 +46,18 @@ static PetscErrorCode MatMult_Shell(Mat A,Vec x,Vec y)
   PetscScalar    t=1.0,c;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(A,&ctx));
+  PetscCall(MatShellGetContext(A,&ctx));
   st = ctx->st;
-  CHKERRQ(MatMult(st->A[ctx->matIdx[0]],x,y));
-  if (ctx->coeffs && ctx->coeffs[0]!=1.0) CHKERRQ(VecScale(y,ctx->coeffs[0]));
+  PetscCall(MatMult(st->A[ctx->matIdx[0]],x,y));
+  if (ctx->coeffs && ctx->coeffs[0]!=1.0) PetscCall(VecScale(y,ctx->coeffs[0]));
   if (ctx->alpha!=0.0) {
     for (i=1;i<ctx->nmat;i++) {
-      CHKERRQ(MatMult(st->A[ctx->matIdx[i]],x,ctx->z));
+      PetscCall(MatMult(st->A[ctx->matIdx[i]],x,ctx->z));
       t *= ctx->alpha;
       c = (ctx->coeffs)?t*ctx->coeffs[i]:t;
-      CHKERRQ(VecAXPY(y,c,ctx->z));
+      PetscCall(VecAXPY(y,c,ctx->z));
     }
-    if (ctx->nmat==1) CHKERRQ(VecAXPY(y,ctx->alpha,x)); /* y = (A + alpha*I) x */
+    if (ctx->nmat==1) PetscCall(VecAXPY(y,ctx->alpha,x)); /* y = (A + alpha*I) x */
   }
   PetscFunctionReturn(0);
 }
@@ -70,18 +70,18 @@ static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
   PetscScalar    t=1.0,c;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(A,&ctx));
+  PetscCall(MatShellGetContext(A,&ctx));
   st = ctx->st;
-  CHKERRQ(MatMultTranspose(st->A[ctx->matIdx[0]],x,y));
-  if (ctx->coeffs && ctx->coeffs[0]!=1.0) CHKERRQ(VecScale(y,ctx->coeffs[0]));
+  PetscCall(MatMultTranspose(st->A[ctx->matIdx[0]],x,y));
+  if (ctx->coeffs && ctx->coeffs[0]!=1.0) PetscCall(VecScale(y,ctx->coeffs[0]));
   if (ctx->alpha!=0.0) {
     for (i=1;i<ctx->nmat;i++) {
-      CHKERRQ(MatMultTranspose(st->A[ctx->matIdx[i]],x,ctx->z));
+      PetscCall(MatMultTranspose(st->A[ctx->matIdx[i]],x,ctx->z));
       t *= ctx->alpha;
       c = (ctx->coeffs)?t*ctx->coeffs[i]:t;
-      CHKERRQ(VecAXPY(y,c,ctx->z));
+      PetscCall(VecAXPY(y,c,ctx->z));
     }
-    if (ctx->nmat==1) CHKERRQ(VecAXPY(y,ctx->alpha,x)); /* y = (A + alpha*I) x */
+    if (ctx->nmat==1) PetscCall(VecAXPY(y,ctx->alpha,x)); /* y = (A + alpha*I) x */
   }
   PetscFunctionReturn(0);
 }
@@ -95,21 +95,21 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
   PetscScalar    t=1.0,c;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(A,&ctx));
+  PetscCall(MatShellGetContext(A,&ctx));
   st = ctx->st;
-  CHKERRQ(MatGetDiagonal(st->A[ctx->matIdx[0]],diag));
-  if (ctx->coeffs && ctx->coeffs[0]!=1.0) CHKERRQ(VecScale(diag,ctx->coeffs[0]));
+  PetscCall(MatGetDiagonal(st->A[ctx->matIdx[0]],diag));
+  if (ctx->coeffs && ctx->coeffs[0]!=1.0) PetscCall(VecScale(diag,ctx->coeffs[0]));
   if (ctx->alpha!=0.0) {
-    if (ctx->nmat==1) CHKERRQ(VecShift(diag,ctx->alpha)); /* y = (A + alpha*I) x */
+    if (ctx->nmat==1) PetscCall(VecShift(diag,ctx->alpha)); /* y = (A + alpha*I) x */
     else {
-      CHKERRQ(VecDuplicate(diag,&diagb));
+      PetscCall(VecDuplicate(diag,&diagb));
       for (i=1;i<ctx->nmat;i++) {
-        CHKERRQ(MatGetDiagonal(st->A[ctx->matIdx[i]],diagb));
+        PetscCall(MatGetDiagonal(st->A[ctx->matIdx[i]],diagb));
         t *= ctx->alpha;
         c = (ctx->coeffs)?t*ctx->coeffs[i]:t;
-        CHKERRQ(VecAYPX(diag,c,diagb));
+        PetscCall(VecAYPX(diag,c,diagb));
       }
-      CHKERRQ(VecDestroy(&diagb));
+      PetscCall(VecDestroy(&diagb));
     }
   }
   PetscFunctionReturn(0);
@@ -120,11 +120,11 @@ static PetscErrorCode MatDestroy_Shell(Mat A)
   ST_MATSHELL    *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(VecDestroy(&ctx->z));
-  CHKERRQ(PetscFree(ctx->matIdx));
-  CHKERRQ(PetscFree(ctx->coeffs));
-  CHKERRQ(PetscFree(ctx));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(VecDestroy(&ctx->z));
+  PetscCall(PetscFree(ctx->matIdx));
+  PetscCall(PetscFree(ctx->coeffs));
+  PetscCall(PetscFree(ctx));
   PetscFunctionReturn(0);
 }
 
@@ -135,13 +135,13 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   ST_MATSHELL    *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(st->A[0],&M,&N));
-  CHKERRQ(MatGetLocalSize(st->A[0],&m,&n));
-  CHKERRQ(PetscNew(&ctx));
+  PetscCall(MatGetSize(st->A[0],&M,&N));
+  PetscCall(MatGetLocalSize(st->A[0],&m,&n));
+  PetscCall(PetscNew(&ctx));
   ctx->st = st;
   ctx->alpha = alpha;
   ctx->nmat = matIdx?nmat:st->nmat;
-  CHKERRQ(PetscMalloc1(ctx->nmat,&ctx->matIdx));
+  PetscCall(PetscMalloc1(ctx->nmat,&ctx->matIdx));
   if (matIdx) {
     for (i=0;i<ctx->nmat;i++) ctx->matIdx[i] = matIdx[i];
   } else {
@@ -149,23 +149,23 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
     if (ctx->nmat>1) ctx->matIdx[1] = 1;
   }
   if (coeffs) {
-    CHKERRQ(PetscMalloc1(ctx->nmat,&ctx->coeffs));
+    PetscCall(PetscMalloc1(ctx->nmat,&ctx->coeffs));
     for (i=0;i<ctx->nmat;i++) ctx->coeffs[i] = coeffs[i];
   }
-  CHKERRQ(MatCreateVecs(st->A[0],&ctx->z,NULL));
-  CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,(void*)ctx,mat));
-  CHKERRQ(MatShellSetOperation(*mat,MATOP_MULT,(void(*)(void))MatMult_Shell));
-  CHKERRQ(MatShellSetOperation(*mat,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell));
-  CHKERRQ(MatShellSetOperation(*mat,MATOP_DESTROY,(void(*)(void))MatDestroy_Shell));
+  PetscCall(MatCreateVecs(st->A[0],&ctx->z,NULL));
+  PetscCall(MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,(void*)ctx,mat));
+  PetscCall(MatShellSetOperation(*mat,MATOP_MULT,(void(*)(void))MatMult_Shell));
+  PetscCall(MatShellSetOperation(*mat,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell));
+  PetscCall(MatShellSetOperation(*mat,MATOP_DESTROY,(void(*)(void))MatDestroy_Shell));
 
-  CHKERRQ(MatHasOperation(st->A[ctx->matIdx[0]],MATOP_GET_DIAGONAL,&hasA));
+  PetscCall(MatHasOperation(st->A[ctx->matIdx[0]],MATOP_GET_DIAGONAL,&hasA));
   if (st->nmat>1) {
     has = hasA;
     for (i=1;i<ctx->nmat;i++) {
-      CHKERRQ(MatHasOperation(st->A[ctx->matIdx[i]],MATOP_GET_DIAGONAL,&hasB));
+      PetscCall(MatHasOperation(st->A[ctx->matIdx[i]],MATOP_GET_DIAGONAL,&hasB));
       has = (has && hasB)? PETSC_TRUE: PETSC_FALSE;
     }
   }
-  if ((hasA && st->nmat==1) || has) CHKERRQ(MatShellSetOperation(*mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Shell));
+  if ((hasA && st->nmat==1) || has) PetscCall(MatShellSetOperation(*mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Shell));
   PetscFunctionReturn(0);
 }

@@ -18,38 +18,38 @@ int main(int argc,char **argv)
   PetscScalar    x,y,yp,tau,eta;
   char           strx[50],str[50];
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fn));
 
   /* plain logarithm log(x) */
-  CHKERRQ(FNSetType(fn,FNLOG));
-  CHKERRQ(FNView(fn,NULL));
+  PetscCall(FNSetType(fn,FNLOG));
+  PetscCall(FNView(fn,NULL));
   x = 2.2;
-  CHKERRQ(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
-  CHKERRQ(FNEvaluateFunction(fn,x,&y));
-  CHKERRQ(FNEvaluateDerivative(fn,x,&yp));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
+  PetscCall(FNEvaluateFunction(fn,x,&y));
+  PetscCall(FNEvaluateDerivative(fn,x,&yp));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
 
   /* logarithm with scaling factors eta*log(tau*x) */
-  CHKERRQ(FNSetType(fn,FNLOG));
+  PetscCall(FNSetType(fn,FNLOG));
   tau = 0.2;
   eta = 1.3;
-  CHKERRQ(FNSetScale(fn,tau,eta));
-  CHKERRQ(FNView(fn,NULL));
+  PetscCall(FNSetScale(fn,tau,eta));
+  PetscCall(FNView(fn,NULL));
   x = 2.2;
-  CHKERRQ(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
-  CHKERRQ(FNEvaluateFunction(fn,x,&y));
-  CHKERRQ(FNEvaluateDerivative(fn,x,&yp));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
+  PetscCall(FNEvaluateFunction(fn,x,&y));
+  PetscCall(FNEvaluateDerivative(fn,x,&yp));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
 
-  CHKERRQ(FNDestroy(&fn));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(FNDestroy(&fn));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

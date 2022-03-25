@@ -44,24 +44,24 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Schur(FN fn,Mat A,Mat B)
   Mat            W;
 
   PetscFunctionBegin;
-  CHKERRQ(FN_AllocateWorkMat(fn,A,&W));
-  if (A!=B) CHKERRQ(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatDenseGetArray(B,&Ba));
-  CHKERRQ(MatDenseGetArray(W,&Wa));
+  PetscCall(FN_AllocateWorkMat(fn,A,&W));
+  if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseGetArray(B,&Ba));
+  PetscCall(MatDenseGetArray(W,&Wa));
   /* compute B = sqrtm(A) */
-  CHKERRQ(MatGetSize(A,&m,NULL));
-  CHKERRQ(PetscBLASIntCast(m,&n));
+  PetscCall(MatGetSize(A,&m,NULL));
+  PetscCall(PetscBLASIntCast(m,&n));
   ld = n;
-  CHKERRQ(FNSqrtmSchur(fn,n,Ba,n,PETSC_FALSE));
+  PetscCall(FNSqrtmSchur(fn,n,Ba,n,PETSC_FALSE));
   /* compute B = A\B */
-  CHKERRQ(PetscMalloc1(ld,&ipiv));
+  PetscCall(PetscMalloc1(ld,&ipiv));
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
   SlepcCheckLapackInfo("gesv",info);
-  CHKERRQ(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
-  CHKERRQ(PetscFree(ipiv));
-  CHKERRQ(MatDenseRestoreArray(W,&Wa));
-  CHKERRQ(MatDenseRestoreArray(B,&Ba));
-  CHKERRQ(FN_FreeWorkMat(fn,&W));
+  PetscCall(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
+  PetscCall(PetscFree(ipiv));
+  PetscCall(MatDenseRestoreArray(W,&Wa));
+  PetscCall(MatDenseRestoreArray(B,&Ba));
+  PetscCall(FN_FreeWorkMat(fn,&W));
   PetscFunctionReturn(0);
 }
 
@@ -73,25 +73,25 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
   Mat            B,W;
 
   PetscFunctionBegin;
-  CHKERRQ(FN_AllocateWorkMat(fn,A,&B));
-  CHKERRQ(FN_AllocateWorkMat(fn,A,&W));
-  CHKERRQ(MatDenseGetArray(B,&Ba));
-  CHKERRQ(MatDenseGetArray(W,&Wa));
+  PetscCall(FN_AllocateWorkMat(fn,A,&B));
+  PetscCall(FN_AllocateWorkMat(fn,A,&W));
+  PetscCall(MatDenseGetArray(B,&Ba));
+  PetscCall(MatDenseGetArray(W,&Wa));
   /* compute B_1 = sqrtm(A)*e_1 */
-  CHKERRQ(MatGetSize(A,&m,NULL));
-  CHKERRQ(PetscBLASIntCast(m,&n));
+  PetscCall(MatGetSize(A,&m,NULL));
+  PetscCall(PetscBLASIntCast(m,&n));
   ld = n;
-  CHKERRQ(FNSqrtmSchur(fn,n,Ba,n,PETSC_TRUE));
+  PetscCall(FNSqrtmSchur(fn,n,Ba,n,PETSC_TRUE));
   /* compute B_1 = A\B_1 */
-  CHKERRQ(PetscMalloc1(ld,&ipiv));
+  PetscCall(PetscMalloc1(ld,&ipiv));
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Wa,&ld,ipiv,Ba,&ld,&info));
   SlepcCheckLapackInfo("gesv",info);
-  CHKERRQ(PetscFree(ipiv));
-  CHKERRQ(MatDenseRestoreArray(W,&Wa));
-  CHKERRQ(MatDenseRestoreArray(B,&Ba));
-  CHKERRQ(MatGetColumnVector(B,v,0));
-  CHKERRQ(FN_FreeWorkMat(fn,&W));
-  CHKERRQ(FN_FreeWorkMat(fn,&B));
+  PetscCall(PetscFree(ipiv));
+  PetscCall(MatDenseRestoreArray(W,&Wa));
+  PetscCall(MatDenseRestoreArray(B,&Ba));
+  PetscCall(MatGetColumnVector(B,v,0));
+  PetscCall(FN_FreeWorkMat(fn,&W));
+  PetscCall(FN_FreeWorkMat(fn,&B));
   PetscFunctionReturn(0);
 }
 
@@ -102,12 +102,12 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)
   PetscInt       m;
 
   PetscFunctionBegin;
-  if (A!=B) CHKERRQ(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatDenseGetArray(B,&T));
-  CHKERRQ(MatGetSize(A,&m,NULL));
-  CHKERRQ(PetscBLASIntCast(m,&n));
-  CHKERRQ(FNSqrtmDenmanBeavers(fn,n,T,n,PETSC_TRUE));
-  CHKERRQ(MatDenseRestoreArray(B,&T));
+  if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseGetArray(B,&T));
+  PetscCall(MatGetSize(A,&m,NULL));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(FNSqrtmDenmanBeavers(fn,n,T,n,PETSC_TRUE));
+  PetscCall(MatDenseRestoreArray(B,&T));
   PetscFunctionReturn(0);
 }
 
@@ -118,12 +118,12 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS(FN fn,Mat A,Mat B)
   PetscInt       m;
 
   PetscFunctionBegin;
-  if (A!=B) CHKERRQ(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatDenseGetArray(B,&T));
-  CHKERRQ(MatGetSize(A,&m,NULL));
-  CHKERRQ(PetscBLASIntCast(m,&n));
-  CHKERRQ(FNSqrtmNewtonSchulz(fn,n,T,n,PETSC_TRUE));
-  CHKERRQ(MatDenseRestoreArray(B,&T));
+  if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseGetArray(B,&T));
+  PetscCall(MatGetSize(A,&m,NULL));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(FNSqrtmNewtonSchulz(fn,n,T,n,PETSC_TRUE));
+  PetscCall(MatDenseRestoreArray(B,&T));
   PetscFunctionReturn(0);
 }
 
@@ -135,24 +135,24 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi(FN fn,Mat A,Mat B)
   Mat            W;
 
   PetscFunctionBegin;
-  CHKERRQ(FN_AllocateWorkMat(fn,A,&W));
-  if (A!=B) CHKERRQ(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatDenseGetArray(B,&Ba));
-  CHKERRQ(MatDenseGetArray(W,&Wa));
+  PetscCall(FN_AllocateWorkMat(fn,A,&W));
+  if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseGetArray(B,&Ba));
+  PetscCall(MatDenseGetArray(W,&Wa));
   /* compute B = sqrtm(A) */
-  CHKERRQ(MatGetSize(A,&m,NULL));
-  CHKERRQ(PetscBLASIntCast(m,&n));
+  PetscCall(MatGetSize(A,&m,NULL));
+  PetscCall(PetscBLASIntCast(m,&n));
   ld = n;
-  CHKERRQ(FNSqrtmSadeghi(fn,n,Ba,n));
+  PetscCall(FNSqrtmSadeghi(fn,n,Ba,n));
   /* compute B = A\B */
-  CHKERRQ(PetscMalloc1(ld,&ipiv));
+  PetscCall(PetscMalloc1(ld,&ipiv));
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
   SlepcCheckLapackInfo("gesv",info);
-  CHKERRQ(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
-  CHKERRQ(PetscFree(ipiv));
-  CHKERRQ(MatDenseRestoreArray(W,&Wa));
-  CHKERRQ(MatDenseRestoreArray(B,&Ba));
-  CHKERRQ(FN_FreeWorkMat(fn,&W));
+  PetscCall(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
+  PetscCall(PetscFree(ipiv));
+  PetscCall(MatDenseRestoreArray(W,&Wa));
+  PetscCall(MatDenseRestoreArray(B,&Ba));
+  PetscCall(FN_FreeWorkMat(fn,&W));
   PetscFunctionReturn(0);
 }
 
@@ -164,12 +164,12 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS_CUDA(FN fn,Mat A,Mat B)
   PetscInt       m;
 
   PetscFunctionBegin;
-  if (A!=B) CHKERRQ(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatDenseGetArray(B,&Ba));
-  CHKERRQ(MatGetSize(A,&m,NULL));
-  CHKERRQ(PetscBLASIntCast(m,&n));
-  CHKERRQ(FNSqrtmNewtonSchulz_CUDA(fn,n,Ba,n,PETSC_TRUE));
-  CHKERRQ(MatDenseRestoreArray(B,&Ba));
+  if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseGetArray(B,&Ba));
+  PetscCall(MatGetSize(A,&m,NULL));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(FNSqrtmNewtonSchulz_CUDA(fn,n,Ba,n,PETSC_TRUE));
+  PetscCall(MatDenseRestoreArray(B,&Ba));
   PetscFunctionReturn(0);
 }
 
@@ -181,12 +181,12 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
   PetscInt       m;
 
   PetscFunctionBegin;
-  if (A!=B) CHKERRQ(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatDenseGetArray(B,&T));
-  CHKERRQ(MatGetSize(A,&m,NULL));
-  CHKERRQ(PetscBLASIntCast(m,&n));
-  CHKERRQ(FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_TRUE));
-  CHKERRQ(MatDenseRestoreArray(B,&T));
+  if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseGetArray(B,&T));
+  PetscCall(MatGetSize(A,&m,NULL));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_TRUE));
+  PetscCall(MatDenseRestoreArray(B,&T));
   PetscFunctionReturn(0);
 }
 
@@ -198,24 +198,24 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
   Mat            W;
 
   PetscFunctionBegin;
-  CHKERRQ(FN_AllocateWorkMat(fn,A,&W));
-  if (A!=B) CHKERRQ(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatDenseGetArray(B,&Ba));
-  CHKERRQ(MatDenseGetArray(W,&Wa));
+  PetscCall(FN_AllocateWorkMat(fn,A,&W));
+  if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseGetArray(B,&Ba));
+  PetscCall(MatDenseGetArray(W,&Wa));
   /* compute B = sqrtm(A) */
-  CHKERRQ(MatGetSize(A,&m,NULL));
-  CHKERRQ(PetscBLASIntCast(m,&n));
+  PetscCall(MatGetSize(A,&m,NULL));
+  PetscCall(PetscBLASIntCast(m,&n));
   ld = n;
-  CHKERRQ(FNSqrtmSadeghi_CUDAm(fn,n,Ba,n));
+  PetscCall(FNSqrtmSadeghi_CUDAm(fn,n,Ba,n));
   /* compute B = A\B */
-  CHKERRQ(PetscMalloc1(ld,&ipiv));
+  PetscCall(PetscMalloc1(ld,&ipiv));
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
   SlepcCheckLapackInfo("gesv",info);
-  CHKERRQ(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
-  CHKERRQ(PetscFree(ipiv));
-  CHKERRQ(MatDenseRestoreArray(W,&Wa));
-  CHKERRQ(MatDenseRestoreArray(B,&Ba));
-  CHKERRQ(FN_FreeWorkMat(fn,&W));
+  PetscCall(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
+  PetscCall(PetscFree(ipiv));
+  PetscCall(MatDenseRestoreArray(W,&Wa));
+  PetscCall(MatDenseRestoreArray(B,&Ba));
+  PetscCall(FN_FreeWorkMat(fn,&W));
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_MAGMA */
@@ -241,26 +241,26 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->beta==(PetscScalar)1.0) {
-      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: x^(-1/2)\n"));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Inverse square root: x^(-1/2)\n"));
       else {
-        CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: (%s*x)^(-1/2)\n",str));
+        PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  Inverse square root: (%s*x)^(-1/2)\n",str));
       }
     } else {
-      CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
-      if (fn->alpha==(PetscScalar)1.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: %s*x^(-1/2)\n",str));
+      PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Inverse square root: %s*x^(-1/2)\n",str));
       else {
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Inverse square root: %s",str));
-        CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
-        CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"*(%s*x)^(-1/2)\n",str));
-        CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  Inverse square root: %s",str));
+        PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
+        PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"*(%s*x)^(-1/2)\n",str));
+        PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
       }
     }
-    if (fn->method<nmeth) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
+    if (fn->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]));
   }
   PetscFunctionReturn(0);
 }

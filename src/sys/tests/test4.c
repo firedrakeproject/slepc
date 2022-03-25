@@ -16,24 +16,24 @@ int main(int argc,char **argv)
 {
   PetscBool pInitialized,sInitialized,pFinalized,sFinalized,skip_petsc_finalize;
 
-  CHKERRQ(PetscInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscInitialized(&pInitialized));
-  CHKERRQ(SlepcInitialized(&sInitialized));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscInitialized(&pInitialized));
-  CHKERRQ(SlepcInitialized(&sInitialized));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-skip_petsc_finalize",&skip_petsc_finalize));
+  PetscCall(PetscInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscInitialized(&pInitialized));
+  PetscCall(SlepcInitialized(&sInitialized));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscInitialized(&pInitialized));
+  PetscCall(SlepcInitialized(&sInitialized));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-skip_petsc_finalize",&skip_petsc_finalize));
   if (!skip_petsc_finalize) {
-    CHKERRQ(PetscFinalize());
-    CHKERRQ(PetscFinalized(&pFinalized));
+    PetscCall(PetscFinalize());
+    PetscCall(PetscFinalized(&pFinalized));
     if (!pFinalized) printf("Unexpected value: PetscFinalized() returned False after PetscFinalize()\n");
   }
-  CHKERRQ(SlepcFinalized(&sFinalized));
+  PetscCall(SlepcFinalized(&sFinalized));
   if (sFinalized) printf("Unexpected value: SlepcFinalized() returned True before SlepcFinalize()\n");
-  CHKERRQ(SlepcFinalize());
-  CHKERRQ(SlepcFinalized(&sFinalized));
+  PetscCall(SlepcFinalize());
+  PetscCall(SlepcFinalized(&sFinalized));
   if (!sFinalized) printf("Unexpected value: SlepcFinalized() returned False after SlepcFinalize()\n");
   return 0;
 }

@@ -28,25 +28,25 @@ static inline PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
 
   PetscFunctionBegin;
   BVCheckOp(Y,1,dotvec);
-  CHKERRQ(MatGetSize(M,&m,NULL));
-  CHKERRQ(MatDenseGetArray(M,&marray));
-  CHKERRQ(PetscObjectGetId((PetscObject)X,&idx));
-  CHKERRQ(PetscObjectGetId((PetscObject)Y,&idy));
+  PetscCall(MatGetSize(M,&m,NULL));
+  PetscCall(MatDenseGetArray(M,&marray));
+  PetscCall(PetscObjectGetId((PetscObject)X,&idx));
+  PetscCall(PetscObjectGetId((PetscObject)Y,&idy));
   B = Y->matrix;
   Y->matrix = NULL;
   if (idx==idy) symm=PETSC_TRUE;  /* M=X'BX is symmetric */
   jend = X->k;
   for (j=X->l;j<jend;j++) {
     if (symm) Y->k = j+1;
-    CHKERRQ(BVGetColumn(X->cached,j,&z));
-    CHKERRQ((*Y->ops->dotvec)(Y,z,marray+j*m+Y->l));
-    CHKERRQ(BVRestoreColumn(X->cached,j,&z));
+    PetscCall(BVGetColumn(X->cached,j,&z));
+    PetscCall((*Y->ops->dotvec)(Y,z,marray+j*m+Y->l));
+    PetscCall(BVRestoreColumn(X->cached,j,&z));
     if (symm) {
       for (i=X->l;i<j;i++)
         marray[j+i*m] = PetscConj(marray[i+j*m]);
     }
   }
-  CHKERRQ(MatDenseRestoreArray(M,&marray));
+  PetscCall(MatDenseRestoreArray(M,&marray));
   Y->matrix = B;
   PetscFunctionReturn(0);
 }
@@ -99,23 +99,23 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   PetscCheckSameTypeAndComm(X,1,Y,2);
   PetscCheckTypeNames(M,MATSEQDENSE,MATSEQDENSECUDA);
 
-  CHKERRQ(MatGetSize(M,&m,&n));
+  PetscCall(MatGetSize(M,&m,&n));
   PetscCheck(m>=Y->k,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,Y->k);
   PetscCheck(n>=X->k,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mat argument has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,X->k);
   PetscCheck(X->n==Y->n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", Y %" PetscInt_FMT,X->n,Y->n);
   PetscCheck(X->matrix==Y->matrix,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"X and Y must have the same inner product matrix");
   if (X->l==X->k || Y->l==Y->k) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscLogEventBegin(BV_Dot,X,Y,0,0));
+  PetscCall(PetscLogEventBegin(BV_Dot,X,Y,0,0));
   if (X->matrix) { /* non-standard inner product */
     /* compute BX first */
-    CHKERRQ(BV_IPMatMultBV(X));
+    PetscCall(BV_IPMatMultBV(X));
     if (X->vmm==BV_MATMULT_VECS) {
       /* perform computation column by column */
-      CHKERRQ(BVDot_Private(X,Y,M));
-    } else CHKERRQ((*X->ops->dot)(X->cached,Y,M));
-  } else CHKERRQ((*X->ops->dot)(X,Y,M));
-  CHKERRQ(PetscLogEventEnd(BV_Dot,X,Y,0,0));
+      PetscCall(BVDot_Private(X,Y,M));
+    } else PetscCall((*X->ops->dot)(X->cached,Y,M));
+  } else PetscCall((*X->ops->dot)(X,Y,M));
+  PetscCall(PetscLogEventEnd(BV_Dot,X,Y,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -161,12 +161,12 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar m[])
   PetscValidType(y,2);
   PetscCheckSameTypeAndComm(X,1,y,2);
 
-  CHKERRQ(VecGetLocalSize(y,&n));
+  PetscCall(VecGetLocalSize(y,&n));
   PetscCheck(X->n==n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", y %" PetscInt_FMT,X->n,n);
 
-  CHKERRQ(PetscLogEventBegin(BV_DotVec,X,y,0,0));
-  CHKERRQ((*X->ops->dotvec)(X,y,m));
-  CHKERRQ(PetscLogEventEnd(BV_DotVec,X,y,0,0));
+  PetscCall(PetscLogEventBegin(BV_DotVec,X,y,0,0));
+  PetscCall((*X->ops->dotvec)(X,y,m));
+  PetscCall(PetscLogEventEnd(BV_DotVec,X,y,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -199,25 +199,25 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
   PetscValidType(y,2);
   PetscCheckSameTypeAndComm(X,1,y,2);
 
-  CHKERRQ(VecGetLocalSize(y,&n));
+  PetscCall(VecGetLocalSize(y,&n));
   PetscCheck(X->n==n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", y %" PetscInt_FMT,X->n,n);
 
-  if (X->ops->dotvec_begin) CHKERRQ((*X->ops->dotvec_begin)(X,y,m));
+  if (X->ops->dotvec_begin) PetscCall((*X->ops->dotvec_begin)(X,y,m));
   else {
     BVCheckOp(X,1,dotvec_local);
     nv = X->k-X->l;
-    CHKERRQ(PetscObjectGetComm((PetscObject)X,&comm));
-    CHKERRQ(PetscSplitReductionGet(comm,&sr));
+    PetscCall(PetscObjectGetComm((PetscObject)X,&comm));
+    PetscCall(PetscSplitReductionGet(comm,&sr));
     PetscCheck(sr->state==STATE_BEGIN,PetscObjectComm((PetscObject)X),PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
     for (i=0;i<nv;i++) {
-      if (sr->numopsbegin+i >= sr->maxops) CHKERRQ(PetscSplitReductionExtend(sr));
+      if (sr->numopsbegin+i >= sr->maxops) PetscCall(PetscSplitReductionExtend(sr));
       sr->reducetype[sr->numopsbegin+i] = PETSC_SR_REDUCE_SUM;
       sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
-    CHKERRQ(PetscLogEventBegin(BV_DotVec,X,y,0,0));
-    CHKERRQ((*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin));
+    PetscCall(PetscLogEventBegin(BV_DotVec,X,y,0,0));
+    PetscCall((*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin));
     sr->numopsbegin += nv;
-    CHKERRQ(PetscLogEventEnd(BV_DotVec,X,y,0,0));
+    PetscCall(PetscLogEventEnd(BV_DotVec,X,y,0,0));
   }
   PetscFunctionReturn(0);
 }
@@ -248,12 +248,12 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
   PetscValidType(X,1);
   BVCheckSizes(X,1);
 
-  if (X->ops->dotvec_end) CHKERRQ((*X->ops->dotvec_end)(X,y,m));
+  if (X->ops->dotvec_end) PetscCall((*X->ops->dotvec_end)(X,y,m));
   else {
     nv = X->k-X->l;
-    CHKERRQ(PetscObjectGetComm((PetscObject)X,&comm));
-    CHKERRQ(PetscSplitReductionGet(comm,&sr));
-    CHKERRQ(PetscSplitReductionEnd(sr));
+    PetscCall(PetscObjectGetComm((PetscObject)X,&comm));
+    PetscCall(PetscSplitReductionGet(comm,&sr));
+    PetscCall(PetscSplitReductionEnd(sr));
 
     PetscCheck(sr->numopsend<sr->numopsbegin,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
     PetscCheck((void*)X==sr->invecs[sr->numopsend],PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
@@ -314,15 +314,15 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   PetscCheck(j>=0,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   PetscCheck(j<X->m,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,X->m);
 
-  CHKERRQ(PetscLogEventBegin(BV_DotVec,X,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_DotVec,X,0,0,0));
   ksave = X->k;
   X->k = j;
-  if (!q && !X->buffer) CHKERRQ(BVGetBufferVec(X,&X->buffer));
-  CHKERRQ(BVGetColumn(X,j,&y));
-  CHKERRQ((*X->ops->dotvec)(X,y,q));
-  CHKERRQ(BVRestoreColumn(X,j,&y));
+  if (!q && !X->buffer) PetscCall(BVGetBufferVec(X,&X->buffer));
+  PetscCall(BVGetColumn(X,j,&y));
+  PetscCall((*X->ops->dotvec)(X,y,q));
+  PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
-  CHKERRQ(PetscLogEventEnd(BV_DotVec,X,0,0,0));
+  PetscCall(PetscLogEventEnd(BV_DotVec,X,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -358,26 +358,26 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
   PetscCheck(j<X->m,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,X->m);
   ksave = X->k;
   X->k = j;
-  CHKERRQ(BVGetColumn(X,j,&y));
+  PetscCall(BVGetColumn(X,j,&y));
 
-  if (X->ops->dotvec_begin) CHKERRQ((*X->ops->dotvec_begin)(X,y,m));
+  if (X->ops->dotvec_begin) PetscCall((*X->ops->dotvec_begin)(X,y,m));
   else {
     BVCheckOp(X,1,dotvec_local);
     nv = X->k-X->l;
-    CHKERRQ(PetscObjectGetComm((PetscObject)X,&comm));
-    CHKERRQ(PetscSplitReductionGet(comm,&sr));
+    PetscCall(PetscObjectGetComm((PetscObject)X,&comm));
+    PetscCall(PetscSplitReductionGet(comm,&sr));
     PetscCheck(sr->state==STATE_BEGIN,PetscObjectComm((PetscObject)X),PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
     for (i=0;i<nv;i++) {
-      if (sr->numopsbegin+i >= sr->maxops) CHKERRQ(PetscSplitReductionExtend(sr));
+      if (sr->numopsbegin+i >= sr->maxops) PetscCall(PetscSplitReductionExtend(sr));
       sr->reducetype[sr->numopsbegin+i] = PETSC_SR_REDUCE_SUM;
       sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
-    CHKERRQ(PetscLogEventBegin(BV_DotVec,X,0,0,0));
-    CHKERRQ((*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin));
+    PetscCall(PetscLogEventBegin(BV_DotVec,X,0,0,0));
+    PetscCall((*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin));
     sr->numopsbegin += nv;
-    CHKERRQ(PetscLogEventEnd(BV_DotVec,X,0,0,0));
+    PetscCall(PetscLogEventEnd(BV_DotVec,X,0,0,0));
   }
-  CHKERRQ(BVRestoreColumn(X,j,&y));
+  PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
   PetscFunctionReturn(0);
 }
@@ -416,14 +416,14 @@ PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
   X->k = j;
 
   if (X->ops->dotvec_end) {
-    CHKERRQ(BVGetColumn(X,j,&y));
-    CHKERRQ((*X->ops->dotvec_end)(X,y,m));
-    CHKERRQ(BVRestoreColumn(X,j,&y));
+    PetscCall(BVGetColumn(X,j,&y));
+    PetscCall((*X->ops->dotvec_end)(X,y,m));
+    PetscCall(BVRestoreColumn(X,j,&y));
   } else {
     nv = X->k-X->l;
-    CHKERRQ(PetscObjectGetComm((PetscObject)X,&comm));
-    CHKERRQ(PetscSplitReductionGet(comm,&sr));
-    CHKERRQ(PetscSplitReductionEnd(sr));
+    PetscCall(PetscObjectGetComm((PetscObject)X,&comm));
+    PetscCall(PetscSplitReductionGet(comm,&sr));
+    PetscCall(PetscSplitReductionEnd(sr));
 
     PetscCheck(sr->numopsend<sr->numopsbegin,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
     PetscCheck((void*)X==sr->invecs[sr->numopsend],PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
@@ -446,9 +446,9 @@ static inline PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal 
   PetscScalar    p;
 
   PetscFunctionBegin;
-  CHKERRQ(BV_IPMatMult(bv,z));
-  CHKERRQ(VecDot(bv->Bx,z,&p));
-  CHKERRQ(BV_SafeSqrt(bv,p,val));
+  PetscCall(BV_IPMatMult(bv,z));
+  PetscCall(VecDot(bv->Bx,z,&p));
+  PetscCall(BV_SafeSqrt(bv,p,val));
   PetscFunctionReturn(0);
 }
 
@@ -457,8 +457,8 @@ static inline PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType type,Pets
   PetscScalar    p;
 
   PetscFunctionBegin;
-  CHKERRQ(BV_IPMatMult(bv,z));
-  CHKERRQ(VecDotBegin(bv->Bx,z,&p));
+  PetscCall(BV_IPMatMult(bv,z));
+  PetscCall(VecDotBegin(bv->Bx,z,&p));
   PetscFunctionReturn(0);
 }
 
@@ -467,8 +467,8 @@ static inline PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,PetscR
   PetscScalar    p;
 
   PetscFunctionBegin;
-  CHKERRQ(VecDotEnd(bv->Bx,z,&p));
-  CHKERRQ(BV_SafeSqrt(bv,p,val));
+  PetscCall(VecDotEnd(bv->Bx,z,&p));
+  PetscCall(BV_SafeSqrt(bv,p,val));
   PetscFunctionReturn(0);
 }
 
@@ -507,9 +507,9 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
   PetscCheck(type!=NORM_2 && type!=NORM_1_AND_2,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
   PetscCheck(!bv->matrix,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Matrix norm not available for non-standard inner product");
 
-  CHKERRQ(PetscLogEventBegin(BV_Norm,bv,0,0,0));
-  CHKERRQ((*bv->ops->norm)(bv,-1,type,val));
-  CHKERRQ(PetscLogEventEnd(BV_Norm,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_Norm,bv,0,0,0));
+  PetscCall((*bv->ops->norm)(bv,-1,type,val));
+  PetscCall(PetscLogEventEnd(BV_Norm,bv,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -552,13 +552,13 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
 
   PetscCheck(type!=NORM_1_AND_2 || bv->matrix,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  CHKERRQ(PetscLogEventBegin(BV_NormVec,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_NormVec,bv,0,0,0));
   if (bv->matrix) { /* non-standard inner product */
-    CHKERRQ(VecGetLocalSize(v,&n));
+    PetscCall(VecGetLocalSize(v,&n));
     PetscCheck(bv->n==n,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %" PetscInt_FMT ", v %" PetscInt_FMT,bv->n,n);
-    CHKERRQ(BVNorm_Private(bv,v,type,val));
-  } else CHKERRQ(VecNorm(v,type,val));
-  CHKERRQ(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
+    PetscCall(BVNorm_Private(bv,v,type,val));
+  } else PetscCall(VecNorm(v,type,val));
+  PetscCall(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -594,13 +594,13 @@ PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
 
   PetscCheck(type!=NORM_1_AND_2 || bv->matrix,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  CHKERRQ(PetscLogEventBegin(BV_NormVec,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_NormVec,bv,0,0,0));
   if (bv->matrix) { /* non-standard inner product */
-    CHKERRQ(VecGetLocalSize(v,&n));
+    PetscCall(VecGetLocalSize(v,&n));
     PetscCheck(bv->n==n,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %" PetscInt_FMT ", v %" PetscInt_FMT,bv->n,n);
-    CHKERRQ(BVNorm_Begin_Private(bv,v,type,val));
-  } else CHKERRQ(VecNormBegin(v,type,val));
-  CHKERRQ(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
+    PetscCall(BVNorm_Begin_Private(bv,v,type,val));
+  } else PetscCall(VecNormBegin(v,type,val));
+  PetscCall(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -631,8 +631,8 @@ PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
 
   PetscCheck(type!=NORM_1_AND_2,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  if (bv->matrix) CHKERRQ(BVNorm_End_Private(bv,v,type,val));  /* non-standard inner product */
-  else CHKERRQ(VecNormEnd(v,type,val));
+  if (bv->matrix) PetscCall(BVNorm_End_Private(bv,v,type,val));  /* non-standard inner product */
+  else PetscCall(VecNormEnd(v,type,val));
   PetscFunctionReturn(0);
 }
 
@@ -674,13 +674,13 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscCheck(j>=0 && j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", the number of columns is %" PetscInt_FMT,j,bv->m);
   PetscCheck(type!=NORM_1_AND_2 || bv->matrix,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  CHKERRQ(PetscLogEventBegin(BV_NormVec,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_NormVec,bv,0,0,0));
   if (bv->matrix) { /* non-standard inner product */
-    CHKERRQ(BVGetColumn(bv,j,&z));
-    CHKERRQ(BVNorm_Private(bv,z,type,val));
-    CHKERRQ(BVRestoreColumn(bv,j,&z));
-  } else CHKERRQ((*bv->ops->norm)(bv,j,type,val));
-  CHKERRQ(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
+    PetscCall(BVGetColumn(bv,j,&z));
+    PetscCall(BVNorm_Private(bv,z,type,val));
+    PetscCall(BVRestoreColumn(bv,j,&z));
+  } else PetscCall((*bv->ops->norm)(bv,j,type,val));
+  PetscCall(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -718,25 +718,25 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscCheck(j>=0 && j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %" PetscInt_FMT ", the number of columns is %" PetscInt_FMT,j,bv->m);
   PetscCheck(type!=NORM_1_AND_2 || bv->matrix,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  CHKERRQ(PetscLogEventBegin(BV_NormVec,bv,0,0,0));
-  CHKERRQ(BVGetColumn(bv,j,&z));
-  if (bv->matrix) CHKERRQ(BVNorm_Begin_Private(bv,z,type,val)); /* non-standard inner product */
-  else if (bv->ops->norm_begin) CHKERRQ((*bv->ops->norm_begin)(bv,j,type,val));
+  PetscCall(PetscLogEventBegin(BV_NormVec,bv,0,0,0));
+  PetscCall(BVGetColumn(bv,j,&z));
+  if (bv->matrix) PetscCall(BVNorm_Begin_Private(bv,z,type,val)); /* non-standard inner product */
+  else if (bv->ops->norm_begin) PetscCall((*bv->ops->norm_begin)(bv,j,type,val));
   else {
     BVCheckOp(bv,1,norm_local);
-    CHKERRQ(PetscObjectGetComm((PetscObject)z,&comm));
-    CHKERRQ(PetscSplitReductionGet(comm,&sr));
+    PetscCall(PetscObjectGetComm((PetscObject)z,&comm));
+    PetscCall(PetscSplitReductionGet(comm,&sr));
     PetscCheck(sr->state==STATE_BEGIN,PetscObjectComm((PetscObject)bv),PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
-    if (sr->numopsbegin >= sr->maxops) CHKERRQ(PetscSplitReductionExtend(sr));
+    if (sr->numopsbegin >= sr->maxops) PetscCall(PetscSplitReductionExtend(sr));
     sr->invecs[sr->numopsbegin] = (void*)bv;
-    CHKERRQ((*bv->ops->norm_local)(bv,j,type,&lresult));
+    PetscCall((*bv->ops->norm_local)(bv,j,type,&lresult));
     if (type == NORM_2) lresult = lresult*lresult;
     if (type == NORM_MAX) sr->reducetype[sr->numopsbegin] = PETSC_SR_REDUCE_MAX;
     else sr->reducetype[sr->numopsbegin] = PETSC_SR_REDUCE_SUM;
     sr->lvalues[sr->numopsbegin++] = lresult;
   }
-  CHKERRQ(BVRestoreColumn(bv,j,&z));
-  CHKERRQ(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
+  PetscCall(BVRestoreColumn(bv,j,&z));
+  PetscCall(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -772,13 +772,13 @@ PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscCheck(type!=NORM_1_AND_2,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  CHKERRQ(BVGetColumn(bv,j,&z));
-  if (bv->matrix) CHKERRQ(BVNorm_End_Private(bv,z,type,val)); /* non-standard inner product */
-  else if (bv->ops->norm_end) CHKERRQ((*bv->ops->norm_end)(bv,j,type,val));
+  PetscCall(BVGetColumn(bv,j,&z));
+  if (bv->matrix) PetscCall(BVNorm_End_Private(bv,z,type,val)); /* non-standard inner product */
+  else if (bv->ops->norm_end) PetscCall((*bv->ops->norm_end)(bv,j,type,val));
   else {
-    CHKERRQ(PetscObjectGetComm((PetscObject)z,&comm));
-    CHKERRQ(PetscSplitReductionGet(comm,&sr));
-    CHKERRQ(PetscSplitReductionEnd(sr));
+    PetscCall(PetscObjectGetComm((PetscObject)z,&comm));
+    PetscCall(PetscSplitReductionGet(comm,&sr));
+    PetscCall(PetscSplitReductionEnd(sr));
 
     PetscCheck(sr->numopsend<sr->numopsbegin,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times then VecxxxBegin()");
     PetscCheck((void*)bv==sr->invecs[sr->numopsend],PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() in a different order or with a different vector than VecxxxBegin()");
@@ -791,7 +791,7 @@ PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
       sr->numopsbegin = 0;
     }
   }
-  CHKERRQ(BVRestoreColumn(bv,j,&z));
+  PetscCall(BVRestoreColumn(bv,j,&z));
   PetscFunctionReturn(0);
 }
 
@@ -840,34 +840,34 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  CHKERRQ(PetscLogEventBegin(BV_Normalize,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_Normalize,bv,0,0,0));
   if (bv->matrix && !eigi) {
     for (i=bv->l;i<bv->k;i++) {
-      CHKERRQ(BVNormColumn(bv,i,NORM_2,&norm));
-      CHKERRQ(BVScaleColumn(bv,i,1.0/norm));
+      PetscCall(BVNormColumn(bv,i,NORM_2,&norm));
+      PetscCall(BVScaleColumn(bv,i,1.0/norm));
     }
-  } else if (bv->ops->normalize) CHKERRQ((*bv->ops->normalize)(bv,eigi));
+  } else if (bv->ops->normalize) PetscCall((*bv->ops->normalize)(bv,eigi));
   else {
     for (i=bv->l;i<bv->k;i++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (eigi && eigi[i] != 0.0) {
-        CHKERRQ(BVGetColumn(bv,i,&v));
-        CHKERRQ(BVGetColumn(bv,i+1,&v1));
-        CHKERRQ(VecNormalizeComplex(v,v1,PETSC_TRUE,NULL));
-        CHKERRQ(BVRestoreColumn(bv,i,&v));
-        CHKERRQ(BVRestoreColumn(bv,i+1,&v1));
+        PetscCall(BVGetColumn(bv,i,&v));
+        PetscCall(BVGetColumn(bv,i+1,&v1));
+        PetscCall(VecNormalizeComplex(v,v1,PETSC_TRUE,NULL));
+        PetscCall(BVRestoreColumn(bv,i,&v));
+        PetscCall(BVRestoreColumn(bv,i+1,&v1));
         i++;
       } else
 #endif
       {
-        CHKERRQ(BVGetColumn(bv,i,&v));
-        CHKERRQ(VecNormalize(v,NULL));
-        CHKERRQ(BVRestoreColumn(bv,i,&v));
+        PetscCall(BVGetColumn(bv,i,&v));
+        PetscCall(VecNormalize(v,NULL));
+        PetscCall(BVRestoreColumn(bv,i,&v));
       }
     }
   }
-  CHKERRQ(PetscLogEventEnd(BV_Normalize,bv,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  PetscCall(PetscLogEventEnd(BV_Normalize,bv,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -883,33 +883,33 @@ static inline PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar *marra
   PetscFunctionBegin;
   lx = X->l; kx = X->k;
   ly = Y->l; ky = Y->k;
-  CHKERRQ(BVCreateVec(X,&f));
+  PetscCall(BVCreateVec(X,&f));
   BVCheckOp(Y,3,dotvec);
   for (j=lx;j<kx;j++) {
-    CHKERRQ(BVGetColumn(X,j,&z));
-    CHKERRQ(MatMult(A,z,f));
-    CHKERRQ(BVRestoreColumn(X,j,&z));
+    PetscCall(BVGetColumn(X,j,&z));
+    PetscCall(MatMult(A,z,f));
+    PetscCall(BVRestoreColumn(X,j,&z));
     ulim = PetscMin(ly+(j-lx)+1,ky);
     Y->l = 0; Y->k = ulim;
-    CHKERRQ((*Y->ops->dotvec)(Y,f,marray+j*ldm));
+    PetscCall((*Y->ops->dotvec)(Y,f,marray+j*ldm));
     if (symm) {
       for (i=0;i<j;i++) marray[j+i*ldm] = PetscConj(marray[i+j*ldm]);
     }
   }
   if (!symm) {
     BVCheckOp(X,1,dotvec);
-    CHKERRQ(BV_AllocateCoeffs(Y));
+    PetscCall(BV_AllocateCoeffs(Y));
     for (j=ly;j<ky;j++) {
-      CHKERRQ(BVGetColumn(Y,j,&z));
-      CHKERRQ(MatMultHermitianTranspose(A,z,f));
-      CHKERRQ(BVRestoreColumn(Y,j,&z));
+      PetscCall(BVGetColumn(Y,j,&z));
+      PetscCall(MatMultHermitianTranspose(A,z,f));
+      PetscCall(BVRestoreColumn(Y,j,&z));
       ulim = PetscMin(lx+(j-ly),kx);
       X->l = 0; X->k = ulim;
-      CHKERRQ((*X->ops->dotvec)(X,f,Y->h));
+      PetscCall((*X->ops->dotvec)(X,f,Y->h));
       for (i=0;i<ulim;i++) marray[j+i*ldm] = PetscConj(Y->h[i]);
     }
   }
-  CHKERRQ(VecDestroy(&f));
+  PetscCall(VecDestroy(&f));
   X->l = lx; X->k = kx;
   Y->l = ly; Y->k = ky;
   PetscFunctionReturn(0);
@@ -932,35 +932,35 @@ static inline PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscScalar *m
   PetscFunctionBegin;
   lx = X->l; kx = X->k;
   ly = Y->l; ky = Y->k;
-  CHKERRQ(BVDuplicate(X,&W));
+  PetscCall(BVDuplicate(X,&W));
   X->l = 0; X->k = kx;
   W->l = 0; W->k = kx;
-  CHKERRQ(BVMatMult(X,A,W));
+  PetscCall(BVMatMult(X,A,W));
 
   /* top-right part, Y0'*AX1 */
   if (ly>0 && lx<kx) {
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H));
+    PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H));
     W->l = lx; W->k = kx;
     Y->l = 0;  Y->k = ly;
-    CHKERRQ(BVDot(W,Y,H));
-    CHKERRQ(MatDenseGetArrayRead(H,&harray));
-    for (j=lx;j<kx;j++) CHKERRQ(PetscArraycpy(marray+j*ldm,harray+j*ly,ly));
-    CHKERRQ(MatDenseRestoreArrayRead(H,&harray));
-    CHKERRQ(MatDestroy(&H));
+    PetscCall(BVDot(W,Y,H));
+    PetscCall(MatDenseGetArrayRead(H,&harray));
+    for (j=lx;j<kx;j++) PetscCall(PetscArraycpy(marray+j*ldm,harray+j*ly,ly));
+    PetscCall(MatDenseRestoreArrayRead(H,&harray));
+    PetscCall(MatDestroy(&H));
   }
 
   /* bottom part, Y1'*AX */
   if (kx>0 && ly<ky) {
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H));
+    PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H));
     W->l = 0;  W->k = kx;
     Y->l = ly; Y->k = ky;
-    CHKERRQ(BVDot(W,Y,H));
-    CHKERRQ(MatDenseGetArrayRead(H,&harray));
-    for (j=0;j<kx;j++) CHKERRQ(PetscArraycpy(marray+j*ldm+ly,harray+j*ky+ly,ky-ly));
-    CHKERRQ(MatDenseRestoreArrayRead(H,&harray));
-    CHKERRQ(MatDestroy(&H));
+    PetscCall(BVDot(W,Y,H));
+    PetscCall(MatDenseGetArrayRead(H,&harray));
+    for (j=0;j<kx;j++) PetscCall(PetscArraycpy(marray+j*ldm+ly,harray+j*ky+ly,ky-ly));
+    PetscCall(MatDenseRestoreArrayRead(H,&harray));
+    PetscCall(MatDestroy(&H));
   }
-  CHKERRQ(BVDestroy(&W));
+  PetscCall(BVDestroy(&W));
   X->l = lx; X->k = kx;
   Y->l = ly; Y->k = ky;
   PetscFunctionReturn(0);
@@ -985,16 +985,16 @@ static inline PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar 
   ly = Y->l; ky = Y->k;
 
   /* right part, Y'*AX1 */
-  CHKERRQ(BVDuplicateResize(X,kx-lx,&W));
+  PetscCall(BVDuplicateResize(X,kx-lx,&W));
   if (ky>0 && lx<kx) {
-    CHKERRQ(BVMatMult(X,A,W));
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,ky,kx-lx,NULL,&H));
+    PetscCall(BVMatMult(X,A,W));
+    PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ky,kx-lx,NULL,&H));
     Y->l = 0; Y->k = ky;
-    CHKERRQ(BVDot(W,Y,H));
-    CHKERRQ(MatDenseGetArrayRead(H,&harray));
-    for (j=lx;j<kx;j++) CHKERRQ(PetscArraycpy(marray+j*ldm,harray+(j-lx)*ky,ky));
-    CHKERRQ(MatDenseRestoreArrayRead(H,&harray));
-    CHKERRQ(MatDestroy(&H));
+    PetscCall(BVDot(W,Y,H));
+    PetscCall(MatDenseGetArrayRead(H,&harray));
+    for (j=lx;j<kx;j++) PetscCall(PetscArraycpy(marray+j*ldm,harray+(j-lx)*ky,ky));
+    PetscCall(MatDenseRestoreArrayRead(H,&harray));
+    PetscCall(MatDestroy(&H));
   }
 
   /* bottom-left part, Y1'*AX0 */
@@ -1005,23 +1005,23 @@ static inline PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscScalar 
         for (j=0;j<lx;j++) marray[i+j*ldm] = PetscConj(marray[j+i*ldm]);
       }
     } else {
-      CHKERRQ(BVResize(W,ky-ly,PETSC_FALSE));
+      PetscCall(BVResize(W,ky-ly,PETSC_FALSE));
       Y->l = ly; Y->k = ky;
-      CHKERRQ(BVMatMultHermitianTranspose(Y,A,W));
-      CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,lx,ky-ly,NULL,&H));
+      PetscCall(BVMatMultHermitianTranspose(Y,A,W));
+      PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,lx,ky-ly,NULL,&H));
       X->l = 0; X->k = lx;
-      CHKERRQ(BVDot(W,X,H));
-      CHKERRQ(MatDenseGetArrayRead(H,&harray));
+      PetscCall(BVDot(W,X,H));
+      PetscCall(MatDenseGetArrayRead(H,&harray));
       for (i=0;i<ky-ly;i++) {
         for (j=0;j<lx;j++) {
           marray[i+j*ldm+ly] = PetscConj(harray[j+i*(ky-ly)]);
         }
       }
-      CHKERRQ(MatDenseRestoreArrayRead(H,&harray));
-      CHKERRQ(MatDestroy(&H));
+      PetscCall(MatDenseRestoreArrayRead(H,&harray));
+      PetscCall(MatDestroy(&H));
     }
   }
-  CHKERRQ(BVDestroy(&W));
+  PetscCall(BVDestroy(&W));
   X->l = lx; X->k = kx;
   Y->l = ly; Y->k = ky;
   PetscFunctionReturn(0);
@@ -1045,26 +1045,26 @@ static inline PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marray,Pets
 
   /* top-right part, Y0'*X1 */
   if (ly>0 && lx<kx) {
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H));
+    PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ly,kx,NULL,&H));
     X->l = lx; X->k = kx;
     Y->l = 0;  Y->k = ly;
-    CHKERRQ(BVDot(X,Y,H));
-    CHKERRQ(MatDenseGetArrayRead(H,&harray));
-    for (j=lx;j<kx;j++) CHKERRQ(PetscArraycpy(marray+j*ldm,harray+j*ly,ly));
-    CHKERRQ(MatDenseRestoreArrayRead(H,&harray));
-    CHKERRQ(MatDestroy(&H));
+    PetscCall(BVDot(X,Y,H));
+    PetscCall(MatDenseGetArrayRead(H,&harray));
+    for (j=lx;j<kx;j++) PetscCall(PetscArraycpy(marray+j*ldm,harray+j*ly,ly));
+    PetscCall(MatDenseRestoreArrayRead(H,&harray));
+    PetscCall(MatDestroy(&H));
   }
 
   /* bottom part, Y1'*X */
   if (kx>0 && ly<ky) {
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H));
+    PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&H));
     X->l = 0;  X->k = kx;
     Y->l = ly; Y->k = ky;
-    CHKERRQ(BVDot(X,Y,H));
-    CHKERRQ(MatDenseGetArrayRead(H,&harray));
-    for (j=0;j<kx;j++) CHKERRQ(PetscArraycpy(marray+j*ldm+ly,harray+j*ky+ly,ky-ly));
-    CHKERRQ(MatDenseRestoreArrayRead(H,&harray));
-    CHKERRQ(MatDestroy(&H));
+    PetscCall(BVDot(X,Y,H));
+    PetscCall(MatDenseGetArrayRead(H,&harray));
+    for (j=0;j<kx;j++) PetscCall(PetscArraycpy(marray+j*ldm+ly,harray+j*ky+ly,ky-ly));
+    PetscCall(MatDenseRestoreArrayRead(H,&harray));
+    PetscCall(MatDestroy(&H));
   }
   X->l = lx; X->k = kx;
   Y->l = ly; Y->k = ky;
@@ -1139,43 +1139,43 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   PetscCheckSameTypeAndComm(X,1,Y,3);
   PetscCheckTypeNames(M,MATSEQDENSE,MATSEQDENSECUDA);
 
-  CHKERRQ(MatGetSize(M,&m,&n));
+  PetscCall(MatGetSize(M,&m,&n));
   PetscCheck(m>=Y->k,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,Y->k);
   PetscCheck(n>=X->k,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,X->k);
   PetscCheck(X->n==Y->n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", Y %" PetscInt_FMT,X->n,Y->n);
 
-  CHKERRQ(PetscLogEventBegin(BV_MatProject,X,A,Y,0));
+  PetscCall(PetscLogEventBegin(BV_MatProject,X,A,Y,0));
   /* temporarily set standard inner product */
   Xmatrix = X->matrix;
   Ymatrix = Y->matrix;
   X->matrix = Y->matrix = NULL;
 
-  CHKERRQ(PetscObjectGetId((PetscObject)X,&idx));
-  CHKERRQ(PetscObjectGetId((PetscObject)Y,&idy));
+  PetscCall(PetscObjectGetId((PetscObject)X,&idx));
+  PetscCall(PetscObjectGetId((PetscObject)Y,&idy));
   if (A && idx==idy) { /* check symmetry of M=X'AX */
-    CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
+    PetscCall(MatIsHermitianKnown(A,&set,&flg));
     symm = set? flg: PETSC_FALSE;
   }
 
-  CHKERRQ(MatDenseGetArray(M,&marray));
+  PetscCall(MatDenseGetArray(M,&marray));
 
   if (A) {
     if (X->vmm==BV_MATMULT_VECS) {
       /* perform computation column by column */
-      CHKERRQ(BVMatProject_Vec(X,A,Y,marray,m,symm));
+      PetscCall(BVMatProject_Vec(X,A,Y,marray,m,symm));
     } else {
       /* use BVMatMult, then BVDot */
-      CHKERRQ(MatHasOperation(A,MATOP_MULT_TRANSPOSE,&flg));
-      if (symm || (flg && X->l>=X->k/2 && Y->l>=Y->k/2)) CHKERRQ(BVMatProject_MatMult_2(X,A,Y,marray,m,symm));
-      else CHKERRQ(BVMatProject_MatMult(X,A,Y,marray,m));
+      PetscCall(MatHasOperation(A,MATOP_MULT_TRANSPOSE,&flg));
+      if (symm || (flg && X->l>=X->k/2 && Y->l>=Y->k/2)) PetscCall(BVMatProject_MatMult_2(X,A,Y,marray,m,symm));
+      else PetscCall(BVMatProject_MatMult(X,A,Y,marray,m));
     }
   } else {
     /* use BVDot on subblocks */
-    CHKERRQ(BVMatProject_Dot(X,Y,marray,m));
+    PetscCall(BVMatProject_Dot(X,Y,marray,m));
   }
 
-  CHKERRQ(MatDenseRestoreArray(M,&marray));
-  CHKERRQ(PetscLogEventEnd(BV_MatProject,X,A,Y,0));
+  PetscCall(MatDenseRestoreArray(M,&marray));
+  PetscCall(PetscLogEventEnd(BV_MatProject,X,A,Y,0));
   /* restore non-standard inner product */
   X->matrix = Xmatrix;
   Y->matrix = Ymatrix;

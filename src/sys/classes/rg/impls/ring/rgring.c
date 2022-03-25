@@ -120,7 +120,7 @@ PetscErrorCode RGRingSetParameters(RG rg,PetscScalar center,PetscReal radius,Pet
   PetscValidLogicalCollectiveReal(rg,start_ang,5);
   PetscValidLogicalCollectiveReal(rg,end_ang,6);
   PetscValidLogicalCollectiveReal(rg,width,7);
-  CHKERRQ(PetscTryMethod(rg,"RGRingSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal),(rg,center,radius,vscale,start_ang,end_ang,width)));
+  PetscCall(PetscTryMethod(rg,"RGRingSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal),(rg,center,radius,vscale,start_ang,end_ang,width)));
   PetscFunctionReturn(0);
 }
 
@@ -162,7 +162,7 @@ PetscErrorCode RGRingGetParameters(RG rg,PetscScalar *center,PetscReal *radius,P
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  CHKERRQ(PetscUseMethod(rg,"RGRingGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,center,radius,vscale,start_ang,end_ang,width)));
+  PetscCall(PetscUseMethod(rg,"RGRingGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,center,radius,vscale,start_ang,end_ang,width)));
   PetscFunctionReturn(0);
 }
 
@@ -177,19 +177,19 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
   char           str[50];
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->center,PETSC_FALSE));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  center: %s, radius: %g, vscale: %g, start angle: %g, end angle: %g, ring width: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale),(double)ctx->start_ang,(double)ctx->end_ang,(double)ctx->width));
+    PetscCall(SlepcSNPrintfScalar(str,sizeof(str),ctx->center,PETSC_FALSE));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  center: %s, radius: %g, vscale: %g, start angle: %g, end angle: %g, ring width: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale),(double)ctx->start_ang,(double)ctx->end_ang,(double)ctx->width));
   } else if (isdraw) {
-    CHKERRQ(PetscViewerDrawGetDraw(viewer,0,&draw));
-    CHKERRQ(PetscDrawCheckResizedWindow(draw));
-    CHKERRQ(PetscDrawGetWindowSize(draw,&winw,&winh));
+    PetscCall(PetscViewerDrawGetDraw(viewer,0,&draw));
+    PetscCall(PetscDrawCheckResizedWindow(draw));
+    PetscCall(PetscDrawGetWindowSize(draw,&winw,&winh));
     winw = PetscMax(winw,1); winh = PetscMax(winh,1);
-    CHKERRQ(PetscDrawClear(draw));
-    CHKERRQ(PetscDrawSetTitle(draw,"Ring region"));
-    CHKERRQ(PetscDrawAxisCreate(draw,&axis));
+    PetscCall(PetscDrawClear(draw));
+    PetscCall(PetscDrawSetTitle(draw,"Ring region"));
+    PetscCall(PetscDrawAxisCreate(draw,&axis));
     cx = PetscRealPart(ctx->center)*rg->sfactor;
     cy = PetscImaginaryPart(ctx->center)*rg->sfactor;
     radius = ctx->radius*rg->sfactor;
@@ -199,13 +199,13 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
     ab = cx;
     cd = cy;
     w  = scale*PetscMax(lx/winw,ly/winh)/2;
-    CHKERRQ(PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh));
-    CHKERRQ(PetscDrawAxisDraw(axis));
-    CHKERRQ(PetscDrawAxisDestroy(&axis));
+    PetscCall(PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh));
+    PetscCall(PetscDrawAxisDraw(axis));
+    PetscCall(PetscDrawAxisDestroy(&axis));
     /* draw outer ellipse */
-    CHKERRQ(PetscDrawEllipse(draw,cx,cy,2*(radius+width),2*(radius+width)*ctx->vscale,PETSC_DRAW_ORANGE));
+    PetscCall(PetscDrawEllipse(draw,cx,cy,2*(radius+width),2*(radius+width)*ctx->vscale,PETSC_DRAW_ORANGE));
     /* remove inner part */
-    CHKERRQ(PetscDrawEllipse(draw,cx,cy,2*(radius-width),2*(radius-width)*ctx->vscale,PETSC_DRAW_WHITE));
+    PetscCall(PetscDrawEllipse(draw,cx,cy,2*(radius-width),2*(radius-width)*ctx->vscale,PETSC_DRAW_WHITE));
     if (ctx->start_ang!=ctx->end_ang) {
       /* remove section from end_ang to start_ang */
       end_ang = (ctx->start_ang<ctx->end_ang)? ctx->end_ang-1: ctx->end_ang;
@@ -218,13 +218,13 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
         theta = PetscMin(PetscFloorReal(8*theta+1)/8,ctx->start_ang);
         x2 = PetscMin(PetscMax(ab+r*PetscCosReal(2.0*PETSC_PI*theta),ab-w*winw),ab+w*winw);
         y2 = PetscMin(PetscMax(cd+r*PetscSinReal(2.0*PETSC_PI*theta),cd-w*winh),cd+w*winh);
-        CHKERRQ(PetscDrawTriangle(draw,cx,cy,x1,y1,x2,y2,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE));
+        PetscCall(PetscDrawTriangle(draw,cx,cy,x1,y1,x2,y2,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE));
         x1 = x2; y1 = y2;
       } while (theta<ctx->start_ang);
     }
-    CHKERRQ(PetscDrawFlush(draw));
-    CHKERRQ(PetscDrawSave(draw));
-    CHKERRQ(PetscDrawPause(draw));
+    PetscCall(PetscDrawFlush(draw));
+    PetscCall(PetscDrawSave(draw));
+    PetscCall(PetscDrawPause(draw));
   }
   PetscFunctionReturn(0);
 }
@@ -388,27 +388,27 @@ PetscErrorCode RGSetFromOptions_Ring(PetscOptionItems *PetscOptionsObject,RG rg)
   PetscBool      flg1,flg2,flg3,flg4,flg5,flg6;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"RG Ring Options"));
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"RG Ring Options"));
 
-    CHKERRQ(RGRingGetParameters(rg,&s,&r1,&r2,&r3,&r4,&r5));
-    CHKERRQ(PetscOptionsScalar("-rg_ring_center","Center of ellipse","RGRingSetParameters",s,&s,&flg1));
-    CHKERRQ(PetscOptionsReal("-rg_ring_radius","Radius of ellipse","RGRingSetParameters",r1,&r1,&flg2));
-    CHKERRQ(PetscOptionsReal("-rg_ring_vscale","Vertical scale of ellipse","RGRingSetParameters",r2,&r2,&flg3));
-    CHKERRQ(PetscOptionsReal("-rg_ring_startangle","Right-hand side angle","RGRingSetParameters",r3,&r3,&flg4));
-    CHKERRQ(PetscOptionsReal("-rg_ring_endangle","Left-hand side angle","RGRingSetParameters",r4,&r4,&flg5));
-    CHKERRQ(PetscOptionsReal("-rg_ring_width","Width of ring","RGRingSetParameters",r5,&r5,&flg6));
-    if (flg1 || flg2 || flg3 || flg4 || flg5 || flg6) CHKERRQ(RGRingSetParameters(rg,s,r1,r2,r3,r4,r5));
+    PetscCall(RGRingGetParameters(rg,&s,&r1,&r2,&r3,&r4,&r5));
+    PetscCall(PetscOptionsScalar("-rg_ring_center","Center of ellipse","RGRingSetParameters",s,&s,&flg1));
+    PetscCall(PetscOptionsReal("-rg_ring_radius","Radius of ellipse","RGRingSetParameters",r1,&r1,&flg2));
+    PetscCall(PetscOptionsReal("-rg_ring_vscale","Vertical scale of ellipse","RGRingSetParameters",r2,&r2,&flg3));
+    PetscCall(PetscOptionsReal("-rg_ring_startangle","Right-hand side angle","RGRingSetParameters",r3,&r3,&flg4));
+    PetscCall(PetscOptionsReal("-rg_ring_endangle","Left-hand side angle","RGRingSetParameters",r4,&r4,&flg5));
+    PetscCall(PetscOptionsReal("-rg_ring_width","Width of ring","RGRingSetParameters",r5,&r5,&flg6));
+    if (flg1 || flg2 || flg3 || flg4 || flg5 || flg6) PetscCall(RGRingSetParameters(rg,s,r1,r2,r3,r4,r5));
 
-  CHKERRQ(PetscOptionsTail());
+  PetscCall(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode RGDestroy_Ring(RG rg)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(rg->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGRingSetParameters_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGRingGetParameters_C",NULL));
+  PetscCall(PetscFree(rg->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGRingSetParameters_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGRingGetParameters_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -417,7 +417,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
   RG_RING        *ring;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(rg,&ring));
+  PetscCall(PetscNewLog(rg,&ring));
   ring->center    = 0.0;
   ring->radius    = PETSC_MAX_REAL;
   ring->vscale    = 1.0;
@@ -435,7 +435,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
   rg->ops->setfromoptions    = RGSetFromOptions_Ring;
   rg->ops->view              = RGView_Ring;
   rg->ops->destroy           = RGDestroy_Ring;
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGRingSetParameters_C",RGRingSetParameters_Ring));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGRingGetParameters_C",RGRingGetParameters_Ring));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGRingSetParameters_C",RGRingSetParameters_Ring));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGRingGetParameters_C",RGRingGetParameters_Ring));
   PetscFunctionReturn(0);
 }

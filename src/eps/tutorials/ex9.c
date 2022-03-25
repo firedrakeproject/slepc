@@ -56,10 +56,10 @@ int main(int argc,char **argv)
   PetscBool      terse;
   PetscViewer    viewer;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",N));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",N));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
@@ -68,7 +68,7 @@ int main(int argc,char **argv)
   /*
      Create shell matrix context and set default parameters
   */
-  CHKERRQ(PetscNew(&ctx));
+  PetscCall(PetscNew(&ctx));
   ctx->alpha = 2.0;
   ctx->beta  = 5.45;
   delta1     = 0.008;
@@ -78,29 +78,29 @@ int main(int argc,char **argv)
   /*
      Look the command line for user-provided parameters
   */
-  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-L",&L,NULL));
-  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-alpha",&ctx->alpha,NULL));
-  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-beta",&ctx->beta,NULL));
-  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-delta1",&delta1,NULL));
-  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-delta2",&delta2,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-L",&L,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-alpha",&ctx->alpha,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-beta",&ctx->beta,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-delta1",&delta1,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-delta2",&delta2,NULL));
 
   /*
      Create matrix T
   */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&ctx->T));
-  CHKERRQ(MatSetSizes(ctx->T,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(ctx->T));
-  CHKERRQ(MatSetUp(ctx->T));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&ctx->T));
+  PetscCall(MatSetSizes(ctx->T,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(ctx->T));
+  PetscCall(MatSetUp(ctx->T));
 
-  CHKERRQ(MatGetOwnershipRange(ctx->T,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(ctx->T,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) CHKERRQ(MatSetValue(ctx->T,i,i-1,1.0,INSERT_VALUES));
-    if (i<N-1) CHKERRQ(MatSetValue(ctx->T,i,i+1,1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(ctx->T,i,i,-2.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(ctx->T,i,i-1,1.0,INSERT_VALUES));
+    if (i<N-1) PetscCall(MatSetValue(ctx->T,i,i+1,1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(ctx->T,i,i,-2.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(ctx->T,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(ctx->T,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatGetLocalSize(ctx->T,&n,NULL));
+  PetscCall(MatAssemblyBegin(ctx->T,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(ctx->T,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatGetLocalSize(ctx->T,&n,NULL));
 
   /*
      Fill the remaining information in the shell matrix context
@@ -110,18 +110,18 @@ int main(int argc,char **argv)
   ctx->tau1 = delta1 / ((h*L)*(h*L));
   ctx->tau2 = delta2 / ((h*L)*(h*L));
   ctx->sigma = 0.0;
-  CHKERRQ(VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->x1));
-  CHKERRQ(VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->x2));
-  CHKERRQ(VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->y1));
-  CHKERRQ(VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->y2));
+  PetscCall(VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->x1));
+  PetscCall(VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->x2));
+  PetscCall(VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->y1));
+  PetscCall(VecCreateMPIWithArray(PETSC_COMM_WORLD,1,n,PETSC_DECIDE,NULL,&ctx->y2));
 
   /*
      Create the shell matrix
   */
-  CHKERRQ(MatCreateShell(PETSC_COMM_WORLD,2*n,2*n,2*N,2*N,(void*)ctx,&A));
-  CHKERRQ(MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_Brussel));
-  CHKERRQ(MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Brussel));
-  CHKERRQ(MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Brussel));
+  PetscCall(MatCreateShell(PETSC_COMM_WORLD,2*n,2*n,2*N,2*N,(void*)ctx,&A));
+  PetscCall(MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_Brussel));
+  PetscCall(MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Brussel));
+  PetscCall(MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Brussel));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -130,61 +130,61 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_NHEP));
 
   /*
      Ask for the rightmost eigenvalues
   */
-  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
 
   /*
      Set other solver options at runtime
   */
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSSolve(eps));
+  PetscCall(EPSSolve(eps));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  CHKERRQ(EPSGetType(eps,&type));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
-  CHKERRQ(EPSGetDimensions(eps,&nev,NULL,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(EPSGetType(eps,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   else {
-    CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-    CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(EPSConvergedReasonView(eps,viewer));
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer));
-    CHKERRQ(PetscViewerPopFormat(viewer));
+    PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+    PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(EPSConvergedReasonView(eps,viewer));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer));
+    PetscCall(PetscViewerPopFormat(viewer));
   }
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&ctx->T));
-  CHKERRQ(VecDestroy(&ctx->x1));
-  CHKERRQ(VecDestroy(&ctx->x2));
-  CHKERRQ(VecDestroy(&ctx->y1));
-  CHKERRQ(VecDestroy(&ctx->y2));
-  CHKERRQ(PetscFree(ctx));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&ctx->T));
+  PetscCall(VecDestroy(&ctx->x1));
+  PetscCall(VecDestroy(&ctx->x2));
+  PetscCall(VecDestroy(&ctx->y1));
+  PetscCall(VecDestroy(&ctx->y2));
+  PetscCall(PetscFree(ctx));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 
@@ -196,31 +196,31 @@ PetscErrorCode MatMult_Brussel(Mat A,Vec x,Vec y)
   CTX_BRUSSEL       *ctx;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(MatGetLocalSize(ctx->T,&n,NULL));
-  CHKERRQ(VecGetArrayRead(x,&px));
-  CHKERRQ(VecGetArray(y,&py));
-  CHKERRQ(VecPlaceArray(ctx->x1,px));
-  CHKERRQ(VecPlaceArray(ctx->x2,px+n));
-  CHKERRQ(VecPlaceArray(ctx->y1,py));
-  CHKERRQ(VecPlaceArray(ctx->y2,py+n));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(MatGetLocalSize(ctx->T,&n,NULL));
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
+  PetscCall(VecPlaceArray(ctx->x1,px));
+  PetscCall(VecPlaceArray(ctx->x2,px+n));
+  PetscCall(VecPlaceArray(ctx->y1,py));
+  PetscCall(VecPlaceArray(ctx->y2,py+n));
 
-  CHKERRQ(MatMult(ctx->T,ctx->x1,ctx->y1));
-  CHKERRQ(VecScale(ctx->y1,ctx->tau1));
-  CHKERRQ(VecAXPY(ctx->y1,ctx->beta-1.0+ctx->sigma,ctx->x1));
-  CHKERRQ(VecAXPY(ctx->y1,ctx->alpha*ctx->alpha,ctx->x2));
+  PetscCall(MatMult(ctx->T,ctx->x1,ctx->y1));
+  PetscCall(VecScale(ctx->y1,ctx->tau1));
+  PetscCall(VecAXPY(ctx->y1,ctx->beta-1.0+ctx->sigma,ctx->x1));
+  PetscCall(VecAXPY(ctx->y1,ctx->alpha*ctx->alpha,ctx->x2));
 
-  CHKERRQ(MatMult(ctx->T,ctx->x2,ctx->y2));
-  CHKERRQ(VecScale(ctx->y2,ctx->tau2));
-  CHKERRQ(VecAXPY(ctx->y2,-ctx->beta,ctx->x1));
-  CHKERRQ(VecAXPY(ctx->y2,-ctx->alpha*ctx->alpha+ctx->sigma,ctx->x2));
+  PetscCall(MatMult(ctx->T,ctx->x2,ctx->y2));
+  PetscCall(VecScale(ctx->y2,ctx->tau2));
+  PetscCall(VecAXPY(ctx->y2,-ctx->beta,ctx->x1));
+  PetscCall(VecAXPY(ctx->y2,-ctx->alpha*ctx->alpha+ctx->sigma,ctx->x2));
 
-  CHKERRQ(VecRestoreArrayRead(x,&px));
-  CHKERRQ(VecRestoreArray(y,&py));
-  CHKERRQ(VecResetArray(ctx->x1));
-  CHKERRQ(VecResetArray(ctx->x2));
-  CHKERRQ(VecResetArray(ctx->y1));
-  CHKERRQ(VecResetArray(ctx->y2));
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
+  PetscCall(VecResetArray(ctx->x1));
+  PetscCall(VecResetArray(ctx->x2));
+  PetscCall(VecResetArray(ctx->y1));
+  PetscCall(VecResetArray(ctx->y2));
   PetscFunctionReturn(0);
 }
 
@@ -232,31 +232,31 @@ PetscErrorCode MatMultTranspose_Brussel(Mat A,Vec x,Vec y)
   CTX_BRUSSEL       *ctx;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(MatGetLocalSize(ctx->T,&n,NULL));
-  CHKERRQ(VecGetArrayRead(x,&px));
-  CHKERRQ(VecGetArray(y,&py));
-  CHKERRQ(VecPlaceArray(ctx->x1,px));
-  CHKERRQ(VecPlaceArray(ctx->x2,px+n));
-  CHKERRQ(VecPlaceArray(ctx->y1,py));
-  CHKERRQ(VecPlaceArray(ctx->y2,py+n));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(MatGetLocalSize(ctx->T,&n,NULL));
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
+  PetscCall(VecPlaceArray(ctx->x1,px));
+  PetscCall(VecPlaceArray(ctx->x2,px+n));
+  PetscCall(VecPlaceArray(ctx->y1,py));
+  PetscCall(VecPlaceArray(ctx->y2,py+n));
 
-  CHKERRQ(MatMultTranspose(ctx->T,ctx->x1,ctx->y1));
-  CHKERRQ(VecScale(ctx->y1,ctx->tau1));
-  CHKERRQ(VecAXPY(ctx->y1,ctx->beta-1.0+ctx->sigma,ctx->x1));
-  CHKERRQ(VecAXPY(ctx->y1,-ctx->beta,ctx->x2));
+  PetscCall(MatMultTranspose(ctx->T,ctx->x1,ctx->y1));
+  PetscCall(VecScale(ctx->y1,ctx->tau1));
+  PetscCall(VecAXPY(ctx->y1,ctx->beta-1.0+ctx->sigma,ctx->x1));
+  PetscCall(VecAXPY(ctx->y1,-ctx->beta,ctx->x2));
 
-  CHKERRQ(MatMultTranspose(ctx->T,ctx->x2,ctx->y2));
-  CHKERRQ(VecScale(ctx->y2,ctx->tau2));
-  CHKERRQ(VecAXPY(ctx->y2,ctx->alpha*ctx->alpha,ctx->x1));
-  CHKERRQ(VecAXPY(ctx->y2,-ctx->alpha*ctx->alpha+ctx->sigma,ctx->x2));
+  PetscCall(MatMultTranspose(ctx->T,ctx->x2,ctx->y2));
+  PetscCall(VecScale(ctx->y2,ctx->tau2));
+  PetscCall(VecAXPY(ctx->y2,ctx->alpha*ctx->alpha,ctx->x1));
+  PetscCall(VecAXPY(ctx->y2,-ctx->alpha*ctx->alpha+ctx->sigma,ctx->x2));
 
-  CHKERRQ(VecRestoreArrayRead(x,&px));
-  CHKERRQ(VecRestoreArray(y,&py));
-  CHKERRQ(VecResetArray(ctx->x1));
-  CHKERRQ(VecResetArray(ctx->x2));
-  CHKERRQ(VecResetArray(ctx->y1));
-  CHKERRQ(VecResetArray(ctx->y2));
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
+  PetscCall(VecResetArray(ctx->x1));
+  PetscCall(VecResetArray(ctx->x2));
+  PetscCall(VecResetArray(ctx->y1));
+  PetscCall(VecResetArray(ctx->y2));
   PetscFunctionReturn(0);
 }
 
@@ -269,19 +269,19 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
   CTX_BRUSSEL    *ctx;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(A,&ctx));
-  CHKERRQ(PetscObjectGetComm((PetscObject)A,&comm));
-  CHKERRQ(MatGetLocalSize(ctx->T,&n,NULL));
-  CHKERRQ(VecGetArray(diag,&pd));
-  CHKERRQ(VecCreateMPIWithArray(comm,1,n,PETSC_DECIDE,pd,&d1));
-  CHKERRQ(VecCreateMPIWithArray(comm,1,n,PETSC_DECIDE,pd+n,&d2));
+  PetscCall(MatShellGetContext(A,&ctx));
+  PetscCall(PetscObjectGetComm((PetscObject)A,&comm));
+  PetscCall(MatGetLocalSize(ctx->T,&n,NULL));
+  PetscCall(VecGetArray(diag,&pd));
+  PetscCall(VecCreateMPIWithArray(comm,1,n,PETSC_DECIDE,pd,&d1));
+  PetscCall(VecCreateMPIWithArray(comm,1,n,PETSC_DECIDE,pd+n,&d2));
 
-  CHKERRQ(VecSet(d1,-2.0*ctx->tau1 + ctx->beta - 1.0 + ctx->sigma));
-  CHKERRQ(VecSet(d2,-2.0*ctx->tau2 - ctx->alpha*ctx->alpha + ctx->sigma));
+  PetscCall(VecSet(d1,-2.0*ctx->tau1 + ctx->beta - 1.0 + ctx->sigma));
+  PetscCall(VecSet(d2,-2.0*ctx->tau2 - ctx->alpha*ctx->alpha + ctx->sigma));
 
-  CHKERRQ(VecDestroy(&d1));
-  CHKERRQ(VecDestroy(&d2));
-  CHKERRQ(VecRestoreArray(diag,&pd));
+  PetscCall(VecDestroy(&d1));
+  PetscCall(VecDestroy(&d2));
+  PetscCall(VecRestoreArray(diag,&pd));
   PetscFunctionReturn(0);
 }
 

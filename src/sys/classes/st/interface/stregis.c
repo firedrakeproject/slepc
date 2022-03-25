@@ -31,11 +31,11 @@ PetscErrorCode STRegisterAll(void)
   PetscFunctionBegin;
   if (STRegisterAllCalled) PetscFunctionReturn(0);
   STRegisterAllCalled = PETSC_TRUE;
-  CHKERRQ(STRegister(STSHELL,STCreate_Shell));
-  CHKERRQ(STRegister(STSHIFT,STCreate_Shift));
-  CHKERRQ(STRegister(STSINVERT,STCreate_Sinvert));
-  CHKERRQ(STRegister(STCAYLEY,STCreate_Cayley));
-  CHKERRQ(STRegister(STPRECOND,STCreate_Precond));
-  CHKERRQ(STRegister(STFILTER,STCreate_Filter));
+  PetscCall(STRegister(STSHELL,STCreate_Shell));
+  PetscCall(STRegister(STSHIFT,STCreate_Shift));
+  PetscCall(STRegister(STSINVERT,STCreate_Sinvert));
+  PetscCall(STRegister(STCAYLEY,STCreate_Cayley));
+  PetscCall(STRegister(STPRECOND,STCreate_Precond));
+  PetscCall(STRegister(STFILTER,STCreate_Filter));
   PetscFunctionReturn(0);
 }

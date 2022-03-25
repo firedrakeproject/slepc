@@ -44,28 +44,28 @@ PetscErrorCode LMESolve(LME lme)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
 
   /* call setup */
-  CHKERRQ(LMESetUp(lme));
+  PetscCall(LMESetUp(lme));
   lme->its    = 0;
   lme->errest = 0.0;
 
-  CHKERRQ(LMEViewFromOptions(lme,NULL,"-lme_view_pre"));
+  PetscCall(LMEViewFromOptions(lme,NULL,"-lme_view_pre"));
 
   /* call solver */
   PetscCheck(lme->ops->solve[lme->problem_type],PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"The specified solver does not support equation type %s",LMEProblemTypes[lme->problem_type]);
-  CHKERRQ(PetscLogEventBegin(LME_Solve,lme,0,0,0));
-  CHKERRQ((*lme->ops->solve[lme->problem_type])(lme));
-  CHKERRQ(PetscLogEventEnd(LME_Solve,lme,0,0,0));
+  PetscCall(PetscLogEventBegin(LME_Solve,lme,0,0,0));
+  PetscCall((*lme->ops->solve[lme->problem_type])(lme));
+  PetscCall(PetscLogEventEnd(LME_Solve,lme,0,0,0));
 
   PetscCheck(lme->reason,PetscObjectComm((PetscObject)lme),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   PetscCheck(!lme->errorifnotconverged || lme->reason>=0,PetscObjectComm((PetscObject)lme),PETSC_ERR_NOT_CONVERGED,"LMESolve has not converged");
 
   /* various viewers */
-  CHKERRQ(LMEViewFromOptions(lme,NULL,"-lme_view"));
-  CHKERRQ(LMEConvergedReasonViewFromOptions(lme));
-  CHKERRQ(MatViewFromOptions(lme->A,(PetscObject)lme,"-lme_view_mat"));
-  CHKERRQ(MatViewFromOptions(lme->C,(PetscObject)lme,"-lme_view_rhs"));
-  CHKERRQ(MatViewFromOptions(lme->X,(PetscObject)lme,"-lme_view_solution"));
+  PetscCall(LMEViewFromOptions(lme,NULL,"-lme_view"));
+  PetscCall(LMEConvergedReasonViewFromOptions(lme));
+  PetscCall(MatViewFromOptions(lme->A,(PetscObject)lme,"-lme_view_mat"));
+  PetscCall(MatViewFromOptions(lme->C,(PetscObject)lme,"-lme_view_rhs"));
+  PetscCall(MatViewFromOptions(lme->X,(PetscObject)lme,"-lme_view_solution"));
   PetscFunctionReturn(0);
 }
 
@@ -181,99 +181,99 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   VecScatter        vscat;
 
   PetscFunctionBegin;
-  CHKERRQ(MatLRCGetMats(lme->C,NULL,&C1m,NULL,NULL));
-  CHKERRQ(MatLRCGetMats(lme->X,NULL,&X1m,NULL,NULL));
-  CHKERRQ(BVCreateFromMat(C1m,&C1));
-  CHKERRQ(BVSetFromOptions(C1));
-  CHKERRQ(BVCreateFromMat(X1m,&X1));
-  CHKERRQ(BVSetFromOptions(X1));
-  CHKERRQ(BVGetSizes(X1,&n,&N,&k));
-  CHKERRQ(BVGetSizes(C1,NULL,NULL,&l));
-  CHKERRQ(PetscBLASIntCast(n,&n_));
-  CHKERRQ(PetscBLASIntCast(N,&N_));
-  CHKERRQ(PetscBLASIntCast(k,&k_));
-  CHKERRQ(PetscBLASIntCast(l,&l_));
+  PetscCall(MatLRCGetMats(lme->C,NULL,&C1m,NULL,NULL));
+  PetscCall(MatLRCGetMats(lme->X,NULL,&X1m,NULL,NULL));
+  PetscCall(BVCreateFromMat(C1m,&C1));
+  PetscCall(BVSetFromOptions(C1));
+  PetscCall(BVCreateFromMat(X1m,&X1));
+  PetscCall(BVSetFromOptions(X1));
+  PetscCall(BVGetSizes(X1,&n,&N,&k));
+  PetscCall(BVGetSizes(C1,NULL,NULL,&l));
+  PetscCall(PetscBLASIntCast(n,&n_));
+  PetscCall(PetscBLASIntCast(N,&N_));
+  PetscCall(PetscBLASIntCast(k,&k_));
+  PetscCall(PetscBLASIntCast(l,&l_));
 
   /* create W to store a redundant copy of a BV in each process */
-  CHKERRQ(BVCreate(PETSC_COMM_SELF,&W));
-  CHKERRQ(BVSetSizes(W,N,N,k));
-  CHKERRQ(BVSetFromOptions(W));
-  CHKERRQ(BVGetColumn(X1,0,&v));
-  CHKERRQ(VecScatterCreateToAll(v,&vscat,NULL));
-  CHKERRQ(BVRestoreColumn(X1,0,&v));
+  PetscCall(BVCreate(PETSC_COMM_SELF,&W));
+  PetscCall(BVSetSizes(W,N,N,k));
+  PetscCall(BVSetFromOptions(W));
+  PetscCall(BVGetColumn(X1,0,&v));
+  PetscCall(VecScatterCreateToAll(v,&vscat,NULL));
+  PetscCall(BVRestoreColumn(X1,0,&v));
 
   /* create AX to hold the product A*X1 */
-  CHKERRQ(BVDuplicate(X1,&AX));
-  CHKERRQ(BVMatMult(X1,lme->A,AX));
+  PetscCall(BVDuplicate(X1,&AX));
+  PetscCall(BVMatMult(X1,lme->A,AX));
 
   /* create dense matrix to hold the residual R=C1*C1'+AX*X1'+X1*AX' */
-  CHKERRQ(MatCreateDense(PetscObjectComm((PetscObject)lme),n,n,N,N,NULL,&R));
+  PetscCall(MatCreateDense(PetscObjectComm((PetscObject)lme),n,n,N,N,NULL,&R));
 
   /* R=C1*C1' */
-  CHKERRQ(MatDenseGetArrayWrite(R,&Rarray));
+  PetscCall(MatDenseGetArrayWrite(R,&Rarray));
   for (j=0;j<l;j++) {
-    CHKERRQ(BVGetColumn(C1,j,&v));
-    CHKERRQ(BVGetColumn(W,j,&w));
-    CHKERRQ(VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
-    CHKERRQ(VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
-    CHKERRQ(BVRestoreColumn(C1,j,&v));
-    CHKERRQ(BVRestoreColumn(W,j,&w));
+    PetscCall(BVGetColumn(C1,j,&v));
+    PetscCall(BVGetColumn(W,j,&w));
+    PetscCall(VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    PetscCall(VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    PetscCall(BVRestoreColumn(C1,j,&v));
+    PetscCall(BVRestoreColumn(W,j,&w));
   }
   if (n) {
-    CHKERRQ(BVGetArrayRead(C1,&A));
-    CHKERRQ(BVGetArrayRead(W,&B));
+    PetscCall(BVGetArrayRead(C1,&A));
+    PetscCall(BVGetArrayRead(W,&B));
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&l_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
-    CHKERRQ(BVRestoreArrayRead(C1,&A));
-    CHKERRQ(BVRestoreArrayRead(W,&B));
+    PetscCall(BVRestoreArrayRead(C1,&A));
+    PetscCall(BVRestoreArrayRead(W,&B));
   }
   beta = 1.0;
 
   /* R+=AX*X1' */
   for (j=0;j<k;j++) {
-    CHKERRQ(BVGetColumn(X1,j,&v));
-    CHKERRQ(BVGetColumn(W,j,&w));
-    CHKERRQ(VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
-    CHKERRQ(VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
-    CHKERRQ(BVRestoreColumn(X1,j,&v));
-    CHKERRQ(BVRestoreColumn(W,j,&w));
+    PetscCall(BVGetColumn(X1,j,&v));
+    PetscCall(BVGetColumn(W,j,&w));
+    PetscCall(VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    PetscCall(VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    PetscCall(BVRestoreColumn(X1,j,&v));
+    PetscCall(BVRestoreColumn(W,j,&w));
   }
   if (n) {
-    CHKERRQ(BVGetArrayRead(AX,&A));
-    CHKERRQ(BVGetArrayRead(W,&B));
+    PetscCall(BVGetArrayRead(AX,&A));
+    PetscCall(BVGetArrayRead(W,&B));
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
-    CHKERRQ(BVRestoreArrayRead(AX,&A));
-    CHKERRQ(BVRestoreArrayRead(W,&B));
+    PetscCall(BVRestoreArrayRead(AX,&A));
+    PetscCall(BVRestoreArrayRead(W,&B));
   }
 
   /* R+=X1*AX' */
   for (j=0;j<k;j++) {
-    CHKERRQ(BVGetColumn(AX,j,&v));
-    CHKERRQ(BVGetColumn(W,j,&w));
-    CHKERRQ(VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
-    CHKERRQ(VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
-    CHKERRQ(BVRestoreColumn(AX,j,&v));
-    CHKERRQ(BVRestoreColumn(W,j,&w));
+    PetscCall(BVGetColumn(AX,j,&v));
+    PetscCall(BVGetColumn(W,j,&w));
+    PetscCall(VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    PetscCall(VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD));
+    PetscCall(BVRestoreColumn(AX,j,&v));
+    PetscCall(BVRestoreColumn(W,j,&w));
   }
   if (n) {
-    CHKERRQ(BVGetArrayRead(X1,&A));
-    CHKERRQ(BVGetArrayRead(W,&B));
+    PetscCall(BVGetArrayRead(X1,&A));
+    PetscCall(BVGetArrayRead(W,&B));
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
-    CHKERRQ(BVRestoreArrayRead(X1,&A));
-    CHKERRQ(BVRestoreArrayRead(W,&B));
+    PetscCall(BVRestoreArrayRead(X1,&A));
+    PetscCall(BVRestoreArrayRead(W,&B));
   }
-  CHKERRQ(MatDenseRestoreArrayWrite(R,&Rarray));
+  PetscCall(MatDenseRestoreArrayWrite(R,&Rarray));
 
   /* compute ||R||_F */
-  CHKERRQ(MatAssemblyBegin(R,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(R,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatNorm(R,NORM_FROBENIUS,norm));
+  PetscCall(MatAssemblyBegin(R,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(R,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatNorm(R,NORM_FROBENIUS,norm));
 
-  CHKERRQ(BVDestroy(&W));
-  CHKERRQ(VecScatterDestroy(&vscat));
-  CHKERRQ(BVDestroy(&AX));
-  CHKERRQ(MatDestroy(&R));
-  CHKERRQ(BVDestroy(&C1));
-  CHKERRQ(BVDestroy(&X1));
+  PetscCall(BVDestroy(&W));
+  PetscCall(VecScatterDestroy(&vscat));
+  PetscCall(BVDestroy(&AX));
+  PetscCall(MatDestroy(&R));
+  PetscCall(BVDestroy(&C1));
+  PetscCall(BVDestroy(&X1));
   PetscFunctionReturn(0);
 }
 
@@ -304,11 +304,11 @@ PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidRealPointer(error,2);
 
-  CHKERRQ(PetscLogEventBegin(LME_ComputeError,lme,0,0,0));
+  PetscCall(PetscLogEventBegin(LME_ComputeError,lme,0,0,0));
   /* compute residual norm */
   switch (lme->problem_type) {
     case LME_LYAPUNOV:
-      CHKERRQ(LMEComputeResidualNorm_Lyapunov(lme,error));
+      PetscCall(LMEComputeResidualNorm_Lyapunov(lme,error));
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"Not implemented for equation type %s",LMEProblemTypes[lme->problem_type]);
@@ -316,6 +316,6 @@ PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
 
   /* compute error */
   /* currently we only support absolute error, so just return the norm */
-  CHKERRQ(PetscLogEventEnd(LME_ComputeError,lme,0,0,0));
+  PetscCall(PetscLogEventEnd(LME_ComputeError,lme,0,0,0));
   PetscFunctionReturn(0);
 }

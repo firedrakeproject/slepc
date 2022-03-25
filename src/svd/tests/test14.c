@@ -35,67 +35,67 @@ int main(int argc,char **argv)
   PetscScalar    valsa[] = { 1, 2 }, valsb[] = { 2, 1 };
   PetscBool      flg;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                      Generate the matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) CHKERRQ(MatSetValues(A,1,&i,2,col,valsa,INSERT_VALUES));
-    else if (i==n-1) CHKERRQ(MatSetValue(A,i,col[0],valsa[0],INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValues(A,1,&i,2,col,valsa,INSERT_VALUES));
+    else if (i==n-1) PetscCall(MatSetValue(A,i,col[0],valsa[0],INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-  CHKERRQ(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,m,n));
-  CHKERRQ(MatSetFromOptions(B));
-  CHKERRQ(MatSetUp(B));
-  CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+  PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(B));
+  PetscCall(MatSetUp(B));
+  PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i;
-    if (i==0) CHKERRQ(MatSetValue(B,i,col[1],valsb[1],INSERT_VALUES));
-    else if (i<n) CHKERRQ(MatSetValues(B,1,&i,2,col,valsb,INSERT_VALUES));
-    else if (i==n) CHKERRQ(MatSetValue(B,i,col[0],valsb[0],INSERT_VALUES));
+    if (i==0) PetscCall(MatSetValue(B,i,col[1],valsb[1],INSERT_VALUES));
+    else if (i<n) PetscCall(MatSetValues(B,1,&i,2,col,valsb,INSERT_VALUES));
+    else if (i==n) PetscCall(MatSetValue(B,i,col[0],valsb[0],INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Create the singular value solver, set options and solve
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
-  CHKERRQ(SVDSetOperators(svd,A,NULL));
-  CHKERRQ(SVDSetTolerances(svd,PETSC_DEFAULT,1000));
-  CHKERRQ(SVDSetFromOptions(svd));
-  CHKERRQ(SVDSolve(svd));
-  CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetTolerances(svd,PETSC_DEFAULT,1000));
+  PetscCall(SVDSetFromOptions(svd));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Solve with second matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDSetOperators(svd,B,NULL));
-  CHKERRQ(SVDSolve(svd));
-  CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
+  PetscCall(SVDSetOperators(svd,B,NULL));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
 
   /* Free work space */
-  CHKERRQ(SVDDestroy(&svd));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

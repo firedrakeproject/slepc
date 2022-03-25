@@ -29,10 +29,10 @@ const char *const*SVDConvergedReasons = SVDConvergedReasons_Shifted + 4;
 PetscErrorCode SVDFinalizePackage(void)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFunctionListDestroy(&SVDList));
-  CHKERRQ(PetscFunctionListDestroy(&SVDMonitorList));
-  CHKERRQ(PetscFunctionListDestroy(&SVDMonitorCreateList));
-  CHKERRQ(PetscFunctionListDestroy(&SVDMonitorDestroyList));
+  PetscCall(PetscFunctionListDestroy(&SVDList));
+  PetscCall(PetscFunctionListDestroy(&SVDMonitorList));
+  PetscCall(PetscFunctionListDestroy(&SVDMonitorCreateList));
+  PetscCall(PetscFunctionListDestroy(&SVDMonitorDestroyList));
   SVDPackageInitialized       = PETSC_FALSE;
   SVDRegisterAllCalled        = PETSC_FALSE;
   SVDMonitorRegisterAllCalled = PETSC_FALSE;
@@ -58,25 +58,25 @@ PetscErrorCode SVDInitializePackage(void)
   if (SVDPackageInitialized) PetscFunctionReturn(0);
   SVDPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  CHKERRQ(PetscClassIdRegister("SVD Solver",&SVD_CLASSID));
+  PetscCall(PetscClassIdRegister("SVD Solver",&SVD_CLASSID));
   /* Register Constructors */
-  CHKERRQ(SVDRegisterAll());
+  PetscCall(SVDRegisterAll());
   /* Register Monitors */
-  CHKERRQ(SVDMonitorRegisterAll());
+  PetscCall(SVDMonitorRegisterAll());
   /* Register Events */
-  CHKERRQ(PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp));
-  CHKERRQ(PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve));
+  PetscCall(PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp));
+  PetscCall(PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve));
   /* Process Info */
   classids[0] = SVD_CLASSID;
-  CHKERRQ(PetscInfoProcessClass("svd",1,&classids[0]));
+  PetscCall(PetscInfoProcessClass("svd",1,&classids[0]));
   /* Process summary exclusions */
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    CHKERRQ(PetscStrInList("svd",logList,',',&pkg));
-    if (pkg) CHKERRQ(PetscLogEventDeactivateClass(SVD_CLASSID));
+    PetscCall(PetscStrInList("svd",logList,',',&pkg));
+    if (pkg) PetscCall(PetscLogEventDeactivateClass(SVD_CLASSID));
   }
   /* Register package finalizer */
-  CHKERRQ(PetscRegisterFinalize(SVDFinalizePackage));
+  PetscCall(PetscRegisterFinalize(SVDFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -91,7 +91,7 @@ PetscErrorCode SVDInitializePackage(void)
 SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsvd()
 {
   PetscFunctionBegin;
-  CHKERRQ(SVDInitializePackage());
+  PetscCall(SVDInitializePackage());
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

@@ -39,11 +39,11 @@ int main(int argc,char **argv)
   PetscScalar    v,alpha;
   PetscBool      terse;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   n = (n/4)*4;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nPlanar waveguide, n=%" PetscInt_FMT "\n\n",n+1));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nPlanar waveguide, n=%" PetscInt_FMT "\n\n",n+1));
   h = (b-a)/n;
   nlocal = (n/4)-1;
 
@@ -69,37 +69,37 @@ int main(int argc,char **argv)
 
   /* initialize matrices */
   for (i=0;i<NMAT;i++) {
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A[i]));
-    CHKERRQ(MatSetSizes(A[i],PETSC_DECIDE,PETSC_DECIDE,n+1,n+1));
-    CHKERRQ(MatSetFromOptions(A[i]));
-    CHKERRQ(MatSetUp(A[i]));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A[i]));
+    PetscCall(MatSetSizes(A[i],PETSC_DECIDE,PETSC_DECIDE,n+1,n+1));
+    PetscCall(MatSetFromOptions(A[i]));
+    PetscCall(MatSetUp(A[i]));
   }
-  CHKERRQ(MatGetOwnershipRange(A[0],&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A[0],&Istart,&Iend));
 
   /* A0 */
   alpha = (h/6)*(deltasq*deltasq/16);
   for (i=Istart;i<Iend;i++) {
     v = 4.0;
     if (i==0 || i==n) v = 2.0;
-    CHKERRQ(MatSetValue(A[0],i,i,v*alpha,INSERT_VALUES));
-    if (i>0) CHKERRQ(MatSetValue(A[0],i,i-1,alpha,INSERT_VALUES));
-    if (i<n) CHKERRQ(MatSetValue(A[0],i,i+1,alpha,INSERT_VALUES));
+    PetscCall(MatSetValue(A[0],i,i,v*alpha,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[0],i,i-1,alpha,INSERT_VALUES));
+    if (i<n) PetscCall(MatSetValue(A[0],i,i+1,alpha,INSERT_VALUES));
   }
 
   /* A1 */
-  if (Istart==0) CHKERRQ(MatSetValue(A[1],0,0,-deltasq/4,INSERT_VALUES));
-  if (Iend==n+1) CHKERRQ(MatSetValue(A[1],n,n,deltasq/4,INSERT_VALUES));
+  if (Istart==0) PetscCall(MatSetValue(A[1],0,0,-deltasq/4,INSERT_VALUES));
+  if (Iend==n+1) PetscCall(MatSetValue(A[1],n,n,deltasq/4,INSERT_VALUES));
 
   /* A2 */
   alpha = 1.0/h;
   for (i=Istart;i<Iend;i++) {
     v = 2.0;
     if (i==0 || i==n) v = 1.0;
-    CHKERRQ(MatSetValue(A[2],i,i,v*alpha,ADD_VALUES));
-    if (i>0) CHKERRQ(MatSetValue(A[2],i,i-1,-alpha,ADD_VALUES));
-    if (i<n) CHKERRQ(MatSetValue(A[2],i,i+1,-alpha,ADD_VALUES));
+    PetscCall(MatSetValue(A[2],i,i,v*alpha,ADD_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[2],i,i-1,-alpha,ADD_VALUES));
+    if (i<n) PetscCall(MatSetValue(A[2],i,i+1,-alpha,ADD_VALUES));
   }
-  CHKERRQ(PetscMalloc3(n+1,&md,n+1,&supd,n+1,&subd));
+  PetscCall(PetscMalloc3(n+1,&md,n+1,&supd,n+1,&subd));
 
   md[0]   = 2.0*q[1];
   supd[1] = q[1];
@@ -130,55 +130,55 @@ int main(int argc,char **argv)
 
   alpha = -h/6.0;
   for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(A[2],i,i,md[i]*alpha,ADD_VALUES));
-    if (i>0) CHKERRQ(MatSetValue(A[2],i,i-1,subd[i-1]*alpha,ADD_VALUES));
-    if (i<n) CHKERRQ(MatSetValue(A[2],i,i+1,supd[i+1]*alpha,ADD_VALUES));
+    PetscCall(MatSetValue(A[2],i,i,md[i]*alpha,ADD_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[2],i,i-1,subd[i-1]*alpha,ADD_VALUES));
+    if (i<n) PetscCall(MatSetValue(A[2],i,i+1,supd[i+1]*alpha,ADD_VALUES));
   }
-  CHKERRQ(PetscFree3(md,supd,subd));
+  PetscCall(PetscFree3(md,supd,subd));
 
   /* A3 */
-  if (Istart==0) CHKERRQ(MatSetValue(A[3],0,0,1.0,INSERT_VALUES));
-  if (Iend==n+1) CHKERRQ(MatSetValue(A[3],n,n,1.0,INSERT_VALUES));
+  if (Istart==0) PetscCall(MatSetValue(A[3],0,0,1.0,INSERT_VALUES));
+  if (Iend==n+1) PetscCall(MatSetValue(A[3],n,n,1.0,INSERT_VALUES));
 
   /* A4 */
   alpha = (h/6);
   for (i=Istart;i<Iend;i++) {
     v = 4.0;
     if (i==0 || i==n) v = 2.0;
-    CHKERRQ(MatSetValue(A[4],i,i,v*alpha,INSERT_VALUES));
-    if (i>0) CHKERRQ(MatSetValue(A[4],i,i-1,alpha,INSERT_VALUES));
-    if (i<n) CHKERRQ(MatSetValue(A[4],i,i+1,alpha,INSERT_VALUES));
+    PetscCall(MatSetValue(A[4],i,i,v*alpha,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[4],i,i-1,alpha,INSERT_VALUES));
+    if (i<n) PetscCall(MatSetValue(A[4],i,i+1,alpha,INSERT_VALUES));
   }
 
   /* assemble matrices */
-  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
-  for (i=0;i<NMAT;i++) CHKERRQ(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
+  for (i=0;i<NMAT;i++) PetscCall(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
+  for (i=0;i<NMAT;i++) PetscCall(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PEPCreate(PETSC_COMM_WORLD,&pep));
-  CHKERRQ(PEPSetOperators(pep,NMAT,A));
-  CHKERRQ(PEPSetFromOptions(pep));
-  CHKERRQ(PEPSolve(pep));
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
+  PetscCall(PEPSetOperators(pep,NMAT,A));
+  PetscCall(PEPSetFromOptions(pep));
+  PetscCall(PEPSolve(pep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
   else {
-    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  CHKERRQ(PEPDestroy(&pep));
-  for (i=0;i<NMAT;i++) CHKERRQ(MatDestroy(&A[i]));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(PEPDestroy(&pep));
+  for (i=0;i<NMAT;i++) PetscCall(MatDestroy(&A[i]));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

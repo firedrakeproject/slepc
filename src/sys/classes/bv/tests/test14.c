@@ -22,66 +22,66 @@ int main(int argc,char **argv)
   PetscReal      norm;
   PetscScalar    alpha;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BV created from a dense Mat (length %" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",n,k));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BV created from a dense Mat (length %" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",n,k));
 
   /* Create dense matrix */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,k));
-  CHKERRQ(MatSetType(A,MATDENSE));
-  CHKERRQ(MatSetUp(A));
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,k));
+  PetscCall(MatSetType(A,MATDENSE));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (j=0;j<k;j++) {
     for (i=0;i<=n/2;i++) {
       if (i+j<n && i>=Istart && i<Iend) {
         alpha = (3.0*i+j-2)/(2*(i+j+1));
-        CHKERRQ(MatSetValue(A,i+j,j,alpha,INSERT_VALUES));
+        PetscCall(MatSetValue(A,i+j,j,alpha,INSERT_VALUES));
       }
     }
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* Create BV object X */
-  CHKERRQ(BVCreateFromMat(A,&X));
-  CHKERRQ(BVSetFromOptions(X));
-  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
+  PetscCall(BVCreateFromMat(A,&X));
+  PetscCall(BVSetFromOptions(X));
+  PetscCall(PetscObjectSetName((PetscObject)X,"X"));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
   if (verbose) {
-    CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
-    CHKERRQ(BVView(X,view));
+    PetscCall(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
+    PetscCall(BVView(X,view));
   }
 
   /* Test BVCreateMat */
-  CHKERRQ(BVCreateMat(X,&B));
-  CHKERRQ(MatAXPY(B,-1.0,A,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatNorm(B,NORM_1,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference < 100*eps\n"));
-  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference: %g\n",(double)norm));
+  PetscCall(BVCreateMat(X,&B));
+  PetscCall(MatAXPY(B,-1.0,A,SAME_NONZERO_PATTERN));
+  PetscCall(MatNorm(B,NORM_1,&norm));
+  if (norm<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference < 100*eps\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of difference: %g\n",(double)norm));
 
   /* Test BVOrthogonalize */
-  CHKERRQ(BVOrthogonalize(X,NULL));
-  if (verbose) CHKERRQ(BVView(X,view));
+  PetscCall(BVOrthogonalize(X,NULL));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Check orthogonality */
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
-  CHKERRQ(MatShift(M,1.0));   /* set leading part to identity */
-  CHKERRQ(BVDot(X,X,M));
-  CHKERRQ(MatShift(M,-1.0));
-  CHKERRQ(MatNorm(M,NORM_1,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
-  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
+  PetscCall(MatShift(M,1.0));   /* set leading part to identity */
+  PetscCall(BVDot(X,X,M));
+  PetscCall(MatShift(M,-1.0));
+  PetscCall(MatNorm(M,NORM_1,&norm));
+  if (norm<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm));
 
-  CHKERRQ(MatDestroy(&M));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(BVDestroy(&X));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(MatDestroy(&M));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(BVDestroy(&X));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

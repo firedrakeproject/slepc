@@ -29,9 +29,9 @@ PetscErrorCode RGRegisterAll(void)
   PetscFunctionBegin;
   if (RGRegisterAllCalled) PetscFunctionReturn(0);
   RGRegisterAllCalled = PETSC_TRUE;
-  CHKERRQ(RGRegister(RGINTERVAL,RGCreate_Interval));
-  CHKERRQ(RGRegister(RGELLIPSE,RGCreate_Ellipse));
-  CHKERRQ(RGRegister(RGRING,RGCreate_Ring));
-  CHKERRQ(RGRegister(RGPOLYGON,RGCreate_Polygon));
+  PetscCall(RGRegister(RGINTERVAL,RGCreate_Interval));
+  PetscCall(RGRegister(RGELLIPSE,RGCreate_Ellipse));
+  PetscCall(RGRegister(RGRING,RGCreate_Ring));
+  PetscCall(RGRegister(RGPOLYGON,RGCreate_Polygon));
   PetscFunctionReturn(0);
 }

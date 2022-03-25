@@ -33,16 +33,16 @@ PetscErrorCode STComputeOperator_Filter(ST st)
   ctx->frame[1] = ctx->inta;
   ctx->frame[2] = ctx->intb;
   ctx->frame[3] = ctx->right;
-  CHKERRQ(STFilter_FILTLAN_setFilter(st,&st->T[0]));
+  PetscCall(STFilter_FILTLAN_setFilter(st,&st->T[0]));
   st->M = st->T[0];
-  CHKERRQ(MatDestroy(&st->P));
+  PetscCall(MatDestroy(&st->P));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STSetUp_Filter(ST st)
 {
   PetscFunctionBegin;
-  CHKERRQ(STSetWorkVecs(st,4));
+  PetscCall(STSetWorkVecs(st,4));
   PetscFunctionReturn(0);
 }
 
@@ -53,24 +53,24 @@ PetscErrorCode STSetFromOptions_Filter(PetscOptionItems *PetscOptionsObject,ST s
   PetscBool      flg;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"ST Filter Options"));
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"ST Filter Options"));
 
     k = 2;
-    CHKERRQ(PetscOptionsRealArray("-st_filter_interval","Interval containing the desired eigenvalues (two real values separated with a comma without spaces)","STFilterSetInterval",array,&k,&flg));
+    PetscCall(PetscOptionsRealArray("-st_filter_interval","Interval containing the desired eigenvalues (two real values separated with a comma without spaces)","STFilterSetInterval",array,&k,&flg));
     if (flg) {
       PetscCheck(k>1,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Must pass two values in -st_filter_interval (comma-separated without spaces)");
-      CHKERRQ(STFilterSetInterval(st,array[0],array[1]));
+      PetscCall(STFilterSetInterval(st,array[0],array[1]));
     }
     k = 2;
-    CHKERRQ(PetscOptionsRealArray("-st_filter_range","Interval containing all eigenvalues (two real values separated with a comma without spaces)","STFilterSetRange",array,&k,&flg));
+    PetscCall(PetscOptionsRealArray("-st_filter_range","Interval containing all eigenvalues (two real values separated with a comma without spaces)","STFilterSetRange",array,&k,&flg));
     if (flg) {
       PetscCheck(k>1,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Must pass two values in -st_filter_range (comma-separated without spaces)");
-      CHKERRQ(STFilterSetRange(st,array[0],array[1]));
+      PetscCall(STFilterSetRange(st,array[0],array[1]));
     }
-    CHKERRQ(PetscOptionsInt("-st_filter_degree","Degree of filter polynomial","STFilterSetDegree",100,&k,&flg));
-    if (flg) CHKERRQ(STFilterSetDegree(st,k));
+    PetscCall(PetscOptionsInt("-st_filter_degree","Degree of filter polynomial","STFilterSetDegree",100,&k,&flg));
+    if (flg) PetscCall(STFilterSetDegree(st,k));
 
-  CHKERRQ(PetscOptionsTail());
+  PetscCall(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
@@ -123,7 +123,7 @@ PetscErrorCode STFilterSetInterval(ST st,PetscReal inta,PetscReal intb)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveReal(st,inta,2);
   PetscValidLogicalCollectiveReal(st,intb,3);
-  CHKERRQ(PetscTryMethod(st,"STFilterSetInterval_C",(ST,PetscReal,PetscReal),(st,inta,intb)));
+  PetscCall(PetscTryMethod(st,"STFilterSetInterval_C",(ST,PetscReal,PetscReal),(st,inta,intb)));
   PetscFunctionReturn(0);
 }
 
@@ -157,7 +157,7 @@ PetscErrorCode STFilterGetInterval(ST st,PetscReal *inta,PetscReal *intb)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  CHKERRQ(PetscUseMethod(st,"STFilterGetInterval_C",(ST,PetscReal*,PetscReal*),(st,inta,intb)));
+  PetscCall(PetscUseMethod(st,"STFilterGetInterval_C",(ST,PetscReal*,PetscReal*),(st,inta,intb)));
   PetscFunctionReturn(0);
 }
 
@@ -205,7 +205,7 @@ PetscErrorCode STFilterSetRange(ST st,PetscReal left,PetscReal right)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveReal(st,left,2);
   PetscValidLogicalCollectiveReal(st,right,3);
-  CHKERRQ(PetscTryMethod(st,"STFilterSetRange_C",(ST,PetscReal,PetscReal),(st,left,right)));
+  PetscCall(PetscTryMethod(st,"STFilterSetRange_C",(ST,PetscReal,PetscReal),(st,left,right)));
   PetscFunctionReturn(0);
 }
 
@@ -239,7 +239,7 @@ PetscErrorCode STFilterGetRange(ST st,PetscReal *left,PetscReal *right)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  CHKERRQ(PetscUseMethod(st,"STFilterGetRange_C",(ST,PetscReal*,PetscReal*),(st,left,right)));
+  PetscCall(PetscUseMethod(st,"STFilterGetRange_C",(ST,PetscReal*,PetscReal*),(st,left,right)));
   PetscFunctionReturn(0);
 }
 
@@ -286,7 +286,7 @@ PetscErrorCode STFilterSetDegree(ST st,PetscInt deg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,deg,2);
-  CHKERRQ(PetscTryMethod(st,"STFilterSetDegree_C",(ST,PetscInt),(st,deg)));
+  PetscCall(PetscTryMethod(st,"STFilterSetDegree_C",(ST,PetscInt),(st,deg)));
   PetscFunctionReturn(0);
 }
 
@@ -319,7 +319,7 @@ PetscErrorCode STFilterGetDegree(ST st,PetscInt *deg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidIntPointer(deg,2);
-  CHKERRQ(PetscUseMethod(st,"STFilterGetDegree_C",(ST,PetscInt*),(st,deg)));
+  PetscCall(PetscUseMethod(st,"STFilterGetDegree_C",(ST,PetscInt*),(st,deg)));
   PetscFunctionReturn(0);
 }
 
@@ -353,7 +353,7 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidRealPointer(gamma,2);
-  CHKERRQ(PetscUseMethod(st,"STFilterGetThreshold_C",(ST,PetscReal*),(st,gamma)));
+  PetscCall(PetscUseMethod(st,"STFilterGetThreshold_C",(ST,PetscReal*),(st,gamma)));
   PetscFunctionReturn(0);
 }
 
@@ -364,8 +364,8 @@ PetscErrorCode STReset_Filter(ST st)
   PetscFunctionBegin;
   ctx->left  = 0.0;
   ctx->right = 0.0;
-  CHKERRQ(MatDestroy(&ctx->T));
-  CHKERRQ(MatDestroyMatrices(ctx->nW,&ctx->W));
+  PetscCall(MatDestroy(&ctx->T));
+  PetscCall(MatDestroyMatrices(ctx->nW,&ctx->W));
   ctx->nW = 0;
   PetscFunctionReturn(0);
 }
@@ -376,12 +376,12 @@ PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Filter: interval of desired eigenvalues is [%g,%g]\n",(double)ctx->inta,(double)ctx->intb));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Filter: numerical range is [%g,%g]\n",(double)ctx->left,(double)ctx->right));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Filter: degree of filter polynomial is %" PetscInt_FMT "\n",ctx->polyDegree));
-    if (st->state>=ST_STATE_SETUP) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  Filter: limit to accept eigenvalues: theta=%g\n",(double)ctx->filterInfo->yLimit));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  Filter: interval of desired eigenvalues is [%g,%g]\n",(double)ctx->inta,(double)ctx->intb));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  Filter: numerical range is [%g,%g]\n",(double)ctx->left,(double)ctx->right));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  Filter: degree of filter polynomial is %" PetscInt_FMT "\n",ctx->polyDegree));
+    if (st->state>=ST_STATE_SETUP) PetscCall(PetscViewerASCIIPrintf(viewer,"  Filter: limit to accept eigenvalues: theta=%g\n",(double)ctx->filterInfo->yLimit));
   }
   PetscFunctionReturn(0);
 }
@@ -391,17 +391,17 @@ PetscErrorCode STDestroy_Filter(ST st)
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(ctx->opts));
-  CHKERRQ(PetscFree(ctx->filterInfo));
-  CHKERRQ(PetscFree(ctx->baseFilter));
-  CHKERRQ(PetscFree(st->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterSetRange_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterGetRange_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",NULL));
+  PetscCall(PetscFree(ctx->opts));
+  PetscCall(PetscFree(ctx->filterInfo));
+  PetscCall(PetscFree(ctx->baseFilter));
+  PetscCall(PetscFree(st->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterSetRange_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetRange_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -411,7 +411,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   FILTLAN_IOP    iop;
   FILTLAN_PFI    pfi;
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(st,&ctx));
+  PetscCall(PetscNewLog(st,&ctx));
   st->data = (void*)ctx;
 
   st->usesksp = PETSC_FALSE;
@@ -423,7 +423,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   ctx->polyDegree         = 0;
   ctx->baseDegree         = 10;
 
-  CHKERRQ(PetscNewLog(st,&iop));
+  PetscCall(PetscNewLog(st,&iop));
   ctx->opts               = iop;
   iop->intervalWeights[0] = 100.0;
   iop->intervalWeights[1] = 1.0;
@@ -443,7 +443,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   iop->yBottomLine        = 0.001;
   iop->yRippleLimit       = 0.8;
 
-  CHKERRQ(PetscNewLog(st,&pfi));
+  PetscCall(PetscNewLog(st,&pfi));
   ctx->filterInfo         = pfi;
 
   st->ops->apply           = STApply_Generic;
@@ -454,12 +454,12 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   st->ops->reset           = STReset_Filter;
   st->ops->view            = STView_Filter;
 
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",STFilterSetInterval_Filter));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",STFilterGetInterval_Filter));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterSetRange_C",STFilterSetRange_Filter));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterGetRange_C",STFilterGetRange_Filter));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",STFilterSetDegree_Filter));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",STFilterGetDegree_Filter));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",STFilterGetThreshold_Filter));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",STFilterSetInterval_Filter));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",STFilterGetInterval_Filter));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterSetRange_C",STFilterSetRange_Filter));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetRange_C",STFilterGetRange_Filter));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",STFilterSetDegree_Filter));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",STFilterGetDegree_Filter));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",STFilterGetThreshold_Filter));
   PetscFunctionReturn(0);
 }

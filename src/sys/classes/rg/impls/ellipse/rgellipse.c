@@ -71,7 +71,7 @@ PetscErrorCode RGEllipseSetParameters(RG rg,PetscScalar center,PetscReal radius,
   PetscValidLogicalCollectiveScalar(rg,center,2);
   PetscValidLogicalCollectiveReal(rg,radius,3);
   PetscValidLogicalCollectiveReal(rg,vscale,4);
-  CHKERRQ(PetscTryMethod(rg,"RGEllipseSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal),(rg,center,radius,vscale)));
+  PetscCall(PetscTryMethod(rg,"RGEllipseSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal),(rg,center,radius,vscale)));
   PetscFunctionReturn(0);
 }
 
@@ -107,7 +107,7 @@ PetscErrorCode RGEllipseGetParameters(RG rg,PetscScalar *center,PetscReal *radiu
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  CHKERRQ(PetscUseMethod(rg,"RGEllipseGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*),(rg,center,radius,vscale)));
+  PetscCall(PetscUseMethod(rg,"RGEllipseGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*),(rg,center,radius,vscale)));
   PetscFunctionReturn(0);
 }
 
@@ -122,19 +122,19 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
   char           str[50];
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),ctx->center,PETSC_FALSE));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  center: %s, radius: %g, vscale: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale)));
+    PetscCall(SlepcSNPrintfScalar(str,sizeof(str),ctx->center,PETSC_FALSE));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  center: %s, radius: %g, vscale: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale)));
   } else if (isdraw) {
-    CHKERRQ(PetscViewerDrawGetDraw(viewer,0,&draw));
-    CHKERRQ(PetscDrawCheckResizedWindow(draw));
-    CHKERRQ(PetscDrawGetWindowSize(draw,&winw,&winh));
+    PetscCall(PetscViewerDrawGetDraw(viewer,0,&draw));
+    PetscCall(PetscDrawCheckResizedWindow(draw));
+    PetscCall(PetscDrawGetWindowSize(draw,&winw,&winh));
     winw = PetscMax(winw,1); winh = PetscMax(winh,1);
-    CHKERRQ(PetscDrawClear(draw));
-    CHKERRQ(PetscDrawSetTitle(draw,"Ellipse region"));
-    CHKERRQ(PetscDrawAxisCreate(draw,&axis));
+    PetscCall(PetscDrawClear(draw));
+    PetscCall(PetscDrawSetTitle(draw,"Ellipse region"));
+    PetscCall(PetscDrawAxisCreate(draw,&axis));
     cx = PetscRealPart(ctx->center)*rg->sfactor;
     cy = PetscImaginaryPart(ctx->center)*rg->sfactor;
     r  = ctx->radius*rg->sfactor;
@@ -143,13 +143,13 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
     ab = cx;
     cd = cy;
     w  = scale*PetscMax(lx/winw,ly/winh)/2;
-    CHKERRQ(PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh));
-    CHKERRQ(PetscDrawAxisDraw(axis));
-    CHKERRQ(PetscDrawAxisDestroy(&axis));
-    CHKERRQ(PetscDrawEllipse(draw,cx,cy,2*r,2*r*ctx->vscale,PETSC_DRAW_RED));
-    CHKERRQ(PetscDrawFlush(draw));
-    CHKERRQ(PetscDrawSave(draw));
-    CHKERRQ(PetscDrawPause(draw));
+    PetscCall(PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh));
+    PetscCall(PetscDrawAxisDraw(axis));
+    PetscCall(PetscDrawAxisDestroy(&axis));
+    PetscCall(PetscDrawEllipse(draw,cx,cy,2*r,2*r*ctx->vscale,PETSC_DRAW_RED));
+    PetscCall(PetscDrawFlush(draw));
+    PetscCall(PetscDrawSave(draw));
+    PetscCall(PetscDrawPause(draw));
   }
   PetscFunctionReturn(0);
 }
@@ -252,24 +252,24 @@ PetscErrorCode RGSetFromOptions_Ellipse(PetscOptionItems *PetscOptionsObject,RG 
   PetscBool      flg1,flg2,flg3;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"RG Ellipse Options"));
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"RG Ellipse Options"));
 
-    CHKERRQ(RGEllipseGetParameters(rg,&s,&r1,&r2));
-    CHKERRQ(PetscOptionsScalar("-rg_ellipse_center","Center of ellipse","RGEllipseSetParameters",s,&s,&flg1));
-    CHKERRQ(PetscOptionsReal("-rg_ellipse_radius","Radius of ellipse","RGEllipseSetParameters",r1,&r1,&flg2));
-    CHKERRQ(PetscOptionsReal("-rg_ellipse_vscale","Vertical scale of ellipse","RGEllipseSetParameters",r2,&r2,&flg3));
-    if (flg1 || flg2 || flg3) CHKERRQ(RGEllipseSetParameters(rg,s,r1,r2));
+    PetscCall(RGEllipseGetParameters(rg,&s,&r1,&r2));
+    PetscCall(PetscOptionsScalar("-rg_ellipse_center","Center of ellipse","RGEllipseSetParameters",s,&s,&flg1));
+    PetscCall(PetscOptionsReal("-rg_ellipse_radius","Radius of ellipse","RGEllipseSetParameters",r1,&r1,&flg2));
+    PetscCall(PetscOptionsReal("-rg_ellipse_vscale","Vertical scale of ellipse","RGEllipseSetParameters",r2,&r2,&flg3));
+    if (flg1 || flg2 || flg3) PetscCall(RGEllipseSetParameters(rg,s,r1,r2));
 
-  CHKERRQ(PetscOptionsTail());
+  PetscCall(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode RGDestroy_Ellipse(RG rg)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(rg->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGEllipseSetParameters_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGEllipseGetParameters_C",NULL));
+  PetscCall(PetscFree(rg->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGEllipseSetParameters_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGEllipseGetParameters_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -278,7 +278,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
   RG_ELLIPSE     *ellipse;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(rg,&ellipse));
+  PetscCall(PetscNewLog(rg,&ellipse));
   ellipse->center = 0.0;
   ellipse->radius = PETSC_MAX_REAL;
   ellipse->vscale = 1.0;
@@ -293,7 +293,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
   rg->ops->setfromoptions    = RGSetFromOptions_Ellipse;
   rg->ops->view              = RGView_Ellipse;
   rg->ops->destroy           = RGDestroy_Ellipse;
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGEllipseSetParameters_C",RGEllipseSetParameters_Ellipse));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGEllipseGetParameters_C",RGEllipseGetParameters_Ellipse));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGEllipseSetParameters_C",RGEllipseSetParameters_Ellipse));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGEllipseGetParameters_C",RGEllipseGetParameters_Ellipse));
   PetscFunctionReturn(0);
 }

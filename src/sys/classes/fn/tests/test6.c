@@ -37,35 +37,35 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   PetscReal      nrm;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatGetSize(A,&n,NULL));
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F));
-  CHKERRQ(PetscObjectSetName((PetscObject)F,"F"));
+  PetscCall(MatGetSize(A,&n,NULL));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F));
+  PetscCall(PetscObjectSetName((PetscObject)F,"F"));
   /* compute matrix function */
   if (inplace) {
-    CHKERRQ(MatCopy(A,F,SAME_NONZERO_PATTERN));
-    CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
-    if (set && flg) CHKERRQ(MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE));
-    CHKERRQ(FNEvaluateFunctionMat(fn,F,NULL));
-  } else CHKERRQ(FNEvaluateFunctionMat(fn,A,F));
+    PetscCall(MatCopy(A,F,SAME_NONZERO_PATTERN));
+    PetscCall(MatIsHermitianKnown(A,&set,&flg));
+    if (set && flg) PetscCall(MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE));
+    PetscCall(FNEvaluateFunctionMat(fn,F,NULL));
+  } else PetscCall(FNEvaluateFunctionMat(fn,A,F));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
-    CHKERRQ(MatView(A,viewer));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n"));
-    CHKERRQ(MatView(F,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
+    PetscCall(MatView(A,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n"));
+    PetscCall(MatView(F,viewer));
   }
   /* print matrix norm for checking */
-  CHKERRQ(MatNorm(F,NORM_1,&nrm));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %6.3f\n",(double)nrm));
+  PetscCall(MatNorm(F,NORM_1,&nrm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %6.3f\n",(double)nrm));
   /* check FNEvaluateFunctionMatVec() */
-  CHKERRQ(MatCreateVecs(A,&v,&f0));
-  CHKERRQ(MatGetColumnVector(F,f0,0));
-  CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
-  CHKERRQ(VecAXPY(v,-1.0,f0));
-  CHKERRQ(VecNorm(v,NORM_2,&nrm));
-  if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
-  CHKERRQ(MatDestroy(&F));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(VecDestroy(&f0));
+  PetscCall(MatCreateVecs(A,&v,&f0));
+  PetscCall(MatGetColumnVector(F,f0,0));
+  PetscCall(FNEvaluateFunctionMatVec(fn,A,v));
+  PetscCall(VecAXPY(v,-1.0,f0));
+  PetscCall(VecNorm(v,NORM_2,&nrm));
+  if (nrm>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
+  PetscCall(MatDestroy(&F));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&f0));
   PetscFunctionReturn(0);
 }
 
@@ -79,89 +79,89 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,inplace;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Combined function, n=%" PetscInt_FMT ".\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Combined function, n=%" PetscInt_FMT ".\n",n));
 
   /* Create function */
 
   /* e(x) = exp(x) */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&e));
-  CHKERRQ(FNSetType(e,FNEXP));
-  CHKERRQ(FNSetFromOptions(e));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&e));
+  PetscCall(FNSetType(e,FNEXP));
+  PetscCall(FNSetFromOptions(e));
   /* r(x) = x/(1+x^2) */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&r));
-  CHKERRQ(FNSetType(r,FNRATIONAL));
-  CHKERRQ(FNSetFromOptions(r));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&r));
+  PetscCall(FNSetType(r,FNRATIONAL));
+  PetscCall(FNSetFromOptions(r));
   np = 2; nq = 3;
   p[0] = -1.0; p[1] = 0.0;
   q[0] = 1.0; q[1] = 0.0; q[2] = 1.0;
-  CHKERRQ(FNRationalSetNumerator(r,np,p));
-  CHKERRQ(FNRationalSetDenominator(r,nq,q));
+  PetscCall(FNRationalSetNumerator(r,np,p));
+  PetscCall(FNRationalSetDenominator(r,nq,q));
   /* h(x) */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&h));
-  CHKERRQ(FNSetType(h,FNCOMBINE));
-  CHKERRQ(FNSetFromOptions(h));
-  CHKERRQ(FNCombineSetChildren(h,FN_COMBINE_COMPOSE,r,e));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&h));
+  PetscCall(FNSetType(h,FNCOMBINE));
+  PetscCall(FNSetFromOptions(h));
+  PetscCall(FNCombineSetChildren(h,FN_COMBINE_COMPOSE,r,e));
   /* g(x) = 1-x^2 */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&g));
-  CHKERRQ(FNSetType(g,FNRATIONAL));
-  CHKERRQ(FNSetFromOptions(g));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&g));
+  PetscCall(FNSetType(g,FNRATIONAL));
+  PetscCall(FNSetFromOptions(g));
   np = 3;
   p[0] = -1.0; p[1] = 0.0; p[2] = 1.0;
-  CHKERRQ(FNRationalSetNumerator(g,np,p));
+  PetscCall(FNRationalSetNumerator(g,np,p));
   /* f(x) */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f));
-  CHKERRQ(FNSetType(f,FNCOMBINE));
-  CHKERRQ(FNSetFromOptions(f));
-  CHKERRQ(FNCombineSetChildren(f,FN_COMBINE_MULTIPLY,g,h));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f));
+  PetscCall(FNSetType(f,FNCOMBINE));
+  PetscCall(FNSetFromOptions(f));
+  PetscCall(FNCombineSetChildren(f,FN_COMBINE_MULTIPLY,g,h));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  CHKERRQ(FNView(f,viewer));
-  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(FNView(f,viewer));
+  if (verbose) PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Scalar evaluation */
   x = 2.2;
-  CHKERRQ(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
-  CHKERRQ(FNEvaluateFunction(f,x,&y));
-  CHKERRQ(FNEvaluateDerivative(f,x,&yp));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
+  PetscCall(FNEvaluateFunction(f,x,&y));
+  PetscCall(FNEvaluateDerivative(f,x,&yp));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
 
   /* Test duplication */
-  CHKERRQ(FNDuplicate(f,PetscObjectComm((PetscObject)f),&fcopy));
+  PetscCall(FNDuplicate(f,PetscObjectComm((PetscObject)f),&fcopy));
 
   /* Create matrices */
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
-  CHKERRQ(PetscObjectSetName((PetscObject)A,"A"));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  PetscCall(PetscObjectSetName((PetscObject)A,"A"));
 
   /* Fill A with a symmetric Toeplitz matrix */
-  CHKERRQ(MatDenseGetArray(A,&As));
+  PetscCall(MatDenseGetArray(A,&As));
   for (i=0;i<n;i++) As[i+i*n]=2.0;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) { As[i+(i+j)*n]=1.0; As[(i+j)+i*n]=1.0; }
   }
-  CHKERRQ(MatDenseRestoreArray(A,&As));
-  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
-  CHKERRQ(TestMatCombine(fcopy,A,viewer,verbose,inplace));
+  PetscCall(MatDenseRestoreArray(A,&As));
+  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
+  PetscCall(TestMatCombine(fcopy,A,viewer,verbose,inplace));
 
   /* Repeat with same matrix as non-symmetric */
-  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE));
-  CHKERRQ(TestMatCombine(fcopy,A,viewer,verbose,inplace));
+  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE));
+  PetscCall(TestMatCombine(fcopy,A,viewer,verbose,inplace));
 
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(FNDestroy(&f));
-  CHKERRQ(FNDestroy(&fcopy));
-  CHKERRQ(FNDestroy(&g));
-  CHKERRQ(FNDestroy(&h));
-  CHKERRQ(FNDestroy(&e));
-  CHKERRQ(FNDestroy(&r));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(MatDestroy(&A));
+  PetscCall(FNDestroy(&f));
+  PetscCall(FNDestroy(&fcopy));
+  PetscCall(FNDestroy(&g));
+  PetscCall(FNDestroy(&h));
+  PetscCall(FNDestroy(&e));
+  PetscCall(FNDestroy(&r));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

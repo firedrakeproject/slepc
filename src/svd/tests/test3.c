@@ -39,79 +39,79 @@ int main(int argc,char **argv)
   PetscReal      lev1=0.0,lev2=0.0,tol=PETSC_SMALL;
   PetscBool      skiporth=PETSC_FALSE;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&M,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSVD of a rectangular Grcar matrix, %" PetscInt_FMT "x%" PetscInt_FMT "\n\n",N,M));
-  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&M,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSVD of a rectangular Grcar matrix, %" PetscInt_FMT "x%" PetscInt_FMT "\n\n",N,M));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,M));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,M));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
-    if (i==0) CHKERRQ(MatSetValues(A,1,&i,PetscMin(4,M-i+1),col+1,value+1,INSERT_VALUES));
-    else CHKERRQ(MatSetValues(A,1,&i,PetscMin(5,M-i+1),col,value,INSERT_VALUES));
+    if (i==0) PetscCall(MatSetValues(A,1,&i,PetscMin(4,M-i+1),col+1,value+1,INSERT_VALUES));
+    else PetscCall(MatSetValues(A,1,&i,PetscMin(5,M-i+1),col,value,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the SVD context and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
-  CHKERRQ(SVDSetOperators(svd,A,NULL));
-  CHKERRQ(SVDSetFromOptions(svd));
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetFromOptions(svd));
 
   /*
      Set the initial vectors. This is optional, if not done the initial
      vectors are set to random values
   */
-  CHKERRQ(MatCreateVecs(A,&v0,&w0));
-  CHKERRQ(VecSet(v0,1.0));
-  CHKERRQ(VecSet(w0,1.0));
-  CHKERRQ(SVDSetInitialSpaces(svd,1,&v0,1,&w0));
+  PetscCall(MatCreateVecs(A,&v0,&w0));
+  PetscCall(VecSet(v0,1.0));
+  PetscCall(VecSet(w0,1.0));
+  PetscCall(SVDSetInitialSpaces(svd,1,&v0,1,&w0));
 
   /*
      Compute solution
   */
-  CHKERRQ(SVDSolve(svd));
-  CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
 
   /*
      Check orthonormality of computed singular vectors
   */
-  CHKERRQ(SVDGetConverged(svd,&nconv));
+  PetscCall(SVDGetConverged(svd,&nconv));
   if (nconv>1) {
-    CHKERRQ(VecDuplicateVecs(w0,nconv,&U));
-    CHKERRQ(VecDuplicateVecs(v0,nconv,&V));
-    for (i=0;i<nconv;i++) CHKERRQ(SVDGetSingularTriplet(svd,i,NULL,U[i],V[i]));
+    PetscCall(VecDuplicateVecs(w0,nconv,&U));
+    PetscCall(VecDuplicateVecs(v0,nconv,&V));
+    for (i=0;i<nconv;i++) PetscCall(SVDGetSingularTriplet(svd,i,NULL,U[i],V[i]));
     if (!skiporth) {
-      CHKERRQ(VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1));
-      CHKERRQ(VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2));
+      PetscCall(VecCheckOrthonormality(U,nconv,NULL,nconv,NULL,NULL,&lev1));
+      PetscCall(VecCheckOrthonormality(V,nconv,NULL,nconv,NULL,NULL,&lev2));
     }
-    if (lev1+lev2<20*tol) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
-    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2));
-    CHKERRQ(VecDestroyVecs(nconv,&U));
-    CHKERRQ(VecDestroyVecs(nconv,&V));
+    if (lev1+lev2<20*tol) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
+    else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2));
+    PetscCall(VecDestroyVecs(nconv,&U));
+    PetscCall(VecDestroyVecs(nconv,&V));
   }
 
   /*
      Free work space
   */
-  CHKERRQ(VecDestroy(&v0));
-  CHKERRQ(VecDestroy(&w0));
-  CHKERRQ(SVDDestroy(&svd));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(VecDestroy(&v0));
+  PetscCall(VecDestroy(&w0));
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

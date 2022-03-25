@@ -38,19 +38,19 @@ SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
 #endif
 {
   PetscFunctionBegin;
-  CHKERRQ(STInitializePackage());
-  CHKERRQ(DSInitializePackage());
-  CHKERRQ(FNInitializePackage());
-  CHKERRQ(BVInitializePackage());
-  CHKERRQ(RGInitializePackage());
+  PetscCall(STInitializePackage());
+  PetscCall(DSInitializePackage());
+  PetscCall(FNInitializePackage());
+  PetscCall(BVInitializePackage());
+  PetscCall(RGInitializePackage());
 
 #if defined(PETSC_USE_SINGLE_LIBRARY)
-  CHKERRQ(PetscDLLibraryRegister_slepceps());
-  CHKERRQ(PetscDLLibraryRegister_slepcnep());
-  CHKERRQ(PetscDLLibraryRegister_slepcpep());
-  CHKERRQ(PetscDLLibraryRegister_slepcsvd());
-  CHKERRQ(PetscDLLibraryRegister_slepcmfn());
-  CHKERRQ(PetscDLLibraryRegister_slepclme());
+  PetscCall(PetscDLLibraryRegister_slepceps());
+  PetscCall(PetscDLLibraryRegister_slepcnep());
+  PetscCall(PetscDLLibraryRegister_slepcpep());
+  PetscCall(PetscDLLibraryRegister_slepcsvd());
+  PetscCall(PetscDLLibraryRegister_slepcmfn());
+  PetscCall(PetscDLLibraryRegister_slepclme());
 #endif
   PetscFunctionReturn(0);
 }

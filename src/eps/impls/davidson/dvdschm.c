@@ -17,30 +17,30 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
   PetscInt       check_sum0,check_sum1;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscMemzero(b,sizeof(dvdBlackboard)));
+  PetscCall(PetscMemzero(b,sizeof(dvdBlackboard)));
   b->state = DVD_STATE_PRECONF;
 
   for (check_sum0=-1,check_sum1=DVD_CHECKSUM(b); check_sum0 != check_sum1; check_sum0 = check_sum1, check_sum1 = DVD_CHECKSUM(b)) {
 
     /* Setup basic management of V */
-    CHKERRQ(dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals));
+    PetscCall(dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals));
 
     /* Setup the initial subspace for V */
-    CHKERRQ(dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE));
+    PetscCall(dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE));
 
     /* Setup the convergence in order to use the SLEPc convergence test */
-    CHKERRQ(dvd_testconv_slepc(d,b));
+    PetscCall(dvd_testconv_slepc(d,b));
 
     /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-    CHKERRQ(dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE)));
-    if (harmMode != DVD_HARM_NONE) CHKERRQ(dvd_harm_conf(d,b,harmMode,PETSC_FALSE,0.0));
+    PetscCall(dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE)));
+    if (harmMode != DVD_HARM_NONE) PetscCall(dvd_harm_conf(d,b,harmMode,PETSC_FALSE,0.0));
 
     /* Setup the method for improving the eigenvectors */
-    if (doubleexp) CHKERRQ(dvd_improvex_gd2(d,b,ksp,bs));
+    if (doubleexp) PetscCall(dvd_improvex_gd2(d,b,ksp,bs));
     else {
-      CHKERRQ(dvd_improvex_jd(d,b,ksp,bs,PETSC_FALSE));
-      CHKERRQ(dvd_improvex_jd_proj_uv(d,b));
-      CHKERRQ(dvd_improvex_jd_lit_const(d,b,0,0.0,0.0));
+      PetscCall(dvd_improvex_jd(d,b,ksp,bs,PETSC_FALSE));
+      PetscCall(dvd_improvex_jd_proj_uv(d,b));
+      PetscCall(dvd_improvex_jd_lit_const(d,b,0,0.0,0.0));
     }
   }
   PetscFunctionReturn(0);
@@ -56,25 +56,25 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
   check_sum0 = DVD_CHECKSUM(b);
 
   /* Setup basic management of V */
-  CHKERRQ(dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals));
+  PetscCall(dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals));
 
   /* Setup the initial subspace for V */
-  CHKERRQ(dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE));
+  PetscCall(dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE));
 
   /* Setup the convergence in order to use the SLEPc convergence test */
-  CHKERRQ(dvd_testconv_slepc(d,b));
+  PetscCall(dvd_testconv_slepc(d,b));
 
   /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-  CHKERRQ(dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE)));
-  if (harmMode != DVD_HARM_NONE) CHKERRQ(dvd_harm_conf(d,b,harmMode,fixedTarget,t));
+  PetscCall(dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE)));
+  if (harmMode != DVD_HARM_NONE) PetscCall(dvd_harm_conf(d,b,harmMode,fixedTarget,t));
 
   /* Setup the method for improving the eigenvectors */
-  if (doubleexp) CHKERRQ(dvd_improvex_gd2(d,b,ksp,bs));
+  if (doubleexp) PetscCall(dvd_improvex_gd2(d,b,ksp,bs));
   else {
-    CHKERRQ(dvd_improvex_jd(d,b,ksp,bs,dynamic));
-    CHKERRQ(dvd_improvex_jd_proj_uv(d,b));
-    CHKERRQ(KSPGetTolerances(ksp,&tol,NULL,NULL,&maxits));
-    CHKERRQ(dvd_improvex_jd_lit_const(d,b,maxits,tol,fix));
+    PetscCall(dvd_improvex_jd(d,b,ksp,bs,dynamic));
+    PetscCall(dvd_improvex_jd_proj_uv(d,b));
+    PetscCall(KSPGetTolerances(ksp,&tol,NULL,NULL,&maxits));
+    PetscCall(dvd_improvex_jd_lit_const(d,b,maxits,tol,fix));
   }
 
   check_sum1 = DVD_CHECKSUM(b);

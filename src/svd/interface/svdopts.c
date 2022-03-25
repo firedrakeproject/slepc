@@ -348,7 +348,7 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (svd->convergeddestroy) CHKERRQ((*svd->convergeddestroy)(svd->convergedctx));
+  if (svd->convergeddestroy) PetscCall((*svd->convergeddestroy)(svd->convergedctx));
   svd->convergeduser    = func;
   svd->convergeddestroy = destroy;
   svd->convergedctx     = ctx;
@@ -477,7 +477,7 @@ PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD,Pet
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (svd->stoppingdestroy) CHKERRQ((*svd->stoppingdestroy)(svd->stoppingctx));
+  if (svd->stoppingdestroy) PetscCall((*svd->stoppingdestroy)(svd->stoppingctx));
   svd->stoppinguser    = func;
   svd->stoppingdestroy = destroy;
   svd->stoppingctx     = ctx;
@@ -585,22 +585,22 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
   PetscBool            flg;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,opt,&viewer,&format,&flg));
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)svd),((PetscObject)svd)->options,((PetscObject)svd)->prefix,opt,&viewer,&format,&flg));
   if (!flg) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscViewerGetType(viewer,&vtype));
-  CHKERRQ(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
-  CHKERRQ(PetscFunctionListFind(SVDMonitorList,key,&mfunc));
+  PetscCall(PetscViewerGetType(viewer,&vtype));
+  PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
+  PetscCall(PetscFunctionListFind(SVDMonitorList,key,&mfunc));
   PetscCheck(mfunc,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Specified viewer and format not supported");
-  CHKERRQ(PetscFunctionListFind(SVDMonitorCreateList,key,&cfunc));
-  CHKERRQ(PetscFunctionListFind(SVDMonitorDestroyList,key,&dfunc));
+  PetscCall(PetscFunctionListFind(SVDMonitorCreateList,key,&cfunc));
+  PetscCall(PetscFunctionListFind(SVDMonitorDestroyList,key,&dfunc));
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
-  CHKERRQ((*cfunc)(viewer,format,ctx,&vf));
-  CHKERRQ(PetscObjectDereference((PetscObject)viewer));
-  CHKERRQ(SVDMonitorSet(svd,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
-  if (trackall) CHKERRQ(SVDSetTrackAll(svd,PETSC_TRUE));
+  PetscCall((*cfunc)(viewer,format,ctx,&vf));
+  PetscCall(PetscObjectDereference((PetscObject)viewer));
+  PetscCall(SVDMonitorSet(svd,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
+  if (trackall) PetscCall(SVDSetTrackAll(svd,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -631,84 +631,84 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  CHKERRQ(SVDRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)svd);CHKERRQ(ierr);
-    CHKERRQ(PetscOptionsFList("-svd_type","SVD solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,sizeof(type),&flg));
-    if (flg) CHKERRQ(SVDSetType(svd,type));
-    else if (!((PetscObject)svd)->type_name) CHKERRQ(SVDSetType(svd,SVDCROSS));
+  PetscCall(SVDRegisterAll());
+  ierr = PetscObjectOptionsBegin((PetscObject)svd);PetscCall(ierr);
+    PetscCall(PetscOptionsFList("-svd_type","SVD solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,sizeof(type),&flg));
+    if (flg) PetscCall(SVDSetType(svd,type));
+    else if (!((PetscObject)svd)->type_name) PetscCall(SVDSetType(svd,SVDCROSS));
 
-    CHKERRQ(PetscOptionsBoolGroupBegin("-svd_standard","Singular value decomposition (SVD)","SVDSetProblemType",&flg));
-    if (flg) CHKERRQ(SVDSetProblemType(svd,SVD_STANDARD));
-    CHKERRQ(PetscOptionsBoolGroupEnd("-svd_generalized","Generalized singular value decomposition (GSVD)","SVDSetProblemType",&flg));
-    if (flg) CHKERRQ(SVDSetProblemType(svd,SVD_GENERALIZED));
+    PetscCall(PetscOptionsBoolGroupBegin("-svd_standard","Singular value decomposition (SVD)","SVDSetProblemType",&flg));
+    if (flg) PetscCall(SVDSetProblemType(svd,SVD_STANDARD));
+    PetscCall(PetscOptionsBoolGroupEnd("-svd_generalized","Generalized singular value decomposition (GSVD)","SVDSetProblemType",&flg));
+    if (flg) PetscCall(SVDSetProblemType(svd,SVD_GENERALIZED));
 
-    CHKERRQ(PetscOptionsBool("-svd_implicittranspose","Handle matrix transpose implicitly","SVDSetImplicitTranspose",svd->impltrans,&val,&flg));
-    if (flg) CHKERRQ(SVDSetImplicitTranspose(svd,val));
+    PetscCall(PetscOptionsBool("-svd_implicittranspose","Handle matrix transpose implicitly","SVDSetImplicitTranspose",svd->impltrans,&val,&flg));
+    if (flg) PetscCall(SVDSetImplicitTranspose(svd,val));
 
     i = svd->max_it;
-    CHKERRQ(PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,&flg1));
+    PetscCall(PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,&flg1));
     r = svd->tol;
-    CHKERRQ(PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",SlepcDefaultTol(svd->tol),&r,&flg2));
-    if (flg1 || flg2) CHKERRQ(SVDSetTolerances(svd,r,i));
+    PetscCall(PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",SlepcDefaultTol(svd->tol),&r,&flg2));
+    if (flg1 || flg2) PetscCall(SVDSetTolerances(svd,r,i));
 
-    CHKERRQ(PetscOptionsBoolGroupBegin("-svd_conv_abs","Absolute error convergence test","SVDSetConvergenceTest",&flg));
-    if (flg) CHKERRQ(SVDSetConvergenceTest(svd,SVD_CONV_ABS));
-    CHKERRQ(PetscOptionsBoolGroup("-svd_conv_rel","Relative error convergence test","SVDSetConvergenceTest",&flg));
-    if (flg) CHKERRQ(SVDSetConvergenceTest(svd,SVD_CONV_REL));
-    CHKERRQ(PetscOptionsBoolGroup("-svd_conv_norm","Convergence test relative to the matrix norms","SVDSetConvergenceTest",&flg));
-    if (flg) CHKERRQ(SVDSetConvergenceTest(svd,SVD_CONV_NORM));
-    CHKERRQ(PetscOptionsBoolGroup("-svd_conv_maxit","Maximum iterations convergence test","SVDSetConvergenceTest",&flg));
-    if (flg) CHKERRQ(SVDSetConvergenceTest(svd,SVD_CONV_MAXIT));
-    CHKERRQ(PetscOptionsBoolGroupEnd("-svd_conv_user","User-defined convergence test","SVDSetConvergenceTest",&flg));
-    if (flg) CHKERRQ(SVDSetConvergenceTest(svd,SVD_CONV_USER));
+    PetscCall(PetscOptionsBoolGroupBegin("-svd_conv_abs","Absolute error convergence test","SVDSetConvergenceTest",&flg));
+    if (flg) PetscCall(SVDSetConvergenceTest(svd,SVD_CONV_ABS));
+    PetscCall(PetscOptionsBoolGroup("-svd_conv_rel","Relative error convergence test","SVDSetConvergenceTest",&flg));
+    if (flg) PetscCall(SVDSetConvergenceTest(svd,SVD_CONV_REL));
+    PetscCall(PetscOptionsBoolGroup("-svd_conv_norm","Convergence test relative to the matrix norms","SVDSetConvergenceTest",&flg));
+    if (flg) PetscCall(SVDSetConvergenceTest(svd,SVD_CONV_NORM));
+    PetscCall(PetscOptionsBoolGroup("-svd_conv_maxit","Maximum iterations convergence test","SVDSetConvergenceTest",&flg));
+    if (flg) PetscCall(SVDSetConvergenceTest(svd,SVD_CONV_MAXIT));
+    PetscCall(PetscOptionsBoolGroupEnd("-svd_conv_user","User-defined convergence test","SVDSetConvergenceTest",&flg));
+    if (flg) PetscCall(SVDSetConvergenceTest(svd,SVD_CONV_USER));
 
-    CHKERRQ(PetscOptionsBoolGroupBegin("-svd_stop_basic","Stop iteration if all singular values converged or max_it reached","SVDSetStoppingTest",&flg));
-    if (flg) CHKERRQ(SVDSetStoppingTest(svd,SVD_STOP_BASIC));
-    CHKERRQ(PetscOptionsBoolGroupEnd("-svd_stop_user","User-defined stopping test","SVDSetStoppingTest",&flg));
-    if (flg) CHKERRQ(SVDSetStoppingTest(svd,SVD_STOP_USER));
+    PetscCall(PetscOptionsBoolGroupBegin("-svd_stop_basic","Stop iteration if all singular values converged or max_it reached","SVDSetStoppingTest",&flg));
+    if (flg) PetscCall(SVDSetStoppingTest(svd,SVD_STOP_BASIC));
+    PetscCall(PetscOptionsBoolGroupEnd("-svd_stop_user","User-defined stopping test","SVDSetStoppingTest",&flg));
+    if (flg) PetscCall(SVDSetStoppingTest(svd,SVD_STOP_USER));
 
     i = svd->nsv;
-    CHKERRQ(PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->nsv,&i,&flg1));
+    PetscCall(PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->nsv,&i,&flg1));
     j = svd->ncv;
-    CHKERRQ(PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,&flg2));
+    PetscCall(PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,&flg2));
     k = svd->mpd;
-    CHKERRQ(PetscOptionsInt("-svd_mpd","Maximum dimension of projected problem","SVDSetDimensions",svd->mpd,&k,&flg3));
-    if (flg1 || flg2 || flg3) CHKERRQ(SVDSetDimensions(svd,i,j,k));
+    PetscCall(PetscOptionsInt("-svd_mpd","Maximum dimension of projected problem","SVDSetDimensions",svd->mpd,&k,&flg3));
+    if (flg1 || flg2 || flg3) PetscCall(SVDSetDimensions(svd,i,j,k));
 
-    CHKERRQ(PetscOptionsBoolGroupBegin("-svd_largest","Compute largest singular values","SVDSetWhichSingularTriplets",&flg));
-    if (flg) CHKERRQ(SVDSetWhichSingularTriplets(svd,SVD_LARGEST));
-    CHKERRQ(PetscOptionsBoolGroupEnd("-svd_smallest","Compute smallest singular values","SVDSetWhichSingularTriplets",&flg));
-    if (flg) CHKERRQ(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
+    PetscCall(PetscOptionsBoolGroupBegin("-svd_largest","Compute largest singular values","SVDSetWhichSingularTriplets",&flg));
+    if (flg) PetscCall(SVDSetWhichSingularTriplets(svd,SVD_LARGEST));
+    PetscCall(PetscOptionsBoolGroupEnd("-svd_smallest","Compute smallest singular values","SVDSetWhichSingularTriplets",&flg));
+    if (flg) PetscCall(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
 
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to SVDSetFromOptions()
     */
-    CHKERRQ(PetscOptionsBool("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",PETSC_FALSE,&flg,&set));
-    if (set && flg) CHKERRQ(SVDMonitorCancel(svd));
-    CHKERRQ(SVDMonitorSetFromOptions(svd,"-svd_monitor","first_approximation",NULL,PETSC_FALSE));
-    CHKERRQ(SVDMonitorSetFromOptions(svd,"-svd_monitor_all","all_approximations",NULL,PETSC_TRUE));
-    CHKERRQ(SVDMonitorSetFromOptions(svd,"-svd_monitor_conv","convergence_history",NULL,PETSC_FALSE));
+    PetscCall(PetscOptionsBool("-svd_monitor_cancel","Remove any hardwired monitor routines","SVDMonitorCancel",PETSC_FALSE,&flg,&set));
+    if (set && flg) PetscCall(SVDMonitorCancel(svd));
+    PetscCall(SVDMonitorSetFromOptions(svd,"-svd_monitor","first_approximation",NULL,PETSC_FALSE));
+    PetscCall(SVDMonitorSetFromOptions(svd,"-svd_monitor_all","all_approximations",NULL,PETSC_TRUE));
+    PetscCall(SVDMonitorSetFromOptions(svd,"-svd_monitor_conv","convergence_history",NULL,PETSC_FALSE));
 
     /* -----------------------------------------------------------------------*/
-    CHKERRQ(PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",NULL));
-    CHKERRQ(PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",NULL));
-    CHKERRQ(PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",NULL));
-    CHKERRQ(PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDConvergedReasonView",NULL));
-    CHKERRQ(PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",NULL));
-    CHKERRQ(PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL));
-    CHKERRQ(PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",NULL));
+    PetscCall(PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",NULL));
+    PetscCall(PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",NULL));
+    PetscCall(PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",NULL));
+    PetscCall(PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDConvergedReasonView",NULL));
+    PetscCall(PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",NULL));
+    PetscCall(PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL));
+    PetscCall(PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",NULL));
 
-    if (svd->ops->setfromoptions) CHKERRQ((*svd->ops->setfromoptions)(PetscOptionsObject,svd));
-    CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)svd));
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+    if (svd->ops->setfromoptions) PetscCall((*svd->ops->setfromoptions)(PetscOptionsObject,svd));
+    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)svd));
+  ierr = PetscOptionsEnd();PetscCall(ierr);
 
-  if (!svd->V) CHKERRQ(SVDGetBV(svd,&svd->V,NULL));
-  CHKERRQ(BVSetFromOptions(svd->V));
-  if (!svd->U) CHKERRQ(SVDGetBV(svd,NULL,&svd->U));
-  CHKERRQ(BVSetFromOptions(svd->U));
-  if (!svd->ds) CHKERRQ(SVDGetDS(svd,&svd->ds));
-  CHKERRQ(DSSetFromOptions(svd->ds));
+  if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,NULL));
+  PetscCall(BVSetFromOptions(svd->V));
+  if (!svd->U) PetscCall(SVDGetBV(svd,NULL,&svd->U));
+  PetscCall(BVSetFromOptions(svd->U));
+  if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
+  PetscCall(DSSetFromOptions(svd->ds));
   PetscFunctionReturn(0);
 }
 
@@ -888,12 +888,12 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!svd->V) CHKERRQ(SVDGetBV(svd,&svd->V,&svd->U));
-  CHKERRQ(BVSetOptionsPrefix(svd->V,prefix));
-  CHKERRQ(BVSetOptionsPrefix(svd->U,prefix));
-  if (!svd->ds) CHKERRQ(SVDGetDS(svd,&svd->ds));
-  CHKERRQ(DSSetOptionsPrefix(svd->ds,prefix));
-  CHKERRQ(PetscObjectSetOptionsPrefix((PetscObject)svd,prefix));
+  if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,&svd->U));
+  PetscCall(BVSetOptionsPrefix(svd->V,prefix));
+  PetscCall(BVSetOptionsPrefix(svd->U,prefix));
+  if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
+  PetscCall(DSSetOptionsPrefix(svd->ds,prefix));
+  PetscCall(PetscObjectSetOptionsPrefix((PetscObject)svd,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -919,12 +919,12 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!svd->V) CHKERRQ(SVDGetBV(svd,&svd->V,&svd->U));
-  CHKERRQ(BVAppendOptionsPrefix(svd->V,prefix));
-  CHKERRQ(BVAppendOptionsPrefix(svd->U,prefix));
-  if (!svd->ds) CHKERRQ(SVDGetDS(svd,&svd->ds));
-  CHKERRQ(DSAppendOptionsPrefix(svd->ds,prefix));
-  CHKERRQ(PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix));
+  if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,&svd->U));
+  PetscCall(BVAppendOptionsPrefix(svd->V,prefix));
+  PetscCall(BVAppendOptionsPrefix(svd->U,prefix));
+  if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
+  PetscCall(DSAppendOptionsPrefix(svd->ds,prefix));
+  PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)svd,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -953,6 +953,6 @@ PetscErrorCode SVDGetOptionsPrefix(SVD svd,const char *prefix[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(prefix,2);
-  CHKERRQ(PetscObjectGetOptionsPrefix((PetscObject)svd,prefix));
+  PetscCall(PetscObjectGetOptionsPrefix((PetscObject)svd,prefix));
   PetscFunctionReturn(0);
 }

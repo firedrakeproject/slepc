@@ -14,7 +14,7 @@
 #include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
 #include <evsl.h>
 
-#define CHKERREVSL(func, ...) do {                                                   \
+#define PetscCallEVSL(func, ...) do {                                                   \
     PetscStackPush(PetscStringize(func));                                                      \
     PetscErrorCode evsl_ierr_ = func(__VA_ARGS__);                                              \
     PetscStackPop;                                                                             \
@@ -49,11 +49,11 @@ static void AMatvec_EVSL(double *xa,double *ya,void *data)
   Mat            A = ctx->A;
 
   PetscFunctionBegin;
-  CHKERRABORT(PetscObjectComm((PetscObject)A),VecPlaceArray(x,(PetscScalar*)xa));
-  CHKERRABORT(PetscObjectComm((PetscObject)A),VecPlaceArray(y,(PetscScalar*)ya));
-  CHKERRABORT(PetscObjectComm((PetscObject)A),MatMult(A,x,y));
-  CHKERRABORT(PetscObjectComm((PetscObject)A),VecResetArray(x));
-  CHKERRABORT(PetscObjectComm((PetscObject)A),VecResetArray(y));
+  PetscCallAbort(PetscObjectComm((PetscObject)A),VecPlaceArray(x,(PetscScalar*)xa));
+  PetscCallAbort(PetscObjectComm((PetscObject)A),VecPlaceArray(y,(PetscScalar*)ya));
+  PetscCallAbort(PetscObjectComm((PetscObject)A),MatMult(A,x,y));
+  PetscCallAbort(PetscObjectComm((PetscObject)A),VecResetArray(x));
+  PetscCallAbort(PetscObjectComm((PetscObject)A),VecResetArray(y));
   PetscFunctionReturnVoid();
 }
 
@@ -71,7 +71,7 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   PetscFunctionBegin;
   EPSCheckStandard(eps);
   EPSCheckHermitian(eps);
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
   PetscCheck(isshift,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support spectral transformations");
 
   if (ctx->initialized) EVSLFinish();
@@ -79,27 +79,27 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   ctx->initialized=PETSC_TRUE;
 
   /* get number of slices per process */
-  CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
-  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank));
+  PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
+  PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank));
   if (!ctx->nslices) ctx->nslices = size;
-  CHKERRQ(PetscLayoutDestroy(&ctx->map));
-  CHKERRQ(PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)eps),PETSC_DECIDE,ctx->nslices,1,&ctx->map));
+  PetscCall(PetscLayoutDestroy(&ctx->map));
+  PetscCall(PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)eps),PETSC_DECIDE,ctx->nslices,1,&ctx->map));
 
   /* get matrix and prepare auxiliary vectors */
-  CHKERRQ(MatDestroy(&ctx->A));
-  CHKERRQ(STGetMatrix(eps->st,0,&A));
+  PetscCall(MatDestroy(&ctx->A));
+  PetscCall(STGetMatrix(eps->st,0,&A));
   if (size==1) {
-    CHKERRQ(PetscObjectReference((PetscObject)A));
+    PetscCall(PetscObjectReference((PetscObject)A));
     ctx->A = A;
   } else {
-    CHKERRQ(MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&ctx->A));
-    CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->A));
+    PetscCall(MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&ctx->A));
+    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->A));
   }
   SetAMatvec(eps->n,&AMatvec_EVSL,(void*)ctx);
   if (!ctx->x) {
-    CHKERRQ(MatCreateVecsEmpty(ctx->A,&ctx->x,&ctx->y));
-    CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->x));
-    CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->y));
+    PetscCall(MatCreateVecsEmpty(ctx->A,&ctx->x,&ctx->y));
+    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->x));
+    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->y));
   }
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION | EPS_FEATURE_CONVERGENCE);
@@ -109,14 +109,14 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
 
   /* estimate numerical range */
   if (ctx->estimrange || ctx->lmin == PETSC_MIN_REAL || ctx->lmax == PETSC_MAX_REAL) {
-    CHKERRQ(MatCreateVecs(ctx->A,&v0,NULL));
-    if (!eps->V) CHKERRQ(EPSGetBV(eps,&eps->V));
-    CHKERRQ(BVGetRandomContext(eps->V,&rnd));
-    CHKERRQ(VecSetRandom(v0,rnd));
-    CHKERRQ(VecGetArray(v0,&vinit));
-    CHKERREVSL(LanTrbounds,50,200,eps->tol,vinit,1,&ctx->lmin,&ctx->lmax,NULL);
-    CHKERRQ(VecRestoreArray(v0,&vinit));
-    CHKERRQ(VecDestroy(&v0));
+    PetscCall(MatCreateVecs(ctx->A,&v0,NULL));
+    if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
+    PetscCall(BVGetRandomContext(eps->V,&rnd));
+    PetscCall(VecSetRandom(v0,rnd));
+    PetscCall(VecGetArray(v0,&vinit));
+    PetscCallEVSL(LanTrbounds,50,200,eps->tol,vinit,1,&ctx->lmin,&ctx->lmax,NULL);
+    PetscCall(VecRestoreArray(v0,&vinit));
+    PetscCall(VecDestroy(&v0));
     ctx->estimrange = PETSC_TRUE;   /* estimate if called again with another matrix */
   }
   PetscCheck(ctx->lmin<=eps->inta && ctx->lmax>=eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)eps->inta,(double)eps->intb,(double)ctx->lmin,(double)ctx->lmax);
@@ -128,41 +128,41 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   /* estimate number of eigenvalues in the interval */
   switch (ctx->dos) {
     case EPS_EVSL_DOS_KPM:
-      CHKERRQ(PetscMalloc1(ctx->deg+1,&mu));
-      if (!rank) CHKERREVSL(kpmdos,ctx->deg,(int)ctx->damping,ctx->nvec,xintv,mu,&ecount);
-      CHKERRMPI(MPI_Bcast(mu,ctx->deg+1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
+      PetscCall(PetscMalloc1(ctx->deg+1,&mu));
+      if (!rank) PetscCallEVSL(kpmdos,ctx->deg,(int)ctx->damping,ctx->nvec,xintv,mu,&ecount);
+      PetscCallMPI(MPI_Bcast(mu,ctx->deg+1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
       break;
     case EPS_EVSL_DOS_LANCZOS:
-      CHKERRQ(PetscMalloc2(ctx->npoints,&xdos,ctx->npoints,&ydos));
-      if (!rank) CHKERREVSL(LanDos,ctx->nvec,PetscMin(ctx->steps,eps->n/2),ctx->npoints,xdos,ydos,&ecount,xintv);
-      CHKERRMPI(MPI_Bcast(xdos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
-      CHKERRMPI(MPI_Bcast(ydos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
+      PetscCall(PetscMalloc2(ctx->npoints,&xdos,ctx->npoints,&ydos));
+      if (!rank) PetscCallEVSL(LanDos,ctx->nvec,PetscMin(ctx->steps,eps->n/2),ctx->npoints,xdos,ydos,&ecount,xintv);
+      PetscCallMPI(MPI_Bcast(xdos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
+      PetscCallMPI(MPI_Bcast(ydos,ctx->npoints,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid DOS method");
   }
-  CHKERRMPI(MPI_Bcast(&ecount,1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
+  PetscCallMPI(MPI_Bcast(&ecount,1,MPIU_REAL,0,PetscObjectComm((PetscObject)eps)));
 
-  CHKERRQ(PetscInfo(eps,"Estimated eigenvalue count in the interval: %g\n",ecount));
+  PetscCall(PetscInfo(eps,"Estimated eigenvalue count in the interval: %g\n",ecount));
   eps->ncv = (PetscInt)PetscCeilReal(1.5*ecount);
 
   /* slice the spectrum */
-  CHKERRQ(PetscFree(ctx->sli));
-  CHKERRQ(PetscMalloc1(ctx->nslices+1,&ctx->sli));
+  PetscCall(PetscFree(ctx->sli));
+  PetscCall(PetscMalloc1(ctx->nslices+1,&ctx->sli));
   if (ctx->dos == EPS_EVSL_DOS_KPM) {
-    CHKERREVSL(spslicer,ctx->sli,mu,ctx->deg,xintv,ctx->nslices,10*(PetscInt)ecount);
-    CHKERRQ(PetscFree(mu));
+    PetscCallEVSL(spslicer,ctx->sli,mu,ctx->deg,xintv,ctx->nslices,10*(PetscInt)ecount);
+    PetscCall(PetscFree(mu));
   } else if (ctx->dos == EPS_EVSL_DOS_LANCZOS) {
     spslicer2(xdos,ydos,ctx->nslices,ctx->npoints,ctx->sli);
-    CHKERRQ(PetscFree2(xdos,ydos));
+    PetscCall(PetscFree2(xdos,ydos));
   }
 
   /* approximate number of eigenvalues wanted in each slice */
   ctx->nev = (PetscInt)(1.0 + ecount/(PetscReal)ctx->nslices) + 2;
 
-  if (eps->mpd!=PETSC_DEFAULT) CHKERRQ(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
+  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
-  CHKERRQ(EPSAllocateSolution(eps,0));
+  PetscCall(EPSAllocateSolution(eps,0));
   PetscFunctionReturn(0);
 }
 
@@ -180,50 +180,50 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
   polparams      pol;
 
   PetscFunctionBegin;
-  CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
-  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank));
-  CHKERRQ(PetscLayoutGetRange(ctx->map,&rstart,&rend));
+  PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
+  PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank));
+  PetscCall(PetscLayoutGetRange(ctx->map,&rstart,&rend));
   nevmax = (rend-rstart)*ctx->nev;
-  CHKERRQ(MatCreateVecs(ctx->A,&v0,NULL));
-  CHKERRQ(BVGetRandomContext(eps->V,&rnd));
-  CHKERRQ(VecSetRandom(v0,rnd));
-  CHKERRQ(VecGetArray(v0,&vinit));
-  CHKERRQ(PetscMalloc5(size,&nevloc,size+1,&disp,nevmax,&eigr,nevmax,&errest,nevmax*eps->n,&X));
+  PetscCall(MatCreateVecs(ctx->A,&v0,NULL));
+  PetscCall(BVGetRandomContext(eps->V,&rnd));
+  PetscCall(VecSetRandom(v0,rnd));
+  PetscCall(VecGetArray(v0,&vinit));
+  PetscCall(PetscMalloc5(size,&nevloc,size+1,&disp,nevmax,&eigr,nevmax,&errest,nevmax*eps->n,&X));
   mlan = PetscMin(PetscMax(5*ctx->nev,300),eps->n);
   for (sl=rstart; sl<rend; sl++) {
     xintv[0] = ctx->sli[sl];
     xintv[1] = ctx->sli[sl+1];
     xintv[2] = ctx->lmin;
     xintv[3] = ctx->lmax;
-    CHKERRQ(PetscInfo(ctx->A,"Subinterval %" PetscInt_FMT ": [%.4e, %.4e]\n",sl+1,xintv[0],xintv[1]));
+    PetscCall(PetscInfo(ctx->A,"Subinterval %" PetscInt_FMT ": [%.4e, %.4e]\n",sl+1,xintv[0],xintv[1]));
     set_pol_def(&pol);
     pol.max_deg    = ctx->max_deg;
     pol.damping    = (int)ctx->damping;
     pol.thresh_int = ctx->thresh;
     find_pol(xintv,&pol);
-    CHKERRQ(PetscInfo(ctx->A,"Polynomial [type = %" PetscInt_FMT "], deg %" PetscInt_FMT ", bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam));
-    CHKERREVSL(ChebLanNr,xintv,mlan,eps->tol,vinit,&pol,&nevout,&lam,&Y,&res,NULL);
+    PetscCall(PetscInfo(ctx->A,"Polynomial [type = %" PetscInt_FMT "], deg %" PetscInt_FMT ", bar %e gam %e\n",pol.type,pol.deg,pol.bar,pol.gam));
+    PetscCallEVSL(ChebLanNr,xintv,mlan,eps->tol,vinit,&pol,&nevout,&lam,&Y,&res,NULL);
     PetscCheck(k+nevout<=nevmax,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
     free_pol(&pol);
-    CHKERRQ(PetscInfo(ctx->A,"Computed %" PetscInt_FMT " eigenvalues\n",nevout));
-    CHKERRQ(PetscMalloc1(nevout,&ind));
+    PetscCall(PetscInfo(ctx->A,"Computed %" PetscInt_FMT " eigenvalues\n",nevout));
+    PetscCall(PetscMalloc1(nevout,&ind));
     sort_double(nevout,lam,ind);
     for (i=0;i<nevout;i++) {
       eigr[i+k]   = lam[i];
       errest[i+k] = res[ind[i]];
-      CHKERRQ(PetscArraycpy(X+(i+k)*eps->n,Y+ind[i]*eps->n,eps->n));
+      PetscCall(PetscArraycpy(X+(i+k)*eps->n,Y+ind[i]*eps->n,eps->n));
     }
     k += nevout;
     if (lam) evsl_Free(lam);
     if (Y)   evsl_Free_device(Y);
     if (res) evsl_Free(res);
-    CHKERRQ(PetscFree(ind));
+    PetscCall(PetscFree(ind));
   }
-  CHKERRQ(VecRestoreArray(v0,&vinit));
-  CHKERRQ(VecDestroy(&v0));
+  PetscCall(VecRestoreArray(v0,&vinit));
+  PetscCall(VecDestroy(&v0));
 
   /* gather eigenvalues computed by each MPI process */
-  CHKERRMPI(MPI_Allgather(&k,1,MPIU_INT,nevloc,1,MPIU_INT,PetscObjectComm((PetscObject)eps)));
+  PetscCallMPI(MPI_Allgather(&k,1,MPIU_INT,nevloc,1,MPIU_INT,PetscObjectComm((PetscObject)eps)));
   eps->nev = nevloc[0];
   disp[0]  = 0;
   for (i=1;i<size;i++) {
@@ -232,34 +232,34 @@ PetscErrorCode EPSSolve_EVSL(EPS eps)
   }
   disp[size] = disp[size-1]+nevloc[size-1];
   PetscCheck(eps->nev<=eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Too low estimation of eigenvalue count, try modifying the sampling parameters");
-  CHKERRMPI(MPI_Allgatherv(eigr,k,MPIU_SCALAR,eps->eigr,nevloc,disp,MPIU_SCALAR,PetscObjectComm((PetscObject)eps)));
-  CHKERRMPI(MPI_Allgatherv(errest,k,MPIU_REAL,eps->errest,nevloc,disp,MPIU_REAL,PetscObjectComm((PetscObject)eps)));
+  PetscCallMPI(MPI_Allgatherv(eigr,k,MPIU_SCALAR,eps->eigr,nevloc,disp,MPIU_SCALAR,PetscObjectComm((PetscObject)eps)));
+  PetscCallMPI(MPI_Allgatherv(errest,k,MPIU_REAL,eps->errest,nevloc,disp,MPIU_REAL,PetscObjectComm((PetscObject)eps)));
   eps->nconv  = eps->nev;
   eps->its    = 1;
   eps->reason = EPS_CONVERGED_TOL;
 
   /* scatter computed eigenvectors and store them in eps->V */
-  CHKERRQ(BVCreateVec(eps->V,&w));
+  PetscCall(BVCreateVec(eps->V,&w));
   for (i=0;i<size;i++) {
     N = (rank==i)? eps->n: 0;
-    CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,N,&x));
-    CHKERRQ(VecSetFromOptions(x));
-    CHKERRQ(ISCreateStride(PETSC_COMM_SELF,N,0,1,&is));
-    CHKERRQ(VecScatterCreate(x,is,w,is,&vs));
-    CHKERRQ(ISDestroy(&is));
+    PetscCall(VecCreateSeq(PETSC_COMM_SELF,N,&x));
+    PetscCall(VecSetFromOptions(x));
+    PetscCall(ISCreateStride(PETSC_COMM_SELF,N,0,1,&is));
+    PetscCall(VecScatterCreate(x,is,w,is,&vs));
+    PetscCall(ISDestroy(&is));
     for (j=disp[i];j<disp[i+1];j++) {
-      CHKERRQ(BVGetColumn(eps->V,j,&v));
-      if (rank==i) CHKERRQ(VecPlaceArray(x,X+(j-disp[i])*eps->n));
-      CHKERRQ(VecScatterBegin(vs,x,v,INSERT_VALUES,SCATTER_FORWARD));
-      CHKERRQ(VecScatterEnd(vs,x,v,INSERT_VALUES,SCATTER_FORWARD));
-      if (rank==i) CHKERRQ(VecResetArray(x));
-      CHKERRQ(BVRestoreColumn(eps->V,j,&v));
+      PetscCall(BVGetColumn(eps->V,j,&v));
+      if (rank==i) PetscCall(VecPlaceArray(x,X+(j-disp[i])*eps->n));
+      PetscCall(VecScatterBegin(vs,x,v,INSERT_VALUES,SCATTER_FORWARD));
+      PetscCall(VecScatterEnd(vs,x,v,INSERT_VALUES,SCATTER_FORWARD));
+      if (rank==i) PetscCall(VecResetArray(x));
+      PetscCall(BVRestoreColumn(eps->V,j,&v));
     }
-    CHKERRQ(VecScatterDestroy(&vs));
-    CHKERRQ(VecDestroy(&x));
+    PetscCall(VecScatterDestroy(&vs));
+    PetscCall(VecDestroy(&x));
   }
-  CHKERRQ(VecDestroy(&w));
-  CHKERRQ(PetscFree5(nevloc,disp,eigr,errest,X));
+  PetscCall(VecDestroy(&w));
+  PetscCall(PetscFree5(nevloc,disp,eigr,errest,X));
   PetscFunctionReturn(0);
 }
 
@@ -304,7 +304,7 @@ PetscErrorCode EPSEVSLSetSlices(EPS eps,PetscInt nslices)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,nslices,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSEVSLSetSlices_C",(EPS,PetscInt),(eps,nslices)));
+  PetscCall(PetscTryMethod(eps,"EPSEVSLSetSlices_C",(EPS,PetscInt),(eps,nslices)));
   PetscFunctionReturn(0);
 }
 
@@ -338,7 +338,7 @@ PetscErrorCode EPSEVSLGetSlices(EPS eps,PetscInt *nslices)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(nslices,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSEVSLGetSlices_C",(EPS,PetscInt*),(eps,nslices)));
+  PetscCall(PetscUseMethod(eps,"EPSEVSLGetSlices_C",(EPS,PetscInt*),(eps,nslices)));
   PetscFunctionReturn(0);
 }
 
@@ -388,7 +388,7 @@ PetscErrorCode EPSEVSLSetRange(EPS eps,PetscReal lmin,PetscReal lmax)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,lmin,2);
   PetscValidLogicalCollectiveReal(eps,lmax,3);
-  CHKERRQ(PetscTryMethod(eps,"EPSEVSLSetRange_C",(EPS,PetscReal,PetscReal),(eps,lmin,lmax)));
+  PetscCall(PetscTryMethod(eps,"EPSEVSLSetRange_C",(EPS,PetscReal,PetscReal),(eps,lmin,lmax)));
   PetscFunctionReturn(0);
 }
 
@@ -422,7 +422,7 @@ PetscErrorCode EPSEVSLGetRange(EPS eps,PetscReal *lmin,PetscReal *lmax)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  CHKERRQ(PetscUseMethod(eps,"EPSEVSLGetRange_C",(EPS,PetscReal*,PetscReal*),(eps,lmin,lmax)));
+  PetscCall(PetscUseMethod(eps,"EPSEVSLGetRange_C",(EPS,PetscReal*,PetscReal*),(eps,lmin,lmax)));
   PetscFunctionReturn(0);
 }
 
@@ -494,7 +494,7 @@ PetscErrorCode EPSEVSLSetDOSParameters(EPS eps,EPSEVSLDOSMethod dos,PetscInt nve
   PetscValidLogicalCollectiveInt(eps,deg,4);
   PetscValidLogicalCollectiveInt(eps,steps,5);
   PetscValidLogicalCollectiveInt(eps,npoints,6);
-  CHKERRQ(PetscTryMethod(eps,"EPSEVSLSetDOSParameters_C",(EPS,EPSEVSLDOSMethod,PetscInt,PetscInt,PetscInt,PetscInt),(eps,dos,nvec,deg,steps,npoints)));
+  PetscCall(PetscTryMethod(eps,"EPSEVSLSetDOSParameters_C",(EPS,EPSEVSLDOSMethod,PetscInt,PetscInt,PetscInt,PetscInt),(eps,dos,nvec,deg,steps,npoints)));
   PetscFunctionReturn(0);
 }
 
@@ -535,7 +535,7 @@ PetscErrorCode EPSEVSLGetDOSParameters(EPS eps,EPSEVSLDOSMethod *dos,PetscInt *n
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  CHKERRQ(PetscUseMethod(eps,"EPSEVSLGetDOSParameters_C",(EPS,EPSEVSLDOSMethod*,PetscInt*,PetscInt*,PetscInt*,PetscInt*),(eps,dos,nvec,deg,steps,npoints)));
+  PetscCall(PetscUseMethod(eps,"EPSEVSLGetDOSParameters_C",(EPS,EPSEVSLDOSMethod*,PetscInt*,PetscInt*,PetscInt*,PetscInt*),(eps,dos,nvec,deg,steps,npoints)));
   PetscFunctionReturn(0);
 }
 
@@ -579,7 +579,7 @@ PetscErrorCode EPSEVSLSetPolParameters(EPS eps,PetscInt max_deg,PetscReal thresh
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,max_deg,2);
   PetscValidLogicalCollectiveReal(eps,thresh,3);
-  CHKERRQ(PetscTryMethod(eps,"EPSEVSLSetPolParameters_C",(EPS,PetscInt,PetscReal),(eps,max_deg,thresh)));
+  PetscCall(PetscTryMethod(eps,"EPSEVSLSetPolParameters_C",(EPS,PetscInt,PetscReal),(eps,max_deg,thresh)));
   PetscFunctionReturn(0);
 }
 
@@ -614,7 +614,7 @@ PetscErrorCode EPSEVSLGetPolParameters(EPS eps,PetscInt *max_deg,PetscReal *thre
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  CHKERRQ(PetscUseMethod(eps,"EPSEVSLGetPolParameters_C",(EPS,PetscInt*,PetscReal*),(eps,max_deg,thresh)));
+  PetscCall(PetscUseMethod(eps,"EPSEVSLGetPolParameters_C",(EPS,PetscInt*,PetscReal*),(eps,max_deg,thresh)));
   PetscFunctionReturn(0);
 }
 
@@ -655,7 +655,7 @@ PetscErrorCode EPSEVSLSetDamping(EPS eps,EPSEVSLDamping damping)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,damping,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSEVSLSetDamping_C",(EPS,EPSEVSLDamping),(eps,damping)));
+  PetscCall(PetscTryMethod(eps,"EPSEVSLSetDamping_C",(EPS,EPSEVSLDamping),(eps,damping)));
   PetscFunctionReturn(0);
 }
 
@@ -688,7 +688,7 @@ PetscErrorCode EPSEVSLGetDamping(EPS eps,EPSEVSLDamping *damping)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(damping,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSEVSLGetDamping_C",(EPS,EPSEVSLDamping*),(eps,damping)));
+  PetscCall(PetscUseMethod(eps,"EPSEVSLGetDamping_C",(EPS,EPSEVSLDamping*),(eps,damping)));
   PetscFunctionReturn(0);
 }
 
@@ -698,23 +698,23 @@ PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  numerical range = [%g,%g]\n",(double)ctx->lmin,(double)ctx->lmax));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of slices = %" PetscInt_FMT "\n",ctx->nslices));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  type of damping = %s\n",EPSEVSLDampings[ctx->damping]));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  computing DOS with %s: nvec=%" PetscInt_FMT ", ",EPSEVSLDOSMethods[ctx->dos],ctx->nvec));
-    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  numerical range = [%g,%g]\n",(double)ctx->lmin,(double)ctx->lmax));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  number of slices = %" PetscInt_FMT "\n",ctx->nslices));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  type of damping = %s\n",EPSEVSLDampings[ctx->damping]));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  computing DOS with %s: nvec=%" PetscInt_FMT ", ",EPSEVSLDOSMethods[ctx->dos],ctx->nvec));
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     switch (ctx->dos) {
       case EPS_EVSL_DOS_KPM:
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"degree=%" PetscInt_FMT "\n",ctx->deg));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"degree=%" PetscInt_FMT "\n",ctx->deg));
         break;
       case EPS_EVSL_DOS_LANCZOS:
-        CHKERRQ(PetscViewerASCIIPrintf(viewer,"steps=%" PetscInt_FMT ", npoints=%" PetscInt_FMT "\n",ctx->steps,ctx->npoints));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"steps=%" PetscInt_FMT ", npoints=%" PetscInt_FMT "\n",ctx->steps,ctx->npoints));
         break;
     }
-    CHKERRQ(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  polynomial parameters: max degree = %" PetscInt_FMT ", threshold = %g\n",ctx->max_deg,(double)ctx->thresh));
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  polynomial parameters: max degree = %" PetscInt_FMT ", threshold = %g\n",ctx->max_deg,(double)ctx->thresh));
   }
   PetscFunctionReturn(0);
 }
@@ -729,38 +729,38 @@ PetscErrorCode EPSSetFromOptions_EVSL(PetscOptionItems *PetscOptionsObject,EPS e
   EPS_EVSL         *ctx = (EPS_EVSL*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"EPS EVSL Options"));
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS EVSL Options"));
 
     k = 2;
-    CHKERRQ(PetscOptionsRealArray("-eps_evsl_range","Interval containing all eigenvalues (two real values separated with a comma without spaces)","EPSEVSLSetRange",array,&k,&flg));
+    PetscCall(PetscOptionsRealArray("-eps_evsl_range","Interval containing all eigenvalues (two real values separated with a comma without spaces)","EPSEVSLSetRange",array,&k,&flg));
     if (flg) {
       PetscCheck(k>1,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_evsl_range (comma-separated without spaces)");
-      CHKERRQ(EPSEVSLSetRange(eps,array[0],array[1]));
+      PetscCall(EPSEVSLSetRange(eps,array[0],array[1]));
     }
 
-    CHKERRQ(PetscOptionsInt("-eps_evsl_slices","Number of slices","EPSEVSLSetSlices",ctx->nslices,&i1,&flg));
-    if (flg) CHKERRQ(EPSEVSLSetSlices(eps,i1));
+    PetscCall(PetscOptionsInt("-eps_evsl_slices","Number of slices","EPSEVSLSetSlices",ctx->nslices,&i1,&flg));
+    if (flg) PetscCall(EPSEVSLSetSlices(eps,i1));
 
-    CHKERRQ(PetscOptionsEnum("-eps_evsl_damping","Type of damping","EPSEVSLSetDamping",EPSEVSLDampings,(PetscEnum)ctx->damping,(PetscEnum*)&damping,&flg));
-    if (flg) CHKERRQ(EPSEVSLSetDamping(eps,damping));
+    PetscCall(PetscOptionsEnum("-eps_evsl_damping","Type of damping","EPSEVSLSetDamping",EPSEVSLDampings,(PetscEnum)ctx->damping,(PetscEnum*)&damping,&flg));
+    if (flg) PetscCall(EPSEVSLSetDamping(eps,damping));
 
-    CHKERRQ(EPSEVSLGetDOSParameters(eps,&dos,&i1,&i2,&i3,&i4));
-    CHKERRQ(PetscOptionsEnum("-eps_evsl_dos_method","Method to compute the DOS","EPSEVSLSetDOSParameters",EPSEVSLDOSMethods,(PetscEnum)ctx->dos,(PetscEnum*)&dos,&flg));
-    CHKERRQ(PetscOptionsInt("-eps_evsl_dos_nvec","Number of sample vectors for DOS","EPSEVSLSetDOSParameters",i1,&i1,&flg1));
+    PetscCall(EPSEVSLGetDOSParameters(eps,&dos,&i1,&i2,&i3,&i4));
+    PetscCall(PetscOptionsEnum("-eps_evsl_dos_method","Method to compute the DOS","EPSEVSLSetDOSParameters",EPSEVSLDOSMethods,(PetscEnum)ctx->dos,(PetscEnum*)&dos,&flg));
+    PetscCall(PetscOptionsInt("-eps_evsl_dos_nvec","Number of sample vectors for DOS","EPSEVSLSetDOSParameters",i1,&i1,&flg1));
     if (flg1) flg = PETSC_TRUE;
-    CHKERRQ(PetscOptionsInt("-eps_evsl_dos_degree","Polynomial degree used for DOS","EPSEVSLSetDOSParameters",i2,&i2,&flg1));
+    PetscCall(PetscOptionsInt("-eps_evsl_dos_degree","Polynomial degree used for DOS","EPSEVSLSetDOSParameters",i2,&i2,&flg1));
     if (flg1) flg = PETSC_TRUE;
-    CHKERRQ(PetscOptionsInt("-eps_evsl_dos_steps","Number of Lanczos steps in DOS","EPSEVSLSetDOSParameters",i3,&i3,&flg1));
+    PetscCall(PetscOptionsInt("-eps_evsl_dos_steps","Number of Lanczos steps in DOS","EPSEVSLSetDOSParameters",i3,&i3,&flg1));
     if (flg1) flg = PETSC_TRUE;
-    CHKERRQ(PetscOptionsInt("-eps_evsl_dos_npoints","Number of sample points used for DOS","EPSEVSLSetDOSParameters",i4,&i4,&flg1));
-    if (flg || flg1) CHKERRQ(EPSEVSLSetDOSParameters(eps,dos,i1,i2,i3,i4));
+    PetscCall(PetscOptionsInt("-eps_evsl_dos_npoints","Number of sample points used for DOS","EPSEVSLSetDOSParameters",i4,&i4,&flg1));
+    if (flg || flg1) PetscCall(EPSEVSLSetDOSParameters(eps,dos,i1,i2,i3,i4));
 
-    CHKERRQ(EPSEVSLGetPolParameters(eps,&i1,&th));
-    CHKERRQ(PetscOptionsInt("-eps_evsl_pol_max_deg","Maximum degree allowed for the polynomial","EPSEVSLSetPolParameters",i1,&i1,&flg));
-    CHKERRQ(PetscOptionsReal("-eps_evsl_pol_threshold","Threshold for accepting polynomial","EPSEVSLSetPolParameters",th,&th,&flg1));
-    if (flg || flg1) CHKERRQ(EPSEVSLSetPolParameters(eps,i1,th));
+    PetscCall(EPSEVSLGetPolParameters(eps,&i1,&th));
+    PetscCall(PetscOptionsInt("-eps_evsl_pol_max_deg","Maximum degree allowed for the polynomial","EPSEVSLSetPolParameters",i1,&i1,&flg));
+    PetscCall(PetscOptionsReal("-eps_evsl_pol_threshold","Threshold for accepting polynomial","EPSEVSLSetPolParameters",th,&th,&flg1));
+    if (flg || flg1) PetscCall(EPSEVSLSetPolParameters(eps,i1,th));
 
-  CHKERRQ(PetscOptionsTail());
+  PetscCall(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
@@ -770,19 +770,19 @@ PetscErrorCode EPSDestroy_EVSL(EPS eps)
 
   PetscFunctionBegin;
   if (ctx->initialized) EVSLFinish();
-  CHKERRQ(PetscLayoutDestroy(&ctx->map));
-  CHKERRQ(PetscFree(ctx->sli));
-  CHKERRQ(PetscFree(eps->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetRange_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetRange_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetSlices_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetSlices_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDOSParameters_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDOSParameters_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetPolParameters_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetPolParameters_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDamping_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDamping_C",NULL));
+  PetscCall(PetscLayoutDestroy(&ctx->map));
+  PetscCall(PetscFree(ctx->sli));
+  PetscCall(PetscFree(eps->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetRange_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetRange_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetSlices_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetSlices_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDOSParameters_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDOSParameters_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetPolParameters_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetPolParameters_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDamping_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDamping_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -791,9 +791,9 @@ PetscErrorCode EPSReset_EVSL(EPS eps)
   EPS_EVSL       *ctx = (EPS_EVSL*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(MatDestroy(&ctx->A));
-  CHKERRQ(VecDestroy(&ctx->x));
-  CHKERRQ(VecDestroy(&ctx->y));
+  PetscCall(MatDestroy(&ctx->A));
+  PetscCall(VecDestroy(&ctx->x));
+  PetscCall(VecDestroy(&ctx->y));
   PetscFunctionReturn(0);
 }
 
@@ -802,7 +802,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
   EPS_EVSL       *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   ctx->nslices = 0;
@@ -829,15 +829,15 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->setdefaultst   = EPSSetDefaultST_NoFactor;
 
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetRange_C",EPSEVSLSetRange_EVSL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetRange_C",EPSEVSLGetRange_EVSL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetSlices_C",EPSEVSLSetSlices_EVSL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetSlices_C",EPSEVSLGetSlices_EVSL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDOSParameters_C",EPSEVSLSetDOSParameters_EVSL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDOSParameters_C",EPSEVSLGetDOSParameters_EVSL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetPolParameters_C",EPSEVSLSetPolParameters_EVSL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetPolParameters_C",EPSEVSLGetPolParameters_EVSL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDamping_C",EPSEVSLSetDamping_EVSL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDamping_C",EPSEVSLGetDamping_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetRange_C",EPSEVSLSetRange_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetRange_C",EPSEVSLGetRange_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetSlices_C",EPSEVSLSetSlices_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetSlices_C",EPSEVSLGetSlices_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDOSParameters_C",EPSEVSLSetDOSParameters_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDOSParameters_C",EPSEVSLGetDOSParameters_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetPolParameters_C",EPSEVSLSetPolParameters_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetPolParameters_C",EPSEVSLGetPolParameters_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLSetDamping_C",EPSEVSLSetDamping_EVSL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSEVSLGetDamping_C",EPSEVSLGetDamping_EVSL));
   PetscFunctionReturn(0);
 }

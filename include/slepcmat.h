@@ -23,9 +23,9 @@ SLEPC_EXTERN PetscErrorCode MatNormEstimate(Mat,Vec,Vec,PetscReal*);
 PETSC_DEPRECATED_FUNCTION("Use MatCreateRedundantMatrix() followed by MatConvert()") static inline PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
 {
   Mat Ar;
-  CHKERRQ(MatCreateRedundantMatrix(mat,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar));
-  CHKERRQ(MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat));
-  CHKERRQ(MatDestroy(&Ar));
+  PetscCall(MatCreateRedundantMatrix(mat,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar));
+  PetscCall(MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat));
+  PetscCall(MatDestroy(&Ar));
   PetscFunctionReturn(0);
 }
 PETSC_DEPRECATED_FUNCTION("Use MatCreateTile()") static inline PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G) {return MatCreateTile(a,A,b,B,c,C,d,D,G);}

@@ -28,30 +28,30 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   Mat               S0,MS;
 
   PetscFunctionBegin;
-  CHKERRQ(BVTensorGetFactors(ctx->V,NULL,&MS));
-  CHKERRQ(MatDenseGetArrayRead(MS,&S));
-  CHKERRQ(BVGetSizes(pep->V,NULL,NULL,&ld));
-  CHKERRQ(BVGetActiveColumns(pep->V,NULL,&nq));
+  PetscCall(BVTensorGetFactors(ctx->V,NULL,&MS));
+  PetscCall(MatDenseGetArrayRead(MS,&S));
+  PetscCall(BVGetSizes(pep->V,NULL,NULL,&ld));
+  PetscCall(BVGetActiveColumns(pep->V,NULL,&nq));
   k = pep->nconv;
   if (k==0) PetscFunctionReturn(0);
   lds = deg*ld;
-  CHKERRQ(DSGetLeadingDimension(pep->ds,&ldds));
-  CHKERRQ(PetscCalloc5(k,&er,k,&ei,nq*k,&SS,pep->nmat,&vals,pep->nmat,&ivals));
-  CHKERRQ(STGetTransform(pep->st,&flg));
+  PetscCall(DSGetLeadingDimension(pep->ds,&ldds));
+  PetscCall(PetscCalloc5(k,&er,k,&ei,nq*k,&SS,pep->nmat,&vals,pep->nmat,&ivals));
+  PetscCall(STGetTransform(pep->st,&flg));
   if (flg) factor = pep->sfactor;
   for (i=0;i<k;i++) {
     er[i] = factor*pep->eigr[i];
     ei[i] = factor*pep->eigi[i];
   }
-  CHKERRQ(STBackTransform(pep->st,k,er,ei));
+  PetscCall(STBackTransform(pep->st,k,er,ei));
 
-  CHKERRQ(DSVectors(pep->ds,DS_MAT_X,NULL,NULL));
-  CHKERRQ(DSGetArray(pep->ds,DS_MAT_X,&X));
+  PetscCall(DSVectors(pep->ds,DS_MAT_X,NULL,NULL));
+  PetscCall(DSGetArray(pep->ds,DS_MAT_X,&X));
 
-  CHKERRQ(PetscBLASIntCast(k,&k_));
-  CHKERRQ(PetscBLASIntCast(nq,&nq_));
-  CHKERRQ(PetscBLASIntCast(lds,&lds_));
-  CHKERRQ(PetscBLASIntCast(ldds,&ldds_));
+  PetscCall(PetscBLASIntCast(k,&k_));
+  PetscCall(PetscBLASIntCast(nq,&nq_));
+  PetscCall(PetscBLASIntCast(lds,&lds_));
+  PetscCall(PetscBLASIntCast(ldds,&ldds_));
 
   if (pep->extract==PEP_EXTRACT_NONE || pep->refine==PEP_REFINE_MULTIPLE) {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nq_,&k_,&k_,&sone,S,&lds_,X,&ldds_,&szero,SS,&nq_));
@@ -61,7 +61,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
       break;
     case PEP_EXTRACT_NORM:
       for (i=0;i<k;i++) {
-        CHKERRQ(PEPEvaluateBasis(pep,er[i],ei[i],vals,ivals));
+        PetscCall(PEPEvaluateBasis(pep,er[i],ei[i],vals,ivals));
         max = 1.0;
         for (j=1;j<deg;j++) {
           norm = SlepcAbsEigenvalue(vals[j],ivals[j]);
@@ -77,13 +77,13 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
       }
       break;
     case PEP_EXTRACT_RESIDUAL:
-      CHKERRQ(VecDuplicate(pep->work[0],&xr));
-      CHKERRQ(VecDuplicate(pep->work[0],&w[0]));
-      CHKERRQ(VecDuplicate(pep->work[0],&w[1]));
+      PetscCall(VecDuplicate(pep->work[0],&xr));
+      PetscCall(VecDuplicate(pep->work[0],&w[0]));
+      PetscCall(VecDuplicate(pep->work[0],&w[1]));
 #if !defined(PETSC_USE_COMPLEX)
-      CHKERRQ(VecDuplicate(pep->work[0],&w[2]));
-      CHKERRQ(VecDuplicate(pep->work[0],&w[3]));
-      CHKERRQ(VecDuplicate(pep->work[0],&xi));
+      PetscCall(VecDuplicate(pep->work[0],&w[2]));
+      PetscCall(VecDuplicate(pep->work[0],&w[3]));
+      PetscCall(VecDuplicate(pep->work[0],&xi));
 #else
       xi = NULL;
 #endif
@@ -91,12 +91,12 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
         max = 0.0;
         for (j=0;j<deg;j++) {
           PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+j*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
-          CHKERRQ(BVMultVec(pep->V,1.0,0.0,xr,SS+i*nq));
+          PetscCall(BVMultVec(pep->V,1.0,0.0,xr,SS+i*nq));
 #if !defined(PETSC_USE_COMPLEX)
           PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+j*ld,&lds_,X+(i+1)*ldds,&one,&szero,SS+i*nq,&one));
-          CHKERRQ(BVMultVec(pep->V,1.0,0.0,xi,SS+i*nq));
+          PetscCall(BVMultVec(pep->V,1.0,0.0,xi,SS+i*nq));
 #endif
-          CHKERRQ(PEPComputeResidualNorm_Private(pep,er[i],ei[i],xr,xi,w,&norm));
+          PetscCall(PEPComputeResidualNorm_Private(pep,er[i],ei[i],xr,xi,w,&norm));
           if (norm>max) { max = norm; idxcpy=j; }
         }
         PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
@@ -107,20 +107,20 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
         }
 #endif
       }
-      CHKERRQ(VecDestroy(&xr));
-      CHKERRQ(VecDestroy(&w[0]));
-      CHKERRQ(VecDestroy(&w[1]));
+      PetscCall(VecDestroy(&xr));
+      PetscCall(VecDestroy(&w[0]));
+      PetscCall(VecDestroy(&w[1]));
 #if !defined(PETSC_USE_COMPLEX)
-      CHKERRQ(VecDestroy(&w[2]));
-      CHKERRQ(VecDestroy(&w[3]));
-      CHKERRQ(VecDestroy(&xi));
+      PetscCall(VecDestroy(&w[2]));
+      PetscCall(VecDestroy(&w[3]));
+      PetscCall(VecDestroy(&xi));
 #endif
       break;
     case PEP_EXTRACT_STRUCTURED:
-      CHKERRQ(PetscMalloc2(k,&tr,k,&ti));
+      PetscCall(PetscMalloc2(k,&tr,k,&ti));
       for (i=0;i<k;i++) {
         t = 0.0;
-        CHKERRQ(PEPEvaluateBasis(pep,er[i],ei[i],vals,ivals));
+        PetscCall(PEPEvaluateBasis(pep,er[i],ei[i],vals,ivals));
         yr = X+i*ldds; yi = NULL;
 #if !defined(PETSC_USE_COMPLEX)
         if (ei[i]!=0.0) { yr = tr; yi = ti; }
@@ -129,10 +129,10 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
           alpha = PetscConj(vals[j]);
 #if !defined(PETSC_USE_COMPLEX)
           if (ei[i]!=0.0) {
-            CHKERRQ(PetscArrayzero(tr,k));
+            PetscCall(PetscArrayzero(tr,k));
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+i*ldds,&one,tr,&one));
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&ivals[j],X+(i+1)*ldds,&one,tr,&one));
-            CHKERRQ(PetscArrayzero(ti,k));
+            PetscCall(PetscArrayzero(ti,k));
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+(i+1)*ldds,&one,ti,&one));
             alpha = -ivals[j];
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&alpha,X+i*ldds,&one,ti,&one));
@@ -150,21 +150,21 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
         SlepcCheckLapackInfo("lascl",info);
         if (yi) i++;
       }
-      CHKERRQ(PetscFree2(tr,ti));
+      PetscCall(PetscFree2(tr,ti));
       break;
     }
   }
 
   /* update vectors V = V*S */
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,nq,k,NULL,&S0));
-  CHKERRQ(MatDenseGetArrayWrite(S0,&pS0));
-  for (i=0;i<k;i++) CHKERRQ(PetscArraycpy(pS0+i*nq,SS+i*nq,nq));
-  CHKERRQ(MatDenseRestoreArrayWrite(S0,&pS0));
-  CHKERRQ(BVMultInPlace(pep->V,S0,0,k));
-  CHKERRQ(MatDestroy(&S0));
-  CHKERRQ(PetscFree5(er,ei,SS,vals,ivals));
-  CHKERRQ(MatDenseRestoreArrayRead(MS,&S));
-  CHKERRQ(BVTensorRestoreFactors(ctx->V,NULL,&MS));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,nq,k,NULL,&S0));
+  PetscCall(MatDenseGetArrayWrite(S0,&pS0));
+  for (i=0;i<k;i++) PetscCall(PetscArraycpy(pS0+i*nq,SS+i*nq,nq));
+  PetscCall(MatDenseRestoreArrayWrite(S0,&pS0));
+  PetscCall(BVMultInPlace(pep->V,S0,0,k));
+  PetscCall(MatDestroy(&S0));
+  PetscCall(PetscFree5(er,ei,SS,vals,ivals));
+  PetscCall(MatDenseRestoreArrayRead(MS,&S));
+  PetscCall(BVTensorRestoreFactors(ctx->V,NULL,&MS));
   PetscFunctionReturn(0);
 }
 
@@ -186,7 +186,7 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
   PetscBool      istrivial;
 
   PetscFunctionBegin;
-  CHKERRQ(RGIsTrivial(pep->rg,&istrivial));
+  PetscCall(RGIsTrivial(pep->rg,&istrivial));
   marker = -1;
   if (pep->trackall) getall = PETSC_TRUE;
   for (k=kini;k<kini+nits;k++) {
@@ -194,17 +194,17 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
     re = pep->eigr[k];
     im = pep->eigi[k];
     if (PetscUnlikely(!istrivial)) {
-      CHKERRQ(STBackTransform(pep->st,1,&re,&im));
-      CHKERRQ(RGCheckInside(pep->rg,1,&re,&im,&inside));
+      PetscCall(STBackTransform(pep->st,1,&re,&im));
+      PetscCall(RGCheckInside(pep->rg,1,&re,&im,&inside));
       if (marker==-1 && inside<0) marker = k;
       re = pep->eigr[k];
       im = pep->eigi[k];
     }
     newk = k;
-    CHKERRQ(DSVectors(pep->ds,DS_MAT_X,&newk,&resnorm));
+    PetscCall(DSVectors(pep->ds,DS_MAT_X,&newk,&resnorm));
     resnorm *= beta;
     /* error estimate */
-    CHKERRQ((*pep->converged)(pep,re,im,resnorm,&pep->errest[k],pep->convergedctx));
+    PetscCall((*pep->converged)(pep,re,im,resnorm,&pep->errest[k],pep->convergedctx));
     if (marker==-1 && pep->errest[k] >= pep->tol) marker = k;
     if (PetscUnlikely(newk==k+1)) {
       pep->errest[k+1] = pep->errest[k];

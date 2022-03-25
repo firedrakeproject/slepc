@@ -68,8 +68,8 @@ static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscS
   if (PetscAbs(im) && PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
   if (PetscAbs(re) && PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
   /* print as real if imaginary part is zero */
-  if (im!=0.0) CHKERRQ(PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im));
-  else CHKERRQ(PetscViewerASCIIPrintf(viewer,"%.5f",(double)re));
+  if (im!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im));
+  else PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f",(double)re));
   PetscFunctionReturn(0);
 }
 
@@ -85,16 +85,16 @@ static inline PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec 
   const char     *pname;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectGetName(obj,&pname));
-  CHKERRQ(PetscSNPrintfCount(vname,sizeof(vname),"%s%s",&count,label,PetscDefined(USE_COMPLEX)?"":"r"));
+  PetscCall(PetscObjectGetName(obj,&pname));
+  PetscCall(PetscSNPrintfCount(vname,sizeof(vname),"%s%s",&count,label,PetscDefined(USE_COMPLEX)?"":"r"));
   count--;
-  CHKERRQ(PetscSNPrintf(vname+count,sizeof(vname)-count,"%" PetscInt_FMT "_%s",index,pname));
-  CHKERRQ(PetscObjectSetName((PetscObject)xr,vname));
-  CHKERRQ(VecView(xr,viewer));
+  PetscCall(PetscSNPrintf(vname+count,sizeof(vname)-count,"%" PetscInt_FMT "_%s",index,pname));
+  PetscCall(PetscObjectSetName((PetscObject)xr,vname));
+  PetscCall(VecView(xr,viewer));
 #if !defined(PETSC_USE_COMPLEX)
   vname[count-1] = 'i';
-  CHKERRQ(PetscObjectSetName((PetscObject)xi,vname));
-  CHKERRQ(VecView(xi,viewer));
+  PetscCall(PetscObjectSetName((PetscObject)xi,vname));
+  PetscCall(VecView(xi,viewer));
 #endif
   PetscFunctionReturn(0);
 }

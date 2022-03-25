@@ -28,31 +28,31 @@ PetscErrorCode EPSSetUp_ScaLAPACK(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
   PetscCheck(isshift,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support spectral transformations");
   eps->ncv = eps->n;
-  if (eps->mpd!=PETSC_DEFAULT) CHKERRQ(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
+  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
-  if (!eps->which) CHKERRQ(EPSSetWhichEigenpairs_Default(eps));
+  if (!eps->which) PetscCall(EPSSetWhichEigenpairs_Default(eps));
   PetscCheck(eps->which!=EPS_ALL || eps->inta==eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support interval computation");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION | EPS_FEATURE_CONVERGENCE);
-  CHKERRQ(EPSAllocateSolution(eps,0));
+  PetscCall(EPSAllocateSolution(eps,0));
 
   /* convert matrices */
-  CHKERRQ(MatDestroy(&ctx->As));
-  CHKERRQ(MatDestroy(&ctx->Bs));
-  CHKERRQ(STGetNumMatrices(eps->st,&nmat));
-  CHKERRQ(STGetMatrix(eps->st,0,&A));
-  CHKERRQ(MatConvert(A,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->As));
+  PetscCall(MatDestroy(&ctx->As));
+  PetscCall(MatDestroy(&ctx->Bs));
+  PetscCall(STGetNumMatrices(eps->st,&nmat));
+  PetscCall(STGetMatrix(eps->st,0,&A));
+  PetscCall(MatConvert(A,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->As));
   if (nmat>1) {
-    CHKERRQ(STGetMatrix(eps->st,1,&B));
-    CHKERRQ(MatConvert(B,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->Bs));
+    PetscCall(STGetMatrix(eps->st,1,&B));
+    PetscCall(MatConvert(B,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->Bs));
   }
-  CHKERRQ(STGetShift(eps->st,&shift));
+  PetscCall(STGetShift(eps->st,&shift));
   if (shift != 0.0) {
-    if (nmat>1) CHKERRQ(MatAXPY(ctx->As,-shift,ctx->Bs,SAME_NONZERO_PATTERN));
-    else CHKERRQ(MatShift(ctx->As,-shift));
+    if (nmat>1) PetscCall(MatAXPY(ctx->As,-shift,ctx->Bs,SAME_NONZERO_PATTERN));
+    else PetscCall(MatShift(ctx->As,-shift));
   }
   PetscFunctionReturn(0);
 }
@@ -71,40 +71,40 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
 #endif
 
   PetscFunctionBegin;
-  CHKERRQ(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q));
-  CHKERRQ(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q));
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   q = (Mat_ScaLAPACK*)Q->data;
 
   if (B) {
 
     b = (Mat_ScaLAPACK*)B->data;
-    CHKERRQ(PetscMalloc3(a->grid->nprow*a->grid->npcol,&gap,a->N,&ifail,2*a->grid->nprow*a->grid->npcol,&iclustr));
+    PetscCall(PetscMalloc3(a->grid->nprow*a->grid->npcol,&gap,a->N,&ifail,2*a->grid->nprow*a->grid->npcol,&iclustr));
 #if !defined(PETSC_USE_COMPLEX)
     /* allocate workspace */
     PetscStackCallBLAS("SCALAPACKsygvx",SCALAPACKsygvx_(&one,"V","A","L",&a->N,a->loc,&one,&one,a->desc,b->loc,&one,&one,b->desc,&rdummy,&rdummy,&idummy,&idummy,&abstol,&m,&idummy,w,&orfac,q->loc,&one,&one,q->desc,minlwork,&lwork,&minliwork,&liwork,ifail,iclustr,gap,&info));
     PetscCheckScaLapackInfo("sygvx",info);
-    CHKERRQ(PetscBLASIntCast((PetscInt)minlwork[0],&lwork));
+    PetscCall(PetscBLASIntCast((PetscInt)minlwork[0],&lwork));
     liwork = minliwork;
     /* call computational routine */
-    CHKERRQ(PetscMalloc2(lwork,&work,liwork,&iwork));
+    PetscCall(PetscMalloc2(lwork,&work,liwork,&iwork));
     PetscStackCallBLAS("SCALAPACKsygvx",SCALAPACKsygvx_(&one,"V","A","L",&a->N,a->loc,&one,&one,a->desc,b->loc,&one,&one,b->desc,&rdummy,&rdummy,&idummy,&idummy,&abstol,&m,&idummy,w,&orfac,q->loc,&one,&one,q->desc,work,&lwork,iwork,&liwork,ifail,iclustr,gap,&info));
     PetscCheckScaLapackInfo("sygvx",info);
-    CHKERRQ(PetscFree2(work,iwork));
+    PetscCall(PetscFree2(work,iwork));
 #else
     /* allocate workspace */
     PetscStackCallBLAS("SCALAPACKsygvx",SCALAPACKsygvx_(&one,"V","A","L",&a->N,a->loc,&one,&one,a->desc,b->loc,&one,&one,b->desc,&rdummy,&rdummy,&idummy,&idummy,&abstol,&m,&idummy,w,&orfac,q->loc,&one,&one,q->desc,minlwork,&lwork,minlrwork,&lrwork,&minliwork,&liwork,ifail,iclustr,gap,&info));
     PetscCheckScaLapackInfo("sygvx",info);
-    CHKERRQ(PetscBLASIntCast((PetscInt)PetscRealPart(minlwork[0]),&lwork));
-    CHKERRQ(PetscBLASIntCast((PetscInt)minlrwork[0],&lrwork));
+    PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(minlwork[0]),&lwork));
+    PetscCall(PetscBLASIntCast((PetscInt)minlrwork[0],&lrwork));
     lrwork += a->N*a->N;
     liwork = minliwork;
     /* call computational routine */
-    CHKERRQ(PetscMalloc3(lwork,&work,lrwork,&rwork,liwork,&iwork));
+    PetscCall(PetscMalloc3(lwork,&work,lrwork,&rwork,liwork,&iwork));
     PetscStackCallBLAS("SCALAPACKsygvx",SCALAPACKsygvx_(&one,"V","A","L",&a->N,a->loc,&one,&one,a->desc,b->loc,&one,&one,b->desc,&rdummy,&rdummy,&idummy,&idummy,&abstol,&m,&idummy,w,&orfac,q->loc,&one,&one,q->desc,work,&lwork,rwork,&lrwork,iwork,&liwork,ifail,iclustr,gap,&info));
     PetscCheckScaLapackInfo("sygvx",info);
-    CHKERRQ(PetscFree3(work,rwork,iwork));
+    PetscCall(PetscFree3(work,rwork,iwork));
 #endif
-    CHKERRQ(PetscFree3(gap,ifail,iclustr));
+    PetscCall(PetscFree3(gap,ifail,iclustr));
 
   } else {
 
@@ -112,37 +112,37 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
     /* allocate workspace */
     PetscStackCallBLAS("SCALAPACKsyev",SCALAPACKsyev_("V","L",&a->N,a->loc,&one,&one,a->desc,w,q->loc,&one,&one,q->desc,minlwork,&lwork,&info));
     PetscCheckScaLapackInfo("syev",info);
-    CHKERRQ(PetscBLASIntCast((PetscInt)minlwork[0],&lwork));
-    CHKERRQ(PetscMalloc1(lwork,&work));
+    PetscCall(PetscBLASIntCast((PetscInt)minlwork[0],&lwork));
+    PetscCall(PetscMalloc1(lwork,&work));
     /* call computational routine */
     PetscStackCallBLAS("SCALAPACKsyev",SCALAPACKsyev_("V","L",&a->N,a->loc,&one,&one,a->desc,w,q->loc,&one,&one,q->desc,work,&lwork,&info));
     PetscCheckScaLapackInfo("syev",info);
-    CHKERRQ(PetscFree(work));
+    PetscCall(PetscFree(work));
 #else
     /* allocate workspace */
     PetscStackCallBLAS("SCALAPACKsyev",SCALAPACKsyev_("V","L",&a->N,a->loc,&one,&one,a->desc,w,q->loc,&one,&one,q->desc,minlwork,&lwork,minlrwork,&lrwork,&info));
     PetscCheckScaLapackInfo("syev",info);
-    CHKERRQ(PetscBLASIntCast((PetscInt)PetscRealPart(minlwork[0]),&lwork));
-    lrwork = 4*a->N;  /* CHKERRQ(PetscBLASIntCast((PetscInt)minlrwork[0],&lrwork)); */
-    CHKERRQ(PetscMalloc2(lwork,&work,lrwork,&rwork));
+    PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(minlwork[0]),&lwork));
+    lrwork = 4*a->N;  /* PetscCall(PetscBLASIntCast((PetscInt)minlrwork[0],&lrwork)); */
+    PetscCall(PetscMalloc2(lwork,&work,lrwork,&rwork));
     /* call computational routine */
     PetscStackCallBLAS("SCALAPACKsyev",SCALAPACKsyev_("V","L",&a->N,a->loc,&one,&one,a->desc,w,q->loc,&one,&one,q->desc,work,&lwork,rwork,&lrwork,&info));
     PetscCheckScaLapackInfo("syev",info);
-    CHKERRQ(PetscFree2(work,rwork));
+    PetscCall(PetscFree2(work,rwork));
 #endif
 
   }
-  CHKERRQ(PetscFPTrapPop());
+  PetscCall(PetscFPTrapPop());
 
   for (i=0;i<eps->ncv;i++) {
     eps->eigr[i]   = eps->errest[i];
     eps->errest[i] = PETSC_MACHINE_EPSILON;
   }
 
-  CHKERRQ(BVGetMat(eps->V,&V));
-  CHKERRQ(MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V));
-  CHKERRQ(BVRestoreMat(eps->V,&V));
-  CHKERRQ(MatDestroy(&Q));
+  PetscCall(BVGetMat(eps->V,&V));
+  PetscCall(MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V));
+  PetscCall(BVRestoreMat(eps->V,&V));
+  PetscCall(MatDestroy(&Q));
 
   eps->nconv  = eps->ncv;
   eps->its    = 1;
@@ -153,7 +153,7 @@ PetscErrorCode EPSSolve_ScaLAPACK(EPS eps)
 PetscErrorCode EPSDestroy_ScaLAPACK(EPS eps)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(eps->data));
+  PetscCall(PetscFree(eps->data));
   PetscFunctionReturn(0);
 }
 
@@ -162,8 +162,8 @@ PetscErrorCode EPSReset_ScaLAPACK(EPS eps)
   EPS_ScaLAPACK  *ctx = (EPS_ScaLAPACK*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(MatDestroy(&ctx->As));
-  CHKERRQ(MatDestroy(&ctx->Bs));
+  PetscCall(MatDestroy(&ctx->As));
+  PetscCall(MatDestroy(&ctx->Bs));
   PetscFunctionReturn(0);
 }
 
@@ -172,7 +172,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_ScaLAPACK(EPS eps)
   EPS_ScaLAPACK  *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   eps->categ = EPS_CATEGORY_OTHER;

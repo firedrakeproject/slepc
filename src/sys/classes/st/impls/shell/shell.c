@@ -46,7 +46,7 @@ PetscErrorCode STShellGetContext(ST st,void *ctx)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(ctx,2);
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg));
+  PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg));
   if (!flg) *(void**)ctx = NULL;
   else      *(void**)ctx = ((ST_SHELL*)(st->data))->ctx;
   PetscFunctionReturn(0);
@@ -77,7 +77,7 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg));
+  PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg));
   if (flg) shell->ctx = ctx;
   PetscFunctionReturn(0);
 }
@@ -89,12 +89,12 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
 
   PetscFunctionBegin;
   PetscCheck(shell->apply,PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No apply() routine provided to Shell ST");
-  CHKERRQ(PetscObjectStateGet((PetscObject)y,&instate));
-  PetscStackCall("STSHELL user function apply()",CHKERRQ((*shell->apply)(st,x,y)));
-  CHKERRQ(PetscObjectStateGet((PetscObject)y,&outstate));
+  PetscCall(PetscObjectStateGet((PetscObject)y,&instate));
+  PetscStackCall("STSHELL user function apply()",PetscCall((*shell->apply)(st,x,y)));
+  PetscCall(PetscObjectStateGet((PetscObject)y,&outstate));
   if (instate == outstate) {
     /* user forgot to increase the state of the output vector */
-    CHKERRQ(PetscObjectStateIncrease((PetscObject)y));
+    PetscCall(PetscObjectStateIncrease((PetscObject)y));
   }
   PetscFunctionReturn(0);
 }
@@ -106,12 +106,12 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
 
   PetscFunctionBegin;
   PetscCheck(shell->applytrans,PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
-  CHKERRQ(PetscObjectStateGet((PetscObject)y,&instate));
-  PetscStackCall("STSHELL user function applytrans()",CHKERRQ((*shell->applytrans)(st,x,y)));
-  CHKERRQ(PetscObjectStateGet((PetscObject)y,&outstate));
+  PetscCall(PetscObjectStateGet((PetscObject)y,&instate));
+  PetscStackCall("STSHELL user function applytrans()",PetscCall((*shell->applytrans)(st,x,y)));
+  PetscCall(PetscObjectStateGet((PetscObject)y,&outstate));
   if (instate == outstate) {
     /* user forgot to increase the state of the output vector */
-    CHKERRQ(PetscObjectStateIncrease((PetscObject)y));
+    PetscCall(PetscObjectStateIncrease((PetscObject)y));
   }
   PetscFunctionReturn(0);
 }
@@ -121,7 +121,7 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   ST_SHELL       *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
-  if (shell->backtransform) PetscStackCall("STSHELL user function backtransform()",CHKERRQ((*shell->backtransform)(st,n,eigr,eigi)));
+  if (shell->backtransform) PetscStackCall("STSHELL user function backtransform()",PetscCall((*shell->backtransform)(st,n,eigr,eigi)));
   PetscFunctionReturn(0);
 }
 
@@ -140,10 +140,10 @@ PetscErrorCode STIsInjective_Shell(ST st,PetscBool* is)
 PetscErrorCode STDestroy_Shell(ST st)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(st->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",NULL));
+  PetscCall(PetscFree(st->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -181,7 +181,7 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  CHKERRQ(PetscTryMethod(st,"STShellSetApply_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,apply)));
+  PetscCall(PetscTryMethod(st,"STShellSetApply_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,apply)));
   PetscFunctionReturn(0);
 }
 
@@ -219,7 +219,7 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  CHKERRQ(PetscTryMethod(st,"STShellSetApplyTranspose_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,applytrans)));
+  PetscCall(PetscTryMethod(st,"STShellSetApplyTranspose_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,applytrans)));
   PetscFunctionReturn(0);
 }
 
@@ -258,7 +258,7 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscIn
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  CHKERRQ(PetscTryMethod(st,"STShellSetBackTransform_C",(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*)),(st,backtr)));
+  PetscCall(PetscTryMethod(st,"STShellSetBackTransform_C",(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*)),(st,backtr)));
   PetscFunctionReturn(0);
 }
 
@@ -288,7 +288,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST st)
   ST_SHELL       *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(st,&ctx));
+  PetscCall(PetscNewLog(st,&ctx));
   st->data = (void*)ctx;
 
   st->usesksp = PETSC_FALSE;
@@ -298,8 +298,8 @@ SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST st)
   st->ops->backtransform   = STBackTransform_Shell;
   st->ops->destroy         = STDestroy_Shell;
 
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",STShellSetApply_Shell));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",STShellSetApplyTranspose_Shell));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",STShellSetBackTransform_Shell));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",STShellSetApply_Shell));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",STShellSetApplyTranspose_Shell));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",STShellSetBackTransform_Shell));
   PetscFunctionReturn(0);
 }

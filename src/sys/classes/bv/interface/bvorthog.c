@@ -20,8 +20,8 @@
 static inline PetscErrorCode BV_NormVecOrColumn(BV bv,PetscInt j,Vec v,PetscReal *nrm)
 {
   PetscFunctionBegin;
-  if (v) CHKERRQ(BVNormVec(bv,v,NORM_2,nrm));
-  else CHKERRQ(BVNormColumn(bv,j,NORM_2,nrm));
+  if (v) PetscCall(BVNormVec(bv,v,NORM_2,nrm));
+  else PetscCall(BVNormColumn(bv,j,NORM_2,nrm));
   PetscFunctionReturn(0);
 }
 
@@ -35,14 +35,14 @@ static inline PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q)
   Vec            y;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscLogEventBegin(BV_DotVec,X,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_DotVec,X,0,0,0));
   ksave = X->k;
   X->k = j+1;
-  CHKERRQ(BVGetColumn(X,j,&y));
-  CHKERRQ((*X->ops->dotvec)(X,y,q));
-  CHKERRQ(BVRestoreColumn(X,j,&y));
+  PetscCall(BVGetColumn(X,j,&y));
+  PetscCall((*X->ops->dotvec)(X,y,q));
+  PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
-  CHKERRQ(PetscLogEventEnd(BV_DotVec,X,0,0,0));
+  PetscCall(PetscLogEventEnd(BV_DotVec,X,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -58,29 +58,29 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   const PetscScalar *omega;
 
   PetscFunctionBegin;
-  if (!v) CHKERRQ(BVGetColumn(bv,j,&w));
-  if (onrm) CHKERRQ(BVNormVec(bv,w,NORM_2,onrm));
+  if (!v) PetscCall(BVGetColumn(bv,j,&w));
+  if (onrm) PetscCall(BVNormVec(bv,w,NORM_2,onrm));
   z = w;
-  if (indef) CHKERRQ(VecGetArrayRead(bv->omega,&omega));
+  if (indef) PetscCall(VecGetArrayRead(bv->omega,&omega));
   for (i=-bv->nc;i<j;i++) {
     if (which && i>=0 && !which[i]) continue;
-    CHKERRQ(BVGetColumn(bv,i,&vi));
+    PetscCall(BVGetColumn(bv,i,&vi));
     /* h_i = (v, v_i) */
     if (bv->matrix) {
-      CHKERRQ(BV_IPMatMult(bv,w));
+      PetscCall(BV_IPMatMult(bv,w));
       z = bv->Bx;
     }
-    CHKERRQ(VecDot(z,vi,&dot));
+    PetscCall(VecDot(z,vi,&dot));
     /* v <- v - h_i v_i */
-    CHKERRQ(BV_SetValue(bv,i,0,c,dot));
+    PetscCall(BV_SetValue(bv,i,0,c,dot));
     if (indef) dot /= PetscRealPart(omega[bv->nc+i]);
-    CHKERRQ(VecAXPY(w,-dot,vi));
-    CHKERRQ(BVRestoreColumn(bv,i,&vi));
+    PetscCall(VecAXPY(w,-dot,vi));
+    PetscCall(BVRestoreColumn(bv,i,&vi));
   }
-  if (nrm) CHKERRQ(BVNormVec(bv,w,NORM_2,nrm));
-  if (!v) CHKERRQ(BVRestoreColumn(bv,j,&w));
-  CHKERRQ(BV_AddCoefficients(bv,j,h,c));
-  if (indef) CHKERRQ(VecRestoreArrayRead(bv->omega,&omega));
+  if (nrm) PetscCall(BVNormVec(bv,w,NORM_2,nrm));
+  if (!v) PetscCall(BVRestoreColumn(bv,j,&w));
+  PetscCall(BV_AddCoefficients(bv,j,h,c));
+  if (indef) PetscCall(VecRestoreArrayRead(bv->omega,&omega));
   PetscFunctionReturn(0);
 }
 
@@ -97,37 +97,37 @@ static PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   bv->k = j;
   if (onorm || norm) {
     if (!v) {
-      CHKERRQ(BVDotColumnInc(bv,j,c));
-      CHKERRQ(BV_SquareRoot(bv,j,c,&beta));
+      PetscCall(BVDotColumnInc(bv,j,c));
+      PetscCall(BV_SquareRoot(bv,j,c,&beta));
     } else {
-      CHKERRQ(BVDotVec(bv,v,c));
-      CHKERRQ(BVNormVec(bv,v,NORM_2,&beta));
+      PetscCall(BVDotVec(bv,v,c));
+      PetscCall(BVNormVec(bv,v,NORM_2,&beta));
     }
   } else {
-    if (!v) CHKERRQ(BVDotColumn(bv,j,c));
-    else CHKERRQ(BVDotVec(bv,v,c));
+    if (!v) PetscCall(BVDotColumn(bv,j,c));
+    else PetscCall(BVDotVec(bv,v,c));
   }
 
   /* q = v - V h */
-  if (PetscUnlikely(bv->indef)) CHKERRQ(BV_ApplySignature(bv,j,c,PETSC_TRUE));
-  if (!v) CHKERRQ(BVMultColumn(bv,-1.0,1.0,j,c));
-  else CHKERRQ(BVMultVec(bv,-1.0,1.0,v,c));
-  if (PetscUnlikely(bv->indef)) CHKERRQ(BV_ApplySignature(bv,j,c,PETSC_FALSE));
+  if (PetscUnlikely(bv->indef)) PetscCall(BV_ApplySignature(bv,j,c,PETSC_TRUE));
+  if (!v) PetscCall(BVMultColumn(bv,-1.0,1.0,j,c));
+  else PetscCall(BVMultVec(bv,-1.0,1.0,v,c));
+  if (PetscUnlikely(bv->indef)) PetscCall(BV_ApplySignature(bv,j,c,PETSC_FALSE));
 
   /* compute |v| */
   if (onorm) *onorm = beta;
 
   if (norm) {
-    if (PetscUnlikely(bv->indef)) CHKERRQ(BV_NormVecOrColumn(bv,j,v,norm));
+    if (PetscUnlikely(bv->indef)) PetscCall(BV_NormVecOrColumn(bv,j,v,norm));
     else {
       /* estimate |v'| from |v| */
-      CHKERRQ(BV_SquareSum(bv,j,c,&sum));
+      PetscCall(BV_SquareSum(bv,j,c,&sum));
       *norm = beta*beta-sum;
-      if (PetscUnlikely(*norm <= 0.0)) CHKERRQ(BV_NormVecOrColumn(bv,j,v,norm));
+      if (PetscUnlikely(*norm <= 0.0)) PetscCall(BV_NormVecOrColumn(bv,j,v,norm));
       else *norm = PetscSqrtReal(*norm);
     }
   }
-  CHKERRQ(BV_AddCoefficients(bv,j,h,c));
+  PetscCall(BV_AddCoefficients(bv,j,h,c));
   PetscFunctionReturn(0);
 }
 
@@ -169,48 +169,48 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
   /* if indefinite and we are orthogonalizing a column, the norm must always be computed */
   signature = (bv->indef && !v)? PETSC_TRUE: PETSC_FALSE;
 
-  CHKERRQ(BV_CleanCoefficients(bv,k,h));
+  PetscCall(BV_CleanCoefficients(bv,k,h));
 
   switch (bv->orthog_ref) {
 
   case BV_ORTHOG_REFINE_IFNEEDED:
-    CHKERRQ(BVOrthogonalizeGS1(bv,k,v,which,h,c,&onrm,&nrm));
+    PetscCall(BVOrthogonalizeGS1(bv,k,v,which,h,c,&onrm,&nrm));
     /* repeat if ||q|| < eta ||h|| */
     l = 1;
     while (l<3 && nrm && PetscAbsReal(nrm) < bv->orthog_eta*PetscAbsReal(onrm)) {
       l++;
       if (mgs||bv->indef) onrm = nrm;
-      CHKERRQ(BVOrthogonalizeGS1(bv,k,v,which,h,c,(mgs||bv->indef)?NULL:&onrm,&nrm));
+      PetscCall(BVOrthogonalizeGS1(bv,k,v,which,h,c,(mgs||bv->indef)?NULL:&onrm,&nrm));
     }
     /* linear dependence check: criterion not satisfied in the last iteration */
     if (dolindep) *lindep = PetscNot(nrm && PetscAbsReal(nrm) >= bv->orthog_eta*PetscAbsReal(onrm));
     break;
 
   case BV_ORTHOG_REFINE_NEVER:
-    CHKERRQ(BVOrthogonalizeGS1(bv,k,v,which,h,c,NULL,NULL));
+    PetscCall(BVOrthogonalizeGS1(bv,k,v,which,h,c,NULL,NULL));
     /* compute ||v|| */
-    if (norm || dolindep || signature) CHKERRQ(BV_NormVecOrColumn(bv,k,v,&nrm));
+    if (norm || dolindep || signature) PetscCall(BV_NormVecOrColumn(bv,k,v,&nrm));
     /* linear dependence check: just test for exactly zero norm */
     if (dolindep) *lindep = PetscNot(nrm);
     break;
 
   case BV_ORTHOG_REFINE_ALWAYS:
-    CHKERRQ(BVOrthogonalizeGS1(bv,k,v,which,h,c,NULL,NULL));
-    CHKERRQ(BVOrthogonalizeGS1(bv,k,v,which,h,c,dolindep?&onrm:NULL,(norm||dolindep||signature)?&nrm:NULL));
+    PetscCall(BVOrthogonalizeGS1(bv,k,v,which,h,c,NULL,NULL));
+    PetscCall(BVOrthogonalizeGS1(bv,k,v,which,h,c,dolindep?&onrm:NULL,(norm||dolindep||signature)?&nrm:NULL));
     /* linear dependence check: criterion not satisfied in the second iteration */
     if (dolindep) *lindep = PetscNot(nrm && PetscAbsReal(nrm) >= bv->orthog_eta*PetscAbsReal(onrm));
     break;
   }
   if (signature) {
-    CHKERRQ(VecGetArray(bv->omega,&omega));
+    PetscCall(VecGetArray(bv->omega,&omega));
     omega[bv->nc+k] = (nrm<0.0)? -1.0: 1.0;
-    CHKERRQ(VecRestoreArray(bv->omega,&omega));
+    PetscCall(VecRestoreArray(bv->omega,&omega));
   }
   if (norm) {
     *norm = nrm;
     if (!v) { /* store norm value next to the orthogonalization coefficients */
-      if (dolindep && *lindep) CHKERRQ(BV_SetValue(bv,k,k,h,0.0));
-      else CHKERRQ(BV_SetValue(bv,k,k,h,nrm));
+      if (dolindep && *lindep) PetscCall(BV_SetValue(bv,k,k,h,0.0));
+      else PetscCall(BV_SetValue(bv,k,k,h,nrm));
     }
   }
   PetscFunctionReturn(0);
@@ -258,17 +258,17 @@ PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,Pet
   PetscValidType(v,2);
   PetscCheckSameComm(bv,1,v,2);
 
-  CHKERRQ(PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0));
   ksave = bv->k;
   lsave = bv->l;
   bv->l = -bv->nc;  /* must also orthogonalize against constraints and leading columns */
-  CHKERRQ(BV_AllocateCoeffs(bv));
-  CHKERRQ(BV_AllocateSignature(bv));
-  CHKERRQ(BVOrthogonalizeGS(bv,0,v,NULL,norm,lindep));
+  PetscCall(BV_AllocateCoeffs(bv));
+  PetscCall(BV_AllocateSignature(bv));
+  PetscCall(BVOrthogonalizeGS(bv,0,v,NULL,norm,lindep));
   bv->k = ksave;
   bv->l = lsave;
-  if (H) CHKERRQ(BV_StoreCoefficients(bv,bv->k,bv->h,H));
-  CHKERRQ(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
+  if (H) PetscCall(BV_StoreCoefficients(bv,bv->k,bv->h,H));
+  PetscCall(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
   PetscFunctionReturn(0);
 }
 
@@ -324,18 +324,18 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
   PetscCheck(j>=0,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   PetscCheck(j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,bv->m);
 
-  CHKERRQ(PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0));
   ksave = bv->k;
   lsave = bv->l;
   bv->l = -bv->nc;  /* must also orthogonalize against constraints and leading columns */
-  if (!bv->buffer) CHKERRQ(BVGetBufferVec(bv,&bv->buffer));
-  CHKERRQ(BV_AllocateSignature(bv));
-  CHKERRQ(BVOrthogonalizeGS(bv,j,NULL,NULL,norm,lindep));
+  if (!bv->buffer) PetscCall(BVGetBufferVec(bv,&bv->buffer));
+  PetscCall(BV_AllocateSignature(bv));
+  PetscCall(BVOrthogonalizeGS(bv,j,NULL,NULL,norm,lindep));
   bv->k = ksave;
   bv->l = lsave;
-  if (H) CHKERRQ(BV_StoreCoefficients(bv,j,NULL,H));
-  CHKERRQ(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  if (H) PetscCall(BV_StoreCoefficients(bv,j,NULL,H));
+  PetscCall(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -393,36 +393,36 @@ PetscErrorCode BVOrthonormalizeColumn(BV bv,PetscInt j,PetscBool replace,PetscRe
   PetscCheck(j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,bv->m);
 
   /* orthogonalize */
-  CHKERRQ(PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0));
   ksave = bv->k;
   lsave = bv->l;
   bv->l = -bv->nc;  /* must also orthogonalize against constraints and leading columns */
-  if (!bv->buffer) CHKERRQ(BVGetBufferVec(bv,&bv->buffer));
-  CHKERRQ(BV_AllocateSignature(bv));
-  CHKERRQ(BVOrthogonalizeGS(bv,j,NULL,NULL,&nrm,&lndep));
+  if (!bv->buffer) PetscCall(BVGetBufferVec(bv,&bv->buffer));
+  PetscCall(BV_AllocateSignature(bv));
+  PetscCall(BVOrthogonalizeGS(bv,j,NULL,NULL,&nrm,&lndep));
   if (replace && (nrm==0.0 || lndep)) {
-    CHKERRQ(PetscInfo(bv,"Vector was linearly dependent, generating a new random vector\n"));
-    CHKERRQ(BVSetRandomColumn(bv,j));
-    CHKERRQ(BVOrthogonalizeGS(bv,j,NULL,NULL,&nrm,&lndep));
+    PetscCall(PetscInfo(bv,"Vector was linearly dependent, generating a new random vector\n"));
+    PetscCall(BVSetRandomColumn(bv,j));
+    PetscCall(BVOrthogonalizeGS(bv,j,NULL,NULL,&nrm,&lndep));
     if (nrm==0.0 || lndep) {  /* yet another attempt */
-      CHKERRQ(BVSetRandomColumn(bv,j));
-      CHKERRQ(BVOrthogonalizeGS(bv,j,NULL,NULL,&nrm,&lndep));
+      PetscCall(BVSetRandomColumn(bv,j));
+      PetscCall(BVOrthogonalizeGS(bv,j,NULL,NULL,&nrm,&lndep));
     }
   }
   bv->k = ksave;
   bv->l = lsave;
-  CHKERRQ(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
+  PetscCall(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
 
   /* scale */
   if (nrm!=1.0 && nrm!=0.0) {
     alpha = 1.0/nrm;
-    CHKERRQ(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-    if (bv->n) CHKERRQ((*bv->ops->scale)(bv,j,alpha));
-    CHKERRQ(PetscLogEventEnd(BV_Scale,bv,0,0,0));
+    PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
+    if (bv->n) PetscCall((*bv->ops->scale)(bv,j,alpha));
+    PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   }
   if (norm) *norm = nrm;
   if (lindep) *lindep = lndep;
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -471,18 +471,18 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
   PetscCheck(j<bv->m,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%" PetscInt_FMT " but BV only has %" PetscInt_FMT " columns",j,bv->m);
   PetscCheck(bv->orthog_type==BV_ORTHOG_MGS,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation only available for MGS orthogonalization");
 
-  CHKERRQ(PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0));
+  PetscCall(PetscLogEventBegin(BV_OrthogonalizeVec,bv,0,0,0));
   ksave = bv->k;
   lsave = bv->l;
   bv->l = -bv->nc;  /* must also orthogonalize against constraints and leading columns */
-  if (!bv->buffer) CHKERRQ(BVGetBufferVec(bv,&bv->buffer));
-  CHKERRQ(BV_AllocateSignature(bv));
-  CHKERRQ(BVOrthogonalizeGS(bv,j,NULL,which,norm,lindep));
+  if (!bv->buffer) PetscCall(BVGetBufferVec(bv,&bv->buffer));
+  PetscCall(BV_AllocateSignature(bv));
+  PetscCall(BVOrthogonalizeGS(bv,j,NULL,which,norm,lindep));
   bv->k = ksave;
   bv->l = lsave;
-  if (H) CHKERRQ(BV_StoreCoefficients(bv,j,NULL,H));
-  CHKERRQ(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)bv));
+  if (H) PetscCall(BV_StoreCoefficients(bv,j,NULL,H));
+  PetscCall(PetscLogEventEnd(BV_OrthogonalizeVec,bv,0,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
 }
 
@@ -494,10 +494,10 @@ static PetscErrorCode BVOrthogonalize_BlockGS(BV V,Mat R)
   BV             V1;
 
   PetscFunctionBegin;
-  CHKERRQ(BVGetSplit(V,&V1,NULL));
-  CHKERRQ(BVDot(V,V1,R));
-  CHKERRQ(BVMult(V,-1.0,1.0,V1,R));
-  CHKERRQ(BVRestoreSplit(V,&V1,NULL));
+  PetscCall(BVGetSplit(V,&V1,NULL));
+  PetscCall(BVDot(V,V1,R));
+  PetscCall(BVMult(V,-1.0,1.0,V1,R));
+  PetscCall(BVRestoreSplit(V,&V1,NULL));
   PetscFunctionReturn(0);
 }
 
@@ -513,38 +513,38 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
 
   PetscFunctionBegin;
   if (R) {
-    CHKERRQ(MatGetSize(R,&ldr,NULL));
-    CHKERRQ(MatDenseGetArray(R,&r));
+    PetscCall(MatGetSize(R,&ldr,NULL));
+    PetscCall(MatDenseGetArray(R,&r));
   }
   if (V->matrix) {
-    CHKERRQ(BVGetCachedBV(V,&V->cached));
-    CHKERRQ(BVSetActiveColumns(V->cached,V->l,V->k));
+    PetscCall(BVGetCachedBV(V,&V->cached));
+    PetscCall(BVSetActiveColumns(V->cached,V->l,V->k));
   }
   for (j=V->l;j<V->k;j++) {
     if (V->matrix && V->orthog_type==BV_ORTHOG_MGS) {  /* fill cached BV */
-      CHKERRQ(BVGetColumn(V->cached,j,&v));
-      CHKERRQ(BVGetColumn(V,j,&w));
-      CHKERRQ(MatMult(V->matrix,w,v));
-      CHKERRQ(BVRestoreColumn(V,j,&w));
-      CHKERRQ(BVRestoreColumn(V->cached,j,&v));
+      PetscCall(BVGetColumn(V->cached,j,&v));
+      PetscCall(BVGetColumn(V,j,&w));
+      PetscCall(MatMult(V->matrix,w,v));
+      PetscCall(BVRestoreColumn(V,j,&w));
+      PetscCall(BVRestoreColumn(V->cached,j,&v));
     }
     if (R) {
-      CHKERRQ(BVOrthogonalizeColumn(V,j,NULL,&norm,NULL));
+      PetscCall(BVOrthogonalizeColumn(V,j,NULL,&norm,NULL));
       lsave = V->l;
       V->l = -V->nc;
-      CHKERRQ(BV_StoreCoefficients(V,j,NULL,r+j*ldr));
+      PetscCall(BV_StoreCoefficients(V,j,NULL,r+j*ldr));
       V->l = lsave;
       r[j+j*ldr] = norm;
-    } else CHKERRQ(BVOrthogonalizeColumn(V,j,NULL,&norm,NULL));
+    } else PetscCall(BVOrthogonalizeColumn(V,j,NULL,&norm,NULL));
     PetscCheck(norm,PetscObjectComm((PetscObject)V),PETSC_ERR_CONV_FAILED,"Breakdown in BVOrthogonalize due to a linearly dependent column");
     if (V->matrix && V->orthog_type==BV_ORTHOG_CGS) {  /* fill cached BV */
-      CHKERRQ(BVGetColumn(V->cached,j,&v));
-      CHKERRQ(VecCopy(V->Bx,v));
-      CHKERRQ(BVRestoreColumn(V->cached,j,&v));
+      PetscCall(BVGetColumn(V->cached,j,&v));
+      PetscCall(VecCopy(V->Bx,v));
+      PetscCall(BVRestoreColumn(V->cached,j,&v));
     }
-    CHKERRQ(BVScaleColumn(V,j,1.0/norm));
+    PetscCall(BVScaleColumn(V,j,1.0/norm));
   }
-  if (R) CHKERRQ(MatDenseRestoreArray(R,&r));
+  if (R) PetscCall(MatDenseRestoreArray(R,&r));
   PetscFunctionReturn(0);
 }
 
@@ -558,12 +558,12 @@ static inline PetscErrorCode BV_GetBufferMat(BV bv)
 
   PetscFunctionBegin;
   if (!bv->Abuffer) {
-    if (!bv->buffer) CHKERRQ(BVGetBufferVec(bv,&bv->buffer));
+    if (!bv->buffer) PetscCall(BVGetBufferVec(bv,&bv->buffer));
     ld = bv->m+bv->nc;
-    CHKERRQ(VecGetArray(bv->buffer,&array));
-    CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,ld,bv->m,array,&bv->Abuffer));
-    CHKERRQ(VecRestoreArray(bv->buffer,&array));
-    CHKERRQ(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Abuffer));
+    PetscCall(VecGetArray(bv->buffer,&array));
+    PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ld,bv->m,array,&bv->Abuffer));
+    PetscCall(VecRestoreArray(bv->buffer,&array));
+    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Abuffer));
   }
   PetscFunctionReturn(0);
 }
@@ -580,13 +580,13 @@ static inline PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R,PetscBool t
   PetscInt          j,ldr,ldb;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(R,&ldr,NULL));
-  CHKERRQ(MatDenseGetArray(R,&rr));
+  PetscCall(MatGetSize(R,&ldr,NULL));
+  PetscCall(MatDenseGetArray(R,&rr));
   ldb  = bv->m+bv->nc;
-  CHKERRQ(VecGetArrayRead(bv->buffer,&bb));
-  for (j=bv->l;j<bv->k;j++) CHKERRQ(PetscArraycpy(rr+j*ldr,bb+j*ldb,(tri?(j+1):bv->k)+bv->nc));
-  CHKERRQ(VecRestoreArrayRead(bv->buffer,&bb));
-  CHKERRQ(MatDenseRestoreArray(R,&rr));
+  PetscCall(VecGetArrayRead(bv->buffer,&bb));
+  for (j=bv->l;j<bv->k;j++) PetscCall(PetscArraycpy(rr+j*ldr,bb+j*ldb,(tri?(j+1):bv->k)+bv->nc));
+  PetscCall(VecRestoreArrayRead(bv->buffer,&bb));
+  PetscCall(MatDenseRestoreArray(R,&rr));
   PetscFunctionReturn(0);
 }
 
@@ -598,15 +598,15 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
   Mat            R,S;
 
   PetscFunctionBegin;
-  CHKERRQ(BV_GetBufferMat(V));
+  PetscCall(BV_GetBufferMat(V));
   R = V->Abuffer;
   if (Rin) S = Rin;   /* use Rin as a workspace for S */
   else S = R;
-  if (V->l) CHKERRQ(BVOrthogonalize_BlockGS(V,R));
-  CHKERRQ(BVDot(V,V,R));
-  CHKERRQ(BVMatCholInv_LAPACK_Private(V,R,S));
-  CHKERRQ(BVMultInPlace(V,S,V->l,V->k));
-  if (Rin) CHKERRQ(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
+  if (V->l) PetscCall(BVOrthogonalize_BlockGS(V,R));
+  PetscCall(BVDot(V,V,R));
+  PetscCall(BVMatCholInv_LAPACK_Private(V,R,S));
+  PetscCall(BVMultInPlace(V,S,V->l,V->k));
+  if (Rin) PetscCall(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -620,16 +620,16 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
   Mat            R;
 
   PetscFunctionBegin;
-  CHKERRQ(BV_GetBufferMat(V));
+  PetscCall(BV_GetBufferMat(V));
   R = V->Abuffer;
-  if (V->l) CHKERRQ(BVOrthogonalize_BlockGS(V,R));
-  CHKERRQ(MatGetSize(R,&ldr,NULL));
-  CHKERRQ(MatDenseGetArray(R,&r));
-  CHKERRQ(BVGetArray(V,&pv));
-  CHKERRQ(BVOrthogonalize_LAPACK_TSQR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr));
-  CHKERRQ(BVRestoreArray(V,&pv));
-  CHKERRQ(MatDenseRestoreArray(R,&r));
-  if (Rin) CHKERRQ(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
+  if (V->l) PetscCall(BVOrthogonalize_BlockGS(V,R));
+  PetscCall(MatGetSize(R,&ldr,NULL));
+  PetscCall(MatDenseGetArray(R,&r));
+  PetscCall(BVGetArray(V,&pv));
+  PetscCall(BVOrthogonalize_LAPACK_TSQR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr));
+  PetscCall(BVRestoreArray(V,&pv));
+  PetscCall(MatDenseRestoreArray(R,&r));
+  if (Rin) PetscCall(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -643,20 +643,20 @@ static PetscErrorCode BVOrthogonalize_TSQRCHOL(BV V,Mat Rin)
   Mat            R,S;
 
   PetscFunctionBegin;
-  CHKERRQ(BV_GetBufferMat(V));
+  PetscCall(BV_GetBufferMat(V));
   R = V->Abuffer;
   if (Rin) S = Rin;   /* use Rin as a workspace for S */
   else S = R;
-  if (V->l) CHKERRQ(BVOrthogonalize_BlockGS(V,R));
-  CHKERRQ(MatGetSize(R,&ldr,NULL));
-  CHKERRQ(MatDenseGetArray(R,&r));
-  CHKERRQ(BVGetArray(V,&pv));
-  CHKERRQ(BVOrthogonalize_LAPACK_TSQR_OnlyR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr));
-  CHKERRQ(BVRestoreArray(V,&pv));
-  CHKERRQ(MatDenseRestoreArray(R,&r));
-  CHKERRQ(BVMatTriInv_LAPACK_Private(V,R,S));
-  CHKERRQ(BVMultInPlace(V,S,V->l,V->k));
-  if (Rin) CHKERRQ(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
+  if (V->l) PetscCall(BVOrthogonalize_BlockGS(V,R));
+  PetscCall(MatGetSize(R,&ldr,NULL));
+  PetscCall(MatDenseGetArray(R,&r));
+  PetscCall(BVGetArray(V,&pv));
+  PetscCall(BVOrthogonalize_LAPACK_TSQR_OnlyR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr));
+  PetscCall(BVRestoreArray(V,&pv));
+  PetscCall(MatDenseRestoreArray(R,&r));
+  PetscCall(BVMatTriInv_LAPACK_Private(V,R,S));
+  PetscCall(BVMultInPlace(V,S,V->l,V->k));
+  if (Rin) PetscCall(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -668,15 +668,15 @@ static PetscErrorCode BVOrthogonalize_SVQB(BV V,Mat Rin)
   Mat            R,S;
 
   PetscFunctionBegin;
-  CHKERRQ(BV_GetBufferMat(V));
+  PetscCall(BV_GetBufferMat(V));
   R = V->Abuffer;
   if (Rin) S = Rin;   /* use Rin as a workspace for S */
   else S = R;
-  if (V->l) CHKERRQ(BVOrthogonalize_BlockGS(V,R));
-  CHKERRQ(BVDot(V,V,R));
-  CHKERRQ(BVMatSVQB_LAPACK_Private(V,R,S));
-  CHKERRQ(BVMultInPlace(V,S,V->l,V->k));
-  if (Rin) CHKERRQ(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_FALSE));
+  if (V->l) PetscCall(BVOrthogonalize_BlockGS(V,R));
+  PetscCall(BVDot(V,V,R));
+  PetscCall(BVMatSVQB_LAPACK_Private(V,R,S));
+  PetscCall(BVMultInPlace(V,S,V->l,V->k));
+  if (Rin) PetscCall(BV_StoreCoeffsBlock_Default(V,Rin,PETSC_FALSE));
   PetscFunctionReturn(0);
 }
 
@@ -736,33 +736,33 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
     PetscValidHeaderSpecific(R,MAT_CLASSID,2);
     PetscValidType(R,2);
     PetscCheckTypeName(R,MATSEQDENSE);
-    CHKERRQ(MatGetSize(R,&m,&n));
+    PetscCall(MatGetSize(R,&m,&n));
     PetscCheck(m==n,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument is not square, it has %" PetscInt_FMT " rows and %" PetscInt_FMT " columns",m,n);
     PetscCheck(n>=V->k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat size %" PetscInt_FMT " is smaller than the number of BV active columns %" PetscInt_FMT,n,V->k);
   }
   PetscCheck(!V->nc,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Not implemented for BV with constraints, use BVOrthogonalizeColumn() instead");
 
-  CHKERRQ(PetscLogEventBegin(BV_Orthogonalize,V,R,0,0));
+  PetscCall(PetscLogEventBegin(BV_Orthogonalize,V,R,0,0));
   switch (V->orthog_block) {
   case BV_ORTHOG_BLOCK_GS: /* proceed column by column with Gram-Schmidt */
-    CHKERRQ(BVOrthogonalize_GS(V,R));
+    PetscCall(BVOrthogonalize_GS(V,R));
     break;
   case BV_ORTHOG_BLOCK_CHOL:
-    CHKERRQ(BVOrthogonalize_Chol(V,R));
+    PetscCall(BVOrthogonalize_Chol(V,R));
     break;
   case BV_ORTHOG_BLOCK_TSQR:
     PetscCheck(!V->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
-    CHKERRQ(BVOrthogonalize_TSQR(V,R));
+    PetscCall(BVOrthogonalize_TSQR(V,R));
     break;
   case BV_ORTHOG_BLOCK_TSQRCHOL:
     PetscCheck(!V->matrix,PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
-    CHKERRQ(BVOrthogonalize_TSQRCHOL(V,R));
+    PetscCall(BVOrthogonalize_TSQRCHOL(V,R));
     break;
   case BV_ORTHOG_BLOCK_SVQB:
-    CHKERRQ(BVOrthogonalize_SVQB(V,R));
+    PetscCall(BVOrthogonalize_SVQB(V,R));
     break;
   }
-  CHKERRQ(PetscLogEventEnd(BV_Orthogonalize,V,R,0,0));
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscLogEventEnd(BV_Orthogonalize,V,R,0,0));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }

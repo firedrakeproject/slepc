@@ -25,51 +25,51 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      flg,terse;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load matrices that define the generalized singular value problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value problem stored in file.\n\n"));
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value problem stored in file.\n\n"));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
   PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name for matrix A with the -f1 option");
 
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n"));
 #else
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n"));
 #endif
-  CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatLoad(A,viewer));
-  CHKERRQ(PetscViewerDestroy(&viewer));
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatLoad(A,viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
 
-  CHKERRQ(MatGetSize(A,&m,&n));
+  PetscCall(MatGetSize(A,&m,&n));
 
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
   if (flg) {
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-    CHKERRQ(MatSetFromOptions(B));
-    CHKERRQ(MatLoad(B,viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+    PetscCall(MatSetFromOptions(B));
+    PetscCall(MatLoad(B,viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=bidiag(1,-1)\n\n"));
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-    CHKERRQ(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n+1,n));
-    CHKERRQ(MatSetFromOptions(B));
-    CHKERRQ(MatSetUp(B));
-    CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=bidiag(1,-1)\n\n"));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+    PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n+1,n));
+    PetscCall(MatSetFromOptions(B));
+    PetscCall(MatSetUp(B));
+    PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
     for (i=Istart;i<Iend;i++) {
       col[0]=i-1; col[1]=i;
-      if (i==0) CHKERRQ(MatSetValue(B,i,col[1],vals[1],INSERT_VALUES));
-      else if (i<n) CHKERRQ(MatSetValues(B,1,&i,2,col,vals,INSERT_VALUES));
-      else if (i==n) CHKERRQ(MatSetValue(B,i,col[0],vals[0],INSERT_VALUES));
+      if (i==0) PetscCall(MatSetValue(B,i,col[1],vals[1],INSERT_VALUES));
+      else if (i<n) PetscCall(MatSetValues(B,1,&i,2,col,vals,INSERT_VALUES));
+      else if (i==n) PetscCall(MatSetValue(B,i,col[0],vals[0],INSERT_VALUES));
     }
-    CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
-    CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -79,38 +79,38 @@ int main(int argc,char **argv)
   /*
      Create singular value solver context
   */
-  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
 
   /*
      Set operators of GSVD problem
   */
-  CHKERRQ(SVDSetOperators(svd,A,B));
-  CHKERRQ(SVDSetProblemType(svd,SVD_GENERALIZED));
+  PetscCall(SVDSetOperators(svd,A,B));
+  PetscCall(SVDSetProblemType(svd,SVD_GENERALIZED));
 
   /*
      Set solver parameters at runtime
   */
-  CHKERRQ(SVDSetFromOptions(svd));
+  PetscCall(SVDSetFromOptions(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the problem and print solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDSolve(svd));
+  PetscCall(SVDSolve(svd));
 
   /* show detailed info unless -terse option is given by user */
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(SVDErrorView(svd,SVD_ERROR_NORM,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(SVDErrorView(svd,SVD_ERROR_NORM,NULL));
   else {
-    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(SVDConvergedReasonView(svd,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(SVDErrorView(svd,SVD_ERROR_NORM,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(SVDConvergedReasonView(svd,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(SVDErrorView(svd,SVD_ERROR_NORM,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  CHKERRQ(SVDDestroy(&svd));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 /*TEST

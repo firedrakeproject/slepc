@@ -183,7 +183,7 @@ struct _p_NEP {
       PetscCheck(!((mask) & NEP_FEATURE_CALLBACK) || (nep)->fui!=NEP_USER_INTERFACE_CALLBACK,PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used with callback functions (use the split operator)",((PetscObject)(nep))->type_name,(msg)); \
       if ((mask) & NEP_FEATURE_REGION) { \
         PetscBool      __istrivial; \
-        CHKERRQ(RGIsTrivial((nep)->rg,&__istrivial)); \
+        PetscCall(RGIsTrivial((nep)->rg,&__istrivial)); \
         PetscCheck(__istrivial,PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(nep))->type_name,(msg)); \
       } \
       PetscCheck(!((mask) & NEP_FEATURE_CONVERGENCE) || (nep)->converged==NEPConvergedRelative,PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(nep))->type_name,(msg)); \
@@ -197,15 +197,15 @@ struct _p_NEP {
 #define NEPCheckIgnoredCondition(nep,mask,condition,msg) \
   do { \
     if (condition) { \
-      if (((mask) & NEP_FEATURE_CALLBACK) && (nep)->fui==NEP_USER_INTERFACE_CALLBACK) CHKERRQ(PetscInfo((nep),"The solver '%s'%s ignores the user interface settings\n",((PetscObject)(nep))->type_name,(msg))); \
+      if (((mask) & NEP_FEATURE_CALLBACK) && (nep)->fui==NEP_USER_INTERFACE_CALLBACK) PetscCall(PetscInfo((nep),"The solver '%s'%s ignores the user interface settings\n",((PetscObject)(nep))->type_name,(msg))); \
       if ((mask) & NEP_FEATURE_REGION) { \
         PetscBool __istrivial; \
-        CHKERRQ(RGIsTrivial((nep)->rg,&__istrivial)); \
-        if (!__istrivial) CHKERRQ(PetscInfo((nep),"The solver '%s'%s ignores the specified region\n",((PetscObject)(nep))->type_name,(msg))); \
+        PetscCall(RGIsTrivial((nep)->rg,&__istrivial)); \
+        if (!__istrivial) PetscCall(PetscInfo((nep),"The solver '%s'%s ignores the specified region\n",((PetscObject)(nep))->type_name,(msg))); \
       } \
-      if (((mask) & NEP_FEATURE_CONVERGENCE) && (nep)->converged!=NEPConvergedRelative) CHKERRQ(PetscInfo((nep),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(nep))->type_name,(msg))); \
-      if (((mask) & NEP_FEATURE_STOPPING) && (nep)->stopping!=NEPStoppingBasic) CHKERRQ(PetscInfo((nep),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(nep))->type_name,(msg))); \
-      if (((mask) & NEP_FEATURE_TWOSIDED) && (nep)->twosided) CHKERRQ(PetscInfo((nep),"The solver '%s'%s ignores the two-sided flag\n",((PetscObject)(nep))->type_name,(msg))); \
+      if (((mask) & NEP_FEATURE_CONVERGENCE) && (nep)->converged!=NEPConvergedRelative) PetscCall(PetscInfo((nep),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(nep))->type_name,(msg))); \
+      if (((mask) & NEP_FEATURE_STOPPING) && (nep)->stopping!=NEPStoppingBasic) PetscCall(PetscInfo((nep),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(nep))->type_name,(msg))); \
+      if (((mask) & NEP_FEATURE_TWOSIDED) && (nep)->twosided) PetscCall(PetscInfo((nep),"The solver '%s'%s ignores the two-sided flag\n",((PetscObject)(nep))->type_name,(msg))); \
     } \
   } while (0)
 #define NEPCheckIgnored(nep,mask) NEPCheckIgnoredCondition(nep,mask,PETSC_TRUE,"")
@@ -218,13 +218,13 @@ static inline PetscErrorCode NEP_KSPSetOperators(KSP ksp,Mat A,Mat B)
   const char     *prefix;
 
   PetscFunctionBegin;
-  CHKERRQ(KSPSetOperators(ksp,A,B));
-  CHKERRQ(MatGetOptionsPrefix(B,&prefix));
+  PetscCall(KSPSetOperators(ksp,A,B));
+  PetscCall(MatGetOptionsPrefix(B,&prefix));
   if (!prefix) {
     /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
        only applies if the Mat has no user-defined prefix */
-    CHKERRQ(KSPGetOptionsPrefix(ksp,&prefix));
-    CHKERRQ(MatSetOptionsPrefix(B,prefix));
+    PetscCall(KSPGetOptionsPrefix(ksp,&prefix));
+    PetscCall(MatSetOptionsPrefix(B,prefix));
   }
   PetscFunctionReturn(0);
 }

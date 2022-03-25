@@ -65,17 +65,17 @@ static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
     create=PETSC_TRUE;
     fn->nw++;
   } else {
-    CHKERRQ(MatGetSize(fn->W[fn->cw],&n,NULL));
-    CHKERRQ(MatGetSize(A,&na,NULL));
+    PetscCall(MatGetSize(fn->W[fn->cw],&n,NULL));
+    PetscCall(MatGetSize(A,&na,NULL));
     if (n!=na) {
-      CHKERRQ(MatDestroy(&fn->W[fn->cw]));
+      PetscCall(MatDestroy(&fn->W[fn->cw]));
       create=PETSC_TRUE;
     }
   }
   if (create) {
-    CHKERRQ(MatDuplicate(A,MAT_COPY_VALUES,&fn->W[fn->cw]));
-    CHKERRQ(PetscLogObjectParent((PetscObject)fn,(PetscObject)fn->W[fn->cw]));
-  } else CHKERRQ(MatCopy(A,fn->W[fn->cw],SAME_NONZERO_PATTERN));
+    PetscCall(MatDuplicate(A,MAT_COPY_VALUES,&fn->W[fn->cw]));
+    PetscCall(PetscLogObjectParent((PetscObject)fn,(PetscObject)fn->W[fn->cw]));
+  } else PetscCall(MatCopy(A,fn->W[fn->cw],SAME_NONZERO_PATTERN));
   *M = fn->W[fn->cw];
   fn->cw++;
   PetscFunctionReturn(0);

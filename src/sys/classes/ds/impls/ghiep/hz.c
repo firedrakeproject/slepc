@@ -77,7 +77,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
   PetscFunctionBegin;
   *flag = PETSC_FALSE;
   worstcond = 1.0;
-  CHKERRQ(PetscBLASIntCast(n,&n_));
+  PetscCall(PetscBLASIntCast(n,&n_));
 
   /* Build initial bulge that sets step in motion */
   bulge10 = dd[ntop+1]*(aa[ntop]*(aa[ntop] - dd[ntop]*tr) + dt*dd[ntop]*dd[ntop]) + dd[ntop]*bb[ntop]*bb[ntop];
@@ -126,7 +126,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         }
 
         /* Set up transforming matrix rot. */
-        CHKERRQ(UnifiedRotation(bulge20,bulge30,1,rot,&rcond,&swap));
+        PetscCall(UnifiedRotation(bulge20,bulge30,1,rot,&rcond,&swap));
 
         /* Apply transforming matrix rot to T. */
         bulge20 = rot[0]*bulge20 + rot[2]*bulge30;
@@ -153,7 +153,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 
         /* Begin by setting up transforming matrix rot */
         sygn = dd[jj]*dd[jj+1];
-        CHKERRQ(UnifiedRotation(bulge10,bulge20,sygn,rot,&rcond,&swap));
+        PetscCall(UnifiedRotation(bulge10,bulge20,sygn,rot,&rcond,&swap));
         if (rcond<PETSC_MACHINE_EPSILON) {
           *flag = PETSC_TRUE;
           PetscFunctionReturn(0);
@@ -273,7 +273,7 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
       tr = aa[nbot-1]*dd[nbot-1] + aa[nbot]*dd[nbot];
       dt = dd[nbot-1]*dd[nbot]*(aa[nbot-1]*aa[nbot]-bb[nbot-1]*bb[nbot-1]);
       for (ntry=1;ntry<=6;ntry++) {
-        CHKERRQ(HZStep(ntop,nbot+1,tr,dt,aa,bb,dd,uu,nn,ld,&flag));
+        PetscCall(HZStep(ntop,nbot+1,tr,dt,aa,bb,dd,uu,nn,ld,&flag));
         if (!flag) break;
         PetscCheck(ntry<6,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Unable to complete hz step after six tries");
         tr = 0.9*tr; dt = 0.81*dt;
@@ -294,7 +294,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidScalarPointer(wi,3);
 #endif
-  CHKERRQ(PetscBLASIntCast(ds->ld,&ld));
+  PetscCall(PetscBLASIntCast(ds->ld,&ld));
   n1  = ds->n - ds->l;
   off = ds->l + ds->l*ld;
   A   = ds->mat[DS_MAT_A];
@@ -313,7 +313,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Quick return */
   if (n1 == 1) {
     for (i=0;i<=ds->l;i++) Q[i+i*ld] = 1.0;
-    CHKERRQ(DSGHIEPComplexEigs(ds,0,ds->l,wr,wi));
+    PetscCall(DSGHIEPComplexEigs(ds,0,ds->l,wr,wi));
     if (ds->compact) {
       wr[ds->l] = d[ds->l]/s[ds->l]; wi[ds->l] = 0.0;
     } else {
@@ -323,14 +323,14 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscFunctionReturn(0);
   }
   /* Reduce to pseudotriadiagonal form */
-  CHKERRQ(DSIntermediate_GHIEP(ds));
-  CHKERRQ(HZIteration(ds->n,ds->l,d,e,s,Q,ld));
-  if (!ds->compact) CHKERRQ(DSSwitchFormat_GHIEP(ds,PETSC_FALSE));
+  PetscCall(DSIntermediate_GHIEP(ds));
+  PetscCall(HZIteration(ds->n,ds->l,d,e,s,Q,ld));
+  if (!ds->compact) PetscCall(DSSwitchFormat_GHIEP(ds,PETSC_FALSE));
   /* Undo from diagonal the blocks with real eigenvalues*/
-  CHKERRQ(DSGHIEPRealBlocks(ds));
+  PetscCall(DSGHIEPRealBlocks(ds));
 
   /* Recover eigenvalues from diagonal */
-  CHKERRQ(DSGHIEPComplexEigs(ds,0,ds->n,wr,wi));
+  PetscCall(DSGHIEPComplexEigs(ds,0,ds->n,wr,wi));
 #if defined(PETSC_USE_COMPLEX)
   if (wi) {
     for (i=ds->l;i<ds->n;i++) wi[i] = 0.0;

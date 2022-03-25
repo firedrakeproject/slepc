@@ -23,17 +23,17 @@ PetscErrorCode PrintFirstRow(BV X)
   const char        *name;
 
   PetscFunctionBeginUser;
-  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)X),&rank));
+  PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)X),&rank));
   if (!rank) {
-    CHKERRQ(BVGetActiveColumns(X,NULL,&k));
-    CHKERRQ(BVGetSizes(X,&nloc,NULL,NULL));
-    CHKERRQ(BVGetNumConstraints(X,&nc));
-    CHKERRQ(PetscObjectGetName((PetscObject)X,&name));
-    CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"First row of %s =\n",name));
-    CHKERRQ(BVGetArrayRead(X,&pX));
-    for (i=0;i<nc+k;i++) CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"%g ",(double)PetscRealPart(pX[i*nloc])));
-    CHKERRQ(PetscPrintf(PetscObjectComm((PetscObject)X),"\n"));
-    CHKERRQ(BVRestoreArrayRead(X,&pX));
+    PetscCall(BVGetActiveColumns(X,NULL,&k));
+    PetscCall(BVGetSizes(X,&nloc,NULL,NULL));
+    PetscCall(BVGetNumConstraints(X,&nc));
+    PetscCall(PetscObjectGetName((PetscObject)X,&name));
+    PetscCall(PetscPrintf(PetscObjectComm((PetscObject)X),"First row of %s =\n",name));
+    PetscCall(BVGetArrayRead(X,&pX));
+    for (i=0;i<nc+k;i++) PetscCall(PetscPrintf(PetscObjectComm((PetscObject)X),"%g ",(double)PetscRealPart(pX[i*nloc])));
+    PetscCall(PetscPrintf(PetscObjectComm((PetscObject)X),"\n"));
+    PetscCall(BVRestoreArrayRead(X,&pX));
   }
   PetscFunctionReturn(0);
 }
@@ -48,100 +48,100 @@ int main(int argc,char **argv)
   PetscViewer    view;
   PetscBool      verbose;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-nc",&nc,NULL));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BVGetSplit (length %" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT ", nc=%" PetscInt_FMT ").\n",n,l,k,nc));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-nc",&nc,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BVGetSplit (length %" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT ", nc=%" PetscInt_FMT ").\n",n,l,k,nc));
 
   /* Create template vector */
-  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
-  CHKERRQ(VecSetSizes(t,PETSC_DECIDE,n));
-  CHKERRQ(VecSetFromOptions(t));
-  CHKERRQ(VecGetLocalSize(t,&nloc));
+  PetscCall(VecCreate(PETSC_COMM_WORLD,&t));
+  PetscCall(VecSetSizes(t,PETSC_DECIDE,n));
+  PetscCall(VecSetFromOptions(t));
+  PetscCall(VecGetLocalSize(t,&nloc));
 
   /* Create BV object X */
-  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&X));
-  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
-  CHKERRQ(BVSetSizesFromVec(X,t,k));
-  CHKERRQ(BVSetFromOptions(X));
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&X));
+  PetscCall(PetscObjectSetName((PetscObject)X,"X"));
+  PetscCall(BVSetSizesFromVec(X,t,k));
+  PetscCall(BVSetFromOptions(X));
 
   /* Generate constraints and attach them to X */
   if (nc>0) {
-    CHKERRQ(VecDuplicateVecs(t,nc,&C));
+    PetscCall(VecDuplicateVecs(t,nc,&C));
     for (j=0;j<nc;j++) {
-      for (i=0;i<=j;i++) CHKERRQ(VecSetValue(C[j],nc-i+1,1.0,INSERT_VALUES));
-      CHKERRQ(VecAssemblyBegin(C[j]));
-      CHKERRQ(VecAssemblyEnd(C[j]));
+      for (i=0;i<=j;i++) PetscCall(VecSetValue(C[j],nc-i+1,1.0,INSERT_VALUES));
+      PetscCall(VecAssemblyBegin(C[j]));
+      PetscCall(VecAssemblyEnd(C[j]));
     }
-    CHKERRQ(BVInsertConstraints(X,&nc,C));
-    CHKERRQ(VecDestroyVecs(nc,&C));
+    PetscCall(BVInsertConstraints(X,&nc,C));
+    PetscCall(VecDestroyVecs(nc,&C));
   }
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
+  if (verbose) PetscCall(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
-    CHKERRQ(BVGetColumn(X,j,&v));
-    CHKERRQ(VecSet(v,0.0));
+    PetscCall(BVGetColumn(X,j,&v));
+    PetscCall(VecSet(v,0.0));
     for (i=0;i<4;i++) {
-      if (i+j<n) CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
+      if (i+j<n) PetscCall(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
     }
-    CHKERRQ(VecAssemblyBegin(v));
-    CHKERRQ(VecAssemblyEnd(v));
-    CHKERRQ(BVRestoreColumn(X,j,&v));
+    PetscCall(VecAssemblyBegin(v));
+    PetscCall(VecAssemblyEnd(v));
+    PetscCall(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) CHKERRQ(BVView(X,view));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Get split BVs */
-  CHKERRQ(BVSetActiveColumns(X,l,k));
-  CHKERRQ(BVGetSplit(X,&L,&R));
-  CHKERRQ(PetscObjectSetName((PetscObject)L,"L"));
-  CHKERRQ(PetscObjectSetName((PetscObject)R,"R"));
+  PetscCall(BVSetActiveColumns(X,l,k));
+  PetscCall(BVGetSplit(X,&L,&R));
+  PetscCall(PetscObjectSetName((PetscObject)L,"L"));
+  PetscCall(PetscObjectSetName((PetscObject)R,"R"));
 
   if (verbose) {
-    CHKERRQ(BVView(L,view));
-    CHKERRQ(BVView(R,view));
+    PetscCall(BVView(L,view));
+    PetscCall(BVView(R,view));
   }
 
   /* Modify first column of R */
-  CHKERRQ(BVGetColumn(R,0,&v));
-  CHKERRQ(VecSet(v,-1.0));
-  CHKERRQ(BVRestoreColumn(R,0,&v));
+  PetscCall(BVGetColumn(R,0,&v));
+  PetscCall(VecSet(v,-1.0));
+  PetscCall(BVRestoreColumn(R,0,&v));
 
   /* Finished using the split BVs */
-  CHKERRQ(BVRestoreSplit(X,&L,&R));
-  CHKERRQ(PrintFirstRow(X));
-  if (verbose) CHKERRQ(BVView(X,view));
+  PetscCall(BVRestoreSplit(X,&L,&R));
+  PetscCall(PrintFirstRow(X));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Get the left split BV only */
-  CHKERRQ(BVGetSplit(X,&L,NULL));
+  PetscCall(BVGetSplit(X,&L,NULL));
   for (j=0;j<l;j++) {
-    CHKERRQ(BVOrthogonalizeColumn(L,j,NULL,&norm,NULL));
+    PetscCall(BVOrthogonalizeColumn(L,j,NULL,&norm,NULL));
     alpha = 1.0/norm;
-    CHKERRQ(BVScaleColumn(L,j,alpha));
+    PetscCall(BVScaleColumn(L,j,alpha));
   }
-  CHKERRQ(BVRestoreSplit(X,&L,NULL));
-  CHKERRQ(PrintFirstRow(X));
-  if (verbose) CHKERRQ(BVView(X,view));
+  PetscCall(BVRestoreSplit(X,&L,NULL));
+  PetscCall(PrintFirstRow(X));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Now get the right split BV after changing the number of leading columns */
-  CHKERRQ(BVSetActiveColumns(X,l-1,k));
-  CHKERRQ(BVGetSplit(X,NULL,&R));
-  CHKERRQ(BVGetColumn(R,0,&v));
-  CHKERRQ(BVInsertVec(X,0,v));
-  CHKERRQ(BVRestoreColumn(R,0,&v));
-  CHKERRQ(BVRestoreSplit(X,NULL,&R));
-  CHKERRQ(PrintFirstRow(X));
-  if (verbose) CHKERRQ(BVView(X,view));
+  PetscCall(BVSetActiveColumns(X,l-1,k));
+  PetscCall(BVGetSplit(X,NULL,&R));
+  PetscCall(BVGetColumn(R,0,&v));
+  PetscCall(BVInsertVec(X,0,v));
+  PetscCall(BVRestoreColumn(R,0,&v));
+  PetscCall(BVRestoreSplit(X,NULL,&R));
+  PetscCall(PrintFirstRow(X));
+  if (verbose) PetscCall(BVView(X,view));
 
-  CHKERRQ(BVDestroy(&X));
-  CHKERRQ(VecDestroy(&t));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(BVDestroy(&X));
+  PetscCall(VecDestroy(&t));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

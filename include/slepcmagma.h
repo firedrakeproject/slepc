@@ -15,7 +15,7 @@
 #define SLEPCMAGMA_H
 
 #include <magma_v2.h>
-#define CHKERRMAGMA(mierr) CHKERRABORT(PETSC_COMM_SELF,mierr)
+#define CHKERRMAGMA(mierr) PetscCallAbort(PETSC_COMM_SELF,mierr)
 
 #if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_REAL_SINGLE)

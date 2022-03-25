@@ -397,7 +397,7 @@ L200:
     /* chosen such that it yields the best balanced merging operation */
     /* among all the rank modifications with minimum rank. */
 
-    CHKERRQ(cutlr_(start, size, blks, &ksizes[start-1], &rank[start-1], &cut, &lsum, &lblks, info));
+    PetscCall(cutlr_(start, size, blks, &ksizes[start-1], &rank[start-1], &cut, &lsum, &lblks, info));
     PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: Error in cutlr, info = %" PetscBLASInt_FMT,*info);
 
   } else {
@@ -735,7 +735,7 @@ L200:
 
       /* eigenvectors are accumulated (JOBZ.EQ.'D') */
 
-      CHKERRQ(BDC_dmerg2_(jobz, j+1, matsiz, &ev[np-1], &z[np-1+(np-1)*ldz],
+      PetscCall(BDC_dmerg2_(jobz, j+1, matsiz, &ev[np-1], &z[np-1+(np-1)*ldz],
                     ldz, &iwork[np-1], &rho, &e[(j + (kbrk-1)*l2e)*l1e],
                     ksizes[kbrk], &e[(rank[kbrk-1]+j+1 + (kbrk-1)*l2e)*l1e],
                     ksizes[kbrk-1], mat1, work, lwork, &iwork[n], tol, info, 1));

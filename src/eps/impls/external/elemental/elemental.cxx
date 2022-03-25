@@ -28,31 +28,31 @@ PetscErrorCode EPSSetUp_Elemental(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
   PetscCheck(isshift,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support spectral transformations");
   eps->ncv = eps->n;
-  if (eps->mpd!=PETSC_DEFAULT) CHKERRQ(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
+  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
-  if (!eps->which) CHKERRQ(EPSSetWhichEigenpairs_Default(eps));
+  if (!eps->which) PetscCall(EPSSetWhichEigenpairs_Default(eps));
   PetscCheck(eps->which!=EPS_ALL || eps->inta==eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support interval computation");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION | EPS_FEATURE_CONVERGENCE);
-  CHKERRQ(EPSAllocateSolution(eps,0));
+  PetscCall(EPSAllocateSolution(eps,0));
 
   /* convert matrices */
-  CHKERRQ(MatDestroy(&ctx->Ae));
-  CHKERRQ(MatDestroy(&ctx->Be));
-  CHKERRQ(STGetNumMatrices(eps->st,&nmat));
-  CHKERRQ(STGetMatrix(eps->st,0,&A));
-  CHKERRQ(MatConvert(A,MATELEMENTAL,MAT_INITIAL_MATRIX,&ctx->Ae));
+  PetscCall(MatDestroy(&ctx->Ae));
+  PetscCall(MatDestroy(&ctx->Be));
+  PetscCall(STGetNumMatrices(eps->st,&nmat));
+  PetscCall(STGetMatrix(eps->st,0,&A));
+  PetscCall(MatConvert(A,MATELEMENTAL,MAT_INITIAL_MATRIX,&ctx->Ae));
   if (nmat>1) {
-    CHKERRQ(STGetMatrix(eps->st,1,&B));
-    CHKERRQ(MatConvert(B,MATELEMENTAL,MAT_INITIAL_MATRIX,&ctx->Be));
+    PetscCall(STGetMatrix(eps->st,1,&B));
+    PetscCall(MatConvert(B,MATELEMENTAL,MAT_INITIAL_MATRIX,&ctx->Be));
   }
-  CHKERRQ(STGetShift(eps->st,&shift));
+  PetscCall(STGetShift(eps->st,&shift));
   if (shift != 0.0) {
-    if (nmat>1) CHKERRQ(MatAXPY(ctx->Ae,-shift,ctx->Be,SAME_NONZERO_PATTERN));
-    else CHKERRQ(MatShift(ctx->Ae,-shift));
+    if (nmat>1) PetscCall(MatAXPY(ctx->Ae,-shift,ctx->Be,SAME_NONZERO_PATTERN));
+    else PetscCall(MatShift(ctx->Ae,-shift));
   }
   PetscFunctionReturn(0);
 }
@@ -66,7 +66,7 @@ PetscErrorCode EPSSolve_Elemental(EPS eps)
 
   PetscFunctionBegin;
   El::DistMatrix<PetscReal,El::VR,El::STAR> w(*a->grid);
-  CHKERRQ(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q));
+  PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q));
   q = (Mat_Elemental*)Q->data;
 
   if (B) {
@@ -79,10 +79,10 @@ PetscErrorCode EPSSolve_Elemental(EPS eps)
     RO2E(A,0,rrank,ridx,&erow);
     eps->eigr[i] = w.Get(erow,0);
   }
-  CHKERRQ(BVGetMat(eps->V,&V));
-  CHKERRQ(MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V));
-  CHKERRQ(BVRestoreMat(eps->V,&V));
-  CHKERRQ(MatDestroy(&Q));
+  PetscCall(BVGetMat(eps->V,&V));
+  PetscCall(MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V));
+  PetscCall(BVRestoreMat(eps->V,&V));
+  PetscCall(MatDestroy(&Q));
 
   eps->nconv  = eps->ncv;
   eps->its    = 1;
@@ -93,7 +93,7 @@ PetscErrorCode EPSSolve_Elemental(EPS eps)
 PetscErrorCode EPSDestroy_Elemental(EPS eps)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(eps->data));
+  PetscCall(PetscFree(eps->data));
   PetscFunctionReturn(0);
 }
 
@@ -102,8 +102,8 @@ PetscErrorCode EPSReset_Elemental(EPS eps)
   EPS_Elemental  *ctx = (EPS_Elemental*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(MatDestroy(&ctx->Ae));
-  CHKERRQ(MatDestroy(&ctx->Be));
+  PetscCall(MatDestroy(&ctx->Ae));
+  PetscCall(MatDestroy(&ctx->Be));
   PetscFunctionReturn(0);
 }
 
@@ -112,7 +112,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Elemental(EPS eps)
   EPS_Elemental  *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   eps->categ = EPS_CATEGORY_OTHER;

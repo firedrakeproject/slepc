@@ -25,150 +25,150 @@ int main(int argc,char **argv)
   PetscViewer       view;
   PetscBool         verbose,matcuda;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-matcuda",&matcuda));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BV with %" PetscInt_FMT " columns of dimension %" PetscInt_FMT ".\n",k,n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-matcuda",&matcuda));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BV with %" PetscInt_FMT " columns of dimension %" PetscInt_FMT ".\n",k,n));
 
   /* Create template vector */
-  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
-  CHKERRQ(VecSetSizes(t,PETSC_DECIDE,n));
-  CHKERRQ(VecSetFromOptions(t));
-  CHKERRQ(VecGetLocalSize(t,&nloc));
+  PetscCall(VecCreate(PETSC_COMM_WORLD,&t));
+  PetscCall(VecSetSizes(t,PETSC_DECIDE,n));
+  PetscCall(VecSetFromOptions(t));
+  PetscCall(VecGetLocalSize(t,&nloc));
 
   /* Create BV object X */
-  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&X));
-  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
-  CHKERRQ(BVSetSizesFromVec(X,t,k));
-  CHKERRQ(BVSetFromOptions(X));
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&X));
+  PetscCall(PetscObjectSetName((PetscObject)X,"X"));
+  PetscCall(BVSetSizesFromVec(X,t,k));
+  PetscCall(BVSetFromOptions(X));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_INFO_DETAIL));
-  CHKERRQ(BVView(X,view));
-  CHKERRQ(PetscViewerPopFormat(view));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
+  PetscCall(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_INFO_DETAIL));
+  PetscCall(BVView(X,view));
+  PetscCall(PetscViewerPopFormat(view));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
-    CHKERRQ(BVGetColumn(X,j,&v));
-    CHKERRQ(VecSet(v,0.0));
+    PetscCall(BVGetColumn(X,j,&v));
+    PetscCall(VecSet(v,0.0));
     for (i=0;i<4;i++) {
-      if (i+j<n) CHKERRQ(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
+      if (i+j<n) PetscCall(VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES));
     }
-    CHKERRQ(VecAssemblyBegin(v));
-    CHKERRQ(VecAssemblyEnd(v));
-    CHKERRQ(BVRestoreColumn(X,j,&v));
+    PetscCall(VecAssemblyBegin(v));
+    PetscCall(VecAssemblyEnd(v));
+    PetscCall(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) CHKERRQ(BVView(X,view));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Create BV object Y */
-  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&Y));
-  CHKERRQ(PetscObjectSetName((PetscObject)Y,"Y"));
-  CHKERRQ(BVSetSizesFromVec(Y,t,l));
-  CHKERRQ(BVSetFromOptions(Y));
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&Y));
+  PetscCall(PetscObjectSetName((PetscObject)Y,"Y"));
+  PetscCall(BVSetSizesFromVec(Y,t,l));
+  PetscCall(BVSetFromOptions(Y));
 
   /* Fill Y entries */
   for (j=0;j<l;j++) {
-    CHKERRQ(BVGetColumn(Y,j,&v));
-    CHKERRQ(VecSet(v,(PetscScalar)(j+1)/4.0));
-    CHKERRQ(BVRestoreColumn(Y,j,&v));
+    PetscCall(BVGetColumn(Y,j,&v));
+    PetscCall(VecSet(v,(PetscScalar)(j+1)/4.0));
+    PetscCall(BVRestoreColumn(Y,j,&v));
   }
-  if (verbose) CHKERRQ(BVView(Y,view));
+  if (verbose) PetscCall(BVView(Y,view));
 
   /* Create Mat */
   if (matcuda) {
 #if defined(PETSC_HAVE_CUDA)
-    CHKERRQ(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,k,l,NULL,&Q));
+    PetscCall(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,k,l,NULL,&Q));
 #endif
-  } else CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q));
-  CHKERRQ(PetscObjectSetName((PetscObject)Q,"Q"));
-  CHKERRQ(MatDenseGetArray(Q,&q));
+  } else PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q));
+  PetscCall(PetscObjectSetName((PetscObject)Q,"Q"));
+  PetscCall(MatDenseGetArray(Q,&q));
   for (i=0;i<k;i++)
     for (j=0;j<l;j++)
       q[i+j*k] = (i<j)? 2.0: -0.5;
-  CHKERRQ(MatDenseRestoreArray(Q,&q));
-  if (verbose) CHKERRQ(MatView(Q,NULL));
+  PetscCall(MatDenseRestoreArray(Q,&q));
+  if (verbose) PetscCall(MatView(Q,NULL));
 
   /* Test BVMult */
-  CHKERRQ(BVMult(Y,2.0,1.0,X,Q));
+  PetscCall(BVMult(Y,2.0,1.0,X,Q));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVMult - - - - - - - - -\n"));
-    CHKERRQ(BVView(Y,view));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After BVMult - - - - - - - - -\n"));
+    PetscCall(BVView(Y,view));
   }
 
   /* Test BVMultVec */
-  CHKERRQ(BVGetColumn(Y,0,&v));
-  CHKERRQ(PetscMalloc1(k,&z));
+  PetscCall(BVGetColumn(Y,0,&v));
+  PetscCall(PetscMalloc1(k,&z));
   z[0] = 2.0;
   for (i=1;i<k;i++) z[i] = -0.5*z[i-1];
-  CHKERRQ(BVMultVec(X,-1.0,1.0,v,z));
-  CHKERRQ(PetscFree(z));
-  CHKERRQ(BVRestoreColumn(Y,0,&v));
+  PetscCall(BVMultVec(X,-1.0,1.0,v,z));
+  PetscCall(PetscFree(z));
+  PetscCall(BVRestoreColumn(Y,0,&v));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVMultVec - - - - - - -\n"));
-    CHKERRQ(BVView(Y,view));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After BVMultVec - - - - - - -\n"));
+    PetscCall(BVView(Y,view));
   }
 
   /* Test BVDot */
   if (matcuda) {
 #if defined(PETSC_HAVE_CUDA)
-    CHKERRQ(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,l,k,NULL,&M));
+    PetscCall(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,l,k,NULL,&M));
 #endif
-  } else CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,l,k,NULL,&M));
-  CHKERRQ(PetscObjectSetName((PetscObject)M,"M"));
-  CHKERRQ(BVDot(X,Y,M));
+  } else PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,l,k,NULL,&M));
+  PetscCall(PetscObjectSetName((PetscObject)M,"M"));
+  PetscCall(BVDot(X,Y,M));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVDot - - - - - - - - -\n"));
-    CHKERRQ(MatView(M,NULL));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After BVDot - - - - - - - - -\n"));
+    PetscCall(MatView(M,NULL));
   }
 
   /* Test BVDotVec */
-  CHKERRQ(BVGetColumn(Y,0,&v));
-  CHKERRQ(PetscMalloc1(k,&z));
-  CHKERRQ(BVDotVec(X,v,z));
-  CHKERRQ(BVRestoreColumn(Y,0,&v));
+  PetscCall(BVGetColumn(Y,0,&v));
+  PetscCall(PetscMalloc1(k,&z));
+  PetscCall(BVDotVec(X,v,z));
+  PetscCall(BVRestoreColumn(Y,0,&v));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVDotVec - - - - - - -\n"));
-    CHKERRQ(VecCreateSeqWithArray(PETSC_COMM_SELF,1,k,z,&v));
-    CHKERRQ(PetscObjectSetName((PetscObject)v,"z"));
-    CHKERRQ(VecView(v,view));
-    CHKERRQ(VecDestroy(&v));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After BVDotVec - - - - - - -\n"));
+    PetscCall(VecCreateSeqWithArray(PETSC_COMM_SELF,1,k,z,&v));
+    PetscCall(PetscObjectSetName((PetscObject)v,"z"));
+    PetscCall(VecView(v,view));
+    PetscCall(VecDestroy(&v));
   }
-  CHKERRQ(PetscFree(z));
+  PetscCall(PetscFree(z));
 
   /* Test BVMultInPlace and BVScale */
-  CHKERRQ(BVMultInPlace(X,Q,1,l));
-  CHKERRQ(BVScale(X,2.0));
+  PetscCall(BVMultInPlace(X,Q,1,l));
+  PetscCall(BVScale(X,2.0));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n"));
-    CHKERRQ(BVView(X,view));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n"));
+    PetscCall(BVView(X,view));
   }
 
   /* Test BVNorm */
-  CHKERRQ(BVNormColumn(X,0,NORM_2,&nrm));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"2-Norm of X[0] = %g\n",(double)nrm));
-  CHKERRQ(BVNorm(X,NORM_FROBENIUS,&nrm));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm of X = %g\n",(double)nrm));
+  PetscCall(BVNormColumn(X,0,NORM_2,&nrm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"2-Norm of X[0] = %g\n",(double)nrm));
+  PetscCall(BVNorm(X,NORM_FROBENIUS,&nrm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm of X = %g\n",(double)nrm));
 
   /* Test BVGetArrayRead */
-  CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
+  PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
   if (!rank) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"First row of X =\n"));
-    CHKERRQ(BVGetArrayRead(X,&pX));
-    for (i=0;i<k;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%g ",(double)PetscRealPart(pX[i*nloc])));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
-    CHKERRQ(BVRestoreArrayRead(X,&pX));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"First row of X =\n"));
+    PetscCall(BVGetArrayRead(X,&pX));
+    for (i=0;i<k;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%g ",(double)PetscRealPart(pX[i*nloc])));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+    PetscCall(BVRestoreArrayRead(X,&pX));
   }
 
-  CHKERRQ(BVDestroy(&X));
-  CHKERRQ(BVDestroy(&Y));
-  CHKERRQ(MatDestroy(&Q));
-  CHKERRQ(MatDestroy(&M));
-  CHKERRQ(VecDestroy(&t));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(BVDestroy(&X));
+  PetscCall(BVDestroy(&Y));
+  PetscCall(MatDestroy(&Q));
+  PetscCall(MatDestroy(&M));
+  PetscCall(VecDestroy(&t));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

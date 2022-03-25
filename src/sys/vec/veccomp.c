@@ -86,9 +86,9 @@ SLEPC_EXTERN void MPIAPI SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt
 static PetscErrorCode VecCompNormEnd(void)
 {
   PetscFunctionBegin;
-  CHKERRMPI(MPI_Type_free(&MPIU_NORM2));
-  CHKERRMPI(MPI_Type_free(&MPIU_NORM1_AND_2));
-  CHKERRMPI(MPI_Op_free(&MPIU_NORM2_SUM));
+  PetscCallMPI(MPI_Type_free(&MPIU_NORM2));
+  PetscCallMPI(MPI_Type_free(&MPIU_NORM1_AND_2));
+  PetscCallMPI(MPI_Op_free(&MPIU_NORM2_SUM));
   VecCompInitialized = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
@@ -96,12 +96,12 @@ static PetscErrorCode VecCompNormEnd(void)
 static PetscErrorCode VecCompNormInit(void)
 {
   PetscFunctionBegin;
-  CHKERRMPI(MPI_Type_contiguous(2,MPIU_REAL,&MPIU_NORM2));
-  CHKERRMPI(MPI_Type_commit(&MPIU_NORM2));
-  CHKERRMPI(MPI_Type_contiguous(3,MPIU_REAL,&MPIU_NORM1_AND_2));
-  CHKERRMPI(MPI_Type_commit(&MPIU_NORM1_AND_2));
-  CHKERRMPI(MPI_Op_create(SlepcSumNorm2_Local,PETSC_TRUE,&MPIU_NORM2_SUM));
-  CHKERRQ(PetscRegisterFinalize(VecCompNormEnd));
+  PetscCallMPI(MPI_Type_contiguous(2,MPIU_REAL,&MPIU_NORM2));
+  PetscCallMPI(MPI_Type_commit(&MPIU_NORM2));
+  PetscCallMPI(MPI_Type_contiguous(3,MPIU_REAL,&MPIU_NORM1_AND_2));
+  PetscCallMPI(MPI_Type_commit(&MPIU_NORM1_AND_2));
+  PetscCallMPI(MPI_Op_create(SlepcSumNorm2_Local,PETSC_TRUE,&MPIU_NORM2_SUM));
+  PetscCall(PetscRegisterFinalize(VecCompNormEnd));
   PetscFunctionReturn(0);
 }
 
@@ -114,12 +114,12 @@ PetscErrorCode VecDestroy_Comp(Vec v)
 #if defined(PETSC_USE_LOG)
   PetscLogObjectState((PetscObject)v,"Length=%" PetscInt_FMT,v->map->n);
 #endif
-  for (i=0;i<vs->nx;i++) CHKERRQ(VecDestroy(&vs->x[i]));
-  if (--vs->n->friends <= 0) CHKERRQ(PetscFree(vs->n));
-  CHKERRQ(PetscFree(vs->x));
-  CHKERRQ(PetscFree(vs));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)v,"VecCompSetSubVecs_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)v,"VecCompGetSubVecs_C",NULL));
+  for (i=0;i<vs->nx;i++) PetscCall(VecDestroy(&vs->x[i]));
+  if (--vs->n->friends <= 0) PetscCall(PetscFree(vs->n));
+  PetscCall(PetscFree(vs->x));
+  PetscCall(PetscFree(vs));
+  PetscCall(PetscObjectComposeFunction((PetscObject)v,"VecCompSetSubVecs_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)v,"VecCompGetSubVecs_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -205,8 +205,8 @@ PetscErrorCode VecDuplicateVecs_Comp(Vec w,PetscInt m,Vec *V[])
   PetscValidHeaderSpecific(w,VEC_CLASSID,1);
   PetscValidPointer(V,3);
   PetscCheck(m>0,PetscObjectComm((PetscObject)w),PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
-  CHKERRQ(PetscMalloc1(m,V));
-  for (i=0;i<m;i++) CHKERRQ(VecDuplicate(w,*V+i));
+  PetscCall(PetscMalloc1(m,V));
+  for (i=0;i<m;i++) PetscCall(VecDuplicate(w,*V+i));
   PetscFunctionReturn(0);
 }
 
@@ -217,8 +217,8 @@ PetscErrorCode VecDestroyVecs_Comp(PetscInt m,Vec v[])
   PetscFunctionBegin;
   PetscValidPointer(v,2);
   PetscCheck(m>0,PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %" PetscInt_FMT,m);
-  for (i=0;i<m;i++) CHKERRQ(VecDestroy(&v[i]));
-  CHKERRQ(PetscFree(v));
+  for (i=0;i<m;i++) PetscCall(VecDestroy(&v[i]));
+  PetscCall(PetscFree(v));
   PetscFunctionReturn(0);
 }
 
@@ -230,21 +230,21 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   PetscFunctionBegin;
   if (!VecCompInitialized) {
     VecCompInitialized = PETSC_TRUE;
-    CHKERRQ(VecRegister(VECCOMP,VecCreate_Comp));
-    CHKERRQ(VecCompNormInit());
+    PetscCall(VecRegister(VECCOMP,VecCreate_Comp));
+    PetscCall(VecCompNormInit());
   }
 
   /* Allocate a new Vec_Comp */
-  if (v->data) CHKERRQ(PetscFree(v->data));
-  CHKERRQ(PetscNewLog(v,&s));
-  CHKERRQ(PetscMemcpy(v->ops,&DvOps,sizeof(DvOps)));
+  if (v->data) PetscCall(PetscFree(v->data));
+  PetscCall(PetscNewLog(v,&s));
+  PetscCall(PetscMemcpy(v->ops,&DvOps,sizeof(DvOps)));
   v->data        = (void*)s;
   v->petscnative = PETSC_FALSE;
 
   /* Allocate the array of Vec, if it is needed to be done */
   if (!x_to_me) {
-    if (nx) CHKERRQ(PetscMalloc1(nx,&s->x));
-    if (x) CHKERRQ(PetscArraycpy(s->x,x,nx));
+    if (nx) PetscCall(PetscMalloc1(nx,&s->x));
+    if (x) PetscCall(PetscArraycpy(s->x,x,nx));
   } else s->x = x;
 
   s->nx = nx;
@@ -253,12 +253,12 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
     /* Allocate the shared structure, if it is not given */
     if (!n) {
       for (i=0;i<nx;i++) {
-        CHKERRQ(VecGetSize(x[i],&k));
+        PetscCall(VecGetSize(x[i],&k));
         N+= k;
-        CHKERRQ(VecGetLocalSize(x[i],&k));
+        PetscCall(VecGetLocalSize(x[i],&k));
         lN+= k;
       }
-      CHKERRQ(PetscNewLog(v,&n));
+      PetscCall(PetscNewLog(v,&n));
       s->n = n;
       n->n = nx;
       n->N = N;
@@ -270,19 +270,19 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
     }
 
     /* Set the virtual sizes as the real sizes of the vector */
-    CHKERRQ(VecSetSizes(v,s->n->lN,s->n->N));
+    PetscCall(VecSetSizes(v,s->n->lN,s->n->N));
   }
 
-  CHKERRQ(PetscObjectChangeTypeName((PetscObject)v,VECCOMP));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)v,"VecCompSetSubVecs_C",VecCompSetSubVecs_Comp));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)v,"VecCompGetSubVecs_C",VecCompGetSubVecs_Comp));
+  PetscCall(PetscObjectChangeTypeName((PetscObject)v,VECCOMP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)v,"VecCompSetSubVecs_C",VecCompSetSubVecs_Comp));
+  PetscCall(PetscObjectComposeFunction((PetscObject)v,"VecCompGetSubVecs_C",VecCompGetSubVecs_Comp));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
 {
   PetscFunctionBegin;
-  CHKERRQ(VecCreate_Comp_Private(V,NULL,0,PETSC_FALSE,NULL));
+  PetscCall(VecCreate_Comp_Private(V,NULL,0,PETSC_FALSE,NULL));
   PetscFunctionReturn(0);
 }
 
@@ -316,15 +316,15 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
   PetscInt       i;
 
   PetscFunctionBegin;
-  CHKERRQ(VecCreate(comm,V));
-  CHKERRQ(PetscMalloc1(n,&x));
-  CHKERRQ(PetscLogObjectMemory((PetscObject)*V,n*sizeof(Vec)));
+  PetscCall(VecCreate(comm,V));
+  PetscCall(PetscMalloc1(n,&x));
+  PetscCall(PetscLogObjectMemory((PetscObject)*V,n*sizeof(Vec)));
   for (i=0;i<n;i++) {
-    CHKERRQ(VecCreate(comm,&x[i]));
-    CHKERRQ(VecSetSizes(x[i],PETSC_DECIDE,Nx[i]));
-    CHKERRQ(VecSetType(x[i],t));
+    PetscCall(VecCreate(comm,&x[i]));
+    PetscCall(VecSetSizes(x[i],PETSC_DECIDE,Nx[i]));
+    PetscCall(VecSetType(x[i],t));
   }
-  CHKERRQ(VecCreate_Comp_Private(*V,x,n,PETSC_TRUE,Vparent?((Vec_Comp*)Vparent->data)->n:NULL));
+  PetscCall(VecCreate_Comp_Private(*V,x,n,PETSC_TRUE,Vparent?((Vec_Comp*)Vparent->data)->n:NULL));
   PetscFunctionReturn(0);
 }
 
@@ -354,9 +354,9 @@ PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
   PetscValidPointer(x,1);
   PetscValidHeaderSpecific(*x,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(*x,n,2);
-  CHKERRQ(VecCreate(PetscObjectComm((PetscObject)x[0]),V));
-  for (i=0;i<n;i++) CHKERRQ(PetscObjectReference((PetscObject)x[i]));
-  CHKERRQ(VecCreate_Comp_Private(*V,x,n,PETSC_FALSE,Vparent?((Vec_Comp*)Vparent->data)->n:NULL));
+  PetscCall(VecCreate(PetscObjectComm((PetscObject)x[0]),V));
+  for (i=0;i<n;i++) PetscCall(PetscObjectReference((PetscObject)x[i]));
+  PetscCall(VecCreate_Comp_Private(*V,x,n,PETSC_FALSE,Vparent?((Vec_Comp*)Vparent->data)->n:NULL));
   PetscFunctionReturn(0);
 }
 
@@ -368,14 +368,14 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
 
   PetscFunctionBegin;
   SlepcValidVecComp(win,1);
-  CHKERRQ(VecCreate(PetscObjectComm((PetscObject)win),V));
-  CHKERRQ(PetscMalloc1(s->nx,&x));
-  CHKERRQ(PetscLogObjectMemory((PetscObject)*V,s->nx*sizeof(Vec)));
+  PetscCall(VecCreate(PetscObjectComm((PetscObject)win),V));
+  PetscCall(PetscMalloc1(s->nx,&x));
+  PetscCall(PetscLogObjectMemory((PetscObject)*V,s->nx*sizeof(Vec)));
   for (i=0;i<s->nx;i++) {
-    if (s->x[i]) CHKERRQ(VecDuplicate(s->x[i],&x[i]));
+    if (s->x[i]) PetscCall(VecDuplicate(s->x[i],&x[i]));
     else x[i] = NULL;
   }
-  CHKERRQ(VecCreate_Comp_Private(*V,x,s->nx,PETSC_TRUE,s->n));
+  PetscCall(VecCreate_Comp_Private(*V,x,s->nx,PETSC_TRUE,s->n));
   PetscFunctionReturn(0);
 }
 
@@ -410,7 +410,7 @@ PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(win,VEC_CLASSID,1);
-  CHKERRQ(PetscUseMethod(win,"VecCompGetSubVecs_C",(Vec,PetscInt*,const Vec**),(win,n,x)));
+  PetscCall(PetscUseMethod(win,"VecCompGetSubVecs_C",(Vec,PetscInt*,const Vec**),(win,n,x)));
   PetscFunctionReturn(0);
 }
 
@@ -424,27 +424,27 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
   PetscCheck(s,PetscObjectComm((PetscObject)win),PETSC_ERR_ORDER,"Must call VecSetSizes first");
   if (!s->nx) {
     /* vector has been created via VecCreate+VecSetType+VecSetSizes, so allocate data structures */
-    CHKERRQ(PetscMalloc1(n,&s->x));
-    CHKERRQ(PetscLogObjectMemory((PetscObject)win,n*sizeof(Vec)));
-    CHKERRQ(VecGetSize(win,&N));
+    PetscCall(PetscMalloc1(n,&s->x));
+    PetscCall(PetscLogObjectMemory((PetscObject)win,n*sizeof(Vec)));
+    PetscCall(VecGetSize(win,&N));
     PetscCheck(N%n==0,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Global dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,N,n);
-    CHKERRQ(VecGetLocalSize(win,&nlocal));
+    PetscCall(VecGetLocalSize(win,&nlocal));
     PetscCheck(nlocal%n==0,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Local dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,nlocal,n);
     s->nx = n;
     for (i=0;i<n;i++) {
-      CHKERRQ(VecCreate(PetscObjectComm((PetscObject)win),&s->x[i]));
-      CHKERRQ(VecSetSizes(s->x[i],nlocal/n,N/n));
-      CHKERRQ(VecSetFromOptions(s->x[i]));
+      PetscCall(VecCreate(PetscObjectComm((PetscObject)win),&s->x[i]));
+      PetscCall(VecSetSizes(s->x[i],nlocal/n,N/n));
+      PetscCall(VecSetFromOptions(s->x[i]));
     }
     if (!s->n) {
-      CHKERRQ(PetscNewLog(win,&nn));
+      PetscCall(PetscNewLog(win,&nn));
       s->n = nn;
       nn->N = N;
       nn->lN = nlocal;
       nn->friends = 1;
     }
   } else PetscCheck(n<=s->nx,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Number of child vectors cannot be larger than %" PetscInt_FMT,s->nx);
-  if (x) CHKERRQ(PetscArraycpy(s->x,x,n));
+  if (x) PetscCall(PetscArraycpy(s->x,x,n));
   s->n->n = n;
   PetscFunctionReturn(0);
 }
@@ -473,7 +473,7 @@ PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec *x)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(win,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(win,n,2);
-  CHKERRQ(PetscTryMethod(win,"VecCompSetSubVecs_C",(Vec,PetscInt,Vec*),(win,n,x)));
+  PetscCall(PetscTryMethod(win,"VecCompSetSubVecs_C",(Vec,PetscInt,Vec*),(win,n,x)));
   PetscFunctionReturn(0);
 }
 
@@ -485,7 +485,7 @@ PetscErrorCode VecAXPY_Comp(Vec v,PetscScalar alpha,Vec w)
   PetscFunctionBegin;
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,3);
-  for (i=0;i<vs->n->n;i++) CHKERRQ(VecAXPY(vs->x[i],alpha,ws->x[i]));
+  for (i=0;i<vs->n->n;i++) PetscCall(VecAXPY(vs->x[i],alpha,ws->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -497,7 +497,7 @@ PetscErrorCode VecAYPX_Comp(Vec v,PetscScalar alpha,Vec w)
   PetscFunctionBegin;
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,3);
-  for (i=0;i<vs->n->n;i++) CHKERRQ(VecAYPX(vs->x[i],alpha,ws->x[i]));
+  for (i=0;i<vs->n->n;i++) PetscCall(VecAYPX(vs->x[i],alpha,ws->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -509,7 +509,7 @@ PetscErrorCode VecAXPBY_Comp(Vec v,PetscScalar alpha,PetscScalar beta,Vec w)
   PetscFunctionBegin;
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,4);
-  for (i=0;i<vs->n->n;i++) CHKERRQ(VecAXPBY(vs->x[i],alpha,beta,ws->x[i]));
+  for (i=0;i<vs->n->n;i++) PetscCall(VecAXPBY(vs->x[i],alpha,beta,ws->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -523,14 +523,14 @@ PetscErrorCode VecMAXPY_Comp(Vec v,PetscInt n,const PetscScalar *alpha,Vec *w)
   SlepcValidVecComp(v,1);
   for (i=0;i<n;i++) SlepcValidVecComp(w[i],4);
 
-  CHKERRQ(PetscMalloc1(n,&wx));
+  PetscCall(PetscMalloc1(n,&wx));
 
   for (j=0;j<vs->n->n;j++) {
     for (i=0;i<n;i++) wx[i] = ((Vec_Comp*)w[i]->data)->x[j];
-    CHKERRQ(VecMAXPY(vs->x[j],n,alpha,wx));
+    PetscCall(VecMAXPY(vs->x[j],n,alpha,wx));
   }
 
-  CHKERRQ(PetscFree(wx));
+  PetscCall(PetscFree(wx));
   PetscFunctionReturn(0);
 }
 
@@ -543,7 +543,7 @@ PetscErrorCode VecWAXPY_Comp(Vec v,PetscScalar alpha,Vec w,Vec z)
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,3);
   SlepcValidVecComp(z,4);
-  for (i=0;i<vs->n->n;i++) CHKERRQ(VecWAXPY(vs->x[i],alpha,ws->x[i],zs->x[i]));
+  for (i=0;i<vs->n->n;i++) PetscCall(VecWAXPY(vs->x[i],alpha,ws->x[i],zs->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -556,7 +556,7 @@ PetscErrorCode VecAXPBYPCZ_Comp(Vec v,PetscScalar alpha,PetscScalar beta,PetscSc
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,5);
   SlepcValidVecComp(z,6);
-  for (i=0;i<vs->n->n;i++) CHKERRQ(VecAXPBYPCZ(vs->x[i],alpha,beta,gamma,ws->x[i],zs->x[i]));
+  for (i=0;i<vs->n->n;i++) PetscCall(VecAXPBYPCZ(vs->x[i],alpha,beta,gamma,ws->x[i],zs->x[i]));
   PetscFunctionReturn(0);
 }
 
@@ -597,15 +597,15 @@ PetscErrorCode VecMax_Comp(Vec v,PetscInt *idx,PetscReal *z)
   SlepcValidVecComp(v,1);
   if (!idx && !z) PetscFunctionReturn(0);
 
-  if (vs->n->n > 0) CHKERRQ(VecMax(vs->x[0],idx?&idxp:NULL,&zp));
+  if (vs->n->n > 0) PetscCall(VecMax(vs->x[0],idx?&idxp:NULL,&zp));
   else {
     zp = PETSC_MIN_REAL;
     if (idx) idxp = -1;
   }
   for (i=1;i<vs->n->n;i++) {
-    CHKERRQ(VecGetSize(vs->x[i-1],&s0));
+    PetscCall(VecGetSize(vs->x[i-1],&s0));
     s += s0;
-    CHKERRQ(VecMax(vs->x[i],idx?&idxp:NULL,&z0));
+    PetscCall(VecMax(vs->x[i],idx?&idxp:NULL,&z0));
     if (zp < z0) {
       if (idx) *idx = s+idxp;
       zp = z0;
@@ -626,15 +626,15 @@ PetscErrorCode VecMin_Comp(Vec v,PetscInt *idx,PetscReal *z)
   SlepcValidVecComp(v,1);
   if (!idx && !z) PetscFunctionReturn(0);
 
-  if (vs->n->n > 0) CHKERRQ(VecMin(vs->x[0],idx?&idxp:NULL,&zp));
+  if (vs->n->n > 0) PetscCall(VecMin(vs->x[0],idx?&idxp:NULL,&zp));
   else {
     zp = PETSC_MAX_REAL;
     if (idx) idxp = -1;
   }
   for (i=1;i<vs->n->n;i++) {
-    CHKERRQ(VecGetSize(vs->x[i-1],&s0));
+    PetscCall(VecGetSize(vs->x[i-1],&s0));
     s += s0;
-    CHKERRQ(VecMin(vs->x[i],idx?&idxp:NULL,&z0));
+    PetscCall(VecMin(vs->x[i],idx?&idxp:NULL,&z0));
     if (zp > z0) {
       if (idx) *idx = s+idxp;
       zp = z0;
@@ -654,9 +654,9 @@ PetscErrorCode VecMaxPointwiseDivide_Comp(Vec v,Vec w,PetscReal *m)
   SlepcValidVecComp(v,1);
   SlepcValidVecComp(w,2);
   if (!m || vs->n->n == 0) PetscFunctionReturn(0);
-  CHKERRQ(VecMaxPointwiseDivide(vs->x[0],ws->x[0],m));
+  PetscCall(VecMaxPointwiseDivide(vs->x[0],ws->x[0],m));
   for (i=1;i<vs->n->n;i++) {
-    CHKERRQ(VecMaxPointwiseDivide(vs->x[i],ws->x[i],&work));
+    PetscCall(VecMaxPointwiseDivide(vs->x[i],ws->x[i],&work));
     *m = PetscMax(*m,work);
   }
   PetscFunctionReturn(0);
@@ -675,7 +675,7 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v) \
   PetscFunctionBegin; \
   SlepcValidVecComp(v,1); \
   for (i=0;i<vs->n->n;i++) { \
-    CHKERRQ(__COMPOSE2__(Vec,NAME)(vs->x[i])); \
+    PetscCall(__COMPOSE2__(Vec,NAME)(vs->x[i])); \
   } \
   PetscFunctionReturn(0);\
 }
@@ -696,7 +696,7 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v,T0 __a) \
   PetscFunctionBegin; \
   SlepcValidVecComp(v,1); \
   for (i=0;i<vs->n->n;i++) { \
-    CHKERRQ(__COMPOSE2__(Vec,NAME)(vs->x[i],__a)); \
+    PetscCall(__COMPOSE2__(Vec,NAME)(vs->x[i],__a)); \
   } \
   PetscFunctionReturn(0);\
 }
@@ -718,7 +718,7 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v,Vec w) \
   SlepcValidVecComp(v,1); \
   SlepcValidVecComp(w,2); \
   for (i=0;i<vs->n->n;i++) { \
-    CHKERRQ(__COMPOSE2__(Vec,NAME)(vs->x[i],ws->x[i])); \
+    PetscCall(__COMPOSE2__(Vec,NAME)(vs->x[i],ws->x[i])); \
   } \
   PetscFunctionReturn(0);\
 }
@@ -739,7 +739,7 @@ PetscErrorCode __COMPOSE3__(Vec,NAME,_Comp)(Vec v,Vec w,Vec z) \
   SlepcValidVecComp(w,2); \
   SlepcValidVecComp(z,3); \
   for (i=0;i<vs->n->n;i++) { \
-    CHKERRQ(__COMPOSE2__(Vec,NAME)(vs->x[i],ws->x[i],zs->x[i])); \
+    PetscCall(__COMPOSE2__(Vec,NAME)(vs->x[i],ws->x[i],zs->x[i])); \
   } \
   PetscFunctionReturn(0);\
 }

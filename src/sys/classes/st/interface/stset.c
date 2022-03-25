@@ -52,20 +52,20 @@ PetscErrorCode STSetType(ST st,STType type)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)st,type,&match));
+  PetscCall(PetscObjectTypeCompare((PetscObject)st,type,&match));
   if (match) PetscFunctionReturn(0);
   STCheckNotSeized(st,1);
 
-  CHKERRQ(PetscFunctionListFind(STList,type,&r));
+  PetscCall(PetscFunctionListFind(STList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
 
-  if (st->ops->destroy) CHKERRQ((*st->ops->destroy)(st));
-  CHKERRQ(PetscMemzero(st->ops,sizeof(struct _STOps)));
+  if (st->ops->destroy) PetscCall((*st->ops->destroy)(st));
+  PetscCall(PetscMemzero(st->ops,sizeof(struct _STOps)));
 
   st->state   = ST_STATE_INITIAL;
   st->opready = PETSC_FALSE;
-  CHKERRQ(PetscObjectChangeTypeName((PetscObject)st,type));
-  CHKERRQ((*r)(st));
+  PetscCall(PetscObjectChangeTypeName((PetscObject)st,type));
+  PetscCall((*r)(st));
   PetscFunctionReturn(0);
 }
 
@@ -119,31 +119,31 @@ PetscErrorCode STSetFromOptions(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  CHKERRQ(STRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)st);CHKERRQ(ierr);
-    CHKERRQ(PetscOptionsFList("-st_type","Spectral transformation","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,sizeof(type),&flg));
-    if (flg) CHKERRQ(STSetType(st,type));
-    else if (!((PetscObject)st)->type_name) CHKERRQ(STSetType(st,STSHIFT));
+  PetscCall(STRegisterAll());
+  ierr = PetscObjectOptionsBegin((PetscObject)st);PetscCall(ierr);
+    PetscCall(PetscOptionsFList("-st_type","Spectral transformation","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,sizeof(type),&flg));
+    if (flg) PetscCall(STSetType(st,type));
+    else if (!((PetscObject)st)->type_name) PetscCall(STSetType(st,STSHIFT));
 
-    CHKERRQ(PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg));
-    if (flg) CHKERRQ(STSetShift(st,s));
+    PetscCall(PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg));
+    if (flg) PetscCall(STSetShift(st,s));
 
-    CHKERRQ(PetscOptionsEnum("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",STMatModes,(PetscEnum)st->matmode,(PetscEnum*)&mode,&flg));
-    if (flg) CHKERRQ(STSetMatMode(st,mode));
+    PetscCall(PetscOptionsEnum("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",STMatModes,(PetscEnum)st->matmode,(PetscEnum*)&mode,&flg));
+    if (flg) PetscCall(STSetMatMode(st,mode));
 
-    CHKERRQ(PetscOptionsEnum("-st_matstructure","Relation of the sparsity pattern of the matrices","STSetMatStructure",MatStructures,(PetscEnum)st->str,(PetscEnum*)&mstr,&flg));
-    if (flg) CHKERRQ(STSetMatStructure(st,mstr));
+    PetscCall(PetscOptionsEnum("-st_matstructure","Relation of the sparsity pattern of the matrices","STSetMatStructure",MatStructures,(PetscEnum)st->str,(PetscEnum*)&mstr,&flg));
+    if (flg) PetscCall(STSetMatStructure(st,mstr));
 
-    CHKERRQ(PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&bval,&flg));
-    if (flg) CHKERRQ(STSetTransform(st,bval));
+    PetscCall(PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&bval,&flg));
+    if (flg) PetscCall(STSetTransform(st,bval));
 
-    if (st->ops->setfromoptions) CHKERRQ((*st->ops->setfromoptions)(PetscOptionsObject,st));
-    CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st));
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+    if (st->ops->setfromoptions) PetscCall((*st->ops->setfromoptions)(PetscOptionsObject,st));
+    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st));
+  ierr = PetscOptionsEnd();PetscCall(ierr);
 
   if (st->usesksp) {
-    CHKERRQ(STSetDefaultKSP(st));
-    CHKERRQ(KSPSetFromOptions(st->ksp));
+    PetscCall(STSetDefaultKSP(st));
+    PetscCall(KSPSetFromOptions(st->ksp));
   }
   PetscFunctionReturn(0);
 }

@@ -22,75 +22,75 @@ int main(int argc,char **argv)
   PetscReal      norm;
   PetscScalar    alpha,*pz;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with selected columns of length %" PetscInt_FMT ".\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with selected columns of length %" PetscInt_FMT ".\n",n));
 
   /* Create template vector */
-  CHKERRQ(VecCreate(PETSC_COMM_WORLD,&t));
-  CHKERRQ(VecSetSizes(t,PETSC_DECIDE,n));
-  CHKERRQ(VecSetFromOptions(t));
+  PetscCall(VecCreate(PETSC_COMM_WORLD,&t));
+  PetscCall(VecSetSizes(t,PETSC_DECIDE,n));
+  PetscCall(VecSetFromOptions(t));
 
   /* Create BV object X */
-  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&X));
-  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
-  CHKERRQ(BVSetSizesFromVec(X,t,k));
-  CHKERRQ(BVSetOrthogonalization(X,BV_ORTHOG_MGS,BV_ORTHOG_REFINE_IFNEEDED,PETSC_DEFAULT,BV_ORTHOG_BLOCK_GS));
-  CHKERRQ(BVSetFromOptions(X));
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&X));
+  PetscCall(PetscObjectSetName((PetscObject)X,"X"));
+  PetscCall(BVSetSizesFromVec(X,t,k));
+  PetscCall(BVSetOrthogonalization(X,BV_ORTHOG_MGS,BV_ORTHOG_REFINE_IFNEEDED,PETSC_DEFAULT,BV_ORTHOG_BLOCK_GS));
+  PetscCall(BVSetFromOptions(X));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
+  if (verbose) PetscCall(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
-    CHKERRQ(BVGetColumn(X,j,&v));
-    CHKERRQ(VecSet(v,0.0));
+    PetscCall(BVGetColumn(X,j,&v));
+    PetscCall(VecSet(v,0.0));
     for (i=0;i<=n/2;i++) {
       if (i+j<n) {
         alpha = (3.0*i+j-2)/(2*(i+j+1));
-        CHKERRQ(VecSetValue(v,i+j,alpha,INSERT_VALUES));
+        PetscCall(VecSetValue(v,i+j,alpha,INSERT_VALUES));
       }
     }
-    CHKERRQ(VecAssemblyBegin(v));
-    CHKERRQ(VecAssemblyEnd(v));
-    CHKERRQ(BVRestoreColumn(X,j,&v));
+    PetscCall(VecAssemblyBegin(v));
+    PetscCall(VecAssemblyEnd(v));
+    PetscCall(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) CHKERRQ(BVView(X,view));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Orthonormalize first k-1 columns */
   for (j=0;j<k-1;j++) {
-    CHKERRQ(BVOrthogonalizeColumn(X,j,NULL,&norm,NULL));
+    PetscCall(BVOrthogonalizeColumn(X,j,NULL,&norm,NULL));
     alpha = 1.0/norm;
-    CHKERRQ(BVScaleColumn(X,j,alpha));
+    PetscCall(BVScaleColumn(X,j,alpha));
   }
-  if (verbose) CHKERRQ(BVView(X,view));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Select odd columns and orthogonalize last column against those only */
-  CHKERRQ(PetscMalloc1(k,&which));
+  PetscCall(PetscMalloc1(k,&which));
   for (i=0;i<k;i++) which[i] = (i%2)? PETSC_TRUE: PETSC_FALSE;
-  CHKERRQ(BVOrthogonalizeSomeColumn(X,k-1,which,NULL,NULL,NULL));
-  CHKERRQ(PetscFree(which));
-  if (verbose) CHKERRQ(BVView(X,view));
+  PetscCall(BVOrthogonalizeSomeColumn(X,k-1,which,NULL,NULL,NULL));
+  PetscCall(PetscFree(which));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Check orthogonality */
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Orthogonalization coefficients:\n"));
-  CHKERRQ(VecCreateSeq(PETSC_COMM_SELF,k-1,&z));
-  CHKERRQ(PetscObjectSetName((PetscObject)z,"z"));
-  CHKERRQ(VecGetArray(z,&pz));
-  CHKERRQ(BVDotColumn(X,k-1,pz));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Orthogonalization coefficients:\n"));
+  PetscCall(VecCreateSeq(PETSC_COMM_SELF,k-1,&z));
+  PetscCall(PetscObjectSetName((PetscObject)z,"z"));
+  PetscCall(VecGetArray(z,&pz));
+  PetscCall(BVDotColumn(X,k-1,pz));
   for (i=0;i<k-1;i++) {
     if (PetscAbsScalar(pz[i])<5.0*PETSC_MACHINE_EPSILON) pz[i]=0.0;
   }
-  CHKERRQ(VecRestoreArray(z,&pz));
-  CHKERRQ(VecView(z,view));
-  CHKERRQ(VecDestroy(&z));
+  PetscCall(VecRestoreArray(z,&pz));
+  PetscCall(VecView(z,view));
+  PetscCall(VecDestroy(&z));
 
-  CHKERRQ(BVDestroy(&X));
-  CHKERRQ(VecDestroy(&t));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(BVDestroy(&X));
+  PetscCall(VecDestroy(&t));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

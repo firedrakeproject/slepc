@@ -25,95 +25,95 @@ int main(int argc,char **argv)
   PetscBool      flag,modify=PETSC_FALSE,terse;
   PetscReal      inta,intb,rleft,rright;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
-  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-modify",&modify,&flag));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-modify",&modify,&flag));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Create the 2-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
-    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
-    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
-    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(A,II,II,4.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
-  CHKERRQ(EPSSetType(eps,EPSKRYLOVSCHUR));
-  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_ALL));
-  CHKERRQ(EPSSetInterval(eps,0.5,1.3));
-  CHKERRQ(EPSGetST(eps,&st));
-  CHKERRQ(STSetType(st,STFILTER));
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetType(eps,EPSKRYLOVSCHUR));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_ALL));
+  PetscCall(EPSSetInterval(eps,0.5,1.3));
+  PetscCall(EPSGetST(eps,&st));
+  PetscCall(STSetType(st,STFILTER));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Solve the problem and display the solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSSolve(eps));
+  PetscCall(EPSSolve(eps));
 
   /* print filter information */
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)st,STFILTER,&flag));
+  PetscCall(PetscObjectTypeCompare((PetscObject)st,STFILTER,&flag));
   if (flag) {
-    CHKERRQ(STFilterGetDegree(st,&degree));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Filter degree: %" PetscInt_FMT "\n",degree));
-    CHKERRQ(STFilterGetInterval(st,&inta,&intb));
-    CHKERRQ(STFilterGetRange(st,&rleft,&rright));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Requested interval: [%g,%g],  range: [%g,%g]\n\n",(double)inta,(double)intb,(double)rleft,(double)rright));
+    PetscCall(STFilterGetDegree(st,&degree));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Filter degree: %" PetscInt_FMT "\n",degree));
+    PetscCall(STFilterGetInterval(st,&inta,&intb));
+    PetscCall(STFilterGetRange(st,&rleft,&rright));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Requested interval: [%g,%g],  range: [%g,%g]\n\n",(double)inta,(double)intb,(double)rleft,(double)rright));
   }
 
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-  if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   else {
-    CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-    CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
-    CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Solve the problem again after changing the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (modify) {
-    CHKERRQ(MatSetValue(A,0,0,0.3,INSERT_VALUES));
-    CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-    CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-    CHKERRQ(EPSSetOperators(eps,A,NULL));
-    CHKERRQ(EPSSolve(eps));
-    CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
-    if (terse) CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+    PetscCall(MatSetValue(A,0,0,0.3,INSERT_VALUES));
+    PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+    PetscCall(EPSSetOperators(eps,A,NULL));
+    PetscCall(EPSSolve(eps));
+    PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+    if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
     else {
-      CHKERRQ(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
-      CHKERRQ(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
-      CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
-      CHKERRQ(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
+      PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+      PetscCall(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+      PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+      PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
     }
   }
 
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

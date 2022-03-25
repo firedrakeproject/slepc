@@ -27,11 +27,11 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   PetscFunctionBegin;
   EPSCheckHermitian(eps);
   EPSCheckStandard(eps);
-  CHKERRQ(PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan));
+  PetscCall(PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan));
   if (eps->ncv!=PETSC_DEFAULT) {
     PetscCheck(eps->ncv>=eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
   } else eps->ncv = tr->maxlan;
-  if (eps->mpd!=PETSC_DEFAULT) CHKERRQ(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
+  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000,eps->n);
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
@@ -40,13 +40,13 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_EXTRACTION);
 
   tr->restart = 0;
-  if (tr->maxlan+1-eps->ncv<=0) CHKERRQ(PetscBLASIntCast(tr->maxlan*(tr->maxlan+10),&tr->lwork));
-  else CHKERRQ(PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork));
-  if (tr->work) CHKERRQ(PetscFree(tr->work));
-  CHKERRQ(PetscMalloc1(tr->lwork,&tr->work));
-  CHKERRQ(PetscLogObjectMemory((PetscObject)eps,tr->lwork*sizeof(PetscReal)));
+  if (tr->maxlan+1-eps->ncv<=0) PetscCall(PetscBLASIntCast(tr->maxlan*(tr->maxlan+10),&tr->lwork));
+  else PetscCall(PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork));
+  if (tr->work) PetscCall(PetscFree(tr->work));
+  PetscCall(PetscMalloc1(tr->lwork,&tr->work));
+  PetscCall(PetscLogObjectMemory((PetscObject)eps,tr->lwork*sizeof(PetscReal)));
 
-  CHKERRQ(EPSAllocateSolution(eps,0));
+  PetscCall(EPSAllocateSolution(eps,0));
   PetscFunctionReturn(0);
 }
 
@@ -58,12 +58,12 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
 
   PetscFunctionBegin;
   for (i=0;i<*m;i++) {
-    CHKERRQ(VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx)));
-    CHKERRQ(VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy)));
-    CHKERRQ(STApply(eps->st,x,y));
-    CHKERRQ(BVOrthogonalizeVec(eps->V,y,NULL,NULL,NULL));
-    CHKERRQ(VecResetArray(x));
-    CHKERRQ(VecResetArray(y));
+    PetscCall(VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx)));
+    PetscCall(VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy)));
+    PetscCall(STApply(eps->st,x,y));
+    PetscCall(BVOrthogonalizeVec(eps->V,y,NULL,NULL,NULL));
+    PetscCall(VecResetArray(x));
+    PetscCall(VecResetArray(y));
   }
   PetscFunctionReturn(0);
 }
@@ -81,23 +81,23 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 #endif
 
   PetscFunctionBegin;
-  CHKERRQ(PetscBLASIntCast(eps->ncv,&ncv));
-  CHKERRQ(PetscBLASIntCast(eps->nloc,&n));
+  PetscCall(PetscBLASIntCast(eps->ncv,&ncv));
+  PetscCall(PetscBLASIntCast(eps->nloc,&n));
 
   PetscCheck(eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL || eps->which==EPS_SMALLEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Wrong value of eps->which");
   lohi = (eps->which==EPS_SMALLEST_REAL)? -1: 1;
 
   globaldata.eps = eps;
-  CHKERRQ(STGetMatrix(eps->st,0,&A));
-  CHKERRQ(MatCreateVecsEmpty(A,&globaldata.x,&globaldata.y));
+  PetscCall(STGetMatrix(eps->st,0,&A));
+  PetscCall(MatCreateVecsEmpty(A,&globaldata.x,&globaldata.y));
 
   ipar[0]  = 0;            /* stat: error flag */
   ipar[1]  = lohi;         /* smallest (lohi<0) or largest eigenvalues (lohi>0) */
-  CHKERRQ(PetscBLASIntCast(eps->nev,&ipar[2])); /* number of desired eigenpairs */
+  PetscCall(PetscBLASIntCast(eps->nev,&ipar[2])); /* number of desired eigenpairs */
   ipar[3]  = 0;            /* number of eigenpairs already converged */
   ipar[4]  = tr->maxlan;   /* maximum Lanczos basis size */
   ipar[5]  = tr->restart;  /* restarting scheme */
-  CHKERRQ(PetscBLASIntCast(eps->max_it,&ipar[6])); /* maximum number of MATVECs */
+  PetscCall(PetscBLASIntCast(eps->max_it,&ipar[6])); /* maximum number of MATVECs */
 #if !defined(PETSC_HAVE_MPIUNI)
   fcomm    = MPI_Comm_c2f(PetscObjectComm((PetscObject)eps));
   ipar[7]  = fcomm;
@@ -111,23 +111,23 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   tr->work[0] = eps->tol;  /* relative tolerance on residual norms */
 
   for (i=0;i<eps->ncv;i++) eps->eigr[i]=0.0;
-  CHKERRQ(EPSGetStartVector(eps,0,NULL));
-  CHKERRQ(BVSetActiveColumns(eps->V,0,0));  /* just for deflation space */
-  CHKERRQ(BVGetColumn(eps->V,0,&v0));
-  CHKERRQ(VecGetArray(v0,&pV));
+  PetscCall(EPSGetStartVector(eps,0,NULL));
+  PetscCall(BVSetActiveColumns(eps->V,0,0));  /* just for deflation space */
+  PetscCall(BVGetColumn(eps->V,0,&v0));
+  PetscCall(VecGetArray(v0,&pV));
 
   PetscStackCall("TRLan",TRLan_(MatMult_TRLAN,ipar,&n,&ncv,eps->eigr,pV,&n,tr->work,&tr->lwork));
 
-  CHKERRQ(VecRestoreArray(v0,&pV));
-  CHKERRQ(BVRestoreColumn(eps->V,0,&v0));
+  PetscCall(VecRestoreArray(v0,&pV));
+  PetscCall(BVRestoreColumn(eps->V,0,&v0));
 
   stat        = ipar[0];
   eps->nconv  = ipar[3];
   eps->its    = ipar[25];
   eps->reason = EPS_CONVERGED_TOL;
 
-  CHKERRQ(VecDestroy(&globaldata.x));
-  CHKERRQ(VecDestroy(&globaldata.y));
+  PetscCall(VecDestroy(&globaldata.x));
+  PetscCall(VecDestroy(&globaldata.y));
   PetscCheck(stat==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%" PetscBLASInt_FMT ")",stat);
   PetscFunctionReturn(0);
 }
@@ -137,14 +137,14 @@ PetscErrorCode EPSReset_TRLAN(EPS eps)
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(tr->work));
+  PetscCall(PetscFree(tr->work));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSDestroy_TRLAN(EPS eps)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(eps->data));
+  PetscCall(PetscFree(eps->data));
   PetscFunctionReturn(0);
 }
 
@@ -153,7 +153,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
   EPS_TRLAN      *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   eps->ops->solve          = EPSSolve_TRLAN;

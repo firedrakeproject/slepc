@@ -19,11 +19,11 @@ static inline PetscErrorCode LMESetUp_Lyapunov(LME lme)
   Vec            dc,dx;
 
   PetscFunctionBegin;
-  CHKERRQ(MatLRCGetMats(lme->C,NULL,&C1,&dc,&C2));
+  PetscCall(MatLRCGetMats(lme->C,NULL,&C1,&dc,&C2));
   PetscCheck(C1==C2,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov matrix equation requires symmetric right-hand side C");
   PetscCheck(!dc,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov solvers currently require positive-definite right-hand side C");
   if (lme->X) {
-    CHKERRQ(MatLRCGetMats(lme->X,NULL,&X1,&dx,&X2));
+    PetscCall(MatLRCGetMats(lme->X,NULL,&X1,&dx,&X2));
     PetscCheck(X1==X2,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov matrix equation requires symmetric solution X");
     PetscCheck(!dx,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov solvers currently assume a positive-definite solution X");
   }
@@ -59,20 +59,20 @@ PetscErrorCode LMESetUp(LME lme)
   lme->reason = LME_CONVERGED_ITERATING;
 
   if (lme->setupcalled) PetscFunctionReturn(0);
-  CHKERRQ(PetscLogEventBegin(LME_SetUp,lme,0,0,0));
+  PetscCall(PetscLogEventBegin(LME_SetUp,lme,0,0,0));
 
   /* Set default solver type (LMESetFromOptions was not called) */
-  if (!((PetscObject)lme)->type_name) CHKERRQ(LMESetType(lme,LMEKRYLOV));
+  if (!((PetscObject)lme)->type_name) PetscCall(LMESetType(lme,LMEKRYLOV));
 
   /* Check problem dimensions */
   PetscCheck(lme->A,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"LMESetCoefficients must be called first");
-  CHKERRQ(MatGetSize(lme->A,&N,NULL));
+  PetscCall(MatGetSize(lme->A,&N,NULL));
   if (lme->ncv > N) lme->ncv = N;
 
   /* setup options for the particular equation type */
   switch (lme->problem_type) {
     case LME_LYAPUNOV:
-      CHKERRQ(LMESetUp_Lyapunov(lme));
+      PetscCall(LMESetUp_Lyapunov(lme));
       break;
     case LME_SYLVESTER:
       LMECheckCoeff(lme,lme->B,"B","Sylvester");
@@ -94,12 +94,12 @@ PetscErrorCode LMESetUp(LME lme)
   PetscCheck(lme->problem_type==LME_LYAPUNOV,PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"There is no solver yet for this matrix equation type");
 
   /* call specific solver setup */
-  CHKERRQ((*lme->ops->setup)(lme));
+  PetscCall((*lme->ops->setup)(lme));
 
   /* set tolerance if not yet set */
   if (lme->tol==PETSC_DEFAULT) lme->tol = SLEPC_DEFAULT_TOL;
 
-  CHKERRQ(PetscLogEventEnd(LME_SetUp,lme,0,0,0));
+  PetscCall(PetscLogEventEnd(LME_SetUp,lme,0,0,0));
   lme->setupcalled = 1;
   PetscFunctionReturn(0);
 }
@@ -109,10 +109,10 @@ static inline PetscErrorCode LMESetCoefficients_Private(LME lme,Mat A,Mat *lmeA)
   PetscInt       m,n;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(A,&m,&n));
+  PetscCall(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"Matrix is non-square");
-  if (!lme->setupcalled) CHKERRQ(MatDestroy(lmeA));
-  CHKERRQ(PetscObjectReference((PetscObject)A));
+  if (!lme->setupcalled) PetscCall(MatDestroy(lmeA));
+  PetscCall(PetscObjectReference((PetscObject)A));
   *lmeA = A;
   PetscFunctionReturn(0);
 }
@@ -164,15 +164,15 @@ PetscErrorCode LMESetCoefficients(LME lme,Mat A,Mat B,Mat D,Mat E)
     PetscCheckSameComm(lme,1,E,5);
   }
 
-  if (lme->setupcalled) CHKERRQ(LMEReset(lme));
+  if (lme->setupcalled) PetscCall(LMEReset(lme));
 
-  CHKERRQ(LMESetCoefficients_Private(lme,A,&lme->A));
-  if (B) CHKERRQ(LMESetCoefficients_Private(lme,B,&lme->B));
-  else if (!lme->setupcalled) CHKERRQ(MatDestroy(&lme->B));
-  if (D) CHKERRQ(LMESetCoefficients_Private(lme,D,&lme->D));
-  else if (!lme->setupcalled) CHKERRQ(MatDestroy(&lme->D));
-  if (E) CHKERRQ(LMESetCoefficients_Private(lme,E,&lme->E));
-  else if (!lme->setupcalled) CHKERRQ(MatDestroy(&lme->E));
+  PetscCall(LMESetCoefficients_Private(lme,A,&lme->A));
+  if (B) PetscCall(LMESetCoefficients_Private(lme,B,&lme->B));
+  else if (!lme->setupcalled) PetscCall(MatDestroy(&lme->B));
+  if (D) PetscCall(LMESetCoefficients_Private(lme,D,&lme->D));
+  else if (!lme->setupcalled) PetscCall(MatDestroy(&lme->D));
+  if (E) PetscCall(LMESetCoefficients_Private(lme,E,&lme->E));
+  else if (!lme->setupcalled) PetscCall(MatDestroy(&lme->E));
 
   lme->setupcalled = 0;
   PetscFunctionReturn(0);
@@ -241,11 +241,11 @@ PetscErrorCode LMESetRHS(LME lme,Mat C)
   PetscCheckSameComm(lme,1,C,2);
   PetscCheckTypeName(C,MATLRC);
 
-  CHKERRQ(MatLRCGetMats(C,&A,NULL,NULL,NULL));
+  PetscCall(MatLRCGetMats(C,&A,NULL,NULL,NULL));
   PetscCheck(!A,PetscObjectComm((PetscObject)C),PETSC_ERR_SUP,"The MatLRC must not have a sparse matrix term");
 
-  CHKERRQ(PetscObjectReference((PetscObject)C));
-  CHKERRQ(MatDestroy(&lme->C));
+  PetscCall(PetscObjectReference((PetscObject)C));
+  PetscCall(MatDestroy(&lme->C));
   lme->C = C;
   PetscFunctionReturn(0);
 }
@@ -312,11 +312,11 @@ PetscErrorCode LMESetSolution(LME lme,Mat X)
     PetscValidHeaderSpecific(X,MAT_CLASSID,2);
     PetscCheckSameComm(lme,1,X,2);
     PetscCheckTypeName(X,MATLRC);
-    CHKERRQ(MatLRCGetMats(X,&A,NULL,NULL,NULL));
+    PetscCall(MatLRCGetMats(X,&A,NULL,NULL,NULL));
     PetscCheck(!A,PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"The MatLRC must not have a sparse matrix term");
-    CHKERRQ(PetscObjectReference((PetscObject)X));
+    PetscCall(PetscObjectReference((PetscObject)X));
   }
-  CHKERRQ(MatDestroy(&lme->X));
+  PetscCall(MatDestroy(&lme->X));
   lme->X = X;
   PetscFunctionReturn(0);
 }
@@ -373,15 +373,15 @@ PetscErrorCode LMEAllocateSolution(LME lme,PetscInt extra)
   requested = lme->ncv + extra;
 
   /* oldsize is zero if this is the first time setup is called */
-  CHKERRQ(BVGetSizes(lme->V,NULL,NULL,&oldsize));
+  PetscCall(BVGetSizes(lme->V,NULL,NULL,&oldsize));
 
   /* allocate basis vectors */
-  if (!lme->V) CHKERRQ(LMEGetBV(lme,&lme->V));
+  if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
   if (!oldsize) {
-    if (!((PetscObject)(lme->V))->type_name) CHKERRQ(BVSetType(lme->V,BVSVEC));
-    CHKERRQ(MatCreateVecsEmpty(lme->A,&t,NULL));
-    CHKERRQ(BVSetSizesFromVec(lme->V,t,requested));
-    CHKERRQ(VecDestroy(&t));
-  } else CHKERRQ(BVResize(lme->V,requested,PETSC_FALSE));
+    if (!((PetscObject)(lme->V))->type_name) PetscCall(BVSetType(lme->V,BVSVEC));
+    PetscCall(MatCreateVecsEmpty(lme->A,&t,NULL));
+    PetscCall(BVSetSizesFromVec(lme->V,t,requested));
+    PetscCall(VecDestroy(&t));
+  } else PetscCall(BVResize(lme->V,requested,PETSC_FALSE));
   PetscFunctionReturn(0);
 }

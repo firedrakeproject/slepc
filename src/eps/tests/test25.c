@@ -26,36 +26,36 @@ int main(int argc,char **argv)
   char              filename[PETSC_MAX_PATH_LEN];
   PetscViewer       viewer;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGNHEP problem with contour integral\n\n"));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGNHEP problem with contour integral\n\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
   PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name for matrix A with the -f1 option");
 
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n"));
 #else
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n"));
 #endif
-  CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatLoad(A,viewer));
-  CHKERRQ(PetscViewerDestroy(&viewer));
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatLoad(A,viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
 
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
   if (flg) {
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-    CHKERRQ(MatSetFromOptions(B));
-    CHKERRQ(MatLoad(B,viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+    PetscCall(MatSetFromOptions(B));
+    PetscCall(MatLoad(B,viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n"));
     B = NULL;
   }
 
@@ -63,39 +63,39 @@ int main(int argc,char **argv)
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,A,B));
-  CHKERRQ(EPSSetProblemType(eps,EPS_GNHEP));
-  CHKERRQ(EPSSetTolerances(eps,1e-9,PETSC_DEFAULT));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,B));
+  PetscCall(EPSSetProblemType(eps,EPS_GNHEP));
+  PetscCall(EPSSetTolerances(eps,1e-9,PETSC_DEFAULT));
 
   /* set CISS solver with various options */
-  CHKERRQ(EPSSetType(eps,EPSCISS));
-  CHKERRQ(EPSCISSSetExtraction(eps,EPS_CISS_EXTRACTION_HANKEL));
-  CHKERRQ(EPSCISSSetQuadRule(eps,EPS_CISS_QUADRULE_CHEBYSHEV));
-  CHKERRQ(EPSCISSSetUseST(eps,PETSC_TRUE));
-  CHKERRQ(EPSGetRG(eps,&rg));
-  CHKERRQ(RGSetType(rg,RGINTERVAL));
-  CHKERRQ(RGIntervalSetEndpoints(rg,-3000.0,0.0,0.0,0.0));
+  PetscCall(EPSSetType(eps,EPSCISS));
+  PetscCall(EPSCISSSetExtraction(eps,EPS_CISS_EXTRACTION_HANKEL));
+  PetscCall(EPSCISSSetQuadRule(eps,EPS_CISS_QUADRULE_CHEBYSHEV));
+  PetscCall(EPSCISSSetUseST(eps,PETSC_TRUE));
+  PetscCall(EPSGetRG(eps,&rg));
+  PetscCall(RGSetType(rg,RGINTERVAL));
+  PetscCall(RGIntervalSetEndpoints(rg,-3000.0,0.0,0.0,0.0));
 
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSSetFromOptions(eps));
 
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps,EPSCISS,&flg));
+  PetscCall(EPSSolve(eps));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps,EPSCISS,&flg));
   if (flg) {
-    CHKERRQ(EPSCISSGetExtraction(eps,&extr));
-    CHKERRQ(EPSCISSGetQuadRule(eps,&quad));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solved with CISS using %s extraction with %s quadrature rule\n\n",EPSCISSExtractions[extr],EPSCISSQuadRules[quad]));
+    PetscCall(EPSCISSGetExtraction(eps,&extr));
+    PetscCall(EPSCISSGetQuadRule(eps,&quad));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solved with CISS using %s extraction with %s quadrature rule\n\n",EPSCISSExtractions[extr],EPSCISSQuadRules[quad]));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSErrorView(eps,EPS_ERROR_BACKWARD,NULL));
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSErrorView(eps,EPS_ERROR_BACKWARD,NULL));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

@@ -25,145 +25,145 @@ int main(int argc,char **argv)
   PetscInt       n=100,Istart,Iend,i,*inertias,ns,nev,ncv,mpd;
   PetscReal      mu=1.0,tau=10.0,kappa=5.0,int0,int1,*shifts;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-showinertia",&showinertia,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on PEP, n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-showinertia",&showinertia,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on PEP, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* K is a tridiagonal */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&K));
-  CHKERRQ(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(K));
-  CHKERRQ(MatSetUp(K));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&K));
+  PetscCall(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(K));
+  PetscCall(MatSetUp(K));
 
-  CHKERRQ(MatGetOwnershipRange(K,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) CHKERRQ(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
-    CHKERRQ(MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES));
-    if (i<n-1) CHKERRQ(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
+    PetscCall(MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY));
 
   /* C is a tridiagonal */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&C));
-  CHKERRQ(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(C));
-  CHKERRQ(MatSetUp(C));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&C));
+  PetscCall(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(C));
+  PetscCall(MatSetUp(C));
 
-  CHKERRQ(MatGetOwnershipRange(C,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) CHKERRQ(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
-    CHKERRQ(MatSetValue(C,i,i,tau*3.0,INSERT_VALUES));
-    if (i<n-1) CHKERRQ(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
+    PetscCall(MatSetValue(C,i,i,tau*3.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
 
   /* M is a diagonal matrix */
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&M));
-  CHKERRQ(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(M));
-  CHKERRQ(MatSetUp(M));
-  CHKERRQ(MatGetOwnershipRange(M,&Istart,&Iend));
-  for (i=Istart;i<Iend;i++) CHKERRQ(MatSetValue(M,i,i,mu,INSERT_VALUES));
-  CHKERRQ(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&M));
+  PetscCall(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(M));
+  PetscCall(MatSetUp(M));
+  PetscCall(MatGetOwnershipRange(M,&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(M,i,i,mu,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PEPCreate(PETSC_COMM_WORLD,&pep));
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
   A[0] = K; A[1] = C; A[2] = M;
-  CHKERRQ(PEPSetOperators(pep,3,A));
-  CHKERRQ(PEPSetProblemType(pep,PEP_HYPERBOLIC));
-  CHKERRQ(PEPSetType(pep,PEPSTOAR));
+  PetscCall(PEPSetOperators(pep,3,A));
+  PetscCall(PEPSetProblemType(pep,PEP_HYPERBOLIC));
+  PetscCall(PEPSetType(pep,PEPSTOAR));
 
   /*
      Set interval and other settings for spectrum slicing
   */
   int0 = -11.3;
   int1 = -9.5;
-  CHKERRQ(PEPSetInterval(pep,int0,int1));
-  CHKERRQ(PEPSetWhichEigenpairs(pep,PEP_ALL));
-  CHKERRQ(PEPGetST(pep,&st));
-  CHKERRQ(STSetType(st,STSINVERT));
-  CHKERRQ(STGetKSP(st,&ksp));
-  CHKERRQ(KSPSetType(ksp,KSPPREONLY));
-  CHKERRQ(KSPGetPC(ksp,&pc));
-  CHKERRQ(PCSetType(pc,PCCHOLESKY));
+  PetscCall(PEPSetInterval(pep,int0,int1));
+  PetscCall(PEPSetWhichEigenpairs(pep,PEP_ALL));
+  PetscCall(PEPGetST(pep,&st));
+  PetscCall(STSetType(st,STSINVERT));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPSetType(ksp,KSPPREONLY));
+  PetscCall(KSPGetPC(ksp,&pc));
+  PetscCall(PCSetType(pc,PCCHOLESKY));
 
   /*
      Test interface functions of STOAR solver
   */
-  CHKERRQ(PEPSTOARGetDetectZeros(pep,&detect));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Detect zeros before changing = %d",(int)detect));
-  CHKERRQ(PEPSTOARSetDetectZeros(pep,PETSC_TRUE));
-  CHKERRQ(PEPSTOARGetDetectZeros(pep,&detect));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)detect));
+  PetscCall(PEPSTOARGetDetectZeros(pep,&detect));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Detect zeros before changing = %d",(int)detect));
+  PetscCall(PEPSTOARSetDetectZeros(pep,PETSC_TRUE));
+  PetscCall(PEPSTOARGetDetectZeros(pep,&detect));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)detect));
 
-  CHKERRQ(PEPSTOARGetLocking(pep,&lock));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Locking flag before changing = %d",(int)lock));
-  CHKERRQ(PEPSTOARSetLocking(pep,PETSC_TRUE));
-  CHKERRQ(PEPSTOARGetLocking(pep,&lock));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)lock));
+  PetscCall(PEPSTOARGetLocking(pep,&lock));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Locking flag before changing = %d",(int)lock));
+  PetscCall(PEPSTOARSetLocking(pep,PETSC_TRUE));
+  PetscCall(PEPSTOARGetLocking(pep,&lock));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)lock));
 
-  CHKERRQ(PEPSTOARGetCheckEigenvalueType(pep,&checket));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Check eigenvalue type flag before changing = %d",(int)checket));
-  CHKERRQ(PEPSTOARSetCheckEigenvalueType(pep,PETSC_FALSE));
-  CHKERRQ(PEPSTOARGetCheckEigenvalueType(pep,&checket));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)checket));
+  PetscCall(PEPSTOARGetCheckEigenvalueType(pep,&checket));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Check eigenvalue type flag before changing = %d",(int)checket));
+  PetscCall(PEPSTOARSetCheckEigenvalueType(pep,PETSC_FALSE));
+  PetscCall(PEPSTOARGetCheckEigenvalueType(pep,&checket));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)checket));
 
-  CHKERRQ(PEPSTOARGetDimensions(pep,&nev,&ncv,&mpd));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Sub-solve dimensions before changing = [%" PetscInt_FMT ",%" PetscInt_FMT ",%" PetscInt_FMT "]",nev,ncv,mpd));
-  CHKERRQ(PEPSTOARSetDimensions(pep,30,60,60));
-  CHKERRQ(PEPSTOARGetDimensions(pep,&nev,&ncv,&mpd));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," ... changed to [%" PetscInt_FMT ",%" PetscInt_FMT ",%" PetscInt_FMT "]\n",nev,ncv,mpd));
+  PetscCall(PEPSTOARGetDimensions(pep,&nev,&ncv,&mpd));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Sub-solve dimensions before changing = [%" PetscInt_FMT ",%" PetscInt_FMT ",%" PetscInt_FMT "]",nev,ncv,mpd));
+  PetscCall(PEPSTOARSetDimensions(pep,30,60,60));
+  PetscCall(PEPSTOARGetDimensions(pep,&nev,&ncv,&mpd));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," ... changed to [%" PetscInt_FMT ",%" PetscInt_FMT ",%" PetscInt_FMT "]\n",nev,ncv,mpd));
 
-  CHKERRQ(PEPSetFromOptions(pep));
+  PetscCall(PEPSetFromOptions(pep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Compute all eigenvalues in interval and display info
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PEPSetUp(pep));
-  CHKERRQ(PEPSTOARGetInertias(pep,&ns,&shifts,&inertias));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Inertias (after setup):\n"));
-  for (i=0;i<ns;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
-  CHKERRQ(PetscFree(shifts));
-  CHKERRQ(PetscFree(inertias));
+  PetscCall(PEPSetUp(pep));
+  PetscCall(PEPSTOARGetInertias(pep,&ns,&shifts,&inertias));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Inertias (after setup):\n"));
+  for (i=0;i<ns;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
+  PetscCall(PetscFree(shifts));
+  PetscCall(PetscFree(inertias));
 
-  CHKERRQ(PEPSolve(pep));
-  CHKERRQ(PEPGetDimensions(pep,&nev,NULL,NULL));
-  CHKERRQ(PEPGetInterval(pep,&int0,&int1));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Found %" PetscInt_FMT " eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1));
+  PetscCall(PEPSolve(pep));
+  PetscCall(PEPGetDimensions(pep,&nev,NULL,NULL));
+  PetscCall(PEPGetInterval(pep,&int0,&int1));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Found %" PetscInt_FMT " eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1));
 
   if (showinertia) {
-    CHKERRQ(PEPSTOARGetInertias(pep,&ns,&shifts,&inertias));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",ns));
-    for (i=0;i<ns;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
-    CHKERRQ(PetscFree(shifts));
-    CHKERRQ(PetscFree(inertias));
+    PetscCall(PEPSTOARGetInertias(pep,&ns,&shifts,&inertias));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Used %" PetscInt_FMT " shifts (inertia):\n",ns));
+    for (i=0;i<ns;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD," .. %g (%" PetscInt_FMT ")\n",(double)shifts[i],inertias[i]));
+    PetscCall(PetscFree(shifts));
+    PetscCall(PetscFree(inertias));
   }
 
-  CHKERRQ(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(PEPDestroy(&pep));
-  CHKERRQ(MatDestroy(&M));
-  CHKERRQ(MatDestroy(&C));
-  CHKERRQ(MatDestroy(&K));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(PEPDestroy(&pep));
+  PetscCall(MatDestroy(&M));
+  PetscCall(MatDestroy(&C));
+  PetscCall(MatDestroy(&K));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

@@ -38,7 +38,7 @@ PetscErrorCode NEPComputeVectors(NEP nep)
 {
   PetscFunctionBegin;
   NEPCheckSolved(nep,1);
-  if (nep->state==NEP_STATE_SOLVED && nep->ops->computevectors) CHKERRQ((*nep->ops->computevectors)(nep));
+  if (nep->state==NEP_STATE_SOLVED && nep->ops->computevectors) PetscCall((*nep->ops->computevectors)(nep));
   nep->state = NEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
@@ -70,11 +70,11 @@ PetscErrorCode NEPSolve(NEP nep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nep->state>=NEP_STATE_SOLVED) PetscFunctionReturn(0);
-  CHKERRQ(PetscCitationsRegister(citation,&cited));
-  CHKERRQ(PetscLogEventBegin(NEP_Solve,nep,0,0,0));
+  PetscCall(PetscCitationsRegister(citation,&cited));
+  PetscCall(PetscLogEventBegin(NEP_Solve,nep,0,0,0));
 
   /* call setup */
-  CHKERRQ(NEPSetUp(nep));
+  PetscCall(NEPSetUp(nep));
   nep->nconv = 0;
   nep->its = 0;
   for (i=0;i<nep->ncv;i++) {
@@ -83,40 +83,40 @@ PetscErrorCode NEPSolve(NEP nep)
     nep->errest[i] = 0.0;
     nep->perm[i]   = i;
   }
-  CHKERRQ(NEPViewFromOptions(nep,NULL,"-nep_view_pre"));
-  CHKERRQ(RGViewFromOptions(nep->rg,NULL,"-rg_view"));
+  PetscCall(NEPViewFromOptions(nep,NULL,"-nep_view_pre"));
+  PetscCall(RGViewFromOptions(nep->rg,NULL,"-rg_view"));
 
   /* call solver */
-  CHKERRQ((*nep->ops->solve)(nep));
+  PetscCall((*nep->ops->solve)(nep));
   PetscCheck(nep->reason,PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   nep->state = NEP_STATE_SOLVED;
 
   /* Only the first nconv columns contain useful information */
-  CHKERRQ(BVSetActiveColumns(nep->V,0,nep->nconv));
-  if (nep->twosided) CHKERRQ(BVSetActiveColumns(nep->W,0,nep->nconv));
+  PetscCall(BVSetActiveColumns(nep->V,0,nep->nconv));
+  if (nep->twosided) PetscCall(BVSetActiveColumns(nep->W,0,nep->nconv));
 
   if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0 && nep->nconv>0) {
-    CHKERRQ(NEPComputeVectors(nep));
-    CHKERRQ(NEPNewtonRefinementSimple(nep,&nep->rits,nep->rtol,nep->nconv));
+    PetscCall(NEPComputeVectors(nep));
+    PetscCall(NEPNewtonRefinementSimple(nep,&nep->rits,nep->rtol,nep->nconv));
     nep->state = NEP_STATE_EIGENVECTORS;
   }
 
   /* sort eigenvalues according to nep->which parameter */
-  CHKERRQ(SlepcSortEigenvalues(nep->sc,nep->nconv,nep->eigr,nep->eigi,nep->perm));
-  CHKERRQ(PetscLogEventEnd(NEP_Solve,nep,0,0,0));
+  PetscCall(SlepcSortEigenvalues(nep->sc,nep->nconv,nep->eigr,nep->eigi,nep->perm));
+  PetscCall(PetscLogEventEnd(NEP_Solve,nep,0,0,0));
 
   /* various viewers */
-  CHKERRQ(NEPViewFromOptions(nep,NULL,"-nep_view"));
-  CHKERRQ(NEPConvergedReasonViewFromOptions(nep));
-  CHKERRQ(NEPErrorViewFromOptions(nep));
-  CHKERRQ(NEPValuesViewFromOptions(nep));
-  CHKERRQ(NEPVectorsViewFromOptions(nep));
+  PetscCall(NEPViewFromOptions(nep,NULL,"-nep_view"));
+  PetscCall(NEPConvergedReasonViewFromOptions(nep));
+  PetscCall(NEPErrorViewFromOptions(nep));
+  PetscCall(NEPValuesViewFromOptions(nep));
+  PetscCall(NEPVectorsViewFromOptions(nep));
 
   /* Remove the initial subspace */
   nep->nini = 0;
 
   /* Reset resolvent information */
-  CHKERRQ(MatDestroy(&nep->resolvent));
+  PetscCall(MatDestroy(&nep->resolvent));
   PetscFunctionReturn(0);
 }
 
@@ -155,11 +155,11 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
   PetscValidLogicalCollectiveInt(nep,j1,3);
   NEPCheckProblem(nep,1);
   NEPCheckSplit(nep,1);
-  CHKERRQ(BVSetActiveColumns(nep->V,j0,j1));
+  PetscCall(BVSetActiveColumns(nep->V,j0,j1));
   for (k=0;k<nep->nt;k++) {
-    CHKERRQ(DSGetMat(nep->ds,DSMatExtra[k],&G));
-    CHKERRQ(BVMatProject(nep->V,nep->A[k],nep->V,G));
-    CHKERRQ(DSRestoreMat(nep->ds,DSMatExtra[k],&G));
+    PetscCall(DSGetMat(nep->ds,DSMatExtra[k],&G));
+    PetscCall(BVMatProject(nep->V,nep->A[k],nep->V,G));
+    PetscCall(DSRestoreMat(nep->ds,DSMatExtra[k],&G));
   }
   PetscFunctionReturn(0);
 }
@@ -206,16 +206,16 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,7);
 
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-    CHKERRQ(VecSet(y,0.0));
+    PetscCall(VecSet(y,0.0));
     for (i=0;i<nep->nt;i++) {
-      CHKERRQ(FNEvaluateFunction(nep->f[i],lambda,&alpha));
-      CHKERRQ(MatMult(nep->A[i],x,v));
-      CHKERRQ(VecAXPY(y,alpha,v));
+      PetscCall(FNEvaluateFunction(nep->f[i],lambda,&alpha));
+      PetscCall(MatMult(nep->A[i],x,v));
+      PetscCall(VecAXPY(y,alpha,v));
     }
   } else {
     if (!A) A = nep->function;
-    CHKERRQ(NEPComputeFunction(nep,lambda,A,A));
-    CHKERRQ(MatMult(A,x,y));
+    PetscCall(NEPComputeFunction(nep,lambda,A,A));
+    PetscCall(MatMult(A,x,y));
   }
   PetscFunctionReturn(0);
 }
@@ -255,23 +255,23 @@ PetscErrorCode NEPApplyAdjoint(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat 
   if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,6);
   if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,7);
 
-  CHKERRQ(VecDuplicate(x,&w));
-  CHKERRQ(VecCopy(x,w));
-  CHKERRQ(VecConjugate(w));
+  PetscCall(VecDuplicate(x,&w));
+  PetscCall(VecCopy(x,w));
+  PetscCall(VecConjugate(w));
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-    CHKERRQ(VecSet(y,0.0));
+    PetscCall(VecSet(y,0.0));
     for (i=0;i<nep->nt;i++) {
-      CHKERRQ(FNEvaluateFunction(nep->f[i],lambda,&alpha));
-      CHKERRQ(MatMultTranspose(nep->A[i],w,v));
-      CHKERRQ(VecAXPY(y,alpha,v));
+      PetscCall(FNEvaluateFunction(nep->f[i],lambda,&alpha));
+      PetscCall(MatMultTranspose(nep->A[i],w,v));
+      PetscCall(VecAXPY(y,alpha,v));
     }
   } else {
     if (!A) A = nep->function;
-    CHKERRQ(NEPComputeFunction(nep,lambda,A,A));
-    CHKERRQ(MatMultTranspose(A,w,y));
+    PetscCall(NEPComputeFunction(nep,lambda,A,A));
+    PetscCall(MatMultTranspose(A,w,y));
   }
-  CHKERRQ(VecDestroy(&w));
-  CHKERRQ(VecConjugate(y));
+  PetscCall(VecDestroy(&w));
+  PetscCall(VecConjugate(y));
   PetscFunctionReturn(0);
 }
 
@@ -315,16 +315,16 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,6);
 
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-    CHKERRQ(VecSet(y,0.0));
+    PetscCall(VecSet(y,0.0));
     for (i=0;i<nep->nt;i++) {
-      CHKERRQ(FNEvaluateDerivative(nep->f[i],lambda,&alpha));
-      CHKERRQ(MatMult(nep->A[i],x,v));
-      CHKERRQ(VecAXPY(y,alpha,v));
+      PetscCall(FNEvaluateDerivative(nep->f[i],lambda,&alpha));
+      PetscCall(MatMult(nep->A[i],x,v));
+      PetscCall(VecAXPY(y,alpha,v));
     }
   } else {
     if (!A) A = nep->jacobian;
-    CHKERRQ(NEPComputeJacobian(nep,lambda,A));
-    CHKERRQ(MatMult(A,x,y));
+    PetscCall(NEPComputeJacobian(nep,lambda,A));
+    PetscCall(MatMult(A,x,y));
   }
   PetscFunctionReturn(0);
 }
@@ -477,7 +477,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscCheck(i>=0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<nep->nconv,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see NEPGetConverged()");
 
-  CHKERRQ(NEPComputeVectors(nep));
+  PetscCall(NEPComputeVectors(nep));
   k = nep->perm[i];
 
   /* eigenvalue */
@@ -490,7 +490,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
 #endif
 
   /* eigenvector */
-  CHKERRQ(BV_GetEigenvector(nep->V,k,nep->eigi[k],Vr,Vi));
+  PetscCall(BV_GetEigenvector(nep->V,k,nep->eigi[k],Vr,Vi));
   PetscFunctionReturn(0);
 }
 
@@ -540,9 +540,9 @@ PetscErrorCode NEPGetLeftEigenvector(NEP nep,PetscInt i,Vec Wr,Vec Wi)
   PetscCheck(nep->twosided,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with NEPSetTwoSided");
   PetscCheck(i>=0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<nep->nconv,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see NEPGetConverged()");
-  CHKERRQ(NEPComputeVectors(nep));
+  PetscCall(NEPComputeVectors(nep));
   k = nep->perm[i];
-  CHKERRQ(BV_GetEigenvector(nep->W,k,nep->eigi[k],Wr,Wi));
+  PetscCall(BV_GetEigenvector(nep->W,k,nep->eigi[k],Wr,Wi));
   PetscFunctionReturn(0);
 }
 
@@ -596,9 +596,9 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscBool adj,PetscScalar 
   PetscFunctionBegin;
   y = w[0];
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) z = w[1];
-  if (adj) CHKERRQ(NEPApplyAdjoint(nep,lambda,x,z,y,NULL,NULL));
-  else CHKERRQ(NEPApplyFunction(nep,lambda,x,z,y,NULL,NULL));
-  CHKERRQ(VecNorm(y,NORM_2,norm));
+  if (adj) PetscCall(NEPApplyAdjoint(nep,lambda,x,z,y,NULL,NULL));
+  else PetscCall(NEPApplyFunction(nep,lambda,x,z,y,NULL,NULL));
+  PetscCall(VecNorm(y,NORM_2,norm));
   PetscFunctionReturn(0);
 }
 
@@ -650,24 +650,24 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
     issplit = 1;
     nwork++;  /* need an extra work vector for NEPComputeResidualNorm_Private */
   }
-  CHKERRQ(NEPSetWorkVecs(nep,nwork));
+  PetscCall(NEPSetWorkVecs(nep,nwork));
   xr = nep->work[issplit+1];
 #if !defined(PETSC_USE_COMPLEX)
   xi = nep->work[issplit+2];
 #endif
 
   /* compute residual norms */
-  CHKERRQ(NEPGetEigenpair(nep,i,&kr,&ki,xr,xi));
+  PetscCall(NEPGetEigenpair(nep,i,&kr,&ki,xr,xi));
 #if !defined(PETSC_USE_COMPLEX)
   PetscCheck(ki==0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented for complex eigenvalues with real scalars");
 #endif
-  CHKERRQ(NEPComputeResidualNorm_Private(nep,PETSC_FALSE,kr,xr,nep->work,error));
-  CHKERRQ(VecNorm(xr,NORM_2,&er));
+  PetscCall(NEPComputeResidualNorm_Private(nep,PETSC_FALSE,kr,xr,nep->work,error));
+  PetscCall(VecNorm(xr,NORM_2,&er));
 
   /* if two-sided, compute left residual norm and take the maximum */
   if (nep->twosided) {
-    CHKERRQ(NEPGetLeftEigenvector(nep,i,xr,xi));
-    CHKERRQ(NEPComputeResidualNorm_Private(nep,PETSC_TRUE,kr,xr,nep->work,&errorl));
+    PetscCall(NEPGetLeftEigenvector(nep,i,xr,xi));
+    PetscCall(NEPComputeResidualNorm_Private(nep,PETSC_TRUE,kr,xr,nep->work,&errorl));
     *error = PetscMax(*error,errorl);
   }
 
@@ -680,23 +680,23 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
       break;
     case NEP_ERROR_BACKWARD:
       if (nep->fui!=NEP_USER_INTERFACE_SPLIT) {
-        CHKERRQ(NEPComputeFunction(nep,kr,nep->function,nep->function));
-        CHKERRQ(MatHasOperation(nep->function,MATOP_NORM,&flg));
+        PetscCall(NEPComputeFunction(nep,kr,nep->function,nep->function));
+        PetscCall(MatHasOperation(nep->function,MATOP_NORM,&flg));
         PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
-        CHKERRQ(MatNorm(nep->function,NORM_INFINITY,&nrm));
+        PetscCall(MatNorm(nep->function,NORM_INFINITY,&nrm));
         *error /= nrm*er;
         break;
       }
       /* initialization of matrix norms */
       if (!nep->nrma[0]) {
         for (j=0;j<nep->nt;j++) {
-          CHKERRQ(MatHasOperation(nep->A[j],MATOP_NORM,&flg));
+          PetscCall(MatHasOperation(nep->A[j],MATOP_NORM,&flg));
           PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
-          CHKERRQ(MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]));
+          PetscCall(MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]));
         }
       }
       for (j=0;j<nep->nt;j++) {
-        CHKERRQ(FNEvaluateFunction(nep->f[j],kr,&s));
+        PetscCall(FNEvaluateFunction(nep->f[j],kr,&s));
         z = z + nep->nrma[j]*PetscAbsScalar(s);
       }
       *error /= z*er;
@@ -741,19 +741,19 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
   switch (nep->fui) {
   case NEP_USER_INTERFACE_CALLBACK:
     PetscCheck(nep->computefunction,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
-    CHKERRQ(PetscLogEventBegin(NEP_FunctionEval,nep,A,B,0));
+    PetscCall(PetscLogEventBegin(NEP_FunctionEval,nep,A,B,0));
     PetscStackPush("NEP user Function function");
-    CHKERRQ((*nep->computefunction)(nep,lambda,A,B,nep->functionctx));
+    PetscCall((*nep->computefunction)(nep,lambda,A,B,nep->functionctx));
     PetscStackPop;
-    CHKERRQ(PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0));
+    PetscCall(PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0));
     break;
   case NEP_USER_INTERFACE_SPLIT:
-    CHKERRQ(MatZeroEntries(A));
-    if (A != B) CHKERRQ(MatZeroEntries(B));
+    PetscCall(MatZeroEntries(A));
+    if (A != B) PetscCall(MatZeroEntries(B));
     for (i=0;i<nep->nt;i++) {
-      CHKERRQ(FNEvaluateFunction(nep->f[i],lambda,&alpha));
-      CHKERRQ(MatAXPY(A,alpha,nep->A[i],nep->mstr));
-      if (A != B) CHKERRQ(MatAXPY(B,alpha,nep->P[i],nep->mstrp));
+      PetscCall(FNEvaluateFunction(nep->f[i],lambda,&alpha));
+      PetscCall(MatAXPY(A,alpha,nep->A[i],nep->mstr));
+      if (A != B) PetscCall(MatAXPY(B,alpha,nep->P[i],nep->mstrp));
     }
     break;
   }
@@ -792,17 +792,17 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
   switch (nep->fui) {
   case NEP_USER_INTERFACE_CALLBACK:
     PetscCheck(nep->computejacobian,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
-    CHKERRQ(PetscLogEventBegin(NEP_JacobianEval,nep,A,0,0));
+    PetscCall(PetscLogEventBegin(NEP_JacobianEval,nep,A,0,0));
     PetscStackPush("NEP user Jacobian function");
-    CHKERRQ((*nep->computejacobian)(nep,lambda,A,nep->jacobianctx));
+    PetscCall((*nep->computejacobian)(nep,lambda,A,nep->jacobianctx));
     PetscStackPop;
-    CHKERRQ(PetscLogEventEnd(NEP_JacobianEval,nep,A,0,0));
+    PetscCall(PetscLogEventEnd(NEP_JacobianEval,nep,A,0,0));
     break;
   case NEP_USER_INTERFACE_SPLIT:
-    CHKERRQ(MatZeroEntries(A));
+    PetscCall(MatZeroEntries(A));
     for (i=0;i<nep->nt;i++) {
-      CHKERRQ(FNEvaluateDerivative(nep->f[i],lambda,&alpha));
-      CHKERRQ(MatAXPY(A,alpha,nep->A[i],nep->mstr));
+      PetscCall(FNEvaluateDerivative(nep->f[i],lambda,&alpha));
+      PetscCall(MatAXPY(A,alpha,nep->A[i],nep->mstr));
     }
     break;
   }

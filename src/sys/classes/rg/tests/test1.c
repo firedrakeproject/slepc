@@ -23,33 +23,33 @@ int main(int argc,char **argv)
   PetscReal      re,im,a,b,c,d;
   PetscScalar    ar,ai,cr[NPOINTS],ci[NPOINTS],vr[NVERTEX],vi[NVERTEX],*pr,*pi;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(RGCreate(PETSC_COMM_WORLD,&rg));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(RGCreate(PETSC_COMM_WORLD,&rg));
 
   /* ellipse */
-  CHKERRQ(RGSetType(rg,RGELLIPSE));
-  CHKERRQ(RGIsTrivial(rg,&triv));
+  PetscCall(RGSetType(rg,RGELLIPSE));
+  PetscCall(RGIsTrivial(rg,&triv));
   PetscCheck(triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be trivial before setting parameters");
-  CHKERRQ(RGEllipseSetParameters(rg,1.1,2,0.1));
-  CHKERRQ(RGSetFromOptions(rg));
-  CHKERRQ(RGIsTrivial(rg,&triv));
+  PetscCall(RGEllipseSetParameters(rg,1.1,2,0.1));
+  PetscCall(RGSetFromOptions(rg));
+  PetscCall(RGIsTrivial(rg,&triv));
   PetscCheck(!triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be non-trivial after setting parameters");
-  CHKERRQ(RGView(rg,NULL));
-  CHKERRQ(RGViewFromOptions(rg,NULL,"-rg_ellipse_view"));
+  PetscCall(RGView(rg,NULL));
+  PetscCall(RGViewFromOptions(rg,NULL,"-rg_ellipse_view"));
   re = 0.1; im = 0.3;
 #if defined(PETSC_USE_COMPLEX)
   ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif
-  CHKERRQ(RGCheckInside(rg,1,&ar,&ai,&inside));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
+  PetscCall(RGCheckInside(rg,1,&ar,&ai,&inside));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
 
-  CHKERRQ(RGComputeBoundingBox(rg,&a,&b,&c,&d));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
+  PetscCall(RGComputeBoundingBox(rg,&a,&b,&c,&d));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
-  CHKERRQ(RGComputeContour(rg,NPOINTS,cr,ci));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
+  PetscCall(RGComputeContour(rg,NPOINTS,cr,ci));
   for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
@@ -58,34 +58,34 @@ int main(int argc,char **argv)
     re = cr[i];
     im = ci[i];
 #endif
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
   }
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
   /* interval */
-  CHKERRQ(RGSetType(rg,RGINTERVAL));
-  CHKERRQ(RGIsTrivial(rg,&triv));
+  PetscCall(RGSetType(rg,RGINTERVAL));
+  PetscCall(RGIsTrivial(rg,&triv));
   PetscCheck(triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be trivial before setting parameters");
-  CHKERRQ(RGIntervalSetEndpoints(rg,-1,1,-0.1,0.1));
-  CHKERRQ(RGSetFromOptions(rg));
-  CHKERRQ(RGIsTrivial(rg,&triv));
+  PetscCall(RGIntervalSetEndpoints(rg,-1,1,-0.1,0.1));
+  PetscCall(RGSetFromOptions(rg));
+  PetscCall(RGIsTrivial(rg,&triv));
   PetscCheck(!triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be non-trivial after setting parameters");
-  CHKERRQ(RGView(rg,NULL));
-  CHKERRQ(RGViewFromOptions(rg,NULL,"-rg_interval_view"));
+  PetscCall(RGView(rg,NULL));
+  PetscCall(RGViewFromOptions(rg,NULL,"-rg_interval_view"));
   re = 0.2; im = 0;
 #if defined(PETSC_USE_COMPLEX)
   ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif
-  CHKERRQ(RGCheckInside(rg,1,&ar,&ai,&inside));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
+  PetscCall(RGCheckInside(rg,1,&ar,&ai,&inside));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
 
-  CHKERRQ(RGComputeBoundingBox(rg,&a,&b,&c,&d));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
+  PetscCall(RGComputeBoundingBox(rg,&a,&b,&c,&d));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
-  CHKERRQ(RGComputeContour(rg,NPOINTS,cr,ci));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
+  PetscCall(RGComputeContour(rg,NPOINTS,cr,ci));
   for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
@@ -94,9 +94,9 @@ int main(int argc,char **argv)
     re = cr[i];
     im = ci[i];
 #endif
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
   }
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
   /* polygon */
 #if defined(PETSC_USE_COMPLEX)
@@ -116,29 +116,29 @@ int main(int argc,char **argv)
   vr[5] = 1.0; vi[5] = 1.0;
   vr[6] = 0.6; vi[6] = 0.8;
 #endif
-  CHKERRQ(RGSetType(rg,RGPOLYGON));
-  CHKERRQ(RGIsTrivial(rg,&triv));
+  PetscCall(RGSetType(rg,RGPOLYGON));
+  PetscCall(RGIsTrivial(rg,&triv));
   PetscCheck(triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be trivial before setting parameters");
-  CHKERRQ(RGPolygonSetVertices(rg,NVERTEX,vr,vi));
-  CHKERRQ(RGSetFromOptions(rg));
-  CHKERRQ(RGIsTrivial(rg,&triv));
+  PetscCall(RGPolygonSetVertices(rg,NVERTEX,vr,vi));
+  PetscCall(RGSetFromOptions(rg));
+  PetscCall(RGIsTrivial(rg,&triv));
   PetscCheck(!triv,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Region should be non-trivial after setting parameters");
-  CHKERRQ(RGView(rg,NULL));
-  CHKERRQ(RGViewFromOptions(rg,NULL,"-rg_polygon_view"));
+  PetscCall(RGView(rg,NULL));
+  PetscCall(RGViewFromOptions(rg,NULL,"-rg_polygon_view"));
   re = 5; im = 0.9;
 #if defined(PETSC_USE_COMPLEX)
   ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif
-  CHKERRQ(RGCheckInside(rg,1,&ar,&ai,&inside));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
+  PetscCall(RGCheckInside(rg,1,&ar,&ai,&inside));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside"));
 
-  CHKERRQ(RGComputeBoundingBox(rg,&a,&b,&c,&d));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
+  PetscCall(RGComputeBoundingBox(rg,&a,&b,&c,&d));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d));
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
-  CHKERRQ(RGComputeContour(rg,NPOINTS,cr,ci));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Contour points: "));
+  PetscCall(RGComputeContour(rg,NPOINTS,cr,ci));
   for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
@@ -147,12 +147,12 @@ int main(int argc,char **argv)
     re = cr[i];
     im = ci[i];
 #endif
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im));
   }
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
   /* check vertices */
-  CHKERRQ(RGPolygonGetVertices(rg,&nv,&pr,&pi));
+  PetscCall(RGPolygonGetVertices(rg,&nv,&pr,&pi));
   PetscCheck(nv==NVERTEX,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Wrong number of vertices: %" PetscInt_FMT,nv);
   for (i=0;i<nv;i++) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -163,12 +163,12 @@ int main(int argc,char **argv)
        SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Vertex number %" PetscInt_FMT " does not match",i);
   }
 
-  CHKERRQ(PetscFree(pr));
+  PetscCall(PetscFree(pr));
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PetscFree(pi));
+  PetscCall(PetscFree(pi));
 #endif
-  CHKERRQ(RGDestroy(&rg));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(RGDestroy(&rg));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

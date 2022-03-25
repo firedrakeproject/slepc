@@ -23,12 +23,12 @@ PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
 
   PetscFunctionBegin;
   PetscCheck(ctx->d,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
-  CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_X));
-  CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_Y));
-  for (i=0;i<=ctx->d;i++) CHKERRQ(DSAllocateMat_Private(ds,DSMatExtra[i]));
-  CHKERRQ(PetscFree(ds->perm));
-  CHKERRQ(PetscMalloc1(ld*ctx->d,&ds->perm));
-  CHKERRQ(PetscLogObjectMemory((PetscObject)ds,ld*ctx->d*sizeof(PetscInt)));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_X));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_Y));
+  for (i=0;i<=ctx->d;i++) PetscCall(DSAllocateMat_Private(ds,DSMatExtra[i]));
+  PetscCall(PetscFree(ds->perm));
+  PetscCall(PetscMalloc1(ld*ctx->d,&ds->perm));
+  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*ctx->d*sizeof(PetscInt)));
   PetscFunctionReturn(0);
 }
 
@@ -39,14 +39,14 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
   PetscInt          i;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscViewerGetFormat(viewer,&format));
+  PetscCall(PetscViewerGetFormat(viewer,&format));
   if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
   if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"polynomial degree: %" PetscInt_FMT "\n",ctx->d));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"polynomial degree: %" PetscInt_FMT "\n",ctx->d));
     PetscFunctionReturn(0);
   }
-  for (i=0;i<=ctx->d;i++) CHKERRQ(DSViewMat(ds,viewer,DSMatExtra[i]));
-  if (ds->state>DS_STATE_INTERMEDIATE) CHKERRQ(DSViewMat(ds,viewer,DS_MAT_X));
+  for (i=0;i<=ctx->d;i++) PetscCall(DSViewMat(ds,viewer,DSMatExtra[i]));
+  if (ds->state>DS_STATE_INTERMEDIATE) PetscCall(DSViewMat(ds,viewer,DS_MAT_X));
   PetscFunctionReturn(0);
 }
 
@@ -79,14 +79,14 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   for (i=0;i<n;i++) perm[i] = i;
   told = ds->t;
   ds->t = n;  /* force the sorting routines to consider d*n eigenvalues */
-  if (rr) CHKERRQ(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
-  else CHKERRQ(DSSortEigenvalues_Private(ds,wr,wi,perm,PETSC_FALSE));
+  if (rr) PetscCall(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
+  else PetscCall(DSSortEigenvalues_Private(ds,wr,wi,perm,PETSC_FALSE));
   ds->t = told;  /* restore value of t */
   for (i=0;i<n;i++) A[i]  = wr[perm[i]];
   for (i=0;i<n;i++) wr[i] = A[i];
   for (i=0;i<n;i++) A[i]  = wi[perm[i]];
   for (i=0;i<n;i++) wi[i] = A[i];
-  CHKERRQ(DSPermuteColumnsTwo_Private(ds,0,n,ds->n,DS_MAT_X,DS_MAT_Y,perm));
+  PetscCall(DSPermuteColumnsTwo_Private(ds,0,n,ds->n,DS_MAT_X,DS_MAT_Y,perm));
   PetscFunctionReturn(0);
 }
 
@@ -102,21 +102,21 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  if (!ds->mat[DS_MAT_A]) CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_A));
-  if (!ds->mat[DS_MAT_B]) CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_B));
-  if (!ds->mat[DS_MAT_W]) CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_W));
-  if (!ds->mat[DS_MAT_U]) CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_U));
-  CHKERRQ(PetscBLASIntCast(ds->n*ctx->d,&nd));
-  CHKERRQ(PetscBLASIntCast(ds->n,&n));
-  CHKERRQ(PetscBLASIntCast(ds->ld,&ld));
-  CHKERRQ(PetscBLASIntCast(ds->ld*ctx->d,&ldd));
+  if (!ds->mat[DS_MAT_A]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  if (!ds->mat[DS_MAT_B]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_B));
+  if (!ds->mat[DS_MAT_W]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
+  if (!ds->mat[DS_MAT_U]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_U));
+  PetscCall(PetscBLASIntCast(ds->n*ctx->d,&nd));
+  PetscCall(PetscBLASIntCast(ds->n,&n));
+  PetscCall(PetscBLASIntCast(ds->ld,&ld));
+  PetscCall(PetscBLASIntCast(ds->ld*ctx->d,&ldd));
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PetscBLASIntCast(nd+2*nd,&lwork));
-  CHKERRQ(PetscBLASIntCast(8*nd,&lrwork));
+  PetscCall(PetscBLASIntCast(nd+2*nd,&lwork));
+  PetscCall(PetscBLASIntCast(8*nd,&lrwork));
 #else
-  CHKERRQ(PetscBLASIntCast(nd+8*nd,&lwork));
+  PetscCall(PetscBLASIntCast(nd+8*nd,&lwork));
 #endif
-  CHKERRQ(DSAllocateWork_Private(ds,lwork,lrwork,0));
+  PetscCall(DSAllocateWork_Private(ds,lwork,lrwork,0));
   beta = ds->work;
   work = ds->work + nd;
   lwork -= nd;
@@ -129,12 +129,12 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   E = ds->mat[DSMatExtra[ctx->d]];
 
   /* build matrices A and B of the linearization */
-  CHKERRQ(PetscArrayzero(A,ldd*ldd));
+  PetscCall(PetscArrayzero(A,ldd*ldd));
   if (!ctx->pbc) { /* monomial basis */
     for (i=0;i<nd-ds->n;i++) A[i+(i+ds->n)*ldd] = 1.0;
     for (i=0;i<ctx->d;i++) {
       off = i*ds->n*ldd+(ctx->d-1)*ds->n;
-      for (j=0;j<ds->n;j++) CHKERRQ(PetscArraycpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n));
+      for (j=0;j<ds->n;j++) PetscCall(PetscArraycpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n));
     }
   } else {
     ca = ctx->pbc;
@@ -165,7 +165,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
       for (k=0;k<ds->n;k++)
         *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1]-E[j*ds->ld+k]*cb[ctx->d-1];
   }
-  CHKERRQ(PetscArrayzero(B,ldd*ldd));
+  PetscCall(PetscArrayzero(B,ldd*ldd));
   for (i=0;i<nd-ds->n;i++) B[i+i*ldd] = 1.0;
   off = (ctx->d-1)*ds->n*(ldd+1);
   for (j=0;j<ds->n;j++) {
@@ -195,8 +195,8 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* copy and normalize eigenvectors */
   for (j=0;j<nd;j++) {
-    CHKERRQ(PetscArraycpy(X+j*ds->ld,W+j*ldd,ds->n));
-    CHKERRQ(PetscArraycpy(Y+j*ds->ld,U+ds->n*(ctx->d-1)+j*ldd,ds->n));
+    PetscCall(PetscArraycpy(X+j*ds->ld,W+j*ldd,ds->n));
+    PetscCall(PetscArraycpy(Y+j*ds->ld,U+ds->n*(ctx->d-1)+j*ldd,ds->n));
   }
   for (j=0;j<nd;j++) {
     cols = 1;
@@ -232,30 +232,30 @@ PetscErrorCode DSSynchronize_PEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   if (ds->state>=DS_STATE_CONDENSED) k += 2*ctx->d*ds->n*ld;
   if (eigr) k += ctx->d*ds->n;
   if (eigi) k += ctx->d*ds->n;
-  CHKERRQ(DSAllocateWork_Private(ds,k,0,0));
-  CHKERRQ(PetscMPIIntCast(k*sizeof(PetscScalar),&size));
-  CHKERRQ(PetscMPIIntCast(ds->n*ctx->d*ld,&ldnd));
-  CHKERRQ(PetscMPIIntCast(ctx->d*ds->n,&dn));
-  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
+  PetscCall(DSAllocateWork_Private(ds,k,0,0));
+  PetscCall(PetscMPIIntCast(k*sizeof(PetscScalar),&size));
+  PetscCall(PetscMPIIntCast(ds->n*ctx->d*ld,&ldnd));
+  PetscCall(PetscMPIIntCast(ctx->d*ds->n,&dn));
+  PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
     if (ds->state>=DS_STATE_CONDENSED) {
-      CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_X],ldnd,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-      CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_Y],ldnd,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_X],ldnd,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_Y],ldnd,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     }
-    if (eigr) CHKERRMPI(MPI_Pack(eigr,dn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (eigr) PetscCallMPI(MPI_Pack(eigr,dn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) CHKERRMPI(MPI_Pack(eigi,dn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (eigi) PetscCallMPI(MPI_Pack(eigi,dn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #endif
   }
-  CHKERRMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
+  PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
     if (ds->state>=DS_STATE_CONDENSED) {
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_X],ldnd,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-      CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Y],ldnd,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_X],ldnd,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Y],ldnd,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     }
-    if (eigr) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr,dn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr,dn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigi,dn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (eigi) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigi,dn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #endif
   }
   PetscFunctionReturn(0);
@@ -290,7 +290,7 @@ PetscErrorCode DSPEPSetDegree(DS ds,PetscInt d)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,d,2);
-  CHKERRQ(PetscTryMethod(ds,"DSPEPSetDegree_C",(DS,PetscInt),(ds,d)));
+  PetscCall(PetscTryMethod(ds,"DSPEPSetDegree_C",(DS,PetscInt),(ds,d)));
   PetscFunctionReturn(0);
 }
 
@@ -323,7 +323,7 @@ PetscErrorCode DSPEPGetDegree(DS ds,PetscInt *d)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(d,2);
-  CHKERRQ(PetscUseMethod(ds,"DSPEPGetDegree_C",(DS,PetscInt*),(ds,d)));
+  PetscCall(PetscUseMethod(ds,"DSPEPGetDegree_C",(DS,PetscInt*),(ds,d)));
   PetscFunctionReturn(0);
 }
 
@@ -334,8 +334,8 @@ static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
 
   PetscFunctionBegin;
   PetscCheck(ctx->d,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Must first specify the polynomial degree via DSPEPSetDegree()");
-  if (ctx->pbc) CHKERRQ(PetscFree(ctx->pbc));
-  CHKERRQ(PetscMalloc1(3*(ctx->d+1),&ctx->pbc));
+  if (ctx->pbc) PetscCall(PetscFree(ctx->pbc));
+  PetscCall(PetscMalloc1(3*(ctx->d+1),&ctx->pbc));
   for (i=0;i<3*(ctx->d+1);i++) ctx->pbc[i] = pbc[i];
   ds->state = DS_STATE_RAW;
   PetscFunctionReturn(0);
@@ -371,7 +371,7 @@ PetscErrorCode DSPEPSetCoefficients(DS ds,PetscReal *pbc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  CHKERRQ(PetscTryMethod(ds,"DSPEPSetCoefficients_C",(DS,PetscReal*),(ds,pbc)));
+  PetscCall(PetscTryMethod(ds,"DSPEPSetCoefficients_C",(DS,PetscReal*),(ds,pbc)));
   PetscFunctionReturn(0);
 }
 
@@ -382,7 +382,7 @@ static PetscErrorCode DSPEPGetCoefficients_PEP(DS ds,PetscReal **pbc)
 
   PetscFunctionBegin;
   PetscCheck(ctx->d,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Must first specify the polynomial degree via DSPEPSetDegree()");
-  CHKERRQ(PetscCalloc1(3*(ctx->d+1),pbc));
+  PetscCall(PetscCalloc1(3*(ctx->d+1),pbc));
   if (ctx->pbc) for (i=0;i<3*(ctx->d+1);i++) (*pbc)[i] = ctx->pbc[i];
   else for (i=0;i<ctx->d+1;i++) (*pbc)[i] = 1.0;
   PetscFunctionReturn(0);
@@ -418,7 +418,7 @@ PetscErrorCode DSPEPGetCoefficients(DS ds,PetscReal **pbc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(pbc,2);
-  CHKERRQ(PetscUseMethod(ds,"DSPEPGetCoefficients_C",(DS,PetscReal**),(ds,pbc)));
+  PetscCall(PetscUseMethod(ds,"DSPEPGetCoefficients_C",(DS,PetscReal**),(ds,pbc)));
   PetscFunctionReturn(0);
 }
 
@@ -427,12 +427,12 @@ PetscErrorCode DSDestroy_PEP(DS ds)
   DS_PEP         *ctx = (DS_PEP*)ds->data;
 
   PetscFunctionBegin;
-  if (ctx->pbc) CHKERRQ(PetscFree(ctx->pbc));
-  CHKERRQ(PetscFree(ds->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetCoefficients_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetCoefficients_C",NULL));
+  if (ctx->pbc) PetscCall(PetscFree(ctx->pbc));
+  PetscCall(PetscFree(ds->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetCoefficients_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetCoefficients_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -485,7 +485,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   DS_PEP         *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(ds,&ctx));
+  PetscCall(PetscNewLog(ds,&ctx));
   ds->data = (void*)ctx;
 
   ds->ops->allocate      = DSAllocate_PEP;
@@ -496,9 +496,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   ds->ops->synchronize   = DSSynchronize_PEP;
   ds->ops->destroy       = DSDestroy_PEP;
   ds->ops->matgetsize    = DSMatGetSize_PEP;
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",DSPEPSetDegree_PEP));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",DSPEPGetDegree_PEP));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetCoefficients_C",DSPEPSetCoefficients_PEP));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetCoefficients_C",DSPEPGetCoefficients_PEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",DSPEPSetDegree_PEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",DSPEPGetDegree_PEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetCoefficients_C",DSPEPSetCoefficients_PEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetCoefficients_C",DSPEPGetCoefficients_PEP));
   PetscFunctionReturn(0);
 }

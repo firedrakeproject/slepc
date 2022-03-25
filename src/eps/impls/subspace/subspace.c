@@ -41,20 +41,20 @@ static PetscErrorCode EPSSetUp_Subspace_Filter(EPS eps)
   EPSCheckStandardCondition(eps,PETSC_TRUE," with polynomial filter");
   PetscCheck(eps->intb<PETSC_MAX_REAL || eps->inta>PETSC_MIN_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
   EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION,PETSC_TRUE," with polynomial filter");
-  CHKERRQ(STFilterSetInterval(eps->st,eps->inta,eps->intb));
+  PetscCall(STFilterSetInterval(eps->st,eps->inta,eps->intb));
   if (!ctx->estimatedrange) {
-    CHKERRQ(STFilterGetRange(eps->st,&rleft,&rright));
+    PetscCall(STFilterGetRange(eps->st,&rleft,&rright));
     estimaterange = (!rleft && !rright)? PETSC_TRUE: PETSC_FALSE;
   }
   if (estimaterange) { /* user did not set a range */
-    CHKERRQ(STGetMatrix(eps->st,0,&A));
-    CHKERRQ(MatEstimateSpectralRange_EPS(A,&rleft,&rright));
-    CHKERRQ(PetscInfo(eps,"Setting eigenvalue range to [%g,%g]\n",(double)rleft,(double)rright));
-    CHKERRQ(STFilterSetRange(eps->st,rleft,rright));
+    PetscCall(STGetMatrix(eps->st,0,&A));
+    PetscCall(MatEstimateSpectralRange_EPS(A,&rleft,&rright));
+    PetscCall(PetscInfo(eps,"Setting eigenvalue range to [%g,%g]\n",(double)rleft,(double)rright));
+    PetscCall(STFilterSetRange(eps->st,rleft,rright));
     ctx->estimatedrange = PETSC_TRUE;
   }
   if (eps->ncv==PETSC_DEFAULT && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
-  CHKERRQ(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
+  PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
   PetscCheck(eps->ncv<=eps->nev+eps->mpd,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");
   PetscFunctionReturn(0);
 }
@@ -66,23 +66,23 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   PetscFunctionBegin;
   EPSCheckDefinite(eps);
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
-  if (!eps->which) CHKERRQ(EPSSetWhichEigenpairs_Default(eps));
+  if (!eps->which) PetscCall(EPSSetWhichEigenpairs_Default(eps));
   if (eps->which==EPS_ALL) {
-    CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt));
+    PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt));
     PetscCheck(isfilt,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not supported in this solver");
-    CHKERRQ(EPSSetUp_Subspace_Filter(eps));
+    PetscCall(EPSSetUp_Subspace_Filter(eps));
   } else {
     PetscCheck(eps->which==EPS_LARGEST_MAGNITUDE || eps->which==EPS_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest magnitude or target magnitude eigenvalues");
-    CHKERRQ(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
+    PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
   }
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_EXTRACTION | EPS_FEATURE_TWOSIDED);
   PetscCheck(eps->converged==EPSConvergedRelative,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver only supports relative convergence test");
 
-  CHKERRQ(EPSAllocateSolution(eps,0));
-  CHKERRQ(EPS_SetInnerProduct(eps));
-  if (eps->ishermitian) CHKERRQ(DSSetType(eps->ds,DSHEP));
-  else CHKERRQ(DSSetType(eps->ds,DSNHEP));
-  CHKERRQ(DSAllocate(eps->ds,eps->ncv));
+  PetscCall(EPSAllocateSolution(eps,0));
+  PetscCall(EPS_SetInnerProduct(eps));
+  if (eps->ishermitian) PetscCall(DSSetType(eps->ds,DSHEP));
+  else PetscCall(DSSetType(eps->ds,DSNHEP));
+  PetscCall(DSAllocate(eps->ds,eps->ncv));
   PetscFunctionReturn(0);
 }
 
@@ -91,9 +91,9 @@ PetscErrorCode EPSSetUpSort_Subspace(EPS eps)
   SlepcSC sc;
 
   PetscFunctionBegin;
-  CHKERRQ(EPSSetUpSort_Default(eps));
+  PetscCall(EPSSetUpSort_Default(eps));
   if (eps->which==EPS_ALL) {
-    CHKERRQ(DSGetSlepcSC(eps->ds,&sc));
+    PetscCall(DSGetSlepcSC(eps->ds,&sc));
     sc->rg            = NULL;
     sc->comparison    = SlepcCompareLargestReal;
     sc->comparisonctx = NULL;
@@ -160,9 +160,9 @@ static PetscErrorCode EPSSubspaceResidualNorms(BV R,BV V,Mat T,PetscInt l,PetscI
   PetscInt       i;
 
   PetscFunctionBegin;
-  CHKERRQ(BVMult(R,-1.0,1.0,V,T));
-  for (i=l;i<m;i++) CHKERRQ(BVNormColumnBegin(R,i,NORM_2,rsd+i));
-  for (i=l;i<m;i++) CHKERRQ(BVNormColumnEnd(R,i,NORM_2,rsd+i));
+  PetscCall(BVMult(R,-1.0,1.0,V,T));
+  for (i=l;i<m;i++) PetscCall(BVNormColumnBegin(R,i,NORM_2,rsd+i));
+  for (i=l;i<m;i++) PetscCall(BVNormColumnEnd(R,i,NORM_2,rsd+i));
 #if !defined(PETSC_USE_COMPLEX)
   for (i=l;i<m-1;i++) {
     if (eigi[i]!=0.0) {
@@ -196,11 +196,11 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
   PetscFunctionBegin;
   its = 0;
-  CHKERRQ(PetscMalloc6(ncv,&rsd,ncv,&orsd,ncv,&oeigr,ncv,&oeigi,ncv,&itrsd,ncv,&itrsdold));
-  CHKERRQ(DSGetLeadingDimension(eps->ds,&ld));
-  CHKERRQ(BVDuplicate(eps->V,&AV));
-  CHKERRQ(BVDuplicate(eps->V,&R));
-  CHKERRQ(STGetOperator(eps->st,&S));
+  PetscCall(PetscMalloc6(ncv,&rsd,ncv,&orsd,ncv,&oeigr,ncv,&oeigi,ncv,&itrsd,ncv,&itrsdold));
+  PetscCall(DSGetLeadingDimension(eps->ds,&ld));
+  PetscCall(BVDuplicate(eps->V,&AV));
+  PetscCall(BVDuplicate(eps->V,&R));
+  PetscCall(STGetOperator(eps->st,&S));
 
   for (i=0;i<ncv;i++) {
     rsd[i] = 0.0;
@@ -209,14 +209,14 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
   /* Complete the initial basis with random vectors and orthonormalize them */
   for (k=eps->nini;k<ncv;k++) {
-    CHKERRQ(BVSetRandomColumn(eps->V,k));
-    CHKERRQ(BVOrthonormalizeColumn(eps->V,k,PETSC_TRUE,NULL,NULL));
+    PetscCall(BVSetRandomColumn(eps->V,k));
+    PetscCall(BVOrthonormalizeColumn(eps->V,k,PETSC_TRUE,NULL,NULL));
   }
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
-    CHKERRQ(DSSetDimensions(eps->ds,nv,eps->nconv,0));
+    PetscCall(DSSetDimensions(eps->ds,nv,eps->nconv,0));
 
     for (i=eps->nconv;i<nv;i++) {
       oeigr[i] = eps->eigr[i];
@@ -225,39 +225,39 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     }
 
     /* AV(:,idx) = OP * V(:,idx) */
-    CHKERRQ(BVSetActiveColumns(eps->V,eps->nconv,nv));
-    CHKERRQ(BVSetActiveColumns(AV,eps->nconv,nv));
-    CHKERRQ(BVMatMult(eps->V,S,AV));
+    PetscCall(BVSetActiveColumns(eps->V,eps->nconv,nv));
+    PetscCall(BVSetActiveColumns(AV,eps->nconv,nv));
+    PetscCall(BVMatMult(eps->V,S,AV));
 
     /* T(:,idx) = V' * AV(:,idx) */
-    CHKERRQ(BVSetActiveColumns(eps->V,0,nv));
-    CHKERRQ(DSGetMat(eps->ds,DS_MAT_A,&H));
-    CHKERRQ(BVDot(AV,eps->V,H));
-    CHKERRQ(DSRestoreMat(eps->ds,DS_MAT_A,&H));
-    CHKERRQ(DSSetState(eps->ds,DS_STATE_RAW));
+    PetscCall(BVSetActiveColumns(eps->V,0,nv));
+    PetscCall(DSGetMat(eps->ds,DS_MAT_A,&H));
+    PetscCall(BVDot(AV,eps->V,H));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_A,&H));
+    PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
 
     /* Solve projected problem */
-    CHKERRQ(DSSolve(eps->ds,eps->eigr,eps->eigi));
-    CHKERRQ(DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL));
-    CHKERRQ(DSSynchronize(eps->ds,eps->eigr,eps->eigi));
+    PetscCall(DSSolve(eps->ds,eps->eigr,eps->eigi));
+    PetscCall(DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL));
+    PetscCall(DSSynchronize(eps->ds,eps->eigr,eps->eigi));
 
     /* Update vectors V(:,idx) = V * U(:,idx) */
-    CHKERRQ(DSGetMat(eps->ds,DS_MAT_Q,&Q));
-    CHKERRQ(BVSetActiveColumns(AV,0,nv));
-    CHKERRQ(BVSetActiveColumns(R,0,nv));
-    CHKERRQ(BVMultInPlace(eps->V,Q,eps->nconv,nv));
-    CHKERRQ(BVMultInPlace(AV,Q,eps->nconv,nv));
-    CHKERRQ(BVCopy(AV,R));
-    CHKERRQ(MatDestroy(&Q));
+    PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&Q));
+    PetscCall(BVSetActiveColumns(AV,0,nv));
+    PetscCall(BVSetActiveColumns(R,0,nv));
+    PetscCall(BVMultInPlace(eps->V,Q,eps->nconv,nv));
+    PetscCall(BVMultInPlace(AV,Q,eps->nconv,nv));
+    PetscCall(BVCopy(AV,R));
+    PetscCall(MatDestroy(&Q));
 
     /* Convergence check */
-    CHKERRQ(DSGetMat(eps->ds,DS_MAT_A,&T));
-    CHKERRQ(EPSSubspaceResidualNorms(R,eps->V,T,eps->nconv,nv,eps->eigi,rsd));
-    CHKERRQ(DSRestoreMat(eps->ds,DS_MAT_A,&T));
+    PetscCall(DSGetMat(eps->ds,DS_MAT_A,&T));
+    PetscCall(EPSSubspaceResidualNorms(R,eps->V,T,eps->nconv,nv,eps->eigi,rsd));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_A,&T));
 
     if (eps->which==EPS_ALL && eps->its>1) {   /* adjust eigenvalue count */
       ninside = 0;
-      CHKERRQ(STFilterGetThreshold(eps->st,&gamma));
+      PetscCall(STFilterGetThreshold(eps->st,&gamma));
       for (i=eps->nconv;i<nv;i++) {
         if (PetscRealPart(eps->eigr[i]) < gamma) break;
         ninside++;
@@ -272,8 +272,8 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
     for (;;) {
       /* Find clusters of computed eigenvalues */
-      CHKERRQ(EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd));
-      CHKERRQ(EPSSubspaceFindGroup(eps->nconv,nv,oeigr,oeigi,orsd,grptol,&nogrp,&octr,&oae,&oarsd));
+      PetscCall(EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,eps->errest,grptol,&ngrp,&ctr,&ae,&arsd));
+      PetscCall(EPSSubspaceFindGroup(eps->nconv,nv,oeigr,oeigi,orsd,grptol,&nogrp,&octr,&oae,&oarsd));
       if (ngrp!=nogrp) break;
       if (ngrp==0) break;
       if (PetscAbsReal(ae-oae)>ctr*cnvtol*(itrsd[eps->nconv]-itrsdold[eps->nconv])) break;
@@ -282,8 +282,8 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
       if (eps->nconv>=nv) break;
     }
 
-    CHKERRQ(EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv));
-    CHKERRQ((*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx));
+    PetscCall(EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv));
+    PetscCall((*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx));
     if (eps->reason != EPS_CONVERGED_ITERATING) break;
 
     /* Compute nxtsrr (iteration of next projection step) */
@@ -298,47 +298,47 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     nxtsrr = PetscMin(nxtsrr,its+idsrr);
 
     /* Compute nxtort (iteration of next orthogonalization step) */
-    CHKERRQ(DSCond(eps->ds,&tcond));
+    PetscCall(DSCond(eps->ds,&tcond));
     idort = PetscMax(1,(PetscInt)PetscFloorReal(orttol/PetscMax(1,PetscLog10Real(tcond))));
     nxtort = PetscMin(its+idort,nxtsrr);
-    CHKERRQ(PetscInfo(eps,"Updated iteration counts: nxtort=%" PetscInt_FMT ", nxtsrr=%" PetscInt_FMT "\n",nxtort,nxtsrr));
+    PetscCall(PetscInfo(eps,"Updated iteration counts: nxtort=%" PetscInt_FMT ", nxtsrr=%" PetscInt_FMT "\n",nxtort,nxtsrr));
 
     /* V(:,idx) = AV(:,idx) */
-    CHKERRQ(BVSetActiveColumns(eps->V,eps->nconv,nv));
-    CHKERRQ(BVSetActiveColumns(AV,eps->nconv,nv));
-    CHKERRQ(BVCopy(AV,eps->V));
+    PetscCall(BVSetActiveColumns(eps->V,eps->nconv,nv));
+    PetscCall(BVSetActiveColumns(AV,eps->nconv,nv));
+    PetscCall(BVCopy(AV,eps->V));
     its++;
 
     /* Orthogonalization loop */
     do {
-      CHKERRQ(BVGetMatrix(eps->V,&B,&indef));
-      CHKERRQ(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
+      PetscCall(BVGetMatrix(eps->V,&B,&indef));
+      PetscCall(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
       while (its<nxtort) {
         /* A(:,idx) = OP*V(:,idx) with normalization */
-        CHKERRQ(BVMatMult(eps->V,S,AV));
-        CHKERRQ(BVCopy(AV,eps->V));
-        CHKERRQ(BVNormalize(eps->V,NULL));
+        PetscCall(BVMatMult(eps->V,S,AV));
+        PetscCall(BVCopy(AV,eps->V));
+        PetscCall(BVNormalize(eps->V,NULL));
         its++;
       }
-      CHKERRQ(BVSetMatrix(eps->V,B,indef));
+      PetscCall(BVSetMatrix(eps->V,B,indef));
       /* Orthonormalize vectors */
-      CHKERRQ(BVOrthogonalize(eps->V,NULL));
+      PetscCall(BVOrthogonalize(eps->V,NULL));
       nxtort = PetscMin(its+idort,nxtsrr);
     } while (its<nxtsrr);
   }
 
-  CHKERRQ(PetscFree6(rsd,orsd,oeigr,oeigi,itrsd,itrsdold));
-  CHKERRQ(BVDestroy(&AV));
-  CHKERRQ(BVDestroy(&R));
-  CHKERRQ(STRestoreOperator(eps->st,&S));
-  CHKERRQ(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
+  PetscCall(PetscFree6(rsd,orsd,oeigr,oeigi,itrsd,itrsdold));
+  PetscCall(BVDestroy(&AV));
+  PetscCall(BVDestroy(&R));
+  PetscCall(STRestoreOperator(eps->st,&S));
+  PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSDestroy_Subspace(EPS eps)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(eps->data));
+  PetscCall(PetscFree(eps->data));
   PetscFunctionReturn(0);
 }
 
@@ -347,7 +347,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
   EPS_SUBSPACE *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data  = (void*)ctx;
 
   eps->useds = PETSC_TRUE;

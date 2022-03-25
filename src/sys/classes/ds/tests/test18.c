@@ -20,19 +20,19 @@ PetscErrorCode CheckArray(PetscScalar *A,const char *label,PetscInt k)
   PetscReal      error;
 
   PetscFunctionBeginUser;
-  CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
-  CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
-  if (rank) CHKERRMPI(MPI_Send(A,k,MPIU_SCALAR,0,111,PETSC_COMM_WORLD));
+  PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
+  PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
+  if (rank) PetscCallMPI(MPI_Send(A,k,MPIU_SCALAR,0,111,PETSC_COMM_WORLD));
   else {
-    CHKERRQ(PetscMalloc1(k,&buf));
+    PetscCall(PetscMalloc1(k,&buf));
     for (p=1;p<size;p++) {
-      CHKERRMPI(MPI_Recv(buf,k,MPIU_SCALAR,p,111,PETSC_COMM_WORLD,MPI_STATUS_IGNORE));
+      PetscCallMPI(MPI_Recv(buf,k,MPIU_SCALAR,p,111,PETSC_COMM_WORLD,MPI_STATUS_IGNORE));
       dif = 0.0;
       for (j=0;j<k;j++) dif += A[j]-buf[j];
       error = PetscAbsScalar(dif);
-      if (error>10*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Array %s differs in proc %d: %g\n",label,(int)p,(double)error));
+      if (error>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD," Array %s differs in proc %d: %g\n",label,(int)p,(double)error));
     }
-    CHKERRQ(PetscFree(buf));
+    PetscCall(PetscFree(buf));
   }
   PetscFunctionReturn(0);
 }
@@ -46,38 +46,38 @@ int main(int argc,char **argv)
   PetscInt       i,j,n=10;
   PetscMPIInt    size;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n));
 
   /* Create DS object */
-  CHKERRQ(DSCreate(PETSC_COMM_WORLD,&ds));
-  CHKERRQ(DSSetType(ds,DSNHEP));
-  CHKERRQ(DSSetFromOptions(ds));
-  CHKERRQ(DSAllocate(ds,n));
-  CHKERRQ(DSSetDimensions(ds,n,0,0));
+  PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
+  PetscCall(DSSetType(ds,DSNHEP));
+  PetscCall(DSSetFromOptions(ds));
+  PetscCall(DSAllocate(ds,n));
+  PetscCall(DSSetDimensions(ds,n,0,0));
 
   /* Fill with Grcar matrix */
-  CHKERRQ(DSGetArray(ds,DS_MAT_A,&A));
+  PetscCall(DSGetArray(ds,DS_MAT_A,&A));
   for (i=1;i<n;i++) A[i+(i-1)*n]=-1.0;
   for (j=0;j<4;j++) {
     for (i=0;i<n-j;i++) A[i+(i+j)*n]=1.0;
   }
-  CHKERRQ(DSRestoreArray(ds,DS_MAT_A,&A));
-  CHKERRQ(DSSetState(ds,DS_STATE_INTERMEDIATE));
+  PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
+  PetscCall(DSSetState(ds,DS_STATE_INTERMEDIATE));
 
   /* Solve */
-  CHKERRQ(PetscMalloc2(n,&wr,n,&wi));
-  CHKERRQ(DSGetSlepcSC(ds,&sc));
+  PetscCall(PetscMalloc2(n,&wr,n,&wi));
+  PetscCall(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  CHKERRQ(DSSolve(ds,wr,wi));
-  CHKERRQ(DSSort(ds,wr,wi,NULL,NULL,NULL));
+  PetscCall(DSSolve(ds,wr,wi));
+  PetscCall(DSSort(ds,wr,wi,NULL,NULL,NULL));
 
   /* Print eigenvalues */
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(wr[i]);
@@ -86,29 +86,29 @@ int main(int argc,char **argv)
     re = wr[i];
     im = wi[i];
 #endif
-    if (PetscAbs(im)<1e-10) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
-    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
+    if (PetscAbs(im)<1e-10) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
+    else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
 
   /* Synchronize data and check */
-  CHKERRQ(DSSynchronize(ds,wr,wi));
-  CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
+  PetscCall(DSSynchronize(ds,wr,wi));
+  PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   if (size>1) {
-    CHKERRQ(CheckArray(wr,"wr",n));
+    PetscCall(CheckArray(wr,"wr",n));
 #if !defined(PETSC_USE_COMPLEX)
-    CHKERRQ(CheckArray(wi,"wi",n));
+    PetscCall(CheckArray(wi,"wi",n));
 #endif
-    CHKERRQ(DSGetArray(ds,DS_MAT_A,&A));
-    CHKERRQ(CheckArray(A,"A",n*n));
-    CHKERRQ(DSRestoreArray(ds,DS_MAT_A,&A));
-    CHKERRQ(DSGetArray(ds,DS_MAT_Q,&Q));
-    CHKERRQ(CheckArray(Q,"Q",n*n));
-    CHKERRQ(DSRestoreArray(ds,DS_MAT_Q,&Q));
+    PetscCall(DSGetArray(ds,DS_MAT_A,&A));
+    PetscCall(CheckArray(A,"A",n*n));
+    PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
+    PetscCall(DSGetArray(ds,DS_MAT_Q,&Q));
+    PetscCall(CheckArray(Q,"Q",n*n));
+    PetscCall(DSRestoreArray(ds,DS_MAT_Q,&Q));
   }
 
-  CHKERRQ(PetscFree2(wr,wi));
-  CHKERRQ(DSDestroy(&ds));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(PetscFree2(wr,wi));
+  PetscCall(DSDestroy(&ds));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

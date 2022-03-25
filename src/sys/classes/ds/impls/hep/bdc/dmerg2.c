@@ -294,7 +294,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
   /* call DSRTDF for deflation */
 
-  CHKERRQ(BDC_dsrtdf_(&k, n, n1, ev, q, ldq, indxq, rho, &work[iz],
+  PetscCall(BDC_dsrtdf_(&k, n, n1, ev, q, ldq, indxq, rho, &work[iz],
           &work[idlmda], &work[iw], &work[iq2], &iwork[indx],
           &iwork[indxc], &iwork[indxp], &iwork[coltyp], tol, &dz, &de, info));
   PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_LIB,"dmerg2: error in dsrtdf, info = %" PetscBLASInt_FMT,*info);
@@ -331,7 +331,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
     /* calling DLAED3M for solving the secular equation. */
 
-    CHKERRQ(BDC_dlaed3m_(jobz, defl, k, n, tmpcut, ev, q, ldq,
+    PetscCall(BDC_dlaed3m_(jobz, defl, k, n, tmpcut, ev, q, ldq,
                 *rho, &work[idlmda], &work[iq2], &iwork[indxc], &iwork[coltyp],
                 &work[iw], &work[is], info, 1, 1));
     PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_LIB,"dmerg2: error in dlaed3m, info = %" PetscBLASInt_FMT,*info);

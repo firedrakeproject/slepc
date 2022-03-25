@@ -26,45 +26,45 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   Vec            v,f0;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatGetSize(A,&n,NULL));
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&S));
-  CHKERRQ(PetscObjectSetName((PetscObject)S,"S"));
-  CHKERRQ(FNGetScale(fn,&tau,&eta));
+  PetscCall(MatGetSize(A,&n,NULL));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&S));
+  PetscCall(PetscObjectSetName((PetscObject)S,"S"));
+  PetscCall(FNGetScale(fn,&tau,&eta));
   /* compute inverse square root */
   if (inplace) {
-    CHKERRQ(MatCopy(A,S,SAME_NONZERO_PATTERN));
-    CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
-    if (set && flg) CHKERRQ(MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE));
-    CHKERRQ(FNEvaluateFunctionMat(fn,S,NULL));
-  } else CHKERRQ(FNEvaluateFunctionMat(fn,A,S));
+    PetscCall(MatCopy(A,S,SAME_NONZERO_PATTERN));
+    PetscCall(MatIsHermitianKnown(A,&set,&flg));
+    if (set && flg) PetscCall(MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE));
+    PetscCall(FNEvaluateFunctionMat(fn,S,NULL));
+  } else PetscCall(FNEvaluateFunctionMat(fn,A,S));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
-    CHKERRQ(MatView(A,viewer));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed inv(sqrtm(A)) - - - - - - -\n"));
-    CHKERRQ(MatView(S,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
+    PetscCall(MatView(A,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed inv(sqrtm(A)) - - - - - - -\n"));
+    PetscCall(MatView(S,viewer));
   }
   /* check error ||S*S*A-I||_F */
-  CHKERRQ(MatMatMult(S,S,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R));
-  if (eta!=1.0) CHKERRQ(MatScale(R,1.0/(eta*eta)));
-  CHKERRQ(MatCreateVecs(A,&v,&f0));
-  CHKERRQ(MatGetColumnVector(S,f0,0));
-  CHKERRQ(MatCopy(R,S,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatDestroy(&R));
-  if (tau!=1.0) CHKERRQ(MatScale(S,tau));
-  CHKERRQ(MatMatMult(S,A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R));
-  CHKERRQ(MatShift(R,-1.0));
-  CHKERRQ(MatNorm(R,NORM_FROBENIUS,&nrm));
-  CHKERRQ(MatDestroy(&R));
-  if (nrm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F < 100*eps\n"));
-  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F = %g\n",(double)nrm));
+  PetscCall(MatMatMult(S,S,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R));
+  if (eta!=1.0) PetscCall(MatScale(R,1.0/(eta*eta)));
+  PetscCall(MatCreateVecs(A,&v,&f0));
+  PetscCall(MatGetColumnVector(S,f0,0));
+  PetscCall(MatCopy(R,S,SAME_NONZERO_PATTERN));
+  PetscCall(MatDestroy(&R));
+  if (tau!=1.0) PetscCall(MatScale(S,tau));
+  PetscCall(MatMatMult(S,A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R));
+  PetscCall(MatShift(R,-1.0));
+  PetscCall(MatNorm(R,NORM_FROBENIUS,&nrm));
+  PetscCall(MatDestroy(&R));
+  if (nrm<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F < 100*eps\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F = %g\n",(double)nrm));
   /* check FNEvaluateFunctionMatVec() */
-  CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
-  CHKERRQ(VecAXPY(v,-1.0,f0));
-  CHKERRQ(VecNorm(v,NORM_2,&nrm));
-  if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
-  CHKERRQ(MatDestroy(&S));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(VecDestroy(&f0));
+  PetscCall(FNEvaluateFunctionMatVec(fn,A,v));
+  PetscCall(VecAXPY(v,-1.0,f0));
+  PetscCall(VecNorm(v,NORM_2,&nrm));
+  if (nrm>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
+  PetscCall(MatDestroy(&S));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&f0));
   PetscFunctionReturn(0);
 }
 
@@ -80,74 +80,74 @@ int main(int argc,char **argv)
   PetscReal      v;
   char           strx[50],str[50];
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix inverse square root, n=%" PetscInt_FMT ".\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix inverse square root, n=%" PetscInt_FMT ".\n",n));
 
   /* Create function object */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn));
-  CHKERRQ(FNSetType(fn,FNINVSQRT));
-  CHKERRQ(FNSetFromOptions(fn));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fn));
+  PetscCall(FNSetType(fn,FNINVSQRT));
+  PetscCall(FNSetFromOptions(fn));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  CHKERRQ(FNView(fn,viewer));
-  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(FNView(fn,viewer));
+  if (verbose) PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Scalar evaluation */
   x = 2.2;
-  CHKERRQ(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
-  CHKERRQ(FNEvaluateFunction(fn,x,&y));
-  CHKERRQ(FNEvaluateDerivative(fn,x,&yp));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
+  PetscCall(FNEvaluateFunction(fn,x,&y));
+  PetscCall(FNEvaluateDerivative(fn,x,&yp));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
 
   /* Create matrix */
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
-  CHKERRQ(PetscObjectSetName((PetscObject)A,"A"));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  PetscCall(PetscObjectSetName((PetscObject)A,"A"));
 
   /* Compute square root of a symmetric matrix A */
-  CHKERRQ(MatDenseGetArray(A,&As));
+  PetscCall(MatDenseGetArray(A,&As));
   for (i=0;i<n;i++) As[i+i*n]=2.5;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) { As[i+(i+j)*n]=1.0; As[(i+j)+i*n]=1.0; }
   }
-  CHKERRQ(MatDenseRestoreArray(A,&As));
-  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
-  CHKERRQ(TestMatInvSqrt(fn,A,viewer,verbose,inplace));
+  PetscCall(MatDenseRestoreArray(A,&As));
+  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
+  PetscCall(TestMatInvSqrt(fn,A,viewer,verbose,inplace));
 
   /* Repeat with upper triangular A */
-  CHKERRQ(MatDenseGetArray(A,&As));
+  PetscCall(MatDenseGetArray(A,&As));
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) As[(i+j)+i*n]=0.0;
   }
-  CHKERRQ(MatDenseRestoreArray(A,&As));
-  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE));
-  CHKERRQ(TestMatInvSqrt(fn,A,viewer,verbose,inplace));
+  PetscCall(MatDenseRestoreArray(A,&As));
+  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE));
+  PetscCall(TestMatInvSqrt(fn,A,viewer,verbose,inplace));
 
   /* Repeat with non-symmetic A */
-  CHKERRQ(PetscRandomCreate(PETSC_COMM_WORLD,&myrand));
-  CHKERRQ(PetscRandomSetFromOptions(myrand));
-  CHKERRQ(PetscRandomSetInterval(myrand,0.0,1.0));
-  CHKERRQ(MatDenseGetArray(A,&As));
+  PetscCall(PetscRandomCreate(PETSC_COMM_WORLD,&myrand));
+  PetscCall(PetscRandomSetFromOptions(myrand));
+  PetscCall(PetscRandomSetInterval(myrand,0.0,1.0));
+  PetscCall(MatDenseGetArray(A,&As));
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) {
-      CHKERRQ(PetscRandomGetValueReal(myrand,&v));
+      PetscCall(PetscRandomGetValueReal(myrand,&v));
       As[(i+j)+i*n]=v;
     }
   }
-  CHKERRQ(MatDenseRestoreArray(A,&As));
-  CHKERRQ(PetscRandomDestroy(&myrand));
-  CHKERRQ(MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE));
-  CHKERRQ(TestMatInvSqrt(fn,A,viewer,verbose,inplace));
+  PetscCall(MatDenseRestoreArray(A,&As));
+  PetscCall(PetscRandomDestroy(&myrand));
+  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE));
+  PetscCall(TestMatInvSqrt(fn,A,viewer,verbose,inplace));
 
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(FNDestroy(&fn));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(MatDestroy(&A));
+  PetscCall(FNDestroy(&fn));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

@@ -53,11 +53,11 @@ static PetscErrorCode dvd_isrestarting_fullV(dvdDashboard *d,PetscBool *r)
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
 
   PetscFunctionBegin;
-  CHKERRQ(BVGetActiveColumns(d->eps->V,&l,&k));
+  PetscCall(BVGetActiveColumns(d->eps->V,&l,&k));
   restart = (k+2 > d->eps->ncv)? PETSC_TRUE: PETSC_FALSE;
 
   /* Check old isRestarting function */
-  if (PetscUnlikely(!restart && data->old_isRestarting)) CHKERRQ(data->old_isRestarting(d,&restart));
+  if (PetscUnlikely(!restart && data->old_isRestarting)) PetscCall(data->old_isRestarting(d,&restart));
   *r = restart;
   PetscFunctionReturn(0);
 }
@@ -71,11 +71,11 @@ static PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
   d->updateV_data = data->old_updateV_data;
 
   /* Free local data */
-  CHKERRQ(MatDestroy(&data->oldU));
-  CHKERRQ(MatDestroy(&data->oldV));
-  CHKERRQ(PetscFree(d->real_nR));
-  CHKERRQ(PetscFree(d->real_nX));
-  CHKERRQ(PetscFree(data));
+  PetscCall(MatDestroy(&data->oldU));
+  PetscCall(MatDestroy(&data->oldV));
+  PetscCall(PetscFree(d->real_nR));
+  PetscCall(PetscFree(d->real_nX));
+  PetscCall(PetscFree(data));
   PetscFunctionReturn(0);
 }
 
@@ -100,28 +100,28 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   npreconv = PetscMax(PetscMin(d->nev-d->nconv,npreconv),0);
 #endif
   /* For GHEP without B-ortho, converge all of the requested pairs at once */
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&t));
+  PetscCall(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&t));
   if (t && d->nconv+npreconv<d->nev) npreconv = 0;
   /* Quick exit */
   if (npreconv == 0) PetscFunctionReturn(0);
 
-  CHKERRQ(BVGetActiveColumns(d->eps->V,&lV,&kV));
+  PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   nV  = kV - lV;
   cMT = nV - npreconv;
   /* Harmonics restarts with right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
-    CHKERRQ(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
-    CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_Q,0,npreconv,Z,0,npreconv,nV,cMT,PETSC_FALSE));
-    CHKERRQ(MatDestroy(&Z));
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
+    PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,npreconv,Z,0,npreconv,nV,cMT,PETSC_FALSE));
+    PetscCall(MatDestroy(&Z));
   }
-  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) CHKERRQ(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds));
-  else CHKERRQ(DSOrthogonalize(d->eps->ds,DS_MAT_Q,nV,&cMTX));
+  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) PetscCall(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds));
+  else PetscCall(DSOrthogonalize(d->eps->ds,DS_MAT_Q,nV,&cMTX));
   cMT = cMTX - npreconv;
 
   if (d->W) {
-    CHKERRQ(DSOrthogonalize(d->eps->ds,DS_MAT_Z,nV,&cMTX));
+    PetscCall(DSOrthogonalize(d->eps->ds,DS_MAT_Z,nV,&cMTX));
     cMT = PetscMin(cMT,cMTX - npreconv);
   }
 
@@ -155,7 +155,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
      - keep converged vectors, npreconv;
      - keep at least 1 oldU direction if possible.
   */
-  CHKERRQ(BVGetActiveColumns(d->eps->V,&lV,&kV));
+  PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   nV = kV - lV;
   max_restart_size = PetscMax(0,PetscMin(d->eps->mpd - 1,d->eps->ncv - lV - 2));
   size_X = PetscMin(PetscMin(data->min_size_V+d->npreconv,max_restart_size - (max_restart_size - d->npreconv > 1 && data->plusk > 0 && data->size_oldU > 0 ? 1 : 0)), nV);
@@ -168,19 +168,19 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   /* Harmonics restarts with right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
-    CHKERRQ(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
-    CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,Z,0,0,nV,size_X,PETSC_FALSE));
-    CHKERRQ(MatDestroy(&Z));
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
+    PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,Z,0,0,nV,size_X,PETSC_FALSE));
+    PetscCall(MatDestroy(&Z));
   }
   PetscCheck(size_plusk<=0 || !DVD_IS(d->sEP,DVD_EP_INDEFINITE),PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
-  if (size_plusk > 0) CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_Q,0,size_X,data->oldU,0,0,nV,size_plusk,PETSC_FALSE));
-  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) CHKERRQ(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBds,&cMTX,d->nBds));
-  else CHKERRQ(DSOrthogonalize(d->eps->ds,DS_MAT_Q,size_X+size_plusk,&cMTX));
+  if (size_plusk > 0) PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,size_X,data->oldU,0,0,nV,size_plusk,PETSC_FALSE));
+  if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) PetscCall(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBds,&cMTX,d->nBds));
+  else PetscCall(DSOrthogonalize(d->eps->ds,DS_MAT_Q,size_X+size_plusk,&cMTX));
 
   if (d->W && size_plusk > 0) {
     /* ps.Z <- orth([ps.Z(0:size_X-1) [oldV(0:size_plusk-1); 0] ]) */
-    CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_Z,0,size_X,data->oldV,0,0,nV,size_plusk,PETSC_FALSE));
-    CHKERRQ(DSOrthogonalize(d->eps->ds,DS_MAT_Z,size_X+size_plusk,&cMTY));
+    PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Z,0,size_X,data->oldV,0,0,nV,size_plusk,PETSC_FALSE));
+    PetscCall(DSOrthogonalize(d->eps->ds,DS_MAT_Z,size_X+size_plusk,&cMTY));
     cMTX = PetscMin(cMTX, cMTY);
   }
   PetscAssert(cMTX<=size_X+size_plusk,PETSC_COMM_SELF,PETSC_ERR_SUP,"Invalid number of columns to restart");
@@ -212,7 +212,7 @@ static PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt p
 #else
     b = 1;
 #endif
-    if (i+b-1 >= pre) CHKERRQ(d->calcpairs_residual(d,i,i+b));
+    if (i+b-1 >= pre) PetscCall(d->calcpairs_residual(d,i,i+b));
     /* Test the Schur vector */
     for (j=0,c=PETSC_TRUE;j<b && c;j++) {
       norm = d->nR[i+j]/d->nX[i+j];
@@ -241,13 +241,13 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
   PetscFunctionBegin;
   /* Select the desired pairs */
-  CHKERRQ(BVGetActiveColumns(d->eps->V,&lV,&kV));
+  PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   nV = kV - lV;
   size_D = PetscMin(PetscMin(PetscMin(d->bs,nV),d->eps->ncv-nV),nV);
   if (size_D == 0) PetscFunctionReturn(0);
 
   /* Fill V with D */
-  CHKERRQ(d->improveX(d,d->npreconv,d->npreconv+size_D,&size_D));
+  PetscCall(d->improveX(d,d->npreconv,d->npreconv+size_D,&size_D));
 
   /* If D is empty, exit */
   d->size_D = size_D;
@@ -259,9 +259,9 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 #else
   s = 1;
 #endif
-  CHKERRQ(BVGetActiveColumns(d->eps->V,&lV,&kV));
+  PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   nV = kV - lV;
-  CHKERRQ(dvd_updateV_testConv(d,s,s,data->allResiduals?nV:size_D,NULL));
+  PetscCall(dvd_updateV_testConv(d,s,s,data->allResiduals?nV:size_D,NULL));
 
   /* Notify the changes in V */
   d->V_tra_s = 0;                 d->V_tra_e = 0;
@@ -269,12 +269,12 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 
   /* Save the projected eigenvectors */
   if (data->plusk > 0) {
-    CHKERRQ(MatZeroEntries(data->oldU));
+    PetscCall(MatZeroEntries(data->oldU));
     data->size_oldU = nV;
-    CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,data->oldU,0,0,nV,nV,PETSC_TRUE));
+    PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,data->oldU,0,0,nV,nV,PETSC_TRUE));
     if (d->W) {
-      CHKERRQ(MatZeroEntries(data->oldV));
-      CHKERRQ(DSCopyMat(d->eps->ds,DS_MAT_Z,0,0,data->oldV,0,0,nV,nV,PETSC_TRUE));
+      PetscCall(MatZeroEntries(data->oldV));
+      PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Z,0,0,data->oldV,0,0,nV,nV,PETSC_TRUE));
     }
   }
   PetscFunctionReturn(0);
@@ -288,31 +288,31 @@ static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 
   PetscFunctionBegin;
   /* TODO: restrict select pairs to each case */
-  CHKERRQ(d->calcpairs_selectPairs(d, data->min_size_V+d->npreconv));
+  PetscCall(d->calcpairs_selectPairs(d, data->min_size_V+d->npreconv));
 
   /* If the subspaces doesn't need restart, add new vector */
-  CHKERRQ(d->isRestarting(d,&restart));
+  PetscCall(d->isRestarting(d,&restart));
   if (!restart) {
     d->size_D = 0;
-    CHKERRQ(dvd_updateV_update_gen(d));
+    PetscCall(dvd_updateV_update_gen(d));
 
     /* If no vector were converged, exit */
     /* For GHEP without B-ortho, converge all of the requested pairs at once */
-    CHKERRQ(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&t));
+    PetscCall(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&t));
     if (d->nconv+d->npreconv < d->nev && (t || d->npreconv == 0)) PetscFunctionReturn(0);
   }
 
   /* If some eigenpairs were converged, lock them  */
   if (d->npreconv > 0) {
     i = d->npreconv;
-    CHKERRQ(dvd_updateV_conv_gen(d));
+    PetscCall(dvd_updateV_conv_gen(d));
 
     /* If some eigenpair was locked, exit */
     if (i > d->npreconv) PetscFunctionReturn(0);
   }
 
   /* Else, a restarting is performed */
-  CHKERRQ(dvd_updateV_restart_gen(d));
+  PetscCall(dvd_updateV_restart_gen(d));
   PetscFunctionReturn(0);
 }
 
@@ -342,7 +342,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    CHKERRQ(PetscNewLog(d->eps,&data));
+    PetscCall(PetscNewLog(d->eps,&data));
     data->mpd = b->max_size_V;
     data->min_size_V = min_size_V;
     d->bs = bs;
@@ -352,11 +352,11 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
     d->eigr = d->eps->eigr;
     d->eigi = d->eps->eigi;
     d->errest = d->eps->errest;
-    CHKERRQ(PetscMalloc1(d->eps->ncv,&d->real_nR));
-    CHKERRQ(PetscMalloc1(d->eps->ncv,&d->real_nX));
-    if (plusk > 0) CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&data->oldU));
+    PetscCall(PetscMalloc1(d->eps->ncv,&d->real_nR));
+    PetscCall(PetscMalloc1(d->eps->ncv,&d->real_nX));
+    if (plusk > 0) PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&data->oldU));
     else data->oldU = NULL;
-    if (harm && plusk>0) CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&data->oldV));
+    if (harm && plusk>0) PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,d->eps->ncv,d->eps->ncv,NULL,&data->oldV));
     else data->oldV = NULL;
 
     data->old_updateV_data = d->updateV_data;
@@ -365,8 +365,8 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
     d->isRestarting = dvd_isrestarting_fullV;
     d->updateV = dvd_updateV_extrapol;
     d->preTestConv = dvd_updateV_testConv;
-    CHKERRQ(EPSDavidsonFLAdd(&d->startList,dvd_updateV_start));
-    CHKERRQ(EPSDavidsonFLAdd(&d->destroyList,dvd_managementV_basic_d));
+    PetscCall(EPSDavidsonFLAdd(&d->startList,dvd_updateV_start));
+    PetscCall(EPSDavidsonFLAdd(&d->destroyList,dvd_managementV_basic_d));
   }
   PetscFunctionReturn(0);
 }

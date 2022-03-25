@@ -76,17 +76,17 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   PetscCheck(eps->mpd>=initv,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The initv parameter has to be less than or equal to mpd");
 
   /* Change the default sigma to inf if necessary */
-  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) CHKERRQ(STSetDefaultShift(eps->st,PETSC_MAX_REAL));
+  if (eps->which == EPS_LARGEST_MAGNITUDE || eps->which == EPS_LARGEST_REAL || eps->which == EPS_LARGEST_IMAGINARY) PetscCall(STSetDefaultShift(eps->st,PETSC_MAX_REAL));
 
   /* Set up preconditioner */
-  CHKERRQ(STSetUp(eps->st));
+  PetscCall(STSetUp(eps->st));
 
   /* Setup problem specification in dvd */
-  CHKERRQ(STGetNumMatrices(eps->st,&nmat));
-  CHKERRQ(STGetMatrix(eps->st,0,&A));
-  if (nmat>1) CHKERRQ(STGetMatrix(eps->st,1,&B));
-  CHKERRQ(EPSReset_XD(eps));
-  CHKERRQ(PetscMemzero(dvd,sizeof(dvdDashboard)));
+  PetscCall(STGetNumMatrices(eps->st,&nmat));
+  PetscCall(STGetMatrix(eps->st,0,&A));
+  if (nmat>1) PetscCall(STGetMatrix(eps->st,1,&B));
+  PetscCall(EPSReset_XD(eps));
+  PetscCall(PetscMemzero(dvd,sizeof(dvdDashboard)));
   dvd->A = A; dvd->B = eps->isgeneralized? B: NULL;
   ispositive = eps->ispositive;
   dvd->sA = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN: 0) | ((ispositive && !eps->isgeneralized) ? DVD_MAT_POS_DEF: 0);
@@ -124,7 +124,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
       dvd->target[1] = 1.0;
       break;
     case EPS_WHICH_USER:
-      CHKERRQ(STGetShift(eps->st,&target));
+      PetscCall(STGetShift(eps->st,&target));
       dvd->target[0] = target;
       dvd->target[1] = 1.0;
       break;
@@ -172,18 +172,18 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   init = data->krylovstart? DVD_INITV_KRYLOV: DVD_INITV_CLASSIC;
 
   /* Preconfigure dvd */
-  CHKERRQ(STGetKSP(eps->st,&ksp));
-  CHKERRQ(dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,ksp,init,eps->trackall,data->ipB,data->doubleexp));
+  PetscCall(STGetKSP(eps->st,&ksp));
+  PetscCall(dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,ksp,init,eps->trackall,data->ipB,data->doubleexp));
 
   /* Allocate memory */
-  CHKERRQ(EPSAllocateSolution(eps,0));
+  PetscCall(EPSAllocateSolution(eps,0));
 
   /* Setup orthogonalization */
-  CHKERRQ(EPS_SetInnerProduct(eps));
-  if (!(ipB && dvd->B)) CHKERRQ(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
+  PetscCall(EPS_SetInnerProduct(eps));
+  if (!(ipB && dvd->B)) PetscCall(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
 
   /* Configure dvd for a basic GD */
-  CHKERRQ(dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,data->fix,init,eps->trackall,data->ipB,data->dynamic,data->doubleexp));
+  PetscCall(dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,data->fix,init,eps->trackall,data->ipB,data->dynamic,data->doubleexp));
   PetscFunctionReturn(0);
 }
 
@@ -194,35 +194,35 @@ PetscErrorCode EPSSolve_XD(EPS eps)
   PetscInt       l,k;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscCitationsRegister(citation,&cited));
+  PetscCall(PetscCitationsRegister(citation,&cited));
   /* Call the starting routines */
-  CHKERRQ(EPSDavidsonFLCall(d->startList,d));
+  PetscCall(EPSDavidsonFLCall(d->startList,d));
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
 
     /* Initialize V, if it is needed */
-    CHKERRQ(BVGetActiveColumns(d->eps->V,&l,&k));
-    if (PetscUnlikely(l == k)) CHKERRQ(d->initV(d));
+    PetscCall(BVGetActiveColumns(d->eps->V,&l,&k));
+    if (PetscUnlikely(l == k)) PetscCall(d->initV(d));
 
     /* Find the best approximated eigenpairs in V, X */
-    CHKERRQ(d->calcPairs(d));
+    PetscCall(d->calcPairs(d));
 
     /* Test for convergence */
-    CHKERRQ((*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx));
+    PetscCall((*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx));
     if (eps->reason != EPS_CONVERGED_ITERATING) break;
 
     /* Expand the subspace */
-    CHKERRQ(d->updateV(d));
+    PetscCall(d->updateV(d));
 
     /* Monitor progress */
     eps->nconv = d->nconv;
     eps->its++;
-    CHKERRQ(BVGetActiveColumns(d->eps->V,NULL,&k));
-    CHKERRQ(EPSMonitor(eps,eps->its,eps->nconv+d->npreconv,eps->eigr,eps->eigi,eps->errest,PetscMin(k,eps->nev)));
+    PetscCall(BVGetActiveColumns(d->eps->V,NULL,&k));
+    PetscCall(EPSMonitor(eps,eps->its,eps->nconv+d->npreconv,eps->eigr,eps->eigi,eps->errest,PetscMin(k,eps->nev)));
   }
 
   /* Call the ending routines */
-  CHKERRQ(EPSDavidsonFLCall(d->endList,d));
+  PetscCall(EPSDavidsonFLCall(d->endList,d));
   PetscFunctionReturn(0);
 }
 
@@ -233,10 +233,10 @@ PetscErrorCode EPSReset_XD(EPS eps)
 
   PetscFunctionBegin;
   /* Call step destructors and destroys the list */
-  CHKERRQ(EPSDavidsonFLCall(dvd->destroyList,dvd));
-  CHKERRQ(EPSDavidsonFLDestroy(&dvd->destroyList));
-  CHKERRQ(EPSDavidsonFLDestroy(&dvd->startList));
-  CHKERRQ(EPSDavidsonFLDestroy(&dvd->endList));
+  PetscCall(EPSDavidsonFLCall(dvd->destroyList,dvd));
+  PetscCall(EPSDavidsonFLDestroy(&dvd->destroyList));
+  PetscCall(EPSDavidsonFLDestroy(&dvd->startList));
+  PetscCall(EPSDavidsonFLDestroy(&dvd->endList));
   PetscFunctionReturn(0);
 }
 
@@ -363,14 +363,14 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
   PetscBool      symm;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->ds,DSHEP,&symm));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->ds,DSHEP,&symm));
   if (symm) PetscFunctionReturn(0);
-  CHKERRQ(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
+  PetscCall(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
 
   /* V <- V * X */
-  CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&X));
-  CHKERRQ(BVSetActiveColumns(eps->V,0,eps->nconv));
-  CHKERRQ(BVMultInPlace(eps->V,X,0,eps->nconv));
-  CHKERRQ(MatDestroy(&X));
+  PetscCall(DSGetMat(eps->ds,DS_MAT_X,&X));
+  PetscCall(BVSetActiveColumns(eps->V,0,eps->nconv));
+  PetscCall(BVMultInPlace(eps->V,X,0,eps->nconv));
+  PetscCall(MatDestroy(&X));
   PetscFunctionReturn(0);
 }

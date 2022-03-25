@@ -39,18 +39,18 @@ static void* mv_TempMultiVectorCreateFromBV(void* ii_,BlopexInt n,void* sample)
   x->mask = NULL;
   x->ownsMask = 0;
 
-  CHKERRABORT(PETSC_COMM_SELF,BVGetActiveColumns(bv,&l,&k));
-  CHKERRABORT(PETSC_COMM_SELF,PetscObjectComposedDataGetInt((PetscObject)bv,slepc_blopex_useconstr,useconstr,flg));
+  PetscCallAbort(PETSC_COMM_SELF,BVGetActiveColumns(bv,&l,&k));
+  PetscCallAbort(PETSC_COMM_SELF,PetscObjectComposedDataGetInt((PetscObject)bv,slepc_blopex_useconstr,useconstr,flg));
   if (!l && flg && useconstr) {
-    CHKERRABORT(PETSC_COMM_SELF,BVGetNumConstraints(bv,&nc));
+    PetscCallAbort(PETSC_COMM_SELF,BVGetNumConstraints(bv,&nc));
     l = -nc;
   }
   if (n != k-l) SETERRABORT(PETSC_COMM_SELF,PETSC_ERR_PLIB,"BV active columns plus constraints do not match argument n");
   for (i=0;i<n;i++) {
-    CHKERRABORT(PETSC_COMM_SELF,BVGetColumn(bv,l+i,&v));
-    CHKERRABORT(PETSC_COMM_SELF,PetscObjectReference((PetscObject)v));
+    PetscCallAbort(PETSC_COMM_SELF,BVGetColumn(bv,l+i,&v));
+    PetscCallAbort(PETSC_COMM_SELF,PetscObjectReference((PetscObject)v));
     x->vector[i] = (void*)v;
-    CHKERRABORT(PETSC_COMM_SELF,BVRestoreColumn(bv,l+i,&v));
+    PetscCallAbort(PETSC_COMM_SELF,BVRestoreColumn(bv,l+i,&v));
   }
   return x;
 }

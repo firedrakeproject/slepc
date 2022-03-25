@@ -47,142 +47,142 @@ int main(int argc,char **argv)
   PetscScalar    lambda;
   PetscBool      flag,terse,errok,hasmat;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
-  CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-target",&target,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-target",&target,NULL));
   N = n*m;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid) target=%f\n\n",N,n,m,(double)target));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid) target=%f\n\n",N,n,m,(double)target));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the 5-point stencil Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
-    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
-    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
-    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(A,II,II,4.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatCreateVecs(A,&x,NULL));
-  CHKERRQ(MatGetLocalSize(A,&nloc,&mloc));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,&x,NULL));
+  PetscCall(MatGetLocalSize(A,&nloc,&mloc));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create shell matrix to perform spectrum folding
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(PetscNew(&ctx));
+  PetscCall(PetscNew(&ctx));
   ctx->A = A;
   ctx->target = target;
-  CHKERRQ(VecDuplicate(x,&ctx->w));
+  PetscCall(VecDuplicate(x,&ctx->w));
 
-  CHKERRQ(MatCreateShell(PETSC_COMM_WORLD,nloc,mloc,N,N,ctx,&M));
-  CHKERRQ(MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatMult_Fold));
+  PetscCall(MatCreateShell(PETSC_COMM_WORLD,nloc,mloc,N,N,ctx,&M));
+  PetscCall(MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatMult_Fold));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,M,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));
-  CHKERRQ(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,M,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
+  PetscCall(EPSSetFromOptions(eps));
 
-  CHKERRQ(PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,EPSBLOPEX,EPSLOBPCG,EPSRQCG,""));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,EPSBLOPEX,EPSLOBPCG,EPSRQCG,""));
   if (flag) {
     /*
        Build preconditioner specific for this application (diagonal of A^2)
     */
-    CHKERRQ(MatGetRowSum(A,x));
-    CHKERRQ(VecScale(x,-1.0));
-    CHKERRQ(VecShift(x,20.0));
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&P));
-    CHKERRQ(MatSetSizes(P,PETSC_DECIDE,PETSC_DECIDE,N,N));
-    CHKERRQ(MatSetFromOptions(P));
-    CHKERRQ(MatSetUp(P));
-    CHKERRQ(MatDiagonalSet(P,x,INSERT_VALUES));
+    PetscCall(MatGetRowSum(A,x));
+    PetscCall(VecScale(x,-1.0));
+    PetscCall(VecShift(x,20.0));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&P));
+    PetscCall(MatSetSizes(P,PETSC_DECIDE,PETSC_DECIDE,N,N));
+    PetscCall(MatSetFromOptions(P));
+    PetscCall(MatSetUp(P));
+    PetscCall(MatDiagonalSet(P,x,INSERT_VALUES));
     /*
        Set diagonal preconditioner
     */
-    CHKERRQ(EPSGetST(eps,&st));
-    CHKERRQ(STSetType(st,STPRECOND));
-    CHKERRQ(STSetPreconditionerMat(st,P));
-    CHKERRQ(MatDestroy(&P));
-    CHKERRQ(STGetKSP(st,&ksp));
-    CHKERRQ(KSPGetPC(ksp,&pc));
-    CHKERRQ(PCSetType(pc,PCJACOBI));
-    CHKERRQ(STPrecondGetKSPHasMat(st,&hasmat));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Preconditioned solver, hasmat=%s\n",hasmat?"true":"false"));
+    PetscCall(EPSGetST(eps,&st));
+    PetscCall(STSetType(st,STPRECOND));
+    PetscCall(STSetPreconditionerMat(st,P));
+    PetscCall(MatDestroy(&P));
+    PetscCall(STGetKSP(st,&ksp));
+    PetscCall(KSPGetPC(ksp,&pc));
+    PetscCall(PCSetType(pc,PCJACOBI));
+    PetscCall(STPrecondGetKSPHasMat(st,&hasmat));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Preconditioned solver, hasmat=%s\n",hasmat?"true":"false"));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(EPSGetType(eps,&type));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
-  CHKERRQ(EPSGetTolerances(eps,&tol,NULL));
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSGetType(eps,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(EPSGetTolerances(eps,&tol,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSGetConverged(eps,&nconv));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv));
+  PetscCall(EPSGetConverged(eps,&nconv));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv));
   if (nconv>0) {
-    CHKERRQ(PetscMalloc2(nconv,&evals,nconv,&error));
+    PetscCall(PetscMalloc2(nconv,&evals,nconv,&error));
     for (i=0;i<nconv;i++) {
       /*  Get i-th eigenvector, compute eigenvalue approximation from
           Rayleigh quotient and compute residual norm */
-      CHKERRQ(EPSGetEigenpair(eps,i,NULL,NULL,x,NULL));
-      CHKERRQ(RayleighQuotient(A,x,&lambda));
-      CHKERRQ(ComputeResidualNorm(A,lambda,x,&error[i]));
+      PetscCall(EPSGetEigenpair(eps,i,NULL,NULL,x,NULL));
+      PetscCall(RayleighQuotient(A,x,&lambda));
+      PetscCall(ComputeResidualNorm(A,lambda,x,&error[i]));
 #if defined(PETSC_USE_COMPLEX)
       evals[i] = PetscRealPart(lambda);
 #else
       evals[i] = lambda;
 #endif
     }
-    CHKERRQ(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+    PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
     if (!terse) {
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,
+      PetscCall(PetscPrintf(PETSC_COMM_WORLD,
            "           k              ||Ax-kx||\n"
            "   ----------------- ------------------\n"));
-      for (i=0;i<nconv;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12.2g\n",(double)evals[i],(double)error[i]));
+      for (i=0;i<nconv;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12.2g\n",(double)evals[i],(double)error[i]));
     } else {
       errok = PETSC_TRUE;
       for (i=0;i<nconv;i++) errok = (errok && error[i]<5.0*tol)? PETSC_TRUE: PETSC_FALSE;
-      if (!errok) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nconv));
+      if (!errok) PetscCall(PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nconv));
       else {
-        CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," nconv=%" PetscInt_FMT " eigenvalues computed up to the required tolerance:",nconv));
-        for (i=0;i<nconv;i++) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %.5f",(double)evals[i]));
+        PetscCall(PetscPrintf(PETSC_COMM_WORLD," nconv=%" PetscInt_FMT " eigenvalues computed up to the required tolerance:",nconv));
+        for (i=0;i<nconv;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD," %.5f",(double)evals[i]));
       }
     }
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
-    CHKERRQ(PetscFree2(evals,error));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+    PetscCall(PetscFree2(evals,error));
   }
 
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&M));
-  CHKERRQ(VecDestroy(&ctx->w));
-  CHKERRQ(VecDestroy(&x));
-  CHKERRQ(PetscFree(ctx));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&M));
+  PetscCall(VecDestroy(&ctx->w));
+  PetscCall(VecDestroy(&x));
+  PetscCall(PetscFree(ctx));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 
@@ -196,12 +196,12 @@ PetscErrorCode MatMult_Fold(Mat M,Vec x,Vec y)
   PetscScalar    sigma;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(M,&ctx));
+  PetscCall(MatShellGetContext(M,&ctx));
   sigma = -ctx->target;
-  CHKERRQ(MatMult(ctx->A,x,ctx->w));
-  CHKERRQ(VecAXPY(ctx->w,sigma,x));
-  CHKERRQ(MatMult(ctx->A,ctx->w,y));
-  CHKERRQ(VecAXPY(y,sigma,ctx->w));
+  PetscCall(MatMult(ctx->A,x,ctx->w));
+  PetscCall(VecAXPY(ctx->w,sigma,x));
+  PetscCall(MatMult(ctx->A,ctx->w,y));
+  PetscCall(VecAXPY(y,sigma,ctx->w));
   PetscFunctionReturn(0);
 }
 
@@ -214,10 +214,10 @@ PetscErrorCode RayleighQuotient(Mat A,Vec x,PetscScalar *r)
   Vec            Ax;
 
   PetscFunctionBeginUser;
-  CHKERRQ(VecDuplicate(x,&Ax));
-  CHKERRQ(MatMult(A,x,Ax));
-  CHKERRQ(VecDot(Ax,x,r));
-  CHKERRQ(VecDestroy(&Ax));
+  PetscCall(VecDuplicate(x,&Ax));
+  PetscCall(MatMult(A,x,Ax));
+  PetscCall(VecDot(Ax,x,r));
+  PetscCall(VecDestroy(&Ax));
   PetscFunctionReturn(0);
 }
 
@@ -229,11 +229,11 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscScalar lambda,Vec x,PetscReal *r)
   Vec            Ax;
 
   PetscFunctionBeginUser;
-  CHKERRQ(VecDuplicate(x,&Ax));
-  CHKERRQ(MatMult(A,x,Ax));
-  CHKERRQ(VecAXPY(Ax,-lambda,x));
-  CHKERRQ(VecNorm(Ax,NORM_2,r));
-  CHKERRQ(VecDestroy(&Ax));
+  PetscCall(VecDuplicate(x,&Ax));
+  PetscCall(MatMult(A,x,Ax));
+  PetscCall(VecAXPY(Ax,-lambda,x));
+  PetscCall(VecNorm(Ax,NORM_2,r));
+  PetscCall(VecDestroy(&Ax));
   PetscFunctionReturn(0);
 }
 

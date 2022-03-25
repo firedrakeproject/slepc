@@ -27,10 +27,10 @@ const char *const*LMEConvergedReasons = LMEConvergedReasons_Shifted + 2;
 PetscErrorCode LMEFinalizePackage(void)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFunctionListDestroy(&LMEList));
-  CHKERRQ(PetscFunctionListDestroy(&LMEMonitorList));
-  CHKERRQ(PetscFunctionListDestroy(&LMEMonitorCreateList));
-  CHKERRQ(PetscFunctionListDestroy(&LMEMonitorDestroyList));
+  PetscCall(PetscFunctionListDestroy(&LMEList));
+  PetscCall(PetscFunctionListDestroy(&LMEMonitorList));
+  PetscCall(PetscFunctionListDestroy(&LMEMonitorCreateList));
+  PetscCall(PetscFunctionListDestroy(&LMEMonitorDestroyList));
   LMEPackageInitialized       = PETSC_FALSE;
   LMERegisterAllCalled        = PETSC_FALSE;
   LMEMonitorRegisterAllCalled = PETSC_FALSE;
@@ -56,26 +56,26 @@ PetscErrorCode LMEInitializePackage(void)
   if (LMEPackageInitialized) PetscFunctionReturn(0);
   LMEPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  CHKERRQ(PetscClassIdRegister("Lin. Matrix Equation",&LME_CLASSID));
+  PetscCall(PetscClassIdRegister("Lin. Matrix Equation",&LME_CLASSID));
   /* Register Constructors */
-  CHKERRQ(LMERegisterAll());
+  PetscCall(LMERegisterAll());
   /* Register Monitors */
-  CHKERRQ(LMEMonitorRegisterAll());
+  PetscCall(LMEMonitorRegisterAll());
   /* Register Events */
-  CHKERRQ(PetscLogEventRegister("LMESetUp",LME_CLASSID,&LME_SetUp));
-  CHKERRQ(PetscLogEventRegister("LMESolve",LME_CLASSID,&LME_Solve));
-  CHKERRQ(PetscLogEventRegister("LMEComputeError",LME_CLASSID,&LME_ComputeError));
+  PetscCall(PetscLogEventRegister("LMESetUp",LME_CLASSID,&LME_SetUp));
+  PetscCall(PetscLogEventRegister("LMESolve",LME_CLASSID,&LME_Solve));
+  PetscCall(PetscLogEventRegister("LMEComputeError",LME_CLASSID,&LME_ComputeError));
   /* Process Info */
   classids[0] = LME_CLASSID;
-  CHKERRQ(PetscInfoProcessClass("lme",1,&classids[0]));
+  PetscCall(PetscInfoProcessClass("lme",1,&classids[0]));
   /* Process summary exclusions */
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    CHKERRQ(PetscStrInList("lme",logList,',',&pkg));
-    if (pkg) CHKERRQ(PetscLogEventDeactivateClass(LME_CLASSID));
+    PetscCall(PetscStrInList("lme",logList,',',&pkg));
+    if (pkg) PetscCall(PetscLogEventDeactivateClass(LME_CLASSID));
   }
   /* Register package finalizer */
-  CHKERRQ(PetscRegisterFinalize(LMEFinalizePackage));
+  PetscCall(PetscRegisterFinalize(LMEFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -90,7 +90,7 @@ PetscErrorCode LMEInitializePackage(void)
 SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme()
 {
   PetscFunctionBegin;
-  CHKERRQ(LMEInitializePackage());
+  PetscCall(LMEInitializePackage());
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

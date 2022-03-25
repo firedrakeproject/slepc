@@ -32,12 +32,12 @@ PetscErrorCode FNRegisterAll(void)
   PetscFunctionBegin;
   if (FNRegisterAllCalled) PetscFunctionReturn(0);
   FNRegisterAllCalled = PETSC_TRUE;
-  CHKERRQ(FNRegister(FNCOMBINE,FNCreate_Combine));
-  CHKERRQ(FNRegister(FNRATIONAL,FNCreate_Rational));
-  CHKERRQ(FNRegister(FNEXP,FNCreate_Exp));
-  CHKERRQ(FNRegister(FNLOG,FNCreate_Log));
-  CHKERRQ(FNRegister(FNPHI,FNCreate_Phi));
-  CHKERRQ(FNRegister(FNSQRT,FNCreate_Sqrt));
-  CHKERRQ(FNRegister(FNINVSQRT,FNCreate_Invsqrt));
+  PetscCall(FNRegister(FNCOMBINE,FNCreate_Combine));
+  PetscCall(FNRegister(FNRATIONAL,FNCreate_Rational));
+  PetscCall(FNRegister(FNEXP,FNCreate_Exp));
+  PetscCall(FNRegister(FNLOG,FNCreate_Log));
+  PetscCall(FNRegister(FNPHI,FNCreate_Phi));
+  PetscCall(FNRegister(FNSQRT,FNCreate_Sqrt));
+  PetscCall(FNRegister(FNINVSQRT,FNCreate_Invsqrt));
   PetscFunctionReturn(0);
 }

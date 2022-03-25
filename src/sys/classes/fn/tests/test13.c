@@ -26,47 +26,47 @@ PetscErrorCode TestMatLog(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   PetscReal      nrm;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatGetSize(A,&n,NULL));
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F));
-  CHKERRQ(PetscObjectSetName((PetscObject)F,"F"));
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&R));
-  CHKERRQ(PetscObjectSetName((PetscObject)R,"R"));
-  CHKERRQ(FNGetScale(fn,&tau,&eta));
+  PetscCall(MatGetSize(A,&n,NULL));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F));
+  PetscCall(PetscObjectSetName((PetscObject)F,"F"));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&R));
+  PetscCall(PetscObjectSetName((PetscObject)R,"R"));
+  PetscCall(FNGetScale(fn,&tau,&eta));
   /* compute matrix logarithm */
   if (inplace) {
-    CHKERRQ(MatCopy(A,F,SAME_NONZERO_PATTERN));
-    CHKERRQ(MatIsHermitianKnown(A,&set,&flg));
-    if (set && flg) CHKERRQ(MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE));
-    CHKERRQ(FNEvaluateFunctionMat(fn,F,NULL));
-  } else CHKERRQ(FNEvaluateFunctionMat(fn,A,F));
+    PetscCall(MatCopy(A,F,SAME_NONZERO_PATTERN));
+    PetscCall(MatIsHermitianKnown(A,&set,&flg));
+    if (set && flg) PetscCall(MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE));
+    PetscCall(FNEvaluateFunctionMat(fn,F,NULL));
+  } else PetscCall(FNEvaluateFunctionMat(fn,A,F));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
-    CHKERRQ(MatView(A,viewer));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Computed logm(A) - - - - - - -\n"));
-    CHKERRQ(MatView(F,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
+    PetscCall(MatView(A,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed logm(A) - - - - - - -\n"));
+    PetscCall(MatView(F,viewer));
   }
   /* check error ||expm(F)-A||_F */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fnexp));
-  CHKERRQ(FNSetType(fnexp,FNEXP));
-  CHKERRQ(MatCopy(F,R,SAME_NONZERO_PATTERN));
-  if (eta!=1.0) CHKERRQ(MatScale(R,1.0/eta));
-  CHKERRQ(FNEvaluateFunctionMat(fnexp,R,NULL));
-  CHKERRQ(FNDestroy(&fnexp));
-  CHKERRQ(MatAXPY(R,-tau,A,SAME_NONZERO_PATTERN));
-  CHKERRQ(MatNorm(R,NORM_FROBENIUS,&nrm));
-  if (nrm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F < 100*eps\n"));
-  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F = %g\n",(double)nrm));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fnexp));
+  PetscCall(FNSetType(fnexp,FNEXP));
+  PetscCall(MatCopy(F,R,SAME_NONZERO_PATTERN));
+  if (eta!=1.0) PetscCall(MatScale(R,1.0/eta));
+  PetscCall(FNEvaluateFunctionMat(fnexp,R,NULL));
+  PetscCall(FNDestroy(&fnexp));
+  PetscCall(MatAXPY(R,-tau,A,SAME_NONZERO_PATTERN));
+  PetscCall(MatNorm(R,NORM_FROBENIUS,&nrm));
+  if (nrm<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F < 100*eps\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F = %g\n",(double)nrm));
   /* check FNEvaluateFunctionMatVec() */
-  CHKERRQ(MatCreateVecs(A,&v,&f0));
-  CHKERRQ(MatGetColumnVector(F,f0,0));
-  CHKERRQ(FNEvaluateFunctionMatVec(fn,A,v));
-  CHKERRQ(VecAXPY(v,-1.0,f0));
-  CHKERRQ(VecNorm(v,NORM_2,&nrm));
-  if (nrm>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
-  CHKERRQ(MatDestroy(&F));
-  CHKERRQ(MatDestroy(&R));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(VecDestroy(&f0));
+  PetscCall(MatCreateVecs(A,&v,&f0));
+  PetscCall(MatGetColumnVector(F,f0,0));
+  PetscCall(FNEvaluateFunctionMatVec(fn,A,v));
+  PetscCall(VecAXPY(v,-1.0,f0));
+  PetscCall(VecNorm(v,NORM_2,&nrm));
+  if (nrm>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm));
+  PetscCall(MatDestroy(&F));
+  PetscCall(MatDestroy(&R));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&f0));
   PetscFunctionReturn(0);
 }
 
@@ -79,32 +79,32 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,inplace,random,triang;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-random",&random));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-triang",&triang));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix logarithm, n=%" PetscInt_FMT ".\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-random",&random));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-triang",&triang));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix logarithm, n=%" PetscInt_FMT ".\n",n));
 
   /* Create logarithm function object */
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn));
-  CHKERRQ(FNSetType(fn,FNLOG));
-  CHKERRQ(FNSetFromOptions(fn));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fn));
+  PetscCall(FNSetType(fn,FNLOG));
+  PetscCall(FNSetFromOptions(fn));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  CHKERRQ(FNView(fn,viewer));
-  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(FNView(fn,viewer));
+  if (verbose) PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Create matrices */
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
-  CHKERRQ(PetscObjectSetName((PetscObject)A,"A"));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  PetscCall(PetscObjectSetName((PetscObject)A,"A"));
 
-  if (random) CHKERRQ(MatSetRandom(A,NULL));
+  if (random) PetscCall(MatSetRandom(A,NULL));
   else {
     /* Fill A with a non-symmetric Toeplitz matrix */
-    CHKERRQ(MatDenseGetArray(A,&As));
+    PetscCall(MatDenseGetArray(A,&As));
     for (i=0;i<n;i++) As[i+i*n]=2.0;
     for (j=1;j<3;j++) {
       for (i=0;i<n-j;i++) {
@@ -114,13 +114,13 @@ int main(int argc,char **argv)
     }
     As[(n-1)*n] = -5.0;
     As[0] = 2.01;
-    CHKERRQ(MatDenseRestoreArray(A,&As));
+    PetscCall(MatDenseRestoreArray(A,&As));
   }
-  CHKERRQ(TestMatLog(fn,A,viewer,verbose,inplace));
+  PetscCall(TestMatLog(fn,A,viewer,verbose,inplace));
 
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(FNDestroy(&fn));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(MatDestroy(&A));
+  PetscCall(FNDestroy(&fn));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

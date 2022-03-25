@@ -10,16 +10,16 @@
 static PetscErrorCode SlepcInitializePackageAll(void)
 {
   PetscFunctionBegin;
-  CHKERRQ(EPSInitializePackage());
-  CHKERRQ(SVDInitializePackage());
-  CHKERRQ(PEPInitializePackage());
-  CHKERRQ(NEPInitializePackage());
-  CHKERRQ(MFNInitializePackage());
-  CHKERRQ(STInitializePackage());
-  CHKERRQ(BVInitializePackage());
-  CHKERRQ(DSInitializePackage());
-  CHKERRQ(FNInitializePackage());
-  CHKERRQ(RGInitializePackage());
+  PetscCall(EPSInitializePackage());
+  PetscCall(SVDInitializePackage());
+  PetscCall(PEPInitializePackage());
+  PetscCall(NEPInitializePackage());
+  PetscCall(MFNInitializePackage());
+  PetscCall(STInitializePackage());
+  PetscCall(BVInitializePackage());
+  PetscCall(DSInitializePackage());
+  PetscCall(FNInitializePackage());
+  PetscCall(RGInitializePackage());
   PetscFunctionReturn(0);
 }
 

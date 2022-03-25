@@ -47,8 +47,8 @@ static PetscErrorCode dvd_improvex_precond_d(dvdDashboard *d)
 
   PetscFunctionBegin;
   /* Free local data */
-  CHKERRQ(PCDestroy(&dvdpc->pc));
-  CHKERRQ(PetscFree(d->improvex_precond_data));
+  PetscCall(PCDestroy(&dvdpc->pc));
+  PetscCall(PetscFree(d->improvex_precond_data));
   PetscFunctionReturn(0);
 }
 
@@ -57,7 +57,7 @@ static PetscErrorCode dvd_static_precond_PC_0(dvdDashboard *d,PetscInt i,Vec x,V
   dvdPCWrapper   *dvdpc = (dvdPCWrapper*)d->improvex_precond_data;
 
   PetscFunctionBegin;
-  CHKERRQ(PCApply(dvdpc->pc,x,Px));
+  PetscCall(PCApply(dvdpc->pc,x,Px));
   PetscFunctionReturn(0);
 }
 
@@ -67,7 +67,7 @@ static PetscErrorCode dvd_static_precond_PC_0(dvdDashboard *d,PetscInt i,Vec x,V
 static PetscErrorCode dvd_precond_none(dvdDashboard *d,PetscInt i,Vec x,Vec Px)
 {
   PetscFunctionBegin;
-  CHKERRQ(VecCopy(x,Px));
+  PetscCall(VecCopy(x,Px));
   PetscFunctionReturn(0);
 }
 
@@ -85,31 +85,31 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
   if (b->state >= DVD_STATE_CONF) {
     /* If the preconditioner is valid */
     if (pc) {
-      CHKERRQ(PetscNewLog(d->eps,&dvdpc));
+      PetscCall(PetscNewLog(d->eps,&dvdpc));
       dvdpc->pc = pc;
-      CHKERRQ(PetscObjectReference((PetscObject)pc));
+      PetscCall(PetscObjectReference((PetscObject)pc));
       d->improvex_precond_data = dvdpc;
       d->improvex_precond = dvd_static_precond_PC_0;
 
       /* PC saves the matrix associated with the linear system, and it has to
          be initialize to a valid matrix */
-      CHKERRQ(PCGetOperatorsSet(pc,NULL,&t0));
-      CHKERRQ(PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t1));
-      CHKERRQ(PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t2));
+      PetscCall(PCGetOperatorsSet(pc,NULL,&t0));
+      PetscCall(PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t1));
+      PetscCall(PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t2));
       if (t0 && !t1) {
-        CHKERRQ(PCGetOperators(pc,NULL,&P));
-        CHKERRQ(PetscObjectReference((PetscObject)P));
-        CHKERRQ(PCSetOperators(pc,P,P));
-        CHKERRQ(PCSetReusePreconditioner(pc,PETSC_TRUE));
-        CHKERRQ(MatDestroy(&P));
+        PetscCall(PCGetOperators(pc,NULL,&P));
+        PetscCall(PetscObjectReference((PetscObject)P));
+        PetscCall(PCSetOperators(pc,P,P));
+        PetscCall(PCSetReusePreconditioner(pc,PETSC_TRUE));
+        PetscCall(MatDestroy(&P));
       } else if (t2) {
-        CHKERRQ(PCSetOperators(pc,d->A,d->A));
-        CHKERRQ(PCSetReusePreconditioner(pc,PETSC_TRUE));
+        PetscCall(PCSetOperators(pc,d->A,d->A));
+        PetscCall(PCSetReusePreconditioner(pc,PETSC_TRUE));
       } else {
         d->improvex_precond = dvd_precond_none;
       }
 
-      CHKERRQ(EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_precond_d));
+      PetscCall(EPSDavidsonFLAdd(&d->destroyList,dvd_improvex_precond_d));
 
     /* Else, use no preconditioner */
     } else d->improvex_precond = dvd_precond_none;
@@ -121,7 +121,7 @@ static PetscErrorCode dvd_harm_d(dvdDashboard *d)
 {
   PetscFunctionBegin;
   /* Free local data */
-  CHKERRQ(PetscFree(d->calcpairs_W_data));
+  PetscCall(PetscFree(d->calcpairs_W_data));
   PetscFunctionReturn(0);
 }
 
@@ -164,20 +164,20 @@ static PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 
   PetscFunctionBegin;
   /* Update the target if it is necessary */
-  if (!data->withTarget) CHKERRQ(dvd_harm_transf(data,d->eigr[0]));
+  if (!data->withTarget) PetscCall(dvd_harm_transf(data,d->eigr[0]));
 
   /* W(i) <- Wa*AV(i) - Wb*BV(i) */
-  CHKERRQ(BVGetActiveColumns(d->eps->V,&l,&k));
+  PetscCall(BVGetActiveColumns(d->eps->V,&l,&k));
   PetscAssert(k==l+d->V_new_s,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
-  CHKERRQ(BVSetActiveColumns(d->W,l+d->V_new_s,l+d->V_new_e));
-  CHKERRQ(BVSetActiveColumns(d->AX,l+d->V_new_s,l+d->V_new_e));
-  CHKERRQ(BVSetActiveColumns(BX,l+d->V_new_s,l+d->V_new_e));
-  CHKERRQ(BVCopy(d->AX,d->W));
-  CHKERRQ(BVScale(d->W,data->Wa));
-  CHKERRQ(BVMult(d->W,-data->Wb,1.0,BX,NULL));
-  CHKERRQ(BVSetActiveColumns(d->W,l,k));
-  CHKERRQ(BVSetActiveColumns(d->AX,l,k));
-  CHKERRQ(BVSetActiveColumns(BX,l,k));
+  PetscCall(BVSetActiveColumns(d->W,l+d->V_new_s,l+d->V_new_e));
+  PetscCall(BVSetActiveColumns(d->AX,l+d->V_new_s,l+d->V_new_e));
+  PetscCall(BVSetActiveColumns(BX,l+d->V_new_s,l+d->V_new_e));
+  PetscCall(BVCopy(d->AX,d->W));
+  PetscCall(BVScale(d->W,data->Wa));
+  PetscCall(BVMult(d->W,-data->Wb,1.0,BX,NULL));
+  PetscCall(BVSetActiveColumns(d->W,l,k));
+  PetscCall(BVSetActiveColumns(d->AX,l,k));
+  PetscCall(BVSetActiveColumns(BX,l,k));
   PetscFunctionReturn(0);
 }
 
@@ -188,12 +188,12 @@ static PetscErrorCode dvd_harm_proj(dvdDashboard *d)
   PetscScalar    h,g,*H,*G;
 
   PetscFunctionBegin;
-  CHKERRQ(BVGetActiveColumns(d->eps->V,&l0,&k));
+  PetscCall(BVGetActiveColumns(d->eps->V,&l0,&k));
   l = l0 + d->V_new_s;
   k = l0 + d->V_new_e;
-  CHKERRQ(MatGetSize(d->H,&ld,NULL));
-  CHKERRQ(MatDenseGetArray(d->H,&H));
-  CHKERRQ(MatDenseGetArray(d->G,&G));
+  PetscCall(MatGetSize(d->H,&ld,NULL));
+  PetscCall(MatDenseGetArray(d->H,&H));
+  PetscCall(MatDenseGetArray(d->G,&G));
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
   /* Right part */
   for (i=l;i<k;i++) {
@@ -213,8 +213,8 @@ static PetscErrorCode dvd_harm_proj(dvdDashboard *d)
       G[ld*i+j] = data->Wa*h - data->Wb*g;
     }
   }
-  CHKERRQ(MatDenseRestoreArray(d->H,&H));
-  CHKERRQ(MatDenseRestoreArray(d->G,&G));
+  PetscCall(MatDenseRestoreArray(d->H,&H));
+  PetscCall(MatDenseRestoreArray(d->G,&G));
   PetscFunctionReturn(0);
 }
 
@@ -225,11 +225,11 @@ PetscErrorCode dvd_harm_updateproj(dvdDashboard *d)
   PetscScalar    h,g,*H,*G;
 
   PetscFunctionBegin;
-  CHKERRQ(BVGetActiveColumns(d->eps->V,&l,&k));
+  PetscCall(BVGetActiveColumns(d->eps->V,&l,&k));
   k = l + d->V_tra_s;
-  CHKERRQ(MatGetSize(d->H,&ld,NULL));
-  CHKERRQ(MatDenseGetArray(d->H,&H));
-  CHKERRQ(MatDenseGetArray(d->G,&G));
+  PetscCall(MatGetSize(d->H,&ld,NULL));
+  PetscCall(MatDenseGetArray(d->H,&H));
+  PetscCall(MatDenseGetArray(d->G,&G));
   /* [H G] <- [Pa*H - Pb*G, Wa*H - Wb*G] */
   /* Right part */
   for (i=l;i<k;i++) {
@@ -249,8 +249,8 @@ PetscErrorCode dvd_harm_updateproj(dvdDashboard *d)
       G[ld*i+j] = data->Wa*h - data->Wb*g;
     }
   }
-  CHKERRQ(MatDenseRestoreArray(d->H,&H));
-  CHKERRQ(MatDenseRestoreArray(d->G,&G));
+  PetscCall(MatDenseRestoreArray(d->H,&H));
+  PetscCall(MatDenseRestoreArray(d->G,&G));
   PetscFunctionReturn(0);
 }
 
@@ -280,7 +280,7 @@ static PetscErrorCode dvd_harm_eig_backtrans(dvdDashboard *d,PetscScalar ar,Pets
   dvdHarmonic    *data = (dvdHarmonic*)d->calcpairs_W_data;
 
   PetscFunctionBegin;
-  CHKERRQ(dvd_harm_backtrans(data,&ar,&ai));
+  PetscCall(dvd_harm_backtrans(data,&ar,&ai));
   *br = ar;
   *bi = ai;
   PetscFunctionReturn(0);
@@ -292,8 +292,8 @@ static PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
   PetscInt       i,l,k;
 
   PetscFunctionBegin;
-  CHKERRQ(BVGetActiveColumns(d->eps->V,&l,&k));
-  for (i=0;i<k-l;i++) CHKERRQ(dvd_harm_backtrans(data,&d->eigr[i],&d->eigi[i]));
+  PetscCall(BVGetActiveColumns(d->eps->V,&l,&k));
+  for (i=0;i<k-l;i++) PetscCall(dvd_harm_backtrans(data,&d->eigr[i],&d->eigi[i]));
   PetscFunctionReturn(0);
 }
 
@@ -308,7 +308,7 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,Pe
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    CHKERRQ(PetscNewLog(d->eps,&dvdh));
+    PetscCall(PetscNewLog(d->eps,&dvdh));
     dvdh->withTarget = fixedTarget;
     dvdh->mode = mode;
     if (fixedTarget) dvd_harm_transf(dvdh, t);
@@ -318,7 +318,7 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,Pe
     d->calcpairs_eigs_trans = dvd_harm_eigs_trans;
     d->calcpairs_eig_backtrans = dvd_harm_eig_backtrans;
 
-    CHKERRQ(EPSDavidsonFLAdd(&d->destroyList,dvd_harm_d));
+    PetscCall(EPSDavidsonFLAdd(&d->destroyList,dvd_harm_d));
   }
   PetscFunctionReturn(0);
 }

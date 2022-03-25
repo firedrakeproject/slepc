@@ -36,26 +36,26 @@ PetscErrorCode CheckNormalizedVectors(EPS eps)
 #endif
 
   PetscFunctionBeginUser;
-  CHKERRQ(EPSGetConverged(eps,&nconv));
+  PetscCall(EPSGetConverged(eps,&nconv));
   if (nconv>0) {
-    CHKERRQ(EPSGetOperators(eps,&A,NULL));
-    CHKERRQ(MatCreateVecs(A,&xr,&xi));
+    PetscCall(EPSGetOperators(eps,&A,NULL));
+    PetscCall(MatCreateVecs(A,&xr,&xi));
     for (i=0;i<nconv;i++) {
-      CHKERRQ(EPSGetEigenvector(eps,i,xr,xi));
+      PetscCall(EPSGetEigenvector(eps,i,xr,xi));
 #if defined(PETSC_USE_COMPLEX)
-      CHKERRQ(VecNorm(xr,NORM_2,&normr));
+      PetscCall(VecNorm(xr,NORM_2,&normr));
       error = PetscMax(error,PetscAbsReal(normr-PetscRealConstant(1.0)));
 #else
-      CHKERRQ(VecNormBegin(xr,NORM_2,&normr));
-      CHKERRQ(VecNormBegin(xi,NORM_2,&normi));
-      CHKERRQ(VecNormEnd(xr,NORM_2,&normr));
-      CHKERRQ(VecNormEnd(xi,NORM_2,&normi));
+      PetscCall(VecNormBegin(xr,NORM_2,&normr));
+      PetscCall(VecNormBegin(xi,NORM_2,&normi));
+      PetscCall(VecNormEnd(xr,NORM_2,&normr));
+      PetscCall(VecNormEnd(xi,NORM_2,&normi));
       error = PetscMax(error,PetscAbsReal(SlepcAbsEigenvalue(normr,normi)-PetscRealConstant(1.0)));
 #endif
     }
-    CHKERRQ(VecDestroy(&xr));
-    CHKERRQ(VecDestroy(&xi));
-    if (error>100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Vectors are not normalized. Error=%g\n",(double)error));
+    PetscCall(VecDestroy(&xr));
+    PetscCall(VecDestroy(&xi));
+    if (error>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Vectors are not normalized. Error=%g\n",(double)error));
   }
   PetscFunctionReturn(0);
 }
@@ -70,22 +70,22 @@ int main(int argc,char **argv)
   PetscScalar    origin=0.0;
   PetscBool      flg,delay,skipnorm=PETSC_FALSE;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",N,m));
-  CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-skipnorm",&skipnorm,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",N,m));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-skipnorm",&skipnorm,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
-  CHKERRQ(MatMarkovModel(m,A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatMarkovModel(m,A));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -94,60 +94,60 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  CHKERRQ(EPSSetOperators(eps,A,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_NHEP));
-  CHKERRQ(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
 
   /*
      Set the custom comparing routine in order to obtain the eigenvalues
      closest to the target on the right only
   */
-  CHKERRQ(EPSSetEigenvalueComparison(eps,MyEigenSort,&origin));
+  PetscCall(EPSSetEigenvalueComparison(eps,MyEigenSort,&origin));
 
   /*
      Set solver parameters at runtime
   */
-  CHKERRQ(EPSSetFromOptions(eps));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps,EPSARNOLDI,&flg));
+  PetscCall(EPSSetFromOptions(eps));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps,EPSARNOLDI,&flg));
   if (flg) {
-    CHKERRQ(EPSArnoldiGetDelayed(eps,&delay));
-    if (delay) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Warning: delayed reorthogonalization may be unstable\n"));
+    PetscCall(EPSArnoldiGetDelayed(eps,&delay));
+    if (delay) PetscCall(PetscPrintf(PETSC_COMM_WORLD," Warning: delayed reorthogonalization may be unstable\n"));
   }
 
   /*
      Set the initial vector. This is optional, if not done the initial
      vector is set to random values
   */
-  CHKERRQ(MatCreateVecs(A,&v0,NULL));
-  CHKERRQ(VecSetValue(v0,0,-1.5,INSERT_VALUES));
-  CHKERRQ(VecSetValue(v0,1,2.1,INSERT_VALUES));
-  CHKERRQ(VecAssemblyBegin(v0));
-  CHKERRQ(VecAssemblyEnd(v0));
-  CHKERRQ(EPSSetInitialSpace(eps,1,&v0));
+  PetscCall(MatCreateVecs(A,&v0,NULL));
+  PetscCall(VecSetValue(v0,0,-1.5,INSERT_VALUES));
+  PetscCall(VecSetValue(v0,1,2.1,INSERT_VALUES));
+  PetscCall(VecAssemblyBegin(v0));
+  PetscCall(VecAssemblyEnd(v0));
+  PetscCall(EPSSetInitialSpace(eps,1,&v0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSSolve(eps));
-  CHKERRQ(EPSGetDimensions(eps,&nev,NULL,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  if (!skipnorm) CHKERRQ(CheckNormalizedVectors(eps));
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(VecDestroy(&v0));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  if (!skipnorm) PetscCall(CheckNormalizedVectors(eps));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v0));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 
@@ -158,7 +158,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   PetscInt        Istart,Iend,i,j,jmax,ix=0;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=1;i<=m;i++) {
     jmax = m-i+1;
     for (j=1;j<=jmax;j++) {
@@ -167,21 +167,21 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
       if (j!=jmax) {
         pd = cst*(PetscReal)(i+j-1);
         /* north */
-        if (i==1) CHKERRQ(MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES));
-        else CHKERRQ(MatSetValue(A,ix-1,ix,pd,INSERT_VALUES));
+        if (i==1) PetscCall(MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES));
+        else PetscCall(MatSetValue(A,ix-1,ix,pd,INSERT_VALUES));
         /* east */
-        if (j==1) CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES));
-        else CHKERRQ(MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES));
+        if (j==1) PetscCall(MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES));
+        else PetscCall(MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES));
       }
       /* south */
       pu = 0.5 - cst*(PetscReal)(i+j-3);
-      if (j>1) CHKERRQ(MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES));
+      if (j>1) PetscCall(MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES));
       /* west */
-      if (i>1) CHKERRQ(MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES));
+      if (i>1) PetscCall(MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES));
     }
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
 }
 

@@ -75,7 +75,7 @@ PetscErrorCode RGIntervalSetEndpoints(RG rg,PetscReal a,PetscReal b,PetscReal c,
   PetscValidLogicalCollectiveReal(rg,b,3);
   PetscValidLogicalCollectiveReal(rg,c,4);
   PetscValidLogicalCollectiveReal(rg,d,5);
-  CHKERRQ(PetscTryMethod(rg,"RGIntervalSetEndpoints_C",(RG,PetscReal,PetscReal,PetscReal,PetscReal),(rg,a,b,c,d)));
+  PetscCall(PetscTryMethod(rg,"RGIntervalSetEndpoints_C",(RG,PetscReal,PetscReal,PetscReal,PetscReal),(rg,a,b,c,d)));
   PetscFunctionReturn(0);
 }
 
@@ -113,7 +113,7 @@ PetscErrorCode RGIntervalGetEndpoints(RG rg,PetscReal *a,PetscReal *b,PetscReal 
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  CHKERRQ(PetscUseMethod(rg,"RGIntervalGetEndpoints_C",(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,a,b,c,d)));
+  PetscCall(PetscUseMethod(rg,"RGIntervalGetEndpoints_C",(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,a,b,c,d)));
   PetscFunctionReturn(0);
 }
 
@@ -127,17 +127,17 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
   PetscReal      a,b,c,d,ab,cd,lx,ly,w,scale=1.2;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isascii) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  region: [%g,%g]x[%g,%g]\n",RGShowReal(ctx->a),RGShowReal(ctx->b),RGShowReal(ctx->c),RGShowReal(ctx->d)));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  if (isascii) PetscCall(PetscViewerASCIIPrintf(viewer,"  region: [%g,%g]x[%g,%g]\n",RGShowReal(ctx->a),RGShowReal(ctx->b),RGShowReal(ctx->c),RGShowReal(ctx->d)));
   else if (isdraw) {
-    CHKERRQ(PetscViewerDrawGetDraw(viewer,0,&draw));
-    CHKERRQ(PetscDrawCheckResizedWindow(draw));
-    CHKERRQ(PetscDrawGetWindowSize(draw,&winw,&winh));
+    PetscCall(PetscViewerDrawGetDraw(viewer,0,&draw));
+    PetscCall(PetscDrawCheckResizedWindow(draw));
+    PetscCall(PetscDrawGetWindowSize(draw,&winw,&winh));
     winw = PetscMax(winw,1); winh = PetscMax(winh,1);
-    CHKERRQ(PetscDrawClear(draw));
-    CHKERRQ(PetscDrawSetTitle(draw,"Interval region"));
-    CHKERRQ(PetscDrawAxisCreate(draw,&axis));
+    PetscCall(PetscDrawClear(draw));
+    PetscCall(PetscDrawSetTitle(draw,"Interval region"));
+    PetscCall(PetscDrawAxisCreate(draw,&axis));
     a  = ctx->a*rg->sfactor;
     b  = ctx->b*rg->sfactor;
     c  = ctx->c*rg->sfactor;
@@ -147,13 +147,13 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
     ab = (a+b)/2;
     cd = (c+d)/2;
     w  = scale*PetscMax(lx/winw,ly/winh)/2;
-    CHKERRQ(PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh));
-    CHKERRQ(PetscDrawAxisDraw(axis));
-    CHKERRQ(PetscDrawAxisDestroy(&axis));
-    CHKERRQ(PetscDrawRectangle(draw,a,c,b,d,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE));
-    CHKERRQ(PetscDrawFlush(draw));
-    CHKERRQ(PetscDrawSave(draw));
-    CHKERRQ(PetscDrawPause(draw));
+    PetscCall(PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh));
+    PetscCall(PetscDrawAxisDraw(axis));
+    PetscCall(PetscDrawAxisDestroy(&axis));
+    PetscCall(PetscDrawRectangle(draw,a,c,b,d,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE));
+    PetscCall(PetscDrawFlush(draw));
+    PetscCall(PetscDrawSave(draw));
+    PetscCall(PetscDrawPause(draw));
   }
   PetscFunctionReturn(0);
 }
@@ -322,25 +322,25 @@ PetscErrorCode RGSetFromOptions_Interval(PetscOptionItems *PetscOptionsObject,RG
   PetscReal      array[4]={0,0,0,0};
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"RG Interval Options"));
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"RG Interval Options"));
 
     k = 4;
-    CHKERRQ(PetscOptionsRealArray("-rg_interval_endpoints","Interval endpoints (two or four real values separated with a comma without spaces)","RGIntervalSetEndpoints",array,&k,&flg));
+    PetscCall(PetscOptionsRealArray("-rg_interval_endpoints","Interval endpoints (two or four real values separated with a comma without spaces)","RGIntervalSetEndpoints",array,&k,&flg));
     if (flg) {
       PetscCheck(k>1,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"Must pass at least two values in -rg_interval_endpoints (comma-separated without spaces)");
-      CHKERRQ(RGIntervalSetEndpoints(rg,array[0],array[1],array[2],array[3]));
+      PetscCall(RGIntervalSetEndpoints(rg,array[0],array[1],array[2],array[3]));
     }
 
-  CHKERRQ(PetscOptionsTail());
+  PetscCall(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode RGDestroy_Interval(RG rg)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(rg->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalSetEndpoints_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalGetEndpoints_C",NULL));
+  PetscCall(PetscFree(rg->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalSetEndpoints_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalGetEndpoints_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -349,7 +349,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
   RG_INTERVAL    *interval;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(rg,&interval));
+  PetscCall(PetscNewLog(rg,&interval));
   interval->a = -PETSC_MAX_REAL;
   interval->b = PETSC_MAX_REAL;
   interval->c = -PETSC_MAX_REAL;
@@ -365,7 +365,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
   rg->ops->setfromoptions    = RGSetFromOptions_Interval;
   rg->ops->view              = RGView_Interval;
   rg->ops->destroy           = RGDestroy_Interval;
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalSetEndpoints_C",RGIntervalSetEndpoints_Interval));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalGetEndpoints_C",RGIntervalGetEndpoints_Interval));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalSetEndpoints_C",RGIntervalSetEndpoints_Interval));
+  PetscCall(PetscObjectComposeFunction((PetscObject)rg,"RGIntervalGetEndpoints_C",RGIntervalGetEndpoints_Interval));
   PetscFunctionReturn(0);
 }

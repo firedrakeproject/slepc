@@ -14,12 +14,12 @@
 PetscErrorCode DSAllocate_GHEP(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
-  CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_A));
-  CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_B));
-  CHKERRQ(DSAllocateMat_Private(ds,DS_MAT_Q));
-  CHKERRQ(PetscFree(ds->perm));
-  CHKERRQ(PetscMalloc1(ld,&ds->perm));
-  CHKERRQ(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt)));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_B));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_Q));
+  PetscCall(PetscFree(ds->perm));
+  PetscCall(PetscMalloc1(ld,&ds->perm));
+  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt)));
   PetscFunctionReturn(0);
 }
 
@@ -28,12 +28,12 @@ PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
   PetscViewerFormat format;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscViewerGetFormat(viewer,&format));
+  PetscCall(PetscViewerGetFormat(viewer,&format));
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
-  CHKERRQ(DSViewMat(ds,viewer,DS_MAT_A));
-  CHKERRQ(DSViewMat(ds,viewer,DS_MAT_B));
-  if (ds->state>DS_STATE_INTERMEDIATE) CHKERRQ(DSViewMat(ds,viewer,DS_MAT_Q));
-  if (ds->mat[DS_MAT_X]) CHKERRQ(DSViewMat(ds,viewer,DS_MAT_X));
+  PetscCall(DSViewMat(ds,viewer,DS_MAT_A));
+  PetscCall(DSViewMat(ds,viewer,DS_MAT_B));
+  if (ds->state>DS_STATE_INTERMEDIATE) PetscCall(DSViewMat(ds,viewer,DS_MAT_Q));
+  if (ds->mat[DS_MAT_X]) PetscCall(DSViewMat(ds,viewer,DS_MAT_X));
   PetscFunctionReturn(0);
 }
 
@@ -48,14 +48,14 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     case DS_MAT_X:
     case DS_MAT_Y:
       if (j) {
-        if (ds->state>=DS_STATE_CONDENSED) CHKERRQ(PetscArraycpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld));
+        if (ds->state>=DS_STATE_CONDENSED) PetscCall(PetscArraycpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld));
         else {
-          CHKERRQ(PetscArrayzero(ds->mat[mat]+(*j)*ld,ld));
+          PetscCall(PetscArrayzero(ds->mat[mat]+(*j)*ld,ld));
           *(ds->mat[mat]+(*j)+(*j)*ld) = 1.0;
         }
       } else {
-        if (ds->state>=DS_STATE_CONDENSED) CHKERRQ(PetscArraycpy(ds->mat[mat],Q,ld*ld));
-        else CHKERRQ(DSSetIdentity(ds,mat));
+        if (ds->state>=DS_STATE_CONDENSED) PetscCall(PetscArraycpy(ds->mat[mat],Q,ld*ld));
+        else PetscCall(DSSetIdentity(ds,mat));
       }
       break;
     case DS_MAT_U:
@@ -79,11 +79,11 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   A  = ds->mat[DS_MAT_A];
   perm = ds->perm;
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
-  if (rr) CHKERRQ(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
-  else CHKERRQ(DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE));
+  if (rr) PetscCall(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
+  else PetscCall(DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE));
   for (i=l;i<n;i++) A[i+i*ld] = wr[perm[i]];
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
-  CHKERRQ(DSPermuteColumns_Private(ds,l,n,n,DS_MAT_Q,perm));
+  PetscCall(DSPermuteColumns_Private(ds,l,n,n,DS_MAT_Q,perm));
   PetscFunctionReturn(0);
 }
 
@@ -97,16 +97,16 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  CHKERRQ(PetscBLASIntCast(ds->n-ds->l,&n1));
-  CHKERRQ(PetscBLASIntCast(ds->ld,&ld));
-  CHKERRQ(PetscBLASIntCast(5*ds->n+3,&liwork));
+  PetscCall(PetscBLASIntCast(ds->n-ds->l,&n1));
+  PetscCall(PetscBLASIntCast(ds->ld,&ld));
+  PetscCall(PetscBLASIntCast(5*ds->n+3,&liwork));
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PetscBLASIntCast(ds->n*ds->n+2*ds->n,&lwork));
-  CHKERRQ(PetscBLASIntCast(2*ds->n*ds->n+5*ds->n+1+n1,&lrwork));
+  PetscCall(PetscBLASIntCast(ds->n*ds->n+2*ds->n,&lwork));
+  PetscCall(PetscBLASIntCast(2*ds->n*ds->n+5*ds->n+1+n1,&lrwork));
 #else
-  CHKERRQ(PetscBLASIntCast(2*ds->n*ds->n+6*ds->n+1,&lwork));
+  PetscCall(PetscBLASIntCast(2*ds->n*ds->n+6*ds->n+1,&lwork));
 #endif
-  CHKERRQ(DSAllocateWork_Private(ds,lwork,lrwork,liwork));
+  PetscCall(DSAllocateWork_Private(ds,lwork,lrwork,liwork));
   work = ds->work;
   iwork = ds->iwork;
   off = ds->l+ds->l*ld;
@@ -123,10 +123,10 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCallBLAS("LAPACKsygvd",LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,wr+ds->l,work,&lwork,iwork,&liwork,&info));
 #endif
   SlepcCheckLapackInfo("sygvd",info);
-  CHKERRQ(PetscArrayzero(Q+ds->l*ld,n1*ld));
-  for (i=ds->l;i<ds->n;i++) CHKERRQ(PetscArraycpy(Q+ds->l+i*ld,A+ds->l+i*ld,n1));
-  CHKERRQ(PetscArrayzero(B+ds->l*ld,n1*ld));
-  CHKERRQ(PetscArrayzero(A+ds->l*ld,n1*ld));
+  PetscCall(PetscArrayzero(Q+ds->l*ld,n1*ld));
+  for (i=ds->l;i<ds->n;i++) PetscCall(PetscArraycpy(Q+ds->l+i*ld,A+ds->l+i*ld,n1));
+  PetscCall(PetscArrayzero(B+ds->l*ld,n1*ld));
+  PetscCall(PetscArrayzero(A+ds->l*ld,n1*ld));
   for (i=ds->l;i<ds->n;i++) {
     if (wi) wi[i] = 0.0;
     B[i+i*ld] = 1.0;
@@ -144,23 +144,23 @@ PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   k = 2*(ds->n-l)*ld;
   if (ds->state>DS_STATE_RAW) k += (ds->n-l)*ld;
   if (eigr) k += (ds->n-l);
-  CHKERRQ(DSAllocateWork_Private(ds,k,0,0));
-  CHKERRQ(PetscMPIIntCast(k*sizeof(PetscScalar),&size));
-  CHKERRQ(PetscMPIIntCast(ds->n-l,&n));
-  CHKERRQ(PetscMPIIntCast(ld*(ds->n-l),&ldn));
-  CHKERRMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
+  PetscCall(DSAllocateWork_Private(ds,k,0,0));
+  PetscCall(PetscMPIIntCast(k*sizeof(PetscScalar),&size));
+  PetscCall(PetscMPIIntCast(ds->n-l,&n));
+  PetscCall(PetscMPIIntCast(ld*(ds->n-l),&ldn));
+  PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    if (ds->state>DS_STATE_RAW) CHKERRMPI(MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    if (eigr) CHKERRMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (ds->state>DS_STATE_RAW) PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (eigr) PetscCallMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
   }
-  CHKERRMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
+  PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    if (ds->state>DS_STATE_RAW) CHKERRMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    if (eigr) CHKERRMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (ds->state>DS_STATE_RAW) PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
   }
   PetscFunctionReturn(0);
 }

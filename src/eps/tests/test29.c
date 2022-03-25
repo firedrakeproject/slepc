@@ -32,65 +32,65 @@ int main(int argc,char **argv)
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized eigenproblem stored in file.\n\n"));
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized eigenproblem stored in file.\n\n"));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
   PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name for matrix A with the -f1 option");
 
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n"));
 #else
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n"));
 #endif
-  CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatLoad(A,viewer));
-  CHKERRQ(PetscViewerDestroy(&viewer));
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatLoad(A,viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
 
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
   if (flg) {
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-    CHKERRQ(MatSetFromOptions(B));
-    CHKERRQ(MatLoad(B,viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+    PetscCall(MatSetFromOptions(B));
+    PetscCall(MatLoad(B,viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   } else {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n"));
     B = NULL;
   }
-  CHKERRQ(MatCreateVecs(A,NULL,&t));
+  PetscCall(MatCreateVecs(A,NULL,&t));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,A,B));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,B));
 
   /* use a two-sided algorithm to compute left eigenvectors as well */
-  CHKERRQ(EPSSetTwoSided(eps,PETSC_TRUE));
+  PetscCall(EPSSetTwoSided(eps,PETSC_TRUE));
 
   /* allow user to change settings at run time */
-  CHKERRQ(EPSSetFromOptions(eps));
-  CHKERRQ(EPSGetTwoSided(eps,&twosided));
+  PetscCall(EPSSetFromOptions(eps));
+  PetscCall(EPSGetTwoSided(eps,&twosided));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSSolve(eps));
+  PetscCall(EPSSolve(eps));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  CHKERRQ(EPSGetType(eps,&type));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(EPSGetType(eps,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -99,22 +99,22 @@ int main(int argc,char **argv)
   /*
      Get number of converged approximate eigenpairs
   */
-  CHKERRQ(EPSGetConverged(eps,&nconv));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv));
-  CHKERRQ(PetscMalloc2(nconv,&kr,nconv,&ki));
-  CHKERRQ(VecDuplicateVecs(t,3,&z));
-  CHKERRQ(VecDuplicateVecs(t,nconv,&xr));
-  CHKERRQ(VecDuplicateVecs(t,nconv,&xi));
+  PetscCall(EPSGetConverged(eps,&nconv));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %" PetscInt_FMT "\n\n",nconv));
+  PetscCall(PetscMalloc2(nconv,&kr,nconv,&ki));
+  PetscCall(VecDuplicateVecs(t,3,&z));
+  PetscCall(VecDuplicateVecs(t,nconv,&xr));
+  PetscCall(VecDuplicateVecs(t,nconv,&xi));
   if (twosided) {
-    CHKERRQ(VecDuplicateVecs(t,nconv,&yr));
-    CHKERRQ(VecDuplicateVecs(t,nconv,&yi));
+    PetscCall(VecDuplicateVecs(t,nconv,&yr));
+    PetscCall(VecDuplicateVecs(t,nconv,&yi));
   }
 
   if (nconv>0) {
     /*
        Display eigenvalues and relative errors
     */
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,
          "           k            ||Ax-kBx||         ||y'A-y'Bk||\n"
          "   ---------------- ------------------ ------------------\n"));
 
@@ -123,13 +123,13 @@ int main(int argc,char **argv)
         Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
         ki (imaginary part)
       */
-      CHKERRQ(EPSGetEigenpair(eps,i,&kr[i],&ki[i],xr[i],xi[i]));
-      if (twosided) CHKERRQ(EPSGetLeftEigenvector(eps,i,yr[i],yi[i]));
+      PetscCall(EPSGetEigenpair(eps,i,&kr[i],&ki[i],xr[i],xi[i]));
+      if (twosided) PetscCall(EPSGetLeftEigenvector(eps,i,yr[i],yi[i]));
       /*
          Compute the residual norms associated to each eigenpair
       */
-      CHKERRQ(ComputeResidualNorm(A,B,PETSC_FALSE,kr[i],ki[i],xr[i],xi[i],z,&nrmr));
-      if (twosided) CHKERRQ(ComputeResidualNorm(A,B,PETSC_TRUE,kr[i],ki[i],yr[i],yi[i],z,&nrml));
+      PetscCall(ComputeResidualNorm(A,B,PETSC_FALSE,kr[i],ki[i],xr[i],xi[i],z,&nrmr));
+      if (twosided) PetscCall(ComputeResidualNorm(A,B,PETSC_TRUE,kr[i],ki[i],yr[i],yi[i],z,&nrml));
 
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr[i]);
@@ -138,33 +138,33 @@ int main(int argc,char **argv)
       re = kr[i];
       im = ki[i];
 #endif
-      if (im!=0.0) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g       %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml));
-      else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g       %12g\n",(double)re,(double)nrmr,(double)nrml));
+      if (im!=0.0) PetscCall(PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g       %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml));
+      else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g       %12g\n",(double)re,(double)nrmr,(double)nrml));
     }
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
     /*
        Check bi-orthogonality of eigenvectors
     */
     if (twosided) {
-      CHKERRQ(VecCheckOrthogonality(xr,nconv,yr,nconv,B,NULL,&lev));
-      if (lev<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors < 100*eps\n\n"));
-      else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors: %g\n\n",(double)lev));
+      PetscCall(VecCheckOrthogonality(xr,nconv,yr,nconv,B,NULL,&lev));
+      if (lev<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors < 100*eps\n\n"));
+      else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  Level of bi-orthogonality of eigenvectors: %g\n\n",(double)lev));
     }
   }
 
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(VecDestroy(&t));
-  CHKERRQ(PetscFree2(kr,ki));
-  CHKERRQ(VecDestroyVecs(3,&z));
-  CHKERRQ(VecDestroyVecs(nconv,&xr));
-  CHKERRQ(VecDestroyVecs(nconv,&xi));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(VecDestroy(&t));
+  PetscCall(PetscFree2(kr,ki));
+  PetscCall(VecDestroyVecs(3,&z));
+  PetscCall(VecDestroyVecs(nconv,&xr));
+  PetscCall(VecDestroyVecs(nconv,&xi));
   if (twosided) {
-    CHKERRQ(VecDestroyVecs(nconv,&yr));
-    CHKERRQ(VecDestroyVecs(nconv,&yi));
+    PetscCall(VecDestroyVecs(nconv,&yr));
+    PetscCall(VecDestroyVecs(nconv,&yi));
   }
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SlepcFinalize());
   return 0;
 }
 
@@ -196,32 +196,32 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
   v = z[1];
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    CHKERRQ((*matmult)(A,xr,u));                          /* u=A*x */
+    PetscCall((*matmult)(A,xr,u));                          /* u=A*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      if (B) CHKERRQ((*matmult)(B,xr,w));             /* w=B*x */
+      if (B) PetscCall((*matmult)(B,xr,w));             /* w=B*x */
       else w = xr;
       alpha = trans? -PetscConj(kr): -kr;
-      CHKERRQ(VecAXPY(u,alpha,w));                        /* u=A*x-k*B*x */
+      PetscCall(VecAXPY(u,alpha,w));                        /* u=A*x-k*B*x */
     }
-    CHKERRQ(VecNorm(u,NORM_2,norm));
+    PetscCall(VecNorm(u,NORM_2,norm));
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    CHKERRQ((*matmult)(A,xr,u));                          /* u=A*xr */
+    PetscCall((*matmult)(A,xr,u));                          /* u=A*xr */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      if (B) CHKERRQ((*matmult)(B,xr,v));             /* v=B*xr */
-      else CHKERRQ(VecCopy(xr,v));
-      CHKERRQ(VecAXPY(u,-kr,v));                          /* u=A*xr-kr*B*xr */
-      if (B) CHKERRQ((*matmult)(B,xi,w));             /* w=B*xi */
+      if (B) PetscCall((*matmult)(B,xr,v));             /* v=B*xr */
+      else PetscCall(VecCopy(xr,v));
+      PetscCall(VecAXPY(u,-kr,v));                          /* u=A*xr-kr*B*xr */
+      if (B) PetscCall((*matmult)(B,xi,w));             /* w=B*xi */
       else w = xi;
-      CHKERRQ(VecAXPY(u,trans?-ki:ki,w));                 /* u=A*xr-kr*B*xr+ki*B*xi */
+      PetscCall(VecAXPY(u,trans?-ki:ki,w));                 /* u=A*xr-kr*B*xr+ki*B*xi */
     }
-    CHKERRQ(VecNorm(u,NORM_2,&nr));
-    CHKERRQ((*matmult)(A,xi,u));                          /* u=A*xi */
+    PetscCall(VecNorm(u,NORM_2,&nr));
+    PetscCall((*matmult)(A,xi,u));                          /* u=A*xi */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      CHKERRQ(VecAXPY(u,-kr,w));                          /* u=A*xi-kr*B*xi */
-      CHKERRQ(VecAXPY(u,trans?ki:-ki,v));                 /* u=A*xi-kr*B*xi-ki*B*xr */
+      PetscCall(VecAXPY(u,-kr,w));                          /* u=A*xi-kr*B*xi */
+      PetscCall(VecAXPY(u,trans?ki:-ki,v));                 /* u=A*xi-kr*B*xi-ki*B*xr */
     }
-    CHKERRQ(VecNorm(u,NORM_2,&ni));
+    PetscCall(VecNorm(u,NORM_2,&ni));
     *norm = SlepcAbsEigenvalue(nr,ni);
   }
 #endif

@@ -32,10 +32,10 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   PetscInt       N;
 
   PetscFunctionBegin;
-  CHKERRQ(MatGetSize(mfn->A,&N,NULL));
+  PetscCall(MatGetSize(mfn->A,&N,NULL));
   if (mfn->ncv==PETSC_DEFAULT) mfn->ncv = PetscMin(30,N);
   if (mfn->max_it==PETSC_DEFAULT) mfn->max_it = 100;
-  CHKERRQ(MFNAllocateSolution(mfn,1));
+  PetscCall(MFNAllocateSolution(mfn,1));
   PetscFunctionReturn(0);
 }
 
@@ -53,56 +53,56 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscFunctionBegin;
   m  = mfn->ncv;
   ld = m+1;
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,ld,m,NULL,&M));
-  CHKERRQ(MatDenseGetArray(M,&marray));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ld,m,NULL,&M));
+  PetscCall(MatDenseGetArray(M,&marray));
 
   /* set initial vector to b/||b|| */
-  CHKERRQ(BVInsertVec(mfn->V,0,b));
-  CHKERRQ(BVScaleColumn(mfn->V,0,1.0/mfn->bnorm));
-  CHKERRQ(VecSet(x,0.0));
+  PetscCall(BVInsertVec(mfn->V,0,b));
+  PetscCall(BVScaleColumn(mfn->V,0,1.0/mfn->bnorm));
+  PetscCall(VecSet(x,0.0));
 
   /* Restart loop */
   while (mfn->reason == MFN_CONVERGED_ITERATING) {
     mfn->its++;
 
     /* compute Arnoldi factorization */
-    CHKERRQ(BVMatArnoldi(mfn->V,mfn->transpose_solve?mfn->AT:mfn->A,M,0,&m,&beta,&breakdown));
+    PetscCall(BVMatArnoldi(mfn->V,mfn->transpose_solve?mfn->AT:mfn->A,M,0,&m,&beta,&breakdown));
 
     /* save previous Hessenberg matrix in G; allocate new storage for H and f(H) */
     if (mfn->its>1) { G = H; H = NULL; }
     ldh = n+m;
-    CHKERRQ(MFN_CreateVec(ldh,&F));
-    CHKERRQ(MFN_CreateDenseMat(ldh,&H));
+    PetscCall(MFN_CreateVec(ldh,&F));
+    PetscCall(MFN_CreateDenseMat(ldh,&H));
 
     /* glue together the previous H and the new H obtained with Arnoldi */
-    CHKERRQ(MatDenseGetArray(H,&harray));
-    for (j=0;j<m;j++) CHKERRQ(PetscArraycpy(harray+n+(j+n)*ldh,marray+j*ld,m));
+    PetscCall(MatDenseGetArray(H,&harray));
+    for (j=0;j<m;j++) PetscCall(PetscArraycpy(harray+n+(j+n)*ldh,marray+j*ld,m));
     if (mfn->its>1) {
-      CHKERRQ(MatDenseGetArrayRead(G,&garray));
-      for (j=0;j<n;j++) CHKERRQ(PetscArraycpy(harray+j*ldh,garray+j*n,n));
-      CHKERRQ(MatDenseRestoreArrayRead(G,&garray));
-      CHKERRQ(MatDestroy(&G));
+      PetscCall(MatDenseGetArrayRead(G,&garray));
+      for (j=0;j<n;j++) PetscCall(PetscArraycpy(harray+j*ldh,garray+j*n,n));
+      PetscCall(MatDenseRestoreArrayRead(G,&garray));
+      PetscCall(MatDestroy(&G));
       harray[n+(n-1)*ldh] = betaold;
     }
-    CHKERRQ(MatDenseRestoreArray(H,&harray));
+    PetscCall(MatDenseRestoreArray(H,&harray));
 
     if (mfn->its==1) {
       /* set symmetry flag of H from A */
-      CHKERRQ(MatPropagateSymmetryOptions(mfn->A,H));
+      PetscCall(MatPropagateSymmetryOptions(mfn->A,H));
     }
 
     /* evaluate f(H) */
-    CHKERRQ(FNEvaluateFunctionMatVec(mfn->fn,H,F));
+    PetscCall(FNEvaluateFunctionMatVec(mfn->fn,H,F));
 
     /* x += ||b||*V*f(H)*e_1 */
-    CHKERRQ(VecGetArray(F,&farray));
-    CHKERRQ(PetscBLASIntCast(m,&m_));
+    PetscCall(VecGetArray(F,&farray));
+    PetscCall(PetscBLASIntCast(m,&m_));
     nrm = BLASnrm2_(&m_,farray+n,&inc);   /* relative norm of the update ||u||/||b|| */
-    CHKERRQ(MFNMonitor(mfn,mfn->its,nrm));
+    PetscCall(MFNMonitor(mfn,mfn->its,nrm));
     for (j=0;j<m;j++) farray[j+n] *= mfn->bnorm;
-    CHKERRQ(BVSetActiveColumns(mfn->V,0,m));
-    CHKERRQ(BVMultVec(mfn->V,1.0,1.0,x,farray+n));
-    CHKERRQ(VecRestoreArray(F,&farray));
+    PetscCall(BVSetActiveColumns(mfn->V,0,m));
+    PetscCall(BVMultVec(mfn->V,1.0,1.0,x,farray+n));
+    PetscCall(VecRestoreArray(F,&farray));
 
     /* check convergence */
     if (mfn->its >= mfn->max_it) mfn->reason = MFN_DIVERGED_ITS;
@@ -112,17 +112,17 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 
     /* restart with vector v_{m+1} */
     if (mfn->reason == MFN_CONVERGED_ITERATING) {
-      CHKERRQ(BVCopyColumn(mfn->V,m,0));
+      PetscCall(BVCopyColumn(mfn->V,m,0));
       n += m;
       betaold = beta;
     }
   }
 
-  CHKERRQ(MatDestroy(&H));
-  CHKERRQ(MatDestroy(&G));
-  CHKERRQ(VecDestroy(&F));
-  CHKERRQ(MatDenseRestoreArray(M,&marray));
-  CHKERRQ(MatDestroy(&M));
+  PetscCall(MatDestroy(&H));
+  PetscCall(MatDestroy(&G));
+  PetscCall(VecDestroy(&F));
+  PetscCall(MatDenseRestoreArray(M,&marray));
+  PetscCall(MatDestroy(&M));
   PetscFunctionReturn(0);
 }
 

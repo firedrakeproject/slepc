@@ -16,18 +16,18 @@ int main(int argc,char **argv)
 {
   FN             fn1,fn2;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn1));
-  CHKERRQ(FNSetOptionsPrefix(fn1,"f1_"));
-  CHKERRQ(FNSetFromOptions(fn1));
-  CHKERRQ(FNView(fn1,NULL));
-  CHKERRQ(FNDestroy(&fn1));
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn2));
-  CHKERRQ(FNSetOptionsPrefix(fn2,"f2_"));
-  CHKERRQ(FNSetFromOptions(fn2));
-  CHKERRQ(FNView(fn2,NULL));
-  CHKERRQ(FNDestroy(&fn2));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fn1));
+  PetscCall(FNSetOptionsPrefix(fn1,"f1_"));
+  PetscCall(FNSetFromOptions(fn1));
+  PetscCall(FNView(fn1,NULL));
+  PetscCall(FNDestroy(&fn1));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fn2));
+  PetscCall(FNSetOptionsPrefix(fn2,"f2_"));
+  PetscCall(FNSetFromOptions(fn2));
+  PetscCall(FNView(fn2,NULL));
+  PetscCall(FNDestroy(&fn2));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

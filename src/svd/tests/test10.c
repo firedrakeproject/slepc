@@ -38,84 +38,84 @@ int main(int argc,char **argv)
   BV             U,V;
   Vec            u,v;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) CHKERRQ(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
-    else if (i==n-1) CHKERRQ(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
+    else if (i==n-1) PetscCall(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatCreateVecs(A,&v,&u));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,&v,&u));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Create standalone BV objects to illustrate use of SVDSetBV()
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&U));
-  CHKERRQ(PetscObjectSetName((PetscObject)U,"U"));
-  CHKERRQ(BVSetSizesFromVec(U,u,k));
-  CHKERRQ(BVSetFromOptions(U));
-  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&V));
-  CHKERRQ(PetscObjectSetName((PetscObject)V,"V"));
-  CHKERRQ(BVSetSizesFromVec(V,v,k));
-  CHKERRQ(BVSetFromOptions(V));
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&U));
+  PetscCall(PetscObjectSetName((PetscObject)U,"U"));
+  PetscCall(BVSetSizesFromVec(U,u,k));
+  PetscCall(BVSetFromOptions(U));
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&V));
+  PetscCall(PetscObjectSetName((PetscObject)V,"V"));
+  PetscCall(BVSetSizesFromVec(V,v,k));
+  PetscCall(BVSetFromOptions(V));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
-  CHKERRQ(SVDSetBV(svd,V,U));
-  CHKERRQ(SVDSetOptionsPrefix(svd,"check_"));
-  CHKERRQ(SVDAppendOptionsPrefix(svd,"myprefix_"));
-  CHKERRQ(SVDGetOptionsPrefix(svd,&prefix));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"SVD prefix is currently: %s\n\n",prefix));
-  CHKERRQ(PetscObjectSetName((PetscObject)svd,"SVD_solver"));
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetBV(svd,V,U));
+  PetscCall(SVDSetOptionsPrefix(svd,"check_"));
+  PetscCall(SVDAppendOptionsPrefix(svd,"myprefix_"));
+  PetscCall(SVDGetOptionsPrefix(svd,&prefix));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"SVD prefix is currently: %s\n\n",prefix));
+  PetscCall(PetscObjectSetName((PetscObject)svd,"SVD_solver"));
 
-  CHKERRQ(SVDSetOperators(svd,A,NULL));
-  CHKERRQ(SVDSetType(svd,SVDLANCZOS));
-  CHKERRQ(SVDSetFromOptions(svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetType(svd,SVDLANCZOS));
+  PetscCall(SVDSetFromOptions(svd));
 
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)svd,SVDLANCZOS,&flg));
+  PetscCall(PetscObjectTypeCompare((PetscObject)svd,SVDLANCZOS,&flg));
   if (flg) {
-    CHKERRQ(SVDLanczosGetOneSide(svd,&oneside));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Running Lanczos %s\n\n",oneside?"(onesided)":""));
+    PetscCall(SVDLanczosGetOneSide(svd,&oneside));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Running Lanczos %s\n\n",oneside?"(onesided)":""));
   }
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)svd,SVDTRLANCZOS,&flg));
+  PetscCall(PetscObjectTypeCompare((PetscObject)svd,SVDTRLANCZOS,&flg));
   if (flg) {
-    CHKERRQ(SVDTRLanczosGetOneSide(svd,&oneside));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Running thick-restart Lanczos %s\n\n",oneside?"(onesided)":""));
+    PetscCall(SVDTRLanczosGetOneSide(svd,&oneside));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Running thick-restart Lanczos %s\n\n",oneside?"(onesided)":""));
   }
 
-  CHKERRQ(SVDSolve(svd));
+  PetscCall(SVDSolve(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
-  CHKERRQ(BVDestroy(&U));
-  CHKERRQ(BVDestroy(&V));
-  CHKERRQ(VecDestroy(&u));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(SVDDestroy(&svd));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(BVDestroy(&U));
+  PetscCall(BVDestroy(&V));
+  PetscCall(VecDestroy(&u));
+  PetscCall(VecDestroy(&v));
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

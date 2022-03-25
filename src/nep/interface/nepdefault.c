@@ -36,12 +36,12 @@ PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
 
   PetscFunctionBegin;
   if (nep->nwork < nw) {
-    CHKERRQ(VecDestroyVecs(nep->nwork,&nep->work));
+    PetscCall(VecDestroyVecs(nep->nwork,&nep->work));
     nep->nwork = nw;
-    CHKERRQ(BVGetColumn(nep->V,0,&t));
-    CHKERRQ(VecDuplicateVecs(t,nw,&nep->work));
-    CHKERRQ(BVRestoreColumn(nep->V,0,&t));
-    CHKERRQ(PetscLogObjectParents(nep,nw,nep->work));
+    PetscCall(BVGetColumn(nep->V,0,&t));
+    PetscCall(VecDuplicateVecs(t,nw,&nep->work));
+    PetscCall(BVRestoreColumn(nep->V,0,&t));
+    PetscCall(PetscLogObjectParents(nep,nw,nep->work));
   }
   PetscFunctionReturn(0);
 }
@@ -114,21 +114,21 @@ PetscErrorCode NEPConvergedNorm(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscR
 
   PetscFunctionBegin;
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) {
-    CHKERRQ(NEPComputeFunction(nep,eigr,nep->function,nep->function));
-    CHKERRQ(MatHasOperation(nep->function,MATOP_NORM,&flg));
+    PetscCall(NEPComputeFunction(nep,eigr,nep->function,nep->function));
+    PetscCall(MatHasOperation(nep->function,MATOP_NORM,&flg));
     PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
-    CHKERRQ(MatNorm(nep->function,NORM_INFINITY,&w));
+    PetscCall(MatNorm(nep->function,NORM_INFINITY,&w));
   } else {
     /* initialization of matrix norms */
     if (!nep->nrma[0]) {
       for (j=0;j<nep->nt;j++) {
-        CHKERRQ(MatHasOperation(nep->A[j],MATOP_NORM,&flg));
+        PetscCall(MatHasOperation(nep->A[j],MATOP_NORM,&flg));
         PetscCheck(flg,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The convergence test related to the matrix norms requires a matrix norm operation");
-        CHKERRQ(MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]));
+        PetscCall(MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]));
       }
     }
     for (j=0;j<nep->nt;j++) {
-      CHKERRQ(FNEvaluateFunction(nep->f[j],eigr,&s));
+      PetscCall(FNEvaluateFunction(nep->f[j],eigr,&s));
       w = w + nep->nrma[j]*PetscAbsScalar(s);
     }
   }
@@ -173,11 +173,11 @@ PetscErrorCode NEPStoppingBasic(NEP nep,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionBegin;
   *reason = NEP_CONVERGED_ITERATING;
   if (nconv >= nev) {
-    CHKERRQ(PetscInfo(nep,"Nonlinear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its));
+    PetscCall(PetscInfo(nep,"Nonlinear eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its));
     *reason = NEP_CONVERGED_TOL;
   } else if (its >= max_it) {
     *reason = NEP_DIVERGED_ITS;
-    CHKERRQ(PetscInfo(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
+    PetscCall(PetscInfo(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
   }
   PetscFunctionReturn(0);
 }
@@ -187,10 +187,10 @@ PetscErrorCode NEPComputeVectors_Schur(NEP nep)
   Mat            Z;
 
   PetscFunctionBegin;
-  CHKERRQ(DSVectors(nep->ds,DS_MAT_X,NULL,NULL));
-  CHKERRQ(DSGetMat(nep->ds,DS_MAT_X,&Z));
-  CHKERRQ(BVMultInPlace(nep->V,Z,0,nep->nconv));
-  CHKERRQ(MatDestroy(&Z));
-  CHKERRQ(BVNormalize(nep->V,nep->eigi));
+  PetscCall(DSVectors(nep->ds,DS_MAT_X,NULL,NULL));
+  PetscCall(DSGetMat(nep->ds,DS_MAT_X,&Z));
+  PetscCall(BVMultInPlace(nep->V,Z,0,nep->nconv));
+  PetscCall(MatDestroy(&Z));
+  PetscCall(BVNormalize(nep->V,nep->eigi));
   PetscFunctionReturn(0);
 }

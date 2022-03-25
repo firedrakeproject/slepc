@@ -38,38 +38,38 @@ PetscErrorCode EPSSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,EPS eps
   PetscReal      opf;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"EPS Jacobi-Davidson (JD) Options"));
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS Jacobi-Davidson (JD) Options"));
 
-    CHKERRQ(EPSJDGetKrylovStart(eps,&op));
-    CHKERRQ(PetscOptionsBool("-eps_jd_krylov_start","Start the search subspace with a Krylov basis","EPSJDSetKrylovStart",op,&op,&flg));
-    if (flg) CHKERRQ(EPSJDSetKrylovStart(eps,op));
+    PetscCall(EPSJDGetKrylovStart(eps,&op));
+    PetscCall(PetscOptionsBool("-eps_jd_krylov_start","Start the search subspace with a Krylov basis","EPSJDSetKrylovStart",op,&op,&flg));
+    if (flg) PetscCall(EPSJDSetKrylovStart(eps,op));
 
-    CHKERRQ(EPSJDGetBOrth(eps,&orth));
-    CHKERRQ(PetscOptionsBool("-eps_jd_borth","Use B-orthogonalization in the search subspace","EPSJDSetBOrth",op,&op,&flg));
-    if (flg) CHKERRQ(EPSJDSetBOrth(eps,op));
+    PetscCall(EPSJDGetBOrth(eps,&orth));
+    PetscCall(PetscOptionsBool("-eps_jd_borth","Use B-orthogonalization in the search subspace","EPSJDSetBOrth",op,&op,&flg));
+    if (flg) PetscCall(EPSJDSetBOrth(eps,op));
 
-    CHKERRQ(EPSJDGetBlockSize(eps,&opi));
-    CHKERRQ(PetscOptionsInt("-eps_jd_blocksize","Number of vectors to add to the search subspace","EPSJDSetBlockSize",opi,&opi,&flg));
-    if (flg) CHKERRQ(EPSJDSetBlockSize(eps,opi));
+    PetscCall(EPSJDGetBlockSize(eps,&opi));
+    PetscCall(PetscOptionsInt("-eps_jd_blocksize","Number of vectors to add to the search subspace","EPSJDSetBlockSize",opi,&opi,&flg));
+    if (flg) PetscCall(EPSJDSetBlockSize(eps,opi));
 
-    CHKERRQ(EPSJDGetRestart(eps,&opi,&opi0));
-    CHKERRQ(PetscOptionsInt("-eps_jd_minv","Size of the search subspace after restarting","EPSJDSetRestart",opi,&opi,&flg));
-    CHKERRQ(PetscOptionsInt("-eps_jd_plusk","Number of eigenvectors saved from the previous iteration when restarting","EPSJDSetRestart",opi0,&opi0,&flg2));
-    if (flg || flg2) CHKERRQ(EPSJDSetRestart(eps,opi,opi0));
+    PetscCall(EPSJDGetRestart(eps,&opi,&opi0));
+    PetscCall(PetscOptionsInt("-eps_jd_minv","Size of the search subspace after restarting","EPSJDSetRestart",opi,&opi,&flg));
+    PetscCall(PetscOptionsInt("-eps_jd_plusk","Number of eigenvectors saved from the previous iteration when restarting","EPSJDSetRestart",opi0,&opi0,&flg2));
+    if (flg || flg2) PetscCall(EPSJDSetRestart(eps,opi,opi0));
 
-    CHKERRQ(EPSJDGetInitialSize(eps,&opi));
-    CHKERRQ(PetscOptionsInt("-eps_jd_initial_size","Initial size of the search subspace","EPSJDSetInitialSize",opi,&opi,&flg));
-    if (flg) CHKERRQ(EPSJDSetInitialSize(eps,opi));
+    PetscCall(EPSJDGetInitialSize(eps,&opi));
+    PetscCall(PetscOptionsInt("-eps_jd_initial_size","Initial size of the search subspace","EPSJDSetInitialSize",opi,&opi,&flg));
+    if (flg) PetscCall(EPSJDSetInitialSize(eps,opi));
 
-    CHKERRQ(EPSJDGetFix(eps,&opf));
-    CHKERRQ(PetscOptionsReal("-eps_jd_fix","Tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg));
-    if (flg) CHKERRQ(EPSJDSetFix(eps,opf));
+    PetscCall(EPSJDGetFix(eps,&opf));
+    PetscCall(PetscOptionsReal("-eps_jd_fix","Tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg));
+    if (flg) PetscCall(EPSJDSetFix(eps,opf));
 
-    CHKERRQ(EPSJDGetConstCorrectionTol(eps,&op));
-    CHKERRQ(PetscOptionsBool("-eps_jd_const_correction_tol","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstCorrectionTol",op,&op,&flg));
-    if (flg) CHKERRQ(EPSJDSetConstCorrectionTol(eps,op));
+    PetscCall(EPSJDGetConstCorrectionTol(eps,&op));
+    PetscCall(PetscOptionsBool("-eps_jd_const_correction_tol","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstCorrectionTol",op,&op,&flg));
+    if (flg) PetscCall(EPSJDSetConstCorrectionTol(eps,op));
 
-  CHKERRQ(PetscOptionsTail());
+  PetscCall(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
@@ -79,13 +79,13 @@ PetscErrorCode EPSSetDefaultST_JD(EPS eps)
 
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
-    CHKERRQ(STSetType(eps->st,STPRECOND));
-    CHKERRQ(STPrecondSetKSPHasMat(eps->st,PETSC_TRUE));
+    PetscCall(STSetType(eps->st,STPRECOND));
+    PetscCall(STPrecondSetKSPHasMat(eps->st,PETSC_TRUE));
   }
-  CHKERRQ(STGetKSP(eps->st,&ksp));
+  PetscCall(STGetKSP(eps->st,&ksp));
   if (!((PetscObject)ksp)->type_name) {
-    CHKERRQ(KSPSetType(ksp,KSPBCGSL));
-    CHKERRQ(KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90));
+    PetscCall(KSPSetType(ksp,KSPBCGSL));
+    PetscCall(KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90));
   }
   PetscFunctionReturn(0);
 }
@@ -97,11 +97,11 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
 
   PetscFunctionBegin;
   /* Setup common for all davidson solvers */
-  CHKERRQ(EPSSetUp_XD(eps));
+  PetscCall(EPSSetUp_XD(eps));
 
   /* Check some constraints */
-  CHKERRQ(STGetKSP(eps->st,&ksp));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t));
+  PetscCall(STGetKSP(eps->st,&ksp));
+  PetscCall(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t));
   PetscCheck(!t,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSJD does not work with KSPPREONLY");
   PetscFunctionReturn(0);
 }
@@ -113,25 +113,25 @@ PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
   PetscInt       opi,opi0;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    CHKERRQ(EPSXDGetBOrth_XD(eps,&opb));
-    if (opb) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  search subspace is B-orthogonalized\n"));
-    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  search subspace is orthogonalized\n"));
-    CHKERRQ(EPSXDGetBlockSize_XD(eps,&opi));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  block size=%" PetscInt_FMT "\n",opi));
-    CHKERRQ(EPSXDGetKrylovStart_XD(eps,&opb));
-    if (!opb) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: non-Krylov\n"));
-    else CHKERRQ(PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: Krylov\n"));
-    CHKERRQ(EPSXDGetRestart_XD(eps,&opi,&opi0));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  size of the subspace after restarting: %" PetscInt_FMT "\n",opi));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  number of vectors after restarting from the previous iteration: %" PetscInt_FMT "\n",opi0));
+    PetscCall(EPSXDGetBOrth_XD(eps,&opb));
+    if (opb) PetscCall(PetscViewerASCIIPrintf(viewer,"  search subspace is B-orthogonalized\n"));
+    else PetscCall(PetscViewerASCIIPrintf(viewer,"  search subspace is orthogonalized\n"));
+    PetscCall(EPSXDGetBlockSize_XD(eps,&opi));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  block size=%" PetscInt_FMT "\n",opi));
+    PetscCall(EPSXDGetKrylovStart_XD(eps,&opb));
+    if (!opb) PetscCall(PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: non-Krylov\n"));
+    else PetscCall(PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: Krylov\n"));
+    PetscCall(EPSXDGetRestart_XD(eps,&opi,&opi0));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  size of the subspace after restarting: %" PetscInt_FMT "\n",opi));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  number of vectors after restarting from the previous iteration: %" PetscInt_FMT "\n",opi0));
 
-    CHKERRQ(EPSJDGetFix_JD(eps,&opf));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  threshold for changing the target in the correction equation (fix): %g\n",(double)opf));
+    PetscCall(EPSJDGetFix_JD(eps,&opf));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  threshold for changing the target in the correction equation (fix): %g\n",(double)opf));
 
-    CHKERRQ(EPSJDGetConstCorrectionTol_JD(eps,&opb));
-    if (!opb) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using dynamic tolerance for the correction equation\n"));
+    PetscCall(EPSJDGetConstCorrectionTol_JD(eps,&opb));
+    if (!opb) PetscCall(PetscViewerASCIIPrintf(viewer,"  using dynamic tolerance for the correction equation\n"));
   }
   PetscFunctionReturn(0);
 }
@@ -139,21 +139,21 @@ PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
 PetscErrorCode EPSDestroy_JD(EPS eps)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFree(eps->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstCorrectionTol_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",NULL));
+  PetscCall(PetscFree(eps->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstCorrectionTol_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -180,7 +180,7 @@ PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,krylovstart,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSJDSetKrylovStart_C",(EPS,PetscBool),(eps,krylovstart)));
+  PetscCall(PetscTryMethod(eps,"EPSJDSetKrylovStart_C",(EPS,PetscBool),(eps,krylovstart)));
   PetscFunctionReturn(0);
 }
 
@@ -206,7 +206,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(krylovstart,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSJDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart)));
+  PetscCall(PetscUseMethod(eps,"EPSJDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart)));
   PetscFunctionReturn(0);
 }
 
@@ -232,7 +232,7 @@ PetscErrorCode EPSJDSetBlockSize(EPS eps,PetscInt blocksize)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,blocksize,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSJDSetBlockSize_C",(EPS,PetscInt),(eps,blocksize)));
+  PetscCall(PetscTryMethod(eps,"EPSJDSetBlockSize_C",(EPS,PetscInt),(eps,blocksize)));
   PetscFunctionReturn(0);
 }
 
@@ -257,7 +257,7 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(blocksize,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSJDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize)));
+  PetscCall(PetscUseMethod(eps,"EPSJDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize)));
   PetscFunctionReturn(0);
 }
 
@@ -286,7 +286,7 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,minv,2);
   PetscValidLogicalCollectiveInt(eps,plusk,3);
-  CHKERRQ(PetscTryMethod(eps,"EPSJDSetRestart_C",(EPS,PetscInt,PetscInt),(eps,minv,plusk)));
+  PetscCall(PetscTryMethod(eps,"EPSJDSetRestart_C",(EPS,PetscInt,PetscInt),(eps,minv,plusk)));
   PetscFunctionReturn(0);
 }
 
@@ -311,7 +311,7 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  CHKERRQ(PetscUseMethod(eps,"EPSJDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk)));
+  PetscCall(PetscUseMethod(eps,"EPSJDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk)));
   PetscFunctionReturn(0);
 }
 
@@ -344,7 +344,7 @@ PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,initialsize,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSJDSetInitialSize_C",(EPS,PetscInt),(eps,initialsize)));
+  PetscCall(PetscTryMethod(eps,"EPSJDSetInitialSize_C",(EPS,PetscInt),(eps,initialsize)));
   PetscFunctionReturn(0);
 }
 
@@ -376,7 +376,7 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(initialsize,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize)));
+  PetscCall(PetscUseMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize)));
   PetscFunctionReturn(0);
 }
 
@@ -418,7 +418,7 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,fix,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSJDSetFix_C",(EPS,PetscReal),(eps,fix)));
+  PetscCall(PetscTryMethod(eps,"EPSJDSetFix_C",(EPS,PetscReal),(eps,fix)));
   PetscFunctionReturn(0);
 }
 
@@ -457,7 +457,7 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidRealPointer(fix,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix)));
+  PetscCall(PetscUseMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix)));
   PetscFunctionReturn(0);
 }
 
@@ -493,7 +493,7 @@ PetscErrorCode EPSJDSetConstCorrectionTol(EPS eps,PetscBool constant)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,constant,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSJDSetConstCorrectionTol_C",(EPS,PetscBool),(eps,constant)));
+  PetscCall(PetscTryMethod(eps,"EPSJDSetConstCorrectionTol_C",(EPS,PetscBool),(eps,constant)));
   PetscFunctionReturn(0);
 }
 
@@ -531,7 +531,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(constant,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSJDGetConstCorrectionTol_C",(EPS,PetscBool*),(eps,constant)));
+  PetscCall(PetscUseMethod(eps,"EPSJDGetConstCorrectionTol_C",(EPS,PetscBool*),(eps,constant)));
   PetscFunctionReturn(0);
 }
 
@@ -557,7 +557,7 @@ PetscErrorCode EPSJDSetBOrth(EPS eps,PetscBool borth)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,borth,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSJDSetBOrth_C",(EPS,PetscBool),(eps,borth)));
+  PetscCall(PetscTryMethod(eps,"EPSJDSetBOrth_C",(EPS,PetscBool),(eps,borth)));
   PetscFunctionReturn(0);
 }
 
@@ -582,7 +582,7 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(borth,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSJDGetBOrth_C",(EPS,PetscBool*),(eps,borth)));
+  PetscCall(PetscUseMethod(eps,"EPSJDGetBOrth_C",(EPS,PetscBool*),(eps,borth)));
   PetscFunctionReturn(0);
 }
 
@@ -591,7 +591,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(eps,&data));
+  PetscCall(PetscNewLog(eps,&data));
   eps->data = (void*)data;
 
   data->blocksize   = 1;
@@ -617,19 +617,19 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   eps->ops->computevectors = EPSComputeVectors_XD;
   eps->ops->setdefaultst   = EPSSetDefaultST_JD;
 
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",EPSXDSetKrylovStart_XD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",EPSXDGetKrylovStart_XD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C",EPSXDSetBlockSize_XD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C",EPSXDGetBlockSize_XD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C",EPSXDSetRestart_XD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C",EPSXDGetRestart_XD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C",EPSXDSetInitialSize_XD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",EPSXDGetInitialSize_XD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",EPSJDSetFix_JD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",EPSJDGetFix_JD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstCorrectionTol_C",EPSJDSetConstCorrectionTol_JD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",EPSJDGetConstCorrectionTol_JD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",EPSXDSetBOrth_XD));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",EPSXDGetBOrth_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",EPSXDSetKrylovStart_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",EPSXDGetKrylovStart_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBlockSize_C",EPSXDSetBlockSize_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBlockSize_C",EPSXDGetBlockSize_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetRestart_C",EPSXDSetRestart_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetRestart_C",EPSXDGetRestart_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C",EPSXDSetInitialSize_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",EPSXDGetInitialSize_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",EPSJDSetFix_JD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",EPSJDGetFix_JD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstCorrectionTol_C",EPSJDSetConstCorrectionTol_JD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",EPSJDGetConstCorrectionTol_JD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",EPSXDSetBOrth_XD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",EPSXDGetBOrth_XD));
   PetscFunctionReturn(0);
 }

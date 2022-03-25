@@ -27,87 +27,87 @@ int main(int argc,char **argv)
   PetscBool      flag;
   Vec            v,y;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(t*A)*e, of the 2-D Laplacian, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(t*A)*e, of the 2-D Laplacian, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                          Build the 2-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
-    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
-    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
-    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(A,II,II,4.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* set v = ones(n,1) */
-  CHKERRQ(MatCreateVecs(A,NULL,&y));
-  CHKERRQ(MatCreateVecs(A,NULL,&v));
-  CHKERRQ(VecSet(v,1.0));
+  PetscCall(MatCreateVecs(A,NULL,&y));
+  PetscCall(MatCreateVecs(A,NULL,&v));
+  PetscCall(VecSet(v,1.0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&f));
-  CHKERRQ(FNSetType(f,FNEXP));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f));
+  PetscCall(FNSetType(f,FNEXP));
 
-  CHKERRQ(MFNCreate(PETSC_COMM_WORLD,&mfn));
-  CHKERRQ(MFNSetOperator(mfn,A));
-  CHKERRQ(MFNSetFN(mfn,f));
-  CHKERRQ(MFNSetErrorIfNotConverged(mfn,PETSC_TRUE));
-  CHKERRQ(MFNSetFromOptions(mfn));
+  PetscCall(MFNCreate(PETSC_COMM_WORLD,&mfn));
+  PetscCall(MFNSetOperator(mfn,A));
+  PetscCall(MFNSetFN(mfn,f));
+  PetscCall(MFNSetErrorIfNotConverged(mfn,PETSC_TRUE));
+  PetscCall(MFNSetFromOptions(mfn));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(FNSetScale(f,t,1.0));
-  CHKERRQ(MFNSolve(mfn,v,y));
-  CHKERRQ(VecNorm(y,NORM_2,&norm));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm));
+  PetscCall(FNSetScale(f,t,1.0));
+  PetscCall(MFNSolve(mfn,v,y));
+  PetscCall(VecNorm(y,NORM_2,&norm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
            Repeat the computation in two steps, overwriting v:
               v=exp(0.5*t*A)*v,  v=exp(0.5*t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(FNSetScale(f,0.5*t,1.0));
-  CHKERRQ(MFNSolve(mfn,v,v));
-  CHKERRQ(MFNSolve(mfn,v,v));
+  PetscCall(FNSetScale(f,0.5*t,1.0));
+  PetscCall(MFNSolve(mfn,v,v));
+  PetscCall(MFNSolve(mfn,v,v));
   /* compute norm of difference */
-  CHKERRQ(VecAXPY(y,-1.0,v));
-  CHKERRQ(VecNorm(y,NORM_2,&norm));
-  if (norm<100*PETSC_MACHINE_EPSILON) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <100*eps\n\n"));
-  else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is %g\n\n",(double)norm));
+  PetscCall(VecAXPY(y,-1.0,v));
+  PetscCall(VecNorm(y,NORM_2,&norm));
+  if (norm<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <100*eps\n\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is %g\n\n",(double)norm));
 
   /*
      Free work space
   */
-  CHKERRQ(MFNDestroy(&mfn));
-  CHKERRQ(FNDestroy(&f));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(VecDestroy(&y));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(MFNDestroy(&mfn));
+  PetscCall(FNDestroy(&f));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&y));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

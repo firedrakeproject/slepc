@@ -79,36 +79,36 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,Mat H,PetscInt k,PetscInt *m,PetscReal *b
     PetscValidHeaderSpecific(H,MAT_CLASSID,3);
     PetscValidType(H,3);
     PetscCheckTypeName(H,MATSEQDENSE);
-    CHKERRQ(MatGetSize(H,&rows,&cols));
-    CHKERRQ(MatDenseGetLDA(H,&ldh));
+    PetscCall(MatGetSize(H,&rows,&cols));
+    PetscCall(MatDenseGetLDA(H,&ldh));
     PetscCheck(rows>=*m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,rows,*m);
     PetscCheck(cols>=*m,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Matrix H has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,cols,*m);
   }
 
   for (j=k;j<*m;j++) {
-    CHKERRQ(BVMatMultColumn(V,A,j));
-    if (PetscUnlikely(j==V->N-1)) CHKERRQ(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta,&lindep)); /* safeguard in case the full basis is requested */
-    else CHKERRQ(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta,&lindep));
+    PetscCall(BVMatMultColumn(V,A,j));
+    if (PetscUnlikely(j==V->N-1)) PetscCall(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta,&lindep)); /* safeguard in case the full basis is requested */
+    else PetscCall(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta,&lindep));
     if (PetscUnlikely(lindep)) {
       *m = j+1;
       break;
     }
   }
   if (breakdown) *breakdown = lindep;
-  if (lindep) CHKERRQ(PetscInfo(V,"Arnoldi finished early at m=%" PetscInt_FMT "\n",*m));
+  if (lindep) PetscCall(PetscInfo(V,"Arnoldi finished early at m=%" PetscInt_FMT "\n",*m));
 
   if (H) {
-    CHKERRQ(MatDenseGetArray(H,&h));
-    CHKERRQ(BVGetBufferVec(V,&buf));
-    CHKERRQ(VecGetArrayRead(buf,&a));
-    for (j=k;j<*m-1;j++) CHKERRQ(PetscArraycpy(h+j*ldh,a+V->nc+(j+1)*(V->nc+V->m),j+2));
-    CHKERRQ(PetscArraycpy(h+(*m-1)*ldh,a+V->nc+(*m)*(V->nc+V->m),*m));
+    PetscCall(MatDenseGetArray(H,&h));
+    PetscCall(BVGetBufferVec(V,&buf));
+    PetscCall(VecGetArrayRead(buf,&a));
+    for (j=k;j<*m-1;j++) PetscCall(PetscArraycpy(h+j*ldh,a+V->nc+(j+1)*(V->nc+V->m),j+2));
+    PetscCall(PetscArraycpy(h+(*m-1)*ldh,a+V->nc+(*m)*(V->nc+V->m),*m));
     if (ldh>*m) h[(*m)+(*m-1)*ldh] = a[V->nc+(*m)+(*m)*(V->nc+V->m)];
-    CHKERRQ(VecRestoreArrayRead(buf,&a));
-    CHKERRQ(MatDenseRestoreArray(H,&h));
+    PetscCall(VecRestoreArrayRead(buf,&a));
+    PetscCall(MatDenseRestoreArray(H,&h));
   }
 
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }
 
@@ -188,23 +188,23 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
   PetscCheck(*m>k,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Argument m should be at least equal to k+1");
 
   for (j=k;j<*m;j++) {
-    CHKERRQ(BVMatMultColumn(V,A,j));
-    if (PetscUnlikely(j==V->N-1)) CHKERRQ(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta+j,&lindep)); /* safeguard in case the full basis is requested */
-    else CHKERRQ(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta+j,&lindep));
+    PetscCall(BVMatMultColumn(V,A,j));
+    if (PetscUnlikely(j==V->N-1)) PetscCall(BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta+j,&lindep)); /* safeguard in case the full basis is requested */
+    else PetscCall(BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta+j,&lindep));
     if (PetscUnlikely(lindep)) {
       *m = j+1;
       break;
     }
   }
   if (breakdown) *breakdown = lindep;
-  if (lindep) CHKERRQ(PetscInfo(V,"Lanczos finished early at m=%" PetscInt_FMT "\n",*m));
+  if (lindep) PetscCall(PetscInfo(V,"Lanczos finished early at m=%" PetscInt_FMT "\n",*m));
 
   /* extract Hessenberg matrix from the BV buffer */
-  CHKERRQ(BVGetBufferVec(V,&buf));
-  CHKERRQ(VecGetArray(buf,&a));
+  PetscCall(BVGetBufferVec(V,&buf));
+  PetscCall(VecGetArray(buf,&a));
   for (j=k;j<*m;j++) alpha[j] = PetscRealPart(a[V->nc+j+(j+1)*(V->nc+V->m)]);
-  CHKERRQ(VecRestoreArray(buf,&a));
+  PetscCall(VecRestoreArray(buf,&a));
 
-  CHKERRQ(PetscObjectStateIncrease((PetscObject)V));
+  PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
 }

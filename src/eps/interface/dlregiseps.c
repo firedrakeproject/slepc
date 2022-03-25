@@ -35,10 +35,10 @@ const char *const*EPSConvergedReasons = EPSConvergedReasons_Shifted + 4;
 PetscErrorCode EPSFinalizePackage(void)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFunctionListDestroy(&EPSList));
-  CHKERRQ(PetscFunctionListDestroy(&EPSMonitorList));
-  CHKERRQ(PetscFunctionListDestroy(&EPSMonitorCreateList));
-  CHKERRQ(PetscFunctionListDestroy(&EPSMonitorDestroyList));
+  PetscCall(PetscFunctionListDestroy(&EPSList));
+  PetscCall(PetscFunctionListDestroy(&EPSMonitorList));
+  PetscCall(PetscFunctionListDestroy(&EPSMonitorCreateList));
+  PetscCall(PetscFunctionListDestroy(&EPSMonitorDestroyList));
   EPSPackageInitialized       = PETSC_FALSE;
   EPSRegisterAllCalled        = PETSC_FALSE;
   EPSMonitorRegisterAllCalled = PETSC_FALSE;
@@ -64,26 +64,26 @@ PetscErrorCode EPSInitializePackage()
   if (EPSPackageInitialized) PetscFunctionReturn(0);
   EPSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  CHKERRQ(PetscClassIdRegister("EPS Solver",&EPS_CLASSID));
+  PetscCall(PetscClassIdRegister("EPS Solver",&EPS_CLASSID));
   /* Register Constructors */
-  CHKERRQ(EPSRegisterAll());
+  PetscCall(EPSRegisterAll());
   /* Register Monitors */
-  CHKERRQ(EPSMonitorRegisterAll());
+  PetscCall(EPSMonitorRegisterAll());
   /* Register Events */
-  CHKERRQ(PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp));
-  CHKERRQ(PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve));
-  CHKERRQ(PetscLogEventRegister("EPSCISS_SVD",EPS_CLASSID,&EPS_CISS_SVD));
+  PetscCall(PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp));
+  PetscCall(PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve));
+  PetscCall(PetscLogEventRegister("EPSCISS_SVD",EPS_CLASSID,&EPS_CISS_SVD));
   /* Process Info */
   classids[0] = EPS_CLASSID;
-  CHKERRQ(PetscInfoProcessClass("eps",1,&classids[0]));
+  PetscCall(PetscInfoProcessClass("eps",1,&classids[0]));
   /* Process summary exclusions */
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    CHKERRQ(PetscStrInList("eps",logList,',',&pkg));
-    if (pkg) CHKERRQ(PetscLogEventDeactivateClass(EPS_CLASSID));
+    PetscCall(PetscStrInList("eps",logList,',',&pkg));
+    if (pkg) PetscCall(PetscLogEventDeactivateClass(EPS_CLASSID));
   }
   /* Register package finalizer */
-  CHKERRQ(PetscRegisterFinalize(EPSFinalizePackage));
+  PetscCall(PetscRegisterFinalize(EPSFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -98,7 +98,7 @@ PetscErrorCode EPSInitializePackage()
 SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepceps()
 {
   PetscFunctionBegin;
-  CHKERRQ(EPSInitializePackage());
+  PetscCall(EPSInitializePackage());
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */

@@ -38,8 +38,8 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
   PetscValidLogicalCollectiveInt(v,init_size,2);
   PetscValidPointer(p,3);
   PetscCheck(init_size>=0,PetscObjectComm((PetscObject)v),PETSC_ERR_ARG_WRONG,"init_size should be positive");
-  CHKERRQ(PetscCalloc1(1,&pool));
-  CHKERRQ(PetscObjectReference((PetscObject)v));
+  PetscCall(PetscCalloc1(1,&pool));
+  PetscCall(PetscObjectReference((PetscObject)v));
   pool->v     = v;
   pool->guess = init_size;
   *p = pool;
@@ -64,13 +64,13 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
 
   PetscFunctionBegin;
   if (!*p) PetscFunctionReturn(0);
-  CHKERRQ(VecDestroy(&pool->v));
-  CHKERRQ(VecDestroyVecs(pool->n,&pool->vecs));
+  PetscCall(VecDestroy(&pool->v));
+  PetscCall(VecDestroyVecs(pool->n,&pool->vecs));
   pool->n     = 0;
   pool->used  = 0;
   pool->guess = 0;
-  CHKERRQ(SlepcVecPoolDestroy((VecPool*)&pool->next));
-  CHKERRQ(PetscFree(pool));
+  PetscCall(SlepcVecPoolDestroy((VecPool*)&pool->next));
+  PetscCall(PetscFree(pool));
   *p = NULL;
   PetscFunctionReturn(0);
 }
@@ -102,13 +102,13 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
   while (pool->next) pool = pool->next;
   if (pool->n-pool->used < n) {
     pool->guess = PetscMax(p->guess,pool->used+n);
-    if (pool->vecs && pool->used == 0) CHKERRQ(VecDestroyVecs(pool->n,&pool->vecs));
+    if (pool->vecs && pool->used == 0) PetscCall(VecDestroyVecs(pool->n,&pool->vecs));
     if (pool->vecs) {
-      CHKERRQ(SlepcVecPoolCreate(p->v,pool->guess-pool->used,&pool->next));
+      PetscCall(SlepcVecPoolCreate(p->v,pool->guess-pool->used,&pool->next));
       pool = pool->next;
     }
     pool->n = pool->guess;
-    CHKERRQ(VecDuplicateVecs(p->v,pool->n,&pool->vecs));
+    PetscCall(VecDuplicateVecs(p->v,pool->n,&pool->vecs));
   }
   *vecs = pool->vecs + pool->used;
   pool->used += n;
@@ -138,7 +138,7 @@ PetscErrorCode SlepcVecPoolRestoreVecs(VecPool p,PetscInt n,Vec **vecs)
   while (pool->next) pool = (pool0 = pool)->next;
   if (pool->used == 0 && pool0 != pool) {
     pool0->guess = pool0->used + pool->guess;
-    CHKERRQ(SlepcVecPoolDestroy((VecPool*)&pool));
+    PetscCall(SlepcVecPoolDestroy((VecPool*)&pool));
     pool = pool0;
     pool->next = NULL;
   }

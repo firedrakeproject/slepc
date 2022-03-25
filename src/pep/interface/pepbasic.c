@@ -52,8 +52,8 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   PetscFunctionBegin;
   PetscValidPointer(outpep,2);
   *outpep = 0;
-  CHKERRQ(PEPInitializePackage());
-  CHKERRQ(SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView));
+  PetscCall(PEPInitializePackage());
+  PetscCall(SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView));
 
   pep->max_it          = PETSC_DEFAULT;
   pep->nev             = 1;
@@ -121,7 +121,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->lineariz        = PETSC_FALSE;
   pep->reason          = PEP_CONVERGED_ITERATING;
 
-  CHKERRQ(PetscNewLog(pep,&pep->sc));
+  PetscCall(PetscNewLog(pep,&pep->sc));
   *outpep = pep;
   PetscFunctionReturn(0);
 }
@@ -164,18 +164,18 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)pep,type,&match));
+  PetscCall(PetscObjectTypeCompare((PetscObject)pep,type,&match));
   if (match) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscFunctionListFind(PEPList,type,&r));
+  PetscCall(PetscFunctionListFind(PEPList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown PEP type given: %s",type);
 
-  if (pep->ops->destroy) CHKERRQ((*pep->ops->destroy)(pep));
-  CHKERRQ(PetscMemzero(pep->ops,sizeof(struct _PEPOps)));
+  if (pep->ops->destroy) PetscCall((*pep->ops->destroy)(pep));
+  PetscCall(PetscMemzero(pep->ops,sizeof(struct _PEPOps)));
 
   pep->state = PEP_STATE_INITIAL;
-  CHKERRQ(PetscObjectChangeTypeName((PetscObject)pep,type));
-  CHKERRQ((*r)(pep));
+  PetscCall(PetscObjectChangeTypeName((PetscObject)pep,type));
+  PetscCall((*r)(pep));
   PetscFunctionReturn(0);
 }
 
@@ -232,8 +232,8 @@ $     -pep_type my_solver
 PetscErrorCode PEPRegister(const char *name,PetscErrorCode (*function)(PEP))
 {
   PetscFunctionBegin;
-  CHKERRQ(PEPInitializePackage());
-  CHKERRQ(PetscFunctionListAdd(&PEPList,name,function));
+  PetscCall(PEPInitializePackage());
+  PetscCall(PetscFunctionListAdd(&PEPList,name,function));
   PetscFunctionReturn(0);
 }
 
@@ -272,11 +272,11 @@ PetscErrorCode PEPMonitorRegister(const char name[],PetscViewerType vtype,PetscV
   char           key[PETSC_MAX_PATH_LEN];
 
   PetscFunctionBegin;
-  CHKERRQ(PEPInitializePackage());
-  CHKERRQ(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
-  CHKERRQ(PetscFunctionListAdd(&PEPMonitorList,key,monitor));
-  if (create)  CHKERRQ(PetscFunctionListAdd(&PEPMonitorCreateList,key,create));
-  if (destroy) CHKERRQ(PetscFunctionListAdd(&PEPMonitorDestroyList,key,destroy));
+  PetscCall(PEPInitializePackage());
+  PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
+  PetscCall(PetscFunctionListAdd(&PEPMonitorList,key,monitor));
+  if (create)  PetscCall(PetscFunctionListAdd(&PEPMonitorCreateList,key,create));
+  if (destroy) PetscCall(PetscFunctionListAdd(&PEPMonitorDestroyList,key,destroy));
   PetscFunctionReturn(0);
 }
 
@@ -298,19 +298,19 @@ PetscErrorCode PEPReset(PEP pep)
   PetscFunctionBegin;
   if (pep) PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (!pep) PetscFunctionReturn(0);
-  if (pep->ops->reset) CHKERRQ((pep->ops->reset)(pep));
-  if (pep->st) CHKERRQ(STReset(pep->st));
-  if (pep->refineksp) CHKERRQ(KSPReset(pep->refineksp));
+  if (pep->ops->reset) PetscCall((pep->ops->reset)(pep));
+  if (pep->st) PetscCall(STReset(pep->st));
+  if (pep->refineksp) PetscCall(KSPReset(pep->refineksp));
   if (pep->nmat) {
-    CHKERRQ(MatDestroyMatrices(pep->nmat,&pep->A));
-    CHKERRQ(PetscFree2(pep->pbc,pep->nrma));
-    CHKERRQ(PetscFree(pep->solvematcoeffs));
+    PetscCall(MatDestroyMatrices(pep->nmat,&pep->A));
+    PetscCall(PetscFree2(pep->pbc,pep->nrma));
+    PetscCall(PetscFree(pep->solvematcoeffs));
     pep->nmat = 0;
   }
-  CHKERRQ(VecDestroy(&pep->Dl));
-  CHKERRQ(VecDestroy(&pep->Dr));
-  CHKERRQ(BVDestroy(&pep->V));
-  CHKERRQ(VecDestroyVecs(pep->nwork,&pep->work));
+  PetscCall(VecDestroy(&pep->Dl));
+  PetscCall(VecDestroy(&pep->Dr));
+  PetscCall(BVDestroy(&pep->V));
+  PetscCall(VecDestroyVecs(pep->nwork,&pep->work));
   pep->nwork = 0;
   pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -334,20 +334,20 @@ PetscErrorCode PEPDestroy(PEP *pep)
   if (!*pep) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*pep,PEP_CLASSID,1);
   if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
-  CHKERRQ(PEPReset(*pep));
-  if ((*pep)->ops->destroy) CHKERRQ((*(*pep)->ops->destroy)(*pep));
-  if ((*pep)->eigr) CHKERRQ(PetscFree4((*pep)->eigr,(*pep)->eigi,(*pep)->errest,(*pep)->perm));
-  CHKERRQ(STDestroy(&(*pep)->st));
-  CHKERRQ(RGDestroy(&(*pep)->rg));
-  CHKERRQ(DSDestroy(&(*pep)->ds));
-  CHKERRQ(KSPDestroy(&(*pep)->refineksp));
-  CHKERRQ(PetscSubcommDestroy(&(*pep)->refinesubc));
-  CHKERRQ(PetscFree((*pep)->sc));
+  PetscCall(PEPReset(*pep));
+  if ((*pep)->ops->destroy) PetscCall((*(*pep)->ops->destroy)(*pep));
+  if ((*pep)->eigr) PetscCall(PetscFree4((*pep)->eigr,(*pep)->eigi,(*pep)->errest,(*pep)->perm));
+  PetscCall(STDestroy(&(*pep)->st));
+  PetscCall(RGDestroy(&(*pep)->rg));
+  PetscCall(DSDestroy(&(*pep)->ds));
+  PetscCall(KSPDestroy(&(*pep)->refineksp));
+  PetscCall(PetscSubcommDestroy(&(*pep)->refinesubc));
+  PetscCall(PetscFree((*pep)->sc));
   /* just in case the initial vectors have not been used */
-  CHKERRQ(SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS));
-  if ((*pep)->convergeddestroy) CHKERRQ((*(*pep)->convergeddestroy)((*pep)->convergedctx));
-  CHKERRQ(PEPMonitorCancel(*pep));
-  CHKERRQ(PetscHeaderDestroy(pep));
+  PetscCall(SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS));
+  if ((*pep)->convergeddestroy) PetscCall((*(*pep)->convergeddestroy)((*pep)->convergedctx));
+  PetscCall(PEPMonitorCancel(*pep));
+  PetscCall(PetscHeaderDestroy(pep));
   PetscFunctionReturn(0);
 }
 
@@ -374,10 +374,10 @@ PetscErrorCode PEPSetBV(PEP pep,BV bv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidHeaderSpecific(bv,BV_CLASSID,2);
   PetscCheckSameComm(pep,1,bv,2);
-  CHKERRQ(PetscObjectReference((PetscObject)bv));
-  CHKERRQ(BVDestroy(&pep->V));
+  PetscCall(PetscObjectReference((PetscObject)bv));
+  PetscCall(BVDestroy(&pep->V));
   pep->V = bv;
-  CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->V));
+  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->V));
   PetscFunctionReturn(0);
 }
 
@@ -403,10 +403,10 @@ PetscErrorCode PEPGetBV(PEP pep,BV *bv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(bv,2);
   if (!pep->V) {
-    CHKERRQ(BVCreate(PetscObjectComm((PetscObject)pep),&pep->V));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)pep->V,(PetscObject)pep,0));
-    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->V));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)pep->V,((PetscObject)pep)->options));
+    PetscCall(BVCreate(PetscObjectComm((PetscObject)pep),&pep->V));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)pep->V,(PetscObject)pep,0));
+    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->V));
+    PetscCall(PetscObjectSetOptions((PetscObject)pep->V,((PetscObject)pep)->options));
   }
   *bv = pep->V;
   PetscFunctionReturn(0);
@@ -437,10 +437,10 @@ PetscErrorCode PEPSetRG(PEP pep,RG rg)
     PetscValidHeaderSpecific(rg,RG_CLASSID,2);
     PetscCheckSameComm(pep,1,rg,2);
   }
-  CHKERRQ(PetscObjectReference((PetscObject)rg));
-  CHKERRQ(RGDestroy(&pep->rg));
+  PetscCall(PetscObjectReference((PetscObject)rg));
+  PetscCall(RGDestroy(&pep->rg));
   pep->rg = rg;
-  CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rg));
+  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rg));
   PetscFunctionReturn(0);
 }
 
@@ -466,10 +466,10 @@ PetscErrorCode PEPGetRG(PEP pep,RG *rg)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(rg,2);
   if (!pep->rg) {
-    CHKERRQ(RGCreate(PetscObjectComm((PetscObject)pep),&pep->rg));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)pep->rg,(PetscObject)pep,0));
-    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rg));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)pep->rg,((PetscObject)pep)->options));
+    PetscCall(RGCreate(PetscObjectComm((PetscObject)pep),&pep->rg));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)pep->rg,(PetscObject)pep,0));
+    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rg));
+    PetscCall(PetscObjectSetOptions((PetscObject)pep->rg,((PetscObject)pep)->options));
   }
   *rg = pep->rg;
   PetscFunctionReturn(0);
@@ -498,10 +498,10 @@ PetscErrorCode PEPSetDS(PEP pep,DS ds)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidHeaderSpecific(ds,DS_CLASSID,2);
   PetscCheckSameComm(pep,1,ds,2);
-  CHKERRQ(PetscObjectReference((PetscObject)ds));
-  CHKERRQ(DSDestroy(&pep->ds));
+  PetscCall(PetscObjectReference((PetscObject)ds));
+  PetscCall(DSDestroy(&pep->ds));
   pep->ds = ds;
-  CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->ds));
+  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->ds));
   PetscFunctionReturn(0);
 }
 
@@ -527,10 +527,10 @@ PetscErrorCode PEPGetDS(PEP pep,DS *ds)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(ds,2);
   if (!pep->ds) {
-    CHKERRQ(DSCreate(PetscObjectComm((PetscObject)pep),&pep->ds));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)pep->ds,(PetscObject)pep,0));
-    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->ds));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)pep->ds,((PetscObject)pep)->options));
+    PetscCall(DSCreate(PetscObjectComm((PetscObject)pep),&pep->ds));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)pep->ds,(PetscObject)pep,0));
+    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->ds));
+    PetscCall(PetscObjectSetOptions((PetscObject)pep->ds,((PetscObject)pep)->options));
   }
   *ds = pep->ds;
   PetscFunctionReturn(0);
@@ -559,10 +559,10 @@ PetscErrorCode PEPSetST(PEP pep,ST st)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidHeaderSpecific(st,ST_CLASSID,2);
   PetscCheckSameComm(pep,1,st,2);
-  CHKERRQ(PetscObjectReference((PetscObject)st));
-  CHKERRQ(STDestroy(&pep->st));
+  PetscCall(PetscObjectReference((PetscObject)st));
+  PetscCall(STDestroy(&pep->st));
   pep->st = st;
-  CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->st));
+  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->st));
   PetscFunctionReturn(0);
 }
 
@@ -588,10 +588,10 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(st,2);
   if (!pep->st) {
-    CHKERRQ(STCreate(PetscObjectComm((PetscObject)pep),&pep->st));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)pep->st,(PetscObject)pep,0));
-    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->st));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)pep->st,((PetscObject)pep)->options));
+    PetscCall(STCreate(PetscObjectComm((PetscObject)pep),&pep->st));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)pep->st,(PetscObject)pep,0));
+    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->st));
+    PetscCall(PetscObjectSetOptions((PetscObject)pep->st,((PetscObject)pep)->options));
   }
   *st = pep->st;
   PetscFunctionReturn(0);
@@ -623,19 +623,19 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
   if (!pep->refineksp) {
     if (pep->npart>1) {
       /* Split in subcomunicators */
-      CHKERRQ(PetscSubcommCreate(PetscObjectComm((PetscObject)pep),&pep->refinesubc));
-      CHKERRQ(PetscSubcommSetNumber(pep->refinesubc,pep->npart));
-      CHKERRQ(PetscSubcommSetType(pep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS));
-      CHKERRQ(PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm)));
-      CHKERRQ(PetscSubcommGetChild(pep->refinesubc,&comm));
-    } else CHKERRQ(PetscObjectGetComm((PetscObject)pep,&comm));
-    CHKERRQ(KSPCreate(comm,&pep->refineksp));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)pep->refineksp,(PetscObject)pep,0));
-    CHKERRQ(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)pep->refineksp,((PetscObject)pep)->options));
-    CHKERRQ(KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix));
-    CHKERRQ(KSPAppendOptionsPrefix(*ksp,"pep_refine_"));
-    CHKERRQ(KSPSetTolerances(pep->refineksp,SlepcDefaultTol(pep->rtol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+      PetscCall(PetscSubcommCreate(PetscObjectComm((PetscObject)pep),&pep->refinesubc));
+      PetscCall(PetscSubcommSetNumber(pep->refinesubc,pep->npart));
+      PetscCall(PetscSubcommSetType(pep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS));
+      PetscCall(PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm)));
+      PetscCall(PetscSubcommGetChild(pep->refinesubc,&comm));
+    } else PetscCall(PetscObjectGetComm((PetscObject)pep,&comm));
+    PetscCall(KSPCreate(comm,&pep->refineksp));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)pep->refineksp,(PetscObject)pep,0));
+    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp));
+    PetscCall(PetscObjectSetOptions((PetscObject)pep->refineksp,((PetscObject)pep)->options));
+    PetscCall(KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix));
+    PetscCall(KSPAppendOptionsPrefix(*ksp,"pep_refine_"));
+    PetscCall(KSPSetTolerances(pep->refineksp,SlepcDefaultTol(pep->rtol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = pep->refineksp;
   PetscFunctionReturn(0);
@@ -671,8 +671,8 @@ PetscErrorCode PEPSetTarget(PEP pep,PetscScalar target)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveScalar(pep,target,2);
   pep->target = target;
-  if (!pep->st) CHKERRQ(PEPGetST(pep,&pep->st));
-  CHKERRQ(STSetDefaultShift(pep->st,target));
+  if (!pep->st) PetscCall(PEPGetST(pep,&pep->st));
+  PetscCall(STSetDefaultShift(pep->st,target));
   PetscFunctionReturn(0);
 }
 

@@ -77,23 +77,23 @@ static PetscErrorCode EPSCISSSetUp(EPS eps,Mat A,Mat B,Mat Pa,Mat Pb)
   MatStructure     str,strp;
 
   PetscFunctionBegin;
-  if (!ctx->contour || !ctx->contour->ksp) CHKERRQ(EPSCISSGetKSPs(eps,NULL,NULL));
+  if (!ctx->contour || !ctx->contour->ksp) PetscCall(EPSCISSGetKSPs(eps,NULL,NULL));
   contour = ctx->contour;
-  CHKERRQ(STGetMatStructure(eps->st,&str));
-  CHKERRQ(STGetSplitPreconditionerInfo(eps->st,&nsplit,&strp));
+  PetscCall(STGetMatStructure(eps->st,&str));
+  PetscCall(STGetSplitPreconditionerInfo(eps->st,&nsplit,&strp));
   for (i=0;i<contour->npoints;i++) {
     p_id = i*contour->subcomm->n + contour->subcomm->color;
-    CHKERRQ(MatDuplicate(A,MAT_COPY_VALUES,&Amat));
-    if (B) CHKERRQ(MatAXPY(Amat,-ctx->omega[p_id],B,str));
-    else CHKERRQ(MatShift(Amat,-ctx->omega[p_id]));
+    PetscCall(MatDuplicate(A,MAT_COPY_VALUES,&Amat));
+    if (B) PetscCall(MatAXPY(Amat,-ctx->omega[p_id],B,str));
+    else PetscCall(MatShift(Amat,-ctx->omega[p_id]));
     if (nsplit) {
-      CHKERRQ(MatDuplicate(Pa,MAT_COPY_VALUES,&Pmat));
-      if (Pb) CHKERRQ(MatAXPY(Pmat,-ctx->omega[p_id],Pb,strp));
-      else CHKERRQ(MatShift(Pmat,-ctx->omega[p_id]));
+      PetscCall(MatDuplicate(Pa,MAT_COPY_VALUES,&Pmat));
+      if (Pb) PetscCall(MatAXPY(Pmat,-ctx->omega[p_id],Pb,strp));
+      else PetscCall(MatShift(Pmat,-ctx->omega[p_id]));
     } else Pmat = Amat;
-    CHKERRQ(EPS_KSPSetOperators(contour->ksp[i],Amat,Amat));
-    CHKERRQ(MatDestroy(&Amat));
-    if (nsplit) CHKERRQ(MatDestroy(&Pmat));
+    PetscCall(EPS_KSPSetOperators(contour->ksp[i],Amat,Amat));
+    PetscCall(MatDestroy(&Amat));
+    if (nsplit) PetscCall(MatDestroy(&Pmat));
   }
   PetscFunctionReturn(0);
 }
@@ -110,33 +110,33 @@ static PetscErrorCode EPSCISSSolve(EPS eps,Mat B,BV V,PetscInt L_start,PetscInt 
   KSP              ksp;
 
   PetscFunctionBegin;
-  if (!ctx->contour || !ctx->contour->ksp) CHKERRQ(EPSCISSGetKSPs(eps,NULL,NULL));
+  if (!ctx->contour || !ctx->contour->ksp) PetscCall(EPSCISSGetKSPs(eps,NULL,NULL));
   contour = ctx->contour;
-  CHKERRQ(BVSetActiveColumns(V,L_start,L_end));
-  CHKERRQ(BVGetMat(V,&MV));
+  PetscCall(BVSetActiveColumns(V,L_start,L_end));
+  PetscCall(BVGetMat(V,&MV));
   for (i=0;i<contour->npoints;i++) {
     p_id = i*contour->subcomm->n + contour->subcomm->color;
     if (ctx->usest)  {
-      CHKERRQ(STSetShift(eps->st,ctx->omega[p_id]));
-      CHKERRQ(STGetKSP(eps->st,&ksp));
+      PetscCall(STSetShift(eps->st,ctx->omega[p_id]));
+      PetscCall(STGetKSP(eps->st,&ksp));
     } else ksp = contour->ksp[i];
-    CHKERRQ(BVSetActiveColumns(ctx->Y,i*ctx->L+L_start,i*ctx->L+L_end));
-    CHKERRQ(BVGetMat(ctx->Y,&MC));
+    PetscCall(BVSetActiveColumns(ctx->Y,i*ctx->L+L_start,i*ctx->L+L_end));
+    PetscCall(BVGetMat(ctx->Y,&MC));
     if (B) {
       if (!i) {
-        CHKERRQ(MatProductCreate(B,MV,NULL,&BMV));
-        CHKERRQ(MatProductSetType(BMV,MATPRODUCT_AB));
-        CHKERRQ(MatProductSetFromOptions(BMV));
-        CHKERRQ(MatProductSymbolic(BMV));
+        PetscCall(MatProductCreate(B,MV,NULL,&BMV));
+        PetscCall(MatProductSetType(BMV,MATPRODUCT_AB));
+        PetscCall(MatProductSetFromOptions(BMV));
+        PetscCall(MatProductSymbolic(BMV));
       }
-      CHKERRQ(MatProductNumeric(BMV));
-      CHKERRQ(KSPMatSolve(ksp,BMV,MC));
-    } else CHKERRQ(KSPMatSolve(ksp,MV,MC));
-    CHKERRQ(BVRestoreMat(ctx->Y,&MC));
-    if (ctx->usest && i<contour->npoints-1) CHKERRQ(KSPReset(ksp));
+      PetscCall(MatProductNumeric(BMV));
+      PetscCall(KSPMatSolve(ksp,BMV,MC));
+    } else PetscCall(KSPMatSolve(ksp,MV,MC));
+    PetscCall(BVRestoreMat(ctx->Y,&MC));
+    if (ctx->usest && i<contour->npoints-1) PetscCall(KSPReset(ksp));
   }
-  CHKERRQ(MatDestroy(&BMV));
-  CHKERRQ(BVRestoreMat(V,&MV));
+  PetscCall(MatDestroy(&BMV));
+  PetscCall(BVRestoreMat(V,&MV));
   PetscFunctionReturn(0);
 }
 
@@ -152,12 +152,12 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   PetscBool      isring,isellipse,isinterval;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval));
-  CHKERRQ(RGGetScale(eps->rg,&rgscale));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval));
+  PetscCall(RGGetScale(eps->rg,&rgscale));
   if (isinterval) {
-    CHKERRQ(RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d));
+    PetscCall(RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d));
     if (c==d) {
       for (i=0;i<nv;i++) {
 #if defined(PETSC_USE_COMPLEX)
@@ -170,10 +170,10 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   }
   if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
     if (isellipse) {
-      CHKERRQ(RGEllipseGetParameters(eps->rg,&center,&radius,NULL));
+      PetscCall(RGEllipseGetParameters(eps->rg,&center,&radius,NULL));
       for (i=0;i<nv;i++) eps->eigr[i] = rgscale*(center + radius*eps->eigr[i]);
     } else if (isinterval) {
-      CHKERRQ(RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d));
+      PetscCall(RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d));
       if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
         for (i=0;i<nv;i++) {
           if (c==d) eps->eigr[i] = ((b-a)*(eps->eigr[i]+1.0)/2.0+a)*rgscale;
@@ -192,7 +192,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
       }
     } else if (isring) {  /* only supported in complex scalars */
 #if defined(PETSC_USE_COMPLEX)
-      CHKERRQ(RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL));
+      PetscCall(RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL));
       if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
         for (i=0;i<nv;i++) {
           theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(eps->eigr[i])+1.0))*PETSC_PI;
@@ -229,7 +229,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
       PetscCheck(ctx->L_max,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cannot adjust solver parameters, try setting a smaller value of M (moment size)");
     }
   } else {
-    CHKERRQ(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
+    PetscCall(EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd));
     ctx->L_max = eps->ncv/ctx->M;
     if (!ctx->L_max) {
       ctx->L_max = 1;
@@ -244,21 +244,21 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_EXTRACTION | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
 
   /* check region */
-  CHKERRQ(RGIsTrivial(eps->rg,&istrivial));
+  PetscCall(RGIsTrivial(eps->rg,&istrivial));
   PetscCheck(!istrivial,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
-  CHKERRQ(RGGetComplement(eps->rg,&flg));
+  PetscCall(RGGetComplement(eps->rg,&flg));
   PetscCheck(!flg,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring));
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval));
   PetscCheck(isellipse || isring || isinterval,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for interval, elliptic or ring regions");
 
   /* if the region has changed, then reset contour data */
-  CHKERRQ(PetscObjectGetId((PetscObject)eps->rg,&id));
-  CHKERRQ(PetscObjectStateGet((PetscObject)eps->rg,&state));
+  PetscCall(PetscObjectGetId((PetscObject)eps->rg,&id));
+  PetscCall(PetscObjectStateGet((PetscObject)eps->rg,&state));
   if (ctx->rgid && (id != ctx->rgid || state != ctx->rgstate)) {
-    CHKERRQ(SlepcContourDataDestroy(&ctx->contour));
-    CHKERRQ(PetscInfo(eps,"Resetting the contour data structure due to a change of region\n"));
+    PetscCall(SlepcContourDataDestroy(&ctx->contour));
+    PetscCall(PetscInfo(eps,"Resetting the contour data structure due to a change of region\n"));
     ctx->rgid = id; ctx->rgstate = state;
   }
 
@@ -266,7 +266,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscCheck(!isring,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Ring region only supported for complex scalars");
 #endif
   if (isinterval) {
-    CHKERRQ(RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d));
+    PetscCall(RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d));
 #if !defined(PETSC_USE_COMPLEX)
     PetscCheck(c==d && c==0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"In real scalars, endpoints of the imaginary axis must be both zero");
 #endif
@@ -276,80 +276,80 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 
   /* create contour data structure */
   if (!ctx->contour) {
-    CHKERRQ(RGCanUseConjugates(eps->rg,ctx->isreal,&ctx->useconj));
-    CHKERRQ(SlepcContourDataCreate(ctx->useconj?ctx->N/2:ctx->N,ctx->npart,(PetscObject)eps,&ctx->contour));
+    PetscCall(RGCanUseConjugates(eps->rg,ctx->isreal,&ctx->useconj));
+    PetscCall(SlepcContourDataCreate(ctx->useconj?ctx->N/2:ctx->N,ctx->npart,(PetscObject)eps,&ctx->contour));
   }
 
-  CHKERRQ(EPSAllocateSolution(eps,0));
-  CHKERRQ(BVGetRandomContext(eps->V,&rand));  /* make sure the random context is available when duplicating */
-  if (ctx->weight) CHKERRQ(PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma));
-  CHKERRQ(PetscMalloc4(ctx->N,&ctx->weight,ctx->N+1,&ctx->omega,ctx->N,&ctx->pp,ctx->L_max*ctx->M,&ctx->sigma));
-  CHKERRQ(PetscLogObjectMemory((PetscObject)eps,3*ctx->N*sizeof(PetscScalar)+ctx->L_max*ctx->N*sizeof(PetscReal)));
+  PetscCall(EPSAllocateSolution(eps,0));
+  PetscCall(BVGetRandomContext(eps->V,&rand));  /* make sure the random context is available when duplicating */
+  if (ctx->weight) PetscCall(PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma));
+  PetscCall(PetscMalloc4(ctx->N,&ctx->weight,ctx->N+1,&ctx->omega,ctx->N,&ctx->pp,ctx->L_max*ctx->M,&ctx->sigma));
+  PetscCall(PetscLogObjectMemory((PetscObject)eps,3*ctx->N*sizeof(PetscScalar)+ctx->L_max*ctx->N*sizeof(PetscReal)));
 
   /* allocate basis vectors */
-  CHKERRQ(BVDestroy(&ctx->S));
-  CHKERRQ(BVDuplicateResize(eps->V,ctx->L*ctx->M,&ctx->S));
-  CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->S));
-  CHKERRQ(BVDestroy(&ctx->V));
-  CHKERRQ(BVDuplicateResize(eps->V,ctx->L,&ctx->V));
-  CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->V));
+  PetscCall(BVDestroy(&ctx->S));
+  PetscCall(BVDuplicateResize(eps->V,ctx->L*ctx->M,&ctx->S));
+  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->S));
+  PetscCall(BVDestroy(&ctx->V));
+  PetscCall(BVDuplicateResize(eps->V,ctx->L,&ctx->V));
+  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->V));
 
-  CHKERRQ(STGetMatrix(eps->st,0,&A[0]));
-  CHKERRQ(MatIsShell(A[0],&flg));
+  PetscCall(STGetMatrix(eps->st,0,&A[0]));
+  PetscCall(MatIsShell(A[0],&flg));
   PetscCheck(!flg,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell is not supported in this solver");
-  if (eps->isgeneralized) CHKERRQ(STGetMatrix(eps->st,1,&A[1]));
+  if (eps->isgeneralized) PetscCall(STGetMatrix(eps->st,1,&A[1]));
 
   if (!ctx->usest_set) ctx->usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;
   PetscCheck(!ctx->usest || ctx->npart==1,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
 
   /* check if a user-defined split preconditioner has been set */
-  CHKERRQ(STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL));
+  PetscCall(STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL));
   if (nsplit) {
-    CHKERRQ(STGetSplitPreconditionerTerm(eps->st,0,&Psplit[0]));
-    if (eps->isgeneralized) CHKERRQ(STGetSplitPreconditionerTerm(eps->st,1,&Psplit[1]));
+    PetscCall(STGetSplitPreconditionerTerm(eps->st,0,&Psplit[0]));
+    if (eps->isgeneralized) PetscCall(STGetSplitPreconditionerTerm(eps->st,1,&Psplit[1]));
   }
 
   contour = ctx->contour;
-  CHKERRQ(SlepcContourRedundantMat(contour,eps->isgeneralized?2:1,A,nsplit?Psplit:NULL));
+  PetscCall(SlepcContourRedundantMat(contour,eps->isgeneralized?2:1,A,nsplit?Psplit:NULL));
   if (contour->pA) {
-    CHKERRQ(BVGetColumn(ctx->V,0,&v0));
-    CHKERRQ(SlepcContourScatterCreate(contour,v0));
-    CHKERRQ(BVRestoreColumn(ctx->V,0,&v0));
-    CHKERRQ(BVDestroy(&ctx->pV));
-    CHKERRQ(BVCreate(PetscObjectComm((PetscObject)contour->xsub),&ctx->pV));
-    CHKERRQ(BVSetSizesFromVec(ctx->pV,contour->xsub,eps->n));
-    CHKERRQ(BVSetFromOptions(ctx->pV));
-    CHKERRQ(BVResize(ctx->pV,ctx->L,PETSC_FALSE));
-    CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->pV));
+    PetscCall(BVGetColumn(ctx->V,0,&v0));
+    PetscCall(SlepcContourScatterCreate(contour,v0));
+    PetscCall(BVRestoreColumn(ctx->V,0,&v0));
+    PetscCall(BVDestroy(&ctx->pV));
+    PetscCall(BVCreate(PetscObjectComm((PetscObject)contour->xsub),&ctx->pV));
+    PetscCall(BVSetSizesFromVec(ctx->pV,contour->xsub,eps->n));
+    PetscCall(BVSetFromOptions(ctx->pV));
+    PetscCall(BVResize(ctx->pV,ctx->L,PETSC_FALSE));
+    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->pV));
   }
 
   EPSCheckDefinite(eps);
   EPSCheckSinvertCondition(eps,ctx->usest," (with the usest flag set)");
 
-  CHKERRQ(BVDestroy(&ctx->Y));
+  PetscCall(BVDestroy(&ctx->Y));
   if (contour->pA) {
-    CHKERRQ(BVCreate(PetscObjectComm((PetscObject)contour->xsub),&ctx->Y));
-    CHKERRQ(BVSetSizesFromVec(ctx->Y,contour->xsub,eps->n));
-    CHKERRQ(BVSetFromOptions(ctx->Y));
-    CHKERRQ(BVResize(ctx->Y,contour->npoints*ctx->L,PETSC_FALSE));
-  } else CHKERRQ(BVDuplicateResize(eps->V,contour->npoints*ctx->L,&ctx->Y));
-  CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->Y));
+    PetscCall(BVCreate(PetscObjectComm((PetscObject)contour->xsub),&ctx->Y));
+    PetscCall(BVSetSizesFromVec(ctx->Y,contour->xsub,eps->n));
+    PetscCall(BVSetFromOptions(ctx->Y));
+    PetscCall(BVResize(ctx->Y,contour->npoints*ctx->L,PETSC_FALSE));
+  } else PetscCall(BVDuplicateResize(eps->V,contour->npoints*ctx->L,&ctx->Y));
+  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->Y));
 
-  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) CHKERRQ(DSSetType(eps->ds,DSGNHEP));
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) PetscCall(DSSetType(eps->ds,DSGNHEP));
   else if (eps->isgeneralized) {
-    if (eps->ishermitian && eps->ispositive) CHKERRQ(DSSetType(eps->ds,DSGHEP));
-    else CHKERRQ(DSSetType(eps->ds,DSGNHEP));
+    if (eps->ishermitian && eps->ispositive) PetscCall(DSSetType(eps->ds,DSGHEP));
+    else PetscCall(DSSetType(eps->ds,DSGNHEP));
   } else {
-    if (eps->ishermitian) CHKERRQ(DSSetType(eps->ds,DSHEP));
-    else CHKERRQ(DSSetType(eps->ds,DSNHEP));
+    if (eps->ishermitian) PetscCall(DSSetType(eps->ds,DSHEP));
+    else PetscCall(DSSetType(eps->ds,DSNHEP));
   }
-  CHKERRQ(DSAllocate(eps->ds,eps->ncv));
+  PetscCall(DSAllocate(eps->ds,eps->ncv));
 
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(EPSSetWorkVecs(eps,3));
-  if (!eps->ishermitian) CHKERRQ(PetscInfo(eps,"Warning: complex eigenvalues are not calculated exactly without --with-scalar-type=complex in PETSc\n"));
+  PetscCall(EPSSetWorkVecs(eps,3));
+  if (!eps->ishermitian) PetscCall(PetscInfo(eps,"Warning: complex eigenvalues are not calculated exactly without --with-scalar-type=complex in PETSc\n"));
 #else
-  CHKERRQ(EPSSetWorkVecs(eps,2));
+  PetscCall(EPSSetWorkVecs(eps,2));
 #endif
   PetscFunctionReturn(0);
 }
@@ -366,7 +366,7 @@ PetscErrorCode EPSSetUpSort_CISS(EPS eps)
   eps->sc->mapobj        = NULL;
 
   /* fill sorting criterion for DS */
-  CHKERRQ(DSGetSlepcSC(eps->ds,&sc));
+  PetscCall(DSGetSlepcSC(eps->ds,&sc));
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
@@ -401,196 +401,196 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   w[1] = eps->work[2];
 #endif
   w[2] = eps->work[1];
-  CHKERRQ(VecGetLocalSize(w[0],&nlocal));
-  CHKERRQ(DSGetLeadingDimension(eps->ds,&ld));
-  CHKERRQ(RGComputeQuadrature(eps->rg,ctx->quad==EPS_CISS_QUADRULE_CHEBYSHEV?RG_QUADRULE_CHEBYSHEV:RG_QUADRULE_TRAPEZOIDAL,ctx->N,ctx->omega,ctx->pp,ctx->weight));
-  CHKERRQ(STGetNumMatrices(eps->st,&nmat));
-  CHKERRQ(STGetMatrix(eps->st,0,&A));
-  if (nmat>1) CHKERRQ(STGetMatrix(eps->st,1,&B));
+  PetscCall(VecGetLocalSize(w[0],&nlocal));
+  PetscCall(DSGetLeadingDimension(eps->ds,&ld));
+  PetscCall(RGComputeQuadrature(eps->rg,ctx->quad==EPS_CISS_QUADRULE_CHEBYSHEV?RG_QUADRULE_CHEBYSHEV:RG_QUADRULE_TRAPEZOIDAL,ctx->N,ctx->omega,ctx->pp,ctx->weight));
+  PetscCall(STGetNumMatrices(eps->st,&nmat));
+  PetscCall(STGetMatrix(eps->st,0,&A));
+  if (nmat>1) PetscCall(STGetMatrix(eps->st,1,&B));
   else B = NULL;
   J = (contour->pA && nmat>1)? contour->pA[1]: B;
   V = contour->pA? ctx->pV: ctx->V;
   if (!ctx->usest) {
     T = contour->pA? contour->pA[0]: A;
-    CHKERRQ(STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL));
+    PetscCall(STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL));
     if (nsplit) {
       if (contour->pA) {
         Pa = contour->pP[0];
         if (nsplit>1) Pb = contour->pP[1];
       } else {
-        CHKERRQ(STGetSplitPreconditionerTerm(eps->st,0,&Pa));
-        if (nsplit>1) CHKERRQ(STGetSplitPreconditionerTerm(eps->st,1,&Pb));
+        PetscCall(STGetSplitPreconditionerTerm(eps->st,0,&Pa));
+        if (nsplit>1) PetscCall(STGetSplitPreconditionerTerm(eps->st,1,&Pb));
       }
     }
-    CHKERRQ(EPSCISSSetUp(eps,T,J,Pa,Pb));
+    PetscCall(EPSCISSSetUp(eps,T,J,Pa,Pb));
   }
-  CHKERRQ(BVSetActiveColumns(ctx->V,0,ctx->L));
-  CHKERRQ(BVSetRandomSign(ctx->V));
-  CHKERRQ(BVGetRandomContext(ctx->V,&rand));
+  PetscCall(BVSetActiveColumns(ctx->V,0,ctx->L));
+  PetscCall(BVSetRandomSign(ctx->V));
+  PetscCall(BVGetRandomContext(ctx->V,&rand));
 
-  if (contour->pA) CHKERRQ(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
-  CHKERRQ(EPSCISSSolve(eps,J,V,0,ctx->L));
+  if (contour->pA) PetscCall(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
+  PetscCall(EPSCISSSolve(eps,J,V,0,ctx->L));
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse));
   if (isellipse) {
-    CHKERRQ(BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig));
-    CHKERRQ(PetscInfo(eps,"Estimated eigenvalue count: %f\n",(double)est_eig));
+    PetscCall(BVTraceQuadrature(ctx->Y,ctx->V,ctx->L,ctx->L,ctx->weight,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj,&est_eig));
+    PetscCall(PetscInfo(eps,"Estimated eigenvalue count: %f\n",(double)est_eig));
     eta = PetscPowReal(10.0,-PetscLog10Real(eps->tol)/ctx->N);
     L_add = PetscMax(0,(PetscInt)PetscCeilReal((est_eig*eta)/ctx->M)-ctx->L);
     if (L_add>ctx->L_max-ctx->L) {
-      CHKERRQ(PetscInfo(eps,"Number of eigenvalues inside the contour path may be too large\n"));
+      PetscCall(PetscInfo(eps,"Number of eigenvalues inside the contour path may be too large\n"));
       L_add = ctx->L_max-ctx->L;
     }
   }
 #endif
   if (L_add>0) {
-    CHKERRQ(PetscInfo(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add));
-    CHKERRQ(BVCISSResizeBases(ctx->S,contour->pA?ctx->pV:ctx->V,ctx->Y,ctx->L,ctx->L+L_add,ctx->M,contour->npoints));
-    CHKERRQ(BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add));
-    CHKERRQ(BVSetRandomSign(ctx->V));
-    if (contour->pA) CHKERRQ(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
+    PetscCall(PetscInfo(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by Estimate #Eig\n",ctx->L,ctx->L+L_add));
+    PetscCall(BVCISSResizeBases(ctx->S,contour->pA?ctx->pV:ctx->V,ctx->Y,ctx->L,ctx->L+L_add,ctx->M,contour->npoints));
+    PetscCall(BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add));
+    PetscCall(BVSetRandomSign(ctx->V));
+    if (contour->pA) PetscCall(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
     ctx->L += L_add;
-    CHKERRQ(EPSCISSSolve(eps,J,V,ctx->L-L_add,ctx->L));
+    PetscCall(EPSCISSSolve(eps,J,V,ctx->L-L_add,ctx->L));
   }
-  CHKERRQ(PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0));
+  PetscCall(PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0));
   for (i=0;i<ctx->refine_blocksize;i++) {
-    CHKERRQ(BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj));
-    CHKERRQ(CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0));
-    CHKERRQ(PetscLogEventBegin(EPS_CISS_SVD,eps,0,0,0));
-    CHKERRQ(SlepcCISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv));
-    CHKERRQ(PetscLogEventEnd(EPS_CISS_SVD,eps,0,0,0));
+    PetscCall(BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj));
+    PetscCall(CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0));
+    PetscCall(PetscLogEventBegin(EPS_CISS_SVD,eps,0,0,0));
+    PetscCall(SlepcCISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv));
+    PetscCall(PetscLogEventEnd(EPS_CISS_SVD,eps,0,0,0));
     if (ctx->sigma[0]<=ctx->delta || nv < ctx->L*ctx->M || ctx->L == ctx->L_max) break;
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
-    CHKERRQ(PetscInfo(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add));
-    CHKERRQ(BVCISSResizeBases(ctx->S,contour->pA?ctx->pV:ctx->V,ctx->Y,ctx->L,ctx->L+L_add,ctx->M,contour->npoints));
-    CHKERRQ(BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add));
-    CHKERRQ(BVSetRandomSign(ctx->V));
-    if (contour->pA) CHKERRQ(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
+    PetscCall(PetscInfo(eps,"Changing L %" PetscInt_FMT " -> %" PetscInt_FMT " by SVD(H0)\n",ctx->L,ctx->L+L_add));
+    PetscCall(BVCISSResizeBases(ctx->S,contour->pA?ctx->pV:ctx->V,ctx->Y,ctx->L,ctx->L+L_add,ctx->M,contour->npoints));
+    PetscCall(BVSetActiveColumns(ctx->V,ctx->L,ctx->L+L_add));
+    PetscCall(BVSetRandomSign(ctx->V));
+    if (contour->pA) PetscCall(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
     ctx->L += L_add;
-    CHKERRQ(EPSCISSSolve(eps,J,V,ctx->L-L_add,ctx->L));
+    PetscCall(EPSCISSSolve(eps,J,V,ctx->L-L_add,ctx->L));
     if (L_add) {
-      CHKERRQ(PetscFree2(Mu,H0));
-      CHKERRQ(PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0));
+      PetscCall(PetscFree2(Mu,H0));
+      PetscCall(PetscMalloc2(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0));
     }
   }
-  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) CHKERRQ(PetscMalloc1(ctx->L*ctx->M*ctx->L*ctx->M,&H1));
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) PetscCall(PetscMalloc1(ctx->L*ctx->M*ctx->L*ctx->M,&H1));
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
     for (inner=0;inner<=ctx->refine_inner;inner++) {
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-        CHKERRQ(BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj));
-        CHKERRQ(CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0));
-        CHKERRQ(PetscLogEventBegin(EPS_CISS_SVD,eps,0,0,0));
-        CHKERRQ(SlepcCISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv));
-        CHKERRQ(PetscLogEventEnd(EPS_CISS_SVD,eps,0,0,0));
+        PetscCall(BVDotQuadrature(ctx->Y,(contour->pA)?ctx->pV:ctx->V,Mu,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->subcomm,contour->npoints,ctx->useconj));
+        PetscCall(CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0));
+        PetscCall(PetscLogEventBegin(EPS_CISS_SVD,eps,0,0,0));
+        PetscCall(SlepcCISS_BH_SVD(H0,ctx->L*ctx->M,ctx->delta,ctx->sigma,&nv));
+        PetscCall(PetscLogEventEnd(EPS_CISS_SVD,eps,0,0,0));
         break;
       } else {
-        CHKERRQ(BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj));
-        CHKERRQ(BVSetActiveColumns(ctx->S,0,ctx->L));
-        CHKERRQ(BVSetActiveColumns(ctx->V,0,ctx->L));
-        CHKERRQ(BVCopy(ctx->S,ctx->V));
-        CHKERRQ(BVSVDAndRank(ctx->S,ctx->M,ctx->L,ctx->delta,BV_SVD_METHOD_REFINE,H0,ctx->sigma,&nv));
+        PetscCall(BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj));
+        PetscCall(BVSetActiveColumns(ctx->S,0,ctx->L));
+        PetscCall(BVSetActiveColumns(ctx->V,0,ctx->L));
+        PetscCall(BVCopy(ctx->S,ctx->V));
+        PetscCall(BVSVDAndRank(ctx->S,ctx->M,ctx->L,ctx->delta,BV_SVD_METHOD_REFINE,H0,ctx->sigma,&nv));
         if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
-          if (contour->pA) CHKERRQ(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
-          CHKERRQ(EPSCISSSolve(eps,J,V,0,ctx->L));
+          if (contour->pA) PetscCall(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
+          PetscCall(EPSCISSSolve(eps,J,V,0,ctx->L));
         } else break;
       }
     }
     eps->nconv = 0;
     if (nv == 0) eps->reason = EPS_CONVERGED_TOL;
     else {
-      CHKERRQ(DSSetDimensions(eps->ds,nv,0,0));
-      CHKERRQ(DSSetState(eps->ds,DS_STATE_RAW));
+      PetscCall(DSSetDimensions(eps->ds,nv,0,0));
+      PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
 
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-        CHKERRQ(CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0));
-        CHKERRQ(CISS_BlockHankel(Mu,1,ctx->L,ctx->M,H1));
-        CHKERRQ(DSGetArray(eps->ds,DS_MAT_A,&temp));
+        PetscCall(CISS_BlockHankel(Mu,0,ctx->L,ctx->M,H0));
+        PetscCall(CISS_BlockHankel(Mu,1,ctx->L,ctx->M,H1));
+        PetscCall(DSGetArray(eps->ds,DS_MAT_A,&temp));
         for (j=0;j<nv;j++) {
           for (i=0;i<nv;i++) {
             temp[i+j*ld] = H1[i+j*ctx->L*ctx->M];
           }
         }
-        CHKERRQ(DSRestoreArray(eps->ds,DS_MAT_A,&temp));
-        CHKERRQ(DSGetArray(eps->ds,DS_MAT_B,&temp));
+        PetscCall(DSRestoreArray(eps->ds,DS_MAT_A,&temp));
+        PetscCall(DSGetArray(eps->ds,DS_MAT_B,&temp));
         for (j=0;j<nv;j++) {
           for (i=0;i<nv;i++) {
             temp[i+j*ld] = H0[i+j*ctx->L*ctx->M];
           }
         }
-        CHKERRQ(DSRestoreArray(eps->ds,DS_MAT_B,&temp));
+        PetscCall(DSRestoreArray(eps->ds,DS_MAT_B,&temp));
       } else {
-        CHKERRQ(BVSetActiveColumns(ctx->S,0,nv));
-        CHKERRQ(DSGetMat(eps->ds,DS_MAT_A,&pA));
-        CHKERRQ(MatZeroEntries(pA));
-        CHKERRQ(BVMatProject(ctx->S,A,ctx->S,pA));
-        CHKERRQ(DSRestoreMat(eps->ds,DS_MAT_A,&pA));
+        PetscCall(BVSetActiveColumns(ctx->S,0,nv));
+        PetscCall(DSGetMat(eps->ds,DS_MAT_A,&pA));
+        PetscCall(MatZeroEntries(pA));
+        PetscCall(BVMatProject(ctx->S,A,ctx->S,pA));
+        PetscCall(DSRestoreMat(eps->ds,DS_MAT_A,&pA));
         if (B) {
-          CHKERRQ(DSGetMat(eps->ds,DS_MAT_B,&pB));
-          CHKERRQ(MatZeroEntries(pB));
-          CHKERRQ(BVMatProject(ctx->S,B,ctx->S,pB));
-          CHKERRQ(DSRestoreMat(eps->ds,DS_MAT_B,&pB));
+          PetscCall(DSGetMat(eps->ds,DS_MAT_B,&pB));
+          PetscCall(MatZeroEntries(pB));
+          PetscCall(BVMatProject(ctx->S,B,ctx->S,pB));
+          PetscCall(DSRestoreMat(eps->ds,DS_MAT_B,&pB));
         }
       }
 
-      CHKERRQ(DSSolve(eps->ds,eps->eigr,eps->eigi));
-      CHKERRQ(DSSynchronize(eps->ds,eps->eigr,eps->eigi));
+      PetscCall(DSSolve(eps->ds,eps->eigr,eps->eigi));
+      PetscCall(DSSynchronize(eps->ds,eps->eigr,eps->eigi));
 
-      CHKERRQ(PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr));
-      CHKERRQ(rescale_eig(eps,nv));
-      CHKERRQ(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
-      CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&X));
-      CHKERRQ(SlepcCISS_isGhost(X,nv,ctx->sigma,ctx->spurious_threshold,fl1));
-      CHKERRQ(MatDestroy(&X));
-      CHKERRQ(RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside));
+      PetscCall(PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr));
+      PetscCall(rescale_eig(eps,nv));
+      PetscCall(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
+      PetscCall(DSGetMat(eps->ds,DS_MAT_X,&X));
+      PetscCall(SlepcCISS_isGhost(X,nv,ctx->sigma,ctx->spurious_threshold,fl1));
+      PetscCall(MatDestroy(&X));
+      PetscCall(RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside));
       for (i=0;i<nv;i++) {
         if (fl1[i] && inside[i]>=0) {
           rr[i] = 1.0;
           eps->nconv++;
         } else rr[i] = 0.0;
       }
-      CHKERRQ(DSSort(eps->ds,eps->eigr,eps->eigi,rr,NULL,&eps->nconv));
-      CHKERRQ(DSSynchronize(eps->ds,eps->eigr,eps->eigi));
-      CHKERRQ(rescale_eig(eps,nv));
-      CHKERRQ(PetscFree3(fl1,inside,rr));
-      CHKERRQ(BVSetActiveColumns(eps->V,0,nv));
+      PetscCall(DSSort(eps->ds,eps->eigr,eps->eigi,rr,NULL,&eps->nconv));
+      PetscCall(DSSynchronize(eps->ds,eps->eigr,eps->eigi));
+      PetscCall(rescale_eig(eps,nv));
+      PetscCall(PetscFree3(fl1,inside,rr));
+      PetscCall(BVSetActiveColumns(eps->V,0,nv));
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-        CHKERRQ(BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj));
-        CHKERRQ(BVSetActiveColumns(ctx->S,0,ctx->L));
-        CHKERRQ(BVCopy(ctx->S,ctx->V));
-        CHKERRQ(BVSetActiveColumns(ctx->S,0,nv));
+        PetscCall(BVSumQuadrature(ctx->S,ctx->Y,ctx->M,ctx->L,ctx->L,ctx->weight,ctx->pp,contour->scatterin,contour->subcomm,contour->npoints,ctx->useconj));
+        PetscCall(BVSetActiveColumns(ctx->S,0,ctx->L));
+        PetscCall(BVCopy(ctx->S,ctx->V));
+        PetscCall(BVSetActiveColumns(ctx->S,0,nv));
       }
-      CHKERRQ(BVCopy(ctx->S,eps->V));
+      PetscCall(BVCopy(ctx->S,eps->V));
 
-      CHKERRQ(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
-      CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&X));
-      CHKERRQ(BVMultInPlace(ctx->S,X,0,eps->nconv));
-      if (eps->ishermitian) CHKERRQ(BVMultInPlace(eps->V,X,0,eps->nconv));
-      CHKERRQ(MatDestroy(&X));
+      PetscCall(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
+      PetscCall(DSGetMat(eps->ds,DS_MAT_X,&X));
+      PetscCall(BVMultInPlace(ctx->S,X,0,eps->nconv));
+      if (eps->ishermitian) PetscCall(BVMultInPlace(eps->V,X,0,eps->nconv));
+      PetscCall(MatDestroy(&X));
       max_error = 0.0;
       for (i=0;i<eps->nconv;i++) {
-        CHKERRQ(BVGetColumn(ctx->S,i,&si));
+        PetscCall(BVGetColumn(ctx->S,i,&si));
 #if !defined(PETSC_USE_COMPLEX)
-        if (eps->eigi[i]!=0.0) CHKERRQ(BVGetColumn(ctx->S,i+1,&si1));
+        if (eps->eigi[i]!=0.0) PetscCall(BVGetColumn(ctx->S,i+1,&si1));
 #endif
-        CHKERRQ(EPSComputeResidualNorm_Private(eps,PETSC_FALSE,eps->eigr[i],eps->eigi[i],si,si1,w,&error));
+        PetscCall(EPSComputeResidualNorm_Private(eps,PETSC_FALSE,eps->eigr[i],eps->eigi[i],si,si1,w,&error));
         if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {  /* vector is not normalized */
-          CHKERRQ(VecNorm(si,NORM_2,&norm));
+          PetscCall(VecNorm(si,NORM_2,&norm));
 #if !defined(PETSC_USE_COMPLEX)
           if (eps->eigi[i]!=0.0) {
-            CHKERRQ(VecNorm(si1,NORM_2,&normi));
+            PetscCall(VecNorm(si1,NORM_2,&normi));
             norm = SlepcAbsEigenvalue(norm,normi);
           }
 #endif
           error /= norm;
         }
-        CHKERRQ((*eps->converged)(eps,eps->eigr[i],eps->eigi[i],error,&error,eps->convergedctx));
-        CHKERRQ(BVRestoreColumn(ctx->S,i,&si));
+        PetscCall((*eps->converged)(eps,eps->eigr[i],eps->eigi[i],error,&error,eps->convergedctx));
+        PetscCall(BVRestoreColumn(ctx->S,i,&si));
 #if !defined(PETSC_USE_COMPLEX)
         if (eps->eigi[i]!=0.0) {
-          CHKERRQ(BVRestoreColumn(ctx->S,i+1,&si1));
+          PetscCall(BVRestoreColumn(ctx->S,i+1,&si1));
           i++;
         }
 #endif
@@ -603,21 +603,21 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         if (eps->nconv > ctx->L) nv = eps->nconv;
         else if (ctx->L > nv) nv = ctx->L;
         nv = PetscMin(nv,ctx->L*ctx->M);
-        CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M));
-        CHKERRQ(MatSetRandom(M,rand));
-        CHKERRQ(BVSetActiveColumns(ctx->S,0,nv));
-        CHKERRQ(BVMultInPlace(ctx->S,M,0,ctx->L));
-        CHKERRQ(MatDestroy(&M));
-        CHKERRQ(BVSetActiveColumns(ctx->S,0,ctx->L));
-        CHKERRQ(BVSetActiveColumns(ctx->V,0,ctx->L));
-        CHKERRQ(BVCopy(ctx->S,ctx->V));
-        if (contour->pA) CHKERRQ(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
-        CHKERRQ(EPSCISSSolve(eps,J,V,0,ctx->L));
+        PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M));
+        PetscCall(MatSetRandom(M,rand));
+        PetscCall(BVSetActiveColumns(ctx->S,0,nv));
+        PetscCall(BVMultInPlace(ctx->S,M,0,ctx->L));
+        PetscCall(MatDestroy(&M));
+        PetscCall(BVSetActiveColumns(ctx->S,0,ctx->L));
+        PetscCall(BVSetActiveColumns(ctx->V,0,ctx->L));
+        PetscCall(BVCopy(ctx->S,ctx->V));
+        if (contour->pA) PetscCall(BVScatter(ctx->V,ctx->pV,contour->scatterin,contour->xdup));
+        PetscCall(EPSCISSSolve(eps,J,V,0,ctx->L));
       }
     }
   }
-  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) CHKERRQ(PetscFree(H1));
-  CHKERRQ(PetscFree2(Mu,H0));
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) PetscCall(PetscFree(H1));
+  PetscCall(PetscFree2(Mu,H0));
   PetscFunctionReturn(0);
 }
 
@@ -629,31 +629,31 @@ PetscErrorCode EPSComputeVectors_CISS(EPS eps)
 
   PetscFunctionBegin;
   if (eps->ishermitian) {
-    if (eps->isgeneralized && !eps->ispositive) CHKERRQ(EPSComputeVectors_Indefinite(eps));
-    else CHKERRQ(EPSComputeVectors_Hermitian(eps));
+    if (eps->isgeneralized && !eps->ispositive) PetscCall(EPSComputeVectors_Indefinite(eps));
+    else PetscCall(EPSComputeVectors_Hermitian(eps));
     if (eps->isgeneralized && eps->ispositive && ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
       /* normalize to have unit B-norm */
-      CHKERRQ(STGetMatrix(eps->st,1,&B));
-      CHKERRQ(BVSetMatrix(eps->V,B,PETSC_FALSE));
-      CHKERRQ(BVNormalize(eps->V,NULL));
-      CHKERRQ(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
+      PetscCall(STGetMatrix(eps->st,1,&B));
+      PetscCall(BVSetMatrix(eps->V,B,PETSC_FALSE));
+      PetscCall(BVNormalize(eps->V,NULL));
+      PetscCall(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
     }
     PetscFunctionReturn(0);
   }
-  CHKERRQ(DSGetDimensions(eps->ds,&n,NULL,NULL,NULL));
-  CHKERRQ(BVSetActiveColumns(eps->V,0,n));
+  PetscCall(DSGetDimensions(eps->ds,&n,NULL,NULL,NULL));
+  PetscCall(BVSetActiveColumns(eps->V,0,n));
 
   /* right eigenvectors */
-  CHKERRQ(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
+  PetscCall(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
 
   /* V = V * Z */
-  CHKERRQ(DSGetMat(eps->ds,DS_MAT_X,&Z));
-  CHKERRQ(BVMultInPlace(eps->V,Z,0,n));
-  CHKERRQ(MatDestroy(&Z));
-  CHKERRQ(BVSetActiveColumns(eps->V,0,eps->nconv));
+  PetscCall(DSGetMat(eps->ds,DS_MAT_X,&Z));
+  PetscCall(BVMultInPlace(eps->V,Z,0,n));
+  PetscCall(MatDestroy(&Z));
+  PetscCall(BVSetActiveColumns(eps->V,0,eps->nconv));
 
   /* normalize */
-  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) CHKERRQ(BVNormalize(eps->V,NULL));
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) PetscCall(BVNormalize(eps->V,NULL));
   PetscFunctionReturn(0);
 }
 
@@ -691,7 +691,7 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
   if (npart == PETSC_DECIDE || npart == PETSC_DEFAULT) {
     ctx->npart = 1;
   } else {
-    CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
+    PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
     PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
     ctx->npart = npart;
   }
@@ -703,8 +703,8 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
     ctx->L_max = PetscMax(bsmax,ctx->L);
   }
   if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) {
-    CHKERRQ(SlepcContourDataDestroy(&ctx->contour));
-    CHKERRQ(PetscInfo(eps,"Resetting the contour data structure due to a change of parameters\n"));
+    PetscCall(SlepcContourDataDestroy(&ctx->contour));
+    PetscCall(PetscInfo(eps,"Resetting the contour data structure due to a change of parameters\n"));
     eps->state = EPS_STATE_INITIAL;
   }
   ctx->isreal = realmats;
@@ -753,7 +753,7 @@ PetscErrorCode EPSCISSSetSizes(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,Petsc
   PetscValidLogicalCollectiveInt(eps,npart,5);
   PetscValidLogicalCollectiveInt(eps,bsmax,6);
   PetscValidLogicalCollectiveBool(eps,realmats,7);
-  CHKERRQ(PetscTryMethod(eps,"EPSCISSSetSizes_C",(EPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(eps,ip,bs,ms,npart,bsmax,realmats)));
+  PetscCall(PetscTryMethod(eps,"EPSCISSSetSizes_C",(EPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(eps,ip,bs,ms,npart,bsmax,realmats)));
   PetscFunctionReturn(0);
 }
 
@@ -795,7 +795,7 @@ PetscErrorCode EPSCISSGetSizes(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,Pe
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  CHKERRQ(PetscUseMethod(eps,"EPSCISSGetSizes_C",(EPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(eps,ip,bs,ms,npart,bsmax,realmats)));
+  PetscCall(PetscUseMethod(eps,"EPSCISSGetSizes_C",(EPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(eps,ip,bs,ms,npart,bsmax,realmats)));
   PetscFunctionReturn(0);
 }
 
@@ -844,7 +844,7 @@ PetscErrorCode EPSCISSSetThreshold(EPS eps,PetscReal delta,PetscReal spur)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,delta,2);
   PetscValidLogicalCollectiveReal(eps,spur,3);
-  CHKERRQ(PetscTryMethod(eps,"EPSCISSSetThreshold_C",(EPS,PetscReal,PetscReal),(eps,delta,spur)));
+  PetscCall(PetscTryMethod(eps,"EPSCISSSetThreshold_C",(EPS,PetscReal,PetscReal),(eps,delta,spur)));
   PetscFunctionReturn(0);
 }
 
@@ -879,7 +879,7 @@ PetscErrorCode EPSCISSGetThreshold(EPS eps,PetscReal *delta,PetscReal *spur)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  CHKERRQ(PetscUseMethod(eps,"EPSCISSGetThreshold_C",(EPS,PetscReal*,PetscReal*),(eps,delta,spur)));
+  PetscCall(PetscUseMethod(eps,"EPSCISSGetThreshold_C",(EPS,PetscReal*,PetscReal*),(eps,delta,spur)));
   PetscFunctionReturn(0);
 }
 
@@ -928,7 +928,7 @@ PetscErrorCode EPSCISSSetRefinement(EPS eps,PetscInt inner,PetscInt blsize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,inner,2);
   PetscValidLogicalCollectiveInt(eps,blsize,3);
-  CHKERRQ(PetscTryMethod(eps,"EPSCISSSetRefinement_C",(EPS,PetscInt,PetscInt),(eps,inner,blsize)));
+  PetscCall(PetscTryMethod(eps,"EPSCISSSetRefinement_C",(EPS,PetscInt,PetscInt),(eps,inner,blsize)));
   PetscFunctionReturn(0);
 }
 
@@ -963,7 +963,7 @@ PetscErrorCode EPSCISSGetRefinement(EPS eps, PetscInt *inner, PetscInt *blsize)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  CHKERRQ(PetscUseMethod(eps,"EPSCISSGetRefinement_C",(EPS,PetscInt*,PetscInt*),(eps,inner,blsize)));
+  PetscCall(PetscUseMethod(eps,"EPSCISSGetRefinement_C",(EPS,PetscInt*,PetscInt*),(eps,inner,blsize)));
   PetscFunctionReturn(0);
 }
 
@@ -1000,7 +1000,7 @@ PetscErrorCode EPSCISSSetUseST(EPS eps,PetscBool usest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,usest,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSCISSSetUseST_C",(EPS,PetscBool),(eps,usest)));
+  PetscCall(PetscTryMethod(eps,"EPSCISSSetUseST_C",(EPS,PetscBool),(eps,usest)));
   PetscFunctionReturn(0);
 }
 
@@ -1034,7 +1034,7 @@ PetscErrorCode EPSCISSGetUseST(EPS eps,PetscBool *usest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(usest,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSCISSGetUseST_C",(EPS,PetscBool*),(eps,usest)));
+  PetscCall(PetscUseMethod(eps,"EPSCISSGetUseST_C",(EPS,PetscBool*),(eps,usest)));
   PetscFunctionReturn(0);
 }
 
@@ -1078,7 +1078,7 @@ PetscErrorCode EPSCISSSetQuadRule(EPS eps,EPSCISSQuadRule quad)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,quad,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSCISSSetQuadRule_C",(EPS,EPSCISSQuadRule),(eps,quad)));
+  PetscCall(PetscTryMethod(eps,"EPSCISSSetQuadRule_C",(EPS,EPSCISSQuadRule),(eps,quad)));
   PetscFunctionReturn(0);
 }
 
@@ -1111,7 +1111,7 @@ PetscErrorCode EPSCISSGetQuadRule(EPS eps,EPSCISSQuadRule *quad)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(quad,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSCISSGetQuadRule_C",(EPS,EPSCISSQuadRule*),(eps,quad)));
+  PetscCall(PetscUseMethod(eps,"EPSCISSGetQuadRule_C",(EPS,EPSCISSQuadRule*),(eps,quad)));
   PetscFunctionReturn(0);
 }
 
@@ -1155,7 +1155,7 @@ PetscErrorCode EPSCISSSetExtraction(EPS eps,EPSCISSExtraction extraction)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,extraction,2);
-  CHKERRQ(PetscTryMethod(eps,"EPSCISSSetExtraction_C",(EPS,EPSCISSExtraction),(eps,extraction)));
+  PetscCall(PetscTryMethod(eps,"EPSCISSSetExtraction_C",(EPS,EPSCISSExtraction),(eps,extraction)));
   PetscFunctionReturn(0);
 }
 
@@ -1188,7 +1188,7 @@ PetscErrorCode EPSCISSGetExtraction(EPS eps,EPSCISSExtraction *extraction)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(extraction,2);
-  CHKERRQ(PetscUseMethod(eps,"EPSCISSGetExtraction_C",(EPS,EPSCISSExtraction*),(eps,extraction)));
+  PetscCall(PetscUseMethod(eps,"EPSCISSGetExtraction_C",(EPS,EPSCISSExtraction*),(eps,extraction)));
   PetscFunctionReturn(0);
 }
 
@@ -1202,31 +1202,31 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
 
   PetscFunctionBegin;
   if (!ctx->contour) {  /* initialize contour data structure first */
-    CHKERRQ(RGCanUseConjugates(eps->rg,ctx->isreal,&ctx->useconj));
-    CHKERRQ(SlepcContourDataCreate(ctx->useconj?ctx->N/2:ctx->N,ctx->npart,(PetscObject)eps,&ctx->contour));
+    PetscCall(RGCanUseConjugates(eps->rg,ctx->isreal,&ctx->useconj));
+    PetscCall(SlepcContourDataCreate(ctx->useconj?ctx->N/2:ctx->N,ctx->npart,(PetscObject)eps,&ctx->contour));
   }
   contour = ctx->contour;
   if (!contour->ksp) {
-    CHKERRQ(PetscMalloc1(contour->npoints,&contour->ksp));
-    CHKERRQ(EPSGetST(eps,&eps->st));
-    CHKERRQ(STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL));
-    CHKERRQ(PetscSubcommGetChild(contour->subcomm,&child));
+    PetscCall(PetscMalloc1(contour->npoints,&contour->ksp));
+    PetscCall(EPSGetST(eps,&eps->st));
+    PetscCall(STGetSplitPreconditionerInfo(eps->st,&nsplit,NULL));
+    PetscCall(PetscSubcommGetChild(contour->subcomm,&child));
     for (i=0;i<contour->npoints;i++) {
-      CHKERRQ(KSPCreate(child,&contour->ksp[i]));
-      CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)contour->ksp[i],(PetscObject)eps,1));
-      CHKERRQ(KSPSetOptionsPrefix(contour->ksp[i],((PetscObject)eps)->prefix));
-      CHKERRQ(KSPAppendOptionsPrefix(contour->ksp[i],"eps_ciss_"));
-      CHKERRQ(PetscLogObjectParent((PetscObject)eps,(PetscObject)contour->ksp[i]));
-      CHKERRQ(PetscObjectSetOptions((PetscObject)contour->ksp[i],((PetscObject)eps)->options));
-      CHKERRQ(KSPSetErrorIfNotConverged(contour->ksp[i],PETSC_TRUE));
-      CHKERRQ(KSPSetTolerances(contour->ksp[i],SlepcDefaultTol(eps->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
-      CHKERRQ(KSPGetPC(contour->ksp[i],&pc));
+      PetscCall(KSPCreate(child,&contour->ksp[i]));
+      PetscCall(PetscObjectIncrementTabLevel((PetscObject)contour->ksp[i],(PetscObject)eps,1));
+      PetscCall(KSPSetOptionsPrefix(contour->ksp[i],((PetscObject)eps)->prefix));
+      PetscCall(KSPAppendOptionsPrefix(contour->ksp[i],"eps_ciss_"));
+      PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)contour->ksp[i]));
+      PetscCall(PetscObjectSetOptions((PetscObject)contour->ksp[i],((PetscObject)eps)->options));
+      PetscCall(KSPSetErrorIfNotConverged(contour->ksp[i],PETSC_TRUE));
+      PetscCall(KSPSetTolerances(contour->ksp[i],SlepcDefaultTol(eps->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+      PetscCall(KSPGetPC(contour->ksp[i],&pc));
       if (nsplit) {
-        CHKERRQ(KSPSetType(contour->ksp[i],KSPBCGS));
-        CHKERRQ(PCSetType(pc,PCBJACOBI));
+        PetscCall(KSPSetType(contour->ksp[i],KSPBCGS));
+        PetscCall(PCSetType(pc,PCBJACOBI));
       } else {
-        CHKERRQ(KSPSetType(contour->ksp[i],KSPPREONLY));
-        CHKERRQ(PCSetType(pc,PCLU));
+        PetscCall(KSPSetType(contour->ksp[i],KSPPREONLY));
+        PetscCall(PCSetType(pc,PCLU));
       }
     }
   }
@@ -1261,7 +1261,7 @@ PetscErrorCode EPSCISSGetKSPs(EPS eps,PetscInt *nsolve,KSP **ksp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  CHKERRQ(PetscUseMethod(eps,"EPSCISSGetKSPs_C",(EPS,PetscInt*,KSP**),(eps,nsolve,ksp)));
+  PetscCall(PetscUseMethod(eps,"EPSCISSGetKSPs_C",(EPS,PetscInt*,KSP**),(eps,nsolve,ksp)));
   PetscFunctionReturn(0);
 }
 
@@ -1270,11 +1270,11 @@ PetscErrorCode EPSReset_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(BVDestroy(&ctx->S));
-  CHKERRQ(BVDestroy(&ctx->V));
-  CHKERRQ(BVDestroy(&ctx->Y));
-  if (!ctx->usest) CHKERRQ(SlepcContourDataReset(ctx->contour));
-  CHKERRQ(BVDestroy(&ctx->pV));
+  PetscCall(BVDestroy(&ctx->S));
+  PetscCall(BVDestroy(&ctx->V));
+  PetscCall(BVDestroy(&ctx->Y));
+  if (!ctx->usest) PetscCall(SlepcContourDataReset(ctx->contour));
+  PetscCall(BVDestroy(&ctx->pV));
   PetscFunctionReturn(0);
 }
 
@@ -1288,44 +1288,44 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
   EPSCISSExtraction extraction;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsHead(PetscOptionsObject,"EPS CISS Options"));
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS CISS Options"));
 
-    CHKERRQ(EPSCISSGetSizes(eps,&i1,&i2,&i3,&i4,&i5,&b1));
-    CHKERRQ(PetscOptionsInt("-eps_ciss_integration_points","Number of integration points","EPSCISSSetSizes",i1,&i1,&flg));
-    CHKERRQ(PetscOptionsInt("-eps_ciss_blocksize","Block size","EPSCISSSetSizes",i2,&i2,&flg2));
-    CHKERRQ(PetscOptionsInt("-eps_ciss_moments","Moment size","EPSCISSSetSizes",i3,&i3,&flg3));
-    CHKERRQ(PetscOptionsInt("-eps_ciss_partitions","Number of partitions","EPSCISSSetSizes",i4,&i4,&flg4));
-    CHKERRQ(PetscOptionsInt("-eps_ciss_maxblocksize","Maximum block size","EPSCISSSetSizes",i5,&i5,&flg5));
-    CHKERRQ(PetscOptionsBool("-eps_ciss_realmats","True if A and B are real","EPSCISSSetSizes",b1,&b1,&flg6));
-    if (flg || flg2 || flg3 || flg4 || flg5 || flg6) CHKERRQ(EPSCISSSetSizes(eps,i1,i2,i3,i4,i5,b1));
+    PetscCall(EPSCISSGetSizes(eps,&i1,&i2,&i3,&i4,&i5,&b1));
+    PetscCall(PetscOptionsInt("-eps_ciss_integration_points","Number of integration points","EPSCISSSetSizes",i1,&i1,&flg));
+    PetscCall(PetscOptionsInt("-eps_ciss_blocksize","Block size","EPSCISSSetSizes",i2,&i2,&flg2));
+    PetscCall(PetscOptionsInt("-eps_ciss_moments","Moment size","EPSCISSSetSizes",i3,&i3,&flg3));
+    PetscCall(PetscOptionsInt("-eps_ciss_partitions","Number of partitions","EPSCISSSetSizes",i4,&i4,&flg4));
+    PetscCall(PetscOptionsInt("-eps_ciss_maxblocksize","Maximum block size","EPSCISSSetSizes",i5,&i5,&flg5));
+    PetscCall(PetscOptionsBool("-eps_ciss_realmats","True if A and B are real","EPSCISSSetSizes",b1,&b1,&flg6));
+    if (flg || flg2 || flg3 || flg4 || flg5 || flg6) PetscCall(EPSCISSSetSizes(eps,i1,i2,i3,i4,i5,b1));
 
-    CHKERRQ(EPSCISSGetThreshold(eps,&r3,&r4));
-    CHKERRQ(PetscOptionsReal("-eps_ciss_delta","Threshold for numerical rank","EPSCISSSetThreshold",r3,&r3,&flg));
-    CHKERRQ(PetscOptionsReal("-eps_ciss_spurious_threshold","Threshold for the spurious eigenpairs","EPSCISSSetThreshold",r4,&r4,&flg2));
-    if (flg || flg2) CHKERRQ(EPSCISSSetThreshold(eps,r3,r4));
+    PetscCall(EPSCISSGetThreshold(eps,&r3,&r4));
+    PetscCall(PetscOptionsReal("-eps_ciss_delta","Threshold for numerical rank","EPSCISSSetThreshold",r3,&r3,&flg));
+    PetscCall(PetscOptionsReal("-eps_ciss_spurious_threshold","Threshold for the spurious eigenpairs","EPSCISSSetThreshold",r4,&r4,&flg2));
+    if (flg || flg2) PetscCall(EPSCISSSetThreshold(eps,r3,r4));
 
-    CHKERRQ(EPSCISSGetRefinement(eps,&i6,&i7));
-    CHKERRQ(PetscOptionsInt("-eps_ciss_refine_inner","Number of inner iterative refinement iterations","EPSCISSSetRefinement",i6,&i6,&flg));
-    CHKERRQ(PetscOptionsInt("-eps_ciss_refine_blocksize","Number of blocksize iterative refinement iterations","EPSCISSSetRefinement",i7,&i7,&flg2));
-    if (flg || flg2) CHKERRQ(EPSCISSSetRefinement(eps,i6,i7));
+    PetscCall(EPSCISSGetRefinement(eps,&i6,&i7));
+    PetscCall(PetscOptionsInt("-eps_ciss_refine_inner","Number of inner iterative refinement iterations","EPSCISSSetRefinement",i6,&i6,&flg));
+    PetscCall(PetscOptionsInt("-eps_ciss_refine_blocksize","Number of blocksize iterative refinement iterations","EPSCISSSetRefinement",i7,&i7,&flg2));
+    if (flg || flg2) PetscCall(EPSCISSSetRefinement(eps,i6,i7));
 
-    CHKERRQ(EPSCISSGetUseST(eps,&b2));
-    CHKERRQ(PetscOptionsBool("-eps_ciss_usest","Use ST for linear solves","EPSCISSSetUseST",b2,&b2,&flg));
-    if (flg) CHKERRQ(EPSCISSSetUseST(eps,b2));
+    PetscCall(EPSCISSGetUseST(eps,&b2));
+    PetscCall(PetscOptionsBool("-eps_ciss_usest","Use ST for linear solves","EPSCISSSetUseST",b2,&b2,&flg));
+    if (flg) PetscCall(EPSCISSSetUseST(eps,b2));
 
-    CHKERRQ(PetscOptionsEnum("-eps_ciss_quadrule","Quadrature rule","EPSCISSSetQuadRule",EPSCISSQuadRules,(PetscEnum)ctx->quad,(PetscEnum*)&quad,&flg));
-    if (flg) CHKERRQ(EPSCISSSetQuadRule(eps,quad));
+    PetscCall(PetscOptionsEnum("-eps_ciss_quadrule","Quadrature rule","EPSCISSSetQuadRule",EPSCISSQuadRules,(PetscEnum)ctx->quad,(PetscEnum*)&quad,&flg));
+    if (flg) PetscCall(EPSCISSSetQuadRule(eps,quad));
 
-    CHKERRQ(PetscOptionsEnum("-eps_ciss_extraction","Extraction technique","EPSCISSSetExtraction",EPSCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg));
-    if (flg) CHKERRQ(EPSCISSSetExtraction(eps,extraction));
+    PetscCall(PetscOptionsEnum("-eps_ciss_extraction","Extraction technique","EPSCISSSetExtraction",EPSCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg));
+    if (flg) PetscCall(EPSCISSSetExtraction(eps,extraction));
 
-  CHKERRQ(PetscOptionsTail());
+  PetscCall(PetscOptionsTail());
 
-  if (!eps->rg) CHKERRQ(EPSGetRG(eps,&eps->rg));
-  CHKERRQ(RGSetFromOptions(eps->rg)); /* this is necessary here to set useconj */
-  if (!ctx->contour || !ctx->contour->ksp) CHKERRQ(EPSCISSGetKSPs(eps,NULL,NULL));
-  for (i=0;i<ctx->contour->npoints;i++) CHKERRQ(KSPSetFromOptions(ctx->contour->ksp[i]));
-  CHKERRQ(PetscSubcommSetFromOptions(ctx->contour->subcomm));
+  if (!eps->rg) PetscCall(EPSGetRG(eps,&eps->rg));
+  PetscCall(RGSetFromOptions(eps->rg)); /* this is necessary here to set useconj */
+  if (!ctx->contour || !ctx->contour->ksp) PetscCall(EPSCISSGetKSPs(eps,NULL,NULL));
+  for (i=0;i<ctx->contour->npoints;i++) PetscCall(KSPSetFromOptions(ctx->contour->ksp[i]));
+  PetscCall(PetscSubcommSetFromOptions(ctx->contour->subcomm));
   PetscFunctionReturn(0);
 }
 
@@ -1334,22 +1334,22 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(SlepcContourDataDestroy(&ctx->contour));
-  CHKERRQ(PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma));
-  CHKERRQ(PetscFree(eps->data));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetThreshold_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetThreshold_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRefinement_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetQuadRule_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetQuadRule_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetExtraction_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetExtraction_C",NULL));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetKSPs_C",NULL));
+  PetscCall(SlepcContourDataDestroy(&ctx->contour));
+  PetscCall(PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma));
+  PetscCall(PetscFree(eps->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetThreshold_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetThreshold_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRefinement_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetQuadRule_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetQuadRule_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetExtraction_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetExtraction_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetKSPs_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -1360,28 +1360,28 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   PetscViewer    sviewer;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %" PetscInt_FMT ", block size: %" PetscInt_FMT ", moment size: %" PetscInt_FMT ", partitions: %" PetscInt_FMT ", maximum block size: %" PetscInt_FMT " }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max));
-    if (ctx->isreal) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  exploiting symmetry of integration points\n"));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  iterative refinement { inner: %" PetscInt_FMT ", blocksize: %" PetscInt_FMT " }\n",ctx->refine_inner, ctx->refine_blocksize));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",EPSCISSExtractions[ctx->extraction]));
-    CHKERRQ(PetscViewerASCIIPrintf(viewer,"  quadrature rule: %s\n",EPSCISSQuadRules[ctx->quad]));
-    if (ctx->usest) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  using ST for linear solves\n"));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %" PetscInt_FMT ", block size: %" PetscInt_FMT ", moment size: %" PetscInt_FMT ", partitions: %" PetscInt_FMT ", maximum block size: %" PetscInt_FMT " }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max));
+    if (ctx->isreal) PetscCall(PetscViewerASCIIPrintf(viewer,"  exploiting symmetry of integration points\n"));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  iterative refinement { inner: %" PetscInt_FMT ", blocksize: %" PetscInt_FMT " }\n",ctx->refine_inner, ctx->refine_blocksize));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",EPSCISSExtractions[ctx->extraction]));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  quadrature rule: %s\n",EPSCISSQuadRules[ctx->quad]));
+    if (ctx->usest) PetscCall(PetscViewerASCIIPrintf(viewer,"  using ST for linear solves\n"));
     else {
-      if (!ctx->contour || !ctx->contour->ksp) CHKERRQ(EPSCISSGetKSPs(eps,NULL,NULL));
-      CHKERRQ(PetscViewerASCIIPushTab(viewer));
+      if (!ctx->contour || !ctx->contour->ksp) PetscCall(EPSCISSGetKSPs(eps,NULL,NULL));
+      PetscCall(PetscViewerASCIIPushTab(viewer));
       if (ctx->npart>1 && ctx->contour->subcomm) {
-        CHKERRQ(PetscViewerGetSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
-        if (!ctx->contour->subcomm->color) CHKERRQ(KSPView(ctx->contour->ksp[0],sviewer));
-        CHKERRQ(PetscViewerFlush(sviewer));
-        CHKERRQ(PetscViewerRestoreSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
-        CHKERRQ(PetscViewerFlush(viewer));
+        PetscCall(PetscViewerGetSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
+        if (!ctx->contour->subcomm->color) PetscCall(KSPView(ctx->contour->ksp[0],sviewer));
+        PetscCall(PetscViewerFlush(sviewer));
+        PetscCall(PetscViewerRestoreSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
+        PetscCall(PetscViewerFlush(viewer));
         /* extra call needed because of the two calls to PetscViewerASCIIPushSynchronized() in PetscViewerGetSubViewer() */
-        CHKERRQ(PetscViewerASCIIPopSynchronized(viewer));
-      } else CHKERRQ(KSPView(ctx->contour->ksp[0],viewer));
-      CHKERRQ(PetscViewerASCIIPopTab(viewer));
+        PetscCall(PetscViewerASCIIPopSynchronized(viewer));
+      } else PetscCall(KSPView(ctx->contour->ksp[0],viewer));
+      PetscCall(PetscViewerASCIIPopTab(viewer));
     }
   }
   PetscFunctionReturn(0);
@@ -1397,14 +1397,14 @@ PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
     if (!ctx->usest_set) usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;
-    if (usest) CHKERRQ(STSetType(eps->st,STSINVERT));
+    if (usest) PetscCall(STSetType(eps->st,STSINVERT));
     else {
       /* we are not going to use ST, so avoid factorizing the matrix */
-      CHKERRQ(STSetType(eps->st,STSHIFT));
+      PetscCall(STSetType(eps->st,STSHIFT));
       if (eps->isgeneralized) {
-        CHKERRQ(STGetKSP(eps->st,&ksp));
-        CHKERRQ(KSPGetPC(ksp,&pc));
-        CHKERRQ(PCSetType(pc,PCNONE));
+        PetscCall(STGetKSP(eps->st,&ksp));
+        PetscCall(KSPGetPC(ksp,&pc));
+        PetscCall(PCSetType(pc,PCNONE));
       }
     }
   }
@@ -1416,7 +1416,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data = ctx;
 
   eps->useds = PETSC_TRUE;
@@ -1432,19 +1432,19 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   eps->ops->computevectors = EPSComputeVectors_CISS;
   eps->ops->setdefaultst   = EPSSetDefaultST_CISS;
 
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",EPSCISSSetSizes_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",EPSCISSGetSizes_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetThreshold_C",EPSCISSSetThreshold_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetThreshold_C",EPSCISSGetThreshold_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRefinement_C",EPSCISSSetRefinement_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",EPSCISSGetRefinement_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",EPSCISSSetUseST_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",EPSCISSGetUseST_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetQuadRule_C",EPSCISSSetQuadRule_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetQuadRule_C",EPSCISSGetQuadRule_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetExtraction_C",EPSCISSSetExtraction_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetExtraction_C",EPSCISSGetExtraction_CISS));
-  CHKERRQ(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetKSPs_C",EPSCISSGetKSPs_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",EPSCISSSetSizes_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",EPSCISSGetSizes_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetThreshold_C",EPSCISSSetThreshold_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetThreshold_C",EPSCISSGetThreshold_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetRefinement_C",EPSCISSSetRefinement_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",EPSCISSGetRefinement_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",EPSCISSSetUseST_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",EPSCISSGetUseST_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetQuadRule_C",EPSCISSSetQuadRule_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetQuadRule_C",EPSCISSGetQuadRule_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetExtraction_C",EPSCISSSetExtraction_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetExtraction_C",EPSCISSGetExtraction_CISS));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetKSPs_C",EPSCISSGetKSPs_CISS));
 
   /* set default values of parameters */
   ctx->N                  = 32;

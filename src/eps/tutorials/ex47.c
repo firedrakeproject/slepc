@@ -35,9 +35,9 @@ PetscErrorCode MatMult_Sinvert0(Mat S,Vec x,Vec y)
   CTX_SHELL      *ctx;
 
   PetscFunctionBeginUser;
-  CHKERRQ(MatShellGetContext(S,&ctx));
-  CHKERRQ(MatMult(ctx->B,x,ctx->w));
-  CHKERRQ(KSPSolve(ctx->ksp,ctx->w,y));
+  PetscCall(MatShellGetContext(S,&ctx));
+  PetscCall(MatMult(ctx->B,x,ctx->w));
+  PetscCall(KSPSolve(ctx->ksp,ctx->w,y));
   PetscFunctionReturn(0);
 }
 
@@ -52,101 +52,101 @@ int main(int argc,char **argv)
   PetscBool         flag;
   CTX_SHELL         *ctx;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized Symmetric Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized Symmetric Eigenproblem, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Compute the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-  CHKERRQ(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N));
-  CHKERRQ(MatSetFromOptions(B));
-  CHKERRQ(MatSetUp(B));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+  PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(B));
+  PetscCall(MatSetUp(B));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) CHKERRQ(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
-    if (i<m-1) CHKERRQ(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
-    if (j>0) CHKERRQ(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
-    if (j<n-1) CHKERRQ(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(A,II,II,4.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(B,II,II,2.0/PetscLogScalar(II+2),INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,4.0,INSERT_VALUES));
+    PetscCall(MatSetValue(B,II,II,2.0/PetscLogScalar(II+2),INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatCreateVecs(B,&v,NULL));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(B,&v,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Create a shell matrix S = A^{-1}*B
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  CHKERRQ(PetscNew(&ctx));
-  CHKERRQ(KSPCreate(PETSC_COMM_WORLD,&ctx->ksp));
-  CHKERRQ(KSPSetOperators(ctx->ksp,A,A));
-  CHKERRQ(KSPSetTolerances(ctx->ksp,tol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
-  CHKERRQ(KSPSetFromOptions(ctx->ksp));
+  PetscCall(PetscNew(&ctx));
+  PetscCall(KSPCreate(PETSC_COMM_WORLD,&ctx->ksp));
+  PetscCall(KSPSetOperators(ctx->ksp,A,A));
+  PetscCall(KSPSetTolerances(ctx->ksp,tol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(KSPSetFromOptions(ctx->ksp));
   ctx->B = B;
-  CHKERRQ(MatCreateVecs(A,&ctx->w,NULL));
-  CHKERRQ(MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,(void*)ctx,&S));
-  CHKERRQ(MatShellSetOperation(S,MATOP_MULT,(void(*)(void))MatMult_Sinvert0));
+  PetscCall(MatCreateVecs(A,&ctx->w,NULL));
+  PetscCall(MatCreateShell(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,(void*)ctx,&S));
+  PetscCall(MatShellSetOperation(S,MATOP_MULT,(void(*)(void))MatMult_Sinvert0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSCreate(PETSC_COMM_WORLD,&eps));
-  CHKERRQ(EPSSetOperators(eps,S,NULL));
-  CHKERRQ(EPSSetProblemType(eps,EPS_HEP));  /* even though S is not symmetric */
-  CHKERRQ(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
-  CHKERRQ(EPSSetFromOptions(eps));
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,S,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));  /* even though S is not symmetric */
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSSetUp(eps));   /* explicitly call setup */
-  CHKERRQ(EPSGetBV(eps,&bv));
-  CHKERRQ(BVSetMatrix(bv,B,PETSC_FALSE));  /* set inner product matrix to recover symmetry */
-  CHKERRQ(EPSSolve(eps));
+  PetscCall(EPSSetUp(eps));   /* explicitly call setup */
+  PetscCall(EPSGetBV(eps,&bv));
+  PetscCall(BVSetMatrix(bv,B,PETSC_FALSE));  /* set inner product matrix to recover symmetry */
+  PetscCall(EPSSolve(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Display solution and check B-orthogonality
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(EPSGetTolerances(eps,&tol,NULL));
-  CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
-  CHKERRQ(EPSGetConverged(eps,&nconv));
+  PetscCall(EPSGetTolerances(eps,&tol,NULL));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSGetConverged(eps,&nconv));
   if (nconv>1) {
-    CHKERRQ(VecDuplicateVecs(v,nconv,&X));
-    for (i=0;i<nconv;i++) CHKERRQ(EPSGetEigenvector(eps,i,X[i],NULL));
-    CHKERRQ(VecCheckOrthonormality(X,nconv,NULL,nconv,B,NULL,&lev));
-    if (lev<10*tol) CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
-    else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)lev));
-    CHKERRQ(VecDestroyVecs(nconv,&X));
+    PetscCall(VecDuplicateVecs(v,nconv,&X));
+    for (i=0;i<nconv;i++) PetscCall(EPSGetEigenvector(eps,i,X[i],NULL));
+    PetscCall(VecCheckOrthonormality(X,nconv,NULL,nconv,B,NULL,&lev));
+    if (lev<10*tol) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n"));
+    else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)lev));
+    PetscCall(VecDestroyVecs(nconv,&X));
   }
 
-  CHKERRQ(EPSDestroy(&eps));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(KSPDestroy(&ctx->ksp));
-  CHKERRQ(VecDestroy(&ctx->w));
-  CHKERRQ(PetscFree(ctx));
-  CHKERRQ(MatDestroy(&S));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(VecDestroy(&v));
+  PetscCall(KSPDestroy(&ctx->ksp));
+  PetscCall(VecDestroy(&ctx->w));
+  PetscCall(PetscFree(ctx));
+  PetscCall(MatDestroy(&S));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

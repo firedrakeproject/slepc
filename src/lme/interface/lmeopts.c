@@ -44,21 +44,21 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char opt[],const char name
   PetscBool            flg;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscOptionsGetViewer(PetscObjectComm((PetscObject)lme),((PetscObject)lme)->options,((PetscObject)lme)->prefix,opt,&viewer,&format,&flg));
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)lme),((PetscObject)lme)->options,((PetscObject)lme)->prefix,opt,&viewer,&format,&flg));
   if (!flg) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscViewerGetType(viewer,&vtype));
-  CHKERRQ(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
-  CHKERRQ(PetscFunctionListFind(LMEMonitorList,key,&mfunc));
+  PetscCall(PetscViewerGetType(viewer,&vtype));
+  PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
+  PetscCall(PetscFunctionListFind(LMEMonitorList,key,&mfunc));
   PetscCheck(mfunc,PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"Specified viewer and format not supported");
-  CHKERRQ(PetscFunctionListFind(LMEMonitorCreateList,key,&cfunc));
-  CHKERRQ(PetscFunctionListFind(LMEMonitorDestroyList,key,&dfunc));
+  PetscCall(PetscFunctionListFind(LMEMonitorCreateList,key,&cfunc));
+  PetscCall(PetscFunctionListFind(LMEMonitorDestroyList,key,&dfunc));
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
-  CHKERRQ((*cfunc)(viewer,format,ctx,&vf));
-  CHKERRQ(PetscObjectDereference((PetscObject)viewer));
-  CHKERRQ(LMEMonitorSet(lme,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
+  PetscCall((*cfunc)(viewer,format,ctx,&vf));
+  PetscCall(PetscObjectDereference((PetscObject)viewer));
+  PetscCall(LMEMonitorSet(lme,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   PetscFunctionReturn(0);
 }
 
@@ -89,54 +89,54 @@ PetscErrorCode LMESetFromOptions(LME lme)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  CHKERRQ(LMERegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)lme);CHKERRQ(ierr);
-    CHKERRQ(PetscOptionsFList("-lme_type","Linear matrix equation","LMESetType",LMEList,(char*)(((PetscObject)lme)->type_name?((PetscObject)lme)->type_name:LMEKRYLOV),type,sizeof(type),&flg));
-    if (flg) CHKERRQ(LMESetType(lme,type));
-    else if (!((PetscObject)lme)->type_name) CHKERRQ(LMESetType(lme,LMEKRYLOV));
+  PetscCall(LMERegisterAll());
+  ierr = PetscObjectOptionsBegin((PetscObject)lme);PetscCall(ierr);
+    PetscCall(PetscOptionsFList("-lme_type","Linear matrix equation","LMESetType",LMEList,(char*)(((PetscObject)lme)->type_name?((PetscObject)lme)->type_name:LMEKRYLOV),type,sizeof(type),&flg));
+    if (flg) PetscCall(LMESetType(lme,type));
+    else if (!((PetscObject)lme)->type_name) PetscCall(LMESetType(lme,LMEKRYLOV));
 
-    CHKERRQ(PetscOptionsBoolGroupBegin("-lme_lyapunov","Continuous-time Lyapunov equation","LMESetProblemType",&flg));
-    if (flg) CHKERRQ(LMESetProblemType(lme,LME_LYAPUNOV));
-    CHKERRQ(PetscOptionsBoolGroup("-lme_sylvester","Continuous-time Sylvester equation","LMESetProblemType",&flg));
-    if (flg) CHKERRQ(LMESetProblemType(lme,LME_SYLVESTER));
-    CHKERRQ(PetscOptionsBoolGroup("-lme_gen_lyapunov","Generalized Lyapunov equation","LMESetProblemType",&flg));
-    if (flg) CHKERRQ(LMESetProblemType(lme,LME_GEN_LYAPUNOV));
-    CHKERRQ(PetscOptionsBoolGroup("-lme_gen_sylvester","Generalized Sylvester equation","LMESetProblemType",&flg));
-    if (flg) CHKERRQ(LMESetProblemType(lme,LME_GEN_SYLVESTER));
-    CHKERRQ(PetscOptionsBoolGroup("-lme_dt_lyapunov","Discrete-time Lyapunov equation","LMESetProblemType",&flg));
-    if (flg) CHKERRQ(LMESetProblemType(lme,LME_DT_LYAPUNOV));
-    CHKERRQ(PetscOptionsBoolGroupEnd("-lme_stein","Stein equation","LMESetProblemType",&flg));
-    if (flg) CHKERRQ(LMESetProblemType(lme,LME_STEIN));
+    PetscCall(PetscOptionsBoolGroupBegin("-lme_lyapunov","Continuous-time Lyapunov equation","LMESetProblemType",&flg));
+    if (flg) PetscCall(LMESetProblemType(lme,LME_LYAPUNOV));
+    PetscCall(PetscOptionsBoolGroup("-lme_sylvester","Continuous-time Sylvester equation","LMESetProblemType",&flg));
+    if (flg) PetscCall(LMESetProblemType(lme,LME_SYLVESTER));
+    PetscCall(PetscOptionsBoolGroup("-lme_gen_lyapunov","Generalized Lyapunov equation","LMESetProblemType",&flg));
+    if (flg) PetscCall(LMESetProblemType(lme,LME_GEN_LYAPUNOV));
+    PetscCall(PetscOptionsBoolGroup("-lme_gen_sylvester","Generalized Sylvester equation","LMESetProblemType",&flg));
+    if (flg) PetscCall(LMESetProblemType(lme,LME_GEN_SYLVESTER));
+    PetscCall(PetscOptionsBoolGroup("-lme_dt_lyapunov","Discrete-time Lyapunov equation","LMESetProblemType",&flg));
+    if (flg) PetscCall(LMESetProblemType(lme,LME_DT_LYAPUNOV));
+    PetscCall(PetscOptionsBoolGroupEnd("-lme_stein","Stein equation","LMESetProblemType",&flg));
+    if (flg) PetscCall(LMESetProblemType(lme,LME_STEIN));
 
     i = lme->max_it;
-    CHKERRQ(PetscOptionsInt("-lme_max_it","Maximum number of iterations","LMESetTolerances",lme->max_it,&i,&flg1));
+    PetscCall(PetscOptionsInt("-lme_max_it","Maximum number of iterations","LMESetTolerances",lme->max_it,&i,&flg1));
     if (!flg1) i = PETSC_DEFAULT;
     r = lme->tol;
-    CHKERRQ(PetscOptionsReal("-lme_tol","Tolerance","LMESetTolerances",SlepcDefaultTol(lme->tol),&r,&flg2));
-    if (flg1 || flg2) CHKERRQ(LMESetTolerances(lme,r,i));
+    PetscCall(PetscOptionsReal("-lme_tol","Tolerance","LMESetTolerances",SlepcDefaultTol(lme->tol),&r,&flg2));
+    if (flg1 || flg2) PetscCall(LMESetTolerances(lme,r,i));
 
-    CHKERRQ(PetscOptionsInt("-lme_ncv","Number of basis vectors","LMESetDimensions",lme->ncv,&i,&flg));
-    if (flg) CHKERRQ(LMESetDimensions(lme,i));
+    PetscCall(PetscOptionsInt("-lme_ncv","Number of basis vectors","LMESetDimensions",lme->ncv,&i,&flg));
+    if (flg) PetscCall(LMESetDimensions(lme,i));
 
-    CHKERRQ(PetscOptionsBool("-lme_error_if_not_converged","Generate error if solver does not converge","LMESetErrorIfNotConverged",lme->errorifnotconverged,&lme->errorifnotconverged,NULL));
+    PetscCall(PetscOptionsBool("-lme_error_if_not_converged","Generate error if solver does not converge","LMESetErrorIfNotConverged",lme->errorifnotconverged,&lme->errorifnotconverged,NULL));
 
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to LMESetFromOptions()
     */
-    CHKERRQ(PetscOptionsBool("-lme_monitor_cancel","Remove any hardwired monitor routines","LMEMonitorCancel",PETSC_FALSE,&flg,&set));
-    if (set && flg) CHKERRQ(LMEMonitorCancel(lme));
-    CHKERRQ(LMEMonitorSetFromOptions(lme,"-lme_monitor","error_estimate",NULL));
+    PetscCall(PetscOptionsBool("-lme_monitor_cancel","Remove any hardwired monitor routines","LMEMonitorCancel",PETSC_FALSE,&flg,&set));
+    if (set && flg) PetscCall(LMEMonitorCancel(lme));
+    PetscCall(LMEMonitorSetFromOptions(lme,"-lme_monitor","error_estimate",NULL));
 
     /* -----------------------------------------------------------------------*/
-    CHKERRQ(PetscOptionsName("-lme_view","Print detailed information on solver used","LMEView",NULL));
+    PetscCall(PetscOptionsName("-lme_view","Print detailed information on solver used","LMEView",NULL));
 
-    if (lme->ops->setfromoptions) CHKERRQ((*lme->ops->setfromoptions)(PetscOptionsObject,lme));
-    CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)lme));
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+    if (lme->ops->setfromoptions) PetscCall((*lme->ops->setfromoptions)(PetscOptionsObject,lme));
+    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)lme));
+  ierr = PetscOptionsEnd();PetscCall(ierr);
 
-  if (!lme->V) CHKERRQ(LMEGetBV(lme,&lme->V));
-  CHKERRQ(BVSetFromOptions(lme->V));
+  if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
+  PetscCall(BVSetFromOptions(lme->V));
   PetscFunctionReturn(0);
 }
 
@@ -448,9 +448,9 @@ PetscErrorCode LMESetOptionsPrefix(LME lme,const char *prefix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  if (!lme->V) CHKERRQ(LMEGetBV(lme,&lme->V));
-  CHKERRQ(BVSetOptionsPrefix(lme->V,prefix));
-  CHKERRQ(PetscObjectSetOptionsPrefix((PetscObject)lme,prefix));
+  if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
+  PetscCall(BVSetOptionsPrefix(lme->V,prefix));
+  PetscCall(PetscObjectSetOptionsPrefix((PetscObject)lme,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -476,9 +476,9 @@ PetscErrorCode LMEAppendOptionsPrefix(LME lme,const char *prefix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  if (!lme->V) CHKERRQ(LMEGetBV(lme,&lme->V));
-  CHKERRQ(BVAppendOptionsPrefix(lme->V,prefix));
-  CHKERRQ(PetscObjectAppendOptionsPrefix((PetscObject)lme,prefix));
+  if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
+  PetscCall(BVAppendOptionsPrefix(lme->V,prefix));
+  PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)lme,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -507,6 +507,6 @@ PetscErrorCode LMEGetOptionsPrefix(LME lme,const char *prefix[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidPointer(prefix,2);
-  CHKERRQ(PetscObjectGetOptionsPrefix((PetscObject)lme,prefix));
+  PetscCall(PetscObjectGetOptionsPrefix((PetscObject)lme,prefix));
   PetscFunctionReturn(0);
 }

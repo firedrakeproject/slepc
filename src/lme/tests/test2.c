@@ -21,98 +21,98 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Dense matrix equations, n=%" PetscInt_FMT ".\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Dense matrix equations, n=%" PetscInt_FMT ".\n",n));
 
   /* Create LME object */
-  CHKERRQ(LMECreate(PETSC_COMM_WORLD,&lme));
+  PetscCall(LMECreate(PETSC_COMM_WORLD,&lme));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
-  if (verbose) CHKERRQ(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  if (verbose) PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Create matrices */
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
-  CHKERRQ(PetscObjectSetName((PetscObject)A,"A"));
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&B));
-  CHKERRQ(PetscObjectSetName((PetscObject)B,"B"));
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,k,NULL,&C));
-  CHKERRQ(PetscObjectSetName((PetscObject)C,"C"));
-  CHKERRQ(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&X));
-  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  PetscCall(PetscObjectSetName((PetscObject)A,"A"));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&B));
+  PetscCall(PetscObjectSetName((PetscObject)B,"B"));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,k,NULL,&C));
+  PetscCall(PetscObjectSetName((PetscObject)C,"C"));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&X));
+  PetscCall(PetscObjectSetName((PetscObject)X,"X"));
 
   /* Fill A with an upper Hessenberg Toeplitz matrix */
-  CHKERRQ(MatDenseGetArray(A,&As));
+  PetscCall(MatDenseGetArray(A,&As));
   for (i=0;i<n;i++) As[i+i*n]=3.0-(PetscReal)n/2;
   for (i=0;i<n-1;i++) As[i+1+i*n]=0.5;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) As[i+(i+j)*n]=1.0;
   }
-  CHKERRQ(MatDenseRestoreArray(A,&As));
+  PetscCall(MatDenseRestoreArray(A,&As));
 
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
-    CHKERRQ(MatView(A,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
+    PetscCall(MatView(A,viewer));
   }
 
   /* Fill B with the 1-D Laplacian matrix */
-  CHKERRQ(MatDenseGetArray(B,&Bs));
+  PetscCall(MatDenseGetArray(B,&Bs));
   for (i=0;i<n;i++) Bs[i+i*n]=2.0;
   for (i=0;i<n-1;i++) { Bs[i+1+i*n]=-1; Bs[i+(i+1)*n]=-1; }
-  CHKERRQ(MatDenseRestoreArray(B,&Bs));
+  PetscCall(MatDenseRestoreArray(B,&Bs));
 
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix B - - - - - - - -\n"));
-    CHKERRQ(MatView(B,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix B - - - - - - - -\n"));
+    PetscCall(MatView(B,viewer));
   }
 
   /* Solve Lyapunov equation A*X+X*A'= -B */
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solving Lyapunov equation for B\n"));
-  CHKERRQ(MatDenseGetArray(A,&As));
-  CHKERRQ(MatDenseGetArray(B,&Bs));
-  CHKERRQ(MatDenseGetArray(X,&Xs));
-  CHKERRQ(LMEDenseLyapunov(lme,n,As,n,Bs,n,Xs,n));
-  CHKERRQ(MatDenseRestoreArray(A,&As));
-  CHKERRQ(MatDenseRestoreArray(B,&Bs));
-  CHKERRQ(MatDenseRestoreArray(X,&Xs));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solving Lyapunov equation for B\n"));
+  PetscCall(MatDenseGetArray(A,&As));
+  PetscCall(MatDenseGetArray(B,&Bs));
+  PetscCall(MatDenseGetArray(X,&Xs));
+  PetscCall(LMEDenseLyapunov(lme,n,As,n,Bs,n,Xs,n));
+  PetscCall(MatDenseRestoreArray(A,&As));
+  PetscCall(MatDenseRestoreArray(B,&Bs));
+  PetscCall(MatDenseRestoreArray(X,&Xs));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solution X - - - - - - - -\n"));
-    CHKERRQ(MatView(X,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solution X - - - - - - - -\n"));
+    PetscCall(MatView(X,viewer));
   }
 
   /* Fill C with a full-rank nx2 matrix */
-  CHKERRQ(MatDenseGetArray(C,&Cs));
+  PetscCall(MatDenseGetArray(C,&Cs));
   for (i=0;i<k;i++) Cs[i+i*n] = (i%2)? -1.0: 1.0;
-  CHKERRQ(MatDenseRestoreArray(C,&Cs));
+  PetscCall(MatDenseRestoreArray(C,&Cs));
 
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix C - - - - - - - -\n"));
-    CHKERRQ(MatView(C,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix C - - - - - - - -\n"));
+    PetscCall(MatView(C,viewer));
   }
 
   /* Solve Lyapunov equation A*X+X*A'= -C*C' */
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solving Lyapunov equation for C (Cholesky)\n"));
-  CHKERRQ(MatDenseGetArray(A,&As));
-  CHKERRQ(MatDenseGetArray(C,&Cs));
-  CHKERRQ(MatDenseGetArray(X,&Xs));
-  CHKERRQ(LMEDenseHessLyapunovChol(lme,n,As,n,2,Cs,n,Xs,n,NULL));
-  CHKERRQ(MatDenseRestoreArray(A,&As));
-  CHKERRQ(MatDenseRestoreArray(C,&Cs));
-  CHKERRQ(MatDenseRestoreArray(X,&Xs));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solving Lyapunov equation for C (Cholesky)\n"));
+  PetscCall(MatDenseGetArray(A,&As));
+  PetscCall(MatDenseGetArray(C,&Cs));
+  PetscCall(MatDenseGetArray(X,&Xs));
+  PetscCall(LMEDenseHessLyapunovChol(lme,n,As,n,2,Cs,n,Xs,n,NULL));
+  PetscCall(MatDenseRestoreArray(A,&As));
+  PetscCall(MatDenseRestoreArray(C,&Cs));
+  PetscCall(MatDenseRestoreArray(X,&Xs));
   if (verbose) {
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solution X - - - - - - - -\n"));
-    CHKERRQ(MatView(X,viewer));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solution X - - - - - - - -\n"));
+    PetscCall(MatView(X,viewer));
   }
 
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(MatDestroy(&C));
-  CHKERRQ(MatDestroy(&X));
-  CHKERRQ(LMEDestroy(&lme));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(MatDestroy(&C));
+  PetscCall(MatDestroy(&X));
+  PetscCall(LMEDestroy(&lme));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

@@ -29,18 +29,18 @@ PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ld
   PetscFunctionBegin;
   if (idx==0) {
     for (i=0;i<k;i++) {
-      CHKERRQ(PetscArrayzero(Tj+i*ldtj,k));
+      PetscCall(PetscArrayzero(Tj+i*ldtj,k));
       Tj[i+i*ldtj] = 1.0;
     }
   } else {
-    CHKERRQ(PetscBLASIntCast(ldt,&ldt_));
-    CHKERRQ(PetscBLASIntCast(ldtj,&ldtj_));
-    CHKERRQ(PetscBLASIntCast(ldtp,&ldtp_));
-    CHKERRQ(PetscBLASIntCast(k,&k_));
+    PetscCall(PetscBLASIntCast(ldt,&ldt_));
+    PetscCall(PetscBLASIntCast(ldtj,&ldtj_));
+    PetscCall(PetscBLASIntCast(ldtp,&ldtp_));
+    PetscCall(PetscBLASIntCast(k,&k_));
     ca = pep->pbc; cb = pep->pbc+pep->nmat; cg = pep->pbc+2*pep->nmat;
     for (i=0;i<k;i++) T[i*ldt+i] -= cb[idx-1];
     if (idx>1) {
-      for (i=0;i<k;i++) CHKERRQ(PetscArraycpy(Tj+i*ldtj,Tpp+i*ldtpp,k));
+      for (i=0;i<k;i++) PetscCall(PetscArraycpy(Tj+i*ldtj,Tpp+i*ldtpp,k));
     }
     a = 1/ca[idx-1];
     g = (idx==1)?0.0:-cg[idx-1]/ca[idx-1];
@@ -84,7 +84,7 @@ PetscErrorCode PEPEvaluateBasisDerivative(PEP pep,PetscScalar sigma,PetscScalar 
   PetscReal      *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
 
   PetscFunctionBegin;
-  CHKERRQ(PEPEvaluateBasis(pep,sigma,isigma,vals,ivals));
+  PetscCall(PEPEvaluateBasis(pep,sigma,isigma,vals,ivals));
   for (k=nmat-1;k>0;k--) {
     vals[k] = vals[k-1];
     if (ivals) ivals[k] = ivals[k-1];

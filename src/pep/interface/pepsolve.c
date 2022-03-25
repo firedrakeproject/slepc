@@ -38,7 +38,7 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 {
   PetscFunctionBegin;
   PEPCheckSolved(pep,1);
-  if (pep->state==PEP_STATE_SOLVED && pep->ops->computevectors) CHKERRQ((*pep->ops->computevectors)(pep));
+  if (pep->state==PEP_STATE_SOLVED && pep->ops->computevectors) PetscCall((*pep->ops->computevectors)(pep));
   pep->state = PEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
@@ -47,7 +47,7 @@ PetscErrorCode PEPExtractVectors(PEP pep)
 {
   PetscFunctionBegin;
   PEPCheckSolved(pep,1);
-  if (pep->state==PEP_STATE_SOLVED && pep->ops->extractvectors) CHKERRQ((*pep->ops->extractvectors)(pep));
+  if (pep->state==PEP_STATE_SOLVED && pep->ops->extractvectors) PetscCall((*pep->ops->extractvectors)(pep));
   PetscFunctionReturn(0);
 }
 
@@ -83,10 +83,10 @@ PetscErrorCode PEPSolve(PEP pep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (pep->state>=PEP_STATE_SOLVED) PetscFunctionReturn(0);
-  CHKERRQ(PetscLogEventBegin(PEP_Solve,pep,0,0,0));
+  PetscCall(PetscLogEventBegin(PEP_Solve,pep,0,0,0));
 
   /* call setup */
-  CHKERRQ(PEPSetUp(pep));
+  PetscCall(PEPSetUp(pep));
   pep->nconv = 0;
   pep->its   = 0;
   k = pep->lineariz? pep->ncv: pep->ncv*(pep->nmat-1);
@@ -96,23 +96,23 @@ PetscErrorCode PEPSolve(PEP pep)
     pep->errest[i] = 0.0;
     pep->perm[i]   = i;
   }
-  CHKERRQ(PEPViewFromOptions(pep,NULL,"-pep_view_pre"));
-  CHKERRQ(RGViewFromOptions(pep->rg,NULL,"-rg_view"));
+  PetscCall(PEPViewFromOptions(pep,NULL,"-pep_view_pre"));
+  PetscCall(RGViewFromOptions(pep->rg,NULL,"-rg_view"));
 
   /* Call solver */
-  CHKERRQ((*pep->ops->solve)(pep));
+  PetscCall((*pep->ops->solve)(pep));
   PetscCheck(pep->reason,PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   pep->state = PEP_STATE_SOLVED;
 
   /* Only the first nconv columns contain useful information */
-  CHKERRQ(BVSetActiveColumns(pep->V,0,pep->nconv));
+  PetscCall(BVSetActiveColumns(pep->V,0,pep->nconv));
 
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear));
+  PetscCall(PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear));
   if (!islinear) {
-    CHKERRQ(STPostSolve(pep->st));
+    PetscCall(STPostSolve(pep->st));
     /* Map eigenvalues back to the original problem */
-    CHKERRQ(STGetTransform(pep->st,&flg));
-    if (flg && pep->ops->backtransform) CHKERRQ((*pep->ops->backtransform)(pep));
+    PetscCall(STGetTransform(pep->st,&flg));
+    if (flg && pep->ops->backtransform) PetscCall((*pep->ops->backtransform)(pep));
   }
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -123,34 +123,34 @@ PetscErrorCode PEPSolve(PEP pep)
         pep->eigi[i] = -pep->eigi[i];
         pep->eigi[i+1] = -pep->eigi[i+1];
         /* the next correction only works with eigenvectors */
-        CHKERRQ(PEPComputeVectors(pep));
-        CHKERRQ(BVScaleColumn(pep->V,i+1,-1.0));
+        PetscCall(PEPComputeVectors(pep));
+        PetscCall(BVScaleColumn(pep->V,i+1,-1.0));
       }
       i++;
     }
   }
 #endif
 
-  if (pep->refine!=PEP_REFINE_NONE) CHKERRQ(PetscCitationsRegister(citation,&cited));
+  if (pep->refine!=PEP_REFINE_NONE) PetscCall(PetscCitationsRegister(citation,&cited));
 
   if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0 && pep->nconv>0) {
-    CHKERRQ(PEPComputeVectors(pep));
-    CHKERRQ(PEPNewtonRefinementSimple(pep,&pep->rits,pep->rtol,pep->nconv));
+    PetscCall(PEPComputeVectors(pep));
+    PetscCall(PEPNewtonRefinementSimple(pep,&pep->rits,pep->rtol,pep->nconv));
   }
 
   /* sort eigenvalues according to pep->which parameter */
-  CHKERRQ(SlepcSortEigenvalues(pep->sc,pep->nconv,pep->eigr,pep->eigi,pep->perm));
-  CHKERRQ(PetscLogEventEnd(PEP_Solve,pep,0,0,0));
+  PetscCall(SlepcSortEigenvalues(pep->sc,pep->nconv,pep->eigr,pep->eigi,pep->perm));
+  PetscCall(PetscLogEventEnd(PEP_Solve,pep,0,0,0));
 
   /* various viewers */
-  CHKERRQ(PEPViewFromOptions(pep,NULL,"-pep_view"));
-  CHKERRQ(PEPConvergedReasonViewFromOptions(pep));
-  CHKERRQ(PEPErrorViewFromOptions(pep));
-  CHKERRQ(PEPValuesViewFromOptions(pep));
-  CHKERRQ(PEPVectorsViewFromOptions(pep));
+  PetscCall(PEPViewFromOptions(pep,NULL,"-pep_view"));
+  PetscCall(PEPConvergedReasonViewFromOptions(pep));
+  PetscCall(PEPErrorViewFromOptions(pep));
+  PetscCall(PEPValuesViewFromOptions(pep));
+  PetscCall(PEPVectorsViewFromOptions(pep));
   for (i=0;i<pep->nmat;i++) {
-    CHKERRQ(PetscSNPrintf(str,sizeof(str),"-pep_view_mat%" PetscInt_FMT,i));
-    CHKERRQ(MatViewFromOptions(pep->A[i],(PetscObject)pep,str));
+    PetscCall(PetscSNPrintf(str,sizeof(str),"-pep_view_mat%" PetscInt_FMT,i));
+    PetscCall(MatViewFromOptions(pep->A[i],(PetscObject)pep,str));
   }
 
   /* Remove the initial subspace */
@@ -304,7 +304,7 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscCheck(i>=0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index cannot be negative");
   PetscCheck(i<pep->nconv,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The index can be nconv-1 at most, see PEPGetConverged()");
 
-  CHKERRQ(PEPComputeVectors(pep));
+  PetscCall(PEPComputeVectors(pep));
   k = pep->perm[i];
 
   /* eigenvalue */
@@ -317,7 +317,7 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
 #endif
 
   /* eigenvector */
-  CHKERRQ(BV_GetEigenvector(pep->V,k,pep->eigi[k],Vr,Vi));
+  PetscCall(BV_GetEigenvector(pep->V,k,pep->eigi[k],Vr,Vi));
   PetscFunctionReturn(0);
 }
 
@@ -379,56 +379,56 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 
   PetscFunctionBegin;
   u = z[0]; w = z[1];
-  CHKERRQ(VecSet(u,0.0));
+  PetscCall(VecSet(u,0.0));
 #if !defined(PETSC_USE_COMPLEX)
   ui = z[2]; wi = z[3];
   ivals = it;
 #endif
   if (nmat>20) {
-    CHKERRQ(PetscMalloc1(nmat,&vals));
+    PetscCall(PetscMalloc1(nmat,&vals));
 #if !defined(PETSC_USE_COMPLEX)
-    CHKERRQ(PetscMalloc1(nmat,&ivals));
+    PetscCall(PetscMalloc1(nmat,&ivals));
 #endif
   }
-  CHKERRQ(PEPEvaluateBasis(pep,kr,ki,vals,ivals));
+  PetscCall(PEPEvaluateBasis(pep,kr,ki,vals,ivals));
 #if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON))
     imag = PETSC_FALSE;
   else {
     imag = PETSC_TRUE;
-    CHKERRQ(VecSet(ui,0.0));
+    PetscCall(VecSet(ui,0.0));
   }
 #endif
   for (i=0;i<nmat;i++) {
     if (vals[i]!=0.0) {
-      CHKERRQ(MatMult(A[i],xr,w));
-      CHKERRQ(VecAXPY(u,vals[i],w));
+      PetscCall(MatMult(A[i],xr,w));
+      PetscCall(VecAXPY(u,vals[i],w));
     }
 #if !defined(PETSC_USE_COMPLEX)
     if (imag) {
       if (ivals[i]!=0 || vals[i]!=0) {
-        CHKERRQ(MatMult(A[i],xi,wi));
-        if (vals[i]==0) CHKERRQ(MatMult(A[i],xr,w));
+        PetscCall(MatMult(A[i],xi,wi));
+        if (vals[i]==0) PetscCall(MatMult(A[i],xr,w));
       }
       if (ivals[i]!=0) {
-        CHKERRQ(VecAXPY(u,-ivals[i],wi));
-        CHKERRQ(VecAXPY(ui,ivals[i],w));
+        PetscCall(VecAXPY(u,-ivals[i],wi));
+        PetscCall(VecAXPY(ui,ivals[i],w));
       }
-      if (vals[i]!=0) CHKERRQ(VecAXPY(ui,vals[i],wi));
+      if (vals[i]!=0) PetscCall(VecAXPY(ui,vals[i],wi));
     }
 #endif
   }
-  CHKERRQ(VecNorm(u,NORM_2,norm));
+  PetscCall(VecNorm(u,NORM_2,norm));
 #if !defined(PETSC_USE_COMPLEX)
   if (imag) {
-    CHKERRQ(VecNorm(ui,NORM_2,&ni));
+    PetscCall(VecNorm(ui,NORM_2,&ni));
     *norm = SlepcAbsEigenvalue(*norm,ni);
   }
 #endif
   if (nmat>20) {
-    CHKERRQ(PetscFree(vals));
+    PetscCall(PetscFree(vals));
 #if !defined(PETSC_USE_COMPLEX)
-    CHKERRQ(PetscFree(ivals));
+    PetscCall(PetscFree(ivals));
 #endif
   }
   PetscFunctionReturn(0);
@@ -474,12 +474,12 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
 
   /* allocate work vectors */
 #if defined(PETSC_USE_COMPLEX)
-  CHKERRQ(PEPSetWorkVecs(pep,3));
+  PetscCall(PEPSetWorkVecs(pep,3));
   xi   = NULL;
   w[2] = NULL;
   w[3] = NULL;
 #else
-  CHKERRQ(PEPSetWorkVecs(pep,6));
+  PetscCall(PEPSetWorkVecs(pep,6));
   xi   = pep->work[3];
   w[2] = pep->work[4];
   w[3] = pep->work[5];
@@ -489,8 +489,8 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
   w[1] = pep->work[2];
 
   /* compute residual norms */
-  CHKERRQ(PEPGetEigenpair(pep,i,&kr,&ki,xr,xi));
-  CHKERRQ(PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,w,error));
+  PetscCall(PEPGetEigenpair(pep,i,&kr,&ki,xr,xi));
+  PetscCall(PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,w,error));
 
   /* compute error */
   switch (type) {
@@ -503,9 +503,9 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
       /* initialization of matrix norms */
       if (!pep->nrma[pep->nmat-1]) {
         for (j=0;j<pep->nmat;j++) {
-          CHKERRQ(MatHasOperation(pep->A[j],MATOP_NORM,&flg));
+          PetscCall(MatHasOperation(pep->A[j],MATOP_NORM,&flg));
           PetscCheck(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
-          CHKERRQ(MatNorm(pep->A[j],NORM_INFINITY,&pep->nrma[j]));
+          PetscCall(MatNorm(pep->A[j],NORM_INFINITY,&pep->nrma[j]));
         }
       }
       t = SlepcAbsEigenvalue(kr,ki);

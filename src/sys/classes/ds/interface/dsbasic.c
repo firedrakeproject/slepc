@@ -35,7 +35,7 @@ DSMatType  DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,D
 PetscErrorCode DSFinalizePackage(void)
 {
   PetscFunctionBegin;
-  CHKERRQ(PetscFunctionListDestroy(&DSList));
+  PetscCall(PetscFunctionListDestroy(&DSList));
   DSPackageInitialized = PETSC_FALSE;
   DSRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -60,25 +60,25 @@ PetscErrorCode DSInitializePackage()
   if (DSPackageInitialized) PetscFunctionReturn(0);
   DSPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  CHKERRQ(PetscClassIdRegister("Direct Solver",&DS_CLASSID));
+  PetscCall(PetscClassIdRegister("Direct Solver",&DS_CLASSID));
   /* Register Constructors */
-  CHKERRQ(DSRegisterAll());
+  PetscCall(DSRegisterAll());
   /* Register Events */
-  CHKERRQ(PetscLogEventRegister("DSSolve",DS_CLASSID,&DS_Solve));
-  CHKERRQ(PetscLogEventRegister("DSVectors",DS_CLASSID,&DS_Vectors));
-  CHKERRQ(PetscLogEventRegister("DSSynchronize",DS_CLASSID,&DS_Synchronize));
-  CHKERRQ(PetscLogEventRegister("DSOther",DS_CLASSID,&DS_Other));
+  PetscCall(PetscLogEventRegister("DSSolve",DS_CLASSID,&DS_Solve));
+  PetscCall(PetscLogEventRegister("DSVectors",DS_CLASSID,&DS_Vectors));
+  PetscCall(PetscLogEventRegister("DSSynchronize",DS_CLASSID,&DS_Synchronize));
+  PetscCall(PetscLogEventRegister("DSOther",DS_CLASSID,&DS_Other));
   /* Process Info */
   classids[0] = DS_CLASSID;
-  CHKERRQ(PetscInfoProcessClass("ds",1,&classids[0]));
+  PetscCall(PetscInfoProcessClass("ds",1,&classids[0]));
   /* Process summary exclusions */
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    CHKERRQ(PetscStrInList("ds",logList,',',&pkg));
-    if (pkg) CHKERRQ(PetscLogEventDeactivateClass(DS_CLASSID));
+    PetscCall(PetscStrInList("ds",logList,',',&pkg));
+    if (pkg) PetscCall(PetscLogEventDeactivateClass(DS_CLASSID));
   }
   /* Register package finalizer */
-  CHKERRQ(PetscRegisterFinalize(DSFinalizePackage));
+  PetscCall(PetscRegisterFinalize(DSFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -109,8 +109,8 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   PetscFunctionBegin;
   PetscValidPointer(newds,2);
   *newds = 0;
-  CHKERRQ(DSInitializePackage());
-  CHKERRQ(SlepcHeaderCreate(ds,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView));
+  PetscCall(DSInitializePackage());
+  PetscCall(SlepcHeaderCreate(ds,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView));
 
   ds->state         = DS_STATE_RAW;
   ds->method        = 0;
@@ -168,7 +168,7 @@ PetscErrorCode DSSetOptionsPrefix(DS ds,const char *prefix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  CHKERRQ(PetscObjectSetOptionsPrefix((PetscObject)ds,prefix));
+  PetscCall(PetscObjectSetOptionsPrefix((PetscObject)ds,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -194,7 +194,7 @@ PetscErrorCode DSAppendOptionsPrefix(DS ds,const char *prefix)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  CHKERRQ(PetscObjectAppendOptionsPrefix((PetscObject)ds,prefix));
+  PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)ds,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -223,7 +223,7 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(prefix,2);
-  CHKERRQ(PetscObjectGetOptionsPrefix((PetscObject)ds,prefix));
+  PetscCall(PetscObjectGetOptionsPrefix((PetscObject)ds,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -249,16 +249,16 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)ds,type,&match));
+  PetscCall(PetscObjectTypeCompare((PetscObject)ds,type,&match));
   if (match) PetscFunctionReturn(0);
 
-  CHKERRQ(PetscFunctionListFind(DSList,type,&r));
+  PetscCall(PetscFunctionListFind(DSList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested DS type %s",type);
 
-  CHKERRQ(PetscMemzero(ds->ops,sizeof(struct _DSOps)));
+  PetscCall(PetscMemzero(ds->ops,sizeof(struct _DSOps)));
 
-  CHKERRQ(PetscObjectChangeTypeName((PetscObject)ds,type));
-  CHKERRQ((*r)(ds));
+  PetscCall(PetscObjectChangeTypeName((PetscObject)ds,type));
+  PetscCall((*r)(ds));
   PetscFunctionReturn(0);
 }
 
@@ -313,8 +313,8 @@ PetscErrorCode DSDuplicate(DS ds,DS *dsnew)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(dsnew,2);
-  CHKERRQ(DSCreate(PetscObjectComm((PetscObject)ds),dsnew));
-  if (((PetscObject)ds)->type_name) CHKERRQ(DSSetType(*dsnew,((PetscObject)ds)->type_name));
+  PetscCall(DSCreate(PetscObjectComm((PetscObject)ds),dsnew));
+  if (((PetscObject)ds)->type_name) PetscCall(DSSetType(*dsnew,((PetscObject)ds)->type_name));
   (*dsnew)->method   = ds->method;
   (*dsnew)->compact  = ds->compact;
   (*dsnew)->refined  = ds->refined;
@@ -675,7 +675,7 @@ PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(sc,2);
-  if (ds->sc && !ds->scset) CHKERRQ(PetscFree(ds->sc));
+  if (ds->sc && !ds->scset) PetscCall(PetscFree(ds->sc));
   ds->sc    = sc;
   ds->scset = PETSC_TRUE;
   PetscFunctionReturn(0);
@@ -701,7 +701,7 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(sc,2);
-  if (!ds->sc) CHKERRQ(PetscNewLog(ds,&ds->sc));
+  if (!ds->sc) PetscCall(PetscNewLog(ds,&ds->sc));
   *sc = ds->sc;
   PetscFunctionReturn(0);
 }
@@ -730,23 +730,23 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  CHKERRQ(DSRegisterAll());
+  PetscCall(DSRegisterAll());
   /* Set default type (we do not allow changing it with -ds_type) */
-  if (!((PetscObject)ds)->type_name) CHKERRQ(DSSetType(ds,DSNHEP));
-  ierr = PetscObjectOptionsBegin((PetscObject)ds);CHKERRQ(ierr);
+  if (!((PetscObject)ds)->type_name) PetscCall(DSSetType(ds,DSNHEP));
+  ierr = PetscObjectOptionsBegin((PetscObject)ds);PetscCall(ierr);
 
-    CHKERRQ(PetscOptionsInt("-ds_block_size","Block size for the dense system solver","DSSetBlockSize",ds->bs,&bs,&flag));
-    if (flag) CHKERRQ(DSSetBlockSize(ds,bs));
+    PetscCall(PetscOptionsInt("-ds_block_size","Block size for the dense system solver","DSSetBlockSize",ds->bs,&bs,&flag));
+    if (flag) PetscCall(DSSetBlockSize(ds,bs));
 
-    CHKERRQ(PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag));
-    if (flag) CHKERRQ(DSSetMethod(ds,meth));
+    PetscCall(PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag));
+    if (flag) PetscCall(DSSetMethod(ds,meth));
 
-    CHKERRQ(PetscOptionsEnum("-ds_parallel","Operation mode in parallel runs","DSSetParallel",DSParallelTypes,(PetscEnum)ds->pmode,(PetscEnum*)&pmode,&flag));
-    if (flag) CHKERRQ(DSSetParallel(ds,pmode));
+    PetscCall(PetscOptionsEnum("-ds_parallel","Operation mode in parallel runs","DSSetParallel",DSParallelTypes,(PetscEnum)ds->pmode,(PetscEnum*)&pmode,&flag));
+    if (flag) PetscCall(DSSetParallel(ds,pmode));
 
-    if (ds->ops->setfromoptions) CHKERRQ((*ds->ops->setfromoptions)(PetscOptionsObject,ds));
-    CHKERRQ(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)ds));
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+    if (ds->ops->setfromoptions) PetscCall((*ds->ops->setfromoptions)(PetscOptionsObject,ds));
+    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)ds));
+  ierr = PetscOptionsEnd();PetscCall(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -782,26 +782,26 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  if (!viewer) CHKERRQ(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)ds),&viewer));
+  if (!viewer) PetscCall(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)ds),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ds,1,viewer,2);
-  CHKERRQ(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    CHKERRQ(PetscViewerGetFormat(viewer,&format));
-    CHKERRQ(PetscObjectPrintClassNamePrefixType((PetscObject)ds,viewer));
-    CHKERRMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size));
-    if (size>1) CHKERRQ(PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",DSParallelTypes[ds->pmode]));
+    PetscCall(PetscViewerGetFormat(viewer,&format));
+    PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)ds,viewer));
+    PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size));
+    if (size>1) PetscCall(PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",DSParallelTypes[ds->pmode]));
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  current state: %s\n",DSStateTypes[ds->state]));
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%" PetscInt_FMT ", n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT,ds->ld,ds->n,ds->l,ds->k));
-      if (ds->state==DS_STATE_TRUNCATED) CHKERRQ(PetscViewerASCIIPrintf(viewer,", t=%" PetscInt_FMT "\n",ds->t));
-      else CHKERRQ(PetscViewerASCIIPrintf(viewer,"\n"));
-      CHKERRQ(PetscViewerASCIIPrintf(viewer,"  flags:%s%s%s\n",ds->compact?" compact":"",ds->extrarow?" extrarow":"",ds->refined?" refined":""));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  current state: %s\n",DSStateTypes[ds->state]));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  dimensions: ld=%" PetscInt_FMT ", n=%" PetscInt_FMT ", l=%" PetscInt_FMT ", k=%" PetscInt_FMT,ds->ld,ds->n,ds->l,ds->k));
+      if (ds->state==DS_STATE_TRUNCATED) PetscCall(PetscViewerASCIIPrintf(viewer,", t=%" PetscInt_FMT "\n",ds->t));
+      else PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  flags:%s%s%s\n",ds->compact?" compact":"",ds->extrarow?" extrarow":"",ds->refined?" refined":""));
     }
     if (ds->ops->view) {
-      CHKERRQ(PetscViewerASCIIPushTab(viewer));
-      CHKERRQ((*ds->ops->view)(ds,viewer));
-      CHKERRQ(PetscViewerASCIIPopTab(viewer));
+      PetscCall(PetscViewerASCIIPushTab(viewer));
+      PetscCall((*ds->ops->view)(ds,viewer));
+      PetscCall(PetscViewerASCIIPopTab(viewer));
     }
   }
   PetscFunctionReturn(0);
@@ -825,7 +825,7 @@ PetscErrorCode DSViewFromOptions(DS ds,PetscObject obj,const char name[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  CHKERRQ(PetscObjectViewFromOptions((PetscObject)ds,obj,name));
+  PetscCall(PetscObjectViewFromOptions((PetscObject)ds,obj,name));
   PetscFunctionReturn(0);
 }
 
@@ -855,10 +855,10 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   PetscValidType(ds,1);
   PetscCheck(ld>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
   if (ld!=ds->ld) {
-    CHKERRQ(PetscInfo(ds,"Allocating memory with leading dimension=%" PetscInt_FMT "\n",ld));
-    CHKERRQ(DSReset(ds));
+    PetscCall(PetscInfo(ds,"Allocating memory with leading dimension=%" PetscInt_FMT "\n",ld));
+    PetscCall(DSReset(ds));
     ds->ld = ld;
-    CHKERRQ((*ds->ops->allocate)(ds,ld));
+    PetscCall((*ds->ops->allocate)(ds,ld));
   }
   PetscFunctionReturn(0);
 }
@@ -892,11 +892,11 @@ PetscErrorCode DSReset(DS ds)
   ds->n        = 0;
   ds->k        = 0;
   for (i=0;i<DS_NUM_MAT;i++) {
-    CHKERRQ(PetscFree(ds->mat[i]));
-    CHKERRQ(PetscFree(ds->rmat[i]));
-    CHKERRQ(MatDestroy(&ds->omat[i]));
+    PetscCall(PetscFree(ds->mat[i]));
+    PetscCall(PetscFree(ds->rmat[i]));
+    PetscCall(MatDestroy(&ds->omat[i]));
   }
-  CHKERRQ(PetscFree(ds->perm));
+  PetscCall(PetscFree(ds->perm));
   PetscFunctionReturn(0);
 }
 
@@ -918,13 +918,13 @@ PetscErrorCode DSDestroy(DS *ds)
   if (!*ds) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
   if (--((PetscObject)(*ds))->refct > 0) { *ds = 0; PetscFunctionReturn(0); }
-  CHKERRQ(DSReset(*ds));
-  if ((*ds)->ops->destroy) CHKERRQ((*(*ds)->ops->destroy)(*ds));
-  CHKERRQ(PetscFree((*ds)->work));
-  CHKERRQ(PetscFree((*ds)->rwork));
-  CHKERRQ(PetscFree((*ds)->iwork));
-  if (!(*ds)->scset) CHKERRQ(PetscFree((*ds)->sc));
-  CHKERRQ(PetscHeaderDestroy(ds));
+  PetscCall(DSReset(*ds));
+  if ((*ds)->ops->destroy) PetscCall((*(*ds)->ops->destroy)(*ds));
+  PetscCall(PetscFree((*ds)->work));
+  PetscCall(PetscFree((*ds)->rwork));
+  PetscCall(PetscFree((*ds)->iwork));
+  if (!(*ds)->scset) PetscCall(PetscFree((*ds)->sc));
+  PetscCall(PetscHeaderDestroy(ds));
   PetscFunctionReturn(0);
 }
 
@@ -948,8 +948,8 @@ PetscErrorCode DSDestroy(DS *ds)
 PetscErrorCode DSRegister(const char *name,PetscErrorCode (*function)(DS))
 {
   PetscFunctionBegin;
-  CHKERRQ(DSInitializePackage());
-  CHKERRQ(PetscFunctionListAdd(&DSList,name,function));
+  PetscCall(DSInitializePackage());
+  PetscCall(PetscFunctionListAdd(&DSList,name,function));
   PetscFunctionReturn(0);
 }
 
@@ -978,15 +978,15 @@ PetscErrorCode DSRegisterAll(void)
   PetscFunctionBegin;
   if (DSRegisterAllCalled) PetscFunctionReturn(0);
   DSRegisterAllCalled = PETSC_TRUE;
-  CHKERRQ(DSRegister(DSHEP,DSCreate_HEP));
-  CHKERRQ(DSRegister(DSNHEP,DSCreate_NHEP));
-  CHKERRQ(DSRegister(DSGHEP,DSCreate_GHEP));
-  CHKERRQ(DSRegister(DSGHIEP,DSCreate_GHIEP));
-  CHKERRQ(DSRegister(DSGNHEP,DSCreate_GNHEP));
-  CHKERRQ(DSRegister(DSNHEPTS,DSCreate_NHEPTS));
-  CHKERRQ(DSRegister(DSSVD,DSCreate_SVD));
-  CHKERRQ(DSRegister(DSGSVD,DSCreate_GSVD));
-  CHKERRQ(DSRegister(DSPEP,DSCreate_PEP));
-  CHKERRQ(DSRegister(DSNEP,DSCreate_NEP));
+  PetscCall(DSRegister(DSHEP,DSCreate_HEP));
+  PetscCall(DSRegister(DSNHEP,DSCreate_NHEP));
+  PetscCall(DSRegister(DSGHEP,DSCreate_GHEP));
+  PetscCall(DSRegister(DSGHIEP,DSCreate_GHIEP));
+  PetscCall(DSRegister(DSGNHEP,DSCreate_GNHEP));
+  PetscCall(DSRegister(DSNHEPTS,DSCreate_NHEPTS));
+  PetscCall(DSRegister(DSSVD,DSCreate_SVD));
+  PetscCall(DSRegister(DSGSVD,DSCreate_GSVD));
+  PetscCall(DSRegister(DSPEP,DSCreate_PEP));
+  PetscCall(DSRegister(DSNEP,DSCreate_NEP));
   PetscFunctionReturn(0);
 }

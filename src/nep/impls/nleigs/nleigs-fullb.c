@@ -24,81 +24,81 @@ static PetscErrorCode MatMult_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   Vec               xx,xxx,yy,yyy,w,ww,www;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(M,&nep));
+  PetscCall(MatShellGetContext(M,&nep));
   ctx = (NEP_NLEIGS*)nep->data;
   beta = ctx->beta; s = ctx->s; xi = ctx->xi;
   sigma = ctx->shifts[0];
   nmat = ctx->nmat;
   d = nmat-1;
   m = nep->nloc;
-  CHKERRQ(PetscMalloc1(ctx->nmat,&t));
+  PetscCall(PetscMalloc1(ctx->nmat,&t));
   xx = ctx->w[0]; xxx = ctx->w[1]; yy = ctx->w[2]; yyy=ctx->w[3];
   w = nep->work[0]; ww = nep->work[1]; www = nep->work[2];
-  CHKERRQ(VecGetArrayRead(x,&px));
-  CHKERRQ(VecGetArray(y,&py));
-  CHKERRQ(VecPlaceArray(xx,px+(d-1)*m));
-  CHKERRQ(VecPlaceArray(xxx,px+(d-2)*m));
-  CHKERRQ(VecPlaceArray(yy,py+(d-2)*m));
-  CHKERRQ(VecCopy(xxx,yy));
-  CHKERRQ(VecAXPY(yy,beta[d-1]/xi[d-2],xx));
-  CHKERRQ(VecScale(yy,1.0/(s[d-2]-sigma)));
-  CHKERRQ(VecResetArray(xx));
-  CHKERRQ(VecResetArray(xxx));
-  CHKERRQ(VecResetArray(yy));
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
+  PetscCall(VecPlaceArray(xx,px+(d-1)*m));
+  PetscCall(VecPlaceArray(xxx,px+(d-2)*m));
+  PetscCall(VecPlaceArray(yy,py+(d-2)*m));
+  PetscCall(VecCopy(xxx,yy));
+  PetscCall(VecAXPY(yy,beta[d-1]/xi[d-2],xx));
+  PetscCall(VecScale(yy,1.0/(s[d-2]-sigma)));
+  PetscCall(VecResetArray(xx));
+  PetscCall(VecResetArray(xxx));
+  PetscCall(VecResetArray(yy));
   for (i=d-3;i>=0;i--) {
-    CHKERRQ(VecPlaceArray(xx,px+(i+1)*m));
-    CHKERRQ(VecPlaceArray(xxx,px+i*m));
-    CHKERRQ(VecPlaceArray(yy,py+i*m));
-    CHKERRQ(VecPlaceArray(yyy,py+(i+1)*m));
-    CHKERRQ(VecCopy(xxx,yy));
-    CHKERRQ(VecAXPY(yy,beta[i+1]/xi[i],xx));
-    CHKERRQ(VecAXPY(yy,-beta[i+1]*(1.0-sigma/xi[i]),yyy));
-    CHKERRQ(VecScale(yy,1.0/(s[i]-sigma)));
-    CHKERRQ(VecResetArray(xx));
-    CHKERRQ(VecResetArray(xxx));
-    CHKERRQ(VecResetArray(yy));
-    CHKERRQ(VecResetArray(yyy));
+    PetscCall(VecPlaceArray(xx,px+(i+1)*m));
+    PetscCall(VecPlaceArray(xxx,px+i*m));
+    PetscCall(VecPlaceArray(yy,py+i*m));
+    PetscCall(VecPlaceArray(yyy,py+(i+1)*m));
+    PetscCall(VecCopy(xxx,yy));
+    PetscCall(VecAXPY(yy,beta[i+1]/xi[i],xx));
+    PetscCall(VecAXPY(yy,-beta[i+1]*(1.0-sigma/xi[i]),yyy));
+    PetscCall(VecScale(yy,1.0/(s[i]-sigma)));
+    PetscCall(VecResetArray(xx));
+    PetscCall(VecResetArray(xxx));
+    PetscCall(VecResetArray(yy));
+    PetscCall(VecResetArray(yyy));
   }
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-    CHKERRQ(VecZeroEntries(w));
+    PetscCall(VecZeroEntries(w));
     for (k=0;k<nep->nt;k++) {
-      CHKERRQ(VecZeroEntries(ww));
-      CHKERRQ(VecPlaceArray(xx,px+(d-1)*m));
-      CHKERRQ(VecAXPY(ww,-ctx->coeffD[k+nep->nt*d]/beta[d],xx));
-      CHKERRQ(VecResetArray(xx));
+      PetscCall(VecZeroEntries(ww));
+      PetscCall(VecPlaceArray(xx,px+(d-1)*m));
+      PetscCall(VecAXPY(ww,-ctx->coeffD[k+nep->nt*d]/beta[d],xx));
+      PetscCall(VecResetArray(xx));
       for (i=0;i<d-1;i++) {
-        CHKERRQ(VecPlaceArray(yy,py+i*m));
-        CHKERRQ(VecAXPY(ww,-ctx->coeffD[nep->nt*i+k],yy));
-        CHKERRQ(VecResetArray(yy));
+        PetscCall(VecPlaceArray(yy,py+i*m));
+        PetscCall(VecAXPY(ww,-ctx->coeffD[nep->nt*i+k],yy));
+        PetscCall(VecResetArray(yy));
       }
-      CHKERRQ(MatMult(nep->A[k],ww,www));
-      CHKERRQ(VecAXPY(w,1.0,www));
+      PetscCall(MatMult(nep->A[k],ww,www));
+      PetscCall(VecAXPY(w,1.0,www));
     }
   } else {
-    CHKERRQ(VecPlaceArray(xx,px+(d-1)*m));
-    CHKERRQ(MatMult(ctx->D[d],xx,w));
-    CHKERRQ(VecScale(w,-1.0/beta[d]));
-    CHKERRQ(VecResetArray(xx));
+    PetscCall(VecPlaceArray(xx,px+(d-1)*m));
+    PetscCall(MatMult(ctx->D[d],xx,w));
+    PetscCall(VecScale(w,-1.0/beta[d]));
+    PetscCall(VecResetArray(xx));
     for (i=0;i<d-1;i++) {
-      CHKERRQ(VecPlaceArray(yy,py+i*m));
-      CHKERRQ(MatMult(ctx->D[i],yy,ww));
-      CHKERRQ(VecResetArray(yy));
-      CHKERRQ(VecAXPY(w,-1.0,ww));
+      PetscCall(VecPlaceArray(yy,py+i*m));
+      PetscCall(MatMult(ctx->D[i],yy,ww));
+      PetscCall(VecResetArray(yy));
+      PetscCall(VecAXPY(w,-1.0,ww));
     }
   }
-  CHKERRQ(VecPlaceArray(yy,py+(d-1)*m));
-  CHKERRQ(KSPSolve(ctx->ksp[0],w,yy));
-  CHKERRQ(NEPNLEIGSEvalNRTFunct(nep,d-1,sigma,t));
+  PetscCall(VecPlaceArray(yy,py+(d-1)*m));
+  PetscCall(KSPSolve(ctx->ksp[0],w,yy));
+  PetscCall(NEPNLEIGSEvalNRTFunct(nep,d-1,sigma,t));
   for (i=0;i<d-1;i++) {
-    CHKERRQ(VecPlaceArray(yyy,py+i*m));
-    CHKERRQ(VecAXPY(yyy,t[i],yy));
-    CHKERRQ(VecResetArray(yyy));
+    PetscCall(VecPlaceArray(yyy,py+i*m));
+    PetscCall(VecAXPY(yyy,t[i],yy));
+    PetscCall(VecResetArray(yyy));
   }
-  CHKERRQ(VecScale(yy,t[d-1]));
-  CHKERRQ(VecResetArray(yy));
-  CHKERRQ(VecRestoreArrayRead(x,&px));
-  CHKERRQ(VecRestoreArray(y,&py));
-  CHKERRQ(PetscFree(t));
+  PetscCall(VecScale(yy,t[d-1]));
+  PetscCall(VecResetArray(yy));
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
+  PetscCall(PetscFree(t));
   PetscFunctionReturn(0);
 }
 
@@ -112,86 +112,86 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   Vec               xx,yy,yyy,w,z0;
 
   PetscFunctionBegin;
-  CHKERRQ(MatShellGetContext(M,&nep));
+  PetscCall(MatShellGetContext(M,&nep));
   ctx = (NEP_NLEIGS*)nep->data;
   beta = ctx->beta; s = ctx->s; xi = ctx->xi;
   sigma = ctx->shifts[0];
   nmat = ctx->nmat;
   d = nmat-1;
   m = nep->nloc;
-  CHKERRQ(PetscMalloc1(ctx->nmat,&t));
+  PetscCall(PetscMalloc1(ctx->nmat,&t));
   xx = ctx->w[0]; yy = ctx->w[1]; yyy=ctx->w[2];
   w = nep->work[0]; z0 = nep->work[1];
-  CHKERRQ(VecGetArrayRead(x,&px));
-  CHKERRQ(VecGetArray(y,&py));
-  CHKERRQ(NEPNLEIGSEvalNRTFunct(nep,d,sigma,t));
-  CHKERRQ(VecPlaceArray(xx,px+(d-1)*m));
-  CHKERRQ(VecCopy(xx,w));
-  CHKERRQ(VecScale(w,t[d-1]));
-  CHKERRQ(VecResetArray(xx));
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
+  PetscCall(NEPNLEIGSEvalNRTFunct(nep,d,sigma,t));
+  PetscCall(VecPlaceArray(xx,px+(d-1)*m));
+  PetscCall(VecCopy(xx,w));
+  PetscCall(VecScale(w,t[d-1]));
+  PetscCall(VecResetArray(xx));
   for (i=0;i<d-1;i++) {
-    CHKERRQ(VecPlaceArray(xx,px+i*m));
-    CHKERRQ(VecAXPY(w,t[i],xx));
-    CHKERRQ(VecResetArray(xx));
+    PetscCall(VecPlaceArray(xx,px+i*m));
+    PetscCall(VecAXPY(w,t[i],xx));
+    PetscCall(VecResetArray(xx));
   }
-  CHKERRQ(KSPSolveTranspose(ctx->ksp[0],w,z0));
+  PetscCall(KSPSolveTranspose(ctx->ksp[0],w,z0));
 
-  CHKERRQ(VecPlaceArray(yy,py));
+  PetscCall(VecPlaceArray(yy,py));
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-    CHKERRQ(VecZeroEntries(yy));
+    PetscCall(VecZeroEntries(yy));
     for (k=0;k<nep->nt;k++) {
-      CHKERRQ(MatMult(nep->A[k],z0,w));
-      CHKERRQ(VecAXPY(yy,ctx->coeffD[k],w));
+      PetscCall(MatMult(nep->A[k],z0,w));
+      PetscCall(VecAXPY(yy,ctx->coeffD[k],w));
     }
-  } else CHKERRQ(MatMultTranspose(ctx->D[0],z0,yy));
-  CHKERRQ(VecPlaceArray(xx,px));
-  CHKERRQ(VecAXPY(yy,-1.0,xx));
-  CHKERRQ(VecResetArray(xx));
-  CHKERRQ(VecScale(yy,-1.0/(s[0]-sigma)));
-  CHKERRQ(VecResetArray(yy));
+  } else PetscCall(MatMultTranspose(ctx->D[0],z0,yy));
+  PetscCall(VecPlaceArray(xx,px));
+  PetscCall(VecAXPY(yy,-1.0,xx));
+  PetscCall(VecResetArray(xx));
+  PetscCall(VecScale(yy,-1.0/(s[0]-sigma)));
+  PetscCall(VecResetArray(yy));
   for (i=2;i<d;i++) {
-    CHKERRQ(VecPlaceArray(yy,py+(i-1)*m));
+    PetscCall(VecPlaceArray(yy,py+(i-1)*m));
     if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-      CHKERRQ(VecZeroEntries(yy));
+      PetscCall(VecZeroEntries(yy));
       for (k=0;k<nep->nt;k++) {
-        CHKERRQ(MatMult(nep->A[k],z0,w));
-        CHKERRQ(VecAXPY(yy,ctx->coeffD[k+(i-1)*nep->nt],w));
+        PetscCall(MatMult(nep->A[k],z0,w));
+        PetscCall(VecAXPY(yy,ctx->coeffD[k+(i-1)*nep->nt],w));
       }
-    } else CHKERRQ(MatMultTranspose(ctx->D[i-1],z0,yy));
-    CHKERRQ(VecPlaceArray(yyy,py+(i-2)*m));
-    CHKERRQ(VecAXPY(yy,beta[i-1]*(1.0-sigma/xi[i-2]),yyy));
-    CHKERRQ(VecResetArray(yyy));
-    CHKERRQ(VecPlaceArray(xx,px+(i-1)*m));
-    CHKERRQ(VecAXPY(yy,-1.0,xx));
-    CHKERRQ(VecResetArray(xx));
-    CHKERRQ(VecScale(yy,-1.0/(s[i-1]-sigma)));
-    CHKERRQ(VecResetArray(yy));
+    } else PetscCall(MatMultTranspose(ctx->D[i-1],z0,yy));
+    PetscCall(VecPlaceArray(yyy,py+(i-2)*m));
+    PetscCall(VecAXPY(yy,beta[i-1]*(1.0-sigma/xi[i-2]),yyy));
+    PetscCall(VecResetArray(yyy));
+    PetscCall(VecPlaceArray(xx,px+(i-1)*m));
+    PetscCall(VecAXPY(yy,-1.0,xx));
+    PetscCall(VecResetArray(xx));
+    PetscCall(VecScale(yy,-1.0/(s[i-1]-sigma)));
+    PetscCall(VecResetArray(yy));
   }
-  CHKERRQ(VecPlaceArray(yy,py+(d-1)*m));
+  PetscCall(VecPlaceArray(yy,py+(d-1)*m));
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-    CHKERRQ(VecZeroEntries(yy));
+    PetscCall(VecZeroEntries(yy));
     for (k=0;k<nep->nt;k++) {
-      CHKERRQ(MatMult(nep->A[k],z0,w));
-      CHKERRQ(VecAXPY(yy,ctx->coeffD[k+d*nep->nt],w));
+      PetscCall(MatMult(nep->A[k],z0,w));
+      PetscCall(VecAXPY(yy,ctx->coeffD[k+d*nep->nt],w));
     }
-  } else CHKERRQ(MatMultTranspose(ctx->D[d],z0,yy));
-  CHKERRQ(VecScale(yy,-1.0/beta[d]));
-  CHKERRQ(VecPlaceArray(yyy,py+(d-2)*m));
-  CHKERRQ(VecAXPY(yy,beta[d-1]/xi[d-2],yyy));
-  CHKERRQ(VecResetArray(yyy));
-  CHKERRQ(VecResetArray(yy));
+  } else PetscCall(MatMultTranspose(ctx->D[d],z0,yy));
+  PetscCall(VecScale(yy,-1.0/beta[d]));
+  PetscCall(VecPlaceArray(yyy,py+(d-2)*m));
+  PetscCall(VecAXPY(yy,beta[d-1]/xi[d-2],yyy));
+  PetscCall(VecResetArray(yyy));
+  PetscCall(VecResetArray(yy));
 
   for (i=d-2;i>0;i--) {
-    CHKERRQ(VecPlaceArray(yyy,py+(i-1)*m));
-    CHKERRQ(VecPlaceArray(yy,py+i*m));
-    CHKERRQ(VecAXPY(yy,beta[i]/xi[i-1],yyy));
-    CHKERRQ(VecResetArray(yyy));
-    CHKERRQ(VecResetArray(yy));
+    PetscCall(VecPlaceArray(yyy,py+(i-1)*m));
+    PetscCall(VecPlaceArray(yy,py+i*m));
+    PetscCall(VecAXPY(yy,beta[i]/xi[i-1],yyy));
+    PetscCall(VecResetArray(yyy));
+    PetscCall(VecResetArray(yy));
   }
 
-  CHKERRQ(VecRestoreArrayRead(x,&px));
-  CHKERRQ(VecRestoreArray(y,&py));
-  CHKERRQ(PetscFree(t));
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
+  PetscCall(PetscFree(t));
   PetscFunctionReturn(0);
 }
 
@@ -200,8 +200,8 @@ static PetscErrorCode BackTransform_FullBasis(ST st,PetscInt n,PetscScalar *eigr
   NEP            nep;
 
   PetscFunctionBegin;
-  CHKERRQ(STShellGetContext(st,&nep));
-  CHKERRQ(NEPNLEIGSBackTransform((PetscObject)nep,n,eigr,eigi));
+  PetscCall(STShellGetContext(st,&nep));
+  PetscCall(NEPNLEIGSBackTransform((PetscObject)nep,n,eigr,eigi));
   PetscFunctionReturn(0);
 }
 
@@ -211,9 +211,9 @@ static PetscErrorCode Apply_FullBasis(ST st,Vec x,Vec y)
   NEP_NLEIGS     *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(STShellGetContext(st,&nep));
+  PetscCall(STShellGetContext(st,&nep));
   ctx = (NEP_NLEIGS*)nep->data;
-  CHKERRQ(MatMult(ctx->A,x,y));
+  PetscCall(MatMult(ctx->A,x,y));
   PetscFunctionReturn(0);
 }
 
@@ -223,9 +223,9 @@ static PetscErrorCode ApplyTranspose_FullBasis(ST st,Vec x,Vec y)
   NEP_NLEIGS     *ctx;
 
   PetscFunctionBegin;
-  CHKERRQ(STShellGetContext(st,&nep));
+  PetscCall(STShellGetContext(st,&nep));
   ctx = (NEP_NLEIGS*)nep->data;
-  CHKERRQ(MatMultTranspose(ctx->A,x,y));
+  PetscCall(MatMultTranspose(ctx->A,x,y));
   PetscFunctionReturn(0);
 }
 
@@ -242,77 +242,77 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
 
   PetscFunctionBegin;
   PetscCheck(ctx->nshifts==0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The full-basis option is not supported with rational Krylov");
-  if (!ctx->eps) CHKERRQ(NEPNLEIGSGetEPS(nep,&ctx->eps));
-  CHKERRQ(EPSGetST(ctx->eps,&st));
-  CHKERRQ(EPSSetTarget(ctx->eps,nep->target));
-  CHKERRQ(STSetDefaultShift(st,nep->target));
-  if (!((PetscObject)(ctx->eps))->type_name) CHKERRQ(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
+  if (!ctx->eps) PetscCall(NEPNLEIGSGetEPS(nep,&ctx->eps));
+  PetscCall(EPSGetST(ctx->eps,&st));
+  PetscCall(EPSSetTarget(ctx->eps,nep->target));
+  PetscCall(STSetDefaultShift(st,nep->target));
+  if (!((PetscObject)(ctx->eps))->type_name) PetscCall(EPSSetType(ctx->eps,EPSKRYLOVSCHUR));
   else {
-    CHKERRQ(PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks));
+    PetscCall(PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks));
     PetscCheck(ks,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Full-basis option only implemented for Krylov-Schur");
   }
-  CHKERRQ(STSetType(st,STSHELL));
-  CHKERRQ(STShellSetContext(st,nep));
-  CHKERRQ(STShellSetBackTransform(st,BackTransform_FullBasis));
-  CHKERRQ(KSPGetOperators(ctx->ksp[0],&Q,NULL));
-  CHKERRQ(MatCreateVecsEmpty(Q,&ctx->w[0],&ctx->w[1]));
-  CHKERRQ(MatCreateVecsEmpty(Q,&ctx->w[2],&ctx->w[3]));
-  CHKERRQ(PetscLogObjectParents(nep,6,ctx->w));
-  CHKERRQ(MatCreateShell(PetscObjectComm((PetscObject)nep),deg*nep->nloc,deg*nep->nloc,deg*nep->n,deg*nep->n,nep,&ctx->A));
-  CHKERRQ(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_FullBasis_Sinvert));
-  CHKERRQ(MatShellSetOperation(ctx->A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_FullBasis_Sinvert));
-  CHKERRQ(STShellSetApply(st,Apply_FullBasis));
-  CHKERRQ(STShellSetApplyTranspose(st,ApplyTranspose_FullBasis));
-  CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->A));
-  CHKERRQ(EPSSetOperators(ctx->eps,ctx->A,NULL));
-  CHKERRQ(EPSSetProblemType(ctx->eps,EPS_NHEP));
+  PetscCall(STSetType(st,STSHELL));
+  PetscCall(STShellSetContext(st,nep));
+  PetscCall(STShellSetBackTransform(st,BackTransform_FullBasis));
+  PetscCall(KSPGetOperators(ctx->ksp[0],&Q,NULL));
+  PetscCall(MatCreateVecsEmpty(Q,&ctx->w[0],&ctx->w[1]));
+  PetscCall(MatCreateVecsEmpty(Q,&ctx->w[2],&ctx->w[3]));
+  PetscCall(PetscLogObjectParents(nep,6,ctx->w));
+  PetscCall(MatCreateShell(PetscObjectComm((PetscObject)nep),deg*nep->nloc,deg*nep->nloc,deg*nep->n,deg*nep->n,nep,&ctx->A));
+  PetscCall(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_FullBasis_Sinvert));
+  PetscCall(MatShellSetOperation(ctx->A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_FullBasis_Sinvert));
+  PetscCall(STShellSetApply(st,Apply_FullBasis));
+  PetscCall(STShellSetApplyTranspose(st,ApplyTranspose_FullBasis));
+  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->A));
+  PetscCall(EPSSetOperators(ctx->eps,ctx->A,NULL));
+  PetscCall(EPSSetProblemType(ctx->eps,EPS_NHEP));
   switch (nep->which) {
     case NEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
     case NEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
     case NEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
     case NEP_WHICH_USER:         which = EPS_WHICH_USER;
-      CHKERRQ(EPSSetEigenvalueComparison(ctx->eps,nep->sc->comparison,nep->sc->comparisonctx));
+      PetscCall(EPSSetEigenvalueComparison(ctx->eps,nep->sc->comparison,nep->sc->comparisonctx));
       break;
     default: SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Should set a target selection in NEPSetWhichEigenpairs()");
   }
-  CHKERRQ(EPSSetWhichEigenpairs(ctx->eps,which));
-  CHKERRQ(RGIsTrivial(nep->rg,&istrivial));
-  if (!istrivial) CHKERRQ(EPSSetRG(ctx->eps,nep->rg));
-  CHKERRQ(EPSSetDimensions(ctx->eps,nep->nev,nep->ncv,nep->mpd));
-  CHKERRQ(EPSSetTolerances(ctx->eps,SlepcDefaultTol(nep->tol),nep->max_it));
-  CHKERRQ(EPSSetTwoSided(ctx->eps,nep->twosided));
+  PetscCall(EPSSetWhichEigenpairs(ctx->eps,which));
+  PetscCall(RGIsTrivial(nep->rg,&istrivial));
+  if (!istrivial) PetscCall(EPSSetRG(ctx->eps,nep->rg));
+  PetscCall(EPSSetDimensions(ctx->eps,nep->nev,nep->ncv,nep->mpd));
+  PetscCall(EPSSetTolerances(ctx->eps,SlepcDefaultTol(nep->tol),nep->max_it));
+  PetscCall(EPSSetTwoSided(ctx->eps,nep->twosided));
   /* Transfer the trackall option from pep to eps */
-  CHKERRQ(NEPGetTrackAll(nep,&trackall));
-  CHKERRQ(EPSSetTrackAll(ctx->eps,trackall));
+  PetscCall(NEPGetTrackAll(nep,&trackall));
+  PetscCall(EPSSetTrackAll(ctx->eps,trackall));
 
   /* process initial vector */
   if (nep->nini<0) {
-    CHKERRQ(VecCreateMPI(PetscObjectComm((PetscObject)ctx->eps),deg*nep->nloc,deg*nep->n,&veps));
-    CHKERRQ(VecGetArray(veps,&epsarray));
+    PetscCall(VecCreateMPI(PetscObjectComm((PetscObject)ctx->eps),deg*nep->nloc,deg*nep->n,&veps));
+    PetscCall(VecGetArray(veps,&epsarray));
     for (i=0;i<deg;i++) {
       if (i<-nep->nini) {
-        CHKERRQ(VecGetArray(nep->IS[i],&neparray));
-        CHKERRQ(PetscArraycpy(epsarray+i*nep->nloc,neparray,nep->nloc));
-        CHKERRQ(VecRestoreArray(nep->IS[i],&neparray));
+        PetscCall(VecGetArray(nep->IS[i],&neparray));
+        PetscCall(PetscArraycpy(epsarray+i*nep->nloc,neparray,nep->nloc));
+        PetscCall(VecRestoreArray(nep->IS[i],&neparray));
       } else {
-        if (!w) CHKERRQ(VecDuplicate(nep->IS[0],&w));
-        CHKERRQ(VecSetRandom(w,NULL));
-        CHKERRQ(VecGetArray(w,&neparray));
-        CHKERRQ(PetscArraycpy(epsarray+i*nep->nloc,neparray,nep->nloc));
-        CHKERRQ(VecRestoreArray(w,&neparray));
+        if (!w) PetscCall(VecDuplicate(nep->IS[0],&w));
+        PetscCall(VecSetRandom(w,NULL));
+        PetscCall(VecGetArray(w,&neparray));
+        PetscCall(PetscArraycpy(epsarray+i*nep->nloc,neparray,nep->nloc));
+        PetscCall(VecRestoreArray(w,&neparray));
       }
     }
-    CHKERRQ(VecRestoreArray(veps,&epsarray));
-    CHKERRQ(EPSSetInitialSpace(ctx->eps,1,&veps));
-    CHKERRQ(VecDestroy(&veps));
-    CHKERRQ(VecDestroy(&w));
-    CHKERRQ(SlepcBasisDestroy_Private(&nep->nini,&nep->IS));
+    PetscCall(VecRestoreArray(veps,&epsarray));
+    PetscCall(EPSSetInitialSpace(ctx->eps,1,&veps));
+    PetscCall(VecDestroy(&veps));
+    PetscCall(VecDestroy(&w));
+    PetscCall(SlepcBasisDestroy_Private(&nep->nini,&nep->IS));
   }
 
-  CHKERRQ(EPSSetUp(ctx->eps));
-  CHKERRQ(EPSGetDimensions(ctx->eps,NULL,&nep->ncv,&nep->mpd));
-  CHKERRQ(EPSGetTolerances(ctx->eps,NULL,&nep->max_it));
-  CHKERRQ(NEPAllocateSolution(nep,0));
+  PetscCall(EPSSetUp(ctx->eps));
+  PetscCall(EPSGetDimensions(ctx->eps,NULL,&nep->ncv,&nep->mpd));
+  PetscCall(EPSGetTolerances(ctx->eps,NULL,&nep->max_it));
+  PetscCall(NEPAllocateSolution(nep,0));
   PetscFunctionReturn(0);
 }
 
@@ -332,53 +332,53 @@ static PetscErrorCode NEPNLEIGSExtract_None(NEP nep,EPS eps)
 
   PetscFunctionBegin;
   d = ctx->nmat-1;
-  CHKERRQ(EPSGetOperators(eps,&A,NULL));
-  CHKERRQ(MatCreateVecs(A,&xxr,NULL));
+  PetscCall(EPSGetOperators(eps,&A,NULL));
+  PetscCall(MatCreateVecs(A,&xxr,NULL));
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(VecDuplicate(xxr,&xxi));
+  PetscCall(VecDuplicate(xxr,&xxi));
 #endif
   w = nep->work[0];
   for (i=0;i<nep->nconv;i++) {
-    CHKERRQ(EPSGetEigenvector(eps,i,xxr,xxi));
-    CHKERRQ(VecGetArrayRead(xxr,&px));
-    CHKERRQ(VecPlaceArray(w,px));
-    CHKERRQ(BVInsertVec(nep->V,i,w));
-    CHKERRQ(BVNormColumn(nep->V,i,NORM_2,&norm));
-    CHKERRQ(BVScaleColumn(nep->V,i,1.0/norm));
-    CHKERRQ(VecResetArray(w));
-    CHKERRQ(VecRestoreArrayRead(xxr,&px));
+    PetscCall(EPSGetEigenvector(eps,i,xxr,xxi));
+    PetscCall(VecGetArrayRead(xxr,&px));
+    PetscCall(VecPlaceArray(w,px));
+    PetscCall(BVInsertVec(nep->V,i,w));
+    PetscCall(BVNormColumn(nep->V,i,NORM_2,&norm));
+    PetscCall(BVScaleColumn(nep->V,i,1.0/norm));
+    PetscCall(VecResetArray(w));
+    PetscCall(VecRestoreArrayRead(xxr,&px));
   }
   if (nep->twosided) {
-    CHKERRQ(PetscMalloc1(ctx->nmat,&b));
-    CHKERRQ(NEPNLEIGSEvalNRTFunct(nep,d,sigma,b));
+    PetscCall(PetscMalloc1(ctx->nmat,&b));
+    PetscCall(NEPNLEIGSEvalNRTFunct(nep,d,sigma,b));
     m = nep->nloc;
     xx = ctx->w[0];
     w = nep->work[0]; t = nep->work[1];
     for (k=0;k<nep->nconv;k++) {
-      CHKERRQ(EPSGetLeftEigenvector(eps,k,xxr,xxi));
-      CHKERRQ(VecGetArrayRead(xxr,&px));
-      CHKERRQ(VecPlaceArray(xx,px+(d-1)*m));
-      CHKERRQ(VecCopy(xx,w));
-      CHKERRQ(VecScale(w,PetscConj(b[d-1])));
-      CHKERRQ(VecResetArray(xx));
+      PetscCall(EPSGetLeftEigenvector(eps,k,xxr,xxi));
+      PetscCall(VecGetArrayRead(xxr,&px));
+      PetscCall(VecPlaceArray(xx,px+(d-1)*m));
+      PetscCall(VecCopy(xx,w));
+      PetscCall(VecScale(w,PetscConj(b[d-1])));
+      PetscCall(VecResetArray(xx));
       for (i=0;i<d-1;i++) {
-        CHKERRQ(VecPlaceArray(xx,px+i*m));
-        CHKERRQ(VecAXPY(w,PetscConj(b[i]),xx));
-        CHKERRQ(VecResetArray(xx));
+        PetscCall(VecPlaceArray(xx,px+i*m));
+        PetscCall(VecAXPY(w,PetscConj(b[i]),xx));
+        PetscCall(VecResetArray(xx));
       }
-      CHKERRQ(VecConjugate(w));
-      CHKERRQ(KSPSolveTranspose(ctx->ksp[0],w,t));
-      CHKERRQ(VecConjugate(t));
-      CHKERRQ(BVInsertVec(nep->W,k,t));
-      CHKERRQ(BVNormColumn(nep->W,k,NORM_2,&norm));
-      CHKERRQ(BVScaleColumn(nep->W,k,1.0/norm));
-      CHKERRQ(VecRestoreArrayRead(xxr,&px));
+      PetscCall(VecConjugate(w));
+      PetscCall(KSPSolveTranspose(ctx->ksp[0],w,t));
+      PetscCall(VecConjugate(t));
+      PetscCall(BVInsertVec(nep->W,k,t));
+      PetscCall(BVNormColumn(nep->W,k,NORM_2,&norm));
+      PetscCall(BVScaleColumn(nep->W,k,1.0/norm));
+      PetscCall(VecRestoreArrayRead(xxr,&px));
     }
-    CHKERRQ(PetscFree(b));
+    PetscCall(PetscFree(b));
   }
-  CHKERRQ(VecDestroy(&xxr));
+  PetscCall(VecDestroy(&xxr));
 #if !defined(PETSC_USE_COMPLEX)
-  CHKERRQ(VecDestroy(&xxi));
+  PetscCall(VecDestroy(&xxi));
 #endif
   PetscFunctionReturn(0);
 }
@@ -390,19 +390,19 @@ PetscErrorCode NEPSolve_NLEIGS_FullBasis(NEP nep)
   PetscScalar    eigi=0.0;
 
   PetscFunctionBegin;
-  CHKERRQ(EPSSolve(ctx->eps));
-  CHKERRQ(EPSGetConverged(ctx->eps,&nep->nconv));
-  CHKERRQ(EPSGetIterationNumber(ctx->eps,&nep->its));
-  CHKERRQ(EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&nep->reason));
+  PetscCall(EPSSolve(ctx->eps));
+  PetscCall(EPSGetConverged(ctx->eps,&nep->nconv));
+  PetscCall(EPSGetIterationNumber(ctx->eps,&nep->its));
+  PetscCall(EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&nep->reason));
 
   /* recover eigenvalues */
   for (i=0;i<nep->nconv;i++) {
-    CHKERRQ(EPSGetEigenpair(ctx->eps,i,&nep->eigr[i],&eigi,NULL,NULL));
+    PetscCall(EPSGetEigenpair(ctx->eps,i,&nep->eigr[i],&eigi,NULL,NULL));
 #if !defined(PETSC_USE_COMPLEX)
     PetscCheck(eigi==0.0,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Complex value requires complex arithmetic");
 #endif
   }
-  CHKERRQ(NEPNLEIGSExtract_None(nep,ctx->eps));
+  PetscCall(NEPNLEIGSExtract_None(nep,ctx->eps));
   PetscFunctionReturn(0);
 }
 
@@ -411,10 +411,10 @@ PetscErrorCode NEPNLEIGSSetEPS_NLEIGS(NEP nep,EPS eps)
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  CHKERRQ(PetscObjectReference((PetscObject)eps));
-  CHKERRQ(EPSDestroy(&ctx->eps));
+  PetscCall(PetscObjectReference((PetscObject)eps));
+  PetscCall(EPSDestroy(&ctx->eps));
   ctx->eps = eps;
-  CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps));
+  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps));
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -438,7 +438,7 @@ PetscErrorCode NEPNLEIGSSetEPS(NEP nep,EPS eps)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(nep,1,eps,2);
-  CHKERRQ(PetscTryMethod(nep,"NEPNLEIGSSetEPS_C",(NEP,EPS),(nep,eps)));
+  PetscCall(PetscTryMethod(nep,"NEPNLEIGSSetEPS_C",(NEP,EPS),(nep,eps)));
   PetscFunctionReturn(0);
 }
 
@@ -453,8 +453,8 @@ static PetscErrorCode EPSMonitor_NLEIGS(EPS eps,PetscInt its,PetscInt nconv,Pets
     nep->eigi[i]   = eigi[i];
     nep->errest[i] = errest[i];
   }
-  CHKERRQ(NEPNLEIGSBackTransform((PetscObject)nep,nv,nep->eigr,nep->eigi));
-  CHKERRQ(NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest));
+  PetscCall(NEPNLEIGSBackTransform((PetscObject)nep,nv,nep->eigr,nep->eigi));
+  PetscCall(NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest));
   PetscFunctionReturn(0);
 }
 
@@ -464,13 +464,13 @@ PetscErrorCode NEPNLEIGSGetEPS_NLEIGS(NEP nep,EPS *eps)
 
   PetscFunctionBegin;
   if (!ctx->eps) {
-    CHKERRQ(EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->eps));
-    CHKERRQ(PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1));
-    CHKERRQ(EPSSetOptionsPrefix(ctx->eps,((PetscObject)nep)->prefix));
-    CHKERRQ(EPSAppendOptionsPrefix(ctx->eps,"nep_nleigs_"));
-    CHKERRQ(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps));
-    CHKERRQ(PetscObjectSetOptions((PetscObject)ctx->eps,((PetscObject)nep)->options));
-    CHKERRQ(EPSMonitorSet(ctx->eps,EPSMonitor_NLEIGS,nep,NULL));
+    PetscCall(EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->eps));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1));
+    PetscCall(EPSSetOptionsPrefix(ctx->eps,((PetscObject)nep)->prefix));
+    PetscCall(EPSAppendOptionsPrefix(ctx->eps,"nep_nleigs_"));
+    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps));
+    PetscCall(PetscObjectSetOptions((PetscObject)ctx->eps,((PetscObject)nep)->options));
+    PetscCall(EPSMonitorSet(ctx->eps,EPSMonitor_NLEIGS,nep,NULL));
   }
   *eps = ctx->eps;
   PetscFunctionReturn(0);
@@ -497,6 +497,6 @@ PetscErrorCode NEPNLEIGSGetEPS(NEP nep,EPS *eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(eps,2);
-  CHKERRQ(PetscUseMethod(nep,"NEPNLEIGSGetEPS_C",(NEP,EPS*),(nep,eps)));
+  PetscCall(PetscUseMethod(nep,"NEPNLEIGSGetEPS_C",(NEP,EPS*),(nep,eps)));
   PetscFunctionReturn(0);
 }

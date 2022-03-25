@@ -42,8 +42,8 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
 {
   PetscFunctionBegin;
   if (st->matmode == ST_MATMODE_INPLACE) {
-    if (st->nmat>1) CHKERRQ(MatAXPY(st->A[0],st->sigma,st->A[1],st->str));
-    else CHKERRQ(MatShift(st->A[0],st->sigma));
+    if (st->nmat>1) PetscCall(MatAXPY(st->A[0],st->sigma,st->A[1],st->str));
+    else PetscCall(MatShift(st->A[0],st->sigma));
     st->Astate[0] = ((PetscObject)st->A[0])->state;
     st->state   = ST_STATE_INITIAL;
     st->opready = PETSC_FALSE;
@@ -62,16 +62,16 @@ PetscErrorCode STComputeOperator_Sinvert(ST st)
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
-  CHKERRQ(PetscObjectReference((PetscObject)st->A[1]));
-  CHKERRQ(MatDestroy(&st->T[0]));
+  PetscCall(PetscObjectReference((PetscObject)st->A[1]));
+  PetscCall(MatDestroy(&st->T[0]));
   st->T[0] = st->A[1];
-  CHKERRQ(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[1]));
-  CHKERRQ(PetscObjectReference((PetscObject)st->T[1]));
-  CHKERRQ(MatDestroy(&st->P));
+  PetscCall(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[1]));
+  PetscCall(PetscObjectReference((PetscObject)st->T[1]));
+  PetscCall(MatDestroy(&st->P));
   st->P = st->T[1];
   st->M = (st->nmat>1)? st->T[0]: NULL;
   if (st->Psplit) {  /* build custom preconditioner from the split matrices */
-    CHKERRQ(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
+    PetscCall(STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
   }
   PetscFunctionReturn(0);
 }
@@ -82,38 +82,38 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscScalar    *coeffs=NULL;
 
   PetscFunctionBegin;
-  if (nmat>1) CHKERRQ(STSetWorkVecs(st,1));
+  if (nmat>1) PetscCall(STSetWorkVecs(st,1));
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
   if (nmat>2) {  /* set-up matrices for polynomial eigenproblems */
     if (st->transform) {
       nc = (nmat*(nmat+1))/2;
-      CHKERRQ(PetscMalloc1(nc,&coeffs));
+      PetscCall(PetscMalloc1(nc,&coeffs));
       /* Compute coeffs */
-      CHKERRQ(STCoeffs_Monomial(st,coeffs));
+      PetscCall(STCoeffs_Monomial(st,coeffs));
       /* T[0] = A_n */
       k = nmat-1;
-      CHKERRQ(PetscObjectReference((PetscObject)st->A[k]));
-      CHKERRQ(MatDestroy(&st->T[0]));
+      PetscCall(PetscObjectReference((PetscObject)st->A[k]));
+      PetscCall(MatDestroy(&st->T[0]));
       st->T[0] = st->A[k];
-      for (k=1;k<nmat;k++) CHKERRQ(STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[k]));
-      CHKERRQ(PetscFree(coeffs));
-      CHKERRQ(PetscObjectReference((PetscObject)st->T[nmat-1]));
-      CHKERRQ(MatDestroy(&st->P));
+      for (k=1;k<nmat;k++) PetscCall(STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),PETSC_FALSE,&st->T[k]));
+      PetscCall(PetscFree(coeffs));
+      PetscCall(PetscObjectReference((PetscObject)st->T[nmat-1]));
+      PetscCall(MatDestroy(&st->P));
       st->P = st->T[nmat-1];
       if (st->Psplit) {  /* build custom preconditioner from the split matrices */
-        CHKERRQ(STMatMAXPY_Private(st,st->sigma,0.0,0,coeffs?coeffs+((nmat-1)*nmat)/2:NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
+        PetscCall(STMatMAXPY_Private(st,st->sigma,0.0,0,coeffs?coeffs+((nmat-1)*nmat)/2:NULL,PETSC_TRUE,PETSC_TRUE,&st->Pmat));
       }
-      CHKERRQ(ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P));
+      PetscCall(ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P));
     } else {
       for (k=0;k<nmat;k++) {
-        CHKERRQ(PetscObjectReference((PetscObject)st->A[k]));
-        CHKERRQ(MatDestroy(&st->T[k]));
+        PetscCall(PetscObjectReference((PetscObject)st->A[k]));
+        PetscCall(MatDestroy(&st->T[k]));
         st->T[k] = st->A[k];
       }
     }
   }
-  if (st->P) CHKERRQ(KSPSetUp(st->ksp));
+  if (st->P) PetscCall(KSPSetUp(st->ksp));
   PetscFunctionReturn(0);
 }
 
@@ -126,24 +126,24 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   if (st->transform) {
     if (st->matmode == ST_MATMODE_COPY && nmat>2) {
       nc = (nmat*(nmat+1))/2;
-      CHKERRQ(PetscMalloc1(nc,&coeffs));
+      PetscCall(PetscMalloc1(nc,&coeffs));
       /* Compute coeffs */
-      CHKERRQ(STCoeffs_Monomial(st,coeffs));
+      PetscCall(STCoeffs_Monomial(st,coeffs));
     }
-    for (k=1;k<nmat;k++) CHKERRQ(STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_FALSE,PETSC_FALSE,&st->T[k]));
-    if (st->matmode == ST_MATMODE_COPY && nmat>2) CHKERRQ(PetscFree(coeffs));
+    for (k=1;k<nmat;k++) PetscCall(STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_FALSE,PETSC_FALSE,&st->T[k]));
+    if (st->matmode == ST_MATMODE_COPY && nmat>2) PetscCall(PetscFree(coeffs));
     if (st->P!=st->T[nmat-1]) {
-      CHKERRQ(PetscObjectReference((PetscObject)st->T[nmat-1]));
-      CHKERRQ(MatDestroy(&st->P));
+      PetscCall(PetscObjectReference((PetscObject)st->T[nmat-1]));
+      PetscCall(MatDestroy(&st->P));
       st->P = st->T[nmat-1];
     }
     if (st->Psplit) {  /* build custom preconditioner from the split matrices */
-      CHKERRQ(STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,0,coeffs?coeffs+((nmat-1)*nmat)/2:NULL,PETSC_FALSE,PETSC_TRUE,&st->Pmat));
+      PetscCall(STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,0,coeffs?coeffs+((nmat-1)*nmat)/2:NULL,PETSC_FALSE,PETSC_TRUE,&st->Pmat));
     }
   }
   if (st->P) {
-    CHKERRQ(ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P));
-    CHKERRQ(KSPSetUp(st->ksp));
+    PetscCall(ST_KSPSetOperators(st,st->P,st->Pmat?st->Pmat:st->P));
+    PetscCall(KSPSetUp(st->ksp));
   }
   PetscFunctionReturn(0);
 }

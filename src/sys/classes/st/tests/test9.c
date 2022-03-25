@@ -23,156 +23,156 @@ int main(int argc,char **argv)
   PetscScalar    sigma;
   PetscInt       n=10,i,Istart,Iend;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nTest ST with four matrices, n=%" PetscInt_FMT "\n\n",n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nTest ST with four matrices, n=%" PetscInt_FMT "\n\n",n));
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
-  CHKERRQ(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(A));
-  CHKERRQ(MatSetUp(A));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-  CHKERRQ(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(B));
-  CHKERRQ(MatSetUp(B));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+  PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(B));
+  PetscCall(MatSetUp(B));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&C));
-  CHKERRQ(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(C));
-  CHKERRQ(MatSetUp(C));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&C));
+  PetscCall(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(C));
+  PetscCall(MatSetUp(C));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&D));
-  CHKERRQ(MatSetSizes(D,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(D));
-  CHKERRQ(MatSetUp(D));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&D));
+  PetscCall(MatSetSizes(D,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(D));
+  PetscCall(MatSetUp(D));
 
-  CHKERRQ(MatGetOwnershipRange(A,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(A,i,i,2.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,i,i,2.0,INSERT_VALUES));
     if (i>0) {
-      CHKERRQ(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
-      CHKERRQ(MatSetValue(B,i,i,(PetscScalar)i,INSERT_VALUES));
-    } else CHKERRQ(MatSetValue(B,i,i,-1.0,INSERT_VALUES));
-    if (i<n-1) CHKERRQ(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(C,i,n-i-1,1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(D,i,i,i*.1,INSERT_VALUES));
-    if (i==0) CHKERRQ(MatSetValue(D,0,n-1,1.0,INSERT_VALUES));
-    if (i==n-1) CHKERRQ(MatSetValue(D,n-1,0,1.0,INSERT_VALUES));
+      PetscCall(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+      PetscCall(MatSetValue(B,i,i,(PetscScalar)i,INSERT_VALUES));
+    } else PetscCall(MatSetValue(B,i,i,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(C,i,n-i-1,1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(D,i,i,i*.1,INSERT_VALUES));
+    if (i==0) PetscCall(MatSetValue(D,0,n-1,1.0,INSERT_VALUES));
+    if (i==n-1) PetscCall(MatSetValue(D,n-1,0,1.0,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyBegin(D,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(D,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatCreateVecs(A,&v,&w));
-  CHKERRQ(VecSet(v,1.0));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(D,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(D,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,&v,&w));
+  PetscCall(VecSet(v,1.0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the split preconditioner matrices (four diagonals)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&Pa));
-  CHKERRQ(MatSetSizes(Pa,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(Pa));
-  CHKERRQ(MatSetUp(Pa));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&Pa));
+  PetscCall(MatSetSizes(Pa,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(Pa));
+  PetscCall(MatSetUp(Pa));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&Pb));
-  CHKERRQ(MatSetSizes(Pb,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(Pb));
-  CHKERRQ(MatSetUp(Pb));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&Pb));
+  PetscCall(MatSetSizes(Pb,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(Pb));
+  PetscCall(MatSetUp(Pb));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&Pc));
-  CHKERRQ(MatSetSizes(Pc,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(Pc));
-  CHKERRQ(MatSetUp(Pc));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&Pc));
+  PetscCall(MatSetSizes(Pc,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(Pc));
+  PetscCall(MatSetUp(Pc));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&Pd));
-  CHKERRQ(MatSetSizes(Pd,PETSC_DECIDE,PETSC_DECIDE,n,n));
-  CHKERRQ(MatSetFromOptions(Pd));
-  CHKERRQ(MatSetUp(Pd));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&Pd));
+  PetscCall(MatSetSizes(Pd,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(Pd));
+  PetscCall(MatSetUp(Pd));
 
-  CHKERRQ(MatGetOwnershipRange(Pa,&Istart,&Iend));
+  PetscCall(MatGetOwnershipRange(Pa,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    CHKERRQ(MatSetValue(Pa,i,i,2.0,INSERT_VALUES));
-    if (i>0) CHKERRQ(MatSetValue(Pb,i,i,(PetscScalar)i,INSERT_VALUES));
-    else CHKERRQ(MatSetValue(Pb,i,i,-1.0,INSERT_VALUES));
-    CHKERRQ(MatSetValue(Pd,i,i,i*.1,INSERT_VALUES));
+    PetscCall(MatSetValue(Pa,i,i,2.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(Pb,i,i,(PetscScalar)i,INSERT_VALUES));
+    else PetscCall(MatSetValue(Pb,i,i,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(Pd,i,i,i*.1,INSERT_VALUES));
   }
 
-  CHKERRQ(MatAssemblyBegin(Pa,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(Pa,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyBegin(Pb,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(Pb,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyBegin(Pc,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(Pc,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyBegin(Pd,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(Pd,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(Pa,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(Pa,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(Pb,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(Pb,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(Pc,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(Pc,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(Pd,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(Pd,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the spectral transformation object
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(STCreate(PETSC_COMM_WORLD,&st));
+  PetscCall(STCreate(PETSC_COMM_WORLD,&st));
   mat[0] = A;
   mat[1] = B;
   mat[2] = C;
   mat[3] = D;
-  CHKERRQ(STSetMatrices(st,4,mat));
+  PetscCall(STSetMatrices(st,4,mat));
   mat[0] = Pa;
   mat[1] = Pb;
   mat[2] = Pc;
   mat[3] = Pd;
-  CHKERRQ(STSetSplitPreconditioner(st,4,mat,SUBSET_NONZERO_PATTERN));
-  CHKERRQ(STGetKSP(st,&ksp));
-  CHKERRQ(KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
-  CHKERRQ(STSetTransform(st,PETSC_TRUE));
-  CHKERRQ(STSetFromOptions(st));
-  CHKERRQ(STGetKSP(st,&ksp));
-  CHKERRQ(KSPGetPC(ksp,&pc));
+  PetscCall(STSetSplitPreconditioner(st,4,mat,SUBSET_NONZERO_PATTERN));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(STSetTransform(st,PETSC_TRUE));
+  PetscCall(STSetFromOptions(st));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPGetPC(ksp,&pc));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                    Apply the operator
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* sigma=0.0 */
-  CHKERRQ(STSetUp(st));
-  CHKERRQ(STGetType(st,&type));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
-  CHKERRQ(PCGetOperators(pc,NULL,&Pmat));
-  CHKERRQ(MatView(Pmat,NULL));
-  CHKERRQ(STMatSolve(st,v,w));
-  CHKERRQ(VecView(w,NULL));
+  PetscCall(STSetUp(st));
+  PetscCall(STGetType(st,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
+  PetscCall(PCGetOperators(pc,NULL,&Pmat));
+  PetscCall(MatView(Pmat,NULL));
+  PetscCall(STMatSolve(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* sigma=0.1 */
   sigma = 0.1;
-  CHKERRQ(STSetShift(st,sigma));
-  CHKERRQ(STGetShift(st,&sigma));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
-  CHKERRQ(PCGetOperators(pc,NULL,&Pmat));
-  CHKERRQ(MatView(Pmat,NULL));
-  CHKERRQ(STMatSolve(st,v,w));
-  CHKERRQ(VecView(w,NULL));
+  PetscCall(STSetShift(st,sigma));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  PetscCall(PCGetOperators(pc,NULL,&Pmat));
+  PetscCall(MatView(Pmat,NULL));
+  PetscCall(STMatSolve(st,v,w));
+  PetscCall(VecView(w,NULL));
 
-  CHKERRQ(STDestroy(&st));
-  CHKERRQ(MatDestroy(&A));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(MatDestroy(&C));
-  CHKERRQ(MatDestroy(&D));
-  CHKERRQ(MatDestroy(&Pa));
-  CHKERRQ(MatDestroy(&Pb));
-  CHKERRQ(MatDestroy(&Pc));
-  CHKERRQ(MatDestroy(&Pd));
-  CHKERRQ(VecDestroy(&v));
-  CHKERRQ(VecDestroy(&w));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(STDestroy(&st));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(MatDestroy(&C));
+  PetscCall(MatDestroy(&D));
+  PetscCall(MatDestroy(&Pa));
+  PetscCall(MatDestroy(&Pb));
+  PetscCall(MatDestroy(&Pc));
+  PetscCall(MatDestroy(&Pd));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&w));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

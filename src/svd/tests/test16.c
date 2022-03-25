@@ -37,79 +37,79 @@ int main(int argc,char **argv)
   PetscInt       m=15,n=20,p=21,Istart,Iend,i,j,d,col[2];
   PetscScalar    valsa[] = { 1, 2 }, valsb[] = { 2, 1 };
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT "\n\n",m,p,n));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT "\n\n",m,p,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                      Generate the matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A1));
-  CHKERRQ(MatSetSizes(A1,PETSC_DECIDE,PETSC_DECIDE,m,n));
-  CHKERRQ(MatSetFromOptions(A1));
-  CHKERRQ(MatSetUp(A1));
-  CHKERRQ(MatGetOwnershipRange(A1,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A1));
+  PetscCall(MatSetSizes(A1,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A1));
+  PetscCall(MatSetUp(A1));
+  PetscCall(MatGetOwnershipRange(A1,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) CHKERRQ(MatSetValues(A1,1,&i,2,col,valsa,INSERT_VALUES));
-    else if (i==n-1) CHKERRQ(MatSetValue(A1,i,col[0],valsa[0],INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValues(A1,1,&i,2,col,valsa,INSERT_VALUES));
+    else if (i==n-1) PetscCall(MatSetValue(A1,i,col[0],valsa[0],INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A2));
-  CHKERRQ(MatSetSizes(A2,PETSC_DECIDE,PETSC_DECIDE,m,n));
-  CHKERRQ(MatSetFromOptions(A2));
-  CHKERRQ(MatSetUp(A2));
-  CHKERRQ(MatGetOwnershipRange(A2,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A2));
+  PetscCall(MatSetSizes(A2,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A2));
+  PetscCall(MatSetUp(A2));
+  PetscCall(MatGetOwnershipRange(A2,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i;
-    if (i==0) CHKERRQ(MatSetValue(A2,i,col[1],valsb[1],INSERT_VALUES));
-    else if (i<n) CHKERRQ(MatSetValues(A2,1,&i,2,col,valsb,INSERT_VALUES));
-    else if (i==n) CHKERRQ(MatSetValue(A2,i,col[0],valsb[0],INSERT_VALUES));
+    if (i==0) PetscCall(MatSetValue(A2,i,col[1],valsb[1],INSERT_VALUES));
+    else if (i<n) PetscCall(MatSetValues(A2,1,&i,2,col,valsb,INSERT_VALUES));
+    else if (i==n) PetscCall(MatSetValue(A2,i,col[0],valsb[0],INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(A2,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(A2,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(A2,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A2,MAT_FINAL_ASSEMBLY));
 
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-  CHKERRQ(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
-  CHKERRQ(MatSetFromOptions(B));
-  CHKERRQ(MatSetUp(B));
-  CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+  PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
+  PetscCall(MatSetFromOptions(B));
+  PetscCall(MatSetUp(B));
+  PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
   d = PetscMax(0,n-p);
   for (i=Istart;i<Iend;i++) {
-    for (j=0;j<=PetscMin(i,n-1);j++) CHKERRQ(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
+    for (j=0;j<=PetscMin(i,n-1);j++) PetscCall(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
   }
-  CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
-  CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Create the singular value solver, set options and solve
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDCreate(PETSC_COMM_WORLD,&svd));
-  CHKERRQ(SVDSetOperators(svd,A1,B));
-  CHKERRQ(SVDSetFromOptions(svd));
-  CHKERRQ(SVDSolve(svd));
-  CHKERRQ(SVDErrorView(svd,SVD_ERROR_NORM,NULL));
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A1,B));
+  PetscCall(SVDSetFromOptions(svd));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_NORM,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Solve second problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  CHKERRQ(SVDSetOperators(svd,A2,B));
-  CHKERRQ(SVDSolve(svd));
-  CHKERRQ(SVDErrorView(svd,SVD_ERROR_NORM,NULL));
+  PetscCall(SVDSetOperators(svd,A2,B));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_NORM,NULL));
 
   /* Free work space */
-  CHKERRQ(SVDDestroy(&svd));
-  CHKERRQ(MatDestroy(&A1));
-  CHKERRQ(MatDestroy(&A2));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A1));
+  PetscCall(MatDestroy(&A2));
+  PetscCall(MatDestroy(&B));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

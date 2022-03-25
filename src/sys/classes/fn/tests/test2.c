@@ -18,53 +18,53 @@ int main(int argc,char **argv)
   PetscScalar    x,y,yp,tau,eta,alpha,beta;
   char           strx[50],str[50];
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn));
-  CHKERRQ(FNSetFromOptions(fn));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fn));
+  PetscCall(FNSetFromOptions(fn));
 
   /* plain exponential exp(x) */
-  CHKERRQ(FNSetType(fn,FNEXP));
-  CHKERRQ(FNView(fn,NULL));
+  PetscCall(FNSetType(fn,FNEXP));
+  PetscCall(FNView(fn,NULL));
   x = 2.2;
-  CHKERRQ(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
-  CHKERRQ(FNEvaluateFunction(fn,x,&y));
-  CHKERRQ(FNEvaluateDerivative(fn,x,&yp));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
+  PetscCall(FNEvaluateFunction(fn,x,&y));
+  PetscCall(FNEvaluateDerivative(fn,x,&yp));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
 
   /* exponential with scaling factors eta*exp(tau*x) */
-  CHKERRQ(FNSetType(fn,FNEXP));
+  PetscCall(FNSetType(fn,FNEXP));
   tau = -0.2;
   eta = 1.3;
-  CHKERRQ(FNSetScale(fn,tau,eta));
-  CHKERRQ(FNView(fn,NULL));
+  PetscCall(FNSetScale(fn,tau,eta));
+  PetscCall(FNView(fn,NULL));
   x = 2.2;
-  CHKERRQ(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
-  CHKERRQ(FNEvaluateFunction(fn,x,&y));
-  CHKERRQ(FNEvaluateDerivative(fn,x,&yp));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
+  PetscCall(FNEvaluateFunction(fn,x,&y));
+  PetscCall(FNEvaluateDerivative(fn,x,&yp));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
 
   /* test FNDuplicate */
-  CHKERRQ(FNDuplicate(fn,PetscObjectComm((PetscObject)fn),&fncopy));
+  PetscCall(FNDuplicate(fn,PetscObjectComm((PetscObject)fn),&fncopy));
 
   /* test FNGetScale */
-  CHKERRQ(FNGetScale(fncopy,&alpha,&beta));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Parameters:\n - alpha: "));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),alpha,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%s ",str));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n - beta: "));
-  CHKERRQ(SlepcSNPrintfScalar(str,sizeof(str),beta,PETSC_FALSE));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"%s ",str));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+  PetscCall(FNGetScale(fncopy,&alpha,&beta));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Parameters:\n - alpha: "));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),alpha,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%s ",str));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n - beta: "));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),beta,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%s ",str));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
-  CHKERRQ(FNDestroy(&fn));
-  CHKERRQ(FNDestroy(&fncopy));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(FNDestroy(&fn));
+  PetscCall(FNDestroy(&fncopy));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 

@@ -26,166 +26,166 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   BVMatMultType  vmm;
 
-  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
-  CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-rep",&rep,NULL));
-  CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  CHKERRQ(PetscOptionsGetString(NULL,NULL,"-file",filename,sizeof(filename),&fromfile));
-  CHKERRQ(MatCreate(PETSC_COMM_WORLD,&B));
-  CHKERRQ(PetscObjectSetName((PetscObject)B,"B"));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-rep",&rep,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-file",filename,sizeof(filename),&fromfile));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+  PetscCall(PetscObjectSetName((PetscObject)B,"B"));
   if (fromfile) {
 #if defined(PETSC_USE_COMPLEX)
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n"));
 #else
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n"));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n"));
 #endif
-    CHKERRQ(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    CHKERRQ(MatSetFromOptions(B));
-    CHKERRQ(MatLoad(B,viewer));
-    CHKERRQ(PetscViewerDestroy(&viewer));
-    CHKERRQ(MatGetSize(B,&m,&n));
-    CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatSetFromOptions(B));
+    PetscCall(MatLoad(B,viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
+    PetscCall(MatGetSize(B,&m,&n));
+    PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
   } else {
     /* Create 1-D Laplacian matrix */
-    CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
-    CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
+    PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+    PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
     if (!flg) n = m;
-    CHKERRQ(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,m,n));
-    CHKERRQ(MatSetFromOptions(B));
-    CHKERRQ(MatSetUp(B));
-    CHKERRQ(MatGetOwnershipRange(B,&Istart,&Iend));
+    PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,m,n));
+    PetscCall(MatSetFromOptions(B));
+    PetscCall(MatSetUp(B));
+    PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
     for (i=Istart;i<Iend;i++) {
-      if (i>0 && i-1<n) CHKERRQ(MatSetValue(B,i,i-1,-1.0,INSERT_VALUES));
-      if (i+1<n) CHKERRQ(MatSetValue(B,i,i+1,-1.0,INSERT_VALUES));
-      if (i<n) CHKERRQ(MatSetValue(B,i,i,2.0,INSERT_VALUES));
+      if (i>0 && i-1<n) PetscCall(MatSetValue(B,i,i-1,-1.0,INSERT_VALUES));
+      if (i+1<n) PetscCall(MatSetValue(B,i,i+1,-1.0,INSERT_VALUES));
+      if (i<n) PetscCall(MatSetValue(B,i,i,2.0,INSERT_VALUES));
     }
-    CHKERRQ(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
-    CHKERRQ(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
   }
 
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test BVMatMult (m=%" PetscInt_FMT ", n=%" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",m,n,k));
-  CHKERRQ(MatCreateVecs(B,&t,&r));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BVMatMult (m=%" PetscInt_FMT ", n=%" PetscInt_FMT ", k=%" PetscInt_FMT ").\n",m,n,k));
+  PetscCall(MatCreateVecs(B,&t,&r));
 
   /* Create BV object X */
-  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&X));
-  CHKERRQ(PetscObjectSetName((PetscObject)X,"X"));
-  CHKERRQ(BVSetSizesFromVec(X,t,k));
-  CHKERRQ(BVSetMatMultMethod(X,BV_MATMULT_VECS));
-  CHKERRQ(BVSetFromOptions(X));
-  CHKERRQ(BVGetMatMultMethod(X,&vmm));
-  CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Using method: %s\n",BVMatMultTypes[vmm]));
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&X));
+  PetscCall(PetscObjectSetName((PetscObject)X,"X"));
+  PetscCall(BVSetSizesFromVec(X,t,k));
+  PetscCall(BVSetMatMultMethod(X,BV_MATMULT_VECS));
+  PetscCall(BVSetFromOptions(X));
+  PetscCall(BVGetMatMultMethod(X,&vmm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Using method: %s\n",BVMatMultTypes[vmm]));
 
   /* Set up viewer */
-  CHKERRQ(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
-  if (verbose) CHKERRQ(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
+  if (verbose) PetscCall(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
-    CHKERRQ(BVGetColumn(X,j,&v));
-    CHKERRQ(VecSet(v,0.0));
-    for (i=Istart;i<PetscMin(j+1,Iend);i++) CHKERRQ(VecSetValue(v,i,1.0,INSERT_VALUES));
-    CHKERRQ(VecAssemblyBegin(v));
-    CHKERRQ(VecAssemblyEnd(v));
-    CHKERRQ(BVRestoreColumn(X,j,&v));
+    PetscCall(BVGetColumn(X,j,&v));
+    PetscCall(VecSet(v,0.0));
+    for (i=Istart;i<PetscMin(j+1,Iend);i++) PetscCall(VecSetValue(v,i,1.0,INSERT_VALUES));
+    PetscCall(VecAssemblyBegin(v));
+    PetscCall(VecAssemblyEnd(v));
+    PetscCall(BVRestoreColumn(X,j,&v));
   }
   if (verbose) {
-    CHKERRQ(MatView(B,view));
-    CHKERRQ(BVView(X,view));
+    PetscCall(MatView(B,view));
+    PetscCall(BVView(X,view));
   }
 
   /* Create BV object Y */
-  CHKERRQ(BVCreate(PETSC_COMM_WORLD,&Y));
-  CHKERRQ(PetscObjectSetName((PetscObject)Y,"Y"));
-  CHKERRQ(BVSetSizesFromVec(Y,r,k+4));
-  CHKERRQ(BVSetMatMultMethod(Y,BV_MATMULT_VECS));
-  CHKERRQ(BVSetFromOptions(Y));
-  CHKERRQ(BVSetActiveColumns(Y,2,k+2));
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&Y));
+  PetscCall(PetscObjectSetName((PetscObject)Y,"Y"));
+  PetscCall(BVSetSizesFromVec(Y,r,k+4));
+  PetscCall(BVSetMatMultMethod(Y,BV_MATMULT_VECS));
+  PetscCall(BVSetFromOptions(Y));
+  PetscCall(BVSetActiveColumns(Y,2,k+2));
 
   /* Test BVMatMult */
-  for (i=0;i<rep;i++) CHKERRQ(BVMatMult(X,B,Y));
-  if (verbose) CHKERRQ(BVView(Y,view));
+  for (i=0;i<rep;i++) PetscCall(BVMatMult(X,B,Y));
+  if (verbose) PetscCall(BVView(Y,view));
 
   if (fromfile) {
     /* Test BVMatMultTranspose */
-    CHKERRQ(BVDuplicate(X,&Z));
-    CHKERRQ(BVSetRandom(Z));
-    for (i=0;i<rep;i++) CHKERRQ(BVMatMultTranspose(Z,B,Y));
+    PetscCall(BVDuplicate(X,&Z));
+    PetscCall(BVSetRandom(Z));
+    for (i=0;i<rep;i++) PetscCall(BVMatMultTranspose(Z,B,Y));
     if (verbose) {
-      CHKERRQ(BVView(Z,view));
-      CHKERRQ(BVView(Y,view));
+      PetscCall(BVView(Z,view));
+      PetscCall(BVView(Y,view));
     }
-    CHKERRQ(BVDestroy(&Z));
-    CHKERRQ(BVMatMultTransposeColumn(Y,B,2));
-    if (verbose) CHKERRQ(BVView(Y,view));
+    PetscCall(BVDestroy(&Z));
+    PetscCall(BVMatMultTransposeColumn(Y,B,2));
+    if (verbose) PetscCall(BVView(Y,view));
   }
 
   /* Test BVGetMat/RestoreMat */
-  CHKERRQ(BVGetMat(Y,&Ymat));
-  CHKERRQ(PetscObjectSetName((PetscObject)Ymat,"Ymat"));
-  if (verbose) CHKERRQ(MatView(Ymat,view));
-  CHKERRQ(BVRestoreMat(Y,&Ymat));
+  PetscCall(BVGetMat(Y,&Ymat));
+  PetscCall(PetscObjectSetName((PetscObject)Ymat,"Ymat"));
+  if (verbose) PetscCall(MatView(Ymat,view));
+  PetscCall(BVRestoreMat(Y,&Ymat));
 
   if (!fromfile) {
     /* Create BV object Z */
-    CHKERRQ(BVDuplicateResize(Y,k,&Z));
-    CHKERRQ(PetscObjectSetName((PetscObject)Z,"Z"));
+    PetscCall(BVDuplicateResize(Y,k,&Z));
+    PetscCall(PetscObjectSetName((PetscObject)Z,"Z"));
 
     /* Fill Z entries */
     for (j=0;j<k;j++) {
-      CHKERRQ(BVGetColumn(Z,j,&v));
-      CHKERRQ(VecSet(v,0.0));
-      if (!Istart) CHKERRQ(VecSetValue(v,0,1.0,ADD_VALUES));
-      if (j<n && j>=Istart && j<Iend) CHKERRQ(VecSetValue(v,j,1.0,ADD_VALUES));
-      if (j+1<n && j>=Istart && j<Iend) CHKERRQ(VecSetValue(v,j+1,-1.0,ADD_VALUES));
-      CHKERRQ(VecAssemblyBegin(v));
-      CHKERRQ(VecAssemblyEnd(v));
-      CHKERRQ(BVRestoreColumn(Z,j,&v));
+      PetscCall(BVGetColumn(Z,j,&v));
+      PetscCall(VecSet(v,0.0));
+      if (!Istart) PetscCall(VecSetValue(v,0,1.0,ADD_VALUES));
+      if (j<n && j>=Istart && j<Iend) PetscCall(VecSetValue(v,j,1.0,ADD_VALUES));
+      if (j+1<n && j>=Istart && j<Iend) PetscCall(VecSetValue(v,j+1,-1.0,ADD_VALUES));
+      PetscCall(VecAssemblyBegin(v));
+      PetscCall(VecAssemblyEnd(v));
+      PetscCall(BVRestoreColumn(Z,j,&v));
     }
-    if (verbose) CHKERRQ(BVView(Z,view));
+    if (verbose) PetscCall(BVView(Z,view));
 
     /* Save a copy of Z */
-    CHKERRQ(BVDuplicate(Z,&Zcopy));
-    CHKERRQ(BVCopy(Z,Zcopy));
+    PetscCall(BVDuplicate(Z,&Zcopy));
+    PetscCall(BVCopy(Z,Zcopy));
 
     /* Test BVMult, check result of previous operations */
-    CHKERRQ(BVMult(Z,-1.0,1.0,Y,NULL));
-    CHKERRQ(BVNorm(Z,NORM_FROBENIUS,&norm));
-    CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm));
+    PetscCall(BVMult(Z,-1.0,1.0,Y,NULL));
+    PetscCall(BVNorm(Z,NORM_FROBENIUS,&norm));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm));
   }
 
   /* Test BVMatMultColumn, multiply Y(:,2), result in Y(:,3) */
   if (m==n) {
-    CHKERRQ(BVMatMultColumn(Y,B,2));
-    if (verbose) CHKERRQ(BVView(Y,view));
+    PetscCall(BVMatMultColumn(Y,B,2));
+    if (verbose) PetscCall(BVView(Y,view));
 
     if (!fromfile) {
       /* Test BVGetArray, modify Z to match Y */
-      CHKERRQ(BVCopy(Zcopy,Z));
-      CHKERRQ(BVGetArray(Z,&pZ));
+      PetscCall(BVCopy(Zcopy,Z));
+      PetscCall(BVGetArray(Z,&pZ));
       if (Istart==0) {
         PetscCheck(Iend>2,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"First process must have at least 3 rows");
         pZ[Iend]   = 5.0;   /* modify 3 first entries of second column */
         pZ[Iend+1] = -4.0;
         pZ[Iend+2] = 1.0;
       }
-      CHKERRQ(BVRestoreArray(Z,&pZ));
-      if (verbose) CHKERRQ(BVView(Z,view));
+      PetscCall(BVRestoreArray(Z,&pZ));
+      if (verbose) PetscCall(BVView(Z,view));
 
       /* Check result again with BVMult */
-      CHKERRQ(BVMult(Z,-1.0,1.0,Y,NULL));
-      CHKERRQ(BVNorm(Z,NORM_FROBENIUS,&norm));
-      CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm));
+      PetscCall(BVMult(Z,-1.0,1.0,Y,NULL));
+      PetscCall(BVNorm(Z,NORM_FROBENIUS,&norm));
+      PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm));
     }
   }
 
-  CHKERRQ(BVDestroy(&Z));
-  CHKERRQ(BVDestroy(&Zcopy));
-  CHKERRQ(BVDestroy(&X));
-  CHKERRQ(BVDestroy(&Y));
-  CHKERRQ(MatDestroy(&B));
-  CHKERRQ(VecDestroy(&t));
-  CHKERRQ(VecDestroy(&r));
-  CHKERRQ(SlepcFinalize());
+  PetscCall(BVDestroy(&Z));
+  PetscCall(BVDestroy(&Zcopy));
+  PetscCall(BVDestroy(&X));
+  PetscCall(BVDestroy(&Y));
+  PetscCall(MatDestroy(&B));
+  PetscCall(VecDestroy(&t));
+  PetscCall(VecDestroy(&r));
+  PetscCall(SlepcFinalize());
   return 0;
 }
 
