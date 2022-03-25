@@ -514,7 +514,6 @@ int main(int argc,char **argv)
 {
   EPS            eps;
   EPSType        type;
-  PetscErrorCode ierr;
   PetscMPIInt    size;
   Userctx        user;
   PetscViewer    Xview,Ybusview;
@@ -526,7 +525,7 @@ int main(int argc,char **argv)
   PetscScalar    kr,ki;
   PetscBool      terse;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCheck(size==1,PETSC_COMM_WORLD,PETSC_ERR_SUP,"Only for sequential runs");
   /* show detailed info unless -terse option is given by user */
@@ -671,8 +670,8 @@ int main(int argc,char **argv)
   CHKERRQ(DMDestroy(&user.dmpgrid));
   CHKERRQ(ISDestroy(&user.is_diff));
   CHKERRQ(ISDestroy(&user.is_alg));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

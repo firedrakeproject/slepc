@@ -58,9 +58,8 @@ int main(int argc,char **argv)
   SNES           snes;
   PetscReal      tol,relerr;
   PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   comm = PETSC_COMM_WORLD;
   /* Create a quadrilateral mesh on domain (0,1)x(0,1) */
   CHKERRQ(CreateSquareMesh(comm,&dm));
@@ -191,8 +190,8 @@ int main(int argc,char **argv)
   CHKERRQ(DMDestroy(&dm));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(ISDestroy(&user.bdis));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /* <|u|u, v> */

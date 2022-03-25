@@ -48,9 +48,8 @@ int main(int argc,char **argv)
   PetscBool      flg;
   PetscBool      terse;
   const char     *prefix;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   n = m*m;
@@ -154,8 +153,8 @@ int main(int argc,char **argv)
   }
   CHKERRQ(PEPDestroy(&pep));
   for (i=0;i<NMAT;i++) CHKERRQ(MatDestroy(&A[i]));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

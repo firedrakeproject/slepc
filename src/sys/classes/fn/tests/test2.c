@@ -14,12 +14,11 @@ static char help[] = "Test exponential function.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             fn,fncopy;
   PetscScalar    x,y,yp,tau,eta,alpha,beta;
   char           strx[50],str[50];
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn));
   CHKERRQ(FNSetFromOptions(fn));
 
@@ -65,8 +64,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(FNDestroy(&fn));
   CHKERRQ(FNDestroy(&fncopy));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

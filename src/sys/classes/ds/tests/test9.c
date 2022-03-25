@@ -36,7 +36,6 @@ PetscErrorCode ComputeNorm(DS ds,DSMatType mat,PetscInt j,PetscReal *onrm)
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
   PetscReal      re;
@@ -46,7 +45,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a System of type GHEP - dimension %" PetscInt_FMT ".\n",n));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -120,8 +119,8 @@ int main(int argc,char **argv)
   CHKERRQ(PetscFree(eig));
   CHKERRQ(PetscFree(sc));
   CHKERRQ(DSDestroy(&ds));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

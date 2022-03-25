@@ -38,9 +38,8 @@ int main (int argc,char **argv)
   PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev;
   PetscBool      isShell,terse,flag;
   PetscScalar    target=1.1;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
@@ -127,8 +126,8 @@ int main (int argc,char **argv)
   if (isShell) CHKERRQ(STDestroy_Fold(fold));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*

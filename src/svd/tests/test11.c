@@ -49,9 +49,8 @@ int main(int argc,char **argv)
   PetscInt       N=30,Istart,Iend,i,col[5],nconv1,nconv2;
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
   PetscReal      sigma_1,sigma_n;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N));
@@ -110,8 +109,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(SVDDestroy(&svd));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -32,9 +32,8 @@ int main(int argc,char **argv)
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   PetscBool      flg,evecs,ishermitian,terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the eigensystem, Ax=kBx
@@ -189,8 +188,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecDestroy(&xi));
   if (nini > 0) CHKERRQ(VecDestroyVecs(nini,&Iv));
   if (ncon > 0) CHKERRQ(VecDestroyVecs(ncon,&Cv));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

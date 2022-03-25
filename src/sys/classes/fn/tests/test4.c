@@ -14,10 +14,9 @@ static char help[] = "Test setting FN parameters from the command line.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             fn1,fn2;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn1));
   CHKERRQ(FNSetOptionsPrefix(fn1,"f1_"));
   CHKERRQ(FNSetFromOptions(fn1));
@@ -28,8 +27,8 @@ int main(int argc,char **argv)
   CHKERRQ(FNSetFromOptions(fn2));
   CHKERRQ(FNView(fn2,NULL));
   CHKERRQ(FNDestroy(&fn2));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

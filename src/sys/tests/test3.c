@@ -16,9 +16,8 @@ int main(int argc,char **argv)
 {
   char           pkg[128] = "arpack";
   PetscBool      has,flg;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetString(NULL,NULL,"-pkg",pkg,sizeof(pkg),NULL));
   CHKERRQ(SlepcHasExternalPackage(pkg,&has));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD, "SLEPc has %s? %s\n",pkg,PetscBools[has]));
@@ -34,8 +33,8 @@ int main(int argc,char **argv)
 #else
   PetscCheck(!flg || !has,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"SlepcHasExternalPackage() says PRIMME is configured but SLEPC_HAVE_PRIMME is undefined");
 #endif
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

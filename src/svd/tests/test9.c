@@ -36,9 +36,8 @@ int main(int argc,char **argv)
   SVD            svd;
   PetscInt       N=30,Istart,Iend,i,col[5];
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N));
 
@@ -103,8 +102,8 @@ int main(int argc,char **argv)
   CHKERRQ(SVDDestroy(&svd));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

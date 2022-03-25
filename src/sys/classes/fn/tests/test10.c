@@ -52,14 +52,13 @@ PetscErrorCode TestPhiFunction(FN fn,PetscScalar x,Mat A,PetscBool verbose)
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             phi0,phi1,phik,phicopy;
   Mat            A;
   PetscInt       i,j,n=8,k;
   PetscScalar    tau,eta,*As;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test Phi functions, n=%" PetscInt_FMT ".\n",n));
@@ -102,8 +101,8 @@ int main(int argc,char **argv)
   CHKERRQ(FNDestroy(&phik));
   CHKERRQ(FNDestroy(&phicopy));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

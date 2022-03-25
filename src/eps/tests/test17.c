@@ -31,9 +31,8 @@ int main(int argc,char **argv)
   PetscReal      int0,int1,*shifts,keep,*subint,*evals;
   PetscScalar    lambda;
   char           vlist[4000];
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
 
@@ -214,8 +213,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -34,9 +34,8 @@ int main(int argc,char **argv)
   PetscReal      width=0.05,height=0.005,glength=1.0,dlen,EI,area,rho;
   PetscScalar    K1[4],K2[4],K2t[4],K3[4],M1[4],M2[4],M2t[4],M3[4],damp=5.0;
   PetscBool      terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   nele = n/2;
@@ -161,8 +160,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&K));
   CHKERRQ(MatDestroy(&Ko));
   CHKERRQ(MatDestroy(&Mo));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

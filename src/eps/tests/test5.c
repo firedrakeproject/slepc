@@ -24,9 +24,8 @@ int main(int argc,char **argv)
   PetscReal      tol=PETSC_SMALL;
   PetscViewer    viewer;
   PetscBool      flg,symm;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the operator matrix that defines the eigensystem, Ax=kx
@@ -77,8 +76,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

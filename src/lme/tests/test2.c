@@ -14,7 +14,6 @@ static char help[] = "Test dense LME functions.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   LME            lme;
   Mat            A,B,C,X;
   PetscInt       i,j,n=10,k=2;
@@ -22,7 +21,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -113,8 +112,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&C));
   CHKERRQ(MatDestroy(&X));
   CHKERRQ(LMEDestroy(&lme));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

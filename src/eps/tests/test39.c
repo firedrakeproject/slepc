@@ -55,9 +55,8 @@ int main(int argc,char **argv)
   PetscInt       N,n=10,m=11,nev=3;
   PetscMPIInt    size;
   PetscBool      flag,terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCheck(size>1,PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This example requires at least two processes");
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
@@ -119,8 +118,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

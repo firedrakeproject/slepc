@@ -55,9 +55,8 @@ int main(int argc,char **argv)
   PetscReal      h,xi,xj,c[7] = { 2, .3, -2, .2, -2, -.3, -PETSC_PI/2 };
   PetscScalar    alpha,beta,gamma;
   PetscBool      flg,terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 #if !defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires complex scalars");
 #endif
@@ -138,8 +137,8 @@ int main(int argc,char **argv)
   }
   CHKERRQ(PEPDestroy(&pep));
   for (i=0;i<NMAT;i++) CHKERRQ(MatDestroy(&A[i]));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

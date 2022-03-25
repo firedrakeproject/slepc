@@ -32,10 +32,9 @@ int main(int argc,char **argv)
   PetscInt       N,n=10,nev;
   PetscMPIInt    size;
   PetscBool      terse;
-  PetscErrorCode ierr;
   ST             st;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCheck(size==1,PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This is a uniprocessor example only");
 
@@ -118,8 +117,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&M));
   CHKERRQ(MatDestroy(&C));
   CHKERRQ(MatDestroy(&K));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*

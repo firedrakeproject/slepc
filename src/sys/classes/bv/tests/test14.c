@@ -14,7 +14,6 @@ static char help[] = "Test BV created from a dense Mat.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   BV             X;
   Mat            A,B,M;
   PetscInt       i,j,n=20,k=8,Istart,Iend;
@@ -23,7 +22,7 @@ int main(int argc,char **argv)
   PetscReal      norm;
   PetscScalar    alpha;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -82,8 +81,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
   CHKERRQ(BVDestroy(&X));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

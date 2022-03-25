@@ -26,10 +26,9 @@ int main(int argc,char **argv)
   PetscInt             N,n=4,Istart,Iend,i,j,II,ncv,its,maxit;
   PetscBool            flg,testprefix=PETSC_FALSE;
   const char           *prefix;
-  PetscErrorCode       ierr;
   PetscViewerAndFormat *vf;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   N = n*n;
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,n));
@@ -123,8 +122,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(VecDestroy(&v));
   CHKERRQ(VecDestroy(&y));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

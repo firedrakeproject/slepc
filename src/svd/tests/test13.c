@@ -35,9 +35,8 @@ int main(int argc,char **argv)
   PetscScalar     value[] = { 1, 2 };
   PetscBool       flg;
   SVDPRIMMEMethod meth;
-  PetscErrorCode  ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
@@ -83,8 +82,8 @@ int main(int argc,char **argv)
   CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
   CHKERRQ(SVDDestroy(&svd));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

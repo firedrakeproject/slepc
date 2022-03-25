@@ -21,9 +21,8 @@ int main(int argc,char **argv)
   PetscBool      checkfile;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSVD of diagonal matrix, n=%" PetscInt_FMT "\n\n",n));
 
@@ -72,8 +71,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(SVDDestroy(&svd));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

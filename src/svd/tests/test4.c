@@ -39,12 +39,11 @@ int main(int argc,char **argv)
   PetscInt             m=20,n,Istart,Iend,i,col[2],its;
   PetscScalar          value[] = { 1, 2 };
   PetscBool            flg,tmode;
-  PetscErrorCode       ierr;
   PetscViewerAndFormat *vf;
   const char           *ctest[] = { "absolute", "relative to the singular value", "user-defined" };
   const char           *stest[] = { "basic", "user-defined" };
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
@@ -115,8 +114,8 @@ int main(int argc,char **argv)
   CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
   CHKERRQ(SVDDestroy(&svd));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -22,10 +22,9 @@ int main(int argc,char **argv)
   EPS            eps;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,nconv,i,j,neigs=5;
   PetscBool      flag,terse;
-  PetscErrorCode ierr;
   Vec            v,*X;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
@@ -111,8 +110,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecDestroyVecs(neigs,&X));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

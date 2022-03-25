@@ -254,12 +254,12 @@ PetscErrorCode SlepcCitationsInitialize()
 @*/
 PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const char help[])
 {
-  PetscErrorCode ierr;
   PetscBool      flg;
 
-  if (SlepcInitializeCalled) return 0;
-  ierr = PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion);if (ierr) return ierr;
-  ierr = PetscInitialized(&flg);if (ierr) return ierr;
+  PetscFunctionBegin;
+  if (SlepcInitializeCalled) PetscFunctionReturn(0);
+  CHKERRQ(PetscSetHelpVersionFunctions(SlepcPrintHelpIntro,SlepcPrintVersion));
+  CHKERRQ(PetscInitialized(&flg));
   if (!flg) {
     CHKERRQ(PetscInitialize(argc,args,file,help));
     SlepcBeganPetsc = PETSC_TRUE;
@@ -273,7 +273,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   SlepcInitializeCalled = PETSC_TRUE;
   SlepcFinalizeCalled   = PETSC_FALSE;
   CHKERRQ(PetscInfo(0,"SLEPc successfully started\n"));
-  return 0;
+  PetscFunctionReturn(0);
 }
 
 /*@C
@@ -288,8 +288,6 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 @*/
 PetscErrorCode SlepcFinalize(void)
 {
-  PetscErrorCode ierr = 0;
-
   PetscFunctionBegin;
   if (PetscUnlikely(!SlepcInitializeCalled)) {
     fprintf(PETSC_STDOUT,"SlepcInitialize() must be called before SlepcFinalize()\n");
@@ -298,14 +296,14 @@ PetscErrorCode SlepcFinalize(void)
   }
   CHKERRQ(PetscInfo(NULL,"SlepcFinalize() called\n"));
   if (SlepcBeganPetsc) {
-    ierr = PetscFinalize();
+    CHKERRQ(PetscFinalize());
     SlepcBeganPetsc = PETSC_FALSE;
   }
   SlepcInitializeCalled = PETSC_FALSE;
   SlepcFinalizeCalled   = PETSC_TRUE;
   /* To match PetscFunctionBegin() at the beginning of this function */
   PetscStackClearTop;
-  return ierr;
+  return 0;
 }
 
 /*@C
@@ -320,13 +318,12 @@ PetscErrorCode SlepcFinalize(void)
 @*/
 PetscErrorCode SlepcInitializeNoArguments(void)
 {
-  PetscErrorCode ierr;
-  int            argc = 0;
-  char           **args = 0;
+  int  argc = 0;
+  char **args = 0;
 
   PetscFunctionBegin;
-  ierr = SlepcInitialize(&argc,&args,NULL,NULL);
-  PetscFunctionReturn(ierr);
+  CHKERRQ(SlepcInitialize(&argc,&args,NULL,NULL));
+  PetscFunctionReturn(0);
 }
 
 /*@

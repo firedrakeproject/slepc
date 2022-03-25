@@ -24,9 +24,8 @@ int main(int argc,char **argv)
   RG             rg;
   PetscInt       n=30,Istart,Iend,i;
   PetscReal      mu=1.0,tau=10.0,kappa=5.0;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL));
@@ -114,8 +113,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&C));
   CHKERRQ(MatDestroy(&K));
   CHKERRQ(RGDestroy(&rg));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

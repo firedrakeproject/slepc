@@ -24,9 +24,8 @@ int main(int argc,char **argv)
   PetscBool      checkfile;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nPEP of diagonal problem, n=%" PetscInt_FMT "\n\n",n));
 
@@ -107,8 +106,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&A[0]));
   CHKERRQ(MatDestroy(&A[1]));
   CHKERRQ(MatDestroy(&A[2]));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

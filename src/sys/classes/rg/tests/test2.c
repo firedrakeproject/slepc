@@ -32,7 +32,6 @@ PetscErrorCode CheckPoint(RG rg,PetscReal re,PetscReal im)
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   RG             rg;
   RGType         rtype;
   PetscInt       i;
@@ -40,7 +39,7 @@ int main(int argc,char **argv)
   PetscReal      re,im,radius,vscale,start_ang,end_ang,width,a,b,c,d;
   PetscScalar    center,cr[NPOINTS],ci[NPOINTS];
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(RGCreate(PETSC_COMM_WORLD,&rg));
 
   CHKERRQ(RGSetType(rg,RGRING));
@@ -78,8 +77,8 @@ int main(int argc,char **argv)
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n"));
 
   CHKERRQ(RGDestroy(&rg));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

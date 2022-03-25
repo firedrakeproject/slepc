@@ -14,7 +14,6 @@ static char help[] = "Test pseudo-orthogonalization.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   PetscReal      *s,*ns;
   PetscScalar    *A;
@@ -22,7 +21,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Test pseudo-orthogonalization for GHIEP - dimension %" PetscInt_FMT ".\n",n));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -69,8 +68,8 @@ int main(int argc,char **argv)
   CHKERRQ(PetscFree2(s,ns));
 
   CHKERRQ(DSDestroy(&ds));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

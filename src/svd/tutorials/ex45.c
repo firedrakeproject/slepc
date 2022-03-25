@@ -26,9 +26,8 @@ int main(int argc,char **argv)
   PetscReal      error,tol,sigma,lev1=0.0,lev2=0.0;
   PetscInt       m=100,n,p=14,i,j,d,Istart,Iend,nsv,maxit,its,nconv;
   PetscBool      flg,skiporth=PETSC_FALSE;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
@@ -177,8 +176,8 @@ int main(int argc,char **argv)
   CHKERRQ(SVDDestroy(&svd));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

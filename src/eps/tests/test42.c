@@ -23,9 +23,8 @@ int main(int argc,char **argv)
   PetscScalar    val,c,s;
   PetscInt       n=30,i,seed=0x12345678;
   PetscMPIInt    rank;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nOrthogonal eigenproblem, n=%" PetscInt_FMT "\n\n",n));
@@ -80,8 +79,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(PetscRandomDestroy(&rand));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

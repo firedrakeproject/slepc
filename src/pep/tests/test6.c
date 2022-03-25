@@ -34,12 +34,11 @@ int main(int argc,char **argv)
 {
   Mat            M,C,K,A[3];      /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
-  PetscErrorCode ierr;
   PetscInt       n=30,Istart,Iend,i,nev;
   PetscReal      mu=1.0,tau=10.0,kappa=5.0;
   PetscBool      terse=PETSC_FALSE;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL));
@@ -195,8 +194,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&M));
   CHKERRQ(MatDestroy(&C));
   CHKERRQ(MatDestroy(&K));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

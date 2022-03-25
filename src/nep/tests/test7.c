@@ -50,14 +50,13 @@ int main(int argc,char **argv)
   NEPType        type;
   PetscInt       i,n=100,nev,its,nsolve;
   PetscReal      keep,tol=PETSC_SQRT_MACHINE_EPSILON/10;
-  PetscErrorCode ierr;
   RG             rg;
   FN             f[2];
   PetscBool      terse,flg,lock,split=PETSC_TRUE;
   PetscScalar    coeffs;
   MatCtx         *ctx;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%" PetscInt_FMT "%s\n\n",n,split?" (in split form)":""));
@@ -167,8 +166,8 @@ int main(int argc,char **argv)
     CHKERRQ(FNDestroy(&f[0]));
     CHKERRQ(FNDestroy(&f[1]));
   } else CHKERRQ(MatDestroy(&F));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*

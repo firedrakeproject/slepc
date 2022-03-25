@@ -17,14 +17,13 @@ static char help[] = "Test RG interface functions.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   RG             rg;
   PetscInt       i,inside,nv;
   PetscBool      triv;
   PetscReal      re,im,a,b,c,d;
   PetscScalar    ar,ai,cr[NPOINTS],ci[NPOINTS],vr[NVERTEX],vi[NVERTEX],*pr,*pi;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(RGCreate(PETSC_COMM_WORLD,&rg));
 
   /* ellipse */
@@ -169,8 +168,8 @@ int main(int argc,char **argv)
   CHKERRQ(PetscFree(pi));
 #endif
   CHKERRQ(RGDestroy(&rg));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

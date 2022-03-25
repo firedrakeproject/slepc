@@ -33,7 +33,6 @@ static char help[] = "Radio-frequency gun cavity.\n\n"
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   Mat            A[NMAT];         /* problem matrices */
   FN             f[NMAT];         /* functions to define the nonlinear operator */
   FN             ff[2];           /* auxiliary functions to define the nonlinear operator */
@@ -45,7 +44,7 @@ int main(int argc,char **argv)
   PetscInt       i;
   PetscViewer    viewer;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"GUN problem\n\n"));
 #if !defined(PETSC_USE_COMPLEX)
@@ -129,8 +128,8 @@ int main(int argc,char **argv)
     CHKERRQ(FNDestroy(&f[i]));
   }
   for (i=0;i<2;i++) CHKERRQ(FNDestroy(&ff[i]));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

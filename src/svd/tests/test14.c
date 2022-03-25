@@ -34,9 +34,8 @@ int main(int argc,char **argv)
   PetscInt       m=20,n,Istart,Iend,i,col[2];
   PetscScalar    valsa[] = { 1, 2 }, valsb[] = { 2, 1 };
   PetscBool      flg;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
@@ -96,8 +95,8 @@ int main(int argc,char **argv)
   CHKERRQ(SVDDestroy(&svd));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

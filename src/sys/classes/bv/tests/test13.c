@@ -14,7 +14,6 @@ static char help[] = "Test BV operations using internal buffer instead of array 
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   Vec            t,v,z;
   BV             X;
   PetscInt       i,j,n=10,k=5,l=3;
@@ -22,7 +21,7 @@ int main(int argc,char **argv)
   PetscViewer    view;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
@@ -76,8 +75,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(BVDestroy(&X));
   CHKERRQ(VecDestroy(&t));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

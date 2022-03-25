@@ -55,9 +55,8 @@ int main(int argc,char **argv)
   CTX_BRUSSEL    *ctx;
   PetscBool      terse;
   PetscViewer    viewer;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",N));
@@ -185,8 +184,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecDestroy(&ctx->y1));
   CHKERRQ(VecDestroy(&ctx->y2));
   CHKERRQ(PetscFree(ctx));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 PetscErrorCode MatMult_Brussel(Mat A,Vec x,Vec y)

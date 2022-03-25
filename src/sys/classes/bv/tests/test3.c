@@ -14,7 +14,6 @@ static char help[] = "Test BV operations with non-standard inner product.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   Vec            t,v;
   Mat            B,M;
   BV             X;
@@ -24,7 +23,7 @@ int main(int argc,char **argv)
   PetscViewer    view;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -105,8 +104,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&M));
   CHKERRQ(MatDestroy(&B));
   CHKERRQ(VecDestroy(&t));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

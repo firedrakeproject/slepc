@@ -16,7 +16,6 @@ static char help[] = "Test for DSPEP and DSNEP.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   FN             f[NMAT],qfun;
   SlepcSC        sc;
@@ -32,7 +31,7 @@ int main(int argc,char **argv)
   PetscScalar    *yi,*ri,alphai=0.0,t;
 #endif
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-isnep",&isnep,NULL));
   n = m*m;
@@ -260,8 +259,8 @@ int main(int argc,char **argv)
   }
   CHKERRQ(DSDestroy(&ds));
   CHKERRQ(RGDestroy(&rg));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

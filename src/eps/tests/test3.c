@@ -20,9 +20,8 @@ int main(int argc,char **argv)
   Vec            d;
   PetscInt       n=30,i,Istart,Iend;
   PetscRandom    myrand;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%" PetscInt_FMT "\n\n",n));
@@ -95,8 +94,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A1));
   CHKERRQ(MatDestroy(&A2));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

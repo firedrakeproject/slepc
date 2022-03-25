@@ -38,9 +38,8 @@ int main(int argc,char **argv)
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
   PetscReal      lev1=0.0,lev2=0.0,tol=PETSC_SMALL;
   PetscBool      skiporth=PETSC_FALSE;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&M,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSVD of a rectangular Grcar matrix, %" PetscInt_FMT "x%" PetscInt_FMT "\n\n",N,M));
@@ -112,8 +111,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecDestroy(&w0));
   CHKERRQ(SVDDestroy(&svd));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

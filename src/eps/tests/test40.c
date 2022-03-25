@@ -25,9 +25,8 @@ int main(int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt       N,m=15,nev;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
@@ -70,8 +69,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A)

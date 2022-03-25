@@ -33,9 +33,8 @@ int main(int argc,char **argv)
   PetscScalar    *kr,*ki;
   Vec            t,*xr,*xi,*yr,*yi;
   PetscMPIInt    rank;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
@@ -170,8 +169,8 @@ int main(int argc,char **argv)
     CHKERRQ(VecDestroyVecs(nconv,&yr));
     CHKERRQ(VecDestroyVecs(nconv,&yi));
   }
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*

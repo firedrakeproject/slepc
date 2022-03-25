@@ -14,7 +14,6 @@ static char help[] = "Test DSNEP.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   FN             f1,f2,f3,funs[3],qfun;
   SlepcSC        sc;
@@ -29,7 +28,7 @@ int main(int argc,char **argv)
   PetscScalar    auxi;
 #endif
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NEP - dimension %" PetscInt_FMT ", tau=%g.\n",n,(double)tau));
@@ -179,8 +178,8 @@ int main(int argc,char **argv)
   CHKERRQ(FNDestroy(&f2));
   CHKERRQ(FNDestroy(&f3));
   CHKERRQ(DSDestroy(&ds));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -14,7 +14,6 @@ static char help[] = "Test multiplication of a Mat times a BV.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   Vec            t,r,v;
   Mat            B,Ymat;
   BV             X,Y,Z=NULL,Zcopy=NULL;
@@ -27,7 +26,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   BVMatMultType  vmm;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-rep",&rep,NULL));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -186,8 +185,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&B));
   CHKERRQ(VecDestroy(&t));
   CHKERRQ(VecDestroy(&r));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

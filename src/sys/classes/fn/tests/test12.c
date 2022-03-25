@@ -14,7 +14,6 @@ static char help[] = "Test matrix function evaluation via diagonalization.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             fn;
   Mat            A,F,G;
   PetscInt       i,j,n=10;
@@ -23,7 +22,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Matrix function of symmetric/Hermitian matrix, n=%" PetscInt_FMT ".\n",n));
@@ -94,8 +93,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&F));
   CHKERRQ(MatDestroy(&G));
   CHKERRQ(FNDestroy(&fn));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

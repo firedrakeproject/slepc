@@ -15,21 +15,20 @@
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   PetscBool      isInitialized,isFinalized;
 
-  ierr = SlepcInitialized(&isInitialized);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialized(&isInitialized));
   if (!isInitialized) {
-    ierr = SlepcInitializeNoArguments();if (ierr) return ierr;
+    CHKERRQ(SlepcInitializeNoArguments());
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Initialize SLEPc.\n"));
     CHKERRQ(SlepcInitialized(&isInitialized));
     CHKERRQ(SlepcFinalized(&isFinalized));
     CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"SlepcInitialized=%d, SlepcFinalized=%d.\n",(int)isInitialized,(int)isFinalized));
   } else CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"SLEPc was already initialized.\n"));
-  ierr = SlepcFinalize();if (ierr) return ierr;
-  ierr = SlepcFinalized(&isFinalized);
+  CHKERRQ(SlepcFinalize());
+  CHKERRQ(SlepcFinalized(&isFinalized));
   if (!isFinalized) printf("Unexpected value: SlepcFinalized() returned False after SlepcFinalize()\n");
-  return ierr;
+  return 0;
 }
 
 /*TEST

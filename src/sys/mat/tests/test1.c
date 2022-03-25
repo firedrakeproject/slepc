@@ -16,9 +16,8 @@ int main(int argc,char **argv)
 {
   Mat            T,E,A;
   PetscInt       i,Istart,Iend,n=10;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"MatCreateTile test, n=%" PetscInt_FMT "\n",n));
 
@@ -59,8 +58,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&T));
   CHKERRQ(MatDestroy(&E));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

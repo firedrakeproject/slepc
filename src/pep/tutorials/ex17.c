@@ -25,9 +25,8 @@ int main(int argc,char **argv)
   char*          filenames[MAX_MATRICES];
   PetscViewer    viewer;
   PetscBool      flg,terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the polynomial eigenproblem
@@ -100,8 +99,8 @@ int main(int argc,char **argv)
     CHKERRQ(MatDestroy(&A[i]));
     CHKERRQ(PetscFree(filenames[i]));
   }
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -33,10 +33,9 @@ int main(int argc,char **argv)
   PetscBool      checkfile;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
-  PetscErrorCode ierr;
   char           str[50];
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 #if defined(PETSC_HAVE_COMPLEX)
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
@@ -123,8 +122,8 @@ int main(int argc,char **argv)
 #else
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires C99 complex numbers");
 #endif
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A)

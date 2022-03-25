@@ -14,7 +14,6 @@ static char help[] = "Test DSNHEP.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
   DSType         type;
@@ -25,7 +24,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,extrarow;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -135,8 +134,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(PetscFree2(wr,wi));
   CHKERRQ(DSDestroy(&ds));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

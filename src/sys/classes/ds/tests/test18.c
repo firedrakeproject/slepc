@@ -39,7 +39,6 @@ PetscErrorCode CheckArray(PetscScalar *A,const char *label,PetscInt k)
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
   PetscScalar    *A,*Q,*wr,*wi;
@@ -47,7 +46,7 @@ int main(int argc,char **argv)
   PetscInt       i,j,n=10;
   PetscMPIInt    size;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n));
 
@@ -109,8 +108,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(PetscFree2(wr,wi));
   CHKERRQ(DSDestroy(&ds));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -30,12 +30,11 @@ int main(int argc,char **argv)
   PetscRandom    rand;
   PetscReal      tol=PETSC_SMALL;
   PetscInt       n=30,i,Istart,Iend,seed=0x12345678;
-  PetscErrorCode ierr;
   ST             st;
   KSP            ksp;
   PC             pc;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
@@ -83,8 +82,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(VecDestroy(&v0));
   CHKERRQ(PetscRandomDestroy(&rand));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

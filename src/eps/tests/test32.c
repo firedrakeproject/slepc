@@ -22,9 +22,8 @@ int main(int argc,char **argv)
   PCType         pctype;
   PetscInt       N,n=45,m,Istart,Iend,II,i,j;
   PetscBool      flag;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
@@ -88,8 +87,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

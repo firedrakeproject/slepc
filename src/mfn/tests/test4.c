@@ -25,13 +25,12 @@ int main(int argc,char **argv)
   PetscReal          norm;
   PetscScalar        t=2.0;
   Vec                v,y;
-  PetscErrorCode     ierr;
   PetscViewer        viewer;
   PetscBool          flg;
   char               filename[PETSC_MAX_PATH_LEN];
   MFNConvergedReason reason;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
@@ -100,8 +99,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(VecDestroy(&v));
   CHKERRQ(VecDestroy(&y));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

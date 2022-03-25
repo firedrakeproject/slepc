@@ -31,10 +31,9 @@ int main(int argc,char **argv)
   EPSConv            conv;
   EPSStop            stop;
   EPSProblemType     ptype;
-  PetscErrorCode     ierr;
   PetscViewerAndFormat *vf;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
   CHKERRQ(MatCreate(PETSC_COMM_WORLD,&A));
@@ -128,8 +127,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

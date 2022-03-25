@@ -63,9 +63,8 @@ int main(int argc,char **argv)
   PC             pc;
   PetscMPIInt    rank,size;
   PetscBool      terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
@@ -162,8 +161,8 @@ int main(int argc,char **argv)
   CHKERRQ(NEPDestroy(&nep));
   CHKERRQ(MatDestroy(&F));
   CHKERRQ(MatDestroy(&J));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /* ------------------------------------------------------------------- */

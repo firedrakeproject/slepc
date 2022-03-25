@@ -14,7 +14,6 @@ static char help[] = "Test DSHEP with compact storage.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
   PetscReal      *T;
@@ -23,7 +22,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,extrarow;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type HEP with compact storage - dimension %" PetscInt_FMT ".\n",n));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
@@ -91,8 +90,8 @@ int main(int argc,char **argv)
   }
   CHKERRQ(PetscFree(eig));
   CHKERRQ(DSDestroy(&ds));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

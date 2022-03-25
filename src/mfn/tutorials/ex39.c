@@ -91,9 +91,8 @@ int main(int argc,char **argv)
   const PetscReal   half=0.5;
   PetscScalar       value,c,uval,*warray;
   const PetscScalar *uarray;
-  PetscErrorCode    ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-tend",&tend,NULL));
@@ -216,8 +215,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecDestroy(&yex));
   CHKERRQ(VecDestroy(&w));
   CHKERRQ(VecDestroy(&z));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

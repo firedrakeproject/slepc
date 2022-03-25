@@ -14,7 +14,6 @@ static char help[] = "Test DSHEP with block size larger than one.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
   PetscScalar    *A,*eig;
@@ -22,7 +21,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-maxbw",&maxbw,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-nblks",&nblks,NULL));
   n = maxbw*nblks;
@@ -80,8 +79,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(PetscFree(eig));
   CHKERRQ(DSDestroy(&ds));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

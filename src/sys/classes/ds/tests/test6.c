@@ -14,7 +14,6 @@ static char help[] = "Test DSGHIEP with compact storage.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
   PetscReal      *T,*s,re,im;
@@ -23,7 +22,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GHIEP with compact storage - dimension %" PetscInt_FMT ".\n",n));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
@@ -94,8 +93,8 @@ int main(int argc,char **argv)
   }
   CHKERRQ(PetscFree2(eigr,eigi));
   CHKERRQ(DSDestroy(&ds));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

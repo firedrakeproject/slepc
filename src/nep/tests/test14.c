@@ -36,13 +36,12 @@ int main(int argc,char **argv)
   NEP            nep;             /* nonlinear eigensolver context */
   Mat            A[2];
   PetscInt       n=100,Istart,Iend,i;
-  PetscErrorCode ierr;
   PetscBool      terse;
   PetscReal      norm;
   FN             f[2];
   PetscScalar    coeffs;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
@@ -104,8 +103,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&A[1]));
   CHKERRQ(FNDestroy(&f[0]));
   CHKERRQ(FNDestroy(&f[1]));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

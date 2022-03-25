@@ -26,10 +26,9 @@ int main(int argc,char **argv)
   PetscReal          tol,norm,h,h2,peclet=0.5,epsilon=1.0,c,i1h,j1h;
   PetscScalar        t=1e-4,sone=1.0,value,upper,diag,lower;
   Vec                v;
-  PetscErrorCode     ierr;
   MFNConvergedReason reason;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-peclet",&peclet,NULL));
@@ -117,8 +116,8 @@ int main(int argc,char **argv)
   CHKERRQ(MFNDestroy(&mfn));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(VecDestroy(&v));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

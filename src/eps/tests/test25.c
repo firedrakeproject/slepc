@@ -25,9 +25,8 @@ int main(int argc,char **argv)
   EPSCISSQuadRule   quad;
   char              filename[PETSC_MAX_PATH_LEN];
   PetscViewer       viewer;
-  PetscErrorCode    ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nGNHEP problem with contour integral\n\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -96,8 +95,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -14,7 +14,6 @@ static char help[] = "Test BV orthogonalization with selected columns.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   BV             X;
   Vec            v,t,z;
   PetscInt       i,j,n=20,k=8;
@@ -23,7 +22,7 @@ int main(int argc,char **argv)
   PetscReal      norm;
   PetscScalar    alpha,*pz;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
@@ -91,8 +90,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(BVDestroy(&X));
   CHKERRQ(VecDestroy(&t));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

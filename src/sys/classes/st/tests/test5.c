@@ -21,9 +21,8 @@ int main (int argc,char **argv)
   Vec            v,w;
   PetscInt       N,n=4,i,j,II,Istart,Iend;
   PetscScalar    d;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   N = n*n;
 
@@ -114,8 +113,8 @@ int main (int argc,char **argv)
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(VecDestroy(&v));
   CHKERRQ(VecDestroy(&w));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

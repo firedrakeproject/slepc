@@ -14,12 +14,11 @@ static char help[] = "Demonstrates SlepcGetVersionNumber().\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   char           version[128];
   PetscInt       major,minor,subminor;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Checking SLEPc version.\n"));
 
   CHKERRQ(SlepcGetVersion(version,sizeof(version)));
@@ -31,8 +30,8 @@ int main(int argc,char **argv)
   PetscCheck(minor==SLEPC_VERSION_MINOR,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Library minor %" PetscInt_FMT " does not equal include %d",minor,SLEPC_VERSION_MINOR);
   PetscCheck(subminor==SLEPC_VERSION_SUBMINOR,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Library subminor %" PetscInt_FMT " does not equal include %d",subminor,SLEPC_VERSION_SUBMINOR);
 
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

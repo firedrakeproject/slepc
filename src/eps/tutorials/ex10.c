@@ -38,9 +38,8 @@ int main (int argc,char **argv)
   EPSType        type;
   PetscInt       n=30,i,Istart,Iend,nev;
   PetscBool      isShell,terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem (shell-enabled), n=%" PetscInt_FMT "\n\n",n));
@@ -144,8 +143,8 @@ int main (int argc,char **argv)
   if (isShell) CHKERRQ(STDestroy_User(shell));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /***********************************************************************/

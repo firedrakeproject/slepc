@@ -58,7 +58,6 @@ PetscErrorCode TestMatRational(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             fn;
   Mat            A;
   PetscInt       i,j,n=10,np,nq;
@@ -66,7 +65,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,inplace;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
@@ -107,8 +106,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(FNDestroy(&fn));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

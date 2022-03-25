@@ -50,9 +50,8 @@ int main(int argc,char **argv)
   PetscScalar    alpha,beta,tau1,tau2,delta1,delta2,L,h;
   PetscInt       n=30,i,Istart,Iend,nev;
   PetscBool      isShell,terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 #if defined(PETSC_HAVE_COMPLEX)
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model with matrix exponential, n=%" PetscInt_FMT "\n\n",n));
@@ -161,8 +160,8 @@ int main(int argc,char **argv)
 #else
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires C99 complex numbers");
 #endif
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /* ------------------------------------------------------------------- */

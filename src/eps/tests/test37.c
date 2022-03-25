@@ -39,9 +39,8 @@ int main(int argc,char **argv)
   Mat            A,T1,T2,D1,D2,mats[4];
   PetscScalar    alpha,beta,tau1,tau2,delta1,delta2,L,h;
   PetscInt       N=30,i,Istart,Iend;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",N));
 
@@ -119,8 +118,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&T2));
   CHKERRQ(MatDestroy(&D1));
   CHKERRQ(MatDestroy(&D2));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

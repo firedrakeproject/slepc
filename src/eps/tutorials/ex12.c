@@ -25,9 +25,8 @@ int main(int argc,char **argv)
   PetscInt       N,n=35,m,Istart,Iend,II,nev,i,j,k,*inertias;
   PetscBool      flag,showinertia=PETSC_TRUE;
   PetscReal      int0,int1,*shifts;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-showinertia",&showinertia,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
@@ -129,8 +128,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&B));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

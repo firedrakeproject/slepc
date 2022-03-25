@@ -31,9 +31,8 @@ int main(int argc,char **argv)
   Vec            t,*xr,*xi,*yr,*yi,*z;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the eigensystem, Ax=kBx
@@ -165,8 +164,8 @@ int main(int argc,char **argv)
     CHKERRQ(VecDestroyVecs(nconv,&yr));
     CHKERRQ(VecDestroyVecs(nconv,&yi));
   }
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*

@@ -37,7 +37,6 @@ PetscErrorCode MyMatNorm(Mat A,PetscInt lda,PetscInt l,PetscInt k,PetscScalar di
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   BV             X,Y,Z,cached;
   Mat            B=NULL,M,R=NULL;
   Vec            v,t;
@@ -47,7 +46,7 @@ int main(int argc,char **argv)
   PetscReal      norm;
   PetscScalar    alpha;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
@@ -214,8 +213,8 @@ int main(int argc,char **argv)
   CHKERRQ(BVDestroy(&X));
   CHKERRQ(BVDestroy(&Y));
   CHKERRQ(VecDestroy(&t));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

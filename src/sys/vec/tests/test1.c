@@ -20,9 +20,8 @@ int main(int argc,char **argv)
   PetscInt       i,n,k,Nx[2];
   PetscReal      norm,normc,norm12[2],norm12c[2],vmax,vmin;
   PetscScalar    dot[2],dotc[2];
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   CHKERRMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
   PetscCheck(size<=2,PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This test needs one or two processes");
@@ -234,8 +233,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecDestroy(&wc));
   CHKERRQ(VecDestroy(&xc));
   CHKERRQ(VecDestroy(&yc));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

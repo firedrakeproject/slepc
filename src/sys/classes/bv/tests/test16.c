@@ -14,7 +14,6 @@ static char help[] = "Test tensor BV.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode    ierr;
   Vec               t,v;
   Mat               S,M,Q;
   BV                U,V,UU;
@@ -24,7 +23,7 @@ int main(int argc,char **argv)
   PetscViewer       view;
   PetscBool         verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
@@ -156,8 +155,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&Q));
   CHKERRQ(MatDestroy(&M));
   CHKERRQ(VecDestroy(&t));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -14,7 +14,6 @@ static char help[] = "Test BV matrix projection.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   Vec            t,v;
   Mat            B,G,H0,H1;
   BV             X,Y,Z;
@@ -24,7 +23,7 @@ int main(int argc,char **argv)
   PetscReal      norm;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-kx",&kx,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-lx",&lx,NULL));
@@ -176,8 +175,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&B));
   CHKERRQ(MatDestroy(&G));
   CHKERRQ(VecDestroy(&t));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

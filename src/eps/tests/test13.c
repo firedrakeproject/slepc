@@ -31,9 +31,8 @@ int main(int argc,char **argv)
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   Vec            sxr,sxi;
   PetscInt       n=30,i,Istart,Iend,nconv;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with zero diagonal, n=%" PetscInt_FMT "\n\n",n));
@@ -88,8 +87,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecDestroy(&sxr));
   CHKERRQ(VecDestroy(&sxi));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

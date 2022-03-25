@@ -50,9 +50,8 @@ int main(int argc,char **argv)
   PetscInt       n=128,nev,i,its,maxit,nconv;
   PetscReal      re,im,tol,norm,error;
   PetscBool      draw_sol=PETSC_FALSE;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
   ctx.h = 1.0/(PetscReal)n;
@@ -190,8 +189,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&F));
   CHKERRQ(MatDestroy(&J));
   CHKERRQ(VecDestroy(&x));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /* ------------------------------------------------------------------- */

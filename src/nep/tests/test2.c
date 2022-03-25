@@ -32,10 +32,9 @@ int main(int argc,char **argv)
   NEPStop              stop;
   NEPProblemType       ptype;
   MatStructure         mstr;
-  PetscErrorCode       ierr;
   PetscViewerAndFormat *vf;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
   /*
@@ -157,8 +156,8 @@ int main(int argc,char **argv)
   CHKERRQ(FNDestroy(&f[0]));
   CHKERRQ(FNDestroy(&f[1]));
   CHKERRQ(FNDestroy(&f[2]));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

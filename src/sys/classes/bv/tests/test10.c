@@ -14,14 +14,13 @@ static char help[] = "Test split reductions in BV.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   Vec            t,v,w,y,z,zsplit;
   BV             X;
   PetscInt       i,j,n=10,k=5;
   PetscScalar    *zarray;
   PetscReal      nrm;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   PetscCheck(k>2,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Should specify at least k=3 columns");
@@ -107,8 +106,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecDestroy(&v));
   CHKERRQ(VecDestroy(&z));
   CHKERRQ(VecDestroy(&zsplit));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

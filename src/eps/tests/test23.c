@@ -17,9 +17,8 @@ int main(int argc,char **argv)
   Mat            A;
   EPS            eps;
   PetscInt       n=6,Istart,Iend,i;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nEPS of diagonal problem, n=%" PetscInt_FMT "\n\n",n));
 
@@ -50,8 +49,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

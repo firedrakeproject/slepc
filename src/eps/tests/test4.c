@@ -23,9 +23,8 @@ int main(int argc,char **argv)
   PetscInt       n=30,i,Istart,Iend,nev;
   PetscBool      flg,gd2;
   char           epstype[30] = "krylovschur";
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetString(NULL,NULL,"-type",epstype,sizeof(epstype),NULL));
@@ -99,8 +98,8 @@ int main(int argc,char **argv)
   CHKERRQ(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

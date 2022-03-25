@@ -14,7 +14,6 @@ static char help[] = "Test DSGSVD with compact storage and rectangular matrix A.
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   Mat            X;
   Vec            x0;
@@ -25,7 +24,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,extrarow;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD with compact storage - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n+1,n));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
@@ -153,8 +152,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(PetscFree(w));
   CHKERRQ(DSDestroy(&ds));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

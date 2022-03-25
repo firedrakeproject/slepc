@@ -71,7 +71,6 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             f,p,a,e,c,f1,f2;
   FNCombineType  ctype;
   Mat            A;
@@ -81,7 +80,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,inplace;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   CHKERRQ(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
@@ -164,8 +163,8 @@ int main(int argc,char **argv)
   CHKERRQ(FNDestroy(&a));
   CHKERRQ(FNDestroy(&e));
   CHKERRQ(FNDestroy(&c));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

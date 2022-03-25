@@ -22,14 +22,13 @@ int main(int argc,char **argv)
   PetscReal            tol,errest,error;
   PetscScalar          *u;
   PetscInt             N,n=10,m,Istart,Iend,II,maxit,ncv,i,j;
-  PetscErrorCode       ierr;
   PetscBool            flg,testprefix=PETSC_FALSE,viewmatrices=PETSC_FALSE;
   const char           *prefix;
   LMEType              type;
   LMEProblemType       ptype;
   PetscViewerAndFormat *vf;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flg));
@@ -143,8 +142,8 @@ int main(int argc,char **argv)
   CHKERRQ(LMEDestroy(&lme));
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(MatDestroy(&C));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

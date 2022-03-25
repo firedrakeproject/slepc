@@ -28,9 +28,8 @@ int main(int argc,char **argv)
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
   PetscInt       n=30,i,Istart,Iend;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
@@ -70,8 +69,8 @@ int main(int argc,char **argv)
 
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

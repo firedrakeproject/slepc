@@ -23,9 +23,8 @@ int main(int argc,char **argv)
   SVDType        type;
   PetscReal      error,tol,sigma,mu=PETSC_SQRT_MACHINE_EPSILON;
   PetscInt       n=100,i,j,Istart,Iend,nsv,maxit,its,nconv;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL));
@@ -135,8 +134,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&A));
   CHKERRQ(VecDestroy(&u));
   CHKERRQ(VecDestroy(&v));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -40,9 +40,8 @@ int main(int argc,char **argv)
   PetscReal      muu=1,tau=10,kappa=5,inta,intb;
   PetscReal      alpha,beta,xi,mu,at[2]={0.0,0.0},c=.857,s;
   PetscScalar    target,targett,ats[2];
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nPEP example that checks definite property, n=%" PetscInt_FMT "\n\n",n));
@@ -229,8 +228,8 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   CHKERRQ(PEPDestroy(&pep));
   for (i=0;i<3;i++) CHKERRQ(MatDestroy(Op+i));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /* ------------------------------------------------------------------- */

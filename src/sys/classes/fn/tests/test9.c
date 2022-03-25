@@ -14,12 +14,11 @@ static char help[] = "Test logarithm function.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             fn;
   PetscScalar    x,y,yp,tau,eta;
   char           strx[50],str[50];
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(FNCreate(PETSC_COMM_WORLD,&fn));
 
   /* plain logarithm log(x) */
@@ -50,8 +49,8 @@ int main(int argc,char **argv)
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
 
   CHKERRQ(FNDestroy(&fn));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

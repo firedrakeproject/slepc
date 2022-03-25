@@ -21,9 +21,8 @@ int main(int argc,char **argv)
   const char     *prefix,*scalar,*ints,*floats;
   PetscReal      tol=PETSC_SMALL;
   PetscViewer    viewer;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrix for which the SVD must be computed
@@ -69,8 +68,8 @@ int main(int argc,char **argv)
   CHKERRQ(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
   CHKERRQ(SVDDestroy(&svd));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -35,9 +35,8 @@ int main(int argc,char **argv)
   PetscBool          terse;
   PetscViewer        viewer;
   EPSConvergedReason reason;
-  PetscErrorCode     ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
@@ -95,8 +94,8 @@ int main(int argc,char **argv)
   }
   CHKERRQ(EPSDestroy(&eps));
   CHKERRQ(MatDestroy(&A));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*

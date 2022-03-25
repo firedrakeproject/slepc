@@ -21,9 +21,8 @@ int main(int argc,char **argv)
   STType         type;
   PetscScalar    sigma;
   PetscInt       n=10,i,Istart,Iend;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\nTest ST with four matrices, n=%" PetscInt_FMT "\n\n",n));
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -157,8 +156,8 @@ int main(int argc,char **argv)
   CHKERRQ(MatDestroy(&D));
   CHKERRQ(VecDestroy(&v));
   CHKERRQ(VecDestroy(&w));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

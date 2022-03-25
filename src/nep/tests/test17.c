@@ -166,9 +166,8 @@ int main(int argc,char **argv)
   PetscInt       n=128;
   PetscReal      tau=0.001,a=20;
   PetscBool      split=PETSC_TRUE;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-a",&a,NULL));
@@ -247,8 +246,8 @@ int main(int argc,char **argv)
     CHKERRQ(MatDestroy(&P));
     CHKERRQ(MatDestroy(&J));
   }
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

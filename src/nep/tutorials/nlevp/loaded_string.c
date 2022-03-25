@@ -38,9 +38,8 @@ int main(int argc,char **argv)
   PetscReal      kappa=1.0,m=1.0;
   PetscScalar    sigma,numer[2],denom[2];
   PetscBool      terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-kappa",&kappa,NULL));
@@ -134,8 +133,8 @@ int main(int argc,char **argv)
     CHKERRQ(MatDestroy(&A[i]));
     CHKERRQ(FNDestroy(&f[i]));
   }
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

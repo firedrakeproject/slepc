@@ -45,9 +45,8 @@ int main(int argc,char **argv)
   PetscInt          n=128,Istart,Iend,i,nsolve;
   PetscReal         tau=0.001,h,a=20,xi;
   PetscBool         flg,terse;
-  PetscErrorCode    ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%" PetscInt_FMT ", tau=%g\n\n",n,(double)tau));
@@ -162,8 +161,8 @@ int main(int argc,char **argv)
   CHKERRQ(FNDestroy(&f1));
   CHKERRQ(FNDestroy(&f2));
   CHKERRQ(FNDestroy(&f3));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

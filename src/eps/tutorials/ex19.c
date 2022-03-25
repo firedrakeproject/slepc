@@ -89,9 +89,8 @@ int main(int argc,char **argv)
   PetscLogDouble t1,t2,t3;
   PetscBool      flg,terse;
   PetscRandom    rctx;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"\n3-D Laplacian Eigenproblem\n\n"));
 
@@ -241,8 +240,8 @@ int main(int argc,char **argv)
   CHKERRQ(VecDestroy(&v0));
   CHKERRQ(PetscRandomDestroy(&rctx));
   CHKERRQ(DMDestroy(&da));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

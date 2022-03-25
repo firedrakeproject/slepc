@@ -14,11 +14,10 @@ static char help[] = "Test RGIsAxisymmetric.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   RG             rg;
   PetscBool      vertical=PETSC_FALSE,symm;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetBool(NULL,NULL,"-vertical",&vertical,NULL));
 
   CHKERRQ(RGCreate(PETSC_COMM_WORLD,&rg));
@@ -27,8 +26,8 @@ int main(int argc,char **argv)
   CHKERRQ(RGIsAxisymmetric(rg,vertical,&symm));
   CHKERRQ(PetscPrintf(PETSC_COMM_WORLD,"The region is %saxisymmetric with respect to the %s axis\n",symm?"":"NOT ",vertical?"vertical":"horizontal"));
   CHKERRQ(RGDestroy(&rg));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

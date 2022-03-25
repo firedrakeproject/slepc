@@ -14,7 +14,6 @@ static char help[] = "Test BV bi-orthogonalization functions.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   BV             X,Y;
   Mat            M;
   Vec            v,t;
@@ -24,7 +23,7 @@ int main(int argc,char **argv)
   PetscReal      norm,condn=1.0;
   PetscScalar    alpha;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  CHKERRQ(SlepcInitialize(&argc,&argv,(char*)0,help));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   CHKERRQ(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
   CHKERRQ(PetscOptionsGetReal(NULL,NULL,"-condn",&condn,NULL));
@@ -110,8 +109,8 @@ int main(int argc,char **argv)
   CHKERRQ(BVDestroy(&X));
   CHKERRQ(BVDestroy(&Y));
   CHKERRQ(VecDestroy(&t));
-  ierr = SlepcFinalize();
-  return ierr;
+  CHKERRQ(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

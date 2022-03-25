@@ -44,7 +44,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     if (flg) {
       PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
       ierra  = MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);
-      if (!ierra) { ierra |= MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&Adense); }
+      if (!ierra) ierra |= MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&Adense);
       ierra |= MatDestroy(&Ar);
       PetscPopErrorHandler();
     } else ierra = 1;
@@ -54,7 +54,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       if (flg) {
         PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
         ierrb  = MatCreateRedundantMatrix(B,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Br);
-        if (!ierrb) { ierrb |= MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&Bdense); }
+        if (!ierrb) ierrb |= MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&Bdense);
         ierrb |= MatDestroy(&Br);
         PetscPopErrorHandler();
       } else ierrb = 1;
