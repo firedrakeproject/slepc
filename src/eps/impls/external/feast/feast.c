@@ -47,19 +47,18 @@ typedef struct {
 
 PetscErrorCode EPSSetUp_FEAST(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscInt       ncv;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   PetscMPIInt    size;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size);CHKERRMPI(ierr);
+  PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
   PetscCheck(size==1,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The FEAST interface is supported for sequential runs only");
   EPSCheckSinvertCayley(eps);
   if (eps->ncv!=PETSC_DEFAULT) {
     PetscCheck(eps->ncv>=eps->nev+2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
-  if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = 20;
   if (!eps->which) eps->which = EPS_ALL;
   PetscCheck(eps->which==EPS_ALL && eps->inta!=eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver must be used with a computational interval");
@@ -69,18 +68,17 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   if (!ctx->npoints) ctx->npoints = 8;
 
   ncv = eps->ncv;
-  ierr = PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq);CHKERRQ(ierr);
-  ierr = PetscMalloc4(eps->nloc*ncv,&ctx->work1,eps->nloc*ncv,&ctx->work2,ncv*ncv,&ctx->Aq,ncv*ncv,&ctx->Bq);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,(2*eps->nloc*ncv+2*ncv*ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
+  PetscCall(PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq));
+  PetscCall(PetscMalloc4(eps->nloc*ncv,&ctx->work1,eps->nloc*ncv,&ctx->work2,ncv*ncv,&ctx->Aq,ncv*ncv,&ctx->Bq));
+  PetscCall(PetscLogObjectMemory((PetscObject)eps,(2*eps->nloc*ncv+2*ncv*ncv)*sizeof(PetscScalar)));
 
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
+  PetscCall(EPSAllocateSolution(eps,0));
+  PetscCall(EPSSetWorkVecs(eps,2));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSolve_FEAST(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   MKL_INT        fpm[128],ijob,n,ncv,nconv,loop,info;
   PetscReal      *evals,epsout=0.0;
@@ -111,15 +109,15 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   fpm[6] = -PetscLog10Real(eps->tol);       /* tolerance for trace */
 #endif
 
-  ierr = PetscMalloc1(eps->ncv,&evals);CHKERRQ(ierr);
-  ierr = BVGetArray(eps->V,&pV);CHKERRQ(ierr);
+  PetscCall(PetscMalloc1(eps->ncv,&evals));
+  PetscCall(BVGetArray(eps->V,&pV));
 
   ijob = -1;           /* first call to reverse communication interface */
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
+  PetscCall(STGetNumMatrices(eps->st,&nmat));
+  PetscCall(STGetMatrix(eps->st,0,&A));
+  if (nmat>1) PetscCall(STGetMatrix(eps->st,1,&B));
   else B = NULL;
-  ierr = MatCreateVecsEmpty(A,&x,&y);CHKERRQ(ierr);
+  PetscCall(MatCreateVecsEmpty(A,&x,&y));
 
   do {
 
@@ -128,27 +126,26 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
     PetscCheck(ncv==eps->ncv,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"FEAST changed value of ncv to %d",ncv);
     if (ijob == 10) {
       /* set new quadrature point */
-      ierr = STSetShift(eps->st,Ze.real);CHKERRQ(ierr);
+      PetscCall(STSetShift(eps->st,Ze.real));
     } else if (ijob == 20) {
       /* use same quadrature point and factorization for transpose solve */
     } else if (ijob == 11 || ijob == 21) {
       /* linear solve (A-sigma*B)\work2, overwrite work2 */
       for (k=0;k<ncv;k++) {
-        ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
+        PetscCall(VecGetArray(z,&pz));
 #if defined(PETSC_USE_COMPLEX)
         for (i=0;i<eps->nloc;i++) pz[i] = PetscCMPLX(ctx->work2[eps->nloc*k+i].real,ctx->work2[eps->nloc*k+i].imag);
 #else
         for (i=0;i<eps->nloc;i++) pz[i] = ctx->work2[eps->nloc*k+i].real;
 #endif
-        ierr = VecRestoreArray(z,&pz);CHKERRQ(ierr);
-        if (ijob == 11) {
-          ierr = STMatSolve(eps->st,z,w);CHKERRQ(ierr);
-        } else {
-          ierr = VecConjugate(z);CHKERRQ(ierr);
-          ierr = STMatSolveTranspose(eps->st,z,w);CHKERRQ(ierr);
-          ierr = VecConjugate(w);CHKERRQ(ierr);
+        PetscCall(VecRestoreArray(z,&pz));
+        if (ijob == 11) PetscCall(STMatSolve(eps->st,z,w));
+        else {
+          PetscCall(VecConjugate(z));
+          PetscCall(STMatSolveTranspose(eps->st,z,w));
+          PetscCall(VecConjugate(w));
         }
-        ierr = VecGetArray(w,&pz);CHKERRQ(ierr);
+        PetscCall(VecGetArray(w,&pz));
 #if defined(PETSC_USE_COMPLEX)
         for (i=0;i<eps->nloc;i++) {
           ctx->work2[eps->nloc*k+i].real = PetscRealPart(pz[i]);
@@ -157,22 +154,18 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 #else
         for (i=0;i<eps->nloc;i++) ctx->work2[eps->nloc*k+i].real = pz[i];
 #endif
-        ierr = VecRestoreArray(w,&pz);CHKERRQ(ierr);
+        PetscCall(VecRestoreArray(w,&pz));
       }
     } else if (ijob == 30 || ijob == 40) {
       /* multiplication A*V or B*V, result in work1 */
       for (k=fpm[23]-1;k<fpm[23]+fpm[24]-1;k++) {
-        ierr = VecPlaceArray(x,&pV[k*eps->nloc]);CHKERRQ(ierr);
-        ierr = VecPlaceArray(y,&ctx->work1[k*eps->nloc]);CHKERRQ(ierr);
-        if (ijob == 30) {
-          ierr = MatMult(A,x,y);CHKERRQ(ierr);
-        } else if (nmat>1) {
-          ierr = MatMult(B,x,y);CHKERRQ(ierr);
-        } else {
-          ierr = VecCopy(x,y);CHKERRQ(ierr);
-        }
-        ierr = VecResetArray(x);CHKERRQ(ierr);
-        ierr = VecResetArray(y);CHKERRQ(ierr);
+        PetscCall(VecPlaceArray(x,&pV[k*eps->nloc]));
+        PetscCall(VecPlaceArray(y,&ctx->work1[k*eps->nloc]));
+        if (ijob == 30) PetscCall(MatMult(A,x,y));
+        else if (nmat>1) PetscCall(MatMult(B,x,y));
+        else PetscCall(VecCopy(x,y));
+        PetscCall(VecResetArray(x));
+        PetscCall(VecResetArray(y));
       }
     } else PetscCheck(ijob==0 || ijob==-2,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in FEAST reverse communication interface (ijob=%d)",ijob);
 
@@ -196,74 +189,63 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 
   for (i=0;i<eps->nconv;i++) eps->eigr[i] = evals[i];
 
-  ierr = BVRestoreArray(eps->V,&pV);CHKERRQ(ierr);
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
-  ierr = PetscFree(evals);CHKERRQ(ierr);
+  PetscCall(BVRestoreArray(eps->V,&pV));
+  PetscCall(VecDestroy(&x));
+  PetscCall(VecDestroy(&y));
+  PetscCall(PetscFree(evals));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSReset_FEAST(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq);CHKERRQ(ierr);
+  PetscCall(PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSDestroy_FEAST(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",NULL);CHKERRQ(ierr);
+  PetscCall(PetscFree(eps->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",NULL));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSetFromOptions_FEAST(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   PetscInt       n;
   PetscBool      flg;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"EPS FEAST Options");CHKERRQ(ierr);
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS FEAST Options"));
 
     n = ctx->npoints;
-    ierr = PetscOptionsInt("-eps_feast_num_points","Number of contour integration points","EPSFEASTSetNumPoints",n,&n,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSFEASTSetNumPoints(eps,n);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsInt("-eps_feast_num_points","Number of contour integration points","EPSFEASTSetNumPoints",n,&n,&flg));
+    if (flg) PetscCall(EPSFEASTSetNumPoints(eps,n));
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscCall(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of contour integration points=%" PetscInt_FMT "\n",ctx->npoints);CHKERRQ(ierr);
-  }
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  if (isascii) PetscCall(PetscViewerASCIIPrintf(viewer,"  number of contour integration points=%" PetscInt_FMT "\n",ctx->npoints));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
-  }
+  if (!((PetscObject)eps->st)->type_name) PetscCall(STSetType(eps->st,STSINVERT));
   PetscFunctionReturn(0);
 }
 
@@ -296,12 +278,10 @@ static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
 @*/
 PetscErrorCode EPSFEASTSetNumPoints(EPS eps,PetscInt npoints)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,npoints,2);
-  ierr = PetscTryMethod(eps,"EPSFEASTSetNumPoints_C",(EPS,PetscInt),(eps,npoints));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(eps,"EPSFEASTSetNumPoints_C",(EPS,PetscInt),(eps,npoints)));
   PetscFunctionReturn(0);
 }
 
@@ -332,22 +312,19 @@ static PetscErrorCode EPSFEASTGetNumPoints_FEAST(EPS eps,PetscInt *npoints)
 @*/
 PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(npoints,2);
-  ierr = PetscUseMethod(eps,"EPSFEASTGetNumPoints_C",(EPS,PetscInt*),(eps,npoints));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(eps,"EPSFEASTGetNumPoints_C",(EPS,PetscInt*),(eps,npoints)));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
 {
   EPS_FEAST      *ctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   eps->categ = EPS_CATEGORY_CONTOUR;
@@ -361,8 +338,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
   eps->ops->view           = EPSView_FEAST;
   eps->ops->setdefaultst   = EPSSetDefaultST_FEAST;
 
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",EPSFEASTSetNumPoints_FEAST);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",EPSFEASTGetNumPoints_FEAST);CHKERRQ(ierr);
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",EPSFEASTSetNumPoints_FEAST));
+  PetscCall(PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",EPSFEASTGetNumPoints_FEAST));
   PetscFunctionReturn(0);
 }
-

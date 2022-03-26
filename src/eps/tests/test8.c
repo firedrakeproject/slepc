@@ -29,24 +29,23 @@ int main(int argc,char **argv)
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscMPIInt    size;
   PetscInt       N,n=10,nev;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCheck(size==1,PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This is a uniprocessor example only");
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   N = n*n;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem (matrix-free version), N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,n);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n2-D Laplacian Eigenproblem (matrix-free version), N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,&n,&A);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_Laplacian2D);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Laplacian2D);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Laplacian2D);CHKERRQ(ierr);
+  PetscCall(MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,&n,&A));
+  PetscCall(MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_Laplacian2D));
+  PetscCall(MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Laplacian2D));
+  PetscCall(MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Laplacian2D));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -55,37 +54,37 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*
@@ -130,13 +129,12 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y)
   int               nx,lo,i,j;
   const PetscScalar *px;
   PetscScalar       *py;
-  PetscErrorCode    ierr;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
+  PetscCall(MatShellGetContext(A,&ctx));
   nx = *(int*)ctx;
-  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
 
   tv(nx,&px[0],&py[0]);
   for (i=0;i<nx;i++) py[i] -= px[nx+i];
@@ -151,17 +149,15 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y)
   tv(nx,&px[lo],&py[lo]);
   for (i=0;i<nx;i++) py[lo+i] -= px[lo-nx+i];
 
-  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecSet(diag,4.0);CHKERRQ(ierr);
+  PetscCall(VecSet(diag,4.0));
   PetscFunctionReturn(0);
 }
 

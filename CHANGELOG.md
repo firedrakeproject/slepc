@@ -8,6 +8,12 @@
   Support for preconditioner matrix different from the function matrix has also been
   improved for the callback interface.
 - Add support for split preconditioner in `EPS` and `PEP` via `STSetSplitPreconditioner()`.
+
+### Changed
+
+- In C programs, instead of using `CHKERRQ()`, the recommended way of doing error
+  checking is wrapping with `PetscCall()`, for instance, `PetscCall(EPSSolve(eps))`.
+  `CHKERRQ()` will continue to work as before. In Fortran, error checking has not changed.
 - `SVD`: clarify convergence test for GSVD, now the default is relative to the matrix norms,
   and relative to the singular value is not allowed.
 

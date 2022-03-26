@@ -14,21 +14,20 @@ static char help[] = "Test RGIsAxisymmetric.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   RG             rg;
   PetscBool      vertical=PETSC_FALSE,symm;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetBool(NULL,NULL,"-vertical",&vertical,NULL);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-vertical",&vertical,NULL));
 
-  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
-  ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
-  ierr = RGViewFromOptions(rg,NULL,"-rg_view");CHKERRQ(ierr);
-  ierr = RGIsAxisymmetric(rg,vertical,&symm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The region is %saxisymmetric with respect to the %s axis\n",symm?"":"NOT ",vertical?"vertical":"horizontal");
-  ierr = RGDestroy(&rg);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(RGCreate(PETSC_COMM_WORLD,&rg));
+  PetscCall(RGSetFromOptions(rg));
+  PetscCall(RGViewFromOptions(rg,NULL,"-rg_view"));
+  PetscCall(RGIsAxisymmetric(rg,vertical,&symm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"The region is %saxisymmetric with respect to the %s axis\n",symm?"":"NOT ",vertical?"vertical":"horizontal"));
+  PetscCall(RGDestroy(&rg));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

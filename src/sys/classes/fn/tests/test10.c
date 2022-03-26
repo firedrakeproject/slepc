@@ -17,96 +17,92 @@ static char help[] = "Test Phi functions.\n\n";
  */
 PetscErrorCode TestPhiFunction(FN fn,PetscScalar x,Mat A,PetscBool verbose)
 {
-  PetscErrorCode ierr;
   PetscScalar    y,yp;
   char           strx[50],str[50];
   Vec            v,f;
   PetscReal      nrm;
 
   PetscFunctionBeginUser;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-  ierr = FNView(fn,NULL);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
-  ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nf(%s)=%s\n",strx,str);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+  PetscCall(FNView(fn,NULL));
+  PetscCall(SlepcSNPrintfScalar(strx,sizeof(strx),x,PETSC_FALSE));
+  PetscCall(FNEvaluateFunction(fn,x,&y));
+  PetscCall(FNEvaluateDerivative(fn,x,&yp));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),y,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nf(%s)=%s\n",strx,str));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),yp,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"f'(%s)=%s\n",strx,str));
   /* compute phi_k(A)*e_1 */
-  ierr = MatCreateVecs(A,&v,&f);CHKERRQ(ierr);
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMatVec(fn,A,f);CHKERRQ(ierr);  /* reference result by diagonalization */
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMatVec(fn,A,v);CHKERRQ(ierr);
-  ierr = VecAXPY(v,-1.0,f);CHKERRQ(ierr);
-  ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
-  if (nrm>100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-ref is %g\n",(double)nrm);CHKERRQ(ierr);
-  }
+  PetscCall(MatCreateVecs(A,&v,&f));
+  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
+  PetscCall(FNEvaluateFunctionMatVec(fn,A,f));  /* reference result by diagonalization */
+  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE));
+  PetscCall(FNEvaluateFunctionMatVec(fn,A,v));
+  PetscCall(VecAXPY(v,-1.0,f));
+  PetscCall(VecNorm(v,NORM_2,&nrm));
+  if (nrm>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-ref is %g\n",(double)nrm));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"f(A)*e_1 =\n");CHKERRQ(ierr);
-    ierr = VecView(v,NULL);CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"f(A)*e_1 =\n"));
+    PetscCall(VecView(v,NULL));
   }
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&f);CHKERRQ(ierr);
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&f));
   PetscFunctionReturn(0);
 }
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             phi0,phi1,phik,phicopy;
   Mat            A;
   PetscInt       i,j,n=8,k;
   PetscScalar    tau,eta,*As;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test Phi functions, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test Phi functions, n=%" PetscInt_FMT ".\n",n));
 
   /* Create matrix, fill it with 1-D Laplacian */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)A,"A");CHKERRQ(ierr);
-  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  PetscCall(PetscObjectSetName((PetscObject)A,"A"));
+  PetscCall(MatDenseGetArray(A,&As));
   for (i=0;i<n;i++) As[i+i*n]=2.0;
   j=1;
   for (i=0;i<n-j;i++) { As[i+(i+j)*n]=-1.0; As[(i+j)+i*n]=-1.0; }
-  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  PetscCall(MatDenseRestoreArray(A,&As));
 
   /* phi_0(x) = exp(x) */
-  ierr = FNCreate(PETSC_COMM_WORLD,&phi0);CHKERRQ(ierr);
-  ierr = FNSetType(phi0,FNPHI);CHKERRQ(ierr);
-  ierr = FNPhiSetIndex(phi0,0);CHKERRQ(ierr);
-  ierr = TestPhiFunction(phi0,2.2,A,verbose);CHKERRQ(ierr);
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&phi0));
+  PetscCall(FNSetType(phi0,FNPHI));
+  PetscCall(FNPhiSetIndex(phi0,0));
+  PetscCall(TestPhiFunction(phi0,2.2,A,verbose));
 
   /* phi_1(x) = (exp(x)-1)/x with scaling factors eta*phi_1(tau*x) */
-  ierr = FNCreate(PETSC_COMM_WORLD,&phi1);CHKERRQ(ierr);
-  ierr = FNSetType(phi1,FNPHI);CHKERRQ(ierr);  /* default index should be 1 */
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&phi1));
+  PetscCall(FNSetType(phi1,FNPHI));  /* default index should be 1 */
   tau = 0.2;
   eta = 1.3;
-  ierr = FNSetScale(phi1,tau,eta);CHKERRQ(ierr);
-  ierr = TestPhiFunction(phi1,2.2,A,verbose);CHKERRQ(ierr);
+  PetscCall(FNSetScale(phi1,tau,eta));
+  PetscCall(TestPhiFunction(phi1,2.2,A,verbose));
 
   /* phi_k(x) with index set from command-line arguments */
-  ierr = FNCreate(PETSC_COMM_WORLD,&phik);CHKERRQ(ierr);
-  ierr = FNSetType(phik,FNPHI);CHKERRQ(ierr);
-  ierr = FNSetFromOptions(phik);CHKERRQ(ierr);
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&phik));
+  PetscCall(FNSetType(phik,FNPHI));
+  PetscCall(FNSetFromOptions(phik));
 
-  ierr = FNDuplicate(phik,PETSC_COMM_WORLD,&phicopy);CHKERRQ(ierr);
-  ierr = FNPhiGetIndex(phicopy,&k);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Index of phi function is %" PetscInt_FMT "\n",k);CHKERRQ(ierr);
-  ierr = TestPhiFunction(phicopy,2.2,A,verbose);CHKERRQ(ierr);
+  PetscCall(FNDuplicate(phik,PETSC_COMM_WORLD,&phicopy));
+  PetscCall(FNPhiGetIndex(phicopy,&k));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Index of phi function is %" PetscInt_FMT "\n",k));
+  PetscCall(TestPhiFunction(phicopy,2.2,A,verbose));
 
-  ierr = FNDestroy(&phi0);CHKERRQ(ierr);
-  ierr = FNDestroy(&phi1);CHKERRQ(ierr);
-  ierr = FNDestroy(&phik);CHKERRQ(ierr);
-  ierr = FNDestroy(&phicopy);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(FNDestroy(&phi0));
+  PetscCall(FNDestroy(&phi1));
+  PetscCall(FNDestroy(&phik));
+  PetscCall(FNDestroy(&phicopy));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

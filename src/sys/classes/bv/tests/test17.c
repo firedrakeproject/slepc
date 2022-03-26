@@ -14,7 +14,6 @@ static char help[] = "Test BV bi-orthogonalization functions.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   BV             X,Y;
   Mat            M;
   Vec            v,t;
@@ -24,113 +23,94 @@ int main(int argc,char **argv)
   PetscReal      norm,condn=1.0;
   PetscScalar    alpha;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-condn",&condn,NULL);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-condn",&condn,NULL));
   PetscCheck(condn>=1.0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The condition number must be > 1");
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV bi-orthogonalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n);CHKERRQ(ierr);
-  if (condn>1.0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," - Using random BVs with condition number = %g\n",(double)condn);CHKERRQ(ierr);
-  }
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BV bi-orthogonalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n));
+  if (condn>1.0) PetscCall(PetscPrintf(PETSC_COMM_WORLD," - Using random BVs with condition number = %g\n",(double)condn));
 
   /* Create template vector */
-  ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
-  ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(t);CHKERRQ(ierr);
+  PetscCall(VecCreate(PETSC_COMM_WORLD,&t));
+  PetscCall(VecSetSizes(t,PETSC_DECIDE,n));
+  PetscCall(VecSetFromOptions(t));
 
   /* Create BV object X */
-  ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&X));
+  PetscCall(PetscObjectSetName((PetscObject)X,"X"));
+  PetscCall(BVSetSizesFromVec(X,t,k));
+  PetscCall(BVSetFromOptions(X));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-  }
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
+  if (verbose) PetscCall(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   if (condn==1.0) {
     for (j=0;j<k;j++) {
-      ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-      ierr = VecSet(v,0.0);CHKERRQ(ierr);
+      PetscCall(BVGetColumn(X,j,&v));
+      PetscCall(VecSet(v,0.0));
       for (i=0;i<=n/2;i++) {
         if (i+j<n) {
           alpha = (3.0*i+j-2)/(2*(i+j+1));
 #if defined(PETSC_USE_COMPLEX)
           alpha += (1.2*i+j-2)/(0.1*(i+j+1))*PETSC_i;
 #endif
-          ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
+          PetscCall(VecSetValue(v,i+j,alpha,INSERT_VALUES));
         }
       }
-      ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-      ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
+      PetscCall(VecAssemblyBegin(v));
+      PetscCall(VecAssemblyEnd(v));
+      PetscCall(BVRestoreColumn(X,j,&v));
     }
-  } else {
-    ierr = BVSetRandomCond(X,condn);CHKERRQ(ierr);
-  }
-  if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
-  }
+  } else PetscCall(BVSetRandomCond(X,condn));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Create Y and fill its entries */
-  ierr = BVDuplicate(X,&Y);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
+  PetscCall(BVDuplicate(X,&Y));
+  PetscCall(PetscObjectSetName((PetscObject)Y,"Y"));
   if (condn==1.0) {
     for (j=0;j<k;j++) {
-      ierr = BVGetColumn(Y,j,&v);CHKERRQ(ierr);
-      ierr = VecSet(v,0.0);CHKERRQ(ierr);
+      PetscCall(BVGetColumn(Y,j,&v));
+      PetscCall(VecSet(v,0.0));
       for (i=PetscMin(n,2+(2*j)%6);i<PetscMin(n,6+(3*j)%9);i++) {
         if (i%5 && i!=j) {
           alpha = (1.5*i+j)/(2.2*(i-j));
-          ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
+          PetscCall(VecSetValue(v,i+j,alpha,INSERT_VALUES));
         }
       }
-      ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-      ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(Y,j,&v);CHKERRQ(ierr);
+      PetscCall(VecAssemblyBegin(v));
+      PetscCall(VecAssemblyEnd(v));
+      PetscCall(BVRestoreColumn(Y,j,&v));
     }
-  } else {
-    ierr = BVSetRandomCond(Y,condn);CHKERRQ(ierr);
-  }
-  if (verbose) {
-    ierr = BVView(Y,view);CHKERRQ(ierr);
-  }
+  } else PetscCall(BVSetRandomCond(Y,condn));
+  if (verbose) PetscCall(BVView(Y,view));
 
   /* Test BVBiorthonormalizeColumn */
-  for (j=0;j<k;j++) {
-    ierr = BVBiorthonormalizeColumn(X,Y,j,NULL);CHKERRQ(ierr);
-  }
+  for (j=0;j<k;j++) PetscCall(BVBiorthonormalizeColumn(X,Y,j,NULL));
   if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
-    ierr = BVView(Y,view);CHKERRQ(ierr);
+    PetscCall(BVView(X,view));
+    PetscCall(BVView(Y,view));
   }
 
   /* Check orthogonality */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)M,"M");CHKERRQ(ierr);
-  ierr = BVDot(X,Y,M);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = MatView(M,view);CHKERRQ(ierr);
-  }
-  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
-  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
-  if (norm<200*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality < 200*eps\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
-  }
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M));
+  PetscCall(PetscObjectSetName((PetscObject)M,"M"));
+  PetscCall(BVDot(X,Y,M));
+  if (verbose) PetscCall(MatView(M,view));
+  PetscCall(MatShift(M,-1.0));
+  PetscCall(MatNorm(M,NORM_1,&norm));
+  if (norm<200*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality < 200*eps\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality: %g\n",(double)norm));
 
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = BVDestroy(&X);CHKERRQ(ierr);
-  ierr = BVDestroy(&Y);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(MatDestroy(&M));
+  PetscCall(BVDestroy(&X));
+  PetscCall(BVDestroy(&Y));
+  PetscCall(VecDestroy(&t));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

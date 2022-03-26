@@ -43,27 +43,24 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name
   PetscViewerType      vtype;
   char                 key[PETSC_MAX_PATH_LEN];
   PetscBool            flg;
-  PetscErrorCode       ierr;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,opt,&viewer,&format,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,opt,&viewer,&format,&flg));
   if (!flg) PetscFunctionReturn(0);
 
-  ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
-  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
-  ierr = PetscFunctionListFind(NEPMonitorList,key,&mfunc);CHKERRQ(ierr);
+  PetscCall(PetscViewerGetType(viewer,&vtype));
+  PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
+  PetscCall(PetscFunctionListFind(NEPMonitorList,key,&mfunc));
   PetscCheck(mfunc,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Specified viewer and format not supported");
-  ierr = PetscFunctionListFind(NEPMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
-  ierr = PetscFunctionListFind(NEPMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
+  PetscCall(PetscFunctionListFind(NEPMonitorCreateList,key,&cfunc));
+  PetscCall(PetscFunctionListFind(NEPMonitorDestroyList,key,&dfunc));
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
-  ierr = (*cfunc)(viewer,format,ctx,&vf);CHKERRQ(ierr);
-  ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-  ierr = NEPMonitorSet(nep,mfunc,vf,(PetscErrorCode(*)(void **))dfunc);CHKERRQ(ierr);
-  if (trackall) {
-    ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
-  }
+  PetscCall((*cfunc)(viewer,format,ctx,&vf));
+  PetscCall(PetscObjectDereference((PetscObject)viewer));
+  PetscCall(NEPMonitorSet(nep,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
+  if (trackall) PetscCall(NEPSetTrackAll(nep,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -97,129 +94,120 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  ierr = NEPRegisterAll();CHKERRQ(ierr);
-  ierr = PetscObjectOptionsBegin((PetscObject)nep);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-nep_type","Nonlinear eigensolver method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,sizeof(type),&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = NEPSetType(nep,type);CHKERRQ(ierr);
-    } else if (!((PetscObject)nep)->type_name) {
-      ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
-    }
+  PetscCall(NEPRegisterAll());
+  ierr = PetscObjectOptionsBegin((PetscObject)nep);PetscCall(ierr);
+    PetscCall(PetscOptionsFList("-nep_type","Nonlinear eigensolver method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,sizeof(type),&flg));
+    if (flg) PetscCall(NEPSetType(nep,type));
+    else if (!((PetscObject)nep)->type_name) PetscCall(NEPSetType(nep,NEPRII));
 
-    ierr = PetscOptionsBoolGroupBegin("-nep_general","General nonlinear eigenvalue problem","NEPSetProblemType",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetProblemType(nep,NEP_GENERAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-nep_rational","Rational eigenvalue problem","NEPSetProblemType",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetProblemType(nep,NEP_RATIONAL);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsBoolGroupBegin("-nep_general","General nonlinear eigenvalue problem","NEPSetProblemType",&flg));
+    if (flg) PetscCall(NEPSetProblemType(nep,NEP_GENERAL));
+    PetscCall(PetscOptionsBoolGroupEnd("-nep_rational","Rational eigenvalue problem","NEPSetProblemType",&flg));
+    if (flg) PetscCall(NEPSetProblemType(nep,NEP_RATIONAL));
 
     refine = nep->refine;
-    ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)refine,(PetscEnum*)&refine,&flg1);CHKERRQ(ierr);
+    PetscCall(PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)refine,(PetscEnum*)&refine,&flg1));
     i = nep->npart;
-    ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg2);CHKERRQ(ierr);
+    PetscCall(PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg2));
     r = nep->rtol;
-    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg3);CHKERRQ(ierr);
+    PetscCall(PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg3));
     j = nep->rits;
-    ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg4);CHKERRQ(ierr);
+    PetscCall(PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg4));
     scheme = nep->scheme;
-    ierr = PetscOptionsEnum("-nep_refine_scheme","Scheme used for linear systems within iterative refinement","NEPSetRefine",NEPRefineSchemes,(PetscEnum)scheme,(PetscEnum*)&scheme,&flg5);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3 || flg4 || flg5) { ierr = NEPSetRefine(nep,refine,i,r,j,scheme);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsEnum("-nep_refine_scheme","Scheme used for linear systems within iterative refinement","NEPSetRefine",NEPRefineSchemes,(PetscEnum)scheme,(PetscEnum*)&scheme,&flg5));
+    if (flg1 || flg2 || flg3 || flg4 || flg5) PetscCall(NEPSetRefine(nep,refine,i,r,j,scheme));
 
     i = nep->max_it;
-    ierr = PetscOptionsInt("-nep_max_it","Maximum number of iterations","NEPSetTolerances",nep->max_it,&i,&flg1);CHKERRQ(ierr);
+    PetscCall(PetscOptionsInt("-nep_max_it","Maximum number of iterations","NEPSetTolerances",nep->max_it,&i,&flg1));
     r = nep->tol;
-    ierr = PetscOptionsReal("-nep_tol","Tolerance","NEPSetTolerances",SlepcDefaultTol(nep->tol),&r,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) { ierr = NEPSetTolerances(nep,r,i);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsReal("-nep_tol","Tolerance","NEPSetTolerances",SlepcDefaultTol(nep->tol),&r,&flg2));
+    if (flg1 || flg2) PetscCall(NEPSetTolerances(nep,r,i));
 
-    ierr = PetscOptionsBoolGroupBegin("-nep_conv_rel","Relative error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_REL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_conv_norm","Convergence test relative to the matrix norms","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_NORM);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_conv_abs","Absolute error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_ABS);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-nep_conv_user","User-defined convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_USER);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsBoolGroupBegin("-nep_conv_rel","Relative error convergence test","NEPSetConvergenceTest",&flg));
+    if (flg) PetscCall(NEPSetConvergenceTest(nep,NEP_CONV_REL));
+    PetscCall(PetscOptionsBoolGroup("-nep_conv_norm","Convergence test relative to the matrix norms","NEPSetConvergenceTest",&flg));
+    if (flg) PetscCall(NEPSetConvergenceTest(nep,NEP_CONV_NORM));
+    PetscCall(PetscOptionsBoolGroup("-nep_conv_abs","Absolute error convergence test","NEPSetConvergenceTest",&flg));
+    if (flg) PetscCall(NEPSetConvergenceTest(nep,NEP_CONV_ABS));
+    PetscCall(PetscOptionsBoolGroupEnd("-nep_conv_user","User-defined convergence test","NEPSetConvergenceTest",&flg));
+    if (flg) PetscCall(NEPSetConvergenceTest(nep,NEP_CONV_USER));
 
-    ierr = PetscOptionsBoolGroupBegin("-nep_stop_basic","Stop iteration if all eigenvalues converged or max_it reached","NEPSetStoppingTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetStoppingTest(nep,NEP_STOP_BASIC);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-nep_stop_user","User-defined stopping test","NEPSetStoppingTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetStoppingTest(nep,NEP_STOP_USER);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsBoolGroupBegin("-nep_stop_basic","Stop iteration if all eigenvalues converged or max_it reached","NEPSetStoppingTest",&flg));
+    if (flg) PetscCall(NEPSetStoppingTest(nep,NEP_STOP_BASIC));
+    PetscCall(PetscOptionsBoolGroupEnd("-nep_stop_user","User-defined stopping test","NEPSetStoppingTest",&flg));
+    if (flg) PetscCall(NEPSetStoppingTest(nep,NEP_STOP_USER));
 
     i = nep->nev;
-    ierr = PetscOptionsInt("-nep_nev","Number of eigenvalues to compute","NEPSetDimensions",nep->nev,&i,&flg1);CHKERRQ(ierr);
+    PetscCall(PetscOptionsInt("-nep_nev","Number of eigenvalues to compute","NEPSetDimensions",nep->nev,&i,&flg1));
     j = nep->ncv;
-    ierr = PetscOptionsInt("-nep_ncv","Number of basis vectors","NEPSetDimensions",nep->ncv,&j,&flg2);CHKERRQ(ierr);
+    PetscCall(PetscOptionsInt("-nep_ncv","Number of basis vectors","NEPSetDimensions",nep->ncv,&j,&flg2));
     k = nep->mpd;
-    ierr = PetscOptionsInt("-nep_mpd","Maximum dimension of projected problem","NEPSetDimensions",nep->mpd,&k,&flg3);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3) {
-      ierr = NEPSetDimensions(nep,i,j,k);CHKERRQ(ierr);
-    }
+    PetscCall(PetscOptionsInt("-nep_mpd","Maximum dimension of projected problem","NEPSetDimensions",nep->mpd,&k,&flg3));
+    if (flg1 || flg2 || flg3) PetscCall(NEPSetDimensions(nep,i,j,k));
 
-    ierr = PetscOptionsBoolGroupBegin("-nep_largest_magnitude","Compute largest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_smallest_magnitude","Compute smallest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_SMALLEST_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_largest_real","Compute eigenvalues with largest real parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_smallest_real","Compute eigenvalues with smallest real parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_SMALLEST_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_largest_imaginary","Compute eigenvalues with largest imaginary parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_smallest_imaginary","Compute eigenvalues with smallest imaginary parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_SMALLEST_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_target_magnitude","Compute eigenvalues closest to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_target_real","Compute eigenvalues with real parts closest to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_target_imaginary","Compute eigenvalues with imaginary parts closest to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-nep_all","Compute all eigenvalues in a region","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_ALL);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsBoolGroupBegin("-nep_largest_magnitude","Compute largest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_LARGEST_MAGNITUDE));
+    PetscCall(PetscOptionsBoolGroup("-nep_smallest_magnitude","Compute smallest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_SMALLEST_MAGNITUDE));
+    PetscCall(PetscOptionsBoolGroup("-nep_largest_real","Compute eigenvalues with largest real parts","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_LARGEST_REAL));
+    PetscCall(PetscOptionsBoolGroup("-nep_smallest_real","Compute eigenvalues with smallest real parts","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_SMALLEST_REAL));
+    PetscCall(PetscOptionsBoolGroup("-nep_largest_imaginary","Compute eigenvalues with largest imaginary parts","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_LARGEST_IMAGINARY));
+    PetscCall(PetscOptionsBoolGroup("-nep_smallest_imaginary","Compute eigenvalues with smallest imaginary parts","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_SMALLEST_IMAGINARY));
+    PetscCall(PetscOptionsBoolGroup("-nep_target_magnitude","Compute eigenvalues closest to target","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE));
+    PetscCall(PetscOptionsBoolGroup("-nep_target_real","Compute eigenvalues with real parts closest to target","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_TARGET_REAL));
+    PetscCall(PetscOptionsBoolGroup("-nep_target_imaginary","Compute eigenvalues with imaginary parts closest to target","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY));
+    PetscCall(PetscOptionsBoolGroupEnd("-nep_all","Compute all eigenvalues in a region","NEPSetWhichEigenpairs",&flg));
+    if (flg) PetscCall(NEPSetWhichEigenpairs(nep,NEP_ALL));
 
-    ierr = PetscOptionsScalar("-nep_target","Value of the target","NEPSetTarget",nep->target,&s,&flg);CHKERRQ(ierr);
+    PetscCall(PetscOptionsScalar("-nep_target","Value of the target","NEPSetTarget",nep->target,&s,&flg));
     if (flg) {
-      if (nep->which!=NEP_TARGET_REAL && nep->which!=NEP_TARGET_IMAGINARY) {
-        ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
-      }
-      ierr = NEPSetTarget(nep,s);CHKERRQ(ierr);
+      if (nep->which!=NEP_TARGET_REAL && nep->which!=NEP_TARGET_IMAGINARY) PetscCall(NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE));
+      PetscCall(NEPSetTarget(nep,s));
     }
 
-    ierr = PetscOptionsBool("-nep_two_sided","Use two-sided variant (to compute left eigenvectors)","NEPSetTwoSided",nep->twosided,&bval,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetTwoSided(nep,bval);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsBool("-nep_two_sided","Use two-sided variant (to compute left eigenvectors)","NEPSetTwoSided",nep->twosided,&bval,&flg));
+    if (flg) PetscCall(NEPSetTwoSided(nep,bval));
 
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to NEPSetFromOptions()
     */
-    ierr = PetscOptionsBool("-nep_monitor_cancel","Remove any hardwired monitor routines","NEPMonitorCancel",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) { ierr = NEPMonitorCancel(nep);CHKERRQ(ierr); }
-    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor","first_approximation",NULL,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor_all","all_approximations",NULL,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor_conv","convergence_history",NULL,PETSC_FALSE);CHKERRQ(ierr);
+    PetscCall(PetscOptionsBool("-nep_monitor_cancel","Remove any hardwired monitor routines","NEPMonitorCancel",PETSC_FALSE,&flg,&set));
+    if (set && flg) PetscCall(NEPMonitorCancel(nep));
+    PetscCall(NEPMonitorSetFromOptions(nep,"-nep_monitor","first_approximation",NULL,PETSC_FALSE));
+    PetscCall(NEPMonitorSetFromOptions(nep,"-nep_monitor_all","all_approximations",NULL,PETSC_TRUE));
+    PetscCall(NEPMonitorSetFromOptions(nep,"-nep_monitor_conv","convergence_history",NULL,PETSC_FALSE));
 
     /* -----------------------------------------------------------------------*/
-    ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPConvergedReasonView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",NULL);CHKERRQ(ierr);
+    PetscCall(PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",NULL));
+    PetscCall(PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",NULL));
+    PetscCall(PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",NULL));
+    PetscCall(PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPConvergedReasonView",NULL));
+    PetscCall(PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",NULL));
+    PetscCall(PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",NULL));
 
-    if (nep->ops->setfromoptions) {
-      ierr = (*nep->ops->setfromoptions)(PetscOptionsObject,nep);CHKERRQ(ierr);
-    }
-    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)nep);CHKERRQ(ierr);
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+    if (nep->ops->setfromoptions) PetscCall((*nep->ops->setfromoptions)(PetscOptionsObject,nep));
+    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)nep));
+  ierr = PetscOptionsEnd();PetscCall(ierr);
 
-  if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
-  ierr = BVSetFromOptions(nep->V);CHKERRQ(ierr);
-  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
-  ierr = RGSetFromOptions(nep->rg);CHKERRQ(ierr);
+  if (!nep->V) PetscCall(NEPGetBV(nep,&nep->V));
+  PetscCall(BVSetFromOptions(nep->V));
+  if (!nep->rg) PetscCall(NEPGetRG(nep,&nep->rg));
+  PetscCall(RGSetFromOptions(nep->rg));
   if (nep->useds) {
-    if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-    ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
+    if (!nep->ds) PetscCall(NEPGetDS(nep,&nep->ds));
+    PetscCall(DSSetFromOptions(nep->ds));
   }
-  if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
-  ierr = KSPSetFromOptions(nep->refineksp);CHKERRQ(ierr);
-  if (nep->fui==NEP_USER_INTERFACE_SPLIT) for (i=0;i<nep->nt;i++) {ierr = FNSetFromOptions(nep->f[i]);CHKERRQ(ierr);}
+  if (!nep->refineksp) PetscCall(NEPRefineGetKSP(nep,&nep->refineksp));
+  PetscCall(KSPSetFromOptions(nep->refineksp));
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) for (i=0;i<nep->nt;i++) PetscCall(FNSetFromOptions(nep->f[i]));
   PetscFunctionReturn(0);
 }
 
@@ -698,13 +686,9 @@ $   func(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 @*/
 PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nep->convergeddestroy) {
-    ierr = (*nep->convergeddestroy)(nep->convergedctx);CHKERRQ(ierr);
-  }
+  if (nep->convergeddestroy) PetscCall((*nep->convergeddestroy)(nep->convergedctx));
   nep->convergeduser    = func;
   nep->convergeddestroy = destroy;
   nep->convergedctx     = ctx;
@@ -824,13 +808,9 @@ $   func(NEP nep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,NEPCon
 @*/
 PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (nep->stoppingdestroy) {
-    ierr = (*nep->stoppingdestroy)(nep->stoppingctx);CHKERRQ(ierr);
-  }
+  if (nep->stoppingdestroy) PetscCall((*nep->stoppingdestroy)(nep->stoppingctx));
   nep->stoppinguser    = func;
   nep->stoppingdestroy = destroy;
   nep->stoppingctx     = ctx;
@@ -1014,7 +994,6 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 @*/
 PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its,NEPRefineScheme scheme)
 {
-  PetscErrorCode ierr;
   PetscMPIInt    size;
 
   PetscFunctionBegin;
@@ -1027,13 +1006,13 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
   nep->refine = refine;
   if (refine) {  /* process parameters only if not REFINE_NONE */
     if (npart!=nep->npart) {
-      ierr = PetscSubcommDestroy(&nep->refinesubc);CHKERRQ(ierr);
-      ierr = KSPDestroy(&nep->refineksp);CHKERRQ(ierr);
+      PetscCall(PetscSubcommDestroy(&nep->refinesubc));
+      PetscCall(KSPDestroy(&nep->refineksp));
     }
     if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
       nep->npart = 1;
     } else {
-      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)nep),&size);CHKERRMPI(ierr);
+      PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)nep),&size));
       PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
       nep->npart = npart;
     }
@@ -1118,17 +1097,15 @@ PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal 
 @*/
 PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
-  ierr = BVSetOptionsPrefix(nep->V,prefix);CHKERRQ(ierr);
-  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
-  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
-  ierr = RGSetOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
+  if (!nep->V) PetscCall(NEPGetBV(nep,&nep->V));
+  PetscCall(BVSetOptionsPrefix(nep->V,prefix));
+  if (!nep->ds) PetscCall(NEPGetDS(nep,&nep->ds));
+  PetscCall(DSSetOptionsPrefix(nep->ds,prefix));
+  if (!nep->rg) PetscCall(NEPGetRG(nep,&nep->rg));
+  PetscCall(RGSetOptionsPrefix(nep->rg,prefix));
+  PetscCall(PetscObjectSetOptionsPrefix((PetscObject)nep,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -1152,17 +1129,15 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
 @*/
 PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
-  ierr = BVAppendOptionsPrefix(nep->V,prefix);CHKERRQ(ierr);
-  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = DSAppendOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
-  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
-  ierr = RGAppendOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
+  if (!nep->V) PetscCall(NEPGetBV(nep,&nep->V));
+  PetscCall(BVAppendOptionsPrefix(nep->V,prefix));
+  if (!nep->ds) PetscCall(NEPGetDS(nep,&nep->ds));
+  PetscCall(DSAppendOptionsPrefix(nep->ds,prefix));
+  if (!nep->rg) PetscCall(NEPGetRG(nep,&nep->rg));
+  PetscCall(RGAppendOptionsPrefix(nep->rg,prefix));
+  PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)nep,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -1188,12 +1163,9 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
 @*/
 PetscErrorCode NEPGetOptionsPrefix(NEP nep,const char *prefix[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(prefix,2);
-  ierr = PetscObjectGetOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
+  PetscCall(PetscObjectGetOptionsPrefix((PetscObject)nep,prefix));
   PetscFunctionReturn(0);
 }
-

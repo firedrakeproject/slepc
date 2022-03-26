@@ -20,135 +20,134 @@ int main(int argc,char **argv)
   STType         type;
   PetscScalar    sigma,tau;
   PetscInt       n=10,i,Istart,Iend;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix for the 1-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,&v,&w);CHKERRQ(ierr);
-  ierr = VecSet(v,1.0);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,&v,&w));
+  PetscCall(VecSet(v,1.0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the spectral transformation object
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = STCreate(PETSC_COMM_WORLD,&st);CHKERRQ(ierr);
+  PetscCall(STCreate(PETSC_COMM_WORLD,&st));
   mat[0] = A;
-  ierr = STSetMatrices(st,1,mat);CHKERRQ(ierr);
-  ierr = STSetTransform(st,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = STSetFromOptions(st);CHKERRQ(ierr);
+  PetscCall(STSetMatrices(st,1,mat));
+  PetscCall(STSetTransform(st,PETSC_TRUE));
+  PetscCall(STSetFromOptions(st));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
               Apply the transformed operator for several ST's
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* shift, sigma=0.0 */
-  ierr = STSetUp(st);CHKERRQ(ierr);
-  ierr = STGetType(st,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STSetUp(st));
+  PetscCall(STGetType(st,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* shift, sigma=0.1 */
   sigma = 0.1;
-  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
-  ierr = STApplyTranspose(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STSetShift(st,sigma));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
+  PetscCall(STApplyTranspose(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* sinvert, sigma=0.1 */
-  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STGetType(st,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STPostSolve(st));   /* undo changes if inplace */
+  PetscCall(STSetType(st,STSINVERT));
+  PetscCall(STGetType(st,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* sinvert, sigma=-0.5 */
   sigma = -0.5;
-  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STSetShift(st,sigma));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* cayley, sigma=-0.5, tau=-0.5 (equal to sigma by default) */
-  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
-  ierr = STSetType(st,STCAYLEY);CHKERRQ(ierr);
-  ierr = STSetUp(st);CHKERRQ(ierr);
-  ierr = STGetType(st,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = STCayleyGetAntishift(st,&tau);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STPostSolve(st));   /* undo changes if inplace */
+  PetscCall(STSetType(st,STCAYLEY));
+  PetscCall(STSetUp(st));
+  PetscCall(STGetType(st,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(STCayleyGetAntishift(st,&tau));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau)));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* cayley, sigma=1.1, tau=1.1 (still equal to sigma) */
   sigma = 1.1;
-  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = STCayleyGetAntishift(st,&tau);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STSetShift(st,sigma));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(STCayleyGetAntishift(st,&tau));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau)));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* cayley, sigma=1.1, tau=-1.0 */
   tau = -1.0;
-  ierr = STCayleySetAntishift(st,tau);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = STCayleyGetAntishift(st,&tau);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STCayleySetAntishift(st,tau));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(STCayleyGetAntishift(st,&tau));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau)));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* check inner product matrix in Cayley */
-  ierr = STGetBilinearForm(st,&B);CHKERRQ(ierr);
-  ierr = MatMult(B,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STGetBilinearForm(st,&B));
+  PetscCall(MatMult(B,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* check again sinvert, sigma=0.1 */
-  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STGetType(st,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
+  PetscCall(STPostSolve(st));   /* undo changes if inplace */
+  PetscCall(STSetType(st,STSINVERT));
+  PetscCall(STGetType(st,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
   sigma = 0.1;
-  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STSetShift(st,sigma));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
-  ierr = STDestroy(&st);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(STDestroy(&st));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&w));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -33,13 +33,11 @@ const char *PEPCISSExtractions[] = {"RITZ","HANKEL","CAA","PEPCISSExtraction","P
 @*/
 PetscErrorCode PEPFinalizePackage(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&PEPList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&PEPMonitorList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&PEPMonitorCreateList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&PEPMonitorDestroyList);CHKERRQ(ierr);
+  PetscCall(PetscFunctionListDestroy(&PEPList));
+  PetscCall(PetscFunctionListDestroy(&PEPMonitorList));
+  PetscCall(PetscFunctionListDestroy(&PEPMonitorCreateList));
+  PetscCall(PetscFunctionListDestroy(&PEPMonitorDestroyList));
   PEPPackageInitialized       = PETSC_FALSE;
   PEPRegisterAllCalled        = PETSC_FALSE;
   PEPMonitorRegisterAllCalled = PETSC_FALSE;
@@ -60,33 +58,32 @@ PetscErrorCode PEPInitializePackage(void)
   char           logList[256];
   PetscBool      opt,pkg;
   PetscClassId   classids[1];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (PEPPackageInitialized) PetscFunctionReturn(0);
   PEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("PEP Solver",&PEP_CLASSID);CHKERRQ(ierr);
+  PetscCall(PetscClassIdRegister("PEP Solver",&PEP_CLASSID));
   /* Register Constructors */
-  ierr = PEPRegisterAll();CHKERRQ(ierr);
+  PetscCall(PEPRegisterAll());
   /* Register Monitors */
-  ierr = PEPMonitorRegisterAll();CHKERRQ(ierr);
+  PetscCall(PEPMonitorRegisterAll());
   /* Register Events */
-  ierr = PetscLogEventRegister("PEPSetUp",PEP_CLASSID,&PEP_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("PEPSolve",PEP_CLASSID,&PEP_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("PEPRefine",PEP_CLASSID,&PEP_Refine);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("PEPCISS_SVD",PEP_CLASSID,&PEP_CISS_SVD);CHKERRQ(ierr);
+  PetscCall(PetscLogEventRegister("PEPSetUp",PEP_CLASSID,&PEP_SetUp));
+  PetscCall(PetscLogEventRegister("PEPSolve",PEP_CLASSID,&PEP_Solve));
+  PetscCall(PetscLogEventRegister("PEPRefine",PEP_CLASSID,&PEP_Refine));
+  PetscCall(PetscLogEventRegister("PEPCISS_SVD",PEP_CLASSID,&PEP_CISS_SVD));
   /* Process Info */
   classids[0] = PEP_CLASSID;
-  ierr = PetscInfoProcessClass("pep",1,&classids[0]);CHKERRQ(ierr);
+  PetscCall(PetscInfoProcessClass("pep",1,&classids[0]));
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    ierr = PetscStrInList("pep",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscLogEventDeactivateClass(PEP_CLASSID);CHKERRQ(ierr); }
+    PetscCall(PetscStrInList("pep",logList,',',&pkg));
+    if (pkg) PetscCall(PetscLogEventDeactivateClass(PEP_CLASSID));
   }
   /* Register package finalizer */
-  ierr = PetscRegisterFinalize(PEPFinalizePackage);CHKERRQ(ierr);
+  PetscCall(PetscRegisterFinalize(PEPFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -100,11 +97,8 @@ PetscErrorCode PEPInitializePackage(void)
  */
 SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcpep()
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PEPInitializePackage();CHKERRQ(ierr);
+  PetscCall(PEPInitializePackage());
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */
-

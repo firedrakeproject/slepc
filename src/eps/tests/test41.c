@@ -23,77 +23,76 @@ int main(int argc,char **argv)
   PetscReal      a,b,ra,rb;
   PetscBool      flag;
   EPSEVSLDamping damping;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with EVSL, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nStandard eigenproblem with EVSL, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetType(eps,EPSEVSL);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetType(eps,EPSEVSL));
 
   /*
      Set several options
   */
-  ierr = EPSSetInterval(eps,1.3,1.44);CHKERRQ(ierr);
-  ierr = EPSEVSLSetRange(eps,0,8);CHKERRQ(ierr);
-  ierr = EPSEVSLSetSlices(eps,3);CHKERRQ(ierr);
-  ierr = EPSEVSLSetDamping(eps,EPS_EVSL_DAMPING_SIGMA);CHKERRQ(ierr);
-  ierr = EPSEVSLSetDOSParameters(eps,EPS_EVSL_DOS_KPM,50,450,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSEVSLSetPolParameters(eps,4000,0.85);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSSetInterval(eps,1.3,1.44));
+  PetscCall(EPSEVSLSetRange(eps,0,8));
+  PetscCall(EPSEVSLSetSlices(eps,3));
+  PetscCall(EPSEVSLSetDamping(eps,EPS_EVSL_DAMPING_SIGMA));
+  PetscCall(EPSEVSLSetDOSParameters(eps,EPS_EVSL_DOS_KPM,50,450,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSEVSLSetPolParameters(eps,4000,0.85));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
            Compute all eigenvalues in interval and display info
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSEVSLGetSlices(eps,&nslice);CHKERRQ(ierr);
-  ierr = EPSGetInterval(eps,&a,&b);CHKERRQ(ierr);
-  ierr = EPSEVSLGetRange(eps,&ra,&rb);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: solving interval [%g,%g] with %" PetscInt_FMT " slices (spectral range [%g,%g])\n",a,b,nslice,ra,rb);CHKERRQ(ierr);
-  ierr = EPSEVSLGetDamping(eps,&damping);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," EVSL: damping type is %s\n",EPSEVSLDampings[damping]);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSEVSLGetSlices(eps,&nslice));
+  PetscCall(EPSGetInterval(eps,&a,&b));
+  PetscCall(EPSEVSLGetRange(eps,&ra,&rb));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," EVSL: solving interval [%g,%g] with %" PetscInt_FMT " slices (spectral range [%g,%g])\n",a,b,nslice,ra,rb));
+  PetscCall(EPSEVSLGetDamping(eps,&damping));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," EVSL: damping type is %s\n",EPSEVSLDampings[damping]));
 
-  ierr = EPSView(eps,NULL);CHKERRQ(ierr);
-  ierr = EPSErrorView(eps,EPS_ERROR_ABSOLUTE,NULL);CHKERRQ(ierr);
+  PetscCall(EPSView(eps,NULL));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_ABSOLUTE,NULL));
 
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

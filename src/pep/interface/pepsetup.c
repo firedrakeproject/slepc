@@ -21,13 +21,9 @@
 */
 PetscErrorCode PEPSetDefaultST(PEP pep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  if (pep->ops->setdefaultst) { ierr = (*pep->ops->setdefaultst)(pep);CHKERRQ(ierr); }
-  if (!((PetscObject)pep->st)->type_name) {
-    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
-  }
+  if (pep->ops->setdefaultst) PetscCall((*pep->ops->setdefaultst)(pep));
+  if (!((PetscObject)pep->st)->type_name) PetscCall(STSetType(pep->st,STSHIFT));
   PetscFunctionReturn(0);
 }
 
@@ -37,10 +33,8 @@ PetscErrorCode PEPSetDefaultST(PEP pep)
 */
 PetscErrorCode PEPSetDefaultST_Transform(PEP pep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = STSetTransform(pep->st,PETSC_TRUE);CHKERRQ(ierr);
+  PetscCall(STSetTransform(pep->st,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
 
@@ -64,7 +58,6 @@ PetscErrorCode PEPSetDefaultST_Transform(PEP pep)
 @*/
 PetscErrorCode PEPSetUp(PEP pep)
 {
-  PetscErrorCode ierr;
   SlepcSC        sc;
   PetscBool      istrivial,flg;
   PetscInt       k;
@@ -76,61 +69,51 @@ PetscErrorCode PEPSetUp(PEP pep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (pep->state) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(PEP_SetUp,pep,0,0,0);CHKERRQ(ierr);
+  PetscCall(PetscLogEventBegin(PEP_SetUp,pep,0,0,0));
 
   /* reset the convergence flag from the previous solves */
   pep->reason = PEP_CONVERGED_ITERATING;
 
   /* set default solver type (PEPSetFromOptions was not called) */
-  if (!((PetscObject)pep)->type_name) {
-    ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
-  }
-  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
-  ierr = PEPSetDefaultST(pep);CHKERRQ(ierr);
-  if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
-  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
-  if (!((PetscObject)pep->rg)->type_name) {
-    ierr = RGSetType(pep->rg,RGINTERVAL);CHKERRQ(ierr);
-  }
+  if (!((PetscObject)pep)->type_name) PetscCall(PEPSetType(pep,PEPTOAR));
+  if (!pep->st) PetscCall(PEPGetST(pep,&pep->st));
+  PetscCall(PEPSetDefaultST(pep));
+  if (!pep->ds) PetscCall(PEPGetDS(pep,&pep->ds));
+  if (!pep->rg) PetscCall(PEPGetRG(pep,&pep->rg));
+  if (!((PetscObject)pep->rg)->type_name) PetscCall(RGSetType(pep->rg,RGINTERVAL));
 
   /* check matrices, transfer them to ST */
   PetscCheck(pep->A,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");
-  ierr = STSetMatrices(pep->st,pep->nmat,pep->A);CHKERRQ(ierr);
+  PetscCall(STSetMatrices(pep->st,pep->nmat,pep->A));
 
   /* set problem dimensions */
-  ierr = MatGetSize(pep->A[0],&pep->n,NULL);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(pep->A[0],&pep->nloc,NULL);CHKERRQ(ierr);
+  PetscCall(MatGetSize(pep->A[0],&pep->n,NULL));
+  PetscCall(MatGetLocalSize(pep->A[0],&pep->nloc,NULL));
 
   /* set default problem type */
-  if (!pep->problem_type) {
-    ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
-  }
+  if (!pep->problem_type) PetscCall(PEPSetProblemType(pep,PEP_GENERAL));
   if (pep->nev > (pep->nmat-1)*pep->n) pep->nev = (pep->nmat-1)*pep->n;
   if (pep->ncv > (pep->nmat-1)*pep->n) pep->ncv = (pep->nmat-1)*pep->n;
 
   /* check consistency of refinement options */
   if (pep->refine) {
     if (!pep->scheme) {  /* set default scheme */
-      ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
-      if (flg) {
-        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
-      }
+      PetscCall(PEPRefineGetKSP(pep,&ksp));
+      PetscCall(KSPGetPC(ksp,&pc));
+      PetscCall(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
+      if (flg) PetscCall(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
       pep->scheme = flg? PEP_REFINE_SCHEME_MBE: PEP_REFINE_SCHEME_SCHUR;
     }
     if (pep->scheme==PEP_REFINE_SCHEME_MBE) {
-      ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
-      if (flg) {
-        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
-      }
+      PetscCall(PEPRefineGetKSP(pep,&ksp));
+      PetscCall(KSPGetPC(ksp,&pc));
+      PetscCall(PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg));
+      if (flg) PetscCall(PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,""));
       PetscCheck(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
-      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size);CHKERRMPI(ierr);
+      PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size));
       if (size>1) {   /* currently selected PC is a factorization */
-        ierr = PCFactorGetMatSolverType(pc,&stype);CHKERRQ(ierr);
-        ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
+        PetscCall(PCFactorGetMatSolverType(pc,&stype));
+        PetscCall(PetscStrcmp(stype,MATSOLVERPETSC,&flg));
         PetscCheck(!flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"For Newton refinement, you chose to solve linear systems with a factorization, but in parallel runs you need to select an external package");
       }
     }
@@ -139,7 +122,7 @@ PetscErrorCode PEPSetUp(PEP pep)
     }
   }
   /* call specific solver setup */
-  ierr = (*pep->ops->setup)(pep);CHKERRQ(ierr);
+  PetscCall((*pep->ops->setup)(pep));
 
   /* set tolerance if not yet set */
   if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL;
@@ -205,8 +188,8 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   /* fill sorting criterion for DS */
   if (pep->which!=PEP_ALL) {
-    ierr = DSGetSlepcSC(pep->ds,&sc);CHKERRQ(ierr);
-    ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+    PetscCall(DSGetSlepcSC(pep->ds,&sc));
+    PetscCall(RGIsTrivial(pep->rg,&istrivial));
     sc->rg            = istrivial? NULL: pep->rg;
     sc->comparison    = pep->sc->comparison;
     sc->comparisonctx = pep->sc->comparisonctx;
@@ -214,41 +197,41 @@ PetscErrorCode PEPSetUp(PEP pep)
     sc->mapobj        = (PetscObject)pep->st;
   }
   /* setup ST */
-  ierr = STSetUp(pep->st);CHKERRQ(ierr);
+  PetscCall(STSetUp(pep->st));
 
   /* compute matrix coefficients */
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  PetscCall(STGetTransform(pep->st,&flg));
   if (!flg) {
-    if (pep->which!=PEP_ALL && pep->solvematcoeffs) { ierr = STMatSetUp(pep->st,1.0,pep->solvematcoeffs);CHKERRQ(ierr); }
+    if (pep->which!=PEP_ALL && pep->solvematcoeffs) PetscCall(STMatSetUp(pep->st,1.0,pep->solvematcoeffs));
   } else {
     PetscCheck(pep->basis==PEP_BASIS_MONOMIAL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Cannot use ST-transform with non-monomial basis in PEP");
   }
 
   /* compute scale factor if no set by user */
-  ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
+  PetscCall(PEPComputeScaleFactor(pep));
 
   /* build balancing matrix if required */
   if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) {
     if (!pep->Dl) {
-      ierr = BVCreateVec(pep->V,&pep->Dl);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dl);CHKERRQ(ierr);
+      PetscCall(BVCreateVec(pep->V,&pep->Dl));
+      PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dl));
     }
     if (!pep->Dr) {
-      ierr = BVCreateVec(pep->V,&pep->Dr);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr);CHKERRQ(ierr);
+      PetscCall(BVCreateVec(pep->V,&pep->Dr));
+      PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr));
     }
-    ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
+    PetscCall(PEPBuildDiagonalScaling(pep));
   }
 
   /* process initial vectors */
   if (pep->nini<0) {
     k = -pep->nini;
     PetscCheck(k<=pep->ncv,PetscObjectComm((PetscObject)pep),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
-    ierr = BVInsertVecs(pep->V,0,&k,pep->IS,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
+    PetscCall(BVInsertVecs(pep->V,0,&k,pep->IS,PETSC_TRUE));
+    PetscCall(SlepcBasisDestroy_Private(&pep->nini,&pep->IS));
     pep->nini = k;
   }
-  ierr = PetscLogEventEnd(PEP_SetUp,pep,0,0,0);CHKERRQ(ierr);
+  PetscCall(PetscLogEventEnd(PEP_SetUp,pep,0,0,0));
   pep->state = PEP_STATE_SETUP;
   PetscFunctionReturn(0);
 }
@@ -276,7 +259,6 @@ PetscErrorCode PEPSetUp(PEP pep)
 @*/
 PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 {
-  PetscErrorCode ierr;
   PetscInt       i,n=0,m,m0=0,mloc,nloc,mloc0=0;
 
   PetscFunctionBegin;
@@ -289,26 +271,26 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   for (i=0;i<nmat;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
     PetscCheckSameComm(pep,1,A[i],3);
-    ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(A[i],&mloc,&nloc);CHKERRQ(ierr);
+    PetscCall(MatGetSize(A[i],&m,&n));
+    PetscCall(MatGetLocalSize(A[i],&mloc,&nloc));
     PetscCheck(m==n,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] is a non-square matrix (%" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",i,m,n);
     PetscCheck(mloc==nloc,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%" PetscInt_FMT "] does not have equal row and column local sizes (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,nloc);
     if (!i) { m0 = m; mloc0 = mloc; }
     PetscCheck(m==m0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,m,m0);
     PetscCheck(mloc==mloc0,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Local dimensions of A[%" PetscInt_FMT "] do not match with previous matrices (%" PetscInt_FMT ", %" PetscInt_FMT ")",i,mloc,mloc0);
-    ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
+    PetscCall(PetscObjectReference((PetscObject)A[i]));
   }
 
-  if (pep->state && (n!=pep->n || nloc!=pep->nloc)) { ierr = PEPReset(pep);CHKERRQ(ierr); }
+  if (pep->state && (n!=pep->n || nloc!=pep->nloc)) PetscCall(PEPReset(pep));
   else if (pep->nmat) {
-    ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
-    ierr = PetscFree2(pep->pbc,pep->nrma);CHKERRQ(ierr);
-    ierr = PetscFree(pep->solvematcoeffs);CHKERRQ(ierr);
+    PetscCall(MatDestroyMatrices(pep->nmat,&pep->A));
+    PetscCall(PetscFree2(pep->pbc,pep->nrma));
+    PetscCall(PetscFree(pep->solvematcoeffs));
   }
 
-  ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
-  ierr = PetscCalloc2(3*nmat,&pep->pbc,nmat,&pep->nrma);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal));CHKERRQ(ierr);
+  PetscCall(PetscMalloc1(nmat,&pep->A));
+  PetscCall(PetscCalloc2(3*nmat,&pep->pbc,nmat,&pep->nrma));
+  PetscCall(PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal)));
   for (i=0;i<nmat;i++) {
     pep->A[i]   = A[i];
     pep->pbc[i] = 1.0;  /* default to monomial basis */
@@ -398,8 +380,6 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
 @*/
 PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec is[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,n,2);
@@ -408,7 +388,7 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec is[])
     PetscValidPointer(is,3);
     PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
   }
-  ierr = SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS);CHKERRQ(ierr);
+  PetscCall(SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS));
   if (n>0) pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -419,12 +399,11 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec is[])
  */
 PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
-  PetscErrorCode ierr;
   PetscBool      krylov;
   PetscInt       dim;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPSTOAR,PEPQARNOLDI,"");CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPSTOAR,PEPQARNOLDI,""));
   dim = (pep->nmat-1)*pep->n;
   if (*ncv!=PETSC_DEFAULT) { /* ncv set */
     if (krylov) {
@@ -466,7 +445,6 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
 @*/
 PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
 {
-  PetscErrorCode ierr;
   PetscInt       oldsize,newc,requested,requestedbv;
   PetscLogDouble cnt;
   Vec            t;
@@ -476,29 +454,24 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
   requestedbv = pep->ncv + extra;
 
   /* oldsize is zero if this is the first time setup is called */
-  ierr = BVGetSizes(pep->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+  PetscCall(BVGetSizes(pep->V,NULL,NULL,&oldsize));
 
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize || !pep->eigr) {
-    ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
-    ierr = PetscMalloc4(requested,&pep->eigr,requested,&pep->eigi,requested,&pep->errest,requested,&pep->perm);CHKERRQ(ierr);
+    PetscCall(PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm));
+    PetscCall(PetscMalloc4(requested,&pep->eigr,requested,&pep->eigi,requested,&pep->errest,requested,&pep->perm));
     newc = PetscMax(0,requested-oldsize);
     cnt = 2*newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
-    ierr = PetscLogObjectMemory((PetscObject)pep,cnt);CHKERRQ(ierr);
+    PetscCall(PetscLogObjectMemory((PetscObject)pep,cnt));
   }
 
   /* allocate V */
-  if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
+  if (!pep->V) PetscCall(PEPGetBV(pep,&pep->V));
   if (!oldsize) {
-    if (!((PetscObject)(pep->V))->type_name) {
-      ierr = BVSetType(pep->V,BVSVEC);CHKERRQ(ierr);
-    }
-    ierr = STMatCreateVecsEmpty(pep->st,&t,NULL);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(pep->V,t,requestedbv);CHKERRQ(ierr);
-    ierr = VecDestroy(&t);CHKERRQ(ierr);
-  } else {
-    ierr = BVResize(pep->V,requestedbv,PETSC_FALSE);CHKERRQ(ierr);
-  }
+    if (!((PetscObject)(pep->V))->type_name) PetscCall(BVSetType(pep->V,BVSVEC));
+    PetscCall(STMatCreateVecsEmpty(pep->st,&t,NULL));
+    PetscCall(BVSetSizesFromVec(pep->V,t,requestedbv));
+    PetscCall(VecDestroy(&t));
+  } else PetscCall(BVResize(pep->V,requestedbv,PETSC_FALSE));
   PetscFunctionReturn(0);
 }
-

@@ -14,27 +14,24 @@ static char help[] = "Demonstrates SlepcGetVersionNumber().\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   char           version[128];
   PetscInt       major,minor,subminor;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Checking SLEPc version.\n");CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Checking SLEPc version.\n"));
 
-  ierr = SlepcGetVersion(version,sizeof(version));CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Version information:\n%s\n",version);CHKERRQ(ierr);
-  }
+  PetscCall(SlepcGetVersion(version,sizeof(version)));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  if (verbose) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Version information:\n%s\n",version));
 
-  ierr = SlepcGetVersionNumber(&major,&minor,&subminor,NULL);CHKERRQ(ierr);
+  PetscCall(SlepcGetVersionNumber(&major,&minor,&subminor,NULL));
   PetscCheck(major==SLEPC_VERSION_MAJOR,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Library major %" PetscInt_FMT " does not equal include %d",major,SLEPC_VERSION_MAJOR);
   PetscCheck(minor==SLEPC_VERSION_MINOR,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Library minor %" PetscInt_FMT " does not equal include %d",minor,SLEPC_VERSION_MINOR);
   PetscCheck(subminor==SLEPC_VERSION_SUBMINOR,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Library subminor %" PetscInt_FMT " does not equal include %d",subminor,SLEPC_VERSION_SUBMINOR);
 
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

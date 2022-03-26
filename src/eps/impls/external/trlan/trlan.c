@@ -22,17 +22,16 @@ static struct {
 
 PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
   PetscFunctionBegin;
   EPSCheckHermitian(eps);
   EPSCheckStandard(eps);
-  ierr = PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(PetscMax(7,eps->nev+PetscMin(eps->nev,6)),&tr->maxlan));
   if (eps->ncv!=PETSC_DEFAULT) {
     PetscCheck(eps->ncv>=eps->nev,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"The value of ncv must be at least nev");
   } else eps->ncv = tr->maxlan;
-  if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(1000,eps->n);
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
@@ -41,41 +40,36 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_EXTRACTION);
 
   tr->restart = 0;
-  if (tr->maxlan+1-eps->ncv<=0) {
-    ierr = PetscBLASIntCast(tr->maxlan*(tr->maxlan+10),&tr->lwork);CHKERRQ(ierr);
-  } else {
-    ierr = PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork);CHKERRQ(ierr);
-  }
-  if (tr->work) { ierr = PetscFree(tr->work);CHKERRQ(ierr); }
-  ierr = PetscMalloc1(tr->lwork,&tr->work);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,tr->lwork*sizeof(PetscReal));CHKERRQ(ierr);
+  if (tr->maxlan+1-eps->ncv<=0) PetscCall(PetscBLASIntCast(tr->maxlan*(tr->maxlan+10),&tr->lwork));
+  else PetscCall(PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork));
+  if (tr->work) PetscCall(PetscFree(tr->work));
+  PetscCall(PetscMalloc1(tr->lwork,&tr->work));
+  PetscCall(PetscLogObjectMemory((PetscObject)eps,tr->lwork*sizeof(PetscReal)));
 
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  PetscCall(EPSAllocateSolution(eps,0));
   PetscFunctionReturn(0);
 }
 
 static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin,PetscBLASInt *ldx,PetscReal *yout,PetscBLASInt *ldy)
 {
-  PetscErrorCode ierr;
   Vec            x=globaldata.x,y=globaldata.y;
   EPS            eps=globaldata.eps;
   PetscBLASInt   i;
 
   PetscFunctionBegin;
   for (i=0;i<*m;i++) {
-    ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
-    ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
-    ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeVec(eps->V,y,NULL,NULL,NULL);CHKERRQ(ierr);
-    ierr = VecResetArray(x);CHKERRQ(ierr);
-    ierr = VecResetArray(y);CHKERRQ(ierr);
+    PetscCall(VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx)));
+    PetscCall(VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy)));
+    PetscCall(STApply(eps->st,x,y));
+    PetscCall(BVOrthogonalizeVec(eps->V,y,NULL,NULL,NULL));
+    PetscCall(VecResetArray(x));
+    PetscCall(VecResetArray(y));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   ipar[32],n,lohi,stat,ncv;
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
@@ -87,23 +81,23 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(eps->ncv,&ncv));
+  PetscCall(PetscBLASIntCast(eps->nloc,&n));
 
   PetscCheck(eps->which==EPS_LARGEST_REAL || eps->which==EPS_TARGET_REAL || eps->which==EPS_SMALLEST_REAL,PetscObjectComm((PetscObject)eps),PETSC_ERR_USER_INPUT,"Wrong value of eps->which");
   lohi = (eps->which==EPS_SMALLEST_REAL)? -1: 1;
 
   globaldata.eps = eps;
-  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = MatCreateVecsEmpty(A,&globaldata.x,&globaldata.y);CHKERRQ(ierr);
+  PetscCall(STGetMatrix(eps->st,0,&A));
+  PetscCall(MatCreateVecsEmpty(A,&globaldata.x,&globaldata.y));
 
   ipar[0]  = 0;            /* stat: error flag */
   ipar[1]  = lohi;         /* smallest (lohi<0) or largest eigenvalues (lohi>0) */
-  ierr = PetscBLASIntCast(eps->nev,&ipar[2]);CHKERRQ(ierr); /* number of desired eigenpairs */
+  PetscCall(PetscBLASIntCast(eps->nev,&ipar[2])); /* number of desired eigenpairs */
   ipar[3]  = 0;            /* number of eigenpairs already converged */
   ipar[4]  = tr->maxlan;   /* maximum Lanczos basis size */
   ipar[5]  = tr->restart;  /* restarting scheme */
-  ierr = PetscBLASIntCast(eps->max_it,&ipar[6]);CHKERRQ(ierr); /* maximum number of MATVECs */
+  PetscCall(PetscBLASIntCast(eps->max_it,&ipar[6])); /* maximum number of MATVECs */
 #if !defined(PETSC_HAVE_MPIUNI)
   fcomm    = MPI_Comm_c2f(PetscObjectComm((PetscObject)eps));
   ipar[7]  = fcomm;
@@ -117,53 +111,49 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   tr->work[0] = eps->tol;  /* relative tolerance on residual norms */
 
   for (i=0;i<eps->ncv;i++) eps->eigr[i]=0.0;
-  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
-  ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
-  ierr = VecGetArray(v0,&pV);CHKERRQ(ierr);
+  PetscCall(EPSGetStartVector(eps,0,NULL));
+  PetscCall(BVSetActiveColumns(eps->V,0,0));  /* just for deflation space */
+  PetscCall(BVGetColumn(eps->V,0,&v0));
+  PetscCall(VecGetArray(v0,&pV));
 
   PetscStackCall("TRLan",TRLan_(MatMult_TRLAN,ipar,&n,&ncv,eps->eigr,pV,&n,tr->work,&tr->lwork));
 
-  ierr = VecRestoreArray(v0,&pV);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
+  PetscCall(VecRestoreArray(v0,&pV));
+  PetscCall(BVRestoreColumn(eps->V,0,&v0));
 
   stat        = ipar[0];
   eps->nconv  = ipar[3];
   eps->its    = ipar[25];
   eps->reason = EPS_CONVERGED_TOL;
 
-  ierr = VecDestroy(&globaldata.x);CHKERRQ(ierr);
-  ierr = VecDestroy(&globaldata.y);CHKERRQ(ierr);
+  PetscCall(VecDestroy(&globaldata.x));
+  PetscCall(VecDestroy(&globaldata.y));
   PetscCheck(stat==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%" PetscBLASInt_FMT ")",stat);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSReset_TRLAN(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(tr->work);CHKERRQ(ierr);
+  PetscCall(PetscFree(tr->work));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSDestroy_TRLAN(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
+  PetscCall(PetscFree(eps->data));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
 {
   EPS_TRLAN      *ctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   eps->ops->solve          = EPSSolve_TRLAN;
@@ -174,4 +164,3 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
   eps->ops->backtransform  = EPSBackTransform_Default;
   PetscFunctionReturn(0);
 }
-

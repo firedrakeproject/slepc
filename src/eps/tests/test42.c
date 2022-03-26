@@ -23,65 +23,64 @@ int main(int argc,char **argv)
   PetscScalar    val,c,s;
   PetscInt       n=30,i,seed=0x12345678;
   PetscMPIInt    rank;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRMPI(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nOrthogonal eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nOrthogonal eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL);CHKERRQ(ierr);
-  ierr = PetscRandomSetSeed(rand,seed);CHKERRQ(ierr);
-  ierr = PetscRandomSeed(rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetInterval(rand,0,2*PETSC_PI);CHKERRQ(ierr);
+  PetscCall(PetscRandomCreate(PETSC_COMM_WORLD,&rand));
+  PetscCall(PetscRandomSetFromOptions(rand));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL));
+  PetscCall(PetscRandomSetSeed(rand,seed));
+  PetscCall(PetscRandomSeed(rand));
+  PetscCall(PetscRandomSetInterval(rand,0,2*PETSC_PI));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
   if (!rank) {
     for (i=0;i<n/2;i++) {
-      ierr = PetscRandomGetValue(rand,&val);CHKERRQ(ierr);
+      PetscCall(PetscRandomGetValue(rand,&val));
       c = PetscCosReal(PetscRealPart(val));
       s = PetscSinReal(PetscRealPart(val));
-      ierr = MatSetValue(A,2*i,2*i,c,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(A,2*i+1,2*i+1,c,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(A,2*i,2*i+1,s,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(A,2*i+1,2*i,-s,INSERT_VALUES);CHKERRQ(ierr);
+      PetscCall(MatSetValue(A,2*i,2*i,c,INSERT_VALUES));
+      PetscCall(MatSetValue(A,2*i+1,2*i+1,c,INSERT_VALUES));
+      PetscCall(MatSetValue(A,2*i,2*i+1,s,INSERT_VALUES));
+      PetscCall(MatSetValue(A,2*i+1,2*i,-s,INSERT_VALUES));
     }
-    if (n%2) { ierr = MatSetValue(A,n-1,n-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (n%2) PetscCall(MatSetValue(A,n-1,n-1,-1.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
+  PetscCall(EPSSetFromOptions(eps));
+  PetscCall(EPSSolve(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(PetscRandomDestroy(&rand));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

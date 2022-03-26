@@ -36,81 +36,74 @@ int main(int argc,char **argv)
   SVD            svd;
   PetscInt       N=30,Istart,Iend,i,col[5];
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix of size N
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
-    if (i==0) {
-      ierr = MatSetValues(A,1,&i,4,col+1,value+1,INSERT_VALUES);CHKERRQ(ierr);
-    } else {
-      ierr = MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i==0) PetscCall(MatSetValues(A,1,&i,4,col+1,value+1,INSERT_VALUES));
+    else PetscCall(MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Create the singular value solver, set options and solve
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetTolerances(svd,1e-6,1000);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetTolerances(svd,1e-6,1000));
+  PetscCall(SVDSetFromOptions(svd));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix of size 2*N
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   N *= 2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSingular values of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-  ierr = MatSetUp(B);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+  PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(B));
+  PetscCall(MatSetUp(B));
+  PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
-    if (i==0) {
-      ierr = MatSetValues(B,1,&i,4,col+1,value+1,INSERT_VALUES);CHKERRQ(ierr);
-    } else {
-      ierr = MatSetValues(B,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i==0) PetscCall(MatSetValues(B,1,&i,4,col+1,value+1,INSERT_VALUES));
+    else PetscCall(MatSetValues(B,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
        Solve again, calling SVDReset() since matrix size has changed
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDReset(svd);CHKERRQ(ierr);  /* if this is omitted, it will be called in SVDSetOperators() */
-  ierr = SVDSetOperators(svd,B,NULL);CHKERRQ(ierr);
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  PetscCall(SVDReset(svd));  /* if this is omitted, it will be called in SVDSetOperators() */
+  PetscCall(SVDSetOperators(svd,B,NULL));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
 
   /* Free work space */
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

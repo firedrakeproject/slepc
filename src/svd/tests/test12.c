@@ -35,15 +35,14 @@ static char help[] = "SVD problem with user-defined stopping test.\n\n"
 */
 PetscErrorCode MyStoppingTest(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,SVDConvergedReason *reason,void *ctx)
 {
-  PetscErrorCode ierr;
   PetscLogDouble now,deadline = *(PetscLogDouble*)ctx;
 
   PetscFunctionBeginUser;
   /* check if usual termination conditions are met */
-  ierr = SVDStoppingBasic(svd,its,max_it,nconv,nev,reason,NULL);CHKERRQ(ierr);
+  PetscCall(SVDStoppingBasic(svd,its,max_it,nconv,nev,reason,NULL));
   if (*reason==SVD_CONVERGED_ITERATING) {
     /* check if deadline has expired */
-    ierr = PetscTime(&now);CHKERRQ(ierr);
+    PetscCall(PetscTime(&now));
     if (now>deadline) *reason = SVD_CONVERGED_USER;
   }
   PetscFunctionReturn(0);
@@ -60,78 +59,73 @@ int main(int argc,char **argv)
   PetscScalar        value[] = { 1, 2 };
   PetscBool          terse,flg;
   PetscViewer        viewer;
-  PetscErrorCode     ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-seconds",&seconds,NULL);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-seconds",&seconds,NULL));
   deadline = seconds;
-  ierr = PetscTimeAdd(&deadline);CHKERRQ(ierr);
+  PetscCall(PetscTimeAdd(&deadline));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) {
-      ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-    } else if (i==n-1) {
-      ierr = MatSetValue(A,i,col[0],value[0],INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i<n-1) PetscCall(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
+    else if (i==n-1) PetscCall(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
-  ierr = SVDSetTolerances(svd,PETSC_DEFAULT,1000);CHKERRQ(ierr);
-  ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);
-  ierr = SVDSetStoppingTestFunction(svd,MyStoppingTest,&deadline,NULL);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
+  PetscCall(SVDSetTolerances(svd,PETSC_DEFAULT,1000));
+  PetscCall(SVDSetType(svd,SVDTRLANCZOS));
+  PetscCall(SVDSetStoppingTestFunction(svd,MyStoppingTest,&deadline,NULL));
+  PetscCall(SVDSetFromOptions(svd));
 
   /* call the solver */
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
+  PetscCall(SVDSolve(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = SVDGetConvergedReason(svd,&reason);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+  else {
+    PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+    PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(SVDGetConvergedReason(svd,&reason));
     if (reason!=SVD_CONVERGED_USER) {
-      ierr = SVDConvergedReasonView(svd,viewer);CHKERRQ(ierr);
-      ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
+      PetscCall(SVDConvergedReasonView(svd,viewer));
+      PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,viewer));
     } else {
-      ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"SVD solve finished with %" PetscInt_FMT " converged eigenpairs; reason=%s\n",nconv,SVDConvergedReasons[reason]);CHKERRQ(ierr);
+      PetscCall(SVDGetConverged(svd,&nconv));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"SVD solve finished with %" PetscInt_FMT " converged eigenpairs; reason=%s\n",nconv,SVDConvergedReasons[reason]));
     }
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerPopFormat(viewer));
   }
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

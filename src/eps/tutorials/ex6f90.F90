@@ -161,16 +161,16 @@
 !     The actual routine for the matrix-vector product
       external mvmisg
 
-      call MatGetSize(A,N,PETSC_NULL_INTEGER,ierr);CHKERRQ(ierr)
-      call VecGetArrayRead(x,x_array,i_x,ierr);CHKERRQ(ierr)
-      call VecGetArray(y,y_array,i_y,ierr);CHKERRQ(ierr)
+      call MatGetSize(A,N,PETSC_NULL_INTEGER,ierr);PetscCall(ierr)
+      call VecGetArrayRead(x,x_array,i_x,ierr);PetscCall(ierr)
+      call VecGetArray(y,y_array,i_y,ierr);PetscCall(ierr)
 
       trans = 0
       one = 1
       call mvmisg(trans,N,one,x_array(i_x+1),N,y_array(i_y+1),N)
 
-      call VecRestoreArrayRead(x,x_array,i_x,ierr);CHKERRQ(ierr)
-      call VecRestoreArray(y,y_array,i_y,ierr);CHKERRQ(ierr)
+      call VecRestoreArrayRead(x,x_array,i_x,ierr);PetscCall(ierr)
+      call VecRestoreArray(y,y_array,i_y,ierr);PetscCall(ierr)
 
       return
       end

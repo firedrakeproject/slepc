@@ -24,95 +24,91 @@ int main(int argc,char **argv)
   PetscReal      norm,tol;
   Vec            v,y,z;
   PetscInt       N,n=10,m,Istart,Iend,i,j,II;
-  PetscErrorCode ierr;
   PetscBool      flag;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Compute the discrete 2-D Laplacian, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* set symmetry flag so that solver can exploit it */
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
 
   /* set v = e_1 */
-  ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
-  ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&z);CHKERRQ(ierr);
+  PetscCall(MatCreateVecs(A,NULL,&v));
+  PetscCall(VecSetValue(v,0,1.0,INSERT_VALUES));
+  PetscCall(VecAssemblyBegin(v));
+  PetscCall(VecAssemblyEnd(v));
+  PetscCall(VecDuplicate(v,&y));
+  PetscCall(VecDuplicate(v,&z));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the solver, set the matrix and the function
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
-  ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
-  ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
-  ierr = FNSetType(f,FNSQRT);CHKERRQ(ierr);
-  ierr = MFNSetErrorIfNotConverged(mfn,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
+  PetscCall(MFNCreate(PETSC_COMM_WORLD,&mfn));
+  PetscCall(MFNSetOperator(mfn,A));
+  PetscCall(MFNGetFN(mfn,&f));
+  PetscCall(FNSetType(f,FNSQRT));
+  PetscCall(MFNSetErrorIfNotConverged(mfn,PETSC_TRUE));
+  PetscCall(MFNSetFromOptions(mfn));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       First solve: y=sqrt(A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
-  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Intermediate vector has norm %g\n",(double)norm);CHKERRQ(ierr);
+  PetscCall(MFNSolve(mfn,v,y));
+  PetscCall(VecNorm(y,NORM_2,&norm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Intermediate vector has norm %g\n",(double)norm));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Second solve: z=sqrt(A)*y and compare against A*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MFNSolve(mfn,y,z);CHKERRQ(ierr);
-  ierr = MFNGetTolerances(mfn,&tol,NULL);CHKERRQ(ierr);
+  PetscCall(MFNSolve(mfn,y,z));
+  PetscCall(MFNGetTolerances(mfn,&tol,NULL));
 
-  ierr = MatMult(A,v,y);CHKERRQ(ierr);   /* overwrite y */
-  ierr = VecAXPY(y,-1.0,z);CHKERRQ(ierr);
-  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
+  PetscCall(MatMult(A,v,y));   /* overwrite y */
+  PetscCall(VecAXPY(y,-1.0,z));
+  PetscCall(VecNorm(y,NORM_2,&norm));
 
-  if (norm<tol) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm);CHKERRQ(ierr);
-  }
+  if (norm<tol) PetscCall(PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm));
 
   /*
      Free work space
   */
-  ierr = MFNDestroy(&mfn);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
-  ierr = VecDestroy(&z);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(MFNDestroy(&mfn));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&y));
+  PetscCall(VecDestroy(&z));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

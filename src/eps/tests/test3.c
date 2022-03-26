@@ -20,83 +20,82 @@ int main(int argc,char **argv)
   Vec            d;
   PetscInt       n=30,i,Istart,Iend;
   PetscRandom    myrand;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal with random diagonal, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
            Create matrix tridiag([-1 0 -1])
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MatCreate(PETSC_COMM_WORLD,&A1);CHKERRQ(ierr);
-  ierr = MatSetSizes(A1,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A1);CHKERRQ(ierr);
-  ierr = MatSetUp(A1);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A1));
+  PetscCall(MatSetSizes(A1,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A1));
+  PetscCall(MatSetUp(A1));
 
-  ierr = MatGetOwnershipRange(A1,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A1,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A1,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A1,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i>0) PetscCall(MatSetValue(A1,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A1,i,i+1,-1.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
        Create two matrices by filling the diagonal with rand values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MatDuplicate(A1,MAT_COPY_VALUES,&A2);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A1,NULL,&d);CHKERRQ(ierr);
-  ierr = PetscRandomCreate(PETSC_COMM_WORLD,&myrand);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(myrand);CHKERRQ(ierr);
-  ierr = PetscRandomSetInterval(myrand,0.0,1.0);CHKERRQ(ierr);
+  PetscCall(MatDuplicate(A1,MAT_COPY_VALUES,&A2));
+  PetscCall(MatCreateVecs(A1,NULL,&d));
+  PetscCall(PetscRandomCreate(PETSC_COMM_WORLD,&myrand));
+  PetscCall(PetscRandomSetFromOptions(myrand));
+  PetscCall(PetscRandomSetInterval(myrand,0.0,1.0));
   for (i=Istart;i<Iend;i++) {
-    ierr = PetscRandomGetValueReal(myrand,&v);CHKERRQ(ierr);
-    ierr = VecSetValue(d,i,v,INSERT_VALUES);CHKERRQ(ierr);
+    PetscCall(PetscRandomGetValueReal(myrand,&v));
+    PetscCall(VecSetValue(d,i,v,INSERT_VALUES));
   }
-  ierr = VecAssemblyBegin(d);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(d);CHKERRQ(ierr);
-  ierr = MatDiagonalSet(A1,d,INSERT_VALUES);CHKERRQ(ierr);
+  PetscCall(VecAssemblyBegin(d));
+  PetscCall(VecAssemblyEnd(d));
+  PetscCall(MatDiagonalSet(A1,d,INSERT_VALUES));
   for (i=Istart;i<Iend;i++) {
-    ierr = PetscRandomGetValueReal(myrand,&v);CHKERRQ(ierr);
-    ierr = VecSetValue(d,i,v,INSERT_VALUES);CHKERRQ(ierr);
+    PetscCall(PetscRandomGetValueReal(myrand,&v));
+    PetscCall(VecSetValue(d,i,v,INSERT_VALUES));
   }
-  ierr = VecAssemblyBegin(d);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(d);CHKERRQ(ierr);
-  ierr = MatDiagonalSet(A2,d,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecDestroy(&d);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&myrand);CHKERRQ(ierr);
+  PetscCall(VecAssemblyBegin(d));
+  PetscCall(VecAssemblyEnd(d));
+  PetscCall(MatDiagonalSet(A2,d,INSERT_VALUES));
+  PetscCall(VecDestroy(&d));
+  PetscCall(PetscRandomDestroy(&myrand));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Create the eigensolver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A1,NULL);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetOperators(eps,A1,NULL));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Solve first eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - First matrix - - -\n");CHKERRQ(ierr);
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," - - - First matrix - - -\n"));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Solve second eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSSetOperators(eps,A2,NULL);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Second matrix - - -\n");CHKERRQ(ierr);
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  PetscCall(EPSSetOperators(eps,A2,NULL));
+  PetscCall(EPSSolve(eps));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," - - - Second matrix - - -\n"));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
 
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A1);CHKERRQ(ierr);
-  ierr = MatDestroy(&A2);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A1));
+  PetscCall(MatDestroy(&A2));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

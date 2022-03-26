@@ -23,31 +23,30 @@ int main(int argc,char **argv)
   PetscInt       n=30,i,Istart,Iend,nev;
   PetscBool      flg,gd2;
   char           epstype[30] = "krylovschur";
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(NULL,NULL,"-type",epstype,sizeof(epstype),NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-type",epstype,sizeof(epstype),NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -55,58 +54,52 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetDimensions(eps,4,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = PetscStrcmp(epstype,"gd2",&flg);CHKERRQ(ierr);
+  PetscCall(PetscStrcmp(epstype,"gd2",&flg));
   if (flg) {
-    ierr = EPSSetType(eps,EPSGD);CHKERRQ(ierr);
-    ierr = EPSGDSetDoubleExpansion(eps,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = EPSGDGetDoubleExpansion(eps,&gd2);CHKERRQ(ierr);  /* not used */
-  } else {
-    ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
-  }
-  ierr = PetscStrcmp(epstype,"jd",&flg);CHKERRQ(ierr);
+    PetscCall(EPSSetType(eps,EPSGD));
+    PetscCall(EPSGDSetDoubleExpansion(eps,PETSC_TRUE));
+    PetscCall(EPSGDGetDoubleExpansion(eps,&gd2));  /* not used */
+  } else PetscCall(EPSSetType(eps,epstype));
+  PetscCall(PetscStrcmp(epstype,"jd",&flg));
   if (flg) {
-    ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-    ierr = EPSSetTarget(eps,4.0);CHKERRQ(ierr);
+    PetscCall(EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE));
+    PetscCall(EPSSetTarget(eps,4.0));
   }
-  ierr = PetscStrcmp(epstype,"lanczos",&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSLanczosSetReorthog(eps,EPS_LANCZOS_REORTHOG_LOCAL);CHKERRQ(ierr);
-  }
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSRQCG,EPSLOBPCG,"");CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  }
+  PetscCall(PetscStrcmp(epstype,"lanczos",&flg));
+  if (flg) PetscCall(EPSLanczosSetReorthog(eps,EPS_LANCZOS_REORTHOG_LOCAL));
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSRQCG,EPSLOBPCG,""));
+  if (flg) PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

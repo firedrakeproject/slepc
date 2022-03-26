@@ -15,23 +15,20 @@
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   PetscBool      isInitialized,isFinalized;
 
-  ierr = SlepcInitialized(&isInitialized);if (ierr) return ierr;
+  PetscCall(SlepcInitialized(&isInitialized));
   if (!isInitialized) {
-    ierr = SlepcInitializeNoArguments();if (ierr) return ierr;
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Initialize SLEPc.\n");CHKERRQ(ierr);
-    ierr = SlepcInitialized(&isInitialized);CHKERRQ(ierr);
-    ierr = SlepcFinalized(&isFinalized);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"SlepcInitialized=%d, SlepcFinalized=%d.\n",(int)isInitialized,(int)isFinalized);CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"SLEPc was already initialized.\n");CHKERRQ(ierr);
-  }
-  ierr = SlepcFinalize();if (ierr) return ierr;
-  ierr = SlepcFinalized(&isFinalized);
+    PetscCall(SlepcInitializeNoArguments());
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Initialize SLEPc.\n"));
+    PetscCall(SlepcInitialized(&isInitialized));
+    PetscCall(SlepcFinalized(&isFinalized));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"SlepcInitialized=%d, SlepcFinalized=%d.\n",(int)isInitialized,(int)isFinalized));
+  } else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"SLEPc was already initialized.\n"));
+  PetscCall(SlepcFinalize());
+  PetscCall(SlepcFinalized(&isFinalized));
   if (!isFinalized) printf("Unexpected value: SlepcFinalized() returned False after SlepcFinalize()\n");
-  return ierr;
+  return 0;
 }
 
 /*TEST

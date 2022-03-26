@@ -20,30 +20,28 @@ typedef struct {
 
 PetscErrorCode SVDSetUp_Elemental(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_Elemental  *ctx = (SVD_Elemental*)svd->data;
   PetscInt       M,N;
 
   PetscFunctionBegin;
   SVDCheckStandard(svd);
-  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
+  PetscCall(MatGetSize(svd->A,&M,&N));
   PetscCheck(M==N,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Not implemented for rectangular matrices");
   svd->ncv = N;
-  if (svd->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (svd->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(svd,"Warning: parameter mpd ignored\n"));
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
-  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
+  PetscCall(SVDAllocateSolution(svd,0));
 
   /* convert matrix */
-  ierr = MatDestroy(&ctx->Ae);CHKERRQ(ierr);
-  ierr = MatConvert(svd->OP,MATELEMENTAL,MAT_INITIAL_MATRIX,&ctx->Ae);CHKERRQ(ierr);
+  PetscCall(MatDestroy(&ctx->Ae));
+  PetscCall(MatConvert(svd->OP,MATELEMENTAL,MAT_INITIAL_MATRIX,&ctx->Ae));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDSolve_Elemental(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_Elemental  *ctx = (SVD_Elemental*)svd->data;
   Mat            A = ctx->Ae,Z,Q,U,V;
   Mat_Elemental  *a = (Mat_Elemental*)A->data,*q,*z;
@@ -51,8 +49,8 @@ PetscErrorCode SVDSolve_Elemental(SVD svd)
 
   PetscFunctionBegin;
   El::DistMatrix<PetscReal,El::STAR,El::VC> sigma(*a->grid);
-  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Z);CHKERRQ(ierr);
-  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q);CHKERRQ(ierr);
+  PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Z));
+  PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q));
   z = (Mat_Elemental*)Z->data;
   q = (Mat_Elemental*)Q->data;
 
@@ -63,14 +61,14 @@ PetscErrorCode SVDSolve_Elemental(SVD svd)
     RO2E(A,1,rrank,ridx,&erow);
     svd->sigma[i] = sigma.Get(erow,0);
   }
-  ierr = BVGetMat(svd->U,&U);CHKERRQ(ierr);
-  ierr = MatConvert(Z,MATDENSE,MAT_REUSE_MATRIX,&U);CHKERRQ(ierr);
-  ierr = BVRestoreMat(svd->U,&U);CHKERRQ(ierr);
-  ierr = MatDestroy(&Z);CHKERRQ(ierr);
-  ierr = BVGetMat(svd->V,&V);CHKERRQ(ierr);
-  ierr = MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V);CHKERRQ(ierr);
-  ierr = BVRestoreMat(svd->V,&V);CHKERRQ(ierr);
-  ierr = MatDestroy(&Q);CHKERRQ(ierr);
+  PetscCall(BVGetMat(svd->U,&U));
+  PetscCall(MatConvert(Z,MATDENSE,MAT_REUSE_MATRIX,&U));
+  PetscCall(BVRestoreMat(svd->U,&U));
+  PetscCall(MatDestroy(&Z));
+  PetscCall(BVGetMat(svd->V,&V));
+  PetscCall(MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V));
+  PetscCall(BVRestoreMat(svd->V,&V));
+  PetscCall(MatDestroy(&Q));
 
   svd->nconv  = svd->ncv;
   svd->its    = 1;
@@ -80,30 +78,26 @@ PetscErrorCode SVDSolve_Elemental(SVD svd)
 
 PetscErrorCode SVDDestroy_Elemental(SVD svd)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFree(svd->data);CHKERRQ(ierr);
+  PetscCall(PetscFree(svd->data));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDReset_Elemental(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_Elemental  *ctx = (SVD_Elemental*)svd->data;
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&ctx->Ae);CHKERRQ(ierr);
+  PetscCall(MatDestroy(&ctx->Ae));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_Elemental(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_Elemental  *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(svd,&ctx);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(svd,&ctx));
   svd->data = (void*)ctx;
 
   svd->ops->solve          = SVDSolve_Elemental;
@@ -112,4 +106,3 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Elemental(SVD svd)
   svd->ops->reset          = SVDReset_Elemental;
   PetscFunctionReturn(0);
 }
-

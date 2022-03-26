@@ -36,91 +36,81 @@ int main(int argc,char **argv)
   SVD            svd;
   PetscInt       m=15,n=20,p=21,Istart,Iend,i,j,d,col[2];
   PetscScalar    valsa[] = { 1, 2 }, valsb[] = { 2, 1 };
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT "\n\n",m,p,n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT "\n\n",m,p,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                      Generate the matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A1);CHKERRQ(ierr);
-  ierr = MatSetSizes(A1,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A1);CHKERRQ(ierr);
-  ierr = MatSetUp(A1);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A1,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A1));
+  PetscCall(MatSetSizes(A1,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A1));
+  PetscCall(MatSetUp(A1));
+  PetscCall(MatGetOwnershipRange(A1,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) {
-      ierr = MatSetValues(A1,1,&i,2,col,valsa,INSERT_VALUES);CHKERRQ(ierr);
-    } else if (i==n-1) {
-      ierr = MatSetValue(A1,i,col[0],valsa[0],INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i<n-1) PetscCall(MatSetValues(A1,1,&i,2,col,valsa,INSERT_VALUES));
+    else if (i==n-1) PetscCall(MatSetValue(A1,i,col[0],valsa[0],INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A1,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A1,MAT_FINAL_ASSEMBLY));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A2);CHKERRQ(ierr);
-  ierr = MatSetSizes(A2,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A2);CHKERRQ(ierr);
-  ierr = MatSetUp(A2);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A2,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A2));
+  PetscCall(MatSetSizes(A2,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A2));
+  PetscCall(MatSetUp(A2));
+  PetscCall(MatGetOwnershipRange(A2,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i;
-    if (i==0) {
-      ierr = MatSetValue(A2,i,col[1],valsb[1],INSERT_VALUES);CHKERRQ(ierr);
-    } else if (i<n) {
-      ierr = MatSetValues(A2,1,&i,2,col,valsb,INSERT_VALUES);CHKERRQ(ierr);
-    } else if (i==n) {
-      ierr = MatSetValue(A2,i,col[0],valsb[0],INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i==0) PetscCall(MatSetValue(A2,i,col[1],valsb[1],INSERT_VALUES));
+    else if (i<n) PetscCall(MatSetValues(A2,1,&i,2,col,valsb,INSERT_VALUES));
+    else if (i==n) PetscCall(MatSetValue(A2,i,col[0],valsb[0],INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A2,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A2,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A2,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A2,MAT_FINAL_ASSEMBLY));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-  ierr = MatSetUp(B);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+  PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
+  PetscCall(MatSetFromOptions(B));
+  PetscCall(MatSetUp(B));
+  PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
   d = PetscMax(0,n-p);
   for (i=Istart;i<Iend;i++) {
-    for (j=0;j<=PetscMin(i,n-1);j++) {
-      ierr = MatSetValue(B,i,j+d,1.0,INSERT_VALUES);CHKERRQ(ierr);
-    }
+    for (j=0;j<=PetscMin(i,n-1);j++) PetscCall(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
          Create the singular value solver, set options and solve
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A1,B);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_NORM,NULL);CHKERRQ(ierr);
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A1,B));
+  PetscCall(SVDSetFromOptions(svd));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_NORM,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Solve second problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDSetOperators(svd,A2,B);CHKERRQ(ierr);
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_NORM,NULL);CHKERRQ(ierr);
+  PetscCall(SVDSetOperators(svd,A2,B));
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_NORM,NULL));
 
   /* Free work space */
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A1);CHKERRQ(ierr);
-  ierr = MatDestroy(&A2);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A1));
+  PetscCall(MatDestroy(&A2));
+  PetscCall(MatDestroy(&B));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

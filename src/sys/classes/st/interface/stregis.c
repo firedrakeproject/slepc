@@ -28,17 +28,14 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST);
 @*/
 PetscErrorCode STRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (STRegisterAllCalled) PetscFunctionReturn(0);
   STRegisterAllCalled = PETSC_TRUE;
-  ierr = STRegister(STSHELL,STCreate_Shell);CHKERRQ(ierr);
-  ierr = STRegister(STSHIFT,STCreate_Shift);CHKERRQ(ierr);
-  ierr = STRegister(STSINVERT,STCreate_Sinvert);CHKERRQ(ierr);
-  ierr = STRegister(STCAYLEY,STCreate_Cayley);CHKERRQ(ierr);
-  ierr = STRegister(STPRECOND,STCreate_Precond);CHKERRQ(ierr);
-  ierr = STRegister(STFILTER,STCreate_Filter);CHKERRQ(ierr);
+  PetscCall(STRegister(STSHELL,STCreate_Shell));
+  PetscCall(STRegister(STSHIFT,STCreate_Shift));
+  PetscCall(STRegister(STSINVERT,STCreate_Sinvert));
+  PetscCall(STRegister(STCAYLEY,STCreate_Cayley));
+  PetscCall(STRegister(STPRECOND,STCreate_Precond));
+  PetscCall(STRegister(STFILTER,STCreate_Filter));
   PetscFunctionReturn(0);
 }
-

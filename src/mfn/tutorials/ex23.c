@@ -30,32 +30,31 @@ int main(int argc,char **argv)
   PetscScalar        t=2.0;
   Vec                v,y;
   PetscInt           N,m=15,ncv,maxit,its;
-  PetscErrorCode     ierr;
   MFNConvergedReason reason;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
   N = m*(m+1)/2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov y=exp(t*A)*e_1, N=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",N,m);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nMarkov y=exp(t*A)*e_1, N=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",N,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             Compute the transition probability matrix, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatMarkovModel(m,A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatMarkovModel(m,A));
 
   /* set v = e_1 */
-  ierr = MatCreateVecs(A,NULL,&y);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
-  ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+  PetscCall(MatCreateVecs(A,NULL,&y));
+  PetscCall(MatCreateVecs(A,NULL,&v));
+  PetscCall(VecSetValue(v,0,1.0,INSERT_VALUES));
+  PetscCall(VecAssemblyBegin(v));
+  PetscCall(VecAssemblyEnd(v));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
@@ -63,55 +62,55 @@ int main(int argc,char **argv)
   /*
      Create matrix function solver context
   */
-  ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
+  PetscCall(MFNCreate(PETSC_COMM_WORLD,&mfn));
 
   /*
      Set operator matrix, the function to compute, and other options
   */
-  ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
-  ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
-  ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);
-  ierr = MFNSetTolerances(mfn,1e-07,PETSC_DEFAULT);CHKERRQ(ierr);
+  PetscCall(MFNSetOperator(mfn,A));
+  PetscCall(MFNGetFN(mfn,&f));
+  PetscCall(FNSetType(f,FNEXP));
+  PetscCall(FNSetScale(f,t,1.0));
+  PetscCall(MFNSetTolerances(mfn,1e-07,PETSC_DEFAULT));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
+  PetscCall(MFNSetFromOptions(mfn));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
-  ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
+  PetscCall(MFNSolve(mfn,v,y));
+  PetscCall(MFNGetConvergedReason(mfn,&reason));
   PetscCheck(reason>=0,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
-  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
+  PetscCall(VecNorm(y,NORM_2,&norm));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = MFNGetIterationNumber(mfn,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its);CHKERRQ(ierr);
-  ierr = MFNGetDimensions(mfn,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv);CHKERRQ(ierr);
-  ierr = MFNGetTolerances(mfn,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
+  PetscCall(MFNGetIterationNumber(mfn,&its));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
+  PetscCall(MFNGetDimensions(mfn,&ncv));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv));
+  PetscCall(MFNGetTolerances(mfn,&tol,&maxit));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm));
 
   /*
      Free work space
   */
-  ierr = MFNDestroy(&mfn);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(MFNDestroy(&mfn));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&y));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*
@@ -123,10 +122,9 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   const PetscReal cst = 0.5/(PetscReal)(m-1);
   PetscReal       pd,pu;
   PetscInt        Istart,Iend,i,j,jmax,ix=0;
-  PetscErrorCode  ierr;
 
   PetscFunctionBeginUser;
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=1;i<=m;i++) {
     jmax = m-i+1;
     for (j=1;j<=jmax;j++) {
@@ -135,31 +133,21 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
       if (j!=jmax) {
         pd = cst*(PetscReal)(i+j-1);
         /* north */
-        if (i==1) {
-          ierr = MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES);CHKERRQ(ierr);
-        } else {
-          ierr = MatSetValue(A,ix-1,ix,pd,INSERT_VALUES);CHKERRQ(ierr);
-        }
+        if (i==1) PetscCall(MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES));
+        else PetscCall(MatSetValue(A,ix-1,ix,pd,INSERT_VALUES));
         /* east */
-        if (j==1) {
-          ierr = MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES);CHKERRQ(ierr);
-        } else {
-          ierr = MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES);CHKERRQ(ierr);
-        }
+        if (j==1) PetscCall(MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES));
+        else PetscCall(MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES));
       }
       /* south */
       pu = 0.5 - cst*(PetscReal)(i+j-3);
-      if (j>1) {
-        ierr = MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES);CHKERRQ(ierr);
-      }
+      if (j>1) PetscCall(MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES));
       /* west */
-      if (i>1) {
-        ierr = MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES);CHKERRQ(ierr);
-      }
+      if (i>1) PetscCall(MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES));
     }
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
 }
 

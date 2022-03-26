@@ -78,22 +78,19 @@ struct _p_MFN {
 */
 static inline PetscErrorCode MFN_CreateDenseMat(PetscInt k,Mat *A)
 {
-  PetscErrorCode ierr;
   PetscBool      create=PETSC_FALSE;
   PetscInt       m,n;
 
   PetscFunctionBegin;
   if (!*A) create=PETSC_TRUE;
   else {
-    ierr = MatGetSize(*A,&m,&n);CHKERRQ(ierr);
+    PetscCall(MatGetSize(*A,&m,&n));
     if (m!=k || n!=k) {
-      ierr = MatDestroy(A);CHKERRQ(ierr);
+      PetscCall(MatDestroy(A));
       create=PETSC_TRUE;
     }
   }
-  if (create) {
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,A);CHKERRQ(ierr);
-  }
+  if (create) PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,A));
   PetscFunctionReturn(0);
 }
 
@@ -102,22 +99,19 @@ static inline PetscErrorCode MFN_CreateDenseMat(PetscInt k,Mat *A)
 */
 static inline PetscErrorCode MFN_CreateVec(PetscInt k,Vec *v)
 {
-  PetscErrorCode ierr;
   PetscBool      create=PETSC_FALSE;
   PetscInt       n;
 
   PetscFunctionBegin;
   if (!*v) create=PETSC_TRUE;
   else {
-    ierr = VecGetSize(*v,&n);CHKERRQ(ierr);
+    PetscCall(VecGetSize(*v,&n));
     if (n!=k) {
-      ierr = VecDestroy(v);CHKERRQ(ierr);
+      PetscCall(VecDestroy(v));
       create=PETSC_TRUE;
     }
   }
-  if (create) {
-    ierr = VecCreateSeq(PETSC_COMM_SELF,k,v);CHKERRQ(ierr);
-  }
+  if (create) PetscCall(VecCreateSeq(PETSC_COMM_SELF,k,v));
   PetscFunctionReturn(0);
 }
 

@@ -21,7 +21,6 @@
 */
 PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ldt,PetscInt idx,PetscScalar *Tpp,PetscInt ldtpp,PetscScalar *Tp,PetscInt ldtp,PetscScalar *Tj,PetscInt ldtj)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      *ca,*cb,*cg;
   PetscScalar    g,a;
@@ -30,20 +29,18 @@ PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ld
   PetscFunctionBegin;
   if (idx==0) {
     for (i=0;i<k;i++) {
-      ierr = PetscArrayzero(Tj+i*ldtj,k);CHKERRQ(ierr);
+      PetscCall(PetscArrayzero(Tj+i*ldtj,k));
       Tj[i+i*ldtj] = 1.0;
     }
   } else {
-    ierr = PetscBLASIntCast(ldt,&ldt_);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(ldtj,&ldtj_);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(ldtp,&ldtp_);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
+    PetscCall(PetscBLASIntCast(ldt,&ldt_));
+    PetscCall(PetscBLASIntCast(ldtj,&ldtj_));
+    PetscCall(PetscBLASIntCast(ldtp,&ldtp_));
+    PetscCall(PetscBLASIntCast(k,&k_));
     ca = pep->pbc; cb = pep->pbc+pep->nmat; cg = pep->pbc+2*pep->nmat;
     for (i=0;i<k;i++) T[i*ldt+i] -= cb[idx-1];
     if (idx>1) {
-      for (i=0;i<k;i++) {
-        ierr = PetscArraycpy(Tj+i*ldtj,Tpp+i*ldtpp,k);CHKERRQ(ierr);
-      }
+      for (i=0;i<k;i++) PetscCall(PetscArraycpy(Tj+i*ldtj,Tpp+i*ldtpp,k));
     }
     a = 1/ca[idx-1];
     g = (idx==1)?0.0:-cg[idx-1]/ca[idx-1];
@@ -83,12 +80,11 @@ PetscErrorCode PEPEvaluateBasis(PEP pep,PetscScalar sigma,PetscScalar isigma,Pet
 */
 PetscErrorCode PEPEvaluateBasisDerivative(PEP pep,PetscScalar sigma,PetscScalar isigma,PetscScalar *vals,PetscScalar *ivals)
 {
-  PetscErrorCode ierr;
   PetscInt       nmat=pep->nmat,k;
   PetscReal      *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
 
   PetscFunctionBegin;
-  ierr = PEPEvaluateBasis(pep,sigma,isigma,vals,ivals);CHKERRQ(ierr);
+  PetscCall(PEPEvaluateBasis(pep,sigma,isigma,vals,ivals));
   for (k=nmat-1;k>0;k--) {
     vals[k] = vals[k-1];
     if (ivals) ivals[k] = ivals[k-1];
@@ -111,4 +107,3 @@ PetscErrorCode PEPEvaluateBasisDerivative(PEP pep,PetscScalar sigma,PetscScalar 
   }
   PetscFunctionReturn(0);
 }
-

@@ -14,45 +14,44 @@ static char help[] = "Test DSSortWithPermutation() on a NHEP.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
   PetscScalar    *A,*wr,*wi;
   PetscReal      re,im;
   PetscInt       i,j,n=12,*perm;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type NHEP - dimension %" PetscInt_FMT ".\n",n));
 
   /* Create DS object */
-  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
-  ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
-  ierr = DSAllocate(ds,n);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
+  PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
+  PetscCall(DSSetType(ds,DSNHEP));
+  PetscCall(DSSetFromOptions(ds));
+  PetscCall(DSAllocate(ds,n));
+  PetscCall(DSSetDimensions(ds,n,0,0));
 
   /* Fill with Grcar matrix */
-  ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  PetscCall(DSGetArray(ds,DS_MAT_A,&A));
   for (i=1;i<n;i++) A[i+(i-1)*n]=-1.0;
   for (j=0;j<4;j++) {
     for (i=0;i<n-j;i++) A[i+(i+j)*n]=1.0;
   }
-  ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = DSSetState(ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
+  PetscCall(DSSetState(ds,DS_STATE_INTERMEDIATE));
 
   /* Solve */
-  ierr = PetscMalloc3(n,&wr,n,&wi,n,&perm);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  PetscCall(PetscMalloc3(n,&wr,n,&wi,n,&perm));
+  PetscCall(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
-  ierr = DSSort(ds,wr,wi,NULL,NULL,NULL);CHKERRQ(ierr);
+  PetscCall(DSSolve(ds,wr,wi));
+  PetscCall(DSSort(ds,wr,wi,NULL,NULL,NULL));
 
   /* Print eigenvalues */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n");CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n"));
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(wr[i]);
@@ -61,18 +60,15 @@ int main(int argc,char **argv)
     re = wr[i];
     im = wi[i];
 #endif
-    if (PetscAbs(im)<1e-10) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re);CHKERRQ(ierr);
-    } else {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
-    }
+    if (PetscAbs(im)<1e-10) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
+    else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
 
   /* Reorder eigenvalues */
   for (i=0;i<n/2;i++) perm[i] = n/2+i;
   for (i=0;i<n/2;i++) perm[i+n/2] = i;
-  ierr = DSSortWithPermutation(ds,perm,wr,wi);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Reordered eigenvalues =\n");CHKERRQ(ierr);
+  PetscCall(DSSortWithPermutation(ds,perm,wr,wi));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Reordered eigenvalues =\n"));
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(wr[i]);
@@ -81,17 +77,14 @@ int main(int argc,char **argv)
     re = wr[i];
     im = wi[i];
 #endif
-    if (PetscAbs(im)<1e-10) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re);CHKERRQ(ierr);
-    } else {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
-    }
+    if (PetscAbs(im)<1e-10) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  %.5f\n",(double)re));
+    else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  %.5f%+.5fi\n",(double)re,(double)im));
   }
 
-  ierr = PetscFree3(wr,wi,perm);CHKERRQ(ierr);
-  ierr = DSDestroy(&ds);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(PetscFree3(wr,wi,perm));
+  PetscCall(DSDestroy(&ds));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -16,53 +16,50 @@ int main(int argc,char **argv)
 {
   Mat            T,E,A;
   PetscInt       i,Istart,Iend,n=10;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"MatCreateTile test, n=%" PetscInt_FMT "\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"MatCreateTile test, n=%" PetscInt_FMT "\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create T=tridiag([-1 2 -1],n,n) and E=eye(n)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&T);CHKERRQ(ierr);
-  ierr = MatSetSizes(T,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(T);CHKERRQ(ierr);
-  ierr = MatSetUp(T);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&T));
+  PetscCall(MatSetSizes(T,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(T));
+  PetscCall(MatSetUp(T));
 
-  ierr = MatGetOwnershipRange(T,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(T,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(T,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(T,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(T,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(T,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(T,i,i+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(T,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(T,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(T,MAT_FINAL_ASSEMBLY));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&E);CHKERRQ(ierr);
-  ierr = MatSetSizes(E,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(E);CHKERRQ(ierr);
-  ierr = MatSetUp(E);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&E));
+  PetscCall(MatSetSizes(E,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(E));
+  PetscCall(MatSetUp(E));
 
-  ierr = MatGetOwnershipRange(E,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(E,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(E,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(E,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(E,&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(E,i,i,1.0,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(E,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(E,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create tiled matrix A = [ 2*T -E; 0 3*T ]
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MatCreateTile(2.0,T,-1.0,E,0.0,E,3.0,T,&A);CHKERRQ(ierr);
-  ierr = MatView(A,NULL);CHKERRQ(ierr);
+  PetscCall(MatCreateTile(2.0,T,-1.0,E,0.0,E,3.0,T,&A));
+  PetscCall(MatView(A,NULL));
 
-  ierr = MatDestroy(&T);CHKERRQ(ierr);
-  ierr = MatDestroy(&E);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(MatDestroy(&T));
+  PetscCall(MatDestroy(&E));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

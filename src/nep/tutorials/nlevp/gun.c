@@ -33,7 +33,6 @@ static char help[] = "Radio-frequency gun cavity.\n\n"
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   Mat            A[NMAT];         /* problem matrices */
   FN             f[NMAT];         /* functions to define the nonlinear operator */
   FN             ff[2];           /* auxiliary functions to define the nonlinear operator */
@@ -45,9 +44,9 @@ int main(int argc,char **argv)
   PetscInt       i;
   PetscViewer    viewer;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"GUN problem\n\n");CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"GUN problem\n\n"));
 #if !defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires complex scalars!");
 #endif
@@ -57,13 +56,13 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   for (i=0;i<NMAT;i++) {
-    ierr = PetscOptionsGetString(NULL,NULL,string[i],filename,sizeof(filename),&flg);CHKERRQ(ierr);
+    PetscCall(PetscOptionsGetString(NULL,NULL,string[i],filename,sizeof(filename),&flg));
     PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a filename with the %s option",string[i]);
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A[i]);CHKERRQ(ierr);
-    ierr = MatLoad(A[i],viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A[i]));
+    PetscCall(MatSetFromOptions(A[i]));
+    PetscCall(MatLoad(A[i],viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -71,69 +70,66 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* f1=1 */
-  ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
-  ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[0]));
+  PetscCall(FNSetType(f[0],FNRATIONAL));
   numer[0] = 1.0;
-  ierr = FNRationalSetNumerator(f[0],1,numer);CHKERRQ(ierr);
+  PetscCall(FNRationalSetNumerator(f[0],1,numer));
 
   /* f2=-lambda */
-  ierr = FNCreate(PETSC_COMM_WORLD,&f[1]);CHKERRQ(ierr);
-  ierr = FNSetType(f[1],FNRATIONAL);CHKERRQ(ierr);
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[1]));
+  PetscCall(FNSetType(f[1],FNRATIONAL));
   numer[0] = -1.0; numer[1] = 0.0;
-  ierr = FNRationalSetNumerator(f[1],2,numer);CHKERRQ(ierr);
+  PetscCall(FNRationalSetNumerator(f[1],2,numer));
 
   /* f3=i*sqrt(lambda) */
-  ierr = FNCreate(PETSC_COMM_WORLD,&f[2]);CHKERRQ(ierr);
-  ierr = FNSetType(f[2],FNSQRT);CHKERRQ(ierr);
-  ierr = FNSetScale(f[2],1.0,PETSC_i);CHKERRQ(ierr);
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[2]));
+  PetscCall(FNSetType(f[2],FNSQRT));
+  PetscCall(FNSetScale(f[2],1.0,PETSC_i));
 
   /* f4=i*sqrt(lambda-sigma^2) */
   sigma = SIGMA*SIGMA;
-  ierr = FNCreate(PETSC_COMM_WORLD,&ff[0]);CHKERRQ(ierr);
-  ierr = FNSetType(ff[0],FNSQRT);CHKERRQ(ierr);
-  ierr = FNCreate(PETSC_COMM_WORLD,&ff[1]);CHKERRQ(ierr);
-  ierr = FNSetType(ff[1],FNRATIONAL);CHKERRQ(ierr);
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&ff[0]));
+  PetscCall(FNSetType(ff[0],FNSQRT));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&ff[1]));
+  PetscCall(FNSetType(ff[1],FNRATIONAL));
   numer[0] = 1.0; numer[1] = -sigma;
-  ierr = FNRationalSetNumerator(ff[1],2,numer);CHKERRQ(ierr);
-  ierr = FNCreate(PETSC_COMM_WORLD,&f[3]);CHKERRQ(ierr);
-  ierr = FNSetType(f[3],FNCOMBINE);CHKERRQ(ierr);
-  ierr = FNCombineSetChildren(f[3],FN_COMBINE_COMPOSE,ff[1],ff[0]);CHKERRQ(ierr);
-  ierr = FNSetScale(f[3],1.0,PETSC_i);CHKERRQ(ierr);
+  PetscCall(FNRationalSetNumerator(ff[1],2,numer));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[3]));
+  PetscCall(FNSetType(f[3],FNCOMBINE));
+  PetscCall(FNCombineSetChildren(f[3],FN_COMBINE_COMPOSE,ff[1],ff[0]));
+  PetscCall(FNSetScale(f[3],1.0,PETSC_i));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
-  ierr = NEPSetSplitOperator(nep,4,A,f,UNKNOWN_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
+  PetscCall(NEPCreate(PETSC_COMM_WORLD,&nep));
+  PetscCall(NEPSetSplitOperator(nep,4,A,f,UNKNOWN_NONZERO_PATTERN));
+  PetscCall(NEPSetFromOptions(nep));
 
-  ierr = NEPSolve(nep);CHKERRQ(ierr);
+  PetscCall(NEPSolve(nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = NEPDestroy(&nep);CHKERRQ(ierr);
+  PetscCall(NEPDestroy(&nep));
   for (i=0;i<NMAT;i++) {
-    ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
-    ierr = FNDestroy(&f[i]);CHKERRQ(ierr);
+    PetscCall(MatDestroy(&A[i]));
+    PetscCall(FNDestroy(&f[i]));
   }
-  for (i=0;i<2;i++) {
-    ierr = FNDestroy(&ff[i]);CHKERRQ(ierr);
-  }
-  ierr = SlepcFinalize();
-  return ierr;
+  for (i=0;i<2;i++) PetscCall(FNDestroy(&ff[i]));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

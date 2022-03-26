@@ -18,55 +18,54 @@ int main(int argc,char **argv)
   EPS            eps;
   PetscReal      tol=PetscMax(1000*PETSC_MACHINE_EPSILON,1e-9);
   PetscInt       n=30,i,Istart,Iend,nev,ncv;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the solver, call EPSSolve() twice
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* First solve */
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - First solve, default subspace dimension - - -\n");CHKERRQ(ierr);
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," - - - First solve, default subspace dimension - - -\n"));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
 
   /* Second solve */
-  ierr = EPSGetDimensions(eps,&nev,&ncv,NULL);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(eps,nev,ncv+2,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," - - - Second solve, subspace of increased size - - -\n");CHKERRQ(ierr);
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  PetscCall(EPSGetDimensions(eps,&nev,&ncv,NULL));
+  PetscCall(EPSSetDimensions(eps,nev,ncv+2,PETSC_DEFAULT));
+  PetscCall(EPSSolve(eps));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," - - - Second solve, subspace of increased size - - -\n"));
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
 
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

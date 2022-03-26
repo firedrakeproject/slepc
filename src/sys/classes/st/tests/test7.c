@@ -23,72 +23,69 @@ int main(int argc,char **argv)
   PetscBool      flg;
   PetscScalar    sigma;
   PetscInt       n=10,i,Istart,Iend;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix for the 1-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,&v,&w);CHKERRQ(ierr);
-  ierr = VecSet(v,1.0);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,&v,&w));
+  PetscCall(VecSet(v,1.0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the split preconditioner matrix (one diagonal)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&Pa);CHKERRQ(ierr);
-  ierr = MatSetSizes(Pa,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(Pa);CHKERRQ(ierr);
-  ierr = MatSetUp(Pa);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&Pa));
+  PetscCall(MatSetSizes(Pa,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(Pa));
+  PetscCall(MatSetUp(Pa));
 
-  ierr = MatGetOwnershipRange(Pa,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(Pa,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(Pa,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(Pa,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(Pa,&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(Pa,i,i,2.0,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(Pa,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(Pa,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the spectral transformation object
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = STCreate(PETSC_COMM_WORLD,&st);CHKERRQ(ierr);
+  PetscCall(STCreate(PETSC_COMM_WORLD,&st));
   mat[0] = A;
-  ierr = STSetMatrices(st,1,mat);CHKERRQ(ierr);
+  PetscCall(STSetMatrices(st,1,mat));
   mat[0] = Pa;
-  ierr = STSetSplitPreconditioner(st,1,mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = STSetTransform(st,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = STSetFromOptions(st);CHKERRQ(ierr);
-  ierr = STCayleySetAntishift(st,-0.3);CHKERRQ(ierr);   /* only relevant for cayley */
+  PetscCall(STSetSplitPreconditioner(st,1,mat,SAME_NONZERO_PATTERN));
+  PetscCall(STSetTransform(st,PETSC_TRUE));
+  PetscCall(STSetFromOptions(st));
+  PetscCall(STCayleySetAntishift(st,-0.3));   /* only relevant for cayley */
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                Form the preconditioner matrix and print it
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompareAny((PetscObject)st,&flg,STSINVERT,STCAYLEY,""));
   if (flg) {
-    ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = STGetOperator(st,NULL);CHKERRQ(ierr);
-    ierr = PCGetOperators(pc,NULL,&Pmat);CHKERRQ(ierr);
-    ierr = MatView(Pmat,NULL);CHKERRQ(ierr);
+    PetscCall(STGetKSP(st,&ksp));
+    PetscCall(KSPGetPC(ksp,&pc));
+    PetscCall(STGetOperator(st,NULL));
+    PetscCall(PCGetOperators(pc,NULL,&Pmat));
+    PetscCall(MatView(Pmat,NULL));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -96,32 +93,32 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* sigma=0.0 */
-  ierr = STSetUp(st);CHKERRQ(ierr);
-  ierr = STGetType(st,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STSetUp(st));
+  PetscCall(STGetType(st,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* sigma=0.1 */
   sigma = 0.1;
-  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
+  PetscCall(STSetShift(st,sigma));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
   if (flg) {
-    ierr = STGetOperator(st,NULL);CHKERRQ(ierr);
-    ierr = PCGetOperators(pc,NULL,&Pmat);CHKERRQ(ierr);
-    ierr = MatView(Pmat,NULL);CHKERRQ(ierr);
+    PetscCall(STGetOperator(st,NULL));
+    PetscCall(PCGetOperators(pc,NULL,&Pmat));
+    PetscCall(MatView(Pmat,NULL));
   }
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
-  ierr = STDestroy(&st);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&Pa);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(STDestroy(&st));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&Pa));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&w));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

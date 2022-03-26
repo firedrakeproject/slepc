@@ -14,7 +14,6 @@ static char help[] = "Test DSGSVD.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
   Mat            X;
@@ -25,33 +24,33 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD - dimension (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT ".\n",n,p,m);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GSVD - dimension (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT ".\n",n,p,m));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
 
   /* Create DS object */
-  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
-  ierr = DSSetType(ds,DSGSVD);CHKERRQ(ierr);
-  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
+  PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
+  PetscCall(DSSetType(ds,DSGSVD));
+  PetscCall(DSSetFromOptions(ds));
   ld   = PetscMax(PetscMax(p,m),n)+2;  /* test leading dimension larger than n */
-  ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
-  ierr = DSGSVDSetDimensions(ds,m,p);CHKERRQ(ierr);
-  ierr = DSGSVDGetDimensions(ds,&m1,&p1);CHKERRQ(ierr);
+  PetscCall(DSAllocate(ds,ld));
+  PetscCall(DSSetDimensions(ds,n,0,0));
+  PetscCall(DSGSVDSetDimensions(ds,m,p));
+  PetscCall(DSGSVDGetDimensions(ds,&m1,&p1));
   PetscCheck(m1==m && p1==p,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension values");
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = DSView(ds,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
+  PetscCall(DSView(ds,viewer));
+  PetscCall(PetscViewerPopFormat(viewer));
 
   k = PetscMin(n,m);
   /* Fill A with a rectangular Toeplitz matrix */
-  ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  PetscCall(DSGetArray(ds,DS_MAT_A,&A));
   for (i=0;i<k;i++) A[i+i*ld]=1.0;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) { if ((i+j)<m) A[i+(i+j)*ld]=(PetscScalar)(j+1); }
@@ -59,80 +58,76 @@ int main(int argc,char **argv)
   for (j=1;j<n/2;j++) {
     for (i=0;i<n-j;i++) { if ((i+j)<n && i<m) A[(i+j)+i*ld]=-1.0; }
   }
-  ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
 
   k = PetscMin(p,m);
   /* Fill B with a shifted bidiagonal matrix */
-  ierr = DSGetArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
+  PetscCall(DSGetArray(ds,DS_MAT_B,&B));
   for (i=m-k;i<m;i++) {
     B[i-m+k+i*ld]=2.0-1.0/(PetscScalar)(i+1);
     if (i) B[i-1-m+k+i*ld]=1.0;
   }
-  ierr = DSRestoreArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(ds,DS_MAT_B,&B));
 
-  ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
+  PetscCall(DSSetState(ds,DS_STATE_RAW));
   if (verbose) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
   }
-  ierr = DSView(ds,viewer);CHKERRQ(ierr);
+  PetscCall(DSView(ds,viewer));
 
   /* Solve */
-  ierr = PetscMalloc1(m,&w);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  PetscCall(PetscMalloc1(m,&w));
+  PetscCall(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestReal;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
-  ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSSynchronize(ds,w,NULL);CHKERRQ(ierr);
+  PetscCall(DSSolve(ds,w,NULL));
+  PetscCall(DSSort(ds,w,NULL,NULL,NULL,NULL));
+  PetscCall(DSSynchronize(ds,w,NULL));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n"));
+    PetscCall(DSView(ds,viewer));
   }
   /* Print singular values */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed singular values =\n");CHKERRQ(ierr);
-  ierr = DSGetDimensions(ds,NULL,NULL,NULL,&k);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed singular values =\n"));
+  PetscCall(DSGetDimensions(ds,NULL,NULL,NULL,&k));
   for (i=0;i<k;i++) {
     sigma = PetscRealPart(w[i]);
-    ierr = PetscViewerASCIIPrintf(viewer,"  %g\n",(double)sigma);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  %g\n",(double)sigma));
   }
 
   /* Singular vectors */
-  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all singular vectors */
-  ierr = DSGetMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
-  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
-  ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
-  ierr = MatDestroy(&X);CHKERRQ(ierr);
-  ierr = VecDestroy(&x0);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st X vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+  PetscCall(DSVectors(ds,DS_MAT_X,NULL,NULL));  /* all singular vectors */
+  PetscCall(DSGetMat(ds,DS_MAT_X,&X));
+  PetscCall(MatCreateVecs(X,NULL,&x0));
+  PetscCall(MatGetColumnVector(X,x0,0));
+  PetscCall(VecNorm(x0,NORM_2,&rnorm));
+  PetscCall(MatDestroy(&X));
+  PetscCall(VecDestroy(&x0));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st X vector = %.3f\n",(double)rnorm));
 
-  ierr = DSGetMat(ds,DS_MAT_U,&X);CHKERRQ(ierr);
-  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
-  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
-  ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
-  ierr = MatDestroy(&X);CHKERRQ(ierr);
-  ierr = VecDestroy(&x0);CHKERRQ(ierr);
-  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
-  }
+  PetscCall(DSGetMat(ds,DS_MAT_U,&X));
+  PetscCall(MatCreateVecs(X,NULL,&x0));
+  PetscCall(MatGetColumnVector(X,x0,0));
+  PetscCall(VecNorm(x0,NORM_2,&rnorm));
+  PetscCall(MatDestroy(&X));
+  PetscCall(VecDestroy(&x0));
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm));
 
-  ierr = DSGetMat(ds,DS_MAT_V,&X);CHKERRQ(ierr);
-  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
-  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
-  ierr = VecNorm(x0,NORM_2,&rnorm);CHKERRQ(ierr);
-  ierr = MatDestroy(&X);CHKERRQ(ierr);
-  ierr = VecDestroy(&x0);CHKERRQ(ierr);
-  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm);CHKERRQ(ierr);
-  }
+  PetscCall(DSGetMat(ds,DS_MAT_V,&X));
+  PetscCall(MatCreateVecs(X,NULL,&x0));
+  PetscCall(MatGetColumnVector(X,x0,0));
+  PetscCall(VecNorm(x0,NORM_2,&rnorm));
+  PetscCall(MatDestroy(&X));
+  PetscCall(VecDestroy(&x0));
+  if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm));
 
-  ierr = PetscFree(w);CHKERRQ(ierr);
-  ierr = DSDestroy(&ds);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(PetscFree(w));
+  PetscCall(DSDestroy(&ds));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

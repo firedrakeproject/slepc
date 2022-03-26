@@ -54,7 +54,6 @@ struct _n_SlepcConvMon {
 */
 static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscScalar eigr,PetscScalar eigi)
 {
-  PetscErrorCode ierr;
   PetscReal      re,im;
 
   PetscFunctionBegin;
@@ -69,11 +68,8 @@ static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscS
   if (PetscAbs(im) && PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
   if (PetscAbs(re) && PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
   /* print as real if imaginary part is zero */
-  if (im!=0.0) {
-    ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
-  }
+  if (im!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im));
+  else PetscCall(PetscViewerASCIIPrintf(viewer,"%.5f",(double)re));
   PetscFunctionReturn(0);
 }
 
@@ -84,22 +80,21 @@ static inline PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscS
 */
 static inline PetscErrorCode SlepcViewEigenvector(PetscViewer viewer,Vec xr,Vec xi,const char *label,PetscInt index,PetscObject obj)
 {
-  PetscErrorCode ierr;
   size_t         count;
   char           vname[30];
   const char     *pname;
 
   PetscFunctionBegin;
-  ierr = PetscObjectGetName(obj,&pname);CHKERRQ(ierr);
-  ierr = PetscSNPrintfCount(vname,sizeof(vname),"%s%s",&count,label,PetscDefined(USE_COMPLEX)?"":"r");CHKERRQ(ierr);
+  PetscCall(PetscObjectGetName(obj,&pname));
+  PetscCall(PetscSNPrintfCount(vname,sizeof(vname),"%s%s",&count,label,PetscDefined(USE_COMPLEX)?"":"r"));
   count--;
-  ierr = PetscSNPrintf(vname+count,sizeof(vname)-count,"%" PetscInt_FMT "_%s",index,pname);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)xr,vname);CHKERRQ(ierr);
-  ierr = VecView(xr,viewer);CHKERRQ(ierr);
+  PetscCall(PetscSNPrintf(vname+count,sizeof(vname)-count,"%" PetscInt_FMT "_%s",index,pname));
+  PetscCall(PetscObjectSetName((PetscObject)xr,vname));
+  PetscCall(VecView(xr,viewer));
 #if !defined(PETSC_USE_COMPLEX)
   vname[count-1] = 'i';
-  ierr = PetscObjectSetName((PetscObject)xi,vname);CHKERRQ(ierr);
-  ierr = VecView(xi,viewer);CHKERRQ(ierr);
+  PetscCall(PetscObjectSetName((PetscObject)xi,vname));
+  PetscCall(VecView(xi,viewer));
 #endif
   PetscFunctionReturn(0);
 }

@@ -26,15 +26,14 @@ int main(int argc,char **argv)
   PetscReal          tol,norm,h,h2,peclet=0.5,epsilon=1.0,c,i1h,j1h;
   PetscScalar        t=1e-4,sone=1.0,value,upper,diag,lower;
   Vec                v;
-  PetscErrorCode     ierr;
   MFNConvergedReason reason;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-peclet",&peclet,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-steps",&steps,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-peclet",&peclet,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-steps",&steps,NULL));
   m = n;
   N = m*n;
   /* interval [0,1], homogeneous Dirichlet boundary conditions */
@@ -45,27 +44,27 @@ int main(int argc,char **argv)
   diag = 2.0*(-2.0*epsilon/h2);
   lower = epsilon/h2-c/(2.0*h);
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nAdvection diffusion via y=exp(%g*A), n=%" PetscInt_FMT ", steps=%" PetscInt_FMT ", Peclet=%g\n\n",(double)PetscRealPart(t),n,steps,(double)peclet);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nAdvection diffusion via y=exp(%g*A), n=%" PetscInt_FMT ", steps=%" PetscInt_FMT ", Peclet=%g\n\n",(double)PetscRealPart(t),n,steps,(double)peclet));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Generate matrix A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,lower,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,upper,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,lower,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,upper,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,diag,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,lower,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,upper,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,lower,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,upper,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,diag,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,NULL,&v));
 
   /*
      Set initial condition v = 256*i^2*(1-i)^2*j^2*(1-j)^2
@@ -74,51 +73,51 @@ int main(int argc,char **argv)
     i = II/n; j = II-i*n;
     i1h = (i+1)*h; j1h = (j+1)*h;
     value = 256.0*i1h*i1h*(1.0-i1h)*(1.0-i1h)*(j1h*j1h)*(1.0-j1h)*(1.0-j1h);
-    ierr = VecSetValue(v,i+j*n,value,INSERT_VALUES);CHKERRQ(ierr);
+    PetscCall(VecSetValue(v,i+j*n,value,INSERT_VALUES));
   }
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+  PetscCall(VecAssemblyBegin(v));
+  PetscCall(VecAssemblyEnd(v));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
-  ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
-  ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
-  ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetScale(f,t,sone);CHKERRQ(ierr);
-  ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
+  PetscCall(MFNCreate(PETSC_COMM_WORLD,&mfn));
+  PetscCall(MFNSetOperator(mfn,A));
+  PetscCall(MFNGetFN(mfn,&f));
+  PetscCall(FNSetType(f,FNEXP));
+  PetscCall(FNSetScale(f,t,sone));
+  PetscCall(MFNSetFromOptions(mfn));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   for (i=0;i<steps;i++) {
-    ierr = MFNSolve(mfn,v,v);CHKERRQ(ierr);
-    ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
+    PetscCall(MFNSolve(mfn,v,v));
+    PetscCall(MFNGetConvergedReason(mfn,&reason));
     PetscCheck(reason>=0,PETSC_COMM_WORLD,PETSC_ERR_CONV_FAILED,"Solver did not converge");
-    ierr = MFNGetIterationNumber(mfn,&its);CHKERRQ(ierr);
+    PetscCall(MFNGetIterationNumber(mfn,&its));
     totits += its;
   }
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",totits);CHKERRQ(ierr);
-  ierr = MFNGetDimensions(mfn,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv);CHKERRQ(ierr);
-  ierr = MFNGetTolerances(mfn,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
-  ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n",(double)PetscRealPart(t)*steps,(double)norm);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",totits));
+  PetscCall(MFNGetDimensions(mfn,&ncv));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv));
+  PetscCall(MFNGetTolerances(mfn,&tol,&maxit));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
+  PetscCall(VecNorm(v,NORM_2,&norm));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n",(double)PetscRealPart(t)*steps,(double)norm));
 
   /*
      Free work space
   */
-  ierr = MFNDestroy(&mfn);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(MFNDestroy(&mfn));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

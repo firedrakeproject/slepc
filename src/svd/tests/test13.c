@@ -35,59 +35,55 @@ int main(int argc,char **argv)
   PetscScalar     value[] = { 1, 2 };
   PetscBool       flg;
   SVDPRIMMEMethod meth;
-  PetscErrorCode  ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) {
-      ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-    } else if (i==n-1) {
-      ierr = MatSetValue(A,i,col[0],value[0],INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i<n-1) PetscCall(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
+    else if (i==n-1) PetscCall(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetType(svd,SVDPRIMME);CHKERRQ(ierr);
-  ierr = SVDPRIMMESetBlockSize(svd,4);CHKERRQ(ierr);
-  ierr = SVDPRIMMESetMethod(svd,SVD_PRIMME_HYBRID);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetType(svd,SVDPRIMME));
+  PetscCall(SVDPRIMMESetBlockSize(svd,4));
+  PetscCall(SVDPRIMMESetMethod(svd,SVD_PRIMME_HYBRID));
+  PetscCall(SVDSetFromOptions(svd));
 
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDPRIMMEGetBlockSize(svd,&bs);CHKERRQ(ierr);
-  ierr = SVDPRIMMEGetMethod(svd,&meth);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," PRIMME: using block size %" PetscInt_FMT ", method %s\n",bs,SVDPRIMMEMethods[meth]);CHKERRQ(ierr);
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDPRIMMEGetBlockSize(svd,&bs));
+  PetscCall(SVDPRIMMEGetMethod(svd,&meth));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," PRIMME: using block size %" PetscInt_FMT ", method %s\n",bs,SVDPRIMMEMethods[meth]));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

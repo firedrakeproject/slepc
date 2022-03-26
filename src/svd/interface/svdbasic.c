@@ -47,14 +47,13 @@ PetscBool         SVDMonitorRegisterAllCalled = PETSC_FALSE;
 @*/
 PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 {
-  PetscErrorCode ierr;
   SVD            svd;
 
   PetscFunctionBegin;
   PetscValidPointer(outsvd,2);
   *outsvd = 0;
-  ierr = SVDInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(svd,SVD_CLASSID,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView);CHKERRQ(ierr);
+  PetscCall(SVDInitializePackage());
+  PetscCall(SlepcHeaderCreate(svd,SVD_CLASSID,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView));
 
   svd->OP               = NULL;
   svd->OPb              = NULL;
@@ -111,7 +110,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->isgeneralized    = PETSC_FALSE;
   svd->reason           = SVD_CONVERGED_ITERATING;
 
-  ierr = PetscNewLog(svd,&svd->sc);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(svd,&svd->sc));
   *outsvd = svd;
   PetscFunctionReturn(0);
 }
@@ -131,23 +130,21 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 @*/
 PetscErrorCode SVDReset(SVD svd)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (svd) PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (!svd) PetscFunctionReturn(0);
-  if (svd->ops->reset) { ierr = (svd->ops->reset)(svd);CHKERRQ(ierr); }
-  ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->OPb);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->B);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
-  ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
-  ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(svd->nworkl,&svd->workl);CHKERRQ(ierr);
+  if (svd->ops->reset) PetscCall((svd->ops->reset)(svd));
+  PetscCall(MatDestroy(&svd->OP));
+  PetscCall(MatDestroy(&svd->OPb));
+  PetscCall(MatDestroy(&svd->A));
+  PetscCall(MatDestroy(&svd->B));
+  PetscCall(MatDestroy(&svd->AT));
+  PetscCall(MatDestroy(&svd->BT));
+  PetscCall(BVDestroy(&svd->U));
+  PetscCall(BVDestroy(&svd->V));
+  PetscCall(VecDestroyVecs(svd->nworkl,&svd->workl));
   svd->nworkl = 0;
-  ierr = VecDestroyVecs(svd->nworkr,&svd->workr);CHKERRQ(ierr);
+  PetscCall(VecDestroyVecs(svd->nworkr,&svd->workr));
   svd->nworkr = 0;
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -167,24 +164,20 @@ PetscErrorCode SVDReset(SVD svd)
 @*/
 PetscErrorCode SVDDestroy(SVD *svd)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (!*svd) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*svd,SVD_CLASSID,1);
   if (--((PetscObject)(*svd))->refct > 0) { *svd = 0; PetscFunctionReturn(0); }
-  ierr = SVDReset(*svd);CHKERRQ(ierr);
-  if ((*svd)->ops->destroy) { ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr); }
-  if ((*svd)->sigma) {
-    ierr = PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest);CHKERRQ(ierr);
-  }
-  ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
-  ierr = PetscFree((*svd)->sc);CHKERRQ(ierr);
+  PetscCall(SVDReset(*svd));
+  if ((*svd)->ops->destroy) PetscCall((*(*svd)->ops->destroy)(*svd));
+  if ((*svd)->sigma) PetscCall(PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest));
+  PetscCall(DSDestroy(&(*svd)->ds));
+  PetscCall(PetscFree((*svd)->sc));
   /* just in case the initial vectors have not been used */
-  ierr = SlepcBasisDestroy_Private(&(*svd)->nini,&(*svd)->IS);CHKERRQ(ierr);
-  ierr = SlepcBasisDestroy_Private(&(*svd)->ninil,&(*svd)->ISL);CHKERRQ(ierr);
-  ierr = SVDMonitorCancel(*svd);CHKERRQ(ierr);
-  ierr = PetscHeaderDestroy(svd);CHKERRQ(ierr);
+  PetscCall(SlepcBasisDestroy_Private(&(*svd)->nini,&(*svd)->IS));
+  PetscCall(SlepcBasisDestroy_Private(&(*svd)->ninil,&(*svd)->ISL));
+  PetscCall(SVDMonitorCancel(*svd));
+  PetscCall(PetscHeaderDestroy(svd));
   PetscFunctionReturn(0);
 }
 
@@ -219,25 +212,25 @@ PetscErrorCode SVDDestroy(SVD *svd)
 @*/
 PetscErrorCode SVDSetType(SVD svd,SVDType type)
 {
-  PetscErrorCode ierr,(*r)(SVD);
+  PetscErrorCode (*r)(SVD);
   PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)svd,type,&match);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)svd,type,&match));
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(SVDList,type,&r);CHKERRQ(ierr);
+  PetscCall(PetscFunctionListFind(SVDList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown SVD type given: %s",type);
 
-  if (svd->ops->destroy) { ierr = (*svd->ops->destroy)(svd);CHKERRQ(ierr); }
-  ierr = PetscMemzero(svd->ops,sizeof(struct _SVDOps));CHKERRQ(ierr);
+  if (svd->ops->destroy) PetscCall((*svd->ops->destroy)(svd));
+  PetscCall(PetscMemzero(svd->ops,sizeof(struct _SVDOps)));
 
   svd->state = SVD_STATE_INITIAL;
-  ierr = PetscObjectChangeTypeName((PetscObject)svd,type);CHKERRQ(ierr);
-  ierr = (*r)(svd);CHKERRQ(ierr);
+  PetscCall(PetscObjectChangeTypeName((PetscObject)svd,type));
+  PetscCall((*r)(svd));
   PetscFunctionReturn(0);
 }
 
@@ -293,11 +286,9 @@ $     -svd_type my_solver
 @*/
 PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = SVDInitializePackage();CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(&SVDList,name,function);CHKERRQ(ierr);
+  PetscCall(SVDInitializePackage());
+  PetscCall(PetscFunctionListAdd(&SVDList,name,function));
   PetscFunctionReturn(0);
 }
 
@@ -334,14 +325,13 @@ $      -svd_monitor_my_monitor
 PetscErrorCode SVDMonitorRegister(const char name[],PetscViewerType vtype,PetscViewerFormat format,PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscErrorCode (*create)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode (*destroy)(PetscViewerAndFormat**))
 {
   char           key[PETSC_MAX_PATH_LEN];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SVDInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(&SVDMonitorList,key,monitor);CHKERRQ(ierr);
-  if (create)  { ierr = PetscFunctionListAdd(&SVDMonitorCreateList,key,create);CHKERRQ(ierr); }
-  if (destroy) { ierr = PetscFunctionListAdd(&SVDMonitorDestroyList,key,destroy);CHKERRQ(ierr); }
+  PetscCall(SVDInitializePackage());
+  PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
+  PetscCall(PetscFunctionListAdd(&SVDMonitorList,key,monitor));
+  if (create)  PetscCall(PetscFunctionListAdd(&SVDMonitorCreateList,key,create));
+  if (destroy) PetscCall(PetscFunctionListAdd(&SVDMonitorDestroyList,key,destroy));
   PetscFunctionReturn(0);
 }
 
@@ -365,25 +355,23 @@ PetscErrorCode SVDMonitorRegister(const char name[],PetscViewerType vtype,PetscV
 @*/
 PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (V) {
     PetscValidHeaderSpecific(V,BV_CLASSID,2);
     PetscCheckSameComm(svd,1,V,2);
-    ierr = PetscObjectReference((PetscObject)V);CHKERRQ(ierr);
-    ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
+    PetscCall(PetscObjectReference((PetscObject)V));
+    PetscCall(BVDestroy(&svd->V));
     svd->V = V;
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->V);CHKERRQ(ierr);
+    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->V));
   }
   if (U) {
     PetscValidHeaderSpecific(U,BV_CLASSID,3);
     PetscCheckSameComm(svd,1,U,3);
-    ierr = PetscObjectReference((PetscObject)U);CHKERRQ(ierr);
-    ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
+    PetscCall(PetscObjectReference((PetscObject)U));
+    PetscCall(BVDestroy(&svd->U));
     svd->U = U;
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->U);CHKERRQ(ierr);
+    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->U));
   }
   PetscFunctionReturn(0);
 }
@@ -407,25 +395,23 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
 @*/
 PetscErrorCode SVDGetBV(SVD svd,BV *V,BV *U)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (V) {
     if (!svd->V) {
-      ierr = BVCreate(PetscObjectComm((PetscObject)svd),&svd->V);CHKERRQ(ierr);
-      ierr = PetscObjectIncrementTabLevel((PetscObject)svd->V,(PetscObject)svd,0);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->V);CHKERRQ(ierr);
-      ierr = PetscObjectSetOptions((PetscObject)svd->V,((PetscObject)svd)->options);CHKERRQ(ierr);
+      PetscCall(BVCreate(PetscObjectComm((PetscObject)svd),&svd->V));
+      PetscCall(PetscObjectIncrementTabLevel((PetscObject)svd->V,(PetscObject)svd,0));
+      PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->V));
+      PetscCall(PetscObjectSetOptions((PetscObject)svd->V,((PetscObject)svd)->options));
     }
     *V = svd->V;
   }
   if (U) {
     if (!svd->U) {
-      ierr = BVCreate(PetscObjectComm((PetscObject)svd),&svd->U);CHKERRQ(ierr);
-      ierr = PetscObjectIncrementTabLevel((PetscObject)svd->U,(PetscObject)svd,0);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->U);CHKERRQ(ierr);
-      ierr = PetscObjectSetOptions((PetscObject)svd->U,((PetscObject)svd)->options);CHKERRQ(ierr);
+      PetscCall(BVCreate(PetscObjectComm((PetscObject)svd),&svd->U));
+      PetscCall(PetscObjectIncrementTabLevel((PetscObject)svd->U,(PetscObject)svd,0));
+      PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->U));
+      PetscCall(PetscObjectSetOptions((PetscObject)svd->U,((PetscObject)svd)->options));
     }
     *U = svd->U;
   }
@@ -451,16 +437,14 @@ PetscErrorCode SVDGetBV(SVD svd,BV *V,BV *U)
 @*/
 PetscErrorCode SVDSetDS(SVD svd,DS ds)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(ds,DS_CLASSID,2);
   PetscCheckSameComm(svd,1,ds,2);
-  ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
-  ierr = DSDestroy(&svd->ds);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)ds));
+  PetscCall(DSDestroy(&svd->ds));
   svd->ds = ds;
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ds);CHKERRQ(ierr);
+  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ds));
   PetscFunctionReturn(0);
 }
 
@@ -482,18 +466,15 @@ PetscErrorCode SVDSetDS(SVD svd,DS ds)
 @*/
 PetscErrorCode SVDGetDS(SVD svd,DS *ds)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(ds,2);
   if (!svd->ds) {
-    ierr = DSCreate(PetscObjectComm((PetscObject)svd),&svd->ds);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)svd->ds,(PetscObject)svd,0);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ds);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)svd->ds,((PetscObject)svd)->options);CHKERRQ(ierr);
+    PetscCall(DSCreate(PetscObjectComm((PetscObject)svd),&svd->ds));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)svd->ds,(PetscObject)svd,0));
+    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ds));
+    PetscCall(PetscObjectSetOptions((PetscObject)svd->ds,((PetscObject)svd)->options));
   }
   *ds = svd->ds;
   PetscFunctionReturn(0);
 }
-

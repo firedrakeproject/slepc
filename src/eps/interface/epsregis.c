@@ -61,49 +61,47 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS);
 @*/
 PetscErrorCode EPSRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (EPSRegisterAllCalled) PetscFunctionReturn(0);
   EPSRegisterAllCalled = PETSC_TRUE;
-  ierr = EPSRegister(EPSPOWER,EPSCreate_Power);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSSUBSPACE,EPSCreate_Subspace);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSARNOLDI,EPSCreate_Arnoldi);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSLANCZOS,EPSCreate_Lanczos);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSGD,EPSCreate_GD);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSJD,EPSCreate_JD);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSLOBPCG,EPSCreate_LOBPCG);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSCISS,EPSCreate_CISS);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSLYAPII,EPSCreate_LyapII);CHKERRQ(ierr);
-  ierr = EPSRegister(EPSLAPACK,EPSCreate_LAPACK);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSPOWER,EPSCreate_Power));
+  PetscCall(EPSRegister(EPSSUBSPACE,EPSCreate_Subspace));
+  PetscCall(EPSRegister(EPSARNOLDI,EPSCreate_Arnoldi));
+  PetscCall(EPSRegister(EPSLANCZOS,EPSCreate_Lanczos));
+  PetscCall(EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur));
+  PetscCall(EPSRegister(EPSGD,EPSCreate_GD));
+  PetscCall(EPSRegister(EPSJD,EPSCreate_JD));
+  PetscCall(EPSRegister(EPSRQCG,EPSCreate_RQCG));
+  PetscCall(EPSRegister(EPSLOBPCG,EPSCreate_LOBPCG));
+  PetscCall(EPSRegister(EPSCISS,EPSCreate_CISS));
+  PetscCall(EPSRegister(EPSLYAPII,EPSCreate_LyapII));
+  PetscCall(EPSRegister(EPSLAPACK,EPSCreate_LAPACK));
 #if defined(SLEPC_HAVE_ARPACK)
-  ierr = EPSRegister(EPSARPACK,EPSCreate_ARPACK);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSARPACK,EPSCreate_ARPACK));
 #endif
 #if defined(SLEPC_HAVE_TRLAN)
-  ierr = EPSRegister(EPSTRLAN,EPSCreate_TRLAN);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSTRLAN,EPSCreate_TRLAN));
 #endif
 #if defined(SLEPC_HAVE_BLOPEX)
-  ierr = EPSRegister(EPSBLOPEX,EPSCreate_BLOPEX);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSBLOPEX,EPSCreate_BLOPEX));
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
-  ierr = EPSRegister(EPSPRIMME,EPSCreate_PRIMME);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSPRIMME,EPSCreate_PRIMME));
 #endif
 #if defined(SLEPC_HAVE_FEAST)
-  ierr = EPSRegister(EPSFEAST,EPSCreate_FEAST);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSFEAST,EPSCreate_FEAST));
 #endif
 #if defined(SLEPC_HAVE_SCALAPACK)
-  ierr = EPSRegister(EPSSCALAPACK,EPSCreate_ScaLAPACK);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSSCALAPACK,EPSCreate_ScaLAPACK));
 #endif
 #if defined(SLEPC_HAVE_ELPA)
-  ierr = EPSRegister(EPSELPA,EPSCreate_ELPA);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSELPA,EPSCreate_ELPA));
 #endif
 #if defined(SLEPC_HAVE_ELEMENTAL)
-  ierr = EPSRegister(EPSELEMENTAL,EPSCreate_Elemental);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSELEMENTAL,EPSCreate_Elemental));
 #endif
 #if defined(SLEPC_HAVE_EVSL)
-  ierr = EPSRegister(EPSEVSL,EPSCreate_EVSL);CHKERRQ(ierr);
+  PetscCall(EPSRegister(EPSEVSL,EPSCreate_EVSL));
 #endif
   PetscFunctionReturn(0);
 }
@@ -119,18 +117,15 @@ PetscErrorCode EPSRegisterAll(void)
 @*/
 PetscErrorCode EPSMonitorRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (EPSMonitorRegisterAllCalled) PetscFunctionReturn(0);
   EPSMonitorRegisterAllCalled = PETSC_TRUE;
 
-  ierr = EPSMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorFirst,NULL,NULL);CHKERRQ(ierr);
-  ierr = EPSMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorFirstDrawLG,EPSMonitorFirstDrawLGCreate,NULL);CHKERRQ(ierr);
-  ierr = EPSMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorAll,NULL,NULL);CHKERRQ(ierr);
-  ierr = EPSMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorAllDrawLG,EPSMonitorAllDrawLGCreate,NULL);CHKERRQ(ierr);
-  ierr = EPSMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorConverged,EPSMonitorConvergedCreate,EPSMonitorConvergedDestroy);CHKERRQ(ierr);
-  ierr = EPSMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorConvergedDrawLG,EPSMonitorConvergedDrawLGCreate,EPSMonitorConvergedDestroy);CHKERRQ(ierr);
+  PetscCall(EPSMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorFirst,NULL,NULL));
+  PetscCall(EPSMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorFirstDrawLG,EPSMonitorFirstDrawLGCreate,NULL));
+  PetscCall(EPSMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorAll,NULL,NULL));
+  PetscCall(EPSMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorAllDrawLG,EPSMonitorAllDrawLGCreate,NULL));
+  PetscCall(EPSMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,EPSMonitorConverged,EPSMonitorConvergedCreate,EPSMonitorConvergedDestroy));
+  PetscCall(EPSMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,EPSMonitorConvergedDrawLG,EPSMonitorConvergedDrawLGCreate,EPSMonitorConvergedDestroy));
   PetscFunctionReturn(0);
 }
-

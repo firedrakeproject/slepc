@@ -32,38 +32,37 @@ int main(int argc,char **argv)
   PetscInt       N,n=10,nev;
   PetscMPIInt    size;
   PetscBool      terse;
-  PetscErrorCode ierr;
   ST             st;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRMPI(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCheck(size==1,PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,"This is a uniprocessor example only");
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   N = n*n;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem with shell matrices, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,n);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem with shell matrices, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* K is the 2-D Laplacian */
-  ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,&n,&K);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(K,MATOP_MULT,(void(*)(void))MatMult_Laplacian2D);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(K,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Laplacian2D);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(K,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Laplacian2D);CHKERRQ(ierr);
+  PetscCall(MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,&n,&K));
+  PetscCall(MatShellSetOperation(K,MATOP_MULT,(void(*)(void))MatMult_Laplacian2D));
+  PetscCall(MatShellSetOperation(K,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Laplacian2D));
+  PetscCall(MatShellSetOperation(K,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Laplacian2D));
 
   /* C is the zero matrix */
-  ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,NULL,&C);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(C,MATOP_MULT,(void(*)(void))MatMult_Zero);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(C,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Zero);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Zero);CHKERRQ(ierr);
+  PetscCall(MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,NULL,&C));
+  PetscCall(MatShellSetOperation(C,MATOP_MULT,(void(*)(void))MatMult_Zero));
+  PetscCall(MatShellSetOperation(C,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Zero));
+  PetscCall(MatShellSetOperation(C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Zero));
 
   /* M is the identity matrix */
-  ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,NULL,&M);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatMult_Identity);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(M,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Identity);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(M,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Identity);CHKERRQ(ierr);
+  PetscCall(MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,NULL,&M));
+  PetscCall(MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatMult_Identity));
+  PetscCall(MatShellSetOperation(M,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Identity));
+  PetscCall(MatShellSetOperation(M,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Identity));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -72,55 +71,54 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
 
   /*
      Set matrices and problem type
   */
   A[0] = K; A[1] = C; A[2] = M;
-  ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
-  ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
-  ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
+  PetscCall(PEPSetOperators(pep,3,A));
+  PetscCall(PEPGetST(pep,&st));
+  PetscCall(STSetMatMode(st,ST_MATMODE_SHELL));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
+  PetscCall(PEPSetFromOptions(pep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PEPSolve(pep);CHKERRQ(ierr);
+  PetscCall(PEPSolve(pep));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = PEPGetType(pep,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  PetscCall(PEPGetType(pep,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(PEPGetDimensions(pep,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = PEPErrorView(pep,PEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PEPErrorView(pep,PEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(PEPErrorView(pep,PEP_ERROR_RELATIVE,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PEPErrorView(pep,PEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = PEPDestroy(&pep);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = MatDestroy(&C);CHKERRQ(ierr);
-  ierr = MatDestroy(&K);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(PEPDestroy(&pep));
+  PetscCall(MatDestroy(&M));
+  PetscCall(MatDestroy(&C));
+  PetscCall(MatDestroy(&K));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*
@@ -165,13 +163,12 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y)
   int               nx,lo,i,j;
   const PetscScalar *px;
   PetscScalar       *py;
-  PetscErrorCode    ierr;
 
   PetscFunctionBeginUser;
-  ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
+  PetscCall(MatShellGetContext(A,&ctx));
   nx = *(int*)ctx;
-  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  PetscCall(VecGetArrayRead(x,&px));
+  PetscCall(VecGetArray(y,&py));
 
   tv(nx,&px[0],&py[0]);
   for (i=0;i<nx;i++) py[i] -= px[nx+i];
@@ -186,17 +183,15 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y)
   tv(nx,&px[lo],&py[lo]);
   for (i=0;i<nx;i++) py[lo+i] -= px[lo-nx+i];
 
-  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  PetscCall(VecRestoreArrayRead(x,&px));
+  PetscCall(VecRestoreArray(y,&py));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecSet(diag,4.0);CHKERRQ(ierr);
+  PetscCall(VecSet(diag,4.0));
   PetscFunctionReturn(0);
 }
 
@@ -205,19 +200,15 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
  */
 PetscErrorCode MatMult_Zero(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecSet(y,0.0);CHKERRQ(ierr);
+  PetscCall(VecSet(y,0.0));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatGetDiagonal_Zero(Mat A,Vec diag)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecSet(diag,0.0);CHKERRQ(ierr);
+  PetscCall(VecSet(diag,0.0));
   PetscFunctionReturn(0);
 }
 
@@ -226,19 +217,15 @@ PetscErrorCode MatGetDiagonal_Zero(Mat A,Vec diag)
  */
 PetscErrorCode MatMult_Identity(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode    ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecCopy(x,y);CHKERRQ(ierr);
+  PetscCall(VecCopy(x,y));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MatGetDiagonal_Identity(Mat A,Vec diag)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = VecSet(diag,1.0);CHKERRQ(ierr);
+  PetscCall(VecSet(diag,1.0));
   PetscFunctionReturn(0);
 }
 

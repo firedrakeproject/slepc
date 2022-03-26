@@ -16,26 +16,25 @@ int main(int argc,char **argv)
 {
   char           pkg[128] = "arpack";
   PetscBool      has,flg;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetString(NULL,NULL,"-pkg",pkg,sizeof(pkg),NULL);CHKERRQ(ierr);
-  ierr = SlepcHasExternalPackage(pkg,&has);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD, "SLEPc has %s? %s\n",pkg,PetscBools[has]);CHKERRQ(ierr);
-  ierr = PetscStrcmp(pkg,"arpack",&flg);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-pkg",pkg,sizeof(pkg),NULL));
+  PetscCall(SlepcHasExternalPackage(pkg,&has));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD, "SLEPc has %s? %s\n",pkg,PetscBools[has]));
+  PetscCall(PetscStrcmp(pkg,"arpack",&flg));
 #if defined(SLEPC_HAVE_ARPACK)
   PetscCheck(!flg || has,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"SlepcHasExternalPackage() says ARPACK is not configured but SLEPC_HAVE_ARPACK is defined");
 #else
   PetscCheck(!flg || !has,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"SlepcHasExternalPackage() says ARPACK is configured but SLEPC_HAVE_ARPACK is undefined");
 #endif
-  ierr = PetscStrcmp(pkg,"primme",&flg);CHKERRQ(ierr);
+  PetscCall(PetscStrcmp(pkg,"primme",&flg));
 #if defined(SLEPC_HAVE_PRIMME)
   PetscCheck(!flg || has,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"SlepcHasExternalPackage() says PRIMME is not configured but SLEPC_HAVE_PRIMME is defined");
 #else
   PetscCheck(!flg || !has,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"SlepcHasExternalPackage() says PRIMME is configured but SLEPC_HAVE_PRIMME is undefined");
 #endif
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

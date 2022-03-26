@@ -38,34 +38,30 @@ int main(int argc,char **argv)
   PetscInt       N=30,Istart,Iend,i,col[5],nconv1,nconv2;
   PetscScalar    value[] = { -1, 1, 1, 1, 1 };
   PetscReal      sigma_1,sigma_n;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%" PetscInt_FMT "\n\n",N));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i-1; col[1]=i; col[2]=i+1; col[3]=i+2; col[4]=i+3;
-    if (i==0) {
-      ierr = MatSetValues(A,1,&i,PetscMin(4,N-i),col+1,value+1,INSERT_VALUES);CHKERRQ(ierr);
-    } else {
-      ierr = MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i==0) PetscCall(MatSetValues(A,1,&i,PetscMin(4,N-i),col+1,value+1,INSERT_VALUES));
+    else PetscCall(MatSetValues(A,1,&i,PetscMin(5,N-i+1),col,value,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the singular value solver and set the solution method
@@ -74,18 +70,18 @@ int main(int argc,char **argv)
   /*
      Create singular value context
   */
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
 
   /*
      Set operator
   */
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
+  PetscCall(SVDSetOperators(svd,A,NULL));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
-  ierr = SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  PetscCall(SVDSetFromOptions(svd));
+  PetscCall(SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the singular value problem
@@ -94,56 +90,50 @@ int main(int argc,char **argv)
   /*
      First request a singular value from one end of the spectrum
   */
-  ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr);
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
+  PetscCall(SVDSetWhichSingularTriplets(svd,SVD_LARGEST));
+  PetscCall(SVDSolve(svd));
   /*
      Get number of converged singular values
   */
-  ierr = SVDGetConverged(svd,&nconv1);CHKERRQ(ierr);
+  PetscCall(SVDGetConverged(svd,&nconv1));
   /*
      Get converged singular values: largest singular value is stored in sigma_1.
      In this example, we are not interested in the singular vectors
   */
-  if (nconv1 > 0) {
-    ierr = SVDGetSingularTriplet(svd,0,&sigma_1,NULL,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Unable to compute large singular value!\n\n");CHKERRQ(ierr);
-  }
+  if (nconv1 > 0) PetscCall(SVDGetSingularTriplet(svd,0,&sigma_1,NULL,NULL));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD," Unable to compute large singular value!\n\n"));
 
   /*
      Request a singular value from the other end of the spectrum
   */
-  ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
+  PetscCall(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
+  PetscCall(SVDSolve(svd));
   /*
      Get number of converged singular triplets
   */
-  ierr = SVDGetConverged(svd,&nconv2);CHKERRQ(ierr);
+  PetscCall(SVDGetConverged(svd,&nconv2));
   /*
      Get converged singular values: smallest singular value is stored in sigma_n.
      As before, we are not interested in the singular vectors
   */
-  if (nconv2 > 0) {
-    ierr = SVDGetSingularTriplet(svd,0,&sigma_n,NULL,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Unable to compute small singular value!\n\n");CHKERRQ(ierr);
-  }
+  if (nconv2 > 0) PetscCall(SVDGetSingularTriplet(svd,0,&sigma_n,NULL,NULL));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD," Unable to compute small singular value!\n\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   if (nconv1 > 0 && nconv2 > 0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%.4f, sigma_n=%.4f\n",(double)sigma_1,(double)sigma_n);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%.4f\n\n",(double)(sigma_1/sigma_n));CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Computed singular values: sigma_1=%.4f, sigma_n=%.4f\n",(double)sigma_1,(double)sigma_n));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Estimated condition number: sigma_1/sigma_n=%.4f\n\n",(double)(sigma_1/sigma_n)));
   }
 
   /*
      Free work space
   */
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

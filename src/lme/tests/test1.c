@@ -22,129 +22,128 @@ int main(int argc,char **argv)
   PetscReal            tol,errest,error;
   PetscScalar          *u;
   PetscInt             N,n=10,m,Istart,Iend,II,maxit,ncv,i,j;
-  PetscErrorCode       ierr;
   PetscBool            flg,testprefix=PETSC_FALSE,viewmatrices=PETSC_FALSE;
   const char           *prefix;
   LMEType              type;
   LMEProblemType       ptype;
   PetscViewerAndFormat *vf;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flg));
   if (!flg) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-test_prefix",&testprefix,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-view_matrices",&viewmatrices,NULL);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-test_prefix",&testprefix,NULL));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-view_matrices",&viewmatrices,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the 2-D Laplacian, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,-4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,-4.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
        Create a low-rank Mat to store the right-hand side C = C1*C1'
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&C1);CHKERRQ(ierr);
-  ierr = MatSetSizes(C1,PETSC_DECIDE,PETSC_DECIDE,N,2);CHKERRQ(ierr);
-  ierr = MatSetType(C1,MATDENSE);CHKERRQ(ierr);
-  ierr = MatSetUp(C1);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(C1,&Istart,&Iend);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(C1,&u);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&C1));
+  PetscCall(MatSetSizes(C1,PETSC_DECIDE,PETSC_DECIDE,N,2));
+  PetscCall(MatSetType(C1,MATDENSE));
+  PetscCall(MatSetUp(C1));
+  PetscCall(MatGetOwnershipRange(C1,&Istart,&Iend));
+  PetscCall(MatDenseGetArray(C1,&u));
   for (i=Istart;i<Iend;i++) {
     if (i<N/2) u[i-Istart] = 1.0;
     if (i==0) u[i+Iend-2*Istart] = -2.0;
     if (i==1) u[i+Iend-2*Istart] = -1.0;
     if (i==2) u[i+Iend-2*Istart] = -1.0;
   }
-  ierr = MatDenseRestoreArray(C1,&u);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(C1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(C1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateLRC(NULL,C1,NULL,NULL,&C);CHKERRQ(ierr);
-  ierr = MatDestroy(&C1);CHKERRQ(ierr);
+  PetscCall(MatDenseRestoreArray(C1,&u));
+  PetscCall(MatAssemblyBegin(C1,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(C1,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateLRC(NULL,C1,NULL,NULL,&C));
+  PetscCall(MatDestroy(&C1));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = LMECreate(PETSC_COMM_WORLD,&lme);CHKERRQ(ierr);
-  ierr = LMESetProblemType(lme,LME_SYLVESTER);CHKERRQ(ierr);
-  ierr = LMEGetProblemType(lme,&ptype);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type set to %d\n",ptype);CHKERRQ(ierr);
-  ierr = LMESetProblemType(lme,LME_LYAPUNOV);CHKERRQ(ierr);
-  ierr = LMEGetProblemType(lme,&ptype);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type changed to %d\n",ptype);CHKERRQ(ierr);
-  ierr = LMESetCoefficients(lme,A,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = LMESetRHS(lme,C);CHKERRQ(ierr);
+  PetscCall(LMECreate(PETSC_COMM_WORLD,&lme));
+  PetscCall(LMESetProblemType(lme,LME_SYLVESTER));
+  PetscCall(LMEGetProblemType(lme,&ptype));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Equation type set to %d\n",ptype));
+  PetscCall(LMESetProblemType(lme,LME_LYAPUNOV));
+  PetscCall(LMEGetProblemType(lme,&ptype));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Equation type changed to %d\n",ptype));
+  PetscCall(LMESetCoefficients(lme,A,NULL,NULL,NULL));
+  PetscCall(LMESetRHS(lme,C));
 
   /* test prefix usage */
   if (testprefix) {
-    ierr = LMESetOptionsPrefix(lme,"check_");CHKERRQ(ierr);
-    ierr = LMEAppendOptionsPrefix(lme,"myprefix_");CHKERRQ(ierr);
-    ierr = LMEGetOptionsPrefix(lme,&prefix);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," LME prefix is currently: %s\n",prefix);CHKERRQ(ierr);
+    PetscCall(LMESetOptionsPrefix(lme,"check_"));
+    PetscCall(LMEAppendOptionsPrefix(lme,"myprefix_"));
+    PetscCall(LMEGetOptionsPrefix(lme,&prefix));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," LME prefix is currently: %s\n",prefix));
   }
 
   /* test some interface functions */
-  ierr = LMEGetCoefficients(lme,&B,NULL,NULL,NULL);CHKERRQ(ierr);
-  if (viewmatrices) { ierr = MatView(B,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
-  ierr = LMEGetRHS(lme,&D);CHKERRQ(ierr);
-  if (viewmatrices) { ierr = MatView(D,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
-  ierr = LMESetTolerances(lme,PETSC_DEFAULT,100);CHKERRQ(ierr);
-  ierr = LMESetDimensions(lme,21);CHKERRQ(ierr);
-  ierr = LMESetErrorIfNotConverged(lme,PETSC_TRUE);CHKERRQ(ierr);
+  PetscCall(LMEGetCoefficients(lme,&B,NULL,NULL,NULL));
+  if (viewmatrices) PetscCall(MatView(B,PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(LMEGetRHS(lme,&D));
+  if (viewmatrices) PetscCall(MatView(D,PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(LMESetTolerances(lme,PETSC_DEFAULT,100));
+  PetscCall(LMESetDimensions(lme,21));
+  PetscCall(LMESetErrorIfNotConverged(lme,PETSC_TRUE));
   /* test monitors */
-  ierr = PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf);CHKERRQ(ierr);
-  ierr = LMEMonitorSet(lme,(PetscErrorCode (*)(LME,PetscInt,PetscReal,void*))LMEMonitorDefault,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
-  /* ierr = LMEMonitorCancel(lme);CHKERRQ(ierr); */
-  ierr = LMESetFromOptions(lme);CHKERRQ(ierr);
+  PetscCall(PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf));
+  PetscCall(LMEMonitorSet(lme,(PetscErrorCode (*)(LME,PetscInt,PetscReal,void*))LMEMonitorDefault,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy));
+  /* PetscCall(LMEMonitorCancel(lme)); */
+  PetscCall(LMESetFromOptions(lme));
 
-  ierr = LMEGetType(lme,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solver being used: %s\n",type);CHKERRQ(ierr);
+  PetscCall(LMEGetType(lme,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solver being used: %s\n",type));
 
   /* query properties and print them */
-  ierr = LMEGetTolerances(lme,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
-  ierr = LMEGetDimensions(lme,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv);CHKERRQ(ierr);
-  ierr = LMEGetErrorIfNotConverged(lme,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," Erroring out if convergence fails\n");CHKERRQ(ierr); }
+  PetscCall(LMEGetTolerances(lme,&tol,&maxit));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %" PetscInt_FMT "\n",(double)tol,maxit));
+  PetscCall(LMEGetDimensions(lme,&ncv));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %" PetscInt_FMT "\n",ncv));
+  PetscCall(LMEGetErrorIfNotConverged(lme,&flg));
+  if (flg) PetscCall(PetscPrintf(PETSC_COMM_WORLD," Erroring out if convergence fails\n"));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Solve the matrix equation and compute residual error
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = LMESolve(lme);CHKERRQ(ierr);
-  ierr = LMEGetErrorEstimate(lme,&errest);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Error estimate reported by the solver: %.4g\n",(double)errest);CHKERRQ(ierr);
-  ierr = LMEComputeError(lme,&error);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %.4g\n\n",(double)error);CHKERRQ(ierr);
+  PetscCall(LMESolve(lme));
+  PetscCall(LMEGetErrorEstimate(lme,&errest));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Error estimate reported by the solver: %.4g\n",(double)errest));
+  PetscCall(LMEComputeError(lme,&error));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %.4g\n\n",(double)error));
 
   /*
      Free work space
   */
-  ierr = LMEDestroy(&lme);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&C);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(LMEDestroy(&lme));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&C));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

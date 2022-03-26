@@ -33,57 +33,48 @@ typedef struct {
 */
 static PetscErrorCode DSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat)
 {
-  PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *T,*E,alpha;
   PetscInt       i,ld,n;
   PetscBLASInt   k,inc=1;
 
   PetscFunctionBegin;
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  if (ctx->computematrix) {
-    ierr = (*ctx->computematrix)(ds,lambda,deriv,mat,ctx->computematrixctx);CHKERRQ(ierr);
-  } else {
-    ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(ld*n,&k);CHKERRQ(ierr);
-    ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);
-    ierr = PetscArrayzero(T,k);CHKERRQ(ierr);
+  PetscCall(PetscLogEventBegin(DS_Other,ds,0,0,0));
+  if (ctx->computematrix) PetscCall((*ctx->computematrix)(ds,lambda,deriv,mat,ctx->computematrixctx));
+  else {
+    PetscCall(DSGetDimensions(ds,&n,NULL,NULL,NULL));
+    PetscCall(DSGetLeadingDimension(ds,&ld));
+    PetscCall(PetscBLASIntCast(ld*n,&k));
+    PetscCall(DSGetArray(ds,mat,&T));
+    PetscCall(PetscArrayzero(T,k));
     for (i=0;i<ctx->nf;i++) {
-      if (deriv) {
-        ierr = FNEvaluateDerivative(ctx->f[i],lambda,&alpha);CHKERRQ(ierr);
-      } else {
-        ierr = FNEvaluateFunction(ctx->f[i],lambda,&alpha);CHKERRQ(ierr);
-      }
+      if (deriv) PetscCall(FNEvaluateDerivative(ctx->f[i],lambda,&alpha));
+      else PetscCall(FNEvaluateFunction(ctx->f[i],lambda,&alpha));
       E = ds->mat[DSMatExtra[i]];
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k,&alpha,E,&inc,T,&inc));
     }
-    ierr = DSRestoreArray(ds,mat,&T);CHKERRQ(ierr);
+    PetscCall(DSRestoreArray(ds,mat,&T));
   }
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
 {
-  PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       i;
 
   PetscFunctionBegin;
-  ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
-  for (i=0;i<ctx->nf;i++) {
-    ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(ds->perm);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ld*ctx->max_mid,&ds->perm);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)ds,ld*ctx->max_mid*sizeof(PetscInt));CHKERRQ(ierr);
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_X));
+  for (i=0;i<ctx->nf;i++) PetscCall(DSAllocateMat_Private(ds,DSMatExtra[i]));
+  PetscCall(PetscFree(ds->perm));
+  PetscCall(PetscMalloc1(ld*ctx->max_mid,&ds->perm));
+  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*ctx->max_mid*sizeof(PetscInt)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
 {
-  PetscErrorCode    ierr;
   DS_NEP            *ctx = (DS_NEP*)ds->data;
   PetscViewerFormat format;
   PetscInt          i;
@@ -94,30 +85,26 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
   const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
-  ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  PetscCall(PetscViewerGetFormat(viewer,&format));
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-    if (ds->method<nmeth) {
-      ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]);CHKERRQ(ierr);
-    }
+    if (ds->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]));
 #if defined(PETSC_USE_COMPLEX)
     if (ds->method==1) {  /* contour integral method */
-      ierr = PetscViewerASCIIPrintf(viewer,"number of integration points: %" PetscInt_FMT "\n",ctx->nnod);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"maximum minimality index: %" PetscInt_FMT "\n",ctx->max_mid);CHKERRQ(ierr);
-      if (ctx->spls) { ierr = PetscViewerASCIIPrintf(viewer,"number of sampling columns for quadrature: %" PetscInt_FMT "\n",ctx->spls);CHKERRQ(ierr); }
-      if (ctx->Nit) { ierr = PetscViewerASCIIPrintf(viewer,"doing iterative refinement (%" PetscInt_FMT " its, tolerance %g)\n",ctx->Nit,(double)ctx->rtol);CHKERRQ(ierr); }
-      ierr = RGView(ctx->rg,viewer);CHKERRQ(ierr);
+      PetscCall(PetscViewerASCIIPrintf(viewer,"number of integration points: %" PetscInt_FMT "\n",ctx->nnod));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"maximum minimality index: %" PetscInt_FMT "\n",ctx->max_mid));
+      if (ctx->spls) PetscCall(PetscViewerASCIIPrintf(viewer,"number of sampling columns for quadrature: %" PetscInt_FMT "\n",ctx->spls));
+      if (ctx->Nit) PetscCall(PetscViewerASCIIPrintf(viewer,"doing iterative refinement (%" PetscInt_FMT " its, tolerance %g)\n",ctx->Nit,(double)ctx->rtol));
+      PetscCall(RGView(ctx->rg,viewer));
     }
 #endif
-    if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"number of functions: %" PetscInt_FMT "\n",ctx->nf);CHKERRQ(ierr);
-    }
+    if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscCall(PetscViewerASCIIPrintf(viewer,"number of functions: %" PetscInt_FMT "\n",ctx->nf));
     PetscFunctionReturn(0);
   }
   for (i=0;i<ctx->nf;i++) {
-    ierr = FNView(ctx->f[i],viewer);CHKERRQ(ierr);
-    ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
+    PetscCall(FNView(ctx->f[i],viewer));
+    PetscCall(DSViewMat(ds,viewer,DSMatExtra[i]));
   }
-  if (ds->state>DS_STATE_INTERMEDIATE) { ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr); }
+  if (ds->state>DS_STATE_INTERMEDIATE) PetscCall(DSViewMat(ds,viewer,DS_MAT_X));
   PetscFunctionReturn(0);
 }
 
@@ -138,7 +125,6 @@ PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 
 PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *dummy)
 {
-  PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       n,l,i,*perm,lds;
   PetscScalar    *A;
@@ -151,21 +137,17 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   A = ds->mat[DS_MAT_A];
   perm = ds->perm;
   for (i=0;i<n;i++) perm[i] = i;
-  if (rr) {
-    ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
-  } else {
-    ierr = DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE);CHKERRQ(ierr);
-  }
+  if (rr) PetscCall(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
+  else PetscCall(DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE));
   for (i=l;i<ds->t;i++) A[i+i*lds] = wr[perm[i]];
   for (i=l;i<ds->t;i++) wr[i] = A[i+i*lds];
   /* n != ds->n */
-  ierr = DSPermuteColumns_Private(ds,0,ds->t,ds->n,DS_MAT_X,perm);CHKERRQ(ierr);
+  PetscCall(DSPermuteColumns_Private(ds,0,ds->t,ds->n,DS_MAT_X,perm));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscErrorCode ierr;
   PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
   PetscScalar    sigma,lambda,mu,re,re2,sone=1.0,szero=0.0;
   PetscBLASInt   info,n,ld,lrwork=0,lwork,one=1,zero=0;
@@ -178,24 +160,18 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  if (!ds->mat[DS_MAT_A]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr);
-  }
-  if (!ds->mat[DS_MAT_B]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr);
-  }
-  if (!ds->mat[DS_MAT_W]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
-  }
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  if (!ds->mat[DS_MAT_A]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  if (!ds->mat[DS_MAT_B]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_B));
+  if (!ds->mat[DS_MAT_W]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
+  PetscCall(PetscBLASIntCast(ds->n,&n));
+  PetscCall(PetscBLASIntCast(ds->ld,&ld));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscBLASIntCast(2*ds->n+2*ds->n,&lwork);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(8*ds->n,&lrwork);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(2*ds->n+2*ds->n,&lwork));
+  PetscCall(PetscBLASIntCast(8*ds->n,&lrwork));
 #else
-  ierr = PetscBLASIntCast(3*ds->n+8*ds->n,&lwork);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(3*ds->n+8*ds->n,&lwork));
 #endif
-  ierr = DSAllocateWork_Private(ds,lwork,lrwork,0);CHKERRQ(ierr);
+  PetscCall(DSAllocateWork_Private(ds,lwork,lrwork,0));
   alpha = ds->work;
   beta = ds->work + ds->n;
 #if defined(PETSC_USE_COMPLEX)
@@ -219,13 +195,13 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (it=0;it<maxit;it++) {
 
     /* evaluate T and T' */
-    ierr = DSNEPComputeMatrix(ds,lambda,PETSC_FALSE,DS_MAT_A);CHKERRQ(ierr);
+    PetscCall(DSNEPComputeMatrix(ds,lambda,PETSC_FALSE,DS_MAT_A));
     if (it) {
       PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,A,&ld,X,&one,&szero,X+ld,&one));
       norm = BLASnrm2_(&n,X+ld,&one);
       if (norm/PetscAbsScalar(lambda)<=tol) break;
     }
-    ierr = DSNEPComputeMatrix(ds,lambda,PETSC_TRUE,DS_MAT_B);CHKERRQ(ierr);
+    PetscCall(DSNEPComputeMatrix(ds,lambda,PETSC_TRUE,DS_MAT_B));
 
     /* compute eigenvalue correction mu and eigenvector u */
 #if defined(PETSC_USE_COMPLEX)
@@ -251,9 +227,9 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
       if (beta[j]==0.0) im2 = (alphai[j]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
       else im2 = alphai[j]/beta[j];
-      ierr = SlepcCompareSmallestMagnitude(re,im,re2,im2,&result,NULL);CHKERRQ(ierr);
+      PetscCall(SlepcCompareSmallestMagnitude(re,im,re2,im2,&result,NULL));
 #else
-      ierr = SlepcCompareSmallestMagnitude(re,0.0,re2,0.0,&result,NULL);CHKERRQ(ierr);
+      PetscCall(SlepcCompareSmallestMagnitude(re,0.0,re2,0.0,&result,NULL));
 #endif
       if (result > 0) {
         re = re2;
@@ -268,7 +244,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscCheck(im==0.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"DSNEP found a complex eigenvalue; try rerunning with complex scalars");
 #endif
     mu = alpha[pos]/beta[pos];
-    ierr = PetscArraycpy(X,W+pos*ld,n);CHKERRQ(ierr);
+    PetscCall(PetscArraycpy(X,W+pos*ld,n));
     norm = BLASnrm2_(&n,X,&one);
     PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&one,X,&n,&info));
     SlepcCheckLapackInfo("lascl",info);
@@ -292,7 +268,6 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 */
 static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
 {
-  PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *X,*W,*U,*R,sone=1.0,szero=0.0;
   PetscReal      norm;
@@ -305,43 +280,43 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   PetscFunctionBegin;
   X = ds->mat[DS_MAT_X];
   W = ds->mat[DS_MAT_W];
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(ds->n,&n));
+  PetscCall(PetscBLASIntCast(ds->ld,&ld));
   n1 = n+1;
   p  = ds->perm;
-  ierr = PetscArrayzero(p,k);CHKERRQ(ierr);
-  ierr = DSAllocateWork_Private(ds,(n+2)*(n+1),0,n+1);CHKERRQ(ierr);
+  PetscCall(PetscArrayzero(p,k));
+  PetscCall(DSAllocateWork_Private(ds,(n+2)*(n+1),0,n+1));
   U    = ds->work+nwu;    nwu += (n+1)*(n+1);
   R    = ds->work+nwu;    /*nwu += n+1;*/
   perm = ds->iwork;
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {
-    ierr = PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,k,1,&map);CHKERRQ(ierr);
-    ierr = PetscLayoutGetRange(map,&jstart,&jend);CHKERRQ(ierr);
+    PetscCall(PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,k,1,&map));
+    PetscCall(PetscLayoutGetRange(map,&jstart,&jend));
   }
   for (ii=0;ii<ctx->Nit;ii++) {
     for (j=jstart;j<jend;j++) {
       if (p[j]<2) {
-        ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W);CHKERRQ(ierr);
+        PetscCall(DSNEPComputeMatrix(ds,wr[j],PETSC_FALSE,DS_MAT_W));
         PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,R,&one));
         norm = BLASnrm2_(&n,R,&one);
         if (norm/PetscAbsScalar(wr[j]) > ctx->rtol) {
-          ierr = PetscInfo(NULL,"Refining eigenpair %" PetscInt_FMT ", residual=%g\n",j,(double)norm/PetscAbsScalar(wr[j]));CHKERRQ(ierr);
+          PetscCall(PetscInfo(NULL,"Refining eigenpair %" PetscInt_FMT ", residual=%g\n",j,(double)norm/PetscAbsScalar(wr[j])));
           p[j] = 1;
           R[n] = 0.0;
           for (i=0;i<n;i++) {
-            ierr = PetscArraycpy(U+i*n1,W+i*ld,n);CHKERRQ(ierr);
+            PetscCall(PetscArraycpy(U+i*n1,W+i*ld,n));
             U[n+i*n1] = PetscConj(X[j*ld+i]);
           }
           U[n+n*n1] = 0.0;
-          ierr = DSNEPComputeMatrix(ds,wr[j],PETSC_TRUE,DS_MAT_W);CHKERRQ(ierr);
+          PetscCall(DSNEPComputeMatrix(ds,wr[j],PETSC_TRUE,DS_MAT_W));
           PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,W,&ld,X+ld*j,&one,&szero,U+n*(n+1),&one));
           /* solve system  */
-          ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+          PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
           PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n1,&n1,U,&n1,perm,&info));
           SlepcCheckLapackInfo("getrf",info);
           PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n1,&one,U,&n1,perm,R,&n1,&info));
           SlepcCheckLapackInfo("getrs",info);
-          ierr = PetscFPTrapPop();CHKERRQ(ierr);
+          PetscCall(PetscFPTrapPop());
           wr[j] -= R[n];
           for (i=0;i<n;i++) X[j*ld+i] -= R[i];
           /* normalization */
@@ -352,27 +327,26 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
     }
   }
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* communicate results */
-    ierr = PetscMPIIntCast(k,&len);CHKERRQ(ierr);
-    ierr = MPIU_Allreduce(MPI_IN_PLACE,p,len,MPIU_INT,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRMPI(ierr);
-    ierr = PetscLayoutGetRanges(map,&range);CHKERRQ(ierr);
+    PetscCall(PetscMPIIntCast(k,&len));
+    PetscCallMPI(MPIU_Allreduce(MPI_IN_PLACE,p,len,MPIU_INT,MPIU_SUM,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size));
+    PetscCall(PetscLayoutGetRanges(map,&range));
     for (j=0;j<k;j++) {
       if (p[j]) {  /* j-th eigenpair has been refined */
         for (root=0;root<size;root++) if (range[root+1]>j) break;
-        ierr = PetscMPIIntCast(1,&len);CHKERRQ(ierr);
-        ierr = MPI_Bcast(wr+j,len,MPIU_SCALAR,root,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-        ierr = PetscMPIIntCast(n,&len);CHKERRQ(ierr);
-        ierr = MPI_Bcast(X+ld*j,len,MPIU_SCALAR,root,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+        PetscCall(PetscMPIIntCast(1,&len));
+        PetscCallMPI(MPI_Bcast(wr+j,len,MPIU_SCALAR,root,PetscObjectComm((PetscObject)ds)));
+        PetscCall(PetscMPIIntCast(n,&len));
+        PetscCallMPI(MPI_Bcast(X+ld*j,len,MPIU_SCALAR,root,PetscObjectComm((PetscObject)ds)));
       }
     }
-    ierr = PetscLayoutDestroy(&map);CHKERRQ(ierr);
+    PetscCall(PetscLayoutDestroy(&map));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *alpha,*beta,*A,*B,*X,*W,*work,*Rc,*R,*w,*z,*zn,*S,*U,*V;
   PetscScalar    sone=1.0,szero=0.0,center;
@@ -386,30 +360,20 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionBegin;
   PetscCheck(ctx->rg,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"The contour solver requires a region passed with DSNEPSetRG()");
   /* Contour parameters */
-  ierr = PetscObjectTypeCompare((PetscObject)ctx->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)ctx->rg,RGELLIPSE,&isellipse));
   PetscCheck(isellipse,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Region must be Ellipse");
-  ierr = RGEllipseGetParameters(ctx->rg,&center,&radius,&vscale);CHKERRQ(ierr);
-  ierr = RGGetScale(ctx->rg,&rgscale);CHKERRQ(ierr);
+  PetscCall(RGEllipseGetParameters(ctx->rg,&center,&radius,&vscale));
+  PetscCall(RGGetScale(ctx->rg,&rgscale));
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {
-    if (!ctx->map) { ierr = PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,ctx->nnod,1,&ctx->map);CHKERRQ(ierr); }
-    ierr = PetscLayoutGetRange(ctx->map,&kstart,&kend);CHKERRQ(ierr);
+    if (!ctx->map) PetscCall(PetscLayoutCreateFromSizes(PetscObjectComm((PetscObject)ds),PETSC_DECIDE,ctx->nnod,1,&ctx->map));
+    PetscCall(PetscLayoutGetRange(ctx->map,&kstart,&kend));
   }
 
-  if (!ds->mat[DS_MAT_A]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_A);CHKERRQ(ierr);
-  } /* size mid*n */
-  if (!ds->mat[DS_MAT_B]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_B);CHKERRQ(ierr);
-  } /* size mid*n */
-  if (!ds->mat[DS_MAT_W]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
-  } /* size mid*n */
-  if (!ds->mat[DS_MAT_U]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_U);CHKERRQ(ierr);
-  } /* size mid*n */
-  if (!ds->mat[DS_MAT_V]) {
-    ierr = DSAllocateMat_Private(ds,DS_MAT_V);CHKERRQ(ierr);
-  } /* size n */
+  if (!ds->mat[DS_MAT_A]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A)); /* size mid*n */
+  if (!ds->mat[DS_MAT_B]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_B)); /* size mid*n */
+  if (!ds->mat[DS_MAT_W]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_W)); /* size mid*n */
+  if (!ds->mat[DS_MAT_U]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_U)); /* size mid*n */
+  if (!ds->mat[DS_MAT_V]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_V)); /* size n */
   A = ds->mat[DS_MAT_A];
   B = ds->mat[DS_MAT_B];
   W = ds->mat[DS_MAT_W];
@@ -417,14 +381,14 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   V = ds->mat[DS_MAT_V];
   X = ds->mat[DS_MAT_X];
   mid  = ctx->max_mid;
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(ds->n,&n));
   p    = n;   /* maximum number of columns for the probing matrix */
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(mid*n,&rowA);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(5*rowA,&lwork);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(ds->ld,&ld));
+  PetscCall(PetscBLASIntCast(mid*n,&rowA));
+  PetscCall(PetscBLASIntCast(5*rowA,&lwork));
   nw   = n*(2*p+7*mid)+3*nnod+2*mid*n*p;
   lrwork = mid*n*6+8*n;
-  ierr = DSAllocateWork_Private(ds,nw,lrwork,n+1);CHKERRQ(ierr);
+  PetscCall(DSAllocateWork_Private(ds,nw,lrwork,n+1));
 
   sigma = ds->rwork;
   rwork = ds->rwork+mid*n;
@@ -440,28 +404,28 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   work  = ds->work+nwu;    /*nwu += mid*n*5;*/
 
   /* Compute quadrature parameters */
-  ierr = RGComputeQuadrature(ctx->rg,RG_QUADRULE_TRAPEZOIDAL,nnod,z,zn,w);CHKERRQ(ierr);
+  PetscCall(RGComputeQuadrature(ctx->rg,RG_QUADRULE_TRAPEZOIDAL,nnod,z,zn,w));
 
   /* Set random matrix */
-  ierr = PetscRandomCreate(PetscObjectComm((PetscObject)ds),&rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetSeed(rand,0x12345678);CHKERRQ(ierr);
-  ierr = PetscRandomSeed(rand);CHKERRQ(ierr);
+  PetscCall(PetscRandomCreate(PetscObjectComm((PetscObject)ds),&rand));
+  PetscCall(PetscRandomSetSeed(rand,0x12345678));
+  PetscCall(PetscRandomSeed(rand));
   for (j=0;j<p;j++)
-    for (i=0;i<n;i++) { ierr = PetscRandomGetValue(rand,Rc+i+j*n);CHKERRQ(ierr); }
-  ierr = PetscArrayzero(S,2*mid*n*p);CHKERRQ(ierr);
+    for (i=0;i<n;i++) PetscCall(PetscRandomGetValue(rand,Rc+i+j*n));
+  PetscCall(PetscArrayzero(S,2*mid*n*p));
   /* Loop of integration points */
   for (k=kstart;k<kend;k++) {
-    ierr = PetscInfo(NULL,"Solving integration point %" PetscInt_FMT "\n",k);CHKERRQ(ierr);
-    ierr = PetscArraycpy(R,Rc,p*n);CHKERRQ(ierr);
-    ierr = DSNEPComputeMatrix(ds,z[k],PETSC_FALSE,DS_MAT_V);CHKERRQ(ierr);
+    PetscCall(PetscInfo(NULL,"Solving integration point %" PetscInt_FMT "\n",k));
+    PetscCall(PetscArraycpy(R,Rc,p*n));
+    PetscCall(DSNEPComputeMatrix(ds,z[k],PETSC_FALSE,DS_MAT_V));
 
     /* LU factorization */
-    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
     PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,V,&ld,perm,&info));
     SlepcCheckLapackInfo("getrf",info);
     PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n,&p,V,&ld,perm,R,&n,&info));
     SlepcCheckLapackInfo("getrs",info);
-    ierr = PetscFPTrapPop();CHKERRQ(ierr);
+    PetscCall(PetscFPTrapPop());
 
     /* Moments computation */
     for (s=0;s<2*ctx->max_mid;s++) {
@@ -473,16 +437,16 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* compute final S via reduction */
-    ierr = PetscMPIIntCast(2*mid*n*p,&len);CHKERRQ(ierr);
-    ierr = MPIU_Allreduce(MPI_IN_PLACE,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+    PetscCall(PetscMPIIntCast(2*mid*n*p,&len));
+    PetscCallMPI(MPIU_Allreduce(MPI_IN_PLACE,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds)));
   }
   p = ctx->spls?PetscMin(ctx->spls,n):n;
   pp = p;
   do {
     p = pp;
-    ierr = PetscBLASIntCast(mid*p,&colA);CHKERRQ(ierr);
+    PetscCall(PetscBLASIntCast(mid*p,&colA));
 
-    ierr = PetscInfo(ds,"Computing SVD of size %" PetscBLASInt_FMT "x%" PetscBLASInt_FMT "\n",rowA,colA);CHKERRQ(ierr);
+    PetscCall(PetscInfo(ds,"Computing SVD of size %" PetscBLASInt_FMT "x%" PetscBLASInt_FMT "\n",rowA,colA));
     for (jj=0;jj<mid;jj++) {
       for (ii=0;ii<mid;ii++) {
         off = jj*p*rowA+ii*n;
@@ -490,17 +454,17 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
           for (i=0;i<n;i++) A[off+j*rowA+i] = S[((jj+ii)*n+j)*n+i];
       }
     }
-    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&rowA,&colA,A,&rowA,sigma,U,&rowA,W,&colA,work,&lwork,rwork,&info));
     SlepcCheckLapackInfo("gesvd",info);
-    ierr = PetscFPTrapPop();CHKERRQ(ierr);
+    PetscCall(PetscFPTrapPop());
 
     rk = colA;
     for (i=1;i<colA;i++) if (sigma[i]/sigma[0]<PETSC_MACHINE_EPSILON*1e4) {rk = i; break;}
     if (rk<colA || p==n) break;
     pp *= 2;
   } while (pp<=n);
-  ierr = PetscInfo(ds,"Solving generalized eigenproblem of size %" PetscInt_FMT "\n",rk);CHKERRQ(ierr);
+  PetscCall(PetscInfo(ds,"Solving generalized eigenproblem of size %" PetscInt_FMT "\n",rk));
   for (jj=0;jj<mid;jj++) {
     for (ii=0;ii<mid;ii++) {
       off = jj*p*rowA+ii*n;
@@ -508,27 +472,27 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
         for (i=0;i<n;i++) A[off+j*rowA+i] = S[((jj+ii+1)*n+j)*n+i];
     }
   }
-  ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(rk,&rk_));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&rowA,&rk_,&colA,&sone,A,&rowA,W,&colA,&szero,B,&rowA));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rowA,&sone,U,&rowA,B,&rowA,&szero,A,&rk_));
-  ierr = PetscArrayzero(B,n*mid*n*mid);CHKERRQ(ierr);
+  PetscCall(PetscArrayzero(B,n*mid*n*mid));
   for (j=0;j<rk;j++) B[j+j*rk_] = sigma[j];
   PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&rk_,A,&rk_,B,&rk_,alpha,beta,NULL,&ld,W,&rk_,work,&lwork,rwork,&info));
   for (i=0;i<rk;i++) wr[i] = (center+radius*alpha[i]/beta[i])*rgscale;
-  ierr = PetscMalloc1(rk,&inside);CHKERRQ(ierr);
-  ierr = RGCheckInside(ctx->rg,rk,wr,wi,inside);CHKERRQ(ierr);
+  PetscCall(PetscMalloc1(rk,&inside));
+  PetscCall(RGCheckInside(ctx->rg,rk,wr,wi,inside));
   k=0;
   for (i=0;i<rk;i++)
     if (inside[i]==1) inside[k++] = i;
   /* Discard values outside region */
   lds = ld*mid;
-  ierr = PetscArrayzero(A,lds*lds);CHKERRQ(ierr);
-  ierr = PetscArrayzero(B,lds*lds);CHKERRQ(ierr);
+  PetscCall(PetscArrayzero(A,lds*lds));
+  PetscCall(PetscArrayzero(B,lds*lds));
   for (i=0;i<k;i++) A[i+i*lds] = (center*beta[inside[i]]+radius*alpha[inside[i]])*rgscale;
   for (i=0;i<k;i++) B[i+i*lds] = beta[inside[i]];
   for (i=0;i<k;i++) wr[i] = A[i+i*lds]/B[i+i*lds];
   for (j=0;j<k;j++) for (i=0;i<rk;i++) W[j*rk+i] = sigma[i]*W[inside[j]*rk+i];
-  ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(k,&k_));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k_,&rk_,&sone,U,&rowA,W,&rk_,&szero,X,&ld));
 
   /* Normalize */
@@ -536,18 +500,17 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     norm = BLASnrm2_(&n,X+ld*j,&one);
     for (i=0;i<n;i++) X[ld*j+i] /= norm;
   }
-  ierr = PetscFree(inside);CHKERRQ(ierr);
+  PetscCall(PetscFree(inside));
   /* Newton refinement */
-  ierr = DSNEPNewtonRefine(ds,k,wr);CHKERRQ(ierr);
+  PetscCall(DSNEPNewtonRefine(ds,k,wr));
   ds->t = k;
-  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  PetscCall(PetscRandomDestroy(&rand));
   PetscFunctionReturn(0);
 }
 #endif
 
 PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
-  PetscErrorCode ierr;
   PetscInt       k=0;
   PetscMPIInt    n,rank,size,off=0;
 
@@ -555,35 +518,23 @@ PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   if (ds->state>=DS_STATE_CONDENSED) k += ds->n;
   if (eigr) k += 1;
   if (eigi) k += 1;
-  ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
-  ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
-  ierr = PetscMPIIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank);CHKERRMPI(ierr);
+  PetscCall(DSAllocateWork_Private(ds,k,0,0));
+  PetscCall(PetscMPIIntCast(k*sizeof(PetscScalar),&size));
+  PetscCall(PetscMPIIntCast(ds->n,&n));
+  PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    if (ds->state>=DS_STATE_CONDENSED) {
-      ierr = MPI_Pack(ds->mat[DS_MAT_X],n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-    }
-    if (eigr) {
-      ierr = MPI_Pack(eigr,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-    }
+    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_X],n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (eigr) PetscCallMPI(MPI_Pack(eigr,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) {
-      ierr = MPI_Pack(eigi,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-    }
+    if (eigi) PetscCallMPI(MPI_Pack(eigi,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #endif
   }
-  ierr = MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
+  PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    if (ds->state>=DS_STATE_CONDENSED) {
-      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_X],n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-    }
-    if (eigr) {
-      ierr = MPI_Unpack(ds->work,size,&off,eigr,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-    }
+    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_X],n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) {
-      ierr = MPI_Unpack(ds->work,size,&off,eigi,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRMPI(ierr);
-    }
+    if (eigi) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigi,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #endif
   }
   PetscFunctionReturn(0);
@@ -591,20 +542,15 @@ PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
 static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
 {
-  PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       i;
 
   PetscFunctionBegin;
   PetscCheck(n>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %" PetscInt_FMT,n);
   PetscCheck(n<=DS_NUM_EXTRA,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %" PetscInt_FMT " but the limit is %d",n,DS_NUM_EXTRA);
-  if (ds->ld) { ierr = PetscInfo(ds,"DSNEPSetFN() called after DSAllocate()\n");CHKERRQ(ierr); }
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)fn[i]);CHKERRQ(ierr);
-  }
-  for (i=0;i<ctx->nf;i++) {
-    ierr = FNDestroy(&ctx->f[i]);CHKERRQ(ierr);
-  }
+  if (ds->ld) PetscCall(PetscInfo(ds,"DSNEPSetFN() called after DSAllocate()\n"));
+  for (i=0;i<n;i++) PetscCall(PetscObjectReference((PetscObject)fn[i]));
+  for (i=0;i<ctx->nf;i++) PetscCall(FNDestroy(&ctx->f[i]));
   for (i=0;i<n;i++) ctx->f[i] = fn[i];
   ctx->nf = n;
   PetscFunctionReturn(0);
@@ -636,7 +582,6 @@ static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
 PetscErrorCode DSNEPSetFN(DS ds,PetscInt n,FN fn[])
 {
   PetscInt       i;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -646,7 +591,7 @@ PetscErrorCode DSNEPSetFN(DS ds,PetscInt n,FN fn[])
     PetscValidHeaderSpecific(fn[i],FN_CLASSID,3);
     PetscCheckSameComm(ds,1,fn[i],3);
   }
-  ierr = PetscTryMethod(ds,"DSNEPSetFN_C",(DS,PetscInt,FN[]),(ds,n,fn));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(ds,"DSNEPSetFN_C",(DS,PetscInt,FN[]),(ds,n,fn)));
   PetscFunctionReturn(0);
 }
 
@@ -678,12 +623,10 @@ static PetscErrorCode DSNEPGetFN_NEP(DS ds,PetscInt k,FN *fn)
 @*/
 PetscErrorCode DSNEPGetFN(DS ds,PetscInt k,FN *fn)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(fn,3);
-  ierr = PetscUseMethod(ds,"DSNEPGetFN_C",(DS,PetscInt,FN*),(ds,k,fn));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(ds,"DSNEPGetFN_C",(DS,PetscInt,FN*),(ds,k,fn)));
   PetscFunctionReturn(0);
 }
 
@@ -714,12 +657,10 @@ static PetscErrorCode DSNEPGetNumFN_NEP(DS ds,PetscInt *n)
 @*/
 PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(n,2);
-  ierr = PetscUseMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n)));
   PetscFunctionReturn(0);
 }
 
@@ -761,12 +702,10 @@ static PetscErrorCode DSNEPSetMinimality_NEP(DS ds,PetscInt n)
 @*/
 PetscErrorCode DSNEPSetMinimality(DS ds,PetscInt n)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
-  ierr = PetscTryMethod(ds,"DSNEPSetMinimality_C",(DS,PetscInt),(ds,n));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(ds,"DSNEPSetMinimality_C",(DS,PetscInt),(ds,n)));
   PetscFunctionReturn(0);
 }
 
@@ -797,12 +736,10 @@ static PetscErrorCode DSNEPGetMinimality_NEP(DS ds,PetscInt *n)
 @*/
 PetscErrorCode DSNEPGetMinimality(DS ds,PetscInt *n)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(n,2);
-  ierr = PetscUseMethod(ds,"DSNEPGetMinimality_C",(DS,PetscInt*),(ds,n));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(ds,"DSNEPGetMinimality_C",(DS,PetscInt*),(ds,n)));
   PetscFunctionReturn(0);
 }
 
@@ -849,13 +786,11 @@ static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
 @*/
 PetscErrorCode DSNEPSetRefine(DS ds,PetscReal tol,PetscInt its)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveReal(ds,tol,2);
   PetscValidLogicalCollectiveInt(ds,its,3);
-  ierr = PetscTryMethod(ds,"DSNEPSetRefine_C",(DS,PetscReal,PetscInt),(ds,tol,its));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(ds,"DSNEPSetRefine_C",(DS,PetscReal,PetscInt),(ds,tol,its)));
   PetscFunctionReturn(0);
 }
 
@@ -888,18 +823,15 @@ static PetscErrorCode DSNEPGetRefine_NEP(DS ds,PetscReal *tol,PetscInt *its)
 @*/
 PetscErrorCode DSNEPGetRefine(DS ds,PetscReal *tol,PetscInt *its)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  ierr = PetscUseMethod(ds,"DSNEPGetRefine_C",(DS,PetscReal*,PetscInt*),(ds,tol,its));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(ds,"DSNEPGetRefine_C",(DS,PetscReal*,PetscInt*),(ds,tol,its)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
 {
   DS_NEP         *ctx = (DS_NEP*)ds->data;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) ctx->nnod = 64;
@@ -907,7 +839,7 @@ static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
     PetscCheck(ip>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of integration points must be > 0");
     ctx->nnod = ip;
   }
-  ierr = PetscLayoutDestroy(&ctx->map);CHKERRQ(ierr);  /* need to redistribute at next solve */
+  PetscCall(PetscLayoutDestroy(&ctx->map));  /* need to redistribute at next solve */
   PetscFunctionReturn(0);
 }
 
@@ -933,12 +865,10 @@ static PetscErrorCode DSNEPSetIntegrationPoints_NEP(DS ds,PetscInt ip)
 @*/
 PetscErrorCode DSNEPSetIntegrationPoints(DS ds,PetscInt ip)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,ip,2);
-  ierr = PetscTryMethod(ds,"DSNEPSetIntegrationPoints_C",(DS,PetscInt),(ds,ip));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(ds,"DSNEPSetIntegrationPoints_C",(DS,PetscInt),(ds,ip)));
   PetscFunctionReturn(0);
 }
 
@@ -969,12 +899,10 @@ static PetscErrorCode DSNEPGetIntegrationPoints_NEP(DS ds,PetscInt *ip)
 @*/
 PetscErrorCode DSNEPGetIntegrationPoints(DS ds,PetscInt *ip)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(ip,2);
-  ierr = PetscUseMethod(ds,"DSNEPGetIntegrationPoints_C",(DS,PetscInt*),(ds,ip));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(ds,"DSNEPGetIntegrationPoints_C",(DS,PetscInt*),(ds,ip)));
   PetscFunctionReturn(0);
 }
 
@@ -1013,12 +941,10 @@ static PetscErrorCode DSNEPSetSamplingSize_NEP(DS ds,PetscInt p)
 @*/
 PetscErrorCode DSNEPSetSamplingSize(DS ds,PetscInt p)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,p,2);
-  ierr = PetscTryMethod(ds,"DSNEPSetSamplingSize_C",(DS,PetscInt),(ds,p));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(ds,"DSNEPSetSamplingSize_C",(DS,PetscInt),(ds,p)));
   PetscFunctionReturn(0);
 }
 
@@ -1049,12 +975,10 @@ static PetscErrorCode DSNEPGetSamplingSize_NEP(DS ds,PetscInt *p)
 @*/
 PetscErrorCode DSNEPGetSamplingSize(DS ds,PetscInt *p)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(p,2);
-  ierr = PetscUseMethod(ds,"DSNEPGetSamplingSize_C",(DS,PetscInt*),(ds,p));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(ds,"DSNEPGetSamplingSize_C",(DS,PetscInt*),(ds,p)));
   PetscFunctionReturn(0);
 }
 
@@ -1098,11 +1022,9 @@ $   fun(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
 @*/
 PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  ierr = PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*),(ds,fun,ctx));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*),(ds,fun,ctx)));
   PetscFunctionReturn(0);
 }
 
@@ -1135,24 +1057,21 @@ static PetscErrorCode DSNEPGetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (**
 @*/
 PetscErrorCode DSNEPGetComputeMatrixFunction(DS ds,PetscErrorCode (**fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void **ctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  ierr = PetscUseMethod(ds,"DSNEPGetComputeMatrixFunction_C",(DS,PetscErrorCode (**)(DS,PetscScalar,PetscBool,DSMatType,void*),void**),(ds,fun,ctx));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(ds,"DSNEPGetComputeMatrixFunction_C",(DS,PetscErrorCode (**)(DS,PetscScalar,PetscBool,DSMatType,void*),void**),(ds,fun,ctx)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode DSNEPSetRG_NEP(DS ds,RG rg)
 {
-  PetscErrorCode ierr;
   DS_NEP         *dsctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
-  ierr = RGDestroy(&dsctx->rg);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)rg));
+  PetscCall(RGDestroy(&dsctx->rg));
   dsctx->rg = rg;
-  ierr = PetscLogObjectParent((PetscObject)ds,(PetscObject)dsctx->rg);CHKERRQ(ierr);
+  PetscCall(PetscLogObjectParent((PetscObject)ds,(PetscObject)dsctx->rg));
   PetscFunctionReturn(0);
 }
 
@@ -1175,31 +1094,28 @@ static PetscErrorCode DSNEPSetRG_NEP(DS ds,RG rg)
 @*/
 PetscErrorCode DSNEPSetRG(DS ds,RG rg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   if (rg) {
     PetscValidHeaderSpecific(rg,RG_CLASSID,2);
     PetscCheckSameComm(ds,1,rg,2);
   }
-  ierr = PetscTryMethod(ds,"DSNEPSetRG_C",(DS,RG),(ds,rg));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(ds,"DSNEPSetRG_C",(DS,RG),(ds,rg)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode DSNEPGetRG_NEP(DS ds,RG *rg)
 {
-  PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
   if (!ctx->rg) {
-    ierr = RGCreate(PetscObjectComm((PetscObject)ds),&ctx->rg);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->rg,(PetscObject)ds,1);CHKERRQ(ierr);
-    ierr = RGSetOptionsPrefix(ctx->rg,((PetscObject)ds)->prefix);CHKERRQ(ierr);
-    ierr = RGAppendOptionsPrefix(ctx->rg,"ds_nep_");CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)ds,(PetscObject)ctx->rg);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)ctx->rg,((PetscObject)ds)->options);CHKERRQ(ierr);
+    PetscCall(RGCreate(PetscObjectComm((PetscObject)ds),&ctx->rg));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->rg,(PetscObject)ds,1));
+    PetscCall(RGSetOptionsPrefix(ctx->rg,((PetscObject)ds)->prefix));
+    PetscCall(RGAppendOptionsPrefix(ctx->rg,"ds_nep_"));
+    PetscCall(PetscLogObjectParent((PetscObject)ds,(PetscObject)ctx->rg));
+    PetscCall(PetscObjectSetOptions((PetscObject)ctx->rg,((PetscObject)ds)->options));
   }
   *rg = ctx->rg;
   PetscFunctionReturn(0);
@@ -1222,18 +1138,15 @@ static PetscErrorCode DSNEPGetRG_NEP(DS ds,RG *rg)
 @*/
 PetscErrorCode DSNEPGetRG(DS ds,RG *rg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(rg,2);
-  ierr = PetscUseMethod(ds,"DSNEPGetRG_C",(DS,RG*),(ds,rg));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(ds,"DSNEPGetRG_C",(DS,RG*),(ds,rg)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
 {
-  PetscErrorCode ierr;
   PetscInt       k;
   PetscBool      flg;
 #if defined(PETSC_USE_COMPLEX)
@@ -1243,62 +1156,59 @@ PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"DS NEP Options");CHKERRQ(ierr);
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"DS NEP Options"));
 
-    ierr = PetscOptionsInt("-ds_nep_minimality","Maximum minimality index","DSNEPSetMinimality",4,&k,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = DSNEPSetMinimality(ds,k);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsInt("-ds_nep_minimality","Maximum minimality index","DSNEPSetMinimality",4,&k,&flg));
+    if (flg) PetscCall(DSNEPSetMinimality(ds,k));
 
-    ierr = PetscOptionsInt("-ds_nep_integration_points","Number of integration points","DSNEPSetIntegrationPoints",64,&k,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = DSNEPSetIntegrationPoints(ds,k);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsInt("-ds_nep_integration_points","Number of integration points","DSNEPSetIntegrationPoints",64,&k,&flg));
+    if (flg) PetscCall(DSNEPSetIntegrationPoints(ds,k));
 
-    ierr = PetscOptionsInt("-ds_nep_sampling_size","Number of sampling columns","DSNEPSetSamplingSize",0,&k,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = DSNEPSetSamplingSize(ds,k);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsInt("-ds_nep_sampling_size","Number of sampling columns","DSNEPSetSamplingSize",0,&k,&flg));
+    if (flg) PetscCall(DSNEPSetSamplingSize(ds,k));
 
 #if defined(PETSC_USE_COMPLEX)
     r = ctx->rtol;
-    ierr = PetscOptionsReal("-ds_nep_refine_tol","Refinement tolerance","DSNEPSetRefine",ctx->rtol,&r,&flg1);CHKERRQ(ierr);
+    PetscCall(PetscOptionsReal("-ds_nep_refine_tol","Refinement tolerance","DSNEPSetRefine",ctx->rtol,&r,&flg1));
     k = ctx->Nit;
-    ierr = PetscOptionsInt("-ds_nep_refine_its","Number of iterative refinement iterations","DSNEPSetRefine",ctx->Nit,&k,&flg);CHKERRQ(ierr);
-    if (flg1||flg) { ierr = DSNEPSetRefine(ds,r,k);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsInt("-ds_nep_refine_its","Number of iterative refinement iterations","DSNEPSetRefine",ctx->Nit,&k,&flg));
+    if (flg1||flg) PetscCall(DSNEPSetRefine(ds,r,k));
 
     if (ds->method==1) {
-      if (!ctx->rg) { ierr = DSNEPGetRG(ds,&ctx->rg);CHKERRQ(ierr); }
-      ierr = RGSetFromOptions(ctx->rg);CHKERRQ(ierr);
+      if (!ctx->rg) PetscCall(DSNEPGetRG(ds,&ctx->rg));
+      PetscCall(RGSetFromOptions(ctx->rg));
     }
 #endif
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscCall(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSDestroy_NEP(DS ds)
 {
-  PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       i;
 
   PetscFunctionBegin;
-  for (i=0;i<ctx->nf;i++) {
-    ierr = FNDestroy(&ctx->f[i]);CHKERRQ(ierr);
-  }
-  ierr = RGDestroy(&ctx->rg);CHKERRQ(ierr);
-  ierr = PetscLayoutDestroy(&ctx->map);CHKERRQ(ierr);
-  ierr = PetscFree(ds->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefine_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefine_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetSamplingSize_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetSamplingSize_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
+  for (i=0;i<ctx->nf;i++) PetscCall(FNDestroy(&ctx->f[i]));
+  PetscCall(RGDestroy(&ctx->rg));
+  PetscCall(PetscLayoutDestroy(&ctx->map));
+  PetscCall(PetscFree(ds->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefine_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefine_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetSamplingSize_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetSamplingSize_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetComputeMatrixFunction_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -1343,10 +1253,9 @@ M*/
 SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
 {
   DS_NEP         *ctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(ds,&ctx);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(ds,&ctx));
   ds->data = (void*)ctx;
   ctx->max_mid = 4;
   ctx->nnod    = 64;
@@ -1366,21 +1275,20 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ds->ops->destroy        = DSDestroy_NEP;
   ds->ops->matgetsize     = DSMatGetSize_NEP;
 
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",DSNEPGetMinimality_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",DSNEPSetMinimality_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefine_C",DSNEPGetRefine_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefine_C",DSNEPSetRefine_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",DSNEPGetIntegrationPoints_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",DSNEPSetIntegrationPoints_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetSamplingSize_C",DSNEPGetSamplingSize_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetSamplingSize_C",DSNEPSetSamplingSize_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",DSNEPSetRG_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",DSNEPGetRG_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",DSNEPSetComputeMatrixFunction_NEP);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetComputeMatrixFunction_C",DSNEPGetComputeMatrixFunction_NEP);CHKERRQ(ierr);
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetMinimality_C",DSNEPGetMinimality_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetMinimality_C",DSNEPSetMinimality_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRefine_C",DSNEPGetRefine_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRefine_C",DSNEPSetRefine_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetIntegrationPoints_C",DSNEPGetIntegrationPoints_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetIntegrationPoints_C",DSNEPSetIntegrationPoints_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetSamplingSize_C",DSNEPGetSamplingSize_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetSamplingSize_C",DSNEPSetSamplingSize_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetRG_C",DSNEPSetRG_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetRG_C",DSNEPGetRG_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",DSNEPSetComputeMatrixFunction_NEP));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetComputeMatrixFunction_C",DSNEPGetComputeMatrixFunction_NEP));
   PetscFunctionReturn(0);
 }
-

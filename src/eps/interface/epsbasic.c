@@ -47,14 +47,13 @@ PetscBool         EPSMonitorRegisterAllCalled = PETSC_FALSE;
 @*/
 PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 {
-  PetscErrorCode ierr;
   EPS            eps;
 
   PetscFunctionBegin;
   PetscValidPointer(outeps,2);
   *outeps = 0;
-  ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
+  PetscCall(EPSInitializePackage());
+  PetscCall(SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView));
 
   eps->max_it          = PETSC_DEFAULT;
   eps->nev             = 1;
@@ -123,7 +122,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->ishermitian     = PETSC_FALSE;
   eps->reason          = EPS_CONVERGED_ITERATING;
 
-  ierr = PetscNewLog(eps,&eps->sc);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(eps,&eps->sc));
   *outeps = eps;
   PetscFunctionReturn(0);
 }
@@ -159,25 +158,25 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 @*/
 PetscErrorCode EPSSetType(EPS eps,EPSType type)
 {
-  PetscErrorCode ierr,(*r)(EPS);
+  PetscErrorCode (*r)(EPS);
   PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)eps,type,&match);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps,type,&match));
   if (match) PetscFunctionReturn(0);
 
-  ierr = PetscFunctionListFind(EPSList,type,&r);CHKERRQ(ierr);
+  PetscCall(PetscFunctionListFind(EPSList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
 
-  if (eps->ops->destroy) { ierr = (*eps->ops->destroy)(eps);CHKERRQ(ierr); }
-  ierr = PetscMemzero(eps->ops,sizeof(struct _EPSOps));CHKERRQ(ierr);
+  if (eps->ops->destroy) PetscCall((*eps->ops->destroy)(eps));
+  PetscCall(PetscMemzero(eps->ops,sizeof(struct _EPSOps)));
 
   eps->state = EPS_STATE_INITIAL;
-  ierr = PetscObjectChangeTypeName((PetscObject)eps,type);CHKERRQ(ierr);
-  ierr = (*r)(eps);CHKERRQ(ierr);
+  PetscCall(PetscObjectChangeTypeName((PetscObject)eps,type));
+  PetscCall((*r)(eps));
   PetscFunctionReturn(0);
 }
 
@@ -233,11 +232,9 @@ $     -eps_type my_solver
 @*/
 PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(&EPSList,name,function);CHKERRQ(ierr);
+  PetscCall(EPSInitializePackage());
+  PetscCall(PetscFunctionListAdd(&EPSList,name,function));
   PetscFunctionReturn(0);
 }
 
@@ -274,14 +271,13 @@ $      -eps_monitor_my_monitor
 PetscErrorCode EPSMonitorRegister(const char name[],PetscViewerType vtype,PetscViewerFormat format,PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscErrorCode (*create)(PetscViewer,PetscViewerFormat,void*,PetscViewerAndFormat**),PetscErrorCode (*destroy)(PetscViewerAndFormat**))
 {
   char           key[PETSC_MAX_PATH_LEN];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(&EPSMonitorList,key,monitor);CHKERRQ(ierr);
-  if (create)  { ierr = PetscFunctionListAdd(&EPSMonitorCreateList,key,create);CHKERRQ(ierr); }
-  if (destroy) { ierr = PetscFunctionListAdd(&EPSMonitorDestroyList,key,destroy);CHKERRQ(ierr); }
+  PetscCall(EPSInitializePackage());
+  PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
+  PetscCall(PetscFunctionListAdd(&EPSMonitorList,key,monitor));
+  if (create)  PetscCall(PetscFunctionListAdd(&EPSMonitorCreateList,key,create));
+  if (destroy) PetscCall(PetscFunctionListAdd(&EPSMonitorDestroyList,key,destroy));
   PetscFunctionReturn(0);
 }
 
@@ -306,17 +302,15 @@ PetscErrorCode EPSMonitorRegister(const char name[],PetscViewerType vtype,PetscV
 @*/
 PetscErrorCode EPSReset(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (eps) PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps) PetscFunctionReturn(0);
-  if (eps->ops->reset) { ierr = (eps->ops->reset)(eps);CHKERRQ(ierr); }
-  if (eps->st) { ierr = STReset(eps->st);CHKERRQ(ierr); }
-  ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
-  ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
-  ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
-  ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
+  if (eps->ops->reset) PetscCall((eps->ops->reset)(eps));
+  if (eps->st) PetscCall(STReset(eps->st));
+  PetscCall(VecDestroy(&eps->D));
+  PetscCall(BVDestroy(&eps->V));
+  PetscCall(BVDestroy(&eps->W));
+  PetscCall(VecDestroyVecs(eps->nwork,&eps->work));
   eps->nwork = 0;
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -336,33 +330,25 @@ PetscErrorCode EPSReset(EPS eps)
 @*/
 PetscErrorCode EPSDestroy(EPS *eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (!*eps) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*eps,EPS_CLASSID,1);
   if (--((PetscObject)(*eps))->refct > 0) { *eps = 0; PetscFunctionReturn(0); }
-  ierr = EPSReset(*eps);CHKERRQ(ierr);
-  if ((*eps)->ops->destroy) { ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr); }
-  if ((*eps)->eigr) {
-    ierr = PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm);CHKERRQ(ierr);
-  }
-  if ((*eps)->rr) {
-    ierr = PetscFree2((*eps)->rr,(*eps)->ri);CHKERRQ(ierr);
-  }
-  ierr = STDestroy(&(*eps)->st);CHKERRQ(ierr);
-  ierr = RGDestroy(&(*eps)->rg);CHKERRQ(ierr);
-  ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);
-  ierr = PetscFree((*eps)->sc);CHKERRQ(ierr);
+  PetscCall(EPSReset(*eps));
+  if ((*eps)->ops->destroy) PetscCall((*(*eps)->ops->destroy)(*eps));
+  if ((*eps)->eigr) PetscCall(PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm));
+  if ((*eps)->rr) PetscCall(PetscFree2((*eps)->rr,(*eps)->ri));
+  PetscCall(STDestroy(&(*eps)->st));
+  PetscCall(RGDestroy(&(*eps)->rg));
+  PetscCall(DSDestroy(&(*eps)->ds));
+  PetscCall(PetscFree((*eps)->sc));
   /* just in case the initial vectors have not been used */
-  ierr = SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl);CHKERRQ(ierr);
-  ierr = SlepcBasisDestroy_Private(&(*eps)->nini,&(*eps)->IS);CHKERRQ(ierr);
-  ierr = SlepcBasisDestroy_Private(&(*eps)->ninil,&(*eps)->ISL);CHKERRQ(ierr);
-  if ((*eps)->convergeddestroy) {
-    ierr = (*(*eps)->convergeddestroy)((*eps)->convergedctx);CHKERRQ(ierr);
-  }
-  ierr = EPSMonitorCancel(*eps);CHKERRQ(ierr);
-  ierr = PetscHeaderDestroy(eps);CHKERRQ(ierr);
+  PetscCall(SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl));
+  PetscCall(SlepcBasisDestroy_Private(&(*eps)->nini,&(*eps)->IS));
+  PetscCall(SlepcBasisDestroy_Private(&(*eps)->ninil,&(*eps)->ISL));
+  if ((*eps)->convergeddestroy) PetscCall((*(*eps)->convergeddestroy)((*eps)->convergedctx));
+  PetscCall(EPSMonitorCancel(*eps));
+  PetscCall(PetscHeaderDestroy(eps));
   PetscFunctionReturn(0);
 }
 
@@ -392,14 +378,12 @@ PetscErrorCode EPSDestroy(EPS *eps)
 @*/
 PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveScalar(eps,target,2);
   eps->target = target;
-  if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
-  ierr = STSetDefaultShift(eps->st,target);CHKERRQ(ierr);
+  if (!eps->st) PetscCall(EPSGetST(eps,&eps->st));
+  PetscCall(STSetDefaultShift(eps->st,target));
   PetscFunctionReturn(0);
 }
 
@@ -520,16 +504,14 @@ PetscErrorCode EPSGetInterval(EPS eps,PetscReal* inta,PetscReal* intb)
 @*/
 PetscErrorCode EPSSetST(EPS eps,ST st)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(st,ST_CLASSID,2);
   PetscCheckSameComm(eps,1,st,2);
-  ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
-  ierr = STDestroy(&eps->st);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)st));
+  PetscCall(STDestroy(&eps->st));
   eps->st = st;
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->st);CHKERRQ(ierr);
+  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->st));
   PetscFunctionReturn(0);
 }
 
@@ -551,16 +533,14 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
 @*/
 PetscErrorCode EPSGetST(EPS eps,ST *st)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(st,2);
   if (!eps->st) {
-    ierr = STCreate(PetscObjectComm((PetscObject)eps),&eps->st);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)eps->st,(PetscObject)eps,0);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->st);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)eps->st,((PetscObject)eps)->options);CHKERRQ(ierr);
+    PetscCall(STCreate(PetscObjectComm((PetscObject)eps),&eps->st));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->st,(PetscObject)eps,0));
+    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->st));
+    PetscCall(PetscObjectSetOptions((PetscObject)eps->st,((PetscObject)eps)->options));
   }
   *st = eps->st;
   PetscFunctionReturn(0);
@@ -581,16 +561,14 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
 @*/
 PetscErrorCode EPSSetBV(EPS eps,BV V)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(V,BV_CLASSID,2);
   PetscCheckSameComm(eps,1,V,2);
-  ierr = PetscObjectReference((PetscObject)V);CHKERRQ(ierr);
-  ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)V));
+  PetscCall(BVDestroy(&eps->V));
   eps->V = V;
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
+  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V));
   PetscFunctionReturn(0);
 }
 
@@ -611,16 +589,14 @@ PetscErrorCode EPSSetBV(EPS eps,BV V)
 @*/
 PetscErrorCode EPSGetBV(EPS eps,BV *V)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(V,2);
   if (!eps->V) {
-    ierr = BVCreate(PetscObjectComm((PetscObject)eps),&eps->V);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)eps->V,(PetscObject)eps,0);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)eps->V,((PetscObject)eps)->options);CHKERRQ(ierr);
+    PetscCall(BVCreate(PetscObjectComm((PetscObject)eps),&eps->V));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->V,(PetscObject)eps,0));
+    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V));
+    PetscCall(PetscObjectSetOptions((PetscObject)eps->V,((PetscObject)eps)->options));
   }
   *V = eps->V;
   PetscFunctionReturn(0);
@@ -645,18 +621,16 @@ PetscErrorCode EPSGetBV(EPS eps,BV *V)
 @*/
 PetscErrorCode EPSSetRG(EPS eps,RG rg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (rg) {
     PetscValidHeaderSpecific(rg,RG_CLASSID,2);
     PetscCheckSameComm(eps,1,rg,2);
   }
-  ierr = PetscObjectReference((PetscObject)rg);CHKERRQ(ierr);
-  ierr = RGDestroy(&eps->rg);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)rg));
+  PetscCall(RGDestroy(&eps->rg));
   eps->rg = rg;
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rg);CHKERRQ(ierr);
+  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rg));
   PetscFunctionReturn(0);
 }
 
@@ -677,16 +651,14 @@ PetscErrorCode EPSSetRG(EPS eps,RG rg)
 @*/
 PetscErrorCode EPSGetRG(EPS eps,RG *rg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(rg,2);
   if (!eps->rg) {
-    ierr = RGCreate(PetscObjectComm((PetscObject)eps),&eps->rg);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)eps->rg,(PetscObject)eps,0);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rg);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)eps->rg,((PetscObject)eps)->options);CHKERRQ(ierr);
+    PetscCall(RGCreate(PetscObjectComm((PetscObject)eps),&eps->rg));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->rg,(PetscObject)eps,0));
+    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rg));
+    PetscCall(PetscObjectSetOptions((PetscObject)eps->rg,((PetscObject)eps)->options));
   }
   *rg = eps->rg;
   PetscFunctionReturn(0);
@@ -711,16 +683,14 @@ PetscErrorCode EPSGetRG(EPS eps,RG *rg)
 @*/
 PetscErrorCode EPSSetDS(EPS eps,DS ds)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(ds,DS_CLASSID,2);
   PetscCheckSameComm(eps,1,ds,2);
-  ierr = PetscObjectReference((PetscObject)ds);CHKERRQ(ierr);
-  ierr = DSDestroy(&eps->ds);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)ds));
+  PetscCall(DSDestroy(&eps->ds));
   eps->ds = ds;
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ds);CHKERRQ(ierr);
+  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ds));
   PetscFunctionReturn(0);
 }
 
@@ -741,16 +711,14 @@ PetscErrorCode EPSSetDS(EPS eps,DS ds)
 @*/
 PetscErrorCode EPSGetDS(EPS eps,DS *ds)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(ds,2);
   if (!eps->ds) {
-    ierr = DSCreate(PetscObjectComm((PetscObject)eps),&eps->ds);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)eps->ds,(PetscObject)eps,0);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ds);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)eps->ds,((PetscObject)eps)->options);CHKERRQ(ierr);
+    PetscCall(DSCreate(PetscObjectComm((PetscObject)eps),&eps->ds));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->ds,(PetscObject)eps,0));
+    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ds));
+    PetscCall(PetscObjectSetOptions((PetscObject)eps->ds,((PetscObject)eps)->options));
   }
   *ds = eps->ds;
   PetscFunctionReturn(0);
@@ -830,4 +798,3 @@ PetscErrorCode EPSIsPositive(EPS eps,PetscBool* is)
   *is = eps->ispositive;
   PetscFunctionReturn(0);
 }
-

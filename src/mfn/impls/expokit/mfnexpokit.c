@@ -27,24 +27,22 @@
 
 PetscErrorCode MFNSetUp_Expokit(MFN mfn)
 {
-  PetscErrorCode ierr;
   PetscInt       N;
   PetscBool      isexp;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
+  PetscCall(MatGetSize(mfn->A,&N,NULL));
   if (mfn->ncv==PETSC_DEFAULT) mfn->ncv = PetscMin(30,N);
   if (mfn->max_it==PETSC_DEFAULT) mfn->max_it = 100;
-  ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
+  PetscCall(MFNAllocateSolution(mfn,2));
 
-  ierr = PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp));
   PetscCheck(isexp,PETSC_COMM_SELF,PETSC_ERR_SUP,"This solver only supports the exponential function");
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
 {
-  PetscErrorCode    ierr;
   PetscInt          mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
   Vec               v,r;
   Mat               H,M=NULL,K=NULL;
@@ -63,12 +61,12 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   gamma = 0.9;
   delta = 1.2;
   mb    = m;
-  ierr = FNGetScale(mfn->fn,&t,&sfactor);CHKERRQ(ierr);
-  ierr = FNDuplicate(mfn->fn,PetscObjectComm((PetscObject)mfn->fn),&fn);CHKERRQ(ierr);
-  ierr = FNSetScale(fn,1.0,1.0);CHKERRQ(ierr);
+  PetscCall(FNGetScale(mfn->fn,&t,&sfactor));
+  PetscCall(FNDuplicate(mfn->fn,PetscObjectComm((PetscObject)mfn->fn),&fn));
+  PetscCall(FNSetScale(fn,1.0,1.0));
   t_out = PetscAbsScalar(t);
   t_now = 0.0;
-  ierr = MatNorm(mfn->A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
+  PetscCall(MatNorm(mfn->A,NORM_INFINITY,&anorm));
   rndoff = anorm*PETSC_MACHINE_EPSILON;
 
   k1 = 2;
@@ -80,33 +78,33 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   t_new = PetscCeilReal(t_new/s)*s;
   sgn = t/PetscAbsScalar(t);
 
-  ierr = VecCopy(b,x);CHKERRQ(ierr);
+  PetscCall(VecCopy(b,x));
   ld = m+2;
-  ierr = PetscCalloc2(m+1,&betaF,ld*ld,&B);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ld,ld,NULL,&H);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(H,&Harray);CHKERRQ(ierr);
+  PetscCall(PetscCalloc2(m+1,&betaF,ld*ld,&B));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ld,ld,NULL,&H));
+  PetscCall(MatDenseGetArray(H,&Harray));
 
   while (mfn->reason == MFN_CONVERGED_ITERATING) {
     mfn->its++;
     if (PetscIsInfOrNanReal(t_new)) t_new = PETSC_MAX_REAL;
     t_step = PetscMin(t_out-t_now,t_new);
-    ierr = BVInsertVec(mfn->V,0,x);CHKERRQ(ierr);
-    ierr = BVScaleColumn(mfn->V,0,1.0/beta);CHKERRQ(ierr);
-    ierr = BVMatArnoldi(mfn->V,mfn->transpose_solve?mfn->AT:mfn->A,H,0,&mb,&beta2,&breakdown);CHKERRQ(ierr);
+    PetscCall(BVInsertVec(mfn->V,0,x));
+    PetscCall(BVScaleColumn(mfn->V,0,1.0/beta));
+    PetscCall(BVMatArnoldi(mfn->V,mfn->transpose_solve?mfn->AT:mfn->A,H,0,&mb,&beta2,&breakdown));
     if (breakdown) {
       k1 = 0;
       t_step = t_out-t_now;
     }
     if (k1!=0) {
       Harray[m+1+ld*m] = 1.0;
-      ierr = BVGetColumn(mfn->V,m,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
-      ierr = MatMult(mfn->transpose_solve?mfn->AT:mfn->A,v,r);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(mfn->V,m,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
-      ierr = BVNormColumn(mfn->V,m+1,NORM_2,&avnorm);CHKERRQ(ierr);
+      PetscCall(BVGetColumn(mfn->V,m,&v));
+      PetscCall(BVGetColumn(mfn->V,m+1,&r));
+      PetscCall(MatMult(mfn->transpose_solve?mfn->AT:mfn->A,v,r));
+      PetscCall(BVRestoreColumn(mfn->V,m,&v));
+      PetscCall(BVRestoreColumn(mfn->V,m+1,&r));
+      PetscCall(BVNormColumn(mfn->V,m+1,NORM_2,&avnorm));
     }
-    ierr = PetscArraycpy(B,Harray,ld*ld);CHKERRQ(ierr);
+    PetscCall(PetscArraycpy(B,Harray,ld*ld));
 
     ireject = 0;
     while (ireject <= mxrej) {
@@ -116,23 +114,21 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
           Harray[i+j*ld] = sgn*B[i+j*ld]*t_step;
         }
       }
-      ierr = MFN_CreateDenseMat(mx,&M);CHKERRQ(ierr);
-      ierr = MFN_CreateDenseMat(mx,&K);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(M,&F);CHKERRQ(ierr);
-      for (j=0;j<mx;j++) {
-        ierr = PetscArraycpy(F+j*mx,Harray+j*ld,mx);CHKERRQ(ierr);
-      }
-      ierr = MatDenseRestoreArray(M,&F);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(fn,M,K);CHKERRQ(ierr);
+      PetscCall(MFN_CreateDenseMat(mx,&M));
+      PetscCall(MFN_CreateDenseMat(mx,&K));
+      PetscCall(MatDenseGetArray(M,&F));
+      for (j=0;j<mx;j++) PetscCall(PetscArraycpy(F+j*mx,Harray+j*ld,mx));
+      PetscCall(MatDenseRestoreArray(M,&F));
+      PetscCall(FNEvaluateFunctionMat(fn,M,K));
 
       if (k1==0) {
         err_loc = tol;
         break;
       } else {
-        ierr = MatDenseGetArrayRead(K,&pK);CHKERRQ(ierr);
+        PetscCall(MatDenseGetArrayRead(K,&pK));
         p1 = PetscAbsScalar(beta*pK[m]);
         p2 = PetscAbsScalar(beta*pK[m+1]*avnorm);
-        ierr = MatDenseRestoreArrayRead(K,&pK);CHKERRQ(ierr);
+        PetscCall(MatDenseRestoreArrayRead(K,&pK));
         if (p1 > 10*p2) {
           err_loc = p2;
           xm = 1.0/(PetscReal)m;
@@ -154,12 +150,12 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
     }
 
     mx = mb + PetscMax(0,k1-1);
-    ierr = MatDenseGetArrayRead(K,&pK);CHKERRQ(ierr);
+    PetscCall(MatDenseGetArrayRead(K,&pK));
     for (j=0;j<mx;j++) betaF[j] = beta*pK[j];
-    ierr = MatDenseRestoreArrayRead(K,&pK);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(mfn->V,0,mx);CHKERRQ(ierr);
-    ierr = BVMultVec(mfn->V,1.0,0.0,x,betaF);CHKERRQ(ierr);
-    ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);
+    PetscCall(MatDenseRestoreArrayRead(K,&pK));
+    PetscCall(BVSetActiveColumns(mfn->V,0,mx));
+    PetscCall(BVMultVec(mfn->V,1.0,0.0,x,betaF));
+    PetscCall(VecNorm(x,NORM_2,&beta));
 
     t_now = t_now+t_step;
     if (t_now>=t_out) mfn->reason = MFN_CONVERGED_TOL;
@@ -170,16 +166,16 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
     }
     err_loc = PetscMax(err_loc,rndoff);
     if (mfn->its==mxstep) mfn->reason = MFN_DIVERGED_ITS;
-    ierr = MFNMonitor(mfn,mfn->its,err_loc);CHKERRQ(ierr);
+    PetscCall(MFNMonitor(mfn,mfn->its,err_loc));
   }
-  ierr = VecScale(x,sfactor);CHKERRQ(ierr);
+  PetscCall(VecScale(x,sfactor));
 
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = MatDestroy(&K);CHKERRQ(ierr);
-  ierr = FNDestroy(&fn);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(H,&Harray);CHKERRQ(ierr);
-  ierr = MatDestroy(&H);CHKERRQ(ierr);
-  ierr = PetscFree2(betaF,B);CHKERRQ(ierr);
+  PetscCall(MatDestroy(&M));
+  PetscCall(MatDestroy(&K));
+  PetscCall(FNDestroy(&fn));
+  PetscCall(MatDenseRestoreArray(H,&Harray));
+  PetscCall(MatDestroy(&H));
+  PetscCall(PetscFree2(betaF,B));
   PetscFunctionReturn(0);
 }
 

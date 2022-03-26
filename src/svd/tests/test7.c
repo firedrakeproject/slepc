@@ -38,80 +38,74 @@ int main(int argc,char **argv)
   PetscInt             m=20,n,Istart,Iend,i,col[2];
   PetscScalar          value[] = { 1, 2 };
   PetscBool            flg,expmat;
-  PetscErrorCode       ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));
   if (!flg) n=m+2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%" PetscInt_FMT " n=%" PetscInt_FMT "\n\n",m,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,m,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     col[0]=i; col[1]=i+1;
-    if (i<n-1) {
-      ierr = MatSetValues(A,1,&i,2,col,value,INSERT_VALUES);CHKERRQ(ierr);
-    } else if (i==n-1) {
-      ierr = MatSetValue(A,i,col[0],value[0],INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i<n-1) PetscCall(MatSetValues(A,1,&i,2,col,value,INSERT_VALUES));
+    else if (i==n-1) PetscCall(MatSetValue(A,i,col[0],value[0],INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Create a standalone EPS with appropriate settings
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = EPSSetTarget(eps,1.0);CHKERRQ(ierr);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STSetShift(st,1.01);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE));
+  PetscCall(EPSSetTarget(eps,1.0));
+  PetscCall(EPSGetST(eps,&st));
+  PetscCall(STSetType(st,STSINVERT));
+  PetscCall(STSetShift(st,1.01));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPSetType(ksp,KSPPREONLY));
+  PetscCall(KSPGetPC(ksp,&pc));
+  PetscCall(PCSetType(pc,PCLU));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetType(svd,SVDCYCLIC);CHKERRQ(ierr);
-  ierr = SVDCyclicSetEPS(svd,eps);CHKERRQ(ierr);
-  ierr = SVDCyclicSetExplicitMatrix(svd,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCYCLIC,&flg);CHKERRQ(ierr);
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetType(svd,SVDCYCLIC));
+  PetscCall(SVDCyclicSetEPS(svd,eps));
+  PetscCall(SVDCyclicSetExplicitMatrix(svd,PETSC_TRUE));
+  PetscCall(SVDSetWhichSingularTriplets(svd,SVD_SMALLEST));
+  PetscCall(SVDSetFromOptions(svd));
+  PetscCall(PetscObjectTypeCompare((PetscObject)svd,SVDCYCLIC,&flg));
   if (flg) {
-    ierr = SVDCyclicGetExplicitMatrix(svd,&expmat);CHKERRQ(ierr);
-    if (expmat) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cyclic solver\n");CHKERRQ(ierr);
-    }
+    PetscCall(SVDCyclicGetExplicitMatrix(svd,&expmat));
+    if (expmat) PetscCall(PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cyclic solver\n"));
   }
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
+  PetscCall(SVDSolve(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

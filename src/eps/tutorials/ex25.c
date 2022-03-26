@@ -27,49 +27,48 @@ int main(int argc,char **argv)
   PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j,*inertias,ns;
   PetscReal      inta,intb,*shifts;
   PetscBool      flag,show=PETSC_FALSE,terse;
-  PetscErrorCode ierr;
 #if defined(PETSC_HAVE_MUMPS) && !defined(PETSC_USE_COMPLEX)
   Mat            F;
 #endif
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-show_inertias",&show,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-show_inertias",&show,NULL));
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on GHEP, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on GHEP, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid)\n\n",N,n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-  ierr = MatSetUp(B);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+  PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(B));
+  PetscCall(MatSetUp(B));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = MatSetValue(B,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,4.0,INSERT_VALUES));
+    PetscCall(MatSetValue(B,II,II,4.0,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -78,37 +77,37 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators and set problem type
   */
-  ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr);
+  PetscCall(EPSSetOperators(eps,A,B));
+  PetscCall(EPSSetProblemType(eps,EPS_GHEP));
 
   /*
      Set interval for spectrum slicing
   */
   inta = 0.1;
   intb = 0.2;
-  ierr = EPSSetInterval(eps,inta,intb);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
+  PetscCall(EPSSetInterval(eps,inta,intb));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_ALL));
 
   /*
      Spectrum slicing requires Krylov-Schur
   */
-  ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
+  PetscCall(EPSSetType(eps,EPSKRYLOVSCHUR));
 
   /*
      Set shift-and-invert with Cholesky; select MUMPS if available
   */
 
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = EPSKrylovSchurGetKSP(eps,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
+  PetscCall(EPSGetST(eps,&st));
+  PetscCall(STSetType(st,STSINVERT));
+  PetscCall(EPSKrylovSchurGetKSP(eps,&ksp));
+  PetscCall(KSPSetType(ksp,KSPPREONLY));
+  PetscCall(KSPGetPC(ksp,&pc));
+  PetscCall(PCSetType(pc,PCCHOLESKY));
 
   /*
      Use MUMPS if available.
@@ -116,9 +115,9 @@ int main(int argc,char **argv)
      because MatGetInertia() is not available in that case.
   */
 #if defined(PETSC_HAVE_MUMPS) && !defined(PETSC_USE_COMPLEX)
-  ierr = EPSKrylovSchurSetDetectZeros(eps,PETSC_TRUE);CHKERRQ(ierr);  /* enforce zero detection */
-  ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
-  ierr = PCFactorSetUpMatSolverType(pc);CHKERRQ(ierr);
+  PetscCall(EPSKrylovSchurSetDetectZeros(eps,PETSC_TRUE));  /* enforce zero detection */
+  PetscCall(PCFactorSetMatSolverType(pc,MATSOLVERMUMPS));
+  PetscCall(PCFactorSetUpMatSolverType(pc));
   /*
      Set several MUMPS options, the corresponding command-line options are:
      '-st_mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
@@ -128,69 +127,68 @@ int main(int argc,char **argv)
      Note: depending on the interval, it may be necessary also to increase the workspace:
      '-st_mat_mumps_icntl_14 <percentage>': increase workspace with a percentage (50, 100 or more)
   */
-  ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
-  ierr = MatMumpsSetIcntl(F,13,1);CHKERRQ(ierr);
-  ierr = MatMumpsSetIcntl(F,24,1);CHKERRQ(ierr);
-  ierr = MatMumpsSetCntl(F,3,1e-12);CHKERRQ(ierr);
+  PetscCall(PCFactorGetMatrix(pc,&F));
+  PetscCall(MatMumpsSetIcntl(F,13,1));
+  PetscCall(MatMumpsSetIcntl(F,24,1));
+  PetscCall(MatMumpsSetCntl(F,3,1e-12));
 #endif
 
   /*
      Set solver parameters at runtime
   */
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSSetUp(eps);CHKERRQ(ierr);
+  PetscCall(EPSSetUp(eps));
   if (show) {
-    ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Subintervals (after setup):\n");CHKERRQ(ierr);
-    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %" PetscInt_FMT " \n",(double)shifts[i],inertias[i]);CHKERRQ(ierr); }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-    ierr = PetscFree(shifts);CHKERRQ(ierr);
-    ierr = PetscFree(inertias);CHKERRQ(ierr);
+    PetscCall(EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Subintervals (after setup):\n"));
+    for (i=0;i<ns;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %" PetscInt_FMT " \n",(double)shifts[i],inertias[i]));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+    PetscCall(PetscFree(shifts));
+    PetscCall(PetscFree(inertias));
   }
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
   if (show) {
-    ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"All shifts (after solve):\n");CHKERRQ(ierr);
-    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %" PetscInt_FMT " \n",(double)shifts[i],inertias[i]);CHKERRQ(ierr); }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-    ierr = PetscFree(shifts);CHKERRQ(ierr);
-    ierr = PetscFree(inertias);CHKERRQ(ierr);
+    PetscCall(EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"All shifts (after solve):\n"));
+    for (i=0;i<ns;i++) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %" PetscInt_FMT " \n",(double)shifts[i],inertias[i]));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n"));
+    PetscCall(PetscFree(shifts));
+    PetscCall(PetscFree(inertias));
   }
 
   /*
      Show eigenvalues in interval and print solution
   */
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = EPSGetInterval(eps,&inta,&intb);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," %" PetscInt_FMT " eigenvalues found in [%g, %g]\n",nev,(double)inta,(double)intb);CHKERRQ(ierr);
+  PetscCall(EPSGetType(eps,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(EPSGetInterval(eps,&inta,&intb));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," %" PetscInt_FMT " eigenvalues found in [%g, %g]\n",nev,(double)inta,(double)intb));
 
   /*
      Show detailed info unless -terse option is given by user
    */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

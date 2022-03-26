@@ -44,7 +44,6 @@
 @*/
 PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   const char     *type=NULL;
   char           str[50];
   PetscInt       i;
@@ -54,19 +53,17 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer);CHKERRQ(ierr);
-  }
+  if (!viewer) PetscCall(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(nep,1,viewer,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)nep,viewer);CHKERRQ(ierr);
+    PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)nep,viewer));
     if (nep->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+      PetscCall(PetscViewerASCIIPushTab(viewer));
+      PetscCall((*nep->ops->view)(nep,viewer));
+      PetscCall(PetscViewerASCIIPopTab(viewer));
     }
     if (nep->problem_type) {
       switch (nep->problem_type) {
@@ -74,129 +71,114 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
         case NEP_RATIONAL: type = "rational eigenvalue problem"; break;
       }
     } else type = "not yet set";
-    ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type));
     if (nep->fui) {
       switch (nep->fui) {
       case NEP_USER_INTERFACE_CALLBACK:
-        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n"));
         break;
       case NEP_USER_INTERFACE_SPLIT:
-        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form\n");CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"    number of terms: %" PetscInt_FMT "\n",nep->nt);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIPrintf(viewer,"    nonzero pattern of the matrices: %s\n",MatStructures[nep->mstr]);CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form\n"));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"    number of terms: %" PetscInt_FMT "\n",nep->nt));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"    nonzero pattern of the matrices: %s\n",MatStructures[nep->mstr]));
         break;
       }
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator not specified yet\n");CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = SlepcSNPrintfScalar(str,sizeof(str),nep->target,PETSC_FALSE);CHKERRQ(ierr);
-    if (!nep->which) {
-      ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
-    } else switch (nep->which) {
+    } else PetscCall(PetscViewerASCIIPrintf(viewer,"  nonlinear operator not specified yet\n"));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: "));
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
+    PetscCall(SlepcSNPrintfScalar(str,sizeof(str),nep->target,PETSC_FALSE));
+    if (!nep->which) PetscCall(PetscViewerASCIIPrintf(viewer,"not yet set\n"));
+    else switch (nep->which) {
       case NEP_WHICH_USER:
-        ierr = PetscViewerASCIIPrintf(viewer,"user defined\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"user defined\n"));
         break;
       case NEP_TARGET_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str);CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str));
         break;
       case NEP_TARGET_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the real axis)\n",str);CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the real axis)\n",str));
         break;
       case NEP_TARGET_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the imaginary axis)\n",str);CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"closest to target: %s (along the imaginary axis)\n",str));
         break;
       case NEP_LARGEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"largest eigenvalues in magnitude\n"));
         break;
       case NEP_SMALLEST_MAGNITUDE:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"smallest eigenvalues in magnitude\n"));
         break;
       case NEP_LARGEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest real parts\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"largest real parts\n"));
         break;
       case NEP_SMALLEST_REAL:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest real parts\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"smallest real parts\n"));
         break;
       case NEP_LARGEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"largest imaginary parts\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"largest imaginary parts\n"));
         break;
       case NEP_SMALLEST_IMAGINARY:
-        ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n"));
         break;
       case NEP_ALL:
-        ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n"));
         break;
     }
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-    if (nep->twosided) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  using two-sided variant (for left eigenvectors)\n");CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %" PetscInt_FMT "\n",nep->nev);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",nep->ncv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %" PetscInt_FMT "\n",nep->mpd);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",nep->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)nep->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
+    if (nep->twosided) PetscCall(PetscViewerASCIIPrintf(viewer,"  using two-sided variant (for left eigenvectors)\n"));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %" PetscInt_FMT "\n",nep->nev));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",nep->ncv));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %" PetscInt_FMT "\n",nep->mpd));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",nep->max_it));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)nep->tol));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  convergence test: "));
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     switch (nep->conv) {
     case NEP_CONV_ABS:
-      ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
+      PetscCall(PetscViewerASCIIPrintf(viewer,"absolute\n"));break;
     case NEP_CONV_REL:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
+      PetscCall(PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n"));break;
     case NEP_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
+      PetscCall(PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n"));
       if (nep->nrma) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)nep->nrma[0]);CHKERRQ(ierr);
-        for (i=1;i<nep->nt;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)nep->nrma[i]);CHKERRQ(ierr);
-        }
-        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)nep->nrma[0]));
+        for (i=1;i<nep->nt;i++) PetscCall(PetscViewerASCIIPrintf(viewer,", %g",(double)nep->nrma[i]));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
       }
       break;
     case NEP_CONV_USER:
-      ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
+      PetscCall(PetscViewerASCIIPrintf(viewer,"user-defined\n"));break;
     }
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     if (nep->refine) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s, with %s scheme\n",NEPRefineTypes[nep->refine],NEPRefineSchemes[nep->scheme]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%" PetscInt_FMT "\n",(double)nep->rtol,nep->rits);CHKERRQ(ierr);
-      if (nep->npart>1) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %" PetscInt_FMT " partitions for refinement\n",nep->npart);CHKERRQ(ierr);
-      }
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s, with %s scheme\n",NEPRefineTypes[nep->refine],NEPRefineSchemes[nep->scheme]));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%" PetscInt_FMT "\n",(double)nep->rtol,nep->rits));
+      if (nep->npart>1) PetscCall(PetscViewerASCIIPrintf(viewer,"  splitting communicator in %" PetscInt_FMT " partitions for refinement\n",nep->npart));
     }
-    if (nep->nini) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(nep->nini));CHKERRQ(ierr);
-    }
+    if (nep->nini) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(nep->nini)));
   } else {
-    if (nep->ops->view) {
-      ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
-    }
+    if (nep->ops->view) PetscCall((*nep->ops->view)(nep,viewer));
   }
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-  if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
-  ierr = BVView(nep->V,viewer);CHKERRQ(ierr);
-  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
-  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) { ierr = RGView(nep->rg,viewer);CHKERRQ(ierr); }
+  PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
+  if (!nep->V) PetscCall(NEPGetBV(nep,&nep->V));
+  PetscCall(BVView(nep->V,viewer));
+  if (!nep->rg) PetscCall(NEPGetRG(nep,&nep->rg));
+  PetscCall(RGIsTrivial(nep->rg,&istrivial));
+  if (!istrivial) PetscCall(RGView(nep->rg,viewer));
   if (nep->useds) {
-    if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-    ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
+    if (!nep->ds) PetscCall(NEPGetDS(nep,&nep->ds));
+    PetscCall(DSView(nep->ds,viewer));
   }
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscCall(PetscViewerPopFormat(viewer));
   if (nep->refine!=NEP_REFINE_NONE) {
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPushTab(viewer));
     if (nep->npart>1) {
       if (nep->refinesubc->color==0) {
-        ierr = PetscSubcommGetChild(nep->refinesubc,&child);CHKERRQ(ierr);
-        ierr = PetscViewerASCIIGetStdout(child,&sviewer);CHKERRQ(ierr);
-        ierr = KSPView(nep->refineksp,sviewer);CHKERRQ(ierr);
+        PetscCall(PetscSubcommGetChild(nep->refinesubc,&child));
+        PetscCall(PetscViewerASCIIGetStdout(child,&sviewer));
+        PetscCall(KSPView(nep->refineksp,sviewer));
       }
-    } else {
-      ierr = KSPView(nep->refineksp,viewer);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    } else PetscCall(KSPView(nep->refineksp,viewer));
+    PetscCall(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
@@ -217,11 +199,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 @*/
 PetscErrorCode NEPViewFromOptions(NEP nep,PetscObject obj,const char name[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  ierr = PetscObjectViewFromOptions((PetscObject)nep,obj,name);CHKERRQ(ierr);
+  PetscCall(PetscObjectViewFromOptions((PetscObject)nep,obj,name));
   PetscFunctionReturn(0);
 }
 
@@ -249,22 +229,18 @@ PetscErrorCode NEPViewFromOptions(NEP nep,PetscObject obj,const char name[])
 @*/
 PetscErrorCode NEPConvergedReasonView(NEP nep,PetscViewer viewer)
 {
-  PetscErrorCode    ierr;
   PetscBool         isAscii;
   PetscViewerFormat format;
 
   PetscFunctionBegin;
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isAscii));
   if (isAscii) {
-    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
-    if (nep->reason > 0 && format != PETSC_VIEWER_FAILED) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve converged (%" PetscInt_FMT " eigenpair%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",nep->nconv,(nep->nconv>1)?"s":"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
-    } else if (nep->reason <= 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
+    PetscCall(PetscViewerGetFormat(viewer,&format));
+    PetscCall(PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel));
+    if (nep->reason > 0 && format != PETSC_VIEWER_FAILED) PetscCall(PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve converged (%" PetscInt_FMT " eigenpair%s) due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",nep->nconv,(nep->nconv>1)?"s":"",NEPConvergedReasons[nep->reason],nep->its));
+    else if (nep->reason <= 0) PetscCall(PetscViewerASCIIPrintf(viewer,"%s Nonlinear eigensolve did not converge due to %s; iterations %" PetscInt_FMT "\n",((PetscObject)nep)->prefix?((PetscObject)nep)->prefix:"",NEPConvergedReasons[nep->reason],nep->its));
+    PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel));
   }
   PetscFunctionReturn(0);
 }
@@ -284,7 +260,6 @@ PetscErrorCode NEPConvergedReasonView(NEP nep,PetscViewer viewer)
 @*/
 PetscErrorCode NEPConvergedReasonViewFromOptions(NEP nep)
 {
-  PetscErrorCode    ierr;
   PetscViewer       viewer;
   PetscBool         flg;
   static PetscBool  incall = PETSC_FALSE;
@@ -293,12 +268,12 @@ PetscErrorCode NEPConvergedReasonViewFromOptions(NEP nep)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_converged_reason",&viewer,&format,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_converged_reason",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = NEPConvergedReasonView(nep,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,format));
+    PetscCall(NEPConvergedReasonView(nep,viewer));
+    PetscCall(PetscViewerPopFormat(viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -308,45 +283,40 @@ static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer 
 {
   PetscReal      error;
   PetscInt       i,j,k,nvals;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   nvals = (nep->which==NEP_ALL)? nep->nconv: nep->nev;
   if (nep->which!=NEP_ALL && nep->nconv<nvals) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %" PetscInt_FMT " eigenvalues converged\n\n",nep->nev);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer," Problem: less than %" PetscInt_FMT " eigenvalues converged\n\n",nep->nev));
     PetscFunctionReturn(0);
   }
   if (nep->which==NEP_ALL && !nvals) {
-    ierr = PetscViewerASCIIPrintf(viewer," No eigenvalues have been found\n\n");CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer," No eigenvalues have been found\n\n"));
     PetscFunctionReturn(0);
   }
   for (i=0;i<nvals;i++) {
-    ierr = NEPComputeError(nep,i,etype,&error);CHKERRQ(ierr);
+    PetscCall(NEPComputeError(nep,i,etype,&error));
     if (error>=5.0*nep->tol) {
-      ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
+      PetscCall(PetscViewerASCIIPrintf(viewer," Problem: some of the first %" PetscInt_FMT " relative errors are higher than the tolerance\n\n",nvals));
       PetscFunctionReturn(0);
     }
   }
-  if (nep->which==NEP_ALL) {
-    ierr = PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
-  }
+  if (nep->which==NEP_ALL) PetscCall(PetscViewerASCIIPrintf(viewer," Found %" PetscInt_FMT " eigenvalues, all of them computed up to the required tolerance:",nvals));
+  else PetscCall(PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:"));
   for (i=0;i<=(nvals-1)/8;i++) {
-    ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer,"\n     "));
     for (j=0;j<PetscMin(8,nvals-8*i);j++) {
       k = nep->perm[8*i+j];
-      ierr = SlepcPrintEigenvalueASCII(viewer,nep->eigr[k],nep->eigi[k]);CHKERRQ(ierr);
-      if (8*i+j+1<nvals) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
+      PetscCall(SlepcPrintEigenvalueASCII(viewer,nep->eigr[k],nep->eigi[k]));
+      if (8*i+j+1<nvals) PetscCall(PetscViewerASCIIPrintf(viewer,", "));
     }
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIPrintf(viewer,"\n\n"));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
   PetscInt       i;
@@ -356,19 +326,19 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
   if (!nep->nconv) PetscFunctionReturn(0);
   switch (etype) {
     case NEP_ERROR_ABSOLUTE:
-      ierr = PetscSNPrintf(ex,sizeof(ex),"    ||T(k)x||");CHKERRQ(ierr);
+      PetscCall(PetscSNPrintf(ex,sizeof(ex),"    ||T(k)x||"));
       break;
     case NEP_ERROR_RELATIVE:
-      ierr = PetscSNPrintf(ex,sizeof(ex)," ||T(k)x||/||kx||");CHKERRQ(ierr);
+      PetscCall(PetscSNPrintf(ex,sizeof(ex)," ||T(k)x||/||kx||"));
       break;
     case NEP_ERROR_BACKWARD:
-      ierr = PetscSNPrintf(ex,sizeof(ex),"    eta(x,k)");CHKERRQ(ierr);
+      PetscCall(PetscSNPrintf(ex,sizeof(ex),"    eta(x,k)"));
       break;
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep));
   for (i=0;i<nep->nconv;i++) {
-    ierr = NEPGetEigenpair(nep,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-    ierr = NEPComputeError(nep,i,etype,&error);CHKERRQ(ierr);
+    PetscCall(NEPGetEigenpair(nep,i,&kr,&ki,NULL,NULL));
+    PetscCall(NEPComputeError(nep,i,etype,&error));
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(kr);
     im = PetscImaginaryPart(kr);
@@ -376,31 +346,27 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
     re = kr;
     im = ki;
 #endif
-    if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
-    }
+    if (im!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error));
+    else PetscCall(PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%s",sep);CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIPrintf(viewer,"%s",sep));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPErrorView_MATLAB(NEP nep,NEPErrorType etype,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscReal      error;
   PetscInt       i;
   const char     *name;
 
   PetscFunctionBegin;
-  ierr = PetscObjectGetName((PetscObject)nep,&name);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"Error_%s = [\n",name);CHKERRQ(ierr);
+  PetscCall(PetscObjectGetName((PetscObject)nep,&name));
+  PetscCall(PetscViewerASCIIPrintf(viewer,"Error_%s = [\n",name));
   for (i=0;i<nep->nconv;i++) {
-    ierr = NEPComputeError(nep,i,etype,&error);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)error);CHKERRQ(ierr);
+    PetscCall(NEPComputeError(nep,i,etype,&error));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)error));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIPrintf(viewer,"];\n"));
   PetscFunctionReturn(0);
 }
 
@@ -434,33 +400,30 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
 {
   PetscBool         isascii;
   PetscViewerFormat format;
-  PetscErrorCode    ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer);CHKERRQ(ierr);
-  }
+  if (!viewer) PetscCall(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,3);
   PetscCheckSameComm(nep,1,viewer,3);
   NEPCheckSolved(nep,1);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (!isascii) PetscFunctionReturn(0);
 
-  ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  PetscCall(PetscViewerGetFormat(viewer,&format));
   switch (format) {
     case PETSC_VIEWER_DEFAULT:
     case PETSC_VIEWER_ASCII_INFO:
-      ierr = NEPErrorView_ASCII(nep,etype,viewer);CHKERRQ(ierr);
+      PetscCall(NEPErrorView_ASCII(nep,etype,viewer));
       break;
     case PETSC_VIEWER_ASCII_INFO_DETAIL:
-      ierr = NEPErrorView_DETAIL(nep,etype,viewer);CHKERRQ(ierr);
+      PetscCall(NEPErrorView_DETAIL(nep,etype,viewer));
       break;
     case PETSC_VIEWER_ASCII_MATLAB:
-      ierr = NEPErrorView_MATLAB(nep,etype,viewer);CHKERRQ(ierr);
+      PetscCall(NEPErrorView_MATLAB(nep,etype,viewer));
       break;
     default:
-      ierr = PetscInfo(nep,"Unsupported viewer format %s\n",PetscViewerFormats[format]);CHKERRQ(ierr);
+      PetscCall(PetscInfo(nep,"Unsupported viewer format %s\n",PetscViewerFormats[format]));
   }
   PetscFunctionReturn(0);
 }
@@ -480,7 +443,6 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
 @*/
 PetscErrorCode NEPErrorViewFromOptions(NEP nep)
 {
-  PetscErrorCode    ierr;
   PetscViewer       viewer;
   PetscBool         flg;
   static PetscBool  incall = PETSC_FALSE;
@@ -489,26 +451,26 @@ PetscErrorCode NEPErrorViewFromOptions(NEP nep)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_error_absolute",&viewer,&format,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_error_absolute",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_ABSOLUTE,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,format));
+    PetscCall(NEPErrorView(nep,NEP_ERROR_ABSOLUTE,viewer));
+    PetscCall(PetscViewerPopFormat(viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_error_relative",&viewer,&format,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_error_relative",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,format));
+    PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,viewer));
+    PetscCall(PetscViewerPopFormat(viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_error_backward",&viewer,&format,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_error_backward",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_BACKWARD,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,format));
+    PetscCall(NEPErrorView(nep,NEP_ERROR_BACKWARD,viewer));
+    PetscCall(PetscViewerPopFormat(viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -516,7 +478,6 @@ PetscErrorCode NEPErrorViewFromOptions(NEP nep)
 
 static PetscErrorCode NEPValuesView_DRAW(NEP nep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscDraw      draw;
   PetscDrawSP    drawsp;
   PetscReal      re,im;
@@ -524,9 +485,9 @@ static PetscErrorCode NEPValuesView_DRAW(NEP nep,PetscViewer viewer)
 
   PetscFunctionBegin;
   if (!nep->nconv) PetscFunctionReturn(0);
-  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-  ierr = PetscDrawSetTitle(draw,"Computed Eigenvalues");CHKERRQ(ierr);
-  ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
+  PetscCall(PetscViewerDrawGetDraw(viewer,0,&draw));
+  PetscCall(PetscDrawSetTitle(draw,"Computed Eigenvalues"));
+  PetscCall(PetscDrawSPCreate(draw,1,&drawsp));
   for (i=0;i<nep->nconv;i++) {
     k = nep->perm[i];
 #if defined(PETSC_USE_COMPLEX)
@@ -536,11 +497,11 @@ static PetscErrorCode NEPValuesView_DRAW(NEP nep,PetscViewer viewer)
     re = nep->eigr[k];
     im = nep->eigi[k];
 #endif
-    ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
+    PetscCall(PetscDrawSPAddPoint(drawsp,&re,&im));
   }
-  ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscDrawSPSave(drawsp);CHKERRQ(ierr);
-  ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
+  PetscCall(PetscDrawSPDraw(drawsp,PETSC_TRUE));
+  PetscCall(PetscDrawSPSave(drawsp));
+  PetscCall(PetscDrawSPDestroy(&drawsp));
   PetscFunctionReturn(0);
 }
 
@@ -549,12 +510,11 @@ static PetscErrorCode NEPValuesView_BINARY(NEP nep,PetscViewer viewer)
 #if defined(PETSC_HAVE_COMPLEX)
   PetscInt       i,k;
   PetscComplex   *ev;
-  PetscErrorCode ierr;
 #endif
 
   PetscFunctionBegin;
 #if defined(PETSC_HAVE_COMPLEX)
-  ierr = PetscMalloc1(nep->nconv,&ev);CHKERRQ(ierr);
+  PetscCall(PetscMalloc1(nep->nconv,&ev));
   for (i=0;i<nep->nconv;i++) {
     k = nep->perm[i];
 #if defined(PETSC_USE_COMPLEX)
@@ -563,8 +523,8 @@ static PetscErrorCode NEPValuesView_BINARY(NEP nep,PetscViewer viewer)
     ev[i] = PetscCMPLX(nep->eigr[k],nep->eigi[k]);
 #endif
   }
-  ierr = PetscViewerBinaryWrite(viewer,ev,nep->nconv,PETSC_COMPLEX);CHKERRQ(ierr);
-  ierr = PetscFree(ev);CHKERRQ(ierr);
+  PetscCall(PetscViewerBinaryWrite(viewer,ev,nep->nconv,PETSC_COMPLEX));
+  PetscCall(PetscFree(ev));
 #endif
   PetscFunctionReturn(0);
 }
@@ -572,7 +532,6 @@ static PetscErrorCode NEPValuesView_BINARY(NEP nep,PetscViewer viewer)
 #if defined(PETSC_HAVE_HDF5)
 static PetscErrorCode NEPValuesView_HDF5(NEP nep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscInt       i,k,n,N;
   PetscMPIInt    rank;
   Vec            v;
@@ -580,38 +539,38 @@ static PetscErrorCode NEPValuesView_HDF5(NEP nep,PetscViewer viewer)
   const char     *ename;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)nep),&rank);CHKERRMPI(ierr);
+  PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)nep),&rank));
   N = nep->nconv;
   n = rank? 0: N;
   /* create a vector containing the eigenvalues */
-  ierr = VecCreateMPI(PetscObjectComm((PetscObject)nep),n,N,&v);CHKERRQ(ierr);
-  ierr = PetscObjectGetName((PetscObject)nep,&ename);CHKERRQ(ierr);
-  ierr = PetscSNPrintf(vname,sizeof(vname),"eigr_%s",ename);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)v,vname);CHKERRQ(ierr);
+  PetscCall(VecCreateMPI(PetscObjectComm((PetscObject)nep),n,N,&v));
+  PetscCall(PetscObjectGetName((PetscObject)nep,&ename));
+  PetscCall(PetscSNPrintf(vname,sizeof(vname),"eigr_%s",ename));
+  PetscCall(PetscObjectSetName((PetscObject)v,vname));
   if (!rank) {
     for (i=0;i<nep->nconv;i++) {
       k = nep->perm[i];
-      ierr = VecSetValue(v,i,nep->eigr[k],INSERT_VALUES);CHKERRQ(ierr);
+      PetscCall(VecSetValue(v,i,nep->eigr[k],INSERT_VALUES));
     }
   }
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecView(v,viewer);CHKERRQ(ierr);
+  PetscCall(VecAssemblyBegin(v));
+  PetscCall(VecAssemblyEnd(v));
+  PetscCall(VecView(v,viewer));
 #if !defined(PETSC_USE_COMPLEX)
   /* in real scalars write the imaginary part as a separate vector */
-  ierr = PetscSNPrintf(vname,sizeof(vname),"eigi_%s",ename);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)v,vname);CHKERRQ(ierr);
+  PetscCall(PetscSNPrintf(vname,sizeof(vname),"eigi_%s",ename));
+  PetscCall(PetscObjectSetName((PetscObject)v,vname));
   if (!rank) {
     for (i=0;i<nep->nconv;i++) {
       k = nep->perm[i];
-      ierr = VecSetValue(v,i,nep->eigi[k],INSERT_VALUES);CHKERRQ(ierr);
+      PetscCall(VecSetValue(v,i,nep->eigi[k],INSERT_VALUES));
     }
   }
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecView(v,viewer);CHKERRQ(ierr);
+  PetscCall(VecAssemblyBegin(v));
+  PetscCall(VecAssemblyEnd(v));
+  PetscCall(VecView(v,viewer));
 #endif
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  PetscCall(VecDestroy(&v));
   PetscFunctionReturn(0);
 }
 #endif
@@ -619,30 +578,28 @@ static PetscErrorCode NEPValuesView_HDF5(NEP nep,PetscViewer viewer)
 static PetscErrorCode NEPValuesView_ASCII(NEP nep,PetscViewer viewer)
 {
   PetscInt       i,k;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIPrintf(viewer,"Eigenvalues = \n");CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIPrintf(viewer,"Eigenvalues = \n"));
   for (i=0;i<nep->nconv;i++) {
     k = nep->perm[i];
-    ierr = PetscViewerASCIIPrintf(viewer,"   ");CHKERRQ(ierr);
-    ierr = SlepcPrintEigenvalueASCII(viewer,nep->eigr[k],nep->eigi[k]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer,"   "));
+    PetscCall(SlepcPrintEigenvalueASCII(viewer,nep->eigr[k],nep->eigi[k]));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscInt       i,k;
   PetscReal      re,im;
   const char     *name;
 
   PetscFunctionBegin;
-  ierr = PetscObjectGetName((PetscObject)nep,&name);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"Lambda_%s = [\n",name);CHKERRQ(ierr);
+  PetscCall(PetscObjectGetName((PetscObject)nep,&name));
+  PetscCall(PetscViewerASCIIPrintf(viewer,"Lambda_%s = [\n",name));
   for (i=0;i<nep->nconv;i++) {
     k = nep->perm[i];
 #if defined(PETSC_USE_COMPLEX)
@@ -652,13 +609,10 @@ static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
     re = nep->eigr[k];
     im = nep->eigi[k];
 #endif
-    if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)re);CHKERRQ(ierr);
-    }
+    if (im!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei\n",(double)re,(double)im));
+    else PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)re));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIPrintf(viewer,"];\n"));
   PetscFunctionReturn(0);
 }
 
@@ -682,46 +636,40 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
 {
   PetscBool         isascii,isdraw,isbinary;
   PetscViewerFormat format;
-  PetscErrorCode    ierr;
 #if defined(PETSC_HAVE_HDF5)
   PetscBool         ishdf5;
 #endif
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer);CHKERRQ(ierr);
-  }
+  if (!viewer) PetscCall(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(nep,1,viewer,2);
   NEPCheckSolved(nep,1);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERBINARY,&isbinary);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERBINARY,&isbinary));
 #if defined(PETSC_HAVE_HDF5)
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERHDF5,&ishdf5));
 #endif
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (isdraw) {
-    ierr = NEPValuesView_DRAW(nep,viewer);CHKERRQ(ierr);
-  } else if (isbinary) {
-    ierr = NEPValuesView_BINARY(nep,viewer);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  if (isdraw) PetscCall(NEPValuesView_DRAW(nep,viewer));
+  else if (isbinary) PetscCall(NEPValuesView_BINARY(nep,viewer));
 #if defined(PETSC_HAVE_HDF5)
-  } else if (ishdf5) {
-    ierr = NEPValuesView_HDF5(nep,viewer);CHKERRQ(ierr);
+  else if (ishdf5) PetscCall(NEPValuesView_HDF5(nep,viewer));
 #endif
-  } else if (isascii) {
-    ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  else if (isascii) {
+    PetscCall(PetscViewerGetFormat(viewer,&format));
     switch (format) {
       case PETSC_VIEWER_DEFAULT:
       case PETSC_VIEWER_ASCII_INFO:
       case PETSC_VIEWER_ASCII_INFO_DETAIL:
-        ierr = NEPValuesView_ASCII(nep,viewer);CHKERRQ(ierr);
+        PetscCall(NEPValuesView_ASCII(nep,viewer));
         break;
       case PETSC_VIEWER_ASCII_MATLAB:
-        ierr = NEPValuesView_MATLAB(nep,viewer);CHKERRQ(ierr);
+        PetscCall(NEPValuesView_MATLAB(nep,viewer));
         break;
       default:
-        ierr = PetscInfo(nep,"Unsupported viewer format %s\n",PetscViewerFormats[format]);CHKERRQ(ierr);
+        PetscCall(PetscInfo(nep,"Unsupported viewer format %s\n",PetscViewerFormats[format]));
     }
   }
   PetscFunctionReturn(0);
@@ -742,7 +690,6 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
 @*/
 PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 {
-  PetscErrorCode    ierr;
   PetscViewer       viewer;
   PetscBool         flg;
   static PetscBool  incall = PETSC_FALSE;
@@ -751,12 +698,12 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_view_values",&viewer,&format,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_view_values",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = NEPValuesView(nep,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,format));
+    PetscCall(NEPValuesView(nep,viewer));
+    PetscCall(PetscViewerPopFormat(viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -789,36 +736,33 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 @*/
 PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   PetscInt       i,k;
   Vec            xr,xi=NULL;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer);CHKERRQ(ierr);
-  }
+  if (!viewer) PetscCall(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)nep),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(nep,1,viewer,2);
   NEPCheckSolved(nep,1);
   if (nep->nconv) {
-    ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
-    ierr = BVCreateVec(nep->V,&xr);CHKERRQ(ierr);
+    PetscCall(NEPComputeVectors(nep));
+    PetscCall(BVCreateVec(nep->V,&xr));
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = BVCreateVec(nep->V,&xi);CHKERRQ(ierr);
+    PetscCall(BVCreateVec(nep->V,&xi));
 #endif
     for (i=0;i<nep->nconv;i++) {
       k = nep->perm[i];
-      ierr = BV_GetEigenvector(nep->V,k,nep->eigi[k],xr,xi);CHKERRQ(ierr);
-      ierr = SlepcViewEigenvector(viewer,xr,xi,"X",i,(PetscObject)nep);CHKERRQ(ierr);
+      PetscCall(BV_GetEigenvector(nep->V,k,nep->eigi[k],xr,xi));
+      PetscCall(SlepcViewEigenvector(viewer,xr,xi,"X",i,(PetscObject)nep));
       if (nep->twosided) {
-        ierr = BV_GetEigenvector(nep->W,k,nep->eigi[k],xr,xi);CHKERRQ(ierr);
-        ierr = SlepcViewEigenvector(viewer,xr,xi,"Y",i,(PetscObject)nep);CHKERRQ(ierr);
+        PetscCall(BV_GetEigenvector(nep->W,k,nep->eigi[k],xr,xi));
+        PetscCall(SlepcViewEigenvector(viewer,xr,xi,"Y",i,(PetscObject)nep));
       }
     }
-    ierr = VecDestroy(&xr);CHKERRQ(ierr);
+    PetscCall(VecDestroy(&xr));
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = VecDestroy(&xi);CHKERRQ(ierr);
+    PetscCall(VecDestroy(&xi));
 #endif
   }
   PetscFunctionReturn(0);
@@ -839,7 +783,6 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 @*/
 PetscErrorCode NEPVectorsViewFromOptions(NEP nep)
 {
-  PetscErrorCode    ierr;
   PetscViewer       viewer;
   PetscBool         flg = PETSC_FALSE;
   static PetscBool  incall = PETSC_FALSE;
@@ -848,14 +791,13 @@ PetscErrorCode NEPVectorsViewFromOptions(NEP nep)
   PetscFunctionBegin;
   if (incall) PetscFunctionReturn(0);
   incall = PETSC_TRUE;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_view_vectors",&viewer,&format,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->options,((PetscObject)nep)->prefix,"-nep_view_vectors",&viewer,&format,&flg));
   if (flg) {
-    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
-    ierr = NEPVectorsView(nep,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,format));
+    PetscCall(NEPVectorsView(nep,viewer));
+    PetscCall(PetscViewerPopFormat(viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   incall = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
-

@@ -14,7 +14,6 @@ static char help[] = "Tests functions intended to be used from a debugger.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
 #if defined(PETSC_USE_DEBUG)
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar Xr[]={1.0,-0.5,0.625,1.25,-0.125,-5.5};
@@ -23,18 +22,18 @@ int main(int argc,char **argv)
 #endif
 #endif
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
 #if defined(PETSC_USE_DEBUG)
 #if defined(PETSC_USE_COMPLEX)
-  ierr = SlepcDebugViewMatrix(2,3,Xr,NULL,2,"M",NULL);CHKERRQ(ierr);
+  PetscCall(SlepcDebugViewMatrix(2,3,Xr,NULL,2,"M",NULL));
 #else
-  ierr = SlepcDebugViewMatrix(2,3,Xr,Xi,2,"M",NULL);CHKERRQ(ierr);
+  PetscCall(SlepcDebugViewMatrix(2,3,Xr,Xi,2,"M",NULL));
 #endif
 #endif
 
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

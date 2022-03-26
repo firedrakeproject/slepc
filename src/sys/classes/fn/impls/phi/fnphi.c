@@ -60,58 +60,54 @@ PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
 
 PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
 {
-  PetscErrorCode    ierr;
   FN_PHI            *ctx = (FN_PHI*)fn->data;
   PetscInt          i,j,m,n,nh;
   PetscScalar       *Ha,*va,sfactor=1.0;
   const PetscScalar *Aa,*Fa;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  PetscCall(MatGetSize(A,&m,NULL));
   n = m+ctx->k;
   if (ctx->H) {
-    ierr = MatGetSize(ctx->H,&nh,NULL);CHKERRQ(ierr);
+    PetscCall(MatGetSize(ctx->H,&nh,NULL));
     if (n!=nh) {
-      ierr = MatDestroy(&ctx->H);CHKERRQ(ierr);
-      ierr = MatDestroy(&ctx->F);CHKERRQ(ierr);
+      PetscCall(MatDestroy(&ctx->H));
+      PetscCall(MatDestroy(&ctx->F));
     }
   }
   if (!ctx->H) {
-    ierr = MatCreateDense(PETSC_COMM_SELF,n,n,n,n,NULL,&ctx->H);CHKERRQ(ierr);
-    ierr = MatCreateDense(PETSC_COMM_SELF,n,n,n,n,NULL,&ctx->F);CHKERRQ(ierr);
+    PetscCall(MatCreateDense(PETSC_COMM_SELF,n,n,n,n,NULL,&ctx->H));
+    PetscCall(MatCreateDense(PETSC_COMM_SELF,n,n,n,n,NULL,&ctx->F));
   }
-  ierr = MatDenseGetArray(ctx->H,&Ha);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayRead(A,&Aa);CHKERRQ(ierr);
-  for (j=0;j<m;j++) {
-    ierr = PetscArraycpy(Ha+j*n,Aa+j*m,m);CHKERRQ(ierr);
-  }
-  ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
+  PetscCall(MatDenseGetArray(ctx->H,&Ha));
+  PetscCall(MatDenseGetArrayRead(A,&Aa));
+  for (j=0;j<m;j++) PetscCall(PetscArraycpy(Ha+j*n,Aa+j*m,m));
+  PetscCall(MatDenseRestoreArrayRead(A,&Aa));
   if (ctx->k) {
     for (j=0;j<m;j++) for (i=m;i<n;i++) Ha[i+j*n] = 0.0;
     for (j=m;j<n;j++) for (i=0;i<n;i++) Ha[i+j*n] = 0.0;
     Ha[0+m*n] = fn->alpha;
     for (j=m+1;j<n;j++) Ha[j-1+j*n] = fn->alpha;
   }
-  ierr = MatDenseRestoreArray(ctx->H,&Ha);CHKERRQ(ierr);
+  PetscCall(MatDenseRestoreArray(ctx->H,&Ha));
 
-  ierr = FNEvaluateFunctionMat_Exp_Higham(fn,ctx->H,ctx->F);CHKERRQ(ierr);
+  PetscCall(FNEvaluateFunctionMat_Exp_Higham(fn,ctx->H,ctx->F));
 
-  ierr = MatDenseGetArrayRead(ctx->F,&Fa);CHKERRQ(ierr);
-  ierr = VecGetArray(v,&va);CHKERRQ(ierr);
+  PetscCall(MatDenseGetArrayRead(ctx->F,&Fa));
+  PetscCall(VecGetArray(v,&va));
   if (ctx->k) {
     sfactor = PetscPowScalarInt(fn->alpha,-ctx->k);
     for (i=0;i<m;i++) va[i] = sfactor*Fa[i+(n-1)*n];
   } else {
     for (i=0;i<m;i++) va[i] = sfactor*Fa[i+0*n];
   }
-  ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(ctx->F,&Fa);CHKERRQ(ierr);
+  PetscCall(VecRestoreArray(v,&va));
+  PetscCall(MatDenseRestoreArrayRead(ctx->F,&Fa));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
 {
-  PetscErrorCode ierr;
   FN_PHI         *ctx = (FN_PHI*)fn->data;
 
   PetscFunctionBegin;
@@ -119,8 +115,8 @@ static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
   PetscCheck(k<=MAX_INDEX,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Phi functions only implemented for k<=%d",MAX_INDEX);
   if (k!=ctx->k) {
     ctx->k = k;
-    ierr = MatDestroy(&ctx->H);CHKERRQ(ierr);
-    ierr = MatDestroy(&ctx->F);CHKERRQ(ierr);
+    PetscCall(MatDestroy(&ctx->H));
+    PetscCall(MatDestroy(&ctx->F));
   }
   PetscFunctionReturn(0);
 }
@@ -148,12 +144,10 @@ static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
 @*/
 PetscErrorCode FNPhiSetIndex(FN fn,PetscInt k)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,k,2);
-  ierr = PetscTryMethod(fn,"FNPhiSetIndex_C",(FN,PetscInt),(fn,k));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(fn,"FNPhiSetIndex_C",(FN,PetscInt),(fn,k)));
   PetscFunctionReturn(0);
 }
 
@@ -183,63 +177,54 @@ static PetscErrorCode FNPhiGetIndex_Phi(FN fn,PetscInt *k)
 @*/
 PetscErrorCode FNPhiGetIndex(FN fn,PetscInt *k)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidIntPointer(k,2);
-  ierr = PetscUseMethod(fn,"FNPhiGetIndex_C",(FN,PetscInt*),(fn,k));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(fn,"FNPhiGetIndex_C",(FN,PetscInt*),(fn,k)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   FN_PHI         *ctx = (FN_PHI*)fn->data;
   PetscBool      isascii;
   char           str[50],strx[50];
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Phi_%" PetscInt_FMT ": ",ctx->k);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  Phi_%" PetscInt_FMT ": ",ctx->k));
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     if (fn->beta!=(PetscScalar)1.0) {
-      ierr = SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"%s*",str);CHKERRQ(ierr);
+      PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"%s*",str));
     }
-    if (fn->alpha==(PetscScalar)1.0) {
-      ierr = PetscSNPrintf(strx,sizeof(strx),"x");CHKERRQ(ierr);
-    } else {
-      ierr = SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE);CHKERRQ(ierr);
-      ierr = PetscSNPrintf(strx,sizeof(strx),"(%s*x)",str);CHKERRQ(ierr);
+    if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscSNPrintf(strx,sizeof(strx),"x"));
+    else {
+      PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
+      PetscCall(PetscSNPrintf(strx,sizeof(strx),"(%s*x)",str));
     }
-    if (!ctx->k) {
-      ierr = PetscViewerASCIIPrintf(viewer,"exp(%s)\n",strx);CHKERRQ(ierr);
-    } else if (ctx->k==1) {
-      ierr = PetscViewerASCIIPrintf(viewer,"(exp(%s)-1)/%s\n",strx,strx);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"(phi_%" PetscInt_FMT "(%s)-1/%" PetscInt_FMT "!)/%s\n",ctx->k-1,strx,ctx->k-1,strx);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+    if (!ctx->k) PetscCall(PetscViewerASCIIPrintf(viewer,"exp(%s)\n",strx));
+    else if (ctx->k==1) PetscCall(PetscViewerASCIIPrintf(viewer,"(exp(%s)-1)/%s\n",strx,strx));
+    else PetscCall(PetscViewerASCIIPrintf(viewer,"(phi_%" PetscInt_FMT "(%s)-1/%" PetscInt_FMT "!)/%s\n",ctx->k-1,strx,ctx->k-1,strx));
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNSetFromOptions_Phi(PetscOptionItems *PetscOptionsObject,FN fn)
 {
-  PetscErrorCode ierr;
   FN_PHI         *ctx = (FN_PHI*)fn->data;
   PetscInt       k;
   PetscBool      flag;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"FN Phi Options");CHKERRQ(ierr);
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"FN Phi Options"));
 
-    ierr = PetscOptionsInt("-fn_phi_index","Index of the phi-function","FNPhiSetIndex",ctx->k,&k,&flag);CHKERRQ(ierr);
-    if (flag) { ierr = FNPhiSetIndex(fn,k);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsInt("-fn_phi_index","Index of the phi-function","FNPhiSetIndex",ctx->k,&k,&flag));
+    if (flag) PetscCall(FNPhiSetIndex(fn,k));
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscCall(PetscOptionsTail());
   PetscFunctionReturn(0);
 }
 
@@ -254,25 +239,23 @@ PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
 
 PetscErrorCode FNDestroy_Phi(FN fn)
 {
-  PetscErrorCode ierr;
   FN_PHI         *ctx = (FN_PHI*)fn->data;
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&ctx->H);CHKERRQ(ierr);
-  ierr = MatDestroy(&ctx->F);CHKERRQ(ierr);
-  ierr = PetscFree(fn->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNPhiSetIndex_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNPhiGetIndex_C",NULL);CHKERRQ(ierr);
+  PetscCall(MatDestroy(&ctx->H));
+  PetscCall(MatDestroy(&ctx->F));
+  PetscCall(PetscFree(fn->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNPhiSetIndex_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNPhiGetIndex_C",NULL));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode FNCreate_Phi(FN fn)
 {
-  PetscErrorCode ierr;
   FN_PHI         *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(fn,&ctx);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(fn,&ctx));
   fn->data = (void*)ctx;
   ctx->k   = 1;
 
@@ -283,8 +266,7 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Phi(FN fn)
   fn->ops->view                      = FNView_Phi;
   fn->ops->duplicate                 = FNDuplicate_Phi;
   fn->ops->destroy                   = FNDestroy_Phi;
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNPhiSetIndex_C",FNPhiSetIndex_Phi);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)fn,"FNPhiGetIndex_C",FNPhiGetIndex_Phi);CHKERRQ(ierr);
+  PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNPhiSetIndex_C",FNPhiSetIndex_Phi));
+  PetscCall(PetscObjectComposeFunction((PetscObject)fn,"FNPhiGetIndex_C",FNPhiGetIndex_Phi));
   PetscFunctionReturn(0);
 }
-

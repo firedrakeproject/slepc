@@ -21,101 +21,100 @@ int main (int argc,char **argv)
   Vec            v,w;
   PetscInt       N,n=4,i,j,II,Istart,Iend;
   PetscScalar    d;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   N = n*n;
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create non-symmetric matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
     d = 0.0;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,1.0,INSERT_VALUES);CHKERRQ(ierr); d=d+1.0; }
-    if (i<n-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); d=d+1.0; }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,1.0,INSERT_VALUES);CHKERRQ(ierr); d=d+1.0; }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); d=d+1.0; }
-    ierr = MatSetValue(A,II,II,d,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) { PetscCall(MatSetValue(A,II,II-n,1.0,INSERT_VALUES)); d=d+1.0; }
+    if (i<n-1) { PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES)); d=d+1.0; }
+    if (j>0) { PetscCall(MatSetValue(A,II,II-1,1.0,INSERT_VALUES)); d=d+1.0; }
+    if (j<n-1) { PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES)); d=d+1.0; }
+    PetscCall(MatSetValue(A,II,II,d,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,&v,&w);CHKERRQ(ierr);
-  ierr = VecSetValue(v,0,-.5,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecSetValue(v,1,1.5,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecSetValue(v,2,2,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecView(v,NULL);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,&v,&w));
+  PetscCall(VecSetValue(v,0,-.5,INSERT_VALUES));
+  PetscCall(VecSetValue(v,1,1.5,INSERT_VALUES));
+  PetscCall(VecSetValue(v,2,2,INSERT_VALUES));
+  PetscCall(VecAssemblyBegin(v));
+  PetscCall(VecAssemblyEnd(v));
+  PetscCall(VecView(v,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create the spectral transformation object
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = STCreate(PETSC_COMM_WORLD,&st);CHKERRQ(ierr);
+  PetscCall(STCreate(PETSC_COMM_WORLD,&st));
   mat[0] = A;
-  ierr = STSetMatrices(st,1,mat);CHKERRQ(ierr);
-  ierr = STSetType(st,STCAYLEY);CHKERRQ(ierr);
-  ierr = STSetShift(st,2.0);CHKERRQ(ierr);
-  ierr = STCayleySetAntishift(st,1.0);CHKERRQ(ierr);
-  ierr = STSetTransform(st,PETSC_TRUE);CHKERRQ(ierr);
+  PetscCall(STSetMatrices(st,1,mat));
+  PetscCall(STSetType(st,STCAYLEY));
+  PetscCall(STSetShift(st,2.0));
+  PetscCall(STCayleySetAntishift(st,1.0));
+  PetscCall(STSetTransform(st,PETSC_TRUE));
 
-  ierr = KSPCreate(PETSC_COMM_WORLD,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
-  ierr = STSetKSP(st,ksp);CHKERRQ(ierr);
-  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
+  PetscCall(KSPCreate(PETSC_COMM_WORLD,&ksp));
+  PetscCall(KSPSetType(ksp,KSPPREONLY));
+  PetscCall(KSPGetPC(ksp,&pc));
+  PetscCall(PCSetType(pc,PCLU));
+  PetscCall(KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(KSPSetFromOptions(ksp));
+  PetscCall(STSetKSP(st,ksp));
+  PetscCall(KSPDestroy(&ksp));
 
-  ierr = STSetFromOptions(st);CHKERRQ(ierr);
+  PetscCall(STSetFromOptions(st));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Apply the operator
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
-  ierr = STApplyTranspose(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STApplyTranspose(st,v,w));
+  PetscCall(VecView(w,NULL));
 
-  ierr = STMatMult(st,1,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STMatMult(st,1,v,w));
+  PetscCall(VecView(w,NULL));
 
-  ierr = STMatMultTranspose(st,1,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STMatMultTranspose(st,1,v,w));
+  PetscCall(VecView(w,NULL));
 
-  ierr = STMatSolve(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STMatSolve(st,v,w));
+  PetscCall(VecView(w,NULL));
 
-  ierr = STMatSolveTranspose(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STMatSolveTranspose(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Get the operator matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = STGetOperator(st,&Op);CHKERRQ(ierr);
-  ierr = MatMult(Op,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
-  ierr = MatMultTranspose(Op,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
-  ierr = STRestoreOperator(st,&Op);CHKERRQ(ierr);
+  PetscCall(STGetOperator(st,&Op));
+  PetscCall(MatMult(Op,v,w));
+  PetscCall(VecView(w,NULL));
+  PetscCall(MatMultTranspose(Op,v,w));
+  PetscCall(VecView(w,NULL));
+  PetscCall(STRestoreOperator(st,&Op));
 
-  ierr = STDestroy(&st);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(STDestroy(&st));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&w));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

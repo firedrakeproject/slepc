@@ -16,7 +16,6 @@
 
 PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscInt       ncv;
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
@@ -25,9 +24,9 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   if (eps->ncv!=PETSC_DEFAULT) {
     PetscCheck(eps->ncv>=eps->nev+2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
-  if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
-  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
+  if (!eps->which) PetscCall(EPSSetWhichEigenpairs_Default(eps));
   PetscCheck(eps->which!=EPS_ALL,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
   PetscCheck(eps->which!=EPS_WHICH_USER,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support user-defined ordering of eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
@@ -35,42 +34,41 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(ar->rwork);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ncv,&ar->rwork);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscReal));CHKERRQ(ierr);
+  PetscCall(PetscFree(ar->rwork));
+  PetscCall(PetscMalloc1(ncv,&ar->rwork));
+  PetscCall(PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscReal)));
   ar->lworkl = 3*ncv*ncv+5*ncv;
-  ierr = PetscFree(ar->workev);CHKERRQ(ierr);
-  ierr = PetscMalloc1(3*ncv,&ar->workev);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+  PetscCall(PetscFree(ar->workev));
+  PetscCall(PetscMalloc1(3*ncv,&ar->workev));
+  PetscCall(PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar)));
 #else
   if (eps->ishermitian) {
     ar->lworkl = ncv*(ncv+8);
   } else {
     ar->lworkl = 3*ncv*ncv+6*ncv;
-    ierr = PetscFree(ar->workev);CHKERRQ(ierr);
-    ierr = PetscMalloc1(3*ncv,&ar->workev);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+    PetscCall(PetscFree(ar->workev));
+    PetscCall(PetscMalloc1(3*ncv,&ar->workev));
+    PetscCall(PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar)));
   }
 #endif
-  ierr = PetscFree(ar->workl);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ar->lworkl,&ar->workl);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,ar->lworkl*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscFree(ar->select);CHKERRQ(ierr);
-  ierr = PetscMalloc1(ncv,&ar->select);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscInt));CHKERRQ(ierr);
-  ierr = PetscFree(ar->workd);CHKERRQ(ierr);
-  ierr = PetscMalloc1(3*eps->nloc,&ar->workd);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,3*eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+  PetscCall(PetscFree(ar->workl));
+  PetscCall(PetscMalloc1(ar->lworkl,&ar->workl));
+  PetscCall(PetscLogObjectMemory((PetscObject)eps,ar->lworkl*sizeof(PetscScalar)));
+  PetscCall(PetscFree(ar->select));
+  PetscCall(PetscMalloc1(ncv,&ar->select));
+  PetscCall(PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscInt)));
+  PetscCall(PetscFree(ar->workd));
+  PetscCall(PetscMalloc1(3*eps->nloc,&ar->workd));
+  PetscCall(PetscLogObjectMemory((PetscObject)eps,3*eps->nloc*sizeof(PetscScalar)));
 
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
+  PetscCall(EPSAllocateSolution(eps,0));
+  PetscCall(EPS_SetInnerProduct(eps));
+  PetscCall(EPSSetWorkVecs(eps,2));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
   char           bmat[1],howmny[] = "A";
   const char     *which;
@@ -93,11 +91,11 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   fcomm = MPI_Comm_c2f(PetscObjectComm((PetscObject)eps));
 #endif
   n = eps->nloc;
-  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
-  ierr = BVCopyVec(eps->V,0,eps->work[1]);CHKERRQ(ierr);
-  ierr = BVGetArray(eps->V,&pV);CHKERRQ(ierr);
-  ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);
+  PetscCall(EPSGetStartVector(eps,0,NULL));
+  PetscCall(BVSetActiveColumns(eps->V,0,0));  /* just for deflation space */
+  PetscCall(BVCopyVec(eps->V,0,eps->work[1]));
+  PetscCall(BVGetArray(eps->V,&pV));
+  PetscCall(VecGetArray(eps->work[1],&resid));
 
   ido  = 0;            /* first call to reverse communication interface */
   info = 1;            /* indicates an initial vector is provided */
@@ -116,11 +114,11 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
         5   [ 4  'G' ]    [ 3  'G' ]
         6   [ 5  'G' ]    [ 4  'G' ]
    */
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&isSinv);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isShift);CHKERRQ(ierr);
-  ierr = STGetShift(eps->st,&sigmar);CHKERRQ(ierr);
-  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = MatCreateVecsEmpty(A,&x,&y);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&isSinv));
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isShift));
+  PetscCall(STGetShift(eps->st,&sigmar));
+  PetscCall(STGetMatrix(eps->st,0,&A));
+  PetscCall(MatCreateVecsEmpty(A,&x,&y));
 
   if (isSinv) {
     /* shift-and-invert mode */
@@ -180,43 +178,39 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
 #endif
 
     if (ido == -1 || ido == 1 || ido == 2) {
-      if (ido == 1 && iparam[6] == 3 && bmat[0] == 'G') {
-        /* special case for shift-and-invert with B semi-positive definite*/
-        ierr = VecPlaceArray(x,&ar->workd[ipntr[2]-1]);CHKERRQ(ierr);
-      } else {
-        ierr = VecPlaceArray(x,&ar->workd[ipntr[0]-1]);CHKERRQ(ierr);
-      }
-      ierr = VecPlaceArray(y,&ar->workd[ipntr[1]-1]);CHKERRQ(ierr);
+      if (ido == 1 && iparam[6] == 3 && bmat[0] == 'G') PetscCall(VecPlaceArray(x,&ar->workd[ipntr[2]-1])); /* special case for shift-and-invert with B semi-positive definite*/
+      else PetscCall(VecPlaceArray(x,&ar->workd[ipntr[0]-1]));
+      PetscCall(VecPlaceArray(y,&ar->workd[ipntr[1]-1]));
 
       if (ido == -1) {
         /* Y = OP * X for for the initialization phase to
            force the starting vector into the range of OP */
-        ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
+        PetscCall(STApply(eps->st,x,y));
       } else if (ido == 2) {
         /* Y = B * X */
-        ierr = BVApplyMatrix(eps->V,x,y);CHKERRQ(ierr);
+        PetscCall(BVApplyMatrix(eps->V,x,y));
       } else { /* ido == 1 */
         if (iparam[6] == 3 && bmat[0] == 'G') {
           /* Y = OP * X for shift-and-invert with B semi-positive definite */
-          ierr = STMatSolve(eps->st,x,y);CHKERRQ(ierr);
+          PetscCall(STMatSolve(eps->st,x,y));
         } else if (iparam[6] == 2) {
           /* X=A*X Y=B^-1*X for shift with B positive definite */
-          ierr = MatMult(A,x,y);CHKERRQ(ierr);
+          PetscCall(MatMult(A,x,y));
           if (sigmar != 0.0) {
-            ierr = BVApplyMatrix(eps->V,x,w);CHKERRQ(ierr);
-            ierr = VecAXPY(y,sigmar,w);CHKERRQ(ierr);
+            PetscCall(BVApplyMatrix(eps->V,x,w));
+            PetscCall(VecAXPY(y,sigmar,w));
           }
-          ierr = VecCopy(y,x);CHKERRQ(ierr);
-          ierr = STMatSolve(eps->st,x,y);CHKERRQ(ierr);
+          PetscCall(VecCopy(y,x));
+          PetscCall(STMatSolve(eps->st,x,y));
         } else {
           /* Y = OP * X */
-          ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
+          PetscCall(STApply(eps->st,x,y));
         }
-        ierr = BVOrthogonalizeVec(eps->V,y,NULL,NULL,NULL);CHKERRQ(ierr);
+        PetscCall(BVOrthogonalizeVec(eps->V,y,NULL,NULL,NULL));
       }
 
-      ierr = VecResetArray(x);CHKERRQ(ierr);
-      ierr = VecResetArray(y);CHKERRQ(ierr);
+      PetscCall(VecResetArray(x));
+      PetscCall(VecResetArray(y));
     } else PetscCheck(ido==99,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Internal error in ARPACK reverse communication interface (ido=%" PetscInt_FMT ")",ido);
 
   } while (ido != 99);
@@ -242,61 +236,54 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     PetscCheck(info==0,PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%" PetscInt_FMT ")",info);
   }
 
-  ierr = BVRestoreArray(eps->V,&pV);CHKERRQ(ierr);
-  ierr = VecRestoreArray(eps->work[1],&resid);CHKERRQ(ierr);
+  PetscCall(BVRestoreArray(eps->V,&pV));
+  PetscCall(VecRestoreArray(eps->work[1],&resid));
   if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
 
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
+  PetscCall(VecDestroy(&x));
+  PetscCall(VecDestroy(&y));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscBool      isSinv;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&isSinv);CHKERRQ(ierr);
-  if (!isSinv) {
-    ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
-  }
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&isSinv));
+  if (!isSinv) PetscCall(EPSBackTransform_Default(eps));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSReset_ARPACK(EPS eps)
 {
-  PetscErrorCode ierr;
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscFree(ar->workev);CHKERRQ(ierr);
-  ierr = PetscFree(ar->workl);CHKERRQ(ierr);
-  ierr = PetscFree(ar->select);CHKERRQ(ierr);
-  ierr = PetscFree(ar->workd);CHKERRQ(ierr);
+  PetscCall(PetscFree(ar->workev));
+  PetscCall(PetscFree(ar->workl));
+  PetscCall(PetscFree(ar->select));
+  PetscCall(PetscFree(ar->workd));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(ar->rwork);CHKERRQ(ierr);
+  PetscCall(PetscFree(ar->rwork));
 #endif
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFree(eps->data);CHKERRQ(ierr);
+  PetscCall(PetscFree(eps->data));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
 {
   EPS_ARPACK     *ctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(eps,&ctx));
   eps->data = (void*)ctx;
 
   eps->ops->solve          = EPSSolve_ARPACK;
@@ -307,4 +294,3 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
   eps->ops->backtransform  = EPSBackTransform_ARPACK;
   PetscFunctionReturn(0);
 }
-

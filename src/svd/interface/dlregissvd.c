@@ -28,13 +28,11 @@ const char *const*SVDConvergedReasons = SVDConvergedReasons_Shifted + 4;
 @*/
 PetscErrorCode SVDFinalizePackage(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&SVDList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&SVDMonitorList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&SVDMonitorCreateList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&SVDMonitorDestroyList);CHKERRQ(ierr);
+  PetscCall(PetscFunctionListDestroy(&SVDList));
+  PetscCall(PetscFunctionListDestroy(&SVDMonitorList));
+  PetscCall(PetscFunctionListDestroy(&SVDMonitorCreateList));
+  PetscCall(PetscFunctionListDestroy(&SVDMonitorDestroyList));
   SVDPackageInitialized       = PETSC_FALSE;
   SVDRegisterAllCalled        = PETSC_FALSE;
   SVDMonitorRegisterAllCalled = PETSC_FALSE;
@@ -55,31 +53,30 @@ PetscErrorCode SVDInitializePackage(void)
   char           logList[256];
   PetscBool      opt,pkg;
   PetscClassId   classids[1];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (SVDPackageInitialized) PetscFunctionReturn(0);
   SVDPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("SVD Solver",&SVD_CLASSID);CHKERRQ(ierr);
+  PetscCall(PetscClassIdRegister("SVD Solver",&SVD_CLASSID));
   /* Register Constructors */
-  ierr = SVDRegisterAll();CHKERRQ(ierr);
+  PetscCall(SVDRegisterAll());
   /* Register Monitors */
-  ierr = SVDMonitorRegisterAll();CHKERRQ(ierr);
+  PetscCall(SVDMonitorRegisterAll());
   /* Register Events */
-  ierr = PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve);CHKERRQ(ierr);
+  PetscCall(PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp));
+  PetscCall(PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve));
   /* Process Info */
   classids[0] = SVD_CLASSID;
-  ierr = PetscInfoProcessClass("svd",1,&classids[0]);CHKERRQ(ierr);
+  PetscCall(PetscInfoProcessClass("svd",1,&classids[0]));
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    ierr = PetscStrInList("svd",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscLogEventDeactivateClass(SVD_CLASSID);CHKERRQ(ierr); }
+    PetscCall(PetscStrInList("svd",logList,',',&pkg));
+    if (pkg) PetscCall(PetscLogEventDeactivateClass(SVD_CLASSID));
   }
   /* Register package finalizer */
-  ierr = PetscRegisterFinalize(SVDFinalizePackage);CHKERRQ(ierr);
+  PetscCall(PetscRegisterFinalize(SVDFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -93,11 +90,8 @@ PetscErrorCode SVDInitializePackage(void)
  */
 SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsvd()
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = SVDInitializePackage();CHKERRQ(ierr);
+  PetscCall(SVDInitializePackage());
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */
-

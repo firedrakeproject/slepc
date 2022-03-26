@@ -48,16 +48,15 @@ int main(int argc,char **argv)
   PetscBool      flg;
   PetscBool      terse;
   const char     *prefix;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   n = m*m;
   k = 10;
-  ierr = PetscOptionsGetRealArray(NULL,NULL,"-c",c,&k,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetRealArray(NULL,NULL,"-c",c,&k,&flg));
   PetscCheck(!flg || k==10,PETSC_COMM_WORLD,PETSC_ERR_USER,"The number of parameters -c should be 10, you provided %" PetscInt_FMT,k);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nButterfly problem, n=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",n,m);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nButterfly problem, n=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n\n",n,m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                      Compute the polynomial matrices
@@ -65,104 +64,97 @@ int main(int argc,char **argv)
 
   /* initialize matrices */
   for (i=0;i<NMAT;i++) {
-    ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);
-    ierr = MatSetSizes(A[i],PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A[i]);CHKERRQ(ierr);
-    ierr = MatSetUp(A[i]);CHKERRQ(ierr);
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A[i]));
+    PetscCall(MatSetSizes(A[i],PETSC_DECIDE,PETSC_DECIDE,n,n));
+    PetscCall(MatSetFromOptions(A[i]));
+    PetscCall(MatSetUp(A[i]));
   }
-  ierr = MatGetOwnershipRange(A[0],&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A[0],&Istart,&Iend));
 
   /* A0 */
   for (II=Istart;II<Iend;II++) {
     i = II/m; j = II-i*m;
-    ierr = MatSetValue(A[0],II,II,4.0*c[0]/6.0+4.0*c[1]/6.0,INSERT_VALUES);CHKERRQ(ierr);
-    if (j>0) { ierr = MatSetValue(A[0],II,II-1,c[0]/6.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<m-1) { ierr = MatSetValue(A[0],II,II+1,c[0]/6.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>0) { ierr = MatSetValue(A[0],II,II-m,c[1]/6.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A[0],II,II+m,c[1]/6.0,INSERT_VALUES);CHKERRQ(ierr); }
+    PetscCall(MatSetValue(A[0],II,II,4.0*c[0]/6.0+4.0*c[1]/6.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A[0],II,II-1,c[0]/6.0,INSERT_VALUES));
+    if (j<m-1) PetscCall(MatSetValue(A[0],II,II+1,c[0]/6.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[0],II,II-m,c[1]/6.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A[0],II,II+m,c[1]/6.0,INSERT_VALUES));
   }
 
   /* A1 */
   for (II=Istart;II<Iend;II++) {
     i = II/m; j = II-i*m;
-    if (j>0) { ierr = MatSetValue(A[1],II,II-1,c[2],INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<m-1) { ierr = MatSetValue(A[1],II,II+1,-c[2],INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>0) { ierr = MatSetValue(A[1],II,II-m,c[3],INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A[1],II,II+m,-c[3],INSERT_VALUES);CHKERRQ(ierr); }
+    if (j>0) PetscCall(MatSetValue(A[1],II,II-1,c[2],INSERT_VALUES));
+    if (j<m-1) PetscCall(MatSetValue(A[1],II,II+1,-c[2],INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[1],II,II-m,c[3],INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A[1],II,II+m,-c[3],INSERT_VALUES));
   }
 
   /* A2 */
   for (II=Istart;II<Iend;II++) {
     i = II/m; j = II-i*m;
-    ierr = MatSetValue(A[2],II,II,-2.0*c[4]-2.0*c[5],INSERT_VALUES);CHKERRQ(ierr);
-    if (j>0) { ierr = MatSetValue(A[2],II,II-1,c[4],INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<m-1) { ierr = MatSetValue(A[2],II,II+1,c[4],INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>0) { ierr = MatSetValue(A[2],II,II-m,c[5],INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A[2],II,II+m,c[5],INSERT_VALUES);CHKERRQ(ierr); }
+    PetscCall(MatSetValue(A[2],II,II,-2.0*c[4]-2.0*c[5],INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A[2],II,II-1,c[4],INSERT_VALUES));
+    if (j<m-1) PetscCall(MatSetValue(A[2],II,II+1,c[4],INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[2],II,II-m,c[5],INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A[2],II,II+m,c[5],INSERT_VALUES));
   }
 
   /* A3 */
   for (II=Istart;II<Iend;II++) {
     i = II/m; j = II-i*m;
-    if (j>0) { ierr = MatSetValue(A[3],II,II-1,c[6],INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<m-1) { ierr = MatSetValue(A[3],II,II+1,-c[6],INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>0) { ierr = MatSetValue(A[3],II,II-m,c[7],INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A[3],II,II+m,-c[7],INSERT_VALUES);CHKERRQ(ierr); }
+    if (j>0) PetscCall(MatSetValue(A[3],II,II-1,c[6],INSERT_VALUES));
+    if (j<m-1) PetscCall(MatSetValue(A[3],II,II+1,-c[6],INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[3],II,II-m,c[7],INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A[3],II,II+m,-c[7],INSERT_VALUES));
   }
 
   /* A4 */
   for (II=Istart;II<Iend;II++) {
     i = II/m; j = II-i*m;
-    ierr = MatSetValue(A[4],II,II,2.0*c[8]+2.0*c[9],INSERT_VALUES);CHKERRQ(ierr);
-    if (j>0) { ierr = MatSetValue(A[4],II,II-1,-c[8],INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<m-1) { ierr = MatSetValue(A[4],II,II+1,-c[8],INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>0) { ierr = MatSetValue(A[4],II,II-m,-c[9],INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A[4],II,II+m,-c[9],INSERT_VALUES);CHKERRQ(ierr); }
+    PetscCall(MatSetValue(A[4],II,II,2.0*c[8]+2.0*c[9],INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A[4],II,II-1,-c[8],INSERT_VALUES));
+    if (j<m-1) PetscCall(MatSetValue(A[4],II,II+1,-c[8],INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[4],II,II-m,-c[9],INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A[4],II,II+m,-c[9],INSERT_VALUES));
   }
 
   /* assemble matrices */
-  for (i=0;i<NMAT;i++) {
-    ierr = MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  }
-  for (i=0;i<NMAT;i++) {
-    ierr = MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  }
+  for (i=0;i<NMAT;i++) PetscCall(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
+  for (i=0;i<NMAT;i++) PetscCall(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
-  ierr = PEPSetOptionsPrefix(pep,"check_");CHKERRQ(ierr);
-  ierr = PEPAppendOptionsPrefix(pep,"myprefix_");CHKERRQ(ierr);
-  ierr = PEPGetOptionsPrefix(pep,&prefix);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"PEP prefix is currently: %s\n\n",prefix);CHKERRQ(ierr);
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
+  PetscCall(PEPSetOptionsPrefix(pep,"check_"));
+  PetscCall(PEPAppendOptionsPrefix(pep,"myprefix_"));
+  PetscCall(PEPGetOptionsPrefix(pep,&prefix));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"PEP prefix is currently: %s\n\n",prefix));
 
-  ierr = PEPSetOperators(pep,NMAT,A);CHKERRQ(ierr);
-  ierr = PEPSetEigenvalueComparison(pep,MyEigenSort,NULL);CHKERRQ(ierr);
-  ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
-  ierr = PEPSolve(pep);CHKERRQ(ierr);
+  PetscCall(PEPSetOperators(pep,NMAT,A));
+  PetscCall(PEPSetEigenvalueComparison(pep,MyEigenSort,NULL));
+  PetscCall(PEPSetFromOptions(pep));
+  PetscCall(PEPSolve(pep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = PEPDestroy(&pep);CHKERRQ(ierr);
-  for (i=0;i<NMAT;i++) {
-    ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
-  }
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(PEPDestroy(&pep));
+  for (i=0;i<NMAT;i++) PetscCall(MatDestroy(&A[i]));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -37,24 +37,21 @@ SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepc(void)
 SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
 #endif
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = STInitializePackage();CHKERRQ(ierr);
-  ierr = DSInitializePackage();CHKERRQ(ierr);
-  ierr = FNInitializePackage();CHKERRQ(ierr);
-  ierr = BVInitializePackage();CHKERRQ(ierr);
-  ierr = RGInitializePackage();CHKERRQ(ierr);
+  PetscCall(STInitializePackage());
+  PetscCall(DSInitializePackage());
+  PetscCall(FNInitializePackage());
+  PetscCall(BVInitializePackage());
+  PetscCall(RGInitializePackage());
 
 #if defined(PETSC_USE_SINGLE_LIBRARY)
-  ierr = PetscDLLibraryRegister_slepceps();CHKERRQ(ierr);
-  ierr = PetscDLLibraryRegister_slepcnep();CHKERRQ(ierr);
-  ierr = PetscDLLibraryRegister_slepcpep();CHKERRQ(ierr);
-  ierr = PetscDLLibraryRegister_slepcsvd();CHKERRQ(ierr);
-  ierr = PetscDLLibraryRegister_slepcmfn();CHKERRQ(ierr);
-  ierr = PetscDLLibraryRegister_slepclme();CHKERRQ(ierr);
+  PetscCall(PetscDLLibraryRegister_slepceps());
+  PetscCall(PetscDLLibraryRegister_slepcnep());
+  PetscCall(PetscDLLibraryRegister_slepcpep());
+  PetscCall(PetscDLLibraryRegister_slepcsvd());
+  PetscCall(PetscDLLibraryRegister_slepcmfn());
+  PetscCall(PetscDLLibraryRegister_slepclme());
 #endif
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */
-

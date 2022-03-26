@@ -25,28 +25,27 @@ int main(int argc,char **argv)
   char*          filenames[MAX_MATRICES];
   PetscViewer    viewer;
   PetscBool      flg,terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the polynomial eigenproblem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPolynomial eigenproblem stored in file.\n\n");CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nPolynomial eigenproblem stored in file.\n\n"));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n");CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n"));
 #else
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n");CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n"));
 #endif
-  ierr = PetscOptionsGetStringArray(NULL,NULL,"-A",filenames,&nmat,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetStringArray(NULL,NULL,"-A",filenames,&nmat,&flg));
   PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a comma-separated list of file names with the -A option");
   for (i=0;i<nmat;i++) {
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filenames[i],FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A[i]);CHKERRQ(ierr);
-    ierr = MatLoad(A[i],viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filenames[i],FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A[i]));
+    PetscCall(MatSetFromOptions(A[i]));
+    PetscCall(MatLoad(A[i],viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -55,54 +54,53 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
 
   /*
      Set matrices
   */
-  ierr = PEPSetOperators(pep,nmat,A);CHKERRQ(ierr);
+  PetscCall(PEPSetOperators(pep,nmat,A));
   /*
      Set solver parameters at runtime
   */
-  ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
+  PetscCall(PEPSetFromOptions(pep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PEPSolve(pep);CHKERRQ(ierr);
-  ierr = PEPGetIterationNumber(pep,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its);CHKERRQ(ierr);
+  PetscCall(PEPSolve(pep));
+  PetscCall(PEPGetIterationNumber(pep,&its));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
-  ierr = PEPGetTolerances(pep,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
+  PetscCall(PEPGetDimensions(pep,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(PEPGetTolerances(pep,&tol,&maxit));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = PEPDestroy(&pep);CHKERRQ(ierr);
+  PetscCall(PEPDestroy(&pep));
   for (i=0;i<nmat;i++) {
-    ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
-    ierr = PetscFree(filenames[i]);CHKERRQ(ierr);
+    PetscCall(MatDestroy(&A[i]));
+    PetscCall(PetscFree(filenames[i]));
   }
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

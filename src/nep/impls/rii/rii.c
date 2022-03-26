@@ -36,25 +36,22 @@ typedef struct {
 
 PetscErrorCode NEPSetUp_RII(NEP nep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  if (nep->ncv!=PETSC_DEFAULT) { ierr = PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
+  if (nep->ncv!=PETSC_DEFAULT) PetscCall(PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n"));
   nep->ncv = nep->nev;
-  if (nep->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
+  if (nep->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n"));
   nep->mpd = nep->nev;
   if (nep->max_it==PETSC_DEFAULT) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
   PetscCheck(nep->which==NEP_TARGET_MAGNITUDE,PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
   NEPCheckUnsupported(nep,NEP_FEATURE_REGION | NEP_FEATURE_TWOSIDED);
-  ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
-  ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
+  PetscCall(NEPAllocateSolution(nep,0));
+  PetscCall(NEPSetWorkVecs(nep,2));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPSolve_RII(NEP nep)
 {
-  PetscErrorCode     ierr;
   NEP_RII            *ctx = (NEP_RII*)nep->data;
   Mat                T,Tp,H;
   Vec                uu,u,r,delta,t;
@@ -68,30 +65,30 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 
   PetscFunctionBegin;
   /* get initial approximation of eigenvalue and eigenvector */
-  ierr = NEPGetDefaultShift(nep,&sigma);CHKERRQ(ierr);
+  PetscCall(NEPGetDefaultShift(nep,&sigma));
   lambda = sigma;
   if (!nep->nini) {
-    ierr = BVSetRandomColumn(nep->V,0);CHKERRQ(ierr);
-    ierr = BVNormColumn(nep->V,0,NORM_2,&nrm);CHKERRQ(ierr);
-    ierr = BVScaleColumn(nep->V,0,1.0/nrm);CHKERRQ(ierr);
+    PetscCall(BVSetRandomColumn(nep->V,0));
+    PetscCall(BVNormColumn(nep->V,0,NORM_2,&nrm));
+    PetscCall(BVScaleColumn(nep->V,0,1.0/nrm));
   }
-  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = NEPDeflationInitialize(nep,nep->V,ctx->ksp,PETSC_FALSE,nep->nev,&extop);CHKERRQ(ierr);
-  ierr = NEPDeflationCreateVec(extop,&u);CHKERRQ(ierr);
-  ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
-  ierr = VecDuplicate(u,&delta);CHKERRQ(ierr);
-  ierr = BVGetColumn(nep->V,0,&uu);CHKERRQ(ierr);
-  ierr = NEPDeflationCopyToExtendedVec(extop,uu,NULL,u,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(nep->V,0,&uu);CHKERRQ(ierr);
+  if (!ctx->ksp) PetscCall(NEPRIIGetKSP(nep,&ctx->ksp));
+  PetscCall(NEPDeflationInitialize(nep,nep->V,ctx->ksp,PETSC_FALSE,nep->nev,&extop));
+  PetscCall(NEPDeflationCreateVec(extop,&u));
+  PetscCall(VecDuplicate(u,&r));
+  PetscCall(VecDuplicate(u,&delta));
+  PetscCall(BVGetColumn(nep->V,0,&uu));
+  PetscCall(NEPDeflationCopyToExtendedVec(extop,uu,NULL,u,PETSC_FALSE));
+  PetscCall(BVRestoreColumn(nep->V,0,&uu));
 
   /* prepare linear solver */
-  ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
-  ierr = KSPGetTolerances(ctx->ksp,&rtol,NULL,NULL,NULL);CHKERRQ(ierr);
+  PetscCall(NEPDeflationSolveSetUp(extop,sigma));
+  PetscCall(KSPGetTolerances(ctx->ksp,&rtol,NULL,NULL,NULL));
 
-  ierr = VecCopy(u,r);CHKERRQ(ierr);
-  ierr = NEPDeflationFunctionSolve(extop,r,u);CHKERRQ(ierr);
-  ierr = VecNorm(u,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = VecScale(u,1.0/nrm);CHKERRQ(ierr);
+  PetscCall(VecCopy(u,r));
+  PetscCall(NEPDeflationFunctionSolve(extop,r,u));
+  PetscCall(VecNorm(u,NORM_2,&nrm));
+  PetscCall(VecScale(u,1.0/nrm));
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -102,156 +99,147 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     inner_its=0;
     lambda2 = lambda;
     do {
-      ierr = NEPDeflationComputeFunction(extop,lambda,&T);CHKERRQ(ierr);
-      ierr = MatMult(T,u,r);CHKERRQ(ierr);
+      PetscCall(NEPDeflationComputeFunction(extop,lambda,&T));
+      PetscCall(MatMult(T,u,r));
       if (!ctx->herm) {
-        ierr = NEPDeflationFunctionSolve(extop,r,delta);CHKERRQ(ierr);
-        ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
-        if (kspreason<0) {
-          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its);CHKERRQ(ierr);
-        }
+        PetscCall(NEPDeflationFunctionSolve(extop,r,delta));
+        PetscCall(KSPGetConvergedReason(ctx->ksp,&kspreason));
+        if (kspreason<0) PetscCall(PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its));
         t = delta;
       } else t = r;
-      ierr = VecDot(t,u,&a1);CHKERRQ(ierr);
-      ierr = NEPDeflationComputeJacobian(extop,lambda,&Tp);CHKERRQ(ierr);
-      ierr = MatMult(Tp,u,r);CHKERRQ(ierr);
+      PetscCall(VecDot(t,u,&a1));
+      PetscCall(NEPDeflationComputeJacobian(extop,lambda,&Tp));
+      PetscCall(MatMult(Tp,u,r));
       if (!ctx->herm) {
-        ierr = NEPDeflationFunctionSolve(extop,r,delta);CHKERRQ(ierr);
-        ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
-        if (kspreason<0) {
-          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its);CHKERRQ(ierr);
-        }
+        PetscCall(NEPDeflationFunctionSolve(extop,r,delta));
+        PetscCall(KSPGetConvergedReason(ctx->ksp,&kspreason));
+        if (kspreason<0) PetscCall(PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed\n",nep->its));
         t = delta;
       } else t = r;
-      ierr = VecDot(t,u,&a2);CHKERRQ(ierr);
+      PetscCall(VecDot(t,u,&a2));
       corr = a1/a2;
       lambda = lambda - corr;
       inner_its++;
     } while (PetscAbsScalar(corr)/PetscAbsScalar(lambda)>PETSC_SQRT_MACHINE_EPSILON && inner_its<ctx->max_inner_it);
 
     /* form residual,  r = T(lambda)*u */
-    ierr = NEPDeflationComputeFunction(extop,lambda,&T);CHKERRQ(ierr);
-    ierr = MatMult(T,u,r);CHKERRQ(ierr);
+    PetscCall(NEPDeflationComputeFunction(extop,lambda,&T));
+    PetscCall(MatMult(T,u,r));
 
     /* convergence test */
     perr = nep->errest[nep->nconv];
-    ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
-    ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
+    PetscCall(VecNorm(r,NORM_2,&resnorm));
+    PetscCall((*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx));
     nep->eigr[nep->nconv] = lambda;
     if (its>1 && (nep->errest[nep->nconv]<=nep->tol || nep->errest[nep->nconv]<=ctx->deftol)) {
       if (nep->errest[nep->nconv]<=ctx->deftol && !extop->ref && nep->nconv) {
-        ierr = NEPDeflationExtractEigenpair(extop,nep->nconv,u,lambda,nep->ds);CHKERRQ(ierr);
-        ierr = NEPDeflationSetRefine(extop,PETSC_TRUE);CHKERRQ(ierr);
-        ierr = MatMult(T,u,r);CHKERRQ(ierr);
-        ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
-        ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
+        PetscCall(NEPDeflationExtractEigenpair(extop,nep->nconv,u,lambda,nep->ds));
+        PetscCall(NEPDeflationSetRefine(extop,PETSC_TRUE));
+        PetscCall(MatMult(T,u,r));
+        PetscCall(VecNorm(r,NORM_2,&resnorm));
+        PetscCall((*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx));
         if (nep->errest[nep->nconv]<=nep->tol) lock = PETSC_TRUE;
       } else if (nep->errest[nep->nconv]<=nep->tol) lock = PETSC_TRUE;
     }
     if (lock) {
-      ierr = NEPDeflationSetRefine(extop,PETSC_FALSE);CHKERRQ(ierr);
+      PetscCall(NEPDeflationSetRefine(extop,PETSC_FALSE));
       nep->nconv = nep->nconv + 1;
-      ierr = NEPDeflationLocking(extop,u,lambda);CHKERRQ(ierr);
+      PetscCall(NEPDeflationLocking(extop,u,lambda));
       nep->its += its;
       skip = PETSC_TRUE;
       lock = PETSC_FALSE;
     }
-    ierr = (*nep->stopping)(nep,nep->its+its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
-    if (!skip || nep->reason>0) {
-      ierr = NEPMonitor(nep,nep->its+its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1);CHKERRQ(ierr);
-    }
+    PetscCall((*nep->stopping)(nep,nep->its+its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx));
+    if (!skip || nep->reason>0) PetscCall(NEPMonitor(nep,nep->its+its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1));
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
         /* update preconditioner and set adaptive tolerance */
-        if (ctx->lag && !(its%ctx->lag) && its>=2*ctx->lag && perr && nep->errest[nep->nconv]>.5*perr) {
-          ierr = NEPDeflationSolveSetUp(extop,lambda2);CHKERRQ(ierr);
-        }
+        if (ctx->lag && !(its%ctx->lag) && its>=2*ctx->lag && perr && nep->errest[nep->nconv]>.5*perr) PetscCall(NEPDeflationSolveSetUp(extop,lambda2));
         if (!ctx->cctol) {
           ktol = PetscMax(ktol/2.0,rtol);
-          ierr = KSPSetTolerances(ctx->ksp,ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+          PetscCall(KSPSetTolerances(ctx->ksp,ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
         }
 
         /* eigenvector correction: delta = T(sigma)\r */
-        ierr = NEPDeflationFunctionSolve(extop,r,delta);CHKERRQ(ierr);
-        ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
+        PetscCall(NEPDeflationFunctionSolve(extop,r,delta));
+        PetscCall(KSPGetConvergedReason(ctx->ksp,&kspreason));
         if (kspreason<0) {
-          ierr = PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          PetscCall(PetscInfo(nep,"iter=%" PetscInt_FMT ", linear solve failed, stopping solve\n",nep->its));
           nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
           break;
         }
 
         /* update eigenvector: u = u - delta */
-        ierr = VecAXPY(u,-1.0,delta);CHKERRQ(ierr);
+        PetscCall(VecAXPY(u,-1.0,delta));
 
         /* normalize eigenvector */
-        ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
+        PetscCall(VecNormalize(u,NULL));
       } else {
         its = -1;
-        ierr = NEPDeflationSetRandomVec(extop,u);CHKERRQ(ierr);
-        ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
-        ierr = VecCopy(u,r);CHKERRQ(ierr);
-        ierr = NEPDeflationFunctionSolve(extop,r,u);CHKERRQ(ierr);
-        ierr = VecNorm(u,NORM_2,&nrm);CHKERRQ(ierr);
-        ierr = VecScale(u,1.0/nrm);CHKERRQ(ierr);
+        PetscCall(NEPDeflationSetRandomVec(extop,u));
+        PetscCall(NEPDeflationSolveSetUp(extop,sigma));
+        PetscCall(VecCopy(u,r));
+        PetscCall(NEPDeflationFunctionSolve(extop,r,u));
+        PetscCall(VecNorm(u,NORM_2,&nrm));
+        PetscCall(VecScale(u,1.0/nrm));
         lambda = sigma;
         skip = PETSC_FALSE;
       }
     }
   }
-  ierr = NEPDeflationGetInvariantPair(extop,NULL,&H);CHKERRQ(ierr);
-  ierr = MatGetSize(H,NULL,&ldh);CHKERRQ(ierr);
-  ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSReset(nep->ds);CHKERRQ(ierr);
-  ierr = DSAllocate(nep->ds,PetscMax(nep->nconv,1));CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayRead(H,&Hp);CHKERRQ(ierr);
-  ierr = DSGetArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
+  PetscCall(NEPDeflationGetInvariantPair(extop,NULL,&H));
+  PetscCall(MatGetSize(H,NULL,&ldh));
+  PetscCall(DSSetType(nep->ds,DSNHEP));
+  PetscCall(DSReset(nep->ds));
+  PetscCall(DSAllocate(nep->ds,PetscMax(nep->nconv,1)));
+  PetscCall(DSGetLeadingDimension(nep->ds,&ldds));
+  PetscCall(MatDenseGetArrayRead(H,&Hp));
+  PetscCall(DSGetArray(nep->ds,DS_MAT_A,&Ap));
   for (j=0;j<nep->nconv;j++)
     for (i=0;i<nep->nconv;i++) Ap[j*ldds+i] = Hp[j*ldh+i];
-  ierr = DSRestoreArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArrayRead(H,&Hp);CHKERRQ(ierr);
-  ierr = MatDestroy(&H);CHKERRQ(ierr);
-  ierr = DSSetDimensions(nep->ds,nep->nconv,0,nep->nconv);CHKERRQ(ierr);
-  ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
-  ierr = NEPDeflationReset(extop);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&r);CHKERRQ(ierr);
-  ierr = VecDestroy(&delta);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(nep->ds,DS_MAT_A,&Ap));
+  PetscCall(MatDenseRestoreArrayRead(H,&Hp));
+  PetscCall(MatDestroy(&H));
+  PetscCall(DSSetDimensions(nep->ds,nep->nconv,0,nep->nconv));
+  PetscCall(DSSolve(nep->ds,nep->eigr,nep->eigi));
+  PetscCall(NEPDeflationReset(extop));
+  PetscCall(VecDestroy(&u));
+  PetscCall(VecDestroy(&r));
+  PetscCall(VecDestroy(&delta));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_RII        *ctx = (NEP_RII*)nep->data;
   PetscBool      flg;
   PetscInt       i;
   PetscReal      r;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"NEP RII Options");CHKERRQ(ierr);
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"NEP RII Options"));
 
     i = 0;
-    ierr = PetscOptionsInt("-nep_rii_max_it","Maximum number of Newton iterations for updating Rayleigh functional","NEPRIISetMaximumIterations",ctx->max_inner_it,&i,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPRIISetMaximumIterations(nep,i);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsInt("-nep_rii_max_it","Maximum number of Newton iterations for updating Rayleigh functional","NEPRIISetMaximumIterations",ctx->max_inner_it,&i,&flg));
+    if (flg) PetscCall(NEPRIISetMaximumIterations(nep,i));
 
-    ierr = PetscOptionsBool("-nep_rii_const_correction_tol","Constant correction tolerance for the linear solver","NEPRIISetConstCorrectionTol",ctx->cctol,&ctx->cctol,NULL);CHKERRQ(ierr);
+    PetscCall(PetscOptionsBool("-nep_rii_const_correction_tol","Constant correction tolerance for the linear solver","NEPRIISetConstCorrectionTol",ctx->cctol,&ctx->cctol,NULL));
 
-    ierr = PetscOptionsBool("-nep_rii_hermitian","Use Hermitian version of the scalar nonlinear equation","NEPRIISetHermitian",ctx->herm,&ctx->herm,NULL);CHKERRQ(ierr);
+    PetscCall(PetscOptionsBool("-nep_rii_hermitian","Use Hermitian version of the scalar nonlinear equation","NEPRIISetHermitian",ctx->herm,&ctx->herm,NULL));
 
     i = 0;
-    ierr = PetscOptionsInt("-nep_rii_lag_preconditioner","Interval to rebuild preconditioner","NEPRIISetLagPreconditioner",ctx->lag,&i,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPRIISetLagPreconditioner(nep,i);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsInt("-nep_rii_lag_preconditioner","Interval to rebuild preconditioner","NEPRIISetLagPreconditioner",ctx->lag,&i,&flg));
+    if (flg) PetscCall(NEPRIISetLagPreconditioner(nep,i));
 
     r = 0.0;
-    ierr = PetscOptionsReal("-nep_rii_deflation_threshold","Tolerance used as a threshold for including deflated eigenpairs","NEPRIISetDeflationThreshold",ctx->deftol,&r,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPRIISetDeflationThreshold(nep,r);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsReal("-nep_rii_deflation_threshold","Tolerance used as a threshold for including deflated eigenpairs","NEPRIISetDeflationThreshold",ctx->deftol,&r,&flg));
+    if (flg) PetscCall(NEPRIISetDeflationThreshold(nep,r));
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscCall(PetscOptionsTail());
 
-  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
+  if (!ctx->ksp) PetscCall(NEPRIIGetKSP(nep,&ctx->ksp));
+  PetscCall(KSPSetFromOptions(ctx->ksp));
   PetscFunctionReturn(0);
 }
 
@@ -285,12 +273,10 @@ static PetscErrorCode NEPRIISetMaximumIterations_RII(NEP nep,PetscInt its)
 @*/
 PetscErrorCode NEPRIISetMaximumIterations(NEP nep,PetscInt its)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,its,2);
-  ierr = PetscTryMethod(nep,"NEPRIISetMaximumIterations_C",(NEP,PetscInt),(nep,its));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(nep,"NEPRIISetMaximumIterations_C",(NEP,PetscInt),(nep,its)));
   PetscFunctionReturn(0);
 }
 
@@ -320,12 +306,10 @@ static PetscErrorCode NEPRIIGetMaximumIterations_RII(NEP nep,PetscInt *its)
 @*/
 PetscErrorCode NEPRIIGetMaximumIterations(NEP nep,PetscInt *its)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(its,2);
-  ierr = PetscUseMethod(nep,"NEPRIIGetMaximumIterations_C",(NEP,PetscInt*),(nep,its));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(nep,"NEPRIIGetMaximumIterations_C",(NEP,PetscInt*),(nep,its)));
   PetscFunctionReturn(0);
 }
 
@@ -364,12 +348,10 @@ static PetscErrorCode NEPRIISetLagPreconditioner_RII(NEP nep,PetscInt lag)
 @*/
 PetscErrorCode NEPRIISetLagPreconditioner(NEP nep,PetscInt lag)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,lag,2);
-  ierr = PetscTryMethod(nep,"NEPRIISetLagPreconditioner_C",(NEP,PetscInt),(nep,lag));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(nep,"NEPRIISetLagPreconditioner_C",(NEP,PetscInt),(nep,lag)));
   PetscFunctionReturn(0);
 }
 
@@ -399,12 +381,10 @@ static PetscErrorCode NEPRIIGetLagPreconditioner_RII(NEP nep,PetscInt *lag)
 @*/
 PetscErrorCode NEPRIIGetLagPreconditioner(NEP nep,PetscInt *lag)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(lag,2);
-  ierr = PetscUseMethod(nep,"NEPRIIGetLagPreconditioner_C",(NEP,PetscInt*),(nep,lag));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(nep,"NEPRIIGetLagPreconditioner_C",(NEP,PetscInt*),(nep,lag)));
   PetscFunctionReturn(0);
 }
 
@@ -442,12 +422,10 @@ static PetscErrorCode NEPRIISetConstCorrectionTol_RII(NEP nep,PetscBool cct)
 @*/
 PetscErrorCode NEPRIISetConstCorrectionTol(NEP nep,PetscBool cct)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(nep,cct,2);
-  ierr = PetscTryMethod(nep,"NEPRIISetConstCorrectionTol_C",(NEP,PetscBool),(nep,cct));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(nep,"NEPRIISetConstCorrectionTol_C",(NEP,PetscBool),(nep,cct)));
   PetscFunctionReturn(0);
 }
 
@@ -477,12 +455,10 @@ static PetscErrorCode NEPRIIGetConstCorrectionTol_RII(NEP nep,PetscBool *cct)
 @*/
 PetscErrorCode NEPRIIGetConstCorrectionTol(NEP nep,PetscBool *cct)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(cct,2);
-  ierr = PetscUseMethod(nep,"NEPRIIGetConstCorrectionTol_C",(NEP,PetscBool*),(nep,cct));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(nep,"NEPRIIGetConstCorrectionTol_C",(NEP,PetscBool*),(nep,cct)));
   PetscFunctionReturn(0);
 }
 
@@ -520,12 +496,10 @@ static PetscErrorCode NEPRIISetHermitian_RII(NEP nep,PetscBool herm)
 @*/
 PetscErrorCode NEPRIISetHermitian(NEP nep,PetscBool herm)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(nep,herm,2);
-  ierr = PetscTryMethod(nep,"NEPRIISetHermitian_C",(NEP,PetscBool),(nep,herm));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(nep,"NEPRIISetHermitian_C",(NEP,PetscBool),(nep,herm)));
   PetscFunctionReturn(0);
 }
 
@@ -556,12 +530,10 @@ static PetscErrorCode NEPRIIGetHermitian_RII(NEP nep,PetscBool *herm)
 @*/
 PetscErrorCode NEPRIIGetHermitian(NEP nep,PetscBool *herm)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(herm,2);
-  ierr = PetscUseMethod(nep,"NEPRIIGetHermitian_C",(NEP,PetscBool*),(nep,herm));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(nep,"NEPRIIGetHermitian_C",(NEP,PetscBool*),(nep,herm)));
   PetscFunctionReturn(0);
 }
 
@@ -601,12 +573,10 @@ static PetscErrorCode NEPRIISetDeflationThreshold_RII(NEP nep,PetscReal deftol)
 @*/
 PetscErrorCode NEPRIISetDeflationThreshold(NEP nep,PetscReal deftol)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,deftol,2);
-  ierr = PetscTryMethod(nep,"NEPRIISetDeflationThreshold_C",(NEP,PetscReal),(nep,deftol));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(nep,"NEPRIISetDeflationThreshold_C",(NEP,PetscReal),(nep,deftol)));
   PetscFunctionReturn(0);
 }
 
@@ -636,25 +606,22 @@ static PetscErrorCode NEPRIIGetDeflationThreshold_RII(NEP nep,PetscReal *deftol)
 @*/
 PetscErrorCode NEPRIIGetDeflationThreshold(NEP nep,PetscReal *deftol)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidRealPointer(deftol,2);
-  ierr = PetscUseMethod(nep,"NEPRIIGetDeflationThreshold_C",(NEP,PetscReal*),(nep,deftol));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(nep,"NEPRIIGetDeflationThreshold_C",(NEP,PetscReal*),(nep,deftol)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPRIISetKSP_RII(NEP nep,KSP ksp)
 {
-  PetscErrorCode ierr;
   NEP_RII        *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
-  ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
-  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)ksp));
+  PetscCall(KSPDestroy(&ctx->ksp));
   ctx->ksp = ksp;
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp);CHKERRQ(ierr);
+  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp));
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -675,31 +642,28 @@ static PetscErrorCode NEPRIISetKSP_RII(NEP nep,KSP ksp)
 @*/
 PetscErrorCode NEPRIISetKSP(NEP nep,KSP ksp)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(nep,1,ksp,2);
-  ierr = PetscTryMethod(nep,"NEPRIISetKSP_C",(NEP,KSP),(nep,ksp));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(nep,"NEPRIISetKSP_C",(NEP,KSP),(nep,ksp)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPRIIGetKSP_RII(NEP nep,KSP *ksp)
 {
-  PetscErrorCode ierr;
   NEP_RII        *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
   if (!ctx->ksp) {
-    ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&ctx->ksp);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)nep,1);CHKERRQ(ierr);
-    ierr = KSPSetOptionsPrefix(ctx->ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
-    ierr = KSPAppendOptionsPrefix(ctx->ksp,"nep_rii_");CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)nep)->options);CHKERRQ(ierr);
-    ierr = KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    PetscCall(KSPCreate(PetscObjectComm((PetscObject)nep),&ctx->ksp));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)nep,1));
+    PetscCall(KSPSetOptionsPrefix(ctx->ksp,((PetscObject)nep)->prefix));
+    PetscCall(KSPAppendOptionsPrefix(ctx->ksp,"nep_rii_"));
+    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp));
+    PetscCall(PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)nep)->options));
+    PetscCall(KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE));
+    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = ctx->ksp;
   PetscFunctionReturn(0);
@@ -723,85 +687,71 @@ static PetscErrorCode NEPRIIGetKSP_RII(NEP nep,KSP *ksp)
 @*/
 PetscErrorCode NEPRIIGetKSP(NEP nep,KSP *ksp)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(ksp,2);
-  ierr = PetscUseMethod(nep,"NEPRIIGetKSP_C",(NEP,KSP*),(nep,ksp));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(nep,"NEPRIIGetKSP_C",(NEP,KSP*),(nep,ksp)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   NEP_RII        *ctx = (NEP_RII*)nep->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of inner iterations: %" PetscInt_FMT "\n",ctx->max_inner_it);CHKERRQ(ierr);
-    if (ctx->cctol) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
-    }
-    if (ctx->herm) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  using the Hermitian version of the scalar nonlinear equation\n");CHKERRQ(ierr);
-    }
-    if (ctx->lag) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %" PetscInt_FMT " iterations\n",ctx->lag);CHKERRQ(ierr);
-    }
-    if (ctx->deftol) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  deflation threshold: %g\n",(double)ctx->deftol);CHKERRQ(ierr);
-    }
-    if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  maximum number of inner iterations: %" PetscInt_FMT "\n",ctx->max_inner_it));
+    if (ctx->cctol) PetscCall(PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n"));
+    if (ctx->herm) PetscCall(PetscViewerASCIIPrintf(viewer,"  using the Hermitian version of the scalar nonlinear equation\n"));
+    if (ctx->lag) PetscCall(PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %" PetscInt_FMT " iterations\n",ctx->lag));
+    if (ctx->deftol) PetscCall(PetscViewerASCIIPrintf(viewer,"  deflation threshold: %g\n",(double)ctx->deftol));
+    if (!ctx->ksp) PetscCall(NEPRIIGetKSP(nep,&ctx->ksp));
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscCall(KSPView(ctx->ksp,viewer));
+    PetscCall(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPReset_RII(NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_RII        *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
-  ierr = KSPReset(ctx->ksp);CHKERRQ(ierr);
+  PetscCall(KSPReset(ctx->ksp));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPDestroy_RII(NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_RII        *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
-  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
-  ierr = PetscFree(nep->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetMaximumIterations_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetMaximumIterations_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetLagPreconditioner_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetLagPreconditioner_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetConstCorrectionTol_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetConstCorrectionTol_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetHermitian_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetHermitian_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetDeflationThreshold_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetDeflationThreshold_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NULL);CHKERRQ(ierr);
+  PetscCall(KSPDestroy(&ctx->ksp));
+  PetscCall(PetscFree(nep->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetMaximumIterations_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetMaximumIterations_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetLagPreconditioner_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetLagPreconditioner_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetConstCorrectionTol_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetConstCorrectionTol_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetHermitian_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetHermitian_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetDeflationThreshold_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetDeflationThreshold_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NULL));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
 {
-  PetscErrorCode ierr;
   NEP_RII        *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(nep,&ctx));
   nep->data = (void*)ctx;
   ctx->max_inner_it = 10;
   ctx->lag          = 1;
@@ -819,18 +769,17 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   nep->ops->view           = NEPView_RII;
   nep->ops->computevectors = NEPComputeVectors_Schur;
 
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetMaximumIterations_C",NEPRIISetMaximumIterations_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetMaximumIterations_C",NEPRIIGetMaximumIterations_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetLagPreconditioner_C",NEPRIISetLagPreconditioner_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetLagPreconditioner_C",NEPRIIGetLagPreconditioner_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetConstCorrectionTol_C",NEPRIISetConstCorrectionTol_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetConstCorrectionTol_C",NEPRIIGetConstCorrectionTol_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetHermitian_C",NEPRIISetHermitian_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetHermitian_C",NEPRIIGetHermitian_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetDeflationThreshold_C",NEPRIISetDeflationThreshold_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetDeflationThreshold_C",NEPRIIGetDeflationThreshold_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NEPRIISetKSP_RII);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NEPRIIGetKSP_RII);CHKERRQ(ierr);
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetMaximumIterations_C",NEPRIISetMaximumIterations_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetMaximumIterations_C",NEPRIIGetMaximumIterations_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetLagPreconditioner_C",NEPRIISetLagPreconditioner_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetLagPreconditioner_C",NEPRIIGetLagPreconditioner_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetConstCorrectionTol_C",NEPRIISetConstCorrectionTol_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetConstCorrectionTol_C",NEPRIIGetConstCorrectionTol_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetHermitian_C",NEPRIISetHermitian_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetHermitian_C",NEPRIIGetHermitian_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetDeflationThreshold_C",NEPRIISetDeflationThreshold_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetDeflationThreshold_C",NEPRIIGetDeflationThreshold_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NEPRIISetKSP_RII));
+  PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NEPRIIGetKSP_RII));
   PetscFunctionReturn(0);
 }
-

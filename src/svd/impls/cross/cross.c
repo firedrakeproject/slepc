@@ -31,19 +31,17 @@ typedef struct {
 
 static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
 {
-  PetscErrorCode  ierr;
   SVD_CROSS_SHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
-  ierr = MatMult(ctx->A,x,ctx->w);CHKERRQ(ierr);
-  ierr = MatMult(ctx->AT,ctx->w,y);CHKERRQ(ierr);
+  PetscCall(MatShellGetContext(B,&ctx));
+  PetscCall(MatMult(ctx->A,x,ctx->w));
+  PetscCall(MatMult(ctx->AT,ctx->w,y));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
 {
-  PetscErrorCode    ierr;
   SVD_CROSS_SHELL   *ctx;
   PetscMPIInt       len;
   PetscInt          N,n,i,j,start,end,ncols;
@@ -52,56 +50,54 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
   const PetscScalar *vals;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
+  PetscCall(MatShellGetContext(B,&ctx));
   if (!ctx->diag) {
     /* compute diagonal from rows and store in ctx->diag */
-    ierr = VecDuplicate(d,&ctx->diag);CHKERRQ(ierr);
-    ierr = MatGetSize(ctx->A,NULL,&N);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(ctx->A,NULL,&n);CHKERRQ(ierr);
-    ierr = PetscCalloc2(N,&work1,N,&work2);CHKERRQ(ierr);
+    PetscCall(VecDuplicate(d,&ctx->diag));
+    PetscCall(MatGetSize(ctx->A,NULL,&N));
+    PetscCall(MatGetLocalSize(ctx->A,NULL,&n));
+    PetscCall(PetscCalloc2(N,&work1,N,&work2));
     if (ctx->swapped) {
-      ierr = MatGetOwnershipRange(ctx->AT,&start,&end);CHKERRQ(ierr);
+      PetscCall(MatGetOwnershipRange(ctx->AT,&start,&end));
       for (i=start;i<end;i++) {
-        ierr = MatGetRow(ctx->AT,i,&ncols,NULL,&vals);CHKERRQ(ierr);
+        PetscCall(MatGetRow(ctx->AT,i,&ncols,NULL,&vals));
         for (j=0;j<ncols;j++) work1[i] += vals[j]*vals[j];
-        ierr = MatRestoreRow(ctx->AT,i,&ncols,NULL,&vals);CHKERRQ(ierr);
+        PetscCall(MatRestoreRow(ctx->AT,i,&ncols,NULL,&vals));
       }
     } else {
-      ierr = MatGetOwnershipRange(ctx->A,&start,&end);CHKERRQ(ierr);
+      PetscCall(MatGetOwnershipRange(ctx->A,&start,&end));
       for (i=start;i<end;i++) {
-        ierr = MatGetRow(ctx->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
+        PetscCall(MatGetRow(ctx->A,i,&ncols,&cols,&vals));
         for (j=0;j<ncols;j++) work1[cols[j]] += vals[j]*vals[j];
-        ierr = MatRestoreRow(ctx->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
+        PetscCall(MatRestoreRow(ctx->A,i,&ncols,&cols,&vals));
       }
     }
-    ierr = PetscMPIIntCast(N,&len);CHKERRQ(ierr);
-    ierr = MPIU_Allreduce(work1,work2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)B));CHKERRMPI(ierr);
-    ierr = VecGetOwnershipRange(ctx->diag,&start,&end);CHKERRQ(ierr);
-    ierr = VecGetArrayWrite(ctx->diag,&diag);CHKERRQ(ierr);
+    PetscCall(PetscMPIIntCast(N,&len));
+    PetscCallMPI(MPIU_Allreduce(work1,work2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)B)));
+    PetscCall(VecGetOwnershipRange(ctx->diag,&start,&end));
+    PetscCall(VecGetArrayWrite(ctx->diag,&diag));
     for (i=start;i<end;i++) diag[i-start] = work2[i];
-    ierr = VecRestoreArrayWrite(ctx->diag,&diag);CHKERRQ(ierr);
-    ierr = PetscFree2(work1,work2);CHKERRQ(ierr);
+    PetscCall(VecRestoreArrayWrite(ctx->diag,&diag));
+    PetscCall(PetscFree2(work1,work2));
   }
-  ierr = VecCopy(ctx->diag,d);CHKERRQ(ierr);
+  PetscCall(VecCopy(ctx->diag,d));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode MatDestroy_Cross(Mat B)
 {
-  PetscErrorCode  ierr;
   SVD_CROSS_SHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(B,&ctx);CHKERRQ(ierr);
-  ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
-  ierr = VecDestroy(&ctx->diag);CHKERRQ(ierr);
-  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  PetscCall(MatShellGetContext(B,&ctx));
+  PetscCall(VecDestroy(&ctx->w));
+  PetscCall(VecDestroy(&ctx->diag));
+  PetscCall(PetscFree(ctx));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
 {
-  PetscErrorCode  ierr;
   SVD_CROSS       *cross = (SVD_CROSS*)svd->data;
   SVD_CROSS_SHELL *ctx;
   PetscInt        n;
@@ -110,40 +106,40 @@ static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
   PetscFunctionBegin;
   if (cross->explicitmatrix) {
     if (svd->expltrans) {  /* explicit transpose */
-      ierr = MatProductCreate(AT,A,NULL,C);CHKERRQ(ierr);
-      ierr = MatProductSetType(*C,MATPRODUCT_AB);CHKERRQ(ierr);
+      PetscCall(MatProductCreate(AT,A,NULL,C));
+      PetscCall(MatProductSetType(*C,MATPRODUCT_AB));
     } else {  /* implicit transpose */
 #if defined(PETSC_USE_COMPLEX)
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Must use explicit transpose with complex scalars");
 #else
       if (!svd->swapped) {
-        ierr = MatProductCreate(A,A,NULL,C);CHKERRQ(ierr);
-        ierr = MatProductSetType(*C,MATPRODUCT_AtB);CHKERRQ(ierr);
+        PetscCall(MatProductCreate(A,A,NULL,C));
+        PetscCall(MatProductSetType(*C,MATPRODUCT_AtB));
       } else {
-        ierr = MatProductCreate(AT,AT,NULL,C);CHKERRQ(ierr);
-        ierr = MatProductSetType(*C,MATPRODUCT_ABt);CHKERRQ(ierr);
+        PetscCall(MatProductCreate(AT,AT,NULL,C));
+        PetscCall(MatProductSetType(*C,MATPRODUCT_ABt));
       }
 #endif
     }
-    ierr = MatProductSetFromOptions(*C);CHKERRQ(ierr);
-    ierr = MatProductSymbolic(*C);CHKERRQ(ierr);
-    ierr = MatProductNumeric(*C);CHKERRQ(ierr);
+    PetscCall(MatProductSetFromOptions(*C));
+    PetscCall(MatProductSymbolic(*C));
+    PetscCall(MatProductNumeric(*C));
   } else {
-    ierr = PetscNew(&ctx);CHKERRQ(ierr);
+    PetscCall(PetscNew(&ctx));
     ctx->A       = A;
     ctx->AT      = AT;
     ctx->swapped = svd->swapped;
-    ierr = MatCreateVecs(A,NULL,&ctx->w);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->w);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(A,NULL,&n);CHKERRQ(ierr);
-    ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,(void*)ctx,C);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_Cross);CHKERRQ(ierr);
-    ierr = MatGetVecType(A,&vtype);CHKERRQ(ierr);
-    ierr = MatSetVecType(*C,vtype);CHKERRQ(ierr);
+    PetscCall(MatCreateVecs(A,NULL,&ctx->w));
+    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->w));
+    PetscCall(MatGetLocalSize(A,NULL,&n));
+    PetscCall(MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,(void*)ctx,C));
+    PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cross));
+    PetscCall(MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross));
+    PetscCall(MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_Cross));
+    PetscCall(MatGetVecType(A,&vtype));
+    PetscCall(MatSetVecType(*C,vtype));
   }
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)*C);CHKERRQ(ierr);
+  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)*C));
   PetscFunctionReturn(0);
 }
 
@@ -159,52 +155,48 @@ static PetscErrorCode EPSConv_Cross(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
 
 PetscErrorCode SVDSetUp_Cross(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   ST             st;
   PetscBool      trackall,issinv;
 
   PetscFunctionBegin;
-  if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
-  ierr = MatDestroy(&cross->C);CHKERRQ(ierr);
-  ierr = MatDestroy(&cross->D);CHKERRQ(ierr);
-  ierr = SVDCrossGetProductMat(svd,svd->A,svd->AT,&cross->C);CHKERRQ(ierr);
+  if (!cross->eps) PetscCall(SVDCrossGetEPS(svd,&cross->eps));
+  PetscCall(MatDestroy(&cross->C));
+  PetscCall(MatDestroy(&cross->D));
+  PetscCall(SVDCrossGetProductMat(svd,svd->A,svd->AT,&cross->C));
   if (svd->isgeneralized) {
-    ierr = SVDCrossGetProductMat(svd,svd->B,svd->BT,&cross->D);CHKERRQ(ierr);
-    ierr = EPSSetOperators(cross->eps,cross->C,cross->D);CHKERRQ(ierr);
-    ierr = EPSSetProblemType(cross->eps,EPS_GHEP);CHKERRQ(ierr);
+    PetscCall(SVDCrossGetProductMat(svd,svd->B,svd->BT,&cross->D));
+    PetscCall(EPSSetOperators(cross->eps,cross->C,cross->D));
+    PetscCall(EPSSetProblemType(cross->eps,EPS_GHEP));
   } else {
-    ierr = EPSSetOperators(cross->eps,cross->C,NULL);CHKERRQ(ierr);
-    ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
+    PetscCall(EPSSetOperators(cross->eps,cross->C,NULL));
+    PetscCall(EPSSetProblemType(cross->eps,EPS_HEP));
   }
   if (!cross->usereps) {
-    ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
+    PetscCall(EPSGetST(cross->eps,&st));
     if (svd->isgeneralized && svd->which==SVD_SMALLEST) {
-      ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-      ierr = EPSSetTarget(cross->eps,0.0);CHKERRQ(ierr);
-      ierr = EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_REAL);CHKERRQ(ierr);
+      PetscCall(STSetType(st,STSINVERT));
+      PetscCall(EPSSetTarget(cross->eps,0.0));
+      PetscCall(EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_REAL));
     } else {
-      ierr = PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv);CHKERRQ(ierr);
-      if (issinv) {
-        ierr = EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-      } else {
-        ierr = EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL);CHKERRQ(ierr);
-      }
+      PetscCall(PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv));
+      if (issinv) PetscCall(EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_MAGNITUDE));
+      else PetscCall(EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL));
     }
-    ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd);CHKERRQ(ierr);
-    ierr = EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it);CHKERRQ(ierr);
+    PetscCall(EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd));
+    PetscCall(EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it));
     switch (svd->conv) {
     case SVD_CONV_ABS:
-      ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_ABS);CHKERRQ(ierr);break;
+      PetscCall(EPSSetConvergenceTest(cross->eps,EPS_CONV_ABS));break;
     case SVD_CONV_REL:
-      ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_REL);CHKERRQ(ierr);break;
+      PetscCall(EPSSetConvergenceTest(cross->eps,EPS_CONV_REL));break;
     case SVD_CONV_NORM:
       if (svd->isgeneralized) {
-        if (!svd->nrma) { ierr = MatNorm(svd->OP,NORM_INFINITY,&svd->nrma);CHKERRQ(ierr); }
-        if (!svd->nrmb) { ierr = MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb);CHKERRQ(ierr); }
-        ierr = EPSSetConvergenceTestFunction(cross->eps,EPSConv_Cross,svd,NULL);CHKERRQ(ierr);
+        if (!svd->nrma) PetscCall(MatNorm(svd->OP,NORM_INFINITY,&svd->nrma));
+        if (!svd->nrmb) PetscCall(MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb));
+        PetscCall(EPSSetConvergenceTestFunction(cross->eps,EPSConv_Cross,svd,NULL));
       } else {
-        ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_NORM);CHKERRQ(ierr);
+        PetscCall(EPSSetConvergenceTest(cross->eps,EPS_CONV_NORM));break;
       }
       break;
     case SVD_CONV_MAXIT:
@@ -215,42 +207,41 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   }
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
   /* Transfer the trackall option from svd to eps */
-  ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
-  ierr = EPSSetTrackAll(cross->eps,trackall);CHKERRQ(ierr);
+  PetscCall(SVDGetTrackAll(svd,&trackall));
+  PetscCall(EPSSetTrackAll(cross->eps,trackall));
   /* Transfer the initial space from svd to eps */
   if (svd->nini<0) {
-    ierr = EPSSetInitialSpace(cross->eps,-svd->nini,svd->IS);CHKERRQ(ierr);
-    ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
+    PetscCall(EPSSetInitialSpace(cross->eps,-svd->nini,svd->IS));
+    PetscCall(SlepcBasisDestroy_Private(&svd->nini,&svd->IS));
   }
-  ierr = EPSSetUp(cross->eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(cross->eps,NULL,&svd->ncv,&svd->mpd);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(cross->eps,NULL,&svd->max_it);CHKERRQ(ierr);
+  PetscCall(EPSSetUp(cross->eps));
+  PetscCall(EPSGetDimensions(cross->eps,NULL,&svd->ncv,&svd->mpd));
+  PetscCall(EPSGetTolerances(cross->eps,NULL,&svd->max_it));
   if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
 
   svd->leftbasis = PETSC_FALSE;
-  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
+  PetscCall(SVDAllocateSolution(svd,0));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDSolve_Cross(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   PetscInt       i;
   PetscScalar    lambda;
   PetscReal      sigma;
 
   PetscFunctionBegin;
-  ierr = EPSSolve(cross->eps);CHKERRQ(ierr);
-  ierr = EPSGetConverged(cross->eps,&svd->nconv);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(cross->eps,&svd->its);CHKERRQ(ierr);
-  ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
+  PetscCall(EPSSolve(cross->eps));
+  PetscCall(EPSGetConverged(cross->eps,&svd->nconv));
+  PetscCall(EPSGetIterationNumber(cross->eps,&svd->its));
+  PetscCall(EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason));
   for (i=0;i<svd->nconv;i++) {
-    ierr = EPSGetEigenvalue(cross->eps,i,&lambda,NULL);CHKERRQ(ierr);
+    PetscCall(EPSGetEigenvalue(cross->eps,i,&lambda,NULL));
     sigma = PetscRealPart(lambda);
     PetscCheck(sigma>-10*PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)svd),PETSC_ERR_FP,"Negative eigenvalue computed by EPS: %g",(double)sigma);
     if (sigma<0.0) {
-      ierr = PetscInfo(svd,"Negative eigenvalue computed by EPS: %g, resetting to 0\n",(double)sigma);CHKERRQ(ierr);
+      PetscCall(PetscInfo(svd,"Negative eigenvalue computed by EPS: %g, resetting to 0\n",(double)sigma));
       sigma = 0.0;
     }
     svd->sigma[i] = PetscSqrtReal(sigma);
@@ -260,7 +251,6 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
 
 PetscErrorCode SVDComputeVectors_Cross(SVD svd)
 {
-  PetscErrorCode    ierr;
   SVD_CROSS         *cross = (SVD_CROSS*)svd->data;
   PetscInt          i,mloc,ploc;
   Vec               u,v,x,uv;
@@ -270,41 +260,41 @@ PetscErrorCode SVDComputeVectors_Cross(SVD svd)
 
   PetscFunctionBegin;
   if (svd->isgeneralized) {
-    ierr = MatCreateVecs(svd->A,NULL,&u);CHKERRQ(ierr);
-    ierr = VecGetLocalSize(u,&mloc);CHKERRQ(ierr);
-    ierr = MatCreateVecs(svd->B,NULL,&v);CHKERRQ(ierr);
-    ierr = VecGetLocalSize(v,&ploc);CHKERRQ(ierr);
+    PetscCall(MatCreateVecs(svd->A,NULL,&u));
+    PetscCall(VecGetLocalSize(u,&mloc));
+    PetscCall(MatCreateVecs(svd->B,NULL,&v));
+    PetscCall(VecGetLocalSize(v,&ploc));
     for (i=0;i<svd->nconv;i++) {
-      ierr = BVGetColumn(svd->V,i,&x);CHKERRQ(ierr);
-      ierr = EPSGetEigenpair(cross->eps,i,&lambda,NULL,x,NULL);CHKERRQ(ierr);
-      ierr = MatMult(svd->A,x,u);CHKERRQ(ierr);     /* u_i*c_i/alpha = A*x_i */
-      ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
-      ierr = MatMult(svd->B,x,v);CHKERRQ(ierr);     /* v_i*s_i/alpha = B*x_i */
-      ierr = VecNormalize(v,&nrm);CHKERRQ(ierr);    /* ||v||_2 = s_i/alpha   */
+      PetscCall(BVGetColumn(svd->V,i,&x));
+      PetscCall(EPSGetEigenpair(cross->eps,i,&lambda,NULL,x,NULL));
+      PetscCall(MatMult(svd->A,x,u));     /* u_i*c_i/alpha = A*x_i */
+      PetscCall(VecNormalize(u,NULL));
+      PetscCall(MatMult(svd->B,x,v));     /* v_i*s_i/alpha = B*x_i */
+      PetscCall(VecNormalize(v,&nrm));    /* ||v||_2 = s_i/alpha   */
       alpha = 1.0/(PetscSqrtReal(1.0+PetscRealPart(lambda))*nrm);    /* alpha=s_i/||v||_2 */
-      ierr = VecScale(x,alpha);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->V,i,&x);CHKERRQ(ierr);
+      PetscCall(VecScale(x,alpha));
+      PetscCall(BVRestoreColumn(svd->V,i,&x));
       /* copy [u;v] to U[i] */
-      ierr = BVGetColumn(svd->U,i,&uv);CHKERRQ(ierr);
-      ierr = VecGetArrayWrite(uv,&dst);CHKERRQ(ierr);
-      ierr = VecGetArrayRead(u,&src);CHKERRQ(ierr);
-      ierr = PetscArraycpy(dst,src,mloc);CHKERRQ(ierr);
-      ierr = VecRestoreArrayRead(u,&src);CHKERRQ(ierr);
-      ierr = VecGetArrayRead(v,&src);CHKERRQ(ierr);
-      ierr = PetscArraycpy(dst+mloc,src,ploc);CHKERRQ(ierr);
-      ierr = VecRestoreArrayRead(v,&src);CHKERRQ(ierr);
-      ierr = VecRestoreArrayWrite(uv,&dst);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->U,i,&uv);CHKERRQ(ierr);
+      PetscCall(BVGetColumn(svd->U,i,&uv));
+      PetscCall(VecGetArrayWrite(uv,&dst));
+      PetscCall(VecGetArrayRead(u,&src));
+      PetscCall(PetscArraycpy(dst,src,mloc));
+      PetscCall(VecRestoreArrayRead(u,&src));
+      PetscCall(VecGetArrayRead(v,&src));
+      PetscCall(PetscArraycpy(dst+mloc,src,ploc));
+      PetscCall(VecRestoreArrayRead(v,&src));
+      PetscCall(VecRestoreArrayWrite(uv,&dst));
+      PetscCall(BVRestoreColumn(svd->U,i,&uv));
     }
-    ierr = VecDestroy(&v);CHKERRQ(ierr);
-    ierr = VecDestroy(&u);CHKERRQ(ierr);
+    PetscCall(VecDestroy(&v));
+    PetscCall(VecDestroy(&u));
   } else {
     for (i=0;i<svd->nconv;i++) {
-      ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
-      ierr = EPSGetEigenvector(cross->eps,i,v,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
+      PetscCall(BVGetColumn(svd->V,i,&v));
+      PetscCall(EPSGetEigenvector(cross->eps,i,v,NULL));
+      PetscCall(BVRestoreColumn(svd->V,i,&v));
     }
-    ierr = SVDComputeVectors_Left(svd);CHKERRQ(ierr);
+    PetscCall(SVDComputeVectors_Left(svd));
   }
   PetscFunctionReturn(0);
 }
@@ -314,41 +304,39 @@ static PetscErrorCode EPSMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
   PetscInt       i;
   SVD            svd = (SVD)ctx;
   PetscScalar    er,ei;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   for (i=0;i<PetscMin(nest,svd->ncv);i++) {
     er = eigr[i]; ei = eigi[i];
-    ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
+    PetscCall(STBackTransform(eps->st,1,&er,&ei));
     svd->sigma[i] = PetscSqrtReal(PetscAbsReal(PetscRealPart(er)));
     svd->errest[i] = errest[i];
   }
-  ierr = SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest);CHKERRQ(ierr);
+  PetscCall(SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDSetFromOptions_Cross(PetscOptionItems *PetscOptionsObject,SVD svd)
 {
-  PetscErrorCode ierr;
   PetscBool      set,val;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   ST             st;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"SVD Cross Options");CHKERRQ(ierr);
+  PetscCall(PetscOptionsHead(PetscOptionsObject,"SVD Cross Options"));
 
-    ierr = PetscOptionsBool("-svd_cross_explicitmatrix","Use cross explicit matrix","SVDCrossSetExplicitMatrix",cross->explicitmatrix,&val,&set);CHKERRQ(ierr);
-    if (set) { ierr = SVDCrossSetExplicitMatrix(svd,val);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsBool("-svd_cross_explicitmatrix","Use cross explicit matrix","SVDCrossSetExplicitMatrix",cross->explicitmatrix,&val,&set));
+    if (set) PetscCall(SVDCrossSetExplicitMatrix(svd,val));
 
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscCall(PetscOptionsTail());
 
-  if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
+  if (!cross->eps) PetscCall(SVDCrossGetEPS(svd,&cross->eps));
   if (!cross->explicitmatrix && !cross->usereps) {
     /* use as default an ST with shell matrix and Jacobi */
-    ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
-    ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
+    PetscCall(EPSGetST(cross->eps,&st));
+    PetscCall(STSetMatMode(st,ST_MATMODE_SHELL));
   }
-  ierr = EPSSetFromOptions(cross->eps);CHKERRQ(ierr);
+  PetscCall(EPSSetFromOptions(cross->eps));
   PetscFunctionReturn(0);
 }
 
@@ -383,12 +371,10 @@ static PetscErrorCode SVDCrossSetExplicitMatrix_Cross(SVD svd,PetscBool explicit
 @*/
 PetscErrorCode SVDCrossSetExplicitMatrix(SVD svd,PetscBool explicitmat)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveBool(svd,explicitmat,2);
-  ierr = PetscTryMethod(svd,"SVDCrossSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmat));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(svd,"SVDCrossSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmat)));
   PetscFunctionReturn(0);
 }
 
@@ -418,26 +404,23 @@ static PetscErrorCode SVDCrossGetExplicitMatrix_Cross(SVD svd,PetscBool *explici
 @*/
 PetscErrorCode SVDCrossGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(explicitmat,2);
-  ierr = PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
 {
-  PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
-  ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
-  ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)eps));
+  PetscCall(EPSDestroy(&cross->eps));
   cross->eps = eps;
   cross->usereps = PETSC_TRUE;
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
+  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps));
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -458,31 +441,28 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
 @*/
 PetscErrorCode SVDCrossSetEPS(SVD svd,EPS eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(svd,1,eps,2);
-  ierr = PetscTryMethod(svd,"SVDCrossSetEPS_C",(SVD,EPS),(svd,eps));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(svd,"SVDCrossSetEPS_C",(SVD,EPS),(svd,eps)));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
 {
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (!cross->eps) {
-    ierr = EPSCreate(PetscObjectComm((PetscObject)svd),&cross->eps);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);
-    ierr = EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
-    ierr = EPSAppendOptionsPrefix(cross->eps,"svd_cross_");CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
-    ierr = PetscObjectSetOptions((PetscObject)cross->eps,((PetscObject)svd)->options);CHKERRQ(ierr);
-    ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-    ierr = EPSMonitorSet(cross->eps,EPSMonitor_Cross,svd,NULL);CHKERRQ(ierr);
+    PetscCall(EPSCreate(PetscObjectComm((PetscObject)svd),&cross->eps));
+    PetscCall(PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1));
+    PetscCall(EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix));
+    PetscCall(EPSAppendOptionsPrefix(cross->eps,"svd_cross_"));
+    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps));
+    PetscCall(PetscObjectSetOptions((PetscObject)cross->eps,((PetscObject)svd)->options));
+    PetscCall(EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL));
+    PetscCall(EPSMonitorSet(cross->eps,EPSMonitor_Cross,svd,NULL));
   }
   *eps = cross->eps;
   PetscFunctionReturn(0);
@@ -506,67 +486,61 @@ static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
 @*/
 PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(eps,2);
-  ierr = PetscUseMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps));CHKERRQ(ierr);
+  PetscCall(PetscUseMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps)));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
-    ierr = PetscViewerASCIIPrintf(viewer,"  %s matrix\n",cross->explicitmatrix?"explicit":"implicit");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    ierr = EPSView(cross->eps,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    if (!cross->eps) PetscCall(SVDCrossGetEPS(svd,&cross->eps));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  %s matrix\n",cross->explicitmatrix?"explicit":"implicit"));
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscCall(EPSView(cross->eps,viewer));
+    PetscCall(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDReset_Cross(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
-  ierr = EPSReset(cross->eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&cross->C);CHKERRQ(ierr);
-  ierr = MatDestroy(&cross->D);CHKERRQ(ierr);
+  PetscCall(EPSReset(cross->eps));
+  PetscCall(MatDestroy(&cross->C));
+  PetscCall(MatDestroy(&cross->D));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDDestroy_Cross(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
 
   PetscFunctionBegin;
-  ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
-  ierr = PetscFree(svd->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetEPS_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetExplicitMatrix_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetExplicitMatrix_C",NULL);CHKERRQ(ierr);
+  PetscCall(EPSDestroy(&cross->eps));
+  PetscCall(PetscFree(svd->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetEPS_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetExplicitMatrix_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetExplicitMatrix_C",NULL));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_CROSS      *cross;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(svd,&cross);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(svd,&cross));
   svd->data = (void*)cross;
 
   svd->ops->solve          = SVDSolve_Cross;
@@ -577,10 +551,9 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   svd->ops->reset          = SVDReset_Cross;
   svd->ops->view           = SVDView_Cross;
   svd->ops->computevectors = SVDComputeVectors_Cross;
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetEPS_C",SVDCrossSetEPS_Cross);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C",SVDCrossGetEPS_Cross);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetExplicitMatrix_C",SVDCrossSetExplicitMatrix_Cross);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetExplicitMatrix_C",SVDCrossGetExplicitMatrix_Cross);CHKERRQ(ierr);
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetEPS_C",SVDCrossSetEPS_Cross));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetEPS_C",SVDCrossGetEPS_Cross));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossSetExplicitMatrix_C",SVDCrossSetExplicitMatrix_Cross));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDCrossGetExplicitMatrix_C",SVDCrossGetExplicitMatrix_Cross));
   PetscFunctionReturn(0);
 }
-

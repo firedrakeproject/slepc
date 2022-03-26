@@ -31,115 +31,111 @@ int main(int argc,char **argv)
   PEP            pep;             /* polynomial eigenproblem solver context */
   PetscInt       n=10,Istart,Iend,i;
   PetscBool      terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRailtrack resting on sleepers, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nRailtrack resting on sleepers, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* K is a pentadiagonal */
-  ierr = MatCreate(PETSC_COMM_WORLD,&K);CHKERRQ(ierr);
-  ierr = MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(K);CHKERRQ(ierr);
-  ierr = MatSetUp(K);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&K));
+  PetscCall(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(K));
+  PetscCall(MatSetUp(K));
 
-  ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     if (i==0) {
-      ierr = MatSetValue(K,i,n-1,-3.0,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(K,i,n-2,1.0,INSERT_VALUES);CHKERRQ(ierr);
+      PetscCall(MatSetValue(K,i,n-1,-3.0,INSERT_VALUES));
+      PetscCall(MatSetValue(K,i,n-2,1.0,INSERT_VALUES));
     }
-    if (i==1) { ierr = MatSetValue(K,i,n-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>0) { ierr = MatSetValue(K,i,i-1,-3.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>1) { ierr = MatSetValue(K,i,i-2,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(K,i,i,5.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i==1) PetscCall(MatSetValue(K,i,n-1,1.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(K,i,i-1,-3.0,INSERT_VALUES));
+    if (i>1) PetscCall(MatSetValue(K,i,i-2,1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(K,i,i,5.0,INSERT_VALUES));
     if (i==n-1) {
-      ierr = MatSetValue(K,i,0,-3.0,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(K,i,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+      PetscCall(MatSetValue(K,i,0,-3.0,INSERT_VALUES));
+      PetscCall(MatSetValue(K,i,1,1.0,INSERT_VALUES));
     }
-    if (i==n-2) { ierr = MatSetValue(K,i,0,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(K,i,i+1,-3.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-2) { ierr = MatSetValue(K,i,i+2,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i==n-2) PetscCall(MatSetValue(K,i,0,1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(K,i,i+1,-3.0,INSERT_VALUES));
+    if (i<n-2) PetscCall(MatSetValue(K,i,i+2,1.0,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY));
 
   /* C is a circulant matrix */
-  ierr = MatCreate(PETSC_COMM_WORLD,&C);CHKERRQ(ierr);
-  ierr = MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(C);CHKERRQ(ierr);
-  ierr = MatSetUp(C);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&C));
+  PetscCall(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(C));
+  PetscCall(MatSetUp(C));
 
-  ierr = MatGetOwnershipRange(C,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
     if (i==0) {
-      ierr = MatSetValue(C,i,n-1,-4.0,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(C,i,n-2,1.0,INSERT_VALUES);CHKERRQ(ierr);
+      PetscCall(MatSetValue(C,i,n-1,-4.0,INSERT_VALUES));
+      PetscCall(MatSetValue(C,i,n-2,1.0,INSERT_VALUES));
     }
-    if (i==1) { ierr = MatSetValue(C,i,n-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>0) { ierr = MatSetValue(C,i,i-1,-4.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i>1) { ierr = MatSetValue(C,i,i-2,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(C,i,i,7.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i==1) PetscCall(MatSetValue(C,i,n-1,1.0,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(C,i,i-1,-4.0,INSERT_VALUES));
+    if (i>1) PetscCall(MatSetValue(C,i,i-2,1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(C,i,i,7.0,INSERT_VALUES));
     if (i==n-1) {
-      ierr = MatSetValue(C,i,0,-4.0,INSERT_VALUES);CHKERRQ(ierr);
-      ierr = MatSetValue(C,i,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+      PetscCall(MatSetValue(C,i,0,-4.0,INSERT_VALUES));
+      PetscCall(MatSetValue(C,i,1,1.0,INSERT_VALUES));
     }
-    if (i==n-2) { ierr = MatSetValue(C,i,0,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(C,i,i+1,-4.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-2) { ierr = MatSetValue(C,i,i+2,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i==n-2) PetscCall(MatSetValue(C,i,0,1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(C,i,i+1,-4.0,INSERT_VALUES));
+    if (i<n-2) PetscCall(MatSetValue(C,i,i+2,1.0,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
 
   /* M is the identity matrix */
-  ierr = MatCreate(PETSC_COMM_WORLD,&M);CHKERRQ(ierr);
-  ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(M);CHKERRQ(ierr);
-  ierr = MatSetUp(M);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(M,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(M,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&M));
+  PetscCall(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(M));
+  PetscCall(MatSetUp(M));
+  PetscCall(MatGetOwnershipRange(M,&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(M,i,i,1.0,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
   A[0] = K; A[1] = C; A[2] = M;
-  ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
-  ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
-  ierr = PEPSolve(pep);CHKERRQ(ierr);
+  PetscCall(PEPSetOperators(pep,3,A));
+  PetscCall(PEPSetFromOptions(pep));
+  PetscCall(PEPSolve(pep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = PEPDestroy(&pep);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = MatDestroy(&C);CHKERRQ(ierr);
-  ierr = MatDestroy(&K);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(PEPDestroy(&pep));
+  PetscCall(MatDestroy(&M));
+  PetscCall(MatDestroy(&C));
+  PetscCall(MatDestroy(&K));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

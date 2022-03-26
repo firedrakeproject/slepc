@@ -41,13 +41,12 @@ typedef struct {
 @*/
 PetscErrorCode STShellGetContext(ST st,void *ctx)
 {
-  PetscErrorCode ierr;
   PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(ctx,2);
-  ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg));
   if (!flg) *(void**)ctx = NULL;
   else      *(void**)ctx = ((ST_SHELL*)(st->data))->ctx;
   PetscFunctionReturn(0);
@@ -74,59 +73,55 @@ PetscErrorCode STShellGetContext(ST st,void *ctx)
 PetscErrorCode STShellSetContext(ST st,void *ctx)
 {
   ST_SHELL       *shell = (ST_SHELL*)st->data;
-  PetscErrorCode ierr;
   PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg));
   if (flg) shell->ctx = ctx;
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
 {
-  PetscErrorCode   ierr;
   ST_SHELL         *shell = (ST_SHELL*)st->data;
   PetscObjectState instate,outstate;
 
   PetscFunctionBegin;
   PetscCheck(shell->apply,PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No apply() routine provided to Shell ST");
-  ierr = PetscObjectStateGet((PetscObject)y,&instate);CHKERRQ(ierr);
-  PetscStackCall("STSHELL user function apply()",ierr = (*shell->apply)(st,x,y);CHKERRQ(ierr));
-  ierr = PetscObjectStateGet((PetscObject)y,&outstate);CHKERRQ(ierr);
+  PetscCall(PetscObjectStateGet((PetscObject)y,&instate));
+  PetscStackCall("STSHELL user function apply()",PetscCall((*shell->apply)(st,x,y)));
+  PetscCall(PetscObjectStateGet((PetscObject)y,&outstate));
   if (instate == outstate) {
     /* user forgot to increase the state of the output vector */
-    ierr = PetscObjectStateIncrease((PetscObject)y);CHKERRQ(ierr);
+    PetscCall(PetscObjectStateIncrease((PetscObject)y));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
   ST_SHELL       *shell = (ST_SHELL*)st->data;
   PetscObjectState instate,outstate;
 
   PetscFunctionBegin;
   PetscCheck(shell->applytrans,PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
-  ierr = PetscObjectStateGet((PetscObject)y,&instate);CHKERRQ(ierr);
-  PetscStackCall("STSHELL user function applytrans()",ierr = (*shell->applytrans)(st,x,y);CHKERRQ(ierr));
-  ierr = PetscObjectStateGet((PetscObject)y,&outstate);CHKERRQ(ierr);
+  PetscCall(PetscObjectStateGet((PetscObject)y,&instate));
+  PetscStackCall("STSHELL user function applytrans()",PetscCall((*shell->applytrans)(st,x,y)));
+  PetscCall(PetscObjectStateGet((PetscObject)y,&outstate));
   if (instate == outstate) {
     /* user forgot to increase the state of the output vector */
-    ierr = PetscObjectStateIncrease((PetscObject)y);CHKERRQ(ierr);
+    PetscCall(PetscObjectStateIncrease((PetscObject)y));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
-  PetscErrorCode ierr;
   ST_SHELL       *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
-  if (shell->backtransform) PetscStackCall("STSHELL user function backtransform()",ierr = (*shell->backtransform)(st,n,eigr,eigi);CHKERRQ(ierr));
+  if (shell->backtransform) PetscStackCall("STSHELL user function backtransform()",PetscCall((*shell->backtransform)(st,n,eigr,eigi)));
   PetscFunctionReturn(0);
 }
 
@@ -144,13 +139,11 @@ PetscErrorCode STIsInjective_Shell(ST st,PetscBool* is)
 
 PetscErrorCode STDestroy_Shell(ST st)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFree(st->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",NULL);CHKERRQ(ierr);
+  PetscCall(PetscFree(st->data));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -186,11 +179,9 @@ $  PetscErrorCode apply(ST st,Vec xin,Vec xout)
 @*/
 PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscTryMethod(st,"STShellSetApply_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,apply));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(st,"STShellSetApply_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,apply)));
   PetscFunctionReturn(0);
 }
 
@@ -226,11 +217,9 @@ $  PetscErrorCode applytrans(ST st,Vec xin,Vec xout)
 @*/
 PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscTryMethod(st,"STShellSetApplyTranspose_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,applytrans));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(st,"STShellSetApplyTranspose_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,applytrans)));
   PetscFunctionReturn(0);
 }
 
@@ -267,11 +256,9 @@ $  PetscErrorCode backtr(ST st,PetscScalar *eigr,PetscScalar *eigi)
 @*/
 PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  ierr = PetscTryMethod(st,"STShellSetBackTransform_C",(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*)),(st,backtr));CHKERRQ(ierr);
+  PetscCall(PetscTryMethod(st,"STShellSetBackTransform_C",(ST,PetscErrorCode (*)(ST,PetscInt,PetscScalar*,PetscScalar*)),(st,backtr)));
   PetscFunctionReturn(0);
 }
 
@@ -298,11 +285,10 @@ M*/
 
 SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST st)
 {
-  PetscErrorCode ierr;
   ST_SHELL       *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(st,&ctx));
   st->data = (void*)ctx;
 
   st->usesksp = PETSC_FALSE;
@@ -312,9 +298,8 @@ SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST st)
   st->ops->backtransform   = STBackTransform_Shell;
   st->ops->destroy         = STDestroy_Shell;
 
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",STShellSetApply_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",STShellSetBackTransform_Shell);CHKERRQ(ierr);
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",STShellSetApply_Shell));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",STShellSetApplyTranspose_Shell));
+  PetscCall(PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",STShellSetBackTransform_Shell));
   PetscFunctionReturn(0);
 }
-

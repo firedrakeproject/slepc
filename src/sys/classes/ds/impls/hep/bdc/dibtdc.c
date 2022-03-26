@@ -316,7 +316,6 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
   PetscBLASInt   start, istck1, istck2, istck3, merged;
   PetscBLASInt   liwmin, matsiz, startp, istrtp;
   PetscReal      rho, done=1.0, dmone=-1.0;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   *info = 0;
@@ -398,8 +397,7 @@ L200:
     /* chosen such that it yields the best balanced merging operation */
     /* among all the rank modifications with minimum rank. */
 
-    ierr = cutlr_(start, size, blks, &ksizes[start-1], &rank[start-1], &cut,
-                  &lsum, &lblks, info);CHKERRQ(ierr);
+    PetscCall(cutlr_(start, size, blks, &ksizes[start-1], &rank[start-1], &cut, &lsum, &lblks, info));
     PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: Error in cutlr, info = %" PetscBLASInt_FMT,*info);
 
   } else {
@@ -737,11 +735,10 @@ L200:
 
       /* eigenvectors are accumulated (JOBZ.EQ.'D') */
 
-      ierr = BDC_dmerg2_(jobz, j+1, matsiz, &ev[np-1], &z[np-1+(np-1)*ldz],
+      PetscCall(BDC_dmerg2_(jobz, j+1, matsiz, &ev[np-1], &z[np-1+(np-1)*ldz],
                     ldz, &iwork[np-1], &rho, &e[(j + (kbrk-1)*l2e)*l1e],
                     ksizes[kbrk], &e[(rank[kbrk-1]+j+1 + (kbrk-1)*l2e)*l1e],
-                    ksizes[kbrk-1], mat1, work, lwork, &iwork[n], tol, info, 1);
-                    CHKERRQ(ierr);
+                    ksizes[kbrk-1], mat1, work, lwork, &iwork[n], tol, info, 1));
       PetscCheck(!*info,PETSC_COMM_SELF,PETSC_ERR_PLIB,"dibtdc: Error in dmerg2, info = %" PetscBLASInt_FMT,*info);
     }
 
@@ -773,4 +770,3 @@ L200:
   for (j=0;j<n;j++) for (i=0;i<n;i++) z[i+j*ldz] = work[i+(j+1)*n];
   PetscFunctionReturn(0);
 }
-

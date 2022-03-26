@@ -32,74 +32,69 @@ int main(int argc,char **argv)
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   PetscBool      flg,evecs,ishermitian,terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized eigenproblem stored in file.\n\n");CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized eigenproblem stored in file.\n\n"));
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f1",filename,sizeof(filename),&flg));
   PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name for matrix A with the -f1 option");
 
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n");CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n"));
 #else
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n");CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n"));
 #endif
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatLoad(A,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatLoad(A,viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
 
-  ierr = PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
   if (flg) {
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-    ierr = MatLoad(B,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+    PetscCall(MatSetFromOptions(B));
+    PetscCall(MatLoad(B,viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n");CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n"));
     B = NULL;
   }
 
-  ierr = MatCreateVecs(A,NULL,&xr);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,NULL,&xi);CHKERRQ(ierr);
+  PetscCall(MatCreateVecs(A,NULL,&xr));
+  PetscCall(MatCreateVecs(A,NULL,&xi));
 
   /*
      Read user constraints if available
   */
-  ierr = PetscOptionsGetInt(NULL,NULL,"-nconstr",&ncon,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-nconstr",&ncon,&flg));
   if (flg) {
     PetscCheck(ncon>0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The number of constraints must be >0");
-    ierr = PetscOptionsGetString(NULL,NULL,"-fconstr",filename,sizeof(filename),&flg);CHKERRQ(ierr);
+    PetscCall(PetscOptionsGetString(NULL,NULL,"-fconstr",filename,sizeof(filename),&flg));
     PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file storing the constraints");
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(xr,ncon,&Cv);CHKERRQ(ierr);
-    for (i=0;i<ncon;i++) {
-      ierr = VecLoad(Cv[i],viewer);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(VecDuplicateVecs(xr,ncon,&Cv));
+    for (i=0;i<ncon;i++) PetscCall(VecLoad(Cv[i],viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
 
   /*
      Read initial guesses if available
   */
-  ierr = PetscOptionsGetInt(NULL,NULL,"-ninitial",&nini,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-ninitial",&nini,&flg));
   if (flg) {
     PetscCheck(nini>0,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"The number of initial vectors must be >0");
-    ierr = PetscOptionsGetString(NULL,NULL,"-finitial",filename,sizeof(filename),&flg);CHKERRQ(ierr);
+    PetscCall(PetscOptionsGetString(NULL,NULL,"-finitial",filename,sizeof(filename),&flg));
     PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must specify the name of the file containing the initial vectors");
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(xr,nini,&Iv);CHKERRQ(ierr);
-    for (i=0;i<nini;i++) {
-      ierr = VecLoad(Iv[i],viewer);CHKERRQ(ierr);
-    }
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(VecDuplicateVecs(xr,nini,&Iv));
+    for (i=0;i<nini;i++) PetscCall(VecLoad(Iv[i],viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -109,45 +104,45 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators. In this case, it is a generalized eigenvalue problem
   */
-  ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
+  PetscCall(EPSSetOperators(eps,A,B));
 
   /*
      If the user provided initial guesses or constraints, pass them here
   */
-  ierr = EPSSetInitialSpace(eps,nini,Iv);CHKERRQ(ierr);
-  ierr = EPSSetDeflationSpace(eps,ncon,Cv);CHKERRQ(ierr);
+  PetscCall(EPSSetInitialSpace(eps,nini,Iv));
+  PetscCall(EPSSetDeflationSpace(eps,ncon,Cv));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
 
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its);CHKERRQ(ierr);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPGetTotalIterations(ksp,&lits);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of linear iterations of the method: %" PetscInt_FMT "\n",lits);CHKERRQ(ierr);
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit);CHKERRQ(ierr);
+  PetscCall(EPSGetIterationNumber(eps,&its));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %" PetscInt_FMT "\n",its));
+  PetscCall(EPSGetST(eps,&st));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPGetTotalIterations(ksp,&lits));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of linear iterations of the method: %" PetscInt_FMT "\n",lits));
+  PetscCall(EPSGetType(eps,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
+  PetscCall(EPSGetTolerances(eps,&tol,&maxit));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -156,50 +151,45 @@ int main(int argc,char **argv)
   /*
      Show detailed info unless -terse option is given by user
    */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
 
   /*
      Save eigenvectors, if requested
   */
-  ierr = PetscOptionsGetString(NULL,NULL,"-evecs",filename,sizeof(filename),&evecs);CHKERRQ(ierr);
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-evecs",filename,sizeof(filename),&evecs));
+  PetscCall(EPSGetConverged(eps,&nconv));
   if (nconv>0 && evecs) {
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_WRITE,&viewer);CHKERRQ(ierr);
-    ierr = EPSIsHermitian(eps,&ishermitian);CHKERRQ(ierr);
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_WRITE,&viewer));
+    PetscCall(EPSIsHermitian(eps,&ishermitian));
     for (i=0;i<nconv;i++) {
-      ierr = EPSGetEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
-      ierr = VecView(xr,viewer);CHKERRQ(ierr);
+      PetscCall(EPSGetEigenvector(eps,i,xr,xi));
+      PetscCall(VecView(xr,viewer));
 #if !defined(PETSC_USE_COMPLEX)
-      if (!ishermitian) { ierr = VecView(xi,viewer);CHKERRQ(ierr); }
+      if (!ishermitian) PetscCall(VecView(xi,viewer));
 #endif
     }
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerDestroy(&viewer));
   }
 
   /*
      Free work space
   */
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
-  ierr = VecDestroy(&xi);CHKERRQ(ierr);
-  if (nini > 0) {
-    ierr = VecDestroyVecs(nini,&Iv);CHKERRQ(ierr);
-  }
-  if (ncon > 0) {
-    ierr = VecDestroyVecs(ncon,&Cv);CHKERRQ(ierr);
-  }
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&B));
+  PetscCall(VecDestroy(&xr));
+  PetscCall(VecDestroy(&xi));
+  if (nini > 0) PetscCall(VecDestroyVecs(nini,&Iv));
+  if (ncon > 0) PetscCall(VecDestroyVecs(ncon,&Cv));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

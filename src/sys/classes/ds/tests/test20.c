@@ -14,7 +14,6 @@ static char help[] = "Test DSGNHEP with upper quasi-triangular matrix pair.\n\n"
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   PetscScalar    *A,*B,*X;
   PetscReal      rnorm,aux;
@@ -22,59 +21,57 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GNHEP - dimension %" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type GNHEP - dimension %" PetscInt_FMT ".\n",n));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
 
   /* Create DS object */
-  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
-  ierr = DSSetType(ds,DSGNHEP);CHKERRQ(ierr);
-  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
+  PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
+  PetscCall(DSSetType(ds,DSGNHEP));
+  PetscCall(DSSetFromOptions(ds));
   ld = n+2;  /* test leading dimension larger than n */
-  ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
+  PetscCall(DSAllocate(ds,ld));
+  PetscCall(DSSetDimensions(ds,n,0,0));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = DSView(ds,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-  }
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
+  PetscCall(DSView(ds,viewer));
+  PetscCall(PetscViewerPopFormat(viewer));
+  if (verbose) PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill A,B with upper quasi-triangular matrices */
-  ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
-  ierr = PetscArrayzero(A,ld*n);CHKERRQ(ierr);
+  PetscCall(DSGetArray(ds,DS_MAT_A,&A));
+  PetscCall(DSGetArray(ds,DS_MAT_B,&B));
+  PetscCall(PetscArrayzero(A,ld*n));
   for (i=0;i<n;i++) A[i+i*ld]=2.0;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) A[i+(i+j)*ld]=0.001;
   }
-  ierr = PetscArrayzero(B,ld*n);CHKERRQ(ierr);
+  PetscCall(PetscArrayzero(B,ld*n));
   for (i=0;i<n;i++) B[i+i*ld]=1.0;
   B[1+0*ld]=B[0+1*ld]=PETSC_MACHINE_EPSILON;
   for (i=1;i<n;i+=3) {
     A[i+(i-1)*ld]=-A[(i-1)+i*ld];
   }
-  ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = DSRestoreArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
-  ierr = DSSetState(ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
+  PetscCall(DSRestoreArray(ds,DS_MAT_B,&B));
+  PetscCall(DSSetState(ds,DS_STATE_INTERMEDIATE));
 
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
+    PetscCall(DSView(ds,viewer));
   }
 
   /* Eigenvectors */
   j = 0;
-  ierr = DSVectors(ds,DS_MAT_X,&j,&rnorm);CHKERRQ(ierr);  /* first eigenvector */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Value of rnorm for 2nd vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
-  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all eigenvectors */
+  PetscCall(DSVectors(ds,DS_MAT_X,&j,&rnorm));  /* first eigenvector */
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Value of rnorm for 2nd vector = %.3f\n",(double)rnorm));
+  PetscCall(DSVectors(ds,DS_MAT_X,NULL,NULL));  /* all eigenvectors */
   j = 0;
   rnorm = 0.0;
-  ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  PetscCall(DSGetArray(ds,DS_MAT_X,&X));
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
     aux = PetscAbsScalar(X[i+j*ld]);
@@ -83,17 +80,17 @@ int main(int argc,char **argv)
 #endif
     rnorm += aux*aux;
   }
-  ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(ds,DS_MAT_X,&X));
   rnorm = PetscSqrtReal(rnorm);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st columns = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st columns = %.3f\n",(double)rnorm));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n"));
+    PetscCall(DSView(ds,viewer));
   }
 
-  ierr = DSDestroy(&ds);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(DSDestroy(&ds));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

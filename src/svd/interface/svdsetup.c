@@ -29,7 +29,6 @@
 @*/
 PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
   PetscInt       Ma,Na,Mb,Nb,ma,na,mb,nb,M0,N0,m0,n0;
   PetscBool      samesize=PETSC_TRUE;
 
@@ -41,36 +40,35 @@ PetscErrorCode SVDSetOperators(SVD svd,Mat A,Mat B)
   if (B) PetscCheckSameComm(svd,1,B,3);
 
   /* Check matrix sizes */
-  ierr = MatGetSize(A,&Ma,&Na);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&ma,&na);CHKERRQ(ierr);
+  PetscCall(MatGetSize(A,&Ma,&Na));
+  PetscCall(MatGetLocalSize(A,&ma,&na));
   if (svd->OP) {
-    ierr = MatGetSize(svd->OP,&M0,&N0);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(svd->OP,&m0,&n0);CHKERRQ(ierr);
+    PetscCall(MatGetSize(svd->OP,&M0,&N0));
+    PetscCall(MatGetLocalSize(svd->OP,&m0,&n0));
     if (M0!=Ma || N0!=Na || m0!=ma || n0!=na) samesize = PETSC_FALSE;
   }
   if (B) {
-    ierr = MatGetSize(B,&Mb,&Nb);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(B,&mb,&nb);CHKERRQ(ierr);
+    PetscCall(MatGetSize(B,&Mb,&Nb));
+    PetscCall(MatGetLocalSize(B,&mb,&nb));
     PetscCheck(Na==Nb,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different number of columns in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",Na,Nb);
     PetscCheck(na==nb,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Different local column size in A (%" PetscInt_FMT ") and B (%" PetscInt_FMT ")",na,nb);
     if (svd->OPb) {
-      ierr = MatGetSize(svd->OPb,&M0,&N0);CHKERRQ(ierr);
-      ierr = MatGetLocalSize(svd->OPb,&m0,&n0);CHKERRQ(ierr);
+      PetscCall(MatGetSize(svd->OPb,&M0,&N0));
+      PetscCall(MatGetLocalSize(svd->OPb,&m0,&n0));
       if (M0!=Mb || N0!=Nb || m0!=mb || n0!=nb) samesize = PETSC_FALSE;
     }
   }
 
-  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-  if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
-  if (svd->state && !samesize) {
-    ierr = SVDReset(svd);CHKERRQ(ierr);
-  } else {
-    ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
-    ierr = MatDestroy(&svd->OPb);CHKERRQ(ierr);
-    ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
-    ierr = MatDestroy(&svd->B);CHKERRQ(ierr);
-    ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
-    ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)A));
+  if (B) PetscCall(PetscObjectReference((PetscObject)B));
+  if (svd->state && !samesize) PetscCall(SVDReset(svd));
+  else {
+    PetscCall(MatDestroy(&svd->OP));
+    PetscCall(MatDestroy(&svd->OPb));
+    PetscCall(MatDestroy(&svd->A));
+    PetscCall(MatDestroy(&svd->B));
+    PetscCall(MatDestroy(&svd->AT));
+    PetscCall(MatDestroy(&svd->BT));
   }
   svd->nrma = 0.0;
   svd->nrmb = 0.0;
@@ -125,7 +123,6 @@ PetscErrorCode SVDGetOperators(SVD svd,Mat *A,Mat *B)
 @*/
 PetscErrorCode SVDSetUp(SVD svd)
 {
-  PetscErrorCode ierr;
   PetscBool      flg;
   PetscInt       M,N,P=0,k,maxnsol;
   SlepcSC        sc;
@@ -135,29 +132,24 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->state) PetscFunctionReturn(0);
-  ierr = PetscLogEventBegin(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
+  PetscCall(PetscLogEventBegin(SVD_SetUp,svd,0,0,0));
 
   /* reset the convergence flag from the previous solves */
   svd->reason = SVD_CONVERGED_ITERATING;
 
   /* Set default solver type (SVDSetFromOptions was not called) */
-  if (!((PetscObject)svd)->type_name) {
-    ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
-  }
-  if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
+  if (!((PetscObject)svd)->type_name) PetscCall(SVDSetType(svd,SVDCROSS));
+  if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
 
   /* check matrices */
   PetscCheck(svd->OP,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");
 
   /* Set default problem type */
   if (!svd->problem_type) {
-    if (svd->OPb) {
-      ierr = SVDSetProblemType(svd,SVD_GENERALIZED);CHKERRQ(ierr);
-    } else {
-      ierr = SVDSetProblemType(svd,SVD_STANDARD);CHKERRQ(ierr);
-    }
+    if (svd->OPb) PetscCall(SVDSetProblemType(svd,SVD_GENERALIZED));
+    else PetscCall(SVDSetProblemType(svd,SVD_STANDARD));
   } else if (!svd->OPb && svd->isgeneralized) {
-    ierr = PetscInfo(svd,"Problem type set as generalized but no matrix B was provided; reverting to a standard singular value problem\n");CHKERRQ(ierr);
+    PetscCall(PetscInfo(svd,"Problem type set as generalized but no matrix B was provided; reverting to a standard singular value problem\n"));
     svd->isgeneralized = PETSC_FALSE;
     svd->problem_type = SVD_STANDARD;
   } else PetscCheck(!svd->OPb || svd->isgeneralized,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type does not match the number of matrices");
@@ -166,54 +158,54 @@ PetscErrorCode SVDSetUp(SVD svd)
   svd->expltrans = PETSC_TRUE;
   if (svd->impltrans) svd->expltrans = PETSC_FALSE;
   else {
-    ierr = MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg);CHKERRQ(ierr);
+    PetscCall(MatHasOperation(svd->OP,MATOP_TRANSPOSE,&flg));
     if (!flg) svd->expltrans = PETSC_FALSE;
     else {
-      ierr = PetscObjectTypeCompareAny((PetscObject)svd,&flg,SVDLAPACK,SVDSCALAPACK,SVDELEMENTAL,"");CHKERRQ(ierr);
+      PetscCall(PetscObjectTypeCompareAny((PetscObject)svd,&flg,SVDLAPACK,SVDSCALAPACK,SVDELEMENTAL,""));
       if (flg) svd->expltrans = PETSC_FALSE;
     }
   }
 
   /* get matrix dimensions */
-  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+  PetscCall(MatGetSize(svd->OP,&M,&N));
   if (svd->isgeneralized) {
-    ierr = MatGetSize(svd->OPb,&P,NULL);CHKERRQ(ierr);
+    PetscCall(MatGetSize(svd->OPb,&P,NULL));
     PetscCheck(M+P>=N,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"The case when [A;B] has less rows than columns is not supported");
   }
 
   /* build transpose matrix */
-  ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
-  ierr = PetscObjectReference((PetscObject)svd->OP);CHKERRQ(ierr);
+  PetscCall(MatDestroy(&svd->A));
+  PetscCall(MatDestroy(&svd->AT));
+  PetscCall(PetscObjectReference((PetscObject)svd->OP));
   if (svd->expltrans) {
     if (svd->isgeneralized || M>=N) {
       svd->A = svd->OP;
-      ierr = MatHermitianTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT);CHKERRQ(ierr);
+      PetscCall(MatHermitianTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->AT));
     } else {
-      ierr = MatHermitianTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A);CHKERRQ(ierr);
+      PetscCall(MatHermitianTranspose(svd->OP,MAT_INITIAL_MATRIX,&svd->A));
       svd->AT = svd->OP;
     }
   } else {
     if (svd->isgeneralized || M>=N) {
       svd->A = svd->OP;
-      ierr = MatCreateHermitianTranspose(svd->OP,&svd->AT);CHKERRQ(ierr);
+      PetscCall(MatCreateHermitianTranspose(svd->OP,&svd->AT));
     } else {
-      ierr = MatCreateHermitianTranspose(svd->OP,&svd->A);CHKERRQ(ierr);
+      PetscCall(MatCreateHermitianTranspose(svd->OP,&svd->A));
       svd->AT = svd->OP;
     }
   }
 
   /* build transpose matrix B for GSVD */
   if (svd->isgeneralized) {
-    ierr = MatDestroy(&svd->B);CHKERRQ(ierr);
-    ierr = MatDestroy(&svd->BT);CHKERRQ(ierr);
-    ierr = PetscObjectReference((PetscObject)svd->OPb);CHKERRQ(ierr);
+    PetscCall(MatDestroy(&svd->B));
+    PetscCall(MatDestroy(&svd->BT));
+    PetscCall(PetscObjectReference((PetscObject)svd->OPb));
     if (svd->expltrans) {
       svd->B = svd->OPb;
-      ierr = MatHermitianTranspose(svd->OPb,MAT_INITIAL_MATRIX,&svd->BT);CHKERRQ(ierr);
+      PetscCall(MatHermitianTranspose(svd->OPb,MAT_INITIAL_MATRIX,&svd->BT));
     } else {
       svd->B = svd->OPb;
-      ierr = MatCreateHermitianTranspose(svd->OPb,&svd->BT);CHKERRQ(ierr);
+      PetscCall(MatCreateHermitianTranspose(svd->OPb,&svd->BT));
     }
   }
 
@@ -236,24 +228,20 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscCheck(svd->ncv==PETSC_DEFAULT || svd->nsv<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"nsv bigger than ncv");
 
   /* relative convergence criterion is not allowed in GSVD */
-  if (svd->conv==(SVDConv)-1) {
-    ierr = SVDSetConvergenceTest(svd,svd->isgeneralized?SVD_CONV_NORM:SVD_CONV_REL);CHKERRQ(ierr);
-  }
+  if (svd->conv==(SVDConv)-1) PetscCall(SVDSetConvergenceTest(svd,svd->isgeneralized?SVD_CONV_NORM:SVD_CONV_REL));
   PetscCheck(!svd->isgeneralized || svd->conv!=SVD_CONV_REL,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Relative convergence criterion is not allowed in GSVD");
 
   /* initialization of matrix norm (stardard case only, for GSVD it is done inside setup()) */
-  if (!svd->isgeneralized && svd->conv==SVD_CONV_NORM && !svd->nrma) {
-    ierr = MatNorm(svd->OP,NORM_INFINITY,&svd->nrma);CHKERRQ(ierr);
-  }
+  if (!svd->isgeneralized && svd->conv==SVD_CONV_NORM && !svd->nrma) PetscCall(MatNorm(svd->OP,NORM_INFINITY,&svd->nrma));
 
   /* call specific solver setup */
-  ierr = (*svd->ops->setup)(svd);CHKERRQ(ierr);
+  PetscCall((*svd->ops->setup)(svd));
 
   /* set tolerance if not yet set */
   if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;
 
   /* fill sorting criterion context */
-  ierr = DSGetSlepcSC(svd->ds,&sc);CHKERRQ(ierr);
+  PetscCall(DSGetSlepcSC(svd->ds,&sc));
   sc->comparison    = (svd->which==SVD_LARGEST)? SlepcCompareLargestReal: SlepcCompareSmallestReal;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
@@ -263,8 +251,8 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (svd->nini<0) {
     k = -svd->nini;
     PetscCheck(k<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The number of initial vectors is larger than ncv");
-    ierr = BVInsertVecs(svd->V,0,&k,svd->IS,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = SlepcBasisDestroy_Private(&svd->nini,&svd->IS);CHKERRQ(ierr);
+    PetscCall(BVInsertVecs(svd->V,0,&k,svd->IS,PETSC_TRUE));
+    PetscCall(SlepcBasisDestroy_Private(&svd->nini,&svd->IS));
     svd->nini = k;
   }
   if (svd->ninil<0) {
@@ -272,15 +260,13 @@ PetscErrorCode SVDSetUp(SVD svd)
     if (svd->leftbasis) {
       k = -svd->ninil;
       PetscCheck(k<=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The number of left initial vectors is larger than ncv");
-      ierr = BVInsertVecs(svd->U,0,&k,svd->ISL,PETSC_TRUE);CHKERRQ(ierr);
-    } else {
-      ierr = PetscInfo(svd,"Ignoring initial left vectors\n");CHKERRQ(ierr);
-    }
-    ierr = SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL);CHKERRQ(ierr);
+      PetscCall(BVInsertVecs(svd->U,0,&k,svd->ISL,PETSC_TRUE));
+    } else PetscCall(PetscInfo(svd,"Ignoring initial left vectors\n"));
+    PetscCall(SlepcBasisDestroy_Private(&svd->ninil,&svd->ISL));
     svd->ninil = k;
   }
 
-  ierr = PetscLogEventEnd(SVD_SetUp,svd,0,0,0);CHKERRQ(ierr);
+  PetscCall(PetscLogEventEnd(SVD_SetUp,svd,0,0,0));
   svd->state = SVD_STATE_SETUP;
   PetscFunctionReturn(0);
 }
@@ -321,8 +307,6 @@ PetscErrorCode SVDSetUp(SVD svd)
 @*/
 PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec isr[],PetscInt nl,Vec isl[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,nr,2);
@@ -337,8 +321,8 @@ PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec isr[],PetscInt nl,Vec
     PetscValidPointer(isl,5);
     PetscValidHeaderSpecific(*isl,VEC_CLASSID,5);
   }
-  ierr = SlepcBasisReference_Private(nr,isr,&svd->nini,&svd->IS);CHKERRQ(ierr);
-  ierr = SlepcBasisReference_Private(nl,isl,&svd->ninil,&svd->ISL);CHKERRQ(ierr);
+  PetscCall(SlepcBasisReference_Private(nr,isr,&svd->nini,&svd->IS));
+  PetscCall(SlepcBasisReference_Private(nl,isl,&svd->ninil,&svd->ISL));
   if (nr>0 || nl>0) svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -349,14 +333,13 @@ PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec isr[],PetscInt nl,Vec
  */
 PetscErrorCode SVDSetDimensions_Default(SVD svd)
 {
-  PetscErrorCode ierr;
   PetscInt       N,M,P,maxnsol;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(svd->OP,&M,&N);CHKERRQ(ierr);
+  PetscCall(MatGetSize(svd->OP,&M,&N));
   maxnsol = PetscMin(M,N);
   if (svd->isgeneralized) {
-    ierr = MatGetSize(svd->OPb,&P,NULL);CHKERRQ(ierr);
+    PetscCall(MatGetSize(svd->OPb,&P,NULL));
     maxnsol = PetscMin(maxnsol,P);
   }
   if (svd->ncv!=PETSC_DEFAULT) { /* ncv set */
@@ -397,7 +380,6 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
 @*/
 PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
 {
-  PetscErrorCode ierr;
   PetscInt       oldsize,requested;
   Vec            tr,tl;
 
@@ -405,52 +387,39 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
   requested = svd->ncv + extra;
 
   /* oldsize is zero if this is the first time setup is called */
-  ierr = BVGetSizes(svd->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
+  PetscCall(BVGetSizes(svd->V,NULL,NULL,&oldsize));
 
   /* allocate sigma */
   if (requested != oldsize || !svd->sigma) {
-    ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
-    ierr = PetscMalloc3(requested,&svd->sigma,requested,&svd->perm,requested,&svd->errest);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)svd,PetscMax(0,requested-oldsize)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
+    PetscCall(PetscFree3(svd->sigma,svd->perm,svd->errest));
+    PetscCall(PetscMalloc3(requested,&svd->sigma,requested,&svd->perm,requested,&svd->errest));
+    PetscCall(PetscLogObjectMemory((PetscObject)svd,PetscMax(0,requested-oldsize)*(2*sizeof(PetscReal)+sizeof(PetscInt))));
   }
   /* allocate V */
-  if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,NULL);CHKERRQ(ierr); }
+  if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,NULL));
   if (!oldsize) {
-    if (!((PetscObject)(svd->V))->type_name) {
-      ierr = BVSetType(svd->V,BVSVEC);CHKERRQ(ierr);
-    }
-    ierr = MatCreateVecsEmpty(svd->A,&tr,NULL);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(svd->V,tr,requested);CHKERRQ(ierr);
-    ierr = VecDestroy(&tr);CHKERRQ(ierr);
-  } else {
-    ierr = BVResize(svd->V,requested,PETSC_FALSE);CHKERRQ(ierr);
-  }
+    if (!((PetscObject)(svd->V))->type_name) PetscCall(BVSetType(svd->V,BVSVEC));
+    PetscCall(MatCreateVecsEmpty(svd->A,&tr,NULL));
+    PetscCall(BVSetSizesFromVec(svd->V,tr,requested));
+    PetscCall(VecDestroy(&tr));
+  } else PetscCall(BVResize(svd->V,requested,PETSC_FALSE));
   /* allocate U */
   if (svd->leftbasis && !svd->isgeneralized) {
-    if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
+    if (!svd->U) PetscCall(SVDGetBV(svd,NULL,&svd->U));
     if (!oldsize) {
-      if (!((PetscObject)(svd->U))->type_name) {
-        ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
-      }
-      ierr = MatCreateVecsEmpty(svd->A,NULL,&tl);CHKERRQ(ierr);
-      ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
-      ierr = VecDestroy(&tl);CHKERRQ(ierr);
-    } else {
-      ierr = BVResize(svd->U,requested,PETSC_FALSE);CHKERRQ(ierr);
-    }
+      if (!((PetscObject)(svd->U))->type_name) PetscCall(BVSetType(svd->U,BVSVEC));
+      PetscCall(MatCreateVecsEmpty(svd->A,NULL,&tl));
+      PetscCall(BVSetSizesFromVec(svd->U,tl,requested));
+      PetscCall(VecDestroy(&tl));
+    } else PetscCall(BVResize(svd->U,requested,PETSC_FALSE));
   } else if (svd->isgeneralized) {  /* left basis for the GSVD */
-    if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
+    if (!svd->U) PetscCall(SVDGetBV(svd,NULL,&svd->U));
     if (!oldsize) {
-      if (!((PetscObject)(svd->U))->type_name) {
-        ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
-      }
-      ierr = SVDCreateLeftTemplate(svd,&tl);CHKERRQ(ierr);
-      ierr = BVSetSizesFromVec(svd->U,tl,requested);CHKERRQ(ierr);
-      ierr = VecDestroy(&tl);CHKERRQ(ierr);
-    } else {
-      ierr = BVResize(svd->U,requested,PETSC_FALSE);CHKERRQ(ierr);
-    }
+      if (!((PetscObject)(svd->U))->type_name) PetscCall(BVSetType(svd->U,BVSVEC));
+      PetscCall(SVDCreateLeftTemplate(svd,&tl));
+      PetscCall(BVSetSizesFromVec(svd->U,tl,requested));
+      PetscCall(VecDestroy(&tl));
+    } else PetscCall(BVResize(svd->U,requested,PETSC_FALSE));
   }
   PetscFunctionReturn(0);
 }
-

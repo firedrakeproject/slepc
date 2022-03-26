@@ -19,17 +19,16 @@ PetscErrorCode EPSMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscDraw      draw;
   PetscDrawAxis  axis;
   PetscDrawLG    lg;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
-  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
-  ierr = PetscDrawLGCreate(draw,l,&lg);CHKERRQ(ierr);
-  if (names) { ierr = PetscDrawLGSetLegend(lg,names);CHKERRQ(ierr); }
-  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
-  ierr = PetscDrawLGGetAxis(lg,&axis);CHKERRQ(ierr);
-  ierr = PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric);CHKERRQ(ierr);
-  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
+  PetscCall(PetscDrawCreate(comm,host,label,x,y,m,n,&draw));
+  PetscCall(PetscDrawSetFromOptions(draw));
+  PetscCall(PetscDrawLGCreate(draw,l,&lg));
+  if (names) PetscCall(PetscDrawLGSetLegend(lg,names));
+  PetscCall(PetscDrawLGSetFromOptions(lg));
+  PetscCall(PetscDrawLGGetAxis(lg,&axis));
+  PetscCall(PetscDrawAxisSetLabels(axis,"Convergence","Iteration",metric));
+  PetscCall(PetscDrawDestroy(&draw));
   *lgctx = lg;
   PetscFunctionReturn(0);
 }
@@ -39,13 +38,10 @@ PetscErrorCode EPSMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
 */
 PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest)
 {
-  PetscErrorCode ierr;
   PetscInt       i,n = eps->numbermonitors;
 
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    ierr = (*eps->monitor[i])(eps,it,nconv,eigr,eigi,errest,nest,eps->monitorcontext[i]);CHKERRQ(ierr);
-  }
+  for (i=0;i<n;i++) PetscCall((*eps->monitor[i])(eps,it,nconv,eigr,eigi,errest,nest,eps->monitorcontext[i]));
   PetscFunctionReturn(0);
 }
 
@@ -127,15 +123,12 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,Pets
 @*/
 PetscErrorCode EPSMonitorCancel(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   for (i=0; i<eps->numbermonitors; i++) {
-    if (eps->monitordestroy[i]) {
-      ierr = (*eps->monitordestroy[i])(&eps->monitorcontext[i]);CHKERRQ(ierr);
-    }
+    if (eps->monitordestroy[i]) PetscCall((*eps->monitordestroy[i])(&eps->monitorcontext[i]));
   }
   eps->numbermonitors = 0;
   PetscFunctionReturn(0);
@@ -190,33 +183,30 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void *ctx)
 @*/
 PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscScalar    er,ei;
   PetscViewer    viewer = vf->viewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  if (its==1 && ((PetscObject)eps)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix);CHKERRQ(ierr);
-  }
+  if (its==1 && ((PetscObject)eps)->prefix) PetscCall(PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix));
   if (nconv<nest) {
-    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS nconv=%" PetscInt_FMT " first unconverged value (error)",its,nconv);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,vf->format));
+    PetscCall(PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS nconv=%" PetscInt_FMT " first unconverged value (error)",its,nconv));
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     er = eigr[nconv]; ei = eigi[nconv];
-    ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
+    PetscCall(STBackTransform(eps->st,1,&er,&ei));
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er)));
 #else
-    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
-    if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
+    PetscCall(PetscViewerASCIIPrintf(viewer," %g",(double)er));
+    if (ei!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei));
 #endif
-    ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]));
+    PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
+    PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel));
+    PetscCall(PetscViewerPopFormat(viewer));
   }
   PetscFunctionReturn(0);
 }
@@ -246,7 +236,6 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
 @*/
 PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    er,ei;
   PetscViewer    viewer = vf->viewer;
@@ -254,28 +243,26 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-  if (its==1 && ((PetscObject)eps)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix);CHKERRQ(ierr);
-  }
-  ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS nconv=%" PetscInt_FMT " Values (Errors)",its,nconv);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+  PetscCall(PetscViewerPushFormat(viewer,vf->format));
+  PetscCall(PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel));
+  if (its==1 && ((PetscObject)eps)->prefix) PetscCall(PetscViewerASCIIPrintf(viewer,"  Eigenvalue approximations and residual norms for %s solve.\n",((PetscObject)eps)->prefix));
+  PetscCall(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS nconv=%" PetscInt_FMT " Values (Errors)",its,nconv));
+  PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
   for (i=0;i<nest;i++) {
     er = eigr[i]; ei = eigi[i];
-    ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
+    PetscCall(STBackTransform(eps->st,1,&er,&ei));
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er)));
 #else
-    ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
-    if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
+    PetscCall(PetscViewerASCIIPrintf(viewer," %g",(double)er));
+    if (ei!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei));
 #endif
-    ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)",(double)errest[i]);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer," (%10.8e)",(double)errest[i]));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-  ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
+  PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
+  PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel));
+  PetscCall(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -304,7 +291,6 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
 @*/
 PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    er,ei;
   PetscViewer    viewer = vf->viewer;
@@ -314,29 +300,27 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   ctx = (SlepcConvMon)vf->data;
-  if (its==1 && ((PetscObject)eps)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)eps)->prefix);CHKERRQ(ierr);
-  }
+  if (its==1 && ((PetscObject)eps)->prefix) PetscCall(PetscViewerASCIIPrintf(viewer,"  Convergence history for %s solve.\n",((PetscObject)eps)->prefix));
   if (its==1) ctx->oldnconv = 0;
   if (ctx->oldnconv!=nconv) {
-    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,vf->format));
+    PetscCall(PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel));
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS converged value (error) #%" PetscInt_FMT,its,i);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
+      PetscCall(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " EPS converged value (error) #%" PetscInt_FMT,its,i));
+      PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
       er = eigr[i]; ei = eigi[i];
-      ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
+      PetscCall(STBackTransform(eps->st,1,&er,&ei));
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er));CHKERRQ(ierr);
+      PetscCall(PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(er),(double)PetscImaginaryPart(er)));
 #else
-      ierr = PetscViewerASCIIPrintf(viewer," %g",(double)er);CHKERRQ(ierr);
-      if (ei!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei);CHKERRQ(ierr); }
+      PetscCall(PetscViewerASCIIPrintf(viewer," %g",(double)er));
+      if (ei!=0.0) PetscCall(PetscViewerASCIIPrintf(viewer,"%+gi",(double)ei));
 #endif
-      ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+      PetscCall(PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[i]));
+      PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     }
-    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)eps)->tablevel));
+    PetscCall(PetscViewerPopFormat(viewer));
     ctx->oldnconv = nconv;
   }
   PetscFunctionReturn(0);
@@ -344,12 +328,11 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
 
 PetscErrorCode EPSMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
   SlepcConvMon   mctx;
 
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
-  ierr = PetscNew(&mctx);CHKERRQ(ierr);
+  PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
+  PetscCall(PetscNew(&mctx));
   mctx->ctx = ctx;
   (*vf)->data = (void*)mctx;
   PetscFunctionReturn(0);
@@ -357,14 +340,12 @@ PetscErrorCode EPSMonitorConvergedCreate(PetscViewer viewer,PetscViewerFormat fo
 
 PetscErrorCode EPSMonitorConvergedDestroy(PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (!*vf) PetscFunctionReturn(0);
-  ierr = PetscFree((*vf)->data);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&(*vf)->viewer);CHKERRQ(ierr);
-  ierr = PetscDrawLGDestroy(&(*vf)->lg);CHKERRQ(ierr);
-  ierr = PetscFree(*vf);CHKERRQ(ierr);
+  PetscCall(PetscFree((*vf)->data));
+  PetscCall(PetscViewerDestroy(&(*vf)->viewer));
+  PetscCall(PetscDrawLGDestroy(&(*vf)->lg));
+  PetscCall(PetscFree(*vf));
   PetscFunctionReturn(0);
 }
 
@@ -394,7 +375,6 @@ PetscErrorCode EPSMonitorConvergedDestroy(PetscViewerAndFormat **vf)
 @*/
 PetscErrorCode EPSMonitorFirstDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscViewer    viewer = vf->viewer;
   PetscDrawLG    lg = vf->lg;
   PetscReal      x,y;
@@ -403,23 +383,23 @@ PetscErrorCode EPSMonitorFirstDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscSc
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+  PetscCall(PetscViewerPushFormat(viewer,vf->format));
   if (its==1) {
-    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(eps->tol)-2,0.0);CHKERRQ(ierr);
+    PetscCall(PetscDrawLGReset(lg));
+    PetscCall(PetscDrawLGSetDimension(lg,1));
+    PetscCall(PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(eps->tol)-2,0.0));
   }
   if (nconv<nest) {
     x = (PetscReal)its;
     if (errest[nconv] > 0.0) y = PetscLog10Real(errest[nconv]);
     else y = 0.0;
-    ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+    PetscCall(PetscDrawLGAddPoint(lg,&x,&y));
     if (its <= 20 || !(its % 5) || eps->reason) {
-      ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-      ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+      PetscCall(PetscDrawLGDraw(lg));
+      PetscCall(PetscDrawLGSave(lg));
     }
   }
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscCall(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -442,12 +422,10 @@ PetscErrorCode EPSMonitorFirstDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscSc
 @*/
 PetscErrorCode EPSMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
-  ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"First Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  PetscCall(EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"First Error Estimate","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
   PetscFunctionReturn(0);
 }
 
@@ -477,7 +455,6 @@ PetscErrorCode EPSMonitorFirstDrawLGCreate(PetscViewer viewer,PetscViewerFormat 
 @*/
 PetscErrorCode EPSMonitorAllDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode ierr;
   PetscViewer    viewer = vf->viewer;
   PetscDrawLG    lg = vf->lg;
   PetscInt       i,n = PetscMin(eps->nev,255);
@@ -487,25 +464,25 @@ PetscErrorCode EPSMonitorAllDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScal
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+  PetscCall(PetscViewerPushFormat(viewer,vf->format));
   if (its==1) {
-    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(eps->tol)-2,0.0);CHKERRQ(ierr);
+    PetscCall(PetscDrawLGReset(lg));
+    PetscCall(PetscDrawLGSetDimension(lg,n));
+    PetscCall(PetscDrawLGSetLimits(lg,1,1,PetscLog10Real(eps->tol)-2,0.0));
   }
-  ierr = PetscMalloc2(n,&x,n,&y);CHKERRQ(ierr);
+  PetscCall(PetscMalloc2(n,&x,n,&y));
   for (i=0;i<n;i++) {
     x[i] = (PetscReal)its;
     if (i < nest && errest[i] > 0.0) y[i] = PetscLog10Real(errest[i]);
     else y[i] = 0.0;
   }
-  ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
+  PetscCall(PetscDrawLGAddPoint(lg,x,y));
   if (its <= 20 || !(its % 5) || eps->reason) {
-    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+    PetscCall(PetscDrawLGDraw(lg));
+    PetscCall(PetscDrawLGSave(lg));
   }
-  ierr = PetscFree2(x,y);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscCall(PetscFree2(x,y));
+  PetscCall(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -528,12 +505,10 @@ PetscErrorCode EPSMonitorAllDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScal
 @*/
 PetscErrorCode EPSMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
-  ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"All Error Estimates","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  PetscCall(EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"All Error Estimates","Log Error Estimate",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
   PetscFunctionReturn(0);
 }
 
@@ -563,7 +538,6 @@ PetscErrorCode EPSMonitorAllDrawLGCreate(PetscViewer viewer,PetscViewerFormat fo
 @*/
 PetscErrorCode EPSMonitorConvergedDrawLG(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
-  PetscErrorCode   ierr;
   PetscViewer      viewer = vf->viewer;
   PetscDrawLG      lg = vf->lg;
   PetscReal        x,y;
@@ -572,20 +546,20 @@ PetscErrorCode EPSMonitorConvergedDrawLG(EPS eps,PetscInt its,PetscInt nconv,Pet
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
-  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
+  PetscCall(PetscViewerPushFormat(viewer,vf->format));
   if (its==1) {
-    ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,1,1,0,eps->nev);CHKERRQ(ierr);
+    PetscCall(PetscDrawLGReset(lg));
+    PetscCall(PetscDrawLGSetDimension(lg,1));
+    PetscCall(PetscDrawLGSetLimits(lg,1,1,0,eps->nev));
   }
   x = (PetscReal)its;
   y = (PetscReal)eps->nconv;
-  ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
+  PetscCall(PetscDrawLGAddPoint(lg,&x,&y));
   if (its <= 20 || !(its % 5) || eps->reason) {
-    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+    PetscCall(PetscDrawLGDraw(lg));
+    PetscCall(PetscDrawLGSave(lg));
   }
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscCall(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }
 
@@ -608,15 +582,13 @@ PetscErrorCode EPSMonitorConvergedDrawLG(EPS eps,PetscInt its,PetscInt nconv,Pet
 @*/
 PetscErrorCode EPSMonitorConvergedDrawLGCreate(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
   SlepcConvMon   mctx;
 
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
-  ierr = PetscNew(&mctx);CHKERRQ(ierr);
+  PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
+  PetscCall(PetscNew(&mctx));
   mctx->ctx = ctx;
   (*vf)->data = (void*)mctx;
-  ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Convergence History","Number Converged",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg);CHKERRQ(ierr);
+  PetscCall(EPSMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Convergence History","Number Converged",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
   PetscFunctionReturn(0);
 }
-

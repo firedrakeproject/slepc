@@ -20,25 +20,24 @@
 */
 PetscErrorCode LMEDenseRankSVD(LME lme,PetscInt n,PetscScalar *A,PetscInt lda,PetscScalar *U,PetscInt ldu,PetscInt *rank)
 {
-  PetscErrorCode ierr;
   PetscInt       i,j,rk=0;
   PetscScalar    *work;
   PetscReal      tol,*sg,*rwork;
   PetscBLASInt   n_,lda_,ldu_,info,lw_;
 
   PetscFunctionBegin;
-  ierr = PetscCalloc3(n,&sg,10*n,&work,5*n,&rwork);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(lda,&lda_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldu,&ldu_);CHKERRQ(ierr);
+  PetscCall(PetscCalloc3(n,&sg,10*n,&work,5*n,&rwork));
+  PetscCall(PetscBLASIntCast(n,&n_));
+  PetscCall(PetscBLASIntCast(lda,&lda_));
+  PetscCall(PetscBLASIntCast(ldu,&ldu_));
   lw_ = 10*n_;
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined (PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&n_,&n_,A,&lda_,sg,U,&ldu_,NULL,&n_,work,&lw_,&info));
 #else
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&n_,&n_,A,&lda_,sg,U,&ldu_,NULL,&n_,work,&lw_,rwork,&info));
 #endif
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("gesvd",info);
   tol = 10*PETSC_MACHINE_EPSILON*n*sg[0];
   for (j=0;j<n;j++) {
@@ -48,7 +47,7 @@ PetscErrorCode LMEDenseRankSVD(LME lme,PetscInt n,PetscScalar *A,PetscInt lda,Pe
     } else break;
   }
   *rank = rk;
-  ierr = PetscFree3(sg,work,rwork);CHKERRQ(ierr);
+  PetscCall(PetscFree3(sg,work,rwork));
   PetscFunctionReturn(0);
 }
 
@@ -58,18 +57,17 @@ PetscErrorCode LMEDenseRankSVD(LME lme,PetscInt n,PetscScalar *A,PetscInt lda,Pe
 */
 static PetscErrorCode LyapunovCholResidual(PetscInt m,PetscScalar *A,PetscInt lda,PetscInt k,PetscScalar *B,PetscInt ldb,PetscScalar *U,PetscInt ldu,PetscReal *res)
 {
-  PetscErrorCode ierr;
   PetscBLASInt   n,kk,la,lb,lu;
   PetscScalar    *M,*R,zero=0.0,done=1.0;
 
   PetscFunctionBegin;
   *res = 0;
-  ierr = PetscBLASIntCast(lda,&la);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldb,&lb);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldu,&lu);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(k,&kk);CHKERRQ(ierr);
-  ierr = PetscMalloc2(m*m,&M,m*m,&R);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(lda,&la));
+  PetscCall(PetscBLASIntCast(ldb,&lb));
+  PetscCall(PetscBLASIntCast(ldu,&lu));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(PetscBLASIntCast(k,&kk));
+  PetscCall(PetscMalloc2(m*m,&M,m*m,&R));
 
   /* R = B*B' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&kk,&done,B,&lb,B,&lb,&zero,R,&n));
@@ -81,7 +79,7 @@ static PetscErrorCode LyapunovCholResidual(PetscInt m,PetscScalar *A,PetscInt ld
   PetscStackCallBLAS("BLASgemm",BLASgemm_("C","C",&n,&n,&n,&done,U,&lu,M,&n,&done,R,&n));
 
   *res = LAPACKlange_("F",&n,&n,R,&n,NULL);
-  ierr = PetscFree2(M,R);CHKERRQ(ierr);
+  PetscCall(PetscFree2(M,R));
   PetscFunctionReturn(0);
 }
 
@@ -90,29 +88,26 @@ static PetscErrorCode LyapunovCholResidual(PetscInt m,PetscScalar *A,PetscInt ld
 */
 static PetscErrorCode LyapunovResidual(PetscInt m,PetscScalar *A,PetscInt lda,PetscScalar *B,PetscInt ldb,PetscScalar *X,PetscInt ldx,PetscReal *res)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   n,la,lb,lx;
   PetscScalar    *R,done=1.0;
 
   PetscFunctionBegin;
   *res = 0;
-  ierr = PetscBLASIntCast(lda,&la);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldb,&lb);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldx,&lx);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = PetscMalloc1(m*m,&R);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(lda,&la));
+  PetscCall(PetscBLASIntCast(ldb,&lb));
+  PetscCall(PetscBLASIntCast(ldx,&lx));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(PetscMalloc1(m*m,&R));
 
   /* R = B+A*X */
-  for (i=0;i<m;i++) {
-    ierr = PetscArraycpy(R+i*m,B+i*ldb,m);CHKERRQ(ierr);
-  }
+  for (i=0;i<m;i++) PetscCall(PetscArraycpy(R+i*m,B+i*ldb,m));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,A,&la,X,&lx,&done,R,&n));
   /* R = R+X*A' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,X,&lx,A,&la,&done,R,&n));
 
   *res = LAPACKlange_("F",&n,&n,R,&n,NULL);
-  ierr = PetscFree(R);CHKERRQ(ierr);
+  PetscCall(PetscFree(R));
   PetscFunctionReturn(0);
 }
 #endif
@@ -123,21 +118,20 @@ static PetscErrorCode LyapunovResidual(PetscInt m,PetscScalar *A,PetscInt lda,Pe
 */
 static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,PetscInt k,PetscScalar *B,PetscInt ldb,PetscScalar *U,PetscInt ldu,PetscReal *res)
 {
-  PetscErrorCode ierr;
   PetscBLASInt   lwork,info,n,kk,lu,ione=1,sdim;
   PetscInt       i,j;
   PetscReal      scal;
   PetscScalar    *Q,*W,*wr,*wi,*work;
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ldu,&lu);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(k,&kk);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(6*m,&lwork);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(ldu,&lu));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(PetscBLASIntCast(k,&kk));
+  PetscCall(PetscBLASIntCast(6*m,&lwork));
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 
   /* transpose W = H' */
-  ierr = PetscMalloc5(m*m,&W,m*m,&Q,m,&wr,m,&wi,lwork,&work);CHKERRQ(ierr);
+  PetscCall(PetscMalloc5(m*m,&W,m*m,&Q,m,&wr,m,&wi,lwork,&work));
   for (j=0;j<m;j++) {
     for (i=0;i<m;i++) W[i+j*m] = H[j+i*ldh];
   }
@@ -167,8 +161,8 @@ static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt
     *res *= BLASnrm2_(&n,Q,&ione);
   }
 
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscFree5(W,Q,wr,wi,work);CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPop());
+  PetscCall(PetscFree5(W,Q,wr,wi,work));
   PetscFunctionReturn(0);
 }
 
@@ -179,42 +173,37 @@ static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt
  */
 static PetscErrorCode CholeskyFactor(PetscInt m,PetscScalar *A,PetscInt lda)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    *S;
   PetscBLASInt   info,n,ld;
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(lda,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc1(m*m,&S);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(PetscBLASIntCast(lda,&ld));
+  PetscCall(PetscMalloc1(m*m,&S));
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 
   /* save a copy of matrix in S */
-  for (i=0;i<m;i++) {
-    ierr = PetscArraycpy(S+i*m,A+i*lda,m);CHKERRQ(ierr);
-  }
+  for (i=0;i<m;i++) PetscCall(PetscArraycpy(S+i*m,A+i*lda,m));
 
   /* compute upper Cholesky factor in R */
   PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n,A,&ld,&info));
-  ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
+  PetscCall(PetscLogFlops((1.0*n*n*n)/3.0));
 
   if (info) {
     for (i=0;i<m;i++) {
-      ierr = PetscArraycpy(A+i*lda,S+i*m,m);CHKERRQ(ierr);
+      PetscCall(PetscArraycpy(A+i*lda,S+i*m,m));
       A[i+i*lda] += 50.0*PETSC_MACHINE_EPSILON;
     }
     PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n,A,&ld,&info));
     SlepcCheckLapackInfo("potrf",info);
-    ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
+    PetscCall(PetscLogFlops((1.0*n*n*n)/3.0));
   }
 
   /* Zero out entries below the diagonal */
-  for (i=0;i<m-1;i++) {
-    ierr = PetscArrayzero(A+i*lda+i+1,m-i-1);CHKERRQ(ierr);
-  }
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscFree(S);CHKERRQ(ierr);
+  for (i=0;i<m-1;i++) PetscCall(PetscArrayzero(A+i*lda+i+1,m-i-1));
+  PetscCall(PetscFPTrapPop());
+  PetscCall(PetscFree(S));
   PetscFunctionReturn(0);
 }
 
@@ -223,7 +212,6 @@ static PetscErrorCode CholeskyFactor(PetscInt m,PetscScalar *A,PetscInt lda)
 */
 static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt ldh,PetscInt k,PetscScalar *B,PetscInt ldb,PetscScalar *U,PetscInt ldu,PetscReal *res)
 {
-  PetscErrorCode ierr;
   PetscBLASInt   ilo=1,lwork,info,n,kk,lu,lb,ione=1;
   PetscInt       i,j;
   PetscReal      scal;
@@ -233,18 +221,18 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ldb,&lb);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldu,&lu);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(k,&kk);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(6*m,&lwork);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(ldb,&lb));
+  PetscCall(PetscBLASIntCast(ldu,&lu));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(PetscBLASIntCast(k,&kk));
+  PetscCall(PetscBLASIntCast(6*m,&lwork));
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
   C = U;
 
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc6(m*m,&Q,m*m,&W,m*k,&Z,m,&wr,m,&wi,lwork,&work);CHKERRQ(ierr);
+  PetscCall(PetscMalloc6(m*m,&Q,m*m,&W,m*k,&Z,m,&wr,m,&wi,lwork,&work));
 #else
-  ierr = PetscMalloc5(m*m,&Q,m*m,&W,m*k,&Z,m,&wr,lwork,&work);CHKERRQ(ierr);
+  PetscCall(PetscMalloc5(m*m,&Q,m*m,&W,m*k,&Z,m,&wr,lwork,&work));
 #endif
 
   /* save a copy W = H */
@@ -283,13 +271,13 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
   }
 
   /* U = chol(C) */
-  ierr = CholeskyFactor(m,C,ldu);CHKERRQ(ierr);
+  PetscCall(CholeskyFactor(m,C,ldu));
 
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPop());
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree6(Q,W,Z,wr,wi,work);CHKERRQ(ierr);
+  PetscCall(PetscFree6(Q,W,Z,wr,wi,work));
 #else
-  ierr = PetscFree5(Q,W,Z,wr,work);CHKERRQ(ierr);
+  PetscCall(PetscFree5(Q,W,Z,wr,work));
 #endif
   PetscFunctionReturn(0);
 }
@@ -330,7 +318,6 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 @*/
 PetscErrorCode LMEDenseHessLyapunovChol(LME lme,PetscInt m,PetscScalar *H,PetscInt ldh,PetscInt k,PetscScalar *B,PetscInt ldb,PetscScalar *U,PetscInt ldu,PetscReal *res)
 {
-  PetscErrorCode ierr;
 #if defined(PETSC_USE_INFO)
   PetscReal      error;
 #endif
@@ -348,15 +335,15 @@ PetscErrorCode LMEDenseHessLyapunovChol(LME lme,PetscInt m,PetscScalar *H,PetscI
   if (res) PetscValidLogicalCollectiveReal(lme,*res,10);
 
 #if defined(SLEPC_HAVE_SLICOT)
-  ierr = HessLyapunovChol_SLICOT(m,H,ldh,k,B,ldb,U,ldu,res);CHKERRQ(ierr);
+  PetscCall(HessLyapunovChol_SLICOT(m,H,ldh,k,B,ldb,U,ldu,res));
 #else
-  ierr = HessLyapunovChol_LAPACK(m,H,ldh,k,B,ldb,U,ldu,res);CHKERRQ(ierr);
+  PetscCall(HessLyapunovChol_LAPACK(m,H,ldh,k,B,ldb,U,ldu,res));
 #endif
 
 #if defined(PETSC_USE_INFO)
   if (PetscLogPrintInfo) {
-    ierr = LyapunovCholResidual(m,H,ldh,k,B,ldb,U,ldu,&error);CHKERRQ(ierr);
-    ierr = PetscInfo(lme,"Residual norm of dense Lyapunov equation = %g\n",(double)error);CHKERRQ(ierr);
+    PetscCall(LyapunovCholResidual(m,H,ldh,k,B,ldb,U,ldu,&error));
+    PetscCall(PetscInfo(lme,"Residual norm of dense Lyapunov equation = %g\n",(double)error));
   }
 #endif
   PetscFunctionReturn(0);
@@ -368,20 +355,19 @@ PetscErrorCode LMEDenseHessLyapunovChol(LME lme,PetscInt m,PetscScalar *H,PetscI
 */
 static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,PetscScalar *B,PetscInt ldb,PetscScalar *X,PetscInt ldx)
 {
-  PetscErrorCode ierr;
   PetscBLASInt   sdim,lwork,info,n,lx,*iwork;
   PetscInt       i,j;
   PetscReal      scal,sep,ferr,*work;
   PetscScalar    *Q,*W,*wr,*wi;
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ldx,&lx);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(PetscMax(20,m*m),&lwork);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(ldx,&lx));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(PetscBLASIntCast(PetscMax(20,m*m),&lwork));
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 
   /* transpose W = H' */
-  ierr = PetscMalloc6(m*m,&W,m*m,&Q,m,&wr,m,&wi,m*m,&iwork,lwork,&work);CHKERRQ(ierr);
+  PetscCall(PetscMalloc6(m*m,&W,m*m,&Q,m,&wr,m,&wi,m*m,&iwork,lwork,&work));
   for (j=0;j<m;j++) {
     for (i=0;i<m;i++) W[i+j*m] = H[j+i*ldh];
   }
@@ -400,8 +386,8 @@ static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,Pet
   PetscCheck(!info,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%" PetscBLASInt_FMT,info);
   PetscCheck(scal==1.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
 
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscFree6(W,Q,wr,wi,iwork,work);CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPop());
+  PetscCall(PetscFree6(W,Q,wr,wi,iwork,work));
   PetscFunctionReturn(0);
 }
 
@@ -412,7 +398,6 @@ static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,Pet
 */
 static PetscErrorCode Lyapunov_LAPACK(PetscInt m,PetscScalar *A,PetscInt lda,PetscScalar *B,PetscInt ldb,PetscScalar *X,PetscInt ldx)
 {
-  PetscErrorCode ierr;
   PetscBLASInt   sdim,lwork,info,n,lx,lb,ione=1;
   PetscInt       i,j;
   PetscReal      scal;
@@ -424,16 +409,16 @@ static PetscErrorCode Lyapunov_LAPACK(PetscInt m,PetscScalar *A,PetscInt lda,Pet
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(ldb,&lb);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldx,&lx);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(6*m,&lwork);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(ldb,&lb));
+  PetscCall(PetscBLASIntCast(ldx,&lx));
+  PetscCall(PetscBLASIntCast(m,&n));
+  PetscCall(PetscBLASIntCast(6*m,&lwork));
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc6(m*m,&Q,m*m,&W,m*m,&Z,m,&wr,m,&wi,lwork,&work);CHKERRQ(ierr);
+  PetscCall(PetscMalloc6(m*m,&Q,m*m,&W,m*m,&Z,m,&wr,m,&wi,lwork,&work));
 #else
-  ierr = PetscMalloc6(m*m,&Q,m*m,&W,m*m,&Z,m,&wr,lwork,&work,m,&rwork);CHKERRQ(ierr);
+  PetscCall(PetscMalloc6(m*m,&Q,m*m,&W,m*m,&Z,m,&wr,lwork,&work,m,&rwork));
 #endif
 
   /* save a copy W = A */
@@ -462,11 +447,11 @@ static PetscErrorCode Lyapunov_LAPACK(PetscInt m,PetscScalar *A,PetscInt lda,Pet
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,X,&n,&zero,W,&n));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,W,&n,Q,&n,&zero,X,&lx));
 
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPop());
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree6(Q,W,Z,wr,wi,work);CHKERRQ(ierr);
+  PetscCall(PetscFree6(Q,W,Z,wr,wi,work));
 #else
-  ierr = PetscFree6(Q,W,Z,wr,work,rwork);CHKERRQ(ierr);
+  PetscCall(PetscFree6(Q,W,Z,wr,work,rwork));
 #endif
   PetscFunctionReturn(0);
 }
@@ -501,7 +486,6 @@ static PetscErrorCode Lyapunov_LAPACK(PetscInt m,PetscScalar *A,PetscInt lda,Pet
 @*/
 PetscErrorCode LMEDenseLyapunov(LME lme,PetscInt m,PetscScalar *A,PetscInt lda,PetscScalar *B,PetscInt ldb,PetscScalar *X,PetscInt ldx)
 {
-  PetscErrorCode ierr;
 #if defined(PETSC_USE_INFO)
   PetscReal      error;
 #endif
@@ -517,17 +501,16 @@ PetscErrorCode LMEDenseLyapunov(LME lme,PetscInt m,PetscScalar *A,PetscInt lda,P
   PetscValidLogicalCollectiveInt(lme,ldx,8);
 
 #if defined(SLEPC_HAVE_SLICOT)
-  ierr = Lyapunov_SLICOT(m,A,lda,B,ldb,X,ldx);CHKERRQ(ierr);
+  PetscCall(Lyapunov_SLICOT(m,A,lda,B,ldb,X,ldx));
 #else
-  ierr = Lyapunov_LAPACK(m,A,lda,B,ldb,X,ldx);CHKERRQ(ierr);
+  PetscCall(Lyapunov_LAPACK(m,A,lda,B,ldb,X,ldx));
 #endif
 
 #if defined(PETSC_USE_INFO)
   if (PetscLogPrintInfo) {
-    ierr = LyapunovResidual(m,A,lda,B,ldb,X,ldx,&error);CHKERRQ(ierr);
-    ierr = PetscInfo(lme,"Residual norm of dense Lyapunov equation = %g\n",(double)error);CHKERRQ(ierr);
+    PetscCall(LyapunovResidual(m,A,lda,B,ldb,X,ldx,&error));
+    PetscCall(PetscInfo(lme,"Residual norm of dense Lyapunov equation = %g\n",(double)error));
   }
 #endif
   PetscFunctionReturn(0);
 }
-

@@ -39,15 +39,14 @@ int main(int argc,char **argv)
   PetscReal      kappa=1.0,m=1.0;
   PetscScalar    sigma,numer[2],denom[2];
   PetscBool      terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-kappa",&kappa,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-mass",&m,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-kappa",&kappa,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-mass",&m,NULL));
   sigma = kappa/m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Loaded vibrating string, n=%" PetscInt_FMT " kappa=%g m=%g\n\n",n,(double)kappa,(double)m);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Loaded vibrating string, n=%" PetscInt_FMT " kappa=%g m=%g\n\n",n,(double)kappa,(double)m));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Build the problem matrices
@@ -55,99 +54,92 @@ int main(int argc,char **argv)
 
   /* initialize matrices */
   for (i=0;i<NMAT;i++) {
-    ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);
-    ierr = MatSetSizes(A[i],PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A[i]);CHKERRQ(ierr);
-    ierr = MatSetUp(A[i]);CHKERRQ(ierr);
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A[i]));
+    PetscCall(MatSetSizes(A[i],PETSC_DECIDE,PETSC_DECIDE,n,n));
+    PetscCall(MatSetFromOptions(A[i]));
+    PetscCall(MatSetUp(A[i]));
   }
-  ierr = MatGetOwnershipRange(A[0],&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A[0],&Istart,&Iend));
 
   /* A0 */
   for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(A[0],i,i,(i==n-1)?1.0*n:2.0*n,INSERT_VALUES);CHKERRQ(ierr);
-    if (i>0) { ierr = MatSetValue(A[0],i,i-1,-1.0*n,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A[0],i,i+1,-1.0*n,INSERT_VALUES);CHKERRQ(ierr); }
+    PetscCall(MatSetValue(A[0],i,i,(i==n-1)?1.0*n:2.0*n,INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[0],i,i-1,-1.0*n,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A[0],i,i+1,-1.0*n,INSERT_VALUES));
   }
 
   /* A1 */
   for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(A[1],i,i,(i==n-1)?2.0/(6.0*n):4.0/(6.0*n),INSERT_VALUES);CHKERRQ(ierr);
-    if (i>0) { ierr = MatSetValue(A[1],i,i-1,1.0/(6.0*n),INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A[1],i,i+1,1.0/(6.0*n),INSERT_VALUES);CHKERRQ(ierr); }
+    PetscCall(MatSetValue(A[1],i,i,(i==n-1)?2.0/(6.0*n):4.0/(6.0*n),INSERT_VALUES));
+    if (i>0) PetscCall(MatSetValue(A[1],i,i-1,1.0/(6.0*n),INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A[1],i,i+1,1.0/(6.0*n),INSERT_VALUES));
   }
 
   /* A2 */
-  if (Istart<=n-1 && n-1<Iend) {
-    ierr = MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES);CHKERRQ(ierr);
-  }
+  if (Istart<=n-1 && n-1<Iend) PetscCall(MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES));
 
   /* assemble matrices */
-  for (i=0;i<NMAT;i++) {
-    ierr = MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  }
-  for (i=0;i<NMAT;i++) {
-    ierr = MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  }
+  for (i=0;i<NMAT;i++) PetscCall(MatAssemblyBegin(A[i],MAT_FINAL_ASSEMBLY));
+  for (i=0;i<NMAT;i++) PetscCall(MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the problem functions
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* f1=1 */
-  ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
-  ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[0]));
+  PetscCall(FNSetType(f[0],FNRATIONAL));
   numer[0] = 1.0;
-  ierr = FNRationalSetNumerator(f[0],1,numer);CHKERRQ(ierr);
+  PetscCall(FNRationalSetNumerator(f[0],1,numer));
 
   /* f2=-lambda */
-  ierr = FNCreate(PETSC_COMM_WORLD,&f[1]);CHKERRQ(ierr);
-  ierr = FNSetType(f[1],FNRATIONAL);CHKERRQ(ierr);
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[1]));
+  PetscCall(FNSetType(f[1],FNRATIONAL));
   numer[0] = -1.0; numer[1] = 0.0;
-  ierr = FNRationalSetNumerator(f[1],2,numer);CHKERRQ(ierr);
+  PetscCall(FNRationalSetNumerator(f[1],2,numer));
 
   /* f3=lambda/(lambda-sigma)=1+sigma/(lambda-sigma) */
-  ierr = FNCreate(PETSC_COMM_WORLD,&g);CHKERRQ(ierr);
-  ierr = FNSetType(g,FNRATIONAL);CHKERRQ(ierr);
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&g));
+  PetscCall(FNSetType(g,FNRATIONAL));
   numer[0] = sigma;
   denom[0] = 1.0; denom[1] = -sigma;
-  ierr = FNRationalSetNumerator(g,1,numer);CHKERRQ(ierr);
-  ierr = FNRationalSetDenominator(g,2,denom);CHKERRQ(ierr);
-  ierr = FNCreate(PETSC_COMM_WORLD,&f[2]);CHKERRQ(ierr);
-  ierr = FNSetType(f[2],FNCOMBINE);CHKERRQ(ierr);
-  ierr = FNCombineSetChildren(f[2],FN_COMBINE_ADD,f[0],g);CHKERRQ(ierr);
+  PetscCall(FNRationalSetNumerator(g,1,numer));
+  PetscCall(FNRationalSetDenominator(g,2,denom));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&f[2]));
+  PetscCall(FNSetType(f[2],FNCOMBINE));
+  PetscCall(FNCombineSetChildren(f[2],FN_COMBINE_ADD,f[0],g));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
-  ierr = NEPSetSplitOperator(nep,3,A,f,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = NEPSetProblemType(nep,NEP_RATIONAL);CHKERRQ(ierr);
-  ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
-  ierr = NEPSolve(nep);CHKERRQ(ierr);
+  PetscCall(NEPCreate(PETSC_COMM_WORLD,&nep));
+  PetscCall(NEPSetSplitOperator(nep,3,A,f,SUBSET_NONZERO_PATTERN));
+  PetscCall(NEPSetProblemType(nep,NEP_RATIONAL));
+  PetscCall(NEPSetFromOptions(nep));
+  PetscCall(NEPSolve(nep));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = NEPDestroy(&nep);CHKERRQ(ierr);
+  PetscCall(NEPDestroy(&nep));
   for (i=0;i<NMAT;i++) {
-    ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
-    ierr = FNDestroy(&f[i]);CHKERRQ(ierr);
+    PetscCall(MatDestroy(&A[i]));
+    PetscCall(FNDestroy(&f[i]));
   }
-  ierr = FNDestroy(&g);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(FNDestroy(&g));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -15,38 +15,36 @@
 
 static PetscErrorCode MFNSolve_Private(MFN mfn,Vec b,Vec x)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = VecSetErrorIfLocked(x,3);CHKERRQ(ierr);
+  PetscCall(VecSetErrorIfLocked(x,3));
 
   /* call setup */
-  ierr = MFNSetUp(mfn);CHKERRQ(ierr);
+  PetscCall(MFNSetUp(mfn));
   mfn->its = 0;
 
-  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view_pre");CHKERRQ(ierr);
+  PetscCall(MFNViewFromOptions(mfn,NULL,"-mfn_view_pre"));
 
   /* check nonzero right-hand side */
-  ierr = VecNorm(b,NORM_2,&mfn->bnorm);CHKERRQ(ierr);
+  PetscCall(VecNorm(b,NORM_2,&mfn->bnorm));
   PetscCheck(mfn->bnorm,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
 
   /* call solver */
-  ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
-  if (b!=x) { ierr = VecLockReadPush(b);CHKERRQ(ierr); }
-  ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
-  if (b!=x) { ierr = VecLockReadPop(b);CHKERRQ(ierr); }
-  ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
+  PetscCall(PetscLogEventBegin(MFN_Solve,mfn,b,x,0));
+  if (b!=x) PetscCall(VecLockReadPush(b));
+  PetscCall((*mfn->ops->solve)(mfn,b,x));
+  if (b!=x) PetscCall(VecLockReadPop(b));
+  PetscCall(PetscLogEventEnd(MFN_Solve,mfn,b,x,0));
 
   PetscCheck(mfn->reason,PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   PetscCheck(!mfn->errorifnotconverged || mfn->reason>=0,PetscObjectComm((PetscObject)mfn),PETSC_ERR_NOT_CONVERGED,"MFNSolve has not converged");
 
   /* various viewers */
-  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view");CHKERRQ(ierr);
-  ierr = MFNConvergedReasonViewFromOptions(mfn);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(mfn->A,(PetscObject)mfn,"-mfn_view_mat");CHKERRQ(ierr);
-  ierr = VecViewFromOptions(b,(PetscObject)mfn,"-mfn_view_rhs");CHKERRQ(ierr);
-  ierr = VecViewFromOptions(x,(PetscObject)mfn,"-mfn_view_solution");CHKERRQ(ierr);
+  PetscCall(MFNViewFromOptions(mfn,NULL,"-mfn_view"));
+  PetscCall(MFNConvergedReasonViewFromOptions(mfn));
+  PetscCall(MatViewFromOptions(mfn->A,(PetscObject)mfn,"-mfn_view_mat"));
+  PetscCall(VecViewFromOptions(b,(PetscObject)mfn,"-mfn_view_rhs"));
+  PetscCall(VecViewFromOptions(x,(PetscObject)mfn,"-mfn_view_solution"));
   PetscFunctionReturn(0);
 }
 
@@ -82,8 +80,6 @@ static PetscErrorCode MFNSolve_Private(MFN mfn,Vec b,Vec x)
 @*/
 PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidHeaderSpecific(b,VEC_CLASSID,2);
@@ -91,7 +87,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   if (b!=x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (b!=x) PetscCheckSameComm(mfn,1,x,3);
   mfn->transpose_solve = PETSC_FALSE;
-  ierr = MFNSolve_Private(mfn,b,x);CHKERRQ(ierr);
+  PetscCall(MFNSolve_Private(mfn,b,x));
   PetscFunctionReturn(0);
 }
 
@@ -118,8 +114,6 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 @*/
 PetscErrorCode MFNSolveTranspose(MFN mfn,Vec b,Vec x)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidHeaderSpecific(b,VEC_CLASSID,2);
@@ -127,8 +121,8 @@ PetscErrorCode MFNSolveTranspose(MFN mfn,Vec b,Vec x)
   if (b!=x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (b!=x) PetscCheckSameComm(mfn,1,x,3);
   mfn->transpose_solve = PETSC_TRUE;
-  if (!mfn->AT) { ierr = MatCreateTranspose(mfn->A,&mfn->AT);CHKERRQ(ierr); }
-  ierr = MFNSolve_Private(mfn,b,x);CHKERRQ(ierr);
+  if (!mfn->AT) PetscCall(MatCreateTranspose(mfn->A,&mfn->AT));
+  PetscCall(MFNSolve_Private(mfn,b,x));
   PetscFunctionReturn(0);
 }
 
@@ -205,4 +199,3 @@ PetscErrorCode MFNGetConvergedReason(MFN mfn,MFNConvergedReason *reason)
   *reason = mfn->reason;
   PetscFunctionReturn(0);
 }
-

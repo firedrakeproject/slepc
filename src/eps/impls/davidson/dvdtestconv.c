@@ -17,23 +17,18 @@
 
 static PetscBool dvd_testconv_slepc_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = (*d->eps->converged)(d->eps,eigvr,eigvi,r,err,d->eps->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)d->eps),ierr);
+  PetscCallAbort(PetscObjectComm((PetscObject)d->eps),(*d->eps->converged)(d->eps,eigvr,eigvi,r,err,d->eps->convergedctx));
   PetscFunctionReturn(PetscNot(*err>=d->eps->tol));
 }
 
 PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscFree(d->testConv_data);CHKERRQ(ierr);
+    PetscCall(PetscFree(d->testConv_data));
     d->testConv = dvd_testconv_slepc_0;
   }
   PetscFunctionReturn(0);
 }
-

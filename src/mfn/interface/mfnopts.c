@@ -42,24 +42,23 @@ PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char opt[],const char name
   PetscViewerType      vtype;
   char                 key[PETSC_MAX_PATH_LEN];
   PetscBool            flg;
-  PetscErrorCode       ierr;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->options,((PetscObject)mfn)->prefix,opt,&viewer,&format,&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->options,((PetscObject)mfn)->prefix,opt,&viewer,&format,&flg));
   if (!flg) PetscFunctionReturn(0);
 
-  ierr = PetscViewerGetType(viewer,&vtype);CHKERRQ(ierr);
-  ierr = SlepcMonitorMakeKey_Internal(name,vtype,format,key);CHKERRQ(ierr);
-  ierr = PetscFunctionListFind(MFNMonitorList,key,&mfunc);CHKERRQ(ierr);
+  PetscCall(PetscViewerGetType(viewer,&vtype));
+  PetscCall(SlepcMonitorMakeKey_Internal(name,vtype,format,key));
+  PetscCall(PetscFunctionListFind(MFNMonitorList,key,&mfunc));
   PetscCheck(mfunc,PetscObjectComm((PetscObject)mfn),PETSC_ERR_SUP,"Specified viewer and format not supported");
-  ierr = PetscFunctionListFind(MFNMonitorCreateList,key,&cfunc);CHKERRQ(ierr);
-  ierr = PetscFunctionListFind(MFNMonitorDestroyList,key,&dfunc);CHKERRQ(ierr);
+  PetscCall(PetscFunctionListFind(MFNMonitorCreateList,key,&cfunc));
+  PetscCall(PetscFunctionListFind(MFNMonitorDestroyList,key,&dfunc));
   if (!cfunc) cfunc = PetscViewerAndFormatCreate_Internal;
   if (!dfunc) dfunc = PetscViewerAndFormatDestroy;
 
-  ierr = (*cfunc)(viewer,format,ctx,&vf);CHKERRQ(ierr);
-  ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-  ierr = MFNMonitorSet(mfn,mfunc,vf,(PetscErrorCode(*)(void **))dfunc);CHKERRQ(ierr);
+  PetscCall((*cfunc)(viewer,format,ctx,&vf));
+  PetscCall(PetscObjectDereference((PetscObject)viewer));
+  PetscCall(MFNMonitorSet(mfn,mfunc,vf,(PetscErrorCode(*)(void **))dfunc));
   PetscFunctionReturn(0);
 }
 
@@ -90,48 +89,43 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  ierr = MFNRegisterAll();CHKERRQ(ierr);
-  ierr = PetscObjectOptionsBegin((PetscObject)mfn);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-mfn_type","Matrix Function method","MFNSetType",MFNList,(char*)(((PetscObject)mfn)->type_name?((PetscObject)mfn)->type_name:MFNKRYLOV),type,sizeof(type),&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = MFNSetType(mfn,type);CHKERRQ(ierr);
-    } else if (!((PetscObject)mfn)->type_name) {
-      ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
-    }
+  PetscCall(MFNRegisterAll());
+  ierr = PetscObjectOptionsBegin((PetscObject)mfn);PetscCall(ierr);
+    PetscCall(PetscOptionsFList("-mfn_type","Matrix Function method","MFNSetType",MFNList,(char*)(((PetscObject)mfn)->type_name?((PetscObject)mfn)->type_name:MFNKRYLOV),type,sizeof(type),&flg));
+    if (flg) PetscCall(MFNSetType(mfn,type));
+    else if (!((PetscObject)mfn)->type_name) PetscCall(MFNSetType(mfn,MFNKRYLOV));
 
     i = mfn->max_it;
-    ierr = PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,&flg1);CHKERRQ(ierr);
+    PetscCall(PetscOptionsInt("-mfn_max_it","Maximum number of iterations","MFNSetTolerances",mfn->max_it,&i,&flg1));
     if (!flg1) i = PETSC_DEFAULT;
     r = mfn->tol;
-    ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",SlepcDefaultTol(mfn->tol),&r,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) { ierr = MFNSetTolerances(mfn,r,i);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",SlepcDefaultTol(mfn->tol),&r,&flg2));
+    if (flg1 || flg2) PetscCall(MFNSetTolerances(mfn,r,i));
 
-    ierr = PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = MFNSetDimensions(mfn,i);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,&flg));
+    if (flg) PetscCall(MFNSetDimensions(mfn,i));
 
-    ierr = PetscOptionsBool("-mfn_error_if_not_converged","Generate error if solver does not converge","MFNSetErrorIfNotConverged",mfn->errorifnotconverged,&mfn->errorifnotconverged,NULL);CHKERRQ(ierr);
+    PetscCall(PetscOptionsBool("-mfn_error_if_not_converged","Generate error if solver does not converge","MFNSetErrorIfNotConverged",mfn->errorifnotconverged,&mfn->errorifnotconverged,NULL));
 
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to MFNSetFromOptions()
     */
-    ierr = PetscOptionsBool("-mfn_monitor_cancel","Remove any hardwired monitor routines","MFNMonitorCancel",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
-    if (set && flg) { ierr = MFNMonitorCancel(mfn);CHKERRQ(ierr); }
-    ierr = MFNMonitorSetFromOptions(mfn,"-mfn_monitor","error_estimate",NULL);CHKERRQ(ierr);
+    PetscCall(PetscOptionsBool("-mfn_monitor_cancel","Remove any hardwired monitor routines","MFNMonitorCancel",PETSC_FALSE,&flg,&set));
+    if (set && flg) PetscCall(MFNMonitorCancel(mfn));
+    PetscCall(MFNMonitorSetFromOptions(mfn,"-mfn_monitor","error_estimate",NULL));
 
     /* -----------------------------------------------------------------------*/
-    ierr = PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",NULL);CHKERRQ(ierr);
+    PetscCall(PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",NULL));
 
-    if (mfn->ops->setfromoptions) {
-      ierr = (*mfn->ops->setfromoptions)(PetscOptionsObject,mfn);CHKERRQ(ierr);
-    }
-    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)mfn);CHKERRQ(ierr);
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+    if (mfn->ops->setfromoptions) PetscCall((*mfn->ops->setfromoptions)(PetscOptionsObject,mfn));
+    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)mfn));
+  ierr = PetscOptionsEnd();PetscCall(ierr);
 
-  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
-  ierr = BVSetFromOptions(mfn->V);CHKERRQ(ierr);
-  if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
-  ierr = FNSetFromOptions(mfn->fn);CHKERRQ(ierr);
+  if (!mfn->V) PetscCall(MFNGetBV(mfn,&mfn->V));
+  PetscCall(BVSetFromOptions(mfn->V));
+  if (!mfn->fn) PetscCall(MFNGetFN(mfn,&mfn->fn));
+  PetscCall(FNSetFromOptions(mfn->fn));
   PetscFunctionReturn(0);
 }
 
@@ -351,15 +345,13 @@ PetscErrorCode MFNGetErrorIfNotConverged(MFN mfn,PetscBool *flag)
 @*/
 PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
-  ierr = BVSetOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
-  if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
-  ierr = FNSetOptionsPrefix(mfn->fn,prefix);CHKERRQ(ierr);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
+  if (!mfn->V) PetscCall(MFNGetBV(mfn,&mfn->V));
+  PetscCall(BVSetOptionsPrefix(mfn->V,prefix));
+  if (!mfn->fn) PetscCall(MFNGetFN(mfn,&mfn->fn));
+  PetscCall(FNSetOptionsPrefix(mfn->fn,prefix));
+  PetscCall(PetscObjectSetOptionsPrefix((PetscObject)mfn,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -383,15 +375,13 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
 @*/
 PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
-  ierr = BVAppendOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
-  if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
-  ierr = FNAppendOptionsPrefix(mfn->fn,prefix);CHKERRQ(ierr);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
+  if (!mfn->V) PetscCall(MFNGetBV(mfn,&mfn->V));
+  PetscCall(BVAppendOptionsPrefix(mfn->V,prefix));
+  if (!mfn->fn) PetscCall(MFNGetFN(mfn,&mfn->fn));
+  PetscCall(FNAppendOptionsPrefix(mfn->fn,prefix));
+  PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)mfn,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -417,11 +407,9 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
 @*/
 PetscErrorCode MFNGetOptionsPrefix(MFN mfn,const char *prefix[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscValidPointer(prefix,2);
-  ierr = PetscObjectGetOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
+  PetscCall(PetscObjectGetOptionsPrefix((PetscObject)mfn,prefix));
   PetscFunctionReturn(0);
 }

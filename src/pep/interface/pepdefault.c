@@ -32,17 +32,16 @@
 @*/
 PetscErrorCode PEPSetWorkVecs(PEP pep,PetscInt nw)
 {
-  PetscErrorCode ierr;
   Vec            t;
 
   PetscFunctionBegin;
   if (pep->nwork < nw) {
-    ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
+    PetscCall(VecDestroyVecs(pep->nwork,&pep->work));
     pep->nwork = nw;
-    ierr = BVGetColumn(pep->V,0,&t);CHKERRQ(ierr);
-    ierr = VecDuplicateVecs(t,nw,&pep->work);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(pep->V,0,&t);CHKERRQ(ierr);
-    ierr = PetscLogObjectParents(pep,nw,pep->work);CHKERRQ(ierr);
+    PetscCall(BVGetColumn(pep->V,0,&t));
+    PetscCall(VecDuplicateVecs(t,nw,&pep->work));
+    PetscCall(BVRestoreColumn(pep->V,0,&t));
+    PetscCall(PetscLogObjectParents(pep,nw,pep->work));
   }
   PetscFunctionReturn(0);
 }
@@ -68,15 +67,14 @@ PetscErrorCode PEPConvergedNorm(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscR
   PetscReal      w=0.0,t;
   PetscInt       j;
   PetscBool      flg;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   /* initialization of matrix norms */
   if (!pep->nrma[pep->nmat-1]) {
     for (j=0;j<pep->nmat;j++) {
-      ierr = MatHasOperation(pep->A[j],MATOP_NORM,&flg);CHKERRQ(ierr);
+      PetscCall(MatHasOperation(pep->A[j],MATOP_NORM,&flg));
       PetscCheck(flg,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The convergence test related to the matrix norms requires a matrix norm operation");
-      ierr = MatNorm(pep->A[j],NORM_INFINITY,&pep->nrma[j]);CHKERRQ(ierr);
+      PetscCall(MatNorm(pep->A[j],NORM_INFINITY,&pep->nrma[j]));
     }
   }
   t = SlepcAbsEigenvalue(eigr,eigi);
@@ -94,10 +92,9 @@ PetscErrorCode PEPConvergedNorm(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscR
 PetscErrorCode PEPSetWhichEigenpairs_Default(PEP pep)
 {
   PetscBool      target;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&target);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&target));
   if (target) pep->which = PEP_TARGET_MAGNITUDE;
   else pep->which = PEP_LARGEST_MAGNITUDE;
   PetscFunctionReturn(0);
@@ -147,49 +144,44 @@ PetscErrorCode PEPConvergedAbsolute(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
 @*/
 PetscErrorCode PEPStoppingBasic(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   *reason = PEP_CONVERGED_ITERATING;
   if (nconv >= nev) {
-    ierr = PetscInfo(pep,"Polynomial eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its);CHKERRQ(ierr);
+    PetscCall(PetscInfo(pep,"Polynomial eigensolver finished successfully: %" PetscInt_FMT " eigenpairs converged at iteration %" PetscInt_FMT "\n",nconv,its));
     *reason = PEP_CONVERGED_TOL;
   } else if (its >= max_it) {
     *reason = PEP_DIVERGED_ITS;
-    ierr = PetscInfo(pep,"Polynomial eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its);CHKERRQ(ierr);
+    PetscCall(PetscInfo(pep,"Polynomial eigensolver iteration reached maximum number of iterations (%" PetscInt_FMT ")\n",its));
   }
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PEPBackTransform_Default(PEP pep)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+  PetscCall(STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PEPComputeVectors_Default(PEP pep)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   Vec            v;
 
   PetscFunctionBegin;
-  ierr = PEPExtractVectors(pep);CHKERRQ(ierr);
+  PetscCall(PEPExtractVectors(pep));
 
   /* Fix eigenvectors if balancing was used */
   if ((pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) && pep->Dr && (pep->refine!=PEP_REFINE_MULTIPLE)) {
     for (i=0;i<pep->nconv;i++) {
-      ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = VecPointwiseMult(v,v,pep->Dr);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
+      PetscCall(BVGetColumn(pep->V,i,&v));
+      PetscCall(VecPointwiseMult(v,v,pep->Dr));
+      PetscCall(BVRestoreColumn(pep->V,i,&v));
     }
   }
 
   /* normalization */
-  ierr = BVNormalize(pep->V,pep->eigi);CHKERRQ(ierr);
+  PetscCall(BVNormalize(pep->V,pep->eigi));
   PetscFunctionReturn(0);
 }
 
@@ -199,7 +191,6 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
 */
 PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
 {
-  PetscErrorCode ierr;
   PetscInt       it,i,j,k,nmat,nr,e,nz,lst,lend,nc=0,*cols,emax,emin,emaxl,eminl;
   const PetscInt *cidx,*ridx;
   Mat            M,*T,A;
@@ -213,66 +204,56 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   PetscFunctionBegin;
   l2 = 2*PetscLogReal(2.0);
   nmat = pep->nmat;
-  ierr = PetscMPIIntCast(pep->n,&n);CHKERRQ(ierr);
-  ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
-  ierr = PetscMalloc1(nmat,&T);CHKERRQ(ierr);
-  for (k=0;k<nmat;k++) {
-    ierr = STGetMatrixTransformed(pep->st,k,&T[k]);CHKERRQ(ierr);
-  }
+  PetscCall(PetscMPIIntCast(pep->n,&n));
+  PetscCall(STGetMatStructure(pep->st,&str));
+  PetscCall(PetscMalloc1(nmat,&T));
+  for (k=0;k<nmat;k++) PetscCall(STGetMatrixTransformed(pep->st,k,&T[k]));
   /* Form local auxiliary matrix M */
-  ierr = PetscObjectBaseTypeCompareAny((PetscObject)T[0],&cont,MATMPIAIJ,MATSEQAIJ,"");CHKERRQ(ierr);
+  PetscCall(PetscObjectBaseTypeCompareAny((PetscObject)T[0],&cont,MATMPIAIJ,MATSEQAIJ,""));
   PetscCheck(cont,PetscObjectComm((PetscObject)T[0]),PETSC_ERR_SUP,"Only for MPIAIJ or SEQAIJ matrix types");
-  ierr = PetscObjectBaseTypeCompare((PetscObject)T[0],MATMPIAIJ,&cont);CHKERRQ(ierr);
+  PetscCall(PetscObjectBaseTypeCompare((PetscObject)T[0],MATMPIAIJ,&cont));
   if (cont) {
-    ierr = MatMPIAIJGetLocalMat(T[0],MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
+    PetscCall(MatMPIAIJGetLocalMat(T[0],MAT_INITIAL_MATRIX,&M));
     flg = PETSC_TRUE;
-  } else {
-    ierr = MatDuplicate(T[0],MAT_COPY_VALUES,&M);CHKERRQ(ierr);
-  }
-  ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
+  } else PetscCall(MatDuplicate(T[0],MAT_COPY_VALUES,&M));
+  PetscCall(MatGetInfo(M,MAT_LOCAL,&info));
   nz = (PetscInt)info.nz_used;
-  ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
+  PetscCall(MatSeqAIJGetArray(M,&array));
   for (i=0;i<nz;i++) {
     t = PetscAbsScalar(array[i]);
     array[i] = t*t;
   }
-  ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
+  PetscCall(MatSeqAIJRestoreArray(M,&array));
   for (k=1;k<nmat;k++) {
-    if (flg) {
-      ierr = MatMPIAIJGetLocalMat(T[k],MAT_INITIAL_MATRIX,&A);CHKERRQ(ierr);
-    } else {
-      if (str==SAME_NONZERO_PATTERN) {
-        ierr = MatCopy(T[k],A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-      } else {
-        ierr = MatDuplicate(T[k],MAT_COPY_VALUES,&A);CHKERRQ(ierr);
-      }
+    if (flg) PetscCall(MatMPIAIJGetLocalMat(T[k],MAT_INITIAL_MATRIX,&A));
+    else {
+      if (str==SAME_NONZERO_PATTERN) PetscCall(MatCopy(T[k],A,SAME_NONZERO_PATTERN));
+      else PetscCall(MatDuplicate(T[k],MAT_COPY_VALUES,&A));
     }
-    ierr = MatGetInfo(A,MAT_LOCAL,&info);CHKERRQ(ierr);
+    PetscCall(MatGetInfo(A,MAT_LOCAL,&info));
     nz = (PetscInt)info.nz_used;
-    ierr = MatSeqAIJGetArray(A,&array);CHKERRQ(ierr);
+    PetscCall(MatSeqAIJGetArray(A,&array));
     for (i=0;i<nz;i++) {
       t = PetscAbsScalar(array[i]);
       array[i] = t*t;
     }
-    ierr = MatSeqAIJRestoreArray(A,&array);CHKERRQ(ierr);
+    PetscCall(MatSeqAIJRestoreArray(A,&array));
     w *= pep->slambda*pep->slambda*pep->sfactor;
-    ierr = MatAXPY(M,w,A,str);CHKERRQ(ierr);
-    if (flg || str!=SAME_NONZERO_PATTERN || k==nmat-2) {
-      ierr = MatDestroy(&A);CHKERRQ(ierr);
-    }
+    PetscCall(MatAXPY(M,w,A,str));
+    if (flg || str!=SAME_NONZERO_PATTERN || k==nmat-2) PetscCall(MatDestroy(&A));
   }
-  ierr = MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont);CHKERRQ(ierr);
+  PetscCall(MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont));
   PetscCheck(cont,PetscObjectComm((PetscObject)T[0]),PETSC_ERR_SUP,"It is not possible to compute scaling diagonals for these PEP matrices");
-  ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
+  PetscCall(MatGetInfo(M,MAT_LOCAL,&info));
   nz = (PetscInt)info.nz_used;
-  ierr = VecGetOwnershipRange(pep->Dl,&lst,&lend);CHKERRQ(ierr);
-  ierr = PetscMalloc4(nr,&rsum,pep->n,&csum,pep->n,&aux,PetscMin(pep->n-lend+lst,nz),&cols);CHKERRQ(ierr);
-  ierr = VecSet(pep->Dr,1.0);CHKERRQ(ierr);
-  ierr = VecSet(pep->Dl,1.0);CHKERRQ(ierr);
-  ierr = VecGetArray(pep->Dl,&Dl);CHKERRQ(ierr);
-  ierr = VecGetArray(pep->Dr,&Dr);CHKERRQ(ierr);
-  ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
-  ierr = PetscArrayzero(aux,pep->n);CHKERRQ(ierr);
+  PetscCall(VecGetOwnershipRange(pep->Dl,&lst,&lend));
+  PetscCall(PetscMalloc4(nr,&rsum,pep->n,&csum,pep->n,&aux,PetscMin(pep->n-lend+lst,nz),&cols));
+  PetscCall(VecSet(pep->Dr,1.0));
+  PetscCall(VecSet(pep->Dl,1.0));
+  PetscCall(VecGetArray(pep->Dl,&Dl));
+  PetscCall(VecGetArray(pep->Dr,&Dr));
+  PetscCall(MatSeqAIJGetArray(M,&array));
+  PetscCall(PetscArrayzero(aux,pep->n));
   for (j=0;j<nz;j++) {
     /* Search non-zero columns outsize lst-lend */
     if (aux[cidx[j]]==0 && (cidx[j]<lst || lend<=cidx[j])) cols[nc++] = cidx[j];
@@ -283,12 +264,12 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     emaxl = 0; eminl = 0;
     /* Column sum  */
     if (it>0) { /* it=0 has been already done*/
-      ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
-      ierr = PetscArrayzero(aux,pep->n);CHKERRQ(ierr);
+      PetscCall(MatSeqAIJGetArray(M,&array));
+      PetscCall(PetscArrayzero(aux,pep->n));
       for (j=0;j<nz;j++) aux[cidx[j]] += PetscAbsScalar(array[j]);
-      ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
+      PetscCall(MatSeqAIJRestoreArray(M,&array));
     }
-    ierr = MPIU_Allreduce(aux,csum,n,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)pep->Dr));CHKERRMPI(ierr);
+    PetscCallMPI(MPIU_Allreduce(aux,csum,n,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)pep->Dr)));
     /* Update Dr */
     for (j=lst;j<lend;j++) {
       d = PetscLogReal(csum[j])/l2;
@@ -308,14 +289,14 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       eminl = PetscMin(eminl,e);
     }
     /* Scale M */
-    ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
+    PetscCall(MatSeqAIJGetArray(M,&array));
     for (j=0;j<nz;j++) {
       array[j] *= aux[cidx[j]];
     }
-    ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
+    PetscCall(MatSeqAIJRestoreArray(M,&array));
     /* Row sum */
-    ierr = PetscArrayzero(rsum,nr);CHKERRQ(ierr);
-    ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
+    PetscCall(PetscArrayzero(rsum,nr));
+    PetscCall(MatSeqAIJGetArray(M,&array));
     for (i=0;i<nr;i++) {
       for (j=ridx[i];j<ridx[i+1];j++) rsum[i] += PetscAbsScalar(array[j]);
       /* Update Dl */
@@ -328,18 +309,18 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       emaxl = PetscMax(emaxl,e);
       eminl = PetscMin(eminl,e);
     }
-    ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
+    PetscCall(MatSeqAIJRestoreArray(M,&array));
     /* Compute global max and min */
-    ierr = MPIU_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl));CHKERRMPI(ierr);
-    ierr = MPIU_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl));CHKERRMPI(ierr);
+    PetscCallMPI(MPIU_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl)));
+    PetscCallMPI(MPIU_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl)));
     if (emax<=emin+2) cont = PETSC_FALSE;
   }
-  ierr = VecRestoreArray(pep->Dr,&Dr);CHKERRQ(ierr);
-  ierr = VecRestoreArray(pep->Dl,&Dl);CHKERRQ(ierr);
+  PetscCall(VecRestoreArray(pep->Dr,&Dr));
+  PetscCall(VecRestoreArray(pep->Dl,&Dl));
   /* Free memory*/
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = PetscFree4(rsum,csum,aux,cols);CHKERRQ(ierr);
-  ierr = PetscFree(T);CHKERRQ(ierr);
+  PetscCall(MatDestroy(&M));
+  PetscCall(PetscFree4(rsum,csum,aux,cols));
+  PetscCall(PetscFree(T));
   PetscFunctionReturn(0);
 }
 
@@ -348,7 +329,6 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
 */
 PetscErrorCode PEPComputeScaleFactor(PEP pep)
 {
-  PetscErrorCode ierr;
   PetscBool      has0,has1,flg;
   PetscReal      norm0,norm1;
   Mat            T[2];
@@ -364,29 +344,29 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
   if (pep->sfactor_set) PetscFunctionReturn(0);  /* user provided value */
   pep->sfactor = 1.0;
   pep->dsfactor = 1.0;
-  ierr = PEPGetBasis(pep,&basis);CHKERRQ(ierr);
+  PetscCall(PEPGetBasis(pep,&basis));
   if (basis==PEP_BASIS_MONOMIAL) {
-    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+    PetscCall(STGetTransform(pep->st,&flg));
     if (flg) {
-      ierr = STGetMatrixTransformed(pep->st,0,&T[0]);CHKERRQ(ierr);
-      ierr = STGetMatrixTransformed(pep->st,pep->nmat-1,&T[1]);CHKERRQ(ierr);
+      PetscCall(STGetMatrixTransformed(pep->st,0,&T[0]));
+      PetscCall(STGetMatrixTransformed(pep->st,pep->nmat-1,&T[1]));
     } else {
       T[0] = pep->A[0];
       T[1] = pep->A[pep->nmat-1];
     }
     if (pep->nmat>2) {
-      ierr = MatHasOperation(T[0],MATOP_NORM,&has0);CHKERRQ(ierr);
-      ierr = MatHasOperation(T[1],MATOP_NORM,&has1);CHKERRQ(ierr);
+      PetscCall(MatHasOperation(T[0],MATOP_NORM,&has0));
+      PetscCall(MatHasOperation(T[1],MATOP_NORM,&has1));
       if (has0 && has1) {
-        ierr = MatNorm(T[0],NORM_INFINITY,&norm0);CHKERRQ(ierr);
-        ierr = MatNorm(T[1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
+        PetscCall(MatNorm(T[0],NORM_INFINITY,&norm0));
+        PetscCall(MatNorm(T[1],NORM_INFINITY,&norm1));
         pep->sfactor = PetscPowReal(norm0/norm1,1.0/(pep->nmat-1));
         pep->dsfactor = norm1;
         for (i=pep->nmat-2;i>0;i--) {
-          ierr = STGetMatrixTransformed(pep->st,i,&T[1]);CHKERRQ(ierr);
-          ierr = MatHasOperation(T[1],MATOP_NORM,&has1);CHKERRQ(ierr);
+          PetscCall(STGetMatrixTransformed(pep->st,i,&T[1]));
+          PetscCall(MatHasOperation(T[1],MATOP_NORM,&has1));
           if (has1) {
-            ierr = MatNorm(T[1],NORM_INFINITY,&norm1);CHKERRQ(ierr);
+            PetscCall(MatNorm(T[1],NORM_INFINITY,&norm1));
             pep->dsfactor = pep->dsfactor*pep->sfactor+norm1;
           } else break;
         }
@@ -451,4 +431,3 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
   }
   PetscFunctionReturn(0);
 }
-

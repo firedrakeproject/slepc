@@ -14,37 +14,33 @@
 
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,PetscBool orth,PetscBool doubleexp)
 {
-  PetscErrorCode ierr;
   PetscInt       check_sum0,check_sum1;
 
   PetscFunctionBegin;
-  ierr = PetscMemzero(b,sizeof(dvdBlackboard));CHKERRQ(ierr);
+  PetscCall(PetscMemzero(b,sizeof(dvdBlackboard)));
   b->state = DVD_STATE_PRECONF;
 
   for (check_sum0=-1,check_sum1=DVD_CHECKSUM(b); check_sum0 != check_sum1; check_sum0 = check_sum1, check_sum1 = DVD_CHECKSUM(b)) {
 
     /* Setup basic management of V */
-    ierr = dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals);CHKERRQ(ierr);
+    PetscCall(dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals));
 
     /* Setup the initial subspace for V */
-    ierr = dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
+    PetscCall(dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE));
 
     /* Setup the convergence in order to use the SLEPc convergence test */
-    ierr = dvd_testconv_slepc(d,b);CHKERRQ(ierr);
+    PetscCall(dvd_testconv_slepc(d,b));
 
     /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-    ierr = dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE));CHKERRQ(ierr);
-    if (harmMode != DVD_HARM_NONE) {
-      ierr = dvd_harm_conf(d,b,harmMode,PETSC_FALSE,0.0);CHKERRQ(ierr);
-    }
+    PetscCall(dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE)));
+    if (harmMode != DVD_HARM_NONE) PetscCall(dvd_harm_conf(d,b,harmMode,PETSC_FALSE,0.0));
 
     /* Setup the method for improving the eigenvectors */
-    if (doubleexp) {
-      ierr = dvd_improvex_gd2(d,b,ksp,bs);CHKERRQ(ierr);
-    } else {
-      ierr = dvd_improvex_jd(d,b,ksp,bs,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = dvd_improvex_jd_proj_uv(d,b);CHKERRQ(ierr);
-      ierr = dvd_improvex_jd_lit_const(d,b,0,0.0,0.0);CHKERRQ(ierr);
+    if (doubleexp) PetscCall(dvd_improvex_gd2(d,b,ksp,bs));
+    else {
+      PetscCall(dvd_improvex_jd(d,b,ksp,bs,PETSC_FALSE));
+      PetscCall(dvd_improvex_jd_proj_uv(d,b));
+      PetscCall(dvd_improvex_jd_lit_const(d,b,0,0.0,0.0));
     }
   }
   PetscFunctionReturn(0);
@@ -54,35 +50,31 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
 {
   PetscInt       check_sum0,check_sum1,maxits;
   PetscReal      tol;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   b->state = DVD_STATE_CONF;
   check_sum0 = DVD_CHECKSUM(b);
 
   /* Setup basic management of V */
-  ierr = dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals);CHKERRQ(ierr);
+  PetscCall(dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals));
 
   /* Setup the initial subspace for V */
-  ierr = dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
+  PetscCall(dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE));
 
   /* Setup the convergence in order to use the SLEPc convergence test */
-  ierr = dvd_testconv_slepc(d,b);CHKERRQ(ierr);
+  PetscCall(dvd_testconv_slepc(d,b));
 
   /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-  ierr = dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE));CHKERRQ(ierr);
-  if (harmMode != DVD_HARM_NONE) {
-    ierr = dvd_harm_conf(d,b,harmMode,fixedTarget,t);CHKERRQ(ierr);
-  }
+  PetscCall(dvd_calcpairs_qz(d,b,orth,PetscNot(harmMode==DVD_HARM_NONE)));
+  if (harmMode != DVD_HARM_NONE) PetscCall(dvd_harm_conf(d,b,harmMode,fixedTarget,t));
 
   /* Setup the method for improving the eigenvectors */
-  if (doubleexp) {
-    ierr = dvd_improvex_gd2(d,b,ksp,bs);CHKERRQ(ierr);
-  } else {
-    ierr = dvd_improvex_jd(d,b,ksp,bs,dynamic);CHKERRQ(ierr);
-    ierr = dvd_improvex_jd_proj_uv(d,b);CHKERRQ(ierr);
-    ierr = KSPGetTolerances(ksp,&tol,NULL,NULL,&maxits);CHKERRQ(ierr);
-    ierr = dvd_improvex_jd_lit_const(d,b,maxits,tol,fix);CHKERRQ(ierr);
+  if (doubleexp) PetscCall(dvd_improvex_gd2(d,b,ksp,bs));
+  else {
+    PetscCall(dvd_improvex_jd(d,b,ksp,bs,dynamic));
+    PetscCall(dvd_improvex_jd_proj_uv(d,b));
+    PetscCall(KSPGetTolerances(ksp,&tol,NULL,NULL,&maxits));
+    PetscCall(dvd_improvex_jd_lit_const(d,b,maxits,tol,fix));
   }
 
   check_sum1 = DVD_CHECKSUM(b);

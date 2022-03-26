@@ -40,75 +40,64 @@ int main(int argc,char **argv)
   PetscReal      muu=1,tau=10,kappa=5,inta,intb;
   PetscReal      alpha,beta,xi,mu,at[2]={0.0,0.0},c=.857,s;
   PetscScalar    target,targett,ats[2];
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPEP example that checks definite property, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nPEP example that checks definite property, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* K is a tridiagonal */
-  ierr = MatCreate(PETSC_COMM_WORLD,&K);CHKERRQ(ierr);
-  ierr = MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(K);CHKERRQ(ierr);
-  ierr = MatSetUp(K);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&K));
+  PetscCall(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(K));
+  PetscCall(MatSetUp(K));
 
-  ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(K,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      ierr = MatSetValue(K,i,i-1,-kappa,INSERT_VALUES);CHKERRQ(ierr);
-    }
-    ierr = MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES);CHKERRQ(ierr);
-    if (i<n-1) {
-      ierr = MatSetValue(K,i,i+1,-kappa,INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i>0) PetscCall(MatSetValue(K,i,i-1,-kappa,INSERT_VALUES));
+    PetscCall(MatSetValue(K,i,i,kappa*3.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(K,i,i+1,-kappa,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY));
 
   /* C is a tridiagonal */
-  ierr = MatCreate(PETSC_COMM_WORLD,&C);CHKERRQ(ierr);
-  ierr = MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(C);CHKERRQ(ierr);
-  ierr = MatSetUp(C);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&C));
+  PetscCall(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(C));
+  PetscCall(MatSetUp(C));
 
-  ierr = MatGetOwnershipRange(C,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(C,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) {
-      ierr = MatSetValue(C,i,i-1,-tau,INSERT_VALUES);CHKERRQ(ierr);
-    }
-    ierr = MatSetValue(C,i,i,tau*3.0,INSERT_VALUES);CHKERRQ(ierr);
-    if (i<n-1) {
-      ierr = MatSetValue(C,i,i+1,-tau,INSERT_VALUES);CHKERRQ(ierr);
-    }
+    if (i>0) PetscCall(MatSetValue(C,i,i-1,-tau,INSERT_VALUES));
+    PetscCall(MatSetValue(C,i,i,tau*3.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(C,i,i+1,-tau,INSERT_VALUES));
   }
 
-  ierr = MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
 
   /* M is a diagonal matrix */
-  ierr = MatCreate(PETSC_COMM_WORLD,&M);CHKERRQ(ierr);
-  ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(M);CHKERRQ(ierr);
-  ierr = MatSetUp(M);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(M,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(M,i,i,muu,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&M));
+  PetscCall(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(M));
+  PetscCall(MatSetUp(M));
+  PetscCall(MatGetOwnershipRange(M,&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(M,i,i,muu,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
 
-  ierr = PetscOptionsGetBool(NULL,NULL,"-nonhyperbolic",&nohyp,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-nonhyperbolic",&nohyp,NULL));
   A[0] = K; A[1] = C; A[2] = M;
   if (nohyp) {
     s = c*.6;
-    ierr = TransformMatricesMoebius(A,UNKNOWN_NONZERO_PATTERN,c,s,-s,c,At);CHKERRQ(ierr);
-    for (i=0;i<3;i++) { ierr = MatDestroy(&A[i]);CHKERRQ(ierr); }
+    PetscCall(TransformMatricesMoebius(A,UNKNOWN_NONZERO_PATTERN,c,s,-s,c,At));
+    for (i=0;i<3;i++) PetscCall(MatDestroy(&A[i]));
     Op = At;
   } else Op = A;
 
@@ -119,22 +108,22 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
-  ierr = PEPSetProblemType(pep,PEP_HERMITIAN);CHKERRQ(ierr);
-  ierr = PEPSetType(pep,PEPSTOAR);CHKERRQ(ierr);
+  PetscCall(PEPCreate(PETSC_COMM_WORLD,&pep));
+  PetscCall(PEPSetProblemType(pep,PEP_HERMITIAN));
+  PetscCall(PEPSetType(pep,PEPSTOAR));
   /*
      Set operators and set problem type
   */
-  ierr = PEPSetOperators(pep,3,Op);CHKERRQ(ierr);
+  PetscCall(PEPSetOperators(pep,3,Op));
 
   /*
      Set shift-and-invert with Cholesky; select MUMPS if available
   */
-  ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
+  PetscCall(PEPGetST(pep,&st));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPSetType(ksp,KSPPREONLY));
+  PetscCall(KSPGetPC(ksp,&pc));
+  PetscCall(PCSetType(pc,PCCHOLESKY));
 
   /*
      Use MUMPS if available.
@@ -142,35 +131,35 @@ int main(int argc,char **argv)
      because MatGetInertia() is not available in that case.
   */
 #if defined(PETSC_HAVE_MUMPS) && !defined(PETSC_USE_COMPLEX)
-  ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
+  PetscCall(PCFactorSetMatSolverType(pc,MATSOLVERMUMPS));
   /*
      Add several MUMPS options (see ex43.c for a better way of setting them in program):
      '-st_mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
   */
-  ierr = PetscOptionsInsertString(NULL,"-st_mat_mumps_icntl_13 1 -st_mat_mumps_icntl_24 1 -st_mat_mumps_cntl_3 1e-12");CHKERRQ(ierr);
+  PetscCall(PetscOptionsInsertString(NULL,"-st_mat_mumps_icntl_13 1 -st_mat_mumps_icntl_24 1 -st_mat_mumps_cntl_3 1e-12"));
 #endif
 
   /*
      Set solver parameters at runtime
   */
-  ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
+  PetscCall(PEPSetFromOptions(pep));
 
-  ierr = PetscOptionsGetBool(NULL,NULL,"-transform",&transform,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-transform",&transform,NULL));
   if (transform) {
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Check if the problem is definite
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-    ierr = PEPCheckDefiniteQEP(pep,&xi,&mu,&def,&hyp);CHKERRQ(ierr);
+    PetscCall(PEPCheckDefiniteQEP(pep,&xi,&mu,&def,&hyp));
     switch (def) {
       case 1:
-        if (hyp==1) {ierr = PetscPrintf(PETSC_COMM_WORLD,"Hyperbolic Problem xi=%g\n",(double)xi);CHKERRQ(ierr);}
-        else {ierr = PetscPrintf(PETSC_COMM_WORLD,"Definite Problem xi=%g mu=%g\n",(double)xi,(double)mu);CHKERRQ(ierr);}
+        if (hyp==1) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Hyperbolic Problem xi=%g\n",(double)xi));
+        else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Definite Problem xi=%g mu=%g\n",(double)xi,(double)mu));
         break;
       case -1:
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"Not Definite Problem\n");CHKERRQ(ierr);
+        PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Not Definite Problem\n"));
         break;
       default:
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"Cannot determine definiteness\n");CHKERRQ(ierr);
+        PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Cannot determine definiteness\n"));
         break;
     }
 
@@ -178,23 +167,23 @@ int main(int argc,char **argv)
       Transform the QEP to have a definite inner product in the linearization
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     if (def==1) {
-      ierr = QEPDefiniteTransformGetMatrices(pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu,B);CHKERRQ(ierr);
-      ierr = PEPSetOperators(pep,3,B);CHKERRQ(ierr);
-      ierr = PEPGetTarget(pep,&target);CHKERRQ(ierr);
+      PetscCall(QEPDefiniteTransformGetMatrices(pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu,B));
+      PetscCall(PEPSetOperators(pep,3,B));
+      PetscCall(PEPGetTarget(pep,&target));
       targett = target;
-      ierr = QEPDefiniteTransformMap(hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu,1,&targett,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = PEPSetTarget(pep,targett);CHKERRQ(ierr);
-      ierr = PEPGetProblemType(pep,&type);CHKERRQ(ierr);
-      ierr = PEPSetProblemType(pep,PEP_HYPERBOLIC);CHKERRQ(ierr);
-      ierr = PEPSTOARGetLinearization(pep,&alpha,&beta);CHKERRQ(ierr);
-      ierr = PEPSTOARSetLinearization(pep,1.0,0.0);CHKERRQ(ierr);
-      ierr = PEPGetInterval(pep,&inta,&intb);CHKERRQ(ierr);
+      PetscCall(QEPDefiniteTransformMap(hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu,1,&targett,PETSC_FALSE));
+      PetscCall(PEPSetTarget(pep,targett));
+      PetscCall(PEPGetProblemType(pep,&type));
+      PetscCall(PEPSetProblemType(pep,PEP_HYPERBOLIC));
+      PetscCall(PEPSTOARGetLinearization(pep,&alpha,&beta));
+      PetscCall(PEPSTOARSetLinearization(pep,1.0,0.0));
+      PetscCall(PEPGetInterval(pep,&inta,&intb));
       if (inta!=intb) {
         ats[0] = inta; ats[1] = intb;
-        ierr = QEPDefiniteTransformMap(hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu,2,ats,PETSC_FALSE);CHKERRQ(ierr);
+        PetscCall(QEPDefiniteTransformMap(hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu,2,ats,PETSC_FALSE));
         at[0] = PetscRealPart(ats[0]); at[1] = PetscRealPart(ats[1]);
-        if (at[0]<at[1]) { ierr = PEPSetInterval(pep,at[0],at[1]);CHKERRQ(ierr); }
-        else { ierr = PEPSetInterval(pep,PETSC_MIN_REAL,at[1]);CHKERRQ(ierr); }
+        if (at[0]<at[1]) PetscCall(PEPSetInterval(pep,at[0],at[1]));
+        else PetscCall(PEPSetInterval(pep,PETSC_MIN_REAL,at[1]));
       }
     }
   }
@@ -202,48 +191,45 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = PEPSolve(pep);CHKERRQ(ierr);
+  PetscCall(PEPSolve(pep));
 
   /* show detailed info unless -terse option is given by user */
   if (def!=1) {
-    ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-    if (terse) {
-      ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-      ierr = PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-      ierr = PEPErrorView(pep,PEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-      ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+    if (terse) PetscCall(PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL));
+    else {
+      PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+      PetscCall(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
+      PetscCall(PEPErrorView(pep,PEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+      PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
     }
   } else {
     /* Map the solution */
-    ierr = PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = QEPDefiniteCheckError(Op,pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu);CHKERRQ(ierr);
-    for (i=0;i<3;i++) {ierr = MatDestroy(B+i);CHKERRQ(ierr);}
+    PetscCall(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(QEPDefiniteCheckError(Op,pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu));
+    for (i=0;i<3;i++) PetscCall(MatDestroy(B+i));
   }
   if (at[0]>at[1]) {
-    ierr = PEPSetInterval(pep,at[0],PETSC_MAX_REAL);CHKERRQ(ierr);
-    ierr = PEPSolve(pep);CHKERRQ(ierr);
-    ierr = PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    PetscCall(PEPSetInterval(pep,at[0],PETSC_MAX_REAL));
+    PetscCall(PEPSolve(pep));
+    PetscCall(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD));
     /* Map the solution */
-    ierr = QEPDefiniteCheckError(Op,pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu);CHKERRQ(ierr);
+    PetscCall(QEPDefiniteCheckError(Op,pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu));
   }
   if (def==1) {
-    ierr = PEPSetTarget(pep,target);CHKERRQ(ierr);
-    ierr = PEPSetProblemType(pep,type);CHKERRQ(ierr);
-    ierr = PEPSTOARSetLinearization(pep,alpha,beta);CHKERRQ(ierr);
-    if (inta!=intb) {
-      ierr = PEPSetInterval(pep,inta,intb);CHKERRQ(ierr);
-    }
+    PetscCall(PEPSetTarget(pep,target));
+    PetscCall(PEPSetProblemType(pep,type));
+    PetscCall(PEPSTOARSetLinearization(pep,alpha,beta));
+    if (inta!=intb) PetscCall(PEPSetInterval(pep,inta,intb));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = PEPDestroy(&pep);CHKERRQ(ierr);
-  for (i=0;i<3;i++) { ierr = MatDestroy(Op+i);CHKERRQ(ierr); }
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(PEPDestroy(&pep));
+  for (i=0;i<3;i++) PetscCall(MatDestroy(Op+i));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /* ------------------------------------------------------------------- */
@@ -287,16 +273,15 @@ PetscErrorCode QEPDefiniteTransformMap(PetscBool hyperbolic,PetscReal xi,PetscRe
 {
   PetscReal      xit;
   PetscScalar    alpha;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   xit = xi;
   if (!hyperbolic) {
     alpha = xi;
-    ierr = QEPDefiniteTransformMap_Initial(PETSC_FALSE,0.0,mu,1,&alpha,PETSC_FALSE);CHKERRQ(ierr);
+    PetscCall(QEPDefiniteTransformMap_Initial(PETSC_FALSE,0.0,mu,1,&alpha,PETSC_FALSE));
     xit = PetscRealPart(alpha);
   }
-  ierr = QEPDefiniteTransformMap_Initial(hyperbolic,xit,mu,n,val,backtransform);CHKERRQ(ierr);
+  PetscCall(QEPDefiniteTransformMap_Initial(hyperbolic,xit,mu,n,val,backtransform));
   PetscFunctionReturn(0);
 }
 
@@ -313,14 +298,11 @@ PetscErrorCode QEPDefiniteTransformMap(PetscBool hyperbolic,PetscReal xi,PetscRe
 */
 PetscErrorCode TransformMatricesMoebius(Mat A[3],MatStructure str,PetscReal a,PetscReal b,PetscReal c,PetscReal d,Mat B[3])
 {
-  PetscErrorCode ierr;
   PetscInt       i,k;
   PetscReal      cf[9];
 
   PetscFunctionBegin;
-  for (i=0;i<3;i++) {
-    ierr = MatDuplicate(A[2],MAT_COPY_VALUES,&B[i]);CHKERRQ(ierr);
-  }
+  for (i=0;i<3;i++) PetscCall(MatDuplicate(A[2],MAT_COPY_VALUES,&B[i]));
   /* Ct = b*b*A+b*d*B+d*d*C */
   cf[0] = d*d; cf[1] = b*d; cf[2] = b*b;
   /* Bt = 2*a*b*A+(b*c+a*d)*B+2*c*d*C*/
@@ -328,10 +310,8 @@ PetscErrorCode TransformMatricesMoebius(Mat A[3],MatStructure str,PetscReal a,Pe
   /* At = a*a*A+a*c*B+c*c*C */
   cf[6] = c*c; cf[7] = a*c; cf[8] = a*a;
   for (k=0;k<3;k++) {
-    ierr = MatScale(B[k],cf[k*3+2]);CHKERRQ(ierr);
-    for (i=0;i<2;i++) {
-      ierr = MatAXPY(B[k],cf[3*k+i],A[i],str);CHKERRQ(ierr);
-    }
+    PetscCall(MatScale(B[k],cf[k*3+2]));
+    for (i=0;i<2;i++) PetscCall(MatAXPY(B[k],cf[3*k+i],A[i],str));
   }
   PetscFunctionReturn(0);
 }
@@ -350,7 +330,6 @@ PetscErrorCode TransformMatricesMoebius(Mat A[3],MatStructure str,PetscReal a,Pe
 */
 PetscErrorCode QEPDefiniteTransformGetMatrices(PEP pep,PetscBool hyperbolic,PetscReal xi,PetscReal mu,Mat T[3])
 {
-  PetscErrorCode ierr;
   MatStructure   str;
   ST             st;
   PetscInt       i;
@@ -359,18 +338,16 @@ PetscErrorCode QEPDefiniteTransformGetMatrices(PEP pep,PetscBool hyperbolic,Pets
   Mat            A[3];
 
   PetscFunctionBegin;
-  for (i=2;i>=0;i--) {
-    ierr = PEPGetOperators(pep,i,&A[i]);CHKERRQ(ierr);
-  }
+  for (i=2;i>=0;i--) PetscCall(PEPGetOperators(pep,i,&A[i]));
   if (hyperbolic) { a = 1.0; b = xi; c =0.0; d = 1.0; }
   else {
     xit = xi;
-    ierr = QEPDefiniteTransformMap_Initial(PETSC_FALSE,0.0,mu,1,&xit,PETSC_FALSE);CHKERRQ(ierr);
+    PetscCall(QEPDefiniteTransformMap_Initial(PETSC_FALSE,0.0,mu,1,&xit,PETSC_FALSE));
     a = mu; b = mu*PetscRealPart(xit)-1.0; c = 1.0; d = PetscRealPart(xit)+mu;
   }
-  ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
-  ierr = STGetMatStructure(st,&str);CHKERRQ(ierr);
-  ierr = TransformMatricesMoebius(A,str,a,b,c,d,T);CHKERRQ(ierr);
+  PetscCall(PEPGetST(pep,&st));
+  PetscCall(STGetMatStructure(st,&str));
+  PetscCall(TransformMatricesMoebius(A,str,a,b,c,d,T));
   PetscFunctionReturn(0);
 }
 
@@ -381,7 +358,6 @@ PetscErrorCode QEPDefiniteTransformGetMatrices(PEP pep,PetscBool hyperbolic,Pets
 */
 static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec *z,PetscReal *norm)
 {
-  PetscErrorCode ierr;
   PetscInt       i,nmat=3;
   PetscScalar    vals[3];
   Vec            u,w;
@@ -394,7 +370,7 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
 
   PetscFunctionBegin;
   u = z[0]; w = z[1];
-  ierr = VecSet(u,0.0);CHKERRQ(ierr);
+  PetscCall(VecSet(u,0.0));
 #if !defined(PETSC_USE_COMPLEX)
   ui = z[2]; wi = z[3];
 #endif
@@ -409,36 +385,32 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
     imag = PETSC_FALSE;
   else {
     imag = PETSC_TRUE;
-    ierr = VecSet(ui,0.0);CHKERRQ(ierr);
+    PetscCall(VecSet(ui,0.0));
   }
 #endif
   for (i=0;i<nmat;i++) {
     if (vals[i]!=0.0) {
-      ierr = MatMult(A[i],xr,w);CHKERRQ(ierr);
-      ierr = VecAXPY(u,vals[i],w);CHKERRQ(ierr);
+      PetscCall(MatMult(A[i],xr,w));
+      PetscCall(VecAXPY(u,vals[i],w));
     }
 #if !defined(PETSC_USE_COMPLEX)
     if (imag) {
       if (ivals[i]!=0 || vals[i]!=0) {
-        ierr = MatMult(A[i],xi,wi);CHKERRQ(ierr);
-        if (vals[i]==0) {
-          ierr = MatMult(A[i],xr,w);CHKERRQ(ierr);
-        }
+        PetscCall(MatMult(A[i],xi,wi));
+        if (vals[i]==0) PetscCall(MatMult(A[i],xr,w));
       }
       if (ivals[i]!=0) {
-        ierr = VecAXPY(u,-ivals[i],wi);CHKERRQ(ierr);
-        ierr = VecAXPY(ui,ivals[i],w);CHKERRQ(ierr);
+        PetscCall(VecAXPY(u,-ivals[i],wi));
+        PetscCall(VecAXPY(ui,ivals[i],w));
       }
-      if (vals[i]!=0) {
-        ierr = VecAXPY(ui,vals[i],wi);CHKERRQ(ierr);
-      }
+      if (vals[i]!=0) PetscCall(VecAXPY(ui,vals[i],wi));
     }
 #endif
   }
-  ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
+  PetscCall(VecNorm(u,NORM_2,norm));
 #if !defined(PETSC_USE_COMPLEX)
   if (imag) {
-    ierr = VecNorm(ui,NORM_2,&ni);CHKERRQ(ierr);
+    PetscCall(VecNorm(ui,NORM_2,&ni));
     *norm = SlepcAbsEigenvalue(*norm,ni);
   }
 #endif
@@ -456,7 +428,6 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
 */
 PetscErrorCode QEPDefiniteCheckError(Mat *A,PEP pep,PetscBool hyperbolic,PetscReal xi,PetscReal mu)
 {
-  PetscErrorCode ierr;
   PetscScalar    er,ei;
   PetscReal      re,im,error;
   Vec            vr,vi,w[4];
@@ -465,18 +436,18 @@ PetscErrorCode QEPDefiniteCheckError(Mat *A,PEP pep,PetscBool hyperbolic,PetscRe
   char           ex[30],sep[]=" ---------------------- --------------------\n";
 
   PetscFunctionBegin;
-  ierr = PetscSNPrintf(ex,sizeof(ex),"||P(k)x||/||kx||");CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);
-  ierr = PEPGetConverged(pep,&nconv);CHKERRQ(ierr);
-  ierr = PEPGetBV(pep,&bv);CHKERRQ(ierr);
-  ierr = BVCreateVec(bv,w);CHKERRQ(ierr);
-  ierr = VecDuplicate(w[0],&vr);CHKERRQ(ierr);
-  ierr = VecDuplicate(w[0],&vi);CHKERRQ(ierr);
-  for (i=1;i<4;i++) {ierr = VecDuplicate(w[0],w+i);CHKERRQ(ierr);}
+  PetscCall(PetscSNPrintf(ex,sizeof(ex),"||P(k)x||/||kx||"));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%s            k             %s\n%s",sep,ex,sep));
+  PetscCall(PEPGetConverged(pep,&nconv));
+  PetscCall(PEPGetBV(pep,&bv));
+  PetscCall(BVCreateVec(bv,w));
+  PetscCall(VecDuplicate(w[0],&vr));
+  PetscCall(VecDuplicate(w[0],&vi));
+  for (i=1;i<4;i++) PetscCall(VecDuplicate(w[0],w+i));
   for (i=0;i<nconv;i++) {
-    ierr = PEPGetEigenpair(pep,i,&er,&ei,vr,vi);CHKERRQ(ierr);
-    ierr = QEPDefiniteTransformMap(hyperbolic,xi,mu,1,&er,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = PEPResidualNorm(A,er,0.0,vr,vi,w,&error);CHKERRQ(ierr);
+    PetscCall(PEPGetEigenpair(pep,i,&er,&ei,vr,vi));
+    PetscCall(QEPDefiniteTransformMap(hyperbolic,xi,mu,1,&er,PETSC_TRUE));
+    PetscCall(PEPResidualNorm(A,er,0.0,vr,vi,w,&error));
     error /= SlepcAbsEigenvalue(er,0.0);
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(er);
@@ -485,16 +456,13 @@ PetscErrorCode QEPDefiniteCheckError(Mat *A,PEP pep,PetscBool hyperbolic,PetscRe
     re = er;
     im = ei;
 #endif
-    if (im!=0.0) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
-    } else {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"    % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
-    }
+    if (im!=0.0) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error));
+    else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"    % 12f           %12g\n",(double)re,(double)error));
   }
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"%s",sep);CHKERRQ(ierr);
-  for (i=0;i<4;i++) {ierr = VecDestroy(w+i);CHKERRQ(ierr);}
-  ierr = VecDestroy(&vi);CHKERRQ(ierr);
-  ierr = VecDestroy(&vr);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"%s",sep));
+  for (i=0;i<4;i++) PetscCall(VecDestroy(w+i));
+  PetscCall(VecDestroy(&vi));
+  PetscCall(VecDestroy(&vr));
   PetscFunctionReturn(0);
 }
 

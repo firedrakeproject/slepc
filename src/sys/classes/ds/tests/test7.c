@@ -14,7 +14,6 @@ static char help[] = "Test DSSVD.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
   PetscReal      sigma,rnorm,aux;
@@ -23,34 +22,34 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,extrarow;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   k = PetscMin(n,m);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type SVD - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n,m);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-extrarow",&extrarow);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type SVD - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n,m));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-extrarow",&extrarow));
 
   /* Create DS object */
-  ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);
-  ierr = DSSetType(ds,DSSVD);CHKERRQ(ierr);
-  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
+  PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
+  PetscCall(DSSetType(ds,DSSVD));
+  PetscCall(DSSetFromOptions(ds));
   ld = n+2;  /* test leading dimension larger than n */
-  ierr = DSAllocate(ds,ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(ds,n,0,0);CHKERRQ(ierr);
-  ierr = DSSVDSetDimensions(ds,m);CHKERRQ(ierr);
-  ierr = DSSVDGetDimensions(ds,&m1);CHKERRQ(ierr);
+  PetscCall(DSAllocate(ds,ld));
+  PetscCall(DSSetDimensions(ds,n,0,0));
+  PetscCall(DSSVDSetDimensions(ds,m));
+  PetscCall(DSSVDGetDimensions(ds,&m1));
   PetscCheck(m1==m,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension value");
-  ierr = DSSetExtraRow(ds,extrarow);CHKERRQ(ierr);
+  PetscCall(DSSetExtraRow(ds,extrarow));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = DSView(ds,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL));
+  PetscCall(DSView(ds,viewer));
+  PetscCall(PetscViewerPopFormat(viewer));
 
   /* Fill with a rectangular Toeplitz matrix */
-  ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  PetscCall(DSGetArray(ds,DS_MAT_A,&A));
   for (i=0;i<k;i++) A[i+i*ld]=1.0;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) { if ((i+j)<m) A[i+(i+j)*ld]=(PetscScalar)(j+1); }
@@ -59,66 +58,64 @@ int main(int argc,char **argv)
     for (i=0;i<n-j;i++) { if ((i+j)<n && i<m) A[(i+j)+i*ld]=-1.0; }
   }
   if (extrarow) { A[n-2+m*ld]=1.0; A[n-1+m*ld]=1.0; }  /* really an extra column */
-  ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
+  PetscCall(DSSetState(ds,DS_STATE_RAW));
   if (verbose) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
+    PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
   }
-  ierr = DSView(ds,viewer);CHKERRQ(ierr);
+  PetscCall(DSView(ds,viewer));
 
   /* Solve */
-  ierr = PetscMalloc1(k,&w);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  PetscCall(PetscMalloc1(k,&w));
+  PetscCall(DSGetSlepcSC(ds,&sc));
   sc->comparison    = SlepcCompareLargestReal;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  ierr = DSSolve(ds,w,NULL);CHKERRQ(ierr);
-  ierr = DSSort(ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  if (extrarow) { ierr = DSUpdateExtraRow(ds);CHKERRQ(ierr); }
+  PetscCall(DSSolve(ds,w,NULL));
+  PetscCall(DSSort(ds,w,NULL,NULL,NULL,NULL));
+  if (extrarow) PetscCall(DSUpdateExtraRow(ds));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n"));
+    PetscCall(DSView(ds,viewer));
   }
 
   /* Print singular values */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed singular values =\n");CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed singular values =\n"));
   for (i=0;i<k;i++) {
     sigma = PetscRealPart(w[i]);
-    ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma);CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma));
   }
 
   if (extrarow) {
     /* Check that extra column is correct */
-    ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-    ierr = DSGetArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
+    PetscCall(DSGetArray(ds,DS_MAT_A,&A));
+    PetscCall(DSGetArray(ds,DS_MAT_U,&U));
     d = 0.0;
     for (i=0;i<n;i++) d += A[i+m*ld]-U[n-2+i*ld]-U[n-1+i*ld];
-    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d));CHKERRQ(ierr);
-    }
-    ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-    ierr = DSRestoreArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
+    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d)));
+    PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
+    PetscCall(DSRestoreArray(ds,DS_MAT_U,&U));
   }
 
   /* Singular vectors */
-  ierr = DSVectors(ds,DS_MAT_U,NULL,NULL);CHKERRQ(ierr);  /* all singular vectors */
+  PetscCall(DSVectors(ds,DS_MAT_U,NULL,NULL));  /* all singular vectors */
   j = 0;
   rnorm = 0.0;
-  ierr = DSGetArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
+  PetscCall(DSGetArray(ds,DS_MAT_U,&U));
   for (i=0;i<n;i++) {
     aux = PetscAbsScalar(U[i+j*ld]);
     rnorm += aux*aux;
   }
-  ierr = DSRestoreArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(ds,DS_MAT_U,&U));
   rnorm = PetscSqrtReal(rnorm);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st U vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st U vector = %.3f\n",(double)rnorm));
 
-  ierr = PetscFree(w);CHKERRQ(ierr);
-  ierr = DSDestroy(&ds);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(PetscFree(w));
+  PetscCall(DSDestroy(&ds));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

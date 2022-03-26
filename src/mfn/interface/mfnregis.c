@@ -24,13 +24,11 @@ SLEPC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN);
 @*/
 PetscErrorCode MFNRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (MFNRegisterAllCalled) PetscFunctionReturn(0);
   MFNRegisterAllCalled = PETSC_TRUE;
-  ierr = MFNRegister(MFNKRYLOV,MFNCreate_Krylov);CHKERRQ(ierr);
-  ierr = MFNRegister(MFNEXPOKIT,MFNCreate_Expokit);CHKERRQ(ierr);
+  PetscCall(MFNRegister(MFNKRYLOV,MFNCreate_Krylov));
+  PetscCall(MFNRegister(MFNEXPOKIT,MFNCreate_Expokit));
   PetscFunctionReturn(0);
 }
 
@@ -45,14 +43,11 @@ PetscErrorCode MFNRegisterAll(void)
 @*/
 PetscErrorCode MFNMonitorRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (MFNMonitorRegisterAllCalled) PetscFunctionReturn(0);
   MFNMonitorRegisterAllCalled = PETSC_TRUE;
 
-  ierr = MFNMonitorRegister("error_estimate",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,MFNMonitorDefault,NULL,NULL);CHKERRQ(ierr);
-  ierr = MFNMonitorRegister("error_estimate",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,MFNMonitorDefaultDrawLG,MFNMonitorDefaultDrawLGCreate,NULL);CHKERRQ(ierr);
+  PetscCall(MFNMonitorRegister("error_estimate",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,MFNMonitorDefault,NULL,NULL));
+  PetscCall(MFNMonitorRegister("error_estimate",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,MFNMonitorDefaultDrawLG,MFNMonitorDefaultDrawLGCreate,NULL));
   PetscFunctionReturn(0);
 }
-

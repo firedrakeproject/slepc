@@ -178,7 +178,7 @@ struct _p_PEP {
   do { \
     if (condition) { \
       PetscBool __flg; \
-      ierr = PetscObjectTypeCompareAny((PetscObject)(pep)->st,&__flg,STSINVERT,STSHIFT,"");CHKERRQ(ierr); \
+      PetscCall(PetscObjectTypeCompareAny((PetscObject)(pep)->st,&__flg,STSINVERT,STSHIFT,"")); \
       PetscCheck(__flg,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s requires shift or shift-and-invert spectral transform",((PetscObject)(pep))->type_name,(msg)); \
     } \
   } while (0)
@@ -189,7 +189,7 @@ struct _p_PEP {
   do { \
     if (condition) { \
       PetscBool __flg; \
-      ierr = PetscObjectTypeCompareAny((PetscObject)(pep)->st,&__flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr); \
+      PetscCall(PetscObjectTypeCompareAny((PetscObject)(pep)->st,&__flg,STSINVERT,STCAYLEY,"")); \
       PetscCheck(__flg,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s requires shift-and-invert or Cayley transform",((PetscObject)(pep))->type_name,(msg)); \
     } \
   } while (0)
@@ -202,7 +202,7 @@ struct _p_PEP {
       PetscCheck(!((mask) & PEP_FEATURE_NONMONOMIAL) || (pep)->basis==PEP_BASIS_MONOMIAL,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s is not implemented for non-monomial bases",((PetscObject)(pep))->type_name,(msg)); \
       if ((mask) & PEP_FEATURE_REGION) { \
         PetscBool      __istrivial; \
-        PetscErrorCode __ierr = RGIsTrivial((pep)->rg,&__istrivial);CHKERRQ(__ierr); \
+        PetscCall(RGIsTrivial((pep)->rg,&__istrivial)); \
         PetscCheck(__istrivial,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(pep))->type_name,(msg)); \
       } \
       PetscCheck(!((mask) & PEP_FEATURE_EXTRACT) || !(pep)->extract || (pep)->extract==PEP_EXTRACT_NONE,PetscObjectComm((PetscObject)(pep)),PETSC_ERR_SUP,"The solver '%s'%s does not support extraction variants",((PetscObject)(pep))->type_name,(msg)); \
@@ -215,18 +215,17 @@ struct _p_PEP {
 /* Check for ignored features */
 #define PEPCheckIgnoredCondition(pep,mask,condition,msg) \
   do { \
-    PetscErrorCode __ierr; \
     if (condition) { \
-      if (((mask) & PEP_FEATURE_NONMONOMIAL) && (pep)->basis!=PEP_BASIS_MONOMIAL) { __ierr = PetscInfo((pep),"The solver '%s'%s ignores the basis settings\n",((PetscObject)(pep))->type_name,(msg)); } \
+      if (((mask) & PEP_FEATURE_NONMONOMIAL) && (pep)->basis!=PEP_BASIS_MONOMIAL) PetscCall(PetscInfo((pep),"The solver '%s'%s ignores the basis settings\n",((PetscObject)(pep))->type_name,(msg))); \
       if ((mask) & PEP_FEATURE_REGION) { \
         PetscBool __istrivial; \
-        __ierr = RGIsTrivial((pep)->rg,&__istrivial);CHKERRQ(__ierr); \
-        if (!__istrivial) { __ierr = PetscInfo((pep),"The solver '%s'%s ignores the specified region\n",((PetscObject)(pep))->type_name,(msg)); } \
+        PetscCall(RGIsTrivial((pep)->rg,&__istrivial)); \
+        if (!__istrivial) PetscCall(PetscInfo((pep),"The solver '%s'%s ignores the specified region\n",((PetscObject)(pep))->type_name,(msg))); \
       } \
-      if (((mask) & PEP_FEATURE_EXTRACT) && (pep)->extract && (pep)->extract!=PEP_EXTRACT_NONE) { __ierr = PetscInfo((pep),"The solver '%s'%s ignores the extract settings\n",((PetscObject)(pep))->type_name,(msg)); } \
-      if (((mask) & PEP_FEATURE_CONVERGENCE) && (pep)->converged!=PEPConvergedRelative) { __ierr = PetscInfo((pep),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(pep))->type_name,(msg)); } \
-      if (((mask) & PEP_FEATURE_STOPPING) && (pep)->stopping!=PEPStoppingBasic) { __ierr = PetscInfo((pep),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(pep))->type_name,(msg)); } \
-      if (((mask) & PEP_FEATURE_SCALE) && (pep)->scale!=PEP_SCALE_NONE) { __ierr = PetscInfo((pep),"The solver '%s'%s ignores the scaling settings\n",((PetscObject)(pep))->type_name,(msg)); } \
+      if (((mask) & PEP_FEATURE_EXTRACT) && (pep)->extract && (pep)->extract!=PEP_EXTRACT_NONE) PetscCall(PetscInfo((pep),"The solver '%s'%s ignores the extract settings\n",((PetscObject)(pep))->type_name,(msg))); \
+      if (((mask) & PEP_FEATURE_CONVERGENCE) && (pep)->converged!=PEPConvergedRelative) PetscCall(PetscInfo((pep),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(pep))->type_name,(msg))); \
+      if (((mask) & PEP_FEATURE_STOPPING) && (pep)->stopping!=PEPStoppingBasic) PetscCall(PetscInfo((pep),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(pep))->type_name,(msg))); \
+      if (((mask) & PEP_FEATURE_SCALE) && (pep)->scale!=PEP_SCALE_NONE) PetscCall(PetscInfo((pep),"The solver '%s'%s ignores the scaling settings\n",((PetscObject)(pep))->type_name,(msg))); \
     } \
   } while (0)
 #define PEPCheckIgnored(pep,mask) PEPCheckIgnoredCondition(pep,mask,PETSC_TRUE,"")
@@ -236,17 +235,16 @@ struct _p_PEP {
 */
 static inline PetscErrorCode PEP_KSPSetOperators(KSP ksp,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
   const char     *prefix;
 
   PetscFunctionBegin;
-  ierr = KSPSetOperators(ksp,A,B);CHKERRQ(ierr);
-  ierr = MatGetOptionsPrefix(B,&prefix);CHKERRQ(ierr);
+  PetscCall(KSPSetOperators(ksp,A,B));
+  PetscCall(MatGetOptionsPrefix(B,&prefix));
   if (!prefix) {
     /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
        only applies if the Mat has no user-defined prefix */
-    ierr = KSPGetOptionsPrefix(ksp,&prefix);CHKERRQ(ierr);
-    ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+    PetscCall(KSPGetOptionsPrefix(ksp,&prefix));
+    PetscCall(MatSetOptionsPrefix(B,prefix));
   }
   PetscFunctionReturn(0);
 }

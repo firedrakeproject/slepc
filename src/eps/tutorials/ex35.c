@@ -38,100 +38,96 @@ int main (int argc,char **argv)
   PetscInt       N,n=10,m,i,j,II,Istart,Iend,nev;
   PetscBool      isShell,terse,flag;
   PetscScalar    target=1.1;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));
   if (!flag) m = n;
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-target",&target,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-target",&target,NULL));
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding via shell ST, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid) target=%3.2f\n\n",N,n,m,(double)PetscRealPart(target));CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding via shell ST, N=%" PetscInt_FMT " (%" PetscInt_FMT "x%" PetscInt_FMT " grid) target=%3.2f\n\n",N,n,m,(double)PetscRealPart(target)));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the 5-point stencil Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,II,II-n,-1.0,INSERT_VALUES));
+    if (i<m-1) PetscCall(MatSetValue(A,II,II+n,-1.0,INSERT_VALUES));
+    if (j>0) PetscCall(MatSetValue(A,II,II-1,-1.0,INSERT_VALUES));
+    if (j<n-1) PetscCall(MatSetValue(A,II,II+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,II,II,4.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetTarget(eps,target);CHKERRQ(ierr);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_HEP));
+  PetscCall(EPSSetTarget(eps,target));
+  PetscCall(EPSGetST(eps,&st));
+  PetscCall(STSetType(st,STSHELL));
+  PetscCall(EPSSetFromOptions(eps));
 
   /*
      Initialize shell spectral transformation
   */
-  ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&isShell);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)st,STSHELL,&isShell));
   if (isShell) {
     /* Change sorting criterion since this shell ST computes eigenvalues
        of the transformed operator closest to 0 */
-    ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+    PetscCall(EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL));
 
     /* Create the context for the user-defined spectral transform */
-    ierr = STCreate_Fold(A,target,&fold);CHKERRQ(ierr);
-    ierr = STShellSetContext(st,fold);CHKERRQ(ierr);
+    PetscCall(STCreate_Fold(A,target,&fold));
+    PetscCall(STShellSetContext(st,fold));
 
     /* Set callback function for applying the operator (in this case we do not
        provide a back-transformation callback since the mapping is not one-to-one) */
-    ierr = STShellSetApply(st,STApply_Fold);CHKERRQ(ierr);
-    ierr = PetscObjectSetName((PetscObject)st,"STFOLD");CHKERRQ(ierr);
+    PetscCall(STShellSetApply(st,STApply_Fold));
+    PetscCall(PetscObjectSetName((PetscObject)st,"STFOLD"));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSGetType(eps,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  if (isShell) {
-    ierr = STDestroy_Fold(fold);CHKERRQ(ierr);
-  }
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  if (isShell) PetscCall(STDestroy_Fold(fold));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*
@@ -147,14 +143,13 @@ int main (int argc,char **argv)
 PetscErrorCode STCreate_Fold(Mat A,PetscScalar target,FoldShellST **fold)
 {
   FoldShellST    *newctx;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = PetscNew(&newctx);CHKERRQ(ierr);
+  PetscCall(PetscNew(&newctx));
   newctx->A = A;
-  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+  PetscCall(PetscObjectReference((PetscObject)A));
   newctx->target = target;
-  ierr = MatCreateVecs(A,&newctx->w,NULL);CHKERRQ(ierr);
+  PetscCall(MatCreateVecs(A,&newctx->w,NULL));
   *fold = newctx;
   PetscFunctionReturn(0);
 }
@@ -173,15 +168,14 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
 {
   FoldShellST    *fold;
   PetscScalar    sigma;
-  PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = STShellGetContext(st,&fold);CHKERRQ(ierr);
+  PetscCall(STShellGetContext(st,&fold));
   sigma = -fold->target;
-  ierr = MatMult(fold->A,x,fold->w);CHKERRQ(ierr);
-  ierr = VecAXPY(fold->w,sigma,x);CHKERRQ(ierr);
-  ierr = MatMult(fold->A,fold->w,y);CHKERRQ(ierr);
-  ierr = VecAXPY(y,sigma,fold->w);CHKERRQ(ierr);
+  PetscCall(MatMult(fold->A,x,fold->w));
+  PetscCall(VecAXPY(fold->w,sigma,x));
+  PetscCall(MatMult(fold->A,fold->w,y));
+  PetscCall(VecAXPY(y,sigma,fold->w));
   PetscFunctionReturn(0);
 }
 
@@ -193,12 +187,10 @@ PetscErrorCode STApply_Fold(ST st,Vec x,Vec y)
 */
 PetscErrorCode STDestroy_Fold(FoldShellST *fold)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBeginUser;
-  ierr = MatDestroy(&fold->A);CHKERRQ(ierr);
-  ierr = VecDestroy(&fold->w);CHKERRQ(ierr);
-  ierr = PetscFree(fold);CHKERRQ(ierr);
+  PetscCall(MatDestroy(&fold->A));
+  PetscCall(VecDestroy(&fold->w));
+  PetscCall(PetscFree(fold));
   PetscFunctionReturn(0);
 }
 

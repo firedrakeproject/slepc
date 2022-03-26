@@ -9,18 +9,17 @@
 #define __FUNCT__ "SlepcInitializePackageAll"
 static PetscErrorCode SlepcInitializePackageAll(void)
 {
-  PetscErrorCode ierr;
   PetscFunctionBegin;
-  ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = SVDInitializePackage();CHKERRQ(ierr);
-  ierr = PEPInitializePackage();CHKERRQ(ierr);
-  ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = MFNInitializePackage();CHKERRQ(ierr);
-  ierr = STInitializePackage();CHKERRQ(ierr);
-  ierr = BVInitializePackage();CHKERRQ(ierr);
-  ierr = DSInitializePackage();CHKERRQ(ierr);
-  ierr = FNInitializePackage();CHKERRQ(ierr);
-  ierr = RGInitializePackage();CHKERRQ(ierr);
+  PetscCall(EPSInitializePackage());
+  PetscCall(SVDInitializePackage());
+  PetscCall(PEPInitializePackage());
+  PetscCall(NEPInitializePackage());
+  PetscCall(MFNInitializePackage());
+  PetscCall(STInitializePackage());
+  PetscCall(BVInitializePackage());
+  PetscCall(DSInitializePackage());
+  PetscCall(FNInitializePackage());
+  PetscCall(RGInitializePackage());
   PetscFunctionReturn(0);
 }
 

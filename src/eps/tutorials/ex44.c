@@ -27,35 +27,34 @@ int main(int argc,char **argv)
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   PetscBool      flg,terse;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetString(NULL,NULL,"-file",filename,sizeof(filename),&flg);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-file",filename,sizeof(filename),&flg));
   if (flg) {
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Load the matrix from file
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEigenproblem stored in file.\n\n");CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nEigenproblem stored in file.\n\n"));
 #if defined(PETSC_USE_COMPLEX)
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n");CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n"));
 #else
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n");CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n"));
 #endif
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-    ierr = MatLoad(A,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+    PetscCall(MatSetFromOptions(A));
+    PetscCall(MatLoad(A,viewer));
+    PetscCall(PetscViewerDestroy(&viewer));
 
   } else {
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           Generate Brusselator matrix
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-    ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+    PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",n));
 
     alpha  = 2.0;
     beta   = 5.45;
@@ -67,71 +66,70 @@ int main(int argc,char **argv)
     tau1 = delta1 / ((h*L)*(h*L));
     tau2 = delta2 / ((h*L)*(h*L));
 
-    ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-    ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,2*n,2*n);CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-    ierr = MatSetUp(A);CHKERRQ(ierr);
+    PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+    PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,2*n,2*n));
+    PetscCall(MatSetFromOptions(A));
+    PetscCall(MatSetUp(A));
 
-    ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+    PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
     for (i=Istart;i<Iend;i++) {
       if (i<n) {  /* upper blocks */
-        if (i>0) { ierr = MatSetValue(A,i,i-1,tau1,INSERT_VALUES);CHKERRQ(ierr); }
-        if (i<n-1) { ierr = MatSetValue(A,i,i+1,tau1,INSERT_VALUES);CHKERRQ(ierr); }
-        ierr = MatSetValue(A,i,i,-2.0*tau1+beta-1.0,INSERT_VALUES);CHKERRQ(ierr);
-        ierr = MatSetValue(A,i,i+n,alpha*alpha,INSERT_VALUES);CHKERRQ(ierr);
+        if (i>0) PetscCall(MatSetValue(A,i,i-1,tau1,INSERT_VALUES));
+        if (i<n-1) PetscCall(MatSetValue(A,i,i+1,tau1,INSERT_VALUES));
+        PetscCall(MatSetValue(A,i,i,-2.0*tau1+beta-1.0,INSERT_VALUES));
+        PetscCall(MatSetValue(A,i,i+n,alpha*alpha,INSERT_VALUES));
       } else {  /* lower blocks */
-        if (i>n) { ierr = MatSetValue(A,i,i-1,tau2,INSERT_VALUES);CHKERRQ(ierr); }
-        if (i<2*n-1) { ierr = MatSetValue(A,i,i+1,tau2,INSERT_VALUES);CHKERRQ(ierr); }
-        ierr = MatSetValue(A,i,i,-2.0*tau2-alpha*alpha,INSERT_VALUES);CHKERRQ(ierr);
-        ierr = MatSetValue(A,i,i-n,-beta,INSERT_VALUES);CHKERRQ(ierr);
+        if (i>n) PetscCall(MatSetValue(A,i,i-1,tau2,INSERT_VALUES));
+        if (i<2*n-1) PetscCall(MatSetValue(A,i,i+1,tau2,INSERT_VALUES));
+        PetscCall(MatSetValue(A,i,i,-2.0*tau2-alpha*alpha,INSERT_VALUES));
+        PetscCall(MatSetValue(A,i,i-n,-beta,INSERT_VALUES));
       }
     }
-    ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   }
 
   /* Shift the matrix to make it stable, A-sigma*I */
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-shift",&sigma,NULL);CHKERRQ(ierr);
-  ierr = MatShift(A,-sigma);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-shift",&sigma,NULL));
+  PetscCall(MatShift(A,-sigma));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
+  PetscCall(EPSSetFromOptions(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSGetType(eps,&type));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-terse",&terse));
+  if (terse) PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  else {
+    PetscCall(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL));
+    PetscCall(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD));
+    PetscCall(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD));
   }
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

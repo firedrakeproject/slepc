@@ -313,7 +313,7 @@ which initializes \slepc, \petsc and MPI. This subroutine is very similar to \ru
 
 	All \slepc programs should call \rutina{SlepcFinalize} as their final (or nearly final) statement
 	\begin{Verbatim}[fontsize=\small]
-	ierr = SlepcFinalize();
+	SlepcFinalize();
 	\end{Verbatim}
 This routine handles operations to be executed at the conclusion of the program, and calls \rutina{PetscFinalize} if \rutina{SlepcInitialize} began \petsc.
 
@@ -381,7 +381,7 @@ In the example program shown above there is no explicit reference to spectral tr
 
 \paragraph{Error Checking.}
 
-	All \slepc routines return an integer indicating whether an error has occurred during the call. The error code is set to be nonzero if an error has been detected; otherwise, it is zero. The \petsc macro \Verb!CHKERRQ(ierr)! checks the value of \Verb!ierr! and calls the \petsc error handler upon error detection. \Verb!CHKERRQ(ierr)! should be placed after all subroutine calls to enable a complete error traceback. See the \petsc documentation for full details.
+	All \slepc routines return an integer indicating whether an error has occurred during the call. The error code is set to be nonzero if an error has been detected; otherwise, it is zero. The \petsc macro \Verb!PetscCall(...)! checks the return value and calls the \petsc error handler upon error detection. \Verb!PetscCall(...)! should be used in all subroutine calls to enable a complete error traceback. See the \petsc documentation for full details.
 
 \subsection{Writing Application Codes with SLEPc}
 
@@ -410,5 +410,4 @@ ex1f: ex1f.o
 	-${FLINKER} -o ex1f ex1f.o ${SLEPC_EPS_LIB}
 	${RM} ex1f.o
 	\end{Verbatim}
-
 

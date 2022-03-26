@@ -14,7 +14,6 @@ static char help[] = "Test matrix function evaluation via diagonalization.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             fn;
   Mat            A,F,G;
   PetscInt       i,j,n=10;
@@ -23,14 +22,14 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix function of symmetric/Hermitian matrix, n=%" PetscInt_FMT ".\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix function of symmetric/Hermitian matrix, n=%" PetscInt_FMT ".\n",n));
 
   /* Create function object */
-  ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
-  ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);   /* default to exponential */
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fn));
+  PetscCall(FNSetType(fn,FNEXP));   /* default to exponential */
 #if defined(PETSC_USE_COMPLEX)
   alpha = PetscCMPLX(0.3,0.8);
   beta  = PetscCMPLX(1.1,-0.1);
@@ -38,19 +37,17 @@ int main(int argc,char **argv)
   alpha = 0.3;
   beta  = 1.1;
 #endif
-  ierr = FNSetScale(fn,alpha,beta);CHKERRQ(ierr);
-  ierr = FNSetFromOptions(fn);CHKERRQ(ierr);
+  PetscCall(FNSetScale(fn,alpha,beta));
+  PetscCall(FNSetFromOptions(fn));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-  }
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  if (verbose) PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Create a symmetric/Hermitian Toeplitz matrix */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)A,"A");CHKERRQ(ierr);
-  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  PetscCall(PetscObjectSetName((PetscObject)A,"A"));
+  PetscCall(MatDenseGetArray(A,&As));
   for (i=0;i<n;i++) As[i+i*n]=2.0;
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) {
@@ -61,46 +58,43 @@ int main(int argc,char **argv)
 #endif
     }
   }
-  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  PetscCall(MatDenseRestoreArray(A,&As));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(A,viewer);CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
+    PetscCall(MatView(A,viewer));
   }
 
   /* compute matrix function */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)F,"F");CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMat(fn,A,F);CHKERRQ(ierr);
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F));
+  PetscCall(PetscObjectSetName((PetscObject)F,"F"));
+  PetscCall(FNEvaluateFunctionMat(fn,A,F));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(F,viewer);CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n"));
+    PetscCall(MatView(F,viewer));
   }
 
   /* Repeat with MAT_HERMITIAN flag set */
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&G);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)G,"G");CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMat(fn,A,G);CHKERRQ(ierr);
+  PetscCall(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&G));
+  PetscCall(PetscObjectSetName((PetscObject)G,"G"));
+  PetscCall(FNEvaluateFunctionMat(fn,A,G));
   if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) symm - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(G,viewer);CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) symm - - - - - - -\n"));
+    PetscCall(MatView(G,viewer));
   }
 
   /* compare the two results */
-  ierr = MatAXPY(F,-1.0,G,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = MatNorm(F,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
-  if (nrm>100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of F-G is %g\n",(double)nrm);CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed results match.\n");CHKERRQ(ierr);
-  }
+  PetscCall(MatAXPY(F,-1.0,G,SAME_NONZERO_PATTERN));
+  PetscCall(MatNorm(F,NORM_FROBENIUS,&nrm));
+  if (nrm>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of F-G is %g\n",(double)nrm));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Computed results match.\n"));
 
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&F);CHKERRQ(ierr);
-  ierr = MatDestroy(&G);CHKERRQ(ierr);
-  ierr = FNDestroy(&fn);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&F));
+  PetscCall(MatDestroy(&G));
+  PetscCall(FNDestroy(&fn));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

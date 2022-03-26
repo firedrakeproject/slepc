@@ -207,7 +207,7 @@ struct _p_EPS {
   do { \
     if (condition) { \
       PetscBool __flg; \
-      ierr = PetscObjectTypeCompare((PetscObject)(eps)->st,STSINVERT,&__flg);CHKERRQ(ierr); \
+      PetscCall(PetscObjectTypeCompare((PetscObject)(eps)->st,STSINVERT,&__flg)); \
       PetscCheck(__flg,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires a shift-and-invert spectral transform",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
@@ -218,7 +218,7 @@ struct _p_EPS {
   do { \
     if (condition) { \
       PetscBool __flg; \
-      ierr = PetscObjectTypeCompareAny((PetscObject)(eps)->st,&__flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr); \
+      PetscCall(PetscObjectTypeCompareAny((PetscObject)(eps)->st,&__flg,STSINVERT,STCAYLEY,"")); \
       PetscCheck(__flg,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires shift-and-invert or Cayley transform",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
@@ -232,7 +232,7 @@ struct _p_EPS {
       PetscCheck(!((mask) & EPS_FEATURE_ARBITRARY) || !(eps)->arbitrary,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support arbitrary selection of eigenpairs",((PetscObject)(eps))->type_name,(msg)); \
       if ((mask) & EPS_FEATURE_REGION) { \
         PetscBool      __istrivial; \
-        PetscErrorCode __ierr = RGIsTrivial((eps)->rg,&__istrivial);CHKERRQ(__ierr); \
+        PetscCall(RGIsTrivial((eps)->rg,&__istrivial)); \
         PetscCheck(__istrivial,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(eps))->type_name,(msg)); \
       } \
       PetscCheck(!((mask) & EPS_FEATURE_EXTRACTION) || (eps)->extraction==EPS_RITZ,PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports Ritz extraction",((PetscObject)(eps))->type_name,(msg)); \
@@ -246,19 +246,18 @@ struct _p_EPS {
 /* Check for ignored features */
 #define EPSCheckIgnoredCondition(eps,mask,condition,msg) \
   do { \
-    PetscErrorCode __ierr; \
     if (condition) { \
-      if (((mask) & EPS_FEATURE_BALANCE) && (eps)->balance!=EPS_BALANCE_NONE) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the balancing settings\n",((PetscObject)(eps))->type_name,(msg)); } \
-      if (((mask) & EPS_FEATURE_ARBITRARY) && (eps)->arbitrary) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the settings for arbitrary selection of eigenpairs\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_BALANCE) && (eps)->balance!=EPS_BALANCE_NONE) PetscCall(PetscInfo((eps),"The solver '%s'%s ignores the balancing settings\n",((PetscObject)(eps))->type_name,(msg))); \
+      if (((mask) & EPS_FEATURE_ARBITRARY) && (eps)->arbitrary) PetscCall(PetscInfo((eps),"The solver '%s'%s ignores the settings for arbitrary selection of eigenpairs\n",((PetscObject)(eps))->type_name,(msg))); \
       if ((mask) & EPS_FEATURE_REGION) { \
         PetscBool __istrivial; \
-        __ierr = RGIsTrivial((eps)->rg,&__istrivial);CHKERRQ(__ierr); \
-        if (!__istrivial) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the specified region\n",((PetscObject)(eps))->type_name,(msg)); } \
+        PetscCall(RGIsTrivial((eps)->rg,&__istrivial)); \
+        if (!__istrivial) PetscCall(PetscInfo((eps),"The solver '%s'%s ignores the specified region\n",((PetscObject)(eps))->type_name,(msg))); \
       } \
-      if (((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the extraction settings\n",((PetscObject)(eps))->type_name,(msg)); } \
-      if (((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
-      if (((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
-      if (((mask) & EPS_FEATURE_TWOSIDED) && (eps)->twosided) { __ierr = PetscInfo((eps),"The solver '%s'%s ignores the two-sided flag\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ) PetscCall(PetscInfo((eps),"The solver '%s'%s ignores the extraction settings\n",((PetscObject)(eps))->type_name,(msg))); \
+      if (((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative) PetscCall(PetscInfo((eps),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(eps))->type_name,(msg))); \
+      if (((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic) PetscCall(PetscInfo((eps),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(eps))->type_name,(msg))); \
+      if (((mask) & EPS_FEATURE_TWOSIDED) && (eps)->twosided) PetscCall(PetscInfo((eps),"The solver '%s'%s ignores the two-sided flag\n",((PetscObject)(eps))->type_name,(msg))); \
     } \
   } while (0)
 #define EPSCheckIgnored(eps,mask) EPSCheckIgnoredCondition(eps,mask,PETSC_TRUE,"")
@@ -268,18 +267,15 @@ struct _p_EPS {
 */
 static inline PetscErrorCode EPS_SetInnerProduct(EPS eps)
 {
-  PetscErrorCode ierr;
   Mat            B;
 
   PetscFunctionBegin;
-  if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
+  if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
-    ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
-    ierr = BVSetMatrix(eps->V,B,PetscNot(eps->ispositive));CHKERRQ(ierr);
-    ierr = MatDestroy(&B);CHKERRQ(ierr);
-  } else {
-    ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
-  }
+    PetscCall(STGetBilinearForm(eps->st,&B));
+    PetscCall(BVSetMatrix(eps->V,B,PetscNot(eps->ispositive)));
+    PetscCall(MatDestroy(&B));
+  } else PetscCall(BVSetMatrix(eps->V,NULL,PETSC_FALSE));
   PetscFunctionReturn(0);
 }
 
@@ -288,19 +284,18 @@ static inline PetscErrorCode EPS_SetInnerProduct(EPS eps)
 */
 static inline PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   Vec            v,z;
 
   PetscFunctionBegin;
-  ierr = BVCreateVec(eps->V,&v);CHKERRQ(ierr);
+  PetscCall(BVCreateVec(eps->V,&v));
   for (i=0;i<k;i++) {
-    ierr = BVCopyVec(eps->V,i,v);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
-    ierr = STApply(eps->st,v,z);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
+    PetscCall(BVCopyVec(eps->V,i,v));
+    PetscCall(BVGetColumn(eps->V,i,&z));
+    PetscCall(STApply(eps->st,v,z));
+    PetscCall(BVRestoreColumn(eps->V,i,&z));
   }
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  PetscCall(VecDestroy(&v));
   PetscFunctionReturn(0);
 }
 
@@ -309,17 +304,16 @@ static inline PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
 */
 static inline PetscErrorCode EPS_KSPSetOperators(KSP ksp,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
   const char     *prefix;
 
   PetscFunctionBegin;
-  ierr = KSPSetOperators(ksp,A,B);CHKERRQ(ierr);
-  ierr = MatGetOptionsPrefix(B,&prefix);CHKERRQ(ierr);
+  PetscCall(KSPSetOperators(ksp,A,B));
+  PetscCall(MatGetOptionsPrefix(B,&prefix));
   if (!prefix) {
     /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
        only applies if the Mat has no user-defined prefix */
-    ierr = KSPGetOptionsPrefix(ksp,&prefix);CHKERRQ(ierr);
-    ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+    PetscCall(KSPGetOptionsPrefix(ksp,&prefix));
+    PetscCall(MatSetOptionsPrefix(B,prefix));
   }
   PetscFunctionReturn(0);
 }

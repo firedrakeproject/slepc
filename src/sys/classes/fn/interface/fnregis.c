@@ -29,18 +29,15 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN);
 @*/
 PetscErrorCode FNRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (FNRegisterAllCalled) PetscFunctionReturn(0);
   FNRegisterAllCalled = PETSC_TRUE;
-  ierr = FNRegister(FNCOMBINE,FNCreate_Combine);CHKERRQ(ierr);
-  ierr = FNRegister(FNRATIONAL,FNCreate_Rational);CHKERRQ(ierr);
-  ierr = FNRegister(FNEXP,FNCreate_Exp);CHKERRQ(ierr);
-  ierr = FNRegister(FNLOG,FNCreate_Log);CHKERRQ(ierr);
-  ierr = FNRegister(FNPHI,FNCreate_Phi);CHKERRQ(ierr);
-  ierr = FNRegister(FNSQRT,FNCreate_Sqrt);CHKERRQ(ierr);
-  ierr = FNRegister(FNINVSQRT,FNCreate_Invsqrt);CHKERRQ(ierr);
+  PetscCall(FNRegister(FNCOMBINE,FNCreate_Combine));
+  PetscCall(FNRegister(FNRATIONAL,FNCreate_Rational));
+  PetscCall(FNRegister(FNEXP,FNCreate_Exp));
+  PetscCall(FNRegister(FNLOG,FNCreate_Log));
+  PetscCall(FNRegister(FNPHI,FNCreate_Phi));
+  PetscCall(FNRegister(FNSQRT,FNCreate_Sqrt));
+  PetscCall(FNRegister(FNINVSQRT,FNCreate_Invsqrt));
   PetscFunctionReturn(0);
 }
-

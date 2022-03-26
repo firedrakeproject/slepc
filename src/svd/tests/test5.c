@@ -21,61 +21,58 @@ int main(int argc,char **argv)
   PetscBool      checkfile;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD of diagonal matrix, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSVD of diagonal matrix, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(A,i,i,i+1,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(A,i,i,i+1,INSERT_VALUES));
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                      Create the SVD solver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)svd,"svd");CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(PetscObjectSetName((PetscObject)svd,"svd"));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetFromOptions(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Compute the singular triplets and display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                    Check file containing the singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile));
   if (checkfile) {
-    ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
-    ierr = PetscMalloc1(nconv,&sigma);CHKERRQ(ierr);
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-    ierr = PetscViewerBinaryRead(viewer,sigma,nconv,NULL,PETSC_REAL);CHKERRQ(ierr);
-    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+    PetscCall(SVDGetConverged(svd,&nconv));
+    PetscCall(PetscMalloc1(nconv,&sigma));
+    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+    PetscCall(PetscViewerBinaryRead(viewer,sigma,nconv,NULL,PETSC_REAL));
+    PetscCall(PetscViewerDestroy(&viewer));
     for (i=0;i<nconv;i++) {
-      ierr = SVDGetSingularTriplet(svd,i,&sval,NULL,NULL);CHKERRQ(ierr);
+      PetscCall(SVDGetSingularTriplet(svd,i,&sval,NULL,NULL));
       PetscCheck(sval==sigma[i],PETSC_COMM_WORLD,PETSC_ERR_FILE_UNEXPECTED,"Singular values in the file do not match");
     }
-    ierr = PetscFree(sigma);CHKERRQ(ierr);
+    PetscCall(PetscFree(sigma));
   }
 
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

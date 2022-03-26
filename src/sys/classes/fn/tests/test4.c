@@ -14,22 +14,21 @@ static char help[] = "Test setting FN parameters from the command line.\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   FN             fn1,fn2;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = FNCreate(PETSC_COMM_WORLD,&fn1);CHKERRQ(ierr);
-  ierr = FNSetOptionsPrefix(fn1,"f1_");CHKERRQ(ierr);
-  ierr = FNSetFromOptions(fn1);CHKERRQ(ierr);
-  ierr = FNView(fn1,NULL);CHKERRQ(ierr);
-  ierr = FNDestroy(&fn1);CHKERRQ(ierr);
-  ierr = FNCreate(PETSC_COMM_WORLD,&fn2);CHKERRQ(ierr);
-  ierr = FNSetOptionsPrefix(fn2,"f2_");CHKERRQ(ierr);
-  ierr = FNSetFromOptions(fn2);CHKERRQ(ierr);
-  ierr = FNView(fn2,NULL);CHKERRQ(ierr);
-  ierr = FNDestroy(&fn2);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fn1));
+  PetscCall(FNSetOptionsPrefix(fn1,"f1_"));
+  PetscCall(FNSetFromOptions(fn1));
+  PetscCall(FNView(fn1,NULL));
+  PetscCall(FNDestroy(&fn1));
+  PetscCall(FNCreate(PETSC_COMM_WORLD,&fn2));
+  PetscCall(FNSetOptionsPrefix(fn2,"f2_"));
+  PetscCall(FNSetFromOptions(fn2));
+  PetscCall(FNView(fn2,NULL));
+  PetscCall(FNDestroy(&fn2));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

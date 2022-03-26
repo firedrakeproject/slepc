@@ -15,23 +15,19 @@
  */
 PetscErrorCode SlepcMonitorMakeKey_Internal(const char name[],PetscViewerType vtype,PetscViewerFormat format,char key[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscStrncpy(key,name,PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
-  ierr = PetscStrlcat(key,":",PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
-  ierr = PetscStrlcat(key,vtype,PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
-  ierr = PetscStrlcat(key,":",PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
-  ierr = PetscStrlcat(key,PetscViewerFormats[format],PETSC_MAX_PATH_LEN);CHKERRQ(ierr);
+  PetscCall(PetscStrncpy(key,name,PETSC_MAX_PATH_LEN));
+  PetscCall(PetscStrlcat(key,":",PETSC_MAX_PATH_LEN));
+  PetscCall(PetscStrlcat(key,vtype,PETSC_MAX_PATH_LEN));
+  PetscCall(PetscStrlcat(key,":",PETSC_MAX_PATH_LEN));
+  PetscCall(PetscStrlcat(key,PetscViewerFormats[format],PETSC_MAX_PATH_LEN));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PetscViewerAndFormatCreate_Internal(PetscViewer viewer,PetscViewerFormat format,void *ctx,PetscViewerAndFormat **vf)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscViewerAndFormatCreate(viewer,format,vf);CHKERRQ(ierr);
+  PetscCall(PetscViewerAndFormatCreate(viewer,format,vf));
   (*vf)->data = ctx;
   PetscFunctionReturn(0);
 }
@@ -42,16 +38,13 @@ PetscErrorCode PetscViewerAndFormatCreate_Internal(PetscViewer viewer,PetscViewe
  */
 PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)V[i]);CHKERRQ(ierr);
-  }
-  ierr = SlepcBasisDestroy_Private(m,W);CHKERRQ(ierr);
+  for (i=0;i<n;i++) PetscCall(PetscObjectReference((PetscObject)V[i]));
+  PetscCall(SlepcBasisDestroy_Private(m,W));
   if (n>0) {
-    ierr = PetscMalloc1(n,W);CHKERRQ(ierr);
+    PetscCall(PetscMalloc1(n,W));
     for (i=0;i<n;i++) (*W)[i] = V[i];
     *m = -n;
   }
@@ -64,15 +57,12 @@ PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W
  */
 PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
   if (*m<0) {
-    for (i=0;i<-(*m);i++) {
-      ierr = VecDestroy(&(*W)[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(*W);CHKERRQ(ierr);
+    for (i=0;i<-(*m);i++) PetscCall(VecDestroy(&(*W)[i]));
+    PetscCall(PetscFree(*W));
   }
   *m = 0;
   PetscFunctionReturn(0);
@@ -97,33 +87,23 @@ PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
 @*/
 PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBool exp)
 {
-  PetscErrorCode ierr;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      re,im;
 #endif
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  if (exp) {
-    ierr = PetscSNPrintf(str,len,"%+g",(double)val);CHKERRQ(ierr);
-  } else {
-    ierr = PetscSNPrintf(str,len,"%g",(double)val);CHKERRQ(ierr);
-  }
+  if (exp) PetscCall(PetscSNPrintf(str,len,"%+g",(double)val));
+  else PetscCall(PetscSNPrintf(str,len,"%g",(double)val));
 #else
   re = PetscRealPart(val);
   im = PetscImaginaryPart(val);
   if (im!=0.0) {
-    if (exp) {
-      ierr = PetscSNPrintf(str,len,"+(%g%+gi)",(double)re,(double)im);CHKERRQ(ierr);
-    } else {
-      ierr = PetscSNPrintf(str,len,"%g%+gi",(double)re,(double)im);CHKERRQ(ierr);
-    }
+    if (exp) PetscCall(PetscSNPrintf(str,len,"+(%g%+gi)",(double)re,(double)im));
+    else PetscCall(PetscSNPrintf(str,len,"%g%+gi",(double)re,(double)im));
   } else {
-    if (exp) {
-      ierr = PetscSNPrintf(str,len,"%+g",(double)re);CHKERRQ(ierr);
-    } else {
-      ierr = PetscSNPrintf(str,len,"%g",(double)re);CHKERRQ(ierr);
-    }
+    if (exp) PetscCall(PetscSNPrintf(str,len,"%+g",(double)re));
+    else PetscCall(PetscSNPrintf(str,len,"%g",(double)re));
   }
 #endif
   PetscFunctionReturn(0);
@@ -158,14 +138,13 @@ PetscErrorCode SlepcHasExternalPackage(const char pkg[], PetscBool *has)
 {
   char           pkgstr[128],*loc;
   size_t         cnt;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = PetscSNPrintfCount(pkgstr,sizeof(pkgstr),":%s:",&cnt,pkg);CHKERRQ(ierr);
+  PetscCall(PetscSNPrintfCount(pkgstr,sizeof(pkgstr),":%s:",&cnt,pkg));
   PetscCheck(cnt<sizeof(pkgstr),PETSC_COMM_SELF,PETSC_ERR_SUP,"Package name is too long: \"%s\"",pkg);
-  ierr = PetscStrtolower(pkgstr);CHKERRQ(ierr);
+  PetscCall(PetscStrtolower(pkgstr));
 #if defined(SLEPC_HAVE_PACKAGES)
-  ierr = PetscStrstr(SLEPC_HAVE_PACKAGES,pkgstr,&loc);CHKERRQ(ierr);
+  PetscCall(PetscStrstr(SLEPC_HAVE_PACKAGES,pkgstr,&loc));
 #else
 #error "SLEPC_HAVE_PACKAGES macro undefined. Please reconfigure"
 #endif
@@ -186,30 +165,26 @@ PetscErrorCode SlepcHasExternalPackage(const char pkg[], PetscBool *has)
 #if defined(PETSC_USE_DEBUG)
 PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *Xr,PetscScalar *Xi,PetscInt ldx,const char *s,const char *filename)
 {
-  PetscErrorCode ierr;
   PetscInt       i,j;
   PetscViewer    viewer;
 
   PetscFunctionBegin;
-  if (filename) {
-    ierr = PetscViewerASCIIOpen(PETSC_COMM_WORLD,filename,&viewer);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  }
-  ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",s);CHKERRQ(ierr);
+  if (filename) PetscCall(PetscViewerASCIIOpen(PETSC_COMM_WORLD,filename,&viewer));
+  else PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(PetscViewerASCIIPrintf(viewer,"%s = [\n",s));
   for (i=0;i<nrows;i++) {
     for (j=0;j<ncols;j++) {
 #if defined(PETSC_USE_COMPLEX)
-      ierr = PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",PetscRealPart(Xr[i+j*ldx]),PetscImaginaryPart(Xr[i+j*ldx]));CHKERRQ(ierr);
+      PetscCall(PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",PetscRealPart(Xr[i+j*ldx]),PetscImaginaryPart(Xr[i+j*ldx])));
 #else
-      if (Xi) { ierr = PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",Xr[i+j*ldx],Xi[i+j*ldx]);CHKERRQ(ierr); }
-      else { ierr = PetscViewerASCIIPrintf(viewer,"%.18g ",Xr[i+j*ldx]);CHKERRQ(ierr); }
+      if (Xi) PetscCall(PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",Xr[i+j*ldx],Xi[i+j*ldx]));
+      else PetscCall(PetscViewerASCIIPrintf(viewer,"%.18g ",Xr[i+j*ldx]));
 #endif
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
-  if (filename) { ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr); }
+  PetscCall(PetscViewerASCIIPrintf(viewer,"];\n"));
+  if (filename) PetscCall(PetscViewerDestroy(&viewer));
   PetscFunctionReturn(0);
 }
 #endif
@@ -220,13 +195,11 @@ PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *X
 #if defined(PETSC_USE_DEBUG)
 PETSC_UNUSED PetscErrorCode SlepcDebugSetMatlabStdout(void)
 {
-  PetscErrorCode ierr;
   PetscViewer    viewer;
 
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
+  PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
   PetscFunctionReturn(0);
 }
 #endif
-

@@ -32,27 +32,26 @@ int main(int argc,char **argv)
   PetscReal      tol=PETSC_SMALL;
   PetscScalar    target=0.5;
   PetscInt       N,m=15,nev;
-  PetscErrorCode ierr;
   char           str[50];
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n",N,m);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-target",&target,NULL);CHKERRQ(ierr);
-  ierr = SlepcSNPrintfScalar(str,sizeof(str),target,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %s.\n\n",str);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n",N,m));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-target",&target,NULL));
+  PetscCall(SlepcSNPrintfScalar(str,sizeof(str),target,PETSC_FALSE));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Searching closest eigenvalues to the right of %s.\n\n",str));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatMarkovModel(m,A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
+  PetscCall(MatMarkovModel(m,A));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
@@ -61,58 +60,58 @@ int main(int argc,char **argv)
   /*
      Create eigensolver context
   */
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
 
   /*
      Set operators. In this case, it is a standard eigenvalue problem
   */
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetTolerances(eps,tol,PETSC_DEFAULT));
 
   /*
      Set the custom comparing routine in order to obtain the eigenvalues
      closest to the target on the right only
   */
-  ierr = EPSSetEigenvalueComparison(eps,MyEigenSort,&target);CHKERRQ(ierr);
+  PetscCall(EPSSetEigenvalueComparison(eps,MyEigenSort,&target));
 
   /*
      Set solver parameters at runtime
   */
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  PetscCall(EPSSetFromOptions(eps));
 
   /*
      Set the preconditioner based on A - target * I
   */
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetShift(st,target);CHKERRQ(ierr);
+  PetscCall(EPSGetST(eps,&st));
+  PetscCall(STSetShift(st,target));
 
   /*
      Set the initial vector. This is optional, if not done the initial
      vector is set to random values
   */
-  ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
-  ierr = VecSet(v0,1.0);CHKERRQ(ierr);
-  ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
+  PetscCall(MatCreateVecs(A,&v0,NULL));
+  PetscCall(VecSet(v0,1.0));
+  PetscCall(EPSSetInitialSpace(eps,1,&v0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev);CHKERRQ(ierr);
+  PetscCall(EPSSolve(eps));
+  PetscCall(EPSGetDimensions(eps,&nev,NULL,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %" PetscInt_FMT "\n",nev));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v0);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(VecDestroy(&v0));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
@@ -120,10 +119,9 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   const PetscReal cst = 0.5/(PetscReal)(m-1);
   PetscReal       pd,pu;
   PetscInt        Istart,Iend,i,j,jmax,ix=0;
-  PetscErrorCode  ierr;
 
   PetscFunctionBeginUser;
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=1;i<=m;i++) {
     jmax = m-i+1;
     for (j=1;j<=jmax;j++) {
@@ -132,31 +130,21 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
       if (j!=jmax) {
         pd = cst*(PetscReal)(i+j-1);
         /* north */
-        if (i==1) {
-          ierr = MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES);CHKERRQ(ierr);
-        } else {
-          ierr = MatSetValue(A,ix-1,ix,pd,INSERT_VALUES);CHKERRQ(ierr);
-        }
+        if (i==1) PetscCall(MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES));
+        else PetscCall(MatSetValue(A,ix-1,ix,pd,INSERT_VALUES));
         /* east */
-        if (j==1) {
-          ierr = MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES);CHKERRQ(ierr);
-        } else {
-          ierr = MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES);CHKERRQ(ierr);
-        }
+        if (j==1) PetscCall(MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES));
+        else PetscCall(MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES));
       }
       /* south */
       pu = 0.5 - cst*(PetscReal)(i+j-3);
-      if (j>1) {
-        ierr = MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES);CHKERRQ(ierr);
-      }
+      if (j>1) PetscCall(MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES));
       /* west */
-      if (i>1) {
-        ierr = MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES);CHKERRQ(ierr);
-      }
+      if (i>1) PetscCall(MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES));
     }
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
 }
 

@@ -30,18 +30,16 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_CISS(PEP);
 @*/
 PetscErrorCode PEPRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (PEPRegisterAllCalled) PetscFunctionReturn(0);
   PEPRegisterAllCalled = PETSC_TRUE;
-  ierr = PEPRegister(PEPLINEAR,PEPCreate_Linear);CHKERRQ(ierr);
-  ierr = PEPRegister(PEPQARNOLDI,PEPCreate_QArnoldi);CHKERRQ(ierr);
-  ierr = PEPRegister(PEPTOAR,PEPCreate_TOAR);CHKERRQ(ierr);
-  ierr = PEPRegister(PEPSTOAR,PEPCreate_STOAR);CHKERRQ(ierr);
-  ierr = PEPRegister(PEPJD,PEPCreate_JD);CHKERRQ(ierr);
+  PetscCall(PEPRegister(PEPLINEAR,PEPCreate_Linear));
+  PetscCall(PEPRegister(PEPQARNOLDI,PEPCreate_QArnoldi));
+  PetscCall(PEPRegister(PEPTOAR,PEPCreate_TOAR));
+  PetscCall(PEPRegister(PEPSTOAR,PEPCreate_STOAR));
+  PetscCall(PEPRegister(PEPJD,PEPCreate_JD));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PEPRegister(PEPCISS,PEPCreate_CISS);CHKERRQ(ierr);
+  PetscCall(PEPRegister(PEPCISS,PEPCreate_CISS));
 #endif
   PetscFunctionReturn(0);
 }
@@ -57,18 +55,15 @@ PetscErrorCode PEPRegisterAll(void)
 @*/
 PetscErrorCode PEPMonitorRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (PEPMonitorRegisterAllCalled) PetscFunctionReturn(0);
   PEPMonitorRegisterAllCalled = PETSC_TRUE;
 
-  ierr = PEPMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,PEPMonitorFirst,NULL,NULL);CHKERRQ(ierr);
-  ierr = PEPMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,PEPMonitorFirstDrawLG,PEPMonitorFirstDrawLGCreate,NULL);CHKERRQ(ierr);
-  ierr = PEPMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,PEPMonitorAll,NULL,NULL);CHKERRQ(ierr);
-  ierr = PEPMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,PEPMonitorAllDrawLG,PEPMonitorAllDrawLGCreate,NULL);CHKERRQ(ierr);
-  ierr = PEPMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,PEPMonitorConverged,PEPMonitorConvergedCreate,PEPMonitorConvergedDestroy);CHKERRQ(ierr);
-  ierr = PEPMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,PEPMonitorConvergedDrawLG,PEPMonitorConvergedDrawLGCreate,PEPMonitorConvergedDestroy);CHKERRQ(ierr);
+  PetscCall(PEPMonitorRegister("first_approximation",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,PEPMonitorFirst,NULL,NULL));
+  PetscCall(PEPMonitorRegister("first_approximation",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,PEPMonitorFirstDrawLG,PEPMonitorFirstDrawLGCreate,NULL));
+  PetscCall(PEPMonitorRegister("all_approximations",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,PEPMonitorAll,NULL,NULL));
+  PetscCall(PEPMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,PEPMonitorAllDrawLG,PEPMonitorAllDrawLGCreate,NULL));
+  PetscCall(PEPMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,PEPMonitorConverged,PEPMonitorConvergedCreate,PEPMonitorConvergedDestroy));
+  PetscCall(PEPMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,PEPMonitorConvergedDrawLG,PEPMonitorConvergedDrawLGCreate,PEPMonitorConvergedDestroy));
   PetscFunctionReturn(0);
 }
-

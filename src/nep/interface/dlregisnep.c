@@ -29,13 +29,11 @@ const char *const*NEPConvergedReasons = NEPConvergedReasons_Shifted + 5;
 @*/
 PetscErrorCode NEPFinalizePackage(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&NEPList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&NEPMonitorList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&NEPMonitorCreateList);CHKERRQ(ierr);
-  ierr = PetscFunctionListDestroy(&NEPMonitorDestroyList);CHKERRQ(ierr);
+  PetscCall(PetscFunctionListDestroy(&NEPList));
+  PetscCall(PetscFunctionListDestroy(&NEPMonitorList));
+  PetscCall(PetscFunctionListDestroy(&NEPMonitorCreateList));
+  PetscCall(PetscFunctionListDestroy(&NEPMonitorDestroyList));
   NEPPackageInitialized       = PETSC_FALSE;
   NEPRegisterAllCalled        = PETSC_FALSE;
   NEPMonitorRegisterAllCalled = PETSC_FALSE;
@@ -56,36 +54,35 @@ PetscErrorCode NEPInitializePackage(void)
   char           logList[256];
   PetscBool      opt,pkg;
   PetscClassId   classids[1];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (NEPPackageInitialized) PetscFunctionReturn(0);
   NEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("NEP Solver",&NEP_CLASSID);CHKERRQ(ierr);
+  PetscCall(PetscClassIdRegister("NEP Solver",&NEP_CLASSID));
   /* Register Constructors */
-  ierr = NEPRegisterAll();CHKERRQ(ierr);
+  PetscCall(NEPRegisterAll());
   /* Register Monitors */
-  ierr = NEPMonitorRegisterAll();CHKERRQ(ierr);
+  PetscCall(NEPMonitorRegisterAll());
   /* Register Events */
-  ierr = PetscLogEventRegister("NEPSetUp",NEP_CLASSID,&NEP_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPSolve",NEP_CLASSID,&NEP_Solve);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPRefine",NEP_CLASSID,&NEP_Refine);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPResolvent",NEP_CLASSID,&NEP_Resolvent);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("NEPCISS_SVD",NEP_CLASSID,&NEP_CISS_SVD);CHKERRQ(ierr);
+  PetscCall(PetscLogEventRegister("NEPSetUp",NEP_CLASSID,&NEP_SetUp));
+  PetscCall(PetscLogEventRegister("NEPSolve",NEP_CLASSID,&NEP_Solve));
+  PetscCall(PetscLogEventRegister("NEPRefine",NEP_CLASSID,&NEP_Refine));
+  PetscCall(PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval));
+  PetscCall(PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval));
+  PetscCall(PetscLogEventRegister("NEPResolvent",NEP_CLASSID,&NEP_Resolvent));
+  PetscCall(PetscLogEventRegister("NEPCISS_SVD",NEP_CLASSID,&NEP_CISS_SVD));
   /* Process Info */
   classids[0] = NEP_CLASSID;
-  ierr = PetscInfoProcessClass("nep",1,&classids[0]);CHKERRQ(ierr);
+  PetscCall(PetscInfoProcessClass("nep",1,&classids[0]));
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    ierr = PetscStrInList("nep",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscLogEventDeactivateClass(NEP_CLASSID);CHKERRQ(ierr); }
+    PetscCall(PetscStrInList("nep",logList,',',&pkg));
+    if (pkg) PetscCall(PetscLogEventDeactivateClass(NEP_CLASSID));
   }
   /* Register package finalizer */
-  ierr = PetscRegisterFinalize(NEPFinalizePackage);CHKERRQ(ierr);
+  PetscCall(PetscRegisterFinalize(NEPFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -99,11 +96,8 @@ PetscErrorCode NEPInitializePackage(void)
  */
 SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcnep()
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = NEPInitializePackage();CHKERRQ(ierr);
+  PetscCall(NEPInitializePackage());
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_DYNAMIC_LIBRARIES */
-

@@ -27,16 +27,13 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV);
 @*/
 PetscErrorCode BVRegisterAll(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (BVRegisterAllCalled) PetscFunctionReturn(0);
   BVRegisterAllCalled = PETSC_TRUE;
-  ierr = BVRegister(BVVECS,BVCreate_Vecs);CHKERRQ(ierr);
-  ierr = BVRegister(BVCONTIGUOUS,BVCreate_Contiguous);CHKERRQ(ierr);
-  ierr = BVRegister(BVSVEC,BVCreate_Svec);CHKERRQ(ierr);
-  ierr = BVRegister(BVMAT,BVCreate_Mat);CHKERRQ(ierr);
-  ierr = BVRegister(BVTENSOR,BVCreate_Tensor);CHKERRQ(ierr);
+  PetscCall(BVRegister(BVVECS,BVCreate_Vecs));
+  PetscCall(BVRegister(BVCONTIGUOUS,BVCreate_Contiguous));
+  PetscCall(BVRegister(BVSVEC,BVCreate_Svec));
+  PetscCall(BVRegister(BVMAT,BVCreate_Mat));
+  PetscCall(BVRegister(BVTENSOR,BVCreate_Tensor));
   PetscFunctionReturn(0);
 }
-

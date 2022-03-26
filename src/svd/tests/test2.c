@@ -21,9 +21,8 @@ int main(int argc,char **argv)
   const char     *prefix,*scalar,*ints,*floats;
   PetscReal      tol=PETSC_SMALL;
   PetscViewer    viewer;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrix for which the SVD must be computed
@@ -46,31 +45,31 @@ int main(int argc,char **argv)
   floats = "float32";
 #endif
 
-  ierr = PetscSNPrintf(filename,sizeof(filename),"%s/share/petsc/datafiles/matrices/%s-%s-%s-%s",PETSC_DIR,prefix,scalar,ints,floats);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nReading matrix from binary file...\n\n");CHKERRQ(ierr);
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatLoad(A,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  PetscCall(PetscSNPrintf(filename,sizeof(filename),"%s/share/petsc/datafiles/matrices/%s-%s-%s-%s",PETSC_DIR,prefix,scalar,ints,floats));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nReading matrix from binary file...\n\n"));
+  PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatLoad(A,viewer));
+  PetscCall(PetscViewerDestroy(&viewer));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                      Create the SVD solver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOperators(svd,A,NULL);CHKERRQ(ierr);
-  ierr = SVDSetTolerances(svd,tol,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  PetscCall(SVDCreate(PETSC_COMM_WORLD,&svd));
+  PetscCall(SVDSetOperators(svd,A,NULL));
+  PetscCall(SVDSetTolerances(svd,tol,PETSC_DEFAULT));
+  PetscCall(SVDSetFromOptions(svd));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Compute the singular triplets and display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = SVDSolve(svd);CHKERRQ(ierr);
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(SVDSolve(svd));
+  PetscCall(SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL));
+  PetscCall(SVDDestroy(&svd));
+  PetscCall(MatDestroy(&A));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

@@ -39,11 +39,10 @@ int main(int argc,char **argv)
   Mat            A,T1,T2,D1,D2,mats[4];
   PetscScalar    alpha,beta,tau1,tau2,delta1,delta2,L,h;
   PetscInt       N=30,i,Istart,Iend;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",N);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%" PetscInt_FMT "\n\n",N));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
@@ -55,72 +54,72 @@ int main(int argc,char **argv)
   delta2 = 0.004;
   L      = 0.51302;
 
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-L",&L,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-alpha",&alpha,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-beta",&beta,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-delta1",&delta1,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-delta2",&delta2,NULL);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-L",&L,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-alpha",&alpha,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-beta",&beta,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-delta1",&delta1,NULL));
+  PetscCall(PetscOptionsGetScalar(NULL,NULL,"-delta2",&delta2,NULL));
 
   h    = 1.0 / (PetscReal)(N+1);
   tau1 = delta1 / ((h*L)*(h*L));
   tau2 = delta2 / ((h*L)*(h*L));
 
   /* Create matrices T1, T2 */
-  ierr = MatCreate(PETSC_COMM_WORLD,&T1);CHKERRQ(ierr);
-  ierr = MatSetSizes(T1,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(T1);CHKERRQ(ierr);
-  ierr = MatSetUp(T1);CHKERRQ(ierr);
-  ierr = MatGetOwnershipRange(T1,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&T1));
+  PetscCall(MatSetSizes(T1,PETSC_DECIDE,PETSC_DECIDE,N,N));
+  PetscCall(MatSetFromOptions(T1));
+  PetscCall(MatSetUp(T1));
+  PetscCall(MatGetOwnershipRange(T1,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(T1,i,i-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<N-1) { ierr = MatSetValue(T1,i,i+1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(T1,i,i,-2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(T1,i,i-1,1.0,INSERT_VALUES));
+    if (i<N-1) PetscCall(MatSetValue(T1,i,i+1,1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(T1,i,i,-2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(T1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(T1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(T1,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(T1,MAT_FINAL_ASSEMBLY));
 
-  ierr = MatDuplicate(T1,MAT_COPY_VALUES,&T2);CHKERRQ(ierr);
-  ierr = MatScale(T1,tau1);CHKERRQ(ierr);
-  ierr = MatShift(T1,beta-1.0);CHKERRQ(ierr);
-  ierr = MatScale(T2,tau2);CHKERRQ(ierr);
-  ierr = MatShift(T2,-alpha*alpha);CHKERRQ(ierr);
+  PetscCall(MatDuplicate(T1,MAT_COPY_VALUES,&T2));
+  PetscCall(MatScale(T1,tau1));
+  PetscCall(MatShift(T1,beta-1.0));
+  PetscCall(MatScale(T2,tau2));
+  PetscCall(MatShift(T2,-alpha*alpha));
 
   /* Create matrices D1, D2 */
-  ierr = MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,alpha*alpha,&D1);CHKERRQ(ierr);
-  ierr = MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,-beta,&D2);CHKERRQ(ierr);
+  PetscCall(MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,alpha*alpha,&D1));
+  PetscCall(MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,N,N,-beta,&D2));
 
   /* Create the nest matrix */
   mats[0] = T1;
   mats[1] = D1;
   mats[2] = D2;
   mats[3] = T2;
-  ierr = MatCreateNest(PETSC_COMM_WORLD,2,NULL,2,NULL,mats,&A);CHKERRQ(ierr);
+  PetscCall(MatCreateNest(PETSC_COMM_WORLD,2,NULL,2,NULL,mats,&A));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetTrueResidual(eps,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
-  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  PetscCall(EPSCreate(PETSC_COMM_WORLD,&eps));
+  PetscCall(EPSSetOperators(eps,A,NULL));
+  PetscCall(EPSSetProblemType(eps,EPS_NHEP));
+  PetscCall(EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL));
+  PetscCall(EPSSetTrueResidual(eps,PETSC_FALSE));
+  PetscCall(EPSSetFromOptions(eps));
+  PetscCall(EPSSolve(eps));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&T1);CHKERRQ(ierr);
-  ierr = MatDestroy(&T2);CHKERRQ(ierr);
-  ierr = MatDestroy(&D1);CHKERRQ(ierr);
-  ierr = MatDestroy(&D2);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL));
+  PetscCall(EPSDestroy(&eps));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&T1));
+  PetscCall(MatDestroy(&T2));
+  PetscCall(MatDestroy(&D1));
+  PetscCall(MatDestroy(&D2));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

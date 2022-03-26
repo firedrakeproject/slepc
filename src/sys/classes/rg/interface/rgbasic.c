@@ -28,10 +28,8 @@ static PetscBool  RGPackageInitialized = PETSC_FALSE;
 @*/
 PetscErrorCode RGFinalizePackage(void)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFunctionListDestroy(&RGList);CHKERRQ(ierr);
+  PetscCall(PetscFunctionListDestroy(&RGList));
   RGPackageInitialized = PETSC_FALSE;
   RGRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -51,26 +49,25 @@ PetscErrorCode RGInitializePackage(void)
   char           logList[256];
   PetscBool      opt,pkg;
   PetscClassId   classids[1];
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (RGPackageInitialized) PetscFunctionReturn(0);
   RGPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Region",&RG_CLASSID);CHKERRQ(ierr);
+  PetscCall(PetscClassIdRegister("Region",&RG_CLASSID));
   /* Register Constructors */
-  ierr = RGRegisterAll();CHKERRQ(ierr);
+  PetscCall(RGRegisterAll());
   /* Process Info */
   classids[0] = RG_CLASSID;
-  ierr = PetscInfoProcessClass("rg",1,&classids[0]);CHKERRQ(ierr);
+  PetscCall(PetscInfoProcessClass("rg",1,&classids[0]));
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
+  PetscCall(PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt));
   if (opt) {
-    ierr = PetscStrInList("rg",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscLogEventDeactivateClass(RG_CLASSID);CHKERRQ(ierr); }
+    PetscCall(PetscStrInList("rg",logList,',',&pkg));
+    if (pkg) PetscCall(PetscLogEventDeactivateClass(RG_CLASSID));
   }
   /* Register package finalizer */
-  ierr = PetscRegisterFinalize(RGFinalizePackage);CHKERRQ(ierr);
+  PetscCall(PetscRegisterFinalize(RGFinalizePackage));
   PetscFunctionReturn(0);
 }
 
@@ -92,13 +89,12 @@ PetscErrorCode RGInitializePackage(void)
 PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
 {
   RG             rg;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidPointer(newrg,2);
   *newrg = 0;
-  ierr = RGInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView);CHKERRQ(ierr);
+  PetscCall(RGInitializePackage());
+  PetscCall(SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView));
   rg->complement = PETSC_FALSE;
   rg->sfactor    = 1.0;
   rg->osfactor   = 0.0;
@@ -129,11 +125,9 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
 @*/
 PetscErrorCode RGSetOptionsPrefix(RG rg,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = PetscObjectSetOptionsPrefix((PetscObject)rg,prefix);CHKERRQ(ierr);
+  PetscCall(PetscObjectSetOptionsPrefix((PetscObject)rg,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -157,11 +151,9 @@ PetscErrorCode RGSetOptionsPrefix(RG rg,const char *prefix)
 @*/
 PetscErrorCode RGAppendOptionsPrefix(RG rg,const char *prefix)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = PetscObjectAppendOptionsPrefix((PetscObject)rg,prefix);CHKERRQ(ierr);
+  PetscCall(PetscObjectAppendOptionsPrefix((PetscObject)rg,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -187,12 +179,10 @@ PetscErrorCode RGAppendOptionsPrefix(RG rg,const char *prefix)
 @*/
 PetscErrorCode RGGetOptionsPrefix(RG rg,const char *prefix[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidPointer(prefix,2);
-  ierr = PetscObjectGetOptionsPrefix((PetscObject)rg,prefix);CHKERRQ(ierr);
+  PetscCall(PetscObjectGetOptionsPrefix((PetscObject)rg,prefix));
   PetscFunctionReturn(0);
 }
 
@@ -211,24 +201,24 @@ PetscErrorCode RGGetOptionsPrefix(RG rg,const char *prefix[])
 @*/
 PetscErrorCode RGSetType(RG rg,RGType type)
 {
-  PetscErrorCode ierr,(*r)(RG);
+  PetscErrorCode (*r)(RG);
   PetscBool      match;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidCharPointer(type,2);
 
-  ierr = PetscObjectTypeCompare((PetscObject)rg,type,&match);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)rg,type,&match));
   if (match) PetscFunctionReturn(0);
 
-  ierr =  PetscFunctionListFind(RGList,type,&r);CHKERRQ(ierr);
+  PetscCall(PetscFunctionListFind(RGList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested RG type %s",type);
 
-  if (rg->ops->destroy) { ierr = (*rg->ops->destroy)(rg);CHKERRQ(ierr); }
-  ierr = PetscMemzero(rg->ops,sizeof(struct _RGOps));CHKERRQ(ierr);
+  if (rg->ops->destroy) PetscCall((*rg->ops->destroy)(rg));
+  PetscCall(PetscMemzero(rg->ops,sizeof(struct _RGOps)));
 
-  ierr = PetscObjectChangeTypeName((PetscObject)rg,type);CHKERRQ(ierr);
-  ierr = (*r)(rg);CHKERRQ(ierr);
+  PetscCall(PetscObjectChangeTypeName((PetscObject)rg,type));
+  PetscCall((*r)(rg));
   PetscFunctionReturn(0);
 }
 
@@ -280,25 +270,20 @@ PetscErrorCode RGSetFromOptions(RG rg)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = RGRegisterAll();CHKERRQ(ierr);
-  ierr = PetscObjectOptionsBegin((PetscObject)rg);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-rg_type","Region type","RGSetType",RGList,(char*)(((PetscObject)rg)->type_name?((PetscObject)rg)->type_name:RGINTERVAL),type,sizeof(type),&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = RGSetType(rg,type);CHKERRQ(ierr);
-    } else if (!((PetscObject)rg)->type_name) {
-      ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-    }
+  PetscCall(RGRegisterAll());
+  ierr = PetscObjectOptionsBegin((PetscObject)rg);PetscCall(ierr);
+    PetscCall(PetscOptionsFList("-rg_type","Region type","RGSetType",RGList,(char*)(((PetscObject)rg)->type_name?((PetscObject)rg)->type_name:RGINTERVAL),type,sizeof(type),&flg));
+    if (flg) PetscCall(RGSetType(rg,type));
+    else if (!((PetscObject)rg)->type_name) PetscCall(RGSetType(rg,RGINTERVAL));
 
-    ierr = PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,NULL);CHKERRQ(ierr);
+    PetscCall(PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,NULL));
 
-    ierr = PetscOptionsReal("-rg_scale","Scaling factor","RGSetScale",1.0,&sfactor,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = RGSetScale(rg,sfactor);CHKERRQ(ierr); }
+    PetscCall(PetscOptionsReal("-rg_scale","Scaling factor","RGSetScale",1.0,&sfactor,&flg));
+    if (flg) PetscCall(RGSetScale(rg,sfactor));
 
-    if (rg->ops->setfromoptions) {
-      ierr = (*rg->ops->setfromoptions)(PetscOptionsObject,rg);CHKERRQ(ierr);
-    }
-    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)rg);CHKERRQ(ierr);
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
+    if (rg->ops->setfromoptions) PetscCall((*rg->ops->setfromoptions)(PetscOptionsObject,rg));
+    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)rg));
+  ierr = PetscOptionsEnd();PetscCall(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -329,32 +314,25 @@ PetscErrorCode RGSetFromOptions(RG rg)
 PetscErrorCode RGView(RG rg,PetscViewer viewer)
 {
   PetscBool      isdraw,isascii;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  if (!viewer) {
-    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)rg),&viewer);CHKERRQ(ierr);
-  }
+  if (!viewer) PetscCall(PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)rg),&viewer));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(rg,1,viewer,2);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw));
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    ierr = PetscObjectPrintClassNamePrefixType((PetscObject)rg,viewer);CHKERRQ(ierr);
+    PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)rg,viewer));
     if (rg->ops->view) {
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-      ierr = (*rg->ops->view)(rg,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+      PetscCall(PetscViewerASCIIPushTab(viewer));
+      PetscCall((*rg->ops->view)(rg,viewer));
+      PetscCall(PetscViewerASCIIPopTab(viewer));
     }
-    if (rg->complement) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  selected region is the complement of the specified one\n");CHKERRQ(ierr);
-    }
-    if (rg->sfactor!=1.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor = %g\n",(double)rg->sfactor);CHKERRQ(ierr);
-    }
+    if (rg->complement) PetscCall(PetscViewerASCIIPrintf(viewer,"  selected region is the complement of the specified one\n"));
+    if (rg->sfactor!=1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  scaling factor = %g\n",(double)rg->sfactor));
   } else if (isdraw) {
-    if (rg->ops->view) { ierr = (*rg->ops->view)(rg,viewer);CHKERRQ(ierr); }
+    if (rg->ops->view) PetscCall((*rg->ops->view)(rg,viewer));
   }
   PetscFunctionReturn(0);
 }
@@ -375,11 +353,9 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
 @*/
 PetscErrorCode RGViewFromOptions(RG rg,PetscObject obj,const char name[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = PetscObjectViewFromOptions((PetscObject)rg,obj,name);CHKERRQ(ierr);
+  PetscCall(PetscObjectViewFromOptions((PetscObject)rg,obj,name));
   PetscFunctionReturn(0);
 }
 
@@ -402,15 +378,12 @@ PetscErrorCode RGViewFromOptions(RG rg,PetscObject obj,const char name[])
 @*/
 PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
   PetscValidBoolPointer(trivial,2);
-  if (rg->ops->istrivial) {
-    ierr = (*rg->ops->istrivial)(rg,trivial);CHKERRQ(ierr);
-  } else *trivial = PETSC_FALSE;
+  if (rg->ops->istrivial) PetscCall((*rg->ops->istrivial)(rg,trivial));
+  else *trivial = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -441,7 +414,6 @@ PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
 @*/
 PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,PetscInt *inside)
 {
-  PetscErrorCode ierr;
   PetscReal      px,py;
   PetscInt       i;
 
@@ -466,7 +438,7 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
       px /= rg->sfactor;
       py /= rg->sfactor;
     }
-    ierr = (*rg->ops->checkinside)(rg,px,py,inside+i);CHKERRQ(ierr);
+    PetscCall((*rg->ops->checkinside)(rg,px,py,inside+i));
     if (PetscUnlikely(rg->complement)) inside[i] = -inside[i];
   }
   PetscFunctionReturn(0);
@@ -495,16 +467,13 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
 @*/
 PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
   PetscValidBoolPointer(symm,3);
 
-  if (rg->ops->isaxisymmetric) {
-    ierr = (*rg->ops->isaxisymmetric)(rg,vertical,symm);CHKERRQ(ierr);
-  } else *symm = PETSC_FALSE;
+  if (rg->ops->isaxisymmetric) PetscCall((*rg->ops->isaxisymmetric)(rg,vertical,symm));
+  else *symm = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -535,7 +504,6 @@ PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
 PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
 {
 #if defined(PETSC_USE_COMPLEX)
-  PetscErrorCode ierr;
   PetscReal      c,d;
   PetscBool      isaxisymm;
 #endif
@@ -547,9 +515,9 @@ PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
   *useconj = PETSC_FALSE;
 #if defined(PETSC_USE_COMPLEX)
   if (realmats) {
-    ierr = RGIsAxisymmetric(rg,PETSC_FALSE,&isaxisymm);CHKERRQ(ierr);
+    PetscCall(RGIsAxisymmetric(rg,PETSC_FALSE,&isaxisymm));
     if (isaxisymm) {
-      ierr = RGComputeBoundingBox(rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
+      PetscCall(RGComputeBoundingBox(rg,NULL,NULL,&c,&d));
       if (c!=d) *useconj = PETSC_TRUE;
     }
   }
@@ -583,7 +551,6 @@ PetscErrorCode RGCanUseConjugates(RG rg,PetscBool realmats,PetscBool *useconj)
 PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci[])
 {
   PetscInt       i;
-  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
@@ -594,7 +561,7 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
   PetscCheck(cr || ci,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"cr and ci cannot be NULL simultaneously");
 #endif
   PetscCheck(!rg->complement,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Cannot compute contour of region with complement flag set");
-  ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
+  PetscCall((*rg->ops->computecontour)(rg,n,cr,ci));
   for (i=0;i<n;i++) {
     if (cr) cr[i] *= rg->sfactor;
     if (ci) ci[i] *= rg->sfactor;
@@ -628,8 +595,6 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
 @*/
 PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
@@ -640,7 +605,7 @@ PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c
     if (c) *c = -PETSC_MAX_REAL;
     if (d) *d =  PETSC_MAX_REAL;
   } else {
-    ierr = (*rg->ops->computebbox)(rg,a,b,c,d);CHKERRQ(ierr);
+    PetscCall((*rg->ops->computebbox)(rg,a,b,c,d));
     if (a && *a!=-PETSC_MAX_REAL) *a *= rg->sfactor;
     if (b && *b!= PETSC_MAX_REAL) *b *= rg->sfactor;
     if (c && *c!=-PETSC_MAX_REAL) *c *= rg->sfactor;
@@ -679,8 +644,6 @@ PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c
 @*/
 PetscErrorCode RGComputeQuadrature(RG rg,RGQuadRule quad,PetscInt n,PetscScalar z[],PetscScalar zn[],PetscScalar w[])
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
@@ -688,9 +651,9 @@ PetscErrorCode RGComputeQuadrature(RG rg,RGQuadRule quad,PetscInt n,PetscScalar 
   PetscValidScalarPointer(zn,5);
   PetscValidScalarPointer(w,6);
 
-  ierr = RGComputeContour(rg,n,z,NULL);CHKERRQ(ierr);
+  PetscCall(RGComputeContour(rg,n,z,NULL));
   PetscCheck(rg->ops->computequadrature,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Quadrature rules not implemented for this region type");
-  ierr = (*rg->ops->computequadrature)(rg,quad,n,z,zn,w);CHKERRQ(ierr);
+  PetscCall((*rg->ops->computequadrature)(rg,quad,n,z,zn,w));
   PetscFunctionReturn(0);
 }
 
@@ -867,14 +830,12 @@ PetscErrorCode RGPopScale(RG rg)
 @*/
 PetscErrorCode RGDestroy(RG *rg)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
   if (!*rg) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*rg,RG_CLASSID,1);
   if (--((PetscObject)(*rg))->refct > 0) { *rg = 0; PetscFunctionReturn(0); }
-  if ((*rg)->ops->destroy) { ierr = (*(*rg)->ops->destroy)(*rg);CHKERRQ(ierr); }
-  ierr = PetscHeaderDestroy(rg);CHKERRQ(ierr);
+  if ((*rg)->ops->destroy) PetscCall((*(*rg)->ops->destroy)(*rg));
+  PetscCall(PetscHeaderDestroy(rg));
   PetscFunctionReturn(0);
 }
 
@@ -896,11 +857,8 @@ PetscErrorCode RGDestroy(RG *rg)
 @*/
 PetscErrorCode RGRegister(const char *name,PetscErrorCode (*function)(RG))
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = RGInitializePackage();CHKERRQ(ierr);
-  ierr = PetscFunctionListAdd(&RGList,name,function);CHKERRQ(ierr);
+  PetscCall(RGInitializePackage());
+  PetscCall(PetscFunctionListAdd(&RGList,name,function));
   PetscFunctionReturn(0);
 }
-

@@ -14,7 +14,6 @@ static char help[] = "Test BVNormalize().\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
   BV             X,Y,Z;
   Mat            B;
   Vec            v,t;
@@ -30,174 +29,153 @@ int main(int argc,char **argv)
   Vec            vi;
 #endif
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV normalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BV normalization with %" PetscInt_FMT " columns of length %" PetscInt_FMT ".\n",k,n));
 
   /* Create template vector */
-  ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
-  ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
-  ierr = VecSetFromOptions(t);CHKERRQ(ierr);
+  PetscCall(VecCreate(PETSC_COMM_WORLD,&t));
+  PetscCall(VecSetSizes(t,PETSC_DECIDE,n));
+  PetscCall(VecSetFromOptions(t));
 
   /* Create BV object X */
-  ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+  PetscCall(BVCreate(PETSC_COMM_WORLD,&X));
+  PetscCall(PetscObjectSetName((PetscObject)X,"X"));
+  PetscCall(BVSetSizesFromVec(X,t,k));
+  PetscCall(BVSetFromOptions(X));
 
   /* Set up viewer */
-  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-  }
+  PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view));
+  if (verbose) PetscCall(PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Fill X entries */
   for (j=0;j<k;j++) {
-    ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-    ierr = VecSet(v,0.0);CHKERRQ(ierr);
+    PetscCall(BVGetColumn(X,j,&v));
+    PetscCall(VecSet(v,0.0));
     for (i=0;i<=n/2;i++) {
       if (i+j<n) {
         alpha = (3.0*i+j-2)/(2*(i+j+1));
-        ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
+        PetscCall(VecSetValue(v,i+j,alpha,INSERT_VALUES));
       }
     }
-    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
+    PetscCall(VecAssemblyBegin(v));
+    PetscCall(VecAssemblyEnd(v));
+    PetscCall(BVRestoreColumn(X,j,&v));
   }
-  if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
-  }
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Create copies on Y and Z */
-  ierr = BVDuplicate(X,&Y);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)Y,"Y");CHKERRQ(ierr);
-  ierr = BVCopy(X,Y);CHKERRQ(ierr);
-  ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
-  ierr = BVCopy(X,Z);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(X,l,k);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(Y,l,k);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(Z,l,k);CHKERRQ(ierr);
+  PetscCall(BVDuplicate(X,&Y));
+  PetscCall(PetscObjectSetName((PetscObject)Y,"Y"));
+  PetscCall(BVCopy(X,Y));
+  PetscCall(BVDuplicate(X,&Z));
+  PetscCall(PetscObjectSetName((PetscObject)Z,"Z"));
+  PetscCall(BVCopy(X,Z));
+  PetscCall(BVSetActiveColumns(X,l,k));
+  PetscCall(BVSetActiveColumns(Y,l,k));
+  PetscCall(BVSetActiveColumns(Z,l,k));
 
   /* Test BVNormalize */
-  ierr = BVNormalize(X,NULL);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
-  }
+  PetscCall(BVNormalize(X,NULL));
+  if (verbose) PetscCall(BVView(X,view));
 
   /* Check unit norm of columns */
   error = 0.0;
   for (j=l;j<k;j++) {
-    ierr = BVNormColumn(X,j,NORM_2,&norm);CHKERRQ(ierr);
+    PetscCall(BVNormColumn(X,j,NORM_2,&norm));
     error = PetscMax(error,PetscAbsReal(norm-PetscRealConstant(1.0)));
   }
-  if (error<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized vectors < 100*eps\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized vectors: %g\n",(double)norm);CHKERRQ(ierr);
-  }
+  if (error<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized vectors < 100*eps\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized vectors: %g\n",(double)norm));
 
   /* Create inner product matrix */
-  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-  ierr = MatSetUp(B);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)B,"B");CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+  PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(B));
+  PetscCall(MatSetUp(B));
+  PetscCall(PetscObjectSetName((PetscObject)B,"B"));
 
-  ierr = MatGetOwnershipRange(B,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(B,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(B,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(B,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(B,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(B,i,i+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(B,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = MatView(B,view);CHKERRQ(ierr);
-  }
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+  if (verbose) PetscCall(MatView(B,view));
 
   /* Test BVNormalize with B-norm */
-  ierr = BVSetMatrix(Y,B,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = BVNormalize(Y,NULL);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = BVView(Y,view);CHKERRQ(ierr);
-  }
+  PetscCall(BVSetMatrix(Y,B,PETSC_FALSE));
+  PetscCall(BVNormalize(Y,NULL));
+  if (verbose) PetscCall(BVView(Y,view));
 
   /* Check unit B-norm of columns */
   error = 0.0;
   for (j=l;j<k;j++) {
-    ierr = BVNormColumn(Y,j,NORM_2,&norm);CHKERRQ(ierr);
+    PetscCall(BVNormColumn(Y,j,NORM_2,&norm));
     error = PetscMax(error,PetscAbsReal(norm-PetscRealConstant(1.0)));
   }
-  if (error<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Deviation from B-normalized vectors < 100*eps\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Deviation from B-normalized vectors: %g\n",(double)norm);CHKERRQ(ierr);
-  }
+  if (error<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Deviation from B-normalized vectors < 100*eps\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Deviation from B-normalized vectors: %g\n",(double)norm));
 
 #if !defined(PETSC_USE_COMPLEX)
   /* fill imaginary parts */
-  ierr = PetscCalloc1(k,&eigi);CHKERRQ(ierr);
-  ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
+  PetscCall(PetscCalloc1(k,&eigi));
+  PetscCall(PetscRandomCreate(PETSC_COMM_WORLD,&rand));
+  PetscCall(PetscRandomSetFromOptions(rand));
   for (j=l+1;j<k-1;j+=5) {
-    ierr = PetscRandomGetValue(rand,&alpha);CHKERRQ(ierr);
+    PetscCall(PetscRandomGetValue(rand,&alpha));
     eigi[j]   =  alpha;
     eigi[j+1] = -alpha;
   }
-  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  PetscCall(PetscRandomDestroy(&rand));
   if (verbose) {
-    ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,k,eigi,&v);CHKERRQ(ierr);
-    ierr = VecView(v,view);CHKERRQ(ierr);
-    ierr = VecDestroy(&v);CHKERRQ(ierr);
+    PetscCall(VecCreateSeqWithArray(PETSC_COMM_SELF,1,k,eigi,&v));
+    PetscCall(VecView(v,view));
+    PetscCall(VecDestroy(&v));
   }
 
   /* Test BVNormalize with complex conjugate columns */
-  ierr = BVNormalize(Z,eigi);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = BVView(Z,view);CHKERRQ(ierr);
-  }
+  PetscCall(BVNormalize(Z,eigi));
+  if (verbose) PetscCall(BVView(Z,view));
 
   /* Check unit norm of (complex conjugate) columns */
   error = 0.0;
   for (j=l;j<k;j++) {
     if (eigi[j]) {
-      ierr = BVGetColumn(Z,j,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(Z,j+1,&vi);CHKERRQ(ierr);
-      ierr = VecNormBegin(v,NORM_2,&normr);CHKERRQ(ierr);
-      ierr = VecNormBegin(vi,NORM_2,&normi);CHKERRQ(ierr);
-      ierr = VecNormEnd(v,NORM_2,&normr);CHKERRQ(ierr);
-      ierr = VecNormEnd(vi,NORM_2,&normi);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(Z,j+1,&vi);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(Z,j,&v);CHKERRQ(ierr);
+      PetscCall(BVGetColumn(Z,j,&v));
+      PetscCall(BVGetColumn(Z,j+1,&vi));
+      PetscCall(VecNormBegin(v,NORM_2,&normr));
+      PetscCall(VecNormBegin(vi,NORM_2,&normi));
+      PetscCall(VecNormEnd(v,NORM_2,&normr));
+      PetscCall(VecNormEnd(vi,NORM_2,&normi));
+      PetscCall(BVRestoreColumn(Z,j+1,&vi));
+      PetscCall(BVRestoreColumn(Z,j,&v));
       norm = SlepcAbsEigenvalue(normr,normi);
       j++;
     } else {
-      ierr = BVGetColumn(Z,j,&v);CHKERRQ(ierr);
-      ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(Z,j,&v);CHKERRQ(ierr);
+      PetscCall(BVGetColumn(Z,j,&v));
+      PetscCall(VecNorm(v,NORM_2,&norm));
+      PetscCall(BVRestoreColumn(Z,j,&v));
     }
     error = PetscMax(error,PetscAbsReal(norm-PetscRealConstant(1.0)));
   }
-  if (error<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized conjugate vectors < 100*eps\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized conjugate vectors: %g\n",(double)norm);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(eigi);CHKERRQ(ierr);
+  if (error<100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized conjugate vectors < 100*eps\n"));
+  else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized conjugate vectors: %g\n",(double)norm));
+  PetscCall(PetscFree(eigi));
 #endif
 
-  ierr = BVDestroy(&X);CHKERRQ(ierr);
-  ierr = BVDestroy(&Y);CHKERRQ(ierr);
-  ierr = BVDestroy(&Z);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(BVDestroy(&X));
+  PetscCall(BVDestroy(&Y));
+  PetscCall(BVDestroy(&Z));
+  PetscCall(MatDestroy(&B));
+  PetscCall(VecDestroy(&t));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST

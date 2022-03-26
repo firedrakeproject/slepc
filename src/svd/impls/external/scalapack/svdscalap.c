@@ -20,29 +20,27 @@ typedef struct {
 
 PetscErrorCode SVDSetUp_ScaLAPACK(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_ScaLAPACK  *ctx = (SVD_ScaLAPACK*)svd->data;
   PetscInt       M,N;
 
   PetscFunctionBegin;
   SVDCheckStandard(svd);
-  ierr = MatGetSize(svd->A,&M,&N);CHKERRQ(ierr);
+  PetscCall(MatGetSize(svd->A,&M,&N));
   svd->ncv = N;
-  if (svd->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(svd,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (svd->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(svd,"Warning: parameter mpd ignored\n"));
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
   SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
-  ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
+  PetscCall(SVDAllocateSolution(svd,0));
 
   /* convert matrix */
-  ierr = MatDestroy(&ctx->As);CHKERRQ(ierr);
-  ierr = MatConvert(svd->OP,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->As);CHKERRQ(ierr);
+  PetscCall(MatDestroy(&ctx->As));
+  PetscCall(MatConvert(svd->OP,MATSCALAPACK,MAT_INITIAL_MATRIX,&ctx->As));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_ScaLAPACK  *ctx = (SVD_ScaLAPACK*)svd->data;
   Mat            A = ctx->As,Z,Q,QT,U,V;
   Mat_ScaLAPACK  *a = (Mat_ScaLAPACK*)A->data,*q,*z;
@@ -55,64 +53,64 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
 #endif
 
   PetscFunctionBegin;
-  ierr = MatGetSize(A,&M,&N);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
+  PetscCall(MatGetSize(A,&M,&N));
+  PetscCall(MatGetLocalSize(A,&m,&n));
   mn = (M>=N)? n: m;
-  ierr = MatCreate(PetscObjectComm((PetscObject)A),&Z);CHKERRQ(ierr);
-  ierr = MatSetSizes(Z,m,mn,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
-  ierr = MatSetType(Z,MATSCALAPACK);CHKERRQ(ierr);
-  ierr = MatSetUp(Z);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(Z,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(Z,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatCreate(PetscObjectComm((PetscObject)A),&Z));
+  PetscCall(MatSetSizes(Z,m,mn,PETSC_DECIDE,PETSC_DECIDE));
+  PetscCall(MatSetType(Z,MATSCALAPACK));
+  PetscCall(MatSetUp(Z));
+  PetscCall(MatAssemblyBegin(Z,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(Z,MAT_FINAL_ASSEMBLY));
   z = (Mat_ScaLAPACK*)Z->data;
-  ierr = MatCreate(PetscObjectComm((PetscObject)A),&QT);CHKERRQ(ierr);
-  ierr = MatSetSizes(QT,mn,n,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
-  ierr = MatSetType(QT,MATSCALAPACK);CHKERRQ(ierr);
-  ierr = MatSetUp(QT);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(QT,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(QT,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatCreate(PetscObjectComm((PetscObject)A),&QT));
+  PetscCall(MatSetSizes(QT,mn,n,PETSC_DECIDE,PETSC_DECIDE));
+  PetscCall(MatSetType(QT,MATSCALAPACK));
+  PetscCall(MatSetUp(QT));
+  PetscCall(MatAssemblyBegin(QT,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(QT,MAT_FINAL_ASSEMBLY));
   q = (Mat_ScaLAPACK*)QT->data;
 
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined(PETSC_USE_COMPLEX)
   /* allocate workspace */
   PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,&minlwork,&lwork,&info));
   PetscCheckScaLapackInfo("gesvd",info);
-  ierr = PetscBLASIntCast((PetscInt)minlwork,&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast((PetscInt)minlwork,&lwork));
+  PetscCall(PetscMalloc1(lwork,&work));
   /* call computational routine */
   PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,work,&lwork,&info));
   PetscCheckScaLapackInfo("gesvd",info);
-  ierr = PetscFree(work);CHKERRQ(ierr);
+  PetscCall(PetscFree(work));
 #else
   /* allocate workspace */
   PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,&minlwork,&lwork,&dummy,&info));
   PetscCheckScaLapackInfo("gesvd",info);
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(minlwork),&lwork);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(minlwork),&lwork));
   lrwork = 1+4*PetscMax(a->M,a->N);
-  ierr = PetscMalloc2(lwork,&work,lrwork,&rwork);CHKERRQ(ierr);
+  PetscCall(PetscMalloc2(lwork,&work,lrwork,&rwork));
   /* call computational routine */
   PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,work,&lwork,rwork,&info));
   PetscCheckScaLapackInfo("gesvd",info);
-  ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
+  PetscCall(PetscFree2(work,rwork));
 #endif
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPop());
 
-  ierr = MatHermitianTranspose(QT,MAT_INITIAL_MATRIX,&Q);CHKERRQ(ierr);
-  ierr = MatDestroy(&QT);CHKERRQ(ierr);
-  ierr = BVGetMat(svd->U,&U);CHKERRQ(ierr);
-  ierr = BVGetMat(svd->V,&V);CHKERRQ(ierr);
+  PetscCall(MatHermitianTranspose(QT,MAT_INITIAL_MATRIX,&Q));
+  PetscCall(MatDestroy(&QT));
+  PetscCall(BVGetMat(svd->U,&U));
+  PetscCall(BVGetMat(svd->V,&V));
   if (M>=N) {
-    ierr = MatConvert(Z,MATDENSE,MAT_REUSE_MATRIX,&U);CHKERRQ(ierr);
-    ierr = MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V);CHKERRQ(ierr);
+    PetscCall(MatConvert(Z,MATDENSE,MAT_REUSE_MATRIX,&U));
+    PetscCall(MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&V));
   } else {
-    ierr = MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&U);CHKERRQ(ierr);
-    ierr = MatConvert(Z,MATDENSE,MAT_REUSE_MATRIX,&V);CHKERRQ(ierr);
+    PetscCall(MatConvert(Q,MATDENSE,MAT_REUSE_MATRIX,&U));
+    PetscCall(MatConvert(Z,MATDENSE,MAT_REUSE_MATRIX,&V));
   }
-  ierr = BVRestoreMat(svd->U,&U);CHKERRQ(ierr);
-  ierr = BVRestoreMat(svd->V,&V);CHKERRQ(ierr);
-  ierr = MatDestroy(&Z);CHKERRQ(ierr);
-  ierr = MatDestroy(&Q);CHKERRQ(ierr);
+  PetscCall(BVRestoreMat(svd->U,&U));
+  PetscCall(BVRestoreMat(svd->V,&V));
+  PetscCall(MatDestroy(&Z));
+  PetscCall(MatDestroy(&Q));
 
   svd->nconv  = svd->ncv;
   svd->its    = 1;
@@ -122,30 +120,26 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
 
 PetscErrorCode SVDDestroy_ScaLAPACK(SVD svd)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscFree(svd->data);CHKERRQ(ierr);
+  PetscCall(PetscFree(svd->data));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode SVDReset_ScaLAPACK(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_ScaLAPACK  *ctx = (SVD_ScaLAPACK*)svd->data;
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&ctx->As);CHKERRQ(ierr);
+  PetscCall(MatDestroy(&ctx->As));
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode SVDCreate_ScaLAPACK(SVD svd)
 {
-  PetscErrorCode ierr;
   SVD_ScaLAPACK  *ctx;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(svd,&ctx);CHKERRQ(ierr);
+  PetscCall(PetscNewLog(svd,&ctx));
   svd->data = (void*)ctx;
 
   svd->ops->solve          = SVDSolve_ScaLAPACK;
@@ -154,4 +148,3 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_ScaLAPACK(SVD svd)
   svd->ops->reset          = SVDReset_ScaLAPACK;
   PetscFunctionReturn(0);
 }
-

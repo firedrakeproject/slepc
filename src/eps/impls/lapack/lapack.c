@@ -16,7 +16,7 @@
 
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
-  PetscErrorCode ierr,ierra,ierrb;
+  PetscErrorCode ierra,ierrb;
   PetscBool      isshift,flg,denseok=PETSC_FALSE;
   Mat            A,B,OP,shell,Ar,Br,Adense=NULL,Bdense=NULL;
   PetscScalar    shift,*Ap,*Bp;
@@ -27,34 +27,34 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 
   PetscFunctionBegin;
   eps->ncv = eps->n;
-  if (eps->mpd!=PETSC_DEFAULT) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
+  if (eps->mpd!=PETSC_DEFAULT) PetscCall(PetscInfo(eps,"Warning: parameter mpd ignored\n"));
   if (eps->max_it==PETSC_DEFAULT) eps->max_it = 1;
-  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
+  if (!eps->which) PetscCall(EPSSetWhichEigenpairs_Default(eps));
   PetscCheck(eps->which!=EPS_ALL || eps->inta==eps->intb,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support interval computation");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION | EPS_FEATURE_CONVERGENCE);
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  PetscCall(EPSAllocateSolution(eps,0));
 
   /* attempt to get dense representations of A and B separately */
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift);CHKERRQ(ierr);
+  PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift));
   if (isshift) {
-    ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-    ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-    ierr = MatHasOperation(A,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
+    PetscCall(STGetNumMatrices(eps->st,&nmat));
+    PetscCall(STGetMatrix(eps->st,0,&A));
+    PetscCall(MatHasOperation(A,MATOP_CREATE_SUBMATRICES,&flg));
     if (flg) {
       PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
       ierra  = MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);
-      if (!ierra) { ierra |= MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&Adense); }
+      if (!ierra) ierra |= MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&Adense);
       ierra |= MatDestroy(&Ar);
       PetscPopErrorHandler();
     } else ierra = 1;
     if (nmat>1) {
-      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = MatHasOperation(B,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
+      PetscCall(STGetMatrix(eps->st,1,&B));
+      PetscCall(MatHasOperation(B,MATOP_CREATE_SUBMATRICES,&flg));
       if (flg) {
         PetscPushErrorHandler(PetscReturnErrorHandler,NULL);
         ierrb  = MatCreateRedundantMatrix(B,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Br);
-        if (!ierrb) { ierrb |= MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&Bdense); }
+        if (!ierrb) ierrb |= MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&Bdense);
         ierrb |= MatDestroy(&Br);
         PetscPopErrorHandler();
       } else ierrb = 1;
@@ -66,115 +66,101 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (denseok) {
     if (eps->isgeneralized) {
       if (eps->ishermitian) {
-        if (eps->ispositive) {
-          ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
-        } else {
-          ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr); /* TODO: should be DSGHIEP */
-        }
-      } else {
-        ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
-      }
+        if (eps->ispositive) PetscCall(DSSetType(eps->ds,DSGHEP));
+        else PetscCall(DSSetType(eps->ds,DSGNHEP)); /* TODO: should be DSGHIEP */
+      } else PetscCall(DSSetType(eps->ds,DSGNHEP));
     } else {
-      if (eps->ishermitian) {
-        ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
-      } else {
-        ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
-      }
+      if (eps->ishermitian) PetscCall(DSSetType(eps->ds,DSHEP));
+      else PetscCall(DSSetType(eps->ds,DSNHEP));
     }
-  } else {
-    ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
-  }
-  ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
-  ierr = DSSetDimensions(eps->ds,eps->ncv,0,0);CHKERRQ(ierr);
+  } else PetscCall(DSSetType(eps->ds,DSNHEP));
+  PetscCall(DSAllocate(eps->ds,eps->ncv));
+  PetscCall(DSGetLeadingDimension(eps->ds,&ld));
+  PetscCall(DSSetDimensions(eps->ds,eps->ncv,0,0));
 
   if (denseok) {
-    ierr = STGetShift(eps->st,&shift);CHKERRQ(ierr);
+    PetscCall(STGetShift(eps->st,&shift));
     if (shift != 0.0) {
-      if (nmat>1) {
-        ierr = MatAXPY(Adense,-shift,Bdense,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-      } else {
-        ierr = MatShift(Adense,-shift);CHKERRQ(ierr);
-      }
+      if (nmat>1) PetscCall(MatAXPY(Adense,-shift,Bdense,SAME_NONZERO_PATTERN));
+      else PetscCall(MatShift(Adense,-shift));
     }
     /* use dummy pc and ksp to avoid problems when B is not positive definite */
-    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
+    PetscCall(STGetKSP(eps->st,&ksp));
+    PetscCall(KSPSetType(ksp,KSPPREONLY));
+    PetscCall(KSPGetPC(ksp,&pc));
+    PetscCall(PCSetType(pc,PCNONE));
   } else {
-    ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
-    ierr = STGetOperator(eps->st,&shell);CHKERRQ(ierr);
-    ierr = MatComputeOperator(shell,MATDENSE,&OP);CHKERRQ(ierr);
-    ierr = STRestoreOperator(eps->st,&shell);CHKERRQ(ierr);
-    ierr = MatDestroy(&Adense);CHKERRQ(ierr);
-    ierr = MatCreateRedundantMatrix(OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Adense);CHKERRQ(ierr);
-    ierr = MatDestroy(&OP);CHKERRQ(ierr);
+    PetscCall(PetscInfo(eps,"Using slow explicit operator\n"));
+    PetscCall(STGetOperator(eps->st,&shell));
+    PetscCall(MatComputeOperator(shell,MATDENSE,&OP));
+    PetscCall(STRestoreOperator(eps->st,&shell));
+    PetscCall(MatDestroy(&Adense));
+    PetscCall(MatCreateRedundantMatrix(OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Adense));
+    PetscCall(MatDestroy(&OP));
   }
 
   /* fill DS matrices */
-  ierr = VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,NULL,&v);CHKERRQ(ierr);
-  ierr = DSGetArray(eps->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
+  PetscCall(VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,NULL,&v));
+  PetscCall(DSGetArray(eps->ds,DS_MAT_A,&Ap));
   for (i=0;i<ld;i++) {
-    ierr = VecPlaceArray(v,Ap+i*ld);CHKERRQ(ierr);
-    ierr = MatGetColumnVector(Adense,v,i);CHKERRQ(ierr);
-    ierr = VecResetArray(v);CHKERRQ(ierr);
+    PetscCall(VecPlaceArray(v,Ap+i*ld));
+    PetscCall(MatGetColumnVector(Adense,v,i));
+    PetscCall(VecResetArray(v));
   }
-  ierr = DSRestoreArray(eps->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(eps->ds,DS_MAT_A,&Ap));
   if (denseok && eps->isgeneralized) {
-    ierr = DSGetArray(eps->ds,DS_MAT_B,&Bp);CHKERRQ(ierr);
+    PetscCall(DSGetArray(eps->ds,DS_MAT_B,&Bp));
     for (i=0;i<ld;i++) {
-      ierr = VecPlaceArray(v,Bp+i*ld);CHKERRQ(ierr);
-      ierr = MatGetColumnVector(Bdense,v,i);CHKERRQ(ierr);
-      ierr = VecResetArray(v);CHKERRQ(ierr);
+      PetscCall(VecPlaceArray(v,Bp+i*ld));
+      PetscCall(MatGetColumnVector(Bdense,v,i));
+      PetscCall(VecResetArray(v));
     }
-    ierr = DSRestoreArray(eps->ds,DS_MAT_B,&Bp);CHKERRQ(ierr);
+    PetscCall(DSRestoreArray(eps->ds,DS_MAT_B,&Bp));
   }
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = MatDestroy(&Adense);CHKERRQ(ierr);
-  ierr = MatDestroy(&Bdense);CHKERRQ(ierr);
+  PetscCall(VecDestroy(&v));
+  PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
+  PetscCall(MatDestroy(&Adense));
+  PetscCall(MatDestroy(&Bdense));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
-  PetscErrorCode ierr;
   PetscInt       n=eps->n,i,low,high;
   PetscScalar    *array,*pX,*pY;
   Vec            v,w;
 
   PetscFunctionBegin;
-  ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+  PetscCall(DSSolve(eps->ds,eps->eigr,eps->eigi));
+  PetscCall(DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL));
+  PetscCall(DSSynchronize(eps->ds,eps->eigr,eps->eigi));
 
   /* right eigenvectors */
-  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+  PetscCall(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
+  PetscCall(DSGetArray(eps->ds,DS_MAT_X,&pX));
   for (i=0;i<eps->ncv;i++) {
-    ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
-    ierr = VecGetOwnershipRange(v,&low,&high);CHKERRQ(ierr);
-    ierr = VecGetArray(v,&array);CHKERRQ(ierr);
-    ierr = PetscArraycpy(array,pX+i*n+low,high-low);CHKERRQ(ierr);
-    ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
+    PetscCall(BVGetColumn(eps->V,i,&v));
+    PetscCall(VecGetOwnershipRange(v,&low,&high));
+    PetscCall(VecGetArray(v,&array));
+    PetscCall(PetscArraycpy(array,pX+i*n+low,high-low));
+    PetscCall(VecRestoreArray(v,&array));
+    PetscCall(BVRestoreColumn(eps->V,i,&v));
   }
-  ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+  PetscCall(DSRestoreArray(eps->ds,DS_MAT_X,&pX));
 
   /* left eigenvectors */
   if (eps->twosided) {
-    ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
+    PetscCall(DSVectors(eps->ds,DS_MAT_Y,NULL,NULL));
+    PetscCall(DSGetArray(eps->ds,DS_MAT_Y,&pY));
     for (i=0;i<eps->ncv;i++) {
-      ierr = BVGetColumn(eps->W,i,&w);CHKERRQ(ierr);
-      ierr = VecGetOwnershipRange(w,&low,&high);CHKERRQ(ierr);
-      ierr = VecGetArray(w,&array);CHKERRQ(ierr);
-      ierr = PetscArraycpy(array,pY+i*n+low,high-low);CHKERRQ(ierr);
-      ierr = VecRestoreArray(w,&array);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->W,i,&w);CHKERRQ(ierr);
+      PetscCall(BVGetColumn(eps->W,i,&w));
+      PetscCall(VecGetOwnershipRange(w,&low,&high));
+      PetscCall(VecGetArray(w,&array));
+      PetscCall(PetscArraycpy(array,pY+i*n+low,high-low));
+      PetscCall(VecRestoreArray(w,&array));
+      PetscCall(BVRestoreColumn(eps->W,i,&w));
     }
-    ierr = DSRestoreArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
+    PetscCall(DSRestoreArray(eps->ds,DS_MAT_Y,&pY));
   }
 
   eps->nconv  = eps->ncv;
@@ -195,4 +181,3 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
   eps->ops->backtransform  = EPSBackTransform_Default;
   PetscFunctionReturn(0);
 }
-

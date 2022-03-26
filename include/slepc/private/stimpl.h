@@ -126,19 +126,18 @@ SLEPC_INTERN PetscErrorCode STApplyTranspose_Generic(ST,Vec,Vec);
 */
 static inline PetscErrorCode ST_KSPSetOperators(ST st,Mat A,Mat B)
 {
-  PetscErrorCode ierr;
   const char     *prefix;
 
   PetscFunctionBegin;
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
-  ierr = KSPSetOperators(st->ksp,A,B);CHKERRQ(ierr);
-  ierr = MatGetOptionsPrefix(B,&prefix);CHKERRQ(ierr);
+  if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
+  PetscCall(STCheckFactorPackage(st));
+  PetscCall(KSPSetOperators(st->ksp,A,B));
+  PetscCall(MatGetOptionsPrefix(B,&prefix));
   if (!prefix) {
     /* set Mat prefix to be the same as KSP to enable setting command-line options (e.g. MUMPS)
        only applies if the Mat has no user-defined prefix */
-    ierr = KSPGetOptionsPrefix(st->ksp,&prefix);CHKERRQ(ierr);
-    ierr = MatSetOptionsPrefix(B,prefix);CHKERRQ(ierr);
+    PetscCall(KSPGetOptionsPrefix(st->ksp,&prefix));
+    PetscCall(MatSetOptionsPrefix(B,prefix));
   }
   PetscFunctionReturn(0);
 }

@@ -17,7 +17,6 @@
 
 PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 {
-  PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        i,k,l,ld,nv,t,nconv=0;
   Mat             U;
@@ -27,21 +26,21 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   PetscBool       breakdown=PETSC_FALSE,symmlost=PETSC_FALSE;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
+  PetscCall(DSGetLeadingDimension(eps->ds,&ld));
 
   /* Get the starting Lanczos vector */
-  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
+  PetscCall(EPSGetStartVector(eps,0,NULL));
 
   /* Extract sigma[0] from BV, computed during normalization */
-  ierr = BVSetActiveColumns(eps->V,0,1);CHKERRQ(ierr);
-  ierr = VecCreateSeq(PETSC_COMM_SELF,1,&vomega);CHKERRQ(ierr);
-  ierr = BVGetSignature(eps->V,vomega);CHKERRQ(ierr);
-  ierr = VecGetArray(vomega,&aux);CHKERRQ(ierr);
-  ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+  PetscCall(BVSetActiveColumns(eps->V,0,1));
+  PetscCall(VecCreateSeq(PETSC_COMM_SELF,1,&vomega));
+  PetscCall(BVGetSignature(eps->V,vomega));
+  PetscCall(VecGetArray(vomega,&aux));
+  PetscCall(DSGetArrayReal(eps->ds,DS_MAT_D,&omega));
   omega[0] = PetscRealPart(aux[0]);
-  ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-  ierr = VecRestoreArray(vomega,&aux);CHKERRQ(ierr);
-  ierr = VecDestroy(&vomega);CHKERRQ(ierr);
+  PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega));
+  PetscCall(VecRestoreArray(vomega,&aux));
+  PetscCall(VecDestroy(&vomega));
   l = 0;
 
   /* Restart loop */
@@ -50,43 +49,40 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
+    PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&a));
     b = a + ld;
-    ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-    ierr = EPSPseudoLanczos(eps,a,b,omega,eps->nconv+l,&nv,&breakdown,&symmlost,NULL,w);CHKERRQ(ierr);
+    PetscCall(DSGetArrayReal(eps->ds,DS_MAT_D,&omega));
+    PetscCall(EPSPseudoLanczos(eps,a,b,omega,eps->nconv+l,&nv,&breakdown,&symmlost,NULL,w));
     if (symmlost) {
       eps->reason = EPS_DIVERGED_SYMMETRY_LOST;
       if (nv==eps->nconv+l+1) { eps->nconv = nconv; break; }
     }
     beta = b[nv-1];
-    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-    ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
-    if (l==0) {
-      ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    }
-    ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
+    PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&a));
+    PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega));
+    PetscCall(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
+    if (l==0) PetscCall(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
+    else PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
+    PetscCall(BVSetActiveColumns(eps->V,eps->nconv,nv));
 
     /* Solve projected problem */
-    ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
-    ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+    PetscCall(DSSolve(eps->ds,eps->eigr,eps->eigi));
+    PetscCall(DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL));
+    PetscCall(DSUpdateExtraRow(eps->ds));
+    PetscCall(DSSynchronize(eps->ds,eps->eigr,eps->eigi));
 
     /* Check convergence */
-    ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,&t);CHKERRQ(ierr);
+    PetscCall(DSGetDimensions(eps->ds,NULL,NULL,NULL,&t));
 #if 0
     /* take into account also left residual */
-    ierr = BVGetColumn(eps->V,nv,&u);CHKERRQ(ierr);
-    ierr = VecNorm(u,NORM_2,&beta1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,nv,&u);CHKERRQ(ierr);
-    ierr = VecNorm(w,NORM_2,&beta2);CHKERRQ(ierr);  /* w contains B*V[nv] */
+    PetscCall(BVGetColumn(eps->V,nv,&u));
+    PetscCall(VecNorm(u,NORM_2,&beta1));
+    PetscCall(BVRestoreColumn(eps->V,nv,&u));
+    PetscCall(VecNorm(w,NORM_2,&beta2));  /* w contains B*V[nv] */
     beta1 = PetscMax(beta1,beta2);
 #endif
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,t-eps->nconv,beta*beta1,0.0,1.0,&k);CHKERRQ(ierr);
-    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
+    PetscCall(EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,t-eps->nconv,beta*beta1,0.0,1.0,&k));
+    PetscCall((*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx));
     nconv = k;
 
     /* Update l */
@@ -94,39 +90,38 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     else {
       l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
       l = PetscMin(l,t);
-      ierr = DSGetTruncateSize(eps->ds,k,t,&l);CHKERRQ(ierr);
+      PetscCall(DSGetTruncateSize(eps->ds,k,t,&l));
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
-    if (l) { ierr = PetscInfo(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l);CHKERRQ(ierr); }
+    if (l) PetscCall(PetscInfo(eps,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       PetscCheck(!breakdown,PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",(double)beta);
       /* Prepare the Rayleigh quotient for restart */
-      ierr = DSTruncate(eps->ds,k+l,PETSC_FALSE);CHKERRQ(ierr);
+      PetscCall(DSTruncate(eps->ds,k+l,PETSC_FALSE));
     }
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-    ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-    ierr = BVMultInPlace(eps->V,U,eps->nconv,k+l);CHKERRQ(ierr);
-    ierr = MatDestroy(&U);CHKERRQ(ierr);
+    PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
+    PetscCall(BVMultInPlace(eps->V,U,eps->nconv,k+l));
+    PetscCall(MatDestroy(&U));
 
     /* Move restart vector and update signature */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
-      ierr = BVCopyColumn(eps->V,nv,k+l);CHKERRQ(ierr);
-      ierr = DSGetArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-      ierr = VecCreateSeq(PETSC_COMM_SELF,k+l,&vomega);CHKERRQ(ierr);
-      ierr = VecGetArray(vomega,&aux);CHKERRQ(ierr);
+      PetscCall(BVCopyColumn(eps->V,nv,k+l));
+      PetscCall(DSGetArrayReal(eps->ds,DS_MAT_D,&omega));
+      PetscCall(VecCreateSeq(PETSC_COMM_SELF,k+l,&vomega));
+      PetscCall(VecGetArray(vomega,&aux));
       for (i=0;i<k+l;i++) aux[i] = omega[i];
-      ierr = VecRestoreArray(vomega,&aux);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(eps->V,0,k+l);CHKERRQ(ierr);
-      ierr = BVSetSignature(eps->V,vomega);CHKERRQ(ierr);
-      ierr = VecDestroy(&vomega);CHKERRQ(ierr);
-      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+      PetscCall(VecRestoreArray(vomega,&aux));
+      PetscCall(BVSetActiveColumns(eps->V,0,k+l));
+      PetscCall(BVSetSignature(eps->V,vomega));
+      PetscCall(VecDestroy(&vomega));
+      PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega));
     }
 
     eps->nconv = k;
-    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
+    PetscCall(EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv));
   }
-  ierr = DSTruncate(eps->ds,eps->nconv,PETSC_TRUE);CHKERRQ(ierr);
+  PetscCall(DSTruncate(eps->ds,eps->nconv,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
-

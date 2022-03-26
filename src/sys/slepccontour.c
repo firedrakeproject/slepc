@@ -21,15 +21,13 @@
 */
 PetscErrorCode SlepcContourDataCreate(PetscInt n,PetscInt npart,PetscObject parent,SlepcContourData *contour)
 {
-  PetscErrorCode ierr;
-
   PetscFunctionBegin;
-  ierr = PetscNew(contour);CHKERRQ(ierr);
+  PetscCall(PetscNew(contour));
   (*contour)->parent = parent;
-  ierr = PetscSubcommCreate(PetscObjectComm(parent),&(*contour)->subcomm);CHKERRQ(ierr);
-  ierr = PetscSubcommSetNumber((*contour)->subcomm,npart);CHKERRQ(ierr);CHKERRQ(ierr);
-  ierr = PetscSubcommSetType((*contour)->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory(parent,sizeof(PetscSubcomm));CHKERRQ(ierr);
+  PetscCall(PetscSubcommCreate(PetscObjectComm(parent),&(*contour)->subcomm));
+  PetscCall(PetscSubcommSetNumber((*contour)->subcomm,npart));
+  PetscCall(PetscSubcommSetType((*contour)->subcomm,PETSC_SUBCOMM_INTERLACED));
+  PetscCall(PetscLogObjectMemory(parent,sizeof(PetscSubcomm)));
   (*contour)->npoints = n / npart;
   if (n%npart > (*contour)->subcomm->color) (*contour)->npoints++;
   PetscFunctionReturn(0);
@@ -41,23 +39,20 @@ PetscErrorCode SlepcContourDataCreate(PetscInt n,PetscInt npart,PetscObject pare
 */
 PetscErrorCode SlepcContourDataReset(SlepcContourData contour)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
   if (contour->ksp) {
-    for (i=0;i<contour->npoints;i++) {
-      ierr = KSPReset(contour->ksp[i]);CHKERRQ(ierr);
-    }
+    for (i=0;i<contour->npoints;i++) PetscCall(KSPReset(contour->ksp[i]));
   }
   if (contour->pA) {
-    ierr = MatDestroyMatrices(contour->nmat,&contour->pA);CHKERRQ(ierr);
-    ierr = MatDestroyMatrices(contour->nmat,&contour->pP);CHKERRQ(ierr);
+    PetscCall(MatDestroyMatrices(contour->nmat,&contour->pA));
+    PetscCall(MatDestroyMatrices(contour->nmat,&contour->pP));
     contour->nmat = 0;
   }
-  ierr = VecScatterDestroy(&contour->scatterin);CHKERRQ(ierr);
-  ierr = VecDestroy(&contour->xsub);CHKERRQ(ierr);
-  ierr = VecDestroy(&contour->xdup);CHKERRQ(ierr);
+  PetscCall(VecScatterDestroy(&contour->scatterin));
+  PetscCall(VecDestroy(&contour->xsub));
+  PetscCall(VecDestroy(&contour->xdup));
   PetscFunctionReturn(0);
 }
 
@@ -66,19 +61,16 @@ PetscErrorCode SlepcContourDataReset(SlepcContourData contour)
 */
 PetscErrorCode SlepcContourDataDestroy(SlepcContourData *contour)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
 
   PetscFunctionBegin;
   if (!(*contour)) PetscFunctionReturn(0);
   if ((*contour)->ksp) {
-    for (i=0;i<(*contour)->npoints;i++) {
-      ierr = KSPDestroy(&(*contour)->ksp[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree((*contour)->ksp);CHKERRQ(ierr);
+    for (i=0;i<(*contour)->npoints;i++) PetscCall(KSPDestroy(&(*contour)->ksp[i]));
+    PetscCall(PetscFree((*contour)->ksp));
   }
-  ierr = PetscSubcommDestroy(&(*contour)->subcomm);CHKERRQ(ierr);
-  ierr = PetscFree((*contour));CHKERRQ(ierr);
+  PetscCall(PetscSubcommDestroy(&(*contour)->subcomm));
+  PetscCall(PetscFree((*contour)));
   *contour = NULL;
   PetscFunctionReturn(0);
 }
@@ -93,28 +85,27 @@ PetscErrorCode SlepcContourDataDestroy(SlepcContourData *contour)
 */
 PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,Mat *A,Mat *P)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   MPI_Comm       child;
 
   PetscFunctionBegin;
   if (contour->pA) {
-    ierr = MatDestroyMatrices(contour->nmat,&contour->pA);CHKERRQ(ierr);
-    ierr = MatDestroyMatrices(contour->nmat,&contour->pP);CHKERRQ(ierr);
+    PetscCall(MatDestroyMatrices(contour->nmat,&contour->pA));
+    PetscCall(MatDestroyMatrices(contour->nmat,&contour->pP));
     contour->nmat = 0;
   }
   if (contour->subcomm && contour->subcomm->n != 1) {
-    ierr = PetscSubcommGetChild(contour->subcomm,&child);CHKERRQ(ierr);
-    ierr = PetscCalloc1(nmat,&contour->pA);CHKERRQ(ierr);
+    PetscCall(PetscSubcommGetChild(contour->subcomm,&child));
+    PetscCall(PetscCalloc1(nmat,&contour->pA));
     for (i=0;i<nmat;i++) {
-      ierr = MatCreateRedundantMatrix(A[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pA[i]);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent(contour->parent,(PetscObject)contour->pA[i]);CHKERRQ(ierr);
+      PetscCall(MatCreateRedundantMatrix(A[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pA[i]));
+      PetscCall(PetscLogObjectParent(contour->parent,(PetscObject)contour->pA[i]));
     }
     if (P) {
-      ierr = PetscCalloc1(nmat,&contour->pP);CHKERRQ(ierr);
+      PetscCall(PetscCalloc1(nmat,&contour->pP));
       for (i=0;i<nmat;i++) {
-        ierr = MatCreateRedundantMatrix(P[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pP[i]);CHKERRQ(ierr);
-        ierr = PetscLogObjectParent(contour->parent,(PetscObject)contour->pP[i]);CHKERRQ(ierr);
+        PetscCall(MatCreateRedundantMatrix(P[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pP[i]));
+        PetscCall(PetscLogObjectParent(contour->parent,(PetscObject)contour->pP[i]));
       }
     }
     contour->nmat = nmat;
@@ -133,28 +124,27 @@ PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,M
 */
 PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
 {
-  PetscErrorCode ierr;
   IS             is1,is2;
   PetscInt       i,j,k,m,mstart,mend,mlocal;
   PetscInt       *idx1,*idx2,mloc_sub;
   MPI_Comm       contpar,parent;
 
   PetscFunctionBegin;
-  ierr = VecDestroy(&contour->xsub);CHKERRQ(ierr);
-  ierr = MatCreateVecsEmpty(contour->pA[0],&contour->xsub,NULL);CHKERRQ(ierr);
+  PetscCall(VecDestroy(&contour->xsub));
+  PetscCall(MatCreateVecsEmpty(contour->pA[0],&contour->xsub,NULL));
 
-  ierr = VecDestroy(&contour->xdup);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(contour->pA[0],&mloc_sub,NULL);CHKERRQ(ierr);
-  ierr = PetscSubcommGetContiguousParent(contour->subcomm,&contpar);CHKERRQ(ierr);
-  ierr = VecCreate(contpar,&contour->xdup);CHKERRQ(ierr);
-  ierr = VecSetSizes(contour->xdup,mloc_sub,PETSC_DECIDE);CHKERRQ(ierr);
-  ierr = VecSetType(contour->xdup,((PetscObject)v)->type_name);CHKERRQ(ierr);
+  PetscCall(VecDestroy(&contour->xdup));
+  PetscCall(MatGetLocalSize(contour->pA[0],&mloc_sub,NULL));
+  PetscCall(PetscSubcommGetContiguousParent(contour->subcomm,&contpar));
+  PetscCall(VecCreate(contpar,&contour->xdup));
+  PetscCall(VecSetSizes(contour->xdup,mloc_sub,PETSC_DECIDE));
+  PetscCall(VecSetType(contour->xdup,((PetscObject)v)->type_name));
 
-  ierr = VecScatterDestroy(&contour->scatterin);CHKERRQ(ierr);
-  ierr = VecGetSize(v,&m);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRange(v,&mstart,&mend);CHKERRQ(ierr);
+  PetscCall(VecScatterDestroy(&contour->scatterin));
+  PetscCall(VecGetSize(v,&m));
+  PetscCall(VecGetOwnershipRange(v,&mstart,&mend));
   mlocal = mend - mstart;
-  ierr = PetscMalloc2(contour->subcomm->n*mlocal,&idx1,contour->subcomm->n*mlocal,&idx2);CHKERRQ(ierr);
+  PetscCall(PetscMalloc2(contour->subcomm->n*mlocal,&idx1,contour->subcomm->n*mlocal,&idx2));
   j = 0;
   for (k=0;k<contour->subcomm->n;k++) {
     for (i=mstart;i<mend;i++) {
@@ -162,13 +152,13 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
       idx2[j++] = i + m*k;
     }
   }
-  ierr = PetscSubcommGetParent(contour->subcomm,&parent);CHKERRQ(ierr);
-  ierr = ISCreateGeneral(parent,contour->subcomm->n*mlocal,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
-  ierr = ISCreateGeneral(parent,contour->subcomm->n*mlocal,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
-  ierr = VecScatterCreate(v,is1,contour->xdup,is2,&contour->scatterin);CHKERRQ(ierr);
-  ierr = ISDestroy(&is1);CHKERRQ(ierr);
-  ierr = ISDestroy(&is2);CHKERRQ(ierr);
-  ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
+  PetscCall(PetscSubcommGetParent(contour->subcomm,&parent));
+  PetscCall(ISCreateGeneral(parent,contour->subcomm->n*mlocal,idx1,PETSC_COPY_VALUES,&is1));
+  PetscCall(ISCreateGeneral(parent,contour->subcomm->n*mlocal,idx2,PETSC_COPY_VALUES,&is2));
+  PetscCall(VecScatterCreate(v,is1,contour->xdup,is2,&contour->scatterin));
+  PetscCall(ISDestroy(&is1));
+  PetscCall(ISDestroy(&is2));
+  PetscCall(PetscFree2(idx1,idx2));
   PetscFunctionReturn(0);
 }
 
@@ -186,16 +176,15 @@ PetscErrorCode SlepcContourScatterCreate(SlepcContourData contour,Vec v)
 */
 PetscErrorCode SlepcCISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thresh,PetscBool *fl)
 {
-  PetscErrorCode    ierr;
   const PetscScalar *pX;
   PetscInt          i,j,m,ld;
   PetscReal         *tau,s1,s2,tau_max=0.0;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(X,&m,NULL);CHKERRQ(ierr);
-  ierr = MatDenseGetLDA(X,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc1(n,&tau);CHKERRQ(ierr);
-  ierr = MatDenseGetArrayRead(X,&pX);CHKERRQ(ierr);
+  PetscCall(MatGetSize(X,&m,NULL));
+  PetscCall(MatDenseGetLDA(X,&ld));
+  PetscCall(PetscMalloc1(n,&tau));
+  PetscCall(MatDenseGetArrayRead(X,&pX));
   for (j=0;j<n;j++) {
     s1 = 0.0;
     s2 = 0.0;
@@ -206,9 +195,9 @@ PetscErrorCode SlepcCISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thr
     tau[j] = s1/s2;
     tau_max = PetscMax(tau_max,tau[j]);
   }
-  ierr = MatDenseRestoreArrayRead(X,&pX);CHKERRQ(ierr);
+  PetscCall(MatDenseRestoreArrayRead(X,&pX));
   for (j=0;j<n;j++) fl[j] = (tau[j]>=thresh*tau_max)? PETSC_TRUE: PETSC_FALSE;
-  ierr = PetscFree(tau);CHKERRQ(ierr);
+  PetscCall(PetscFree(tau));
   PetscFunctionReturn(0);
 }
 
@@ -226,7 +215,6 @@ PetscErrorCode SlepcCISS_isGhost(Mat X,PetscInt n,PetscReal *sigma,PetscReal thr
 */
 PetscErrorCode SlepcCISS_BH_SVD(PetscScalar *H,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *rank)
 {
-  PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   m,n,lda,ldu,ldvt,lwork,info;
   PetscScalar    *work;
@@ -235,28 +223,27 @@ PetscErrorCode SlepcCISS_BH_SVD(PetscScalar *H,PetscInt ml,PetscReal delta,Petsc
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscMalloc1(5*ml,&work);CHKERRQ(ierr);
+  PetscCall(PetscMalloc1(5*ml,&work));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
+  PetscCall(PetscMalloc1(5*ml,&rwork));
 #endif
-  ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
+  PetscCall(PetscBLASIntCast(ml,&m));
   n = m; lda = m; ldu = m; ldvt = m; lwork = 5*m;
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,H,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,rwork,&info));
 #else
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,H,&lda,sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
 #endif
   SlepcCheckLapackInfo("gesvd",info);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  PetscCall(PetscFPTrapPop());
   (*rank) = 0;
   for (i=0;i<ml;i++) {
     if (sigma[i]/PetscMax(sigma[0],1.0)>delta) (*rank)++;
   }
-  ierr = PetscFree(work);CHKERRQ(ierr);
+  PetscCall(PetscFree(work));
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree(rwork);CHKERRQ(ierr);
+  PetscCall(PetscFree(rwork));
 #endif
   PetscFunctionReturn(0);
 }
-

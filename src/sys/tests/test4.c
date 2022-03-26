@@ -14,30 +14,28 @@ static char help[] = "Tests SlepcInitialize() after PetscInitialize().\n\n";
 
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
-  PetscBool      pInitialized,sInitialized,pFinalized,sFinalized,skip_petsc_finalize;
+  PetscBool pInitialized,sInitialized,pFinalized,sFinalized,skip_petsc_finalize;
 
-  ierr = PetscInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscInitialized(&pInitialized);CHKERRQ(ierr);
-  ierr = SlepcInitialized(&sInitialized);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized);CHKERRQ(ierr);
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);CHKERRQ(ierr);
-  ierr = PetscInitialized(&pInitialized);CHKERRQ(ierr);
-  ierr = SlepcInitialized(&sInitialized);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-skip_petsc_finalize",&skip_petsc_finalize);CHKERRQ(ierr);
+  PetscCall(PetscInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscInitialized(&pInitialized));
+  PetscCall(SlepcInitialized(&sInitialized));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscInitialized(&pInitialized));
+  PetscCall(SlepcInitialized(&sInitialized));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-skip_petsc_finalize",&skip_petsc_finalize));
   if (!skip_petsc_finalize) {
-    ierr = PetscFinalize();if (ierr) return ierr;
-    ierr = PetscFinalized(&pFinalized);if (ierr) return ierr;
+    PetscCall(PetscFinalize());
+    PetscCall(PetscFinalized(&pFinalized));
     if (!pFinalized) printf("Unexpected value: PetscFinalized() returned False after PetscFinalize()\n");
   }
-  ierr = SlepcFinalized(&sFinalized);if (ierr) return ierr;
+  PetscCall(SlepcFinalized(&sFinalized));
   if (sFinalized) printf("Unexpected value: SlepcFinalized() returned True before SlepcFinalize()\n");
-  ierr = SlepcFinalize();
-  if (ierr) printf("SlepcFinalize() returned with error code %d\n",(int)ierr);
-  ierr = SlepcFinalized(&sFinalized);
+  PetscCall(SlepcFinalize());
+  PetscCall(SlepcFinalized(&sFinalized));
   if (!sFinalized) printf("Unexpected value: SlepcFinalized() returned False after SlepcFinalize()\n");
-  return ierr;
+  return 0;
 }
 
 /*TEST

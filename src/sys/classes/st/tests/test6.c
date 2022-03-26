@@ -21,122 +21,119 @@ int main(int argc,char **argv)
   PetscScalar    sigma;
   PetscInt       n=10,i,Istart,Iend;
   STMatMode      matmode;
-  PetscErrorCode ierr;
 
-  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPreconditioner for 1-D Laplacian, n=%" PetscInt_FMT "\n\n",n);CHKERRQ(ierr);
+  PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nPreconditioner for 1-D Laplacian, n=%" PetscInt_FMT "\n\n",n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Compute the operator matrix for the 1-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&A));
+  PetscCall(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(A));
+  PetscCall(MatSetUp(A));
 
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  PetscCall(MatGetOwnershipRange(A,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) PetscCall(MatSetValue(A,i,i-1,-1.0,INSERT_VALUES));
+    if (i<n-1) PetscCall(MatSetValue(A,i,i+1,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(A,i,i,2.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,&v,&w);CHKERRQ(ierr);
-  ierr = VecSet(v,1.0);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatCreateVecs(A,&v,&w));
+  PetscCall(VecSet(v,1.0));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the spectral transformation object
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = STCreate(PETSC_COMM_WORLD,&st);CHKERRQ(ierr);
+  PetscCall(STCreate(PETSC_COMM_WORLD,&st));
   mat[0] = A;
-  ierr = STSetMatrices(st,1,mat);CHKERRQ(ierr);
-  ierr = STSetType(st,STPRECOND);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  ierr = STSetFromOptions(st);CHKERRQ(ierr);
+  PetscCall(STSetMatrices(st,1,mat));
+  PetscCall(STSetType(st,STPRECOND));
+  PetscCall(STGetKSP(st,&ksp));
+  PetscCall(KSPSetType(ksp,KSPPREONLY));
+  PetscCall(STSetFromOptions(st));
 
   /* set up */
   /* - the transform flag is necessary so that A-sigma*I is built explicitly */
-  ierr = STSetTransform(st,PETSC_TRUE);CHKERRQ(ierr);
+  PetscCall(STSetTransform(st,PETSC_TRUE));
   /* - the ksphasmat flag is necessary when using STApply(), otherwise can only use PCApply() */
-  ierr = STPrecondSetKSPHasMat(st,PETSC_TRUE);CHKERRQ(ierr);
+  PetscCall(STPrecondSetKSPHasMat(st,PETSC_TRUE));
   /* no need to call STSetUp() explicitly */
-  ierr = STSetUp(st);CHKERRQ(ierr);
+  PetscCall(STSetUp(st));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Apply the preconditioner
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* default shift */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With default shift\n");CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With default shift\n"));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* change shift */
   sigma = 0.1;
-  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
-  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
-  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
+  PetscCall(STSetShift(st,sigma));
+  PetscCall(STGetShift(st,&sigma));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma)));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
+  PetscCall(STPostSolve(st));   /* undo changes if inplace */
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Test a user-provided preconditioner matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MatCreate(PETSC_COMM_WORLD,&P);CHKERRQ(ierr);
-  ierr = MatSetSizes(P,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(P);CHKERRQ(ierr);
-  ierr = MatSetUp(P);CHKERRQ(ierr);
+  PetscCall(MatCreate(PETSC_COMM_WORLD,&P));
+  PetscCall(MatSetSizes(P,PETSC_DECIDE,PETSC_DECIDE,n,n));
+  PetscCall(MatSetFromOptions(P));
+  PetscCall(MatSetUp(P));
 
-  ierr = MatGetOwnershipRange(P,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(P,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
-  }
+  PetscCall(MatGetOwnershipRange(P,&Istart,&Iend));
+  for (i=Istart;i<Iend;i++) PetscCall(MatSetValue(P,i,i,2.0,INSERT_VALUES));
   if (Istart==0) {
-    ierr = MatSetValue(P,1,0,-1.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = MatSetValue(P,0,1,-1.0,INSERT_VALUES);CHKERRQ(ierr);
+    PetscCall(MatSetValue(P,1,0,-1.0,INSERT_VALUES));
+    PetscCall(MatSetValue(P,0,1,-1.0,INSERT_VALUES));
   }
-  ierr = MatAssemblyBegin(P,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(P,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscCall(MatAssemblyBegin(P,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(P,MAT_FINAL_ASSEMBLY));
 
   /* apply new preconditioner */
-  ierr = STSetPreconditionerMat(st,P);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"With user-provided matrix\n");CHKERRQ(ierr);
-  ierr = STApply(st,v,w);CHKERRQ(ierr);
-  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  PetscCall(STSetPreconditionerMat(st,P));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With user-provided matrix\n"));
+  PetscCall(STApply(st,v,w));
+  PetscCall(VecView(w,NULL));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             Test a user-provided preconditioner in split form
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = STGetMatMode(st,&matmode);CHKERRQ(ierr);
+  PetscCall(STGetMatMode(st,&matmode));
   if (matmode==ST_MATMODE_COPY) {
-    ierr = STSetPreconditionerMat(st,NULL);CHKERRQ(ierr);
+    PetscCall(STSetPreconditionerMat(st,NULL));
     mat[0] = P;
-    ierr = STSetSplitPreconditioner(st,1,mat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    PetscCall(STSetSplitPreconditioner(st,1,mat,SAME_NONZERO_PATTERN));
 
     /* apply new preconditioner */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"With split preconditioner\n");CHKERRQ(ierr);
-    ierr = STApply(st,v,w);CHKERRQ(ierr);
-    ierr = VecView(w,NULL);CHKERRQ(ierr);
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"With split preconditioner\n"));
+    PetscCall(STApply(st,v,w));
+    PetscCall(VecView(w,NULL));
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                              Clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = STDestroy(&st);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&P);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
-  ierr = SlepcFinalize();
-  return ierr;
+  PetscCall(STDestroy(&st));
+  PetscCall(MatDestroy(&A));
+  PetscCall(MatDestroy(&P));
+  PetscCall(VecDestroy(&v));
+  PetscCall(VecDestroy(&w));
+  PetscCall(SlepcFinalize());
+  return 0;
 }
 
 /*TEST
