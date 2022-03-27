@@ -183,6 +183,7 @@ allpdf:
 allmanpages: chk_loc allcite
 	-${RM} ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err
 	-${OMAKE_SELF} ACTION=slepc_manualpages tree_basic LOC=${LOC}
+	cat ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err
 	@a=`cat ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err | wc -l`; test ! $$a -gt 0
 
 # Build just manual examples + prerequisites
