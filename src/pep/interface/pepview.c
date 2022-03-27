@@ -389,7 +389,7 @@ static PetscErrorCode PEPErrorView_MATLAB(PEP pep,PEPErrorType etype,PetscViewer
 .  etype  - error type
 -  viewer - optional visualization context
 
-   Options Database Key:
+   Options Database Keys:
 +  -pep_error_absolute - print absolute errors of each eigenpair
 .  -pep_error_relative - print relative errors of each eigenpair
 -  -pep_error_backward - print backward errors of each eigenpair
@@ -726,7 +726,7 @@ PetscErrorCode PEPValuesViewFromOptions(PEP pep)
 +  pep    - the eigensolver context
 -  viewer - the viewer
 
-   Options Database Keys:
+   Options Database Key:
 .  -pep_view_vectors - output eigenvectors.
 
    Note:

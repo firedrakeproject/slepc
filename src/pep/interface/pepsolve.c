@@ -61,14 +61,20 @@ PetscErrorCode PEPExtractVectors(PEP pep)
 
    Options Database Keys:
 +  -pep_view - print information about the solver used
-.  -pep_view_matk binary - save any of the coefficient matrices (Ak) to the
-                default binary viewer (replace k by an integer from 0 to nmat-1)
-.  -pep_view_vectors binary - save the computed eigenvectors to the default binary viewer
-.  -pep_view_values - print computed eigenvalues
+.  -pep_view_matk - view the coefficient matrix Ak (replace k by an integer from 0 to nmat-1)
+.  -pep_view_vectors - view the computed eigenvectors
+.  -pep_view_values - view the computed eigenvalues
 .  -pep_converged_reason - print reason for convergence, and number of iterations
 .  -pep_error_absolute - print absolute errors of each eigenpair
 .  -pep_error_relative - print relative errors of each eigenpair
 -  -pep_error_backward - print backward errors of each eigenpair
+
+   Notes:
+   All the command-line options listed above admit an optional argument specifying
+   the viewer type and options. For instance, use '-pep_view_mat0 binary:amatrix.bin'
+   to save the A matrix to a binary file, '-pep_view_values draw' to draw the computed
+   eigenvalues graphically, or '-pep_error_relative :myerr.m:ascii_matlab' to save
+   the errors in a file that can be executed in Matlab.
 
    Level: beginner
 
@@ -231,8 +237,10 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
    Output Parameter:
 .  reason - negative value indicates diverged, positive value converged
 
-   Notes:
+   Options Database Key:
+.  -pep_converged_reason - print the reason to a viewer
 
+   Notes:
    Possible values for reason are
 +  PEP_CONVERGED_TOL - converged up to tolerance
 .  PEP_CONVERGED_USER - converged due to a user-defined condition

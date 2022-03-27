@@ -381,7 +381,7 @@ static PetscErrorCode NEPErrorView_MATLAB(NEP nep,NEPErrorType etype,PetscViewer
 .  etype  - error type
 -  viewer - optional visualization context
 
-   Options Database Key:
+   Options Database Keys:
 +  -nep_error_absolute - print absolute errors of each eigenpair
 .  -nep_error_relative - print relative errors of each eigenpair
 -  -nep_error_backward - print backward errors of each eigenpair
@@ -718,7 +718,7 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 +  nep    - the nonlinear eigensolver context
 -  viewer - the viewer
 
-   Options Database Keys:
+   Options Database Key:
 .  -nep_view_vectors - output eigenvectors.
 
    Notes:

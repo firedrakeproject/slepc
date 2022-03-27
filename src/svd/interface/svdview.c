@@ -295,7 +295,7 @@ static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer
 .  etype  - error type
 -  viewer - optional visualization context
 
-   Options Database Key:
+   Options Database Keys:
 +  -svd_error_absolute - print absolute errors of each singular triplet
 .  -svd_error_relative - print relative errors of each singular triplet
 -  -svd_error_norm     - print errors relative to the matrix norms of each singular triplet
@@ -586,7 +586,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
 +  svd    - the singular value solver context
 -  viewer - the viewer
 
-   Options Database Keys:
+   Options Database Key:
 .  -svd_view_vectors - output singular vectors
 
    Note:

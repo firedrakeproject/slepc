@@ -60,14 +60,21 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 
    Options Database Keys:
 +  -svd_view - print information about the solver used
-.  -svd_view_mat0 binary - save the first matrix (A) to the default binary viewer
-.  -svd_view_mat1 binary - save the second matrix (B) to the default binary viewer
-.  -svd_view_vectors binary - save the computed singular vectors to the default binary viewer
-.  -svd_view_values - print computed singular values
+.  -svd_view_mat0 - view the first matrix (A)
+.  -svd_view_mat1 - view the second matrix (B)
+.  -svd_view_vectors - view the computed singular vectors
+.  -svd_view_values - view the computed singular values
 .  -svd_converged_reason - print reason for convergence, and number of iterations
 .  -svd_error_absolute - print absolute errors of each singular triplet
 .  -svd_error_relative - print relative errors of each singular triplet
 -  -svd_error_norm     - print errors relative to the matrix norms of each singular triplet
+
+   Notes:
+   All the command-line options listed above admit an optional argument specifying
+   the viewer type and options. For instance, use '-svd_view_mat0 binary:amatrix.bin'
+   to save the A matrix to a binary file, '-svd_view_values draw' to draw the computed
+   singular values graphically, or '-svd_error_relative :myerr.m:ascii_matlab' to save
+   the errors in a file that can be executed in Matlab.
 
    Level: beginner
 
@@ -175,8 +182,10 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 .  reason - negative value indicates diverged, positive value converged
    (see SVDConvergedReason)
 
-   Notes:
+   Options Database Key:
+.  -svd_converged_reason - print the reason to a viewer
 
+   Notes:
    Possible values for reason are
 +  SVD_CONVERGED_TOL - converged up to tolerance
 .  SVD_CONVERGED_USER - converged due to a user-defined condition
