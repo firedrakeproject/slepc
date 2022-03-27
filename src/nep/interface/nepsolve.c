@@ -53,11 +53,19 @@ PetscErrorCode NEPComputeVectors(NEP nep)
 
    Options Database Keys:
 +  -nep_view - print information about the solver used
-.  -nep_view_vectors binary - save the computed eigenvectors to the default binary viewer
-.  -nep_view_values - print computed eigenvalues
+.  -nep_view_vectors - view the computed eigenvectors
+.  -nep_view_values - view the computed eigenvalues
 .  -nep_converged_reason - print reason for convergence, and number of iterations
 .  -nep_error_absolute - print absolute errors of each eigenpair
--  -nep_error_relative - print relative errors of each eigenpair
+.  -nep_error_relative - print relative errors of each eigenpair
+-  -nep_error_backward - print backward errors of each eigenpair
+
+   Notes:
+   All the command-line options listed above admit an optional argument specifying
+   the viewer type and options. For instance, use '-nep_view_vectors binary:myvecs.bin'
+   to save the eigenvectors to a binary file, '-nep_view_values draw' to draw the computed
+   eigenvalues graphically, or '-nep_error_relative :myerr.m:ascii_matlab' to save
+   the errors in a file that can be executed in Matlab.
 
    Level: beginner
 
@@ -402,8 +410,10 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
    Output Parameter:
 .  reason - negative value indicates diverged, positive value converged
 
-   Notes:
+   Options Database Key:
+.  -nep_converged_reason - print the reason to a viewer
 
+   Notes:
    Possible values for reason are
 +  NEP_CONVERGED_TOL - converged up to tolerance
 .  NEP_CONVERGED_USER - converged due to a user-defined condition

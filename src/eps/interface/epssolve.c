@@ -99,14 +99,21 @@ static PetscErrorCode EPSComputeValues(EPS eps)
 
    Options Database Keys:
 +  -eps_view - print information about the solver used
-.  -eps_view_mat0 binary - save the first matrix (A) to the default binary viewer
-.  -eps_view_mat1 binary - save the second matrix (B) to the default binary viewer
-.  -eps_view_vectors binary - save the computed eigenvectors to the default binary viewer
-.  -eps_view_values - print computed eigenvalues
+.  -eps_view_mat0 - view the first matrix (A)
+.  -eps_view_mat1 - view the second matrix (B)
+.  -eps_view_vectors - view the computed eigenvectors
+.  -eps_view_values - view the computed eigenvalues
 .  -eps_converged_reason - print reason for convergence, and number of iterations
 .  -eps_error_absolute - print absolute errors of each eigenpair
 .  -eps_error_relative - print relative errors of each eigenpair
 -  -eps_error_backward - print backward errors of each eigenpair
+
+   Notes:
+   All the command-line options listed above admit an optional argument specifying
+   the viewer type and options. For instance, use '-eps_view_mat0 binary:amatrix.bin'
+   to save the A matrix to a binary file, '-eps_view_values draw' to draw the computed
+   eigenvalues graphically, or '-eps_error_relative :myerr.m:ascii_matlab' to save
+   the errors in a file that can be executed in Matlab.
 
    Level: beginner
 
@@ -264,6 +271,9 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 
    Output Parameter:
 .  reason - negative value indicates diverged, positive value converged
+
+   Options Database Key:
+.  -eps_converged_reason - print the reason to a viewer
 
    Notes:
    Possible values for reason are
