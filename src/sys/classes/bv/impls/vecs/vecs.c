@@ -30,7 +30,7 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 
   PetscFunctionBegin;
   if (Q) {
-    PetscCall(MatGetSize(Q,&ldq,NULL));
+    PetscCall(MatDenseGetLDA(Q,&ldq));
     if (!trivial) {
       PetscCall(BVAllocateWork_Private(Y,X->k-X->l));
       s = Y->work;
@@ -91,7 +91,7 @@ PetscErrorCode BVMultInPlace_Vecs_ME(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt          i,ldq;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(Q,&ldq,NULL));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArrayRead(Q,&q));
   /* V2 := V2*Q2 */
   PetscCall(BVMultInPlace_Vecs_Private(V,V->n,e-s,ldq,ctx->V+V->nc+s,q+s*ldq+s,PETSC_FALSE));
@@ -117,7 +117,7 @@ PetscErrorCode BVMultInPlace_Vecs_Alloc(BV V,Mat Q,PetscInt s,PetscInt e)
   Vec               *W;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(Q,&ldq,NULL));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArrayRead(Q,&q));
   PetscCall(VecDuplicateVecs(V->t,e-s,&W));
   for (i=s;i<e;i++) PetscCall(VecMAXPY(W[i-s],V->k-V->l,q+i*ldq+V->l,ctx->V+V->nc+V->l));
@@ -137,7 +137,8 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscI
   PetscInt          i,j,ldq,n;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(Q,&ldq,&n));
+  PetscCall(MatGetSize(Q,NULL,&n));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArrayRead(Q,&q));
   /* V2 := V2*Q2' */
   PetscCall(BVMultInPlace_Vecs_Private(V,V->n,e-s,ldq,ctx->V+V->nc+s,q+s*ldq+s,PETSC_TRUE));
@@ -157,7 +158,7 @@ PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
   PetscInt       j,ldm;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(M,&ldm,NULL));
+  PetscCall(MatDenseGetLDA(M,&ldm));
   PetscCall(MatDenseGetArray(M,&m));
   for (j=X->l;j<X->k;j++) PetscCall(VecMDot(x->V[X->nc+j],Y->k-Y->l,y->V+Y->nc+Y->l,m+j*ldm+Y->l));
   PetscCall(MatDenseRestoreArray(M,&m));
