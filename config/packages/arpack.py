@@ -17,9 +17,11 @@ class Arpack(package.Package):
     self.packagename    = 'arpack'
     self.installable    = True
     self.downloadable   = True
-    self.version        = '3.8.0'
-    self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+self.version+'.tar.gz'
-    self.archive        = 'arpack-ng-'+self.version+'.tar.gz'
+    #self.version        = '3.8.0'
+    self.gitcommit      = 'ea1dfe7916594ec3af4a4f7b6c4afeba51c4a466'
+    obj = self.version if hasattr(self,'version') else self.gitcommit
+    self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+obj+'.tar.gz'
+    self.archive        = 'arpack-ng-'+obj+'.tar.gz'
     self.supportssingle = True
     self.fortran        = True
     self.hasheaders     = True   # the option --with-arpack-include=... is simply ignored
@@ -72,22 +74,38 @@ class Arpack(package.Package):
     externdir = slepc.GetExternalPackagesDir(archdir)
     builddir  = self.Download(externdir,slepc.downloaddir)
 
-    # Check for autoreconf
-    (result,output) = self.RunCommand('autoreconf --help')
-    if result:
-      self.log.Exit('--download-arpack requires that the command autoreconf is available on your PATH')
-
-    # Build package
-    confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.getCFlags()+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.getFFlags()+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.getFFlags()+'" LIBS="'+petsc.blaslapack_lib+'"'
-    if not petsc.mpiuni and not petsc.msmpi:
-      confopt = confopt+' --enable-mpi MPICC="'+petsc.cc+'" MPIF77="'+petsc.fc+'" MPIFC="'+petsc.fc+'"'
-    if not petsc.buildsharedlib:
-      confopt = confopt+' --disable-shared'
+    # Check user options
     if petsc.ind64:
       if not petsc.blaslapackint64:
         self.log.Exit('To install ARPACK with 64-bit integers you also need a BLAS with 64-bit integers')
-      confopt = confopt+' INTERFACE64=1'
-    (result,output) = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
+
+    if hasattr(petsc,'cmake'): # Build with cmake
+      builddir = slepc.CreateDir(builddir,'build')
+      confopt = '-DCMAKE_INSTALL_PREFIX='+prefixdir+' -DCMAKE_C_COMPILER="'+petsc.cc+'" -DCMAKE_C_FLAGS:STRING="'+petsc.getCFlags()+'" -DCMAKE_Fortran_COMPILER="'+petsc.fc+'" -DCMAKE_Fortran_FLAGS:STRING="'+petsc.getFFlags()+'" -DBLAS_LIBRARIES="'+petsc.blaslapack_lib+'"'
+      if not petsc.mpiuni and not petsc.msmpi:
+        confopt = confopt+' -DMPI=ON -DMPI_C_COMPILER="'+petsc.cc+'" -DMPI_Fortran_COMPILER="'+petsc.fc+'"'
+      confopt = confopt+' -DCMAKE_BUILD_TYPE='+ ('Debug' if petsc.debug else 'Release')
+      if petsc.buildsharedlib:
+        confopt = confopt+' -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_RPATH:PATH='+os.path.join(prefixdir,'lib')
+      else:
+        confopt = confopt+' -DBUILD_SHARED_LIBS=OFF'
+      if petsc.ind64:
+        confopt = confopt+' -DINTERFACE64=1'
+      (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.cmake+' '+confopt+' .. && '+petsc.make+' && '+petsc.make+' install')
+
+    else: # Build with autoreconf
+      (result,output) = self.RunCommand('autoreconf --help')
+      if result:
+        self.log.Exit('--download-arpack requires that the command autoreconf is available on your PATH, or alternatively that PETSc has been configured with CMake')
+      confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.getCFlags()+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.getFFlags()+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.getFFlags()+'" LIBS="'+petsc.blaslapack_lib+'"'
+      if not petsc.mpiuni and not petsc.msmpi:
+        confopt = confopt+' --enable-mpi MPICC="'+petsc.cc+'" MPIF77="'+petsc.fc+'" MPIFC="'+petsc.fc+'"'
+      if not petsc.buildsharedlib:
+        confopt = confopt+' --disable-shared'
+      if petsc.ind64:
+        confopt = confopt+' INTERFACE64=1'
+      (result,output) = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
+
     if result:
       self.log.Exit('Installation of ARPACK failed')
 

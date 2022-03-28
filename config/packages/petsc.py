@@ -134,6 +134,8 @@ class PETSc(package.Package):
             self.blaslapack_lib = v
           elif k == 'SCALAPACK_LIB':
             self.scalapack_lib = v
+          elif k == 'CMAKE':
+            self.cmake = v
     except:
       self.log.Exit('Cannot process file ' + petscvariables)
 
