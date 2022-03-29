@@ -29,7 +29,7 @@ PetscErrorCode BVMult_Mat(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscCall(MatDenseGetArrayRead(x->A,&px));
   PetscCall(MatDenseGetArray(y->A,&py));
   if (Q) {
-    PetscCall(MatGetSize(Q,&ldq,NULL));
+    PetscCall(MatDenseGetLDA(Q,&ldq));
     PetscCall(MatDenseGetArrayRead(Q,&q));
     PetscCall(BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n));
     PetscCall(MatDenseRestoreArrayRead(Q,&q));
@@ -64,7 +64,7 @@ PetscErrorCode BVMultInPlace_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(Q,&ldq,NULL));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->A,&pv));
   PetscCall(MatDenseGetArrayRead(Q,&q));
   PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_FALSE));
@@ -81,7 +81,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Mat(BV V,Mat Q,PetscInt s,PetscIn
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(Q,&ldq,NULL));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->A,&pv));
   PetscCall(MatDenseGetArrayRead(Q,&q));
   PetscCall(BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE));
@@ -98,7 +98,7 @@ PetscErrorCode BVDot_Mat(BV X,BV Y,Mat M)
   PetscInt          ldm;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(M,&ldm,NULL));
+  PetscCall(MatDenseGetLDA(M,&ldm));
   PetscCall(MatDenseGetArrayRead(x->A,&px));
   PetscCall(MatDenseGetArrayRead(y->A,&py));
   PetscCall(MatDenseGetArray(M,&m));

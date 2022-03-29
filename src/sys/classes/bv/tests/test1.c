@@ -17,13 +17,13 @@ int main(int argc,char **argv)
   Vec               t,v;
   Mat               Q=NULL,M=NULL;
   BV                X,Y;
-  PetscInt          i,j,n=10,k=5,l=3,nloc;
+  PetscInt          i,j,n=10,k=5,l=3,nloc,lda;
   PetscMPIInt       rank;
   PetscScalar       *q,*z;
   const PetscScalar *pX;
   PetscReal         nrm;
   PetscViewer       view;
-  PetscBool         verbose,matcuda;
+  PetscBool         verbose,matcuda,testlda=PETSC_FALSE;
 
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
@@ -31,6 +31,7 @@ int main(int argc,char **argv)
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-matcuda",&matcuda));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-testlda",&testlda));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Test BV with %" PetscInt_FMT " columns of dimension %" PetscInt_FMT ".\n",k,n));
 
   /* Create template vector */
@@ -79,17 +80,21 @@ int main(int argc,char **argv)
   if (verbose) PetscCall(BVView(Y,view));
 
   /* Create Mat */
-  if (matcuda) {
-#if defined(PETSC_HAVE_CUDA)
-    PetscCall(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,k,l,NULL,&Q));
-#endif
-  } else PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q));
+  PetscCall(MatCreate(MPI_COMM_SELF,&Q));
+  if (matcuda && PetscDefined(HAVE_CUDA)) PetscCall(MatSetType(Q,MATSEQDENSECUDA));
+  else PetscCall(MatSetType(Q,MATSEQDENSE));
+  PetscCall(MatSetSizes(Q,k,l,k,l));
+  if (testlda) PetscCall(MatDenseSetLDA(Q,k+2));
+  PetscCall(MatSeqDenseSetPreallocation(Q,NULL));
+  PetscCall(MatAssemblyBegin(Q,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(Q,MAT_FINAL_ASSEMBLY));
   PetscCall(PetscObjectSetName((PetscObject)Q,"Q"));
-  PetscCall(MatDenseGetArray(Q,&q));
+  PetscCall(MatDenseGetArrayWrite(Q,&q));
+  PetscCall(MatDenseGetLDA(Q,&lda));
   for (i=0;i<k;i++)
     for (j=0;j<l;j++)
-      q[i+j*k] = (i<j)? 2.0: -0.5;
-  PetscCall(MatDenseRestoreArray(Q,&q));
+      q[i+j*lda] = (i<j)? 2.0: -0.5;
+  PetscCall(MatDenseRestoreArrayWrite(Q,&q));
   if (verbose) PetscCall(MatView(Q,NULL));
 
   /* Test BVMult */
@@ -113,11 +118,14 @@ int main(int argc,char **argv)
   }
 
   /* Test BVDot */
-  if (matcuda) {
-#if defined(PETSC_HAVE_CUDA)
-    PetscCall(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,l,k,NULL,&M));
-#endif
-  } else PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,l,k,NULL,&M));
+  PetscCall(MatCreate(MPI_COMM_SELF,&M));
+  if (matcuda && PetscDefined(HAVE_CUDA)) PetscCall(MatSetType(M,MATSEQDENSECUDA));
+  else PetscCall(MatSetType(M,MATSEQDENSE));
+  PetscCall(MatSetSizes(M,l,k,l,k));
+  if (testlda) PetscCall(MatDenseSetLDA(M,l+2));
+  PetscCall(MatSeqDenseSetPreallocation(M,NULL));
+  PetscCall(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
+  PetscCall(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
   PetscCall(PetscObjectSetName((PetscObject)M,"M"));
   PetscCall(BVDot(X,Y,M));
   if (verbose) {
@@ -175,9 +183,8 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
-      suffix: 1
-      nsize: 1
       args: -bv_type {{vecs contiguous svec mat}separate output} -verbose
+      suffix: 1
 
    testset:
       args: -bv_type svec -vec_type cuda -verbose
@@ -187,6 +194,21 @@ int main(int argc,char **argv)
          suffix: 1_cuda
       test:
          suffix: 1_cuda_mat
+         args: -matcuda
+         filter: sed -e "s/seqdensecuda/seqdense/"
+
+   test:
+      args: -bv_type {{vecs contiguous svec mat}separate output} -verbose -testlda
+      suffix: 2
+
+   testset:
+      args: -bv_type svec -vec_type cuda -verbose -testlda
+      requires: cuda
+      output_file: output/test1_1_cuda.out
+      test:
+         suffix: 2_cuda
+      test:
+         suffix: 2_cuda_mat
          args: -matcuda
          filter: sed -e "s/seqdensecuda/seqdense/"
 

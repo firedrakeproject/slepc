@@ -28,7 +28,7 @@ PetscErrorCode SVDComputeVectors_Left(SVD svd)
     if (!svd->U) PetscCall(SVDGetBV(svd,NULL,&svd->U));
     PetscCall(BVGetSizes(svd->U,NULL,NULL,&oldsize));
     if (!oldsize) {
-      if (!((PetscObject)(svd->U))->type_name) PetscCall(BVSetType(svd->U,BVSVEC));
+      if (!((PetscObject)(svd->U))->type_name) PetscCall(BVSetType(svd->U,((PetscObject)(svd->V))->type_name));
       PetscCall(MatCreateVecsEmpty(svd->A,NULL,&tl));
       PetscCall(BVSetSizesFromVec(svd->U,tl,svd->ncv));
       PetscCall(VecDestroy(&tl));
