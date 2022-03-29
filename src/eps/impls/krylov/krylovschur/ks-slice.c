@@ -667,7 +667,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
     PetscCall(PetscMPIIntCast(ns,&aux));
     PetscCallMPI(MPI_Allgatherv(shifts_loc,aux,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank)); /* shifts */
     PetscCallMPI(MPI_Allgatherv(inertias_loc,aux,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank)); /* inertias */
-    PetscCallMPI(MPIU_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank));
+    PetscCall(MPIU_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank));
   } else { /* subcommunicators with different size */
     if (!rank) {
       PetscCall(PetscMPIIntCast(sr_loc->numEigs,&aux));
@@ -677,7 +677,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
       PetscCall(PetscMPIIntCast(ns,&aux));
       PetscCallMPI(MPI_Allgatherv(shifts_loc,aux,MPIU_REAL,ctx->shifts,ns_loc,disp,MPIU_REAL,ctx->commrank)); /* shifts */
       PetscCallMPI(MPI_Allgatherv(inertias_loc,aux,MPIU_INT,ctx->inertias,ns_loc,disp,MPIU_INT,ctx->commrank)); /* inertias */
-      PetscCallMPI(MPIU_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank));
+      PetscCall(MPIU_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank));
     }
     PetscCall(PetscMPIIntCast(eps->nconv,&aux));
     PetscCallMPI(MPI_Bcast(eps->eigr,aux,MPIU_SCALAR,0,child));

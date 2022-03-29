@@ -293,7 +293,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
         PetscCall(PetscLogGpuToCpu(m*n*sizeof(PetscScalar)));
       } else PetscCall(PetscArrayzero(X->work,m*n));
       PetscCall(PetscMPIIntCast(m*n,&len));
-      PetscCallMPI(MPIU_Allreduce(X->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X)));
+      PetscCall(MPIU_Allreduce(X->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X)));
     } else {
       PetscCall(BVAllocateWork_Private(X,2*m*n));
       CC = X->work+m*n;
@@ -305,7 +305,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
         PetscCall(PetscLogGpuToCpu(m*n*sizeof(PetscScalar)));
       } else PetscCall(PetscArrayzero(X->work,m*n));
       PetscCall(PetscMPIIntCast(m*n,&len));
-      PetscCallMPI(MPIU_Allreduce(X->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X)));
+      PetscCall(MPIU_Allreduce(X->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X)));
       for (j=0;j<n;j++) PetscCall(PetscArraycpy(C+j*ldm,CC+j*m,m));
     }
   } else {
@@ -398,7 +398,7 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
       PetscCall(VecGetArray(X->buffer,&qq));
     } else PetscCallCUDA(cudaFree(d_work));
     PetscCall(PetscMPIIntCast(k,&len));
-    PetscCallMPI(MPIU_Allreduce(X->work,qq,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X)));
+    PetscCall(MPIU_Allreduce(X->work,qq,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X)));
     if (!q) PetscCall(VecRestoreArray(X->buffer,&qq));
   } else {
     if (n) {

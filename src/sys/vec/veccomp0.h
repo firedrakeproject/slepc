@@ -35,7 +35,7 @@ PetscErrorCode __SUF__(VecDot_Comp)(Vec a,Vec b,PetscScalar *z)
     }
 #if defined(__WITH_MPI__)
     work = sum;
-    PetscCallMPI(MPIU_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a)));
+    PetscCall(MPIU_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a)));
 #endif
   } else {
     for (i=0,sum=0.0;i<as->n->n;i++) {
@@ -87,7 +87,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
 #if defined(__WITH_MPI__)
   if (as->x[0]->ops->mdot_local) {
     /* z[i] <- Allreduce(work[i]) */
-    PetscCallMPI(MPIU_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a)));
+    PetscCall(MPIU_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a)));
   }
 #endif
 
@@ -111,7 +111,7 @@ PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
     }
 #if defined(__WITH_MPI__)
     work = sum;
-    PetscCallMPI(MPIU_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a)));
+    PetscCall(MPIU_Allreduce(&work,&sum,1,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a)));
 #endif
   } else {
     for (i=0,sum=0.0;i<as->n->n;i++) {
@@ -163,7 +163,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
 #if defined(__WITH_MPI__)
   if (as->x[0]->ops->mtdot_local) {
     /* z[i] <- Allreduce(work[i]) */
-    PetscCallMPI(MPIU_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a)));
+    PetscCall(MPIU_Allreduce(r,z,n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)a)));
   }
 #endif
 
@@ -205,22 +205,22 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
     switch (t) {
     case NORM_1:
       work[0] = *norm;
-      PetscCallMPI(MPIU_Allreduce(work,norm,1,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)a)));
+      PetscCall(MPIU_Allreduce(work,norm,1,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)a)));
       break;
     case NORM_2: case NORM_FROBENIUS:
       work[0] = *norm; work[1] = s;
-      PetscCallMPI(MPIU_Allreduce(work,work0,1,MPIU_NORM2,MPIU_NORM2_SUM,PetscObjectComm((PetscObject)a)));
+      PetscCall(MPIU_Allreduce(work,work0,1,MPIU_NORM2,MPIU_NORM2_SUM,PetscObjectComm((PetscObject)a)));
       *norm = GetNorm2(work0[0],work0[1]);
       break;
     case NORM_1_AND_2:
       work[0] = norm[0]; work[1] = norm[1]; work[2] = s;
-      PetscCallMPI(MPIU_Allreduce(work,work0,1,MPIU_NORM1_AND_2,MPIU_NORM2_SUM,PetscObjectComm((PetscObject)a)));
+      PetscCall(MPIU_Allreduce(work,work0,1,MPIU_NORM1_AND_2,MPIU_NORM2_SUM,PetscObjectComm((PetscObject)a)));
       norm[0] = work0[0];
       norm[1] = GetNorm2(work0[1],work0[2]);
       break;
     case NORM_INFINITY:
       work[0] = *norm;
-      PetscCallMPI(MPIU_Allreduce(work,norm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)a)));
+      PetscCall(MPIU_Allreduce(work,norm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)a)));
       break;
     }
   }
@@ -273,7 +273,7 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
 #if defined(__WITH_MPI__)
     /* [dp, nm] <- Allreduce([dp0, nm0]) */
     work[0] = dp0; work[1] = nm0;
-    PetscCallMPI(MPIU_Allreduce(work,&work[2],2,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)v)));
+    PetscCall(MPIU_Allreduce(work,&work[2],2,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)v)));
     *dp = work[2]; *nm = work[3];
 #else
     *dp = dp0; *nm = nm0;
