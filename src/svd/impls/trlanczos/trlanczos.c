@@ -618,7 +618,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
   normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb): 1.0;
 
   /* normalize start vector */
-  if (!svd->nini) {
+  if (!svd->ninil) {
     PetscCall(BVSetRandomColumn(U1,0));
     PetscCall(BVOrthonormalizeColumn(U1,0,PETSC_TRUE,NULL,NULL));
   }
@@ -806,24 +806,21 @@ static inline PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,PetscInt 
   SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
   Vec               u,v,ut=svd->workl[0],x=svd->workr[0];
   PetscInt          m,j;
-  PetscRandom       rand;
   PetscScalar       *arr;
   const PetscScalar *carr;
 
   PetscFunctionBegin;
-  PetscCall(BVCreateVec(U1,&u));
-  PetscCall(VecGetLocalSize(u,&m));
-  PetscCall(BVGetRandomContext(U1,&rand));
-  PetscCall(VecSetRandom(u,rand));
-  /* Form ut=[u;0] */
+  /* Form ut=[u;0] where u is the k-th column of U1 */
   PetscCall(VecZeroEntries(ut));
+  PetscCall(BVGetColumn(U1,k,&u));
+  PetscCall(VecGetLocalSize(u,&m));
   PetscCall(VecGetArrayRead(u,&carr));
   PetscCall(VecGetArray(ut,&arr));
   for (j=0; j<m; j++) arr[j] = carr[j];
   PetscCall(VecRestoreArrayRead(u,&carr));
   PetscCall(VecRestoreArray(ut,&arr));
-  PetscCall(VecDestroy(&u));
-  /* Solve least squares problem and premultiply the result by Z */
+  PetscCall(BVRestoreColumn(U1,k,&u));
+  /* Solve least squares problem Z*x=ut for x. Then set v=Z*x */
   PetscCall(KSPSolve(lanczos->ksp,ut,x));
   PetscCall(BVGetColumn(V,k,&v));
   PetscCall(MatMult(lanczos->Z,x,v));
@@ -849,7 +846,8 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
   normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb): 1.0;
 
   /* normalize start vector */
-  if (!svd->nini) PetscCall(SVDInitialVectorGUpper(svd,V,U1,0,NULL));
+  if (!svd->ninil) PetscCall(BVSetRandomColumn(U1,0));
+  PetscCall(SVDInitialVectorGUpper(svd,V,U1,0,NULL));
 
   l = 0;
   while (svd->reason == SVD_CONVERGED_ITERATING) {
@@ -893,6 +891,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
         /* Start a new bidiagonalization */
         PetscCall(PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its));
         if (k<svd->nsv) {
+          PetscCall(BVSetRandomColumn(U1,k));
           PetscCall(SVDInitialVectorGUpper(svd,V,U1,k,&breakdown));
           if (breakdown) {
             svd->reason = SVD_DIVERGED_BREAKDOWN;
@@ -1029,25 +1028,27 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
 }
 
 /* generate random initial vector in column k for joint lower-upper bidiagonalization */
-static inline PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,PetscInt k,PetscBool *breakdown)
+static inline PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,BV U2,PetscInt k,PetscBool *breakdown)
 {
   SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
   const PetscScalar *carr;
   PetscScalar       *arr;
   PetscReal         *alpha;
-  PetscRandom       rand;
-  PetscInt          j,m;
-  Vec               u,v,ut=svd->workl[0],x=svd->workr[0];
+  PetscInt          j,m,p;
+  Vec               u,uh,v,ut=svd->workl[0],x=svd->workr[0];
 
   PetscFunctionBegin;
-  /* Form ut=[0;uh] with uh random unit vector */
   PetscCall(MatGetLocalSize(svd->A,&m,NULL));
-  PetscCall(BVGetRandomContext(V,&rand));
-  PetscCall(VecSetRandom(ut,rand));
+  PetscCall(MatGetLocalSize(svd->B,&p,NULL));
+  /* Form ut=[0;uh], where uh is the k-th column of U2 */
+  PetscCall(BVGetColumn(U2,k,&uh));
+  PetscCall(VecZeroEntries(ut));
+  PetscCall(VecGetArrayRead(uh,&carr));
   PetscCall(VecGetArray(ut,&arr));
-  for (j=0; j<m; j++) arr[j] = 0.0;
+  for (j=0; j<p; j++) arr[m+j] = carr[j];
+  PetscCall(VecRestoreArrayRead(uh,&carr));
   PetscCall(VecRestoreArray(ut,&arr));
-  PetscCall(VecNormalize(ut,NULL));
+  PetscCall(BVRestoreColumn(U2,k,&uh));
   /* Solve least squares problem Z*x=ut for x. Then set ut=Z*x */
   PetscCall(KSPSolve(lanczos->ksp,ut,x));
   PetscCall(MatMult(lanczos->Z,x,ut));
@@ -1103,7 +1104,8 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
   normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb): 1.0;
 
   /* normalize start vector */
-  if (!svd->nini) PetscCall(SVDInitialVectorGLower(svd,V,U1,0,NULL));
+  if (!svd->ninil) PetscCall(BVSetRandomColumn(U2,0));
+  PetscCall(SVDInitialVectorGLower(svd,V,U1,U2,0,NULL));
 
   l = 0;
   while (svd->reason == SVD_CONVERGED_ITERATING) {
@@ -1147,7 +1149,8 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
         /* Start a new bidiagonalization */
         PetscCall(PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its));
         if (k<svd->nsv) {
-          PetscCall(SVDInitialVectorGLower(svd,V,U1,k,&breakdown));
+          PetscCall(BVSetRandomColumn(U2,k));
+          PetscCall(SVDInitialVectorGLower(svd,V,U1,U2,k,&breakdown));
           if (breakdown) {
             svd->reason = SVD_DIVERGED_BREAKDOWN;
             PetscCall(PetscInfo(svd,"Unable to generate more start vectors\n"));
@@ -1210,6 +1213,20 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)U2));
   PetscCall(BVSetType(U2,type));
   PetscCall(BVSetSizes(U2,p,PETSC_DECIDE,k));
+
+  /* Copy initial vectors from svd->U to U1 and U2 */
+  if (svd->ninil) {
+    Vec u, uh, nest, aux[2];
+    PetscCall(BVGetColumn(U1,0,&u));
+    PetscCall(BVGetColumn(U2,0,&uh));
+    aux[0] = u;
+    aux[1] = uh;
+    PetscCall(VecCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,aux,&nest));
+    PetscCall(BVCopyVec(svd->U,0,nest));
+    PetscCall(BVRestoreColumn(U1,0,&u));
+    PetscCall(BVRestoreColumn(U2,0,&uh));
+    PetscCall(VecDestroy(&nest));
+  }
 
   switch (lanczos->bidiag) {
     case SVD_TRLANCZOS_GBIDIAG_SINGLE:
