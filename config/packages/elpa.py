@@ -15,6 +15,7 @@ class Elpa(package.Package):
   def __init__(self,argdb,log):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'elpa'
+    self.packagetype    = 'gnu'
     self.installable    = True
     self.downloadable   = True
     self.version        = '2021.11.002'
@@ -103,7 +104,7 @@ class Elpa(package.Package):
       confopt = confopt+' --with-mpi=no'
     if petsc.precision == 'single':
       confopt = confopt+' --enable-single-precision'
-    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
+    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' '+self.buildflags+' && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
     if result:
       self.log.Exit('Installation of ELPA failed')
 

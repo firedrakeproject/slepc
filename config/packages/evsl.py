@@ -15,6 +15,7 @@ class Evsl(package.Package):
   def __init__(self,argdb,log):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'evsl'
+    self.packagetype    = 'gnu'
     self.installable    = True
     self.downloadable   = True
     self.gitcommit      = 'b9d8150a25f2ac431f1ead78e4e06c6332a9d39a'  #master 30-nov-2021
@@ -87,7 +88,7 @@ class Evsl(package.Package):
       confopt = confopt+' --enable-shared'
     if 'mkl_pardiso' in petsc.packages and 'MKLROOT' in os.environ:
       confopt = confopt+' --with-mkl-pardiso --with-intel-mkl'
-    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
+    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' '+self.buildflags+' && '+petsc.make+' && '+petsc.make+' install')
     if result:
       self.log.Exit('Installation of EVSL failed')
 

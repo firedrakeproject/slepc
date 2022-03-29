@@ -15,6 +15,7 @@ class Arpack(package.Package):
   def __init__(self,argdb,log):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'arpack'
+    self.packagetype    = 'cmake'
     self.installable    = True
     self.downloadable   = True
     #self.version        = '3.8.0'
@@ -91,12 +92,14 @@ class Arpack(package.Package):
         confopt = confopt+' -DBUILD_SHARED_LIBS=OFF'
       if petsc.ind64:
         confopt = confopt+' -DINTERFACE64=1'
-      (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.cmake+' '+confopt+' .. && '+petsc.make+' && '+petsc.make+' install')
+      (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.cmake+' '+confopt+' '+self.buildflags+' .. && '+petsc.make+' && '+petsc.make+' install')
 
     else: # Build with autoreconf
       (result,output) = self.RunCommand('autoreconf --help')
       if result:
         self.log.Exit('--download-arpack requires that the command autoreconf is available on your PATH, or alternatively that PETSc has been configured with CMake')
+      if self.buildflags:
+        self.log.Exit('You specified --download-arpack-cmake-arguments but ARPACK will be built with autoreconf because PETSc was not configured with CMake')
       confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.getCFlags()+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.getFFlags()+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.getFFlags()+'" LIBS="'+petsc.blaslapack_lib+'"'
       if not petsc.mpiuni and not petsc.msmpi:
         confopt = confopt+' --enable-mpi MPICC="'+petsc.cc+'" MPIF77="'+petsc.fc+'" MPIFC="'+petsc.fc+'"'

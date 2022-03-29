@@ -15,6 +15,7 @@ class Primme(package.Package):
   def __init__(self,argdb,log):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'primme'
+    self.packagetype    = 'source_c'
     self.installable    = True
     self.downloadable   = True
     self.version        = '3.2'
@@ -23,7 +24,6 @@ class Primme(package.Package):
     self.supportssingle = True
     self.supports64bint = True
     self.hasheaders     = True
-    self.hasdloadflags  = True
     self.ProcessArgs(argdb)
 
   def SampleCode(self,petsc):
