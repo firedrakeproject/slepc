@@ -330,7 +330,7 @@ static PetscErrorCode EPSConv_Cyclic(EPS eps,PetscScalar eigr,PetscScalar eigi,P
 PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 {
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          M,N,m,n,i,isl;
+  PetscInt          M,N,m,n,p,k,i,isl,offset;
   const PetscScalar *isa;
   PetscScalar       *va;
   PetscBool         trackall,issinv;
@@ -406,20 +406,29 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     for (i=0;i<-PetscMin(svd->nini,svd->ninil);i++) {
       PetscCall(MatCreateVecs(cyclic->C,&v,NULL));
       PetscCall(VecGetArrayWrite(v,&va));
+      if (svd->isgeneralized) PetscCall(MatGetLocalSize(svd->B,&p,NULL));
+      k = (svd->isgeneralized && svd->which==SVD_SMALLEST)? p: m;  /* size of upper block row */
       if (i<-svd->ninil) {
-        PetscCall(VecGetSize(svd->ISL[i],&isl));
-        PetscCheck(isl==m,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for left initial vector");
         PetscCall(VecGetArrayRead(svd->ISL[i],&isa));
-        PetscCall(PetscArraycpy(va,isa,m));
+        if (svd->isgeneralized) {
+          PetscCall(VecGetLocalSize(svd->ISL[i],&isl));
+          PetscCheck(isl==m+p,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for left initial vector");
+          offset = (svd->which==SVD_SMALLEST)? m: 0;
+          PetscCall(PetscArraycpy(va,isa+offset,k));
+        } else {
+          PetscCall(VecGetLocalSize(svd->ISL[i],&isl));
+          PetscCheck(isl==k,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for left initial vector");
+          PetscCall(PetscArraycpy(va,isa,k));
+        }
         PetscCall(VecRestoreArrayRead(svd->IS[i],&isa));
-      } else PetscCall(PetscArrayzero(&va,m));
+      } else PetscCall(PetscArrayzero(&va,k));
       if (i<-svd->nini) {
-        PetscCall(VecGetSize(svd->IS[i],&isl));
+        PetscCall(VecGetLocalSize(svd->IS[i],&isl));
         PetscCheck(isl==n,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for right initial vector");
         PetscCall(VecGetArrayRead(svd->IS[i],&isa));
-        PetscCall(PetscArraycpy(va+m,isa,n));
+        PetscCall(PetscArraycpy(va+k,isa,n));
         PetscCall(VecRestoreArrayRead(svd->IS[i],&isa));
-      } else PetscCall(PetscArrayzero(va+m,n));
+      } else PetscCall(PetscArrayzero(va+k,n));
       PetscCall(VecRestoreArrayWrite(v,&va));
       PetscCall(VecDestroy(&svd->IS[i]));
       svd->IS[i] = v;
