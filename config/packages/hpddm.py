@@ -20,7 +20,7 @@ class HPDDM(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'hpddm'
     self.downloadable   = True
-    self.gitcommit      = '382ee53a2fb9dcb3ff32424a2cbe6dc3cea89514'
+    self.gitcommit      = 'b9ae0dc6cf88af52b1572b990f8b1731cabceaaf'
     self.url            = 'https://github.com/hpddm/hpddm/archive/'+self.gitcommit+'.tar.gz'
     self.archive        = 'hpddm-'+self.gitcommit+'.tar.gz'
     self.dirname        = 'hpddm-'+self.gitcommit
