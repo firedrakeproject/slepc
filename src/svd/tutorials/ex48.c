@@ -19,7 +19,7 @@ int main(int argc,char **argv)
 {
   Mat            A,B;             /* matrices */
   SVD            svd;             /* singular value problem solver context */
-  PetscInt       i,m,n,Istart,Iend,col[2];
+  PetscInt       i,m,n,p,Istart,Iend,col[2];
   PetscScalar    vals[] = { -1, 1 };
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
@@ -56,9 +56,11 @@ int main(int argc,char **argv)
     PetscCall(MatLoad(B,viewer));
     PetscCall(PetscViewerDestroy(&viewer));
   } else {
-    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=bidiag(1,-1)\n\n"));
+    p = n+1;
+    PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,&flg));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=bidiag(1,-1) with p=%" PetscInt_FMT "\n\n",p));
     PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
-    PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n+1,n));
+    PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
     PetscCall(MatSetFromOptions(B));
     PetscCall(MatSetUp(B));
     PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
@@ -153,5 +155,10 @@ int main(int argc,char **argv)
       test:
          suffix: 2_cyclic
          args: -svd_type cyclic -svd_cyclic_explicitmatrix
+
+   test:
+      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
+      args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -p 320 -svd_nsv 3 -svd_type trlanczos -svd_trlanczos_ksp_rtol 1e-14 -terse
+      suffix: 3
 
 TEST*/
