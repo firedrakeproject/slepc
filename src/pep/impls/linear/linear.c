@@ -766,7 +766,7 @@ PetscErrorCode PEPLinearSetLinearization(PEP pep,PetscReal alpha,PetscReal beta)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,alpha,2);
   PetscValidLogicalCollectiveReal(pep,beta,3);
-  PetscCall(PetscTryMethod(pep,"PEPLinearSetLinearization_C",(PEP,PetscReal,PetscReal),(pep,alpha,beta)));
+  PetscTryMethod(pep,"PEPLinearSetLinearization_C",(PEP,PetscReal,PetscReal),(pep,alpha,beta));
   PetscFunctionReturn(0);
 }
 
@@ -801,7 +801,7 @@ PetscErrorCode PEPLinearGetLinearization(PEP pep,PetscReal *alpha,PetscReal *bet
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscCall(PetscUseMethod(pep,"PEPLinearGetLinearization_C",(PEP,PetscReal*,PetscReal*),(pep,alpha,beta)));
+  PetscUseMethod(pep,"PEPLinearGetLinearization_C",(PEP,PetscReal*,PetscReal*),(pep,alpha,beta));
   PetscFunctionReturn(0);
 }
 
@@ -839,7 +839,7 @@ PetscErrorCode PEPLinearSetExplicitMatrix(PEP pep,PetscBool explicitmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(pep,explicitmat,2);
-  PetscCall(PetscTryMethod(pep,"PEPLinearSetExplicitMatrix_C",(PEP,PetscBool),(pep,explicitmat)));
+  PetscTryMethod(pep,"PEPLinearSetExplicitMatrix_C",(PEP,PetscBool),(pep,explicitmat));
   PetscFunctionReturn(0);
 }
 
@@ -873,7 +873,7 @@ PetscErrorCode PEPLinearGetExplicitMatrix(PEP pep,PetscBool *explicitmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidBoolPointer(explicitmat,2);
-  PetscCall(PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmat)));
+  PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmat));
   PetscFunctionReturn(0);
 }
 
@@ -911,7 +911,7 @@ PetscErrorCode PEPLinearSetEPS(PEP pep,EPS eps)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(pep,1,eps,2);
-  PetscCall(PetscTryMethod(pep,"PEPLinearSetEPS_C",(PEP,EPS),(pep,eps)));
+  PetscTryMethod(pep,"PEPLinearSetEPS_C",(PEP,EPS),(pep,eps));
   PetscFunctionReturn(0);
 }
 
@@ -954,7 +954,7 @@ PetscErrorCode PEPLinearGetEPS(PEP pep,EPS *eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(eps,2);
-  PetscCall(PetscUseMethod(pep,"PEPLinearGetEPS_C",(PEP,EPS*),(pep,eps)));
+  PetscUseMethod(pep,"PEPLinearGetEPS_C",(PEP,EPS*),(pep,eps));
   PetscFunctionReturn(0);
 }
 

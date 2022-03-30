@@ -147,7 +147,7 @@ PetscErrorCode FNPhiSetIndex(FN fn,PetscInt k)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,k,2);
-  PetscCall(PetscTryMethod(fn,"FNPhiSetIndex_C",(FN,PetscInt),(fn,k)));
+  PetscTryMethod(fn,"FNPhiSetIndex_C",(FN,PetscInt),(fn,k));
   PetscFunctionReturn(0);
 }
 
@@ -180,7 +180,7 @@ PetscErrorCode FNPhiGetIndex(FN fn,PetscInt *k)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidIntPointer(k,2);
-  PetscCall(PetscUseMethod(fn,"FNPhiGetIndex_C",(FN,PetscInt*),(fn,k)));
+  PetscUseMethod(fn,"FNPhiGetIndex_C",(FN,PetscInt*),(fn,k));
   PetscFunctionReturn(0);
 }
 

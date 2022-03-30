@@ -358,7 +358,7 @@ PetscErrorCode BVTensorBuildFirstColumn(BV V,PetscInt k)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,k,2);
-  PetscCall(PetscUseMethod(V,"BVTensorBuildFirstColumn_C",(BV,PetscInt),(V,k)));
+  PetscUseMethod(V,"BVTensorBuildFirstColumn_C",(BV,PetscInt),(V,k));
   PetscFunctionReturn(0);
 }
 
@@ -566,7 +566,7 @@ PetscErrorCode BVTensorCompress(BV V,PetscInt newc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,newc,2);
-  PetscCall(PetscUseMethod(V,"BVTensorCompress_C",(BV,PetscInt),(V,newc)));
+  PetscUseMethod(V,"BVTensorCompress_C",(BV,PetscInt),(V,newc));
   PetscFunctionReturn(0);
 }
 
@@ -599,7 +599,7 @@ PetscErrorCode BVTensorGetDegree(BV bv,PetscInt *d)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidIntPointer(d,2);
-  PetscCall(PetscUseMethod(bv,"BVTensorGetDegree_C",(BV,PetscInt*),(bv,d)));
+  PetscUseMethod(bv,"BVTensorGetDegree_C",(BV,PetscInt*),(bv,d));
   PetscFunctionReturn(0);
 }
 
@@ -647,7 +647,7 @@ PetscErrorCode BVTensorGetFactors(BV V,BV *U,Mat *S)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
-  PetscCall(PetscUseMethod(V,"BVTensorGetFactors_C",(BV,BV*,Mat*),(V,U,S)));
+  PetscUseMethod(V,"BVTensorGetFactors_C",(BV,BV*,Mat*),(V,U,S));
   PetscFunctionReturn(0);
 }
 
@@ -688,7 +688,7 @@ PetscErrorCode BVTensorRestoreFactors(BV V,BV *U,Mat *S)
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   if (U) PetscValidHeaderSpecific(*U,BV_CLASSID,2);
   if (S) PetscValidHeaderSpecific(*S,MAT_CLASSID,3);
-  PetscCall(PetscUseMethod(V,"BVTensorRestoreFactors_C",(BV,BV*,Mat*),(V,U,S)));
+  PetscUseMethod(V,"BVTensorRestoreFactors_C",(BV,BV*,Mat*),(V,U,S));
   PetscFunctionReturn(0);
 }
 

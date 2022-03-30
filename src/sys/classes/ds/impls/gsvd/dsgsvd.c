@@ -602,7 +602,7 @@ PetscErrorCode DSGSVDSetDimensions(DS ds,PetscInt m,PetscInt p)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,m,2);
   PetscValidLogicalCollectiveInt(ds,p,3);
-  PetscCall(PetscTryMethod(ds,"DSGSVDSetDimensions_C",(DS,PetscInt,PetscInt),(ds,m,p)));
+  PetscTryMethod(ds,"DSGSVDSetDimensions_C",(DS,PetscInt,PetscInt),(ds,m,p));
   PetscFunctionReturn(0);
 }
 
@@ -636,7 +636,7 @@ PetscErrorCode DSGSVDGetDimensions(DS ds,PetscInt *m,PetscInt *p)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscCall(PetscUseMethod(ds,"DSGSVDGetDimensions_C",(DS,PetscInt*,PetscInt*),(ds,m,p)));
+  PetscUseMethod(ds,"DSGSVDGetDimensions_C",(DS,PetscInt*,PetscInt*),(ds,m,p));
   PetscFunctionReturn(0);
 }
 

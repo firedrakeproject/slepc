@@ -276,7 +276,7 @@ PetscErrorCode NEPRIISetMaximumIterations(NEP nep,PetscInt its)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,its,2);
-  PetscCall(PetscTryMethod(nep,"NEPRIISetMaximumIterations_C",(NEP,PetscInt),(nep,its)));
+  PetscTryMethod(nep,"NEPRIISetMaximumIterations_C",(NEP,PetscInt),(nep,its));
   PetscFunctionReturn(0);
 }
 
@@ -309,7 +309,7 @@ PetscErrorCode NEPRIIGetMaximumIterations(NEP nep,PetscInt *its)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(its,2);
-  PetscCall(PetscUseMethod(nep,"NEPRIIGetMaximumIterations_C",(NEP,PetscInt*),(nep,its)));
+  PetscUseMethod(nep,"NEPRIIGetMaximumIterations_C",(NEP,PetscInt*),(nep,its));
   PetscFunctionReturn(0);
 }
 
@@ -351,7 +351,7 @@ PetscErrorCode NEPRIISetLagPreconditioner(NEP nep,PetscInt lag)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,lag,2);
-  PetscCall(PetscTryMethod(nep,"NEPRIISetLagPreconditioner_C",(NEP,PetscInt),(nep,lag)));
+  PetscTryMethod(nep,"NEPRIISetLagPreconditioner_C",(NEP,PetscInt),(nep,lag));
   PetscFunctionReturn(0);
 }
 
@@ -384,7 +384,7 @@ PetscErrorCode NEPRIIGetLagPreconditioner(NEP nep,PetscInt *lag)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidIntPointer(lag,2);
-  PetscCall(PetscUseMethod(nep,"NEPRIIGetLagPreconditioner_C",(NEP,PetscInt*),(nep,lag)));
+  PetscUseMethod(nep,"NEPRIIGetLagPreconditioner_C",(NEP,PetscInt*),(nep,lag));
   PetscFunctionReturn(0);
 }
 
@@ -425,7 +425,7 @@ PetscErrorCode NEPRIISetConstCorrectionTol(NEP nep,PetscBool cct)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(nep,cct,2);
-  PetscCall(PetscTryMethod(nep,"NEPRIISetConstCorrectionTol_C",(NEP,PetscBool),(nep,cct)));
+  PetscTryMethod(nep,"NEPRIISetConstCorrectionTol_C",(NEP,PetscBool),(nep,cct));
   PetscFunctionReturn(0);
 }
 
@@ -458,7 +458,7 @@ PetscErrorCode NEPRIIGetConstCorrectionTol(NEP nep,PetscBool *cct)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(cct,2);
-  PetscCall(PetscUseMethod(nep,"NEPRIIGetConstCorrectionTol_C",(NEP,PetscBool*),(nep,cct)));
+  PetscUseMethod(nep,"NEPRIIGetConstCorrectionTol_C",(NEP,PetscBool*),(nep,cct));
   PetscFunctionReturn(0);
 }
 
@@ -499,7 +499,7 @@ PetscErrorCode NEPRIISetHermitian(NEP nep,PetscBool herm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveBool(nep,herm,2);
-  PetscCall(PetscTryMethod(nep,"NEPRIISetHermitian_C",(NEP,PetscBool),(nep,herm)));
+  PetscTryMethod(nep,"NEPRIISetHermitian_C",(NEP,PetscBool),(nep,herm));
   PetscFunctionReturn(0);
 }
 
@@ -533,7 +533,7 @@ PetscErrorCode NEPRIIGetHermitian(NEP nep,PetscBool *herm)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(herm,2);
-  PetscCall(PetscUseMethod(nep,"NEPRIIGetHermitian_C",(NEP,PetscBool*),(nep,herm)));
+  PetscUseMethod(nep,"NEPRIIGetHermitian_C",(NEP,PetscBool*),(nep,herm));
   PetscFunctionReturn(0);
 }
 
@@ -576,7 +576,7 @@ PetscErrorCode NEPRIISetDeflationThreshold(NEP nep,PetscReal deftol)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,deftol,2);
-  PetscCall(PetscTryMethod(nep,"NEPRIISetDeflationThreshold_C",(NEP,PetscReal),(nep,deftol)));
+  PetscTryMethod(nep,"NEPRIISetDeflationThreshold_C",(NEP,PetscReal),(nep,deftol));
   PetscFunctionReturn(0);
 }
 
@@ -609,7 +609,7 @@ PetscErrorCode NEPRIIGetDeflationThreshold(NEP nep,PetscReal *deftol)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidRealPointer(deftol,2);
-  PetscCall(PetscUseMethod(nep,"NEPRIIGetDeflationThreshold_C",(NEP,PetscReal*),(nep,deftol)));
+  PetscUseMethod(nep,"NEPRIIGetDeflationThreshold_C",(NEP,PetscReal*),(nep,deftol));
   PetscFunctionReturn(0);
 }
 
@@ -646,7 +646,7 @@ PetscErrorCode NEPRIISetKSP(NEP nep,KSP ksp)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(nep,1,ksp,2);
-  PetscCall(PetscTryMethod(nep,"NEPRIISetKSP_C",(NEP,KSP),(nep,ksp)));
+  PetscTryMethod(nep,"NEPRIISetKSP_C",(NEP,KSP),(nep,ksp));
   PetscFunctionReturn(0);
 }
 
@@ -690,7 +690,7 @@ PetscErrorCode NEPRIIGetKSP(NEP nep,KSP *ksp)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(ksp,2);
-  PetscCall(PetscUseMethod(nep,"NEPRIIGetKSP_C",(NEP,KSP*),(nep,ksp)));
+  PetscUseMethod(nep,"NEPRIIGetKSP_C",(NEP,KSP*),(nep,ksp));
   PetscFunctionReturn(0);
 }
 

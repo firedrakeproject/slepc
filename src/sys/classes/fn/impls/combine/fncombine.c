@@ -282,7 +282,7 @@ PetscErrorCode FNCombineSetChildren(FN fn,FNCombineType comb,FN f1,FN f2)
   PetscValidLogicalCollectiveEnum(fn,comb,2);
   PetscValidHeaderSpecific(f1,FN_CLASSID,3);
   PetscValidHeaderSpecific(f2,FN_CLASSID,4);
-  PetscCall(PetscTryMethod(fn,"FNCombineSetChildren_C",(FN,FNCombineType,FN,FN),(fn,comb,f1,f2)));
+  PetscTryMethod(fn,"FNCombineSetChildren_C",(FN,FNCombineType,FN,FN),(fn,comb,f1,f2));
   PetscFunctionReturn(0);
 }
 
@@ -331,7 +331,7 @@ PetscErrorCode FNCombineGetChildren(FN fn,FNCombineType *comb,FN *f1,FN *f2)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscCall(PetscUseMethod(fn,"FNCombineGetChildren_C",(FN,FNCombineType*,FN*,FN*),(fn,comb,f1,f2)));
+  PetscUseMethod(fn,"FNCombineGetChildren_C",(FN,FNCombineType*,FN*,FN*),(fn,comb,f1,f2));
   PetscFunctionReturn(0);
 }
 

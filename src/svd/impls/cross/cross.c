@@ -374,7 +374,7 @@ PetscErrorCode SVDCrossSetExplicitMatrix(SVD svd,PetscBool explicitmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveBool(svd,explicitmat,2);
-  PetscCall(PetscTryMethod(svd,"SVDCrossSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmat)));
+  PetscTryMethod(svd,"SVDCrossSetExplicitMatrix_C",(SVD,PetscBool),(svd,explicitmat));
   PetscFunctionReturn(0);
 }
 
@@ -407,7 +407,7 @@ PetscErrorCode SVDCrossGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(explicitmat,2);
-  PetscCall(PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat)));
+  PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmat));
   PetscFunctionReturn(0);
 }
 
@@ -445,7 +445,7 @@ PetscErrorCode SVDCrossSetEPS(SVD svd,EPS eps)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(svd,1,eps,2);
-  PetscCall(PetscTryMethod(svd,"SVDCrossSetEPS_C",(SVD,EPS),(svd,eps)));
+  PetscTryMethod(svd,"SVDCrossSetEPS_C",(SVD,EPS),(svd,eps));
   PetscFunctionReturn(0);
 }
 
@@ -489,7 +489,7 @@ PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(eps,2);
-  PetscCall(PetscUseMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps)));
+  PetscUseMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps));
   PetscFunctionReturn(0);
 }
 

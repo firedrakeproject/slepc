@@ -591,7 +591,7 @@ PetscErrorCode DSNEPSetFN(DS ds,PetscInt n,FN fn[])
     PetscValidHeaderSpecific(fn[i],FN_CLASSID,3);
     PetscCheckSameComm(ds,1,fn[i],3);
   }
-  PetscCall(PetscTryMethod(ds,"DSNEPSetFN_C",(DS,PetscInt,FN[]),(ds,n,fn)));
+  PetscTryMethod(ds,"DSNEPSetFN_C",(DS,PetscInt,FN[]),(ds,n,fn));
   PetscFunctionReturn(0);
 }
 
@@ -626,7 +626,7 @@ PetscErrorCode DSNEPGetFN(DS ds,PetscInt k,FN *fn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(fn,3);
-  PetscCall(PetscUseMethod(ds,"DSNEPGetFN_C",(DS,PetscInt,FN*),(ds,k,fn)));
+  PetscUseMethod(ds,"DSNEPGetFN_C",(DS,PetscInt,FN*),(ds,k,fn));
   PetscFunctionReturn(0);
 }
 
@@ -660,7 +660,7 @@ PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(n,2);
-  PetscCall(PetscUseMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n)));
+  PetscUseMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n));
   PetscFunctionReturn(0);
 }
 
@@ -705,7 +705,7 @@ PetscErrorCode DSNEPSetMinimality(DS ds,PetscInt n)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
-  PetscCall(PetscTryMethod(ds,"DSNEPSetMinimality_C",(DS,PetscInt),(ds,n)));
+  PetscTryMethod(ds,"DSNEPSetMinimality_C",(DS,PetscInt),(ds,n));
   PetscFunctionReturn(0);
 }
 
@@ -739,7 +739,7 @@ PetscErrorCode DSNEPGetMinimality(DS ds,PetscInt *n)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(n,2);
-  PetscCall(PetscUseMethod(ds,"DSNEPGetMinimality_C",(DS,PetscInt*),(ds,n)));
+  PetscUseMethod(ds,"DSNEPGetMinimality_C",(DS,PetscInt*),(ds,n));
   PetscFunctionReturn(0);
 }
 
@@ -790,7 +790,7 @@ PetscErrorCode DSNEPSetRefine(DS ds,PetscReal tol,PetscInt its)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveReal(ds,tol,2);
   PetscValidLogicalCollectiveInt(ds,its,3);
-  PetscCall(PetscTryMethod(ds,"DSNEPSetRefine_C",(DS,PetscReal,PetscInt),(ds,tol,its)));
+  PetscTryMethod(ds,"DSNEPSetRefine_C",(DS,PetscReal,PetscInt),(ds,tol,its));
   PetscFunctionReturn(0);
 }
 
@@ -825,7 +825,7 @@ PetscErrorCode DSNEPGetRefine(DS ds,PetscReal *tol,PetscInt *its)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscCall(PetscUseMethod(ds,"DSNEPGetRefine_C",(DS,PetscReal*,PetscInt*),(ds,tol,its)));
+  PetscUseMethod(ds,"DSNEPGetRefine_C",(DS,PetscReal*,PetscInt*),(ds,tol,its));
   PetscFunctionReturn(0);
 }
 
@@ -868,7 +868,7 @@ PetscErrorCode DSNEPSetIntegrationPoints(DS ds,PetscInt ip)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,ip,2);
-  PetscCall(PetscTryMethod(ds,"DSNEPSetIntegrationPoints_C",(DS,PetscInt),(ds,ip)));
+  PetscTryMethod(ds,"DSNEPSetIntegrationPoints_C",(DS,PetscInt),(ds,ip));
   PetscFunctionReturn(0);
 }
 
@@ -902,7 +902,7 @@ PetscErrorCode DSNEPGetIntegrationPoints(DS ds,PetscInt *ip)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(ip,2);
-  PetscCall(PetscUseMethod(ds,"DSNEPGetIntegrationPoints_C",(DS,PetscInt*),(ds,ip)));
+  PetscUseMethod(ds,"DSNEPGetIntegrationPoints_C",(DS,PetscInt*),(ds,ip));
   PetscFunctionReturn(0);
 }
 
@@ -944,7 +944,7 @@ PetscErrorCode DSNEPSetSamplingSize(DS ds,PetscInt p)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,p,2);
-  PetscCall(PetscTryMethod(ds,"DSNEPSetSamplingSize_C",(DS,PetscInt),(ds,p)));
+  PetscTryMethod(ds,"DSNEPSetSamplingSize_C",(DS,PetscInt),(ds,p));
   PetscFunctionReturn(0);
 }
 
@@ -978,7 +978,7 @@ PetscErrorCode DSNEPGetSamplingSize(DS ds,PetscInt *p)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(p,2);
-  PetscCall(PetscUseMethod(ds,"DSNEPGetSamplingSize_C",(DS,PetscInt*),(ds,p)));
+  PetscUseMethod(ds,"DSNEPGetSamplingSize_C",(DS,PetscInt*),(ds,p));
   PetscFunctionReturn(0);
 }
 
@@ -1024,7 +1024,7 @@ PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS,Pets
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscCall(PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*),(ds,fun,ctx)));
+  PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*),(ds,fun,ctx));
   PetscFunctionReturn(0);
 }
 
@@ -1059,7 +1059,7 @@ PetscErrorCode DSNEPGetComputeMatrixFunction(DS ds,PetscErrorCode (**fun)(DS,Pet
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscCall(PetscUseMethod(ds,"DSNEPGetComputeMatrixFunction_C",(DS,PetscErrorCode (**)(DS,PetscScalar,PetscBool,DSMatType,void*),void**),(ds,fun,ctx)));
+  PetscUseMethod(ds,"DSNEPGetComputeMatrixFunction_C",(DS,PetscErrorCode (**)(DS,PetscScalar,PetscBool,DSMatType,void*),void**),(ds,fun,ctx));
   PetscFunctionReturn(0);
 }
 
@@ -1100,7 +1100,7 @@ PetscErrorCode DSNEPSetRG(DS ds,RG rg)
     PetscValidHeaderSpecific(rg,RG_CLASSID,2);
     PetscCheckSameComm(ds,1,rg,2);
   }
-  PetscCall(PetscTryMethod(ds,"DSNEPSetRG_C",(DS,RG),(ds,rg)));
+  PetscTryMethod(ds,"DSNEPSetRG_C",(DS,RG),(ds,rg));
   PetscFunctionReturn(0);
 }
 
@@ -1141,7 +1141,7 @@ PetscErrorCode DSNEPGetRG(DS ds,RG *rg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(rg,2);
-  PetscCall(PetscUseMethod(ds,"DSNEPGetRG_C",(DS,RG*),(ds,rg)));
+  PetscUseMethod(ds,"DSNEPGetRG_C",(DS,RG*),(ds,rg));
   PetscFunctionReturn(0);
 }
 

@@ -255,7 +255,7 @@ PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,nu,2);
-  PetscCall(PetscTryMethod(st,"STCayleySetAntishift_C",(ST,PetscScalar),(st,nu)));
+  PetscTryMethod(st,"STCayleySetAntishift_C",(ST,PetscScalar),(st,nu));
   PetscFunctionReturn(0);
 }
 
@@ -289,7 +289,7 @@ PetscErrorCode STCayleyGetAntishift(ST st,PetscScalar *nu)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidScalarPointer(nu,2);
-  PetscCall(PetscUseMethod(st,"STCayleyGetAntishift_C",(ST,PetscScalar*),(st,nu)));
+  PetscUseMethod(st,"STCayleyGetAntishift_C",(ST,PetscScalar*),(st,nu));
   PetscFunctionReturn(0);
 }
 

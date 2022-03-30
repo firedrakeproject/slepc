@@ -410,7 +410,7 @@ PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(win,VEC_CLASSID,1);
-  PetscCall(PetscUseMethod(win,"VecCompGetSubVecs_C",(Vec,PetscInt*,const Vec**),(win,n,x)));
+  PetscUseMethod(win,"VecCompGetSubVecs_C",(Vec,PetscInt*,const Vec**),(win,n,x));
   PetscFunctionReturn(0);
 }
 
@@ -473,7 +473,7 @@ PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec *x)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(win,VEC_CLASSID,1);
   PetscValidLogicalCollectiveInt(win,n,2);
-  PetscCall(PetscTryMethod(win,"VecCompSetSubVecs_C",(Vec,PetscInt,Vec*),(win,n,x)));
+  PetscTryMethod(win,"VecCompSetSubVecs_C",(Vec,PetscInt,Vec*),(win,n,x));
   PetscFunctionReturn(0);
 }
 
