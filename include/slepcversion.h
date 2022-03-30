@@ -11,11 +11,11 @@
 #if !defined(SLEPCVERSION_H)
 #define SLEPCVERSION_H
 
-#define SLEPC_VERSION_RELEASE    0
+#define SLEPC_VERSION_RELEASE    1
 #define SLEPC_VERSION_MAJOR      3
-#define SLEPC_VERSION_MINOR      16
-#define SLEPC_VERSION_SUBMINOR   2
-#define SLEPC_RELEASE_DATE       "September 30, 2021"
+#define SLEPC_VERSION_MINOR      17
+#define SLEPC_VERSION_SUBMINOR   0
+#define SLEPC_RELEASE_DATE       "March 31, 2022"
 #define SLEPC_VERSION_DATE       "unknown"
 
 #if !defined (SLEPC_VERSION_GIT)
