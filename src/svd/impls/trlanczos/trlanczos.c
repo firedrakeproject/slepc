@@ -43,7 +43,7 @@ static const char citation[] =
 static const char citationg[] =
   "@Article{slepc-gsvd,\n"
   "   author = \"F. Alvarruiz and C. Campos and J. E. Roman\",\n"
-  "   title = \"Thick-restarted {Lanczos} bidigonalization methods for the {GSVD}\",\n"
+  "   title = \"Thick-restarted {Lanczos} bidiagonalization methods for the {GSVD}\",\n"
   "   note = \"In preparation\",\n"
   "   year = \"2021\"\n"
   "}\n";
