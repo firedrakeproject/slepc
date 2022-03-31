@@ -46,7 +46,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
   PetscCall(PetscBLASIntCast(n_,&n));
   if (type==NORM_FROBENIUS || type==NORM_2) {
     lnrm = LAPACKlange_("F",&m,&n,(PetscScalar*)A,&m,rwork);
-    if (mpi) PetscCallMPI(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv)));
+    if (mpi) PetscCall(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv)));
     else *nrm = lnrm;
     PetscCall(PetscLogFlops(2.0*m*n));
   } else if (type==NORM_1) {
@@ -62,7 +62,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
         }
       }
       PetscCall(PetscMPIIntCast(n_,&len));
-      PetscCallMPI(MPIU_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
+      PetscCall(MPIU_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv)));
       *nrm = 0.0;
       for (j=0;j<n_;j++) if (rwork2[j] > *nrm) *nrm = rwork2[j];
     } else {
@@ -73,7 +73,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
     PetscCall(BVAllocateWork_Private(bv,m_));
     rwork = (PetscReal*)bv->work;
     lnrm = LAPACKlange_("I",&m,&n,(PetscScalar*)A,&m,rwork);
-    if (mpi) PetscCallMPI(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)bv)));
+    if (mpi) PetscCall(MPIU_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)bv)));
     else *nrm = lnrm;
     PetscCall(PetscLogFlops(1.0*m*n));
   }
@@ -109,7 +109,7 @@ PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const Pe
   if (mpi) {
     PetscCall(PetscMPIIntCast(n_,&len));
     PetscCall(PetscArrayzero(rwork2,n_));
-    PetscCallMPI(MPIU_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv)));
+    PetscCall(MPIU_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv)));
     norms = rwork2;
   } else norms = rwork;
   /* scale columns */
@@ -547,7 +547,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,P
     for (i=0;i<n;i++) {
       for (j=i;j<n;j++) R1[(2*n-i-1)*i/2+j] = (i<m)?A[i+j*m]:0.0;
     }
-    PetscCallMPI(MPIU_Allreduce(R1,R2,1,tmat,MPIU_TSQR,PetscObjectComm((PetscObject)bv)));
+    PetscCall(MPIU_Allreduce(R1,R2,1,tmat,MPIU_TSQR,PetscObjectComm((PetscObject)bv)));
     for (i=0;i<n;i++) {
       for (j=0;j<i;j++) R[i+j*ldr] = 0.0;
       for (j=i;j<n;j++) R[i+j*ldr] = R2[(2*n-i-1)*i/2+j];

@@ -328,7 +328,7 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   }
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* communicate results */
     PetscCall(PetscMPIIntCast(k,&len));
-    PetscCallMPI(MPIU_Allreduce(MPI_IN_PLACE,p,len,MPIU_INT,MPIU_SUM,PetscObjectComm((PetscObject)ds)));
+    PetscCall(MPIU_Allreduce(MPI_IN_PLACE,p,len,MPIU_INT,MPIU_SUM,PetscObjectComm((PetscObject)ds)));
     PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size));
     PetscCall(PetscLayoutGetRanges(map,&range));
     for (j=0;j<k;j++) {
@@ -438,7 +438,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   if (ds->pmode==DS_PARALLEL_DISTRIBUTED) {  /* compute final S via reduction */
     PetscCall(PetscMPIIntCast(2*mid*n*p,&len));
-    PetscCallMPI(MPIU_Allreduce(MPI_IN_PLACE,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds)));
+    PetscCall(MPIU_Allreduce(MPI_IN_PLACE,S,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)ds)));
   }
   p = ctx->spls?PetscMin(ctx->spls,n):n;
   pp = p;

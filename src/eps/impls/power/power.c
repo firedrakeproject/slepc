@@ -185,7 +185,7 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
   }
   PetscCall(VecRestoreArrayRead(x,&xx));
   if (i==last) i=N;
-  PetscCallMPI(MPIU_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x)));
+  PetscCall(MPIU_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x)));
   PetscCheck(*idx!=N,PetscObjectComm((PetscObject)x),PETSC_ERR_PLIB,"Zero vector found");
   PetscCall(VecGetLayout(x,&map));
   PetscCall(PetscLayoutFindOwner(map,*idx,p));

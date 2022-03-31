@@ -203,7 +203,7 @@ static PetscErrorCode MatGetDiagonal_ECross(Mat B,Vec d)
       }
     }
     PetscCall(PetscMPIIntCast(N,&len));
-    PetscCallMPI(MPIU_Allreduce(work1,work2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)B)));
+    PetscCall(MPIU_Allreduce(work1,work2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)B)));
     PetscCall(VecGetOwnershipRange(ctx->diag,&start,&end));
     PetscCall(VecGetArrayWrite(ctx->diag,&diag));
     for (i=start;i<end;i++) diag[i-start] = work2[i];
