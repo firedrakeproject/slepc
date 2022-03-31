@@ -1,4 +1,4 @@
-Copyright (c) 2002-2021, Universitat Politecnica de Valencia, Spain
+Copyright (c) 2002-2022, Universitat Politecnica de Valencia, Spain
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
