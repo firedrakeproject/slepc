@@ -123,7 +123,7 @@ PetscErrorCode STFilterSetInterval(ST st,PetscReal inta,PetscReal intb)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveReal(st,inta,2);
   PetscValidLogicalCollectiveReal(st,intb,3);
-  PetscCall(PetscTryMethod(st,"STFilterSetInterval_C",(ST,PetscReal,PetscReal),(st,inta,intb)));
+  PetscTryMethod(st,"STFilterSetInterval_C",(ST,PetscReal,PetscReal),(st,inta,intb));
   PetscFunctionReturn(0);
 }
 
@@ -157,7 +157,7 @@ PetscErrorCode STFilterGetInterval(ST st,PetscReal *inta,PetscReal *intb)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscCall(PetscUseMethod(st,"STFilterGetInterval_C",(ST,PetscReal*,PetscReal*),(st,inta,intb)));
+  PetscUseMethod(st,"STFilterGetInterval_C",(ST,PetscReal*,PetscReal*),(st,inta,intb));
   PetscFunctionReturn(0);
 }
 
@@ -205,7 +205,7 @@ PetscErrorCode STFilterSetRange(ST st,PetscReal left,PetscReal right)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveReal(st,left,2);
   PetscValidLogicalCollectiveReal(st,right,3);
-  PetscCall(PetscTryMethod(st,"STFilterSetRange_C",(ST,PetscReal,PetscReal),(st,left,right)));
+  PetscTryMethod(st,"STFilterSetRange_C",(ST,PetscReal,PetscReal),(st,left,right));
   PetscFunctionReturn(0);
 }
 
@@ -239,7 +239,7 @@ PetscErrorCode STFilterGetRange(ST st,PetscReal *left,PetscReal *right)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscCall(PetscUseMethod(st,"STFilterGetRange_C",(ST,PetscReal*,PetscReal*),(st,left,right)));
+  PetscUseMethod(st,"STFilterGetRange_C",(ST,PetscReal*,PetscReal*),(st,left,right));
   PetscFunctionReturn(0);
 }
 
@@ -286,7 +286,7 @@ PetscErrorCode STFilterSetDegree(ST st,PetscInt deg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveInt(st,deg,2);
-  PetscCall(PetscTryMethod(st,"STFilterSetDegree_C",(ST,PetscInt),(st,deg)));
+  PetscTryMethod(st,"STFilterSetDegree_C",(ST,PetscInt),(st,deg));
   PetscFunctionReturn(0);
 }
 
@@ -319,7 +319,7 @@ PetscErrorCode STFilterGetDegree(ST st,PetscInt *deg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidIntPointer(deg,2);
-  PetscCall(PetscUseMethod(st,"STFilterGetDegree_C",(ST,PetscInt*),(st,deg)));
+  PetscUseMethod(st,"STFilterGetDegree_C",(ST,PetscInt*),(st,deg));
   PetscFunctionReturn(0);
 }
 
@@ -353,7 +353,7 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidRealPointer(gamma,2);
-  PetscCall(PetscUseMethod(st,"STFilterGetThreshold_C",(ST,PetscReal*),(st,gamma)));
+  PetscUseMethod(st,"STFilterGetThreshold_C",(ST,PetscReal*),(st,gamma));
   PetscFunctionReturn(0);
 }
 

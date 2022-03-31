@@ -768,7 +768,7 @@ PetscErrorCode EPSPowerSetShiftType(EPS eps,EPSPowerShiftType shift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,shift,2);
-  PetscCall(PetscTryMethod(eps,"EPSPowerSetShiftType_C",(EPS,EPSPowerShiftType),(eps,shift)));
+  PetscTryMethod(eps,"EPSPowerSetShiftType_C",(EPS,EPSPowerShiftType),(eps,shift));
   PetscFunctionReturn(0);
 }
 
@@ -802,7 +802,7 @@ PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(shift,2);
-  PetscCall(PetscUseMethod(eps,"EPSPowerGetShiftType_C",(EPS,EPSPowerShiftType*),(eps,shift)));
+  PetscUseMethod(eps,"EPSPowerGetShiftType_C",(EPS,EPSPowerShiftType*),(eps,shift));
   PetscFunctionReturn(0);
 }
 
@@ -855,7 +855,7 @@ PetscErrorCode EPSPowerSetNonlinear(EPS eps,PetscBool nonlinear)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,nonlinear,2);
-  PetscCall(PetscTryMethod(eps,"EPSPowerSetNonlinear_C",(EPS,PetscBool),(eps,nonlinear)));
+  PetscTryMethod(eps,"EPSPowerSetNonlinear_C",(EPS,PetscBool),(eps,nonlinear));
   PetscFunctionReturn(0);
 }
 
@@ -888,7 +888,7 @@ PetscErrorCode EPSPowerGetNonlinear(EPS eps,PetscBool *nonlinear)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(nonlinear,2);
-  PetscCall(PetscUseMethod(eps,"EPSPowerGetNonlinear_C",(EPS,PetscBool*),(eps,nonlinear)));
+  PetscUseMethod(eps,"EPSPowerGetNonlinear_C",(EPS,PetscBool*),(eps,nonlinear));
   PetscFunctionReturn(0);
 }
 
@@ -925,7 +925,7 @@ PetscErrorCode EPSPowerSetUpdate(EPS eps,PetscBool update)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,update,2);
-  PetscCall(PetscTryMethod(eps,"EPSPowerSetUpdate_C",(EPS,PetscBool),(eps,update)));
+  PetscTryMethod(eps,"EPSPowerSetUpdate_C",(EPS,PetscBool),(eps,update));
   PetscFunctionReturn(0);
 }
 
@@ -959,7 +959,7 @@ PetscErrorCode EPSPowerGetUpdate(EPS eps,PetscBool *update)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(update,2);
-  PetscCall(PetscUseMethod(eps,"EPSPowerGetUpdate_C",(EPS,PetscBool*),(eps,update)));
+  PetscUseMethod(eps,"EPSPowerGetUpdate_C",(EPS,PetscBool*),(eps,update));
   PetscFunctionReturn(0);
 }
 
@@ -996,7 +996,7 @@ PetscErrorCode EPSPowerSetSNES(EPS eps,SNES snes)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(snes,SNES_CLASSID,2);
   PetscCheckSameComm(eps,1,snes,2);
-  PetscCall(PetscTryMethod(eps,"EPSPowerSetSNES_C",(EPS,SNES),(eps,snes)));
+  PetscTryMethod(eps,"EPSPowerSetSNES_C",(EPS,SNES),(eps,snes));
   PetscFunctionReturn(0);
 }
 
@@ -1038,7 +1038,7 @@ PetscErrorCode EPSPowerGetSNES(EPS eps,SNES *snes)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(snes,2);
-  PetscCall(PetscUseMethod(eps,"EPSPowerGetSNES_C",(EPS,SNES*),(eps,snes)));
+  PetscUseMethod(eps,"EPSPowerGetSNES_C",(EPS,SNES*),(eps,snes));
   PetscFunctionReturn(0);
 }
 

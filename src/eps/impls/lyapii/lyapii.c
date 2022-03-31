@@ -587,7 +587,7 @@ PetscErrorCode EPSLyapIISetRanks(EPS eps,PetscInt rkc,PetscInt rkl)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,rkc,2);
   PetscValidLogicalCollectiveInt(eps,rkl,3);
-  PetscCall(PetscTryMethod(eps,"EPSLyapIISetRanks_C",(EPS,PetscInt,PetscInt),(eps,rkc,rkl)));
+  PetscTryMethod(eps,"EPSLyapIISetRanks_C",(EPS,PetscInt,PetscInt),(eps,rkc,rkl));
   PetscFunctionReturn(0);
 }
 
@@ -621,7 +621,7 @@ PetscErrorCode EPSLyapIIGetRanks(EPS eps,PetscInt *rkc,PetscInt *rkl)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscCall(PetscUseMethod(eps,"EPSLyapIIGetRanks_C",(EPS,PetscInt*,PetscInt*),(eps,rkc,rkl)));
+  PetscUseMethod(eps,"EPSLyapIIGetRanks_C",(EPS,PetscInt*,PetscInt*),(eps,rkc,rkl));
   PetscFunctionReturn(0);
 }
 
@@ -658,7 +658,7 @@ PetscErrorCode EPSLyapIISetLME(EPS eps,LME lme)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidHeaderSpecific(lme,LME_CLASSID,2);
   PetscCheckSameComm(eps,1,lme,2);
-  PetscCall(PetscTryMethod(eps,"EPSLyapIISetLME_C",(EPS,LME),(eps,lme)));
+  PetscTryMethod(eps,"EPSLyapIISetLME_C",(EPS,LME),(eps,lme));
   PetscFunctionReturn(0);
 }
 
@@ -699,7 +699,7 @@ PetscErrorCode EPSLyapIIGetLME(EPS eps,LME *lme)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(lme,2);
-  PetscCall(PetscUseMethod(eps,"EPSLyapIIGetLME_C",(EPS,LME*),(eps,lme)));
+  PetscUseMethod(eps,"EPSLyapIIGetLME_C",(EPS,LME*),(eps,lme));
   PetscFunctionReturn(0);
 }
 

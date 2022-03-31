@@ -120,7 +120,7 @@ PetscErrorCode RGRingSetParameters(RG rg,PetscScalar center,PetscReal radius,Pet
   PetscValidLogicalCollectiveReal(rg,start_ang,5);
   PetscValidLogicalCollectiveReal(rg,end_ang,6);
   PetscValidLogicalCollectiveReal(rg,width,7);
-  PetscCall(PetscTryMethod(rg,"RGRingSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal),(rg,center,radius,vscale,start_ang,end_ang,width)));
+  PetscTryMethod(rg,"RGRingSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal),(rg,center,radius,vscale,start_ang,end_ang,width));
   PetscFunctionReturn(0);
 }
 
@@ -162,7 +162,7 @@ PetscErrorCode RGRingGetParameters(RG rg,PetscScalar *center,PetscReal *radius,P
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  PetscCall(PetscUseMethod(rg,"RGRingGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,center,radius,vscale,start_ang,end_ang,width)));
+  PetscUseMethod(rg,"RGRingGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,center,radius,vscale,start_ang,end_ang,width));
   PetscFunctionReturn(0);
 }
 

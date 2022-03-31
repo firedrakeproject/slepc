@@ -71,7 +71,7 @@ PetscErrorCode RGEllipseSetParameters(RG rg,PetscScalar center,PetscReal radius,
   PetscValidLogicalCollectiveScalar(rg,center,2);
   PetscValidLogicalCollectiveReal(rg,radius,3);
   PetscValidLogicalCollectiveReal(rg,vscale,4);
-  PetscCall(PetscTryMethod(rg,"RGEllipseSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal),(rg,center,radius,vscale)));
+  PetscTryMethod(rg,"RGEllipseSetParameters_C",(RG,PetscScalar,PetscReal,PetscReal),(rg,center,radius,vscale));
   PetscFunctionReturn(0);
 }
 
@@ -107,7 +107,7 @@ PetscErrorCode RGEllipseGetParameters(RG rg,PetscScalar *center,PetscReal *radiu
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  PetscCall(PetscUseMethod(rg,"RGEllipseGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*),(rg,center,radius,vscale)));
+  PetscUseMethod(rg,"RGEllipseGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*),(rg,center,radius,vscale));
   PetscFunctionReturn(0);
 }
 

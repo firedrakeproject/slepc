@@ -305,7 +305,7 @@ PetscErrorCode NEPInterpolSetInterpolation(NEP nep,PetscReal tol,PetscInt deg)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,tol,2);
   PetscValidLogicalCollectiveInt(nep,deg,3);
-  PetscCall(PetscTryMethod(nep,"NEPInterpolSetInterpolation_C",(NEP,PetscReal,PetscInt),(nep,tol,deg)));
+  PetscTryMethod(nep,"NEPInterpolSetInterpolation_C",(NEP,PetscReal,PetscInt),(nep,tol,deg));
   PetscFunctionReturn(0);
 }
 
@@ -340,7 +340,7 @@ PetscErrorCode NEPInterpolGetInterpolation(NEP nep,PetscReal *tol,PetscInt *deg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscCall(PetscUseMethod(nep,"NEPInterpolGetInterpolation_C",(NEP,PetscReal*,PetscInt*),(nep,tol,deg)));
+  PetscUseMethod(nep,"NEPInterpolGetInterpolation_C",(NEP,PetscReal*,PetscInt*),(nep,tol,deg));
   PetscFunctionReturn(0);
 }
 
@@ -377,7 +377,7 @@ PetscErrorCode NEPInterpolSetPEP(NEP nep,PEP pep)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidHeaderSpecific(pep,PEP_CLASSID,2);
   PetscCheckSameComm(nep,1,pep,2);
-  PetscCall(PetscTryMethod(nep,"NEPInterpolSetPEP_C",(NEP,PEP),(nep,pep)));
+  PetscTryMethod(nep,"NEPInterpolSetPEP_C",(NEP,PEP),(nep,pep));
   PetscFunctionReturn(0);
 }
 
@@ -420,7 +420,7 @@ PetscErrorCode NEPInterpolGetPEP(NEP nep,PEP *pep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(pep,2);
-  PetscCall(PetscUseMethod(nep,"NEPInterpolGetPEP_C",(NEP,PEP*),(nep,pep)));
+  PetscUseMethod(nep,"NEPInterpolGetPEP_C",(NEP,PEP*),(nep,pep));
   PetscFunctionReturn(0);
 }
 

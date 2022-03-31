@@ -290,7 +290,7 @@ PetscErrorCode DSPEPSetDegree(DS ds,PetscInt d)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,d,2);
-  PetscCall(PetscTryMethod(ds,"DSPEPSetDegree_C",(DS,PetscInt),(ds,d)));
+  PetscTryMethod(ds,"DSPEPSetDegree_C",(DS,PetscInt),(ds,d));
   PetscFunctionReturn(0);
 }
 
@@ -323,7 +323,7 @@ PetscErrorCode DSPEPGetDegree(DS ds,PetscInt *d)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(d,2);
-  PetscCall(PetscUseMethod(ds,"DSPEPGetDegree_C",(DS,PetscInt*),(ds,d)));
+  PetscUseMethod(ds,"DSPEPGetDegree_C",(DS,PetscInt*),(ds,d));
   PetscFunctionReturn(0);
 }
 
@@ -371,7 +371,7 @@ PetscErrorCode DSPEPSetCoefficients(DS ds,PetscReal *pbc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscCall(PetscTryMethod(ds,"DSPEPSetCoefficients_C",(DS,PetscReal*),(ds,pbc)));
+  PetscTryMethod(ds,"DSPEPSetCoefficients_C",(DS,PetscReal*),(ds,pbc));
   PetscFunctionReturn(0);
 }
 
@@ -418,7 +418,7 @@ PetscErrorCode DSPEPGetCoefficients(DS ds,PetscReal **pbc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(pbc,2);
-  PetscCall(PetscUseMethod(ds,"DSPEPGetCoefficients_C",(DS,PetscReal**),(ds,pbc)));
+  PetscUseMethod(ds,"DSPEPGetCoefficients_C",(DS,PetscReal**),(ds,pbc));
   PetscFunctionReturn(0);
 }
 

@@ -438,7 +438,7 @@ PetscErrorCode NEPNLEIGSSetEPS(NEP nep,EPS eps)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
   PetscCheckSameComm(nep,1,eps,2);
-  PetscCall(PetscTryMethod(nep,"NEPNLEIGSSetEPS_C",(NEP,EPS),(nep,eps)));
+  PetscTryMethod(nep,"NEPNLEIGSSetEPS_C",(NEP,EPS),(nep,eps));
   PetscFunctionReturn(0);
 }
 
@@ -497,6 +497,6 @@ PetscErrorCode NEPNLEIGSGetEPS(NEP nep,EPS *eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(eps,2);
-  PetscCall(PetscUseMethod(nep,"NEPNLEIGSGetEPS_C",(NEP,EPS*),(nep,eps)));
+  PetscUseMethod(nep,"NEPNLEIGSGetEPS_C",(NEP,EPS*),(nep,eps));
   PetscFunctionReturn(0);
 }

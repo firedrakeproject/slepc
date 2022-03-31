@@ -166,7 +166,7 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool ksphasmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveBool(st,ksphasmat,2);
-  PetscCall(PetscTryMethod(st,"STPrecondSetKSPHasMat_C",(ST,PetscBool),(st,ksphasmat)));
+  PetscTryMethod(st,"STPrecondSetKSPHasMat_C",(ST,PetscBool),(st,ksphasmat));
   PetscFunctionReturn(0);
 }
 
@@ -201,7 +201,7 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *ksphasmat)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidBoolPointer(ksphasmat,2);
-  PetscCall(PetscUseMethod(st,"STPrecondGetKSPHasMat_C",(ST,PetscBool*),(st,ksphasmat)));
+  PetscUseMethod(st,"STPrecondGetKSPHasMat_C",(ST,PetscBool*),(st,ksphasmat));
   PetscFunctionReturn(0);
 }
 

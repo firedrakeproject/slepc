@@ -430,7 +430,7 @@ PetscErrorCode EPSLOBPCGSetBlockSize(EPS eps,PetscInt bs)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,bs,2);
-  PetscCall(PetscTryMethod(eps,"EPSLOBPCGSetBlockSize_C",(EPS,PetscInt),(eps,bs)));
+  PetscTryMethod(eps,"EPSLOBPCGSetBlockSize_C",(EPS,PetscInt),(eps,bs));
   PetscFunctionReturn(0);
 }
 
@@ -463,7 +463,7 @@ PetscErrorCode EPSLOBPCGGetBlockSize(EPS eps,PetscInt *bs)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(bs,2);
-  PetscCall(PetscUseMethod(eps,"EPSLOBPCGGetBlockSize_C",(EPS,PetscInt*),(eps,bs)));
+  PetscUseMethod(eps,"EPSLOBPCGGetBlockSize_C",(EPS,PetscInt*),(eps,bs));
   PetscFunctionReturn(0);
 }
 
@@ -508,7 +508,7 @@ PetscErrorCode EPSLOBPCGSetRestart(EPS eps,PetscReal restart)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveReal(eps,restart,2);
-  PetscCall(PetscTryMethod(eps,"EPSLOBPCGSetRestart_C",(EPS,PetscReal),(eps,restart)));
+  PetscTryMethod(eps,"EPSLOBPCGSetRestart_C",(EPS,PetscReal),(eps,restart));
   PetscFunctionReturn(0);
 }
 
@@ -541,7 +541,7 @@ PetscErrorCode EPSLOBPCGGetRestart(EPS eps,PetscReal *restart)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidRealPointer(restart,2);
-  PetscCall(PetscUseMethod(eps,"EPSLOBPCGGetRestart_C",(EPS,PetscReal*),(eps,restart)));
+  PetscUseMethod(eps,"EPSLOBPCGGetRestart_C",(EPS,PetscReal*),(eps,restart));
   PetscFunctionReturn(0);
 }
 
@@ -581,7 +581,7 @@ PetscErrorCode EPSLOBPCGSetLocking(EPS eps,PetscBool lock)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,lock,2);
-  PetscCall(PetscTryMethod(eps,"EPSLOBPCGSetLocking_C",(EPS,PetscBool),(eps,lock)));
+  PetscTryMethod(eps,"EPSLOBPCGSetLocking_C",(EPS,PetscBool),(eps,lock));
   PetscFunctionReturn(0);
 }
 
@@ -614,7 +614,7 @@ PetscErrorCode EPSLOBPCGGetLocking(EPS eps,PetscBool *lock)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidBoolPointer(lock,2);
-  PetscCall(PetscUseMethod(eps,"EPSLOBPCGGetLocking_C",(EPS,PetscBool*),(eps,lock)));
+  PetscUseMethod(eps,"EPSLOBPCGGetLocking_C",(EPS,PetscBool*),(eps,lock));
   PetscFunctionReturn(0);
 }
 
