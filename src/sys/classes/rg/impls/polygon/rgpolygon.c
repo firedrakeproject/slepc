@@ -406,7 +406,7 @@ PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG 
 #endif
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"RG Polygon Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"RG Polygon Options");
 
     k = VERTMAX;
     for (i=0;i<k;i++) array[i] = 0;
@@ -419,7 +419,7 @@ PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG 
 #endif
     if (flg || flgi) PetscCall(RGPolygonSetVertices(rg,k,array,arrayi));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

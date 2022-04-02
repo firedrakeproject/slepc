@@ -322,7 +322,7 @@ PetscErrorCode RGSetFromOptions_Interval(PetscOptionItems *PetscOptionsObject,RG
   PetscReal      array[4]={0,0,0,0};
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"RG Interval Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"RG Interval Options");
 
     k = 4;
     PetscCall(PetscOptionsRealArray("-rg_interval_endpoints","Interval endpoints (two or four real values separated with a comma without spaces)","RGIntervalSetEndpoints",array,&k,&flg));
@@ -331,7 +331,7 @@ PetscErrorCode RGSetFromOptions_Interval(PetscOptionItems *PetscOptionsObject,RG
       PetscCall(RGIntervalSetEndpoints(rg,array[0],array[1],array[2],array[3]));
     }
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

@@ -623,7 +623,6 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char opt[],const char name
 @*/
 PetscErrorCode SVDSetFromOptions(SVD svd)
 {
-  PetscErrorCode ierr;
   char           type[256];
   PetscBool      set,flg,val,flg1,flg2,flg3;
   PetscInt       i,j,k;
@@ -632,7 +631,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscCall(SVDRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)svd);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)svd);
     PetscCall(PetscOptionsFList("-svd_type","SVD solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,sizeof(type),&flg));
     if (flg) PetscCall(SVDSetType(svd,type));
     else if (!((PetscObject)svd)->type_name) PetscCall(SVDSetType(svd,SVDCROSS));
@@ -701,7 +700,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
     if (svd->ops->setfromoptions) PetscCall((*svd->ops->setfromoptions)(PetscOptionsObject,svd));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)svd));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
 
   if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,NULL));
   PetscCall(BVSetFromOptions(svd->V));

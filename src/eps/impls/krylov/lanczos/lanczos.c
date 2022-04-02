@@ -686,13 +686,13 @@ PetscErrorCode EPSSetFromOptions_Lanczos(PetscOptionItems *PetscOptionsObject,EP
   EPSLanczosReorthogType reorthog=EPS_LANCZOS_REORTHOG_LOCAL,curval;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS Lanczos Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS Lanczos Options");
 
     curval = (lanczos->reorthog==(EPSLanczosReorthogType)-1)? EPS_LANCZOS_REORTHOG_LOCAL: lanczos->reorthog;
     PetscCall(PetscOptionsEnum("-eps_lanczos_reorthog","Lanczos reorthogonalization","EPSLanczosSetReorthog",EPSLanczosReorthogTypes,(PetscEnum)curval,(PetscEnum*)&reorthog,&flg));
     if (flg) PetscCall(EPSLanczosSetReorthog(eps,reorthog));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

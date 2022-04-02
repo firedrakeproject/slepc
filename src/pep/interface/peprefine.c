@@ -197,7 +197,6 @@ static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,P
 
 static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ctx,PetscInt idx,Mat *Mt,Mat *T,Mat *P,PetscBool ini,Vec t,Vec v)
 {
-  PetscErrorCode       ierr;
   PetscInt             i,nmat=pep->nmat,ml,m0,n0,m1,mg;
   PetscInt             *dnz,*onz,ncols,*cols2=NULL,*nnz;
   PetscScalar          zero=0.0,*coeffs,*coeffs2;
@@ -260,7 +259,7 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
       PetscCall(MatSetUp(*T));
       /* Preallocate M */
       if (size>1) {
-        ierr = MatPreallocateInitialize(comm,ml,ml,dnz,onz);PetscCall(ierr);
+        MatPreallocateBegin(comm,ml,ml,dnz,onz);
         for (i=m0;i<m1;i++) {
           PetscCall(MatGetRow(M,i,&ncols,&cols,NULL));
           PetscCall(MatPreallocateSet(i,ncols,cols,dnz,onz));
@@ -274,7 +273,7 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
           PetscCall(PetscFree(cols2));
         }
         PetscCall(MatMPIAIJSetPreallocation(*T,0,dnz,0,onz));
-        ierr = MatPreallocateFinalize(dnz,onz);PetscCall(ierr);
+        MatPreallocateEnd(dnz,onz);
       } else {
         PetscCall(PetscCalloc1(mg+1,&nnz));
         for (i=0;i<mg;i++) {

@@ -1275,7 +1275,7 @@ PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptionItems *PetscOptionsObject,
   SVDTRLanczosGBidiag bidiag;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"SVD TRLanczos Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"SVD TRLanczos Options");
 
     PetscCall(PetscOptionsBool("-svd_trlanczos_oneside","Use one-side reorthogonalization","SVDTRLanczosSetOneSide",lanczos->oneside,&val,&flg));
     if (flg) PetscCall(SVDTRLanczosSetOneSide(svd,val));
@@ -1292,7 +1292,7 @@ PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptionItems *PetscOptionsObject,
     PetscCall(PetscOptionsBool("-svd_trlanczos_explicitmatrix","Build explicit matrix for KSP solver","SVDTRLanczosSetExplicitMatrix",lanczos->explicitmatrix,&val,&flg));
     if (flg) PetscCall(SVDTRLanczosSetExplicitMatrix(svd,val));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (svd->OPb) {
     if (!lanczos->ksp) PetscCall(SVDTRLanczosGetKSP(svd,&lanczos->ksp));

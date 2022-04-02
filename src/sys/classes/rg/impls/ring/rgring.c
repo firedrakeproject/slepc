@@ -388,7 +388,7 @@ PetscErrorCode RGSetFromOptions_Ring(PetscOptionItems *PetscOptionsObject,RG rg)
   PetscBool      flg1,flg2,flg3,flg4,flg5,flg6;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"RG Ring Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"RG Ring Options");
 
     PetscCall(RGRingGetParameters(rg,&s,&r1,&r2,&r3,&r4,&r5));
     PetscCall(PetscOptionsScalar("-rg_ring_center","Center of ellipse","RGRingSetParameters",s,&s,&flg1));
@@ -399,7 +399,7 @@ PetscErrorCode RGSetFromOptions_Ring(PetscOptionItems *PetscOptionsObject,RG rg)
     PetscCall(PetscOptionsReal("-rg_ring_width","Width of ring","RGRingSetParameters",r5,&r5,&flg6));
     if (flg1 || flg2 || flg3 || flg4 || flg5 || flg6) PetscCall(RGRingSetParameters(rg,s,r1,r2,r3,r4,r5));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

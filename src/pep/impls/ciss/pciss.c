@@ -960,7 +960,7 @@ PetscErrorCode PEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,PEP p
   PEPCISSExtraction extraction;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"PEP CISS Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"PEP CISS Options");
 
     PetscCall(PEPCISSGetSizes(pep,&i1,&i2,&i3,&i4,&i5,&b1));
     PetscCall(PetscOptionsInt("-pep_ciss_integration_points","Number of integration points","PEPCISSSetSizes",i1,&i1,&flg));
@@ -984,7 +984,7 @@ PetscErrorCode PEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,PEP p
     PetscCall(PetscOptionsEnum("-pep_ciss_extraction","Extraction technique","PEPCISSSetExtraction",PEPCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg));
     if (flg) PetscCall(PEPCISSSetExtraction(pep,extraction));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!pep->rg) PetscCall(PEPGetRG(pep,&pep->rg));
   PetscCall(RGSetFromOptions(pep->rg)); /* this is necessary here to set useconj */

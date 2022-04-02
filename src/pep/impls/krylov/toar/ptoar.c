@@ -754,7 +754,7 @@ PetscErrorCode PEPSetFromOptions_TOAR(PetscOptionItems *PetscOptionsObject,PEP p
   PetscReal      keep;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"PEP TOAR Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"PEP TOAR Options");
 
     PetscCall(PetscOptionsReal("-pep_toar_restart","Proportion of vectors kept after restart","PEPTOARSetRestart",0.5,&keep,&flg));
     if (flg) PetscCall(PEPTOARSetRestart(pep,keep));
@@ -762,7 +762,7 @@ PetscErrorCode PEPSetFromOptions_TOAR(PetscOptionItems *PetscOptionsObject,PEP p
     PetscCall(PetscOptionsBool("-pep_toar_locking","Choose between locking and non-locking variants","PEPTOARSetLocking",PETSC_FALSE,&lock,&flg));
     if (flg) PetscCall(PEPTOARSetLocking(pep,lock));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

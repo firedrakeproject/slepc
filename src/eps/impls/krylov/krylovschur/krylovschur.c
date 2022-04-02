@@ -1349,7 +1349,7 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObjec
   KSP             ksp;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS Krylov-Schur Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS Krylov-Schur Options");
 
     PetscCall(PetscOptionsReal("-eps_krylovschur_restart","Proportion of vectors kept after restart","EPSKrylovSchurSetRestart",0.5,&keep,&flg));
     if (flg) PetscCall(EPSKrylovSchurSetRestart(eps,keep));
@@ -1372,7 +1372,7 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObjec
     PetscCall(PetscOptionsInt("-eps_krylovschur_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&k,&f3));
     if (f1 || f2 || f3) PetscCall(EPSKrylovSchurSetDimensions(eps,i,j,k));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   /* set options of child KSP in spectrum slicing */
   if (eps->which==EPS_ALL) {

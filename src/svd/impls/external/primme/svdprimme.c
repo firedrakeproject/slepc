@@ -336,7 +336,7 @@ PetscErrorCode SVDSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,SVD
   PetscBool       flg;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"SVD PRIMME Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"SVD PRIMME Options");
 
     PetscCall(PetscOptionsInt("-svd_primme_blocksize","Maximum block size","SVDPRIMMESetBlockSize",ctx->bs,&bs,&flg));
     if (flg) PetscCall(SVDPRIMMESetBlockSize(svd,bs));
@@ -344,7 +344,7 @@ PetscErrorCode SVDSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,SVD
     PetscCall(PetscOptionsEnum("-svd_primme_method","Method for solving the singular value problem","SVDPRIMMESetMethod",SVDPRIMMEMethods,(PetscEnum)ctx->method,(PetscEnum*)&meth,&flg));
     if (flg) PetscCall(SVDPRIMMESetMethod(svd,meth));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

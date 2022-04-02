@@ -81,7 +81,6 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char opt[],const char name
 @*/
 PetscErrorCode LMESetFromOptions(LME lme)
 {
-  PetscErrorCode ierr;
   char           type[256];
   PetscBool      set,flg,flg1,flg2;
   PetscReal      r;
@@ -90,7 +89,7 @@ PetscErrorCode LMESetFromOptions(LME lme)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscCall(LMERegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)lme);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)lme);
     PetscCall(PetscOptionsFList("-lme_type","Linear matrix equation","LMESetType",LMEList,(char*)(((PetscObject)lme)->type_name?((PetscObject)lme)->type_name:LMEKRYLOV),type,sizeof(type),&flg));
     if (flg) PetscCall(LMESetType(lme,type));
     else if (!((PetscObject)lme)->type_name) PetscCall(LMESetType(lme,LMEKRYLOV));
@@ -133,7 +132,7 @@ PetscErrorCode LMESetFromOptions(LME lme)
 
     if (lme->ops->setfromoptions) PetscCall((*lme->ops->setfromoptions)(PetscOptionsObject,lme));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)lme));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
 
   if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
   PetscCall(BVSetFromOptions(lme->V));

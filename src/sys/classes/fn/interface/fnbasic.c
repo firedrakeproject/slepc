@@ -849,7 +849,6 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
 @*/
 PetscErrorCode FNSetFromOptions(FN fn)
 {
-  PetscErrorCode ierr;
   char           type[256];
   PetscScalar    array[2];
   PetscInt       k,meth;
@@ -859,7 +858,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscCall(FNRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)fn);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)fn);
     PetscCall(PetscOptionsFList("-fn_type","Math function type","FNSetType",FNList,(char*)(((PetscObject)fn)->type_name?((PetscObject)fn)->type_name:FNRATIONAL),type,sizeof(type),&flg));
     if (flg) PetscCall(FNSetType(fn,type));
     else if (!((PetscObject)fn)->type_name) PetscCall(FNSetType(fn,FNRATIONAL));
@@ -880,7 +879,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
 
     if (fn->ops->setfromoptions) PetscCall((*fn->ops->setfromoptions)(PetscOptionsObject,fn));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)fn));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
   PetscFunctionReturn(0);
 }
 

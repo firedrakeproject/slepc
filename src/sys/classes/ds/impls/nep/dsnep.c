@@ -1156,7 +1156,7 @@ PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
 #endif
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"DS NEP Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"DS NEP Options");
 
     PetscCall(PetscOptionsInt("-ds_nep_minimality","Maximum minimality index","DSNEPSetMinimality",4,&k,&flg));
     if (flg) PetscCall(DSNEPSetMinimality(ds,k));
@@ -1180,7 +1180,7 @@ PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
     }
 #endif
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

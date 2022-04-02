@@ -252,7 +252,7 @@ PetscErrorCode RGSetFromOptions_Ellipse(PetscOptionItems *PetscOptionsObject,RG 
   PetscBool      flg1,flg2,flg3;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"RG Ellipse Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"RG Ellipse Options");
 
     PetscCall(RGEllipseGetParameters(rg,&s,&r1,&r2));
     PetscCall(PetscOptionsScalar("-rg_ellipse_center","Center of ellipse","RGEllipseSetParameters",s,&s,&flg1));
@@ -260,7 +260,7 @@ PetscErrorCode RGSetFromOptions_Ellipse(PetscOptionItems *PetscOptionsObject,RG 
     PetscCall(PetscOptionsReal("-rg_ellipse_vscale","Vertical scale of ellipse","RGEllipseSetParameters",r2,&r2,&flg3));
     if (flg1 || flg2 || flg3) PetscCall(RGEllipseSetParameters(rg,s,r1,r2));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

@@ -219,12 +219,12 @@ PetscErrorCode FNSetFromOptions_Phi(PetscOptionItems *PetscOptionsObject,FN fn)
   PetscBool      flag;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"FN Phi Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"FN Phi Options");
 
     PetscCall(PetscOptionsInt("-fn_phi_index","Index of the phi-function","FNPhiSetIndex",ctx->k,&k,&flag));
     if (flag) PetscCall(FNPhiSetIndex(fn,k));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

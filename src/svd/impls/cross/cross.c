@@ -323,12 +323,12 @@ PetscErrorCode SVDSetFromOptions_Cross(PetscOptionItems *PetscOptionsObject,SVD 
   ST             st;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"SVD Cross Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"SVD Cross Options");
 
     PetscCall(PetscOptionsBool("-svd_cross_explicitmatrix","Use cross explicit matrix","SVDCrossSetExplicitMatrix",cross->explicitmatrix,&val,&set));
     if (set) PetscCall(SVDCrossSetExplicitMatrix(svd,val));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!cross->eps) PetscCall(SVDCrossGetEPS(svd,&cross->eps));
   if (!cross->explicitmatrix && !cross->usereps) {

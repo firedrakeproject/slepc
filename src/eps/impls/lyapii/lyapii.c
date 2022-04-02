@@ -524,13 +524,13 @@ PetscErrorCode EPSSetFromOptions_LyapII(PetscOptionItems *PetscOptionsObject,EPS
   PetscBool      flg;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS Lyapunov Inverse Iteration Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS Lyapunov Inverse Iteration Options");
 
     k = 2;
     PetscCall(PetscOptionsIntArray("-eps_lyapii_ranks","Ranks for Lyapunov equation (one or two comma-separated integers)","EPSLyapIISetRanks",array,&k,&flg));
     if (flg) PetscCall(EPSLyapIISetRanks(eps,array[0],array[1]));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!ctx->lme) PetscCall(EPSLyapIIGetLME(eps,&ctx->lme));
   PetscCall(LMESetFromOptions(ctx->lme));

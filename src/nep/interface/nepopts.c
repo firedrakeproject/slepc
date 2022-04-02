@@ -83,7 +83,6 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char opt[],const char name
 @*/
 PetscErrorCode NEPSetFromOptions(NEP nep)
 {
-  PetscErrorCode  ierr;
   char            type[256];
   PetscBool       set,flg,flg1,flg2,flg3,flg4,flg5,bval;
   PetscReal       r;
@@ -95,7 +94,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscCall(NEPRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)nep);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)nep);
     PetscCall(PetscOptionsFList("-nep_type","Nonlinear eigensolver method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,sizeof(type),&flg));
     if (flg) PetscCall(NEPSetType(nep,type));
     else if (!((PetscObject)nep)->type_name) PetscCall(NEPSetType(nep,NEPRII));
@@ -195,7 +194,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
     if (nep->ops->setfromoptions) PetscCall((*nep->ops->setfromoptions)(PetscOptionsObject,nep));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)nep));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
 
   if (!nep->V) PetscCall(NEPGetBV(nep,&nep->V));
   PetscCall(BVSetFromOptions(nep->V));

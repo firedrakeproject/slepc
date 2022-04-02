@@ -429,7 +429,7 @@ PetscErrorCode FNSetFromOptions_Rational(PetscOptionItems *PetscOptionsObject,FN
   PetscBool      flg;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"FN Rational Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"FN Rational Options");
 
     k = PARMAX;
     for (i=0;i<k;i++) array[i] = 0;
@@ -441,7 +441,7 @@ PetscErrorCode FNSetFromOptions_Rational(PetscOptionItems *PetscOptionsObject,FN
     PetscCall(PetscOptionsScalarArray("-fn_rational_denominator","Denominator coefficients (one or more scalar values separated with a comma without spaces)","FNRationalSetDenominator",array,&k,&flg));
     if (flg) PetscCall(FNRationalSetDenominator(fn,k,array));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

@@ -993,7 +993,7 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   NEPCISSExtraction extraction;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"NEP CISS Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"NEP CISS Options");
 
     PetscCall(NEPCISSGetSizes(nep,&i1,&i2,&i3,&i4,&i5,&b1));
     PetscCall(PetscOptionsInt("-nep_ciss_integration_points","Number of integration points","NEPCISSSetSizes",i1,&i1,&flg));
@@ -1017,7 +1017,7 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
     PetscCall(PetscOptionsEnum("-nep_ciss_extraction","Extraction technique","NEPCISSSetExtraction",NEPCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg));
     if (flg) PetscCall(NEPCISSSetExtraction(nep,extraction));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!nep->rg) PetscCall(NEPGetRG(nep,&nep->rg));
   PetscCall(RGSetFromOptions(nep->rg)); /* this is necessary here to set useconj */

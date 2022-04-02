@@ -263,7 +263,6 @@ PetscErrorCode RGGetType(RG rg,RGType *type)
 @*/
 PetscErrorCode RGSetFromOptions(RG rg)
 {
-  PetscErrorCode ierr;
   char           type[256];
   PetscBool      flg;
   PetscReal      sfactor;
@@ -271,7 +270,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscCall(RGRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)rg);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)rg);
     PetscCall(PetscOptionsFList("-rg_type","Region type","RGSetType",RGList,(char*)(((PetscObject)rg)->type_name?((PetscObject)rg)->type_name:RGINTERVAL),type,sizeof(type),&flg));
     if (flg) PetscCall(RGSetType(rg,type));
     else if (!((PetscObject)rg)->type_name) PetscCall(RGSetType(rg,RGINTERVAL));
@@ -283,7 +282,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
 
     if (rg->ops->setfromoptions) PetscCall((*rg->ops->setfromoptions)(PetscOptionsObject,rg));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)rg));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
   PetscFunctionReturn(0);
 }
 
