@@ -464,7 +464,7 @@ clang-c-valgrind:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora, compiler:clang
+    - linux-ubuntu, compiler:clang, name:maat
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-shared-libraries=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -518,7 +518,7 @@ gnu-c-float128:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-fedora
   variables:
     PETSC_CONFIG_OPTS: --download-f2cblaslapack --with-precision=__float128
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -599,7 +599,7 @@ clang-c-complex-valgrind:
     - .stage-3-sched
     - .linux_test
   tags:
-    - linux-fedora, compiler:clang
+    - linux-ubuntu, compiler:clang
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex --with-shared-libraries=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -609,7 +609,7 @@ intel-c-mkl:
     - .stage-3-sched
     - .linux_test
   tags:
-    - compiler:intel, name:maat
+    - compiler:intel, name:jepri
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
