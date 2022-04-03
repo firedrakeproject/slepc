@@ -85,56 +85,55 @@ class PETSc(package.Package):
     self.buildsharedlib = False
     self.bfort = 'nobfortinpetsc'
     try:
-      f = open(petscvariables)
-      for l in f.readlines():
-        r = l.split('=',1)
-        if len(r)!=2: continue
-        k = r[0].strip()
-        v = r[1].strip()
-        v = v.replace('${PETSC_DIR}',self.dir)  # needed in some Cray installations
-        if k == 'PETSC_SCALAR':
-          self.scalar = v
-        elif k == 'PETSC_PRECISION':
-          self.precision = v
-        elif k == 'MAKE':
-          self.make = v
-        elif k == 'MAKE_NP':
-          self.make_np = v
-        elif k == 'PREFIXDIR':
-          self.prefixdir = v
-        elif k == 'BFORT':
-          self.bfort = v
-        elif k == 'CC':
-          self.cc = v
-        elif k == 'CC_FLAGS':
-          self.cc_flags = v
-        elif k == 'CXX':
-          self.cxx = v
-        elif k == 'CXX_FLAGS':
-          self.cxx_flags = v
-        elif k == 'FC' and not v=='':
-          self.fc = v
-        elif k == 'FC_FLAGS':
-          self.fc_flags = v
-        elif k == 'AR':
-          self.ar = v
-        elif k == 'AR_FLAGS':
-          self.ar_flags = v
-        elif k == 'AR_LIB_SUFFIX':
-          self.ar_lib_suffix = v
-        elif k == 'BUILDSHAREDLIB' and v=='yes':
-          self.buildsharedlib = True
-        elif k == 'CC_LINKER_SLFLAG':
-          self.slflag = v
-        elif k == 'SL_LINKER_SUFFIX':
-          self.sl_suffix = v
-        elif k == 'RANLIB':
-          self.ranlib = v
-        elif k == 'BLASLAPACK_LIB':
-          self.blaslapack_lib = v
-        elif k == 'SCALAPACK_LIB':
-          self.scalapack_lib = v
-      f.close()
+      with open(petscvariables) as f:
+        for l in f.readlines():
+          r = l.split('=',1)
+          if len(r)!=2: continue
+          k = r[0].strip()
+          v = r[1].strip()
+          v = v.replace('${PETSC_DIR}',self.dir)  # needed in some Cray installations
+          if k == 'PETSC_SCALAR':
+            self.scalar = v
+          elif k == 'PETSC_PRECISION':
+            self.precision = v
+          elif k == 'MAKE':
+            self.make = v
+          elif k == 'MAKE_NP':
+            self.make_np = v
+          elif k == 'PREFIXDIR':
+            self.prefixdir = v
+          elif k == 'BFORT':
+            self.bfort = v
+          elif k == 'CC':
+            self.cc = v
+          elif k == 'CC_FLAGS':
+            self.cc_flags = v
+          elif k == 'CXX':
+            self.cxx = v
+          elif k == 'CXX_FLAGS':
+            self.cxx_flags = v
+          elif k == 'FC' and not v=='':
+            self.fc = v
+          elif k == 'FC_FLAGS':
+            self.fc_flags = v
+          elif k == 'AR':
+            self.ar = v
+          elif k == 'AR_FLAGS':
+            self.ar_flags = v
+          elif k == 'AR_LIB_SUFFIX':
+            self.ar_lib_suffix = v
+          elif k == 'BUILDSHAREDLIB' and v=='yes':
+            self.buildsharedlib = True
+          elif k == 'CC_LINKER_SLFLAG':
+            self.slflag = v
+          elif k == 'SL_LINKER_SUFFIX':
+            self.sl_suffix = v
+          elif k == 'RANLIB':
+            self.ranlib = v
+          elif k == 'BLASLAPACK_LIB':
+            self.blaslapack_lib = v
+          elif k == 'SCALAPACK_LIB':
+            self.scalapack_lib = v
     except:
       self.log.Exit('Cannot process file ' + petscvariables)
 
@@ -150,38 +149,37 @@ class PETSc(package.Package):
     self.cxxdialectcxx11 = False
     self.packages = []
     try:
-      f = open(petscconf_h)
-      for l in f.readlines():
-        l = l.split()
-        if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_64BIT_INDICES' and l[2]=='1':
-          self.ind64 = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MPIUNI' and l[2]=='1':
-          self.mpiuni = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MSMPI' and l[2]=='1':
-          self.msmpi = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_DEBUG' and l[2]=='1':
-          self.debug = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_SINGLE_LIBRARY' and l[2]=='1':
-          self.singlelib = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_UNDERSCORE' and l[2]=='1':
-          self.blaslapackmangling = 'underscore'
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_CAPS' and l[2]=='1':
-          self.blaslapackmangling = 'caps'
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_64BIT_BLAS_INDICES' and l[2]=='1':
-          self.blaslapackint64 = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_FORTRAN' and l[2]=='1':
-          self.fortran = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_CLANGUAGE_CXX' and l[2]=='1':
-          self.language = 'c++'
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX11' and l[2]=='1':
-          self.cxxdialectcxx11 = True
-        elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
-          self.arch = l[2].strip('"')
-        else:
-          for p in ['elemental','hpddm','mkl_libs','mkl_includes','mkl_pardiso','scalapack','slepc']:
-            if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_'+p.upper() and l[2]=='1':
-              self.packages.append(p)
-      f.close()
+      with open(petscconf_h) as f:
+        for l in f.readlines():
+          l = l.split()
+          if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_64BIT_INDICES' and l[2]=='1':
+            self.ind64 = True
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MPIUNI' and l[2]=='1':
+            self.mpiuni = True
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MSMPI' and l[2]=='1':
+            self.msmpi = True
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_DEBUG' and l[2]=='1':
+            self.debug = True
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_SINGLE_LIBRARY' and l[2]=='1':
+            self.singlelib = True
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_UNDERSCORE' and l[2]=='1':
+            self.blaslapackmangling = 'underscore'
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_CAPS' and l[2]=='1':
+            self.blaslapackmangling = 'caps'
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_64BIT_BLAS_INDICES' and l[2]=='1':
+            self.blaslapackint64 = True
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_FORTRAN' and l[2]=='1':
+            self.fortran = True
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_CLANGUAGE_CXX' and l[2]=='1':
+            self.language = 'c++'
+          elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX11' and l[2]=='1':
+            self.cxxdialectcxx11 = True
+          elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
+            self.arch = l[2].strip('"')
+          else:
+            for p in ['elemental','hpddm','mkl_libs','mkl_includes','mkl_pardiso','scalapack','slepc']:
+              if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_'+p.upper() and l[2]=='1':
+                self.packages.append(p)
       if 'mkl_libs' in self.packages and 'mkl_includes' in self.packages:
         self.packages.remove('mkl_libs')
         self.packages.remove('mkl_includes')

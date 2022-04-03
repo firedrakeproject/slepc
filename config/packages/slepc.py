@@ -85,19 +85,18 @@ class SLEPc(package.Package):
 
   def LoadVersion(self):
     try:
-      f = open(os.path.join(self.dir,'include','slepcversion.h'))
-      for l in f.readlines():
-        l = l.split()
-        if len(l) == 3:
-          if l[1] == 'SLEPC_VERSION_RELEASE':
-            self.release = l[2]
-          if l[1] == 'SLEPC_VERSION_MAJOR':
-            major = l[2]
-          elif l[1] == 'SLEPC_VERSION_MINOR':
-            minor = l[2]
-          elif l[1] == 'SLEPC_VERSION_SUBMINOR':
-            subminor = l[2]
-      f.close()
+      with open(os.path.join(self.dir,'include','slepcversion.h')) as f:
+        for l in f.readlines():
+          l = l.split()
+          if len(l) == 3:
+            if l[1] == 'SLEPC_VERSION_RELEASE':
+              self.release = l[2]
+            if l[1] == 'SLEPC_VERSION_MAJOR':
+              major = l[2]
+            elif l[1] == 'SLEPC_VERSION_MINOR':
+              minor = l[2]
+            elif l[1] == 'SLEPC_VERSION_SUBMINOR':
+              subminor = l[2]
       if self.release=='0': subminor = '99'
       self.version = major + '.' + minor
       self.lversion = major + '.' + minor + '.' + subminor

@@ -232,20 +232,21 @@ Downloaded package %s from: %s is not a tarball.
       tf = tarfile.open(localFile)
     except tarfile.ReadError as e:
       self.log.Exit(str(e)+'\n'+failureMessage)
-    if not tf: self.log.Exit(failureMessage)
-    #git puts 'pax_global_header' as the first entry and some tar utils process this as a file
-    firstname = tf.getnames()[0]
-    if firstname == 'pax_global_header':
-      firstmember = tf.getmembers()[1]
     else:
-      firstmember = tf.getmembers()[0]
-    # some tarfiles list packagename/ but some list packagename/filename in the first entry
-    if firstmember.isdir():
-      dirname = firstmember.name
-    else:
-      dirname = os.path.dirname(firstmember.name)
-    tf.extractall(path=externdir)
-    tf.close()
+      if not tf: self.log.Exit(failureMessage)
+      with tf:
+        #git puts 'pax_global_header' as the first entry and some tar utils process this as a file
+        firstname = tf.getnames()[0]
+        if firstname == 'pax_global_header':
+          firstmember = tf.getmembers()[1]
+        else:
+          firstmember = tf.getmembers()[0]
+        # some tarfiles list packagename/ but some list packagename/filename in the first entry
+        if firstmember.isdir():
+          dirname = firstmember.name
+        else:
+          dirname = os.path.dirname(firstmember.name)
+        tf.extractall(path=externdir)
 
     # fix file permissions for the untared tarballs
     try:
@@ -301,17 +302,16 @@ Downloaded package %s from: %s is not a tarball.
     except:
       self.log.Exit('Cannot create temporary directory')
     try:
-      makefile = open(os.path.join(tmpdir,'makefile'),'w')
-      if cflags!='':
-        if clanguage=='c++': makefile.write('CXXFLAGS='+cflags+'\n')
-        else: makefile.write('CFLAGS='+cflags+'\n')
-      makefile.write('checklink: checklink.o\n')
-      makefile.write('\t${CLINKER} -o checklink checklink.o ${LINKFLAGS} ${PETSC_SNES_LIB}\n')
-      makefile.write('\t@${RM} -f checklink checklink.o\n')
-      makefile.write('LOCDIR = ./\n')
-      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','variables')+'\n')
-      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','rules')+'\n')
-      makefile.close()
+      with open(os.path.join(tmpdir,'makefile'),'w') as makefile:
+        if cflags!='':
+          if clanguage=='c++': makefile.write('CXXFLAGS='+cflags+'\n')
+          else: makefile.write('CFLAGS='+cflags+'\n')
+        makefile.write('checklink: checklink.o\n')
+        makefile.write('\t${CLINKER} -o checklink checklink.o ${LINKFLAGS} ${PETSC_SNES_LIB}\n')
+        makefile.write('\t@${RM} -f checklink checklink.o\n')
+        makefile.write('LOCDIR = ./\n')
+        makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','variables')+'\n')
+        makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','rules')+'\n')
     except:
       self.log.Exit('Cannot create makefile in temporary directory')
 
@@ -336,9 +336,8 @@ Downloaded package %s from: %s is not a tarball.
     else:
       code = givencode
 
-    cfile = open(os.path.join(tmpdir,'checklink.cxx' if clanguage=='c++' else 'checklink.c'),'w')
-    cfile.write(code)
-    cfile.close()
+    with open(os.path.join(tmpdir,'checklink.cxx' if clanguage=='c++' else 'checklink.c'),'w') as cfile:
+      cfile.write(code)
     if logdump:
       try:
         self.log.write('- '*35+'\nChecking link with code:\n')
