@@ -33,7 +33,7 @@ class Sowing(package.Package):
     self.log.NewSection('Installing '+name+'...')
 
     # Get package
-    externdir = slepc.CreateDir(archdir,'externalpackages')
+    externdir = slepc.GetExternalPackagesDir(archdir)
     builddir  = self.Download(externdir,slepc.downloaddir)
 
     # Configure, build and install package

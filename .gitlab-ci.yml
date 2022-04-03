@@ -199,6 +199,7 @@ gnu-lint:
     - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
     - echo -e "section_start:`date +%s`:build_slepc\r\e[0KSLEPc configure and make"
     - cd $SLEPC_DIR
+    - if [ ! -z ${BUILD_DIR+x} ]; then rm -rf ${BUILD_DIR}; mkdir ${BUILD_DIR}; fi
     - ${PYTHON} ./configure ${SLEPC_CONFIG_OPTS}
     - make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}"
     - if [ ! -z ${INSTALL+x} ]; then make install; SLEPC_DIR=$INSTALL_DIR; fi
@@ -382,7 +383,8 @@ intel-c-complex-mkl:
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-primme --download-blopex --with-feast=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-packages-build-dir=${BUILD_DIR} --download-arpack --download-primme --download-blopex --with-feast=0
+    BUILD_DIR: ../externalpackages
 
 gnu-c-libs:
   extends:

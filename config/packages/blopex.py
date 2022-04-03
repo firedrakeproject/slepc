@@ -79,7 +79,7 @@ class Blopex(package.Package):
     self.log.Exit('Unable to link with BLOPEX library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs))
 
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
-    externdir = slepc.CreateDir(archdir,'externalpackages')
+    externdir = slepc.GetExternalPackagesDir(archdir)
     downloadd = self.Download(externdir,slepc.downloaddir)
     builddir  = os.path.join(downloadd,'blopex_abstract')
 

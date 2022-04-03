@@ -78,7 +78,7 @@ class Evsl(package.Package):
 
 
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
-    externdir = slepc.CreateDir(archdir,'externalpackages')
+    externdir = slepc.GetExternalPackagesDir(archdir)
     builddir  = os.path.join(self.Download(externdir,slepc.downloaddir),'EVSL_1.1.1')
     incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
 

@@ -24,6 +24,7 @@ class SLEPc(package.Package):
     print('  --help, -h'.ljust(wd)+': Display this help and exit')
     print('  --with-clean=<bool>'.ljust(wd)+': Delete prior build files including externalpackages')
     print('  --with-packages-download-dir=<dir>'.ljust(wd)+': Skip network download of tarballs and locate them in specified dir')
+    print('  --with-packages-build-dir=<dir>'.ljust(wd)+': Location to unpack and run the build process for downloaded packages')
     print('\nSLEPc:')
     print('  --prefix=<dir>'.ljust(wd)+': Specify location to install SLEPc (e.g., /usr/local)')
     print('  --DATAFILESPATH=<dir>'.ljust(wd)+': Location of datafiles (available at https://slepc.upv.es/datafiles)')
@@ -32,6 +33,7 @@ class SLEPc(package.Package):
     self.clean       = argdb.PopBool('with-clean')[0]
     self.datadir     = argdb.PopPath('DATAFILESPATH',exist=True)[0]
     self.downloaddir = argdb.PopPath('with-packages-download-dir',exist=True)[0]
+    self.pkgbuilddir = argdb.PopPath('with-packages-build-dir',exist=True)[0]
     self.prefixdir   = argdb.PopPath('prefix')[0]
     if self.prefixdir:
       self.prefixdir = os.path.realpath(os.path.normpath(self.prefixdir))
@@ -195,6 +197,18 @@ class SLEPc(package.Package):
       except:
         self.log.Exit('Cannot create lib directory: '+libdir)
     return incdir,libdir
+
+  def GetExternalPackagesDir(self,archdir):
+    ''' Create externalpackages if needed, unless user specified --with-packages-build-dir '''
+    externdir = self.pkgbuilddir
+    if not externdir:
+      externdir = os.path.join(archdir,'externalpackages')
+      if not os.path.exists(externdir):
+        try:
+          os.mkdir(externdir)
+        except:
+          self.log.Exit('Cannot create directory: '+externdir)
+    return externdir
 
   def AddDefine(self,conffile,name,value,prefix='SLEPC_'):
     conffile.write('#define '+prefix+name+' "'+value+'"\n')
