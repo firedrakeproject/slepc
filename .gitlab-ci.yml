@@ -63,6 +63,7 @@ variables:
           else git checkout origin/main;
         fi
       else
+        echo "Using PETSC_BRANCH=" $PETSC_BRANCH
         git checkout origin/$PETSC_BRANCH
       fi
     - export PETSC_DIR=$PWD
@@ -82,7 +83,7 @@ variables:
         vermin --version
         make vermin
       fi
-    - if [ ! -z ${RUN_LINT+x} ]; then make lint_slepc LINTER_OPTIONS="--clang_lib=`llvm-config --libdir`/libclang.so.13 --verbose --werror"; fi
+    - if [ ! -z ${RUN_LINT+x} ]; then make lint_slepc LINTER_OPTIONS="--clang_lib=`llvm-config --libdir`/libclang.so --verbose --werror"; fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror cleantest allgtests-tap TIMEOUT=${TIMEOUT} search="${TEST_SEARCH}"; fi
@@ -186,6 +187,7 @@ gnu-lint:
           else git checkout origin/main;
         fi
       else
+        echo "Using PETSC_BRANCH=" $PETSC_BRANCH
         git checkout origin/$PETSC_BRANCH
       fi
     - export PETSC_DIR=$PWD
@@ -462,7 +464,7 @@ clang-c-valgrind:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora, compiler:clang
+    - linux-ubuntu, compiler:clang, name:maat
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-shared-libraries=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -516,7 +518,7 @@ gnu-c-float128:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-fedora
   variables:
     PETSC_CONFIG_OPTS: --download-f2cblaslapack --with-precision=__float128
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -597,7 +599,7 @@ clang-c-complex-valgrind:
     - .stage-3-sched
     - .linux_test
   tags:
-    - linux-fedora, compiler:clang
+    - linux-ubuntu, compiler:clang
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex --with-shared-libraries=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -607,7 +609,7 @@ intel-c-mkl:
     - .stage-3-sched
     - .linux_test
   tags:
-    - compiler:intel, name:maat
+    - compiler:intel, name:jepri
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --download-mumps --download-metis --download-parmetis --download-suitesparse
@@ -666,4 +668,24 @@ gnu-c-cuda-int64:
     - linux-ubuntu, gpu:nvidia
   variables:
     PETSC_CONFIG_OPTS: --with-cuda --with-cuda-arch=35 --with-openmp --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.6.1
+
+gnu-c-nocxx:
+  extends:
+    - .stage-3-sched
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-cxx=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
+
+gnu-c-complex128:
+  extends:
+    - .stage-3-sched
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
