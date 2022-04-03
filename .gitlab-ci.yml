@@ -669,3 +669,23 @@ gnu-c-cuda-int64:
   variables:
     PETSC_CONFIG_OPTS: --with-cuda --with-cuda-arch=35 --with-openmp --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.6.1
 
+gnu-c-nocxx:
+  extends:
+    - .stage-3-sched
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-cxx=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
+
+gnu-c-complex128:
+  extends:
+    - .stage-3-sched
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+
