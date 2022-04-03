@@ -1,0 +1,83 @@
+Linear solve converged due to CONVERGED_RTOL iterations 4
+KSP Object: 4 MPI processes
+  type: hpddm
+  HPDDM type: gmres
+  precision: DOUBLE
+  maximum iterations=10, initial guess is zero
+  tolerances:  relative=0.001, absolute=1e-50, divergence=10000.
+  left preconditioning
+  using PRECONDITIONED norm type for convergence test
+PC Object: 4 MPI processes
+  type: hpddm
+  levels: 2
+  user-supplied deflation matrix
+  coarse correction: DEFLATED
+  on process #0, value (+ threshold if available) for selecting deflation vectors: 10
+  grid and operator complexities: 1.02323 1.01854
+  KSP Object: (pc_hpddm_levels_1_) 4 MPI processes
+    type: preonly
+    maximum iterations=10000, initial guess is zero
+    tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+    left preconditioning
+    using NONE norm type for convergence test
+  PC Object: (pc_hpddm_levels_1_) 4 MPI processes
+    type: shell
+      no name
+    linear system matrix = precond matrix:
+    Mat Object: 4 MPI processes
+      type: mpiaij
+      total number of mallocs used during MatSetValues calls=0
+  PC Object: (pc_hpddm_levels_1_) 4 MPI processes
+    type: asm
+      total subdomain blocks = 4, user-defined overlap
+      restriction/interpolation type - RESTRICT
+      Local solver information for first block is in the following KSP and PC objects on rank 0:
+      Use -pc_hpddm_levels_1_ksp_view ::ascii_info_detail to display information for all blocks
+    KSP Object: (pc_hpddm_levels_1_sub_) 1 MPI processes
+      type: preonly
+      maximum iterations=10000, initial guess is zero
+      tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+      left preconditioning
+      using NONE norm type for convergence test
+    PC Object: (pc_hpddm_levels_1_sub_) 1 MPI processes
+      type: lu
+        out-of-place factorization
+        tolerance for zero pivot 2.22045e-14
+        matrix ordering: nd
+          Factored matrix follows:
+            Mat Object: 1 MPI processes
+              type: seqaij
+              package used to perform factorization: petsc
+      linear system matrix = precond matrix:
+      Mat Object: (pc_hpddm_levels_1_sub_) 1 MPI processes
+        type: seqaij
+        total number of mallocs used during MatSetValues calls=0
+    linear system matrix = precond matrix:
+    Mat Object: 4 MPI processes
+      type: mpiaij
+      total number of mallocs used during MatSetValues calls=0
+    KSP Object: (pc_hpddm_coarse_) 1 MPI processes
+      type: preonly
+      maximum iterations=10000, initial guess is zero
+      tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
+      left preconditioning
+      using NONE norm type for convergence test
+    PC Object: (pc_hpddm_coarse_) 1 MPI processes
+      type: cholesky
+        out-of-place factorization
+        tolerance for zero pivot 2.22045e-14
+        matrix ordering: natural
+          Factored matrix follows:
+            Mat Object: 1 MPI processes
+              type: seqsbaij
+              package used to perform factorization: petsc
+                  block size is 10
+      linear system matrix = precond matrix:
+      Mat Object: (pc_hpddm_coarse_) 1 MPI processes
+        type: seqsbaij
+        total number of mallocs used during MatSetValues calls=0
+            block size is 10
+  linear system matrix = precond matrix:
+  Mat Object: 4 MPI processes
+    type: mpiaij
+    total number of mallocs used during MatSetValues calls=0
