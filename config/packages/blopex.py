@@ -17,7 +17,7 @@ class Blopex(package.Package):
     self.packagename  = 'blopex'
     self.installable  = True
     self.downloadable = True
-    self.gitcommit    = '6eba31f0e071f134a6e4be8eccfb8d9d7bdd5ac7'  #master dec-2019
+    self.gitcommit    = 'cc658b19f791daf282e95915757eb3cf20c7d601'  #master dec-2021
     self.url          = 'https://github.com/lobpcg/blopex/archive/'+self.gitcommit+'.tar.gz'
     self.archive      = 'blopex-'+self.gitcommit+'.tar.gz'
     self.dirname      = 'blopex-'+self.gitcommit
