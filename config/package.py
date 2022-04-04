@@ -113,7 +113,7 @@ class Package:
     if self.requested:
       name = self.packagename.upper()
       if self.downloadpackage:
-        if hasattr(self,'version'):
+        if hasattr(self,'version') and self.packageurl=='':
           self.log.NewSection('Installing '+name+' version '+self.version+'...')
         else:
           self.log.NewSection('Installing '+name+'...')
@@ -151,10 +151,36 @@ class Package:
     if self.downloadpackage and self.fortran and not hasattr(petsc,'fc'):
       self.log.Exit('Option --download-'+self.packagename+' requires a Fortran compiler')
 
+  def GetArchiveName(self):
+    '''Return name of archive after downloading'''
+    if self.packageurl=='':
+      archivename = self.archive
+    else:
+      parsed = urlparse_local.urlparse(self.packageurl)
+      archivename = os.path.basename(parsed[2])
+    if archivename[0] == 'v':
+      archivename = archivename[1:]
+    try:
+      if archivename[0].isdigit() or int(archivename.split('.')[0],16):
+        archivename = self.packagename+'-'+archivename
+    except: pass
+    return archivename
+
+  def GetDirectoryName(self):
+    '''Return name of the directory after extracting the tarball'''
+    if self.packageurl=='':
+      dirname = self.dirname
+    else:
+      dirname = self.GetArchiveName()
+      for suffix in ('.tar.gz','.tgz'):
+        if dirname.endswith(suffix):
+          dirname = dirname[:-len(suffix)]
+    return dirname
+
   def MissingTarball(self,downloaddir):
     '''Check if tarball is missing in downloaddir'''
-    if self.downloadable and hasattr(self,'download') and self.download and hasattr(self,'archive'):
-      localFile = os.path.join(downloaddir,self.archive)
+    if self.downloadable and hasattr(self,'download') and self.download:
+      localFile = os.path.join(downloaddir,self.GetArchiveName())
       if not os.path.exists(localFile):
         url = self.packageurl
         if url=='':
@@ -163,18 +189,15 @@ class Package:
 
   def Download(self,externdir,downloaddir):
     # Quick return: check if source is already available
-    if os.path.exists(os.path.join(externdir,self.dirname)):
-      self.log.write('Using '+os.path.join(externdir,self.dirname))
-      return os.path.join(externdir,self.dirname)
+    if os.path.exists(os.path.join(externdir,self.GetDirectoryName())):
+      self.log.write('Using '+os.path.join(externdir,self.GetDirectoryName()))
+      return os.path.join(externdir,self.GetDirectoryName())
 
     if downloaddir:
       # Get tarball from download dir
-      if self.packageurl=='':
-        localFile = os.path.join(downloaddir,self.archive)
-      else:
-        localFile = os.path.join(downloaddir,self.packageurl)
+      localFile = os.path.join(downloaddir,self.GetArchiveName())
       if not os.path.exists(localFile):
-        self.log.Exit('Could not find file '+self.archive+' under '+downloaddir)
+        self.log.Exit('Could not find file '+self.GetArchiveName()+' under '+downloaddir)
       url = localFile
       filename = os.path.basename(url)
     else:
@@ -185,7 +208,7 @@ class Package:
       if os.path.exists(url):
         url = 'file:'+url
       filename = os.path.basename(urlparse_local.urlparse(url)[2])
-      localFile = os.path.join(externdir,self.archive)
+      localFile = os.path.join(externdir,self.GetArchiveName())
       self.log.write('Downloading '+url+' to '+localFile)
 
       if os.path.exists(localFile):
@@ -210,7 +233,7 @@ Unable to download package %s from: %s
         self.log.Exit(failureMessage)
 
     # Uncompress tarball
-    extractdir = os.path.join(externdir,self.dirname)
+    extractdir = os.path.join(externdir,self.GetDirectoryName())
     self.log.write('Uncompressing '+localFile+' to directory '+extractdir)
     if os.path.exists(extractdir):
       for root, dirs, files in os.walk(extractdir, topdown=False):
@@ -253,6 +276,10 @@ Downloaded package %s from: %s is not a tarball.
       # check if 'dirname' is set'
       if dirname:
         (result,output) = self.RunCommand('cd '+externdir+'; chmod -R a+r '+dirname+'; find '+dirname+' -type d -name "*" -exec chmod a+rx {} \;')
+        if dirname != self.GetDirectoryName():
+          self.log.write('The directory name '+dirname+' is different from the expected one, renaming to '+self.GetDirectoryName())
+          os.rename(os.path.join(externdir,dirname),os.path.join(externdir,self.GetDirectoryName()))
+          dirname = self.GetDirectoryName()
       else:
         self.log.Warn('Could not determine dirname extracted by '+localFile+' to fix file permissions')
     except RuntimeError as e:
@@ -281,7 +308,7 @@ Downloaded package %s from: %s is not a tarball.
 
   def ShowInfo(self):
     if self.havepackage:
-      if hasattr(self,'version') and self.downloadpackage:
+      if hasattr(self,'version') and self.downloadpackage and self.packageurl=='':
         packagename = self.packagename.upper()+' version '+self.version
       else:
         packagename = self.packagename.upper()
