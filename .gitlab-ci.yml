@@ -81,7 +81,7 @@ variables:
         make checkbadSource SHELL=bash;
         make -f gmakefile check_output SHELL=bash;
         vermin --version
-        make vermin
+        make vermin_slepc
       fi
     - if [ ! -z ${RUN_LINT+x} ]; then make lint_slepc LINTER_OPTIONS="--clang_lib=`llvm-config --libdir`/libclang.so --verbose --werror"; fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
