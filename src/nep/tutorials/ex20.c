@@ -357,14 +357,14 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 */
 PetscErrorCode CheckSolution(PetscScalar lambda,Vec y,PetscReal *error,void *ctx)
 {
-  PetscScalar    nu,*uu;
+  PetscScalar    *uu;
   PetscInt       i,n,Istart,Iend;
-  PetscReal      x;
+  PetscReal      nu,x;
   Vec            u;
   ApplicationCtx *user = (ApplicationCtx*)ctx;
 
   PetscFunctionBeginUser;
-  nu = PetscSqrtScalar(lambda);
+  nu = PetscSqrtReal(PetscRealPart(lambda));
   PetscCall(VecDuplicate(y,&u));
   PetscCall(VecGetSize(u,&n));
   PetscCall(VecGetOwnershipRange(y,&Istart,&Iend));

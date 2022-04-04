@@ -599,7 +599,7 @@ clang-c-complex-valgrind:
     - .stage-3-sched
     - .linux_test
   tags:
-    - linux-ubuntu, compiler:clang
+    - linux-ubuntu, compiler:clang, name:maat
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex --with-shared-libraries=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
