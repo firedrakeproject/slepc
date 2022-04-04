@@ -203,7 +203,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -pep_type {{toar qarnoldi linear}} -pep_nev 4 -terse
-      requires: !single
+      requires: double
 
    test:
       suffix: 2

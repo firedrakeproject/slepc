@@ -140,7 +140,7 @@ int main(int argc,char **argv)
       test:
          suffix: ciss_2_block
          args: -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_blocksize 3 -eps_ciss_moments 2
-         requires: complex
+         requires: complex !__float128
       test:
          suffix: ciss_2_hpddm
          nsize: 2
@@ -176,6 +176,7 @@ int main(int argc,char **argv)
       test:
          suffix: 4_filter
          args: -eps_type {{krylovschur subspace}} -st_type filter -st_filter_degree 200
+         requires: !__float128
       test:
          suffix: 4_filter_cuda
          args: -eps_type {{krylovschur subspace}} -st_type filter -st_filter_degree 200 -mat_type aijcusparse

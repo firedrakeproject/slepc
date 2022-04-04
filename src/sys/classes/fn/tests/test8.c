@@ -156,6 +156,7 @@ int main(int argc,char **argv)
    testset:
       args: -fn_scale 0.9,0.5 -n 10
       filter: grep -v "computing matrix functions"
+      requires: !__float128
       output_file: output/test8_1.out
       test:
          suffix: 1

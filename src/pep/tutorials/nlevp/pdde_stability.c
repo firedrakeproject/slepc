@@ -149,6 +149,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -pep_type {{toar qarnoldi linear}} -pep_ncv 25 -terse
-      requires: complex !single
+      requires: complex double
 
 TEST*/
