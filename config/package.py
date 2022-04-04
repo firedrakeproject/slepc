@@ -168,13 +168,10 @@ class Package:
 
   def GetDirectoryName(self):
     '''Return name of the directory after extracting the tarball'''
-    if self.packageurl=='':
-      dirname = self.dirname
-    else:
-      dirname = self.GetArchiveName()
-      for suffix in ('.tar.gz','.tgz'):
-        if dirname.endswith(suffix):
-          dirname = dirname[:-len(suffix)]
+    dirname = self.GetArchiveName()
+    for suffix in ('.tar.gz','.tgz'):
+      if dirname.endswith(suffix):
+        dirname = dirname[:-len(suffix)]
     return dirname
 
   def MissingTarball(self,downloaddir):

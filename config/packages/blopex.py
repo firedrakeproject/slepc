@@ -20,7 +20,6 @@ class Blopex(package.Package):
     self.gitcommit    = 'cc658b19f791daf282e95915757eb3cf20c7d601'  #master dec-2021
     self.url          = 'https://github.com/lobpcg/blopex/archive/'+self.gitcommit+'.tar.gz'
     self.archive      = 'blopex-'+self.gitcommit+'.tar.gz'
-    self.dirname      = 'blopex-'+self.gitcommit
     self.hasheaders   = True
     self.ProcessArgs(argdb)
 

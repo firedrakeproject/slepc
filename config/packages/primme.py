@@ -20,7 +20,6 @@ class Primme(package.Package):
     self.version        = '3.2'
     self.url            = 'https://github.com/primme/primme/archive/v'+self.version+'.tar.gz'
     self.archive        = 'primme-'+self.version+'.tar.gz'
-    self.dirname        = 'primme-'+self.version
     self.supportssingle = True
     self.supports64bint = True
     self.hasheaders     = True

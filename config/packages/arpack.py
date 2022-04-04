@@ -20,7 +20,6 @@ class Arpack(package.Package):
     self.version        = '3.8.0'
     self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+self.version+'.tar.gz'
     self.archive        = 'arpack-ng-'+self.version+'.tar.gz'
-    self.dirname        = 'arpack-ng-'+self.version
     self.supportssingle = True
     self.fortran        = True
     self.hasheaders     = True   # the option --with-arpack-include=... is simply ignored
