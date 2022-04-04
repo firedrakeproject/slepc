@@ -142,6 +142,7 @@ int main(int argc,char **argv)
       args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -svd_nsv 3 -terse
       output_file: output/ex48_2.out
       filter: sed -e "s/30749/30748/"
+      timeoutfactor: 2
       test:
          suffix: 2
          args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -svd_trlanczos_ksp_rtol 1e-10
@@ -159,6 +160,7 @@ int main(int argc,char **argv)
    test:
       requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
       args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -p 320 -svd_nsv 3 -svd_type trlanczos -svd_trlanczos_ksp_rtol 1e-14 -terse
+      timeoutfactor: 2
       suffix: 3
 
 TEST*/

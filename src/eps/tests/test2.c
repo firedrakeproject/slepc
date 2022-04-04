@@ -132,7 +132,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -eps_type lanczos -eps_nev 4
-      requires: !single
+      requires: !single !valgrind
       filter: grep -v "Lanczos"
       output_file: output/test2_1.out
       test:

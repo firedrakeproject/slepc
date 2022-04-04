@@ -169,6 +169,7 @@ int main(int argc,char **argv)
       output_file: output/ex2_4.out
       filter: grep -v Solution
       requires: !single
+      timeoutfactor: 2
       test:
          suffix: 4
          args: -st_type sinvert -st_pc_type cholesky

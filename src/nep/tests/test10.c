@@ -306,5 +306,6 @@ int main(int argc,char **argv)
       suffix: 3
       requires: complex !single
       args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -rg_ellipse_vscale 0.1 -split {{0 1}}
+      timeoutfactor: 2
 
 TEST*/

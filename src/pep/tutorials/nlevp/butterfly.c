@@ -160,6 +160,7 @@ int main(int argc,char **argv)
       requires: complex
       filter: sed -e "s/95386/95385/" | sed -e "s/91010/91009/" | sed -e "s/93092/93091/"
       output_file: output/butterfly_ciss.out
+      timeoutfactor: 2
       test:
          suffix: ciss_hankel
          args: -pep_ciss_extraction hankel -pep_ciss_integration_points 40

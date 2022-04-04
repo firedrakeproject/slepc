@@ -256,6 +256,7 @@ int main(int argc,char **argv)
       args: -a 90000 -nep_nev 2
       requires: double
       output_file: output/test17_1.out
+      timeoutfactor: 2
       test:
          suffix: 1
          args: -nep_type slp -nep_two_sided {{0 1}} -split {{0 1}}
@@ -280,7 +281,7 @@ int main(int argc,char **argv)
    testset:
       args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -rg_ellipse_vscale 0.1 -nep_ciss_ksp_type bcgs -nep_ciss_pc_type sor
       output_file: output/test17_3.out
-      requires: complex !single
+      requires: complex !single !valgrind
       test:
          suffix: 3
          args: -split {{0 1}}
