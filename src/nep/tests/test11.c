@@ -190,6 +190,6 @@ int main(int argc,char **argv)
       suffix: 4
       args: -terse -nep_view
       requires: complex !single
-      filter: grep -v tolerance
+      filter: grep -v tolerance | grep -v threshold
 
 TEST*/

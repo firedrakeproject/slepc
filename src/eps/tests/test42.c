@@ -86,7 +86,7 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      requires: complex !single
+      requires: complex double
       args: -eps_type ciss -eps_all -rg_type ring -rg_ring_center 0 -rg_ring_radius 1 -rg_ring_width 0.05 -rg_ring_startangle .93 -rg_ring_endangle .07
       filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/g"
       test:

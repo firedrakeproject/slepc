@@ -167,6 +167,7 @@ int main(int argc,char **argv)
       args: -pep_all -n 12 -pep_type ciss -rg_type ellipse -rg_ellipse_center -1+1.5i -rg_ellipse_radius .3 -terse
       output_file: output/ex50_2.out
       requires: complex double
+      timeoutfactor: 2
       test:
          suffix: 2
       test:

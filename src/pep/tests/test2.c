@@ -350,7 +350,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 14
-      requires: complex !single
+      requires: complex double
       args: -pep_type ciss -rg_type ellipse -rg_ellipse_center -48.5 -rg_ellipse_radius 1.5 -pep_ciss_delta 1e-10
 
 TEST*/

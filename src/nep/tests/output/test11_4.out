@@ -6,7 +6,6 @@ NEP Object: 1 MPI processes
   type: ciss
     sizes { integration points: 32, block size: 3, moment size: 8, partitions: 1, maximum block size: 3 }
     exploiting symmetry of integration points
-    threshold { delta: 1e-12, spurious threshold: 0.0001 }
     iterative refinement  { inner: 0, blocksize: 0 }
     extraction: RITZ
     KSP Object: (nep_ciss_) 1 MPI processes

@@ -142,6 +142,7 @@ int main(int argc,char **argv)
       args: -fn_scale .05,2 -n 100
       filter: grep -v "computing matrix functions"
       output_file: output/test7_1.out
+      requires: !__float128
       timeoutfactor: 2
       test:
          suffix: 1
@@ -178,6 +179,7 @@ int main(int argc,char **argv)
       nsize: 3
       args: -fn_scale .05,2 -n 100 -fn_parallel synchronized
       filter: grep -v "computing matrix functions" | grep -v "SYNCHRONIZED" | sed -e "s/3 MPI/1 MPI/g"
+      requires: !__float128
       output_file: output/test7_1.out
       test:
          suffix: 3

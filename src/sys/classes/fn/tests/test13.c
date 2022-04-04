@@ -140,7 +140,7 @@ int main(int argc,char **argv)
       test:
          suffix: 1_random
          args: -fn_scale .02,2 -n 75 -random
-         requires: complex
+         requires: complex !__float128
          filter_output: sed -e 's/04/02/'
 
 TEST*/

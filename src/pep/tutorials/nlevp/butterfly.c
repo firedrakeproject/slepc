@@ -160,6 +160,7 @@ int main(int argc,char **argv)
       requires: complex
       filter: sed -e "s/95386/95385/" | sed -e "s/91010/91009/" | sed -e "s/93092/93091/"
       output_file: output/butterfly_ciss.out
+      timeoutfactor: 2
       test:
          suffix: ciss_hankel
          args: -pep_ciss_extraction hankel -pep_ciss_integration_points 40
@@ -180,7 +181,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -pep_type ciss -rg_type ellipse -rg_ellipse_center .5+.5i -rg_ellipse_radius .25 -pep_ciss_moments 4 -pep_ciss_blocksize 5 -pep_ciss_refine_blocksize 2 -terse
-      requires: complex
+      requires: complex double
       filter: sed -e "s/46483/46484/" | sed -e "s/54946/54945/" | sed -e "s/48456/48457/" | sed -e "s/74117/74116/" | sed -e "s/37240/37241/"
       output_file: output/butterfly_4.out
       test:
@@ -188,6 +189,5 @@ int main(int argc,char **argv)
       test:
          suffix: 4_hankel
          args: -pep_ciss_extraction hankel
-         requires: !single
 
 TEST*/

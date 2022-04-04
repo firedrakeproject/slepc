@@ -281,6 +281,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
       args: -split 0 -nep_type ciss -nep_ciss_extraction {{ritz hankel caa}} -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -nep_ciss_moments 4 -rg_ellipse_vscale 0.1 -terse
       requires: complex !single
       output_file: output/ex27_7.out
+      timeoutfactor: 2
       test:
          suffix: 7
       test:
@@ -293,6 +294,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
       requires: complex
       filter: sed -e "s/ (in split form)//" | sed -e "s/56925/56924/" | sed -e "s/60753/60754/" | sed -e "s/92630/92629/"
       output_file: output/ex27_7.out
+      timeoutfactor: 2
       test:
          suffix: 8
       test:

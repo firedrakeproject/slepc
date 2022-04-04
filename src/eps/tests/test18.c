@@ -108,6 +108,7 @@ int main(int argc,char **argv)
       test:
          suffix: 1_ks_gnhep
          args: -eps_gen_non_hermitian
+         requires: !__float128
       test:
          suffix: 2_cuda_ks
          args: -mat_type aijcusparse
