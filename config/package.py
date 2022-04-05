@@ -113,7 +113,7 @@ class Package:
     if self.requested:
       name = self.packagename.upper()
       if self.downloadpackage:
-        if hasattr(self,'version'):
+        if hasattr(self,'version') and self.packageurl=='':
           self.log.NewSection('Installing '+name+' version '+self.version+'...')
         else:
           self.log.NewSection('Installing '+name+'...')
@@ -151,10 +151,33 @@ class Package:
     if self.downloadpackage and self.fortran and not hasattr(petsc,'fc'):
       self.log.Exit('Option --download-'+self.packagename+' requires a Fortran compiler')
 
+  def GetArchiveName(self):
+    '''Return name of archive after downloading'''
+    if self.packageurl=='':
+      archivename = self.archive
+    else:
+      parsed = urlparse_local.urlparse(self.packageurl)
+      archivename = os.path.basename(parsed[2])
+    if archivename[0] == 'v':
+      archivename = archivename[1:]
+    try:
+      if archivename[0].isdigit() or int(archivename.split('.')[0],16):
+        archivename = self.packagename+'-'+archivename
+    except: pass
+    return archivename
+
+  def GetDirectoryName(self):
+    '''Return name of the directory after extracting the tarball'''
+    dirname = self.GetArchiveName()
+    for suffix in ('.tar.gz','.tgz'):
+      if dirname.endswith(suffix):
+        dirname = dirname[:-len(suffix)]
+    return dirname
+
   def MissingTarball(self,downloaddir):
     '''Check if tarball is missing in downloaddir'''
-    if self.downloadable and hasattr(self,'download') and self.download and hasattr(self,'archive'):
-      localFile = os.path.join(downloaddir,self.archive)
+    if self.downloadable and hasattr(self,'download') and self.download:
+      localFile = os.path.join(downloaddir,self.GetArchiveName())
       if not os.path.exists(localFile):
         url = self.packageurl
         if url=='':
@@ -162,43 +185,39 @@ class Package:
         return self.packagename+': '+url+' --> '+localFile
 
   def Download(self,externdir,downloaddir):
-    # Check if source is already available
-    if os.path.exists(os.path.join(externdir,self.dirname)):
-      self.log.write('Using '+os.path.join(externdir,self.dirname))
-      dirname = self.dirname
+    # Quick return: check if source is already available
+    if os.path.exists(os.path.join(externdir,self.GetDirectoryName())):
+      self.log.write('Using '+os.path.join(externdir,self.GetDirectoryName()))
+      return os.path.join(externdir,self.GetDirectoryName())
+
+    if downloaddir:
+      # Get tarball from download dir
+      localFile = os.path.join(downloaddir,self.GetArchiveName())
+      if not os.path.exists(localFile):
+        self.log.Exit('Could not find file '+self.GetArchiveName()+' under '+downloaddir)
+      url = localFile
+      filename = os.path.basename(url)
     else:
+      # Download tarball
+      url = self.packageurl
+      if url=='':
+        url = self.url
+      if os.path.exists(url):
+        url = 'file:'+url
+      filename = os.path.basename(urlparse_local.urlparse(url)[2])
+      localFile = os.path.join(externdir,self.GetArchiveName())
+      self.log.write('Downloading '+url+' to '+localFile)
 
-      if downloaddir:
-        # Get tarball from download dir
-        if self.packageurl=='':
-          localFile = os.path.join(downloaddir,self.archive)
-        else:
-          localFile = os.path.join(downloaddir,self.packageurl)
-        if not os.path.exists(localFile):
-          self.log.Exit('Could not find file '+self.archive+' under '+downloaddir)
-        url = localFile
-        filename = os.path.basename(url)
-      else:
-        # Download tarball
-        url = self.packageurl
-        if url=='':
-          url = self.url
-        if os.path.exists(url):
-          url = 'file:'+url
-        filename = os.path.basename(urlparse_local.urlparse(url)[2])
-        localFile = os.path.join(externdir,self.archive)
-        self.log.write('Downloading '+url+' to '+localFile)
-
-        if os.path.exists(localFile):
-          os.remove(localFile)
-        try:
-          sav_timeout = socket.getdefaulttimeout()
-          socket.setdefaulttimeout(30)
-          urlretrieve(url, localFile)
-          socket.setdefaulttimeout(sav_timeout)
-        except Exception as e:
-          socket.setdefaulttimeout(sav_timeout)
-          failureMessage = '''\
+      if os.path.exists(localFile):
+        os.remove(localFile)
+      try:
+        sav_timeout = socket.getdefaulttimeout()
+        socket.setdefaulttimeout(30)
+        urlretrieve(url, localFile)
+        socket.setdefaulttimeout(sav_timeout)
+      except Exception as e:
+        socket.setdefaulttimeout(sav_timeout)
+        failureMessage = '''\
 Unable to download package %s from: %s
 * If URL specified manually - perhaps there is a typo?
 * If your network is disconnected - please reconnect and rerun ./configure
@@ -208,18 +227,18 @@ Unable to download package %s from: %s
   and use the configure option:
   --download-%s=/yourselectedlocation/%s
 ''' % (self.packagename.upper(), url, filename, self.packagename, filename)
-          self.log.Exit(failureMessage)
+        self.log.Exit(failureMessage)
 
-      # Uncompress tarball
-      extractdir = os.path.join(externdir,self.dirname)
-      self.log.write('Uncompressing '+localFile+' to directory '+extractdir)
-      if os.path.exists(extractdir):
-        for root, dirs, files in os.walk(extractdir, topdown=False):
-          for name in files:
-            os.remove(os.path.join(root,name))
-          for name in dirs:
-            os.rmdir(os.path.join(root,name))
-      failureMessage = '''\
+    # Uncompress tarball
+    extractdir = os.path.join(externdir,self.GetDirectoryName())
+    self.log.write('Uncompressing '+localFile+' to directory '+extractdir)
+    if os.path.exists(extractdir):
+      for root, dirs, files in os.walk(extractdir, topdown=False):
+        for name in files:
+          os.remove(os.path.join(root,name))
+        for name in dirs:
+          os.rmdir(os.path.join(root,name))
+    failureMessage = '''\
 Downloaded package %s from: %s is not a tarball.
 [or installed python cannot process compressed files]
 * If you are behind a firewall - please fix your proxy and rerun ./configure
@@ -229,36 +248,41 @@ Downloaded package %s from: %s is not a tarball.
   and use the configure option:
   --download-%s=/yourselectedlocation/%s
 ''' % (self.packagename.upper(), url, filename, self.packagename, filename)
-      try:
-        tf = tarfile.open(localFile)
-      except tarfile.ReadError as e:
-        self.log.Exit(str(e)+'\n'+failureMessage)
+    try:
+      tf = tarfile.open(localFile)
+    except tarfile.ReadError as e:
+      self.log.Exit(str(e)+'\n'+failureMessage)
+    else:
       if not tf: self.log.Exit(failureMessage)
-      #git puts 'pax_global_header' as the first entry and some tar utils process this as a file
-      firstname = tf.getnames()[0]
-      if firstname == 'pax_global_header':
-        firstmember = tf.getmembers()[1]
-      else:
-        firstmember = tf.getmembers()[0]
-      # some tarfiles list packagename/ but some list packagename/filename in the first entry
-      if firstmember.isdir():
-        dirname = firstmember.name
-      else:
-        dirname = os.path.dirname(firstmember.name)
-      tf.extractall(path=externdir)
-      tf.close()
-
-      # fix file permissions for the untared tarballs
-      try:
-        # check if 'dirname' is set'
-        if dirname:
-          (result,output) = self.RunCommand('cd '+externdir+'; chmod -R a+r '+dirname+'; find '+dirname+' -type d -name "*" -exec chmod a+rx {} \;')
+      with tf:
+        #git puts 'pax_global_header' as the first entry and some tar utils process this as a file
+        firstname = tf.getnames()[0]
+        if firstname == 'pax_global_header':
+          firstmember = tf.getmembers()[1]
         else:
-          self.log.Warn('Could not determine dirname extracted by '+localFile+' to fix file permissions')
-      except RuntimeError as e:
-        self.log.Exit('Error changing permissions for '+dirname+' obtained from '+localFile+ ' : '+str(e))
-      if not downloaddir:
-        os.remove(localFile)
+          firstmember = tf.getmembers()[0]
+        # some tarfiles list packagename/ but some list packagename/filename in the first entry
+        if firstmember.isdir():
+          dirname = firstmember.name
+        else:
+          dirname = os.path.dirname(firstmember.name)
+        tf.extractall(path=externdir)
+
+    # fix file permissions for the untared tarballs
+    try:
+      # check if 'dirname' is set'
+      if dirname:
+        (result,output) = self.RunCommand('cd '+externdir+'; chmod -R a+r '+dirname+'; find '+dirname+' -type d -name "*" -exec chmod a+rx {} \;')
+        if dirname != self.GetDirectoryName():
+          self.log.write('The directory name '+dirname+' is different from the expected one, renaming to '+self.GetDirectoryName())
+          os.rename(os.path.join(externdir,dirname),os.path.join(externdir,self.GetDirectoryName()))
+          dirname = self.GetDirectoryName()
+      else:
+        self.log.Warn('Could not determine dirname extracted by '+localFile+' to fix file permissions')
+    except RuntimeError as e:
+      self.log.Exit('Error changing permissions for '+dirname+' obtained from '+localFile+ ' : '+str(e))
+    if not downloaddir:
+      os.remove(localFile)
     return os.path.join(externdir,dirname)
 
   wd = 36
@@ -281,7 +305,7 @@ Downloaded package %s from: %s is not a tarball.
 
   def ShowInfo(self):
     if self.havepackage:
-      if hasattr(self,'version') and self.downloadpackage:
+      if hasattr(self,'version') and self.downloadpackage and self.packageurl=='':
         packagename = self.packagename.upper()+' version '+self.version
       else:
         packagename = self.packagename.upper()
@@ -302,17 +326,16 @@ Downloaded package %s from: %s is not a tarball.
     except:
       self.log.Exit('Cannot create temporary directory')
     try:
-      makefile = open(os.path.join(tmpdir,'makefile'),'w')
-      if cflags!='':
-        if clanguage=='c++': makefile.write('CXXFLAGS='+cflags+'\n')
-        else: makefile.write('CFLAGS='+cflags+'\n')
-      makefile.write('checklink: checklink.o\n')
-      makefile.write('\t${CLINKER} -o checklink checklink.o ${LINKFLAGS} ${PETSC_SNES_LIB}\n')
-      makefile.write('\t@${RM} -f checklink checklink.o\n')
-      makefile.write('LOCDIR = ./\n')
-      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','variables')+'\n')
-      makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','rules')+'\n')
-      makefile.close()
+      with open(os.path.join(tmpdir,'makefile'),'w') as makefile:
+        if cflags!='':
+          if clanguage=='c++': makefile.write('CXXFLAGS='+cflags+'\n')
+          else: makefile.write('CFLAGS='+cflags+'\n')
+        makefile.write('checklink: checklink.o\n')
+        makefile.write('\t${CLINKER} -o checklink checklink.o ${LINKFLAGS} ${PETSC_SNES_LIB}\n')
+        makefile.write('\t@${RM} -f checklink checklink.o\n')
+        makefile.write('LOCDIR = ./\n')
+        makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','variables')+'\n')
+        makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','rules')+'\n')
     except:
       self.log.Exit('Cannot create makefile in temporary directory')
 
@@ -337,9 +360,8 @@ Downloaded package %s from: %s is not a tarball.
     else:
       code = givencode
 
-    cfile = open(os.path.join(tmpdir,'checklink.cxx' if clanguage=='c++' else 'checklink.c'),'w')
-    cfile.write(code)
-    cfile.close()
+    with open(os.path.join(tmpdir,'checklink.cxx' if clanguage=='c++' else 'checklink.c'),'w') as cfile:
+      cfile.write(code)
     if logdump:
       try:
         self.log.write('- '*35+'\nChecking link with code:\n')

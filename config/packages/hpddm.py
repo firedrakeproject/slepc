@@ -23,7 +23,6 @@ class HPDDM(package.Package):
     self.gitcommit      = 'b9ae0dc6cf88af52b1572b990f8b1731cabceaaf'
     self.url            = 'https://github.com/hpddm/hpddm/archive/'+self.gitcommit+'.tar.gz'
     self.archive        = 'hpddm-'+self.gitcommit+'.tar.gz'
-    self.dirname        = 'hpddm-'+self.gitcommit
     self.supportssingle = True
     self.supports64bint = True
     self.ProcessArgs(argdb)
@@ -39,7 +38,7 @@ class HPDDM(package.Package):
     package.Package.Precondition(self,slepc,petsc)
 
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
-    externdir = slepc.CreateDir(archdir,'externalpackages')
+    externdir = slepc.GetExternalPackagesDir(archdir)
     builddir  = self.Download(externdir,slepc.downloaddir)
     incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
     cont  = 'include '+os.path.join(petsc.dir,petsc.arch,'lib','petsc','conf','petscvariables')+'\n'

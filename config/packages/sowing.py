@@ -17,10 +17,9 @@ class Sowing(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'sowing'
     self.downloadable = True
-    self.version      = '1.1.26'
-    self.url          = 'https://bitbucket.org/petsc/pkg-sowing/get/v'+self.version+'-p4.tar.gz'
-    self.archive      = 'sowing-'+self.version+'-p4.tar.gz'
-    self.dirname      = 'sowing-'+self.version+'-p4'
+    self.version      = '1.1.26-p4'
+    self.url          = 'https://bitbucket.org/petsc/pkg-sowing/get/v'+self.version+'.tar.gz'
+    self.archive      = 'sowing-'+self.version+'.tar.gz'
     self.ProcessArgs(argdb)
 
   def ShowHelp(self):
@@ -33,7 +32,7 @@ class Sowing(package.Package):
     self.log.NewSection('Installing '+name+'...')
 
     # Get package
-    externdir = slepc.CreateDir(archdir,'externalpackages')
+    externdir = slepc.GetExternalPackagesDir(archdir)
     builddir  = self.Download(externdir,slepc.downloaddir)
 
     # Configure, build and install package

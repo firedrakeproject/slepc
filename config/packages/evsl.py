@@ -20,7 +20,6 @@ class Evsl(package.Package):
     self.gitcommit      = 'b9d8150a25f2ac431f1ead78e4e06c6332a9d39a'  #master 30-nov-2021
     self.url            = 'https://github.com/eigs/EVSL/archive/'+self.gitcommit+'.tar.gz'
     self.archive        = 'evsl-'+self.gitcommit+'.tar.gz'
-    self.dirname        = 'evsl-'+self.gitcommit
     self.supportsscalar = ['real']
     self.hasheaders     = True
     self.ProcessArgs(argdb)
@@ -78,7 +77,7 @@ class Evsl(package.Package):
 
 
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
-    externdir = slepc.CreateDir(archdir,'externalpackages')
+    externdir = slepc.GetExternalPackagesDir(archdir)
     builddir  = os.path.join(self.Download(externdir,slepc.downloaddir),'EVSL_1.1.1')
     incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
 

@@ -20,7 +20,6 @@ class Trlan(package.Package):
     self.version        = '201009'
     self.archive        = 'trlan-'+self.version+'.tar.gz'
     self.url            = 'http://slepc.upv.es/download/external/'+self.archive
-    self.dirname        = 'trlan-'+self.version
     self.supportsscalar = ['real']
     self.fortran        = True
     self.ProcessArgs(argdb)
@@ -44,7 +43,7 @@ class Trlan(package.Package):
 
 
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
-    externdir = slepc.CreateDir(archdir,'externalpackages')
+    externdir = slepc.GetExternalPackagesDir(archdir)
     builddir  = self.Download(externdir,slepc.downloaddir)
 
     # Makefile

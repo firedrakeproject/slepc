@@ -20,7 +20,6 @@ class Primme(package.Package):
     self.version        = '3.2'
     self.url            = 'https://github.com/primme/primme/archive/v'+self.version+'.tar.gz'
     self.archive        = 'primme-'+self.version+'.tar.gz'
-    self.dirname        = 'primme-'+self.version
     self.supportssingle = True
     self.supports64bint = True
     self.hasheaders     = True
@@ -99,7 +98,7 @@ class Primme(package.Package):
 
 
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
-    externdir = slepc.CreateDir(archdir,'externalpackages')
+    externdir = slepc.GetExternalPackagesDir(archdir)
     builddir  = self.Download(externdir,slepc.downloaddir)
 
     # Makefile
@@ -161,15 +160,14 @@ class Primme(package.Package):
 
   def LoadVersion(self,slepcconf):
     try:
-      f = open(os.path.join(self.location,'primme.h'))
-      for l in f.readlines():
-        l = l.split()
-        if len(l) == 3:
-          if l[1] == 'PRIMME_VERSION_MAJOR':
-            major = l[2]
-          elif l[1] == 'PRIMME_VERSION_MINOR':
-            minor = l[2]
-      f.close()
+      with open(os.path.join(self.location,'primme.h')) as f:
+        for l in f.readlines():
+          l = l.split()
+          if len(l) == 3:
+            if l[1] == 'PRIMME_VERSION_MAJOR':
+              major = l[2]
+            elif l[1] == 'PRIMME_VERSION_MINOR':
+              minor = l[2]
       self.iversion = major + '.' + minor
       if major=='3':
         slepcconf.write('#define SLEPC_HAVE_PRIMME3 1\n')

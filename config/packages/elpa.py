@@ -20,7 +20,6 @@ class Elpa(package.Package):
     self.version        = '2021.11.002'
     self.archive        = 'elpa-'+self.version+'.tar.gz'
     self.url            = 'https://elpa.mpcdf.mpg.de/software/tarball-archive/Releases/'+self.version+'/'+self.archive
-    self.dirname        = 'elpa-'+self.version
     self.supportssingle = True
     self.fortran        = True
     self.ProcessArgs(argdb)
@@ -89,7 +88,7 @@ class Elpa(package.Package):
 
 
   def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
-    externdir = slepc.CreateDir(archdir,'externalpackages')
+    externdir = slepc.GetExternalPackagesDir(archdir)
     builddir  = self.Download(externdir,slepc.downloaddir)
     incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
 
@@ -116,7 +115,7 @@ class Elpa(package.Package):
         l = petsc.slflag + ldir + ' -L' + ldir + ' -lelpa'
       else:
         l = '-L' + ldir + ' -lelpa'
-      f = '-I' + os.path.join(incdir,self.dirname)
+      f = '-I' + os.path.join(incdir,self.GetDirectoryName())
       (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
       if result: break
 
