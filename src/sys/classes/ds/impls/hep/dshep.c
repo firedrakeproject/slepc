@@ -83,7 +83,7 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
                      "Divide and Conquer method (_stedc)",
                      "Block Divide and Conquer method (dsbtdc)"
   };
-  const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
+  const int         nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));

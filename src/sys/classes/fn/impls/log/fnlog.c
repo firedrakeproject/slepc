@@ -89,7 +89,7 @@ static PetscErrorCode FNlogm_params(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
   PetscRandom     rand;
   const PetscReal xvals[] = { 1.586970738772063e-005, 2.313807884242979e-003, 1.938179313533253e-002,
        6.209171588994762e-002, 1.276404810806775e-001, 2.060962623452836e-001, 2.879093714241194e-001 };
-  const PetscInt  mmax=sizeof(xvals)/sizeof(xvals[0]);
+  const PetscInt  mmax=PETSC_STATIC_ARRAY_LENGTH(xvals);
 
   PetscFunctionBegin;
   PetscCall(PetscRandomCreate(PETSC_COMM_SELF,&rand));
@@ -651,7 +651,7 @@ PetscErrorCode FNView_Log(FN fn,PetscViewer viewer)
   const char     *methodname[] = {
                   "scaling & squaring, [m/m] Pade approximant (Higham)"
   };
-  const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
+  const int      nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));

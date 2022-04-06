@@ -82,7 +82,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
                      "HZ method",
                      "QR"
   };
-  const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
+  const int         nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
