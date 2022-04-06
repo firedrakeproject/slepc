@@ -82,7 +82,7 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
                      "Successive Linear Problems",
                      "Contour Integral"
   };
-  const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
+  const int         nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
