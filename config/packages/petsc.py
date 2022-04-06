@@ -96,46 +96,13 @@ class PETSc(package.Package):
             self.scalar = v
           elif k == 'PETSC_PRECISION':
             self.precision = v
-          elif k == 'MAKE':
-            self.make = v
-          elif k == 'MAKE_NP':
-            self.make_np = v
-          elif k == 'PREFIXDIR':
-            self.prefixdir = v
-          elif k == 'BFORT':
-            self.bfort = v
-          elif k == 'CC':
-            self.cc = v
-          elif k == 'CC_FLAGS':
-            self.cc_flags = v
-          elif k == 'CXX':
-            self.cxx = v
-          elif k == 'CXX_FLAGS':
-            self.cxx_flags = v
           elif k == 'FC' and not v=='':
             self.fc = v
-          elif k == 'FC_FLAGS':
-            self.fc_flags = v
-          elif k == 'AR':
-            self.ar = v
-          elif k == 'AR_FLAGS':
-            self.ar_flags = v
-          elif k == 'AR_LIB_SUFFIX':
-            self.ar_lib_suffix = v
           elif k == 'BUILDSHAREDLIB' and v=='yes':
             self.buildsharedlib = True
-          elif k == 'CC_LINKER_SLFLAG':
-            self.slflag = v
-          elif k == 'SL_LINKER_SUFFIX':
-            self.sl_suffix = v
-          elif k == 'RANLIB':
-            self.ranlib = v
-          elif k == 'BLASLAPACK_LIB':
-            self.blaslapack_lib = v
-          elif k == 'SCALAPACK_LIB':
-            self.scalapack_lib = v
-          elif k == 'CMAKE':
-            self.cmake = v
+          else:
+            if k in ['AR','AR_FLAGS','AR_LIB_SUFFIX','BFORT','BLASLAPACK_LIB','CC','CC_FLAGS','CC_LINKER_SLFLAG','CMAKE','CXX','CXX_FLAGS','FC_FLAGS','MAKE','MAKE_NP','PREFIXDIR','RANLIB','SCALAPACK_LIB','SL_LINKER_SUFFIX']:
+              setattr(self,k.lower(),v)
     except:
       self.log.Exit('Cannot process file ' + petscvariables)
 

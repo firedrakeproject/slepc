@@ -29,7 +29,7 @@ class Lapack(package.Package):
     self.make = petsc.make
     self.mangling = petsc.blaslapackmangling
     if petsc.buildsharedlib:
-      self.slflag = petsc.slflag
+      self.slflag = petsc.cc_linker_slflag
     self.log.NewSection('Checking LAPACK library...')
     self.Check(slepcconf,slepcvars,petsc)
 

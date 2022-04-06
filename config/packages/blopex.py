@@ -58,7 +58,7 @@ class Blopex(package.Package):
     for (d,i) in zip(dirs,incdirs):
       if d:
         if petsc.buildsharedlib:
-          l = [petsc.slflag + d] + ['-L' + d] + libs
+          l = [self.slflag + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
         f = ['-I' + i]
@@ -105,7 +105,7 @@ class Blopex(package.Package):
         shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incblopexdir,name))
 
     if petsc.buildsharedlib:
-      l = petsc.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'
+      l = self.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'
     else:
       l = '-L' + libDir + ' -lBLOPEX'
     f = '-I' + incdir + ' -I' + incblopexdir

@@ -58,7 +58,7 @@ class Evsl(package.Package):
     for (d,i) in zip(dirs,incdirs):
       if d:
         if petsc.buildsharedlib:
-          l = [petsc.slflag + d] + ['-L' + d] + libs
+          l = [self.slflag + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
         f = ['-I' + i]
@@ -93,7 +93,7 @@ class Evsl(package.Package):
       self.log.Exit('Installation of EVSL failed')
 
     if petsc.buildsharedlib:
-      l = petsc.slflag + libdir + ' -L' + libdir + ' -levsl'
+      l = self.slflag + libdir + ' -L' + libdir + ' -levsl'
     else:
       l = '-L' + libdir + ' -levsl'
     f = '-I' + incdir

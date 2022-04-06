@@ -120,7 +120,7 @@ class Package:
   def Process(self,slepcconf,slepcvars,slepcrules,slepc,petsc,archdir=''):
     self.make = petsc.make
     if petsc.buildsharedlib:
-      self.slflag = petsc.slflag
+      self.slflag = petsc.cc_linker_slflag
     if self.requested:
       name = self.packagename.upper()
       if self.downloadpackage:

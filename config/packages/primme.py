@@ -77,7 +77,7 @@ class Primme(package.Package):
     for (d,i) in zip(dirs,incdirs):
       if d:
         if petsc.buildsharedlib:
-          l = [petsc.slflag + d] + ['-L' + d] + libs
+          l = [self.slflag + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
         f = ['-I' + i]
@@ -103,8 +103,8 @@ class Primme(package.Package):
 
     # Makefile
     cont =  'export LIBRARY       = libprimme.'+petsc.ar_lib_suffix+'\n'
-    cont += 'export SOLIBRARY     = libprimme.'+petsc.sl_suffix+'\n'
-    cont += 'export SONAMELIBRARY = libprimme.'+petsc.sl_suffix+'.'+self.version+'\n'
+    cont += 'export SOLIBRARY     = libprimme.'+petsc.sl_linker_suffix+'\n'
+    cont += 'export SONAMELIBRARY = libprimme.'+petsc.sl_linker_suffix+'.'+self.version+'\n'
     cont += 'export CC            = '+petsc.cc+'\n'
     if hasattr(petsc,'fc'):
       cont += 'export F77           = '+petsc.fc+'\n'
@@ -137,7 +137,7 @@ class Primme(package.Package):
           shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incdir,name))
 
     if petsc.buildsharedlib:
-      l = petsc.slflag + libdir + ' -L' + libdir + ' -lprimme'
+      l = self.slflag + libdir + ' -L' + libdir + ' -lprimme'
     else:
       l = '-L' + libdir + ' -lprimme'
     f = '-I' + incdir

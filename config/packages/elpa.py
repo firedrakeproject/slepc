@@ -69,7 +69,7 @@ class Elpa(package.Package):
     for (d,i) in zip(dirs,incdirs):
       if d:
         if petsc.buildsharedlib:
-          l = [petsc.slflag + d] + ['-L' + d] + libs
+          l = [self.slflag + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
         f = ['-I' + i]
@@ -113,7 +113,7 @@ class Elpa(package.Package):
     altlibdir = os.path.join(prefixdir,'lib64')
     for ldir in [libdir,altlibdir]:
       if petsc.buildsharedlib:
-        l = petsc.slflag + ldir + ' -L' + ldir + ' -lelpa'
+        l = self.slflag + ldir + ' -L' + ldir + ' -lelpa'
       else:
         l = '-L' + ldir + ' -lelpa'
       f = '-I' + os.path.join(incdir,self.GetDirectoryName())
