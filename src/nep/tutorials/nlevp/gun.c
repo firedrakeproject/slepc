@@ -140,7 +140,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -K ${DATAFILESPATH}/matrices/complex/gun_K.petsc -M ${DATAFILESPATH}/matrices/complex/gun_M.petsc -W1 ${DATAFILESPATH}/matrices/complex/gun_W1.petsc -W2 ${DATAFILESPATH}/matrices/complex/gun_W2.petsc -nep_type nleigs -rg_type polygon -rg_polygon_vertices 12500-1i,120500-1i,120500+30000i,70000+30000i -nep_target 65000 -nep_nev 24 -terse
-      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
+      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES) !defined(PETSCTEST_VALGRIND)
       timeoutfactor: 10
 
 TEST*/

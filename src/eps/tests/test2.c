@@ -132,12 +132,16 @@ int main(int argc,char **argv)
 
    testset:
       args: -eps_type lanczos -eps_nev 4
-      requires: !single !valgrind
+      requires: !single
       filter: grep -v "Lanczos"
       output_file: output/test2_1.out
       test:
          suffix: 2
-         args: -eps_lanczos_reorthog {{local full selective periodic partial}}
+         args: -eps_lanczos_reorthog {{local full periodic partial}}
+      test:
+         suffix: 2_selective
+         args: -eps_lanczos_reorthog selective
+         requires: !defined(PETSCTEST_VALGRIND)
 
    testset:
       args: -n 32 -eps_nev 4

@@ -274,11 +274,11 @@ int main(int argc,char **argv)
       test:
          suffix: 11
          args: -bv_type {{vecs contiguous svec mat}shared output}
-         requires: !valgrind
+         requires: !defined(PETSCTEST_VALGRIND)
       test:
          suffix: 11_cuda
          args: -bv_type svec -vec_type cuda
-         requires: cuda !valgrind
+         requires: cuda !defined(PETSCTEST_VALGRIND)
 
    testset:
       args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr
@@ -287,10 +287,10 @@ int main(int argc,char **argv)
       test:
          suffix: 12
          args: -bv_type {{vecs contiguous svec mat}shared output}
-         requires: !single !valgrind
+         requires: !single !defined(PETSCTEST_VALGRIND)
       test:
          suffix: 12_cuda
          args: -bv_type svec -vec_type cuda
-         requires: !single !valgrind cuda
+         requires: cuda !single !defined(PETSCTEST_VALGRIND)
 
 TEST*/
