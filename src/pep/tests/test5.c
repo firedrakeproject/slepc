@@ -138,6 +138,6 @@ int main(int argc,char **argv)
    test:
       suffix: 5
       args: -n 12 -pep_largest_real -pep_monitor draw::draw_lg -pep_monitor_all draw::draw_lg -pep_view_values draw -draw_save myeigen.ppm -draw_virtual
-      requires: double
+      requires: x double
 
 TEST*/

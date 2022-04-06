@@ -157,6 +157,6 @@ int main(int argc,char **argv)
    test:
       suffix: 4
       args: -nep_type slp -nep_nev 4 -nep_monitor draw::draw_lg -nep_monitor_all draw::draw_lg -nep_view_values draw -draw_save myeigen.ppm -draw_virtual
-      requires: double
+      requires: x double
 
 TEST*/

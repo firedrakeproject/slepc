@@ -106,7 +106,7 @@ int main(int argc,char **argv)
       nsize: {{1 4}}
       args: -n 8 -eps_nev 60 -st_pc_type redundant
       filter: grep -v Using
-      requires: !single !valgrind
+      requires: !single
       output_file: output/test32_3.out
       test:
          suffix: 3

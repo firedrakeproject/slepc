@@ -146,6 +146,7 @@ int main(int argc,char **argv)
       test:
          suffix: 2
          args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -svd_trlanczos_ksp_rtol 1e-10
+         requires: !defined(PETSCTEST_VALGRIND)
       test:
          suffix: 2_spqr
          args: -svd_type trlanczos -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr -svd_trlanczos_ksp_rtol 1e-10
@@ -158,7 +159,7 @@ int main(int argc,char **argv)
          args: -svd_type cyclic -svd_cyclic_explicitmatrix
 
    test:
-      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
+      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES) !defined(PETSCTEST_VALGRIND)
       args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -p 320 -svd_nsv 3 -svd_type trlanczos -svd_trlanczos_ksp_rtol 1e-14 -terse
       timeoutfactor: 2
       suffix: 3

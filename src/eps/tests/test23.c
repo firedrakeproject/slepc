@@ -70,6 +70,6 @@ int main(int argc,char **argv)
    test:
       suffix: 3
       args: -n 20 -eps_largest_real -eps_monitor draw::draw_lg -eps_monitor_all draw::draw_lg -eps_view_values draw -draw_save myeigen.ppm -draw_virtual
-      requires: double
+      requires: x double
 
 TEST*/
