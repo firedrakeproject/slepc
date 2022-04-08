@@ -225,7 +225,7 @@
       Vec            x,y
       PetscErrorCode ierr
 
-      call KSPSolve(myksp,x,y,ierr);PetscCall(ierr)
+      call KSPSolve(myksp,x,y,ierr);CHKERRQ(ierr)
 
       return
       end
@@ -251,7 +251,7 @@
       Vec            x,y
       PetscErrorCode ierr
 
-      call KSPSolveTranspose(myksp,x,y,ierr);PetscCall(ierr)
+      call KSPSolveTranspose(myksp,x,y,ierr);CHKERRQ(ierr)
 
       return
       end

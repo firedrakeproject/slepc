@@ -211,8 +211,8 @@
       PetscErrorCode ierr
 
 !     ** Compute Function entries and insert into matrix
-      call MatGetSize(fun,n,PETSC_NULL_INTEGER,ierr);PetscCall(ierr)
-      call MatGetOwnershipRange(fun,Istart,Iend,ierr);PetscCall(ierr)
+      call MatGetSize(fun,n,PETSC_NULL_INTEGER,ierr);CHKERRQ(ierr)
+      call MatGetOwnershipRange(fun,Istart,Iend,ierr);CHKERRQ(ierr)
       h = ctx%h
       c = ctx%kappa/(lambda-ctx%kappa)
       d = n
@@ -227,7 +227,7 @@
         j(2) = 1
         A(1) = 2.0*(d-lambda*h/3.0)
         A(2) = -d-lambda*h/6.0
-        call MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr);PetscCall(ierr)
+        call MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
         Istart = Istart + 1
       endif
 
@@ -237,7 +237,7 @@
         j(2) = n-1
         A(1) = -d-lambda*h/6.0
         A(2) = d-lambda*h/3.0+lambda*c
-        call MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr);PetscCall(ierr)
+        call MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
         Iend = Iend - 1
       endif
 
@@ -249,12 +249,12 @@
         A(1) = -d-lambda*h/6.0
         A(2) = 2.0*(d-lambda*h/3.0)
         A(3) = -d-lambda*h/6.0
-        call MatSetValues(fun,one,i,three,j,A,INSERT_VALUES,ierr);PetscCall(ierr)
+        call MatSetValues(fun,one,i,three,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
       enddo
 
 !     ** Assemble matrix
-      call MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY,ierr);PetscCall(ierr)
-      call MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY,ierr);PetscCall(ierr)
+      call MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
+      call MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
       return
       end
 
@@ -272,8 +272,8 @@
       PetscErrorCode ierr
 
 !     ** Compute Jacobian entries and insert into matrix
-      call MatGetSize(jac,n,PETSC_NULL_INTEGER,ierr);PetscCall(ierr)
-      call MatGetOwnershipRange(jac,Istart,Iend,ierr);PetscCall(ierr)
+      call MatGetSize(jac,n,PETSC_NULL_INTEGER,ierr);CHKERRQ(ierr)
+      call MatGetOwnershipRange(jac,Istart,Iend,ierr);CHKERRQ(ierr)
       h = ctx%h
       c = ctx%kappa/(lambda-ctx%kappa)
       one = 1
@@ -287,7 +287,7 @@
         j(2) = 1
         A(1) = -2.0*h/3.0
         A(2) = -h/6.0
-        call MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr);PetscCall(ierr)
+        call MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
         Istart = Istart + 1
       endif
 
@@ -297,7 +297,7 @@
         j(2) = n-1
         A(1) = -h/6.0
         A(2) = -h/3.0-c*c
-        call MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr);PetscCall(ierr)
+        call MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
         Iend = Iend - 1
       endif
 
@@ -309,12 +309,12 @@
         A(1) = -h/6.0
         A(2) = -2.0*h/3.0
         A(3) = -h/6.0
-        call MatSetValues(jac,one,i,three,j,A,INSERT_VALUES,ierr);PetscCall(ierr)
+        call MatSetValues(jac,one,i,three,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
       enddo
 
 !     ** Assemble matrix
-      call MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY,ierr);PetscCall(ierr)
-      call MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY,ierr);PetscCall(ierr)
+      call MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
+      call MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
       return
       end
 
