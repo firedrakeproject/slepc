@@ -34,6 +34,7 @@ class Package:
     self.installable     = False  # an already installed package can be picked --with-xxx-dir
     self.downloadable    = False  # package can be downloaded and installed with --download-xxx
     self.downloadpackage = 0
+    self.packagetype     = ''     # can be 'gnu', 'cmake', 'source_c', or empty
     self.packagedir      = ''
     self.packagelibs     = []
     self.packageincludes = []
@@ -45,7 +46,6 @@ class Package:
     self.supports64bint  = False
     self.fortran         = False
     self.hasheaders      = False
-    self.hasdloadflags   = False
     self.requested       = False
     self.havepackage     = False
 
@@ -92,7 +92,13 @@ class Package:
       if found:
         self.requested = value
     if self.downloadable:
-      string,cflagsfound = argdb.PopString('download-'+self.packagename+'-cflags')
+      flagsfound = False
+      if self.packagetype == 'gnu':
+        string,flagsfound = argdb.PopString('download-'+self.packagename+'-configure-arguments')
+      elif self.packagetype == 'cmake':
+        string,flagsfound = argdb.PopString('download-'+self.packagename+'-cmake-arguments')
+      elif self.packagetype == 'source_c':
+        string,flagsfound = argdb.PopString('download-'+self.packagename+'-cflags')
       url,flag,found = argdb.PopUrl('download-'+self.packagename)
       if found:
         if self.requested:
@@ -101,15 +107,20 @@ class Package:
         self.download = True
         self.packageurl = url
         self.downloadpackage = flag
-      if cflagsfound:
+      if flagsfound:
         if not hasattr(self,'download') or not self.download:
-          self.log.Exit('--download-'+self.packagename+'-cflags must be used together with --download-'+self.packagename)
+          if self.packagetype == 'gnu':
+            self.log.Exit('--download-'+self.packagename+'-configure-arguments must be used together with --download-'+self.packagename)
+          elif self.packagetype == 'cmake':
+            self.log.Exit('--download-'+self.packagename+'-cmake-arguments must be used together with --download-'+self.packagename)
+          elif self.packagetype == 'source_c':
+            self.log.Exit('--download-'+self.packagename+'-cflags must be used together with --download-'+self.packagename)
         self.buildflags = string
 
   def Process(self,slepcconf,slepcvars,slepcrules,slepc,petsc,archdir=''):
     self.make = petsc.make
     if petsc.buildsharedlib:
-      self.slflag = petsc.slflag
+      self.slflag = petsc.cc_linker_slflag
     if self.requested:
       name = self.packagename.upper()
       if self.downloadpackage:
@@ -293,7 +304,11 @@ Downloaded package %s from: %s is not a tarball.
       print(self.packagename.upper()+':')
     if self.downloadable:
       print(('  --download-'+self.packagename+'[=<fname>]').ljust(wd)+': Download and install '+self.packagename.upper())
-      if self.hasdloadflags:
+      if self.packagetype == 'gnu':
+        print(('  --download-'+self.packagename+'-configure-arguments=<flags>').ljust(wd)+': Indicate extra flags to configure '+self.packagename.upper())
+      elif self.packagetype == 'cmake':
+        print(('  --download-'+self.packagename+'-cmake-arguments=<flags>').ljust(wd)+': Indicate extra flags to build '+self.packagename.upper()+' with CMake')
+      elif self.packagetype == 'source_c':
         print(('  --download-'+self.packagename+'-cflags=<flags>').ljust(wd)+': Indicate extra flags to compile '+self.packagename.upper())
     if self.installable:
       print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Test for '+self.packagename.upper()+(' (requires PETSc with %s)'%self.petscdepend.upper() if hasattr(self,'petscdepend') else ''))
