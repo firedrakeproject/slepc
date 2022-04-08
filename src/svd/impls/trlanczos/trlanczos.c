@@ -196,12 +196,15 @@ static PetscErrorCode MatCreateVecs_Z(Mat Z,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
 PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
   PetscInt       N,m,n,p;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   DSType         dstype;
   MatZData       *zdata;
+  Mat            aux;
 
   PetscFunctionBegin;
   PetscCall(MatGetSize(svd->A,NULL,&N));
@@ -214,12 +217,23 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscCall(SVDAllocateSolution(svd,1));
   dstype = DSSVD;
   if (svd->isgeneralized) {
+    if (svd->swapped) {
+      SWAP(svd->A,svd->B,aux);
+      SWAP(svd->AT,svd->BT,aux);
+      svd->swapped = PETSC_FALSE;
+    }
+    if (svd->which==SVD_LARGEST) {
+      SWAP(svd->A,svd->B,aux);
+      SWAP(svd->AT,svd->BT,aux);
+      svd->swapped = PETSC_TRUE;
+    }
+
     if (lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_UPPER || lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_LOWER) dstype = DSGSVD;
     PetscCall(SVDSetWorkVecs(svd,1,1));
 
     if (svd->conv==SVD_CONV_ABS) {  /* Residual norms are multiplied by matrix norms */
-      if (!svd->nrma) PetscCall(MatNorm(svd->OP,NORM_INFINITY,&svd->nrma));
-      if (!svd->nrmb) PetscCall(MatNorm(svd->OPb,NORM_INFINITY,&svd->nrmb));
+      if (!svd->nrma) PetscCall(MatNorm(svd->A,NORM_INFINITY,&svd->nrma));
+      if (!svd->nrmb) PetscCall(MatNorm(svd->B,NORM_INFINITY,&svd->nrmb));
     }
 
     /* Create the matrix Z=[A;B] */
@@ -1024,8 +1038,8 @@ static inline PetscErrorCode SVDLeftSingularVectors(SVD svd,BV U1,BV U2)
   const PetscScalar *u1a,*u2a;
 
   PetscFunctionBegin;
-  PetscCall(MatGetLocalSize(svd->A,&m,NULL));
-  PetscCall(MatGetLocalSize(svd->B,&p,NULL));
+  PetscCall(BVGetSizes(U1,&m,NULL,NULL));
+  PetscCall(BVGetSizes(U2,&p,NULL,NULL));
   for (i=0;i<svd->nconv;i++) {
     PetscCall(BVGetColumn(U1,i,&u1));
     PetscCall(BVGetColumn(U2,i,&u2));
@@ -1312,15 +1326,20 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
 PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscInt       k,m,p;
+  PetscInt       i,k,m,p;
   PetscBool      convchg=PETSC_FALSE;
-  BV             U1,U2;
+  BV             U1,U2,UU;
   BVType         type;
   Mat            U,V;
+  SlepcSC        sc;
 
   PetscFunctionBegin;
   PetscCall(PetscCitationsRegister(citationg,&citedg));
 
+  if (svd->which==SVD_LARGEST) {
+    PetscCall(DSGetSlepcSC(svd->ds,&sc));
+    sc->comparison = SlepcCompareSmallestReal;
+  }
   if (svd->converged==SVDConvergedNorm) {  /* override temporarily since computed residual is already relative to the norms */
     svd->converged = SVDConvergedAbsolute;
     convchg = PETSC_TRUE;
@@ -1378,6 +1397,11 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscCall(BVRestoreMat(svd->V,&V));
 
   /* Finish computing left singular vectors and move them to its place */
+  if (svd->which==SVD_LARGEST) {
+    SWAP(U1,U2,UU);
+    svd->swapped = PETSC_FALSE;
+    for (i=0;i<svd->nconv;i++) svd->sigma[i] = 1.0/svd->sigma[i];
+  }
   switch (lanczos->bidiag) {
     case SVD_TRLANCZOS_GBIDIAG_SINGLE:
       PetscCall(SVDLeftSingularVectors_Single(svd,U1,U2));
@@ -1403,8 +1427,8 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
     }
   }
 
-  PetscCall(BVDestroy(&U2));
   PetscCall(BVDestroy(&U1));
+  PetscCall(BVDestroy(&U2));
   PetscCall(DSTruncate(svd->ds,svd->nconv,PETSC_TRUE));
   if (convchg) svd->converged = SVDConvergedNorm;
   PetscFunctionReturn(0);

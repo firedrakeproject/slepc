@@ -146,6 +146,7 @@ PetscErrorCode SVDReset(SVD svd)
   svd->nworkl = 0;
   PetscCall(VecDestroyVecs(svd->nworkr,&svd->workr));
   svd->nworkr = 0;
+  svd->swapped = PETSC_FALSE;
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
