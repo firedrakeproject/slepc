@@ -82,7 +82,7 @@ variables:
         vermin --version
         make vermin
       fi
-    - if [ ! -z ${RUN_LINT+x} ]; then make lint_slepc LINTER_OPTIONS="--clang_lib=`llvm-config --libdir`/libclang.so.11 --verbose --werror"; fi
+    - if [ ! -z ${RUN_LINT+x} ]; then make lint_slepc LINTER_OPTIONS="--clang_lib=`llvm-config --libdir`/libclang.so --verbose --werror"; fi
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror cleantest allgtests-tap TIMEOUT=${TIMEOUT} search="${TEST_SEARCH}"; fi
@@ -401,6 +401,32 @@ gnu-cxx-int64:
   variables:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-3.2
+
+#
+# Special job in stage-3 to check pip install.
+#
+
+pip-install:
+  extends: .test
+  stage: stage-3
+  tags:
+    - pip
+  before_script:
+    - date
+    - hostname
+    - grep PRETTY_NAME /etc/os-release
+    - nproc
+    - lscpu
+    - ccache --zero-stats
+  script:
+    - |
+      if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' include/slepcversion.h) == 1 ]; then
+        pip install --user .;
+        pip install --user src/binding/slepc4py;
+        make -C src/binding/slepc4py/demo;
+      fi
+  after_script:
+    - date
 
 #
 # The following tests run as part of stage-3.
