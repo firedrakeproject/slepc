@@ -60,6 +60,15 @@ slepc_manexamples:
 	  done; \
         fi
 
+slepc_manualpages_buildcite: chk_manualpage_dir
+	@-if [ "${MANSEC}" != "" ] ; then \
+          if [ "${SUBMANSEC}" = "" ] ; then LMANSEC=${MANSEC}; else LMANSEC=${SUBMANSEC}; fi; \
+          DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
+	  TEXTFILTER_PATH=${PETSC_DIR}/doc/classic/doctext; export TEXTFILTER_PATH; \
+          ${DOCTEXT} -html -indexdir ../$${LMANSEC} \
+		-index ${LOC}/docs/manualpages/manualpages.cit \
+		-mpath ${LOC}/docs/manualpages/$${LMANSEC} ${SOURCED};  fi
+
 slepc_html: chk_c2html
 	-@export htmlmap_tmp=$$(mktemp) ;\
           sed -e s?man+../?man+ROOT/docs/manualpages/? ${LOC}/docs/manualpages/manualpages.cit > $$htmlmap_tmp ;\
