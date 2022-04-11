@@ -82,9 +82,10 @@ def bootstrap():
     CONFIGURE_OPTIONS.extend(split_quoted(options))
     #
     if not PETSC_DIR:
-        vstr = version().split('.')[:2]
-        x, y = int(vstr[0]), int(vstr[1])
-        reqs = ">=%s.%s,<%s.%s" % (x, y, x, y+1)
+        vstr = version()
+        x, y = tuple(map(int, vstr.split('.')[:2]))
+        dev = '.dev0' if '.dev' in vstr else ''
+        reqs = ">=%s.%s%s,<%s.%s" % (x, y, dev, x, y+1)
         metadata['install_requires'] = ['petsc'+reqs]
 
 def get_petsc_dir():
