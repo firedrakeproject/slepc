@@ -2,17 +2,6 @@
 
 .SUFFIXES: .F  .F90 .f90 ${SUFFIXES} .PETSc .C .cc .cpp .cxx .r .rm .so .html .ad .m .tex .mtex .make  .fig .svg .eps .pdf .jpg .png .dvi .ps .F95 .f95 .fiat .cu .kokkos.cxx
 
-ifneq ($(INSTALLED_PETSC),)
-  PETSC_ARCH_DIR=
-else
-  PETSC_ARCH_DIR=$(PETSC_ARCH)
-endif
-
-PETSCCONFIGDIR ?= $(PETSC_DIR)/config
-ifeq ($(wildcard $(PETSCCONFIGDIR)/gmakegentest.py),)
-  PETSCCONFIGDIR := $(PETSC_DIR)/share/petsc/examples/config
-endif
-
 # TESTSRCDIR is always relative to gmakefile.test
 #  This must be before includes
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -104,6 +93,17 @@ endif
 # This must be an integer.  It is given in seconds.
 ifdef TIMEOUT
   TESTFLAGS += -t $(TIMEOUT)  # Override the default timeout
+endif
+
+ifneq ($(INSTALLED_PETSC),)
+  PETSC_ARCH_DIR=
+else
+  PETSC_ARCH_DIR=$(PETSC_ARCH)
+endif
+
+PETSCCONFIGDIR ?= $(PETSC_DIR)/config
+ifeq ($(wildcard $(PETSCCONFIGDIR)/gmakegentest.py),)
+  PETSCCONFIGDIR := $(PETSC_DIR)/share/petsc/examples/config
 endif
 
 $(generatedtest) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR

@@ -246,10 +246,10 @@ SUBROUTINE FormFunction(nep,lambda,fun,B,ctx,ierr)
   end if
 
   ! ** Assemble matrix
-  call MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY,ierr);PetscCall(ierr)
-  call MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY,ierr);PetscCall(ierr)
-  call MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY,ierr);PetscCall(ierr)
-  call MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY,ierr);PetscCall(ierr)
+  call MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
+  call MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
+  call MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
+  call MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
 
 END SUBROUTINE FormFunction
 
