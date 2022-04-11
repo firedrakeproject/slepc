@@ -18,7 +18,7 @@ except ImportError:
 try:
   import urlparse as urlparse_local # novermin
 except ImportError:
-  from urllib import parse as urlparse_local
+  from urllib import parse as urlparse_local # novermin
 if sys.version_info < (3,):
   import commands
 else:
