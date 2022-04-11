@@ -405,6 +405,32 @@ gnu-cxx-int64:
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-3.2
 
 #
+# Special job in stage-3 to check pip install.
+#
+
+pip-install:
+  extends: .test
+  stage: stage-3
+  tags:
+    - pip
+  before_script:
+    - date
+    - hostname
+    - grep PRETTY_NAME /etc/os-release
+    - nproc
+    - lscpu
+    - ccache --zero-stats
+  script:
+    - |
+      if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' include/slepcversion.h) == 1 ]; then
+        pip install --user .;
+        pip install --user src/binding/slepc4py;
+        make -C src/binding/slepc4py/demo;
+      fi
+  after_script:
+    - date
+
+#
 # The following tests run as part of stage-3.
 #
 
