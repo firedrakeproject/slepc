@@ -428,6 +428,27 @@ pip-install:
         pip install --user .;
         pip install --user src/binding/slepc4py;
         make -C src/binding/slepc4py/demo;
+      else
+        slepc=$PWD;
+        cd ..;
+        if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi;
+        cd petsc;
+        petsc=$PWD;
+        git clean -ffdxq;
+        git fetch;
+        if [ -z ${PETSC_BRANCH+x} ]; then git checkout origin/main; else git checkout origin/$PETSC_BRANCH; fi;
+        set -eu pipefail;
+        rm -rf /tmp/env;
+        python -m venv /tmp/env;
+        source /tmp/env/bin/activate;
+        set -x;
+        pip install -U pip;
+        pip install numpy;
+        pip install $petsc;
+        pip install $petsc/src/binding/petsc4py;
+        pip install $slepc;
+        pip install $slepc/src/binding/slepc4py;
+        make -C $slepc/src/binding/slepc4py/demo;
       fi
   after_script:
     - date
