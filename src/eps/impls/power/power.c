@@ -700,7 +700,7 @@ PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS 
   EPSPowerShiftType shift;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS Power Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS Power Options");
 
     PetscCall(PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg));
     if (flg) PetscCall(EPSPowerSetShiftType(eps,shift));
@@ -711,7 +711,7 @@ PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS 
     PetscCall(PetscOptionsBool("-eps_power_update","Update residual monolithically","EPSPowerSetUpdate",power->update,&val,&flg));
     if (flg) PetscCall(EPSPowerSetUpdate(eps,val));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

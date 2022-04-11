@@ -259,13 +259,13 @@ PetscErrorCode NEPSetFromOptions_SLP(PetscOptionItems *PetscOptionsObject,NEP ne
   PetscReal      r;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"NEP SLP Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"NEP SLP Options");
 
     r = 0.0;
     PetscCall(PetscOptionsReal("-nep_slp_deflation_threshold","Tolerance used as a threshold for including deflated eigenpairs","NEPSLPSetDeflationThreshold",ctx->deftol,&r,&flg));
     if (flg) PetscCall(NEPSLPSetDeflationThreshold(nep,r));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!ctx->eps) PetscCall(NEPSLPGetEPS(nep,&ctx->eps));
   PetscCall(EPSSetFromOptions(ctx->eps));

@@ -314,12 +314,12 @@ PetscErrorCode SVDSetFromOptions_Lanczos(PetscOptionItems *PetscOptionsObject,SV
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"SVD Lanczos Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"SVD Lanczos Options");
 
     PetscCall(PetscOptionsBool("-svd_lanczos_oneside","Use one-side reorthogonalization","SVDLanczosSetOneSide",lanczos->oneside,&val,&set));
     if (set) PetscCall(SVDLanczosSetOneSide(svd,val));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

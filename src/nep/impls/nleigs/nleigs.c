@@ -1868,7 +1868,7 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
   PetscScalar    array[SHIFTMAX];
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"NEP NLEIGS Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"NEP NLEIGS Options");
 
     PetscCall(PetscOptionsReal("-nep_nleigs_restart","Proportion of vectors kept after restart","NEPNLEIGSSetRestart",0.5,&r,&flg1));
     if (flg1) PetscCall(NEPNLEIGSSetRestart(nep,r));
@@ -1890,7 +1890,7 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
     PetscCall(PetscOptionsScalarArray("-nep_nleigs_rk_shifts","Shifts for Rational Krylov","NEPNLEIGSSetRKShifts",array,&k,&flg1));
     if (flg1) PetscCall(NEPNLEIGSSetRKShifts(nep,k,array));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!ctx->ksp) PetscCall(NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp));
   for (i=0;i<ctx->nshiftsw;i++) PetscCall(KSPSetFromOptions(ctx->ksp[i]));

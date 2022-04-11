@@ -640,7 +640,7 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptionItems *PetscOptionsObject,EPS
   PetscReal      restart;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS LOBPCG Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS LOBPCG Options");
 
     PetscCall(PetscOptionsInt("-eps_lobpcg_blocksize","Block size","EPSLOBPCGSetBlockSize",20,&bs,&flg));
     if (flg) PetscCall(EPSLOBPCGSetBlockSize(eps,bs));
@@ -651,7 +651,7 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptionItems *PetscOptionsObject,EPS
     PetscCall(PetscOptionsBool("-eps_lobpcg_locking","Choose between locking and non-locking variants","EPSLOBPCGSetLocking",PETSC_TRUE,&lock,&flg));
     if (flg) PetscCall(EPSLOBPCGSetLocking(eps,lock));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

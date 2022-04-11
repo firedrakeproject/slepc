@@ -36,7 +36,7 @@ PetscErrorCode EPSSetFromOptions_GD(PetscOptionItems *PetscOptionsObject,EPS eps
   PetscInt       opi,opi0;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS Generalized Davidson (GD) Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS Generalized Davidson (GD) Options");
 
     PetscCall(EPSGDGetKrylovStart(eps,&op));
     PetscCall(PetscOptionsBool("-eps_gd_krylov_start","Start the search subspace with a Krylov basis","EPSGDSetKrylovStart",op,&op,&flg));
@@ -62,7 +62,7 @@ PetscErrorCode EPSSetFromOptions_GD(PetscOptionItems *PetscOptionsObject,EPS eps
     PetscCall(PetscOptionsBool("-eps_gd_double_expansion","Use the doble-expansion variant of GD","EPSGDSetDoubleExpansion",PETSC_FALSE,&op,&flg));
     if (flg) PetscCall(EPSGDSetDoubleExpansion(eps,op));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

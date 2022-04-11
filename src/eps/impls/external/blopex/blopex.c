@@ -377,12 +377,12 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptionItems *PetscOptionsObject,EPS
   PetscInt       bs;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS BLOPEX Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS BLOPEX Options");
 
     PetscCall(PetscOptionsInt("-eps_blopex_blocksize","Block size","EPSBLOPEXSetBlockSize",20,&bs,&flg));
     if (flg) PetscCall(EPSBLOPEXSetBlockSize(eps,bs));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   LOBPCG_SetFromOptionsRandomContext();
   PetscFunctionReturn(0);

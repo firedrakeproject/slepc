@@ -359,12 +359,12 @@ PetscErrorCode EPSSetFromOptions_RQCG(PetscOptionItems *PetscOptionsObject,EPS e
   PetscInt       nrest;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS RQCG Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS RQCG Options");
 
     PetscCall(PetscOptionsInt("-eps_rqcg_reset","Reset parameter","EPSRQCGSetReset",20,&nrest,&flg));
     if (flg) PetscCall(EPSRQCGSetReset(eps,nrest));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

@@ -851,7 +851,6 @@ PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
 @*/
 PetscErrorCode BVSetFromOptions(BV bv)
 {
-  PetscErrorCode     ierr;
   char               type[256];
   PetscBool          flg1,flg2,flg3,flg4;
   PetscReal          r;
@@ -862,7 +861,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscCall(BVRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)bv);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)bv);
     PetscCall(PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,sizeof(type),&flg1));
     if (flg1) PetscCall(BVSetType(bv,type));
     else if (!((PetscObject)bv)->type_name) PetscCall(BVSetType(bv,BVSVEC));
@@ -888,7 +887,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
     if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
     else if (bv->ops->setfromoptions) PetscCall((*bv->ops->setfromoptions)(PetscOptionsObject,bv));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)bv));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
   bv->sfocalled = PETSC_TRUE;
   PetscFunctionReturn(0);
 }

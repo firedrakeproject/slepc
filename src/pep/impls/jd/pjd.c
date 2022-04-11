@@ -1859,7 +1859,7 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
   PEPJDProjection proj;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"PEP JD Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"PEP JD Options");
 
     PetscCall(PetscOptionsReal("-pep_jd_restart","Proportion of vectors kept after restart","PEPJDSetRestart",0.5,&r1,&flg));
     if (flg) PetscCall(PEPJDSetRestart(pep,r1));
@@ -1876,7 +1876,7 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
     PetscCall(PetscOptionsEnum("-pep_jd_projection","Type of projection","PEPJDSetProjection",PEPJDProjectionTypes,(PetscEnum)PEP_JD_PROJECTION_HARMONIC,(PetscEnum*)&proj,&flg));
     if (flg) PetscCall(PEPJDSetProjection(pep,proj));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

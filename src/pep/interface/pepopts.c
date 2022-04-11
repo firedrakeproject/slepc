@@ -83,7 +83,6 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char opt[],const char name
 @*/
 PetscErrorCode PEPSetFromOptions(PEP pep)
 {
-  PetscErrorCode  ierr;
   char            type[256];
   PetscBool       set,flg,flg1,flg2,flg3,flg4,flg5;
   PetscReal       r,t,array[2]={0,0};
@@ -96,7 +95,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscCall(PEPRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)pep);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)pep);
     PetscCall(PetscOptionsFList("-pep_type","Polynomial eigensolver method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,sizeof(type),&flg));
     if (flg) PetscCall(PEPSetType(pep,type));
     else if (!((PetscObject)pep)->type_name) PetscCall(PEPSetType(pep,PEPTOAR));
@@ -221,7 +220,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     if (pep->ops->setfromoptions) PetscCall((*pep->ops->setfromoptions)(PetscOptionsObject,pep));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)pep));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
 
   if (!pep->V) PetscCall(PEPGetBV(pep,&pep->V));
   PetscCall(BVSetFromOptions(pep->V));

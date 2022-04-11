@@ -294,12 +294,12 @@ PetscErrorCode NEPSetFromOptions_NArnoldi(PetscOptionItems *PetscOptionsObject,N
   NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"NEP N-Arnoldi Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"NEP N-Arnoldi Options");
     i = 0;
     PetscCall(PetscOptionsInt("-nep_narnoldi_lag_preconditioner","Interval to rebuild preconditioner","NEPNArnoldiSetLagPreconditioner",ctx->lag,&i,&flg));
     if (flg) PetscCall(NEPNArnoldiSetLagPreconditioner(nep,i));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!ctx->ksp) PetscCall(NEPNArnoldiGetKSP(nep,&ctx->ksp));
   PetscCall(KSPSetFromOptions(ctx->ksp));

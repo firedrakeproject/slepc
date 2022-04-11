@@ -711,7 +711,7 @@ PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"PEP Linear Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"PEP Linear Options");
 
     k = 2;
     PetscCall(PetscOptionsRealArray("-pep_linear_linearization","Parameters of the linearization","PEPLinearSetLinearization",array,&k,&flg));
@@ -720,7 +720,7 @@ PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP
     PetscCall(PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set));
     if (set) PetscCall(PEPLinearSetExplicitMatrix(pep,val));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!ctx->eps) PetscCall(PEPLinearGetEPS(pep,&ctx->eps));
   PetscCall(EPSSetFromOptions(ctx->eps));

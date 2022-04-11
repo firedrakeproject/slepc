@@ -452,7 +452,7 @@ PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptionItems *PetscOptionsObject,P
   PetscReal      keep;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"PEP Q-Arnoldi Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"PEP Q-Arnoldi Options");
 
     PetscCall(PetscOptionsReal("-pep_qarnoldi_restart","Proportion of vectors kept after restart","PEPQArnoldiSetRestart",0.5,&keep,&flg));
     if (flg) PetscCall(PEPQArnoldiSetRestart(pep,keep));
@@ -460,7 +460,7 @@ PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptionItems *PetscOptionsObject,P
     PetscCall(PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_FALSE,&lock,&flg));
     if (flg) PetscCall(PEPQArnoldiSetLocking(pep,lock));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

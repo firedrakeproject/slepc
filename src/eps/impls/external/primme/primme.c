@@ -410,7 +410,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,EPS
   PetscBool       flg;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS PRIMME Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS PRIMME Options");
 
     PetscCall(PetscOptionsInt("-eps_primme_blocksize","Maximum block size","EPSPRIMMESetBlockSize",ctx->bs,&bs,&flg));
     if (flg) PetscCall(EPSPRIMMESetBlockSize(eps,bs));
@@ -418,7 +418,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,EPS
     PetscCall(PetscOptionsEnum("-eps_primme_method","Method for solving the eigenproblem","EPSPRIMMESetMethod",EPSPRIMMEMethods,(PetscEnum)ctx->method,(PetscEnum*)&meth,&flg));
     if (flg) PetscCall(EPSPRIMMESetMethod(eps,meth));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

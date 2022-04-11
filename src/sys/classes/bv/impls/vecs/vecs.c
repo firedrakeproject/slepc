@@ -409,12 +409,12 @@ PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"BV Vecs Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"BV Vecs Options");
 
     PetscCall(PetscOptionsRangeInt("-bv_vecs_vmip","Version of BVMultInPlace operation","",ctx->vmip,&ctx->vmip,NULL,0,1));
     PetscCall(BVVecsSetVmip(bv,ctx->vmip));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 
@@ -468,7 +468,6 @@ PetscErrorCode BVDuplicate_Vecs(BV V,BV W)
 
 SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 {
-  PetscErrorCode ierr;
   BV_VECS        *ctx;
   PetscInt       j,lsplit;
   PetscBool      isgpu;
@@ -512,9 +511,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 
   /* Deferred call to setfromoptions */
   if (bv->defersfo) {
-    ierr = PetscObjectOptionsBegin((PetscObject)bv);PetscCall(ierr);
+    PetscObjectOptionsBegin((PetscObject)bv);
     PetscCall(BVSetFromOptions_Vecs(PetscOptionsObject,bv));
-    ierr = PetscOptionsEnd();PetscCall(ierr);
+    PetscOptionsEnd();
   }
   PetscCall(BVVecsSetVmip(bv,ctx->vmip));
 

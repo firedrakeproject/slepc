@@ -218,7 +218,7 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
   PetscReal      r;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"NEP RII Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"NEP RII Options");
 
     i = 0;
     PetscCall(PetscOptionsInt("-nep_rii_max_it","Maximum number of Newton iterations for updating Rayleigh functional","NEPRIISetMaximumIterations",ctx->max_inner_it,&i,&flg));
@@ -236,7 +236,7 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
     PetscCall(PetscOptionsReal("-nep_rii_deflation_threshold","Tolerance used as a threshold for including deflated eigenpairs","NEPRIISetDeflationThreshold",ctx->deftol,&r,&flg));
     if (flg) PetscCall(NEPRIISetDeflationThreshold(nep,r));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!ctx->ksp) PetscCall(NEPRIIGetKSP(nep,&ctx->ksp));
   PetscCall(KSPSetFromOptions(ctx->ksp));

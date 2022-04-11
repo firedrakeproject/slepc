@@ -83,7 +83,6 @@ PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char opt[],const char name
 @*/
 PetscErrorCode EPSSetFromOptions(EPS eps)
 {
-  PetscErrorCode ierr;
   char           type[256];
   PetscBool      set,flg,flg1,flg2,flg3,bval;
   PetscReal      r,array[2]={0,0};
@@ -94,7 +93,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscCall(EPSRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)eps);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)eps);
     PetscCall(PetscOptionsFList("-eps_type","Eigensolver method","EPSSetType",EPSList,(char*)(((PetscObject)eps)->type_name?((PetscObject)eps)->type_name:EPSKRYLOVSCHUR),type,sizeof(type),&flg));
     if (flg) PetscCall(EPSSetType(eps,type));
     else if (!((PetscObject)eps)->type_name) PetscCall(EPSSetType(eps,EPSKRYLOVSCHUR));
@@ -225,7 +224,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 
     if (eps->ops->setfromoptions) PetscCall((*eps->ops->setfromoptions)(PetscOptionsObject,eps));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)eps));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
 
   if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
   PetscCall(BVSetFromOptions(eps->V));

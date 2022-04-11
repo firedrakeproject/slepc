@@ -81,7 +81,6 @@ PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char opt[],const char name
 @*/
 PetscErrorCode MFNSetFromOptions(MFN mfn)
 {
-  PetscErrorCode ierr;
   char           type[256];
   PetscBool      set,flg,flg1,flg2;
   PetscReal      r;
@@ -90,7 +89,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   PetscCall(MFNRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)mfn);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)mfn);
     PetscCall(PetscOptionsFList("-mfn_type","Matrix Function method","MFNSetType",MFNList,(char*)(((PetscObject)mfn)->type_name?((PetscObject)mfn)->type_name:MFNKRYLOV),type,sizeof(type),&flg));
     if (flg) PetscCall(MFNSetType(mfn,type));
     else if (!((PetscObject)mfn)->type_name) PetscCall(MFNSetType(mfn,MFNKRYLOV));
@@ -120,7 +119,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
 
     if (mfn->ops->setfromoptions) PetscCall((*mfn->ops->setfromoptions)(PetscOptionsObject,mfn));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)mfn));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
 
   if (!mfn->V) PetscCall(MFNGetBV(mfn,&mfn->V));
   PetscCall(BVSetFromOptions(mfn->V));

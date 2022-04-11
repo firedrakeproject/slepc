@@ -38,7 +38,7 @@ PetscErrorCode EPSSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,EPS eps
   PetscReal      opf;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS Jacobi-Davidson (JD) Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS Jacobi-Davidson (JD) Options");
 
     PetscCall(EPSJDGetKrylovStart(eps,&op));
     PetscCall(PetscOptionsBool("-eps_jd_krylov_start","Start the search subspace with a Krylov basis","EPSJDSetKrylovStart",op,&op,&flg));
@@ -69,7 +69,7 @@ PetscErrorCode EPSSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,EPS eps
     PetscCall(PetscOptionsBool("-eps_jd_const_correction_tol","Disable the dynamic stopping criterion when solving the correction equation","EPSJDSetConstCorrectionTol",op,&op,&flg));
     if (flg) PetscCall(EPSJDSetConstCorrectionTol(eps,op));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

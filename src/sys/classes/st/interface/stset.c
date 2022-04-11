@@ -110,7 +110,6 @@ PetscErrorCode STGetType(ST st,STType *type)
 @*/
 PetscErrorCode STSetFromOptions(ST st)
 {
-  PetscErrorCode ierr;
   PetscScalar    s;
   char           type[256];
   PetscBool      flg,bval;
@@ -120,7 +119,7 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscCall(STRegisterAll());
-  ierr = PetscObjectOptionsBegin((PetscObject)st);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)st);
     PetscCall(PetscOptionsFList("-st_type","Spectral transformation","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,sizeof(type),&flg));
     if (flg) PetscCall(STSetType(st,type));
     else if (!((PetscObject)st)->type_name) PetscCall(STSetType(st,STSHIFT));
@@ -139,7 +138,7 @@ PetscErrorCode STSetFromOptions(ST st)
 
     if (st->ops->setfromoptions) PetscCall((*st->ops->setfromoptions)(PetscOptionsObject,st));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
 
   if (st->usesksp) {
     PetscCall(STSetDefaultKSP(st));

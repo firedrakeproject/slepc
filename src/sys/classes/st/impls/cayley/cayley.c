@@ -205,12 +205,12 @@ PetscErrorCode STSetFromOptions_Cayley(PetscOptionItems *PetscOptionsObject,ST s
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"ST Cayley Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"ST Cayley Options");
 
     PetscCall(PetscOptionsScalar("-st_cayley_antishift","Value of the antishift","STCayleySetAntishift",ctx->nu,&nu,&flg));
     if (flg) PetscCall(STCayleySetAntishift(st,nu));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

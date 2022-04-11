@@ -590,12 +590,12 @@ PetscErrorCode SVDSetFromOptions_Cyclic(PetscOptionItems *PetscOptionsObject,SVD
   ST             st;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"SVD Cyclic Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"SVD Cyclic Options");
 
     PetscCall(PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set));
     if (set) PetscCall(SVDCyclicSetExplicitMatrix(svd,val));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!cyclic->eps) PetscCall(SVDCyclicGetEPS(svd,&cyclic->eps));
   if (!cyclic->explicitmatrix && !cyclic->usereps) {

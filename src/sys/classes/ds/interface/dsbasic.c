@@ -723,7 +723,6 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 @*/
 PetscErrorCode DSSetFromOptions(DS ds)
 {
-  PetscErrorCode ierr;
   PetscInt       bs,meth;
   PetscBool      flag;
   DSParallelType pmode;
@@ -733,7 +732,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
   PetscCall(DSRegisterAll());
   /* Set default type (we do not allow changing it with -ds_type) */
   if (!((PetscObject)ds)->type_name) PetscCall(DSSetType(ds,DSNHEP));
-  ierr = PetscObjectOptionsBegin((PetscObject)ds);PetscCall(ierr);
+  PetscObjectOptionsBegin((PetscObject)ds);
 
     PetscCall(PetscOptionsInt("-ds_block_size","Block size for the dense system solver","DSSetBlockSize",ds->bs,&bs,&flag));
     if (flag) PetscCall(DSSetBlockSize(ds,bs));
@@ -746,7 +745,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
     if (ds->ops->setfromoptions) PetscCall((*ds->ops->setfromoptions)(PetscOptionsObject,ds));
     PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)ds));
-  ierr = PetscOptionsEnd();PetscCall(ierr);
+  PetscOptionsEnd();
   PetscFunctionReturn(0);
 }
 

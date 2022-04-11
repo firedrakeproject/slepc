@@ -221,13 +221,13 @@ PetscErrorCode EPSSetFromOptions_FEAST(PetscOptionItems *PetscOptionsObject,EPS 
   PetscBool      flg;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS FEAST Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS FEAST Options");
 
     n = ctx->npoints;
     PetscCall(PetscOptionsInt("-eps_feast_num_points","Number of contour integration points","EPSFEASTSetNumPoints",n,&n,&flg));
     if (flg) PetscCall(EPSFEASTSetNumPoints(eps,n));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

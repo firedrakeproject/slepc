@@ -729,7 +729,7 @@ PetscErrorCode EPSSetFromOptions_EVSL(PetscOptionItems *PetscOptionsObject,EPS e
   EPS_EVSL         *ctx = (EPS_EVSL*)eps->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"EPS EVSL Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"EPS EVSL Options");
 
     k = 2;
     PetscCall(PetscOptionsRealArray("-eps_evsl_range","Interval containing all eigenvalues (two real values separated with a comma without spaces)","EPSEVSLSetRange",array,&k,&flg));
@@ -760,7 +760,7 @@ PetscErrorCode EPSSetFromOptions_EVSL(PetscOptionItems *PetscOptionsObject,EPS e
     PetscCall(PetscOptionsReal("-eps_evsl_pol_threshold","Threshold for accepting polynomial","EPSEVSLSetPolParameters",th,&th,&flg1));
     if (flg || flg1) PetscCall(EPSEVSLSetPolParameters(eps,i1,th));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

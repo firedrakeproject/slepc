@@ -117,7 +117,6 @@ static PetscErrorCode MatCreateTile_Seq(PetscScalar a,Mat A,PetscScalar b,Mat B,
 
 static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
-  PetscErrorCode    ierr;
   PetscMPIInt       np;
   PetscInt          p,i,j,N1,N2,m1,m2,n1,n2,*map1,*map2;
   PetscInt          *dnz,*onz,ncols,*scols,start,gstart;
@@ -143,7 +142,7 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
     for (i=mapptr2[p];i<mapptr2[p+1];i++) map2[i] = i+mapptr1[p+1];
   }
 
-  ierr = MatPreallocateInitialize(PetscObjectComm((PetscObject)G),m1+m2,n1+n2,dnz,onz);PetscCall(ierr);
+  MatPreallocateBegin(PetscObjectComm((PetscObject)G),m1+m2,n1+n2,dnz,onz);
   PetscCall(MatGetOwnershipRange(G,&gstart,NULL));
   /* Preallocate for A */
   if (a!=0.0) {
@@ -186,7 +185,7 @@ static PetscErrorCode MatCreateTile_MPI(PetscScalar a,Mat A,PetscScalar b,Mat B,
     }
   }
   PetscCall(MatMPIAIJSetPreallocation(G,0,dnz,0,onz));
-  ierr = MatPreallocateFinalize(dnz,onz);PetscCall(ierr);
+  MatPreallocateEnd(dnz,onz);
 
   /* Transfer A */
   if (a!=0.0) {

@@ -235,7 +235,7 @@ PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,N
   PetscReal      r;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"NEP Interpol Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"NEP Interpol Options");
 
     PetscCall(NEPInterpolGetInterpolation(nep,&r,&i));
     if (!i) i = PETSC_DEFAULT;
@@ -243,7 +243,7 @@ PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,N
     PetscCall(PetscOptionsReal("-nep_interpol_interpolation_tol","Tolerance for interpolation coefficients","NEPInterpolSetInterpolation",r,&r,&flg2));
     if (flg1 || flg2) PetscCall(NEPInterpolSetInterpolation(nep,r,i));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
 
   if (!ctx->pep) PetscCall(NEPInterpolGetPEP(nep,&ctx->pep));
   PetscCall(PEPSetFromOptions(ctx->pep));

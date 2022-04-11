@@ -487,7 +487,7 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"PEP STOAR Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"PEP STOAR Options");
 
     PetscCall(PetscOptionsBool("-pep_stoar_locking","Choose between locking and non-locking variants","PEPSTOARSetLocking",PETSC_FALSE,&lock,&flg));
     if (flg) PetscCall(PEPSTOARSetLocking(pep,lock));
@@ -511,7 +511,7 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
     PetscCall(PetscOptionsBool("-pep_stoar_check_eigenvalue_type","Check eigenvalue type during spectrum slicing","PEPSTOARSetCheckEigenvalueType",ctx->checket,&b,&flg));
     if (flg) PetscCall(PEPSTOARSetCheckEigenvalueType(pep,b));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 

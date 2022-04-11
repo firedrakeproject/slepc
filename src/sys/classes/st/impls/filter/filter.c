@@ -53,7 +53,7 @@ PetscErrorCode STSetFromOptions_Filter(PetscOptionItems *PetscOptionsObject,ST s
   PetscBool      flg;
 
   PetscFunctionBegin;
-  PetscCall(PetscOptionsHead(PetscOptionsObject,"ST Filter Options"));
+  PetscOptionsHeadBegin(PetscOptionsObject,"ST Filter Options");
 
     k = 2;
     PetscCall(PetscOptionsRealArray("-st_filter_interval","Interval containing the desired eigenvalues (two real values separated with a comma without spaces)","STFilterSetInterval",array,&k,&flg));
@@ -70,7 +70,7 @@ PetscErrorCode STSetFromOptions_Filter(PetscOptionItems *PetscOptionsObject,ST s
     PetscCall(PetscOptionsInt("-st_filter_degree","Degree of filter polynomial","STFilterSetDegree",100,&k,&flg));
     if (flg) PetscCall(STFilterSetDegree(st,k));
 
-  PetscCall(PetscOptionsTail());
+  PetscOptionsHeadEnd();
   PetscFunctionReturn(0);
 }
 
