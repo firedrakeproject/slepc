@@ -1,5 +1,11 @@
 # Changelog of SLEPc versions
 
+## [unreleased]
+
+### Added
+
+- `SVD`: add scaling parameter in thick-restart Lanczos for the GSVD.
+
 ## [3.17] - 2022-03-31
 
 ### Added

@@ -12,7 +12,8 @@ static char help[] = "Tests user interface for TRLANCZOS with GSVD.\n\n"
   "The command line options are:\n"
   "  -m <m>, where <m> = number of rows of A.\n"
   "  -n <n>, where <n> = number of columns of A.\n"
-  "  -p <p>, where <p> = number of rows of B.\n\n";
+  "  -p <p>, where <p> = number of rows of B.\n"
+  "  -s <s>, where <s> = scale parameter.\n\n";
 
 #include <slepcsvd.h>
 
@@ -23,7 +24,7 @@ int main(int argc,char **argv)
   KSP                 ksp;
   PC                  pc;
   PetscInt            m=15,n=20,p=21,i,j,d,Istart,Iend;
-  PetscReal           keep;
+  PetscReal           keep,scale=1.0;
   PetscBool           flg,lock;
   SVDTRLanczosGBidiag bidiag;
 
@@ -31,6 +32,7 @@ int main(int argc,char **argv)
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL));
+  PetscCall(PetscOptionsGetReal(NULL,NULL,"-s",&scale,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized singular value decomposition, (%" PetscInt_FMT "+%" PetscInt_FMT ")x%" PetscInt_FMT "\n\n",m,p,n));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -77,6 +79,7 @@ int main(int argc,char **argv)
 
   PetscCall(SVDSetType(svd,SVDTRLANCZOS));
   PetscCall(SVDTRLanczosSetGBidiag(svd,SVD_TRLANCZOS_GBIDIAG_UPPER));
+  PetscCall(SVDTRLanczosSetScale(svd,scale));
 
   /* create a standalone KSP with appropriate settings */
   PetscCall(KSPCreate(PETSC_COMM_WORLD,&ksp));
@@ -98,6 +101,8 @@ int main(int argc,char **argv)
     PetscCall(SVDTRLanczosGetRestart(svd,&keep));
     PetscCall(SVDTRLanczosGetLocking(svd,&lock));
     PetscCall(PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: restarting parameter %.2f %s\n",(double)keep,lock?"(locking)":""));
+    PetscCall(SVDTRLanczosGetScale(svd,&scale));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: scale parameter %g\n",(double)scale));
   }
 
   PetscCall(SVDSolve(svd));
@@ -123,6 +128,16 @@ int main(int argc,char **argv)
    test:
       suffix: 2
       args: -m 6 -n 12 -p 12 -svd_trlanczos_restart .7
+      requires: !single
+
+   test:
+      suffix: 3
+      args: -s 8 -svd_trlanczos_gbidiag lower
+      requires: !single
+
+   test:
+      suffix: 4
+      args: -s -5 -svd_trlanczos_gbidiag lower
       requires: !single
 
 TEST*/
