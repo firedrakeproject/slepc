@@ -30,7 +30,7 @@ MFN Object: 1 MPI processes
   tolerance: 0.0001
 FN Object: 1 MPI processes
   type: sqrt
-    Square root: sqrt(x)
+    square root: sqrt(x)
     computing matrix functions with: Schur method for the square root
 BV Object: 1 MPI processes
   type: svec

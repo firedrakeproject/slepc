@@ -193,7 +193,7 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    PetscCall(PetscViewerASCIIPrintf(viewer,"  Phi_%" PetscInt_FMT ": ",ctx->k));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  phi_%" PetscInt_FMT ": ",ctx->k));
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     if (fn->beta!=(PetscScalar)1.0) {
       PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));

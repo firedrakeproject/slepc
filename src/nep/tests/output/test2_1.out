@@ -26,7 +26,7 @@ row 18: (18, 19.)
 row 19: (19, 20.) 
 FN Object: 1 MPI processes
   type: rational
-    Polynomial: -1*x^1+0
+    polynomial: -1*x^1+0
  Type set to rii
  Two-sided flag = false
  Problem type before changing = 0 ... changed to 2.
