@@ -241,8 +241,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     }
     /* Explicit matrix is created here, when updating the scale */
     PetscCall(MatZUpdateScale(svd));
-
-    if (lanczos->oneside) PetscCall(PetscInfo(svd,"Warning: one-side option is ignored in GSVD\n"));
   }
   PetscCall(DSSetType(svd->ds,dstype));
   PetscCall(DSSetCompact(svd->ds,PETSC_TRUE));
@@ -541,12 +539,13 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta,Mat Z,BV V,BV U,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
+static PetscErrorCode SVDLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta,Mat Z,BV V,BV U,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
 {
+  SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscInt          i,j,m;
   const PetscScalar *carr;
   PetscScalar       *arr;
-  Vec               u,v,ut=svd->workl[0],x=svd->workr[0],v1;
+  Vec               u,v,ut=svd->workl[0],x=svd->workr[0],v1,u1,u2;
   PetscBool         lindep=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -612,7 +611,17 @@ static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscRea
 
     PetscCall(BVRestoreColumn(U,i,&u));
     PetscCall(BVRestoreColumn(V,i,&v));
-    PetscCall(BVOrthonormalizeColumn(V,i,PETSC_FALSE,alpha+i,&lindep));
+    if (!lanczos->oneside || i==k+1) PetscCall(BVOrthonormalizeColumn(V,i,PETSC_FALSE,alpha+i,&lindep));
+    else {  /* cheap computation of V[i], if restart (i==k+1) do a full reorthogonalization */
+      PetscCall(BVGetColumn(V,i,&u2));
+      PetscCall(BVGetColumn(V,i-1,&u1));
+      PetscCall(VecAXPY(u2,-beta[i-1],u1));
+      PetscCall(BVRestoreColumn(V,i-1,&u1));
+      PetscCall(VecNorm(u2,NORM_2,&alpha[i]));
+      if (alpha[i]==0.0) lindep = PETSC_TRUE;
+      else PetscCall(VecScale(u2,1.0/alpha[i]));
+      PetscCall(BVRestoreColumn(V,i,&u2));
+    }
     if (PetscUnlikely(lindep)) {
       *n = i;
       break;
@@ -666,7 +675,7 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
     nv = PetscMin(svd->nconv+svd->mpd,svd->ncv);
     PetscCall(DSGetArrayReal(svd->ds,DS_MAT_T,&alpha));
     beta = alpha + ld;
-    PetscCall(SVDTwoSideLanczosGSingle(svd,alpha,beta,lanczos->Z,V,U1,lanczos->ksp,svd->nconv+l,&nv,&breakdown));
+    PetscCall(SVDLanczosGSingle(svd,alpha,beta,lanczos->Z,V,U1,lanczos->ksp,svd->nconv+l,&nv,&breakdown));
     PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha));
     PetscCall(BVSetActiveColumns(V,svd->nconv,nv));
     PetscCall(BVSetActiveColumns(U1,svd->nconv,nv));
@@ -778,12 +787,13 @@ static inline PetscErrorCode SVDLeftSingularVectors_Single(SVD svd,BV U1,BV U2)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
+static PetscErrorCode SVDLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
 {
+  SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscInt          i,j,m,p;
   const PetscScalar *carr;
   PetscScalar       *arr,*u2arr;
-  Vec               u,v,ut=svd->workl[0],x=svd->workr[0],v1,u2;
+  Vec               u,v,ut=svd->workl[0],x=svd->workr[0],v1,u1,u2;
   PetscBool         lindep=PETSC_FALSE,lindep1=PETSC_FALSE,lindep2=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -809,10 +819,20 @@ static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal
       for (j=0; j<p; j++) u2arr[j] = carr[m+j];
     }
     PetscCall(VecRestoreArray(u2,&u2arr));
+    if (lanczos->oneside && i>k) {  /* cheap computation of U2[i], if restart (i==k) do a full reorthogonalization */
+      if (i>0) {
+        PetscCall(BVGetColumn(U2,i-1,&u1));
+        PetscCall(VecAXPY(u2,(i%2)?betah[i-1]:-betah[i-1],u1));
+        PetscCall(BVRestoreColumn(U2,i-1,&u1));
+      }
+      PetscCall(VecNorm(u2,NORM_2,&alphah[i]));
+      if (alphah[i]==0.0) lindep = PETSC_TRUE;
+      else PetscCall(VecScale(u2,1.0/alphah[i]));
+    }
     PetscCall(BVRestoreColumn(U2,i,&u2));
     PetscCall(VecRestoreArrayRead(v,&carr));
     PetscCall(BVRestoreColumn(V,i,&v));
-    PetscCall(BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,&lindep2));
+    if (!lanczos->oneside || i==k) PetscCall(BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,&lindep2));
     if (i%2) alphah[i] = -alphah[i];
     if (PetscUnlikely(lindep1 || lindep2)) {
       lindep = PETSC_TRUE;
@@ -835,7 +855,17 @@ static PetscErrorCode SVDTwoSideLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal
     PetscCall(MatMult(Z,x,v));
     PetscCall(BVRestoreColumn(U1,i,&u));
     PetscCall(BVRestoreColumn(V,i+1,&v));
-    PetscCall(BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,beta+i,&lindep));
+    if (!lanczos->oneside || i==k) PetscCall(BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,beta+i,&lindep));
+    else {  /* cheap computation of V[i+1], if restart (i==k) do a full reorthogonalization */
+      PetscCall(BVGetColumn(V,i+1,&u2));
+      PetscCall(BVGetColumn(V,i,&u1));
+      PetscCall(VecAXPY(u2,-alpha[i],u1));
+      PetscCall(BVRestoreColumn(V,i,&u1));
+      PetscCall(VecNorm(u2,NORM_2,&beta[i]));
+      if (beta[i]==0.0) lindep = PETSC_TRUE;
+      else PetscCall(VecScale(u2,1.0/beta[i]));
+      PetscCall(BVRestoreColumn(V,i+1,&u2));
+    }
     betah[i] = -alpha[i]*beta[i]/alphah[i];
     if (PetscUnlikely(lindep)) {
       *n = i;
@@ -906,7 +936,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
     PetscCall(DSGetArrayReal(svd->ds,DS_MAT_D,&alphah));
     beta = alpha + ld;
     betah = alpha + 2*ld;
-    PetscCall(SVDTwoSideLanczosGUpper(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,&nv,&breakdown));
+    PetscCall(SVDLanczosGUpper(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,&nv,&breakdown));
     PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha));
     PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_D,&alphah));
     PetscCall(BVSetActiveColumns(V,svd->nconv,nv));
@@ -1015,12 +1045,13 @@ static inline PetscErrorCode SVDLeftSingularVectors(SVD svd,BV U1,BV U2)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
+static PetscErrorCode SVDLanczosGLower(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *alphah,PetscReal *betah,Mat Z,BV U1,BV U2,BV V,KSP ksp,PetscInt k,PetscInt *n,PetscBool *breakdown)
 {
+  SVD_TRLANCZOS     *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscInt          i,j,m,p;
   const PetscScalar *carr;
   PetscScalar       *arr,*u2arr;
-  Vec               u,v,ut=svd->workl[0],x=svd->workr[0],v1,u2;
+  Vec               u,v,ut=svd->workl[0],x=svd->workr[0],v1,u1,u2;
   PetscBool         lindep=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -1040,8 +1071,18 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
       for (j=0; j<p; j++) u2arr[j] = carr[m+j];
     }
     PetscCall(VecRestoreArray(u2,&u2arr));
+    if (lanczos->oneside && i>k) {  /* cheap computation of U2[i], if restart (i==k) do a full reorthogonalization */
+      if (i>0) {
+        PetscCall(BVGetColumn(U2,i-1,&u1));
+        PetscCall(VecAXPY(u2,(i%2)?betah[i-1]:-betah[i-1],u1));
+        PetscCall(BVRestoreColumn(U2,i-1,&u1));
+      }
+      PetscCall(VecNorm(u2,NORM_2,&alphah[i]));
+      if (alphah[i]==0.0) lindep = PETSC_TRUE;
+      else PetscCall(VecScale(u2,1.0/alphah[i]));
+    }
     PetscCall(BVRestoreColumn(U2,i,&u2));
-    PetscCall(BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,&lindep));
+    if (!lanczos->oneside || i==k) PetscCall(BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,&lindep));
     if (i%2) alphah[i] = -alphah[i];
     if (PetscUnlikely(lindep)) {
       PetscCall(BVRestoreColumn(V,i,&v));
@@ -1076,7 +1117,17 @@ static PetscErrorCode SVDTwoSideLanczosGLower(SVD svd,PetscReal *alpha,PetscReal
     PetscCall(MatMult(Z,x,v));
     PetscCall(BVRestoreColumn(U1,i+1,&u));
     PetscCall(BVRestoreColumn(V,i+1,&v));
-    PetscCall(BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,alpha+i+1,&lindep));
+    if (!lanczos->oneside || i==k) PetscCall(BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,alpha+i+1,&lindep));
+    else {  /* cheap computation of V[i+1], if restart (i==k) do a full reorthogonalization */
+      PetscCall(BVGetColumn(V,i+1,&u2));
+      PetscCall(BVGetColumn(V,i,&u1));
+      PetscCall(VecAXPY(u2,-beta[i],u1));
+      PetscCall(BVRestoreColumn(V,i,&u1));
+      PetscCall(VecNorm(u2,NORM_2,&alpha[i+1]));
+      if (alpha[i+1]==0.0) lindep = PETSC_TRUE;
+      else PetscCall(VecScale(u2,1.0/alpha[i+1]));
+      PetscCall(BVRestoreColumn(V,i+1,&u2));
+    }
     betah[i] = -alpha[i+1]*beta[i]/alphah[i];
     if (PetscUnlikely(lindep)) {
       *n = i+1;
@@ -1178,7 +1229,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
     PetscCall(DSGetArrayReal(svd->ds,DS_MAT_D,&alphah));
     beta = alpha + ld;
     betah = alpha + 2*ld;
-    PetscCall(SVDTwoSideLanczosGLower(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,&nv,&breakdown));
+    PetscCall(SVDLanczosGLower(svd,alpha,beta,alphah,betah,lanczos->Z,U1,U2,V,lanczos->ksp,svd->nconv+l,&nv,&breakdown));
     PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha));
     PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_D,&alphah));
     PetscCall(BVSetActiveColumns(V,svd->nconv,nv));
@@ -1420,10 +1471,13 @@ static PetscErrorCode SVDTRLanczosSetOneSide_TRLanczos(SVD svd,PetscBool oneside
    Options Database Key:
 .  -svd_trlanczos_oneside <boolean> - Indicates the boolean flag
 
-   Note:
+   Notes:
    By default, a two-sided variant is selected, which is sometimes slightly
    more robust. However, the one-sided variant is faster because it avoids
    the orthogonalization associated to left singular vectors.
+
+   One-sided orthogonalization is also available for the GSVD, in which case
+   two orthogonalizations out of three are avoided.
 
    Level: advanced
 
