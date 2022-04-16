@@ -244,16 +244,16 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->beta==(PetscScalar)1.0) {
-      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Inverse square root: x^(-1/2)\n"));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  inverse square root: x^(-1/2)\n"));
       else {
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Inverse square root: (%s*x)^(-1/2)\n",str));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  inverse square root: (%s*x)^(-1/2)\n",str));
       }
     } else {
       PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
-      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Inverse square root: %s*x^(-1/2)\n",str));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  inverse square root: %s*x^(-1/2)\n",str));
       else {
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Inverse square root: %s",str));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  inverse square root: %s",str));
         PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
         PetscCall(PetscViewerASCIIPrintf(viewer,"*(%s*x)^(-1/2)\n",str));

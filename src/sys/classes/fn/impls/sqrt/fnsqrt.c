@@ -387,16 +387,16 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->beta==(PetscScalar)1.0) {
-      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Square root: sqrt(x)\n"));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  square root: sqrt(x)\n"));
       else {
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Square root: sqrt(%s*x)\n",str));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  square root: sqrt(%s*x)\n",str));
       }
     } else {
       PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
-      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Square root: %s*sqrt(x)\n",str));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  square root: %s*sqrt(x)\n",str));
       else {
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Square root: %s",str));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  square root: %s",str));
         PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
         PetscCall(PetscViewerASCIIPrintf(viewer,"*sqrt(%s*x)\n",str));

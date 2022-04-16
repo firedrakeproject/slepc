@@ -378,10 +378,10 @@ PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
-    PetscCall(PetscViewerASCIIPrintf(viewer,"  Filter: interval of desired eigenvalues is [%g,%g]\n",(double)ctx->inta,(double)ctx->intb));
-    PetscCall(PetscViewerASCIIPrintf(viewer,"  Filter: numerical range is [%g,%g]\n",(double)ctx->left,(double)ctx->right));
-    PetscCall(PetscViewerASCIIPrintf(viewer,"  Filter: degree of filter polynomial is %" PetscInt_FMT "\n",ctx->polyDegree));
-    if (st->state>=ST_STATE_SETUP) PetscCall(PetscViewerASCIIPrintf(viewer,"  Filter: limit to accept eigenvalues: theta=%g\n",(double)ctx->filterInfo->yLimit));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  interval of desired eigenvalues: [%g,%g]\n",(double)ctx->inta,(double)ctx->intb));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  numerical range: [%g,%g]\n",(double)ctx->left,(double)ctx->right));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"  degree of filter polynomial: %" PetscInt_FMT "\n",ctx->polyDegree));
+    if (st->state>=ST_STATE_SETUP) PetscCall(PetscViewerASCIIPrintf(viewer,"  limit to accept eigenvalues: theta=%g\n",(double)ctx->filterInfo->yLimit));
   }
   PetscFunctionReturn(0);
 }

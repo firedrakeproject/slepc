@@ -222,16 +222,16 @@ PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
   if (isascii) {
     switch (ctx->comb) {
       case FN_COMBINE_ADD:
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Two added functions f1+f2\n"));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  two added functions f1+f2\n"));
         break;
       case FN_COMBINE_MULTIPLY:
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Two multiplied functions f1*f2\n"));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  two multiplied functions f1*f2\n"));
         break;
       case FN_COMBINE_DIVIDE:
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  A quotient of two functions f1/f2\n"));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  a quotient of two functions f1/f2\n"));
         break;
       case FN_COMBINE_COMPOSE:
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Two composed functions f2(f1(.))\n"));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  two composed functions f2(f1(.))\n"));
         break;
     }
     PetscCall(PetscViewerASCIIPushTab(viewer));

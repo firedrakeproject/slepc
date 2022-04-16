@@ -1660,16 +1660,16 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->beta==(PetscScalar)1.0) {
-      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Exponential: exp(x)\n"));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  exponential: exp(x)\n"));
       else {
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Exponential: exp(%s*x)\n",str));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  exponential: exp(%s*x)\n",str));
       }
     } else {
       PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
-      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Exponential: %s*exp(x)\n",str));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  exponential: %s*exp(x)\n",str));
       else {
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Exponential: %s",str));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  exponential: %s",str));
         PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
         PetscCall(PetscViewerASCIIPrintf(viewer,"*exp(%s*x)\n",str));

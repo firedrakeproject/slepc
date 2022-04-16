@@ -172,19 +172,19 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
   if (isascii) {
     if (fn->alpha!=(PetscScalar)1.0 || fn->beta!=(PetscScalar)1.0) {
       PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_FALSE));
-      PetscCall(PetscViewerASCIIPrintf(viewer,"  Scale factors: alpha=%s,",str));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  scale factors: alpha=%s,",str));
       PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
       PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_FALSE));
       PetscCall(PetscViewerASCIIPrintf(viewer," beta=%s\n",str));
       PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     }
     if (!ctx->nq) {
-      if (!ctx->np) PetscCall(PetscViewerASCIIPrintf(viewer,"  Constant: 1.0\n"));
+      if (!ctx->np) PetscCall(PetscViewerASCIIPrintf(viewer,"  constant: 1.0\n"));
       else if (ctx->np==1) {
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[0],PETSC_FALSE));
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Constant: %s\n",str));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  constant: %s\n",str));
       } else {
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Polynomial: "));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  polynomial: "));
         PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         for (i=0;i<ctx->np-1;i++) {
           PetscCall(SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[i],PETSC_TRUE));
@@ -195,7 +195,7 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
         PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
       }
     } else if (!ctx->np) {
-      PetscCall(PetscViewerASCIIPrintf(viewer,"  Inverse polinomial: 1 / ("));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  inverse polynomial: 1 / ("));
       PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
       for (i=0;i<ctx->nq-1;i++) {
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),ctx->qcoeff[i],PETSC_TRUE));
@@ -205,7 +205,7 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
       PetscCall(PetscViewerASCIIPrintf(viewer,"%s)\n",str));
       PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     } else {
-      PetscCall(PetscViewerASCIIPrintf(viewer,"  Rational function: ("));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"  rational function: ("));
       PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
       for (i=0;i<ctx->np-1;i++) {
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),ctx->pcoeff[i],PETSC_TRUE));

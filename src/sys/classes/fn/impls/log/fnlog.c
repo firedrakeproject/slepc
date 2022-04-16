@@ -657,16 +657,16 @@ PetscErrorCode FNView_Log(FN fn,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     if (fn->beta==(PetscScalar)1.0) {
-      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Logarithm: log(x)\n"));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  logarithm: log(x)\n"));
       else {
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Logarithm: log(%s*x)\n",str));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  logarithm: log(%s*x)\n",str));
       }
     } else {
       PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->beta,PETSC_TRUE));
-      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  Logarithm: %s*log(x)\n",str));
+      if (fn->alpha==(PetscScalar)1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  logarithm: %s*log(x)\n",str));
       else {
-        PetscCall(PetscViewerASCIIPrintf(viewer,"  Logarithm: %s",str));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"  logarithm: %s",str));
         PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
         PetscCall(SlepcSNPrintfScalar(str,sizeof(str),fn->alpha,PETSC_TRUE));
         PetscCall(PetscViewerASCIIPrintf(viewer,"*log(%s*x)\n",str));
