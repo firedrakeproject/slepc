@@ -263,6 +263,8 @@ SLEPC_EXTERN PetscErrorCode SVDTRLanczosSetLocking(SVD,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDTRLanczosGetLocking(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDTRLanczosSetExplicitMatrix(SVD,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDTRLanczosGetExplicitMatrix(SVD,PetscBool*);
+SLEPC_EXTERN PetscErrorCode SVDTRLanczosSetScale(SVD,PetscReal);
+SLEPC_EXTERN PetscErrorCode SVDTRLanczosGetScale(SVD,PetscReal*);
 
 /*E
     SVDPRIMMEMethod - determines the SVD method selected in the PRIMME library

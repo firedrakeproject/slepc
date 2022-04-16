@@ -123,13 +123,14 @@ int main(int argc,char **argv)
       output_file: output/ex48_1.out
       test:
          suffix: 1
-         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}}
-         TODO: does not work for largest singular values
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -svd_trlanczos_scale 1e5 -svd_trlanczos_ksp_rtol 1e-13
       test:
          suffix: 1_spqr
-         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr -svd_trlanczos_scale 1e5
          requires: suitesparse
-         TODO: does not work for largest singular values
+      test:
+         suffix: 1_autoscale
+         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{lower upper}} -svd_trlanczos_scale -5 -svd_trlanczos_ksp_rtol 1e-14
       test:
          suffix: 1_cross
          args: -svd_type cross -svd_cross_explicitmatrix

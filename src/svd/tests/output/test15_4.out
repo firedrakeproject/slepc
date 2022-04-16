@@ -1,8 +1,9 @@
 
 Generalized singular value decomposition, (15+21)x20
 
+TRLANCZOS: using LOWER bidiagonalization
 TRLANCZOS: restarting parameter 0.40 (locking)
-TRLANCZOS: scale parameter 1.
+TRLANCZOS: scale parameter -5.
  All requested singular values computed up to the required tolerance:
      7.88497, 7.54775, 7.01129, 6.31157
 

@@ -55,6 +55,8 @@ typedef struct {
   PetscBool           lock;      /* locking/non-locking variant */
   KSP                 ksp;       /* solver for least-squares problem in GSVD */
   SVDTRLanczosGBidiag bidiag;    /* bidiagonalization variant for GSVD */
+  PetscReal           scalef;    /* scale factor for matrix B */
+  PetscReal           scaleth;   /* scale threshold for automatic scaling */
   PetscBool           explicitmatrix;
   /* auxiliary variables */
   Mat                 Z;         /* aux matrix for GSVD, Z=[A;B] */
@@ -62,23 +64,69 @@ typedef struct {
 
 /* Context for shell matrix [A; B] */
 typedef struct {
-  Mat      A,B,AT,BT;
-  Vec      y1,y2,y;
-  PetscInt m;
+  Mat       A,B,AT,BT;
+  Vec       y1,y2,y;
+  PetscInt  m;
+  PetscReal scalef;
 } MatZData;
 
 static PetscErrorCode MatZCreateContext(SVD svd,MatZData **zdata)
 {
+  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
+
   PetscFunctionBegin;
   PetscCall(PetscNew(zdata));
   (*zdata)->A = svd->A;
   (*zdata)->B = svd->B;
   (*zdata)->AT = svd->AT;
   (*zdata)->BT = svd->BT;
+  (*zdata)->scalef = lanczos->scalef;
   PetscCall(MatCreateVecsEmpty(svd->A,NULL,&(*zdata)->y1));
   PetscCall(MatCreateVecsEmpty(svd->B,NULL,&(*zdata)->y2));
   PetscCall(VecGetLocalSize((*zdata)->y1,&(*zdata)->m));
   PetscCall(BVCreateVec(svd->U,&(*zdata)->y));
+  PetscFunctionReturn(0);
+}
+
+/* Update scale factor for B in Z=[A;B] */
+static PetscErrorCode MatZUpdateScale(SVD svd)
+{
+  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
+  MatZData       *zdata;
+  Mat            mats[2],normal;
+  MatType        Atype;
+  PetscBool      sametype;
+
+  PetscFunctionBegin;
+  if (lanczos->explicitmatrix) {
+    /* Destroy the matrix Z and create it again */
+    PetscCall(MatDestroy(&lanczos->Z));
+    mats[0] = svd->A;
+    if (lanczos->scalef == 1.0) {
+      mats[1] = svd->B;
+    } else {
+      PetscCall(MatDuplicate(svd->B,MAT_COPY_VALUES,&mats[1]));
+      PetscCall(MatScale(mats[1],lanczos->scalef));
+    }
+    PetscCall(MatCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,1,NULL,mats,&lanczos->Z));
+    PetscCall(MatGetType(svd->A,&Atype));
+    PetscCall(PetscObjectTypeCompare((PetscObject)svd->B,Atype,&sametype));
+    if (!sametype) Atype = MATAIJ;
+    PetscCall(MatConvert(lanczos->Z,Atype,MAT_INPLACE_MATRIX,&lanczos->Z));
+    if (lanczos->scalef != 1.0) PetscCall(MatDestroy(&mats[1]));
+    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z));
+  } else {
+    PetscCall(MatShellGetContext(lanczos->Z,&zdata));
+    zdata->scalef = lanczos->scalef;
+  }
+
+  /* create normal equations matrix, to build the preconditioner in LSQR */
+  PetscCall(MatCreateNormalHermitian(lanczos->Z,&normal));
+
+  if (!lanczos->ksp) PetscCall(SVDTRLanczosGetKSP(svd,&lanczos->ksp));
+  PetscCall(SVD_KSPSetOperators(lanczos->ksp,lanczos->Z,normal));
+  PetscCall(KSPSetUp(lanczos->ksp));
+  PetscCall(MatDestroy(&normal));
   PetscFunctionReturn(0);
 }
 
@@ -108,6 +156,7 @@ static PetscErrorCode MatMult_Z(Mat Z,Vec x,Vec y)
 
   PetscCall(MatMult(zdata->A,x,zdata->y1));
   PetscCall(MatMult(zdata->B,x,zdata->y2));
+  PetscCall(VecScale(zdata->y2,zdata->scalef));
 
   PetscCall(VecResetArray(zdata->y1));
   PetscCall(VecResetArray(zdata->y2));
@@ -126,8 +175,9 @@ static PetscErrorCode MatMultTranspose_Z(Mat Z,Vec y,Vec x)
   PetscCall(VecPlaceArray(zdata->y1,y_elems));
   PetscCall(VecPlaceArray(zdata->y2,y_elems+zdata->m));
 
-  PetscCall(MatMult(zdata->AT,zdata->y1,x));
-  PetscCall(MatMultAdd(zdata->BT,zdata->y2,x,x));
+  PetscCall(MatMult(zdata->BT,zdata->y2,x));
+  PetscCall(VecScale(x,zdata->scalef));
+  PetscCall(MatMultAdd(zdata->AT,zdata->y1,x,x));
 
   PetscCall(VecResetArray(zdata->y1));
   PetscCall(VecResetArray(zdata->y2));
@@ -152,9 +202,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   DSType         dstype;
   MatZData       *zdata;
-  Mat            mats[2],normal;
-  MatType        Atype;
-  PetscBool      sametype;
 
   PetscFunctionBegin;
   PetscCall(MatGetSize(svd->A,NULL,&N));
@@ -176,18 +223,10 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     }
 
     /* Create the matrix Z=[A;B] */
-    PetscCall(MatDestroy(&lanczos->Z));
     PetscCall(MatGetLocalSize(svd->A,&m,&n));
     PetscCall(MatGetLocalSize(svd->B,&p,NULL));
-    if (lanczos->explicitmatrix) {
-      mats[0] = svd->A;
-      mats[1] = svd->B;
-      PetscCall(MatCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,1,NULL,mats,&lanczos->Z));
-      PetscCall(MatGetType(svd->A,&Atype));
-      PetscCall(PetscObjectTypeCompare((PetscObject)svd->B,Atype,&sametype));
-      if (!sametype) Atype = MATAIJ;
-      PetscCall(MatConvert(lanczos->Z,Atype,MAT_INPLACE_MATRIX,&lanczos->Z));
-    } else {
+    if (!lanczos->explicitmatrix) {
+      PetscCall(MatDestroy(&lanczos->Z));
       PetscCall(MatZCreateContext(svd,&zdata));
       PetscCall(MatCreateShell(PetscObjectComm((PetscObject)svd),m+p,n,PETSC_DECIDE,PETSC_DECIDE,zdata,&lanczos->Z));
       PetscCall(MatShellSetOperation(lanczos->Z,MATOP_MULT,(void(*)(void))MatMult_Z));
@@ -198,16 +237,10 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 #endif
       PetscCall(MatShellSetOperation(lanczos->Z,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Z));
       PetscCall(MatShellSetOperation(lanczos->Z,MATOP_DESTROY,(void(*)(void))MatDestroy_Z));
+      PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z));
     }
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z));
-
-    /* create normal equations matrix, to build the preconditioner in LSQR */
-    PetscCall(MatCreateNormalHermitian(lanczos->Z,&normal));
-
-    if (!lanczos->ksp) PetscCall(SVDTRLanczosGetKSP(svd,&lanczos->ksp));
-    PetscCall(SVD_KSPSetOperators(lanczos->ksp,lanczos->Z,normal));
-    PetscCall(KSPSetUp(lanczos->ksp));
-    PetscCall(MatDestroy(&normal));
+    /* Explicit matrix is created here, when updating the scale */
+    PetscCall(MatZUpdateScale(svd));
 
     if (lanczos->oneside) PetscCall(PetscInfo(svd,"Warning: one-side option is ignored in GSVD\n"));
   }
@@ -606,7 +639,7 @@ static PetscErrorCode SVDTwoSideLanczosGSingle(SVD svd,PetscReal *alpha,PetscRea
 PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,normr;
+  PetscReal      *alpha,*beta,normr,scaleth;
   PetscScalar    *w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,VV;
@@ -615,7 +648,9 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
   PetscFunctionBegin;
   PetscCall(DSGetLeadingDimension(svd->ds,&ld));
   PetscCall(PetscMalloc1(ld,&w));
-  normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb): 1.0;
+  normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb*lanczos->scalef): 1.0;
+  /* Convert scale threshold th=c/s to the corresponding c */
+  scaleth = (lanczos->scaleth!=0)? lanczos->scaleth/PetscSqrtReal(lanczos->scaleth*lanczos->scaleth+1): 0.0;
 
   /* normalize start vector */
   if (!svd->ninil) {
@@ -650,37 +685,49 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
     PetscCall(SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,normr,&k));
     PetscCall((*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx));
 
-    /* update l */
-    if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
-    else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
-    if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) PetscCall(PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
+    if (scaleth!=0 && k==0 && svd->sigma[0]>scaleth) {
 
-    if (svd->reason == SVD_CONVERGED_ITERATING) {
-      if (PetscUnlikely(breakdown || k==nv)) {
-        /* Start a new bidiagonalization */
-        PetscCall(PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its));
-        if (k<svd->nsv) {
-          PetscCall(BVSetRandomColumn(U1,k));
-          PetscCall(BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown));
-          if (breakdown) {
-            svd->reason = SVD_DIVERGED_BREAKDOWN;
-            PetscCall(PetscInfo(svd,"Unable to generate more start vectors\n"));
+      /* Scale and start from scratch */
+      lanczos->scalef *= svd->sigma[0]/PetscSqrtReal(1-svd->sigma[0]*svd->sigma[0]);
+      PetscCall(PetscInfo(svd,"Scaling by factor %g and starting from scratch\n",(double)lanczos->scalef));
+      MatZUpdateScale(svd);
+      if (svd->conv==SVD_CONV_ABS) normr = PetscMax(svd->nrma,svd->nrmb*lanczos->scalef);
+      l = 0;
+
+    } else {
+
+      /* update l */
+      if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
+      else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
+      if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
+      if (l) PetscCall(PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
+
+      if (svd->reason == SVD_CONVERGED_ITERATING) {
+        if (PetscUnlikely(breakdown || k==nv)) {
+          /* Start a new bidiagonalization */
+          PetscCall(PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its));
+          if (k<svd->nsv) {
+            PetscCall(BVSetRandomColumn(U1,k));
+            PetscCall(BVOrthonormalizeColumn(U1,k,PETSC_FALSE,NULL,&breakdown));
+            if (breakdown) {
+              svd->reason = SVD_DIVERGED_BREAKDOWN;
+              PetscCall(PetscInfo(svd,"Unable to generate more start vectors\n"));
+            }
           }
-        }
-      } else PetscCall(DSTruncate(svd->ds,k+l,PETSC_FALSE));
+        } else PetscCall(DSTruncate(svd->ds,k+l,PETSC_FALSE));
+      }
+
+      /* compute converged singular vectors and restart vectors */
+      PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
+      PetscCall(BVMultInPlace(V,U,svd->nconv,k+l));
+      PetscCall(MatDestroy(&U));
+      PetscCall(DSGetMat(svd->ds,DS_MAT_V,&VV));
+      PetscCall(BVMultInPlace(U1,VV,svd->nconv,k+l));
+      PetscCall(MatDestroy(&VV));
+
+      /* copy the last vector to be the next initial vector */
+      if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(U1,nv,k+l));
     }
-
-    /* compute converged singular vectors and restart vectors */
-    PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
-    PetscCall(BVMultInPlace(V,U,svd->nconv,k+l));
-    PetscCall(MatDestroy(&U));
-    PetscCall(DSGetMat(svd->ds,DS_MAT_V,&VV));
-    PetscCall(BVMultInPlace(U1,VV,svd->nconv,k+l));
-    PetscCall(MatDestroy(&VV));
-
-    /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(U1,nv,k+l));
 
     svd->nconv = k;
     PetscCall(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv));
@@ -843,7 +890,7 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
   PetscFunctionBegin;
   PetscCall(DSGetLeadingDimension(svd->ds,&ld));
   PetscCall(PetscMalloc1(ld,&w));
-  normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb): 1.0;
+  normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb*lanczos->scalef): 1.0;
 
   /* normalize start vector */
   if (!svd->ninil) PetscCall(BVSetRandomColumn(U1,0));
@@ -880,39 +927,53 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
     PetscCall(SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,normr,&k));
     PetscCall((*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx));
 
-    /* update l */
-    if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
-    else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
-    if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) PetscCall(PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
+    if (lanczos->scaleth!=0 && k==0 && svd->sigma[0]>lanczos->scaleth) {
 
-    if (svd->reason == SVD_CONVERGED_ITERATING) {
-      if (PetscUnlikely(breakdown || k==nv)) {
-        /* Start a new bidiagonalization */
-        PetscCall(PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its));
-        if (k<svd->nsv) {
-          PetscCall(BVSetRandomColumn(U1,k));
-          PetscCall(SVDInitialVectorGUpper(svd,V,U1,k,&breakdown));
-          if (breakdown) {
-            svd->reason = SVD_DIVERGED_BREAKDOWN;
-            PetscCall(PetscInfo(svd,"Unable to generate more start vectors\n"));
+      /* Scale and start from scratch */
+      lanczos->scalef *= svd->sigma[0];
+      PetscCall(PetscInfo(svd,"Scaling by factor %g and starting from scratch\n",(double)lanczos->scalef));
+      MatZUpdateScale(svd);
+      if (svd->conv==SVD_CONV_ABS) normr = PetscMax(svd->nrma,svd->nrmb*lanczos->scalef);
+      l = 0;
+      if (!svd->ninil) PetscCall(BVSetRandomColumn(U1,0));
+      PetscCall(SVDInitialVectorGUpper(svd,V,U1,0,NULL));
+
+    } else {
+
+      /* update l */
+      if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
+      else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
+      if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
+      if (l) PetscCall(PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
+
+      if (svd->reason == SVD_CONVERGED_ITERATING) {
+        if (PetscUnlikely(breakdown || k==nv)) {
+          /* Start a new bidiagonalization */
+          PetscCall(PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its));
+          if (k<svd->nsv) {
+            PetscCall(BVSetRandomColumn(U1,k));
+            PetscCall(SVDInitialVectorGUpper(svd,V,U1,k,&breakdown));
+            if (breakdown) {
+              svd->reason = SVD_DIVERGED_BREAKDOWN;
+              PetscCall(PetscInfo(svd,"Unable to generate more start vectors\n"));
+            }
           }
-        }
-      } else PetscCall(DSTruncate(svd->ds,k+l,PETSC_FALSE));
-    }
-    /* compute converged singular vectors and restart vectors */
-    PetscCall(DSGetMat(svd->ds,DS_MAT_X,&X));
-    PetscCall(BVMultInPlace(V,X,svd->nconv,k+l));
-    PetscCall(MatDestroy(&X));
-    PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
-    PetscCall(BVMultInPlace(U1,U,svd->nconv,k+l));
-    PetscCall(MatDestroy(&U));
-    PetscCall(DSGetMat(svd->ds,DS_MAT_V,&Vmat));
-    PetscCall(BVMultInPlace(U2,Vmat,svd->nconv,k+l));
-    PetscCall(MatDestroy(&Vmat));
+        } else PetscCall(DSTruncate(svd->ds,k+l,PETSC_FALSE));
+      }
+      /* compute converged singular vectors and restart vectors */
+      PetscCall(DSGetMat(svd->ds,DS_MAT_X,&X));
+      PetscCall(BVMultInPlace(V,X,svd->nconv,k+l));
+      PetscCall(MatDestroy(&X));
+      PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
+      PetscCall(BVMultInPlace(U1,U,svd->nconv,k+l));
+      PetscCall(MatDestroy(&U));
+      PetscCall(DSGetMat(svd->ds,DS_MAT_V,&Vmat));
+      PetscCall(BVMultInPlace(U2,Vmat,svd->nconv,k+l));
+      PetscCall(MatDestroy(&Vmat));
 
-    /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(V,nv,k+l));
+      /* copy the last vector to be the next initial vector */
+      if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(V,nv,k+l));
+    }
 
     svd->nconv = k;
     PetscCall(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv));
@@ -1101,7 +1162,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
   PetscFunctionBegin;
   PetscCall(DSGetLeadingDimension(svd->ds,&ld));
   PetscCall(PetscMalloc1(ld,&w));
-  normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb): 1.0;
+  normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb*lanczos->scalef): 1.0;
 
   /* normalize start vector */
   if (!svd->ninil) PetscCall(BVSetRandomColumn(U2,0));
@@ -1138,40 +1199,54 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
     PetscCall(SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,normr,&k));
     PetscCall((*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx));
 
-    /* update l */
-    if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
-    else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
-    if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
-    if (l) PetscCall(PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
+    if (lanczos->scaleth!=0 && k==0 && svd->sigma[0]>lanczos->scaleth) {
 
-    if (svd->reason == SVD_CONVERGED_ITERATING) {
-      if (PetscUnlikely(breakdown || k==nv)) {
-        /* Start a new bidiagonalization */
-        PetscCall(PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its));
-        if (k<svd->nsv) {
-          PetscCall(BVSetRandomColumn(U2,k));
-          PetscCall(SVDInitialVectorGLower(svd,V,U1,U2,k,&breakdown));
-          if (breakdown) {
-            svd->reason = SVD_DIVERGED_BREAKDOWN;
-            PetscCall(PetscInfo(svd,"Unable to generate more start vectors\n"));
+      /* Scale and start from scratch */
+      lanczos->scalef *= svd->sigma[0];
+      PetscCall(PetscInfo(svd,"Scaling by factor %g and starting from scratch\n",(double)lanczos->scalef));
+      MatZUpdateScale(svd);
+      if (svd->conv==SVD_CONV_ABS) normr = PetscMax(svd->nrma,svd->nrmb*lanczos->scalef);
+      l = 0;
+      if (!svd->ninil) PetscCall(BVSetRandomColumn(U2,0));
+      PetscCall(SVDInitialVectorGLower(svd,V,U1,U2,0,NULL));
+
+    } else {
+
+      /* update l */
+      if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
+      else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
+      if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
+      if (l) PetscCall(PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
+
+      if (svd->reason == SVD_CONVERGED_ITERATING) {
+        if (PetscUnlikely(breakdown || k==nv)) {
+          /* Start a new bidiagonalization */
+          PetscCall(PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its));
+          if (k<svd->nsv) {
+            PetscCall(BVSetRandomColumn(U2,k));
+            PetscCall(SVDInitialVectorGLower(svd,V,U1,U2,k,&breakdown));
+            if (breakdown) {
+              svd->reason = SVD_DIVERGED_BREAKDOWN;
+              PetscCall(PetscInfo(svd,"Unable to generate more start vectors\n"));
+            }
           }
-        }
-      } else PetscCall(DSTruncate(svd->ds,k+l,PETSC_FALSE));
+        } else PetscCall(DSTruncate(svd->ds,k+l,PETSC_FALSE));
+      }
+
+      /* compute converged singular vectors and restart vectors */
+      PetscCall(DSGetMat(svd->ds,DS_MAT_X,&X));
+      PetscCall(BVMultInPlace(V,X,svd->nconv,k+l));
+      PetscCall(MatDestroy(&X));
+      PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
+      PetscCall(BVMultInPlace(U1,U,svd->nconv,k+l+1));
+      PetscCall(MatDestroy(&U));
+      PetscCall(DSGetMat(svd->ds,DS_MAT_V,&Vmat));
+      PetscCall(BVMultInPlace(U2,Vmat,svd->nconv,k+l));
+      PetscCall(MatDestroy(&Vmat));
+
+      /* copy the last vector to be the next initial vector */
+      if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(V,nv,k+l));
     }
-
-    /* compute converged singular vectors and restart vectors */
-    PetscCall(DSGetMat(svd->ds,DS_MAT_X,&X));
-    PetscCall(BVMultInPlace(V,X,svd->nconv,k+l));
-    PetscCall(MatDestroy(&X));
-    PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
-    PetscCall(BVMultInPlace(U1,U,svd->nconv,k+l+1));
-    PetscCall(MatDestroy(&U));
-    PetscCall(DSGetMat(svd->ds,DS_MAT_V,&Vmat));
-    PetscCall(BVMultInPlace(U2,Vmat,svd->nconv,k+l));
-    PetscCall(MatDestroy(&Vmat));
-
-    /* copy the last vector to be the next initial vector */
-    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(V,nv,k+l));
 
     svd->nconv = k;
     PetscCall(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv));
@@ -1260,6 +1335,21 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
       break;
   }
 
+  /* Undo scaling */
+  if (lanczos->scalef != 1.0) {
+    PetscInt  i;
+    PetscReal c,s,r,f;
+
+    for (i=0; i<svd->nconv; i++) {
+      s = 1.0/PetscSqrtReal(1.0+svd->sigma[i]*svd->sigma[i]);
+      c = svd->sigma[i]*s;
+      r = s/lanczos->scalef;
+      f = 1.0/PetscSqrtReal(c*c+r*r);
+      PetscCall(BVScaleColumn(svd->V,i,f));
+      svd->sigma[i] *= lanczos->scalef;
+    }
+  }
+
   PetscCall(BVDestroy(&U2));
   PetscCall(BVDestroy(&U1));
   PetscCall(DSTruncate(svd->ds,svd->nconv,PETSC_TRUE));
@@ -1271,7 +1361,7 @@ PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptionItems *PetscOptionsObject,
 {
   SVD_TRLANCZOS       *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscBool           flg,val,lock;
-  PetscReal           keep;
+  PetscReal           keep,scale;
   SVDTRLanczosGBidiag bidiag;
 
   PetscFunctionBegin;
@@ -1291,6 +1381,10 @@ PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptionItems *PetscOptionsObject,
 
     PetscCall(PetscOptionsBool("-svd_trlanczos_explicitmatrix","Build explicit matrix for KSP solver","SVDTRLanczosSetExplicitMatrix",lanczos->explicitmatrix,&val,&flg));
     if (flg) PetscCall(SVDTRLanczosSetExplicitMatrix(svd,val));
+
+    PetscCall(SVDTRLanczosGetScale(svd,&scale));
+    PetscCall(PetscOptionsReal("-svd_trlanczos_scale","Scale parameter for matrix B","SVDTRLanczosSetScale",scale,&scale,&flg));
+    if (flg) PetscCall(SVDTRLanczosSetScale(svd,scale));
 
   PetscOptionsHeadEnd();
 
@@ -1774,6 +1868,93 @@ PetscErrorCode SVDTRLanczosGetExplicitMatrix(SVD svd,PetscBool *explicitmat)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode SVDTRLanczosSetScale_TRLanczos(SVD svd,PetscReal scale)
+{
+  SVD_TRLANCZOS *ctx = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  if (scale<0) {
+    ctx->scalef  = 1.0;
+    ctx->scaleth = -scale;
+  } else {
+    ctx->scalef  = scale;
+    ctx->scaleth = 0.0;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosSetScale - Sets the scale parameter for the GSVD.
+
+   Logically Collective on svd
+
+   Input Parameters:
++  svd   - singular value solver
+-  scale - scale parameter
+
+   Options Database Key:
+.  -svd_trlanczos_scale <real> - scale factor/threshold
+
+   Notes:
+   This parameter is relevant for the GSVD case only. If the parameter is
+   positive, it indicates the scale factor for B in matrix Z=[A;B]. If
+   negative, its absolute value is the threshold for automatic scaling.
+   In automatic scaling, whenever the leading approximate generalized singular
+   value exceeds the threshold, the computation is restarted with matrix B
+   scaled by that value.
+
+   Level: advanced
+
+.seealso: SVDTRLanczosGetScale()
+@*/
+PetscErrorCode SVDTRLanczosSetScale(SVD svd,PetscReal scale)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveReal(svd,scale,2);
+  PetscTryMethod(svd,"SVDTRLanczosSetScale_C",(SVD,PetscReal),(svd,scale));
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode SVDTRLanczosGetScale_TRLanczos(SVD svd,PetscReal *scale)
+{
+  SVD_TRLANCZOS *ctx = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  if (ctx->scaleth==0) *scale = ctx->scalef;
+  else                 *scale = -ctx->scaleth;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDTRLanczosGetScale - Gets the scale parameter for the GSVD.
+
+   Not Collective
+
+   Input Parameter:
+.  svd - the singular value solver
+
+   Output Parameter:
+.  scale - the scale parameter
+
+   Notes:
+   This parameter is relevant for the GSVD case only. If the parameter is
+   positive, it indicates the scale factor for B in matrix Z=[A;B]. If
+   negative, its absolute value is the threshold for automatic scaling.
+
+   Level: advanced
+
+.seealso: SVDTRLanczosSetScale()
+@*/
+PetscErrorCode SVDTRLanczosGetScale(SVD svd,PetscReal *scale)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidRealPointer(scale,2);
+  PetscUseMethod(svd,"SVDTRLanczosGetScale_C",(SVD,PetscReal*),(svd,scale));
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode SVDReset_TRLanczos(SVD svd)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
@@ -1805,6 +1986,8 @@ PetscErrorCode SVDDestroy_TRLanczos(SVD svd)
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetLocking_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetExplicitMatrix_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetExplicitMatrix_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetScale_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetScale_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -1828,6 +2011,8 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
       }
       PetscCall(PetscViewerASCIIPrintf(viewer,"  bidiagonalization choice: %s\n",bidiag));
       PetscCall(PetscViewerASCIIPrintf(viewer,"  %s matrix\n",lanczos->explicitmatrix?"explicit":"implicit"));
+      if (lanczos->scaleth==0) PetscCall(PetscViewerASCIIPrintf(viewer,"  scale factor for matrix B: %g\n",(double)lanczos->scalef));
+      else PetscCall(PetscViewerASCIIPrintf(viewer,"  automatic scaling for matrix B with threshold: %g\n",(double)lanczos->scaleth));
       if (!lanczos->ksp) PetscCall(SVDTRLanczosGetKSP(svd,&lanczos->ksp));
       PetscCall(PetscViewerASCIIPushTab(viewer));
       PetscCall(KSPView(lanczos->ksp,viewer));
@@ -1845,8 +2030,10 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   PetscCall(PetscNewLog(svd,&ctx));
   svd->data = (void*)ctx;
 
-  ctx->lock   = PETSC_TRUE;
-  ctx->bidiag = SVD_TRLANCZOS_GBIDIAG_LOWER;
+  ctx->lock    = PETSC_TRUE;
+  ctx->bidiag  = SVD_TRLANCZOS_GBIDIAG_LOWER;
+  ctx->scalef  = 1.0;
+  ctx->scaleth = 0.0;
 
   svd->ops->setup          = SVDSetUp_TRLanczos;
   svd->ops->solve          = SVDSolve_TRLanczos;
@@ -1867,5 +2054,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetLocking_C",SVDTRLanczosGetLocking_TRLanczos));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetExplicitMatrix_C",SVDTRLanczosSetExplicitMatrix_TRLanczos));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetExplicitMatrix_C",SVDTRLanczosGetExplicitMatrix_TRLanczos));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetScale_C",SVDTRLanczosSetScale_TRLanczos));
+  PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetScale_C",SVDTRLanczosGetScale_TRLanczos));
   PetscFunctionReturn(0);
 }
