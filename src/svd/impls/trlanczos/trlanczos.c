@@ -1666,7 +1666,7 @@ static PetscErrorCode SVDTRLanczosGetKSP_TRLanczos(SVD svd,KSP *ksp)
     PetscCall(KSPGetPC(ctx->ksp,&pc));
     PetscCall(PCSetType(pc,PCNONE));
     PetscCall(KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE));
-    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(svd->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(svd->tol)/10.0,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }
   *ksp = ctx->ksp;
   PetscFunctionReturn(0);

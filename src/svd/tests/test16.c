@@ -130,6 +130,7 @@ int main(int argc,char **argv)
          args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
       test:
          suffix: 1_trlanczos
-         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}}
+         args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}} -svd_trlanczos_ksp_rtol 1e-8
+         requires: double
 
 TEST*/
