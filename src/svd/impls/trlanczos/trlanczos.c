@@ -808,7 +808,19 @@ static PetscErrorCode SVDLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,
     PetscCall(VecPlaceArray(v1,carr));
     PetscCall(BVInsertVec(U1,i,v1));
     PetscCall(VecResetArray(v1));
-    PetscCall(BVOrthonormalizeColumn(U1,i,PETSC_FALSE,alpha+i,&lindep1));
+    if (!lanczos->oneside || i==k) PetscCall(BVOrthonormalizeColumn(U1,i,PETSC_FALSE,alpha+i,&lindep1));
+    else {  /* cheap computation of U1[i], if restart (i==k) do a full reorthogonalization */
+      PetscCall(BVGetColumn(U1,i,&u2));
+      if (i>0) {
+        PetscCall(BVGetColumn(U1,i-1,&u1));
+        PetscCall(VecAXPY(u2,-beta[i-1],u1));
+        PetscCall(BVRestoreColumn(U1,i-1,&u1));
+      }
+      PetscCall(VecNorm(u2,NORM_2,&alpha[i]));
+      if (alpha[i]==0.0) lindep = PETSC_TRUE;
+      else PetscCall(VecScale(u2,1.0/alpha[i]));
+      PetscCall(BVRestoreColumn(U1,i,&u2));
+    }
 
     /* Compute vector i of BV U2 */
     PetscCall(BVGetColumn(U2,i,&u2));
@@ -819,6 +831,8 @@ static PetscErrorCode SVDLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,
       for (j=0; j<p; j++) u2arr[j] = carr[m+j];
     }
     PetscCall(VecRestoreArray(u2,&u2arr));
+    PetscCall(VecRestoreArrayRead(v,&carr));
+    PetscCall(BVRestoreColumn(V,i,&v));
     if (lanczos->oneside && i>k) {  /* cheap computation of U2[i], if restart (i==k) do a full reorthogonalization */
       if (i>0) {
         PetscCall(BVGetColumn(U2,i-1,&u1));
@@ -830,8 +844,6 @@ static PetscErrorCode SVDLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,
       else PetscCall(VecScale(u2,1.0/alphah[i]));
     }
     PetscCall(BVRestoreColumn(U2,i,&u2));
-    PetscCall(VecRestoreArrayRead(v,&carr));
-    PetscCall(BVRestoreColumn(V,i,&v));
     if (!lanczos->oneside || i==k) PetscCall(BVOrthonormalizeColumn(U2,i,PETSC_FALSE,alphah+i,&lindep2));
     if (i%2) alphah[i] = -alphah[i];
     if (PetscUnlikely(lindep1 || lindep2)) {
@@ -855,17 +867,7 @@ static PetscErrorCode SVDLanczosGUpper(SVD svd,PetscReal *alpha,PetscReal *beta,
     PetscCall(MatMult(Z,x,v));
     PetscCall(BVRestoreColumn(U1,i,&u));
     PetscCall(BVRestoreColumn(V,i+1,&v));
-    if (!lanczos->oneside || i==k) PetscCall(BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,beta+i,&lindep));
-    else {  /* cheap computation of V[i+1], if restart (i==k) do a full reorthogonalization */
-      PetscCall(BVGetColumn(V,i+1,&u2));
-      PetscCall(BVGetColumn(V,i,&u1));
-      PetscCall(VecAXPY(u2,-alpha[i],u1));
-      PetscCall(BVRestoreColumn(V,i,&u1));
-      PetscCall(VecNorm(u2,NORM_2,&beta[i]));
-      if (beta[i]==0.0) lindep = PETSC_TRUE;
-      else PetscCall(VecScale(u2,1.0/beta[i]));
-      PetscCall(BVRestoreColumn(V,i+1,&u2));
-    }
+    PetscCall(BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,beta+i,&lindep));
     betah[i] = -alpha[i]*beta[i]/alphah[i];
     if (PetscUnlikely(lindep)) {
       *n = i;
