@@ -83,12 +83,14 @@ class Evsl(package.Package):
     incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
 
     # Build package
-    confopt = '--prefix='+prefixdir+' --with-blas-lib="'+petsc.blaslapack_lib+'" --with-lapack-lib="'+petsc.blaslapack_lib+'" CC="'+petsc.cc+'" CFLAGS="'+petsc.getCFlags()+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.getFFlags()+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.getFFlags()+'"'
+    confopt = ['--prefix='+prefixdir, '--with-blas-lib="'+petsc.blaslapack_lib+'"', '--with-lapack-lib="'+petsc.blaslapack_lib+'"', 'CC="'+petsc.cc+'"', 'CFLAGS="'+petsc.getCFlags()+'"']
+    if hasattr(petsc,'fc'):
+      confopt = confopt + ['F77="'+petsc.fc+'"', 'FFLAGS="'+petsc.getFFlags()+'"', 'FC="'+petsc.fc+'"', 'FCFLAGS="'+petsc.getFFlags()+'"']
     if petsc.buildsharedlib:
-      confopt = confopt+' --enable-shared'
+      confopt = confopt + ['--enable-shared']
     if 'mkl_pardiso' in petsc.packages and 'MKLROOT' in os.environ:
-      confopt = confopt+' --with-mkl-pardiso --with-intel-mkl'
-    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' '+self.buildflags+' && '+petsc.make+' && '+petsc.make+' install')
+      confopt = confopt + ['--with-mkl-pardiso', '--with-intel-mkl']
+    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+' '.join(confopt)+' '+self.buildflags+' && '+petsc.make+' && '+petsc.make+' install')
     if result:
       self.log.Exit('Installation of EVSL failed')
 

@@ -99,12 +99,12 @@ class Elpa(package.Package):
       self.log.Exit('--download-elpa requires that the command autoreconf is available on your PATH')
 
     # Build package
-    confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.getCFlags()+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.getFFlags()+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.getFFlags()+'" LIBS="'+petsc.blaslapack_lib+'" SCALAPACK_LDFLAGS="'+petsc.scalapack_lib+'" --disable-sse --disable-sse-assembly --disable-avx --disable-avx2 --disable-avx512'
+    confopt = ['--prefix='+prefixdir, 'CC="'+petsc.cc+'"', 'CFLAGS="'+petsc.getCFlags()+'"', 'F77="'+petsc.fc+'"', 'FFLAGS="'+petsc.getFFlags()+'"', 'FC="'+petsc.fc+'"', 'FCFLAGS="'+petsc.getFFlags()+'"', 'LIBS="'+petsc.blaslapack_lib+'"', 'SCALAPACK_LDFLAGS="'+petsc.scalapack_lib+'"', '--disable-sse', '--disable-sse-assembly', '--disable-avx', '--disable-avx2', '--disable-avx512']
     if petsc.mpiuni or petsc.msmpi:
-      confopt = confopt+' --with-mpi=no'
+      confopt = confopt + ['--with-mpi=no']
     if petsc.precision == 'single':
-      confopt = confopt+' --enable-single-precision'
-    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' '+self.buildflags+' && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
+      confopt = confopt + ['--enable-single-precision']
+    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+' '.join(confopt)+' '+self.buildflags+' && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
     if result:
       self.log.Exit('Installation of ELPA failed')
 
