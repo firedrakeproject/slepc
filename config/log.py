@@ -19,10 +19,7 @@ class Log:
   def Open(self,slepcdir,confdir,fname):
     filename = os.path.join(confdir,fname)
     self.fd = open(filename,'w')
-    try:
-      self.filename = os.path.relpath(filename,slepcdir)  # needs python-2.6
-    except AttributeError:
-      self.filename = filename
+    self.filename = os.path.relpath(filename,slepcdir)
     try: # symbolic link to log file in current directory
       if os.path.isfile(fname) or os.path.islink(fname): os.remove(fname)
       os.symlink(self.filename,fname)
