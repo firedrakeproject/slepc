@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -45,7 +45,7 @@ def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir,singl
 
 def WriteReconfigScript(reconfig,slepcdir,usedargs):
   ''' Write the contents of the reconfigure script '''
-  reconfig.write('#!/usr/bin/env python\n\n')
+  reconfig.write('#!/usr/bin/env python3\n\n')
   reconfig.write('import os, sys\n')
   if usedargs:
     reconfig.write('sys.argv.extend(\''+usedargs+'\'.split())\n')

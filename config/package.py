@@ -11,18 +11,9 @@
 from __future__ import print_function
 import os, sys, tempfile, shutil, tarfile
 import log, argdb
-try:
-  from urllib import urlretrieve
-except ImportError:
-  from urllib.request import urlretrieve
-try:
-  import urlparse as urlparse_local # novermin
-except ImportError:
-  from urllib import parse as urlparse_local # novermin
-if sys.version_info < (3,):
-  import commands
-else:
-  import subprocess
+from urllib.request import urlretrieve
+from urllib import parse as urlparse_local
+import subprocess
 import socket
 
 # Fix parsing for nonstandard schemes
@@ -53,16 +44,13 @@ class Package:
     try:
       self.log.write('- '*35+'\nRunning command:\n'+instr+'\n'+'- '*35)
     except AttributeError: pass
-    if sys.version_info < (3,):
-      (result,output) = commands.getstatusoutput(instr)
-    else:
-      try:
-        output = subprocess.check_output(instr,shell=True,stderr=subprocess.STDOUT)
-        result = 0
-      except subprocess.CalledProcessError as ex:
-        output = ex.output
-        result = ex.returncode
-      output = output.decode(encoding='UTF-8',errors='replace').rstrip()
+    try:
+      output = subprocess.check_output(instr,shell=True,stderr=subprocess.STDOUT)
+      result = 0
+    except subprocess.CalledProcessError as ex:
+      output = ex.output
+      result = ex.returncode
+    output = output.decode(encoding='UTF-8',errors='replace').rstrip()
     try:
       self.log.write('Output:\n'+output+'\n'+'- '*35)
     except AttributeError: pass

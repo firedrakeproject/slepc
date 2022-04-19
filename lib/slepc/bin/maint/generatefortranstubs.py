@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-#!/bin/env python
+#!/usr/bin/env python3
+#!/bin/env python3
 #
 #    Generates fortran stubs for PETSc using Sowings bfort program
 #
@@ -7,24 +7,6 @@ from __future__ import print_function
 import os
 
 import subprocess
-try:
-  from subprocess import check_output
-except ImportError:
-  def check_output(*popenargs, **kwargs):
-    """Implementation from Python-2.7 subprocess.check_output for use with
-    Python-2.6 which does not provide check_output.
-    """
-    if 'stdout' in kwargs:
-      raise ValueError('stdout argument not allowed, it will be overridden.')
-    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-    output, unused_err = process.communicate()
-    retcode = process.poll()
-    if retcode:
-      cmd = kwargs.get("args")
-      if cmd is None:
-        cmd = popenargs[0]
-      raise subprocess.CalledProcessError(retcode, cmd, output=output)
-    return output
 
 #
 def FixFile(filename):
@@ -197,7 +179,7 @@ def processDir(petscdir, bfort, verbose, dirpath, dirnames, filenames):
     for i in range(0, len(newls), split_ct):
       cmd = 'BFORT_CONFIG_PATH='+os.path.join(petscdir,'lib','slepc','conf')+' '+bfort+' '+' '.join(options+newls[i:i+split_ct])+' -f90modfile f90module'+str(i)+'.f90'
       try:
-        output = check_output(cmd, cwd=dirpath, shell=True, stderr=subprocess.STDOUT)
+        output = subprocess.check_output(cmd, cwd=dirpath, shell=True, stderr=subprocess.STDOUT)
       except subprocess.CalledProcessError as e:
         raise SystemError(str(e)+'\nIn '+dirpath+'\n'+e.output.decode(encoding='UTF-8',errors='replace'));
     FixDir(petscdir,outdir,verbose)

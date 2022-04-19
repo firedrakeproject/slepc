@@ -9,10 +9,7 @@
 #
 
 import os,shutil,log,package
-try:
-  from urllib import urlretrieve
-except ImportError:
-  from urllib.request import urlretrieve
+from urllib.request import urlretrieve
 
 class HPDDM(package.Package):
 

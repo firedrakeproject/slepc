@@ -6,6 +6,10 @@
 
 - `SVD`: add scaling parameter in thick-restart Lanczos for the GSVD.
 
+### Removed
+
+- Remove python2 support, python-3.4+ is now required.
+
 ## [3.17] - 2022-03-31
 
 ### Added

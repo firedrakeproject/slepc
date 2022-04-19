@@ -88,6 +88,8 @@ variables:
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror cleantest allgtests-tap TIMEOUT=${TIMEOUT} search="${TEST_SEARCH}"; fi
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
+  variables:
+    PYTHON: python3
   after_script:
     - date
   artifacts:
@@ -121,7 +123,6 @@ gnu-cxx-complex-nofort:
   tags:
     - linux-ubuntu, name:maat
   variables:
-    PYTHON: python3
     PETSC_CONFIG_OPTS: --with-fc=0 --with-clanguage=cxx --with-scalar-type=complex
     TEST_SEARCH: eps_tests-test10_1
 
@@ -133,12 +134,11 @@ gnu-c-complex-nompi-int64:
     PETSC_CONFIG_OPTS: --with-mpi=0 --with-fc=0 --with-scalar-type=complex --with-64-bit-indices
     DISABLE_TESTS: 1
 
-gnu-c-py2:
+gnu-c-py:
   extends: .stage-1
   tags:
     - linux-suse
   variables:
-    PYTHON: python2
     PETSC_CONFIG_OPTS: --with-fc=0
     TEST_SEARCH: eps_tests-test10_1
 
@@ -228,6 +228,7 @@ gnu-lint:
     expire_in: 4 days
   variables:
     OPENBLAS_NUM_THREADS: 1
+    PYTHON: python3
 
 .stage-2:
   extends: .stage-23
