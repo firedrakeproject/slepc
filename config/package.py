@@ -15,6 +15,7 @@ from urllib.request import urlretrieve
 from urllib import parse as urlparse_local
 import subprocess
 import socket
+from shutil import which  # just to break compatibility with python2
 
 # Fix parsing for nonstandard schemes
 urlparse_local.uses_netloc.extend(['bk', 'ssh', 'svn'])
