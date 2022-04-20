@@ -4,7 +4,8 @@
 
 ### Added
 
-- `SVD`: add scaling parameter in thick-restart Lanczos for the GSVD.
+- `SVD`: add scaling parameter in thick-restart Lanczos for the GSVD, and also enable
+  one-sided orthogonalization for GSVD.
 
 ### Removed
 

@@ -25,7 +25,7 @@ int main(int argc,char **argv)
   PC                  pc;
   PetscInt            m=15,n=20,p=21,i,j,d,Istart,Iend;
   PetscReal           keep,scale=1.0;
-  PetscBool           flg,lock;
+  PetscBool           flg,lock,oneside;
   SVDTRLanczosGBidiag bidiag;
 
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -103,6 +103,8 @@ int main(int argc,char **argv)
     PetscCall(PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: restarting parameter %.2f %s\n",(double)keep,lock?"(locking)":""));
     PetscCall(SVDTRLanczosGetScale(svd,&scale));
     PetscCall(PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: scale parameter %g\n",(double)scale));
+    PetscCall(SVDTRLanczosGetOneSide(svd,&oneside));
+    if (oneside) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"TRLANCZOS: using one-sided orthogonalization\n"));
   }
 
   PetscCall(SVDSolve(svd));
