@@ -881,8 +881,7 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
 }
 
 /*@
-   DSCond - Compute the inf-norm condition number of the first matrix
-   as cond(A) = norm(A)*norm(inv(A)).
+   DSCond - Compute the condition number.
 
    Not Collective
 
@@ -890,9 +889,18 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
 +  ds - the direct solver context
 -  cond - the computed condition number
 
+   Notes:
+   In standard eigenvalue problems, returns the inf-norm condition number of the first
+   matrix, computed as cond(A) = norm(A)*norm(inv(A)).
+
+   In GSVD problems, returns the maximum of cond(A) and cond(B), where cond(.) is
+   computed as the ratio of the largest and smallest singular values.
+
+   Does not take into account the extra row.
+
    Level: advanced
 
-.seealso: DSSolve()
+.seealso: DSSolve(), DSSetExtraRow()
 @*/
 PetscErrorCode DSCond(DS ds,PetscReal *cond)
 {

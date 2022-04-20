@@ -6,6 +6,7 @@ DS Object: 1 MPI processes
   flags: compact
   number of columns: 10
   number of rows of B: 10
+Condition number = 10.110
 Computed singular values =
   0.09129
   2.33172

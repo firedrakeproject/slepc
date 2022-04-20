@@ -483,6 +483,58 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSCond_GSVD(DS ds,PetscReal *cond)
+{
+  DS_GSVD      *ctx = (DS_GSVD*)ds->data;
+  PetscBLASInt lwork,lrwork=0,info,m,n,p,ld;
+  PetscScalar  *A,*work;
+  PetscReal    *sigma,conda,condb;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal    *rwork;
+#endif
+
+  PetscFunctionBegin;
+  PetscCall(PetscBLASIntCast(ds->n,&m));
+  PetscCall(PetscBLASIntCast(ctx->m,&n));
+  PetscCall(PetscBLASIntCast(ctx->p,&p));
+  PetscCall(PetscBLASIntCast(ds->ld,&ld));
+  lwork = 5*n;
+#if defined(PETSC_USE_COMPLEX)
+  lrwork = 5*n;
+#endif
+  PetscCall(DSAllocateWork_Private(ds,ld*n+lwork,n+lrwork,0));
+  A     = ds->work;
+  work  = ds->work+ld*n;
+  sigma = ds->rwork;
+#if defined(PETSC_USE_COMPLEX)
+  rwork = ds->rwork+n;
+#endif
+  if (ds->compact) PetscCall(DSSwitchFormat_GSVD(ds));
+
+  PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+  PetscCall(PetscArraycpy(A,ds->mat[DS_MAT_A],ld*n));
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,A,&ld,sigma,NULL,&ld,NULL,&ld,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,A,&ld,sigma,NULL,&ld,NULL,&ld,work,&lwork,&info));
+#endif
+  SlepcCheckLapackInfo("gesvd",info);
+  conda = sigma[0]/sigma[PetscMin(m,n)-1];
+
+  PetscCall(PetscArraycpy(A,ds->mat[DS_MAT_B],ld*n));
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&p,&n,A,&ld,sigma,NULL,&ld,NULL,&ld,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&p,&n,A,&ld,sigma,NULL,&ld,NULL,&ld,work,&lwork,&info));
+#endif
+  SlepcCheckLapackInfo("gesvd",info);
+  condb = sigma[0]/sigma[PetscMin(p,n)-1];
+  PetscCall(PetscFPTrapPop());
+
+  *cond = PetscMax(conda,condb);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   DS_GSVD        *ctx = (DS_GSVD*)ds->data;
@@ -708,6 +760,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GSVD(DS ds)
   ds->ops->synchronize   = DSSynchronize_GSVD;
   ds->ops->truncate      = DSTruncate_GSVD;
   ds->ops->update        = DSUpdateExtraRow_GSVD;
+  ds->ops->cond          = DSCond_GSVD;
   ds->ops->matgetsize    = DSMatGetSize_GSVD;
   ds->ops->destroy       = DSDestroy_GSVD;
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSGSVDSetDimensions_C",DSGSVDSetDimensions_GSVD));
