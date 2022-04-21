@@ -74,6 +74,7 @@ $   monitor(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *erre
 .    -svd_monitor_all    - print error estimates at each iteration
 .    -svd_monitor_conv   - print the singular value approximations only when
       convergence has been reached
+.    -svd_monitor_conditioning - print the condition number when available
 .    -svd_monitor draw::draw_lg - sets line graph monitor for the first unconverged
       approximate singular value
 .    -svd_monitor_all draw::draw_lg - sets line graph monitor for all unconverged
@@ -90,7 +91,7 @@ $   monitor(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *erre
 
    Level: intermediate
 
-.seealso: SVDMonitorFirst(), SVDMonitorAll(), SVDMonitorCancel()
+.seealso: SVDMonitorFirst(), SVDMonitorAll(), SVDMonitorConditioning(), SVDMonitorCancel()
 @*/
 PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {
@@ -177,7 +178,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void *ctx)
 
    Level: intermediate
 
-.seealso: SVDMonitorSet(), SVDMonitorAll(), SVDMonitorConverged()
+.seealso: SVDMonitorSet(), SVDMonitorAll(), SVDMonitorConditioning(), SVDMonitorConverged()
 @*/
 PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
@@ -220,7 +221,7 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
 
    Level: intermediate
 
-.seealso: SVDMonitorSet(), SVDMonitorFirst(), SVDMonitorConverged()
+.seealso: SVDMonitorSet(), SVDMonitorFirst(), SVDMonitorConditioning(), SVDMonitorConverged()
 @*/
 PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
@@ -263,7 +264,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
 
    Level: intermediate
 
-.seealso: SVDMonitorSet(), SVDMonitorFirst(), SVDMonitorAll()
+.seealso: SVDMonitorSet(), SVDMonitorFirst(), SVDMonitorConditioning(), SVDMonitorAll()
 @*/
 PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
@@ -554,5 +555,52 @@ PetscErrorCode SVDMonitorConvergedDrawLGCreate(PetscViewer viewer,PetscViewerFor
   mctx->ctx = ctx;
   (*vf)->data = (void*)mctx;
   PetscCall(SVDMonitorLGCreate(PetscObjectComm((PetscObject)viewer),NULL,"Convergence History","Number Converged",1,NULL,PETSC_DECIDE,PETSC_DECIDE,400,300,&(*vf)->lg));
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   SVDMonitorConditioning - Print the condition number at each iteration of the singular
+   value solver.
+
+   Collective on svd
+
+   Input Parameters:
++  svd    - singular value solver context
+.  its    - iteration number
+.  nconv  - (unused) number of converged singular triplets so far
+.  sigma  - (unused) singular values
+.  errest - (unused) error estimates
+.  nest   - (unused) number of error estimates to display
+-  vf     - viewer and format for monitoring
+
+   Options Database Key:
+.  -svd_monitor_conditioning - activates SVDMonitorConditioning()
+
+   Note:
+   Works only for solvers that use a DS of type GSVD. The printed information corresponds
+   to the maximum of the condition number of the two generated bidiagonal matrices.
+
+   Level: intermediate
+
+.seealso: SVDMonitorSet(), SVDMonitorAll(), SVDMonitorFirst(), SVDMonitorConverged()
+@*/
+PetscErrorCode SVDMonitorConditioning(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
+{
+  PetscViewer viewer = vf->viewer;
+  PetscBool   isgsvd;
+  PetscReal   cond;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
+  PetscCall(PetscObjectTypeCompare((PetscObject)svd->ds,DSGSVD,&isgsvd));
+  if (!isgsvd) PetscFunctionReturn(0);
+  if (its==1 && ((PetscObject)svd)->prefix) PetscCall(PetscViewerASCIIPrintf(viewer,"  Condition number of bidiagonal matrices for %s solve.\n",((PetscObject)svd)->prefix));
+  PetscCall(PetscViewerPushFormat(viewer,vf->format));
+  PetscCall(PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel));
+  PetscCall(DSCond(svd->ds,&cond));
+  PetscCall(PetscViewerASCIIPrintf(viewer,"%3" PetscInt_FMT " SVD condition number = %g\n",its,(double)cond));
+  PetscCall(PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel));
+  PetscCall(PetscViewerPopFormat(viewer));
   PetscFunctionReturn(0);
 }

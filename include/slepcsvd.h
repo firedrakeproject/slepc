@@ -211,6 +211,7 @@ SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedCreate(PetscViewer,PetscViewerFor
 SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedDrawLG(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*);
 SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedDrawLGCreate(PetscViewer,PetscViewerFormat,void *,PetscViewerAndFormat**);
 SLEPC_EXTERN PetscErrorCode SVDMonitorConvergedDestroy(PetscViewerAndFormat**);
+SLEPC_EXTERN PetscErrorCode SVDMonitorConditioning(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,PetscViewerAndFormat*);
 
 SLEPC_EXTERN PetscFunctionList SVDList;
 SLEPC_EXTERN PetscFunctionList SVDMonitorList;

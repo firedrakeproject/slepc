@@ -79,5 +79,6 @@ PetscErrorCode SVDMonitorRegisterAll(void)
   PetscCall(SVDMonitorRegister("all_approximations",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorAllDrawLG,SVDMonitorAllDrawLGCreate,NULL));
   PetscCall(SVDMonitorRegister("convergence_history",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorConverged,SVDMonitorConvergedCreate,SVDMonitorConvergedDestroy));
   PetscCall(SVDMonitorRegister("convergence_history",PETSCVIEWERDRAW,PETSC_VIEWER_DRAW_LG,SVDMonitorConvergedDrawLG,SVDMonitorConvergedDrawLGCreate,SVDMonitorConvergedDestroy));
+  PetscCall(SVDMonitorRegister("conditioning",PETSCVIEWERASCII,PETSC_VIEWER_DEFAULT,SVDMonitorConditioning,NULL,NULL));
   PetscFunctionReturn(0);
 }

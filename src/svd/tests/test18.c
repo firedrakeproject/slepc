@@ -125,4 +125,9 @@ int main(int argc,char **argv)
          args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}}
          requires: !__float128
 
+   test:
+      suffix: 2
+      args: -svd_nsv 3 -svd_type trlanczos -svd_monitor_conditioning
+      requires: double
+
 TEST*/
