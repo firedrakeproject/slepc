@@ -7,6 +7,12 @@
 - `SVD`: add scaling parameter in thick-restart Lanczos for the GSVD, and also enable
   one-sided orthogonalization for GSVD.
 
+### Changed
+
+- In configure, now the arguments intended to store link flags (and libraries) instead of
+  being represented as comma-separated lists should be specified via a quoted string, e.g.,
+  `--with-arpack-lib="-L/opt/soft/arpack -Wl,-rpath,/opt/soft/arpack -lparpack -larpack"`.
+
 ### Removed
 
 - Remove python2 support, python-3.4+ is now required.

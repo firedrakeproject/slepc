@@ -20,7 +20,7 @@ class PETSc(package.Package):
     pass
 
   def Check(self):
-    (result, output) = self.Link([],[],[])
+    (result, output) = self.Link([],[],'')
     self.havepackage = result
 
   def InitDir(self,prefixdir):

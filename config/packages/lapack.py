@@ -100,12 +100,12 @@ class Lapack(package.Package):
     allf = [self.Mangle(i) for i in functions]
 
     self.log.write('=== Checking all LAPACK functions...')
-    if not self.LinkBlasLapack(allf,[],[],petsc):
+    if not self.LinkBlasLapack(allf,[],'',petsc):
       # check functions one by one
       self.missing = []
       for i in functions:
         self.log.write('=== Checking LAPACK '+i+' function...')
-        if not self.LinkBlasLapack([self.Mangle(i)],[],[],petsc):
+        if not self.LinkBlasLapack([self.Mangle(i)],[],'',petsc):
           self.missing.append(i)
           # some complex functions are represented by their real names
           if i[1:] in namesubst:
@@ -117,7 +117,7 @@ class Lapack(package.Package):
     # check ggsvd3 separately, as it is likely missing, do not issue warning
     i = prefix + 'ggsvd3'
     self.log.write('=== Checking LAPACK '+i+' function...')
-    if not self.LinkBlasLapack([self.Mangle(i)],[],[],petsc):
+    if not self.LinkBlasLapack([self.Mangle(i)],[],'',petsc):
       nf = i[1:]
       slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
 

@@ -28,8 +28,8 @@ class Package:
     self.downloadpackage = 0
     self.packagetype     = ''     # can be 'gnu', 'cmake', 'source_c', or empty
     self.packagedir      = ''
-    self.packagelibs     = []
-    self.packageincludes = []
+    self.packagelibs     = ''
+    self.packageincludes = ''
     self.packageurl      = ''
     self.buildflags      = ''
     self.log             = log
@@ -70,12 +70,12 @@ class Package:
         if self.packagedir:
           self.log.Exit('Specify either "--with-'+self.packagename+'-dir" or "--with-'+self.packagename+'-lib%s", but not both!' % (' --with-'+self.packagename+'-include' if self.hasheaders else ''))
         self.requested = True
-        self.packagelibs = string.split(',')
+        self.packagelibs = string
       if self.hasheaders:
         string,found = argdb.PopString('with-'+self.packagename+'-include')
         if found:
           self.requested = True
-          self.packageincludes = string.split(',')
+          self.packageincludes = string
     if self.installable:
       value,found = argdb.PopBool('with-'+self.packagename)
       if found:
@@ -303,7 +303,7 @@ Downloaded package %s from: %s is not a tarball.
       print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Test for '+self.packagename.upper()+(' (requires PETSc with %s)'%self.petscdepend.upper() if hasattr(self,'petscdepend') else ''))
     if self.installable and not hasattr(self,'petscdepend'):
       print(('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the root directory of the '+self.packagename.upper()+' installation')
-      print(('  --with-'+self.packagename+'-lib=<libraries>').ljust(wd)+': Indicate comma-separated libraries and link flags for '+self.packagename.upper())
+      print(('  --with-'+self.packagename+'-lib=<libraries>').ljust(wd)+': Indicate quoted list of libraries and link flags for '+self.packagename.upper())
       if self.hasheaders:
         print(('  --with-'+self.packagename+'-include=<dirs>').ljust(wd)+': Indicate the directory of the '+self.packagename.upper()+' include files')
 
@@ -317,7 +317,7 @@ Downloaded package %s from: %s is not a tarball.
         self.log.Println(packagename+' from %s linked by PETSc' % self.petscdepend.upper())
       elif hasattr(self,'packageflags'):
         self.log.Println(packagename+' library flags:')
-        self.log.Println(' '+' '.join(self.packageflags))
+        self.log.Println('  '+self.packageflags)
       else:
         self.log.Println(packagename+' installed')
 
@@ -373,7 +373,7 @@ Downloaded package %s from: %s is not a tarball.
       except AttributeError: pass
 
     # Try to compile test program
-    (result, output) = self.RunCommand('cd ' + tmpdir + ';' + self.make + ' checklink LINKFLAGS="'+' '.join(flags)+'"')
+    (result, output) = self.RunCommand('cd ' + tmpdir + ';' + self.make + ' checklink LINKFLAGS="'+flags+'"')
     shutil.rmtree(tmpdir)
 
     if result:
@@ -382,8 +382,6 @@ Downloaded package %s from: %s is not a tarball.
       return (1,code + output)
 
   def FortranLink(self,functions,callbacks,flags):
-    output = '\n=== With linker flags: '+' '.join(flags)
-
     f = []
     for i in functions:
       f.append(i+'_')
@@ -404,6 +402,7 @@ Downloaded package %s from: %s is not a tarball.
     output2 = '\n====== With capital Fortran names\n' + output2
     if result: return ('CAPS',output2)
 
+    output = '\n=== With linker flags: '+flags
     return ('',output + output1 + output2)
 
   def GenerateGuesses(self,name,archdir,word='lib'):
@@ -427,31 +426,36 @@ Downloaded package %s from: %s is not a tarball.
 
   def FortranLib(self,slepcconf,slepcvars,dirs,libs,functions,callbacks = []):
     name = self.packagename.upper()
-    error = ''
     mangling = ''
-    flags = ['']
-    for d in dirs:
-      for l in libs:
-        if d:
-          if hasattr(self,'slflag'):
-            flags = [self.slflag + d] + ['-L' + d] + l
+    if isinstance(libs, str): # user-provided string with link options
+      flags = libs
+      (mangling, output) = self.FortranLink(functions,callbacks,flags)
+      error = output
+    else:
+      error = ''
+      flags = ''
+      for d in dirs:
+        for l in libs:
+          if d:
+            if hasattr(self,'slflag'):
+              flags = ' '.join([self.slflag + d] + ['-L' + d] + l)
+            else:
+              flags = ' '.join(['-L' + d] + l)
           else:
-            flags = ['-L' + d] + l
-        else:
-          flags = l
-        (mangling, output) = self.FortranLink(functions,callbacks,flags)
-        error += output
+            flags = ' '.join(l)
+          (mangling, output) = self.FortranLink(functions,callbacks,flags)
+          error += output
+          if mangling: break
         if mangling: break
-      if mangling: break
 
     if mangling:
       self.log.write(output)
     else:
       self.log.write(error)
-      self.log.Exit('Unable to link with '+name+' library in directories '+' '.join(dirs)+' with libraries and link flags '+' '.join(flags))
+      self.log.Exit('Unable to link with '+name+' library in directories '+' '.join(dirs)+' with libraries and link flags '+flags)
 
     slepcconf.write('#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n')
-    slepcvars.write(name + '_LIB = '+' '.join(flags)+'\n')
+    slepcvars.write(name + '_LIB = '+flags+'\n')
     self.havepackage = True
     self.packageflags = flags
 

@@ -48,12 +48,8 @@ class Evsl(package.Package):
       dirs = self.GenerateGuesses('Evsl',archdir)
       incdirs = self.GenerateGuesses('Evsl',archdir,'include')
 
-    libs = self.packagelibs
-    if not libs:
-      libs = ['-levsl']
-    includes = self.packageincludes
-    if not includes:
-      includes = ['.']
+    libs = [self.packagelibs] if self.packagelibs else ['-levsl']
+    includes = [self.packageincludes] if self.packageincludes else ['.']
 
     for (d,i) in zip(dirs,incdirs):
       if d:
@@ -65,13 +61,13 @@ class Evsl(package.Package):
       else:
         l = libs
         f = ['-I' + includes[0]]
-      result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
+      result = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
       if result:
         slepcconf.write('#define SLEPC_HAVE_EVSL 1\n')
         slepcvars.write('EVSL_LIB = ' + ' '.join(l) + '\n')
         slepcvars.write('EVSL_INCLUDE = ' + ' '.join(f) + '\n')
         self.havepackage = True
-        self.packageflags = l+f
+        self.packageflags = ' '.join(l+f)
         return
 
     self.log.Exit('Unable to link with EVSL library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs)+' [NOTE: make sure EVSL version is 1.1.1 at least]')
@@ -102,7 +98,7 @@ class Evsl(package.Package):
 
     # Check build
     code = self.SampleCode(petsc)
-    (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
+    (result, output) = self.Link([],[],l+' '+f,code,f,petsc.language)
     if not result:
       self.log.Exit('Unable to link with downloaded EVSL')
 
@@ -112,5 +108,5 @@ class Evsl(package.Package):
     slepcvars.write('EVSL_INCLUDE = ' + f + '\n')
 
     self.havepackage = True
-    self.packageflags = [l] + [f]
+    self.packageflags = l+' '+f
 

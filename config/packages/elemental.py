@@ -34,7 +34,7 @@ class Elemental(package.Package):
     code += '  El::HermitianEig( El::LOWER, H, w, H );\n'
     code += '  return 0;\n}\n'
 
-    (result,output) = self.Link([],[],[],code,clanguage='c++')
+    (result,output) = self.Link([],[],'',code,clanguage='c++')
     if not result:
       self.log.write('WARNING: Unable to link with Elemental')
       self.log.write('If you do not want to check for Elemental, rerun configure adding --with-elemental=0')

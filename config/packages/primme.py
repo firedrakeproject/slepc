@@ -67,12 +67,8 @@ class Primme(package.Package):
       dirs = self.GenerateGuesses('Primme',archdir)
       incdirs = self.GenerateGuesses('Primme',archdir,'include')
 
-    libs = self.packagelibs
-    if not libs:
-      libs = ['-lprimme']
-    includes = self.packageincludes
-    if not includes:
-      includes = ['.']
+    libs = [self.packagelibs] if self.packagelibs else ['-lprimme']
+    includes = [self.packageincludes] if self.packageincludes else ['.']
 
     for (d,i) in zip(dirs,incdirs):
       if d:
@@ -84,13 +80,13 @@ class Primme(package.Package):
       else:
         l = libs
         f = ['-I' + includes[0]]
-      result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
+      result = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
       if result:
         slepcconf.write('#define SLEPC_HAVE_PRIMME 1\n')
         slepcvars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
         slepcvars.write('PRIMME_INCLUDE = ' + ' '.join(f) + '\n')
         self.havepackage = True
-        self.packageflags = l+f
+        self.packageflags = ' '.join(l+f)
         self.location = includes[0] if self.packageincludes else i
         return
 
@@ -144,7 +140,7 @@ class Primme(package.Package):
 
     # Check build
     code = self.SampleCode(petsc)
-    (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
+    (result, output) = self.Link([],[],l+' '+f,code,f,petsc.language)
     if not result:
       self.log.Exit('Unable to link with downloaded PRIMME')
 
@@ -155,7 +151,7 @@ class Primme(package.Package):
 
     self.location = incdir
     self.havepackage = True
-    self.packageflags = [l] + [f]
+    self.packageflags = l+' '+f
 
 
   def LoadVersion(self,slepcconf):

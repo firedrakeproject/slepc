@@ -57,7 +57,7 @@ class Arpack(package.Package):
   def Check(self,slepcconf,slepcvars,petsc,archdir):
     functions = self.Functions(petsc)
     if self.packagelibs:
-      libs = [self.packagelibs]
+      libs = self.packagelibs
     else:
       if petsc.mpiuni or petsc.msmpi:
         libs = [['-larpack'],['-larpack_LINUX'],['-larpack_SUN4']]

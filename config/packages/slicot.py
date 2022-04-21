@@ -26,10 +26,7 @@ class Slicot(package.Package):
 
   def Check(self,slepcconf,slepcvars,petsc,archdir):
     functions = ['sb03od','sb03md']
-    if self.packagelibs:
-      libs = [self.packagelibs]
-    else:
-      libs = [['-lslicot']]
+    libs = self.packagelibs if self.packagelibs else [['-lslicot']]
 
     if self.packagedir:
       dirs = [os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]

@@ -59,12 +59,8 @@ class Elpa(package.Package):
       dirs = self.GenerateGuesses('elpa',archdir)
       incdirs = self.GenerateGuesses('elpa',archdir,'include')
 
-    libs = self.packagelibs
-    if not libs:
-      libs = ['-lelpa']
-    includes = self.packageincludes
-    if not includes:
-      includes = ['.']
+    libs = [self.packagelibs] if self.packagelibs else ['-lelpa']
+    includes = [self.packageincludes] if self.packageincludes else ['.']
 
     for (d,i) in zip(dirs,incdirs):
       if d:
@@ -76,13 +72,13 @@ class Elpa(package.Package):
       else:
         l = libs
         f = ['-I' + includes[0]]
-      result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
+      result = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
       if result:
         slepcconf.write('#define SLEPC_HAVE_ELPA 1\n')
         slepcvars.write('ELPA_LIB = ' + ' '.join(l) + '\n')
         slepcvars.write('ELPA_INCLUDE = ' + ' '.join(f) + '\n')
         self.havepackage = True
-        self.packageflags = l+f
+        self.packageflags = ' '.join(l+f)
         return
 
     self.log.Exit('Unable to link with ELPA library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs))
@@ -117,7 +113,7 @@ class Elpa(package.Package):
       else:
         l = '-L' + ldir + ' -lelpa'
       f = '-I' + os.path.join(incdir,self.GetDirectoryName())
-      (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
+      (result, output) = self.Link([],[],l+' '+f,code,f,petsc.language)
       if result: break
 
     if not result:
@@ -129,5 +125,5 @@ class Elpa(package.Package):
     slepcvars.write('ELPA_INCLUDE = ' + f + '\n')
 
     self.havepackage = True
-    self.packageflags = [l] + [f]
+    self.packageflags = l+' '+f
 

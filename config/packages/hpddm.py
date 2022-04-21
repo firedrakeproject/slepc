@@ -67,6 +67,6 @@ class HPDDM(package.Package):
     slepcconf.write('#define SLEPC_HAVE_HPDDM 1\n')
     slepcvars.write('HPDDM_LIB = '+l+'\n')
     slepcvars.write('HPDDM_INCLUDE = '+f+'\n')
-    self.packageflags = [l] + [f]
+    self.packageflags = l+' '+f
     self.havepackage = True
 
