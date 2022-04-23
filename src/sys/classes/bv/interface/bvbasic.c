@@ -1360,8 +1360,6 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   PetscCall(PetscArraycpy(aa,vv,bv->m*bv->n));
   PetscCall(BVRestoreArrayRead(bv,&vv));
   PetscCall(MatDenseRestoreArrayWrite(*A,&aa));
-  PetscCall(MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY));
-  PetscCall(MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY));
   PetscFunctionReturn(0);
 }
 

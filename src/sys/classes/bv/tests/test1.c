@@ -86,8 +86,6 @@ int main(int argc,char **argv)
   PetscCall(MatSetSizes(Q,k,l,k,l));
   if (testlda) PetscCall(MatDenseSetLDA(Q,k+2));
   PetscCall(MatSeqDenseSetPreallocation(Q,NULL));
-  PetscCall(MatAssemblyBegin(Q,MAT_FINAL_ASSEMBLY));
-  PetscCall(MatAssemblyEnd(Q,MAT_FINAL_ASSEMBLY));
   PetscCall(PetscObjectSetName((PetscObject)Q,"Q"));
   PetscCall(MatDenseGetArrayWrite(Q,&q));
   PetscCall(MatDenseGetLDA(Q,&lda));
@@ -124,8 +122,6 @@ int main(int argc,char **argv)
   PetscCall(MatSetSizes(M,l,k,l,k));
   if (testlda) PetscCall(MatDenseSetLDA(M,l+2));
   PetscCall(MatSeqDenseSetPreallocation(M,NULL));
-  PetscCall(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY));
-  PetscCall(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY));
   PetscCall(PetscObjectSetName((PetscObject)M,"M"));
   PetscCall(BVDot(X,Y,M));
   if (verbose) {
