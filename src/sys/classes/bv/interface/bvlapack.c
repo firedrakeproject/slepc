@@ -25,7 +25,7 @@ SLEPC_EXTERN void MPIAPI SlepcPythag(void *in,void *inout,PetscMPIInt *len,MPI_D
   PetscFunctionBegin;
   if (PetscUnlikely(*datatype!=MPIU_REAL)) {
     (*PetscErrorPrintf)("Only implemented for MPIU_REAL data type");
-    MPI_Abort(MPI_COMM_WORLD,1);
+    MPI_Abort(PETSC_COMM_WORLD,1);
   }
   for (i=0;i<n;i++) y[i] = SlepcAbs(x[i],y[i]);
   PetscFunctionReturnVoid();

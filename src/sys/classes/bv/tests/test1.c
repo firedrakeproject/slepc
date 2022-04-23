@@ -80,7 +80,7 @@ int main(int argc,char **argv)
   if (verbose) PetscCall(BVView(Y,view));
 
   /* Create Mat */
-  PetscCall(MatCreate(MPI_COMM_SELF,&Q));
+  PetscCall(MatCreate(PETSC_COMM_SELF,&Q));
   if (matcuda && PetscDefined(HAVE_CUDA)) PetscCall(MatSetType(Q,MATSEQDENSECUDA));
   else PetscCall(MatSetType(Q,MATSEQDENSE));
   PetscCall(MatSetSizes(Q,k,l,k,l));
@@ -116,7 +116,7 @@ int main(int argc,char **argv)
   }
 
   /* Test BVDot */
-  PetscCall(MatCreate(MPI_COMM_SELF,&M));
+  PetscCall(MatCreate(PETSC_COMM_SELF,&M));
   if (matcuda && PetscDefined(HAVE_CUDA)) PetscCall(MatSetType(M,MATSEQDENSECUDA));
   else PetscCall(MatSetType(M,MATSEQDENSE));
   PetscCall(MatSetSizes(M,l,k,l,k));
