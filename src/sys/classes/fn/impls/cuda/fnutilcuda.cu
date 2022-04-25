@@ -258,63 +258,56 @@ __host__ PetscErrorCode getisreal_array2D(PetscInt m,PetscInt n,PetscComplex *d_
   PetscFunctionReturn(0);
 }
 
-//template <class T, unsigned int bs>
-//__global__ void mult_diagonal_kernel(T *d_pa,PetscInt n,PetscInt ld,T *d_v,PetscInt xcount)
-//{
-//  PetscInt            x;
-//  extern __shared__ T *shrdres;
-//
-//  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
-//
-//  if (x<n) {
-//    shrdres[x] = d_pa[x+ld*x];
-//    __syncthreads();
-//
-//    /* reduction */
-//    if ((bs >= 512) && (threadIdx.x < 256)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x + 256]; } __syncthreads();
-//    if ((bs >= 256) && (threadIdx.x < 128)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x + 128]; } __syncthreads();
-//    if ((bs >= 128) && (threadIdx.x <  64)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +  64]; } __syncthreads();
-//    if ((bs >=  64) && (threadIdx.x <  32)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +  32]; } __syncthreads();
-//    if ((bs >=  32) && (threadIdx.x <  16)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +  16]; } __syncthreads();
-//    if ((bs >=  16) && (threadIdx.x <   8)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +   8]; } __syncthreads();
-//    if ((bs >=   8) && (threadIdx.x <   4)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +   4]; } __syncthreads();
-//    if ((bs >=   4) && (threadIdx.x <   2)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +   2]; } __syncthreads();
-//    if ((bs >=   2) && (threadIdx.x <   1)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +   1]; } __syncthreads();
-//
-//    if (threadIdx.x == 0) d_v[blockIdx.x] = shrdres[threadIdx.x];
-//  }
-//
-//}
-//
-//__host__ PetscErrorCode mult_diagonal(PetscScalar *d_pa,PetscInt n, PetscInt ld,PetscScalar *v)
-//{
-//  PetscInt       i,j,dimGrid_xcount;
-//  PetscScalar    *part,*d_part;
-//  dim3           blocks3d,threads3d;
-//
-//  PetscFunctionBegin;
-//  get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
-//  PetscCallCUDA(cudaMalloc((void **)&d_part,sizeof(PetscScalar)*blocks3d.x));
-//  PetscCall(PetscMalloc1(blocks3d.x,&part));
-//  for (i=0;i<dimGrid_xcount;i++) {
-//    mult_diagonal_kernel<threads3d.x><<<blocks3d, threads3d>>>(d_pa,n,ld,d_part,i);
-//    PetscCallCUDA(cudaGetLastError());
-//
-//    PetscCallCUDA(cudaMemcpy(part,d_part,blocks3d.x*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
-//    if (i == 0) {
-//      *v = part[0];
-//      j=1;
-//    } else {
-//      j=0;
-//    }
-//    for (; j<blocks3d.x; j++) {
-//      *v *= part[j];
-//    }
-//  }
-//  PetscCallCUDA(cudaFree(d_part));
-//  PetscCall(PetscFree(part));
-//  PetscFunctionReturn(0);
-//}
+__global__ void mult_diagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar *d_v,PetscInt xcount)
+{
+  PetscInt               x;
+  unsigned int           bs=blockDim.x;
+  __shared__ PetscScalar shrdres[TILE_SIZE_X];
+
+  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x+threadIdx.x;
+
+  if (x<n) {
+    shrdres[threadIdx.x] = d_pa[x+ld*x];
+    __syncthreads();
+
+    /* reduction */
+    if ((bs >= 512) && (threadIdx.x < 256)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x + 256]; } __syncthreads();
+    if ((bs >= 256) && (threadIdx.x < 128)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x + 128]; } __syncthreads();
+    if ((bs >= 128) && (threadIdx.x <  64)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +  64]; } __syncthreads();
+    if ((bs >=  64) && (threadIdx.x <  32)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +  32]; } __syncthreads();
+    if ((bs >=  32) && (threadIdx.x <  16)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +  16]; } __syncthreads();
+    if ((bs >=  16) && (threadIdx.x <   8)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +   8]; } __syncthreads();
+    if ((bs >=   8) && (threadIdx.x <   4)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +   4]; } __syncthreads();
+    if ((bs >=   4) && (threadIdx.x <   2)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +   2]; } __syncthreads();
+    if ((bs >=   2) && (threadIdx.x <   1)) { shrdres[threadIdx.x] *= shrdres[threadIdx.x +   1]; } __syncthreads();
+    if (threadIdx.x == 0) d_v[blockIdx.x] = shrdres[threadIdx.x];
+  }
+}
+
+__host__ PetscErrorCode mult_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar *v)
+{
+  PetscInt    i,j,dimGrid_xcount;
+  PetscScalar *part,*d_part;
+  dim3        blocks3d,threads3d;
+
+  PetscFunctionBegin;
+  get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
+  PetscCallCUDA(cudaMalloc((void **)&d_part,sizeof(PetscScalar)*blocks3d.x));
+  PetscCall(PetscMalloc1(blocks3d.x,&part));
+  for (i=0;i<dimGrid_xcount;i++) {
+    mult_diagonal_kernel<<<blocks3d,threads3d>>>(n,d_pa,ld,d_part,i);
+    PetscCallCUDA(cudaGetLastError());
+    PetscCallCUDA(cudaMemcpy(part,d_part,blocks3d.x*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
+    if (i == 0) {
+      *v = part[0];
+      j=1;
+    } else j=0;
+    for (; j<(int)blocks3d.x; j++) *v *= part[j];
+  }
+  PetscCallCUDA(cudaFree(d_part));
+  PetscCall(PetscFree(part));
+  PetscFunctionReturn(0);
+}
 
 __host__ PetscErrorCode get_params_1D(PetscInt rows,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount)
 {

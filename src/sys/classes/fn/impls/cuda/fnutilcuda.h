@@ -42,10 +42,10 @@ __global__ void copy_array2D_C2S_kernel(PetscInt,PetscInt,PetscScalar*,PetscInt,
 SLEPC_INTERN __host__ PetscErrorCode copy_array2D_C2S(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscComplex*,PetscInt);
 __global__ void add_array2D_Conj_kernel(PetscInt,PetscInt,PetscComplex*,PetscInt,PetscInt,PetscInt);
 SLEPC_INTERN __host__ PetscErrorCode add_array2D_Conj(PetscInt,PetscInt,PetscComplex*,PetscInt);
-__global__ void mult_diagonal_kernel(PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscInt);
 __global__ void getisreal_array2D_kernel(PetscInt,PetscInt,PetscComplex*,PetscInt,PetscBool*,PetscInt,PetscInt);
 SLEPC_INTERN __host__ PetscErrorCode getisreal_array2D(PetscInt,PetscInt,PetscComplex*,PetscInt,PetscBool*);
-SLEPC_INTERN __host__ PetscErrorCode mult_diagonal(PetscScalar*,PetscInt, PetscInt,PetscScalar*);
+__global__ void mult_diagonal_kernel(PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
+SLEPC_INTERN __host__ PetscErrorCode mult_diagonal(PetscInt,PetscScalar*,PetscInt,PetscScalar*);
 SLEPC_INTERN __host__ PetscErrorCode get_params_1D(PetscInt,dim3*,dim3*,PetscInt*);
 SLEPC_INTERN __host__ PetscErrorCode get_params_2D(PetscInt,PetscInt,dim3*,dim3*,PetscInt*,PetscInt*);
 

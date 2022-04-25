@@ -1273,6 +1273,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
 
   PetscCallCUDA(cudaMemcpy(Apowers[0],d_Apowers[0],n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
   PetscCallCUDA(cudaMemcpy(Apowers[1],d_Apowers[1],3*n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost));
+  PetscCall(PetscLogGpuToCpu(4*n2*sizeof(PetscScalar)));
   /* Compute scaling parameter and order of Pade approximant */
   PetscCall(expm_params(n,Apowers,&s,&m,Apowers[4]));
 
