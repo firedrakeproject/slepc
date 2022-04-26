@@ -116,4 +116,73 @@ SLEPC_INTERN PetscErrorCode SlepcCitationsInitialize(void);
 SLEPC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);
 SLEPC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
 
+/* Definitions needed to work with CUDA kernels */
+#if defined(PETSC_HAVE_CUDA)
+#include <petscdevice.h>
+
+#define X_AXIS 0
+#define Y_AXIS 1
+
+#define SLEPC_TILE_SIZE_X  32
+#define SLEPC_BLOCK_SIZE_X 128
+#define SLEPC_TILE_SIZE_Y  32
+#define SLEPC_BLOCK_SIZE_Y 128
+
+static inline PetscErrorCode SlepcKernelSetGrid1D(PetscInt rows,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount)
+{
+  int                   card;
+  struct cudaDeviceProp devprop;
+
+  PetscFunctionBegin;
+  PetscCallCUDA(cudaGetDevice(&card));
+  PetscCallCUDA(cudaGetDeviceProperties(&devprop,card));
+  *dimGrid_xcount = 1;
+
+  /* X axis */
+  dimGrid->x  = 1;
+  dimBlock->x = SLEPC_BLOCK_SIZE_X;
+  if (rows>SLEPC_BLOCK_SIZE_X) dimGrid->x = (rows+SLEPC_BLOCK_SIZE_X-1)/SLEPC_BLOCK_SIZE_X;
+  else dimBlock->x = rows;
+  if (dimGrid->x>(unsigned)devprop.maxGridSize[X_AXIS]) {
+    *dimGrid_xcount = (dimGrid->x+(devprop.maxGridSize[X_AXIS]-1))/devprop.maxGridSize[X_AXIS];
+    dimGrid->x = devprop.maxGridSize[X_AXIS];
+  }
+  PetscFunctionReturn(0);
+}
+
+static inline PetscErrorCode SlepcKernelSetGrid2DTiles(PetscInt rows,PetscInt cols,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount,PetscInt *dimGrid_ycount)
+{
+  int                   card;
+  struct cudaDeviceProp devprop;
+
+  PetscFunctionBegin;
+  PetscCallCUDA(cudaGetDevice(&card));
+  PetscCallCUDA(cudaGetDeviceProperties(&devprop,card));
+  *dimGrid_xcount = *dimGrid_ycount = 1;
+
+  /* X axis */
+  dimGrid->x  = 1;
+  dimBlock->x = SLEPC_BLOCK_SIZE_X;
+  if (rows>SLEPC_BLOCK_SIZE_X*SLEPC_TILE_SIZE_X) dimGrid->x = (rows+SLEPC_BLOCK_SIZE_X*SLEPC_TILE_SIZE_X-1)/(SLEPC_BLOCK_SIZE_X*SLEPC_TILE_SIZE_X);
+  else dimBlock->x = (rows+SLEPC_TILE_SIZE_X-1)/SLEPC_TILE_SIZE_X;
+  if (dimGrid->x>(unsigned)devprop.maxGridSize[X_AXIS]) {
+    *dimGrid_xcount = (dimGrid->x+(devprop.maxGridSize[X_AXIS]-1))/devprop.maxGridSize[X_AXIS];
+    dimGrid->x = devprop.maxGridSize[X_AXIS];
+  }
+
+  /* Y axis */
+  dimGrid->y  = 1;
+  dimBlock->y = SLEPC_BLOCK_SIZE_Y;
+  if (cols>SLEPC_BLOCK_SIZE_Y*SLEPC_TILE_SIZE_Y) dimGrid->y = (cols+SLEPC_BLOCK_SIZE_Y*SLEPC_TILE_SIZE_Y-1)/(SLEPC_BLOCK_SIZE_Y*SLEPC_TILE_SIZE_Y);
+  else dimBlock->y = (cols+SLEPC_TILE_SIZE_Y-1)/SLEPC_TILE_SIZE_Y;
+  if (dimGrid->y>(unsigned)devprop.maxGridSize[Y_AXIS]) {
+    *dimGrid_ycount = (dimGrid->y+(devprop.maxGridSize[Y_AXIS]-1))/devprop.maxGridSize[Y_AXIS];
+    dimGrid->y = devprop.maxGridSize[Y_AXIS];
+  }
+  PetscFunctionReturn(0);
+}
+#undef X_AXIS
+#undef Y_AXIS
+#endif
+
 #endif
