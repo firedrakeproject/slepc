@@ -56,30 +56,31 @@ class Elpa(package.Package):
       dirs = [os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
       incdirs = [os.path.join(self.packagedir,'include'),self.packagedir]
     else:
-      dirs = self.GenerateGuesses('elpa',archdir)
-      incdirs = self.GenerateGuesses('elpa',archdir,'include')
+      dirs = self.GenerateGuesses('elpa',archdir) + self.GenerateGuesses('elpa',archdir,'lib64')
+      incdirs = self.GenerateGuesses('elpa',archdir,'include') + self.GenerateGuesses('elpa',archdir,os.path.join('include','elpa-'+self.version))
 
     libs = [self.packagelibs] if self.packagelibs else ['-lelpa']
     includes = [self.packageincludes] if self.packageincludes else ['.']
 
-    for (d,i) in zip(dirs,incdirs):
-      if d:
-        if petsc.buildsharedlib:
-          l = [self.slflag + d] + ['-L' + d] + libs
+    for d in dirs:
+      for i in incdirs:
+        if d:
+          if petsc.buildsharedlib:
+            l = [self.slflag + d] + ['-L' + d] + libs
+          else:
+            l = ['-L' + d] + libs
+          f = ['-I' + i]
         else:
-          l = ['-L' + d] + libs
-        f = ['-I' + i]
-      else:
-        l = libs
-        f = ['-I' + includes[0]]
-      result = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
-      if result:
-        slepcconf.write('#define SLEPC_HAVE_ELPA 1\n')
-        slepcvars.write('ELPA_LIB = ' + ' '.join(l) + '\n')
-        slepcvars.write('ELPA_INCLUDE = ' + ' '.join(f) + '\n')
-        self.havepackage = True
-        self.packageflags = ' '.join(l+f)
-        return
+          l = libs
+          f = ['-I' + includes[0]]
+        (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
+        if result:
+          slepcconf.write('#define SLEPC_HAVE_ELPA 1\n')
+          slepcvars.write('ELPA_LIB = ' + ' '.join(l) + '\n')
+          slepcvars.write('ELPA_INCLUDE = ' + ' '.join(f) + '\n')
+          self.havepackage = True
+          self.packageflags = ' '.join(l+f)
+          return
 
     self.log.Exit('Unable to link with ELPA library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs))
 

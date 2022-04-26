@@ -70,25 +70,26 @@ class Primme(package.Package):
     libs = [self.packagelibs] if self.packagelibs else ['-lprimme']
     includes = [self.packageincludes] if self.packageincludes else ['.']
 
-    for (d,i) in zip(dirs,incdirs):
-      if d:
-        if petsc.buildsharedlib:
-          l = [self.slflag + d] + ['-L' + d] + libs
+    for d in dirs:
+      for i in incdirs:
+        if d:
+          if petsc.buildsharedlib:
+            l = [self.slflag + d] + ['-L' + d] + libs
+          else:
+            l = ['-L' + d] + libs
+          f = ['-I' + i]
         else:
-          l = ['-L' + d] + libs
-        f = ['-I' + i]
-      else:
-        l = libs
-        f = ['-I' + includes[0]]
-      result = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
-      if result:
-        slepcconf.write('#define SLEPC_HAVE_PRIMME 1\n')
-        slepcvars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
-        slepcvars.write('PRIMME_INCLUDE = ' + ' '.join(f) + '\n')
-        self.havepackage = True
-        self.packageflags = ' '.join(l+f)
-        self.location = includes[0] if self.packageincludes else i
-        return
+          l = libs
+          f = ['-I' + includes[0]]
+        (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
+        if result:
+          slepcconf.write('#define SLEPC_HAVE_PRIMME 1\n')
+          slepcvars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
+          slepcvars.write('PRIMME_INCLUDE = ' + ' '.join(f) + '\n')
+          self.havepackage = True
+          self.packageflags = ' '.join(l+f)
+          self.location = includes[0] if self.packageincludes else i
+          return
 
     self.log.Exit('Unable to link with PRIMME library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs)+' [NOTE: make sure PRIMME version is 2.0 at least]')
 

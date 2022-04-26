@@ -51,24 +51,25 @@ class Evsl(package.Package):
     libs = [self.packagelibs] if self.packagelibs else ['-levsl']
     includes = [self.packageincludes] if self.packageincludes else ['.']
 
-    for (d,i) in zip(dirs,incdirs):
-      if d:
-        if petsc.buildsharedlib:
-          l = [self.slflag + d] + ['-L' + d] + libs
+    for d in dirs:
+      for i in incdirs:
+        if d:
+          if petsc.buildsharedlib:
+            l = [self.slflag + d] + ['-L' + d] + libs
+          else:
+            l = ['-L' + d] + libs
+          f = ['-I' + i]
         else:
-          l = ['-L' + d] + libs
-        f = ['-I' + i]
-      else:
-        l = libs
-        f = ['-I' + includes[0]]
-      result = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
-      if result:
-        slepcconf.write('#define SLEPC_HAVE_EVSL 1\n')
-        slepcvars.write('EVSL_LIB = ' + ' '.join(l) + '\n')
-        slepcvars.write('EVSL_INCLUDE = ' + ' '.join(f) + '\n')
-        self.havepackage = True
-        self.packageflags = ' '.join(l+f)
-        return
+          l = libs
+          f = ['-I' + includes[0]]
+        (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
+        if result:
+          slepcconf.write('#define SLEPC_HAVE_EVSL 1\n')
+          slepcvars.write('EVSL_LIB = ' + ' '.join(l) + '\n')
+          slepcvars.write('EVSL_INCLUDE = ' + ' '.join(f) + '\n')
+          self.havepackage = True
+          self.packageflags = ' '.join(l+f)
+          return
 
     self.log.Exit('Unable to link with EVSL library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs)+' [NOTE: make sure EVSL version is 1.1.1 at least]')
 
