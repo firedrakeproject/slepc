@@ -119,7 +119,7 @@ def getlibraryinfo():
     slepc_info = ("SLEPc %d.%d.%d %s (conf: '%s')"
                   % (major, minor, micro, release, arch) )
     return [petsc_info, slepc_info]
-    
+
 def getpackageinfo(pkgnames):
     packages = [__import__(pkg) for pkg in pkgnames]
     return ["%s %s (%s)" % (pkg.__name__,
