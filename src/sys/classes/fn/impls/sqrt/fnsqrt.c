@@ -213,7 +213,7 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *d_A,PetscB
   PetscFunctionBegin;
   PetscCall(PetscDeviceInitialize(PETSC_DEVICE_CUDA)); /* For CUDA event timers */
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
-  magma_init();
+  PetscCall(SlepcMagmaInit());
   N = n*n;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
 
@@ -286,8 +286,6 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *d_A,PetscB
   PetscCallCUDA(cudaFree(d_G));
   PetscCallCUDA(cudaFree(d_work));
   PetscCall(PetscFree(piv));
-
-  magma_finalize();
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_MAGMA */

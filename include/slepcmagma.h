@@ -14,7 +14,11 @@
 #if !defined(SLEPCMAGMA_H)
 #define SLEPCMAGMA_H
 
+#if defined(PETSC_HAVE_MAGMA)
+
 #include <magma_v2.h>
+
+SLEPC_EXTERN PetscErrorCode SlepcMagmaInit(void);
 
 #define PetscCallMAGMA(func, ...) do { \
     PetscErrorCode magma_ierr_; \
@@ -61,4 +65,5 @@
 #define magma_Cgesv_gpu(a,b,c,d,e,f,g,h)         magma_zgesv_gpu((a),(b),(magmaDoubleComplex_ptr)(c),(d),(e),(magmaDoubleComplex_ptr)(f),(g),(h))
 #endif
 
+#endif
 #endif

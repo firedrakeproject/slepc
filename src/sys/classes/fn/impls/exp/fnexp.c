@@ -1104,7 +1104,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
   PetscFunctionBegin;
   PetscCall(PetscDeviceInitialize(PETSC_DEVICE_CUDA)); /* For CUDA event timers */
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
-  magma_init();
+  PetscCall(SlepcMagmaInit());
   PetscCall(MatGetSize(A,&m,NULL));
   PetscCall(PetscBLASIntCast(m,&n));
   ld  = n;
@@ -1203,7 +1203,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
     PetscCall(MatDenseCUDARestoreArrayRead(A,(const PetscScalar**)&d_As));
   } else PetscCallCUDA(cudaFree(d_As));
   PetscCall(MatDenseCUDARestoreArrayWrite(B,&d_Ba));
-  magma_finalize();
   PetscFunctionReturn(0);
 }
 
@@ -1234,7 +1233,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   PetscFunctionBegin;
   PetscCall(PetscDeviceInitialize(PETSC_DEVICE_CUDA)); /* For CUDA event timers */
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
-  magma_init();
+  PetscCall(SlepcMagmaInit());
   PetscCall(MatGetSize(A,&n,NULL));
   PetscCall(PetscBLASIntCast(n,&n_));
   n2 = n_*n_;
@@ -1377,7 +1376,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
   }
   PetscCall(MatDenseCUDARestoreArrayWrite(B,&d_Ba));
   PetscCallCUDA(cudaFree(d_work));
-  magma_finalize();
   PetscFunctionReturn(0);
 }
 
@@ -1407,7 +1405,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   PetscFunctionBegin;
   PetscCall(PetscDeviceInitialize(PETSC_DEVICE_CUDA)); /* For CUDA event timers */
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
-  magma_init();
+  PetscCall(SlepcMagmaInit());
   PetscCall(MatGetSize(A,&n_,NULL));
   PetscCall(PetscBLASIntCast(n_,&n));
   PetscCall(PetscBLASIntCast(n*n,&n2));
@@ -1651,7 +1649,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   PetscCallCUDA(cudaFree(d_As));
   PetscCallCUDA(cudaFree(d_RR));
   PetscCall(PetscFree(piv));
-  magma_finalize();
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_MAGMA */

@@ -210,10 +210,9 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
   ld = n;
   PetscCall(FNSqrtmSadeghi_CUDAm(fn,n,Ba,n));
   /* compute B = A\B */
-  magma_init();
+  PetscCall(SlepcMagmaInit());
   PetscCall(PetscMalloc1(ld,&ipiv));
   PetscCallMAGMA(magma_xgesv_gpu,n,n,Wa,ld,ipiv,Ba,ld);
-  magma_finalize();
   PetscCall(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
   PetscCall(PetscFree(ipiv));
   PetscCall(MatDenseCUDARestoreArray(W,&Wa));

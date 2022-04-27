@@ -8,17 +8,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requirespackage 'PETSC_HAVE_MAGMA'
 ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = slepcinit.c slepcutil.c slepcsc.c slepccontour.c dlregisslepc.c
+SOURCEC  = slepcmagma.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
 MANSEC   = sys
-LOCDIR   = src/sys/
-DIRS     = f90-mod vec mat magma classes tests tutorials
+LOCDIR   = src/sys/magma/
+DIRS     =
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
