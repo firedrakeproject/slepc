@@ -688,6 +688,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     PetscCall(SVDMonitorSetFromOptions(svd,"-svd_monitor","first_approximation",NULL,PETSC_FALSE));
     PetscCall(SVDMonitorSetFromOptions(svd,"-svd_monitor_all","all_approximations",NULL,PETSC_TRUE));
     PetscCall(SVDMonitorSetFromOptions(svd,"-svd_monitor_conv","convergence_history",NULL,PETSC_FALSE));
+    PetscCall(SVDMonitorSetFromOptions(svd,"-svd_monitor_conditioning","conditioning",NULL,PETSC_FALSE));
 
     /* -----------------------------------------------------------------------*/
     PetscCall(PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",NULL));

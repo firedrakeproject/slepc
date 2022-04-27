@@ -18,7 +18,7 @@ int main(int argc,char **argv)
   Mat            X;
   Vec            x0;
   SlepcSC        sc;
-  PetscReal      *T,*D,sigma,rnorm,aux;
+  PetscReal      *T,*D,sigma,rnorm,aux,cond;
   PetscScalar    *U,*V,*w,d;
   PetscInt       i,n=10,l=0,k=0,ld;
   PetscViewer    viewer;
@@ -93,6 +93,10 @@ int main(int argc,char **argv)
     PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n"));
     PetscCall(DSView(ds,viewer));
   }
+
+  /* Condition number */
+  PetscCall(DSCond(ds,&cond));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Condition number = %.3f\n",(double)cond));
 
   /* Solve */
   PetscCall(DSGetSlepcSC(ds,&sc));

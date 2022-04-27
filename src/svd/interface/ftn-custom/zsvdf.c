@@ -24,6 +24,7 @@
 #define svdmonitorset_                    SVDMONITORSET
 #define svdmonitorall_                    SVDMONITORALL
 #define svdmonitorfirst_                  SVDMONITORFIRST
+#define svdmonitorconditioning_           SVDMONITORCONDITIONING
 #define svdmonitorconverged_              SVDMONITORCONVERGED
 #define svdmonitorconvergedcreate_        SVDMONITORCONVERGEDCREATE
 #define svdmonitorconvergeddestroy_       SVDMONITORCONVERGEDDESTROY
@@ -64,6 +65,7 @@
 #define svdmonitorset_                    svdmonitorset
 #define svdmonitorall_                    svdmonitorall
 #define svdmonitorfirst_                  svdmonitorfirst
+#define svdmonitorconditioning_           svdmonitorconditioning
 #define svdmonitorconverged_              svdmonitorconverged
 #define svdmonitorconvergedcreate_        svdmonitorconvergedcreate
 #define svdmonitorconvergeddestroy_       svdmonitorconvergeddestroy
@@ -106,6 +108,11 @@ SLEPC_EXTERN void svdmonitorall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal
 SLEPC_EXTERN void svdmonitorfirst_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
 {
   *ierr = SVDMonitorFirst(*svd,*it,*nconv,sigma,errest,*nest,*vf);
+}
+
+SLEPC_EXTERN void svdmonitorconditioning_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
+{
+  *ierr = SVDMonitorConditioning(*svd,*it,*nconv,sigma,errest,*nest,*vf);
 }
 
 SLEPC_EXTERN void svdmonitorconverged_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **vf,PetscErrorCode *ierr)
