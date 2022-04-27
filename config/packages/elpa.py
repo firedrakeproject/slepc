@@ -56,34 +56,31 @@ class Elpa(package.Package):
       dirs = [os.path.join(self.packagedir,'lib'),self.packagedir,os.path.join(self.packagedir,'lib64')]
       incdirs = [os.path.join(self.packagedir,'include'),self.packagedir]
     else:
-      dirs = self.GenerateGuesses('elpa',archdir)
-      incdirs = self.GenerateGuesses('elpa',archdir,'include')
+      dirs = self.GenerateGuesses('elpa',archdir) + self.GenerateGuesses('elpa',archdir,'lib64')
+      incdirs = self.GenerateGuesses('elpa',archdir,'include') + self.GenerateGuesses('elpa',archdir,os.path.join('include','elpa-'+self.version))
 
-    libs = self.packagelibs
-    if not libs:
-      libs = ['-lelpa']
-    includes = self.packageincludes
-    if not includes:
-      includes = ['.']
+    libs = [self.packagelibs] if self.packagelibs else ['-lelpa']
+    includes = [self.packageincludes] if self.packageincludes else ['.']
 
-    for (d,i) in zip(dirs,incdirs):
-      if d:
-        if petsc.buildsharedlib:
-          l = [self.slflag + d] + ['-L' + d] + libs
+    for d in dirs:
+      for i in incdirs:
+        if d:
+          if petsc.buildsharedlib:
+            l = [self.slflag + d] + ['-L' + d] + libs
+          else:
+            l = ['-L' + d] + libs
+          f = ['-I' + i]
         else:
-          l = ['-L' + d] + libs
-        f = ['-I' + i]
-      else:
-        l = libs
-        f = ['-I' + includes[0]]
-      result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
-      if result:
-        slepcconf.write('#define SLEPC_HAVE_ELPA 1\n')
-        slepcvars.write('ELPA_LIB = ' + ' '.join(l) + '\n')
-        slepcvars.write('ELPA_INCLUDE = ' + ' '.join(f) + '\n')
-        self.havepackage = True
-        self.packageflags = l+f
-        return
+          l = libs
+          f = ['-I' + includes[0]]
+        (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
+        if result:
+          slepcconf.write('#define SLEPC_HAVE_ELPA 1\n')
+          slepcvars.write('ELPA_LIB = ' + ' '.join(l) + '\n')
+          slepcvars.write('ELPA_INCLUDE = ' + ' '.join(f) + '\n')
+          self.havepackage = True
+          self.packageflags = ' '.join(l+f)
+          return
 
     self.log.Exit('Unable to link with ELPA library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs))
 
@@ -99,12 +96,12 @@ class Elpa(package.Package):
       self.log.Exit('--download-elpa requires that the command autoreconf is available on your PATH')
 
     # Build package
-    confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.getCFlags()+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.getFFlags()+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.getFFlags()+'" LIBS="'+petsc.blaslapack_lib+'" SCALAPACK_LDFLAGS="'+petsc.scalapack_lib+'" --disable-sse --disable-sse-assembly --disable-avx --disable-avx2 --disable-avx512'
+    confopt = ['--prefix='+prefixdir, 'CC="'+petsc.cc+'"', 'CFLAGS="'+petsc.getCFlags()+'"', 'F77="'+petsc.fc+'"', 'FFLAGS="'+petsc.getFFlags()+'"', 'FC="'+petsc.fc+'"', 'FCFLAGS="'+petsc.getFFlags()+'"', 'LIBS="'+petsc.blaslapack_lib+'"', 'SCALAPACK_LDFLAGS="'+petsc.scalapack_lib+'"', '--disable-sse', '--disable-sse-assembly', '--disable-avx', '--disable-avx2', '--disable-avx512']
     if petsc.mpiuni or petsc.msmpi:
-      confopt = confopt+' --with-mpi=no'
+      confopt = confopt + ['--with-mpi=no']
     if petsc.precision == 'single':
-      confopt = confopt+' --enable-single-precision'
-    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' '+self.buildflags+' && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
+      confopt = confopt + ['--enable-single-precision']
+    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+' '.join(confopt)+' '+self.buildflags+' && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
     if result:
       self.log.Exit('Installation of ELPA failed')
 
@@ -117,7 +114,7 @@ class Elpa(package.Package):
       else:
         l = '-L' + ldir + ' -lelpa'
       f = '-I' + os.path.join(incdir,self.GetDirectoryName())
-      (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
+      (result, output) = self.Link([],[],l+' '+f,code,f,petsc.language)
       if result: break
 
     if not result:
@@ -129,5 +126,5 @@ class Elpa(package.Package):
     slepcvars.write('ELPA_INCLUDE = ' + f + '\n')
 
     self.havepackage = True
-    self.packageflags = [l] + [f]
+    self.packageflags = l+' '+f
 

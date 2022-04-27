@@ -48,31 +48,28 @@ class Evsl(package.Package):
       dirs = self.GenerateGuesses('Evsl',archdir)
       incdirs = self.GenerateGuesses('Evsl',archdir,'include')
 
-    libs = self.packagelibs
-    if not libs:
-      libs = ['-levsl']
-    includes = self.packageincludes
-    if not includes:
-      includes = ['.']
+    libs = [self.packagelibs] if self.packagelibs else ['-levsl']
+    includes = [self.packageincludes] if self.packageincludes else ['.']
 
-    for (d,i) in zip(dirs,incdirs):
-      if d:
-        if petsc.buildsharedlib:
-          l = [self.slflag + d] + ['-L' + d] + libs
+    for d in dirs:
+      for i in incdirs:
+        if d:
+          if petsc.buildsharedlib:
+            l = [self.slflag + d] + ['-L' + d] + libs
+          else:
+            l = ['-L' + d] + libs
+          f = ['-I' + i]
         else:
-          l = ['-L' + d] + libs
-        f = ['-I' + i]
-      else:
-        l = libs
-        f = ['-I' + includes[0]]
-      result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
-      if result:
-        slepcconf.write('#define SLEPC_HAVE_EVSL 1\n')
-        slepcvars.write('EVSL_LIB = ' + ' '.join(l) + '\n')
-        slepcvars.write('EVSL_INCLUDE = ' + ' '.join(f) + '\n')
-        self.havepackage = True
-        self.packageflags = l+f
-        return
+          l = libs
+          f = ['-I' + includes[0]]
+        (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
+        if result:
+          slepcconf.write('#define SLEPC_HAVE_EVSL 1\n')
+          slepcvars.write('EVSL_LIB = ' + ' '.join(l) + '\n')
+          slepcvars.write('EVSL_INCLUDE = ' + ' '.join(f) + '\n')
+          self.havepackage = True
+          self.packageflags = ' '.join(l+f)
+          return
 
     self.log.Exit('Unable to link with EVSL library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs)+' [NOTE: make sure EVSL version is 1.1.1 at least]')
 
@@ -83,12 +80,14 @@ class Evsl(package.Package):
     incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
 
     # Build package
-    confopt = '--prefix='+prefixdir+' --with-blas-lib="'+petsc.blaslapack_lib+'" --with-lapack-lib="'+petsc.blaslapack_lib+'" CC="'+petsc.cc+'" CFLAGS="'+petsc.getCFlags()+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.getFFlags()+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.getFFlags()+'"'
+    confopt = ['--prefix='+prefixdir, '--with-blas-lib="'+petsc.blaslapack_lib+'"', '--with-lapack-lib="'+petsc.blaslapack_lib+'"', 'CC="'+petsc.cc+'"', 'CFLAGS="'+petsc.getCFlags()+'"']
+    if hasattr(petsc,'fc'):
+      confopt = confopt + ['F77="'+petsc.fc+'"', 'FFLAGS="'+petsc.getFFlags()+'"', 'FC="'+petsc.fc+'"', 'FCFLAGS="'+petsc.getFFlags()+'"']
     if petsc.buildsharedlib:
-      confopt = confopt+' --enable-shared'
+      confopt = confopt + ['--enable-shared']
     if 'mkl_pardiso' in petsc.packages and 'MKLROOT' in os.environ:
-      confopt = confopt+' --with-mkl-pardiso --with-intel-mkl'
-    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+confopt+' '+self.buildflags+' && '+petsc.make+' && '+petsc.make+' install')
+      confopt = confopt + ['--with-mkl-pardiso', '--with-intel-mkl']
+    (result,output) = self.RunCommand('cd '+builddir+'&& ./configure '+' '.join(confopt)+' '+self.buildflags+' && '+petsc.make+' && '+petsc.make+' install')
     if result:
       self.log.Exit('Installation of EVSL failed')
 
@@ -100,7 +99,7 @@ class Evsl(package.Package):
 
     # Check build
     code = self.SampleCode(petsc)
-    (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
+    (result, output) = self.Link([],[],l+' '+f,code,f,petsc.language)
     if not result:
       self.log.Exit('Unable to link with downloaded EVSL')
 
@@ -110,5 +109,5 @@ class Evsl(package.Package):
     slepcvars.write('EVSL_INCLUDE = ' + f + '\n')
 
     self.havepackage = True
-    self.packageflags = [l] + [f]
+    self.packageflags = l+' '+f
 

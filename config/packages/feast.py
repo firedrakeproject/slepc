@@ -59,7 +59,7 @@ class Feast(package.Package):
       self.log.Exit('The FEAST interface requires that PETSc has been built with Intel MKL (libraries and includes)')
     code = self.SampleCode(petsc)
 
-    (result,output) = self.Link([],[],[],code)
+    (result,output) = self.Link([],[],'',code)
     if not result:
       self.log.write('WARNING: Unable to link with FEAST, maybe your MKL version does not contain it')
       self.log.write('If you do not want to check for FEAST, rerun configure adding --with-feast=0')

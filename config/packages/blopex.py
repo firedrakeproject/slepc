@@ -46,34 +46,31 @@ class Blopex(package.Package):
       incdirs = [os.path.join(self.packagedir,'blopex_abstract','include')]
     else:
       dirs = self.GenerateGuesses('blopex',archdir)
-      incdirs = self.GenerateGuesses('blopex',archdir,'include')
+      incdirs = self.GenerateGuesses('blopex',archdir,'include') + self.GenerateGuesses('blopex',archdir,os.path.join('include','blopex'))
 
-    libs = self.packagelibs
-    if not libs:
-      libs = ['-lBLOPEX']
-    includes = self.packageincludes
-    if not includes:
-      includes = ['.']
+    libs = [self.packagelibs] if self.packagelibs else ['-lBLOPEX']
+    includes = [self.packageincludes] if self.packageincludes else ['.']
 
-    for (d,i) in zip(dirs,incdirs):
-      if d:
-        if petsc.buildsharedlib:
-          l = [self.slflag + d] + ['-L' + d] + libs
+    for d in dirs:
+      for i in incdirs:
+        if d:
+          if petsc.buildsharedlib:
+            l = [self.slflag + d] + ['-L' + d] + libs
+          else:
+            l = ['-L' + d] + libs
+          f = ['-I' + i]
         else:
-          l = ['-L' + d] + libs
-        f = ['-I' + i]
-      else:
-        l = libs
-        f = ['-I' + includes[0]]
-      (result, output) = self.Link([],[],l+f,code,' '.join(f),petsc.language)
-      if result:
-        slepcconf.write('#define SLEPC_HAVE_BLOPEX 1\n')
-        slepcvars.write('BLOPEX_LIB = ' + ' '.join(l) + '\n')
-        slepcvars.write('BLOPEX_INCLUDE = ' + ' '.join(f) + '\n')
-        self.havepackage = True
-        self.packageflags = l+f
-        self.location = includes[0] if self.packageincludes else i
-        return
+          l = libs
+          f = ['-I' + includes[0]]
+        (result, output) = self.Link([],[],' '.join(l+f),code,' '.join(f),petsc.language)
+        if result:
+          slepcconf.write('#define SLEPC_HAVE_BLOPEX 1\n')
+          slepcvars.write('BLOPEX_LIB = ' + ' '.join(l) + '\n')
+          slepcvars.write('BLOPEX_INCLUDE = ' + ' '.join(f) + '\n')
+          self.havepackage = True
+          self.packageflags = ' '.join(l+f)
+          self.location = includes[0] if self.packageincludes else i
+          return
 
     self.log.Exit('Unable to link with BLOPEX library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs))
 
@@ -112,7 +109,7 @@ class Blopex(package.Package):
 
     # Check build
     code = self.SampleCode(petsc)
-    (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
+    (result, output) = self.Link([],[],l+' '+f,code,f,petsc.language)
     if not result:
       self.log.Exit('Unable to link with downloaded BLOPEX')
 
@@ -122,5 +119,5 @@ class Blopex(package.Package):
     slepcvars.write('BLOPEX_INCLUDE = ' + f + '\n')
 
     self.havepackage = True
-    self.packageflags = [l] + [f]
+    self.packageflags = l+' '+f
 

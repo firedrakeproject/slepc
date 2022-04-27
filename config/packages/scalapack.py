@@ -39,5 +39,5 @@ class Scalapack(package.Package):
       self.log.Exit('The ScaLAPACK interface requires that PETSc has been built with ScaLAPACK')
 
     functions = self.Functions(petsc)
-    self.FortranLib(slepcconf,slepcvars,[''],[''],functions)
+    self.FortranLib(slepcconf,slepcvars,[''],'',functions)
 

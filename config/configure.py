@@ -129,7 +129,7 @@ if showhelp:
   print('  <bool> means a boolean, use either 0 or 1')
   print('  <dir> means a directory')
   print('  <fname> means a file name, can also include the full path or url')
-  print('  <libraries> means a comma-separated list of libraries, e.g., --with-arpack-lib=-lparpack,-larpack')
+  print('  <libraries> means a quoted list of libraries, e.g., --with-arpack-lib="-lparpack -larpack"')
   print('  <flags> means a string of flags, e.g., --download-primme-cflags="-std=c99 -g"')
   for pkg in specialpackages:
     pkg.ShowHelp()

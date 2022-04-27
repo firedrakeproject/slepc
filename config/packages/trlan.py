@@ -27,7 +27,7 @@ class Trlan(package.Package):
   def Check(self,slepcconf,slepcvars,petsc,archdir):
     functions = ['trlan77']
     if self.packagelibs:
-      libs = [self.packagelibs]
+      libs = self.packagelibs
     else:
       if petsc.mpiuni:
         libs = [['-ltrlan']]
