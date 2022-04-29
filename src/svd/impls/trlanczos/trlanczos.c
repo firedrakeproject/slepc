@@ -88,7 +88,8 @@ static PetscErrorCode MatZCreateContext(SVD svd,MatZData **zdata)
   PetscFunctionReturn(0);
 }
 
-/* Update scale factor for B in Z=[A;B] */
+/* Update scale factor for B in Z=[A;B]
+   If matrices are swapped, the scale factor is inverted.*/
 static PetscErrorCode MatZUpdateScale(SVD svd)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
@@ -96,28 +97,29 @@ static PetscErrorCode MatZUpdateScale(SVD svd)
   Mat            mats[2],normal;
   MatType        Atype;
   PetscBool      sametype;
+  PetscReal      scalef = svd->swapped? 1.0/lanczos->scalef : lanczos->scalef;
 
   PetscFunctionBegin;
   if (lanczos->explicitmatrix) {
     /* Destroy the matrix Z and create it again */
     PetscCall(MatDestroy(&lanczos->Z));
     mats[0] = svd->A;
-    if (lanczos->scalef == 1.0) {
+    if (scalef == 1.0) {
       mats[1] = svd->B;
     } else {
       PetscCall(MatDuplicate(svd->B,MAT_COPY_VALUES,&mats[1]));
-      PetscCall(MatScale(mats[1],lanczos->scalef));
+      PetscCall(MatScale(mats[1],scalef));
     }
     PetscCall(MatCreateNest(PetscObjectComm((PetscObject)svd),2,NULL,1,NULL,mats,&lanczos->Z));
     PetscCall(MatGetType(svd->A,&Atype));
     PetscCall(PetscObjectTypeCompare((PetscObject)svd->B,Atype,&sametype));
     if (!sametype) Atype = MATAIJ;
     PetscCall(MatConvert(lanczos->Z,Atype,MAT_INPLACE_MATRIX,&lanczos->Z));
-    if (lanczos->scalef != 1.0) PetscCall(MatDestroy(&mats[1]));
+    if (scalef != 1.0) PetscCall(MatDestroy(&mats[1]));
     PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z));
   } else {
     PetscCall(MatShellGetContext(lanczos->Z,&zdata));
-    zdata->scalef = lanczos->scalef;
+    zdata->scalef = scalef;
   }
 
   /* create normal equations matrix, to build the preconditioner in LSQR */
@@ -217,16 +219,11 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscCall(SVDAllocateSolution(svd,1));
   dstype = DSSVD;
   if (svd->isgeneralized) {
-    if (svd->swapped) {
-      SWAP(svd->A,svd->B,aux);
-      SWAP(svd->AT,svd->BT,aux);
-      svd->swapped = PETSC_FALSE;
-    }
-    if (svd->which==SVD_LARGEST) {
+    if (svd->which==SVD_LARGEST && lanczos->bidiag == SVD_TRLANCZOS_GBIDIAG_LOWER) {
       SWAP(svd->A,svd->B,aux);
       SWAP(svd->AT,svd->BT,aux);
       svd->swapped = PETSC_TRUE;
-    }
+    } else svd->swapped = PETSC_FALSE;
 
     if (lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_UPPER || lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_LOWER) dstype = DSGSVD;
     PetscCall(SVDSetWorkVecs(svd,1,1));
@@ -662,7 +659,7 @@ static PetscErrorCode SVDLanczosGSingle(SVD svd,PetscReal *alpha,PetscReal *beta
 PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,normr,scaleth;
+  PetscReal      *alpha,*beta,normr,scaleth,sigma0;
   PetscScalar    *w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,VV;
@@ -708,7 +705,8 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
     PetscCall(SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,normr,&k));
     PetscCall((*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx));
 
-    if (scaleth!=0 && k==0 && svd->sigma[0]>scaleth) {
+    sigma0 = svd->which==SVD_LARGEST? svd->sigma[0] : 1.0/svd->sigma[0];
+    if (scaleth!=0 && k==0 && sigma0>scaleth) {
 
       /* Scale and start from scratch */
       lanczos->scalef *= svd->sigma[0]/PetscSqrtReal(1-svd->sigma[0]*svd->sigma[0]);
@@ -927,7 +925,7 @@ static inline PetscErrorCode SVDInitialVectorGUpper(SVD svd,BV V,BV U1,PetscInt 
 PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,*alphah,*betah,normr;
+  PetscReal      *alpha,*beta,*alphah,*betah,normr,sigma0;
   PetscScalar    *w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,Vmat,X;
@@ -973,7 +971,8 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
     PetscCall(SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,normr,&k));
     PetscCall((*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx));
 
-    if (lanczos->scaleth!=0 && k==0 && svd->sigma[0]>lanczos->scaleth) {
+    sigma0 = svd->which==SVD_LARGEST? svd->sigma[0] : 1.0/svd->sigma[0];
+    if (lanczos->scaleth!=0 && k==0 && sigma0>lanczos->scaleth) {
 
       /* Scale and start from scratch */
       lanczos->scalef *= svd->sigma[0];
@@ -1220,7 +1219,7 @@ static inline PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,BV U2,Pet
 PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,*alphah,*betah,normr;
+  PetscReal      *alpha,*beta,*alphah,*betah,normr,scalef;
   PetscScalar    *w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,Vmat,X;
@@ -1229,7 +1228,8 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
   PetscFunctionBegin;
   PetscCall(DSGetLeadingDimension(svd->ds,&ld));
   PetscCall(PetscMalloc1(ld,&w));
-  normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb*lanczos->scalef): 1.0;
+  scalef = svd->swapped? 1.0/lanczos->scalef : lanczos->scalef;
+  normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb*scalef): 1.0;
 
   /* normalize start vector */
   if (!svd->ninil) PetscCall(BVSetRandomColumn(U2,0));
@@ -1266,13 +1266,14 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
     PetscCall(SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,normr,&k));
     PetscCall((*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx));
 
-    if (lanczos->scaleth!=0 && k==0 && svd->sigma[0]>lanczos->scaleth) {
+    if (lanczos->scaleth!=0 && k==0 && 1.0/svd->sigma[0]>lanczos->scaleth) {
 
       /* Scale and start from scratch */
-      lanczos->scalef *= svd->sigma[0];
+      lanczos->scalef *= svd->swapped? 1.0/svd->sigma[0] : svd->sigma[0];
       PetscCall(PetscInfo(svd,"Scaling by factor %g and starting from scratch\n",(double)lanczos->scalef));
       MatZUpdateScale(svd);
-      if (svd->conv==SVD_CONV_ABS) normr = PetscMax(svd->nrma,svd->nrmb*lanczos->scalef);
+      scalef = svd->swapped? 1.0/lanczos->scalef : lanczos->scalef;
+      if (svd->conv==SVD_CONV_ABS) normr = PetscMax(svd->nrma,svd->nrmb*scalef);
       l = 0;
       if (!svd->ninil) PetscCall(BVSetRandomColumn(U2,0));
       PetscCall(SVDInitialVectorGLower(svd,V,U1,U2,0,NULL));
@@ -1332,11 +1333,12 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   BVType         type;
   Mat            U,V;
   SlepcSC        sc;
+  PetscReal      scalef;
 
   PetscFunctionBegin;
   PetscCall(PetscCitationsRegister(citationg,&citedg));
 
-  if (svd->which==SVD_LARGEST) {
+  if (svd->which==SVD_LARGEST && svd->swapped) {
     PetscCall(DSGetSlepcSC(svd->ds,&sc));
     sc->comparison = SlepcCompareSmallestReal;
   }
@@ -1397,11 +1399,7 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscCall(BVRestoreMat(svd->V,&V));
 
   /* Finish computing left singular vectors and move them to its place */
-  if (svd->which==SVD_LARGEST) {
-    SWAP(U1,U2,UU);
-    svd->swapped = PETSC_FALSE;
-    for (i=0;i<svd->nconv;i++) svd->sigma[i] = 1.0/svd->sigma[i];
-  }
+  if (svd->swapped) SWAP(U1,U2,UU);
   switch (lanczos->bidiag) {
     case SVD_TRLANCZOS_GBIDIAG_SINGLE:
       PetscCall(SVDLeftSingularVectors_Single(svd,U1,U2));
@@ -1413,19 +1411,22 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   }
 
   /* Undo scaling */
-  if (lanczos->scalef != 1.0) {
+  scalef = svd->swapped? 1.0/lanczos->scalef : lanczos->scalef;
+  if (scalef != 1.0) {
     PetscInt  i;
     PetscReal c,s,r,f;
 
     for (i=0; i<svd->nconv; i++) {
       s = 1.0/PetscSqrtReal(1.0+svd->sigma[i]*svd->sigma[i]);
       c = svd->sigma[i]*s;
-      r = s/lanczos->scalef;
+      r = s/scalef;
       f = 1.0/PetscSqrtReal(c*c+r*r);
       PetscCall(BVScaleColumn(svd->V,i,f));
-      svd->sigma[i] *= lanczos->scalef;
+      svd->sigma[i] *= scalef;
     }
   }
+
+  if (svd->swapped) for (i=0;i<svd->nconv;i++) svd->sigma[i] = 1.0/svd->sigma[i];
 
   PetscCall(BVDestroy(&U1));
   PetscCall(BVDestroy(&U2));
@@ -1979,8 +1980,9 @@ static PetscErrorCode SVDTRLanczosSetScale_TRLanczos(SVD svd,PetscReal scale)
    This parameter is relevant for the GSVD case only. If the parameter is
    positive, it indicates the scale factor for B in matrix Z=[A;B]. If
    negative, its absolute value is the threshold for automatic scaling.
-   In automatic scaling, whenever the leading approximate generalized singular
-   value exceeds the threshold, the computation is restarted with matrix B
+   In automatic scaling, whenever the largest approximate generalized singular
+   value (or the inverse of the smallest value, if SVD_SMALLEST is used)
+   exceeds the threshold, the computation is restarted with matrix B
    scaled by that value.
 
    Level: advanced

@@ -1,0 +1,13 @@
+
+Generalized singular value decomposition, (25+21)x20
+
+
+ Number of requested singular values: 2
+ Number of converged approximate singular triplets: 2
+
+          sigma           ||r||/||[A;B]||
+  --------------------- ------------------
+        0.002828          removed
+        0.026571          removed
+
+Level of orthogonality below the tolerance
