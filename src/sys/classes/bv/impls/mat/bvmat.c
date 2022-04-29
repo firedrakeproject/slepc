@@ -271,8 +271,6 @@ PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
 
   PetscFunctionBegin;
   PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,PETSC_DECIDE,m,NULL,&A));
-  PetscCall(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
-  PetscCall(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
   PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)A));
   if (((PetscObject)bv)->name) {
     PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
@@ -421,8 +419,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     ptr = NULL;
   }
   PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv->t),nloc,PETSC_DECIDE,PETSC_DECIDE,bv->m,ptr,&ctx->A));
-  PetscCall(MatAssemblyBegin(ctx->A,MAT_FINAL_ASSEMBLY));
-  PetscCall(MatAssemblyEnd(ctx->A,MAT_FINAL_ASSEMBLY));
   PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)ctx->A));
   if (((PetscObject)bv)->name) {
     PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));

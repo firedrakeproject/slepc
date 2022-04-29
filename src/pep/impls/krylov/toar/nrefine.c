@@ -1017,8 +1017,6 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
       PetscCall(PEPEvaluateBasis(pep,H[j+j*ldh],0,coef,NULL));
       for (j=1;j<nmat;j++) PetscCall(MatAXPY(E[0],coef[j],A[j],str));
       PetscCall(MatCreateDense(comm,PETSC_DECIDE,PETSC_DECIDE,k,k,NULL,&E[1]));
-      PetscCall(MatAssemblyBegin(E[1],MAT_FINAL_ASSEMBLY));
-      PetscCall(MatAssemblyEnd(E[1],MAT_FINAL_ASSEMBLY));
       PetscCall(MatGetOwnershipRange(E[0],&n0,&m0));
       PetscCall(MatGetOwnershipRange(E[1],&n1,&m1));
       PetscCall(MatGetOwnershipRangeColumn(E[0],&n0_,&m0_));
@@ -1027,11 +1025,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
          they must have the same column and row ranges */
       PetscCheck(m0_-n0_==m0-n0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Inconsistent dimensions");
       PetscCall(MatCreateDense(comm,m0-n0,m1_-n1_,PETSC_DECIDE,PETSC_DECIDE,NULL,&B));
-      PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
-      PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
       PetscCall(MatCreateDense(comm,m1-n1,m0_-n0_,PETSC_DECIDE,PETSC_DECIDE,NULL,&C));
-      PetscCall(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY));
-      PetscCall(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY));
       PetscCall(MatCreateTile(1.0,E[0],1.0,B,1.0,C,1.0,E[1],&M));
       PetscCall(MatDestroy(&B));
       PetscCall(MatDestroy(&C));

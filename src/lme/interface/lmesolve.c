@@ -264,8 +264,6 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   PetscCall(MatDenseRestoreArrayWrite(R,&Rarray));
 
   /* compute ||R||_F */
-  PetscCall(MatAssemblyBegin(R,MAT_FINAL_ASSEMBLY));
-  PetscCall(MatAssemblyEnd(R,MAT_FINAL_ASSEMBLY));
   PetscCall(MatNorm(R,NORM_FROBENIUS,norm));
 
   PetscCall(BVDestroy(&W));
