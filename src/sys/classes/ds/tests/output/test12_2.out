@@ -1,5 +1,5 @@
 Solve a Dense System of type NEP - dimension 10, tau=0.001.
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: nep
   current state: RAW
   dimensions: ld=12, n=10, l=0, k=0
@@ -7,20 +7,20 @@ DS Object: 1 MPI processes
   number of integration points: 64
   maximum minimality index: 4
   doing iterative refinement (1 its, tolerance removed)
-  RG Object: 1 MPI processes
+  RG Object: 1 MPI process
     type: ellipse
       center: 0., radius: 10., vscale: 1.
   number of functions: 3
 Function 0:
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: rational
     polynomial: -1*x^1+0
 Function 1:
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: rational
     constant: 1.
 Function 2:
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: exp
     exponential: exp(-0.001*x)
     computing matrix functions with: scaling & squaring, [m/m] Pade approximant (Higham)

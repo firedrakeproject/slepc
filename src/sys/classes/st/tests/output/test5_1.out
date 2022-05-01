@@ -1,4 +1,4 @@
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -0.5
 1.5
@@ -16,7 +16,7 @@ Vec Object: 1 MPI processes
 0.
 0.
 0.
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 1.5625
 4.6875
@@ -34,7 +34,7 @@ Vec Object: 1 MPI processes
 0.9375
 0.1875
 0.9375
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -2.9375
 1.6875
@@ -52,7 +52,7 @@ Vec Object: 1 MPI processes
 -0.1875
 -1.3125
 0.9375
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -1.5
 -1.
@@ -70,7 +70,7 @@ Vec Object: 1 MPI processes
 0.
 0.
 0.
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 1.5
 4.
@@ -88,7 +88,7 @@ Vec Object: 1 MPI processes
 0.
 0.
 0.
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 0.6875
 1.0625
@@ -106,7 +106,7 @@ Vec Object: 1 MPI processes
 0.3125
 0.0625
 0.3125
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -0.8125
 0.0625
@@ -124,7 +124,7 @@ Vec Object: 1 MPI processes
 -0.0625
 -0.4375
 0.3125
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 1.5625
 4.6875
@@ -142,7 +142,7 @@ Vec Object: 1 MPI processes
 0.9375
 0.1875
 0.9375
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -2.9375
 1.6875

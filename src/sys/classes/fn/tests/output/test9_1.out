@@ -1,9 +1,9 @@
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: log
     logarithm: log(x)
   f(2.2)=0.788457
   f'(2.2)=0.454545
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: log
     logarithm: +1.3*log(+0.2*x)
   f(2.2)=-1.06727

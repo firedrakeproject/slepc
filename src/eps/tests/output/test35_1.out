@@ -1,7 +1,7 @@
 
 Generalized eigenproblem with BLOPEX, N=1225 (35x35 grid)
 
-EPS Object: 1 MPI processes
+EPS Object: 1 MPI process
   type: blopex
     block size 4
   problem type: generalized symmetric eigenvalue problem
@@ -11,17 +11,17 @@ EPS Object: 1 MPI processes
   maximum dimension of projected problem (mpd): 8
   maximum number of iterations: 306
   convergence test: relative to the eigenvalue
-ST Object: 1 MPI processes
+ST Object: 1 MPI process
   type: precond
   shift: 0.
   number of matrices: 2
   nonzero pattern of the matrices: UNKNOWN
-  KSP Object: (st_) 1 MPI processes
+  KSP Object: (st_) 1 MPI process
     type: preonly
     maximum iterations=10000, initial guess is zero
     left preconditioning
     using NONE norm type for convergence test
-  PC Object: (st_) 1 MPI processes
+  PC Object: (st_) 1 MPI process
     type: icc
       out-of-place factorization
       0 levels of fill
@@ -29,14 +29,14 @@ ST Object: 1 MPI processes
       matrix ordering: natural
       factor fill ratio given 1., needed 1.
         Factored matrix follows:
-          Mat Object: 1 MPI processes
+          Mat Object: 1 MPI process
             type: seqsbaij
             rows=1225, cols=1225
             package used to perform factorization: petsc
             total: nonzeros=3605, allocated nonzeros=3605
                 block size is 1
     linear system matrix = precond matrix:
-    Mat Object: (st_) 1 MPI processes
+    Mat Object: (st_) 1 MPI process
       type: seqaij
       rows=1225, cols=1225
       total: nonzeros=5985, allocated nonzeros=6125

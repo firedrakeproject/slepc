@@ -1,12 +1,12 @@
 Solve a Dense System of type SVD with compact storage - dimension 10x10.
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: svd
   current state: RAW
   dimensions: ld=12, n=10, l=0, k=0
   flags: compact
   number of columns: 10
 Initial - - - - - - - - -
-%DS Object: 1 MPI processes
+%DS Object: 1 MPI process
 %  type: svd
 % Size = 10 10
 zzz = zeros(20,3);

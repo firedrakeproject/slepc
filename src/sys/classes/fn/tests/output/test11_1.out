@@ -1,16 +1,16 @@
 Phi1 via a combined function, n=10.
 Two functions combined with division:
-FN Object: a 1 MPI processes
+FN Object: a 1 MPI process
   type: combine
     two added functions f1+f2
-    FN Object: e 1 MPI processes
+    FN Object: e 1 MPI process
       type: exp
         exponential: exp(x)
         computing matrix functions with: scaling & squaring, [m/m] Pade approximant (Higham)
-    FN Object: c 1 MPI processes
+    FN Object: c 1 MPI process
       type: rational
         constant: -1.
-FN Object: p 1 MPI processes
+FN Object: p 1 MPI process
   type: rational
     polynomial: +1*x^1+0
   f(2.2)=3.64773

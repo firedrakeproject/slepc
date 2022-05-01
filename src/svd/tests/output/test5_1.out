@@ -8,10 +8,10 @@ SVD of diagonal matrix, n=6
   1 SVD converged value (error) #3 3. (0.00000000e+00)
   1 SVD converged value (error) #4 2. (0.00000000e+00)
   1 SVD converged value (error) #5 1. (0.00000000e+00)
-SVD Object: svd 1 MPI processes
+SVD Object: svd 1 MPI process
   type: cross
     implicit matrix
-    EPS Object: (svd_cross_) 1 MPI processes
+    EPS Object: (svd_cross_) 1 MPI process
       type: krylovschur
         50% of basis vectors kept after restart
         using the locking variant
@@ -22,17 +22,17 @@ SVD Object: svd 1 MPI processes
       maximum dimension of projected problem (mpd): 6
       maximum number of iterations: 100
       convergence test: relative to the eigenvalue
-    BV Object: (svd_cross_) 1 MPI processes
+    BV Object: (svd_cross_) 1 MPI process
       type: svec
       7 columns of global length 6
       vector orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)
       block orthogonalization method: GS
       doing matmult as a single matrix-matrix product
-    DS Object: (svd_cross_) 1 MPI processes
+    DS Object: (svd_cross_) 1 MPI process
       type: hep
       solving the problem with: Implicit QR method (_steqr)
-    ST Object: (svd_cross_) 1 MPI processes
+    ST Object: (svd_cross_) 1 MPI process
       type: shift
       shift: 0.
       number of matrices: 1

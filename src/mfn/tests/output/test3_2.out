@@ -3,7 +3,7 @@ Square root of Laplacian y=sqrt(A)*e_1, N=16 (4x4 grid)
 
  Type set to krylov
  MFN prefix is currently: check_myprefix_
-Mat Object: 1 MPI processes
+Mat Object: 1 MPI process
   type: seqaij
 row 0: (0, 4.)  (1, -1.)  (4, -1.) 
 row 1: (0, -1.)  (1, 4.)  (2, -1.)  (5, -1.) 

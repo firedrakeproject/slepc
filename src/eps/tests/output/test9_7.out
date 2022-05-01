@@ -7,28 +7,28 @@ Markov Model, N=120 (m=15)
     0.97137
     -0.97137
 
-Vec Object: X0_EPS_objectid_0 1 MPI processes
+Vec Object: X0_EPS_objectid_0 1 MPI process
   type: seq
   length=120
-Vec Object: Y0_EPS_objectid_0 1 MPI processes
+Vec Object: Y0_EPS_objectid_0 1 MPI process
   type: seq
   length=120
-Vec Object: X1_EPS_objectid_0 1 MPI processes
+Vec Object: X1_EPS_objectid_0 1 MPI process
   type: seq
   length=120
-Vec Object: Y1_EPS_objectid_0 1 MPI processes
+Vec Object: Y1_EPS_objectid_0 1 MPI process
   type: seq
   length=120
-Vec Object: X2_EPS_objectid_0 1 MPI processes
+Vec Object: X2_EPS_objectid_0 1 MPI process
   type: seq
   length=120
-Vec Object: Y2_EPS_objectid_0 1 MPI processes
+Vec Object: Y2_EPS_objectid_0 1 MPI process
   type: seq
   length=120
-Vec Object: X3_EPS_objectid_0 1 MPI processes
+Vec Object: X3_EPS_objectid_0 1 MPI process
   type: seq
   length=120
-Vec Object: Y3_EPS_objectid_0 1 MPI processes
+Vec Object: Y3_EPS_objectid_0 1 MPI process
   type: seq
   length=120
  Number of requested eigenvalues: 4

@@ -1,5 +1,5 @@
 Solve a Dense System of type PEP - n=7.
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: pep
   current state: RAW
   dimensions: ld=9, n=7, l=0, k=0

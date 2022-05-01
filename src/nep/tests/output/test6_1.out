@@ -5,46 +5,46 @@ NEP prefix is currently: check_myprefix_
 
   Convergence history for check_myprefix_ solve.
   6 NEP converged value (error) #0 0.808885 (removed)
-NEP Object: (check_myprefix_) 1 MPI processes
+NEP Object: (check_myprefix_) 1 MPI process
   type: narnoldi
     updating the preconditioner every 1 iterations
-    KSP Object: 1 MPI processes
+    KSP Object: 1 MPI process
       type: bcgs
       maximum iterations=10000, initial guess is zero
       left preconditioning
       using PRECONDITIONED norm type for convergence test
-    PC Object: 1 MPI processes
+    PC Object: 1 MPI process
       type: bjacobi
         number of blocks = 1
         Local solver information for first block is in the following KSP and PC objects on rank 0:
         Use -ksp_view ::ascii_info_detail to display information for all blocks
-        KSP Object: (sub_) 1 MPI processes
+        KSP Object: (sub_) 1 MPI process
           type: preonly
           maximum iterations=10000, initial guess is zero
           left preconditioning
           using NONE norm type for convergence test
-        PC Object: (sub_) 1 MPI processes
+        PC Object: (sub_) 1 MPI process
           type: ilu
             out-of-place factorization
             0 levels of fill
             matrix ordering: natural
             factor fill ratio given 1., needed 1.
               Factored matrix follows:
-                Mat Object: 1 MPI processes
+                Mat Object: 1 MPI process
                   type: seqaij
                   rows=128, cols=128
                   package used to perform factorization: petsc
                   total: nonzeros=382, allocated nonzeros=382
                     not using I-node routines
           linear system matrix = precond matrix:
-          Mat Object: (sub_) 1 MPI processes
+          Mat Object: (sub_) 1 MPI process
             type: seqaij
             rows=128, cols=128
             total: nonzeros=382, allocated nonzeros=382
             total number of mallocs used during MatSetValues calls =0
               not using I-node routines
       linear system matrix = precond matrix:
-      Mat Object: (sub_) 1 MPI processes
+      Mat Object: (sub_) 1 MPI process
         type: seqaij
         rows=128, cols=128
         total: nonzeros=382, allocated nonzeros=382
@@ -61,14 +61,14 @@ NEP Object: (check_myprefix_) 1 MPI processes
   maximum number of iterations: 16
   convergence test: relative to the eigenvalue
   dimension of user-provided initial space: 1
-BV Object: (check_myprefix_) 1 MPI processes
+BV Object: (check_myprefix_) 1 MPI process
   type: svec
   16 columns of global length 128
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
   block orthogonalization method: GS
   doing matmult as a single matrix-matrix product
-DS Object: (check_myprefix_) 1 MPI processes
+DS Object: (check_myprefix_) 1 MPI process
   type: nhep
  Number of requested eigenvalues: 1
  N-Arnoldi lag parameter: 1

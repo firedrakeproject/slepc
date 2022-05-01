@@ -191,7 +191,7 @@ int main(int argc,char **argv)
    testset:
       nsize: 3
       args: -fn_scale .05,2 -n 100 -fn_parallel synchronized
-      filter: grep -v "computing matrix functions" | grep -v "SYNCHRONIZED" | sed -e "s/3 MPI/1 MPI/g"
+      filter: grep -v "computing matrix functions" | grep -v "SYNCHRONIZED" | sed -e "s/3 MPI processes/1 MPI process/g"
       requires: !__float128
       output_file: output/test7_1.out
       test:

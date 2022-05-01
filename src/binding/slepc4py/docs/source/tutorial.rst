@@ -185,7 +185,7 @@ view the particular settings that are currently being used::
 
     $ python demo/ex1.py -eps_view
 
-    EPS Object: 1 MPI processes
+    EPS Object: 1 MPI process
       type: krylovschur
         50% of basis vectors kept after restart
         using the locking variant
@@ -197,17 +197,17 @@ view the particular settings that are currently being used::
       maximum number of iterations: 100
       tolerance: 1e-08
       convergence test: relative to the eigenvalue
-    BV Object: 1 MPI processes
+    BV Object: 1 MPI process
       type: svec
       17 columns of global length 30
       orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)
       block orthogonalization method: GS
       doing matmult as a single matrix-matrix product
-    DS Object: 1 MPI processes
+    DS Object: 1 MPI process
       type: hep
       solving the problem with: Implicit QR method (_steqr)
-    ST Object: 1 MPI processes
+    ST Object: 1 MPI process
       type: shift
       shift: 0
       number of matrices: 1

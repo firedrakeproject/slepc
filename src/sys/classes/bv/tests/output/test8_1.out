@@ -1,6 +1,6 @@
 Test BV orthogonalization with selected columns of length 20.
 Orthogonalization coefficients:
-Vec Object:z 1 MPI processes
+Vec Object:z 1 MPI process
   type: seq
 0.700933
 0.

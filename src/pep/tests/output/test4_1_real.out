@@ -1,16 +1,16 @@
 
 Quadratic Eigenproblem, N=100 (10x10 grid)
 
-Vec Object: Xr0_PEP_solver 1 MPI processes
+Vec Object: Xr0_PEP_solver 1 MPI process
   type: seq
   length=100
-Vec Object: Xi0_PEP_solver 1 MPI processes
+Vec Object: Xi0_PEP_solver 1 MPI process
   type: seq
   length=100
-Vec Object: Xr1_PEP_solver 1 MPI processes
+Vec Object: Xr1_PEP_solver 1 MPI process
   type: seq
   length=100
-Vec Object: Xi1_PEP_solver 1 MPI processes
+Vec Object: Xi1_PEP_solver 1 MPI process
   type: seq
   length=100
  Linearization with alpha=1., beta=0. with explicit matrix

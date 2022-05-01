@@ -1,5 +1,5 @@
 Matrix exponential, n=120.
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: exp
     exponential: +1.5*exp(+0.6*x)
 The 1-norm of f(A) is 54.8974

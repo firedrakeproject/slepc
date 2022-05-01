@@ -33,47 +33,47 @@ PC Object: 4 MPI processes
       restriction/interpolation type - RESTRICT
       Local solver information for first block is in the following KSP and PC objects on rank 0:
       Use -pc_hpddm_levels_1_ksp_view ::ascii_info_detail to display information for all blocks
-    KSP Object: (pc_hpddm_levels_1_sub_) 1 MPI processes
+    KSP Object: (pc_hpddm_levels_1_sub_) 1 MPI process
       type: preonly
       maximum iterations=10000, initial guess is zero
       tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
       left preconditioning
       using NONE norm type for convergence test
-    PC Object: (pc_hpddm_levels_1_sub_) 1 MPI processes
+    PC Object: (pc_hpddm_levels_1_sub_) 1 MPI process
       type: lu
         out-of-place factorization
         tolerance for zero pivot 2.22045e-14
         matrix ordering: nd
           Factored matrix follows:
-            Mat Object: 1 MPI processes
+            Mat Object: 1 MPI process
               type: seqaij
               package used to perform factorization: petsc
       linear system matrix = precond matrix:
-      Mat Object: (pc_hpddm_levels_1_sub_) 1 MPI processes
+      Mat Object: (pc_hpddm_levels_1_sub_) 1 MPI process
         type: seqaij
         total number of mallocs used during MatSetValues calls=0
     linear system matrix = precond matrix:
     Mat Object: 4 MPI processes
       type: mpiaij
       total number of mallocs used during MatSetValues calls=0
-    KSP Object: (pc_hpddm_coarse_) 1 MPI processes
+    KSP Object: (pc_hpddm_coarse_) 1 MPI process
       type: preonly
       maximum iterations=10000, initial guess is zero
       tolerances:  relative=1e-05, absolute=1e-50, divergence=10000.
       left preconditioning
       using NONE norm type for convergence test
-    PC Object: (pc_hpddm_coarse_) 1 MPI processes
+    PC Object: (pc_hpddm_coarse_) 1 MPI process
       type: cholesky
         out-of-place factorization
         tolerance for zero pivot 2.22045e-14
         matrix ordering: natural
           Factored matrix follows:
-            Mat Object: 1 MPI processes
+            Mat Object: 1 MPI process
               type: seqsbaij
               package used to perform factorization: petsc
                   block size is 10
       linear system matrix = precond matrix:
-      Mat Object: (pc_hpddm_coarse_) 1 MPI processes
+      Mat Object: (pc_hpddm_coarse_) 1 MPI process
         type: seqsbaij
         total number of mallocs used during MatSetValues calls=0
             block size is 10

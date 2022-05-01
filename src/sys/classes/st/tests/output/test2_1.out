@@ -2,7 +2,7 @@
 1-D Laplacian, n=10
 
 ST type shift
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 1.
 0.
@@ -15,7 +15,7 @@ Vec Object: 1 MPI processes
 0.
 1.
 With shift=0.1
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 0.9
 -0.1
@@ -27,7 +27,7 @@ Vec Object: 1 MPI processes
 -0.1
 -0.1
 0.9
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 0.9
 -0.1
@@ -41,7 +41,7 @@ Vec Object: 1 MPI processes
 0.9
 ST type sinvert
 With shift=0.1
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -18.0797
 -35.3515
@@ -54,7 +54,7 @@ Vec Object: 1 MPI processes
 -35.3515
 -18.0797
 With shift=-0.5
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 0.998536
 1.49634
@@ -68,7 +68,7 @@ Vec Object: 1 MPI processes
 0.998536
 ST type cayley
 With shift=-0.5, antishift=-0.5
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 0.00146413
 -0.49634
@@ -81,7 +81,7 @@ Vec Object: 1 MPI processes
 -0.49634
 0.00146413
 With shift=1.1, antishift=1.1
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -0.48258
 -2.53432
@@ -94,7 +94,7 @@ Vec Object: 1 MPI processes
 -2.53432
 -0.48258
 With shift=1.1, antishift=-1.
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 0.93261
 0.839349
@@ -106,7 +106,7 @@ Vec Object: 1 MPI processes
 0.822804
 0.839349
 0.93261
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 0.
 -1.
@@ -120,7 +120,7 @@ Vec Object: 1 MPI processes
 0.
 ST type sinvert
 With shift=0.1
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -18.0797
 -35.3515

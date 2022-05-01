@@ -1,13 +1,13 @@
 VecComp test
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: comp
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 2.
 -1.
 3.
 3.5
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 1.2
 1.8

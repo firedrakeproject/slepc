@@ -3,7 +3,7 @@ Lyapunov equation, N=100 (10x10 grid)
 
  Equation type set to 1
  Equation type changed to 0
-Mat Object: 1 MPI processes
+Mat Object: 1 MPI process
   type: seqaij
 row 0: (0, -4.)  (1, 1.)  (10, 1.)
 row 1: (0, 1.)  (1, -4.)  (2, 1.)  (11, 1.)
@@ -105,19 +105,19 @@ row 96: (86, 1.)  (95, 1.)  (96, -4.)  (97, 1.)
 row 97: (87, 1.)  (96, 1.)  (97, -4.)  (98, 1.)
 row 98: (88, 1.)  (97, 1.)  (98, -4.)  (99, 1.)
 row 99: (89, 1.)  (98, 1.)  (99, -4.)
-Mat Object: 1 MPI processes
+Mat Object: 1 MPI process
   type: lrc
  Solver being used: krylov
  Tolerance: -2., max iterations: 100
  Subspace dimension: 21
  Erroring out if convergence fails
-LME Object: 1 MPI processes
+LME Object: 1 MPI process
   type: krylov
   equation type: continuous-time Lyapunov
   number of column vectors (ncv): 21
   maximum number of iterations: 100
   tolerance: 1e-08
-BV Object: 1 MPI processes
+BV Object: 1 MPI process
   type: svec
   22 columns of global length 100
   vector orthogonalization method: classical Gram-Schmidt

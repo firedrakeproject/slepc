@@ -2,7 +2,7 @@
 Preconditioner for 1-D Laplacian, n=10
 
 With default shift
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 5.
 9.
@@ -15,7 +15,7 @@ Vec Object: 1 MPI processes
 9.
 5.
 With shift=0.1
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -18.0797
 -35.3515
@@ -28,7 +28,7 @@ Vec Object: 1 MPI processes
 -35.3515
 -18.0797
 With user-provided matrix
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 1.
 1.
