@@ -171,7 +171,7 @@ alldoc: allcite allpdf alldoc1 alldoc2 docsetdate
 
 # Build just citations
 allcite: chk_loc deletemanualpages
-	-${OMAKE_SELF} ACTION=manualpages_buildcite tree_basic LOC=${LOC}
+	-${OMAKE_SELF} ACTION=slepc_manualpages_buildcite tree_basic LOC=${LOC}
 	-@sed -e s%man+../%man+manualpages/% ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${PETSC_DIR}/doc/classic/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
 
@@ -192,7 +192,7 @@ allmanexamples: chk_loc allmanpages
 
 # Build everything that goes into 'doc' dir except html sources
 alldoc1: chk_loc allcite allmanpages allmanexamples
-	-${PYTHON} ${PETSC_DIR}/lib/petsc/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC} "src/docs/manualpages-sec"
+	-${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC} "src/docs/manualpages-sec"
 	-@echo "<html>" > singleindex.html
 	-@echo "<head>" >> singleindex.html
 	-@echo "  <title>Subroutine Index</title>" >> singleindex.html
