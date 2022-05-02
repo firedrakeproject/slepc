@@ -418,7 +418,7 @@ PetscErrorCode DSSolve_GSVD(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("ggsvd3",info);
 
-#else  // defined(SLEPC_MISSING_LAPACK_GGSVD3)
+#else  /* defined(SLEPC_MISSING_LAPACK_GGSVD3) */
 
   lwork = PetscMax(PetscMax(3*n,m),p)+n;
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
