@@ -244,4 +244,9 @@ int main(int argc,char **argv)
          args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
          suffix: 7_cyclic
 
+   test:
+       args: -m 25 -n 20 -p 21 -svd_smallest -svd_nsv 2 -svd_ncv 5 -svd_type trlanczos -svd_trlanczos_gbidiag {{upper lower}} -svd_trlanczos_scale {{0.1 -20}}
+       filter: grep -v "Solution method" | grep -v "Number of iterations" | grep -v "Stopping condition" | sed -e "s/, maxit=1[0]*$//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+       suffix: 8
+
 TEST*/

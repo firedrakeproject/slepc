@@ -1,13 +1,13 @@
 
 Generalized singular value decomposition, (22+22)x20
 
-  1 SVD condition number = 2.01108
-  2 SVD condition number = 1.71125
-  3 SVD condition number = 1.41603
-  4 SVD condition number = 1.416
+  1 SVD condition number = 2.01942
+  2 SVD condition number = 1.70893
+  3 SVD condition number = 1.41651
+  4 SVD condition number = 1.41601
   5 SVD condition number = 1.416
   6 SVD condition number = 1.416
-  7 SVD condition number = 3.39969
+  7 SVD condition number = 3.15575
  All requested singular values computed up to the required tolerance:
      2.92670, 2.73274, 2.47411
 
