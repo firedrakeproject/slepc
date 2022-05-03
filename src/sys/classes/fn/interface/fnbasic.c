@@ -607,7 +607,7 @@ PetscErrorCode FNEvaluateFunctionMat_Basic(FN fn,Mat A,Mat F)
 
 PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
 {
-  PetscBool      set,flg,symm=PETSC_FALSE;
+  PetscBool      set,flg,symm=PETSC_FALSE,iscuda,hasspecificmeth;
   PetscInt       m,n;
   PetscMPIInt    size,rank;
   PetscScalar    *pF;
@@ -625,7 +625,9 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank));
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
     PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-    if (symm && !fn->method) {  /* prefer diagonalization */
+    PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
+    hasspecificmeth = ((iscuda && fn->ops->evaluatefunctionmatcuda[fn->method]) || (!iscuda && fn->method && fn->ops->evaluatefunctionmat[fn->method]))? PETSC_TRUE: PETSC_FALSE;
+    if (!hasspecificmeth && symm && !fn->method) {  /* prefer diagonalization */
       PetscCall(PetscInfo(fn,"Computing matrix function via diagonalization\n"));
       PetscCall(FNEvaluateFunctionMat_Sym_Default(fn,A,F));
     } else {
