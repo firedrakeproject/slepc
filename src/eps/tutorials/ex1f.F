@@ -16,6 +16,9 @@
 !  The command line options are:
 !    -n <n>, where <n> = number of grid points = matrix size
 !
+!  Notes:
+!  - The free-form equivalent of this example is ex1f90.F90.
+!  - Does not check errors, see ex1f90.F90 for error checking (recommended).
 ! ----------------------------------------------------------------------
 !
       program main

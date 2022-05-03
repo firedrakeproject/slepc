@@ -61,16 +61,12 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      if (ierr .ne. 0) then
-        print*,'SlepcInitialize failed'
-        stop
-      endif
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       n = 128
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr))
       tau = 0.001
-      call PetscOptionsGetReal(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-tau',tau,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetReal(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-tau',tau,flg,ierr))
       if (rank .eq. 0) then
         write(*,100) n, tau
       endif
@@ -85,73 +81,73 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Id is the identity matrix
-      call MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,one,Id,ierr);CHKERRA(ierr)
-      call MatSetOption(Id,MAT_HERMITIAN,PETSC_TRUE,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,one,Id,ierr))
+      PetscCallA(MatSetOption(Id,MAT_HERMITIAN,PETSC_TRUE,ierr))
 
 !     ** A = 1/h^2*tridiag(1,-2,1) + aa*I
-      call MatCreate(PETSC_COMM_WORLD,A,ierr);CHKERRA(ierr)
-      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(A,ierr);CHKERRA(ierr)
-      call MatSetUp(A,ierr);CHKERRA(ierr)
-      call MatGetOwnershipRange(A,Istart,Iend,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
+      PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+      PetscCallA(MatSetFromOptions(A,ierr))
+      PetscCallA(MatSetUp(A,ierr))
+      PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       coeffs(1) = 1.0/(h*h)
       coeffs(2) = -2.0/(h*h)+aa
       do i=Istart,Iend-1
         if (i .gt. 0) then
-          call MatSetValue(A,i,i-1,coeffs(1),INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(A,i,i-1,coeffs(1),INSERT_VALUES,ierr))
         endif
         if (i .lt. n-1) then
-          call MatSetValue(A,i,i+1,coeffs(1),INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(A,i,i+1,coeffs(1),INSERT_VALUES,ierr))
         endif
-        call MatSetValue(A,i,i,coeffs(2),INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(A,i,i,coeffs(2),INSERT_VALUES,ierr))
       end do
-      call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE,ierr);CHKERRA(ierr)
+      PetscCallA(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE,ierr))
 
 !     ** B = diag(bb(xi))
-      call MatCreate(PETSC_COMM_WORLD,B,ierr);CHKERRA(ierr)
-      call MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(B,ierr);CHKERRA(ierr)
-      call MatSetUp(B,ierr);CHKERRA(ierr)
-      call MatGetOwnershipRange(B,Istart,Iend,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,B,ierr))
+      PetscCallA(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+      PetscCallA(MatSetFromOptions(B,ierr))
+      PetscCallA(MatSetUp(B,ierr))
+      PetscCallA(MatGetOwnershipRange(B,Istart,Iend,ierr))
       do i=Istart,Iend-1
         xi = (i+1)*h
         bb  = -4.1+xi*(1.0-exp(xi-PETSC_PI))
-        call MatSetValue(B,i,i,bb,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(B,i,i,bb,INSERT_VALUES,ierr))
       end do
-      call MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatSetOption(B,MAT_HERMITIAN,PETSC_TRUE,ierr);CHKERRA(ierr)
+      PetscCallA(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatSetOption(B,MAT_HERMITIAN,PETSC_TRUE,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create problem functions, f1=-lambda, f2=1.0, f3=exp(-tau*lambda)
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call FNCreate(PETSC_COMM_WORLD,f1,ierr);CHKERRA(ierr)
-      call FNSetType(f1,FNRATIONAL,ierr);CHKERRA(ierr)
+      PetscCallA(FNCreate(PETSC_COMM_WORLD,f1,ierr))
+      PetscCallA(FNSetType(f1,FNRATIONAL,ierr))
       k = 2
       coeffs(1) = -1.0
       coeffs(2) = 0.0
-      call FNRationalSetNumerator(f1,k,coeffs,ierr);CHKERRA(ierr)
+      PetscCallA(FNRationalSetNumerator(f1,k,coeffs,ierr))
 
-      call FNCreate(PETSC_COMM_WORLD,f2,ierr);CHKERRA(ierr)
-      call FNSetType(f2,FNRATIONAL,ierr);CHKERRA(ierr)
+      PetscCallA(FNCreate(PETSC_COMM_WORLD,f2,ierr))
+      PetscCallA(FNSetType(f2,FNRATIONAL,ierr))
       k = 1
       coeffs(1) = 1.0
-      call FNRationalSetNumerator(f2,k,coeffs,ierr);CHKERRA(ierr)
+      PetscCallA(FNRationalSetNumerator(f2,k,coeffs,ierr))
 
-      call FNCreate(PETSC_COMM_WORLD,f3,ierr);CHKERRA(ierr)
-      call FNSetType(f3,FNEXP,ierr);CHKERRA(ierr)
+      PetscCallA(FNCreate(PETSC_COMM_WORLD,f3,ierr))
+      PetscCallA(FNSetType(f3,FNEXP,ierr))
       scal = -tau
-      call FNSetScale(f3,scal,one,ierr);CHKERRA(ierr)
+      PetscCallA(FNSetScale(f3,scal,one,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and set various options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create eigensolver context
-      call NEPCreate(PETSC_COMM_WORLD,nep,ierr);CHKERRA(ierr)
+      PetscCallA(NEPCreate(PETSC_COMM_WORLD,nep,ierr))
 
 !     ** Set the split operator. Note that A is passed first so that
 !     ** SUBSET_NONZERO_PATTERN can be used
@@ -162,36 +158,36 @@
       funs(1) = f2
       funs(2) = f1
       funs(3) = f3
-      call NEPSetSplitOperator(nep,k,mats,funs,SUBSET_NONZERO_PATTERN,ierr);CHKERRA(ierr)
-      call NEPSetProblemType(nep,NEP_GENERAL,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSetSplitOperator(nep,k,mats,funs,SUBSET_NONZERO_PATTERN,ierr))
+      PetscCallA(NEPSetProblemType(nep,NEP_GENERAL,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Customize nonlinear solver; set runtime options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       tol = 1e-9
-      call NEPSetTolerances(nep,tol,PETSC_DEFAULT_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSetTolerances(nep,tol,PETSC_DEFAULT_INTEGER,ierr))
       k = 1
-      call NEPSetDimensions(nep,k,PETSC_DEFAULT_INTEGER,PETSC_DEFAULT_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSetDimensions(nep,k,PETSC_DEFAULT_INTEGER,PETSC_DEFAULT_INTEGER,ierr))
       k = 0
-      call NEPRIISetLagPreconditioner(nep,k,ierr);CHKERRA(ierr)
+      PetscCallA(NEPRIISetLagPreconditioner(nep,k,ierr))
 
 !     ** Set solver parameters at runtime
-      call NEPSetFromOptions(nep,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSetFromOptions(nep,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call NEPSolve(nep,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSolve(nep,ierr))
 
 !     ** Optional: Get some information from the solver and display it
-      call NEPGetType(nep,tname,ierr);CHKERRA(ierr)
+      PetscCallA(NEPGetType(nep,tname,ierr))
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call NEPGetDimensions(nep,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(NEPGetDimensions(nep,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr))
       if (rank .eq. 0) then
         write(*,130) nev
       endif
@@ -202,23 +198,23 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr))
       if (terse) then
-        call NEPErrorView(nep,PEP_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr);CHKERRA(ierr)
+        PetscCallA(NEPErrorView(nep,PEP_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr))
       else
-        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr);CHKERRA(ierr)
-        call NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-        call NEPErrorView(nep,PEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
+        PetscCallA(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr))
+        PetscCallA(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD,ierr))
+        PetscCallA(NEPErrorView(nep,PEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD,ierr))
+        PetscCallA(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr))
       endif
-      call NEPDestroy(nep,ierr);CHKERRA(ierr)
-      call MatDestroy(Id,ierr);CHKERRA(ierr)
-      call MatDestroy(A,ierr);CHKERRA(ierr)
-      call MatDestroy(B,ierr);CHKERRA(ierr)
-      call FNDestroy(f1,ierr);CHKERRA(ierr)
-      call FNDestroy(f2,ierr);CHKERRA(ierr)
-      call FNDestroy(f3,ierr);CHKERRA(ierr)
-      call SlepcFinalize(ierr)
+      PetscCallA(NEPDestroy(nep,ierr))
+      PetscCallA(MatDestroy(Id,ierr))
+      PetscCallA(MatDestroy(A,ierr))
+      PetscCallA(MatDestroy(B,ierr))
+      PetscCallA(FNDestroy(f1,ierr))
+      PetscCallA(FNDestroy(f2,ierr))
+      PetscCallA(FNDestroy(f3,ierr))
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 !/*TEST

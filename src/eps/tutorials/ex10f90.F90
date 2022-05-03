@@ -16,6 +16,8 @@
 !  The command line options are:
 !    nm <n>, where <n> is the number of grid subdivisions = matrix dimension
 !
+!  Note: this example illustrates old error checking with CHKERRA instead
+!  of PetscCallA()
 ! ----------------------------------------------------------------------
 !
 !     Module contains data needed by shell ST
@@ -70,7 +72,7 @@
         print*,'SlepcInitialize failed'
         stop
       endif
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
+      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRMPIA(ierr)
       n = 30
       call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr);CHKERRA(ierr)
 
@@ -283,6 +285,7 @@
       do j=1,n
         eigr(j) = 1.0 / eigr(j)
       enddo
+      ierr = 0
 
       return
       end

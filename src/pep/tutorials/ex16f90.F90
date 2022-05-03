@@ -45,15 +45,11 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      if (ierr .ne. 0) then
-        print*,'SlepcInitialize failed'
-        stop
-      endif
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       nx = 10
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',nx,flg,ierr);CHKERRA(ierr)
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',ny,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',nx,flg,ierr))
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',ny,flg,ierr))
       if (.not. flg) then
         ny = nx
       endif
@@ -68,98 +64,98 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** K is the 2-D Laplacian
-      call MatCreate(PETSC_COMM_WORLD,K,ierr);CHKERRA(ierr)
-      call MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(K,ierr);CHKERRA(ierr)
-      call MatSetUp(K,ierr);CHKERRA(ierr)
-      call MatGetOwnershipRange(K,Istart,Iend,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,K,ierr))
+      PetscCallA(MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr))
+      PetscCallA(MatSetFromOptions(K,ierr))
+      PetscCallA(MatSetUp(K,ierr))
+      PetscCallA(MatGetOwnershipRange(K,Istart,Iend,ierr))
       mone = -1.0
       four = 4.0
       do II=Istart,Iend-1
         i = II/nx
         j = II-i*nx
         if (i .gt. 0) then
-          call MatSetValue(K,II,II-nx,mone,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(K,II,II-nx,mone,INSERT_VALUES,ierr))
         endif
         if (i .lt. ny-1) then
-          call MatSetValue(K,II,II+nx,mone,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(K,II,II+nx,mone,INSERT_VALUES,ierr))
         endif
         if (j .gt. 0) then
-          call MatSetValue(K,II,II-1,mone,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(K,II,II-1,mone,INSERT_VALUES,ierr))
         endif
         if (j .lt. nx-1) then
-          call MatSetValue(K,II,II+1,mone,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(K,II,II+1,mone,INSERT_VALUES,ierr))
         endif
-        call MatSetValue(K,II,II,four,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(K,II,II,four,INSERT_VALUES,ierr))
       end do
-      call MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
+      PetscCallA(MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY,ierr))
 
 !     ** C is the 1-D Laplacian on horizontal lines
-      call MatCreate(PETSC_COMM_WORLD,C,ierr);CHKERRA(ierr)
-      call MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(C,ierr);CHKERRA(ierr)
-      call MatSetUp(C,ierr);CHKERRA(ierr)
-      call MatGetOwnershipRange(C,Istart,Iend,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,C,ierr))
+      PetscCallA(MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr))
+      PetscCallA(MatSetFromOptions(C,ierr))
+      PetscCallA(MatSetUp(C,ierr))
+      PetscCallA(MatGetOwnershipRange(C,Istart,Iend,ierr))
       two = 2.0
       do II=Istart,Iend-1
         i = II/nx
         j = II-i*nx
         if (j .gt. 0) then
-          call MatSetValue(C,II,II-1,mone,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(C,II,II-1,mone,INSERT_VALUES,ierr))
         endif
         if (j .lt. nx-1) then
-          call MatSetValue(C,II,II+1,mone,INSERT_VALUES,ierr);CHKERRA(ierr)
+          PetscCallA(MatSetValue(C,II,II+1,mone,INSERT_VALUES,ierr))
         endif
-        call MatSetValue(C,II,II,two,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(C,II,II,two,INSERT_VALUES,ierr))
       end do
-      call MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
+      PetscCallA(MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY,ierr))
 
 !     ** M is a diagonal matrix
-      call MatCreate(PETSC_COMM_WORLD,M,ierr);CHKERRA(ierr)
-      call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(M,ierr);CHKERRA(ierr)
-      call MatSetUp(M,ierr);CHKERRA(ierr)
-      call MatGetOwnershipRange(M,Istart,Iend,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,M,ierr))
+      PetscCallA(MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr))
+      PetscCallA(MatSetFromOptions(M,ierr))
+      PetscCallA(MatSetUp(M,ierr))
+      PetscCallA(MatGetOwnershipRange(M,Istart,Iend,ierr))
       do II=Istart,Iend-1
         val = II+1
-        call MatSetValue(M,II,II,val,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(M,II,II,val,INSERT_VALUES,ierr))
       end do
-      call MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
+      PetscCallA(MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and set various options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create eigensolver context
-      call PEPCreate(PETSC_COMM_WORLD,pep,ierr);CHKERRA(ierr)
+      PetscCallA(PEPCreate(PETSC_COMM_WORLD,pep,ierr))
 
 !     ** Set matrices and problem type
       A(1) = K
       A(2) = C
       A(3) = M
       ithree = 3
-      call PEPSetOperators(pep,ithree,A,ierr);CHKERRA(ierr)
-      call PEPSetProblemType(pep,PEP_GENERAL,ierr);CHKERRA(ierr)
+      PetscCallA(PEPSetOperators(pep,ithree,A,ierr))
+      PetscCallA(PEPSetProblemType(pep,PEP_GENERAL,ierr))
 
 !     ** Set solver parameters at runtime
-      call PEPSetFromOptions(pep,ierr);CHKERRA(ierr)
+      PetscCallA(PEPSetFromOptions(pep,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call PEPSolve(pep,ierr);CHKERRA(ierr)
+      PetscCallA(PEPSolve(pep,ierr))
 
 !     ** Optional: Get some information from the solver and display it
-      call PEPGetType(pep,tname,ierr);CHKERRA(ierr)
+      PetscCallA(PEPGetType(pep,tname,ierr))
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call PEPGetDimensions(pep,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(PEPGetDimensions(pep,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr))
       if (rank .eq. 0) then
         write(*,130) nev
       endif
@@ -170,20 +166,20 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr))
       if (terse) then
-        call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_VIEWER,ierr);CHKERRA(ierr)
+        PetscCallA(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_VIEWER,ierr))
       else
-        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr);CHKERRA(ierr)
-        call PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-        call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
+        PetscCallA(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr))
+        PetscCallA(PEPConvergedReasonView(pep,PETSC_VIEWER_STDOUT_WORLD,ierr))
+        PetscCallA(PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD,ierr))
+        PetscCallA(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr))
       endif
-      call PEPDestroy(pep,ierr);CHKERRA(ierr)
-      call MatDestroy(K,ierr);CHKERRA(ierr)
-      call MatDestroy(C,ierr);CHKERRA(ierr)
-      call MatDestroy(M,ierr);CHKERRA(ierr)
-      call SlepcFinalize(ierr)
+      PetscCallA(PEPDestroy(pep,ierr))
+      PetscCallA(MatDestroy(K,ierr))
+      PetscCallA(MatDestroy(C,ierr))
+      PetscCallA(MatDestroy(M,ierr))
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 !/*TEST
