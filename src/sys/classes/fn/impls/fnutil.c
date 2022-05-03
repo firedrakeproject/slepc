@@ -163,12 +163,13 @@ PetscErrorCode FNSqrtmDenmanBeavers(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
   PetscReal          tol,Mres=0.0,detM,g,reldiff,fnormdiff,fnormT,rwork[1];
   PetscBLASInt       N,i,it,*piv=NULL,info,query=-1,lwork;
   const PetscBLASInt one=1;
-  PetscBool          converged=PETSC_FALSE,scale=PETSC_FALSE;
+  PetscBool          converged=PETSC_FALSE,scale;
   unsigned int       ftz;
 
   PetscFunctionBegin;
   N = n*n;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
+  scale = PetscDefined(USE_REAL_SINGLE)? PETSC_FALSE: PETSC_TRUE;
   PetscCall(SlepcSetFlushToZero(&ftz));
 
   /* query work size */
@@ -191,7 +192,7 @@ PetscErrorCode FNSqrtmDenmanBeavers(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLA
       prod = invM[0];
       for (i=1;i<n;i++) prod *= invM[i+i*ld];
       detM = PetscAbsScalar(prod);
-      g = PetscPowReal(detM,-1.0/(2.0*n));
+      g = (detM>PETSC_MAX_REAL)? 0.5: PetscPowReal(detM,-1.0/(2.0*n));
       alpha = g;
       PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,T,&one));
       alpha = g*g;
@@ -262,7 +263,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
 
   PetscCall(PetscMalloc4(N,&Yold,N,&Z,N,&Zold,N,&M));
 
-  /* scale A so that ||I-A|| < 1 */
+  /* scale */
   PetscCall(PetscArraycpy(Z,A,N));
   for (i=0;i<n;i++) Z[i+i*ld] -= 1.0;
   nrm = LAPACKlange_("fro",&n,&n,Z,&n,rwork);
@@ -321,12 +322,12 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
 
 /*
  * Matrix square root by Newton-Schulz iteration. CUDA version.
- * Computes the principal square root of the matrix T using the
- * Newton-Schulz iteration. T is overwritten with sqrtm(T).
+ * Computes the principal square root of the matrix A using the
+ * Newton-Schulz iteration. A is overwritten with sqrtm(A).
  */
-PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld,PetscBool inv)
+PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *d_A,PetscBLASInt ld,PetscBool inv)
 {
-  PetscScalar        *d_A,*d_Yold,*d_Z,*d_Zold,*d_M;
+  PetscScalar        *d_Yold,*d_Z,*d_Zold,*d_M;
   PetscReal          nrm,sqrtnrm;
   const PetscScalar  szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sthree=3.0;
   PetscReal          tol,Yres=0.0,alpha;
@@ -342,7 +343,6 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   N = n*n;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
 
-  PetscCallCUDA(cudaMalloc((void **)&d_A,sizeof(PetscScalar)*N));
   PetscCallCUDA(cudaMalloc((void **)&d_Yold,sizeof(PetscScalar)*N));
   PetscCallCUDA(cudaMalloc((void **)&d_Z,sizeof(PetscScalar)*N));
   PetscCallCUDA(cudaMalloc((void **)&d_Zold,sizeof(PetscScalar)*N));
@@ -350,13 +350,11 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
 
   PetscCall(PetscLogGpuTimeBegin());
 
-  /* Y = A; */
-  PetscCallCUDA(cudaMemcpy(d_A,A,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice));
   /* Z = I; */
   PetscCallCUDA(cudaMemset(d_Z,zero,sizeof(PetscScalar)*N));
   PetscCall(set_diagonal(n,d_Z,ld,sone));
 
-  /* scale A so that ||I-A|| < 1 */
+  /* scale */
   PetscCallCUBLAS(cublasXaxpy(cublasv2handle,N,&smone,d_A,one,d_Z,one));
   PetscCallCUBLAS(cublasXnrm2(cublasv2handle,N,d_Z,one,&nrm));
   sqrtnrm = PetscSqrtReal(nrm);
@@ -400,14 +398,12 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   if (inv) {
     sqrtnrm = 1.0/sqrtnrm;
     PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&sqrtnrm,d_Z,one));
-    PetscCallCUDA(cudaMemcpy(A,d_Z,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost));
+    PetscCallCUDA(cudaMemcpy(d_A,d_Z,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
   } else {
     PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&sqrtnrm,d_A,one));
-    PetscCallCUDA(cudaMemcpy(A,d_A,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost));
   }
 
   PetscCall(PetscLogGpuTimeEnd());
-  PetscCallCUDA(cudaFree(d_A));
   PetscCallCUDA(cudaFree(d_Yold));
   PetscCallCUDA(cudaFree(d_Z));
   PetscCallCUDA(cudaFree(d_Zold));
@@ -423,20 +419,22 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
  * Computes the principal square root of the matrix T using the product form
  * of the Denman-Beavers iteration. T is overwritten with sqrtm(T).
  */
-PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
+PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *d_T,PetscBLASInt ld,PetscBool inv)
 {
-  PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
-  PetscReal      tol,Mres=0.0,detM,g,reldiff,fnormdiff,fnormT,prod;
-  PetscInt       i,it,lwork,nb;
+  PetscScalar    *d_Told,*d_M,*d_invM,*d_work,prod;
+  PetscScalar    zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
+  PetscReal      tol,Mres=0.0,detM,g,reldiff,fnormdiff,fnormT;
+  PetscInt       it,lwork,nb;
   PetscBLASInt   N,one=1,*piv=NULL;
-  PetscBool      converged=PETSC_FALSE,scale=PETSC_FALSE;
+  PetscBool      converged=PETSC_FALSE,scale;
   cublasHandle_t cublasv2handle;
 
   PetscFunctionBegin;
   PetscCall(PetscDeviceInitialize(PETSC_DEVICE_CUDA)); /* For CUDA event timers */
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
-  magma_init();
+  PetscCall(SlepcMagmaInit());
   N = n*n;
+  scale = PetscDefined(USE_REAL_SINGLE)? PETSC_FALSE: PETSC_TRUE;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
 
   /* query work size */
@@ -444,31 +442,25 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
   lwork = nb*n;
   PetscCall(PetscMalloc1(n,&piv));
   PetscCallCUDA(cudaMalloc((void **)&d_work,sizeof(PetscScalar)*lwork));
-  PetscCallCUDA(cudaMalloc((void **)&d_T,sizeof(PetscScalar)*N));
   PetscCallCUDA(cudaMalloc((void **)&d_Told,sizeof(PetscScalar)*N));
   PetscCallCUDA(cudaMalloc((void **)&d_M,sizeof(PetscScalar)*N));
   PetscCallCUDA(cudaMalloc((void **)&d_invM,sizeof(PetscScalar)*N));
 
   PetscCall(PetscLogGpuTimeBegin());
-  PetscCallCUDA(cudaMemcpy(d_M,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice));
+  PetscCallCUDA(cudaMemcpy(d_M,d_T,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
   if (inv) {  /* start recurrence with I instead of A */
     PetscCallCUDA(cudaMemset(d_T,zero,sizeof(PetscScalar)*N));
     PetscCall(set_diagonal(n,d_T,ld,1.0));
-  } else PetscCallCUDA(cudaMemcpy(d_T,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice));
+  }
 
   for (it=0;it<DBMAXIT && !converged;it++) {
 
     if (scale) { /* g = (abs(det(M)))^(-1/(2*n)); */
       PetscCallCUDA(cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
       PetscCallMAGMA(magma_xgetrf_gpu,n,n,d_invM,ld,piv);
-
-      /* XXX pending */
-//      PetscCall(mult_diagonal(d_invM,n,ld,&detM));
-      PetscCallCUDA(cudaMemcpy(T,d_invM,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost));
-      prod = T[0];
-      for (i=1;i<n;i++) { prod *= T[i+i*ld]; }
-      detM = PetscAbsReal(prod);
-      g = PetscPowReal(detM,-1.0/(2.0*n));
+      PetscCall(mult_diagonal(n,d_invM,ld,&prod));
+      detM = PetscAbsScalar(prod);
+      g = (detM>PETSC_MAX_REAL)? 0.5: PetscPowReal(detM,-1.0/(2.0*n));
       alpha = g;
       PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&alpha,d_T,one));
       alpha = g*g;
@@ -496,7 +488,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     PetscCall(shift_diagonal(n,d_M,ld,sone));
 
     if (scale) {
-      // reldiff = norm(T - Told,'fro')/norm(T,'fro');
+      /* reldiff = norm(T - Told,'fro')/norm(T,'fro'); */
       PetscCallCUBLAS(cublasXaxpy(cublasv2handle,N,&smone,d_T,one,d_Told,one));
       PetscCallCUBLAS(cublasXnrm2(cublasv2handle,N,d_Told,one,&fnormdiff));
       PetscCallCUBLAS(cublasXnrm2(cublasv2handle,N,d_T,one,&fnormT));
@@ -511,15 +503,12 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
   }
 
   PetscCheck(Mres<=tol,PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", DBMAXIT);
-  PetscCallCUDA(cudaMemcpy(T,d_T,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost));
   PetscCall(PetscLogGpuTimeEnd());
   PetscCall(PetscFree(piv));
   PetscCallCUDA(cudaFree(d_work));
-  PetscCallCUDA(cudaFree(d_T));
   PetscCallCUDA(cudaFree(d_Told));
   PetscCallCUDA(cudaFree(d_M));
   PetscCallCUDA(cudaFree(d_invM));
-  magma_finalize();
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_MAGMA */

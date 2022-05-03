@@ -165,15 +165,17 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS_CUDA(FN fn,Mat A,Mat B)
 
   PetscFunctionBegin;
   if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  PetscCall(MatDenseGetArray(B,&Ba));
+  PetscCall(MatDenseCUDAGetArray(B,&Ba));
   PetscCall(MatGetSize(A,&m,NULL));
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmNewtonSchulz_CUDA(fn,n,Ba,n,PETSC_TRUE));
-  PetscCall(MatDenseRestoreArray(B,&Ba));
+  PetscCall(MatDenseCUDARestoreArray(B,&Ba));
   PetscFunctionReturn(0);
 }
 
 #if defined(PETSC_HAVE_MAGMA)
+#include <slepcmagma.h>
+
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscBLASInt   n=0;
@@ -182,17 +184,17 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
 
   PetscFunctionBegin;
   if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  PetscCall(MatDenseGetArray(B,&T));
+  PetscCall(MatDenseCUDAGetArray(B,&T));
   PetscCall(MatGetSize(A,&m,NULL));
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_TRUE));
-  PetscCall(MatDenseRestoreArray(B,&T));
+  PetscCall(MatDenseCUDARestoreArray(B,&T));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
 {
-  PetscBLASInt   n=0,ld,*ipiv,info;
+  PetscBLASInt   n=0,ld,*ipiv;
   PetscScalar    *Ba,*Wa;
   PetscInt       m;
   Mat            W;
@@ -200,21 +202,21 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
   PetscFunctionBegin;
   PetscCall(FN_AllocateWorkMat(fn,A,&W));
   if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  PetscCall(MatDenseGetArray(B,&Ba));
-  PetscCall(MatDenseGetArray(W,&Wa));
+  PetscCall(MatDenseCUDAGetArray(B,&Ba));
+  PetscCall(MatDenseCUDAGetArray(W,&Wa));
   /* compute B = sqrtm(A) */
   PetscCall(MatGetSize(A,&m,NULL));
   PetscCall(PetscBLASIntCast(m,&n));
   ld = n;
   PetscCall(FNSqrtmSadeghi_CUDAm(fn,n,Ba,n));
   /* compute B = A\B */
+  PetscCall(SlepcMagmaInit());
   PetscCall(PetscMalloc1(ld,&ipiv));
-  PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
-  SlepcCheckLapackInfo("gesv",info);
+  PetscCallMAGMA(magma_xgesv_gpu,n,n,Wa,ld,ipiv,Ba,ld);
   PetscCall(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
   PetscCall(PetscFree(ipiv));
-  PetscCall(MatDenseRestoreArray(W,&Wa));
-  PetscCall(MatDenseRestoreArray(B,&Ba));
+  PetscCall(MatDenseCUDARestoreArray(W,&Wa));
+  PetscCall(MatDenseCUDARestoreArray(B,&Ba));
   PetscCall(FN_FreeWorkMat(fn,&W));
   PetscFunctionReturn(0);
 }
@@ -230,13 +232,6 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
                   "Denman-Beavers (product form)",
                   "Newton-Schulz iteration",
                   "Sadeghi iteration"
-#if defined(PETSC_HAVE_CUDA)
-                 ,"Newton-Schulz iteration CUDA"
-#if defined(PETSC_HAVE_MAGMA)
-                 ,"Denman-Beavers (product form) CUDA/MAGMA",
-                  "Sadeghi iteration CUDA/MAGMA"
-#endif
-#endif
   };
   const int      nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
@@ -275,10 +270,10 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
   fn->ops->evaluatefunctionmat[2]    = FNEvaluateFunctionMat_Invsqrt_NS;
   fn->ops->evaluatefunctionmat[3]    = FNEvaluateFunctionMat_Invsqrt_Sadeghi;
 #if defined(PETSC_HAVE_CUDA)
-  fn->ops->evaluatefunctionmat[4]    = FNEvaluateFunctionMat_Invsqrt_NS_CUDA;
+  fn->ops->evaluatefunctionmatcuda[2] = FNEvaluateFunctionMat_Invsqrt_NS_CUDA;
 #if defined(PETSC_HAVE_MAGMA)
-  fn->ops->evaluatefunctionmat[5]    = FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm;
-  fn->ops->evaluatefunctionmat[6]    = FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm;
+  fn->ops->evaluatefunctionmatcuda[1] = FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm;
+  fn->ops->evaluatefunctionmatcuda[3] = FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm;
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Invsqrt_Schur;

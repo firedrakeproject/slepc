@@ -120,58 +120,22 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
   PetscFunctionReturn(0);
 }
 
-#define X_AXIS        0
-#define BLOCK_SIZE_X 64
-#define TILE_SIZE_X  16 /* work to be done by any thread on axis x */
-
-/*
-   Set the kernels grid dimensions
-   xcount: number of kernel calls needed for the requested size
- */
-PetscErrorCode SetGrid1D(PetscInt n, dim3 *dimGrid, dim3 *dimBlock,PetscInt *xcount)
-{
-  PetscInt              one=1;
-  PetscBLASInt          card;
-  struct cudaDeviceProp devprop;
-
-  PetscFunctionBegin;
-  *xcount = 1;
-  if (n>BLOCK_SIZE_X) {
-    dimBlock->x = BLOCK_SIZE_X;
-    dimGrid->x = (n+BLOCK_SIZE_X*TILE_SIZE_X-one)/BLOCK_SIZE_X*TILE_SIZE_X;
-  } else {
-    dimBlock->x = (n+TILE_SIZE_X-one)/TILE_SIZE_X;
-    dimGrid->x = one;
-  }
-  PetscCallCUDA(cudaGetDevice(&card));
-  PetscCallCUDA(cudaGetDeviceProperties(&devprop,card));
-  if (dimGrid->x>(unsigned)devprop.maxGridSize[X_AXIS]) {
-    *xcount = (dimGrid->x+devprop.maxGridSize[X_AXIS]-one)/devprop.maxGridSize[X_AXIS];
-    dimGrid->x = devprop.maxGridSize[X_AXIS];
-  }
-  PetscFunctionReturn(0);
-}
-
 /* pointwise multiplication */
 __global__ void PointwiseMult_kernel(PetscInt xcount,PetscScalar *a,const PetscScalar *b,PetscInt n)
 {
-  PetscInt i,x;
+  PetscInt x;
 
-  x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
-  for (i=x;i<x+TILE_SIZE_X&&i<n;i++) {
-    a[i] *= PetscRealPart(b[i]);
-  }
+  x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x+threadIdx.x;
+  if (x<n) a[x] *= PetscRealPart(b[x]);
 }
 
 /* pointwise division */
 __global__ void PointwiseDiv_kernel(PetscInt xcount,PetscScalar *a,const PetscScalar *b,PetscInt n)
 {
-  PetscInt i,x;
+  PetscInt x;
 
-  x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
-  for (i=x;i<x+TILE_SIZE_X&&i<n;i++) {
-    a[i] /= PetscRealPart(b[i]);
-  }
+  x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x+threadIdx.x;
+  if (x<n) a[x] /= PetscRealPart(b[x]);
 }
 
 /*
@@ -191,16 +155,12 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
   if (!h) {
     PetscCall(VecCUDAGetArray(bv->buffer,&d_h));
     PetscCall(VecCUDAGetArrayRead(bv->omega,&d_omega));
-    PetscCall(SetGrid1D(bv->nc+j,&blocks3d,&threads3d,&xcount));
+    PetscCall(SlepcKernelSetGrid1D(bv->nc+j,&blocks3d,&threads3d,&xcount));
     PetscCall(PetscLogGpuTimeBegin());
     if (inverse) {
-      for (i=0;i<xcount;i++) {
-        PointwiseDiv_kernel<<<blocks3d,threads3d>>>(i,d_h,d_omega,bv->nc+j);
-      }
+      for (i=0;i<xcount;i++) PointwiseDiv_kernel<<<blocks3d,threads3d>>>(i,d_h,d_omega,bv->nc+j);
     } else {
-      for (i=0;i<xcount;i++) {
-        PointwiseMult_kernel<<<blocks3d,threads3d>>>(i,d_h,d_omega,bv->nc+j);
-      }
+      for (i=0;i<xcount;i++) PointwiseMult_kernel<<<blocks3d,threads3d>>>(i,d_h,d_omega,bv->nc+j);
     }
     PetscCallCUDA(cudaGetLastError());
     PetscCall(PetscLogGpuTimeEnd());

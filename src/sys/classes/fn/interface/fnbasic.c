@@ -589,9 +589,25 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode FNEvaluateFunctionMat_Basic(FN fn,Mat A,Mat F)
+{
+  PetscBool iscuda;
+
+  PetscFunctionBegin;
+  PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
+  if (iscuda && !fn->ops->evaluatefunctionmatcuda[fn->method]) PetscCall(PetscInfo(fn,"The method %" PetscInt_FMT " is not implemented for CUDA, falling back to CPU version\n",fn->method));
+  if (iscuda && fn->ops->evaluatefunctionmatcuda[fn->method]) PetscCall((*fn->ops->evaluatefunctionmatcuda[fn->method])(fn,A,F));
+  else if (fn->ops->evaluatefunctionmat[fn->method]) PetscCall((*fn->ops->evaluatefunctionmat[fn->method])(fn,A,F));
+  else {
+    PetscCheck(fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in this FN type");
+    PetscCheck(!fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN type");
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
 {
-  PetscBool      set,flg,symm=PETSC_FALSE;
+  PetscBool      set,flg,symm=PETSC_FALSE,iscuda,hasspecificmeth;
   PetscInt       m,n;
   PetscMPIInt    size,rank;
   PetscScalar    *pF;
@@ -608,9 +624,10 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size));
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank));
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
-
     PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-    if (symm && !fn->method) {  /* prefer diagonalization */
+    PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
+    hasspecificmeth = ((iscuda && fn->ops->evaluatefunctionmatcuda[fn->method]) || (!iscuda && fn->method && fn->ops->evaluatefunctionmat[fn->method]))? PETSC_TRUE: PETSC_FALSE;
+    if (!hasspecificmeth && symm && !fn->method) {  /* prefer diagonalization */
       PetscCall(PetscInfo(fn,"Computing matrix function via diagonalization\n"));
       PetscCall(FNEvaluateFunctionMat_Sym_Default(fn,A,F));
     } else {
@@ -619,11 +636,7 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
         PetscCall(FN_AllocateWorkMat(fn,A,&M));
         PetscCall(MatScale(M,fn->alpha));
       } else M = A;
-      if (fn->ops->evaluatefunctionmat[fn->method]) PetscCall((*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F));
-      else {
-        PetscCheck(fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in this FN type");
-        PetscCheck(!fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN type");
-      }
+      PetscCall(FNEvaluateFunctionMat_Basic(fn,M,F));
       if (fn->alpha!=(PetscScalar)1.0) PetscCall(FN_FreeWorkMat(fn,&M));
       /* scale result */
       PetscCall(MatScale(F,fn->beta));
@@ -674,6 +687,7 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 {
   PetscBool      inplace=PETSC_FALSE;
   PetscInt       m,n,n1;
+  MatType        type;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -684,11 +698,12 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
     PetscValidHeaderSpecific(B,MAT_CLASSID,3);
     PetscValidType(B,3);
   } else inplace = PETSC_TRUE;
-  PetscCheckTypeName(A,MATSEQDENSE);
+  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);
   PetscCall(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
   if (!inplace) {
-    PetscCheckTypeName(B,MATSEQDENSE);
+    PetscCall(MatGetType(A,&type));
+    PetscCheckTypeName(B,type);
     n1 = n;
     PetscCall(MatGetSize(B,&m,&n));
     PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
@@ -712,11 +727,7 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v)
 
   PetscFunctionBegin;
   PetscCall(FN_AllocateWorkMat(fn,A,&F));
-  if (fn->ops->evaluatefunctionmat[fn->method]) PetscCall((*fn->ops->evaluatefunctionmat[fn->method])(fn,A,F));
-  else {
-    PetscCheck(fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in this FN type");
-    PetscCheck(!fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN type");
-  }
+  PetscCall(FNEvaluateFunctionMat_Basic(fn,A,F));
   PetscCall(MatGetColumnVector(F,v,0));
   PetscCall(FN_FreeWorkMat(fn,&F));
   PetscFunctionReturn(0);
@@ -745,7 +756,7 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Sym_Default(FN fn,Mat A,Vec v)
 
 PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync)
 {
-  PetscBool      set,flg,symm=PETSC_FALSE;
+  PetscBool      set,flg,symm=PETSC_FALSE,iscuda,hasspecificmeth;
   PetscInt       m,n;
   Mat            M;
   PetscMPIInt    size,rank;
@@ -761,7 +772,9 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank));
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
     PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-    if (symm && !fn->method) {  /* prefer diagonalization */
+    PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
+    hasspecificmeth = ((iscuda && fn->ops->evaluatefunctionmatcuda[fn->method]) || (!iscuda && fn->method && fn->ops->evaluatefunctionmat[fn->method]))? PETSC_TRUE: PETSC_FALSE;
+    if (!hasspecificmeth && symm && !fn->method) {  /* prefer diagonalization */
       PetscCall(PetscInfo(fn,"Computing matrix function via diagonalization\n"));
       PetscCall(FNEvaluateFunctionMatVec_Sym_Default(fn,A,v));
     } else {
@@ -770,7 +783,8 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
         PetscCall(FN_AllocateWorkMat(fn,A,&M));
         PetscCall(MatScale(M,fn->alpha));
       } else M = A;
-      if (fn->ops->evaluatefunctionmatvec[fn->method]) PetscCall((*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v));
+      if (iscuda && fn->ops->evaluatefunctionmatveccuda[fn->method]) PetscCall((*fn->ops->evaluatefunctionmatveccuda[fn->method])(fn,M,v));
+      else if (fn->ops->evaluatefunctionmatvec[fn->method]) PetscCall((*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v));
       else PetscCall(FNEvaluateFunctionMatVec_Default(fn,M,v));
       if (fn->alpha!=(PetscScalar)1.0) PetscCall(FN_FreeWorkMat(fn,&M));
       /* scale result */
@@ -813,6 +827,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
 PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
 {
   PetscInt       m,n;
+  PetscBool      iscuda;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -821,9 +836,11 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   PetscValidType(fn,1);
   PetscValidType(A,2);
   PetscValidType(v,3);
-  PetscCheckTypeName(A,MATSEQDENSE);
+  PetscCheckTypeNames(A,MATSEQDENSE,MATSEQDENSECUDA);
   PetscCall(MatGetSize(A,&m,&n));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %" PetscInt_FMT " rows, %" PetscInt_FMT " cols)",m,n);
+  PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
+  PetscCheckTypeName(v,iscuda?VECSEQCUDA:VECSEQ);
   PetscCall(VecGetSize(v,&m));
   PetscCheck(m==n,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrix A and vector v must have the same size");
   PetscCall(PetscLogEventBegin(FN_Evaluate,fn,0,0,0));

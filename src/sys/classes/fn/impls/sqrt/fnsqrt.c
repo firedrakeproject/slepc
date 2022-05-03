@@ -196,12 +196,12 @@ PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt l
 
 /*
  * Matrix square root by Sadeghi iteration. CUDA version.
- * Computes the principal square root of the matrix T using the
- * Sadeghi iteration. T is overwritten with sqrtm(T).
+ * Computes the principal square root of the matrix A using the
+ * Sadeghi iteration. A is overwritten with sqrtm(A).
  */
-PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
+PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *d_A,PetscBLASInt ld)
 {
-  PetscScalar        *d_X,*d_M,*d_M2,*d_G,*d_work,alpha;
+  PetscScalar        *d_M,*d_M2,*d_G,*d_work,alpha;
   const PetscScalar  szero=0.0,sone=1.0,smfive=-5.0,s15=15.0,s1d16=1.0/16.0;
   PetscReal          tol,Mres=0.0,nrm,sqrtnrm;
   PetscInt           it,nb,lwork;
@@ -213,12 +213,11 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
   PetscFunctionBegin;
   PetscCall(PetscDeviceInitialize(PETSC_DEVICE_CUDA)); /* For CUDA event timers */
   PetscCall(PetscCUBLASGetHandle(&cublasv2handle));
-  magma_init();
+  PetscCall(SlepcMagmaInit());
   N = n*n;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
 
   PetscCall(PetscMalloc1(n,&piv));
-  PetscCallCUDA(cudaMalloc((void **)&d_X,sizeof(PetscScalar)*N));
   PetscCallCUDA(cudaMalloc((void **)&d_M,sizeof(PetscScalar)*N));
   PetscCallCUDA(cudaMalloc((void **)&d_M2,sizeof(PetscScalar)*N));
   PetscCallCUDA(cudaMalloc((void **)&d_G,sizeof(PetscScalar)*N));
@@ -229,7 +228,7 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
   PetscCall(PetscLogGpuTimeBegin());
 
   /* M = A */
-  PetscCallCUDA(cudaMemcpy(d_M,A,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice));
+  PetscCallCUDA(cudaMemcpy(d_M,d_A,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
 
   /* scale M */
   PetscCallCUBLAS(cublasXnrm2(cublasv2handle,N,d_M,one,&nrm));
@@ -242,8 +241,8 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
   PetscCall(PetscInfo(fn,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol));
 
   /* X = I */
-  PetscCallCUDA(cudaMemset(d_X,zero,sizeof(PetscScalar)*N));
-  PetscCall(set_diagonal(n,d_X,ld,sone));
+  PetscCallCUDA(cudaMemset(d_A,zero,sizeof(PetscScalar)*N));
+  PetscCall(set_diagonal(n,d_A,ld,sone));
 
   for (it=0;it<MAXIT && !converged;it++) {
 
@@ -255,8 +254,8 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
     PetscCall(shift_diagonal(n,d_G,ld,5.0/16.0));
 
     /* X = X*G */
-    PetscCallCUDA(cudaMemcpy(d_M2,d_X,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
-    PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_M2,ld,d_G,ld,&szero,d_X,ld));
+    PetscCallCUDA(cudaMemcpy(d_M2,d_A,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
+    PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_M2,ld,d_G,ld,&szero,d_A,ld));
 
     /* M = M*inv(G*G) */
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_G,ld,d_G,ld,&szero,d_M2,ld));
@@ -279,18 +278,14 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
 
   PetscCheck(Mres<=tol,PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", MAXIT);
 
-  if (nrm>1.0) PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&sqrtnrm,d_X,one));
-  PetscCallCUDA(cudaMemcpy(A,d_X,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost));
+  if (nrm>1.0) PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&sqrtnrm,d_A,one));
   PetscCall(PetscLogGpuTimeEnd());
 
-  PetscCallCUDA(cudaFree(d_X));
   PetscCallCUDA(cudaFree(d_M));
   PetscCallCUDA(cudaFree(d_M2));
   PetscCallCUDA(cudaFree(d_G));
   PetscCallCUDA(cudaFree(d_work));
   PetscCall(PetscFree(piv));
-
-  magma_finalize();
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_MAGMA */
@@ -321,11 +316,11 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS_CUDA(FN fn,Mat A,Mat B)
 
   PetscFunctionBegin;
   if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  PetscCall(MatDenseGetArray(B,&Ba));
+  PetscCall(MatDenseCUDAGetArray(B,&Ba));
   PetscCall(MatGetSize(A,&m,NULL));
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmNewtonSchulz_CUDA(fn,n,Ba,n,PETSC_FALSE));
-  PetscCall(MatDenseRestoreArray(B,&Ba));
+  PetscCall(MatDenseCUDARestoreArray(B,&Ba));
   PetscFunctionReturn(0);
 }
 
@@ -338,11 +333,11 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
 
   PetscFunctionBegin;
   if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  PetscCall(MatDenseGetArray(B,&T));
+  PetscCall(MatDenseCUDAGetArray(B,&T));
   PetscCall(MatGetSize(A,&m,NULL));
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmDenmanBeavers_CUDAm(fn,n,T,n,PETSC_FALSE));
-  PetscCall(MatDenseRestoreArray(B,&T));
+  PetscCall(MatDenseCUDARestoreArray(B,&T));
   PetscFunctionReturn(0);
 }
 
@@ -354,11 +349,11 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
 
   PetscFunctionBegin;
   if (A!=B) PetscCall(MatCopy(A,B,SAME_NONZERO_PATTERN));
-  PetscCall(MatDenseGetArray(B,&Ba));
+  PetscCall(MatDenseCUDAGetArray(B,&Ba));
   PetscCall(MatGetSize(A,&m,NULL));
   PetscCall(PetscBLASIntCast(m,&n));
   PetscCall(FNSqrtmSadeghi_CUDAm(fn,n,Ba,n));
-  PetscCall(MatDenseRestoreArray(B,&Ba));
+  PetscCall(MatDenseCUDARestoreArray(B,&Ba));
   PetscFunctionReturn(0);
 }
 #endif /* PETSC_HAVE_MAGMA */
@@ -373,13 +368,6 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
                   "Denman-Beavers (product form)",
                   "Newton-Schulz iteration",
                   "Sadeghi iteration"
-#if defined(PETSC_HAVE_CUDA)
-                 ,"Newton-Schulz iteration CUDA"
-#if defined(PETSC_HAVE_MAGMA)
-                 ,"Denman-Beavers (product form) CUDA/MAGMA",
-                  "Sadeghi iteration CUDA/MAGMA"
-#endif
-#endif
   };
   const int      nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
@@ -418,10 +406,10 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
   fn->ops->evaluatefunctionmat[2]    = FNEvaluateFunctionMat_Sqrt_NS;
   fn->ops->evaluatefunctionmat[3]    = FNEvaluateFunctionMat_Sqrt_Sadeghi;
 #if defined(PETSC_HAVE_CUDA)
-  fn->ops->evaluatefunctionmat[4]    = FNEvaluateFunctionMat_Sqrt_NS_CUDA;
+  fn->ops->evaluatefunctionmatcuda[2] = FNEvaluateFunctionMat_Sqrt_NS_CUDA;
 #if defined(PETSC_HAVE_MAGMA)
-  fn->ops->evaluatefunctionmat[5]    = FNEvaluateFunctionMat_Sqrt_DBP_CUDAm;
-  fn->ops->evaluatefunctionmat[6]    = FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm;
+  fn->ops->evaluatefunctionmatcuda[1] = FNEvaluateFunctionMat_Sqrt_DBP_CUDAm;
+  fn->ops->evaluatefunctionmatcuda[3] = FNEvaluateFunctionMat_Sqrt_Sadeghi_CUDAm;
 #endif /* PETSC_HAVE_MAGMA */
 #endif /* PETSC_HAVE_CUDA */
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Sqrt_Schur;

@@ -78,7 +78,7 @@ SLEPC_EXTERN void MPIAPI SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt
     }
   } else {
     (*PetscErrorPrintf)("Can only handle MPIU_NORM* data types");
-    MPI_Abort(MPI_COMM_WORLD,1);
+    MPI_Abort(PETSC_COMM_WORLD,1);
   }
   PetscFunctionReturnVoid();
 }

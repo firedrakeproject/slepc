@@ -18,7 +18,6 @@
 */
 
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
-#include <slepcblaslapack.h>
 
 typedef struct {
   FN            f1,f2;    /* functions */
@@ -92,64 +91,40 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
 
 PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 {
-  FN_COMBINE        *ctx = (FN_COMBINE*)fn->data;
-  PetscScalar       *Ba,*Wa,one=1.0,zero=0.0;
-  const PetscScalar *Za;
-  PetscBLASInt      n,ld,ld2,inc=1,*ipiv,info;
-  PetscInt          m;
-  Mat               W,Z;
+  FN_COMBINE   *ctx = (FN_COMBINE*)fn->data;
+  Mat          W,Z,F;
+  PetscBool    iscuda;
 
   PetscFunctionBegin;
   PetscCall(FN_AllocateWorkMat(fn,A,&W));
-  PetscCall(MatGetSize(A,&m,NULL));
-  PetscCall(PetscBLASIntCast(m,&n));
-  ld  = n;
-  ld2 = ld*ld;
-
   switch (ctx->comb) {
     case FN_COMBINE_ADD:
       PetscCall(FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE));
       PetscCall(FNEvaluateFunctionMat_Private(ctx->f2,A,B,PETSC_FALSE));
-      PetscCall(MatDenseGetArray(B,&Ba));
-      PetscCall(MatDenseGetArray(W,&Wa));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&one,Wa,&inc,Ba,&inc));
-      PetscCall(PetscLogFlops(1.0*n*n));
-      PetscCall(MatDenseRestoreArray(B,&Ba));
-      PetscCall(MatDenseRestoreArray(W,&Wa));
+      PetscCall(MatAXPY(B,1.0,W,SAME_NONZERO_PATTERN));
       break;
     case FN_COMBINE_MULTIPLY:
       PetscCall(FN_AllocateWorkMat(fn,A,&Z));
       PetscCall(FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE));
       PetscCall(FNEvaluateFunctionMat_Private(ctx->f2,A,Z,PETSC_FALSE));
-      PetscCall(MatDenseGetArray(B,&Ba));
-      PetscCall(MatDenseGetArray(W,&Wa));
-      PetscCall(MatDenseGetArrayRead(Z,&Za));
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Wa,&ld,Za,&ld,&zero,Ba,&ld));
-      PetscCall(PetscLogFlops(2.0*n*n*n));
-      PetscCall(MatDenseRestoreArray(B,&Ba));
-      PetscCall(MatDenseRestoreArray(W,&Wa));
-      PetscCall(MatDenseRestoreArrayRead(Z,&Za));
+      PetscCall(MatMatMult(W,Z,MAT_REUSE_MATRIX,PETSC_DEFAULT,&B));
       PetscCall(FN_FreeWorkMat(fn,&Z));
       break;
     case FN_COMBINE_DIVIDE:
       PetscCall(FNEvaluateFunctionMat_Private(ctx->f2,A,W,PETSC_FALSE));
       PetscCall(FNEvaluateFunctionMat_Private(ctx->f1,A,B,PETSC_FALSE));
-      PetscCall(PetscMalloc1(ld,&ipiv));
-      PetscCall(MatDenseGetArray(B,&Ba));
-      PetscCall(MatDenseGetArray(W,&Wa));
-      PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
-      SlepcCheckLapackInfo("gesv",info);
-      PetscCall(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
-      PetscCall(MatDenseRestoreArray(B,&Ba));
-      PetscCall(MatDenseRestoreArray(W,&Wa));
-      PetscCall(PetscFree(ipiv));
+      PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
+      PetscCall(MatGetFactor(W,iscuda?MATSOLVERCUDA:MATSOLVERPETSC,MAT_FACTOR_LU,&F));
+      PetscCall(MatLUFactorSymbolic(F,W,NULL,NULL,NULL));
+      PetscCall(MatLUFactorNumeric(F,W,NULL));
+      PetscCall(MatMatSolve(F,B,B));
+      PetscCall(MatDestroy(&F));
       break;
     case FN_COMBINE_COMPOSE:
       PetscCall(FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE));
       PetscCall(FNEvaluateFunctionMat_Private(ctx->f2,W,B,PETSC_FALSE));
       break;
   }
-
   PetscCall(FN_FreeWorkMat(fn,&W));
   PetscFunctionReturn(0);
 }
@@ -157,22 +132,16 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
 {
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
-  PetscScalar    *va,*Za;
-  PetscBLASInt   n,ld,*ipiv,info,one=1;
-  PetscInt       m;
-  Mat            Z;
+  PetscBool      iscuda;
+  Mat            Z,F;
   Vec            w;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(A,&m,NULL));
-  PetscCall(PetscBLASIntCast(m,&n));
-  ld = n;
-
   switch (ctx->comb) {
     case FN_COMBINE_ADD:
       PetscCall(VecDuplicate(v,&w));
-      PetscCall(FNEvaluateFunctionMatVec(ctx->f1,A,w));
-      PetscCall(FNEvaluateFunctionMatVec(ctx->f2,A,v));
+      PetscCall(FNEvaluateFunctionMatVec_Private(ctx->f1,A,w,PETSC_FALSE));
+      PetscCall(FNEvaluateFunctionMatVec_Private(ctx->f2,A,v,PETSC_FALSE));
       PetscCall(VecAXPY(v,1.0,w));
       PetscCall(VecDestroy(&w));
       break;
@@ -189,16 +158,13 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
       PetscCall(VecDuplicate(v,&w));
       PetscCall(FN_AllocateWorkMat(fn,A,&Z));
       PetscCall(FNEvaluateFunctionMat_Private(ctx->f2,A,Z,PETSC_FALSE));
-      PetscCall(FNEvaluateFunctionMatVec_Private(ctx->f1,A,v,PETSC_FALSE));
-      PetscCall(PetscMalloc1(ld,&ipiv));
-      PetscCall(MatDenseGetArray(Z,&Za));
-      PetscCall(VecGetArray(v,&va));
-      PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Za,&ld,ipiv,va,&ld,&info));
-      SlepcCheckLapackInfo("gesv",info);
-      PetscCall(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n));
-      PetscCall(VecRestoreArray(v,&va));
-      PetscCall(MatDenseRestoreArray(Z,&Za));
-      PetscCall(PetscFree(ipiv));
+      PetscCall(FNEvaluateFunctionMatVec_Private(ctx->f1,A,w,PETSC_FALSE));
+      PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
+      PetscCall(MatGetFactor(Z,iscuda?MATSOLVERCUDA:MATSOLVERPETSC,MAT_FACTOR_LU,&F));
+      PetscCall(MatLUFactorSymbolic(F,Z,NULL,NULL,NULL));
+      PetscCall(MatLUFactorNumeric(F,Z,NULL));
+      PetscCall(MatSolve(F,w,v));
+      PetscCall(MatDestroy(&F));
       PetscCall(FN_FreeWorkMat(fn,&Z));
       PetscCall(VecDestroy(&w));
       break;
@@ -371,6 +337,10 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
   fn->ops->evaluatederivative        = FNEvaluateDerivative_Combine;
   fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Combine;
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Combine;
+#if defined(PETSC_HAVE_CUDA)
+  fn->ops->evaluatefunctionmatcuda[0]    = FNEvaluateFunctionMat_Combine;
+  fn->ops->evaluatefunctionmatveccuda[0] = FNEvaluateFunctionMatVec_Combine;
+#endif
   fn->ops->view                      = FNView_Combine;
   fn->ops->duplicate                 = FNDuplicate_Combine;
   fn->ops->destroy                   = FNDestroy_Combine;

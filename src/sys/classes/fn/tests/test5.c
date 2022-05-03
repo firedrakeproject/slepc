@@ -19,13 +19,13 @@ PetscErrorCode TestMatRational(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,
 {
   PetscBool      set,flg;
   PetscInt       n;
-  Mat            F;
+  Mat            F,Acopy;
   Vec            v,f0;
   PetscReal      nrm;
 
   PetscFunctionBeginUser;
   PetscCall(MatGetSize(A,&n,NULL));
-  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F));
+  PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&F));
   PetscCall(PetscObjectSetName((PetscObject)F,"F"));
   /* compute matrix function */
   if (inplace) {
@@ -33,7 +33,15 @@ PetscErrorCode TestMatRational(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,
     PetscCall(MatIsHermitianKnown(A,&set,&flg));
     if (set && flg) PetscCall(MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE));
     PetscCall(FNEvaluateFunctionMat(fn,F,NULL));
-  } else PetscCall(FNEvaluateFunctionMat(fn,A,F));
+  } else {
+    PetscCall(MatDuplicate(A,MAT_COPY_VALUES,&Acopy));
+    PetscCall(FNEvaluateFunctionMat(fn,A,F));
+    /* check that A has not been modified */
+    PetscCall(MatAXPY(Acopy,-1.0,A,SAME_NONZERO_PATTERN));
+    PetscCall(MatNorm(Acopy,NORM_1,&nrm));
+    if (nrm>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the input matrix has changed by %g\n",(double)nrm));
+    PetscCall(MatDestroy(&Acopy));
+  }
   if (verbose) {
     PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
     PetscCall(MatView(A,viewer));
@@ -59,16 +67,17 @@ PetscErrorCode TestMatRational(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,
 int main(int argc,char **argv)
 {
   FN             fn;
-  Mat            A;
+  Mat            A=NULL;
   PetscInt       i,j,n=10,np,nq;
   PetscScalar    *As,p[10],q[10];
   PetscViewer    viewer;
-  PetscBool      verbose,inplace;
+  PetscBool      verbose,inplace,matcuda;
 
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-matcuda",&matcuda));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix rational function, n=%" PetscInt_FMT ".\n",n));
 
   /* Create rational function r(x)=p(x)/q(x) */
@@ -87,7 +96,11 @@ int main(int argc,char **argv)
   if (verbose) PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
 
   /* Create matrices */
-  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  if (matcuda) {
+#if defined(PETSC_HAVE_CUDA)
+    PetscCall(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,n,n,NULL,&A));
+#endif
+  } else PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
   PetscCall(PetscObjectSetName((PetscObject)A,"A"));
 
   /* Fill A with a symmetric Toeplitz matrix */
@@ -118,7 +131,15 @@ int main(int argc,char **argv)
       test:
          suffix: 1
       test:
+         suffix: 1_cuda
+         args: -matcuda
+         requires: cuda
+      test:
          suffix: 2
          args: -inplace
+      test:
+         suffix: 2_cuda
+         args: -inplace -matcuda
+         requires: cuda
 
 TEST*/

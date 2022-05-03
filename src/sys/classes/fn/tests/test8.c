@@ -22,12 +22,12 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   PetscReal      nrm;
   PetscBool      set,flg;
   PetscInt       n;
-  Mat            S,R;
+  Mat            S,R,Acopy;
   Vec            v,f0;
 
   PetscFunctionBeginUser;
   PetscCall(MatGetSize(A,&n,NULL));
-  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&S));
+  PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&S));
   PetscCall(PetscObjectSetName((PetscObject)S,"S"));
   PetscCall(FNGetScale(fn,&tau,&eta));
   /* compute inverse square root */
@@ -36,7 +36,15 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
     PetscCall(MatIsHermitianKnown(A,&set,&flg));
     if (set && flg) PetscCall(MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE));
     PetscCall(FNEvaluateFunctionMat(fn,S,NULL));
-  } else PetscCall(FNEvaluateFunctionMat(fn,A,S));
+  } else {
+    PetscCall(MatDuplicate(A,MAT_COPY_VALUES,&Acopy));
+    PetscCall(FNEvaluateFunctionMat(fn,A,S));
+    /* check that A has not been modified */
+    PetscCall(MatAXPY(Acopy,-1.0,A,SAME_NONZERO_PATTERN));
+    PetscCall(MatNorm(Acopy,NORM_1,&nrm));
+    if (nrm>100*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the input matrix has changed by %g\n",(double)nrm));
+    PetscCall(MatDestroy(&Acopy));
+  }
   if (verbose) {
     PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n"));
     PetscCall(MatView(A,viewer));
@@ -71,11 +79,11 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
 int main(int argc,char **argv)
 {
   FN             fn;
-  Mat            A;
+  Mat            A=NULL;
   PetscInt       i,j,n=10;
   PetscScalar    x,y,yp,*As;
   PetscViewer    viewer;
-  PetscBool      verbose,inplace;
+  PetscBool      verbose,inplace,matcuda;
   PetscRandom    myrand;
   PetscReal      v;
   char           strx[50],str[50];
@@ -84,6 +92,7 @@ int main(int argc,char **argv)
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-inplace",&inplace));
+  PetscCall(PetscOptionsHasName(NULL,NULL,"-matcuda",&matcuda));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Matrix inverse square root, n=%" PetscInt_FMT ".\n",n));
 
   /* Create function object */
@@ -107,7 +116,11 @@ int main(int argc,char **argv)
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str));
 
   /* Create matrix */
-  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
+  if (matcuda) {
+#if defined(PETSC_HAVE_CUDA)
+    PetscCall(MatCreateSeqDenseCUDA(PETSC_COMM_SELF,n,n,NULL,&A));
+#endif
+  } else PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A));
   PetscCall(PetscObjectSetName((PetscObject)A,"A"));
 
   /* Compute square root of a symmetric matrix A */
@@ -163,22 +176,22 @@ int main(int argc,char **argv)
          args: -fn_method {{0 1 2 3}}
       test:
          suffix: 1_cuda
-         args: -fn_method 4
+         args: -fn_method 2 -matcuda
          requires: cuda
       test:
          suffix: 1_magma
-         args: -fn_method {{5 6}}
+         args: -fn_method {{1 3}} -matcuda
          requires: cuda magma
       test:
          suffix: 2
          args: -inplace -fn_method {{0 1 2 3}}
       test:
          suffix: 2_cuda
-         args: -inplace -fn_method 4
+         args: -inplace -fn_method 2 -matcuda
          requires: cuda
       test:
          suffix: 2_magma
-         args: -inplace -fn_method {{5 6}}
+         args: -inplace -fn_method {{1 3}} -matcuda
          requires: cuda magma
 
 TEST*/

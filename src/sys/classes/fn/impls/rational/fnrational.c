@@ -12,7 +12,6 @@
 */
 
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
-#include <slepcblaslapack.h>
 
 typedef struct {
   PetscScalar *pcoeff;    /* numerator coefficients */
@@ -45,86 +44,89 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,const PetscScalar *Aa,PetscScalar *Ba,PetscInt m,PetscBool firstonly)
+/*
+   Horner evaluation of P=p(A)
+   d = degree of polynomial;   coeff = coefficients of polynomial;    W = workspace
+*/
+static PetscErrorCode EvaluatePoly(Mat A,Mat P,Mat W,PetscInt d,PetscScalar *coeff)
 {
-  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
-  PetscBLASInt   n,k,ld,*ipiv,info;
-  PetscInt       i,j;
-  PetscScalar    *W,*P,*Q,one=1.0,zero=0.0;
+  PetscInt j;
 
   PetscFunctionBegin;
-  PetscCall(PetscBLASIntCast(m,&n));
-  ld = n;
-  k  = firstonly? 1: n;
-  if (Aa==Ba) PetscCall(PetscMalloc4(m*m,&P,m*m,&Q,m*m,&W,ld,&ipiv));
+  PetscCall(MatZeroEntries(P));
+  if (!d) PetscCall(MatShift(P,1.0));
   else {
-    P = Ba;
-    PetscCall(PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv));
-  }
-  PetscCall(PetscArrayzero(P,m*m));
-  if (!ctx->np) {
-    for (i=0;i<m;i++) P[i+i*ld] = 1.0;
-  } else {
-    for (i=0;i<m;i++) P[i+i*ld] = ctx->pcoeff[0];
-    for (j=1;j<ctx->np;j++) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,Aa,&ld,&zero,W,&ld));
-      PetscCall(PetscArraycpy(P,W,m*m));
-      for (i=0;i<m;i++) P[i+i*ld] += ctx->pcoeff[j];
+    PetscCall(MatShift(P,coeff[0]));
+    for (j=1;j<d;j++) {
+      PetscCall(MatMatMult(P,A,MAT_REUSE_MATRIX,PETSC_DEFAULT,&W));
+      PetscCall(MatCopy(W,P,SAME_NONZERO_PATTERN));
+      PetscCall(MatShift(P,coeff[j]));
     }
-    PetscCall(PetscLogFlops(2.0*n*n*n*(ctx->np-1)));
   }
-  if (ctx->nq) {
-    PetscCall(PetscArrayzero(Q,m*m));
-    for (i=0;i<m;i++) Q[i+i*ld] = ctx->qcoeff[0];
-    for (j=1;j<ctx->nq;j++) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,Aa,&ld,&zero,W,&ld));
-      PetscCall(PetscArraycpy(Q,W,m*m));
-      for (i=0;i<m;i++) Q[i+i*ld] += ctx->qcoeff[j];
-    }
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&k,Q,&ld,ipiv,P,&ld,&info));
-    SlepcCheckLapackInfo("gesv",info);
-    PetscCall(PetscLogFlops(2.0*n*n*n*(ctx->nq-1)+2.0*n*n*n/3.0+2.0*n*n*k));
-  }
-  if (Aa==Ba) {
-    PetscCall(PetscArraycpy(Ba,P,m*k));
-    PetscCall(PetscFree4(P,Q,W,ipiv));
-  } else PetscCall(PetscFree3(Q,W,ipiv));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
 {
-  PetscInt          m;
-  const PetscScalar *Aa;
-  PetscScalar       *Ba;
+  FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
+  Mat         P,Q,W,F;
+  PetscBool   iscuda;
 
   PetscFunctionBegin;
-  PetscCall(MatDenseGetArrayRead(A,&Aa));
-  PetscCall(MatDenseGetArray(B,&Ba));
-  PetscCall(MatGetSize(A,&m,NULL));
-  PetscCall(FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_FALSE));
-  PetscCall(MatDenseRestoreArrayRead(A,&Aa));
-  PetscCall(MatDenseRestoreArray(B,&Ba));
+  if (A==B) PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&P));
+  else P = B;
+  PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&W));
+
+  PetscCall(EvaluatePoly(A,P,W,ctx->np,ctx->pcoeff));
+  if (ctx->nq) {
+    PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q));
+    PetscCall(EvaluatePoly(A,Q,W,ctx->nq,ctx->qcoeff));
+    PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
+    PetscCall(MatGetFactor(Q,iscuda?MATSOLVERCUDA:MATSOLVERPETSC,MAT_FACTOR_LU,&F));
+    PetscCall(MatLUFactorSymbolic(F,Q,NULL,NULL,NULL));
+    PetscCall(MatLUFactorNumeric(F,Q,NULL));
+    PetscCall(MatMatSolve(F,P,P));
+    PetscCall(MatDestroy(&F));
+    PetscCall(MatDestroy(&Q));
+  }
+
+  if (A==B) {
+    PetscCall(MatCopy(P,B,SAME_NONZERO_PATTERN));
+    PetscCall(MatDestroy(&P));
+  }
+  PetscCall(MatDestroy(&W));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
 {
-  PetscInt          m;
-  const PetscScalar *Aa;
-  PetscScalar       *Ba;
-  Mat               B;
+  FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
+  Mat         P,Q,W,F;
+  Vec         b;
+  PetscBool   iscuda;
 
   PetscFunctionBegin;
-  PetscCall(FN_AllocateWorkMat(fn,A,&B));
-  PetscCall(MatDenseGetArrayRead(A,&Aa));
-  PetscCall(MatDenseGetArray(B,&Ba));
-  PetscCall(MatGetSize(A,&m,NULL));
-  PetscCall(FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_TRUE));
-  PetscCall(MatDenseRestoreArrayRead(A,&Aa));
-  PetscCall(MatDenseRestoreArray(B,&Ba));
-  PetscCall(MatGetColumnVector(B,v,0));
-  PetscCall(FN_FreeWorkMat(fn,&B));
+  PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&P));
+  PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&W));
+
+  PetscCall(EvaluatePoly(A,P,W,ctx->np,ctx->pcoeff));
+  if (ctx->nq) {
+    PetscCall(MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Q));
+    PetscCall(EvaluatePoly(A,Q,W,ctx->nq,ctx->qcoeff));
+    PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
+    PetscCall(MatGetFactor(Q,iscuda?MATSOLVERCUDA:MATSOLVERPETSC,MAT_FACTOR_LU,&F));
+    PetscCall(MatLUFactorSymbolic(F,Q,NULL,NULL,NULL));
+    PetscCall(MatLUFactorNumeric(F,Q,NULL));
+    PetscCall(MatCreateVecs(P,&b,NULL));
+    PetscCall(MatGetColumnVector(P,b,0));
+    PetscCall(MatSolve(F,b,v));
+    PetscCall(VecDestroy(&b));
+    PetscCall(MatDestroy(&F));
+    PetscCall(MatDestroy(&Q));
+  } else PetscCall(MatGetColumnVector(P,v,0));
+
+  PetscCall(MatDestroy(&P));
+  PetscCall(MatDestroy(&W));
   PetscFunctionReturn(0);
 }
 
@@ -493,6 +495,10 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
   fn->ops->evaluatederivative        = FNEvaluateDerivative_Rational;
   fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Rational;
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Rational;
+#if defined(PETSC_HAVE_CUDA)
+  fn->ops->evaluatefunctionmatcuda[0]    = FNEvaluateFunctionMat_Rational;
+  fn->ops->evaluatefunctionmatveccuda[0] = FNEvaluateFunctionMatVec_Rational;
+#endif
   fn->ops->setfromoptions            = FNSetFromOptions_Rational;
   fn->ops->view                      = FNView_Rational;
   fn->ops->duplicate                 = FNDuplicate_Rational;

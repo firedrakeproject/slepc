@@ -6,6 +6,9 @@
 
 - `SVD`: add scaling parameter in thick-restart Lanczos for the GSVD, and also enable
   one-sided orthogonalization for GSVD.
+- 'FN': add support for matrix function computation on the GPU, whenever the `Mat`
+  arguments of `FNEvaluateFunctionMat()` are of type `MATSEQDENSECUDA` (and similary
+  for `FNEvaluateFunctionMatVec()`).
 
 ### Changed
 
