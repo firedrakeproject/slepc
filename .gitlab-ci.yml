@@ -90,6 +90,7 @@ variables:
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   after_script:
     - date
+    - ccache --show-stats
   artifacts:
     reports:
       junit: arch-*/tests/testresults.xml
@@ -111,7 +112,7 @@ variables:
 gnu-c-single-nofort:
   extends: .stage-1
   tags:
-    - linux-ubuntu, name:athor
+    - linux-ubuntu, name:hapy
   variables:
     PETSC_CONFIG_OPTS: --with-fc=0 --with-precision=single
     TEST_SEARCH: eps_tests-test10_1
@@ -136,7 +137,7 @@ gnu-c-complex-nompi-int64:
 gnu-c-py2:
   extends: .stage-1
   tags:
-    - linux-suse
+    - linux-suse, name:igai
   variables:
     PYTHON: python2
     PETSC_CONFIG_OPTS: --with-fc=0
@@ -145,7 +146,7 @@ gnu-c-py2:
 gnu-c99-mlib-static:
   extends: .stage-1
   tags:
-    - linux-debian
+    - linux-debian, name:sejmet
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-shared-libraries=0 --CFLAGS=-std=c99
     TEST_SEARCH: eps_tests-test10_1
@@ -154,7 +155,7 @@ gnu-c99-mlib-static:
 gnu-lint:
   extends: .stage-1
   tags:
-    - linux-fedora
+    - linux-fedora, name:jepri
   variables:
     PETSC_CONFIG_OPTS: --with-debugging=1
     TEST_SEARCH: eps_tests-test10_1
@@ -209,7 +210,7 @@ gnu-lint:
     - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - if [ ! -z ${SLEPC4PY+x} ]; then make slepc4pytest; fi
     - if [ -z ${DISABLE_TESTS+x} ]; then make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" FFLAGS="${MAKE_FFLAGS}" cleantest allgtests-tap TIMEOUT=${TIMEOUT} ${TEST_OPTS}; fi
-    - if [ ! -z ${COVERAGE+x} ]; then lcov --capture --directory $SLEPC_DIR/$PETSC_ARCH/obj --output-file coverage.info; genhtml coverage.info --legend --title SLEPc --output-directory coverage; tar czf ${CI_JOB_NAME}-cov.tar.gz coverage; fi
+    - if [ ! -z ${COVERAGE+x} ]; then lcov --capture --exclude "/usr/*" --directory $SLEPC_DIR --output-file coverage.info; genhtml coverage.info --legend --title SLEPc --output-directory coverage; tar czf ${CI_JOB_NAME}-cov.tar.gz coverage; fi
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   artifacts:
     reports:
@@ -261,6 +262,7 @@ gnu-lint:
     - nproc
     - lscpu
     - ccache --zero-stats
+    - if [ ! -z ${LOAD_MODULES+x} ]; then module --trace load ${LOAD_MODULES}; module list; fi
   after_script:
     - date
     - ccache --show-stats
@@ -339,7 +341,7 @@ gnu-cxx-complex:
     - .stage-2
     - .linux_test
   tags:
-    - linux-debian
+    - linux-debian, name:sejmet
   variables:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex
@@ -349,9 +351,9 @@ gnu-c-cuda:
     - .stage-2
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia
+    - linux-ubuntu, gpu:nvidia, name:hapy
   variables:
-    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --with-cuda-arch=35 --with-openmp --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse --with-magma-dir=/usr/local/opt/magma-2.6.1
+    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-cuda --download-mumps --download-scalapack --download-metis --download-parmetis --download-suitesparse --with-magma-dir=/usr/local/opt/magma-2.6.1
 
 clang-c:
   extends:
@@ -378,7 +380,7 @@ intel-c-complex-mkl:
     - .stage-2
     - .linux_test
   tags:
-    - linux-fedora, compiler:intel
+    - linux-fedora, compiler:intel, name:jepri
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1
@@ -389,7 +391,7 @@ gnu-c-libs:
     - .stage-2
     - .linux_test
   tags:
-    - linux-suse
+    - linux-suse, name:igai
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --download-scalapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-evsl --download-primme --download-blopex --download-trlan --with-packages-download-dir=/var/local/downloads
@@ -412,7 +414,7 @@ pip-install:
   extends: .test
   stage: stage-3
   tags:
-    - pip
+    - pip, name:jepri
   before_script:
     - date
     - hostname
@@ -439,9 +441,9 @@ gnu-c-cuda-complex:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia
+    - linux-ubuntu, gpu:nvidia, name:hapy
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-cuda-arch=35 --with-openmp --download-thrust --with-magma-dir=/usr/local/opt/magma-2.6.1
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --download-thrust --with-magma-dir=/usr/local/opt/magma-2.6.1
     TEST_OPTS: -j1 query=requires queryval=cuda
 
 gnu-c-cuda-single:
@@ -449,9 +451,9 @@ gnu-c-cuda-single:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia
+    - linux-ubuntu, gpu:nvidia, name:hapy
   variables:
-    PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-cuda --with-cuda-arch=35 --with-openmp
+    PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-cuda
     TEST_OPTS: -j1 query=requires queryval=cuda
 
 gnu-c-multilib:
@@ -459,7 +461,7 @@ gnu-c-multilib:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:maat
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --download-scalapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-evsl --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot --with-packages-download-dir=/var/local/downloads
@@ -469,7 +471,7 @@ intel-c-lapack:
     - .stage-3
     - .linux_test
   tags:
-    - linux-suse, compiler:intel
+    - linux-suse, compiler:intel, name:igai
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/3.4.2-intel/bin/mpiexec
@@ -480,7 +482,7 @@ gnu-c-c99-nompi:
     - .stage-3
     - .linux_test
   tags:
-    - linux-debian
+    - linux-debian, name:sejmet
   variables:
     PETSC_CONFIG_OPTS: --CFLAGS='-std=c99 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0 --with-mpi=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-blopex-dir=/usr/local/opt/blopex --with-trlan-dir=/usr/local/opt/trlan-201009 --with-packages-download-dir=/var/local/downloads --download-primme --download-primme-cflags=-std=c99
@@ -500,7 +502,7 @@ gnu-c-complex:
     - .stage-3
     - .linux_test
   tags:
-    - linux-debian
+    - linux-debian, name:sejmet
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-petsc4py
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --download-primme --download-blopex --with-packages-download-dir=/var/local/downloads --with-slepc4py
@@ -523,7 +525,7 @@ gnu-c-complex-libs:
     - .stage-3
     - .linux_test
   tags:
-    - linux-suse
+    - linux-suse, name:igai
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-scalapack --download-metis --download-parmetis --download-elemental
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-blopex --with-packages-download-dir=/var/local/downloads
@@ -533,7 +535,7 @@ intel-cxx-mkl:
     - .stage-3
     - .linux_test
   tags:
-    - compiler:intel
+    - compiler:intel, name:jepri
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --with-clanguage=C++ --with-memalign=64
@@ -544,7 +546,7 @@ gnu-c-float128:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora
+    - linux-fedora, name:jepri
   variables:
     PETSC_CONFIG_OPTS: --download-f2cblaslapack --with-precision=__float128
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -565,7 +567,7 @@ gnu-c-single:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:ahmes
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --download-scalapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0
@@ -575,7 +577,7 @@ gnu-c-coverage:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:ahmes
   variables:
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-debugging=1 --with-gcov=1 --CXXFLAGS='-O -g' --with-cxx-dialect=11
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan --download-blopex --download-hpddm --download-evsl
@@ -586,7 +588,7 @@ gnu-c-complex-coverage:
     - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:hapy
   variables:
     PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-scalar-type=complex --with-debugging=1 --with-gcov=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
@@ -597,7 +599,7 @@ intel-c-complex-int64-mkl:
     - .stage-3
     - .linux_test
   tags:
-    - compiler:intel
+    - compiler:intel, name:jepri
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-64-bit-indices --with-64-bit-blas-indices
@@ -608,31 +610,32 @@ nvidia-c-nompi:
     - .stage-3
     - .linux_test
   tags:
-    - linux-debian, compiler:nvidia
+    - linux-debian, compiler:nvidia, name:sejmet
   variables:
+    LOAD_MODULES: nvhpc-nompi
     MAKE_CFLAGS: ''
     MAKE_CXXFLAGS: ''
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgcc --with-fc=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgfortran --with-cxx=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgc++ --with-blaslapack-dir=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/lib --with-mpi=0
+    PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-mpi=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme=/var/local/downloads/primme-3.2.tar.gz
 
 #
 # The following tests run as part of stage-3, but only in scheduled pipelines.
 #
 
-clang-c-complex-valgrind:
+gnu-c-complex-valgrind:
   extends:
-    - .stage-3-sched
+    - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, compiler:clang, name:maat
+    - linux-debian, name:sejmet
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex --with-shared-libraries=0 --download-f2cblaslapack
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 intel-c-mkl:
   extends:
-    - .stage-3-sched
+    - .stage-3
     - .linux_test
   tags:
     - compiler:intel, name:jepri
@@ -643,23 +646,24 @@ intel-c-mkl:
 
 nvidia-c-complex-nompi:
   extends:
-    - .stage-3-sched
+    - .stage-3
     - .linux_test
   tags:
-    - linux-debian, compiler:nvidia
+    - linux-debian, compiler:nvidia, name:sejmet
   variables:
+    LOAD_MODULES: nvhpc-nompi
     MAKE_CFLAGS: ''
     MAKE_CXXFLAGS: ''
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgcc --with-fc=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgfortran --with-cxx=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/bin/pgc++ --with-blaslapack-dir=/opt/nvidia/hpc_sdk/Linux_x86_64/21.9/compilers/lib --with-scalar-type=complex --with-mpi=0
+    PETSC_CONFIG_OPTS: --with-cc=nvc --with-fc=nvfortran --with-cxx=nvc++ --with-scalar-type=complex --with-mpi=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-blopex --download-primme
 
 intel-c-mkl-install:
   extends:
-    - .stage-3-sched
+    - .stage-3
     - .linux_test
   tags:
-    - compiler:intel
+    - compiler:intel, name:igai
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/intel/bin/mpicc --with-fc=/opt/mpich/intel/bin/mpifort --with-cxx=/opt/mpich/intel/bin/mpicxx --with-mpiexec=/opt/mpich/intel/bin/mpiexec --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-mkl_pardiso=1 --with-scalapack=1 --prefix=../install
@@ -668,49 +672,49 @@ intel-c-mkl-install:
 
 clang-c-single:
   extends:
-    - .stage-3-sched
+    - .stage-3
     - .linux_test
   tags:
-    - compiler:clang
+    - compiler:clang, name:ahmes
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-precision=single
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme
 
 gnu-c-complex-single:
   extends:
-    - .stage-3-sched
+    - .stage-3
     - .linux_test
   tags:
-    - compiler:clang
+    - compiler:clang, name:jepri
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
 
 gnu-c-cuda-int64:
   extends:
-    - .stage-3-sched
+    - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu, gpu:nvidia
+    - linux-ubuntu, gpu:nvidia, name:hapy
   variables:
-    PETSC_CONFIG_OPTS: --with-cuda --with-cuda-arch=35 --with-openmp --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.6.1
+    PETSC_CONFIG_OPTS: --with-cuda --with-64-bit-indices --with-magma-dir=/usr/local/opt/magma-2.6.1
 
 gnu-c-nocxx:
   extends:
-    - .stage-3-sched
+    - .stage-3
     - .linux_test
   tags:
-    - linux-debian
+    - name:ahmes
   variables:
     PETSC_CONFIG_OPTS: --with-cxx=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
 
 gnu-c-complex128:
   extends:
-    - .stage-3-sched
+    - .stage-3
     - .linux_test
   tags:
-    - linux-ubuntu
+    - linux-ubuntu, name:hapy
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
