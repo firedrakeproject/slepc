@@ -1,6 +1,6 @@
 
 Matrix square root, n = 19 (Fortran)
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: sqrt
     square root: +2*sqrt(+0.13*x)
  f(2.2) = 1.06958

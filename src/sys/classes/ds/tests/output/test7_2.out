@@ -1,11 +1,11 @@
 Solve a Dense System of type SVD - dimension 15x10.
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: svd
   current state: RAW
   dimensions: ld=17, n=15, l=0, k=0
   flags: extrarow
   number of columns: 10
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: svd
 Matrix A =
 1.0000000000000000e+00 2.0000000000000000e+00 3.0000000000000000e+00 0.0000000000000000e+00 0.0000000000000000e+00 0.0000000000000000e+00 0.0000000000000000e+00 0.0000000000000000e+00 0.0000000000000000e+00 0.0000000000000000e+00 0.0000000000000000e+00 

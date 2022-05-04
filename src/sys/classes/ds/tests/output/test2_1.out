@@ -1,5 +1,5 @@
 Solve a Dense System of type HEP - dimension 12.
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: hep
   current state: RAW
   dimensions: ld=14, n=12, l=0, k=0

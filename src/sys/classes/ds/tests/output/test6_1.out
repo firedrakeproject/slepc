@@ -1,11 +1,11 @@
 Solve a Dense System of type GHIEP with compact storage - dimension 10.
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: ghiep
   current state: RAW
   dimensions: ld=12, n=10, l=2, k=5
   flags: compact
 Initial - - - - - - - - -
-%DS Object: 1 MPI processes
+%DS Object: 1 MPI process
 %  type: ghiep
 % Size = 10 10
 zzz = zeros(30,3);

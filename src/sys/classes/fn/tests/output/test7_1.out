@@ -1,5 +1,5 @@
 Matrix square root, n=100.
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: sqrt
     square root: +2*sqrt(+0.05*x)
 ||S*S-A||_F < 100*eps

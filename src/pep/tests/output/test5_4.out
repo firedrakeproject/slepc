@@ -4,7 +4,7 @@ PEP of diagonal problem, n=6
   1 PEP nconv=0 first unconverged value (error) -12.0001 (removed)
   2 PEP nconv=1 first unconverged value (error) -10. (removed)
   3 PEP nconv=5 first unconverged value (error) 2.9758 (removed)
-PEP Object: pep 1 MPI processes
+PEP Object: pep 1 MPI process
   type: toar
     50% of basis vectors kept after restart
     using the locking variant
@@ -19,39 +19,39 @@ PEP Object: pep 1 MPI processes
   convergence test: relative to the matrix norms
   computed matrix norms: 6., 1.5, 1.
   extraction type: NONE
-BV Object: 1 MPI processes
+BV Object: 1 MPI process
   type: svec
   12 columns of global length 6
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
   block orthogonalization method: GS
   doing matmult as a single matrix-matrix product
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: nhep
-ST Object: 1 MPI processes
+ST Object: 1 MPI process
   type: shift
   shift: 0.
   number of matrices: 3
   nonzero pattern of the matrices: UNKNOWN
-  KSP Object: (st_) 1 MPI processes
+  KSP Object: (st_) 1 MPI process
     type: preonly
     maximum iterations=10000, initial guess is zero
     left preconditioning
     using NONE norm type for convergence test
-  PC Object: (st_) 1 MPI processes
+  PC Object: (st_) 1 MPI process
     type: lu
       out-of-place factorization
       matrix ordering: nd
       factor fill ratio given 5., needed 1.
         Factored matrix follows:
-          Mat Object: 1 MPI processes
+          Mat Object: 1 MPI process
             type: seqaij
             rows=6, cols=6
             package used to perform factorization: petsc
             total: nonzeros=6, allocated nonzeros=6
               not using I-node routines
     linear system matrix = precond matrix:
-    Mat Object: (st_) 1 MPI processes
+    Mat Object: (st_) 1 MPI process
       type: seqaij
       rows=6, cols=6
       total: nonzeros=6, allocated nonzeros=30

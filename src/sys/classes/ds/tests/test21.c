@@ -140,7 +140,7 @@ int main(int argc,char **argv)
       output_file: output/test21_1.out
       requires: !single
       nsize: {{1 2 3}}
-      filter: grep -v "parallel operation mode" | grep -v "MPI processes"
+      filter: grep -v "parallel operation mode" | grep -v " MPI process"
       test:
          suffix: 1
          args: -ds_parallel redundant

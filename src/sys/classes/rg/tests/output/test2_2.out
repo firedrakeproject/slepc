@@ -1,4 +1,4 @@
-RG Object: 1 MPI processes
+RG Object: 1 MPI process
   type: ring
     center: 2., radius: 1., vscale: 0.5, start angle: 0.25, end angle: 0.75, ring width: 0.015
   scaling factor = 1.5

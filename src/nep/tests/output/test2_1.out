@@ -2,7 +2,7 @@
 Diagonal Nonlinear Eigenproblem, n=20
 
  Nonlinear function with 3 terms, with SAME nonzero pattern
-Mat Object: 1 MPI processes
+Mat Object: 1 MPI process
   type: seqaij
 row 0: (0, 1.) 
 row 1: (1, 2.) 
@@ -24,7 +24,7 @@ row 16: (16, 17.)
 row 17: (17, 18.) 
 row 18: (18, 19.) 
 row 19: (19, 20.) 
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: rational
     polynomial: -1*x^1+0
  Type set to rii
@@ -35,9 +35,9 @@ FN Object: 1 MPI processes
  Dimensions: nev=1, ncv=12, mpd=-2
  Tolerance = 0.000001, max_its = 200
  Convergence test = 0, stopping test = 0
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type not yet set
-RG Object: 1 MPI processes
+RG Object: 1 MPI process
   type: interval
   region: [-inf.,inf.]x[-inf.,inf.]
  Finished - converged reason = 1

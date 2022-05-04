@@ -2,7 +2,7 @@
 1-D Laplacian with shell matrices, n=10
 
 ST type shift
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 1.
 0.
@@ -14,7 +14,7 @@ Vec Object: 1 MPI processes
 0.
 0.
 1.
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 1.
 0.
@@ -27,7 +27,7 @@ Vec Object: 1 MPI processes
 0.
 1.
 With shift=0.1
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 0.9
 -0.1
@@ -41,7 +41,7 @@ Vec Object: 1 MPI processes
 0.9
 ST type sinvert
 With shift=0.1
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 -18.0797
 -35.3515
@@ -54,7 +54,7 @@ Vec Object: 1 MPI processes
 -35.3515
 -18.0797
 With shift=-0.5
-Vec Object: 1 MPI processes
+Vec Object: 1 MPI process
   type: seq
 0.998536
 1.49634

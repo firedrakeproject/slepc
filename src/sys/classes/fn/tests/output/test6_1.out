@@ -1,17 +1,17 @@
 Combined function, n=10.
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: combine
     two multiplied functions f1*f2
-    FN Object: 1 MPI processes
+    FN Object: 1 MPI process
       type: rational
         polynomial: -1*x^2+0*x^1+1
-    FN Object: 1 MPI processes
+    FN Object: 1 MPI process
       type: combine
         two composed functions f2(f1(.))
-        FN Object: 1 MPI processes
+        FN Object: 1 MPI process
           type: rational
             rational function: (-1*x^1+0) / (+1*x^2+0*x^1+1)
-        FN Object: 1 MPI processes
+        FN Object: 1 MPI process
           type: exp
             exponential: exp(x)
             computing matrix functions with: scaling & squaring, [m/m] Pade approximant (Higham)

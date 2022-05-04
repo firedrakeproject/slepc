@@ -2,22 +2,22 @@
 1-D Delay Eigenproblem, n=128, tau=0.001
 
  Running CISS with 16 KSP solvers (RITZ extraction)
-NEP Object: 1 MPI processes
+NEP Object: 1 MPI process
   type: ciss
     sizes { integration points: 32, block size: 3, moment size: 8, partitions: 1, maximum block size: 3 }
     exploiting symmetry of integration points
     iterative refinement  { inner: 0, blocksize: 0 }
     extraction: RITZ
-    KSP Object: (nep_ciss_) 1 MPI processes
+    KSP Object: (nep_ciss_) 1 MPI process
       type: bcgs
       maximum iterations=10000, initial guess is zero
       left preconditioning
       using PRECONDITIONED norm type for convergence test
-    PC Object: (nep_ciss_) 1 MPI processes
+    PC Object: (nep_ciss_) 1 MPI process
       type: sor
         type = local_symmetric, iterations = 1, local iterations = 1, omega = 1.
       linear system matrix = precond matrix:
-      Mat Object: (nep_ciss_) 1 MPI processes
+      Mat Object: (nep_ciss_) 1 MPI process
         type: seqaij
         rows=128, cols=128
         total: nonzeros=382, allocated nonzeros=382
@@ -33,22 +33,22 @@ NEP Object: 1 MPI processes
   maximum dimension of projected problem (mpd): 24
   maximum number of iterations: 5
   convergence test: relative to the eigenvalue
-BV Object: 1 MPI processes
+BV Object: 1 MPI process
   type: svec
   24 columns of global length 128
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
   block orthogonalization method: GS
   doing matmult as a single matrix-matrix product
-RG Object: 1 MPI processes
+RG Object: 1 MPI process
   type: ellipse
     center: 10., radius: 9.5, vscale: 0.1
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: nep
   solving the problem with: Contour Integral
   number of integration points: 64
   maximum minimality index: 4
-  RG Object: 1 MPI processes
+  RG Object: 1 MPI process
     type: ellipse
       center: 10., radius: 9.5, vscale: 0.1
      0.80889, 7.83700, 12.88864, 16.07384

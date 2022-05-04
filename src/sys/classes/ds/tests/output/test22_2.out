@@ -1,5 +1,5 @@
 Solve a Dense System of type GSVD with compact storage - dimension 10x10.
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: gsvd
   current state: RAW
   dimensions: ld=12, n=10, l=1, k=4

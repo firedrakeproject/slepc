@@ -1,5 +1,5 @@
 Solve a block HEP Dense System - dimension 3 (bandwidth=3, blocks=1).
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: hep
   current state: RAW
   dimensions: ld=3, n=3, l=0, k=0

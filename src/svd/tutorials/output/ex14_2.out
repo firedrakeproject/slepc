@@ -2,10 +2,10 @@
 Singular value problem stored in file.
 
  Reading REAL matrix from a binary file...
-SVD Object: 1 MPI processes
+SVD Object: 1 MPI process
   type: cyclic
     explicit matrix
-    EPS Object: (svd_cyclic_) 1 MPI processes
+    EPS Object: (svd_cyclic_) 1 MPI process
       type: krylovschur
         50% of basis vectors kept after restart
         using the locking variant
@@ -16,39 +16,39 @@ SVD Object: 1 MPI processes
       maximum dimension of projected problem (mpd): 17
       maximum number of iterations: 100
       convergence test: relative to the eigenvalue
-    BV Object: (svd_cyclic_) 1 MPI processes
+    BV Object: (svd_cyclic_) 1 MPI process
       type: svec
       18 columns of global length 400
       vector orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)
       block orthogonalization method: GS
       doing matmult as a single matrix-matrix product
-    DS Object: (svd_cyclic_) 1 MPI processes
+    DS Object: (svd_cyclic_) 1 MPI process
       type: hep
       solving the problem with: Implicit QR method (_steqr)
-    ST Object: (svd_cyclic_) 1 MPI processes
+    ST Object: (svd_cyclic_) 1 MPI process
       type: sinvert
       shift: 12.
       number of matrices: 1
-      KSP Object: (svd_cyclic_st_) 1 MPI processes
+      KSP Object: (svd_cyclic_st_) 1 MPI process
         type: preonly
         maximum iterations=10000, initial guess is zero
         left preconditioning
         using NONE norm type for convergence test
-      PC Object: (svd_cyclic_st_) 1 MPI processes
+      PC Object: (svd_cyclic_st_) 1 MPI process
         type: lu
           out-of-place factorization
           matrix ordering: nd
           factor fill ratio given 5., needed 7.06364
             Factored matrix follows:
-              Mat Object: 1 MPI processes
+              Mat Object: 1 MPI process
                 type: seqaij
                 rows=400, cols=400
                 package used to perform factorization: petsc
                 total: nonzeros=18648, allocated nonzeros=18648
                   not using I-node routines
         linear system matrix = precond matrix:
-        Mat Object: (svd_cyclic_st_) 1 MPI processes
+        Mat Object: (svd_cyclic_st_) 1 MPI process
           type: seqaij
           rows=400, cols=400
           total: nonzeros=2640, allocated nonzeros=2640

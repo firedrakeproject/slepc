@@ -1,5 +1,5 @@
 Matrix inverse square root, n=10.
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: invsqrt
     inverse square root: +0.5*(+0.9*x)^(-1/2)
   f(2.2)=0.355335

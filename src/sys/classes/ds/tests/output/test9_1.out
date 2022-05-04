@@ -1,5 +1,5 @@
 Solve a System of type GHEP - dimension 10.
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: ghep
   current state: RAW
   dimensions: ld=12, n=10, l=0, k=0

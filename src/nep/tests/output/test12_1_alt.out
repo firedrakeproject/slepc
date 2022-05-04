@@ -4,31 +4,31 @@ Square root eigenproblem, n=100
  Using full basis = false
  Using 4 RK shifts = 1.06 1.1 1.12 1.15
  First returned singularity = -1e+06
-NEP Object: 1 MPI processes
+NEP Object: 1 MPI process
   type: nleigs
     50% of basis vectors kept after restart
     using the locking variant
     divided difference terms: used=20, max=20
     RK shifts: 1.06,1.1,1.12,1.15
-    KSP Object: (nep_nleigs_) 1 MPI processes
+    KSP Object: (nep_nleigs_) 1 MPI process
       type: preonly
       maximum iterations=10000, initial guess is zero
       left preconditioning
       using NONE norm type for convergence test
-    PC Object: (nep_nleigs_) 1 MPI processes
+    PC Object: (nep_nleigs_) 1 MPI process
       type: lu
         out-of-place factorization
         matrix ordering: nd
         factor fill ratio given 5., needed 1.58389
           Factored matrix follows:
-            Mat Object: 1 MPI processes
+            Mat Object: 1 MPI process
               type: seqaij
               rows=100, cols=100
               package used to perform factorization: petsc
               total: nonzeros=472, allocated nonzeros=472
                 not using I-node routines
       linear system matrix = precond matrix:
-      Mat Object: (nep_nleigs_) 1 MPI processes
+      Mat Object: (nep_nleigs_) 1 MPI process
         type: seqaij
         rows=100, cols=100
         total: nonzeros=298, allocated nonzeros=298
@@ -44,17 +44,17 @@ NEP Object: 1 MPI processes
   maximum dimension of projected problem (mpd): 18
   maximum number of iterations: 5000
   convergence test: relative to the eigenvalue
-BV Object: 1 MPI processes
+BV Object: 1 MPI process
   type: svec
   37 columns of global length 100
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
   block orthogonalization method: GS
   doing matmult as a single matrix-matrix product
-RG Object: 1 MPI processes
+RG Object: 1 MPI process
   type: interval
     region: [0.01,16.]x[-0.001,0.001]
-DS Object: 1 MPI processes
+DS Object: 1 MPI process
   type: gnhep
      1.15063, 1.03635, 0.92988
 

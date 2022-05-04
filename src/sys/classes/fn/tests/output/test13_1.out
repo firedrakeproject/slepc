@@ -1,5 +1,5 @@
 Matrix logarithm, n=75.
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: log
     logarithm: +2*log(+0.04*x)
 ||expm(F)-A||_F < 100*eps
