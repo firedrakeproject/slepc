@@ -220,7 +220,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
 
    test:
       suffix: 2
-      args: -eps_balance {{none oneside twoside}} -eps_krylovschur_locking {{0 1}} -eps_nev 4 -eps_ncv 7 -eps_max_it 1500
+      args: -eps_balance {{none oneside twoside}} -eps_krylovschur_locking {{0 1}} -eps_nev 4 -eps_max_it 1500
       requires: double
       output_file: output/test9_1.out
 

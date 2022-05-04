@@ -111,5 +111,6 @@ int main(int argc,char **argv)
       suffix: 1
       nsize: 1
       args: -fn_phi_index 3
+      requires: !single
 
 TEST*/
