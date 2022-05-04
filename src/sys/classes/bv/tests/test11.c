@@ -277,6 +277,7 @@ int main(int argc,char **argv)
          requires: !defined(PETSCTEST_VALGRIND)
       test:
          suffix: 11_cuda
+         TODO: too many processes accessing the GPU
          args: -bv_type svec -vec_type cuda
          requires: cuda !defined(PETSCTEST_VALGRIND)
 
@@ -290,6 +291,7 @@ int main(int argc,char **argv)
          requires: !single !defined(PETSCTEST_VALGRIND)
       test:
          suffix: 12_cuda
+         TODO: too many processes accessing the GPU
          args: -bv_type svec -vec_type cuda
          requires: cuda !single !defined(PETSCTEST_VALGRIND)
 
