@@ -118,6 +118,7 @@ int main(int argc,char **argv)
       suffix: 1
       args: -n 7
       requires: !complex
+      filter: sed -e 's/-0.00000/0.00000/'
 
    test:
       suffix: 1_complex

@@ -79,7 +79,7 @@ testtest10: test10.PETSc
 	elif [ -f test10 ]; then \
 	  test=test10_1; check=test10_1_ks; \
 	  options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude"; \
-	  ${MPIEXEC} -n 1 ./test10 $${options} > $${test}.tmp 2>&1; \
+	  ${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/82109/82110/' > $${test}.tmp 2>&1; \
 	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
 	    echo "C/C++ example src/eps/tests/test10 run successfully with 1 MPI process"; \
 	  else \
@@ -109,7 +109,7 @@ testtest10_cuda: test10.PETSc
 	elif [ -f test10 ]; then \
 	  test=test10_1; check=test10_1_ks; \
 	  options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude -mat_type aijcusparse"; \
-	  ${MPIEXEC} -n 1 ./test10 $${options} > $${test}.tmp 2>&1; \
+	  ${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/30055/30054/' > $${test}.tmp 2>&1; \
 	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
 	    echo "C/C++ example src/eps/tests/test10 run successfully with CUDA"; \
 	  else \

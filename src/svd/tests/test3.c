@@ -244,6 +244,7 @@ int main(int argc,char **argv)
       suffix: 4
       args: -svd_type lapack -svd_nsv 4
       output_file: output/test3_1.out
+      filter: sed -e "s/15129/15128/"
       nsize: 2
 
    test:

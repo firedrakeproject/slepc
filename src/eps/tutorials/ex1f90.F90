@@ -165,5 +165,6 @@
 !
 !   test:
 !      args: -eps_nev 4 -terse
+!      filter: sed -e "s/3.83791/3.83792/"
 !
 !TEST*/
