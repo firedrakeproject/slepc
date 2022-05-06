@@ -7,13 +7,8 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-
-ALL: lib
-
 #requiresscalar    complex
 
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = pciss.c
 SOURCEF  =
 SOURCEH  =
@@ -23,4 +18,3 @@ MANSEC   = PEP
 LOCDIR   = src/pep/impls/ciss/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

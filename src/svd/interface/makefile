@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = svdregis.c svdbasic.c svddefault.c svdview.c svdopts.c svdsetup.c svdsolve.c svdmon.c dlregissvd.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = SVD
 LOCDIR   = src/svd/interface/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

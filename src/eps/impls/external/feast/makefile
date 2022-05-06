@@ -7,13 +7,8 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-
-ALL: lib
-
 #requiresdefine  'SLEPC_HAVE_FEAST'
 
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = feast.c
 SOURCEF  =
 SOURCEH  =
@@ -23,5 +18,3 @@ MANSEC   = EPS
 LOCDIR   = src/eps/impls/external/feast/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

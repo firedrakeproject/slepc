@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = bvbasic.c bvfunc.c bvops.c bvglobal.c bvblas.c bvlapack.c bvorthog.c bvbiorthog.c bvkrylov.c bvcontour.c bvregis.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = BV
 LOCDIR   = src/sys/classes/bv/interface/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

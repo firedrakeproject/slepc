@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = stfunc.c stset.c stsolve.c stsles.c stregis.c stshellmat.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = ST
 LOCDIR   = src/sys/classes/st/interface/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

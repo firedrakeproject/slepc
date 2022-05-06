@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = rgellipse.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = RG
 LOCDIR   = src/sys/classes/rg/impls/ellipse/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

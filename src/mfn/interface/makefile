@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = mfnmon.c mfnbasic.c mfnregis.c mfnopts.c mfnsetup.c mfnsolve.c dlregismfn.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = MFN
 LOCDIR   = src/mfn/interface/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

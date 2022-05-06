@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = qarnoldi.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = PEP
 LOCDIR   = src/pep/impls/krylov/qarnoldi/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

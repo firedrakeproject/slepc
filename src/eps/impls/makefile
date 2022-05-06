@@ -8,13 +8,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
 LIBBASE  = libslepceps
 DIRS     = power subspace krylov davidson cg ciss lyapii lapack external
 LOCDIR   = src/eps/impls/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

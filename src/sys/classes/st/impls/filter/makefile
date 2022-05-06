@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = filter.c filtlan.c
 SOURCEF  =
 SOURCEH  = filter.h
@@ -21,5 +17,3 @@ MANSEC   = ST
 LOCDIR   = src/sys/classes/st/impls/filter/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS     =
-FFLAGS     =
-CPPFLAGS   =
-FPPFLAGS   =
 LOCDIR     = src/nep/tutorials/nlevp/
 EXAMPLESC  = loaded_string.c gun.c
 EXAMPLESF  =
@@ -19,4 +15,3 @@ MANSEC     = NEP
 TESTS      = loaded_string gun
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

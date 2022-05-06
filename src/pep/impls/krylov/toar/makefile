@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = ptoar.c nrefine.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = PEP
 LOCDIR   = src/pep/impls/krylov/toar/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

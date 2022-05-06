@@ -9,8 +9,6 @@
 #
 #requiresdefine   'PETSC_HAVE_FORTRAN'
 
-CFLAGS    =
-FFLAGS    =
 SOURCEC   =
 SOURCEF   =
 SOURCEH   = slepc.h slepceps.h slepcst.h slepcsvd.h slepcpep.h slepcnep.h slepcmfn.h slepclme.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcsys.h
@@ -20,4 +18,3 @@ MANSEC    =
 LOCDIR    = include/slepc/finclude/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

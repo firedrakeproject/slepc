@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = pepkrylov.c
 SOURCEF  =
 SOURCEH  = pepkrylov.h
@@ -21,4 +17,3 @@ LOCDIR   = src/pep/impls/krylov/
 MANSEC   = PEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

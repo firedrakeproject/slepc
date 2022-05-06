@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS     =
-FFLAGS     =
-CPPFLAGS   =
-FPPFLAGS   =
 DIRS       = nlevp
 LOCDIR     = src/pep/tutorials/
 EXAMPLESC  = ex16.c ex17.c ex28.c ex38.c ex40.c ex50.c

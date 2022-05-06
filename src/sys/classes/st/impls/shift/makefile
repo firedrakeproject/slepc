@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = shift.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = ST
 LOCDIR   = src/sys/classes/st/impls/shift/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

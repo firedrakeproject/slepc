@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = epskrylov.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ LOCDIR   = src/eps/impls/krylov/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

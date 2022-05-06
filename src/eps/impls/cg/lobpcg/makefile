@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = lobpcg.c
 SOURCEF  =
 SOURCEH  =
@@ -21,4 +17,3 @@ MANSEC   = EPS
 LOCDIR   = src/eps/impls/cg/lobpcg/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

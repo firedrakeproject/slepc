@@ -8,8 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS   =
-FFLAGS   =
 SOURCEC  =
 SOURCEF  =
 SOURCEH  = epsimpl.h stimpl.h svdimpl.h pepimpl.h nepimpl.h vecimplslepc.h mfnimpl.h lmeimpl.h dsimpl.h fnimpl.h rgimpl.h bvimpl.h slepcimpl.h slepccontour.h

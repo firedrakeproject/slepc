@@ -9,7 +9,6 @@
 #
 
 DIRS     = sys eps svd pep nep mfn lme
-
 LOCDIR   = src/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

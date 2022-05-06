@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS     =
-FFLAGS     =
-CPPFLAGS   =
-FPPFLAGS   =
 LOCDIR     = src/mfn/tutorials/
 EXAMPLESC  = ex23.c ex26.c ex37.c ex39.c
 EXAMPLESF  = ex23f90.F90

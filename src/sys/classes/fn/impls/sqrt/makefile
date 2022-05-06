@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = fnsqrt.c
 SOURCEF  =
 SOURCEH  =
@@ -21,4 +17,3 @@ MANSEC   = FN
 LOCDIR   = src/sys/classes/fn/impls/sqrt/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

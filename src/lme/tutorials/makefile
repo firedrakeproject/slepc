@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS     =
-FFLAGS     =
-CPPFLAGS   =
-FPPFLAGS   =
 LOCDIR     = src/lme/tutorials/
 EXAMPLESC  = ex32.c
 EXAMPLESF  =

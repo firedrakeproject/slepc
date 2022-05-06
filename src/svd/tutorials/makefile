@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS     =
-FFLAGS     =
-CPPFLAGS   =
-FPPFLAGS   =
 LOCDIR     = src/svd/tutorials/
 EXAMPLESC  = ex8.c ex14.c ex15.c ex45.c ex48.c
 EXAMPLESF  = ex15f.F

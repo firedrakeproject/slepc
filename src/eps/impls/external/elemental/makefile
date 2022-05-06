@@ -7,13 +7,8 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-
-ALL: lib
-
 #requiresdefine  'SLEPC_HAVE_ELEMENTAL'
 
-CFLAGS    =
-FFLAGS    =
 SOURCEC   =
 SOURCECXX = elemental.cxx
 SOURCEF   =
@@ -24,5 +19,3 @@ MANSEC    = EPS
 LOCDIR    = src/eps/impls/external/elemental/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

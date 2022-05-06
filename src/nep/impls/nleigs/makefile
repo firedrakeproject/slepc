@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = nleigs.c nleigs-fullb.c
 SOURCEF  =
 SOURCEH  = nleigs.h
@@ -21,5 +17,3 @@ MANSEC   = NEP
 LOCDIR   = src/nep/impls/nleigs/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

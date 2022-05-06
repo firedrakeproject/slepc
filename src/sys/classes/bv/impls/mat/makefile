@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = bvmat.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = BV
 LOCDIR   = src/sys/classes/bv/impls/mat/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

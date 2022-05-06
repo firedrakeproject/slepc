@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = jd.c
 SOURCEF  =
 SOURCEH  =
@@ -21,4 +17,3 @@ MANSEC   = EPS
 LOCDIR   = src/eps/impls/davidson/jd/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

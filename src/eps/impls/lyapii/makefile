@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = lyapii.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = EPS
 LOCDIR   = src/eps/impls/lyapii/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-
