@@ -35,6 +35,7 @@ int main(int argc,char **argv)
   PetscCall(SlepcFinalize());
   PetscCall(SlepcFinalized(&sFinalized));
   if (!sFinalized) printf("Unexpected value: SlepcFinalized() returned False after SlepcFinalize()\n");
+  if (skip_petsc_finalize) PetscCall(PetscFinalize());
   return 0;
 }
 
@@ -47,6 +48,5 @@ int main(int argc,char **argv)
       test:
          suffix: 2
          args: -skip_petsc_finalize
-         TODO: shows an mpiexec error message in C++ jobs
 
 TEST*/
