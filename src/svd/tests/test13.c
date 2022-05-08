@@ -93,6 +93,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
+      nsize: 2
       args: -svd_nsv 4
       requires: primme
       filter: sed -e "s/2.99255/2.99254/"

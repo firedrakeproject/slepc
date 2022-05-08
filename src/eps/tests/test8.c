@@ -195,7 +195,7 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
          args: -eps_type gd -eps_gd_double_expansion
       test:
          suffix: 1_primme
-         args: -eps_type primme -eps_conv_abs
+         args: -eps_type primme -eps_conv_abs -eps_largest_magnitude
          requires: primme
 
    testset:
