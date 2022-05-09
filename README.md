@@ -46,6 +46,11 @@ Installation
 The installation procedure of SLEPc is very similar to that of PETSc. Briefly, the environment variables `$SLEPC_DIR` and `$PETSC_DIR` must be set, then the `configure` script is executed and finally the libraries are built with the command `make`. More details can be found in the Users Manual or in the online [installation instructions](https://slepc.upv.es/documentation/instal.htm).
 
 
+License
+-------
+
+SLEPc is distributed under a 2-clause BSD license (see [LICENSE.md](LICENSE.md)). Note that this license DOES NOT apply to any software that may be obtained via the `--download-package` option of the SLEPc configuration. Each of those packages are covered by their own licenses.
+
 Funding
 -------
 
