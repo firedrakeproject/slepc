@@ -109,7 +109,7 @@ endif
 $(generatedtest) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH_DIR) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
-ifneq ($(filter-out clean check info,$(MAKECMDGOALS:clean%=clean)),)
+ifneq ($(filter-out clean check info libs all checkbadSource,$(MAKECMDGOALS:clean%=clean)),)
 include $(generatedtest)
 endif
 
