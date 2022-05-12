@@ -181,6 +181,7 @@ int main(int argc,char **argv)
    test:
       args: -bv_type {{vecs contiguous svec mat}separate output} -verbose
       suffix: 1
+      filter: sed -e 's/-0[.]/0./g'
 
    testset:
       args: -bv_type svec -vec_type cuda -verbose
@@ -196,6 +197,7 @@ int main(int argc,char **argv)
    test:
       args: -bv_type {{vecs contiguous svec mat}separate output} -verbose -testlda
       suffix: 2
+      filter: sed -e 's/-0[.]/0./g'
 
    testset:
       args: -bv_type svec -vec_type cuda -verbose -testlda
