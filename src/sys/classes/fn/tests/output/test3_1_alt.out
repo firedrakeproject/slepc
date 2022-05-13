@@ -1,6 +1,6 @@
 Matrix exponential, n=10.
-FN Object: 1 MPI processes
+FN Object: 1 MPI process
   type: exp
-    Exponential: exp(x)
+    exponential: exp(x)
 The 1-norm of f(A) is 340.523
 The 1-norm of f(A) is 20.5782
