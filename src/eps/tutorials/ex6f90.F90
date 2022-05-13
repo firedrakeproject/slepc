@@ -50,20 +50,15 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      if (ierr .ne. 0) then
-        print*,'SlepcInitialize failed'
-        stop
-      endif
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
 #if defined(PETSC_USE_COMPLEX)
-      call PetscError(PETSC_COMM_SELF,1,0,'This example requires real numbers')
-      call MPIU_Abort(PETSC_COMM_SELF,ierr)
+      SETERRA(PETSC_COMM_SELF,PETSC_ERR_SUP,'This example requires real numbers')
 #endif
-      call MPI_Comm_size(PETSC_COMM_WORLD,sz,ierr);CHKERRA(ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
-      if (sz .ne. 1) then; SETERRA(PETSC_COMM_WORLD,PETSC_ERR_WRONG_MPI_SIZE,'This is a uniprocessor example only!'); endif
+      PetscCallMPIA(MPI_Comm_size(PETSC_COMM_WORLD,sz,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
+      if (sz .ne. 1) then; SETERRA(PETSC_COMM_SELF,PETSC_ERR_WRONG_MPI_SIZE,'This is a uniprocessor example only!'); endif
       m = 30
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',m,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',m,flg,ierr))
       N = 2*m
 
       if (rank .eq. 0) then
@@ -75,43 +70,43 @@
 !     the eigensystem, Ax=kx
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,PETSC_NULL_INTEGER,A,ierr);CHKERRA(ierr)
-      call MatShellSetOperation(A,MATOP_MULT,MatIsing_Mult,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,PETSC_NULL_INTEGER,A,ierr))
+      PetscCallA(MatShellSetOperation(A,MATOP_MULT,MatIsing_Mult,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and display info
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create eigensolver context
-      call EPSCreate(PETSC_COMM_WORLD,eps,ierr);CHKERRA(ierr)
+      PetscCallA(EPSCreate(PETSC_COMM_WORLD,eps,ierr))
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr);CHKERRA(ierr)
-      call EPSSetProblemType(eps,EPS_NHEP,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr))
+      PetscCallA(EPSSetProblemType(eps,EPS_NHEP,ierr))
 
 !     ** Set solver parameters at runtime
-      call EPSSetFromOptions(eps,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSetFromOptions(eps,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSSolve(eps,ierr);CHKERRA(ierr)
-      call EPSGetIterationNumber(eps,its,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSolve(eps,ierr))
+      PetscCallA(EPSGetIterationNumber(eps,its,ierr))
       if (rank .eq. 0) then
         write(*,'(A,I4)') ' Number of iterations of the method: ',its
       endif
 
 !     ** Optional: Get some information from the solver and display it
-      call EPSGetType(eps,tname,ierr);CHKERRA(ierr)
+      PetscCallA(EPSGetType(eps,tname,ierr))
       if (rank .eq. 0) then
         write(*,'(A,A)') ' Solution method: ', tname
       endif
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr))
       if (rank .eq. 0) then
         write(*,'(A,I2)') ' Number of requested eigenvalues:',nev
       endif
-      call EPSGetTolerances(eps,tol,maxit,ierr);CHKERRA(ierr)
+      PetscCallA(EPSGetTolerances(eps,tol,maxit,ierr))
       if (rank .eq. 0) then
         write(*,'(A,1PE11.4,A,I6)') ' Stopping condition: tol=',tol,', maxit=', maxit
       endif
@@ -121,18 +116,18 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr))
       if (terse) then
-        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr);CHKERRA(ierr)
+        PetscCallA(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr))
       else
-        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr);CHKERRA(ierr)
-        call EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
+        PetscCallA(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr))
+        PetscCallA(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD,ierr))
+        PetscCallA(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD,ierr))
+        PetscCallA(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr))
       endif
-      call EPSDestroy(eps,ierr);CHKERRA(ierr)
-      call MatDestroy(A,ierr);CHKERRA(ierr)
-      call SlepcFinalize(ierr)
+      PetscCallA(EPSDestroy(eps,ierr))
+      PetscCallA(MatDestroy(A,ierr))
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 ! -------------------------------------------------------------------
@@ -161,16 +156,16 @@
 !     The actual routine for the matrix-vector product
       external mvmisg
 
-      call MatGetSize(A,N,PETSC_NULL_INTEGER,ierr);CHKERRQ(ierr)
-      call VecGetArrayRead(x,x_array,i_x,ierr);CHKERRQ(ierr)
-      call VecGetArray(y,y_array,i_y,ierr);CHKERRQ(ierr)
+      PetscCall(MatGetSize(A,N,PETSC_NULL_INTEGER,ierr))
+      PetscCall(VecGetArrayRead(x,x_array,i_x,ierr))
+      PetscCall(VecGetArray(y,y_array,i_y,ierr))
 
       trans = 0
       one = 1
       call mvmisg(trans,N,one,x_array(i_x+1),N,y_array(i_y+1),N)
 
-      call VecRestoreArrayRead(x,x_array,i_x,ierr);CHKERRQ(ierr)
-      call VecRestoreArray(y,y_array,i_y,ierr);CHKERRQ(ierr)
+      PetscCall(VecRestoreArrayRead(x,x_array,i_x,ierr))
+      PetscCall(VecRestoreArray(y,y_array,i_y,ierr))
 
       return
       end

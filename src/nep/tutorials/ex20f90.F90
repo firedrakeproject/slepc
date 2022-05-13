@@ -70,14 +70,10 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      if (ierr .ne. 0) then
-        print*,'SlepcInitialize failed'
-        stop
-      endif
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       n = 128
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr))
       if (rank .eq. 0) then
         write(*,'(/A,I4)') 'Nonlinear Eigenproblem, n =',n
       endif
@@ -92,70 +88,70 @@
 !     Create matrix data structure to hold the Function and the Jacobian
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MatCreate(PETSC_COMM_WORLD,F,ierr);CHKERRA(ierr)
-      call MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(F,ierr);CHKERRA(ierr)
-      call MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-      call MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-      call MatSetUp(F,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,F,ierr))
+      PetscCallA(MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+      PetscCallA(MatSetFromOptions(F,ierr))
+      PetscCallA(MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,ierr))
+      PetscCallA(MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
+      PetscCallA(MatSetUp(F,ierr))
 
-      call MatCreate(PETSC_COMM_WORLD,J,ierr);CHKERRA(ierr)
-      call MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(J,ierr);CHKERRA(ierr)
-      call MatSeqAIJSetPreallocation(J,three,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-      call MatMPIAIJSetPreallocation(J,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-      call MatSetUp(J,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,J,ierr))
+      PetscCallA(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+      PetscCallA(MatSetFromOptions(J,ierr))
+      PetscCallA(MatSeqAIJSetPreallocation(J,three,PETSC_NULL_INTEGER,ierr))
+      PetscCallA(MatMPIAIJSetPreallocation(J,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
+      PetscCallA(MatSetUp(J,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and set various options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create eigensolver context
-      call NEPCreate(PETSC_COMM_WORLD,nep,ierr);CHKERRA(ierr)
+      PetscCallA(NEPCreate(PETSC_COMM_WORLD,nep,ierr))
 
 !     ** Set routines for evaluation of Function and Jacobian
-      call NEPSetFunction(nep,F,F,FormFunction,ctx,ierr);CHKERRA(ierr)
-      call NEPSetJacobian(nep,J,FormJacobian,ctx,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSetFunction(nep,F,F,FormFunction,ctx,ierr))
+      PetscCallA(NEPSetJacobian(nep,J,FormJacobian,ctx,ierr))
 
 !     ** Customize nonlinear solver
       tol = 1e-9
-      call NEPSetTolerances(nep,tol,PETSC_DEFAULT_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSetTolerances(nep,tol,PETSC_DEFAULT_INTEGER,ierr))
       k = 1
-      call NEPSetDimensions(nep,k,PETSC_DEFAULT_INTEGER,PETSC_DEFAULT_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSetDimensions(nep,k,PETSC_DEFAULT_INTEGER,PETSC_DEFAULT_INTEGER,ierr))
 
 !     ** Set solver parameters at runtime
-      call NEPSetFromOptions(nep,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSetFromOptions(nep,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Evaluate initial guess
-      call MatCreateVecs(F,x,PETSC_NULL_VEC,ierr);CHKERRA(ierr)
-      call VecDuplicate(x,v(1),ierr);CHKERRA(ierr)
+      PetscCallA(MatCreateVecs(F,x,PETSC_NULL_VEC,ierr))
+      PetscCallA(VecDuplicate(x,v(1),ierr))
       alpha = 1.0
-      call VecSet(v(1),alpha,ierr);CHKERRA(ierr)
+      PetscCallA(VecSet(v(1),alpha,ierr))
       k = 1
-      call NEPSetInitialSpace(nep,k,v,ierr);CHKERRA(ierr)
-      call VecDestroy(v(1),ierr);CHKERRA(ierr)
+      PetscCallA(NEPSetInitialSpace(nep,k,v,ierr))
+      PetscCallA(VecDestroy(v(1),ierr))
 
 !     ** Call the solver
-      call NEPSolve(nep,ierr);CHKERRA(ierr)
-      call NEPGetIterationNumber(nep,its,ierr);CHKERRA(ierr)
+      PetscCallA(NEPSolve(nep,ierr))
+      PetscCallA(NEPGetIterationNumber(nep,its,ierr))
       if (rank .eq. 0) then
         write(*,'(A,I3)') ' Number of NEP iterations =',its
       endif
 
 !     ** Optional: Get some information from the solver and display it
-      call NEPGetType(nep,tname,ierr);CHKERRA(ierr)
+      PetscCallA(NEPGetType(nep,tname,ierr))
       if (rank .eq. 0) then
         write(*,'(A,A10)') ' Solution method: ',tname
       endif
-      call NEPGetDimensions(nep,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(NEPGetDimensions(nep,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr))
       if (rank .eq. 0) then
         write(*,'(A,I4)') ' Number of requested eigenvalues:',nev
       endif
-      call NEPGetTolerances(nep,tol,maxit,ierr);CHKERRA(ierr)
+      PetscCallA(NEPGetTolerances(nep,tol,maxit,ierr))
       if (rank .eq. 0) then
         write(*,'(A,F12.9,A,I5)') ' Stopping condition: tol=',tol,', maxit=',maxit
       endif
@@ -164,7 +160,7 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call NEPGetConverged(nep,nconv,ierr);CHKERRA(ierr)
+      PetscCallA(NEPGetConverged(nep,nconv,ierr))
       if (rank .eq. 0) then
         write(*,'(A,I2/)') ' Number of converged approximate eigenpairs:',nconv
       endif
@@ -177,10 +173,10 @@
         endif
         do i=0,nconv-1
 !         ** Get converged eigenpairs: (in this example they are always real)
-          call NEPGetEigenpair(nep,i,lambda,PETSC_NULL_SCALAR,x,PETSC_NULL_VEC,ierr);CHKERRA(ierr)
+          PetscCallA(NEPGetEigenpair(nep,i,lambda,PETSC_NULL_SCALAR,x,PETSC_NULL_VEC,ierr))
 
 !         ** Compute residual norm and error
-          call NEPComputeError(nep,i,NEP_ERROR_RELATIVE,norm,ierr);CHKERRA(ierr)
+          PetscCallA(NEPComputeError(nep,i,NEP_ERROR_RELATIVE,norm,ierr))
           if (rank .eq. 0) then
             write(*,'(1P,E15.4,E18.4)') PetscRealPart(lambda), norm
           endif
@@ -190,11 +186,11 @@
         endif
       endif
 
-      call NEPDestroy(nep,ierr);CHKERRA(ierr)
-      call MatDestroy(F,ierr);CHKERRA(ierr)
-      call MatDestroy(J,ierr);CHKERRA(ierr)
-      call VecDestroy(x,ierr);CHKERRA(ierr)
-      call SlepcFinalize(ierr)
+      PetscCallA(NEPDestroy(nep,ierr))
+      PetscCallA(MatDestroy(F,ierr))
+      PetscCallA(MatDestroy(J,ierr))
+      PetscCallA(VecDestroy(x,ierr))
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 ! ---------------  Evaluate Function matrix  T(lambda)  ----------------
@@ -211,8 +207,8 @@
       PetscErrorCode ierr
 
 !     ** Compute Function entries and insert into matrix
-      call MatGetSize(fun,n,PETSC_NULL_INTEGER,ierr);CHKERRQ(ierr)
-      call MatGetOwnershipRange(fun,Istart,Iend,ierr);CHKERRQ(ierr)
+      PetscCall(MatGetSize(fun,n,PETSC_NULL_INTEGER,ierr))
+      PetscCall(MatGetOwnershipRange(fun,Istart,Iend,ierr))
       h = ctx%h
       c = ctx%kappa/(lambda-ctx%kappa)
       d = n
@@ -227,7 +223,7 @@
         j(2) = 1
         A(1) = 2.0*(d-lambda*h/3.0)
         A(2) = -d-lambda*h/6.0
-        call MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
+        PetscCall(MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr))
         Istart = Istart + 1
       endif
 
@@ -237,7 +233,7 @@
         j(2) = n-1
         A(1) = -d-lambda*h/6.0
         A(2) = d-lambda*h/3.0+lambda*c
-        call MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
+        PetscCall(MatSetValues(fun,one,i,two,j,A,INSERT_VALUES,ierr))
         Iend = Iend - 1
       endif
 
@@ -249,12 +245,12 @@
         A(1) = -d-lambda*h/6.0
         A(2) = 2.0*(d-lambda*h/3.0)
         A(3) = -d-lambda*h/6.0
-        call MatSetValues(fun,one,i,three,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
+        PetscCall(MatSetValues(fun,one,i,three,j,A,INSERT_VALUES,ierr))
       enddo
 
 !     ** Assemble matrix
-      call MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
-      call MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
+      PetscCall(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCall(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY,ierr))
       return
       end
 
@@ -272,8 +268,8 @@
       PetscErrorCode ierr
 
 !     ** Compute Jacobian entries and insert into matrix
-      call MatGetSize(jac,n,PETSC_NULL_INTEGER,ierr);CHKERRQ(ierr)
-      call MatGetOwnershipRange(jac,Istart,Iend,ierr);CHKERRQ(ierr)
+      PetscCall(MatGetSize(jac,n,PETSC_NULL_INTEGER,ierr))
+      PetscCall(MatGetOwnershipRange(jac,Istart,Iend,ierr))
       h = ctx%h
       c = ctx%kappa/(lambda-ctx%kappa)
       one = 1
@@ -287,7 +283,7 @@
         j(2) = 1
         A(1) = -2.0*h/3.0
         A(2) = -h/6.0
-        call MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
+        PetscCall(MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr))
         Istart = Istart + 1
       endif
 
@@ -297,7 +293,7 @@
         j(2) = n-1
         A(1) = -h/6.0
         A(2) = -h/3.0-c*c
-        call MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
+        PetscCall(MatSetValues(jac,one,i,two,j,A,INSERT_VALUES,ierr))
         Iend = Iend - 1
       endif
 
@@ -309,12 +305,12 @@
         A(1) = -h/6.0
         A(2) = -2.0*h/3.0
         A(3) = -h/6.0
-        call MatSetValues(jac,one,i,three,j,A,INSERT_VALUES,ierr);CHKERRQ(ierr)
+        PetscCall(MatSetValues(jac,one,i,three,j,A,INSERT_VALUES,ierr))
       enddo
 
 !     ** Assemble matrix
-      call MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
-      call MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
+      PetscCall(MatAssemblyBegin(jac,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCall(MatAssemblyEnd(jac,MAT_FINAL_ASSEMBLY,ierr))
       return
       end
 

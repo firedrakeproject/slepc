@@ -50,14 +50,14 @@
       one = 1
       two = 2
       three = 3
-      call SlepcInitialize(PETSC_NULL_CHARACTER,"ex1f90 test"//c_new_line,ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,"ex1f90 test"//c_new_line,ierr))
       if (ierr .ne. 0) then
         print*,'SlepcInitialize failed'
         stop
       endif
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       n = 30
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr))
 
       if (rank .eq. 0) then
         write(*,100) n
@@ -68,19 +68,19 @@
 !     Compute the operator matrix that defines the eigensystem, Ax=kx
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MatCreate(PETSC_COMM_WORLD,A,ierr);CHKERRA(ierr)
-      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(A,ierr);CHKERRA(ierr)
-      call MatSetUp(A,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
+      PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+      PetscCallA(MatSetFromOptions(A,ierr))
+      PetscCallA(MatSetUp(A,ierr))
 
-      call MatGetOwnershipRange(A,Istart,Iend,ierr);CHKERRA(ierr)
+      PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       if (Istart .eq. 0) then
         row(1) = 0
         col(1) = 0
         col(2) = 1
         val(1) =  2.0
         val(2) = -1.0
-        call MatSetValues(A,one,row,two,col,val,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValues(A,one,row,two,col,val,INSERT_VALUES,ierr))
         Istart = Istart+1
       endif
       if (Iend .eq. n) then
@@ -89,7 +89,7 @@
         col(2) = n-1
         val(1) = -1.0
         val(2) =  2.0
-        call MatSetValues(A,one,row,two,col,val,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValues(A,one,row,two,col,val,INSERT_VALUES,ierr))
         Iend = Iend-1
       endif
       val(1) = -1.0
@@ -100,39 +100,39 @@
         col(1) = i-1
         col(2) = i
         col(3) = i+1
-        call MatSetValues(A,one,row,three,col,val,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValues(A,one,row,three,col,val,INSERT_VALUES,ierr))
       enddo
 
-      call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
+      PetscCallA(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and display info
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create eigensolver context
-      call EPSCreate(PETSC_COMM_WORLD,eps,ierr);CHKERRA(ierr)
+      PetscCallA(EPSCreate(PETSC_COMM_WORLD,eps,ierr))
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr);CHKERRA(ierr)
-      call EPSSetProblemType(eps,EPS_HEP,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr))
+      PetscCallA(EPSSetProblemType(eps,EPS_HEP,ierr))
 
 !     ** Set solver parameters at runtime
-      call EPSSetFromOptions(eps,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSetFromOptions(eps,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSSolve(eps,ierr);CHKERRA(ierr)
+      PetscCallA(EPSSolve(eps,ierr))
 
 !     ** Optional: Get some information from the solver and display it
-      call EPSGetType(eps,tname,ierr);CHKERRA(ierr)
+      PetscCallA(EPSGetType(eps,tname,ierr))
       if (rank .eq. 0) then
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr))
       if (rank .eq. 0) then
         write(*,130) nev
       endif
@@ -143,19 +143,19 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr))
       if (terse) then
-        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr);CHKERRA(ierr)
+        PetscCallA(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr))
       else
-        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr);CHKERRA(ierr)
-        call EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
+        PetscCallA(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr))
+        PetscCallA(EPSConvergedReasonView(eps,PETSC_VIEWER_STDOUT_WORLD,ierr))
+        PetscCallA(EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD,ierr))
+        PetscCallA(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr))
       endif
-      call EPSDestroy(eps,ierr);CHKERRA(ierr)
-      call MatDestroy(A,ierr);CHKERRA(ierr)
+      PetscCallA(EPSDestroy(eps,ierr))
+      PetscCallA(MatDestroy(A,ierr))
 
-      call SlepcFinalize(ierr)
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 !/*TEST

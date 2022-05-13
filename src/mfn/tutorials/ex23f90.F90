@@ -48,16 +48,12 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-      if (ierr .ne. 0) then
-        print*,'SlepcInitialize failed'
-        stop
-      endif
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
+      PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+      PetscCallMPIA(MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr))
       m = 15
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',m,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',m,flg,ierr))
       t = 2.0
-      call PetscOptionsGetScalar(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-t',t,flg,ierr);CHKERRA(ierr)
+      PetscCallA(PetscOptionsGetScalar(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-t',t,flg,ierr))
       N = m*(m+1)/2
       if (rank .eq. 0) then
         write(*,100) N, m
@@ -68,11 +64,11 @@
 !     Compute the transition probability matrix, A
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MatCreate(PETSC_COMM_WORLD,A,ierr);CHKERRA(ierr)
-      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr);CHKERRA(ierr)
-      call MatSetFromOptions(A,ierr);CHKERRA(ierr)
-      call MatSetUp(A,ierr);CHKERRA(ierr)
-      call MatGetOwnershipRange(A,Istart,Iend,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreate(PETSC_COMM_WORLD,A,ierr))
+      PetscCallA(MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr))
+      PetscCallA(MatSetFromOptions(A,ierr))
+      PetscCallA(MatSetUp(A,ierr))
+      PetscCallA(MatGetOwnershipRange(A,Istart,Iend,ierr))
       ix = 0
       cst = 0.5/real(m-1)
       do i=1,m
@@ -89,7 +85,7 @@
               else
                 z = pd
               end if
-              call MatSetValue(A,ii,ix,z,INSERT_VALUES,ierr);CHKERRA(ierr)
+              PetscCallA(MatSetValue(A,ii,ix,z,INSERT_VALUES,ierr))
               !** east
               if (j.eq.1) then
                 z = 2.0*pd
@@ -97,7 +93,7 @@
                 z = pd
               end if
               jj = ix+jmax-1
-              call MatSetValue(A,ii,jj,z,INSERT_VALUES,ierr);CHKERRA(ierr)
+              PetscCallA(MatSetValue(A,ii,jj,z,INSERT_VALUES,ierr))
             end if
 
             !** south
@@ -105,67 +101,67 @@
             z = pu
             if (j.gt.1) then
               jj = ix-2
-              call MatSetValue(A,ii,jj,z,INSERT_VALUES,ierr);CHKERRA(ierr)
+              PetscCallA(MatSetValue(A,ii,jj,z,INSERT_VALUES,ierr))
             end if
             !** west
             if (i.gt.1) then
               jj = ix-jmax-2
-              call MatSetValue(A,ii,jj,z,INSERT_VALUES,ierr);CHKERRA(ierr)
+              PetscCallA(MatSetValue(A,ii,jj,z,INSERT_VALUES,ierr))
             end if
           end if
         end do
       end do
-      call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-      call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
+      PetscCallA(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr))
+      PetscCallA(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr))
 
 !     ** Set v = e_1
-      call MatCreateVecs(A,y,v,ierr);CHKERRA(ierr)
+      PetscCallA(MatCreateVecs(A,y,v,ierr))
       ii = 0
       z = 1.0
-      call VecSetValue(v,ii,z,INSERT_VALUES,ierr);CHKERRA(ierr)
-      call VecAssemblyBegin(v,ierr);CHKERRA(ierr)
-      call VecAssemblyEnd(v,ierr);CHKERRA(ierr)
+      PetscCallA(VecSetValue(v,ii,z,INSERT_VALUES,ierr))
+      PetscCallA(VecAssemblyBegin(v,ierr))
+      PetscCallA(VecAssemblyEnd(v,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the solver and set various options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create matrix function solver context
-      call MFNCreate(PETSC_COMM_WORLD,mfn,ierr);CHKERRA(ierr)
+      PetscCallA(MFNCreate(PETSC_COMM_WORLD,mfn,ierr))
 
 !     ** Set operator matrix, the function to compute, and other options
-      call MFNSetOperator(mfn,A,ierr);CHKERRA(ierr)
-      call MFNGetFN(mfn,f,ierr);CHKERRA(ierr)
-      call FNSetType(f,FNEXP,ierr);CHKERRA(ierr)
+      PetscCallA(MFNSetOperator(mfn,A,ierr))
+      PetscCallA(MFNGetFN(mfn,f,ierr))
+      PetscCallA(FNSetType(f,FNEXP,ierr))
       z = 1.0
-      call FNSetScale(f,t,z,ierr);CHKERRA(ierr)
+      PetscCallA(FNSetScale(f,t,z,ierr))
       tol = 0.0000001
-      call MFNSetTolerances(mfn,tol,PETSC_DEFAULT_INTEGER,ierr);CHKERRA(ierr)
+      PetscCallA(MFNSetTolerances(mfn,tol,PETSC_DEFAULT_INTEGER,ierr))
 
 !     ** Set solver parameters at runtime
-      call MFNSetFromOptions(mfn,ierr);CHKERRA(ierr)
+      PetscCallA(MFNSetFromOptions(mfn,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the problem, y=exp(t*A)*v
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MFNSolve(mfn,v,y,ierr);CHKERRA(ierr)
-      call MFNGetConvergedReason(mfn,reason,ierr);CHKERRA(ierr)
+      PetscCallA(MFNSolve(mfn,v,y,ierr))
+      PetscCallA(MFNGetConvergedReason(mfn,reason,ierr))
       if (reason.lt.0) then; SETERRA(PETSC_COMM_WORLD,1,'Solver did not converge'); endif
-      call VecNorm(y,NORM_2,norm,ierr);CHKERRA(ierr)
+      PetscCallA(VecNorm(y,NORM_2,norm,ierr))
 
 !     ** Optional: Get some information from the solver and display it
-      call MFNGetIterationNumber(mfn,its,ierr);CHKERRA(ierr)
+      PetscCallA(MFNGetIterationNumber(mfn,its,ierr))
       if (rank .eq. 0) then
         write(*,120) its
       endif
  120  format (' Number of iterations of the method: ',I4)
-      call MFNGetDimensions(mfn,ncv,ierr);CHKERRA(ierr)
+      PetscCallA(MFNGetDimensions(mfn,ncv,ierr))
       if (rank .eq. 0) then
         write(*,130) ncv
       endif
  130  format (' Subspace dimension:',I4)
-      call MFNGetTolerances(mfn,tol,maxit,ierr);CHKERRA(ierr)
+      PetscCallA(MFNGetTolerances(mfn,tol,maxit,ierr))
       if (rank .eq. 0) then
         write(*,140) tol,maxit
       endif
@@ -180,11 +176,11 @@
       endif
  150  format (' Computed vector at time t=',f4.1,' has norm ',f8.5)
 
-      call MFNDestroy(mfn,ierr);CHKERRA(ierr)
-      call MatDestroy(A,ierr);CHKERRA(ierr)
-      call VecDestroy(v,ierr);CHKERRA(ierr)
-      call VecDestroy(y,ierr);CHKERRA(ierr)
-      call SlepcFinalize(ierr)
+      PetscCallA(MFNDestroy(mfn,ierr))
+      PetscCallA(MatDestroy(A,ierr))
+      PetscCallA(VecDestroy(v,ierr))
+      PetscCallA(VecDestroy(y,ierr))
+      PetscCallA(SlepcFinalize(ierr))
       end
 
 !/*TEST

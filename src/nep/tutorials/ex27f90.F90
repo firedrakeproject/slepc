@@ -50,19 +50,15 @@ PROGRAM main
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
-  if (ierr .ne. 0) then
-    print*,'SlepcInitialize failed'
-    stop
-  end if
-  call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,"-n",n,flg,ierr);CHKERRA(ierr)
-  call PetscOptionsGetBool(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,"-split",split,flg,ierr);CHKERRA(ierr)
+  PetscCallA(SlepcInitialize(PETSC_NULL_CHARACTER,ierr))
+  PetscCallA(PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,"-n",n,flg,ierr))
+  PetscCallA(PetscOptionsGetBool(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,"-split",split,flg,ierr))
   if (split) then
      write(string,*) 'Square root eigenproblem, n=',n,' (split-form)\n'
   else
      write(string,*) 'Square root eigenproblem, n=',n,'\n'
   end if
-  call PetscPrintf(PETSC_COMM_WORLD,trim(string),ierr);CHKERRA(ierr)
+  PetscCallA(PetscPrintf(PETSC_COMM_WORLD,trim(string),ierr))
   done  = 1.0
   one   = 1
   two   = 2
@@ -72,11 +68,11 @@ PROGRAM main
 !     Create nonlinear eigensolver context and set options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  call NEPCreate(PETSC_COMM_WORLD,nep,ierr);CHKERRA(ierr)
-  call NEPSetType(nep,NEPNLEIGS,ierr);CHKERRA(ierr)
-  call NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,0,ierr);CHKERRA(ierr)
-  call NEPGetRG(nep,rg,ierr);CHKERRA(ierr)
-  call RGSetType(rg,RGINTERVAL,ierr);CHKERRA(ierr)
+  PetscCallA(NEPCreate(PETSC_COMM_WORLD,nep,ierr))
+  PetscCallA(NEPSetType(nep,NEPNLEIGS,ierr))
+  PetscCallA(NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,0,ierr))
+  PetscCallA(NEPGetRG(nep,rg,ierr))
+  PetscCallA(RGSetType(rg,RGINTERVAL,ierr))
   ia = 0.01
   ib = 16.0
 #if defined(PETSC_USE_COMPLEX)
@@ -86,9 +82,9 @@ PROGRAM main
   ic = 0.0
   id = 0.0
 #endif
-  call RGIntervalSetEndpoints(rg,ia,ib,ic,id,ierr);CHKERRA(ierr)
+  PetscCallA(RGIntervalSetEndpoints(rg,ia,ib,ic,id,ierr))
   sigma = 1.1
-  call NEPSetTarget(nep,sigma,ierr);CHKERRA(ierr)
+  PetscCallA(NEPSetTarget(nep,sigma,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Define the nonlinear problem
@@ -96,94 +92,94 @@ PROGRAM main
 
   if (split) then
      ! ** Create matrices for the split form
-     call MatCreate(PETSC_COMM_WORLD,A(1),ierr);CHKERRA(ierr)
-     call MatSetSizes(A(1),PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-     call MatSetFromOptions(A(1),ierr);CHKERRA(ierr)
-     call MatSetUp(A(1),ierr);CHKERRA(ierr)
-     call MatGetOwnershipRange(A(1),Istart,Iend,ierr);CHKERRA(ierr)
+     PetscCallA(MatCreate(PETSC_COMM_WORLD,A(1),ierr))
+     PetscCallA(MatSetSizes(A(1),PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+     PetscCallA(MatSetFromOptions(A(1),ierr))
+     PetscCallA(MatSetUp(A(1),ierr))
+     PetscCallA(MatGetOwnershipRange(A(1),Istart,Iend,ierr))
      coeffs = -2.0
      do i=Istart,Iend-1
         if (i.gt.0) then
            col = i-1
-           call MatSetValue(A(1),i,col,done,INSERT_VALUES,ierr);CHKERRA(ierr)
+           PetscCallA(MatSetValue(A(1),i,col,done,INSERT_VALUES,ierr))
         end if
         if (i.lt.n-1) then
            col = i+1
-           call MatSetValue(A(1),i,col,done,INSERT_VALUES,ierr);CHKERRA(ierr)
+           PetscCallA(MatSetValue(A(1),i,col,done,INSERT_VALUES,ierr))
         end if
-        call MatSetValue(A(1),i,i,coeffs,INSERT_VALUES,ierr);CHKERRA(ierr)
+        PetscCallA(MatSetValue(A(1),i,i,coeffs,INSERT_VALUES,ierr))
      end do
-     call MatAssemblyBegin(A(1),MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
-     call MatAssemblyEnd(A(1),MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
+     PetscCallA(MatAssemblyBegin(A(1),MAT_FINAL_ASSEMBLY,ierr))
+     PetscCallA(MatAssemblyEnd(A(1),MAT_FINAL_ASSEMBLY,ierr))
 
-     call MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,done,A(2),ierr);CHKERRA(ierr)
+     PetscCallA(MatCreateConstantDiagonal(PETSC_COMM_WORLD,PETSC_DECIDE,PETSC_DECIDE,n,n,done,A(2),ierr))
 
      ! ** Define functions for the split form
-     call FNCreate(PETSC_COMM_WORLD,fn(1),ierr);CHKERRA(ierr)
-     call FNSetType(fn(1),FNRATIONAL,ierr);CHKERRA(ierr)
-     call FNRationalSetNumerator(fn(1),one,done,ierr);CHKERRA(ierr)
-     call FNCreate(PETSC_COMM_WORLD,fn(2),ierr);CHKERRA(ierr)
-     call FNSetType(fn(2),FNSQRT,ierr);CHKERRA(ierr)
-     call NEPSetSplitOperator(nep,two,A,fn,SUBSET_NONZERO_PATTERN,ierr);CHKERRA(ierr)
+     PetscCallA(FNCreate(PETSC_COMM_WORLD,fn(1),ierr))
+     PetscCallA(FNSetType(fn(1),FNRATIONAL,ierr))
+     PetscCallA(FNRationalSetNumerator(fn(1),one,done,ierr))
+     PetscCallA(FNCreate(PETSC_COMM_WORLD,fn(2),ierr))
+     PetscCallA(FNSetType(fn(2),FNSQRT,ierr))
+     PetscCallA(NEPSetSplitOperator(nep,two,A,fn,SUBSET_NONZERO_PATTERN,ierr))
   else
     ! ** Callback form: create matrix and set Function evaluation routine
-    call MatCreate(PETSC_COMM_WORLD,F,ierr);CHKERRA(ierr)
-    call MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-    call MatSetFromOptions(F,ierr);CHKERRA(ierr)
-    call MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-    call MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-    Call MatSetUp(F,ierr);CHKERRA(ierr)
-    call NEPSetFunction(nep,F,F,FormFunction,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+    PetscCallA(MatCreate(PETSC_COMM_WORLD,F,ierr))
+    PetscCallA(MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+    PetscCallA(MatSetFromOptions(F,ierr))
+    PetscCallA(MatSeqAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,ierr))
+    PetscCallA(MatMPIAIJSetPreallocation(F,three,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
+    PetscCallA(MatSetUp(F,ierr))
+    PetscCallA(NEPSetFunction(nep,F,F,FormFunction,PETSC_NULL_INTEGER,ierr))
 
-    call MatCreate(PETSC_COMM_WORLD,J,ierr);CHKERRA(ierr)
-    call MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr);CHKERRA(ierr)
-    call MatSetFromOptions(J,ierr);CHKERRA(ierr)
-    call MatSeqAIJSetPreallocation(J,one,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-    call MatMPIAIJSetPreallocation(J,one,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-    call MatSetUp(J,ierr);CHKERRA(ierr)
-    call NEPSetJacobian(nep,J,FormJacobian,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+    PetscCallA(MatCreate(PETSC_COMM_WORLD,J,ierr))
+    PetscCallA(MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr))
+    PetscCallA(MatSetFromOptions(J,ierr))
+    PetscCallA(MatSeqAIJSetPreallocation(J,one,PETSC_NULL_INTEGER,ierr))
+    PetscCallA(MatMPIAIJSetPreallocation(J,one,PETSC_NULL_INTEGER,one,PETSC_NULL_INTEGER,ierr))
+    PetscCallA(MatSetUp(J,ierr))
+    PetscCallA(NEPSetJacobian(nep,J,FormJacobian,PETSC_NULL_INTEGER,ierr))
   end if
 
-  call NEPSetFromOptions(nep,ierr);CHKERRA(ierr)
+  PetscCallA(NEPSetFromOptions(nep,ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  call NEPSolve(nep,ierr);CHKERRA(ierr)
-  call NEPGetType(nep,ntype,ierr);CHKERRA(ierr)
+  PetscCallA(NEPSolve(nep,ierr))
+  PetscCallA(NEPGetType(nep,ntype,ierr))
   write(string,*) 'Solution method: ',ntype,'\n'
-  call PetscPrintf(PETSC_COMM_WORLD,trim(string),ierr);CHKERRA(ierr)
-  call NEPGetDimensions(nep,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
+  PetscCallA(PetscPrintf(PETSC_COMM_WORLD,trim(string),ierr))
+  PetscCallA(NEPGetDimensions(nep,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr))
   write(string,*) 'Number of requested eigenvalues:',nev,'\n'
-  call PetscPrintf(PETSC_COMM_WORLD,trim(string),ierr);CHKERRA(ierr)
+  PetscCallA(PetscPrintf(PETSC_COMM_WORLD,trim(string),ierr))
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   ! ** show detailed info unless -terse option is given by user
-  call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr);CHKERRA(ierr)
+  PetscCallA(PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr))
   if (terse) then
-    call NEPErrorView(nep,NEP_ERROR_BACKWARD,PETSC_NULL_VIEWER,ierr);CHKERRA(ierr)
+    PetscCallA(NEPErrorView(nep,NEP_ERROR_BACKWARD,PETSC_NULL_VIEWER,ierr))
   else
-    call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr);CHKERRA(ierr)
-    call NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-    call NEPErrorView(nep,NEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
-    call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
+    PetscCallA(PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr))
+    PetscCallA(NEPConvergedReasonView(nep,PETSC_VIEWER_STDOUT_WORLD,ierr))
+    PetscCallA(NEPErrorView(nep,NEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD,ierr))
+    PetscCallA(PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr))
   end if
 
   if (split) then
-    call MatDestroy(A(1),ierr);CHKERRA(ierr)
-    call MatDestroy(A(2),ierr);CHKERRA(ierr)
-    call FNDestroy(fn(1),ierr);CHKERRA(ierr)
-    call FNDestroy(fn(2),ierr);CHKERRA(ierr)
+    PetscCallA(MatDestroy(A(1),ierr))
+    PetscCallA(MatDestroy(A(2),ierr))
+    PetscCallA(FNDestroy(fn(1),ierr))
+    PetscCallA(FNDestroy(fn(2),ierr))
   else
-    call MatDestroy(F,ierr);CHKERRA(ierr)
-    call MatDestroy(J,ierr);CHKERRA(ierr)
+    PetscCallA(MatDestroy(F,ierr))
+    PetscCallA(MatDestroy(J,ierr))
   end if
-  call NEPDestroy(nep,ierr)
-  call SlepcFinalize(ierr)
+  PetscCallA(NEPDestroy(nep,ierr))
+  PetscCallA(SlepcFinalize(ierr))
 
 END PROGRAM main
 
@@ -209,8 +205,8 @@ SUBROUTINE FormFunction(nep,lambda,fun,B,ctx,ierr)
 
   ! ** Compute Function entries and insert into matrix
   t = sqrt(lambda)
-  call MatGetSize(fun,n,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-  call MatGetOwnershipRange(fun,Istart,Iend,ierr);CHKERRA(ierr)
+  PetscCall(MatGetSize(fun,n,PETSC_NULL_INTEGER,ierr))
+  PetscCall(MatGetOwnershipRange(fun,Istart,Iend,ierr))
   if (Istart.eq.0) FirstBlock=PETSC_TRUE;
   if (Iend.eq.n) LastBlock=PETSC_TRUE;
   val(0)=1.0; val(1)=t-2.0; val(2)=1.0;
@@ -224,7 +220,7 @@ SUBROUTINE FormFunction(nep,lambda,fun,B,ctx,ierr)
      col(0) = i-1
      col(1) = i
      col(2) = i+1
-     call MatSetValues(fun,one,i,three,col,val,INSERT_VALUES,ierr);CHKERRA(ierr)
+     PetscCall(MatSetValues(fun,one,i,three,col,val,INSERT_VALUES,ierr))
   end do
 
   if (LastBlock) then
@@ -233,7 +229,7 @@ SUBROUTINE FormFunction(nep,lambda,fun,B,ctx,ierr)
      col(1) = n-1
      val(0) = 1.0
      val(1) = t-2.0
-     call MatSetValues(fun,one,i,two,col,val,INSERT_VALUES,ierr);CHKERRA(ierr)
+     PetscCall(MatSetValues(fun,one,i,two,col,val,INSERT_VALUES,ierr))
   end if
 
   if (FirstBlock) then
@@ -242,14 +238,14 @@ SUBROUTINE FormFunction(nep,lambda,fun,B,ctx,ierr)
      col(1) = 1
      val(0) = t-2.0
      val(1) = 1.0
-     call MatSetValues(fun,one,i,two,col,val,INSERT_VALUES,ierr);CHKERRA(ierr)
+     PetscCall(MatSetValues(fun,one,i,two,col,val,INSERT_VALUES,ierr))
   end if
 
   ! ** Assemble matrix
-  call MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
-  call MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
-  call MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
-  call MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY,ierr);CHKERRQ(ierr)
+  PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY,ierr))
+  PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY,ierr))
+  PetscCall(MatAssemblyBegin(fun,MAT_FINAL_ASSEMBLY,ierr))
+  PetscCall(MatAssemblyEnd(fun,MAT_FINAL_ASSEMBLY,ierr))
 
 END SUBROUTINE FormFunction
 
@@ -269,11 +265,11 @@ SUBROUTINE FormJacobian(nep,lambda,jac,ctx,ierr)
   PetscErrorCode :: ierr
   Vec            :: d
 
-  call MatCreateVecs(jac,d,PETSC_NULL_VEC,ierr);CHKERRA(ierr)
+  PetscCall(MatCreateVecs(jac,d,PETSC_NULL_VEC,ierr))
   t = 0.5/sqrt(lambda)
-  call VecSet(d,t,ierr);CHKERRA(ierr)
-  call MatDiagonalSet(jac,d,INSERT_VALUES,ierr);CHKERRA(ierr)
-  calL VecDestroy(d,ierr);CHKERRA(ierr)
+  PetscCall(VecSet(d,t,ierr))
+  PetscCall(MatDiagonalSet(jac,d,INSERT_VALUES,ierr))
+  PetscCall(VecDestroy(d,ierr))
 
 END SUBROUTINE FormJacobian
 
@@ -308,6 +304,7 @@ SUBROUTINE ComputeSingularities(nep,maxnp,xi,dummy,ierr)
   do i=1,maxnp-2
      xi(i) = -10**(-5+h*i)
   end do
+  ierr = 0
 
 END SUBROUTINE ComputeSingularities
 
