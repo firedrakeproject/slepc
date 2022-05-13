@@ -9,8 +9,6 @@
 #
 
 LOCDIR     = src/sys/vec/tests/
-EXAMPLESC  = test1.c
-EXAMPLESF  =
 MANSEC     = sys
 TESTS      = test1
 

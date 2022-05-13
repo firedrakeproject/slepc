@@ -14,6 +14,8 @@
 #include <slepcpep.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = PEP */
+
 SLEPC_EXTERN PetscBool PEPRegisterAllCalled;
 SLEPC_EXTERN PetscBool PEPMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode PEPRegisterAll(void);

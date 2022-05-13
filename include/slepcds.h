@@ -13,9 +13,12 @@
 
 #if !defined(SLEPCDS_H)
 #define SLEPCDS_H
+
 #include <slepcsc.h>
 #include <slepcfn.h>
 #include <slepcrg.h>
+
+/* SUBMANSEC = DS */
 
 #define DS_MAX_SOLVE 6
 

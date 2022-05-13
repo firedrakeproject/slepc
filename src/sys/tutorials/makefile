@@ -9,8 +9,6 @@
 #
 
 LOCDIR     = src/sys/tutorials/
-EXAMPLESC  = ex33.c
-EXAMPLESF  =
 MANSEC     = sys
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

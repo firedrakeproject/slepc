@@ -14,6 +14,5 @@ SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h slepc
 LIBBASE  = libslepcsys
 DIRS     = slepc/finclude slepc/private
 LOCDIR   = include/
-MANSEC   = sys
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

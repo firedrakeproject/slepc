@@ -9,8 +9,6 @@
 #
 
 LOCDIR     = src/sys/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c
-EXAMPLESF  =
 MANSEC     = sys
 TESTS      = test1 test2 test3 test4
 

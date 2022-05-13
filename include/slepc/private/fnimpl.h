@@ -14,6 +14,8 @@
 #include <slepcfn.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = FN */
+
 SLEPC_EXTERN PetscBool FNRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode FNRegisterAll(void);
 SLEPC_EXTERN PetscLogEvent FN_Evaluate;

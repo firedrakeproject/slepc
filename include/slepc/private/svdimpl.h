@@ -14,6 +14,8 @@
 #include <slepcsvd.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = SVD */
+
 SLEPC_EXTERN PetscBool SVDRegisterAllCalled;
 SLEPC_EXTERN PetscBool SVDMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode SVDRegisterAll(void);

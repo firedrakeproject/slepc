@@ -17,6 +17,8 @@
 #include <slepcsys.h>
 #include <slepcrgtypes.h>
 
+/* SUBMANSEC = sys */
+
 /*S
     SlepcSC - Data structure (C struct) for storing information about
         the sorting criterion used by different eigensolver objects.

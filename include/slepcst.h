@@ -13,9 +13,12 @@
 
 #if !defined(SLEPCST_H)
 #define SLEPCST_H
+
 #include <slepcsys.h>
 #include <slepcbv.h>
 #include <petscksp.h>
+
+/* SUBMANSEC = ST */
 
 SLEPC_EXTERN PetscErrorCode STInitializePackage(void);
 

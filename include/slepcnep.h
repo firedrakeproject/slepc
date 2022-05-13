@@ -13,9 +13,12 @@
 
 #if !defined(SLEPCNEP_H)
 #define SLEPCNEP_H
+
 #include <slepceps.h>
 #include <slepcpep.h>
 #include <slepcfn.h>
+
+/* SUBMANSEC = NEP */
 
 SLEPC_EXTERN PetscErrorCode NEPInitializePackage(void);
 

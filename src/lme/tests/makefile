@@ -9,8 +9,6 @@
 #
 
 LOCDIR     = src/lme/tests/
-EXAMPLESC  = test1.c test2.c
-EXAMPLESF  = 
 MANSEC     = LME
 TESTS      = test1 test2
 

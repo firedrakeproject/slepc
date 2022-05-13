@@ -15,6 +15,8 @@
 #if !defined(SLEPCMATH_H)
 #define SLEPCMATH_H
 
+/* SUBMANSEC = sys */
+
 /*
     Default tolerance for the different solvers, depending on the precision
 */

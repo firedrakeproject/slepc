@@ -13,9 +13,12 @@
 
 #if !defined(SLEPCSVD_H)
 #define SLEPCSVD_H
+
 #include <slepceps.h>
 #include <slepcbv.h>
 #include <slepcds.h>
+
+/* SUBMANSEC = SVD */
 
 SLEPC_EXTERN PetscErrorCode SVDInitializePackage(void);
 

@@ -14,6 +14,8 @@
 #include <slepcst.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = ST */
+
 SLEPC_EXTERN PetscBool STRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode STRegisterAll(void);
 SLEPC_EXTERN PetscLogEvent ST_SetUp,ST_ComputeOperator,ST_Apply,ST_ApplyTranspose,ST_MatSetUp,ST_MatMult,ST_MatMultTranspose,ST_MatSolve,ST_MatSolveTranspose;

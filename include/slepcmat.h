@@ -13,7 +13,10 @@
 
 #if !defined(SLEPCMAT_H)
 #define SLEPCMAT_H
+
 #include <petscmat.h>
+
+/* SUBMANSEC = sys */
 
 SLEPC_EXTERN PetscErrorCode MatCreateTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
 SLEPC_EXTERN PetscErrorCode MatCreateVecsEmpty(Mat,Vec*,Vec*);

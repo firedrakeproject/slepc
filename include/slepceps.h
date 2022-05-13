@@ -13,12 +13,15 @@
 
 #if !defined(SLEPCEPS_H)
 #define SLEPCEPS_H
+
 #include <slepcst.h>
 #include <slepcbv.h>
 #include <slepcds.h>
 #include <slepcrg.h>
 #include <slepclme.h>
 #include <petscsnes.h>
+
+/* SUBMANSEC = EPS */
 
 SLEPC_EXTERN PetscErrorCode EPSInitializePackage(void);
 

@@ -171,7 +171,7 @@ alldoc: allcite allpdf alldoc1 alldoc2 docsetdate
 
 # Build just citations
 allcite: chk_loc deletemanualpages
-	-${OMAKE_SELF} ACTION=slepc_manualpages_buildcite tree_basic LOC=${LOC}
+	-${OMAKE_SELF} ACTION=slepc_manualpages_buildcite tree_src LOC=${LOC}
 	-@sed -e s%man+../%man+manualpages/% ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${PETSC_DIR}/doc/classic/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
 
@@ -182,7 +182,7 @@ allpdf:
 # Build just manual pages + prerequisites
 allmanpages: chk_loc allcite
 	-${RM} ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err
-	-${OMAKE_SELF} ACTION=slepc_manualpages tree_basic LOC=${LOC}
+	-${OMAKE_SELF} ACTION=slepc_manualpages tree_src LOC=${LOC}
 	cat ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err
 	@a=`cat ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err | wc -l`; test ! $$a -gt 0
 

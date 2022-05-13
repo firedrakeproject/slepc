@@ -13,8 +13,11 @@
 
 #if !defined(SLEPCRG_H)
 #define SLEPCRG_H
+
 #include <slepcsys.h>
 #include <slepcrgtypes.h>
+
+/* SUBMANSEC = RG */
 
 SLEPC_EXTERN PetscErrorCode RGInitializePackage(void);
 

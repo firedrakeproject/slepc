@@ -13,7 +13,10 @@
 
 #if !defined(SLEPCFN_H)
 #define SLEPCFN_H
+
 #include <slepcsys.h>
+
+/* SUBMANSEC = FN */
 
 #define FN_MAX_SOLVE 16
 

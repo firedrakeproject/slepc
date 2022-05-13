@@ -9,8 +9,6 @@
 #
 
 LOCDIR     = src/nep/tutorials/nlevp/
-EXAMPLESC  = loaded_string.c gun.c
-EXAMPLESF  =
 MANSEC     = NEP
 TESTS      = loaded_string gun
 

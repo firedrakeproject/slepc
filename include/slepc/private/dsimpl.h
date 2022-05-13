@@ -14,6 +14,8 @@
 #include <slepcds.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = DS */
+
 SLEPC_EXTERN PetscBool DSRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode DSRegisterAll(void);
 SLEPC_EXTERN PetscLogEvent DS_Solve,DS_Vectors,DS_Synchronize,DS_Other;
