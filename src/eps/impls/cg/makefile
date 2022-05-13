@@ -8,12 +8,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
 LIBBASE  = libslepceps
 DIRS     = rqcg lobpcg
 LOCDIR   = src/eps/impls/cg/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

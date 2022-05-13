@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = pjd.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = PEP
 LOCDIR   = src/pep/impls/jd/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

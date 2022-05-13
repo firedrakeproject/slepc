@@ -7,15 +7,13 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-
 #requiresdefine   'PETSC_HAVE_FORTRAN'
-ALL: lib
-CFLAGS   =
-FFLAGS   =
+
 SOURCEC  = zstoarf.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =
 LIBBASE  = libslepcpep
 LOCDIR   = src/pep/impls/krylov/stoar/ftn-custom/
+
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

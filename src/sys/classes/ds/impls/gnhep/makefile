@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = dsgnhep.c
 SOURCEF  =
 SOURCEH  =

@@ -13,7 +13,10 @@
 
 #if !defined(SLEPCLME_H)
 #define SLEPCLME_H
+
 #include <slepcbv.h>
+
+/* SUBMANSEC = LME */
 
 SLEPC_EXTERN PetscErrorCode LMEInitializePackage(void);
 

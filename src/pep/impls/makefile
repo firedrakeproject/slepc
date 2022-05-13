@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = peputils.c
 SOURCEF  =
 SOURCEH  = 
@@ -21,4 +17,3 @@ LOCDIR   = src/pep/impls/
 MANSEC   = PEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

@@ -13,7 +13,10 @@
 
 #if !defined(SLEPCVEC_H)
 #define SLEPCVEC_H
+
 #include <slepcsys.h>
+
+/* SUBMANSEC = sys */
 
 /* VecComp: Vec composed of several smaller Vecs */
 #define VECCOMP  "comp"

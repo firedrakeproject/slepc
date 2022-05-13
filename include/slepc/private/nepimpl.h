@@ -14,6 +14,8 @@
 #include <slepcnep.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = NEP */
+
 SLEPC_EXTERN PetscBool NEPRegisterAllCalled;
 SLEPC_EXTERN PetscBool NEPMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode NEPRegisterAll(void);

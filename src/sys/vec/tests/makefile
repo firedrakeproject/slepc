@@ -8,15 +8,8 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS     =
-FFLAGS     =
-CPPFLAGS   =
-FPPFLAGS   =
 LOCDIR     = src/sys/vec/tests/
-EXAMPLESC  = test1.c
-EXAMPLESF  =
 MANSEC     = sys
 TESTS      = test1
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

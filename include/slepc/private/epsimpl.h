@@ -14,6 +14,8 @@
 #include <slepceps.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = EPS */
+
 SLEPC_EXTERN PetscBool EPSRegisterAllCalled;
 SLEPC_EXTERN PetscBool EPSMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode EPSRegisterAll(void);

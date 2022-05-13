@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = narnoldi.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = NEP
 LOCDIR   = src/nep/impls/narnoldi/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

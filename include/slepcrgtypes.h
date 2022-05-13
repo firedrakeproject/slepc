@@ -11,6 +11,8 @@
 #if !defined(SLEPCRGTYPES_H)
 #define SLEPCRGTYPES_H
 
+/* SUBMANSEC = RG */
+
 /*S
    RG - Region of the complex plane.
 

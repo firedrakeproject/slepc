@@ -14,6 +14,8 @@
 #include <slepcvec.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = sys */
+
 #if !defined(PETSC_USE_DEBUG)
 
 #define SlepcValidVecComp(y,arg) do {(void)(y);} while (0)

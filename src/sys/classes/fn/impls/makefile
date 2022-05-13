@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = fnutil.c
 SOURCEF  =
 SOURCEH  =
@@ -21,4 +17,3 @@ LOCDIR   = src/sys/classes/fn/impls/
 MANSEC   = FN
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

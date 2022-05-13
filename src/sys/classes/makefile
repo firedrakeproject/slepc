@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  =
 SOURCEF  =
 SOURCEH  =
@@ -21,4 +17,3 @@ LOCDIR   = src/sys/classes/
 DIRS     = fn ds bv st rg
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

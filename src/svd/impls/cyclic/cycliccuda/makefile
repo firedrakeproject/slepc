@@ -7,12 +7,8 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-
 #requirespackage 'PETSC_HAVE_CUDA'
-ALL: lib
 
-CFLAGS   =
-FFLAGS   =
 SOURCECU = cycliccuda.cu
 SOURCEF  =
 SOURCEH  =
@@ -22,5 +18,3 @@ MANSEC   = SVD
 LOCDIR   = src/svd/impls/cyclic/cycliccuda/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

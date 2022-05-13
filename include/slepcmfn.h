@@ -13,8 +13,11 @@
 
 #if !defined(SLEPCMFN_H)
 #define SLEPCMFN_H
+
 #include <slepcbv.h>
 #include <slepcfn.h>
+
+/* SUBMANSEC = MFN */
 
 SLEPC_EXTERN PetscErrorCode MFNInitializePackage(void);
 

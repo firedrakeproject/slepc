@@ -13,7 +13,10 @@
 
 #if !defined(SLEPCBV_H)
 #define SLEPCBV_H
+
 #include <slepcsys.h>
+
+/* SUBMANSEC = BV */
 
 SLEPC_EXTERN PetscErrorCode BVInitializePackage(void);
 

@@ -8,13 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS     =
-FFLAGS     =
-CPPFLAGS   =
-FPPFLAGS   =
 LOCDIR     = src/lme/tutorials/
-EXAMPLESC  = ex32.c
-EXAMPLESF  =
 MANSEC     = LME
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

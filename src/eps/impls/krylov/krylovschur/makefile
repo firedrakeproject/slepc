@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = krylovschur.c ks-slice.c ks-indef.c ks-twosided.c
 SOURCEF  =
 SOURCEH  = krylovschur.h
@@ -21,5 +17,3 @@ MANSEC   = EPS
 LOCDIR   = src/eps/impls/krylov/krylovschur/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

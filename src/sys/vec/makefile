@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = veccomp.c pool.c vecutil.c
 SOURCEF  =
 SOURCEH  = veccomp0.h
@@ -21,5 +17,3 @@ MANSEC   = sys
 LOCDIR   = src/sys/vec/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

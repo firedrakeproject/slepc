@@ -14,6 +14,8 @@
 #include <slepcrg.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = RG */
+
 SLEPC_EXTERN PetscBool RGRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode RGRegisterAll(void);
 

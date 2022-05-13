@@ -7,12 +7,8 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-
 #requirespackage 'PETSC_HAVE_CUDA'
-ALL: lib
 
-CFLAGS   =
-FFLAGS   =
 SOURCECU = fnutilcuda.cu
 SOURCEF  =
 SOURCEH  = fnutilcuda.h

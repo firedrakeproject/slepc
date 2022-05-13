@@ -7,13 +7,8 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-
-ALL: lib
-
 #requiresdefine  'SLEPC_HAVE_PRIMME'
 
-CFLAGS   = ${PRIMME_INCLUDE}
-FFLAGS   =
 SOURCEC  = svdprimme.c
 SOURCEF  =
 SOURCEH  =
@@ -23,5 +18,3 @@ MANSEC   = SVD
 LOCDIR   = src/svd/impls/external/primme/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

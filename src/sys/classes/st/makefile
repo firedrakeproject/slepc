@@ -8,13 +8,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
 SOURCEH  = ../../../../include/slepc/private/stimpl.h ../../../../include/slepcst.h
 DIRS     = interface impls tests f90-mod
 LOCDIR   = src/sys/classes/st/
 MANSEC   = ST
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

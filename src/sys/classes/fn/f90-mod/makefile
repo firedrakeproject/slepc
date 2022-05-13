@@ -9,8 +9,6 @@
 #
 #requiresdefine   'PETSC_HAVE_FORTRAN'
 
-CFLAGS     =
-FFLAGS     =
 SOURCEC    =
 SOURCEF90  = slepcfnmod.F90
 SOURCEH    = slepcfn.h slepcfn.h90
@@ -20,4 +18,3 @@ LOCDIR     = src/sys/classes/fn/f90-mod/
 CLEANFILES = *.mod
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

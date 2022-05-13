@@ -8,13 +8,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
 LIBBASE  = libslepcsys
 DIRS     = shell shift sinvert cayley precond filter
 LOCDIR   = src/sys/classes/st/impls/
 MANSEC   = ST
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

@@ -14,6 +14,8 @@
 #include <slepclme.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = LME */
+
 SLEPC_EXTERN PetscBool LMERegisterAllCalled;
 SLEPC_EXTERN PetscBool LMEMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode LMERegisterAll(void);

@@ -8,8 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
 SOURCEH  = ../../../../include/slepc/private/dsimpl.h ../../../../include/slepcds.h
 DIRS     = interface impls tests f90-mod
 LOCDIR   = src/sys/classes/ds/

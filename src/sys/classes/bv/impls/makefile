@@ -8,13 +8,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
 LIBBASE  = libslepcsys
 DIRS     = vecs contiguous svec mat tensor
 LOCDIR   = src/sys/classes/bv/impls/
 MANSEC   = BV
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

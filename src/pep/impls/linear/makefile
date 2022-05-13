@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = linear.c qeplin.c
 SOURCEF  =
 SOURCEH  = linear.h
@@ -21,5 +17,3 @@ MANSEC   = PEP
 LOCDIR   = src/pep/impls/linear/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

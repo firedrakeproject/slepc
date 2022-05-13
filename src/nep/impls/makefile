@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = nepdefl.c
 SOURCEF  =
 SOURCEH  = nepdefl.h
@@ -21,5 +17,3 @@ LOCDIR   = src/nep/impls/
 MANSEC   = NEP
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

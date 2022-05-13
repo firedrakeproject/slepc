@@ -13,7 +13,10 @@
 
 #if !defined(SLEPCPEP_H)
 #define SLEPCPEP_H
+
 #include <slepceps.h>
+
+/* SUBMANSEC = PEP */
 
 SLEPC_EXTERN PetscErrorCode PEPInitializePackage(void);
 

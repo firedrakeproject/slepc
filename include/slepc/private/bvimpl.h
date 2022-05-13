@@ -14,6 +14,8 @@
 #include <slepcbv.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = BV */
+
 SLEPC_EXTERN PetscBool BVRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode BVRegisterAll(void);
 

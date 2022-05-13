@@ -7,13 +7,8 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-
-ALL: lib
-
 #requiresscalar    real
 
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = dibtdc.c dlaed3m.c dmerg2.c dsbtdc.c dsrtdf.c
 SOURCEF  =
 SOURCEH  =

@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = svdlapack.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = SVD
 LOCDIR   = src/svd/impls/lapack/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

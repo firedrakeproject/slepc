@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = lapack.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = EPS
 LOCDIR   = src/eps/impls/lapack/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

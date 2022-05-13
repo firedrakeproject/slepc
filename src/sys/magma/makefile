@@ -7,12 +7,8 @@
 #  SLEPc is distributed under a 2-clause BSD license (see LICENSE).
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
-
 #requirespackage 'PETSC_HAVE_MAGMA'
-ALL: lib
 
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = slepcmagma.c
 SOURCEF  =
 SOURCEH  =
@@ -22,4 +18,3 @@ LOCDIR   = src/sys/magma/
 DIRS     =
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

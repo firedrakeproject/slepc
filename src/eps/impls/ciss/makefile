@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = ciss.c
 SOURCEF  =
 SOURCEH  =
@@ -21,4 +17,3 @@ MANSEC   = EPS
 LOCDIR   = src/eps/impls/ciss/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

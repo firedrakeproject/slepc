@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = davidson.c dvdcalcpairs.c dvdimprovex.c dvdinitv.c dvdschm.c dvdtestconv.c dvdupdatev.c dvdutils.c dvdgd2.c
 SOURCEF  =
 SOURCEH  = davidson.h
@@ -21,4 +17,3 @@ LOCDIR   = src/eps/impls/davidson/
 MANSEC   = EPS
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

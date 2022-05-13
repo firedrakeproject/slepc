@@ -14,6 +14,8 @@
 #include <slepcmfn.h>
 #include <slepc/private/slepcimpl.h>
 
+/* SUBMANSEC = MFN */
+
 SLEPC_EXTERN PetscBool MFNRegisterAllCalled;
 SLEPC_EXTERN PetscBool MFNMonitorRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode MFNRegisterAll(void);

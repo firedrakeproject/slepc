@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = slp.c slp-twosided.c
 SOURCEF  =
 SOURCEH  =
@@ -21,5 +17,3 @@ MANSEC   = NEP
 LOCDIR   = src/nep/impls/slp/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

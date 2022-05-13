@@ -8,13 +8,9 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
 LIBBASE  = libslepcsvd
 DIRS     = cross cyclic lapack lanczos randomized trlanczos external
 LOCDIR   = src/svd/impls/
 MANSEC   = SVD
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

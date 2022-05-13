@@ -8,10 +8,6 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-CFLAGS   =
-FFLAGS   =
 SOURCEC  = slepcinit.c slepcutil.c slepcsc.c slepccontour.c dlregisslepc.c
 SOURCEF  =
 SOURCEH  =
@@ -21,4 +17,3 @@ LOCDIR   = src/sys/
 DIRS     = f90-mod vec mat magma classes tests tutorials
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

@@ -8,14 +8,11 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-CFLAGS   =
-FFLAGS   =
 SOURCEC  =
 SOURCEF  =
 SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h slepceps.h slepcpep.h slepcnep.h slepcsvd.h slepcmfn.h slepclme.h slepcst.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcvec.h slepcblaslapack_mangle.h slepcmat.h slepcrgtypes.h slepcsc.h slepccublas.h slepcmagma.h
 LIBBASE  = libslepcsys
 DIRS     = slepc/finclude slepc/private
 LOCDIR   = include/
-MANSEC   = sys
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
