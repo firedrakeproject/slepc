@@ -149,9 +149,13 @@ def run_setup():
         setup_args['version'] = "%d.%d.0.dev0" %(x, y+1)
     if setuptools:
         setup_args['zip_safe'] = False
-        petsc = requires('petsc', x, y, release)
+        setup_args['install_requires'] = []
+        PETSC_DIR = os.environ.get('PETSC_DIR')
+        if not (PETSC_DIR and os.path.isdir(PETSC_DIR)):
+            petsc = requires('petsc', x, y, release)
+            setup_args['install_requires'] += [petsc]
         petsc4py = requires('petsc4py', x, y, release)
-        setup_args['install_requires'] = [petsc, petsc4py]
+        setup_args['install_requires'] += [petsc4py]
         SLEPC_DIR = os.environ.get('SLEPC_DIR')
         if not (SLEPC_DIR and os.path.isdir(SLEPC_DIR)):
             slepc = requires('slepc', x, y, release)
