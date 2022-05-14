@@ -203,10 +203,10 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
 {
   PetscScalar        *d_X,*d_M,*d_M2,*d_G,*d_work,alpha;
   const PetscScalar  szero=0.0,sone=1.0,smfive=-5.0,s15=15.0,s1d16=1.0/16.0;
-  PetscReal          tol,Mres=0.0,nrm,sqrtnrm;
+  PetscReal          tol,Mres=0.0,nrm,sqrtnrm=1.0;
   PetscInt           it,nb,lwork;
   PetscBLASInt       *piv,N;
-  const PetscBLASInt one=1,zero=0;
+  const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE;
   cublasHandle_t     cublasv2handle;
 
@@ -242,7 +242,7 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
   PetscCall(PetscInfo(fn,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol));
 
   /* X = I */
-  PetscCallCUDA(cudaMemset(d_X,zero,sizeof(PetscScalar)*N));
+  PetscCallCUDA(cudaMemset(d_X,0,sizeof(PetscScalar)*N));
   PetscCall(set_diagonal(n,d_X,ld,sone));
 
   for (it=0;it<MAXIT && !converged;it++) {
@@ -279,7 +279,10 @@ PetscErrorCode FNSqrtmSadeghi_CUDAm(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLA
 
   PetscCheck(Mres<=tol,PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", MAXIT);
 
-  if (nrm>1.0) PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&sqrtnrm,d_X,one));
+  if (nrm>1.0) {
+    alpha = sqrtnrm;
+    PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&alpha,d_X,one));
+  }
   PetscCallCUDA(cudaMemcpy(A,d_X,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost));
   PetscCall(PetscLogGpuTimeEnd());
 
