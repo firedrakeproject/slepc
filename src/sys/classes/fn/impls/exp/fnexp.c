@@ -939,7 +939,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 {
-  PetscBLASInt   n=0,ld,ld2,*d_ipiv,*d_info,info,one=1,zero=0;
+  PetscBLASInt   n=0,ld,ld2,*d_ipiv,*d_info,info,one=1;
   PetscInt       m,k,sexp;
   PetscBool      odd;
   const PetscInt p=MAX_PADE;
@@ -992,8 +992,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
   /* Horner evaluation */
   PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_As,ld,d_As,ld,&szero,d_A2,ld));
   PetscCall(PetscLogGpuFlops(2.0*n*n*n));
-  PetscCallCUDA(cudaMemset(d_Q,zero,sizeof(PetscScalar)*ld2));
-  PetscCallCUDA(cudaMemset(d_P,zero,sizeof(PetscScalar)*ld2));
+  PetscCallCUDA(cudaMemset(d_Q,0,sizeof(PetscScalar)*ld2));
+  PetscCallCUDA(cudaMemset(d_P,0,sizeof(PetscScalar)*ld2));
   PetscCall(set_diagonal(n,d_Q,ld,c[p]));
   PetscCall(set_diagonal(n,d_P,ld,c[p-1]));
 
@@ -1086,7 +1086,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
 {
-  PetscBLASInt   n=0,ld,ld2,*piv,one=1,zero=0;
+  PetscBLASInt   n=0,ld,ld2,*piv,one=1;
   PetscInt       m,k,sexp;
   PetscBool      odd;
   const PetscInt p=MAX_PADE;
@@ -1137,8 +1137,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
   /* Horner evaluation */
   PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_As,ld,d_As,ld,&szero,d_A2,ld));
   PetscCall(PetscLogGpuFlops(2.0*n*n*n));
-  PetscCallCUDA(cudaMemset(d_Q,zero,sizeof(PetscScalar)*ld2));
-  PetscCallCUDA(cudaMemset(d_P,zero,sizeof(PetscScalar)*ld2));
+  PetscCallCUDA(cudaMemset(d_Q,0,sizeof(PetscScalar)*ld2));
+  PetscCallCUDA(cudaMemset(d_P,0,sizeof(PetscScalar)*ld2));
   PetscCall(set_diagonal(n,d_Q,ld,c[p]));
   PetscCall(set_diagonal(n,d_P,ld,c[p-1]));
 
@@ -1206,7 +1206,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
 {
   PetscBLASInt      n_=0,n2,*ipiv,one=1;
-  PetscInt          n,m,j,s,zero=0;
+  PetscInt          n,m,j,s;
   PetscScalar       scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
   PetscScalar       *Aa,*Ba,*d_Ba,*Apowers[5],*d_Apowers[5],*d_Q,*d_P,*d_W,*work,*d_work,*aux;
   const PetscScalar *c;
@@ -1285,8 +1285,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
     case 7:
     case 9:
       if (m==9) PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[1],n_,d_Apowers[3],n_,&szero,d_Apowers[4],n_));
-      PetscCallCUDA(cudaMemset(d_P,zero,sizeof(PetscScalar)*n2));
-      PetscCallCUDA(cudaMemset(d_Q,zero,sizeof(PetscScalar)*n2));
+      PetscCallCUDA(cudaMemset(d_P,0,sizeof(PetscScalar)*n2));
+      PetscCallCUDA(cudaMemset(d_Q,0,sizeof(PetscScalar)*n2));
       PetscCall(set_diagonal(n,d_P,n,c[1]));
       PetscCall(set_diagonal(n,d_Q,n,c[0]));
       for (j=m;j>=3;j-=2) {
@@ -1308,7 +1308,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
       PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[3],n_,d_P,n_,&szero,d_W,n_));
       PetscCall(PetscLogGpuFlops(5.0*n*n+2.0*n*n*n));
 
-      PetscCallCUDA(cudaMemset(d_P,zero,sizeof(PetscScalar)*n2));
+      PetscCallCUDA(cudaMemset(d_P,0,sizeof(PetscScalar)*n2));
       PetscCall(set_diagonal(n,d_P,n,c[1]));
       PetscCallCUBLAS(cublasXaxpy(cublasv2handle,n2,&c[7],d_Apowers[3],one,d_P,one));
       PetscCallCUBLAS(cublasXaxpy(cublasv2handle,n2,&c[5],d_Apowers[2],one,d_P,one));
@@ -1324,7 +1324,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
       PetscCallCUBLAS(cublasXaxpy(cublasv2handle,n2,&c[8],d_Apowers[1],one,d_Q,one));
       PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[3],n_,d_Q,n_,&szero,d_W,n_));
       PetscCall(PetscLogGpuFlops(5.0*n*n+2.0*n*n*n));
-      PetscCallCUDA(cudaMemset(d_Q,zero,sizeof(PetscScalar)*n2));
+      PetscCallCUDA(cudaMemset(d_Q,0,sizeof(PetscScalar)*n2));
       PetscCall(set_diagonal(n,d_Q,n,c[0]));
       PetscCallCUBLAS(cublasXaxpy(cublasv2handle,n2,&c[6],d_Apowers[3],one,d_Q,one));
       PetscCallCUBLAS(cublasXaxpy(cublasv2handle,n2,&c[4],d_Apowers[2],one,d_Q,one));
@@ -1372,7 +1372,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
  */
 PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Mat B)
 {
-  PetscInt       i,j,n_,s,k,m,zero=0,mod;
+  PetscInt       i,j,n_,s,k,m,mod;
   PetscBLASInt   n=0,n2=0,irsize=0,rsizediv2,ipsize=0,iremainsize=0,query=-1,*piv,minlen,lwork=0,one=1;
   PetscReal      nrm,shift=0.0,rone=1.0,rzero=0.0;
 #if defined(PETSC_USE_COMPLEX)
@@ -1490,7 +1490,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     PetscCall(PetscMalloc3(irsize,&r,ipsize,&p,iremainsize,&remainterm));
     PetscCall(getcoeffs(k,m,r,p,remainterm,PETSC_FALSE));
 
-    PetscCallCUDA(cudaMemset(d_expmA,zero,sizeof(PetscComplex)*n2));
+    PetscCallCUDA(cudaMemset(d_expmA,0,sizeof(PetscComplex)*n2));
 #if !defined(PETSC_USE_COMPLEX)
     isreal = PETSC_TRUE;
 #else
@@ -1501,7 +1501,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
       rsizediv2 = irsize/2;
       for (i=0;i<rsizediv2;i++) { /* use partial fraction to get R(As) */
         PetscCallCUDA(cudaMemcpy(d_Maux,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
-        PetscCallCUDA(cudaMemset(d_RR,zero,sizeof(PetscComplex)*n2));
+        PetscCallCUDA(cudaMemset(d_RR,0,sizeof(PetscComplex)*n2));
         PetscCall(shift_Cdiagonal(n,d_Maux,n,-PetscRealPartComplex(p[2*i]),-PetscImaginaryPartComplex(p[2*i])));
         PetscCall(set_Cdiagonal(n,d_RR,n,PetscRealPartComplex(r[2*i]),PetscImaginaryPartComplex(r[2*i])));
         PetscCallMAGMA(magma_Cgesv_gpu,n,n,d_Maux,n,piv,d_RR,n);
@@ -1514,7 +1514,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
       mod = ipsize % 2;
       if (mod) {
         PetscCallCUDA(cudaMemcpy(d_Maux,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
-        PetscCallCUDA(cudaMemset(d_RR,zero,sizeof(PetscComplex)*n2));
+        PetscCallCUDA(cudaMemset(d_RR,0,sizeof(PetscComplex)*n2));
         PetscCall(shift_Cdiagonal(n,d_Maux,n,-PetscRealPartComplex(p[ipsize-1]),-PetscImaginaryPartComplex(p[ipsize-1])));
         PetscCall(set_Cdiagonal(n,d_RR,n,PetscRealPartComplex(r[irsize-1]),PetscImaginaryPartComplex(r[irsize-1])));
         PetscCallMAGMA(magma_Cgesv_gpu,n,n,d_Maux,n,piv,d_RR,n);
@@ -1524,7 +1524,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     } else { /* complex */
       for (i=0;i<irsize;i++) { /* use partial fraction to get R(As) */
         PetscCallCUDA(cudaMemcpy(d_Maux,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
-        PetscCallCUDA(cudaMemset(d_RR,zero,sizeof(PetscComplex)*n2));
+        PetscCallCUDA(cudaMemset(d_RR,0,sizeof(PetscComplex)*n2));
         PetscCall(shift_Cdiagonal(n,d_Maux,n,-PetscRealPartComplex(p[i]),-PetscImaginaryPartComplex(p[i])));
         PetscCall(set_Cdiagonal(n,d_RR,n,PetscRealPartComplex(r[i]),PetscImaginaryPartComplex(r[i])));
         PetscCallMAGMA(magma_Cgesv_gpu,n,n,d_Maux,n,piv,d_RR,n);
@@ -1534,7 +1534,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     }
     for (i=0;i<iremainsize;i++) {
       if (!i) {
-        PetscCallCUDA(cudaMemset(d_RR,zero,sizeof(PetscComplex)*n2));
+        PetscCallCUDA(cudaMemset(d_RR,0,sizeof(PetscComplex)*n2));
         PetscCall(set_Cdiagonal(n,d_RR,n,PetscRealPartComplex(remainterm[iremainsize-1]),PetscImaginaryPartComplex(remainterm[iremainsize-1])));
       } else {
         PetscCallCUDA(cudaMemcpy(d_RR,d_As,sizeof(PetscComplex)*n2,cudaMemcpyDeviceToDevice));
@@ -1557,7 +1557,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     PetscCall(PetscMalloc2(irsize,&rootp,ipsize,&rootq));
     PetscCall(getcoeffsproduct(k,m,rootp,rootq,&mult,PETSC_FALSE));
 
-    PetscCallCUDA(cudaMemset(d_expmA,zero,sizeof(PetscComplex)*n2));
+    PetscCallCUDA(cudaMemset(d_expmA,0,sizeof(PetscComplex)*n2));
     PetscCall(set_Cdiagonal(n,d_expmA,n,rone,rzero)); /* initialize */
     minlen = PetscMin(irsize,ipsize);
     for (i=0;i<minlen;i++) {

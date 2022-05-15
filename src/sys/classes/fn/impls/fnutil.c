@@ -326,13 +326,12 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
  */
 PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld,PetscBool inv)
 {
-  PetscScalar        *d_A,*d_Yold,*d_Z,*d_Zold,*d_M;
-  PetscReal          nrm,sqrtnrm;
+  PetscScalar        *d_A,*d_Yold,*d_Z,*d_Zold,*d_M,alpha;
+  PetscReal          nrm,sqrtnrm,tol,Yres=0.0;
   const PetscScalar  szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sthree=3.0;
-  PetscReal          tol,Yres=0.0,alpha;
   PetscInt           it;
   PetscBLASInt       N;
-  const PetscBLASInt one=1,zero=0;
+  const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE;
   cublasHandle_t     cublasv2handle;
 
@@ -353,7 +352,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   /* Y = A; */
   PetscCallCUDA(cudaMemcpy(d_A,A,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice));
   /* Z = I; */
-  PetscCallCUDA(cudaMemset(d_Z,zero,sizeof(PetscScalar)*N));
+  PetscCallCUDA(cudaMemset(d_Z,0,sizeof(PetscScalar)*N));
   PetscCall(set_diagonal(n,d_Z,ld,sone));
 
   /* scale A so that ||I-A|| < 1 */
@@ -367,7 +366,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
   PetscCall(PetscLogGpuFlops(2.0*n*n));
 
   /* Z = I; */
-  PetscCallCUDA(cudaMemset(d_Z,zero,sizeof(PetscScalar)*N));
+  PetscCallCUDA(cudaMemset(d_Z,0,sizeof(PetscScalar)*N));
   PetscCall(set_diagonal(n,d_Z,ld,sone));
 
   for (it=0;it<NSMAXIT && !converged;it++) {
@@ -376,7 +375,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
     PetscCallCUDA(cudaMemcpy(d_Zold,d_Z,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice));
 
     /* M = (3*I - Zold*Yold) */
-    PetscCallCUDA(cudaMemset(d_M,zero,sizeof(PetscScalar)*N));
+    PetscCallCUDA(cudaMemset(d_M,0,sizeof(PetscScalar)*N));
     PetscCall(set_diagonal(n,d_M,ld,sthree));
     PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&smone,d_Zold,ld,d_Yold,ld,&sone,d_M,ld));
 
@@ -398,11 +397,12 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
 
   /* undo scaling */
   if (inv) {
-    sqrtnrm = 1.0/sqrtnrm;
-    PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&sqrtnrm,d_Z,one));
+    alpha = 1.0/sqrtnrm;
+    PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&alpha,d_Z,one));
     PetscCallCUDA(cudaMemcpy(A,d_Z,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost));
   } else {
-    PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&sqrtnrm,d_A,one));
+    alpha = sqrtnrm;
+    PetscCallCUBLAS(cublasXscal(cublasv2handle,N,&alpha,d_A,one));
     PetscCallCUDA(cudaMemcpy(A,d_A,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost));
   }
 
@@ -425,7 +425,7 @@ PetscErrorCode FNSqrtmNewtonSchulz_CUDA(FN fn,PetscBLASInt n,PetscScalar *A,Pets
  */
 PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
 {
-  PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
+  PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
   PetscReal      tol,Mres=0.0,detM,g,reldiff,fnormdiff,fnormT,prod;
   PetscInt       i,it,lwork,nb;
   PetscBLASInt   N,one=1,*piv=NULL;
@@ -452,7 +452,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
   PetscCall(PetscLogGpuTimeBegin());
   PetscCallCUDA(cudaMemcpy(d_M,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice));
   if (inv) {  /* start recurrence with I instead of A */
-    PetscCallCUDA(cudaMemset(d_T,zero,sizeof(PetscScalar)*N));
+    PetscCallCUDA(cudaMemset(d_T,0,sizeof(PetscScalar)*N));
     PetscCall(set_diagonal(n,d_T,ld,1.0));
   } else PetscCallCUDA(cudaMemcpy(d_T,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice));
 
@@ -484,7 +484,7 @@ PetscErrorCode FNSqrtmDenmanBeavers_CUDAm(FN fn,PetscBLASInt n,PetscScalar *T,Pe
     PetscCall(PetscLogGpuFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0));
 
     PetscCall(shift_diagonal(n,d_invM,ld,sone));
-    PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&spfive,d_Told,ld,d_invM,ld,&zero,d_T,ld));
+    PetscCallCUBLAS(cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&spfive,d_Told,ld,d_invM,ld,&szero,d_T,ld));
     PetscCall(shift_diagonal(n,d_invM,ld,smone));
 
     PetscCallCUBLAS(cublasXaxpy(cublasv2handle,N,&sone,d_invM,one,d_M,one));
