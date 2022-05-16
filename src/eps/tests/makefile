@@ -45,7 +45,6 @@ testtest5_blopex: test5.PETSc
 	    cat $${test}.tmp; fail=1; \
 	  fi; \
 	  ${RM} $${test}.tmp; \
-	  ${MAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test5.rm ; \
 	else fail=1; fi; \
 	exit $${fail}
 
@@ -65,7 +64,6 @@ testtest7f: test7f.PETSc
 	    cat $${test}.tmp; fail=1; \
 	  fi; \
 	  ${RM} $${test}.tmp; \
-	  ${MAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test7f.rm ; \
 	else fail=1; fi; \
 	exit $${fail}
 
@@ -95,7 +93,6 @@ testtest10: test10.PETSc
 	    fi; \
 	  fi; \
 	  ${RM} $${test}.tmp; \
-	  ${MAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test10.rm; \
 	else fail=1; fi; \
 	exit $${fail}
 
@@ -116,7 +113,6 @@ testtest10_cuda: test10.PETSc
 	    cat $${test}.tmp; fail=1; \
 	  fi; \
 	  ${RM} $${test}.tmp; \
-	  ${MAKE} SLEPC_DIR=${SLEPC_DIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test10.rm; \
 	else fail=1; fi; \
 	exit $${fail}
 
