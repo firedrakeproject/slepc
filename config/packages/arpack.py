@@ -92,7 +92,7 @@ class Arpack(package.Package):
         confopt = confopt + ['-DBUILD_SHARED_LIBS=OFF']
       if petsc.ind64:
         confopt = confopt + ['-DINTERFACE64=1']
-      (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.cmake+' '+' '.join(confopt)+' '+self.buildflags+' .. && '+petsc.make+' && '+petsc.make+' install')
+      (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.cmake+' '+' '.join(confopt)+' '+self.buildflags+' .. && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
 
     else: # Build with autoreconf
       (result,output) = self.RunCommand('autoreconf --help')
@@ -107,7 +107,7 @@ class Arpack(package.Package):
         confopt = confopt + ['--disable-shared']
       if petsc.ind64:
         confopt = confopt + ['INTERFACE64=1']
-      (result,output) = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+' '.join(confopt)+' && '+petsc.make+' && '+petsc.make+' install')
+      (result,output) = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+' '.join(confopt)+' && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
 
     if result:
       self.log.Exit('Installation of ARPACK failed')
