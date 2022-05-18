@@ -15,6 +15,8 @@
 - In configure, now the arguments intended to store link flags (and libraries) instead of
   being represented as comma-separated lists should be specified via a quoted string, e.g.,
   `--with-arpack-lib="-L/opt/soft/arpack -Wl,-rpath,/opt/soft/arpack -lparpack -larpack"`.
+- `DS`: now every call to `DSGetMat()` must be paired with a call to `DSRestoreMat()`, it
+  is not longer possible to just `MatDestroy()` the matrix.
 
 ### Removed
 

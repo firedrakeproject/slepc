@@ -325,12 +325,13 @@ PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
 PetscErrorCode DSGetTruncateSize_Default(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 {
 #if !defined(PETSC_USE_COMPLEX)
-  PetscScalar *A = ds->mat[DS_MAT_A];
+  PetscScalar val;
 #endif
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  if (A[l+(*k)+(l+(*k)-1)*ds->ld] != 0.0) {
+  PetscCall(MatGetValue(ds->omat[DS_MAT_A],l+(*k),l+(*k)-1,&val));
+  if (val != 0.0) {
     if (l+(*k)<n-1) (*k)++;
     else (*k)--;
   }
@@ -392,14 +393,14 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 .  A  - Mat object
 
    Notes:
-   The Mat is created with sizes equal to the current DS dimensions (nxm),
-   then it is filled with the values that would be obtained with DSGetArray()
+   The returned Mat has sizes equal to the current DS dimensions (nxm),
+   and contains the values that would be obtained with DSGetArray()
    (not DSGetArrayReal()). If the DS was truncated, then the number of rows
    is equal to the dimension prior to truncation, see DSTruncate().
    The communicator is always PETSC_COMM_SELF.
 
-   When no longer needed, the user can either destroy the matrix or call
-   DSRestoreMat(). The latter will copy back the modified values.
+   It is implemented with MatDenseGetSubMatrix(), and when no longer needed
+   the user must call DSRestoreMat() which will invoke MatDenseRestoreSubMatrix().
 
    Level: advanced
 
@@ -407,9 +408,8 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 @*/
 PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 {
-  PetscInt       j,rows,cols,arows,acols;
-  PetscBool      create=PETSC_FALSE,flg;
-  PetscScalar    *pA,*M;
+  PetscInt  rows,cols;
+  PetscBool flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -419,27 +419,11 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   PetscCheck(m!=DS_MAT_T && m!=DS_MAT_D,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
 
   PetscCall(DSMatGetSize(ds,m,&rows,&cols));
-  if (!ds->omat[m]) create=PETSC_TRUE;
-  else {
-    PetscCall(MatGetSize(ds->omat[m],&arows,&acols));
-    if (arows!=rows || acols!=cols) {
-      PetscCall(MatDestroy(&ds->omat[m]));
-      create=PETSC_TRUE;
-    }
-  }
-  if (create) PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]));
+  PetscCall(MatDenseGetSubMatrix(ds->omat[m],0,rows,0,cols,A));
 
   /* set Hermitian flag */
   PetscCall(DSMatIsHermitian(ds,m,&flg));
-  PetscCall(MatSetOption(ds->omat[m],MAT_HERMITIAN,flg));
-
-  /* copy entries */
-  PetscCall(PetscObjectReference((PetscObject)ds->omat[m]));
-  *A = ds->omat[m];
-  M  = ds->mat[m];
-  PetscCall(MatDenseGetArray(*A,&pA));
-  for (j=0;j<cols;j++) PetscCall(PetscArraycpy(pA+j*rows,M+j*ds->ld,rows));
-  PetscCall(MatDenseRestoreArray(*A,&pA));
+  PetscCall(MatSetOption(*A,MAT_HERMITIAN,flg));
   PetscFunctionReturn(0);
 }
 
@@ -455,11 +439,6 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 
    Notes:
    A call to this function must match a previous call of DSGetMat().
-   The effect is that the contents of the Mat are copied back to the
-   DS internal array, and the matrix is destroyed.
-
-   It is not compulsory to call this function, the matrix obtained with
-   DSGetMat() can simply be destroyed if entries need not be copied back.
 
    Level: advanced
 
@@ -467,23 +446,14 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 @*/
 PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
 {
-  PetscInt       j,rows,cols;
-  PetscScalar    *pA,*M;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(A,3);
-  PetscCheck(ds->omat[m],PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSRestoreMat must match a previous call to DSGetMat");
-  PetscCheck(ds->omat[m]==*A,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with DSGetMat");
 
-  PetscCall(MatGetSize(*A,&rows,&cols));
-  M  = ds->mat[m];
-  PetscCall(MatDenseGetArray(*A,&pA));
-  for (j=0;j<cols;j++) PetscCall(PetscArraycpy(M+j*ds->ld,pA+j*rows,rows));
-  PetscCall(MatDenseRestoreArray(*A,&pA));
-  PetscCall(MatDestroy(A));
+  PetscCall(MatDenseRestoreSubMatrix(ds->omat[m],A));
+  PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
@@ -512,8 +482,7 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(a,3);
-  *a = ds->mat[m];
-  CHKMEMQ;
+  PetscCall(MatDenseGetArray(ds->omat[m],a));
   PetscFunctionReturn(0);
 }
 
@@ -538,8 +507,7 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(a,3);
-  CHKMEMQ;
-  *a = 0;
+  PetscCall(MatDenseRestoreArray(ds->omat[m],a));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
@@ -839,7 +807,7 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscCheck(mat<DS_NUM_MAT,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   PetscCheck(ds->ops->vectors,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   PetscCheck(!rnorm || j,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must give a value of j");
-  if (!ds->mat[mat]) PetscCall(DSAllocateMat_Private(ds,mat));
+  if (!ds->omat[mat]) PetscCall(DSAllocateMat_Private(ds,mat));
   if (!j) PetscCall(PetscInfo(ds,"Computing all vectors on %s\n",DSMatName[mat]));
   PetscCall(PetscLogEventBegin(DS_Vectors,ds,0,0,0));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
@@ -1071,12 +1039,14 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   PetscCheck(mr+rows<=mrows && Ar+rows<=arows,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid number of rows");
   PetscCheck(mc+cols<=mcols && Ac+cols<=acols,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid number of columns");
 
-  M  = ds->mat[m];
+  /* TODO: use MatDenseGetArrayRead */
+  PetscCall(MatDenseGetArray(ds->omat[m],&M));
   PetscCall(MatDenseGetArray(A,&pA));
   for (j=0;j<cols;j++) {
     if (out) PetscCall(PetscArraycpy(pA+(Ac+j)*arows+Ar,M+(mc+j)*ds->ld+mr,rows));
     else PetscCall(PetscArraycpy(M+(mc+j)*ds->ld+mr,pA+(Ac+j)*arows+Ar,rows));
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[m],&M));
   PetscCall(MatDenseRestoreArray(A,&pA));
   PetscFunctionReturn(0);
 }

@@ -108,7 +108,7 @@ int main(int argc,char **argv)
   PetscCall(MatCreateVecs(X,NULL,&x0));
   PetscCall(MatGetColumnVector(X,x0,0));
   PetscCall(VecNorm(x0,NORM_2,&rnorm));
-  PetscCall(MatDestroy(&X));
+  PetscCall(DSRestoreMat(ds,DS_MAT_X,&X));
   PetscCall(VecDestroy(&x0));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st X vector = %.3f\n",(double)rnorm));
 
@@ -116,7 +116,7 @@ int main(int argc,char **argv)
   PetscCall(MatCreateVecs(X,NULL,&x0));
   PetscCall(MatGetColumnVector(X,x0,0));
   PetscCall(VecNorm(x0,NORM_2,&rnorm));
-  PetscCall(MatDestroy(&X));
+  PetscCall(DSRestoreMat(ds,DS_MAT_U,&X));
   PetscCall(VecDestroy(&x0));
   if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st U vector has norm %g\n",(double)rnorm));
 
@@ -124,7 +124,7 @@ int main(int argc,char **argv)
   PetscCall(MatCreateVecs(X,NULL,&x0));
   PetscCall(MatGetColumnVector(X,x0,0));
   PetscCall(VecNorm(x0,NORM_2,&rnorm));
-  PetscCall(MatDestroy(&X));
+  PetscCall(DSRestoreMat(ds,DS_MAT_V,&X));
   PetscCall(VecDestroy(&x0));
   if (PetscAbs(rnorm-1.0)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: the 1st V vector has norm %g\n",(double)rnorm));
 

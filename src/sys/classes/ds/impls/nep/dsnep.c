@@ -33,10 +33,11 @@ typedef struct {
 */
 static PetscErrorCode DSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat)
 {
-  DS_NEP         *ctx = (DS_NEP*)ds->data;
-  PetscScalar    *T,*E,alpha;
-  PetscInt       i,ld,n;
-  PetscBLASInt   k,inc=1;
+  DS_NEP            *ctx = (DS_NEP*)ds->data;
+  PetscScalar       *T,alpha;
+  const PetscScalar *E;
+  PetscInt          i,ld,n;
+  PetscBLASInt      k,inc=1;
 
   PetscFunctionBegin;
   PetscCall(PetscLogEventBegin(DS_Other,ds,0,0,0));
@@ -45,15 +46,16 @@ static PetscErrorCode DSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deri
     PetscCall(DSGetDimensions(ds,&n,NULL,NULL,NULL));
     PetscCall(DSGetLeadingDimension(ds,&ld));
     PetscCall(PetscBLASIntCast(ld*n,&k));
-    PetscCall(DSGetArray(ds,mat,&T));
+    PetscCall(MatDenseGetArray(ds->omat[mat],&T));
     PetscCall(PetscArrayzero(T,k));
     for (i=0;i<ctx->nf;i++) {
       if (deriv) PetscCall(FNEvaluateDerivative(ctx->f[i],lambda,&alpha));
       else PetscCall(FNEvaluateFunction(ctx->f[i],lambda,&alpha));
-      E = ds->mat[DSMatExtra[i]];
+      PetscCall(MatDenseGetArrayRead(ds->omat[DSMatExtra[i]],&E));
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k,&alpha,E,&inc,T,&inc));
+      PetscCall(MatDenseRestoreArrayRead(ds->omat[DSMatExtra[i]],&E));
     }
-    PetscCall(DSRestoreArray(ds,mat,&T));
+    PetscCall(MatDenseRestoreArray(ds->omat[mat],&T));
   }
   PetscCall(PetscLogEventEnd(DS_Other,ds,0,0,0));
   PetscFunctionReturn(0);
@@ -134,13 +136,14 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   n = ds->n*ctx->max_mid;
   lds = ds->ld*ctx->max_mid;
   l = ds->l;
-  A = ds->mat[DS_MAT_A];
   perm = ds->perm;
   for (i=0;i<n;i++) perm[i] = i;
   if (rr) PetscCall(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
   else PetscCall(DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   for (i=l;i<ds->t;i++) A[i+i*lds] = wr[perm[i]];
   for (i=l;i<ds->t;i++) wr[i] = A[i+i*lds];
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   /* n != ds->n */
   PetscCall(DSPermuteColumns_Private(ds,0,ds->t,ds->n,DS_MAT_X,perm));
   PetscFunctionReturn(0);
@@ -160,9 +163,6 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  if (!ds->mat[DS_MAT_A]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
-  if (!ds->mat[DS_MAT_B]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_B));
-  if (!ds->mat[DS_MAT_W]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
 #if defined(PETSC_USE_COMPLEX)
@@ -182,10 +182,13 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   work = ds->work + 3*ds->n;
   lwork -= 3*ds->n;
 #endif
-  A = ds->mat[DS_MAT_A];
-  B = ds->mat[DS_MAT_B];
-  W = ds->mat[DS_MAT_W];
-  X = ds->mat[DS_MAT_X];
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_B));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&W));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_X],&X));
 
   sigma = 0.0;
   if (ds->sc->comparison==SlepcCompareTargetMagnitude || ds->sc->comparison==SlepcCompareTargetReal) sigma = *(PetscScalar*)ds->sc->comparisonctx;
@@ -252,6 +255,10 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* correct eigenvalue approximation */
     lambda = lambda - mu;
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&W));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
 
   PetscCheck(it<maxit,PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"DSNEP did not converge");
   ds->t = 1;
@@ -278,8 +285,8 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
   PetscLayout    map;
 
   PetscFunctionBegin;
-  X = ds->mat[DS_MAT_X];
-  W = ds->mat[DS_MAT_W];
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_X],&X));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&W));
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   n1 = n+1;
@@ -342,6 +349,8 @@ static PetscErrorCode DSNEPNewtonRefine(DS ds,PetscInt k,PetscScalar *wr)
     }
     PetscCall(PetscLayoutDestroy(&map));
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&W));
   PetscFunctionReturn(0);
 }
 
@@ -369,17 +378,16 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscCall(PetscLayoutGetRange(ctx->map,&kstart,&kend));
   }
 
-  if (!ds->mat[DS_MAT_A]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_A)); /* size mid*n */
-  if (!ds->mat[DS_MAT_B]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_B)); /* size mid*n */
-  if (!ds->mat[DS_MAT_W]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_W)); /* size mid*n */
-  if (!ds->mat[DS_MAT_U]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_U)); /* size mid*n */
-  if (!ds->mat[DS_MAT_V]) PetscCall(DSAllocateMat_Private(ds,DS_MAT_V)); /* size n */
-  A = ds->mat[DS_MAT_A];
-  B = ds->mat[DS_MAT_B];
-  W = ds->mat[DS_MAT_W];
-  U = ds->mat[DS_MAT_U];
-  V = ds->mat[DS_MAT_V];
-  X = ds->mat[DS_MAT_X];
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_A)); /* size mid*n */
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_B)); /* size mid*n */
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_W)); /* size mid*n */
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_U)); /* size mid*n */
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_V)); /* size n */
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&W));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_V],&V));
   mid  = ctx->max_mid;
   PetscCall(PetscBLASIntCast(ds->n,&n));
   p    = n;   /* maximum number of columns for the probing matrix */
@@ -493,14 +501,21 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (i=0;i<k;i++) wr[i] = A[i+i*lds]/B[i+i*lds];
   for (j=0;j<k;j++) for (i=0;i<rk;i++) W[j*rk+i] = sigma[i]*W[inside[j]*rk+i];
   PetscCall(PetscBLASIntCast(k,&k_));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_X],&X));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k_,&rk_,&sone,U,&rowA,W,&rk_,&szero,X,&ld));
-
   /* Normalize */
   for (j=0;j<k;j++) {
     norm = BLASnrm2_(&n,X+ld*j,&one);
     for (i=0;i<n;i++) X[ld*j+i] /= norm;
   }
   PetscCall(PetscFree(inside));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&W));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
+
   /* Newton refinement */
   PetscCall(DSNEPNewtonRefine(ds,k,wr));
   ds->t = k;
@@ -514,6 +529,7 @@ PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscInt       ld=ds->ld,k=0;
   PetscMPIInt    n,n2,rank,size,off=0;
+  PetscScalar    *X;
 
   PetscFunctionBegin;
   if (!ds->method) { /* SLP */
@@ -531,9 +547,10 @@ PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscCall(DSAllocateWork_Private(ds,k,0,0));
   PetscCall(PetscMPIIntCast(k*sizeof(PetscScalar),&size));
+  if (ds->state>=DS_STATE_CONDENSED) PetscCall(MatDenseGetArray(ds->omat[DS_MAT_X],&X));
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_X],n2,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Pack(X,n2,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     if (eigr) PetscCallMPI(MPI_Pack(eigr,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi) PetscCallMPI(MPI_Pack(eigi,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
@@ -541,12 +558,13 @@ PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_X],n2,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Unpack(ds->work,size,&off,X,n2,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigi,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #endif
   }
+  if (ds->state>=DS_STATE_CONDENSED) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
   PetscFunctionReturn(0);
 }
 

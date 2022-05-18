@@ -98,7 +98,7 @@ int main(int argc,char **argv)
   PetscCall(MatCreateVecs(X,NULL,&x0));
   PetscCall(MatGetColumnVector(X,x0,1));
   PetscCall(VecNorm(x0,NORM_2,&nrm));
-  PetscCall(MatDestroy(&X));
+  PetscCall(DSRestoreMat(ds,DS_MAT_X,&X));
   PetscCall(VecDestroy(&x0));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Norm of 2nd column of X = %.3f\n",(double)nrm));
   if (verbose) {

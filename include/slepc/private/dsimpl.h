@@ -61,7 +61,6 @@ struct _p_DS {
   DSParallelType pmode;              /* parallel mode (redundant, synchronized, distributed) */
 
   /*----------------- Status variables and working data ----------------*/
-  PetscScalar    *mat[DS_NUM_MAT];   /* the matrices */
   PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
   Mat            omat[DS_NUM_MAT];   /* the matrices (PETSc object) */
   PetscInt       *perm;              /* permutation */
@@ -98,7 +97,7 @@ struct _p_DS {
 #define DSCheckValidMat(ds,m,arg) \
   do { \
     PetscCheck((m)<DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
-    PetscCheck((ds)->mat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+    PetscCheck((ds)->omat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
   } while (0)
 
 #define DSCheckValidMatReal(ds,m,arg) \
@@ -130,9 +129,9 @@ SLEPC_INTERN PetscErrorCode DSSwitchFormat_GHIEP(DS,PetscBool);
 SLEPC_INTERN PetscErrorCode DSGHIEPRealBlocks(DS);
 SLEPC_INTERN PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
 
-SLEPC_INTERN PetscErrorCode DSSolve_NHEP_Private(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
-SLEPC_INTERN PetscErrorCode DSSort_NHEP_Total(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
-SLEPC_INTERN PetscErrorCode DSSortWithPermutation_NHEP_Private(DS,PetscInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode DSSolve_NHEP_Private(DS,DSMatType,DSMatType,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode DSSort_NHEP_Total(DS,DSMatType,DSMatType,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode DSSortWithPermutation_NHEP_Private(DS,PetscInt*,DSMatType,DSMatType,PetscScalar*,PetscScalar*);
 
 SLEPC_INTERN PetscErrorCode BDC_dibtdc_(const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt*,PetscReal*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscReal,PetscReal*,PetscReal*,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscBLASInt,PetscBLASInt*,PetscBLASInt);
 SLEPC_INTERN PetscErrorCode BDC_dlaed3m_(const char*,const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt,PetscReal*,PetscReal*,PetscBLASInt,PetscReal,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);

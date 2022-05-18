@@ -198,7 +198,7 @@ BLAS_EXTERN void     LAPACKggsvd3_(const char*,const char*,const char*,PetscBLAS
 #define LAPACKggsvd3_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x) PetscMissingLapack("GGSVD3",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x);
 #endif
 #if !defined(SLEPC_MISSING_LAPACK_TREVC)
-BLAS_EXTERN void     LAPACKtrevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
+BLAS_EXTERN void     LAPACKtrevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,const PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
 #else
 #define LAPACKtrevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n) PetscMissingLapack("TREVC",a,b,c,d,e,f,g,h,i,j,k,l,m,n);
 #endif
@@ -243,7 +243,7 @@ BLAS_EXTERN void     LAPACKggsvd3_(const char*,const char*,const char*,PetscBLAS
 #define LAPACKggsvd3_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y) PetscMissingLapack("GGSVD3",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y);
 #endif
 #if !defined(SLEPC_MISSING_LAPACK_TREVC)
-BLAS_EXTERN void     LAPACKtrevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*);
+BLAS_EXTERN void     LAPACKtrevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,const PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*);
 #else
 #define LAPACKtrevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) PetscMissingLapack("TREVC",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o);
 #endif
