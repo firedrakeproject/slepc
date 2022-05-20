@@ -1,0 +1,6 @@
+
+GSVD of inverse interpolation problem, (1024+2048)x1024
+
+ All requested singular values computed up to the required tolerance:
+     94.23817, 42.72663, 24.79104, 22.20070, 15.76653, 13.43687
+
