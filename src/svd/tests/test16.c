@@ -81,7 +81,7 @@ int main(int argc,char **argv)
   PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
   d = PetscMax(0,n-p);
   for (i=Istart;i<Iend;i++) {
-    for (j=0;j<=PetscMin(i,n-1);j++) PetscCall(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
+    for (j=PetscMax(0,i-5);j<=PetscMin(i,n-1);j++) PetscCall(MatSetValue(B,i,j+d,1.0,INSERT_VALUES));
   }
   PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
@@ -131,10 +131,6 @@ int main(int argc,char **argv)
       test:
          suffix: 1_trlanczos
          args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single lower}} -svd_trlanczos_ksp_rtol 1e-10
-         requires: double
-      test:
-         suffix: 1_trlanczos_upper
-         args: -svd_type trlanczos -svd_trlanczos_gbidiag upper -svd_trlanczos_ksp_rtol 1e-8
          requires: double
 
 TEST*/
