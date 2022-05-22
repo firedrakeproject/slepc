@@ -132,5 +132,9 @@ int main(int argc,char **argv)
          suffix: 1_trlanczos
          args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single lower}} -svd_trlanczos_ksp_rtol 1e-10
          requires: double
+      test:
+         suffix: 1_trlanczos_par
+         nsize: 2
+         args: -svd_type trlanczos -ds_parallel {{redundant synchronized}}
 
 TEST*/
