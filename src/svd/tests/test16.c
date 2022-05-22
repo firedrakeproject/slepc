@@ -131,5 +131,9 @@ int main(int argc,char **argv)
       test:
          suffix: 1_trlanczos
          args: -svd_type trlanczos -svd_trlanczos_gbidiag {{single upper lower}}
+      test:
+         suffix: 1_trlanczos_par
+         nsize: 2
+         args: -svd_type trlanczos -ds_parallel {{redundant synchronized}}
 
 TEST*/
