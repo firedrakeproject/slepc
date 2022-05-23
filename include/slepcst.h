@@ -72,6 +72,7 @@ PETSC_DEPRECATED_FUNCTION("Use STGetMatrixTransformed()") static inline PetscErr
 PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()") static inline PetscErrorCode STComputeExplicitOperator(ST st,Mat *A)
 {
   Mat Op;
+  PetscFunctionBegin;
   PetscCall(STGetOperator(st,&Op));
   PetscCall(MatComputeOperator(Op,MATAIJ,A));
   PetscCall(STRestoreOperator(st,&Op));

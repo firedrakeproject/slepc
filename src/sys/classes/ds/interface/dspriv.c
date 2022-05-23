@@ -243,29 +243,6 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
 }
 
 /*
-  DSCopyMatrix_Private - Copies the trailing block of a matrix (from
-  rows/columns l to n).
-*/
-PetscErrorCode DSCopyMatrix_Private(DS ds,DSMatType dst,DSMatType src)
-{
-  PetscInt          j,m,off,ld;
-  const PetscScalar *S;
-  PetscScalar       *D;
-
-  PetscFunctionBegin;
-  ld  = ds->ld;
-  m   = ds->n-ds->l;
-  off = ds->l+ds->l*ld;
-  /* TODO: use MatCopy() */
-  PetscCall(MatDenseGetArrayRead(ds->omat[src],&S));
-  PetscCall(MatDenseGetArray(ds->omat[dst],&D));
-  for (j=0;j<m;j++) PetscCall(PetscArraycpy(D+off+j*ld,S+off+j*ld,m));
-  PetscCall(MatDenseRestoreArrayRead(ds->omat[src],&S));
-  PetscCall(MatDenseRestoreArray(ds->omat[dst],&D));
-  PetscFunctionReturn(0);
-}
-
-/*
   Permute comumns [istart..iend-1] of [mat] according to perm. Columns have length n
  */
 PetscErrorCode DSPermuteColumns_Private(DS ds,PetscInt istart,PetscInt iend,PetscInt n,DSMatType mat,PetscInt *perm)

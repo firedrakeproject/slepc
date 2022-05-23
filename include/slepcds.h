@@ -188,7 +188,20 @@ SLEPC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSSortWithPermutation(DS,PetscInt*,PetscScalar*,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode DSSynchronize(DS,PetscScalar*,PetscScalar*);
-SLEPC_EXTERN PetscErrorCode DSCopyMat(DS,DSMatType,PetscInt,PetscInt,Mat,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
+PETSC_DEPRECATED_FUNCTION("Use DSGetMat()+MatDenseGetSubMatrix()+MatCopy()") static inline PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscInt Ar,PetscInt Ac,PetscInt rows,PetscInt cols,PetscBool out)
+{
+  Mat M,M0,A0;
+  PetscFunctionBegin;
+  PetscCall(DSGetMat(ds,m,&M));
+  PetscCall(MatDenseGetSubMatrix(M,mr,mr+rows,mc,mc+cols,&M0));
+  PetscCall(MatDenseGetSubMatrix(A,Ar,Ar+rows,Ac,Ac+cols,&A0));
+  if (out) PetscCall(MatCopy(M0,A0,SAME_NONZERO_PATTERN));
+  else PetscCall(MatCopy(A0,M0,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseRestoreSubMatrix(M,&M0));
+  PetscCall(MatDenseRestoreSubMatrix(A,&A0));
+  PetscCall(DSRestoreMat(ds,m,&M));
+  PetscFunctionReturn(0);
+}
 SLEPC_EXTERN PetscErrorCode DSMatGetSize(DS,DSMatType,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSMatIsHermitian(DS,DSMatType,PetscBool*);
 SLEPC_EXTERN PetscErrorCode DSSetSlepcSC(DS,SlepcSC);

@@ -579,8 +579,8 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
 PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScalar *wi,PetscBool accum)
 {
   PetscInt          lws,nwus=0,nwui=0,lwi,off,n,nv,ld,i,ldr,l;
-  const PetscScalar *B;
-  PetscScalar       *Q,*W,*X,*R,*ts,szero=0.0,sone=1.0;
+  const PetscScalar *B,*W;
+  PetscScalar       *Q,*X,*R,*ts,szero=0.0,sone=1.0;
   PetscReal         *s,vi,vr,tr,*d,*e;
   PetscBLASInt      ld_,n_,nv_,*perm,*cmplxEig;
 
@@ -662,10 +662,10 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   if (accum) {
     PetscCall(PetscBLASIntCast(nv,&nv_));
     PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
-    PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_W],&W));
-    PetscCall(DSCopyMatrix_Private(ds,DS_MAT_W,DS_MAT_Q));
+    PetscCall(MatCopy(ds->omat[DS_MAT_Q],ds->omat[DS_MAT_W],SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_W],&W));
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&nv_,&n_,&sone,W+off,&ld_,X+off,&ld_,&szero,Q+off,&ld_));
-    PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_W],&W));
+    PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_W],&W));
   } else {
     PetscCall(PetscArrayzero(Q,ld*ld));
     for (i=0;i<ds->l;i++) Q[i+i*ld] = 1.0;

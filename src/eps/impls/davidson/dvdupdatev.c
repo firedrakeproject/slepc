@@ -83,7 +83,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        npreconv,cMT,cMTX,lV,kV,nV;
-  Mat             Z;
+  Mat             Z,Z0,Q,Q0;
   PetscBool       t;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt        i;
@@ -112,8 +112,14 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_Q,&Q));
     PetscCall(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
-    PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,npreconv,Z,0,npreconv,nV,cMT,PETSC_FALSE));
+    PetscCall(MatDenseGetSubMatrix(Q,0,npreconv,nV,npreconv+cMT,&Q0));
+    PetscCall(MatDenseGetSubMatrix(Z,0,npreconv,nV,npreconv+cMT,&Z0));
+    PetscCall(MatCopy(Z0,Q0,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(Q,&Q0));
+    PetscCall(MatDenseRestoreSubMatrix(Z,&Z0));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q));
     PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
   }
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) PetscCall(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds));
@@ -146,7 +152,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        lV,kV,nV,size_plusk,size_X,cMTX,cMTY,max_restart_size;
-  Mat             Z;
+  Mat             Q,Q0,Z,Z0,U,V;
 
   PetscFunctionBegin;
   /* Select size_X desired pairs from V */
@@ -168,18 +174,38 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   /* Harmonics restarts with right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_Q,&Q));
     PetscCall(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
-    PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,Z,0,0,nV,size_X,PETSC_FALSE));
+    PetscCall(MatDenseGetSubMatrix(Q,0,nV,0,size_X,&Q0));
+    PetscCall(MatDenseGetSubMatrix(Z,0,nV,0,size_X,&Z0));
+    PetscCall(MatCopy(Z0,Q0,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(Q,&Q0));
+    PetscCall(MatDenseRestoreSubMatrix(Z,&Z0));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q));
     PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
   }
   PetscCheck(size_plusk<=0 || !DVD_IS(d->sEP,DVD_EP_INDEFINITE),PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
-  if (size_plusk > 0) PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,size_X,data->oldU,0,0,nV,size_plusk,PETSC_FALSE));
+  if (size_plusk > 0) {
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_Q,&Q));
+    PetscCall(MatDenseGetSubMatrix(Q,0,nV,size_X,size_X+size_plusk,&Q0));
+    PetscCall(MatDenseGetSubMatrix(data->oldU,0,nV,0,size_plusk,&U));
+    PetscCall(MatCopy(U,Q0,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(Q,&Q0));
+    PetscCall(MatDenseRestoreSubMatrix(data->oldU,&U));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q));
+  }
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) PetscCall(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,size_X,d->nBds,&cMTX,d->nBds));
   else PetscCall(DSOrthogonalize(d->eps->ds,DS_MAT_Q,size_X+size_plusk,&cMTX));
 
   if (d->W && size_plusk > 0) {
     /* ps.Z <- orth([ps.Z(0:size_X-1) [oldV(0:size_plusk-1); 0] ]) */
-    PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Z,0,size_X,data->oldV,0,0,nV,size_plusk,PETSC_FALSE));
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
+    PetscCall(MatDenseGetSubMatrix(Z,0,nV,size_X,size_X+size_plusk,&Z0));
+    PetscCall(MatDenseGetSubMatrix(data->oldV,0,nV,0,size_plusk,&V));
+    PetscCall(MatCopy(V,Z0,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(Z,&Z0));
+    PetscCall(MatDenseRestoreSubMatrix(data->oldV,&V));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
     PetscCall(DSOrthogonalize(d->eps->ds,DS_MAT_Z,size_X+size_plusk,&cMTY));
     cMTX = PetscMin(cMTX, cMTY);
   }
@@ -238,6 +264,7 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        size_D,s,lV,kV,nV;
+  Mat             Q,Q0,Z,Z0,U,V;
 
   PetscFunctionBegin;
   /* Select the desired pairs */
@@ -271,10 +298,22 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   if (data->plusk > 0) {
     PetscCall(MatZeroEntries(data->oldU));
     data->size_oldU = nV;
-    PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,data->oldU,0,0,nV,nV,PETSC_TRUE));
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_Q,&Q));
+    PetscCall(MatDenseGetSubMatrix(Q,0,nV,0,nV,&Q0));
+    PetscCall(MatDenseGetSubMatrix(data->oldU,0,nV,0,nV,&U));
+    PetscCall(MatCopy(Q0,U,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(Q,&Q0));
+    PetscCall(MatDenseRestoreSubMatrix(data->oldU,&U));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q));
     if (d->W) {
       PetscCall(MatZeroEntries(data->oldV));
-      PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Z,0,0,data->oldV,0,0,nV,nV,PETSC_TRUE));
+      PetscCall(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
+      PetscCall(MatDenseGetSubMatrix(Z,0,nV,0,nV,&Z0));
+      PetscCall(MatDenseGetSubMatrix(data->oldV,0,nV,0,nV,&V));
+      PetscCall(MatCopy(Z0,V,SAME_NONZERO_PATTERN));
+      PetscCall(MatDenseRestoreSubMatrix(Z,&Z0));
+      PetscCall(MatDenseRestoreSubMatrix(data->oldV,&V));
+      PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
     }
   }
   PetscFunctionReturn(0);

@@ -269,6 +269,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
   PetscScalar       *Q,*work,*tau;
   const PetscScalar *A;
   PetscReal         *d,*e;
+  Mat               At,Qt;  /* trailing submatrices */
 
   PetscFunctionBegin;
   PetscCall(PetscBLASIntCast(ds->n,&n));
@@ -292,7 +293,11 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
     for (i=0;i<l;i++) { d[i] = PetscRealPart(A[i+i*ld]); e[i] = 0.0; }
 
     if (ds->state<DS_STATE_INTERMEDIATE) {
-      PetscCall(DSCopyMatrix_Private(ds,DS_MAT_Q,DS_MAT_A));
+      PetscCall(MatDenseGetSubMatrix(ds->omat[DS_MAT_A],ds->l,ds->n,ds->l,ds->n,&At));
+      PetscCall(MatDenseGetSubMatrix(ds->omat[DS_MAT_Q],ds->l,ds->n,ds->l,ds->n,&Qt));
+      PetscCall(MatCopy(At,Qt,SAME_NONZERO_PATTERN));
+      PetscCall(MatDenseRestoreSubMatrix(ds->omat[DS_MAT_A],&At));
+      PetscCall(MatDenseRestoreSubMatrix(ds->omat[DS_MAT_Q],&Qt));
       PetscCall(DSAllocateWork_Private(ds,ld+ld*ld,0,0));
       tau  = ds->work;
       work = ds->work+ld;
@@ -415,6 +420,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 
 PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
+  Mat            At,Qt;  /* trailing submatrices */
   PetscInt       i;
   PetscBLASInt   n1 = 0,n2 = 0,n3,lwork,liwork,info,l = 0,n = 0,m = 0,ld,off,il,iu,*isuppz;
   PetscScalar    *A,*Q,*W=NULL,one=1.0,zero=0.0;
@@ -444,7 +450,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   if (ds->state<DS_STATE_INTERMEDIATE) {  /* Q contains useful info */
     PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
-    PetscCall(DSCopyMatrix_Private(ds,DS_MAT_W,DS_MAT_Q));
+    PetscCall(MatCopy(ds->omat[DS_MAT_Q],ds->omat[DS_MAT_W],SAME_NONZERO_PATTERN));
   }
 #if defined(PETSC_USE_COMPLEX)
   PetscCall(DSAllocateMatReal_Private(ds,DS_MAT_Q));
@@ -473,7 +479,11 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&W));
-    PetscCall(DSCopyMatrix_Private(ds,DS_MAT_Q,DS_MAT_A));
+    PetscCall(MatDenseGetSubMatrix(ds->omat[DS_MAT_A],ds->l,ds->n,ds->l,ds->n,&At));
+    PetscCall(MatDenseGetSubMatrix(ds->omat[DS_MAT_Q],ds->l,ds->n,ds->l,ds->n,&Qt));
+    PetscCall(MatCopy(At,Qt,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(ds->omat[DS_MAT_A],&At));
+    PetscCall(MatDenseRestoreSubMatrix(ds->omat[DS_MAT_Q],&Qt));
   }
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);

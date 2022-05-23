@@ -52,6 +52,7 @@ static PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
 static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
 {
   Vec               v;
+  Mat               A,B,H0,G0;
   PetscScalar       *pA;
   const PetscScalar *pv;
   PetscInt          i,lV,kV,n,ld;
@@ -60,8 +61,18 @@ static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   n = kV-lV;
   PetscCall(DSSetDimensions(d->eps->ds,n,0,0));
-  PetscCall(DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,lV,lV,n,n,PETSC_FALSE));
-  if (d->G) PetscCall(DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,lV,lV,n,n,PETSC_FALSE));
+  PetscCall(DSGetMat(d->eps->ds,DS_MAT_A,&A));
+  PetscCall(MatDenseGetSubMatrix(d->H,lV,lV+n,lV,lV+n,&H0));
+  PetscCall(MatCopy(H0,A,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseRestoreSubMatrix(d->H,&H0));
+  PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_A,&A));
+  if (d->G) {
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_B,&B));
+    PetscCall(MatDenseGetSubMatrix(d->G,lV,lV+n,lV,lV+n,&G0));
+    PetscCall(MatCopy(G0,B,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(d->G,&G0));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_B,&B));
+  }
   /* Set the signature on projected matrix B */
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     PetscCall(DSGetLeadingDimension(d->eps->ds,&ld));
@@ -188,15 +199,20 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
 static inline PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,DSMatType mat)
 {
   PetscInt       l,k,n;
-  Mat            auxM;
+  Mat            M,M0,auxM,auxM0;
 
   PetscFunctionBegin;
   PetscCall(BVGetActiveColumns(d->eps->V,&l,&k));
-  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM));
-  PetscCall(MatZeroEntries(auxM));
   PetscCall(DSGetDimensions(d->eps->ds,&n,NULL,NULL,NULL));
   PetscAssert(k-l==n,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
-  PetscCall(DSCopyMat(d->eps->ds,mat,0,0,auxM,l,l,n,d->V_tra_e,PETSC_TRUE));
+  PetscCall(DSGetMat(d->eps->ds,mat,&M));
+  PetscCall(MatDenseGetSubMatrix(M,0,n,0,d->V_tra_e,&M0));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM));
+  PetscCall(MatDenseGetSubMatrix(auxM,l,l+n,l,l+d->V_tra_e,&auxM0));
+  PetscCall(MatCopy(M0,auxM0,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseRestoreSubMatrix(auxM,&auxM0));
+  PetscCall(MatDenseRestoreSubMatrix(M,&M0));
+  PetscCall(DSRestoreMat(d->eps->ds,mat,&M));
   PetscCall(BVMultInPlace(bv,auxM,l,l+d->V_tra_e));
   PetscCall(MatDestroy(&auxM));
   PetscFunctionReturn(0);
@@ -391,6 +407,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
 {
   PetscInt          i,ld;
   Vec               v;
+  Mat               A,B,H0,G0;
   PetscScalar       *pA;
   const PetscScalar *pv;
   PetscBool         symm;
@@ -400,8 +417,18 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   PetscCall(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSHEP,&symm));
   if (symm) PetscFunctionReturn(0);
   PetscCall(DSSetDimensions(d->eps->ds,d->eps->nconv,0,0));
-  PetscCall(DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE));
-  if (d->G) PetscCall(DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE));
+  PetscCall(DSGetMat(d->eps->ds,DS_MAT_A,&A));
+  PetscCall(MatDenseGetSubMatrix(d->H,0,d->eps->nconv,0,d->eps->nconv,&H0));
+  PetscCall(MatCopy(H0,A,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseRestoreSubMatrix(d->H,&H0));
+  PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_A,&A));
+  if (d->G) {
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_B,&B));
+    PetscCall(MatDenseGetSubMatrix(d->G,0,d->eps->nconv,0,d->eps->nconv,&G0));
+    PetscCall(MatCopy(G0,B,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(d->G,&G0));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_B,&B));
+  }
   /* Set the signature on projected matrix B */
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     PetscCall(DSGetLeadingDimension(d->eps->ds,&ld));

@@ -118,7 +118,6 @@ SLEPC_INTERN PetscErrorCode DSPermuteColumns_Private(DS,PetscInt,PetscInt,PetscI
 SLEPC_INTERN PetscErrorCode DSPermuteColumnsTwo_Private(DS,PetscInt,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
 SLEPC_INTERN PetscErrorCode DSPermuteRows_Private(DS,PetscInt,PetscInt,PetscInt,DSMatType,PetscInt*);
 SLEPC_INTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,PetscInt,PetscInt,DSMatType,DSMatType,PetscInt*);
-SLEPC_INTERN PetscErrorCode DSCopyMatrix_Private(DS,DSMatType,DSMatType);
 SLEPC_INTERN PetscErrorCode DSGetTruncateSize_Default(DS,PetscInt,PetscInt,PetscInt*);
 
 SLEPC_INTERN PetscErrorCode DSGHIEPOrthogEigenv(DS,DSMatType,PetscScalar*,PetscScalar*,PetscBool);
