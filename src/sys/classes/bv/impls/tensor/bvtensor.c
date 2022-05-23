@@ -33,7 +33,7 @@ PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt          ldq,lds = ctx->ld*ctx->d;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(Q,&ldq,NULL));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->S,&pS));
   PetscCall(MatDenseGetArrayRead(Q,&q));
   PetscCall(BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_FALSE));
@@ -50,7 +50,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose_Tensor(BV V,Mat Q,PetscInt s,Pets
   PetscInt          ldq,lds = ctx->ld*ctx->d;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(Q,&ldq,NULL));
+  PetscCall(MatDenseGetLDA(Q,&ldq));
   PetscCall(MatDenseGetArray(ctx->S,&pS));
   PetscCall(MatDenseGetArrayRead(Q,&q));
   PetscCall(BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_TRUE));
@@ -69,7 +69,7 @@ PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
   PetscFunctionBegin;
   PetscCheck(x->U==y->U,PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"BVDot() in BVTENSOR requires that both operands have the same U factor");
   PetscCheck(lds==y->ld*y->d,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mismatching dimensions ld*d %" PetscInt_FMT " %" PetscInt_FMT,lds,y->ld*y->d);
-  PetscCall(MatGetSize(M,&ldm,NULL));
+  PetscCall(MatDenseGetLDA(M,&ldm));
   PetscCall(MatDenseGetArrayRead(x->S,&px));
   PetscCall(MatDenseGetArrayRead(y->S,&py));
   PetscCall(MatDenseGetArray(M,&m));
