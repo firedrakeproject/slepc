@@ -418,7 +418,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     /* Update S */
     PetscCall(DSGetMat(pep->ds,DS_MAT_Q,&MQ));
     PetscCall(BVMultInPlace(ctx->V,MQ,pep->nconv,k+l));
-    PetscCall(MatDestroy(&MQ));
+    PetscCall(DSRestoreMat(pep->ds,DS_MAT_Q,&MQ));
 
     /* Copy last column of S */
     PetscCall(BVCopyColumn(ctx->V,nv,k+l));

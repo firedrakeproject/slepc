@@ -527,10 +527,10 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     /* compute converged singular vectors and restart vectors */
     PetscCall(DSGetMat(svd->ds,DS_MAT_V,&V));
     PetscCall(BVMultInPlace(svd->V,V,svd->nconv,k+l));
-    PetscCall(MatDestroy(&V));
+    PetscCall(DSRestoreMat(svd->ds,DS_MAT_V,&V));
     PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
     PetscCall(BVMultInPlace(svd->U,U,svd->nconv,k+l));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(svd->ds,DS_MAT_U,&U));
 
     /* copy the last vector to be the next initial vector */
     if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(svd->V,nv,k+l));
@@ -772,10 +772,10 @@ PetscErrorCode SVDSolve_TRLanczosGSingle(SVD svd,BV U1,BV V)
       /* compute converged singular vectors and restart vectors */
       PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
       PetscCall(BVMultInPlace(V,U,svd->nconv,k+l));
-      PetscCall(MatDestroy(&U));
+      PetscCall(DSRestoreMat(svd->ds,DS_MAT_U,&U));
       PetscCall(DSGetMat(svd->ds,DS_MAT_V,&VV));
       PetscCall(BVMultInPlace(U1,VV,svd->nconv,k+l));
-      PetscCall(MatDestroy(&VV));
+      PetscCall(DSRestoreMat(svd->ds,DS_MAT_V,&VV));
 
       /* copy the last vector to be the next initial vector */
       if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(U1,nv,k+l));
@@ -1040,13 +1040,13 @@ PetscErrorCode SVDSolve_TRLanczosGUpper(SVD svd,BV U1,BV U2,BV V)
       /* compute converged singular vectors and restart vectors */
       PetscCall(DSGetMat(svd->ds,DS_MAT_X,&X));
       PetscCall(BVMultInPlace(V,X,svd->nconv,k+l));
-      PetscCall(MatDestroy(&X));
+      PetscCall(DSRestoreMat(svd->ds,DS_MAT_X,&X));
       PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
       PetscCall(BVMultInPlace(U1,U,svd->nconv,k+l));
-      PetscCall(MatDestroy(&U));
+      PetscCall(DSRestoreMat(svd->ds,DS_MAT_U,&U));
       PetscCall(DSGetMat(svd->ds,DS_MAT_V,&Vmat));
       PetscCall(BVMultInPlace(U2,Vmat,svd->nconv,k+l));
-      PetscCall(MatDestroy(&Vmat));
+      PetscCall(DSRestoreMat(svd->ds,DS_MAT_V,&Vmat));
 
       /* copy the last vector to be the next initial vector */
       if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(V,nv,k+l));
@@ -1339,13 +1339,13 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
       /* compute converged singular vectors and restart vectors */
       PetscCall(DSGetMat(svd->ds,DS_MAT_X,&X));
       PetscCall(BVMultInPlace(V,X,svd->nconv,k+l));
-      PetscCall(MatDestroy(&X));
+      PetscCall(DSRestoreMat(svd->ds,DS_MAT_X,&X));
       PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
       PetscCall(BVMultInPlace(U1,U,svd->nconv,k+l+1));
-      PetscCall(MatDestroy(&U));
+      PetscCall(DSRestoreMat(svd->ds,DS_MAT_U,&U));
       PetscCall(DSGetMat(svd->ds,DS_MAT_V,&Vmat));
       PetscCall(BVMultInPlace(U2,Vmat,svd->nconv,k+l));
-      PetscCall(MatDestroy(&Vmat));
+      PetscCall(DSRestoreMat(svd->ds,DS_MAT_V,&Vmat));
 
       /* copy the last vector to be the next initial vector */
       if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(V,nv,k+l));

@@ -611,7 +611,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     /* compute converged eigenvectors */
     PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
     PetscCall(BVMultInPlace(eps->V,U,nconv,k));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&U));
 
     /* purge spurious ritz values */
     if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {

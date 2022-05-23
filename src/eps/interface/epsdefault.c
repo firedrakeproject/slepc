@@ -63,7 +63,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   PetscCall(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
   PetscCall(DSGetMat(eps->ds,DS_MAT_X,&X));
   PetscCall(BVMultInPlace(eps->V,X,0,n));
-  PetscCall(MatDestroy(&X));
+  PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&X));
 
   /* purification */
   if (eps->purify) PetscCall(EPS_Purify(eps,eps->nconv));
@@ -123,7 +123,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   /* V = V * Z */
   PetscCall(DSGetMat(eps->ds,DS_MAT_X,&Z));
   PetscCall(BVMultInPlace(eps->V,Z,0,eps->nconv));
-  PetscCall(MatDestroy(&Z));
+  PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&Z));
 
   /* Purify eigenvectors */
   if (eps->purify) PetscCall(EPS_Purify(eps,eps->nconv));
@@ -146,7 +146,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     /* W = W * Z */
     PetscCall(DSGetMat(eps->ds,DS_MAT_Y,&Z));
     PetscCall(BVMultInPlace(eps->W,Z,0,eps->nconv));
-    PetscCall(MatDestroy(&Z));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Y,&Z));
     /* Fix left eigenvectors if balancing was used */
     if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
       for (i=0;i<eps->nconv;i++) {

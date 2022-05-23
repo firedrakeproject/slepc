@@ -157,7 +157,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
       PetscCall(BVMultInPlace(eps->V,Q,eps->nconv,nv));
       PetscCall(ExtractSubmatrix(Q,eps->nconv,&Q1));
       PetscCall(BVMultInPlace(ctx->AV,Q1,0,nv-eps->nconv));
-      PetscCall(MatDestroy(&Q));
+      PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&Q));
       PetscCall(MatDestroy(&Q1));
       if (B) PetscCall(BVSetMatrix(eps->V,B,PETSC_FALSE));
     } else {

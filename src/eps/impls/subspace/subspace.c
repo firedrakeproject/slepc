@@ -247,8 +247,8 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     PetscCall(BVSetActiveColumns(R,0,nv));
     PetscCall(BVMultInPlace(eps->V,Q,eps->nconv,nv));
     PetscCall(BVMultInPlace(AV,Q,eps->nconv,nv));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&Q));
     PetscCall(BVCopy(AV,R));
-    PetscCall(MatDestroy(&Q));
 
     /* Convergence check */
     PetscCall(DSGetMat(eps->ds,DS_MAT_A,&T));

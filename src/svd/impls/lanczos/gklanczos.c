@@ -287,11 +287,11 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     /* compute converged singular vectors */
     PetscCall(DSGetMat(svd->ds,DS_MAT_V,&V));
     PetscCall(BVMultInPlace(svd->V,V,svd->nconv,k));
-    PetscCall(MatDestroy(&V));
+    PetscCall(DSRestoreMat(svd->ds,DS_MAT_V,&V));
     if (!lanczos->oneside) {
       PetscCall(DSGetMat(svd->ds,DS_MAT_U,&U));
       PetscCall(BVMultInPlace(svd->U,U,svd->nconv,k));
-      PetscCall(MatDestroy(&U));
+      PetscCall(DSRestoreMat(svd->ds,DS_MAT_U,&U));
     }
 
     /* copy restart vector from the last column */

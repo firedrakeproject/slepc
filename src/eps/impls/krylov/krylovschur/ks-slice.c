@@ -860,7 +860,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     PetscCall(BVSetActiveColumns(eps->V,0,l+1));
     PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
     PetscCall(BVMultInPlace(eps->V,U,0,l+1));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&U));
   } else {
     /* Get the starting Lanczos vector */
     PetscCall(EPSGetStartVector(eps,0,NULL));
@@ -974,7 +974,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
     PetscCall(BVMultInPlace(eps->V,U,eps->nconv,k+l));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&U));
 
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(eps->V,nv,k+l));

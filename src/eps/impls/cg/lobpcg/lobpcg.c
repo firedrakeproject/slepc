@@ -156,7 +156,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscCall(DSGetMat(eps->ds,DS_MAT_X,&M));
   PetscCall(BVMultInPlace(X,M,0,nv));
   PetscCall(BVMultInPlace(AX,M,0,nv));
-  PetscCall(MatDestroy(&M));
+  PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&M));
 
   /* 5. Initialize range of active iterates */
   locked = 0;  /* hard-locked vectors, the leading locked columns of V are eigenvectors */
@@ -274,7 +274,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       PetscCall(DSGetMat(eps->ds,DS_MAT_X,&M));
       PetscCall(BVMultInPlace(X,M,0,nv));
       PetscCall(BVMultInPlace(AX,M,0,nv));
-      PetscCall(MatDestroy(&M));
+      PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&M));
 
       continue;   /* skip the rest of the iteration */
     }
@@ -374,7 +374,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     PetscCall(BVMult(X,1.0,1.0,Z,M));
     if (ctx->lock) PetscCall(BVSetActiveColumns(X,nconv,ctx->bs));
     PetscCall(BVMatMult(X,A,AX));
-    PetscCall(MatDestroy(&M));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&M));
   }
 
 diverged:

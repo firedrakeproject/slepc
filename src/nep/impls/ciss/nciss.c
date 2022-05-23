@@ -443,7 +443,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       PetscCall(DSVectors(nep->ds,DS_MAT_X,NULL,NULL));
       PetscCall(DSGetMat(nep->ds,DS_MAT_X,&X));
       PetscCall(SlepcCISS_isGhost(X,nv,ctx->sigma,ctx->spurious_threshold,fl1));
-      PetscCall(MatDestroy(&X));
+      PetscCall(DSRestoreMat(nep->ds,DS_MAT_X,&X));
       PetscCall(RGCheckInside(nep->rg,nv,nep->eigr,nep->eigi,inside));
       for (i=0;i<nv;i++) {
         if (fl1[i] && inside[i]>=0) {
@@ -466,11 +466,11 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
         PetscCall(DSGetMat(nep->ds,DS_MAT_X,&X));
         PetscCall(BVMultInPlace(ctx->S,X,0,nep->nconv));
         PetscCall(BVMultInPlace(nep->V,X,0,nep->nconv));
-        PetscCall(MatDestroy(&X));
+        PetscCall(DSRestoreMat(nep->ds,DS_MAT_X,&X));
       } else {
         PetscCall(DSGetMat(nep->ds,DS_MAT_X,&X));
         PetscCall(BVMultInPlace(ctx->S,X,0,nep->nconv));
-        PetscCall(MatDestroy(&X));
+        PetscCall(DSRestoreMat(nep->ds,DS_MAT_X,&X));
         PetscCall(BVSetActiveColumns(ctx->S,0,nep->nconv));
         PetscCall(BVCopy(ctx->S,nep->V));
       }

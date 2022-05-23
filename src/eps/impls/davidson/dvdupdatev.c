@@ -114,7 +114,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
     /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
     PetscCall(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
     PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,npreconv,Z,0,npreconv,nV,cMT,PETSC_FALSE));
-    PetscCall(MatDestroy(&Z));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
   }
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) PetscCall(DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds));
   else PetscCall(DSOrthogonalize(d->eps->ds,DS_MAT_Q,nV,&cMTX));
@@ -170,7 +170,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     PetscCall(DSGetMat(d->eps->ds,DS_MAT_Z,&Z));
     PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,Z,0,0,nV,size_X,PETSC_FALSE));
-    PetscCall(MatDestroy(&Z));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
   }
   PetscCheck(size_plusk<=0 || !DVD_IS(d->sEP,DVD_EP_INDEFINITE),PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
   if (size_plusk > 0) PetscCall(DSCopyMat(d->eps->ds,DS_MAT_Q,0,size_X,data->oldU,0,0,nV,size_plusk,PETSC_FALSE));

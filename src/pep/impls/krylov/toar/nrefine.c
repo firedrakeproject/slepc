@@ -1300,8 +1300,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   its = *maxits;
   PetscCall(PetscMalloc3(k*k,&dH,nmat*k*k,&fH,k,&work));
   PetscCall(DSGetLeadingDimension(pep->ds,&ldh));
-  PetscCall(DSGetArray(pep->ds,DS_MAT_A,&H));
-  PetscCall(DSRestoreArray(pep->ds,DS_MAT_A,&H));
   PetscCall(PetscMalloc1(2*k*k,&dVS));
   PetscCall(STGetTransform(pep->st,&flg));
   if (!flg && pep->st && pep->ops->backtransform) { /* BackTransform */

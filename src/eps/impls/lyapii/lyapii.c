@@ -388,8 +388,8 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     rk = PetscMin(rk,ctx->rkc);
     PetscCall(DSGetMat(ctx->ds,DS_MAT_U,&U));
     PetscCall(BVMultInPlace(V,U,0,rk));
+    PetscCall(DSRestoreMat(ctx->ds,DS_MAT_U,&U));
     PetscCall(BVSetActiveColumns(V,0,rk));
-    PetscCall(MatDestroy(&U));
 
     /* Rank reduction */
     PetscCall(DSSetDimensions(ctx->ds,rk,0,0));
@@ -397,10 +397,10 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     PetscCall(DSGetMat(ctx->ds,DS_MAT_A,&W));
     PetscCall(BVMatProject(V,S,V,W));
     PetscCall(LyapIIBuildEigenMat(ctx->lme,W,&Op,&v0)); /* Op=A\B, A=kron(I,S)+kron(S,I), B=-2*kron(S,S) */
+    PetscCall(DSRestoreMat(ctx->ds,DS_MAT_A,&W));
     PetscCall(EPSSetOperators(epsrr,Op,NULL));
     PetscCall(EPSSetInitialSpace(epsrr,1,&v0));
     PetscCall(EPSSolve(epsrr));
-    PetscCall(MatDestroy(&W));
     PetscCall(EPSComputeVectors(epsrr));
     /* Copy first eigenvector, vec(A)=x */
     PetscCall(BVGetArray(epsrr->V,&xx));
@@ -416,7 +416,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     PetscCall(PetscInfo(eps,"The eigenvector has rank %" PetscInt_FMT "\n",rk));
     PetscCall(DSGetMat(ctx->ds,DS_MAT_U,&U));
     PetscCall(BVMultInPlace(V,U,0,rk));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(ctx->ds,DS_MAT_U,&U));
 
     /* Save V in Ux */
     idx = (rk==2)?1:0;

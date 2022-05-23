@@ -512,7 +512,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* update S */
     PetscCall(DSGetMat(pep->ds,DS_MAT_Q,&MQ));
     PetscCall(BVMultInPlace(ctx->V,MQ,pep->nconv,k+l));
-    PetscCall(MatDestroy(&MQ));
+    PetscCall(DSRestoreMat(pep->ds,DS_MAT_Q,&MQ));
 
     /* copy last column of S */
     PetscCall(BVCopyColumn(ctx->V,nv,k+l));
@@ -562,7 +562,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       PetscCall(DSSynchronize(pep->ds,pep->eigr,pep->eigi));
       PetscCall(DSGetMat(pep->ds,DS_MAT_Q,&MQ));
       PetscCall(BVMultInPlace(ctx->V,MQ,0,pep->nconv));
-      PetscCall(MatDestroy(&MQ));
+      PetscCall(DSRestoreMat(pep->ds,DS_MAT_Q,&MQ));
       PetscCall(MatDenseRestoreArray(MS,&S));
       PetscCall(BVTensorRestoreFactors(ctx->V,NULL,&MS));
     }

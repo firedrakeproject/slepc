@@ -1213,7 +1213,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     /* Update S */
     PetscCall(DSGetMat(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&MQ));
     PetscCall(BVMultInPlace(ctx->V,MQ,nep->nconv,k+l));
-    PetscCall(MatDestroy(&MQ));
+    PetscCall(DSRestoreMat(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&MQ));
 
     /* Copy last column of S */
     PetscCall(BVCopyColumn(ctx->V,nv,k+l));
@@ -1251,7 +1251,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     if (ctx->nshifts) {
       PetscCall(DSGetMat(nep->ds,DS_MAT_B,&MQ));
       PetscCall(BVMultInPlace(ctx->V,MQ,0,nep->nconv));
-      PetscCall(MatDestroy(&MQ));
+      PetscCall(DSRestoreMat(nep->ds,DS_MAT_B,&MQ));
     }
     PetscCall(BVTensorGetFactors(ctx->V,NULL,&MS));
     PetscCall(MatDenseGetArrayRead(MS,&S));

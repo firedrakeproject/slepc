@@ -103,7 +103,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
     PetscCall(BVMultInPlace(eps->V,U,eps->nconv,k+l));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&U));
 
     /* Move restart vector and update signature */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {

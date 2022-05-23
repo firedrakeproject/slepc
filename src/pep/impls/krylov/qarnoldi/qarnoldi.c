@@ -277,7 +277,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     PetscCall(DSGetMat(pep->ds,DS_MAT_Q,&Q));
     PetscCall(BVMultInPlace(pep->V,Q,pep->nconv,k+l));
-    PetscCall(MatDestroy(&Q));
+    PetscCall(DSRestoreMat(pep->ds,DS_MAT_Q,&Q));
 
     pep->nconv = k;
     PetscCall(PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv));

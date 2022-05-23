@@ -543,7 +543,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       PetscCall(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
       PetscCall(DSGetMat(eps->ds,DS_MAT_X,&X));
       PetscCall(SlepcCISS_isGhost(X,nv,ctx->sigma,ctx->spurious_threshold,fl1));
-      PetscCall(MatDestroy(&X));
+      PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&X));
       PetscCall(RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside));
       for (i=0;i<nv;i++) {
         if (fl1[i] && inside[i]>=0) {
@@ -568,7 +568,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       PetscCall(DSGetMat(eps->ds,DS_MAT_X,&X));
       PetscCall(BVMultInPlace(ctx->S,X,0,eps->nconv));
       if (eps->ishermitian) PetscCall(BVMultInPlace(eps->V,X,0,eps->nconv));
-      PetscCall(MatDestroy(&X));
+      PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&X));
       max_error = 0.0;
       for (i=0;i<eps->nconv;i++) {
         PetscCall(BVGetColumn(ctx->S,i,&si));
@@ -649,7 +649,7 @@ PetscErrorCode EPSComputeVectors_CISS(EPS eps)
   /* V = V * Z */
   PetscCall(DSGetMat(eps->ds,DS_MAT_X,&Z));
   PetscCall(BVMultInPlace(eps->V,Z,0,n));
-  PetscCall(MatDestroy(&Z));
+  PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&Z));
   PetscCall(BVSetActiveColumns(eps->V,0,eps->nconv));
 
   /* normalize */

@@ -147,8 +147,8 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   PetscCall(EPSXDUpdateProj(Q,Z,0,d->H,lV,lV+d->V_tra_e,d->auxM));
   if (d->G) PetscCall(EPSXDUpdateProj(Q,Z,0,d->G,lV,lV+d->V_tra_e,d->auxM));
-  PetscCall(MatDestroy(&Q));
-  if (d->W) PetscCall(MatDestroy(&Z));
+  PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q));
+  if (d->W) PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
 
   PetscCall(PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,DSGHIEP,DSGHEP,""));
   if (d->V_tra_s==0 || symm) PetscFunctionReturn(0);

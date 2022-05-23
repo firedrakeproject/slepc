@@ -323,7 +323,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
     PetscCall(BVMultInPlace(eps->V,U,eps->nconv,k+l));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&U));
 
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(eps->V,nv,k+l));
     eps->nconv = k;
