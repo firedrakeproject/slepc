@@ -84,7 +84,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
-  PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,its,prev=0;
+  PetscInt       i,j,k,nv,ini,nmat,nc,nconv,locked,its,prev=0;
   PetscReal      norm;
   PetscScalar    *eigr,dot;
   PetscBool      breakdown,countc,flip=PETSC_FALSE,checkprecond=PETSC_FALSE;
@@ -94,7 +94,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   SlepcSC        sc;
 
   PetscFunctionBegin;
-  PetscCall(DSGetLeadingDimension(eps->ds,&ld));
   PetscCall(STGetNumMatrices(eps->st,&nmat));
   PetscCall(STGetMatrix(eps->st,0,&A));
   if (nmat>1) PetscCall(STGetMatrix(eps->st,1,&B));

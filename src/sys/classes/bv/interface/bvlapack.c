@@ -270,10 +270,10 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
   l = bv->l;
   k = bv->k;
   PetscCall(MatGetSize(R,&m,NULL));
+  PetscCall(MatDenseGetLDA(R,&ld));
   n = k-l;
   PetscCall(PetscBLASIntCast(m,&m_));
   PetscCall(PetscBLASIntCast(n,&n_));
-  ld  = m;
   ld_ = m_;
   PetscCall(MatDenseGetArray(R,&pR));
 
@@ -283,7 +283,7 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
     lds_ = ld_;
   } else {
     PetscCall(MatDenseGetArray(S,&pS));
-    PetscCall(MatGetSize(S,&lds,NULL));
+    PetscCall(MatDenseGetLDA(S,&lds));
     PetscCall(PetscBLASIntCast(lds,&lds_));
   }
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
