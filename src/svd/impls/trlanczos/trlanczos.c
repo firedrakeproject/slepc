@@ -202,14 +202,14 @@ static PetscErrorCode MatCreateVecs_Z(Mat Z,Vec *right,Vec *left)
 
 PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
-  PetscInt       N,m,n,p;
+  PetscInt       M,N,P,m,n,p;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
   DSType         dstype;
   MatZData       *zdata;
   Mat            aux;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(svd->A,NULL,&N));
+  PetscCall(MatGetSize(svd->A,&M,&N));
   PetscCall(SVDSetDimensions_Default(svd));
   PetscCheck(svd->ncv<=svd->nsv+svd->mpd,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nsv+mpd");
   PetscCheck(lanczos->lock || svd->mpd>=svd->ncv,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
@@ -219,7 +219,8 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   PetscCall(SVDAllocateSolution(svd,1));
   dstype = DSSVD;
   if (svd->isgeneralized) {
-    if (svd->which==SVD_LARGEST && lanczos->bidiag == SVD_TRLANCZOS_GBIDIAG_LOWER) {
+    PetscCall(MatGetSize(svd->B,&P,NULL));
+    if (lanczos->bidiag == SVD_TRLANCZOS_GBIDIAG_LOWER && ((svd->which==SVD_LARGEST && P<=N) || (svd->which==SVD_SMALLEST && M>N && P<=N))) {
       SWAP(svd->A,svd->B,aux);
       SWAP(svd->AT,svd->BT,aux);
       svd->swapped = PETSC_TRUE;
@@ -1251,15 +1252,16 @@ static inline PetscErrorCode SVDInitialVectorGLower(SVD svd,BV V,BV U1,BV U2,Pet
 PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
 {
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,*alphah,*betah,normr,scalef,*sigma;
+  PetscReal      *alpha,*beta,*alphah,*betah,normr,scalef,*sigma,sigma0;
   PetscScalar    *w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,Vmat,X;
-  PetscBool      breakdown=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE,inverted;
 
   PetscFunctionBegin;
   PetscCall(DSGetLeadingDimension(svd->ds,&ld));
   PetscCall(PetscMalloc2(ld,&w,ld,&sigma));
+  inverted = ((svd->which==SVD_LARGEST && svd->swapped) || (svd->which==SVD_SMALLEST && !svd->swapped))? PETSC_TRUE: PETSC_FALSE;
   scalef = svd->swapped? 1.0/lanczos->scalef : lanczos->scalef;
   normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb*scalef): 1.0;
 
@@ -1298,7 +1300,8 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
     PetscCall(SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,normr,&k));
     PetscCall((*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx));
 
-    if (lanczos->scaleth!=0 && k==0 && 1.0/svd->sigma[0]>lanczos->scaleth) {
+    sigma0 = inverted? 1.0/svd->sigma[0] : svd->sigma[0];
+    if (lanczos->scaleth!=0 && k==0 && sigma0>lanczos->scaleth) {
 
       /* Scale and start from scratch */
       lanczos->scalef *= svd->swapped? 1.0/svd->sigma[0] : svd->sigma[0];
@@ -1370,9 +1373,10 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscFunctionBegin;
   PetscCall(PetscCitationsRegister(citationg,&citedg));
 
-  if (svd->which==SVD_LARGEST && svd->swapped) {
+  if (svd->swapped) {
     PetscCall(DSGetSlepcSC(svd->ds,&sc));
-    sc->comparison = SlepcCompareSmallestReal;
+    if (svd->which==SVD_LARGEST) sc->comparison = SlepcCompareSmallestReal;
+    else                         sc->comparison = SlepcCompareLargestReal;
   }
   if (svd->converged==SVDConvergedNorm) {  /* override temporarily since computed residual is already relative to the norms */
     svd->converged = SVDConvergedAbsolute;
