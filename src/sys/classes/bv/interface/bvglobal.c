@@ -1117,7 +1117,7 @@ static inline PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marray,Pets
 PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
 {
   PetscBool      set,flg,symm=PETSC_FALSE;
-  PetscInt       m,n;
+  PetscInt       m,n,ldm;
   PetscScalar    *marray;
   Mat            Xmatrix,Ymatrix;
   PetscObjectId  idx,idy;
@@ -1140,6 +1140,7 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   PetscCheckTypeNames(M,MATSEQDENSE,MATSEQDENSECUDA);
 
   PetscCall(MatGetSize(M,&m,&n));
+  PetscCall(MatDenseGetLDA(M,&ldm));
   PetscCheck(m>=Y->k,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %" PetscInt_FMT " rows, should have at least %" PetscInt_FMT,m,Y->k);
   PetscCheck(n>=X->k,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Matrix M has %" PetscInt_FMT " columns, should have at least %" PetscInt_FMT,n,X->k);
   PetscCheck(X->n==Y->n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", Y %" PetscInt_FMT,X->n,Y->n);
@@ -1162,16 +1163,16 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
   if (A) {
     if (X->vmm==BV_MATMULT_VECS) {
       /* perform computation column by column */
-      PetscCall(BVMatProject_Vec(X,A,Y,marray,m,symm));
+      PetscCall(BVMatProject_Vec(X,A,Y,marray,ldm,symm));
     } else {
       /* use BVMatMult, then BVDot */
       PetscCall(MatHasOperation(A,MATOP_MULT_TRANSPOSE,&flg));
-      if (symm || (flg && X->l>=X->k/2 && Y->l>=Y->k/2)) PetscCall(BVMatProject_MatMult_2(X,A,Y,marray,m,symm));
-      else PetscCall(BVMatProject_MatMult(X,A,Y,marray,m));
+      if (symm || (flg && X->l>=X->k/2 && Y->l>=Y->k/2)) PetscCall(BVMatProject_MatMult_2(X,A,Y,marray,ldm,symm));
+      else PetscCall(BVMatProject_MatMult(X,A,Y,marray,ldm));
     }
   } else {
     /* use BVDot on subblocks */
-    PetscCall(BVMatProject_Dot(X,Y,marray,m));
+    PetscCall(BVMatProject_Dot(X,Y,marray,ldm));
   }
 
   PetscCall(MatDenseRestoreArray(M,&marray));

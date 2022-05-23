@@ -513,7 +513,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
 
   PetscFunctionBegin;
   if (R) {
-    PetscCall(MatGetSize(R,&ldr,NULL));
+    PetscCall(MatDenseGetLDA(R,&ldr));
     PetscCall(MatDenseGetArray(R,&r));
   }
   if (V->matrix) {
@@ -580,7 +580,7 @@ static inline PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R,PetscBool t
   PetscInt          j,ldr,ldb;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(R,&ldr,NULL));
+  PetscCall(MatDenseGetLDA(R,&ldr));
   PetscCall(MatDenseGetArray(R,&rr));
   ldb  = bv->m+bv->nc;
   PetscCall(VecGetArrayRead(bv->buffer,&bb));
@@ -623,7 +623,7 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
   PetscCall(BV_GetBufferMat(V));
   R = V->Abuffer;
   if (V->l) PetscCall(BVOrthogonalize_BlockGS(V,R));
-  PetscCall(MatGetSize(R,&ldr,NULL));
+  PetscCall(MatDenseGetLDA(R,&ldr));
   PetscCall(MatDenseGetArray(R,&r));
   PetscCall(BVGetArray(V,&pv));
   PetscCall(BVOrthogonalize_LAPACK_TSQR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr));
@@ -648,7 +648,7 @@ static PetscErrorCode BVOrthogonalize_TSQRCHOL(BV V,Mat Rin)
   if (Rin) S = Rin;   /* use Rin as a workspace for S */
   else S = R;
   if (V->l) PetscCall(BVOrthogonalize_BlockGS(V,R));
-  PetscCall(MatGetSize(R,&ldr,NULL));
+  PetscCall(MatDenseGetLDA(R,&ldr));
   PetscCall(MatDenseGetArray(R,&r));
   PetscCall(BVGetArray(V,&pv));
   PetscCall(BVOrthogonalize_LAPACK_TSQR_OnlyR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr));
