@@ -1261,7 +1261,7 @@ PetscErrorCode SVDSolve_TRLanczosGLower(SVD svd,BV U1,BV U2,BV V)
   PetscFunctionBegin;
   PetscCall(DSGetLeadingDimension(svd->ds,&ld));
   PetscCall(PetscMalloc2(ld,&w,ld,&sigma));
-  inverted = (svd->which==SVD_LARGEST && svd->swapped) || (svd->which==SVD_SMALLEST && !svd->swapped);
+  inverted = ((svd->which==SVD_LARGEST && svd->swapped) || (svd->which==SVD_SMALLEST && !svd->swapped))? PETSC_TRUE: PETSC_FALSE;
   scalef = svd->swapped? 1.0/lanczos->scalef : lanczos->scalef;
   normr = (svd->conv==SVD_CONV_ABS)? PetscMax(svd->nrma,svd->nrmb*scalef): 1.0;
 
