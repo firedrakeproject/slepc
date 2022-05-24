@@ -82,7 +82,7 @@ int main(int argc,char **argv)
       requires: !single
 
    testset:
-      args: -svd_nsv 7 -svd_type primme
+      args: -svd_nsv 7 -svd_mpd 11 -svd_type primme
       requires: primme !single
       output_file: output/test2_1.out
       test:
