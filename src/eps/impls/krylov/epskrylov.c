@@ -327,9 +327,11 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
       for (;i<j-1;i++)  hwork[i] -= f[2*ld+i];
       PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&f));
     }
-    hwork[j-1] -= beta[j-1];
-    PetscCall(PetscBLASIntCast(j,&j_));
-    sym = SlepcAbs(BLASnrm2_(&j_,hwork,&one),sym);
+    if (j>0) {
+      hwork[j-1] -= beta[j-1];
+      PetscCall(PetscBLASIntCast(j,&j_));
+      sym = SlepcAbs(BLASnrm2_(&j_,hwork,&one),sym);
+    }
     fro = SlepcAbs(fro,SlepcAbs(alpha[j],beta[j]));
     if (j>0) fro = SlepcAbs(fro,beta[j-1]);
     if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*eps->tol)) { *symmlost = PETSC_TRUE; *M=j+1; break; }
