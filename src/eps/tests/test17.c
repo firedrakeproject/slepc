@@ -223,7 +223,7 @@ int main(int argc,char **argv)
       suffix: 1
       nsize: 2
       args: -showinertia 0 -log_exclude eps,st,rg,bv,ds
-      requires: !single !defined(PETSCTEST_VALGRIND)
+      requires: !single
 
    test:
       suffix: 2

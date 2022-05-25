@@ -494,7 +494,13 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
 
   PetscFunctionBegin;
   if (ctx->npart!=npart) {
-    if (ctx->commset) PetscCall(PetscSubcommDestroy(&ctx->subc));
+    if (ctx->npart>1) {
+      PetscCall(PetscSubcommDestroy(&ctx->subc));
+      if (ctx->commset) {
+        PetscCallMPI(MPI_Comm_free(&ctx->commrank));
+        ctx->commset = PETSC_FALSE;
+      }
+    }
     PetscCall(EPSDestroy(&ctx->eps));
   }
   if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
@@ -1270,10 +1276,11 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *childeps)
       PetscCall(MatDestroy(&Br));
     }
     /* Create subcommunicator grouping processes with same rank */
-    if (ctx->commset) PetscCallMPI(MPI_Comm_free(&ctx->commrank));
-    PetscCallMPI(MPI_Comm_rank(child,&rank));
-    PetscCallMPI(MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank));
-    ctx->commset = PETSC_TRUE;
+    if (!ctx->commset) {
+      PetscCallMPI(MPI_Comm_rank(child,&rank));
+      PetscCallMPI(MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank));
+      ctx->commset = PETSC_TRUE;
+    }
   }
   PetscCall(EPSSetType(ctx->eps,((PetscObject)eps)->type_name));
   PetscCall(STGetType(eps->st,&sttype));
