@@ -491,9 +491,17 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscMPIInt     size;
+  PetscInt        newnpart;
 
   PetscFunctionBegin;
-  if (ctx->npart!=npart) {
+  if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
+    newnpart = 1;
+  } else {
+    PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
+    PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
+    newnpart = npart;
+  }
+  if (ctx->npart!=newnpart) {
     if (ctx->npart>1) {
       PetscCall(PetscSubcommDestroy(&ctx->subc));
       if (ctx->commset) {
@@ -502,15 +510,9 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
       }
     }
     PetscCall(EPSDestroy(&ctx->eps));
+    ctx->npart = newnpart;
+    eps->state = EPS_STATE_INITIAL;
   }
-  if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
-    ctx->npart = 1;
-  } else {
-    PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
-    PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
-    ctx->npart = npart;
-  }
-  eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
