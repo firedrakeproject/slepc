@@ -126,8 +126,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   /* dispatch solve method */
   if (eps->ishermitian) {
     if (eps->which==EPS_ALL) {
-      PetscCheck(!eps->isgeneralized || eps->ispositive,PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not implemented for indefinite problems");
-      else variant = isfilt? EPS_KS_FILTER: EPS_KS_SLICE;
+      EPSCheckDefiniteCondition(eps,eps->which==EPS_ALL," with spectrum slicing");
+      variant = isfilt? EPS_KS_FILTER: EPS_KS_SLICE;
     } else if (eps->isgeneralized && !eps->ispositive) {
       variant = EPS_KS_INDEF;
     } else {

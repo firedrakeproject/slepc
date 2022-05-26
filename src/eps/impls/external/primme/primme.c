@@ -428,8 +428,10 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 
   PetscFunctionBegin;
   if (bs == PETSC_DEFAULT) ops->bs = 0;
-  else PetscCheck(bs>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
-  else ops->bs = bs;
+  else {
+    PetscCheck(bs>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
+    ops->bs = bs;
+  }
   PetscFunctionReturn(0);
 }
 

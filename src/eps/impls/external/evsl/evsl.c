@@ -433,21 +433,29 @@ static PetscErrorCode EPSEVSLSetDOSParameters_EVSL(EPS eps,EPSEVSLDOSMethod dos,
   PetscFunctionBegin;
   ctx->dos = dos;
   if (nvec == PETSC_DECIDE || nvec == PETSC_DEFAULT) ctx->nvec = 80;
-  else PetscCheck(nvec>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The nvec argument must be > 0");
-  else ctx->nvec = nvec;
+  else {
+    PetscCheck(nvec>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The nvec argument must be > 0");
+    ctx->nvec = nvec;
+  }
   switch (dos) {
     case EPS_EVSL_DOS_KPM:
       if (deg == PETSC_DECIDE || deg == PETSC_DEFAULT) ctx->deg = 300;
-      else PetscCheck(deg>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The deg argument must be > 0");
-      else ctx->deg = deg;
+      else {
+        PetscCheck(deg>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The deg argument must be > 0");
+        ctx->deg = deg;
+      }
       break;
     case EPS_EVSL_DOS_LANCZOS:
       if (steps == PETSC_DECIDE || steps == PETSC_DEFAULT) ctx->steps = 40;
-      else PetscCheck(steps>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The steps argument must be > 0");
-      else ctx->steps = steps;
+      else {
+        PetscCheck(steps>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The steps argument must be > 0");
+        ctx->steps = steps;
+      }
       if (npoints == PETSC_DECIDE || npoints == PETSC_DEFAULT) ctx->npoints = 200;
-      else PetscCheck(npoints>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npoints argument must be > 0");
-      else ctx->npoints = npoints;
+      else {
+        PetscCheck(npoints>0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npoints argument must be > 0");
+        ctx->npoints = npoints;
+      }
       break;
   }
   eps->state = EPS_STATE_INITIAL;
@@ -545,11 +553,15 @@ static PetscErrorCode EPSEVSLSetPolParameters_EVSL(EPS eps,PetscInt max_deg,Pets
 
   PetscFunctionBegin;
   if (max_deg == PETSC_DECIDE || max_deg == PETSC_DEFAULT) ctx->max_deg = 10000;
-  else PetscCheck(max_deg>2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The max_deg argument must be > 2");
-  else ctx->max_deg = max_deg;
+  else {
+    PetscCheck(max_deg>2,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The max_deg argument must be > 2");
+    ctx->max_deg = max_deg;
+  }
   if (thresh == PETSC_DECIDE || thresh == PETSC_DEFAULT) ctx->thresh = 0.8;
-  else PetscCheck(thresh>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The thresh argument must be > 0.0");
-  else ctx->thresh = thresh;
+  else {
+    PetscCheck(thresh>0.0,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The thresh argument must be > 0.0");
+    ctx->thresh = thresh;
+  }
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }

@@ -182,10 +182,8 @@ PetscErrorCode DSVectors_NHEPTS(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm
   switch (mat) {
     case DS_MAT_X:
       PetscCheck(!ds->refined,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
-      else {
-        if (j) PetscCall(DSVectors_NHEPTS_Eigen_Some(ds,j,rnorm,PETSC_FALSE));
-        else PetscCall(DSVectors_NHEPTS_Eigen_All(ds,PETSC_FALSE));
-      }
+      if (j) PetscCall(DSVectors_NHEPTS_Eigen_Some(ds,j,rnorm,PETSC_FALSE));
+      else PetscCall(DSVectors_NHEPTS_Eigen_All(ds,PETSC_FALSE));
       break;
     case DS_MAT_Y:
       PetscCheck(!ds->refined,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
