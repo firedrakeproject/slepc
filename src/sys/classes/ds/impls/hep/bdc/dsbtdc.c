@@ -664,7 +664,7 @@ L20:
   for (i = 2; i < n; ++i) {
     absdiff = ev[i] - ev[i-1];
     PetscCheck(absdiff>=0.,PETSC_COMM_SELF,PETSC_ERR_LIB,"dsbtdc: Eigenvalue approximations are not ordered properly. Approximation %" PetscBLASInt_FMT " is larger than approximation %" PetscBLASInt_FMT ".",i,i+1);
-    else if (absdiff < *mingap) {
+    if (absdiff < *mingap) {
       *mingap = absdiff;
       *mingapi = i;
     }
