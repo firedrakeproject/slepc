@@ -752,7 +752,7 @@ gnu-c-nocxx:
   tags:
     - name:jepri
   variables:
-    PETSC_CONFIG_OPTS: --with-cxx=0
+    PETSC_CONFIG_OPTS: --with-cxx=0 --COPTFLAGS='-g -O -fsanitize=address' --FOPTFLAGS='-g -O -fsanitize=address'
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
 
 gnu-c-complex128:

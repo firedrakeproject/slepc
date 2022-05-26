@@ -193,53 +193,52 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
     /* Compute eigenvalues of the block */
     PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
     PetscCheck(wi!=0.0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Real block in DSVectors_GHIEP");
-    else { /* Complex eigenvalues */
-      PetscCheck(scal1>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
-      wr1 /= scal1;
-      wi  /= scal1;
+    /* Complex eigenvalues */
+    PetscCheck(scal1>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
+    wr1 /= scal1;
+    wi  /= scal1;
 #if !defined(PETSC_USE_COMPLEX)
-      if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) {
-        Y[0] = wr1-s2*d2; Y[1] = s2*e; Y[2] = wi; Y[3] = 0.0;
-      } else {
-        Y[0] = s1*e; Y[1] = wr1-s1*d1; Y[2] = 0.0; Y[3] = wi;
-      }
-      norm = BLASnrm2_(&four,Y,&one);
-      norm = 1.0/norm;
-      if (ds->state >= DS_STATE_CONDENSED) {
-        alpha = norm;
-        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&two,&two,&alpha,ds->mat[DS_MAT_Q]+k*ld,&ld,Y,&two,&zeroS,X+k*ld,&ld));
-        if (rnorm) *rnorm = SlepcAbsEigenvalue(X[ds->n-1+k*ld],X[ds->n-1+(k+1)*ld]);
-      } else {
-        PetscCall(PetscArrayzero(X+k*ld,2*ld));
-        X[k*ld+k]       = Y[0]*norm;
-        X[k*ld+k+1]     = Y[1]*norm;
-        X[(k+1)*ld+k]   = Y[2]*norm;
-        X[(k+1)*ld+k+1] = Y[3]*norm;
-      }
-#else
-      if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) {
-        Y[0] = PetscCMPLX(wr1-s2*d2,wi);
-        Y[1] = s2*e;
-      } else {
-        Y[0] = s1*e;
-        Y[1] = PetscCMPLX(wr1-s1*d1,wi);
-      }
-      norm = BLASnrm2_(&two,Y,&one);
-      norm = 1.0/norm;
-      if (ds->state >= DS_STATE_CONDENSED) {
-        alpha = norm;
-        PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&two,&alpha,ds->mat[DS_MAT_Q]+k*ld,&ld,Y,&one,&zeroS,X+k*ld,&one));
-        if (rnorm) *rnorm = PetscAbsScalar(X[ds->n-1+k*ld]);
-      } else {
-        PetscCall(PetscArrayzero(X+k*ld,2*ld));
-        X[k*ld+k]   = Y[0]*norm;
-        X[k*ld+k+1] = Y[1]*norm;
-      }
-      X[(k+1)*ld+k]   = PetscConj(X[k*ld+k]);
-      X[(k+1)*ld+k+1] = PetscConj(X[k*ld+k+1]);
-#endif
-      (*idx)++;
+    if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) {
+      Y[0] = wr1-s2*d2; Y[1] = s2*e; Y[2] = wi; Y[3] = 0.0;
+    } else {
+      Y[0] = s1*e; Y[1] = wr1-s1*d1; Y[2] = 0.0; Y[3] = wi;
     }
+    norm = BLASnrm2_(&four,Y,&one);
+    norm = 1.0/norm;
+    if (ds->state >= DS_STATE_CONDENSED) {
+      alpha = norm;
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&two,&two,&alpha,ds->mat[DS_MAT_Q]+k*ld,&ld,Y,&two,&zeroS,X+k*ld,&ld));
+      if (rnorm) *rnorm = SlepcAbsEigenvalue(X[ds->n-1+k*ld],X[ds->n-1+(k+1)*ld]);
+    } else {
+      PetscCall(PetscArrayzero(X+k*ld,2*ld));
+      X[k*ld+k]       = Y[0]*norm;
+      X[k*ld+k+1]     = Y[1]*norm;
+      X[(k+1)*ld+k]   = Y[2]*norm;
+      X[(k+1)*ld+k+1] = Y[3]*norm;
+    }
+#else
+    if (SlepcAbs(s1*d1-wr1,wi)<SlepcAbs(s2*d2-wr1,wi)) {
+      Y[0] = PetscCMPLX(wr1-s2*d2,wi);
+      Y[1] = s2*e;
+    } else {
+      Y[0] = s1*e;
+      Y[1] = PetscCMPLX(wr1-s1*d1,wi);
+    }
+    norm = BLASnrm2_(&two,Y,&one);
+    norm = 1.0/norm;
+    if (ds->state >= DS_STATE_CONDENSED) {
+      alpha = norm;
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&two,&alpha,ds->mat[DS_MAT_Q]+k*ld,&ld,Y,&one,&zeroS,X+k*ld,&one));
+      if (rnorm) *rnorm = PetscAbsScalar(X[ds->n-1+k*ld]);
+    } else {
+      PetscCall(PetscArrayzero(X+k*ld,2*ld));
+      X[k*ld+k]   = Y[0]*norm;
+      X[k*ld+k+1] = Y[1]*norm;
+    }
+    X[(k+1)*ld+k]   = PetscConj(X[k*ld+k]);
+    X[(k+1)*ld+k+1] = PetscConj(X[k*ld+k+1]);
+#endif
+    (*idx)++;
   }
   PetscFunctionReturn(0);
 }
