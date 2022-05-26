@@ -491,20 +491,28 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscMPIInt     size;
+  PetscInt        newnpart;
 
   PetscFunctionBegin;
-  if (ctx->npart!=npart) {
-    if (ctx->commset) PetscCall(PetscSubcommDestroy(&ctx->subc));
-    PetscCall(EPSDestroy(&ctx->eps));
-  }
   if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
-    ctx->npart = 1;
+    newnpart = 1;
   } else {
     PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)eps),&size));
     PetscCheck(npart>0 && npart<=size,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of npart");
-    ctx->npart = npart;
+    newnpart = npart;
   }
-  eps->state = EPS_STATE_INITIAL;
+  if (ctx->npart!=newnpart) {
+    if (ctx->npart>1) {
+      PetscCall(PetscSubcommDestroy(&ctx->subc));
+      if (ctx->commset) {
+        PetscCallMPI(MPI_Comm_free(&ctx->commrank));
+        ctx->commset = PETSC_FALSE;
+      }
+    }
+    PetscCall(EPSDestroy(&ctx->eps));
+    ctx->npart = newnpart;
+    eps->state = EPS_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1270,10 +1278,11 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *childeps)
       PetscCall(MatDestroy(&Br));
     }
     /* Create subcommunicator grouping processes with same rank */
-    if (ctx->commset) PetscCallMPI(MPI_Comm_free(&ctx->commrank));
-    PetscCallMPI(MPI_Comm_rank(child,&rank));
-    PetscCallMPI(MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank));
-    ctx->commset = PETSC_TRUE;
+    if (!ctx->commset) {
+      PetscCallMPI(MPI_Comm_rank(child,&rank));
+      PetscCallMPI(MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank));
+      ctx->commset = PETSC_TRUE;
+    }
   }
   PetscCall(EPSSetType(ctx->eps,((PetscObject)eps)->type_name));
   PetscCall(STGetType(eps->st,&sttype));
