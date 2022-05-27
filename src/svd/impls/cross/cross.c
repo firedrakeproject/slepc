@@ -158,6 +158,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   ST             st;
   PetscBool      trackall,issinv;
+  EPSProblemType ptype;
 
   PetscFunctionBegin;
   if (!cross->eps) PetscCall(SVDCrossGetEPS(svd,&cross->eps));
@@ -167,7 +168,8 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   if (svd->isgeneralized) {
     PetscCall(SVDCrossGetProductMat(svd,svd->B,svd->BT,&cross->D));
     PetscCall(EPSSetOperators(cross->eps,cross->C,cross->D));
-    PetscCall(EPSSetProblemType(cross->eps,EPS_GHEP));
+    PetscCall(EPSGetProblemType(cross->eps,&ptype));
+    if (!ptype) PetscCall(EPSSetProblemType(cross->eps,EPS_GHEP));
   } else {
     PetscCall(EPSSetOperators(cross->eps,cross->C,NULL));
     PetscCall(EPSSetProblemType(cross->eps,EPS_HEP));
