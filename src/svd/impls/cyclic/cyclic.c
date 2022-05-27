@@ -333,6 +333,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   PetscInt          M,N,m,n,p,k,i,isl,offset;
   const PetscScalar *isa;
   PetscScalar       *va;
+  EPSProblemType    ptype;
   PetscBool         trackall,issinv;
   Vec               v,t;
   ST                st;
@@ -355,7 +356,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     }
     PetscCall(VecDestroy(&t));
     PetscCall(EPSSetOperators(cyclic->eps,cyclic->C,cyclic->D));
-    PetscCall(EPSSetProblemType(cyclic->eps,EPS_GHEP));
+    PetscCall(EPSGetProblemType(cyclic->eps,&ptype));
+    if (!ptype) PetscCall(EPSSetProblemType(cyclic->eps,EPS_GHEP));
   } else {
     PetscCall(SVDCyclicGetCyclicMat(svd,svd->A,svd->AT,&cyclic->C));
     PetscCall(EPSSetOperators(cyclic->eps,cyclic->C,NULL));
