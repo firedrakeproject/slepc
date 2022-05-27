@@ -91,26 +91,25 @@ int main(int argc,char **argv)
   PetscCall(MatSetFromOptions(B));
   PetscCall(MatSetUp(B));
 
-  PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
   for (i=Istart;i<Iend;i++) {
-    if (i<N) {  /* upper block: kron(speye(n),T1) where T1 is tridiagonal */
-      if (i%n==0) PetscCall(MatSetValue(B,i,i,1.0,INSERT_VALUES));
-      else if (i%n==n-1) {
-        PetscCall(MatSetValue(B,i,i-1,-1.0,INSERT_VALUES));
-        PetscCall(MatSetValue(B,i,i,1.0,INSERT_VALUES));
-      } else {
-        col[0]=i-1; col[1]=i; col[2]=i+1;
-        PetscCall(MatSetValues(B,1,&i,3,col,vals,INSERT_VALUES));
-      }
-    } else {  /* lower block: kron(T2,speye(n)) where T2 is tridiagonal */
-      i2 = i-N;
-      bl = i2/n;  /* index of block */
-      j = i2-bl*n; /* index within block */
-      if (bl==0 || bl==n-1) PetscCall(MatSetValue(B,i,i2,1.0,INSERT_VALUES));
-      else {
-        col[0]=i2-n; col[1]=i2; col[2]=i2+n;
-        PetscCall(MatSetValues(B,1,&i,3,col,vals,INSERT_VALUES));
-      }
+    /* upper block: kron(speye(n),T1) where T1 is tridiagonal */
+    i2 = i+Istart;
+    if (i%n==0) PetscCall(MatSetValue(B,i2,i,1.0,INSERT_VALUES));
+    else if (i%n==n-1) {
+      PetscCall(MatSetValue(B,i2,i-1,-1.0,INSERT_VALUES));
+      PetscCall(MatSetValue(B,i2,i,1.0,INSERT_VALUES));
+    } else {
+      col[0]=i-1; col[1]=i; col[2]=i+1;
+      PetscCall(MatSetValues(B,1,&i2,3,col,vals,INSERT_VALUES));
+    }
+    /* lower block: kron(T2,speye(n)) where T2 is tridiagonal */
+    i2 = i+Iend;
+    bl = i/n;  /* index of block */
+    j = i-bl*n; /* index within block */
+    if (bl==0 || bl==n-1) PetscCall(MatSetValue(B,i2,i,1.0,INSERT_VALUES));
+    else {
+      col[0]=i-n; col[1]=i; col[2]=i+n;
+      PetscCall(MatSetValues(B,1,&i2,3,col,vals,INSERT_VALUES));
     }
   }
   PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
