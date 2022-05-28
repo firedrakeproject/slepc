@@ -28,6 +28,55 @@ PetscErrorCode LookUp(PetscInt N,PetscInt start,PetscInt end,PetscReal y,PetscIn
   PetscFunctionReturn(0);
 }
 
+/*
+   PermuteMatrices - Symmetric permutation of A using MatPartitioning, then permute
+   columns of B in the same way.
+*/
+PetscErrorCode PermuteMatrices(Mat *A,Mat *B)
+{
+  MatPartitioning part;
+  IS              isn,is,id;
+  PetscInt        *nlocal,Istart,Iend;
+  PetscMPIInt     size,rank;
+  MPI_Comm        comm;
+  Mat             in=*A,out;
+
+  PetscFunctionBegin;
+  PetscCall(PetscObjectGetComm((PetscObject)in,&comm));
+  PetscCallMPI(MPI_Comm_size(comm,&size));
+  PetscCallMPI(MPI_Comm_rank(comm,&rank));
+  PetscCall(MatPartitioningCreate(comm,&part));
+  PetscCall(MatPartitioningSetAdjacency(part,in));
+  PetscCall(MatPartitioningSetFromOptions(part));
+  PetscCall(MatPartitioningApply(part,&is)); /* get owner of each vertex */
+  PetscCall(ISPartitioningToNumbering(is,&isn)); /* get new global number of each vertex */
+  PetscCall(PetscMalloc1(size,&nlocal));
+  PetscCall(ISPartitioningCount(is,size,nlocal)); /* count vertices assigned to each process */
+  PetscCall(ISDestroy(&is));
+
+  /* get old global number of each new global number */
+  PetscCall(ISInvertPermutation(isn,nlocal[rank],&is));
+  PetscCall(PetscFree(nlocal));
+  PetscCall(ISDestroy(&isn));
+  PetscCall(MatPartitioningDestroy(&part));
+
+  /* symmetric permutation of A */
+  PetscCall(MatCreateSubMatrix(in,is,is,MAT_INITIAL_MATRIX,&out));
+  PetscCall(MatDestroy(A));
+  *A = out;
+
+  /* column permutation of B */
+  PetscCall(MatGetOwnershipRange(*B,&Istart,&Iend));
+  PetscCall(ISCreateStride(comm,Iend-Istart,Istart,1,&id));
+  PetscCall(ISSetIdentity(id));
+  PetscCall(MatCreateSubMatrix(*B,id,is,MAT_INITIAL_MATRIX,&out));
+  PetscCall(MatDestroy(B));
+  *B = out;
+  PetscCall(ISDestroy(&id));
+  PetscCall(ISDestroy(&is));
+  PetscFunctionReturn(0);
+}
+
 int main(int argc,char **argv)
 {
   Mat            A,B;             /* operator matrices */
@@ -35,7 +84,7 @@ int main(int argc,char **argv)
   KSP            ksp;
   PetscInt       n=32,N,i,i2,j,k,xidx,yidx,bl,Istart,Iend,col[3];
   PetscScalar    vals[] = { 1, -2, 1 },X,Y;
-  PetscBool      flg,terse;
+  PetscBool      flg,terse,permute=PETSC_FALSE;
   PetscRandom    rctx;
 
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
@@ -115,6 +164,12 @@ int main(int argc,char **argv)
   PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
   PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
 
+  PetscCall(PetscOptionsGetBool(NULL,NULL,"-permute",&permute,NULL));
+  if (permute) {
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Permuting to optimize parallel matvec\n"));
+    PetscCall(PermuteMatrices(&A,&B));
+  }
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
           Create the singular value solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -156,8 +211,17 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      args: -svd_trlanczos_gbidiag {{upper lower}} -svd_trlanczos_oneside -terse
+   testset:
+      args: -n 16 -terse
       requires: double
+      output_file: output/ex51_1.out
+      test:
+         args: -svd_trlanczos_gbidiag {{upper lower}} -svd_trlanczos_oneside
+         suffix: 1
+      test:
+         suffix: 2
+         nsize: 2
+         args: -permute
+         filter: grep -v Permuting
 
 TEST*/
