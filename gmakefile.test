@@ -1,6 +1,6 @@
 # -*- mode: makefile-gmake -*-
 
-.SUFFIXES: .F  .F90 .f90 ${SUFFIXES} .PETSc .C .cc .cpp .cxx .r .rm .so .html .ad .m .tex .mtex .make  .fig .svg .eps .pdf .jpg .png .dvi .ps .F95 .f95 .fiat .cu .kokkos.cxx
+.SUFFIXES: .F  .F90 .f90 ${SUFFIXES} .PETSc .C .cc .cpp .cxx .r .rm .so .html .ad .m .tex .make  .fig .svg .eps .pdf .jpg .png .dvi .ps .F95 .f95 .fiat .cu .kokkos.cxx .raja.cxx .hip.cpp .sycl.cxx
 
 # TESTSRCDIR is always relative to gmakefile.test
 #  This must be before includes
@@ -27,7 +27,7 @@ generatedtest  := $(TESTDIR)/testfiles
 
 TESTFLAGS :=             # Initialize as simple variable
 
-#workarround old cygwin versions
+#workaround old cygwin versions
 ifeq ($(PETSC_CYGWIN_BROKEN_PIPE),1)
 ifeq ($(shell basename $(AR)),ar)
   V ?=1
@@ -109,7 +109,7 @@ endif
 $(generatedtest) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH_DIR) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
-ifneq ($(filter-out clean check info libs all checkbadSource,$(MAKECMDGOALS:clean%=clean)),)
+ifneq ($(filter-out clean check info libs all checkbadSource allfortranstubs alletags,$(MAKECMDGOALS:clean%=clean)),)
 include $(generatedtest)
 endif
 
@@ -122,24 +122,34 @@ endif
 SLEPC_COMPILE.c = $(call quiet,$(cc_name)) -c $(PCC_FLAGS) $($(CLANGUAGE)FLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(C_DEPFLAGS)
 SLEPC_COMPILE.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
 SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(MPICXX_INCLUDES) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="$(SLEPC_CC_INCLUDES) ${PETSC_CCPPFLAGS} $(CUDACPPFLAGS) $(CUDA_CXXFLAGS)"
-SLEPC_COMPILE.hip.cpp = $(call quiet,HIPC) -c $(MPICXX_INCLUDES) $(HIPC_FLAGS) $(HIPFLAGS) $(HIPPPFLAGS) $(HIPOPTFLAGS) $(HIPC_DEPFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
-SLEPC_COMPILE.sycl.cpp = $(call quiet,SYCLCPP) -c $(MPICXX_INCLUDES) $(SYCLCPP_FLAGS) $(SYCLCPPFLAGS) $(SYCLCPPCPPFLAGS) $(SLEPC_CC_INCLUDES) $(SYCLCPP_DEPFLAGS)
+SLEPC_COMPILE.hip.cpp = $(call quiet,HIPC) -c $(MPICXX_INCLUDES) $(HIPC_FLAGS) $(HIPFLAGS) $(HIPPPFLAGS) $(HIPOPTFLAGS) $(HIPC_DEPFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(HIP_DEPFLAGS)
+SLEPC_COMPILE.sycl.cpp = $(call quiet,SYCLCPP) -c $(MPICXX_INCLUDES) $(SYCLC_FLAGS) $(SYCLPP_FLAGS) $(SYCLFLAGS) $(SYCLPPFLAGS) $(SYCLOPTFLAGS) $(CXXFLAGS) $(CXXCPPFLAGS) $(SLEPC_CC_INCLUDES) $(SYCL_DEPFLAGS)
 SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(MPICXX_INCLUDES) $(CUDAC_FLAGS) $(CUFLAGS) --compiler-options="${PETSC_CCPPFLAGS} $(SLEPC_CC_INCLUDES) $(CUDA_CXXFLAGS)"
 SLEPC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
 
 ifneq ($(KOKKOS_USE_CUDA_COMPILER),)
   # Kokkos requires nvcc to be in PATH and the C++ compiler to be given in an environmental variable
-  SLEPC_COMPILE.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CUDA_CXX) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda -c $(CUDAC_FLAGS) ${PETSC_CCPPFLAGS} $(CUDACPPFLAGS) $(CUDA_CXXFLAGS) $(MPICXX_INCLUDE) $(SLEPC_CC_INCLUDES)
-  SLEPC_LINK.kokkos.cxx = PATH=$(PATH):`dirname $(CUDAC)` NVCC_WRAPPER_DEFAULT_COMPILER=$(CUDA_CXX) $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda  $(CUDAC_FLAGS) $(MPICXX_INCLUDES) ${PETSC_CCPPFLAGS} $(CUDA_CXXFLAGS) $(CXX_LINKER_FLAGS) $(CUDA_CXXLIBS) $(MPICXX_LIBS) $(SLEPC_CC_INCLUDES) $(LDFLAGS)
+  KOKC = PATH=`dirname $(CUDAC)`:$(PATH) NVCC_WRAPPER_DEFAULT_COMPILER="$(CUDA_CXX)" $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda
+  SLEPC_COMPILE.kokkos.cxx = $(call quiet,KOKC) -c $(CUDAC_FLAGS) ${PETSC_CCPPFLAGS} $(CUDACPPFLAGS) $(CUDA_CXXFLAGS) $(MPICXX_INCLUDES) $(SLEPC_CC_INCLUDES)
+  SLEPC_LINK.kokkos.cxx = $(KOKC) $(CUDAC_FLAGS) $(MPICXX_INCLUDES) ${PETSC_CCPPFLAGS} $(CUDA_CXXFLAGS) $(CUDA_CXXLIBS) $(MPICXX_LIBS) $(LDFLAGS)
 else ifneq ($(KOKKOS_USE_HIP_COMPILER),)
   SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.hip.cpp)
-  SLEPC_LINK.kokkos.cxx = MPICH_CXX="$(HIPC)" OMPI_CXX="$(HIPC)" $(CXXLINKER) $(HIPFLAGS) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(SLEPC_CC_INCLUDES) $(LDFLAGS)
+  SLEPC_LINK.kokkos.cxx = $(HIPC) $(HIPFLAGS) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(LDFLAGS) $(MPICXX_INCLUDES) $(MPICXX_LIBS)
+else ifneq ($(KOKKOS_USE_SYCL_COMPILER),)
+  SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.sycl.cxx)
+  SLEPC_LINK.kokkos.cxx = $(SYCLC) $(SYCLFLAGS) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(LDFLAGS) $(MPICXX_INCLUDES) $(MPICXX_LIBS)
 else
   SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.cxx)
-  SLEPC_LINK.kokkos.cxx = $(CXXLINKER) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(SLEPC_CC_INCLUDES) $(LDFLAGS)
+  SLEPC_LINK.kokkos.cxx = $(CXXLINKER) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(LDFLAGS)
 endif
 
-testlangs := c cu cxx F F90 kokkos.cxx hip.cpp sycl.cpp
+ifneq ($(RAJA_USE_CUDA_COMPILER),)
+  SLEPC_COMPILE.raja.cxx  = ${CUDAC} $(MPICXX_INCLUDES) ${CUDAC_FLAGS} ${CUFLAGS} -x cu -Xcudafe "--display_error_number" -c --compiler-options="${SLEPC_CC_INCLUDES} ${PETSC_CCPPFLAGS} ${PETSC_CC_INCLUDES} ${CUDA_CXXFLAGS}" --expt-extended-lambda --expt-relaxed-constexpr
+else
+  SLEPC_COMPILE.raja.cxx = ${CXX} -o $*.o -c ${CXX_FLAGS} ${CXXFLAGS} ${CXXCPPFLAGS}
+endif
+
+testlangs := c cu cxx F F90 kokkos.cxx hip.cpp sycl.cxx raja.cxx
 $(foreach lang, $(testlangs), $(eval \
   testexe.$(lang) = $(foreach pkg, $(pkgs), $(testsrcs-$(pkg).$(lang):%.$(lang)=$(TESTDIR)/%))))
 concattestlang = $(foreach lang, $(2), $(testsrcs-$(1).$(lang):%.$(lang)=$(TESTDIR)/%.o))
@@ -157,12 +167,21 @@ $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.c | $$(@D)/.DIR
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.kokkos.cxx | $$(@D)/.DIR
 	$(SLEPC_COMPILE.kokkos.cxx) $(abspath $<) -o $@
 
+$(TESTDIR)/%.o : $(EXAMPLESDIR)/%.sycl.cxx | $$(@D)/.DIR
+	$(SLEPC_COMPILE.sycl.cxx) $(abspath $<) -o $@
+
+$(TESTDIR)/%.o : $(EXAMPLESDIR)/%.raja.cxx | $$(@D)/.DIR
+	$(SLEPC_COMPILE.raja.cxx) $(abspath $<) -o $@
+
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.cxx | $$(@D)/.DIR
 	$(SLEPC_COMPILE.cxx) $(abspath $<) -o $@
 
 $(TESTDIR)/%.o : $(EXAMPLESDIR)/%.cu | $$(@D)/.DIR
 	$(SLEPC_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
 	@$(SLEPC_GENDEPS.cu) $(abspath $<) -o $(@:%.o=%.d) # Generate the dependencies for later
+
+$(TESTDIR)/%.o : $(EXAMPLESDIR)/%.hip.cpp | $$(@D)/.DIR
+	$(SLEPC_COMPILE.hip.cpp) $(abspath $<) -o $@
 
 # Test modules go in the same directory as the target *.o
 TESTMODDIR = $(@D)
@@ -200,58 +219,51 @@ SLEPC_TEST_LIB = $(SLEPC_LIB)
 #SLEPC_TEST_LIB = $(C_SH_LIB_PATH) $(SLEPC_EXTERNAL_LIB_BASIC)
 #endif
 
-# if run with MACOS_FIREWALL=1 or MACOS_FIREWALL_REFRESH=1, ensure mpiexec.hydra and test executable is on firewall list
-ifeq ($(MACOS_FIREWALL_REFRESH),1)
-# MACOS_FIREWALL_REFRESH=1 imply MACOS_FIREWALL=1
-MACOS_FIREWALL := 1
-endif
-
+# MACOS FIREWALL HANDLING
+# - if run with MACOS_FIREWALL=1
+#   (automatically set in $PETSC_ARCH/lib/petsc/conf/petscvariables if configured --with-macos-firewall-rules),
+#   ensure mpiexec and test executable is on firewall list
+#
 ifeq ($(MACOS_FIREWALL),1)
 FW := /usr/libexec/ApplicationFirewall/socketfilterfw
-ifeq ($(MACOS_FIREWALL_REFRESH),1)
+# There is no reliable realpath command in macOS without need for 3rd party tools like homebrew coreutils
+# Using Python's realpath seems like the most robust way here
+realpath-py = $(shell $(PYTHON) -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' $(1))
+#
 define macos-firewall-register
-  @APP=$(call abspath, $(1)); \
-    echo "MACOS_FIREWALL_REFRESH set => refresh firewall rule"; \
+  @APP=$(call realpath-py, $(1)); \
     if ! sudo -n true 2>/dev/null; then printf "Asking for sudo password to add new firewall rule for\n  $$APP\n"; fi; \
-    sudo $(FW) --remove $$APP && \
-    sudo $(FW) --add $$APP && \
-    sudo $(FW) --blockapp $$APP
-endef
-else
-define macos-firewall-register
-  @APP=$(call abspath, $(1)); \
-    ANS=`$(FW) --getappblocked $$APP`; \
-    if ! echo $$ANS | grep "$$APP" &> /dev/null; then \
-      if ! sudo -n true 2>/dev/null; then printf "Asking for sudo password to add new firewall rule for\n  $$APP\n"; fi; \
-      sudo $(FW) --add $$APP && \
-      sudo $(FW) --blockapp $$APP; \
-    else \
-      echo $$ANS; \
-    fi
+    sudo $(FW) --remove $$APP --add $$APP --blockapp $$APP
 endef
 endif
-define macos-firewall-fix
-  $(call macos-firewall-register, $(MPIEXECEXECUTABLE))
-  $(call macos-firewall-register, $(1))
-endef
-endif
+#
+macos-firewall-register-mpiexec:
+	-$(call macos-firewall-register, $(MPIEXEC))
 
 # Test executables
 $(testexe.F) $(testexe.F90) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libslepcall)
 	$(call quiet,FLINKER) -o $@ $^ $(SLEPC_TEST_LIB)
-	-$(call macos-firewall-fix,$@)
+	-$(call macos-firewall-register,$@)
 
 $(testexe.c) $(testexe.cu) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libslepcall)
+	$(call quiet,CLINKER) $(EXEFLAGS) -o $@ $^ $(SLEPC_TEST_LIB)
+	-$(call macos-firewall-register,$@)
+
+$(testexe.hip.cpp) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libpetscall)
 	$(call quiet,CLINKER) -o $@ $^ $(SLEPC_TEST_LIB)
-	-$(call macos-firewall-fix,$@)
+	-$(call macos-firewall-register,$@)
 
 $(testexe.kokkos.cxx) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libslepcall)
 	$(call quiet,SLEPC_LINK.kokkos.cxx) -o $@ $^ $(SLEPC_TEST_LIB)
-	-$(call macos-firewall-fix,$@)
+	-$(call macos-firewall-register,$@)
+
+$(testexe.raja.cxx) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libpetscall)
+	$(call quiet,CLINKER) -o $@ $^ $(SLEPC_TEST_LIB)
+	-$(call macos-firewall-register,$@)
 
 $(testexe.cxx) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libslepcall)
 	$(call quiet,CXXLINKER) -o $@ $^ $(SLEPC_TEST_LIB)
-	-$(call macos-firewall-fix,$@)
+	-$(call macos-firewall-register,$@)
 
 # Fortran source files need slepc*.mod, which isn't explicitly managed in the makefile.
 $(foreach pkg, $(pkgs), $(call concattestlang,$(pkg),F F90)) : $(libslepcall)
@@ -334,6 +346,9 @@ endif
 ifdef i
    searchin = $(i)
 endif
+ifdef gs
+  gmakesearch = $(gs)
+endif
 ifdef gmakesearch
   TESTTARGETS := $(filter $(gmakesearch),$(alltesttargets))
   ifdef gmakesearchin
@@ -345,15 +360,15 @@ else ifdef gmakesearchin
 else ifdef argsearch
   TESTTARGETS := $(foreach v,$(alltesttargets),$(if $(findstring $(argsearch),$($(v)_ARGS)),$(v)))
 else ifdef search
-  TESTTARGETS := $(shell $(PYTHON) $(PETSCCONFIGDIR)/query_tests.py --srcdir=$(SLEPC_DIR)/src --testdir=$(SLEPC_DIR)/$(PETSC_ARCH)/tests --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --searchin=$(searchin) 'name' '$(search)')
+  TESTTARGETS := $(shell $(PYTHON) $(PETSCCONFIGDIR)/query_tests.py --srcdir=$(SLEPC_DIR)/src --testdir=$(TESTDIR) --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --searchin=$(searchin) 'name' '$(search)')
 else ifdef s
-  TESTTARGETS := $(shell $(PYTHON) $(PETSCCONFIGDIR)/query_tests.py --srcdir=$(SLEPC_DIR)/src --testdir=$(SLEPC_DIR)/$(PETSC_ARCH)/tests --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --searchin=$(searchin) 'name' '$(s)')
+  TESTTARGETS := $(shell $(PYTHON) $(PETSCCONFIGDIR)/query_tests.py --srcdir=$(SLEPC_DIR)/src --testdir=$(TESTDIR) --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --searchin=$(searchin) 'name' '$(s)')
 else ifdef test-fail
-  TESTTARGETS := $(shell $(PETSC_ARCH)/tests/echofailures.sh)
+  TESTTARGETS := $(shell $(TESTDIR)/echofailures.sh)
 else ifdef query
-  TESTTARGETS := $(shell $(PYTHON) $(PETSCCONFIGDIR)/query_tests.py --srcdir=$(SLEPC_DIR)/src --testdir=$(SLEPC_DIR)/$(PETSC_ARCH)/tests --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --searchin=$(searchin) '$(query)' '$(queryval)')
+  TESTTARGETS := $(shell $(PYTHON) $(PETSCCONFIGDIR)/query_tests.py --srcdir=$(SLEPC_DIR)/src --testdir=$(TESTDIR) --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --searchin=$(searchin) '$(query)' '$(queryval)')
 else ifdef q
-  TESTTARGETS := $(shell $(PYTHON) $(PETSCCONFIGDIR)/query_tests.py --srcdir=$(SLEPC_DIR)/src --testdir=$(SLEPC_DIR)/$(PETSC_ARCH)/tests --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --searchin=$(searchin) '$(q)' '$(qv)')
+  TESTTARGETS := $(shell $(PYTHON) $(PETSCCONFIGDIR)/query_tests.py --srcdir=$(SLEPC_DIR)/src --testdir=$(TESTDIR) --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --searchin=$(searchin) '$(q)' '$(qv)')
 else                            # No filter - run them all, but delete the executables as we go
   TESTTARGETS := $(testpkgs)
   ifneq ($(PRINTONLY),1)
@@ -376,7 +391,7 @@ show-fail:
 $(alltesttargets:%=$(TESTDIR)/counts/%.counts) : starttime
 
 # Ensure that libslepc (if it is a prerequisite) has been built and clean the counts/logs before starting timer
-starttime: pre-clean $(libslepcall)
+starttime: pre-clean $(libslepcall) macos-firewall-register-mpiexec
 	@$(eval STARTTIME := $(shell date +%s))
 
 report_tests: starttime $(TESTTARGETS)
@@ -445,8 +460,7 @@ help-test:
 	-@echo "  EXTRA_OPTIONS='<args>'  Add options to scripts (-e to test scripts)"
 	-@echo
 	-@echo "Special options for macOS:"
-	-@echo "  MACOS_FIREWALL=1          Add each built test to the macOS firewall list to prevent popups. Configure --with-macos-firewall-rules to make this default"
-	-@echo "  MACOS_FIREWALL_REFRESH=1  The same, but force re-addition to the list. You need to do cleantest first"
+	-@echo "  MACOS_FIREWALL=1  Add each built test to the macOS firewall list to prevent popups. Configure --with-macos-firewall-rules to make this default"
 	-@echo
 	-@echo "Tests can be generated by searching with multiple methods"
 	-@echo "  For general searching (using config/query_test.py):"

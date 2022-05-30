@@ -69,6 +69,7 @@ endif
 ifeq ($(PETSC_DLL_EXPORTS),1)
 $(OBJDIR)/%.o : CCPPFLAGS+=-Dslepc_EXPORTS
 $(OBJDIR)/%.o : CXXCPPFLAGS+=-Dslepc_EXPORTS
+$(OBJDIR)/%.o : CUDACPPFLAGS+=-Dslepc_EXPORTS
 endif
 
 langs := F F90 cxx c
@@ -78,7 +79,7 @@ endif
 ifneq ($(HIPC),)
 langs += hip.cpp
 endif
-ifneq ($(SYCLCPP),)
+ifneq ($(SYCLC),)
 langs += sycl.cxx
 endif
 ifneq ($(KOKKOS_LIB),)
@@ -177,6 +178,9 @@ $(call soname_function,%) : $(call libname_function,%)
 
 .PRECIOUS: $(call soname_function,%)
 
+$(OBJDIR)/%.o : src/%.sycl.cxx | $$(@D)/.DIR
+	$(SLEPC_COMPILE.sycl.cxx) $(abspath $<) -o $@
+
 $(OBJDIR)/%.o : src/%.c | $$(@D)/.DIR
 	$(SLEPC_COMPILE.c) $(abspath $<) -o $@
 
@@ -186,12 +190,8 @@ $(OBJDIR)/%.o : src/%.kokkos.cxx | $$(@D)/.DIR
 $(OBJDIR)/%.o : src/%.cxx | $$(@D)/.DIR
 	$(SLEPC_COMPILE.cxx) $(abspath $<) -o $@
 
-#$(OBJDIR)/%.hip.o : src/%.hip.cpp | $$(@D)/.DIR
 $(OBJDIR)/%.o : src/%.hip.cpp | $$(@D)/.DIR
 	$(SLEPC_COMPILE.hip.cpp) $(abspath $<) -o $@
-
-$(OBJDIR)/%.o : src/%.sycl.cxx | $$(@D)/.DIR
-	$(SLEPC_COMPILE.sycl.cxx) $(abspath $<) -o $@
 
 $(OBJDIR)/%.o : src/%.cu | $$(@D)/.DIR
 	$(SLEPC_COMPILE.cu) $(abspath $<) -o $@ # Compile first so that if there is an error, it comes from a normal compile
@@ -248,4 +248,3 @@ allobj.d := $(srcs.o:%.o=%.d)
 $(allobj.d) : ;
 
 -include $(allobj.d)
-
