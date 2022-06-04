@@ -20,3 +20,6 @@
       PetscEnum, parameter :: RG_QUADRULE_TRAPEZOIDAL = 1
       PetscEnum, parameter :: RG_QUADRULE_CHEBYSHEV   = 2
 
+#if defined(_WIN32) && defined(PETSC_USE_SHARED_LIBRARIES)
+!DEC$ ATTRIBUTES DLLEXPORT::SLEPC_NULL_RG
+#endif

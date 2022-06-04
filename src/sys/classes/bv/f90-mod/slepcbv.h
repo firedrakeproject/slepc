@@ -38,3 +38,6 @@
       PetscEnum, parameter :: BV_SVD_METHOD_QR          =  1
       PetscEnum, parameter :: BV_SVD_METHOD_QR_CAA      =  2
 
+#if defined(_WIN32) && defined(PETSC_USE_SHARED_LIBRARIES)
+!DEC$ ATTRIBUTES DLLEXPORT::SLEPC_NULL_BV
+#endif

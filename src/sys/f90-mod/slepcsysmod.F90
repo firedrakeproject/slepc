@@ -24,6 +24,9 @@
           module procedure SlepcInitializeWithHelp, SlepcInitializeNoHelp, SlepcInitializeNoArguments
         end interface
       contains
+#if defined(_WIN32) && defined(PETSC_USE_SHARED_LIBRARIES)
+!DEC$ ATTRIBUTES DLLEXPORT::SlepcInitializeWithHelp
+#endif
       subroutine SlepcInitializeWithHelp(filename,help,ierr)
           character(len=*)           :: filename
           character(len=*)           :: help
@@ -35,6 +38,9 @@
           call SlepcInitializeF(filename,help,PETSC_TRUE,ierr)
         end subroutine SlepcInitializeWithHelp
 
+#if defined(_WIN32) && defined(PETSC_USE_SHARED_LIBRARIES)
+!DEC$ ATTRIBUTES DLLEXPORT::SlepcInitializeNoHelp
+#endif
         subroutine SlepcInitializeNoHelp(filename,ierr)
           character(len=*)           :: filename
           PetscErrorCode             :: ierr
@@ -45,6 +51,9 @@
           call SlepcInitializeF(filename,PETSC_NULL_CHARACTER,PETSC_TRUE,ierr)
         end subroutine SlepcInitializeNoHelp
 
+#if defined(_WIN32) && defined(PETSC_USE_SHARED_LIBRARIES)
+!DEC$ ATTRIBUTES DLLEXPORT::SlepcInitializeNoArguments
+#endif
         subroutine SlepcInitializeNoArguments(ierr)
           PetscErrorCode             :: ierr
 
