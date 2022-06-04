@@ -101,6 +101,13 @@
       PetscEnum, parameter :: EPS_CISS_EXTRACTION_RITZ       =  0
       PetscEnum, parameter :: EPS_CISS_EXTRACTION_HANKEL     =  1
 
+      PetscEnum, parameter :: EPS_EVSL_DOS_KPM               =  0
+      PetscEnum, parameter :: EPS_EVSL_DOS_LANCZOS           =  1
+
+      PetscEnum, parameter :: EPS_EVSL_DAMPING_NONE          =  0
+      PetscEnum, parameter :: EPS_EVSL_DAMPING_JACKSON       =  1
+      PetscEnum, parameter :: EPS_EVSL_DAMPING_SIGMA         =  2
+
 !
 !   Possible arguments to EPSMonitorSet()
 !
