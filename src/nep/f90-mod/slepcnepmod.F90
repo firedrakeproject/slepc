@@ -21,6 +21,7 @@
         module slepcnep
         use slepcnepdef
         use slepcpep
+        use slepcfn
 #include <../src/nep/f90-mod/slepcnep.h90>
         interface
 #include <../src/nep/f90-mod/ftn-auto-interfaces/slepcnep.h90>
