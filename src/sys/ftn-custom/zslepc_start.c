@@ -35,7 +35,7 @@ SLEPC_EXTERN void petscfinalize_(PetscErrorCode *ierr);
     Notes:
     Since this routine is called from Fortran it does not return error codes.
 */
-PETSC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarguments,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len,PETSC_FORTRAN_CHARLEN_T helplen)
+SLEPC_EXTERN void slepcinitializef_(char *filename,char* help,PetscBool *readarguments,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len,PETSC_FORTRAN_CHARLEN_T helplen)
 {
   PetscBool flg;
 
