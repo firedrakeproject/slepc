@@ -116,10 +116,10 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 {
   EPS_EIG_MATSHELL  *matctx;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscInt          n;
+  PetscInt          n,lds;
   PetscScalar       *Y,*C,zero=0.0,done=1.0,dtwo=2.0;
   const PetscScalar *S,*X;
-  PetscBLASInt      n_;
+  PetscBLASInt      n_,lds_;
 #endif
 
   PetscFunctionBegin;
@@ -132,17 +132,19 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
   PetscCall(VecGetArrayRead(x,&X));
   PetscCall(VecGetArray(y,&Y));
   PetscCall(MatDenseGetArrayRead(matctx->S,&S));
+  PetscCall(MatDenseGetLDA(matctx->S,&lds));
 
   n = matctx->n;
   PetscCall(PetscCalloc1(n*n,&C));
   PetscCall(PetscBLASIntCast(n,&n_));
+  PetscCall(PetscBLASIntCast(lds,&lds_));
 
   /* C = 2*S*X*S.' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&dtwo,S,&n_,X,&n_,&zero,Y,&n_));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&n_,&n_,&n_,&done,Y,&n_,S,&n_,&zero,C,&n_));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&dtwo,S,&lds_,X,&n_,&zero,Y,&n_));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&n_,&n_,&n_,&done,Y,&n_,S,&lds_,&zero,C,&n_));
 
   /* Solve S*Y + Y*S' = -C */
-  PetscCall(LMEDenseLyapunov(matctx->lme,n,(PetscScalar*)S,n,C,n,Y,n));
+  PetscCall(LMEDenseLyapunov(matctx->lme,n,(PetscScalar*)S,lds,C,n,Y,n));
 
   PetscCall(PetscFree(C));
   PetscCall(VecRestoreArrayRead(x,&X));
@@ -163,6 +165,8 @@ static PetscErrorCode MatDestroy_EigOperator(Mat M)
   PetscCall(MatDestroy(&matctx->B));
   PetscCall(MatDestroy(&matctx->F));
   PetscCall(VecDestroy(&matctx->w));
+#else
+  PetscCall(MatDestroy(&matctx->S));
 #endif
   PetscCall(PetscFree(matctx));
   PetscFunctionReturn(0);
@@ -240,7 +244,7 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar       theta,*aa,*bb;
   const PetscScalar *ss;
-  PetscInt          i,j,f,c,off,ld;
+  PetscInt          i,j,f,c,off,ld,lds;
   IS                perm;
 #endif
 
@@ -259,6 +263,8 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
     PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,&matctx->A));
     PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,&matctx->B));
     PetscCall(MatCreateVecs(matctx->A,NULL,&matctx->w));
+#else
+    PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&matctx->S));
 #endif
     PetscCall(MatCreateShell(PETSC_COMM_SELF,n*n,n*n,PETSC_DETERMINE,PETSC_DETERMINE,matctx,Op));
     PetscCall(MatShellSetOperation(*Op,MATOP_MULT,(void(*)(void))MatMult_EigOperator));
@@ -274,15 +280,16 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
   PetscCall(MatDenseGetArray(matctx->A,&aa));
   PetscCall(MatDenseGetArray(matctx->B,&bb));
   PetscCall(MatDenseGetArrayRead(S,&ss));
+  PetscCall(MatDenseGetLDA(S,&lds));
   ld = n*n;
   for (f=0;f<n;f++) {
     off = f*n+f*n*ld;
-    for (i=0;i<n;i++) for (j=0;j<n;j++) aa[off+i+j*ld] = ss[i+j*n];
+    for (i=0;i<n;i++) for (j=0;j<n;j++) aa[off+i+j*ld] = ss[i+j*lds];
     for (c=0;c<n;c++) {
       off = f*n+c*n*ld;
-      theta = ss[f+c*n];
+      theta = ss[f+c*lds];
       for (i=0;i<n;i++) aa[off+i+i*ld] += theta;
-      for (i=0;i<n;i++) for (j=0;j<n;j++) bb[off+i+j*ld] = -2*theta*ss[i+j*n];
+      for (i=0;i<n;i++) for (j=0;j<n;j++) bb[off+i+j*ld] = -2*theta*ss[i+j*lds];
     }
   }
   PetscCall(MatDenseRestoreArray(matctx->A,&aa));
@@ -293,9 +300,10 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
   PetscCall(MatDuplicate(matctx->A,MAT_COPY_VALUES,&matctx->F));
   PetscCall(MatLUFactor(matctx->F,perm,perm,0));
   PetscCall(ISDestroy(&perm));
+#else
+  PetscCall(MatCopy(S,matctx->S,SAME_NONZERO_PATTERN));
 #endif
   matctx->lme = lme;
-  matctx->S = S;
   matctx->n = n;
   PetscCall(VecSet(*v0,1.0));
   PetscFunctionReturn(0);

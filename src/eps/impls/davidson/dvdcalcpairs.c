@@ -95,15 +95,18 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
   PetscBool         symm=PETSC_FALSE,set,flg;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(A,&m0,&n0)); ldA_=m0;
+  PetscCall(MatGetSize(A,&m0,&n0));
+  PetscCall(MatDenseGetLDA(A,&ldA_));
   PetscAssert(m0==n0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"A should be square");
   PetscAssert(lA>=0 && lA<=m0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row, column in A");
   PetscAssert(kA>=0 && kA>=lA && kA<=m0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid final row, column in A");
   PetscCall(MatIsHermitianKnown(A,&set,&flg));
   symm = set? flg: PETSC_FALSE;
-  PetscCall(MatGetSize(Q,&m0,&n0)); ldQ_=nQ_=m0;
+  PetscCall(MatGetSize(Q,&m0,&n0)); nQ_=m0;
+  PetscCall(MatDenseGetLDA(Q,&ldQ_));
   PetscAssert(l>=0 && l<=n0 && l+dA_<=n0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Q");
-  PetscCall(MatGetSize(Z,&m0,&n0)); ldZ_=m0;
+  PetscCall(MatGetSize(Z,&m0,&n0));
+  PetscCall(MatDenseGetLDA(Z,&ldZ_));
   PetscAssert(l>=0 && l<=n0 && l+dA_<=n0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Z");
   PetscCall(MatGetSize(aux,&m0,&n0));
   PetscAssert(m0*n0>=nQ_*dA_,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"aux should be larger");
