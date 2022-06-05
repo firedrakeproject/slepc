@@ -18,7 +18,6 @@ int main(int argc,char **argv)
   PEP            pep;
   Vec            xr,xi;
   PetscScalar    kr,ki;
-  PetscComplex   *eigs,eval;
   PetscInt       n=6,Istart,Iend,i,nconv,its;
   PetscReal      errest;
   PetscBool      checkfile;
@@ -86,6 +85,8 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   PetscCall(PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile));
   if (checkfile) {
+#if defined(PETSC_HAVE_COMPLEX)
+    PetscComplex *eigs,eval;
     PetscCall(PetscMalloc1(nconv,&eigs));
     PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
     PetscCall(PetscViewerBinaryRead(viewer,eigs,nconv,NULL,PETSC_COMPLEX));
@@ -100,6 +101,9 @@ int main(int argc,char **argv)
       PetscCheck(eval==eigs[i],PETSC_COMM_WORLD,PETSC_ERR_FILE_UNEXPECTED,"Eigenvalues in the file do not match");
     }
     PetscCall(PetscFree(eigs));
+#else
+    SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"The -checkfile option requires C99 complex numbers");
+#endif
   }
 
   PetscCall(PEPDestroy(&pep));
@@ -127,7 +131,7 @@ int main(int argc,char **argv)
    test:
       suffix: 3
       args: -pep_nev 4 -pep_view_values binary:myvalues.bin -checkfile myvalues.bin
-      requires: double
+      requires: double c99_complex
 
    test:
       suffix: 4
