@@ -21,12 +21,22 @@ PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
   PetscBool      ispep,isnep;
 
   PetscFunctionBegin;
+  n = ds->ld;
   PetscCall(PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep));
-  PetscCall(PetscObjectTypeCompare((PetscObject)ds,DSNEP,&isnep));
-  if (ispep) PetscCall(DSPEPGetDegree(ds,&d));
-  if (isnep) PetscCall(DSNEPGetMinimality(ds,&d));
-  if ((ispep || isnep) && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_U || m==DS_MAT_X || m==DS_MAT_Y)) n = d*ds->ld;
-  else n = ds->ld;
+  if (ispep) {
+    if (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_U || m==DS_MAT_X || m==DS_MAT_Y) {
+      PetscCall(DSPEPGetDegree(ds,&d));
+      n = d*ds->ld;
+    }
+  } else {
+    PetscCall(PetscObjectTypeCompare((PetscObject)ds,DSNEP,&isnep));
+    if (isnep) {
+      if (m==DS_MAT_Q || m==DS_MAT_Z || m==DS_MAT_U || m==DS_MAT_V || m==DS_MAT_X || m==DS_MAT_Y) {
+        PetscCall(DSNEPGetMinimality(ds,&d));
+        n = d*ds->ld;
+      }
+    }
+  }
   cols = n;
 
   switch (m) {
