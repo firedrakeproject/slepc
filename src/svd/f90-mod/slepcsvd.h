@@ -43,6 +43,10 @@
       PetscEnum, parameter :: SVD_STOP_BASIC             =  0
       PetscEnum, parameter :: SVD_STOP_USER              =  1
 
+      PetscEnum, parameter :: SVD_TRLANCZOS_GBIDIAG_SINGLE =  0
+      PetscEnum, parameter :: SVD_TRLANCZOS_GBIDIAG_UPPER  =  1
+      PetscEnum, parameter :: SVD_TRLANCZOS_GBIDIAG_LOWER  =  2
+
       PetscEnum, parameter :: SVD_PRIMME_HYBRID          =  1
       PetscEnum, parameter :: SVD_PRIMME_NORMALEQUATIONS =  2
       PetscEnum, parameter :: SVD_PRIMME_AUGMENTED       =  3
@@ -56,3 +60,6 @@
 
       external SVDMonitorConvergedDestroy
 
+#if defined(_WIN32) && defined(PETSC_USE_SHARED_LIBRARIES)
+!DEC$ ATTRIBUTES DLLEXPORT::SLEPC_NULL_SVD
+#endif

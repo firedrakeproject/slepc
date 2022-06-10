@@ -51,3 +51,6 @@
       PetscEnum, parameter :: DS_PARALLEL_SYNCHRONIZED = 1
       PetscEnum, parameter :: DS_PARALLEL_DISTRIBUTED  = 2
 
+#if defined(_WIN32) && defined(PETSC_USE_SHARED_LIBRARIES)
+!DEC$ ATTRIBUTES DLLEXPORT::SLEPC_NULL_DS
+#endif
