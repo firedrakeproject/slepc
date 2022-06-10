@@ -13,6 +13,7 @@
 
 #if !defined(SLEPCDS_H)
 #define SLEPCDS_H
+
 #include <slepcsc.h>
 #include <slepcfn.h>
 #include <slepcrg.h>
@@ -71,10 +72,10 @@ SLEPC_EXTERN const char *DSStateTypes[];
     DSMatType - Used to refer to one of the matrices stored internally in DS
 
     Notes:
-    The matrices preferently refer to
+    The matrices preferentially refer to
 +   DS_MAT_A  - first matrix of eigenproblem/singular value problem
 .   DS_MAT_B  - second matrix of a generalized eigenproblem
-.   DS_MAT_C  - third matrix of a quadratic eigenproblem
+.   DS_MAT_C  - third matrix of a quadratic eigenproblem (deprecated)
 .   DS_MAT_T  - tridiagonal matrix
 .   DS_MAT_D  - diagonal matrix
 .   DS_MAT_Q  - orthogonal matrix of (right) Schur vectors
@@ -92,6 +93,8 @@ SLEPC_EXTERN const char *DSStateTypes[];
 
     In DSPEP problems, matrices A, B, W can have space for d*ld x d*ld,
     where d is the polynomial degree, and X can have ld x d*ld.
+    Also DSNEP has exceptions. Check the manual page of each DS type
+    for details.
 
     Level: advanced
 
