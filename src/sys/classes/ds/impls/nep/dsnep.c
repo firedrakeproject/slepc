@@ -511,30 +511,40 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 
 PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
-  PetscInt       k=0;
-  PetscMPIInt    n,rank,size,off=0;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscInt       ld=ds->ld,k=0;
+  PetscMPIInt    n,n2,rank,size,off=0;
 
   PetscFunctionBegin;
-  if (ds->state>=DS_STATE_CONDENSED) k += ds->n;
-  if (eigr) k += 1;
-  if (eigi) k += 1;
+  if (!ds->method) { /* SLP */
+    if (ds->state>=DS_STATE_CONDENSED) k += ds->n;
+    if (eigr) k += 1;
+    if (eigi) k += 1;
+    PetscCall(PetscMPIIntCast(1,&n));
+    PetscCall(PetscMPIIntCast(ds->n,&n2));
+  } else { /* Contour */
+    if (ds->state>=DS_STATE_CONDENSED) k += ctx->max_mid*ds->n*ld;
+    if (eigr) k += ctx->max_mid*ds->n;
+    if (eigi) k += ctx->max_mid*ds->n;
+    PetscCall(PetscMPIIntCast(ctx->max_mid*ds->n,&n));
+    PetscCall(PetscMPIIntCast(ctx->max_mid*ds->n*ld,&n2));
+  }
   PetscCall(DSAllocateWork_Private(ds,k,0,0));
   PetscCall(PetscMPIIntCast(k*sizeof(PetscScalar),&size));
-  PetscCall(PetscMPIIntCast(ds->n,&n));
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_X],n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    if (eigr) PetscCallMPI(MPI_Pack(eigr,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_X],n2,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (eigr) PetscCallMPI(MPI_Pack(eigr,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) PetscCallMPI(MPI_Pack(eigi,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (eigi) PetscCallMPI(MPI_Pack(eigi,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #endif
   }
   PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_X],n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (ds->state>=DS_STATE_CONDENSED) PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_X],n2,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
-    if (eigi) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigi,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (eigi) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigi,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #endif
   }
   PetscFunctionReturn(0);
