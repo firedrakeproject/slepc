@@ -28,7 +28,6 @@ int main(int argc,char **argv)
   RG             rg;
   PetscReal      radius,tol=PETSC_SMALL;
   PetscScalar    target=0.5,kr,ki;
-  PetscComplex   *eigs,eval;
   PetscInt       N,m=15,nev,i,nconv;
   PetscBool      checkfile;
   char           filename[PETSC_MAX_PATH_LEN];
@@ -36,7 +35,6 @@ int main(int argc,char **argv)
   char           str[50];
 
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
-#if defined(PETSC_HAVE_COMPLEX)
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%" PetscInt_FMT " (m=%" PetscInt_FMT ")\n",N,m));
@@ -98,6 +96,8 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   PetscCall(PetscOptionsGetString(NULL,NULL,"-checkfile",filename,sizeof(filename),&checkfile));
   if (checkfile) {
+#if defined(PETSC_HAVE_COMPLEX)
+  PetscComplex *eigs,eval;
     PetscCall(EPSGetConverged(eps,&nconv));
     PetscCall(PetscMalloc1(nconv,&eigs));
     PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
@@ -113,15 +113,15 @@ int main(int argc,char **argv)
       PetscCheck(eval==eigs[i],PETSC_COMM_WORLD,PETSC_ERR_FILE_UNEXPECTED,"Eigenvalues in the file do not match");
     }
     PetscCall(PetscFree(eigs));
+#else
+    SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"The -checkfile option requires C99 complex numbers");
+#endif
   }
 
   PetscCall(EPSDestroy(&eps));
   PetscCall(STDestroy(&st));
   PetscCall(RGDestroy(&rg));
   PetscCall(MatDestroy(&A));
-#else
-  SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"This example requires C99 complex numbers");
-#endif
   PetscCall(SlepcFinalize());
   return 0;
 }
