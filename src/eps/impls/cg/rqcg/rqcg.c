@@ -79,26 +79,6 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-/*
-   ExtractSubmatrix - Returns B = A(k+1:end,k+1:end).
-*/
-static PetscErrorCode ExtractSubmatrix(Mat A,PetscInt k,Mat *B)
-{
-  PetscInt          j,m,n;
-  PetscScalar       *pB;
-  const PetscScalar *pA;
-
-  PetscFunctionBegin;
-  PetscCall(MatGetSize(A,&m,&n));
-  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,m-k,n-k,NULL,B));
-  PetscCall(MatDenseGetArrayRead(A,&pA));
-  PetscCall(MatDenseGetArrayWrite(*B,&pB));
-  for (j=k;j<n;j++) PetscCall(PetscArraycpy(pB+(j-k)*(m-k),pA+j*m+k,m-k));
-  PetscCall(MatDenseRestoreArrayRead(A,&pA));
-  PetscCall(MatDenseRestoreArrayWrite(*B,&pB));
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode EPSSolve_RQCG(EPS eps)
 {
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
@@ -155,10 +135,10 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
       /* Update vectors V(:,idx) = V * Y(:,idx) */
       PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&Q));
       PetscCall(BVMultInPlace(eps->V,Q,eps->nconv,nv));
-      PetscCall(ExtractSubmatrix(Q,eps->nconv,&Q1));
+      PetscCall(MatDenseGetSubMatrix(Q,eps->nconv,PETSC_DECIDE,eps->nconv,PETSC_DECIDE,&Q1));
       PetscCall(BVMultInPlace(ctx->AV,Q1,0,nv-eps->nconv));
+      PetscCall(MatDenseRestoreSubMatrix(Q,&Q1));
       PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&Q));
-      PetscCall(MatDestroy(&Q1));
       if (B) PetscCall(BVSetMatrix(eps->V,B,PETSC_FALSE));
     } else {
       /* No need to do Rayleigh-Ritz, just take diag(V'*A*V) */
