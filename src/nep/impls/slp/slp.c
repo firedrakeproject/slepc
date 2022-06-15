@@ -144,12 +144,11 @@ static PetscErrorCode NEPSLPSetUpLinearEP(NEP nep,NEP_EXT_OP extop,PetscScalar l
 PetscErrorCode NEPSolve_SLP(NEP nep)
 {
   NEP_SLP           *ctx = (NEP_SLP*)nep->data;
-  Mat               F,H;
+  Mat               F,H,A;
   Vec               uu,u,r;
-  PetscScalar       sigma,lambda,mu,im,*Ap;
-  const PetscScalar *Hp;
+  PetscScalar       sigma,lambda,mu,im;
   PetscReal         resnorm;
-  PetscInt          nconv,ldh,ldds,i,j;
+  PetscInt          nconv;
   PetscBool         skip=PETSC_FALSE,lock=PETSC_FALSE;
   NEP_EXT_OP        extop=NULL;    /* Extended operator for deflation */
 
@@ -232,19 +231,13 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     }
   }
   PetscCall(NEPDeflationGetInvariantPair(extop,NULL,&H));
-  PetscCall(MatGetSize(H,NULL,&ldh));
-  PetscCall(DSReset(nep->ds));
   PetscCall(DSSetType(nep->ds,DSNHEP));
   PetscCall(DSAllocate(nep->ds,PetscMax(nep->nconv,1)));
-  PetscCall(DSGetLeadingDimension(nep->ds,&ldds));
-  PetscCall(MatDenseGetArrayRead(H,&Hp));
-  PetscCall(DSGetArray(nep->ds,DS_MAT_A,&Ap));
-  for (j=0;j<nep->nconv;j++)
-    for (i=0;i<nep->nconv;i++) Ap[j*ldds+i] = Hp[j*ldh+i];
-  PetscCall(DSRestoreArray(nep->ds,DS_MAT_A,&Ap));
-  PetscCall(MatDenseRestoreArrayRead(H,&Hp));
-  PetscCall(MatDestroy(&H));
   PetscCall(DSSetDimensions(nep->ds,nep->nconv,0,nep->nconv));
+  PetscCall(DSGetMat(nep->ds,DS_MAT_A,&A));
+  PetscCall(MatCopy(H,A,SAME_NONZERO_PATTERN));
+  PetscCall(DSRestoreMat(nep->ds,DS_MAT_A,&A));
+  PetscCall(MatDestroy(&H));
   PetscCall(DSSolve(nep->ds,nep->eigr,nep->eigi));
   PetscCall(NEPDeflationReset(extop));
   PetscCall(VecDestroy(&u));

@@ -38,10 +38,9 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 PetscErrorCode SVDSolve_LAPACK(SVD svd)
 {
   PetscInt          M,N,n,i,j,k,ld,lowu,lowv,highu,highv;
-  Mat               Ar,mat;
+  Mat               A,Ar,mat;
   Vec               u,v;
-  PetscScalar       *pU,*pV,*pu,*pv,*A,*w;
-  const PetscScalar *pmat;
+  PetscScalar       *pU,*pV,*pu,*pv,*w;
 
   PetscFunctionBegin;
   PetscCall(DSGetLeadingDimension(svd->ds,&ld));
@@ -51,13 +50,9 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscCall(MatGetSize(mat,&M,&N));
   PetscCall(DSSetDimensions(svd->ds,M,0,0));
   PetscCall(DSSVDSetDimensions(svd->ds,N));
-  PetscCall(MatDenseGetArrayRead(mat,&pmat));
-  PetscCall(DSGetArray(svd->ds,DS_MAT_A,&A));
-  for (i=0;i<M;i++)
-    for (j=0;j<N;j++)
-      A[i+j*ld] = pmat[i+j*M];
-  PetscCall(DSRestoreArray(svd->ds,DS_MAT_A,&A));
-  PetscCall(MatDenseRestoreArrayRead(mat,&pmat));
+  PetscCall(DSGetMat(svd->ds,DS_MAT_A,&A));
+  PetscCall(MatCopy(mat,A,SAME_NONZERO_PATTERN));
+  PetscCall(DSRestoreMat(svd->ds,DS_MAT_A,&A));
   PetscCall(DSSetState(svd->ds,DS_STATE_RAW));
 
   n = PetscMin(M,N);
@@ -106,10 +101,9 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
 PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
 {
   PetscInt          nsv,m,n,p,i,j,mlocal,plocal,ld,lowx,lowu,lowv,highx;
-  Mat               Ar,A,Br,B;
+  Mat               Ar,A,Ads,Br,B,Bds;
   Vec               uv,x;
-  PetscScalar       *Ads,*Bds,*U,*V,*X,*px,*puv,*w;
-  const PetscScalar *pA,*pB;
+  PetscScalar       *U,*V,*X,*px,*puv,*w;
 
   PetscFunctionBegin;
   PetscCall(DSGetLeadingDimension(svd->ds,&ld));
@@ -125,18 +119,12 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   PetscCall(MatGetSize(B,&p,NULL));
   PetscCall(DSSetDimensions(svd->ds,m,0,0));
   PetscCall(DSGSVDSetDimensions(svd->ds,n,p));
-  PetscCall(MatDenseGetArrayRead(A,&pA));
-  PetscCall(MatDenseGetArrayRead(B,&pB));
-  PetscCall(DSGetArray(svd->ds,DS_MAT_A,&Ads));
-  PetscCall(DSGetArray(svd->ds,DS_MAT_B,&Bds));
-  for (j=0;j<n;j++) {
-    for (i=0;i<m;i++) Ads[i+j*ld] = pA[i+j*m];
-    for (i=0;i<p;i++) Bds[i+j*ld] = pB[i+j*p];
-  }
-  PetscCall(DSRestoreArray(svd->ds,DS_MAT_B,&Bds));
-  PetscCall(DSRestoreArray(svd->ds,DS_MAT_A,&Ads));
-  PetscCall(MatDenseRestoreArrayRead(B,&pB));
-  PetscCall(MatDenseRestoreArrayRead(A,&pA));
+  PetscCall(DSGetMat(svd->ds,DS_MAT_A,&Ads));
+  PetscCall(MatCopy(A,Ads,SAME_NONZERO_PATTERN));
+  PetscCall(DSRestoreMat(svd->ds,DS_MAT_A,&Ads));
+  PetscCall(DSGetMat(svd->ds,DS_MAT_B,&Bds));
+  PetscCall(MatCopy(B,Bds,SAME_NONZERO_PATTERN));
+  PetscCall(DSRestoreMat(svd->ds,DS_MAT_B,&Bds));
   PetscCall(DSSetState(svd->ds,DS_STATE_RAW));
 
   nsv  = PetscMin(n,PetscMin(p,m));

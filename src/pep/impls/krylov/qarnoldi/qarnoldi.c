@@ -66,24 +66,19 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 
 PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
 {
-  PetscInt       i,k=pep->nconv,ldds;
-  PetscScalar    *X,*pX0;
-  Mat            X0;
+  PetscInt       k=pep->nconv;
+  Mat            X,X0;
 
   PetscFunctionBegin;
   if (pep->nconv==0) PetscFunctionReturn(0);
-  PetscCall(DSGetLeadingDimension(pep->ds,&ldds));
   PetscCall(DSVectors(pep->ds,DS_MAT_X,NULL,NULL));
-  PetscCall(DSGetArray(pep->ds,DS_MAT_X,&X));
 
   /* update vectors V = V*X */
-  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&X0));
-  PetscCall(MatDenseGetArrayWrite(X0,&pX0));
-  for (i=0;i<k;i++) PetscCall(PetscArraycpy(pX0+i*k,X+i*ldds,k));
-  PetscCall(MatDenseRestoreArrayWrite(X0,&pX0));
+  PetscCall(DSGetMat(pep->ds,DS_MAT_X,&X));
+  PetscCall(MatDenseGetSubMatrix(X,0,k,0,k,&X0));
   PetscCall(BVMultInPlace(pep->V,X0,0,k));
-  PetscCall(MatDestroy(&X0));
-  PetscCall(DSRestoreArray(pep->ds,DS_MAT_X,&X));
+  PetscCall(MatDenseRestoreSubMatrix(X,&X0));
+  PetscCall(DSRestoreMat(pep->ds,DS_MAT_X,&X));
   PetscFunctionReturn(0);
 }
 
@@ -132,15 +127,18 @@ static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,Pet
 /*
   Compute a run of Q-Arnoldi iterations
 */
-static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
+static PetscErrorCode PEPQArnoldi(PEP pep,Mat A,PetscInt k,PetscInt *M,Vec v,Vec w,PetscReal *beta,PetscBool *breakdown,PetscScalar *work)
 {
-  PetscInt           i,j,l,m = *M;
+  PetscInt           i,j,l,m = *M,ldh;
   Vec                t = pep->work[2],u = pep->work[3];
   BVOrthogRefineType refinement;
   PetscReal          norm=0.0,onorm,eta;
-  PetscScalar        *c = work + m;
+  PetscScalar        *H,*c = work + m;
 
   PetscFunctionBegin;
+  *beta = 0.0;
+  PetscCall(MatDenseGetArray(A,&H));
+  PetscCall(MatDenseGetLDA(A,&ldh));
   PetscCall(BVGetOrthogonalization(pep->V,NULL,&refinement,&eta,NULL));
   PetscCall(BVInsertVec(pep->V,k,v));
   for (j=k;j<m;j++) {
@@ -192,21 +190,21 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
     if (j<m-1) PetscCall(BVInsertVec(pep->V,j+1,v));
   }
   *beta = norm;
+  PetscCall(MatDenseRestoreArray(A,&H));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 {
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
-  PetscInt       j,k,l,lwork,nv,ld,nconv;
+  PetscInt       j,k,l,lwork,nv,nconv;
   Vec            v=pep->work[0],w=pep->work[1];
-  Mat            Q;
-  PetscScalar    *S,*work;
-  PetscReal      beta=0.0,norm,x,y;
+  Mat            Q,S;
+  PetscScalar    *work;
+  PetscReal      beta,norm,x,y;
   PetscBool      breakdown=PETSC_FALSE,sinv;
 
   PetscFunctionBegin;
-  PetscCall(DSGetLeadingDimension(pep->ds,&ld));
   lwork = 7*pep->ncv;
   PetscCall(PetscMalloc1(lwork,&work));
   PetscCall(PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv));
@@ -226,9 +224,10 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   PetscCall(VecScale(w,1.0/norm));
 
   /* clean projected matrix (including the extra-arrow) */
-  PetscCall(DSGetArray(pep->ds,DS_MAT_A,&S));
-  PetscCall(PetscArrayzero(S,ld*ld));
-  PetscCall(DSRestoreArray(pep->ds,DS_MAT_A,&S));
+  PetscCall(DSSetDimensions(pep->ds,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSGetMat(pep->ds,DS_MAT_A,&S));
+  PetscCall(MatZeroEntries(S));
+  PetscCall(DSRestoreMat(pep->ds,DS_MAT_A,&S));
 
    /* Restart loop */
   l = 0;
@@ -237,9 +236,9 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
-    PetscCall(DSGetArray(pep->ds,DS_MAT_A,&S));
-    PetscCall(PEPQArnoldi(pep,S,ld,pep->nconv+l,&nv,v,w,&beta,&breakdown,work));
-    PetscCall(DSRestoreArray(pep->ds,DS_MAT_A,&S));
+    PetscCall(DSGetMat(pep->ds,DS_MAT_A,&S));
+    PetscCall(PEPQArnoldi(pep,S,pep->nconv+l,&nv,v,w,&beta,&breakdown,work));
+    PetscCall(DSRestoreMat(pep->ds,DS_MAT_A,&S));
     PetscCall(DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l));
     PetscCall(DSSetState(pep->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE));
     PetscCall(BVSetActiveColumns(pep->V,pep->nconv,nv));

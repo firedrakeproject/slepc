@@ -18,12 +18,11 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierra,ierrb;
   PetscBool      isshift,flg,denseok=PETSC_FALSE;
-  Mat            A,B,OP,shell,Ar,Br,Adense=NULL,Bdense=NULL;
-  PetscScalar    shift,*Ap,*Bp;
-  PetscInt       i,ld,nmat;
+  Mat            A,B,OP,shell,Ar,Br,Adense=NULL,Bdense=NULL,Ads,Bds;
+  PetscScalar    shift;
+  PetscInt       nmat;
   KSP            ksp;
   PC             pc;
-  Vec            v;
 
   PetscFunctionBegin;
   eps->ncv = eps->n;
@@ -75,7 +74,6 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     }
   } else PetscCall(DSSetType(eps->ds,DSNHEP));
   PetscCall(DSAllocate(eps->ds,eps->ncv));
-  PetscCall(DSGetLeadingDimension(eps->ds,&ld));
   PetscCall(DSSetDimensions(eps->ds,eps->ncv,0,0));
 
   if (denseok) {
@@ -100,24 +98,14 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   }
 
   /* fill DS matrices */
-  PetscCall(VecCreateSeqWithArray(PETSC_COMM_SELF,1,ld,NULL,&v));
-  PetscCall(DSGetArray(eps->ds,DS_MAT_A,&Ap));
-  for (i=0;i<ld;i++) {
-    PetscCall(VecPlaceArray(v,Ap+i*ld));
-    PetscCall(MatGetColumnVector(Adense,v,i));
-    PetscCall(VecResetArray(v));
-  }
-  PetscCall(DSRestoreArray(eps->ds,DS_MAT_A,&Ap));
+  PetscCall(DSGetMat(eps->ds,DS_MAT_A,&Ads));
+  PetscCall(MatCopy(Adense,Ads,SAME_NONZERO_PATTERN));
+  PetscCall(DSRestoreMat(eps->ds,DS_MAT_A,&Ads));
   if (denseok && eps->isgeneralized) {
-    PetscCall(DSGetArray(eps->ds,DS_MAT_B,&Bp));
-    for (i=0;i<ld;i++) {
-      PetscCall(VecPlaceArray(v,Bp+i*ld));
-      PetscCall(MatGetColumnVector(Bdense,v,i));
-      PetscCall(VecResetArray(v));
-    }
-    PetscCall(DSRestoreArray(eps->ds,DS_MAT_B,&Bp));
+    PetscCall(DSGetMat(eps->ds,DS_MAT_B,&Bds));
+    PetscCall(MatCopy(Bdense,Bds,SAME_NONZERO_PATTERN));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_B,&Bds));
   }
-  PetscCall(VecDestroy(&v));
   PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
   PetscCall(MatDestroy(&Adense));
   PetscCall(MatDestroy(&Bdense));

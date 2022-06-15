@@ -47,12 +47,11 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 {
   NEP_NARNOLDI       *ctx = (NEP_NARNOLDI*)nep->data;
-  Mat                T,H;
+  Mat                T,H,A;
   Vec                f,r,u,uu;
-  PetscScalar        *X,lambda=0.0,lambda2=0.0,*eigr,*Ap,sigma;
-  const PetscScalar  *Hp;
+  PetscScalar        *X,lambda=0.0,lambda2=0.0,*eigr,sigma;
   PetscReal          beta,resnorm=0.0,nrm,perr=0.0;
-  PetscInt           n,i,j,ldds,ldh;
+  PetscInt           n;
   PetscBool          breakdown,skip=PETSC_FALSE;
   BV                 Vext;
   DS                 ds;
@@ -190,18 +189,13 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   }
 
   PetscCall(NEPDeflationGetInvariantPair(extop,NULL,&H));
-  PetscCall(MatGetSize(H,NULL,&ldh));
   PetscCall(DSSetType(nep->ds,DSNHEP));
   PetscCall(DSAllocate(nep->ds,PetscMax(nep->nconv,1)));
-  PetscCall(DSGetLeadingDimension(nep->ds,&ldds));
-  PetscCall(MatDenseGetArrayRead(H,&Hp));
-  PetscCall(DSGetArray(nep->ds,DS_MAT_A,&Ap));
-  for (j=0;j<nep->nconv;j++)
-    for (i=0;i<nep->nconv;i++) Ap[j*ldds+i] = Hp[j*ldh+i];
-  PetscCall(DSRestoreArray(nep->ds,DS_MAT_A,&Ap));
-  PetscCall(MatDenseRestoreArrayRead(H,&Hp));
-  PetscCall(MatDestroy(&H));
   PetscCall(DSSetDimensions(nep->ds,nep->nconv,0,nep->nconv));
+  PetscCall(DSGetMat(nep->ds,DS_MAT_A,&A));
+  PetscCall(MatCopy(H,A,SAME_NONZERO_PATTERN));
+  PetscCall(DSRestoreMat(nep->ds,DS_MAT_A,&A));
+  PetscCall(MatDestroy(&H));
   PetscCall(DSSolve(nep->ds,nep->eigr,nep->eigi));
   PetscCall(NEPDeflationReset(extop));
   PetscCall(VecDestroy(&u));
