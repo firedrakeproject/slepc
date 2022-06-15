@@ -137,7 +137,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
   PetscValidLogicalCollectiveInt(ds,k,4);
   on = ds->n; ol = ds->l; ok = ds->k;
   if (n==PETSC_DECIDE || n==PETSC_DEFAULT) {
-    ds->n = ds->ld;
+    ds->n = ds->extrarow? ds->ld-1: ds->ld;
   } else {
     PetscCheck(n>=0 && n<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 0 and ld");
     PetscCall(PetscObjectTypeCompareAny((PetscObject)ds,&issvd,DSSVD,DSGSVD,""));  /* SVD and GSVD have extra column instead of extra row */
