@@ -272,11 +272,9 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* solve bidiagonal SVD problem */
     for (i=0;i<l;i++) wr[i] = d[i];
 #if defined(PETSC_USE_COMPLEX)
-    PetscCall(DSAllocateWork_Private(ds,0,3*n1*n1+4*n1,8*n1));
-    PetscCall(DSAllocateMatReal_Private(ds,DS_MAT_U));
-    PetscCall(DSAllocateMatReal_Private(ds,DS_MAT_V));
-    Ur = ds->rmat[DS_MAT_U];
-    Vr = ds->rmat[DS_MAT_V];
+    PetscCall(DSAllocateWork_Private(ds,0,3*n1*n1+4*n1+2*ld*ld,8*n1));
+    Ur = ds->rwork+3*n1*n1+4*n1;
+    Vr = ds->rwork+3*n1*n1+4*n1+ld*ld;
 #else
     PetscCall(DSAllocateWork_Private(ds,0,3*n1*n1+4*n1+ld*ld,8*n1));
     Ur = U;

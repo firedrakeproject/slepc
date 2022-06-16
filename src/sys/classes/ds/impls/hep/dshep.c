@@ -422,12 +422,12 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   Mat            At,Qt;  /* trailing submatrices */
   PetscInt       i;
-  PetscBLASInt   n1 = 0,n2 = 0,n3,lwork,liwork,info,l = 0,n = 0,m = 0,ld,off,il,iu,*isuppz;
+  PetscBLASInt   n1 = 0,n2 = 0,n3,lrwork,liwork,info,l = 0,n = 0,m = 0,ld,off,il,iu,*isuppz;
   PetscScalar    *A,*Q,*W=NULL,one=1.0,zero=0.0;
   PetscReal      *d,*e,abstol=0.0,vl,vu;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       j;
-  PetscReal      *ritz;
+  PetscReal      *Qr,*ritz;
 #endif
 
   PetscFunctionBegin;
@@ -452,26 +452,28 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
     PetscCall(MatCopy(ds->omat[DS_MAT_Q],ds->omat[DS_MAT_W],SAME_NONZERO_PATTERN));
   }
-#if defined(PETSC_USE_COMPLEX)
-  PetscCall(DSAllocateMatReal_Private(ds,DS_MAT_Q));
-#endif
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
-  lwork = 20*ld;
+  lrwork = 20*ld;
   liwork = 10*ld;
-  PetscCall(DSAllocateWork_Private(ds,0,lwork+ld,liwork+2*ld));
+#if defined(PETSC_USE_COMPLEX)
+  PetscCall(DSAllocateWork_Private(ds,0,lrwork+ld+ld*ld,liwork+2*ld));
+#else
+  PetscCall(DSAllocateWork_Private(ds,0,lrwork+ld,liwork+2*ld));
+#endif
   isuppz = ds->iwork+liwork;
 #if defined(PETSC_USE_COMPLEX)
-  ritz = ds->rwork+lwork;
-  PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,ritz+l,ds->rmat[DS_MAT_Q]+off,&ld,isuppz,ds->rwork,&lwork,ds->iwork,&liwork,&info));
+  ritz = ds->rwork+lrwork;
+  Qr   = ds->rwork+lrwork+ld;
+  PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,ritz+l,Qr+off,&ld,isuppz,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
   for (i=l;i<n;i++) wr[i] = ritz[i];
 #else
-  PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ds->rwork,&lwork,ds->iwork,&liwork,&info));
+  PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
 #endif
   SlepcCheckLapackInfo("stevr",info);
 #if defined(PETSC_USE_COMPLEX)
   for (i=l;i<n;i++)
     for (j=l;j<n;j++)
-      Q[i+j*ld] = (ds->rmat[DS_MAT_Q])[i+j*ld];
+      Q[i+j*ld] = Qr[i+j*ld];
 #endif
   if (ds->state<DS_STATE_INTERMEDIATE) {  /* accumulate previous Q */
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
