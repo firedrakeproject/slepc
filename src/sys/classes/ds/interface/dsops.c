@@ -283,7 +283,7 @@ PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
   else {
     if (ds->state==DS_STATE_TRUNCATED && t>=DS_MAT_Q) rows = ds->t;
     else rows = (t==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
-    if (t==DS_MAT_T) cols = 3;
+    if (t==DS_MAT_T) cols = PetscDefined(USE_COMPLEX)? 2: 3;
     else if (t==DS_MAT_D) cols = 1;
     else cols = ds->n;
   }

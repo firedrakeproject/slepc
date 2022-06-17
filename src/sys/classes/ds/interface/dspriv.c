@@ -40,7 +40,7 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
 
   switch (m) {
     case DS_MAT_T:
-      cols = 3;
+      cols = PetscDefined(USE_COMPLEX)? 2: 3;
       rows = n;
       break;
     case DS_MAT_D:

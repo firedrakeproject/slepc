@@ -639,7 +639,7 @@ PetscErrorCode DSMatGetSize_GSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols
       break;
     case DS_MAT_T:
       *rows = ds->n;
-      *cols = 3;
+      *cols = PetscDefined(USE_COMPLEX)? 2: 3;
       break;
     case DS_MAT_D:
       *rows = ctx->p;
