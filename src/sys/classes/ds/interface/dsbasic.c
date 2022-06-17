@@ -126,10 +126,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->sc            = NULL;
   ds->pmode         = DS_PARALLEL_REDUNDANT;
 
-  for (i=0;i<DS_NUM_MAT;i++) {
-    ds->rmat[i]     = NULL;
-    ds->omat[i]     = NULL;
-  }
+  for (i=0;i<DS_NUM_MAT;i++) ds->omat[i] = NULL;
   ds->perm          = NULL;
   ds->data          = NULL;
   ds->scset         = PETSC_FALSE;
@@ -889,10 +886,7 @@ PetscErrorCode DSReset(DS ds)
   ds->l        = 0;
   ds->n        = 0;
   ds->k        = 0;
-  for (i=0;i<DS_NUM_MAT;i++) {
-    PetscCall(PetscFree(ds->rmat[i]));
-    PetscCall(MatDestroy(&ds->omat[i]));
-  }
+  for (i=0;i<DS_NUM_MAT;i++) PetscCall(MatDestroy(&ds->omat[i]));
   PetscCall(PetscFree(ds->perm));
   PetscFunctionReturn(0);
 }

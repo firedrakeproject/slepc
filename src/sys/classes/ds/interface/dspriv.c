@@ -14,10 +14,9 @@
 #include <slepc/private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
+PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
 {
-  size_t         sz;
-  PetscInt       n,d,nelem,rows=0,cols;
+  PetscInt       n,d,rows=0,cols;
   PetscBool      ispep,isnep;
 
   PetscFunctionBegin;
@@ -41,34 +40,26 @@ PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
 
   switch (m) {
     case DS_MAT_T:
-      nelem = 3*ds->ld;
+      cols = 3;
+      rows = n;
       break;
     case DS_MAT_D:
-      nelem = ds->ld;
+      cols = 1;
+      rows = n;
       break;
     case DS_MAT_X:
-      nelem = ds->ld*n;
       rows = ds->ld;
       break;
     case DS_MAT_Y:
-      nelem = ds->ld*n;
       rows = ds->ld;
       break;
     default:
-      nelem = n*n;
       rows = n;
   }
-  if (isreal) {
-    sz = nelem*sizeof(PetscReal);
-    if (ds->rmat[m]) PetscCall(PetscFree(ds->rmat[m]));
-    else PetscCall(PetscLogObjectMemory((PetscObject)ds,sz));
-    PetscCall(PetscCalloc1(nelem,&ds->rmat[m]));
-  } else {
-    if (ds->omat[m]) PetscCall(MatZeroEntries(ds->omat[m]));
-    else {
-      PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]));
-      PetscCall(PetscLogObjectParent((PetscObject)ds,(PetscObject)ds->omat[m]));
-    }
+  if (ds->omat[m]) PetscCall(MatZeroEntries(ds->omat[m]));
+  else {
+    PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]));
+    PetscCall(PetscLogObjectParent((PetscObject)ds,(PetscObject)ds->omat[m]));
   }
   PetscFunctionReturn(0);
 }

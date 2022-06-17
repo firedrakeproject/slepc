@@ -61,7 +61,6 @@ struct _p_DS {
   DSParallelType pmode;              /* parallel mode (redundant, synchronized, distributed) */
 
   /*----------------- Status variables and working data ----------------*/
-  PetscReal      *rmat[DS_NUM_MAT];  /* the matrices (real) */
   Mat            omat[DS_NUM_MAT];   /* the matrices (PETSc object) */
   PetscInt       *perm;              /* permutation */
   void           *data;              /* placeholder for solver-specific stuff */
@@ -102,15 +101,13 @@ struct _p_DS {
 
 #define DSCheckValidMatReal(ds,m,arg) \
   do { \
-    PetscCheck((m)<DS_NUM_MAT,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
-    PetscCheck((ds)->rmat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+    PetscCheck((m)==DS_MAT_T || (m)==DS_MAT_D,PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONG,"Invalid matrix, can only be used for T and D: Parameter #%d",arg); \
+    PetscCheck((ds)->omat[m],PetscObjectComm((PetscObject)(ds)),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
   } while (0)
 
 #endif
 
-SLEPC_INTERN PetscErrorCode DSAllocateMatrix_Private(DS,DSMatType,PetscBool);
-static inline PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_FALSE);}
-static inline PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_TRUE);}
+SLEPC_INTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);
 SLEPC_INTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
 SLEPC_INTERN PetscErrorCode DSSortEigenvalues_Private(DS,PetscScalar*,PetscScalar*,PetscInt*,PetscBool);
 SLEPC_INTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscReal*,PetscInt*);

@@ -591,7 +591,7 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   ld = ds->ld;
   PetscCall(PetscBLASIntCast(ld,&ld_));
   off = l*ld+l;
-  s = ds->rmat[DS_MAT_D];
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&s));
   if (!ds->compact) {
     PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_B],&B));
     for (i=l;i<ds->n;i++) s[i] = PetscRealPart(B[i*ld+i]);
@@ -633,8 +633,8 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   for (i=0;i<n;i++) wi[i+l] = ts[perm[i]];
 #endif
   /* Projected Matrix */
-  PetscCall(PetscArrayzero(ds->rmat[DS_MAT_T]+2*ld,ld));
-  d = ds->rmat[DS_MAT_T];
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  PetscCall(PetscArrayzero(d+2*ld,ld));
   e = d+ld;
   d[l+nv-1] = PetscRealPart(wr[l+nv-1]*s[l+nv-1]);
   for (i=0;i<nv-1;i++) {
@@ -657,6 +657,8 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
       i++;
     }
   }
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
   /* accumulate previous Q */
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
   if (accum) {
@@ -693,9 +695,9 @@ PetscErrorCode DSIntermediate_GHIEP(DS ds)
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
-  d = ds->rmat[DS_MAT_T];
-  e = ds->rmat[DS_MAT_T]+ld;
-  s = ds->rmat[DS_MAT_D];
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&s));
+  e = d+ld;
   off = ds->l+ds->l*ld;
   PetscCall(PetscArrayzero(Q,ld*ld));
   nwall = ld*ld+ld;
@@ -723,5 +725,7 @@ PetscErrorCode DSIntermediate_GHIEP(DS ds)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
   PetscFunctionReturn(0);
 }

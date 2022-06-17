@@ -16,7 +16,7 @@ PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_Q));
-  PetscCall(DSAllocateMatReal_Private(ds,DS_MAT_T));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
   PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt)));
@@ -50,13 +50,14 @@ PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
 
 static PetscErrorCode DSSwitchFormat_HEP(DS ds)
 {
-  PetscReal      *T = ds->rmat[DS_MAT_T];
+  PetscReal      *T;
   PetscScalar    *A;
   PetscInt       i,n=ds->n,k=ds->k,ld=ds->ld;
 
   PetscFunctionBegin;
   /* switch from compact (arrow) to dense storage */
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_A],&A));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
   PetscCall(PetscArrayzero(A,ld*ld));
   for (i=0;i<k;i++) {
     A[i+i*ld] = T[i];
@@ -71,6 +72,7 @@ static PetscErrorCode DSSwitchFormat_HEP(DS ds)
   }
   if (ds->extrarow) A[n+(n-1)*ld] = T[n-1+ld];
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_A],&A));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   PetscFunctionReturn(0);
 }
 
@@ -78,7 +80,7 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
 {
   PetscViewerFormat format;
   PetscInt          i,j,r,c,rows;
-  PetscReal         value;
+  PetscReal         *T,value;
   const char        *methodname[] = {
                      "Implicit QR method (_steqr)",
                      "Relatively Robust Representations (_stevr)",
@@ -95,29 +97,30 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
     PetscFunctionReturn(0);
   }
   if (ds->compact) {
+    PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     rows = ds->extrarow? ds->n+1: ds->n;
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
       PetscCall(PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rows,ds->n));
       PetscCall(PetscViewerASCIIPrintf(viewer,"zzz = zeros(%" PetscInt_FMT ",3);\n",3*ds->n));
       PetscCall(PetscViewerASCIIPrintf(viewer,"zzz = [\n"));
-      for (i=0;i<ds->n;i++) PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i)));
+      for (i=0;i<ds->n;i++) PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)T[i]));
       for (i=0;i<rows-1;i++) {
         r = PetscMax(i+2,ds->k+1);
         c = i+1;
-        PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",r,c,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i)));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",r,c,(double)T[i+ds->ld]));
         if (i<ds->n-1 && ds->k<ds->n) { /* do not print vertical arrow when k=n */
-          PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",c,r,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i)));
+          PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",c,r,(double)T[i+ds->ld]));
         }
       }
       PetscCall(PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]));
     } else {
       for (i=0;i<rows;i++) {
         for (j=0;j<ds->n;j++) {
-          if (i==j) value = *(ds->rmat[DS_MAT_T]+i);
-          else if ((i<ds->k && j==ds->k) || (i==ds->k && j<ds->k)) value = *(ds->rmat[DS_MAT_T]+ds->ld+PetscMin(i,j));
-          else if (i==j+1 && i>ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+i-1);
-          else if (i+1==j && j>ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+j-1);
+          if (i==j) value = T[i];
+          else if ((i<ds->k && j==ds->k) || (i==ds->k && j<ds->k)) value = T[PetscMin(i,j)+ds->ld];
+          else if (i==j+1 && i>ds->k) value = T[i-1+ds->ld];
+          else if (i+1==j && j>ds->k) value = T[j-1+ds->ld];
           else value = 0.0;
           PetscCall(PetscViewerASCIIPrintf(viewer," %18.16e ",(double)value));
         }
@@ -126,6 +129,7 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
     }
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     PetscCall(PetscViewerFlush(viewer));
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   } else PetscCall(DSViewMat(ds,viewer,DS_MAT_A));
   if (ds->state>DS_STATE_INTERMEDIATE) PetscCall(DSViewMat(ds,viewer,DS_MAT_Q));
   PetscFunctionReturn(0);
@@ -278,8 +282,8 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
   PetscCall(PetscBLASIntCast(PetscMax(0,ds->k-l+1),&n1)); /* size of leading block, excl. locked */
   n2 = n-l;     /* n2 = n1 + size of trailing block */
   off = l+l*ld;
-  d  = ds->rmat[DS_MAT_T];
-  e  = ds->rmat[DS_MAT_T]+ld;
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  e = d+ld;
   PetscCall(DSSetIdentity(ds,DS_MAT_Q));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
 
@@ -314,6 +318,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
     PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_A],&A));
   }
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscFunctionReturn(0);
 }
 
@@ -327,7 +332,7 @@ PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   if (!ds->sc) PetscFunctionReturn(0);
   n = ds->n;
   l = ds->l;
-  d = ds->rmat[DS_MAT_T];
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
   perm = ds->perm;
   if (!rr) PetscCall(DSSortEigenvaluesReal_Private(ds,d,perm));
   else PetscCall(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
@@ -339,6 +344,7 @@ PetscErrorCode DSSort_HEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
     for (i=l;i<n;i++) A[i+i*ld] = wr[i];
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscFunctionReturn(0);
 }
 
@@ -347,7 +353,7 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
   PetscInt          i;
   PetscBLASInt      n,ld,incx=1;
   PetscScalar       *A,*x,*y,one=1.0,zero=0.0;
-  PetscReal         *e,beta;
+  PetscReal         *T,*e,beta;
   const PetscScalar *Q;
 
   PetscFunctionBegin;
@@ -355,9 +361,11 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_Q],&Q));
   if (ds->compact) {
-    e = ds->rmat[DS_MAT_T]+ld;
+    PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+    e = T+ld;
     beta = e[n-1];   /* in compact, we assume all entries are zero except the last one */
     for (i=0;i<n;i++) e[i] = PetscRealPart(beta*Q[n-1+i*ld]);
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
     ds->k = n;
   } else {
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
@@ -388,8 +396,8 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
   off = l+l*ld;
-  d  = ds->rmat[DS_MAT_T];
-  e  = ds->rmat[DS_MAT_T]+ld;
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  e = d+ld;
 
   /* Reduce to tridiagonal form */
   PetscCall(DSIntermediate_HEP(ds));
@@ -412,6 +420,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
 
   /* Set zero wi */
   if (wi) for (i=l;i<n;i++) wi[i] = 0.0;
@@ -439,8 +448,8 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(PetscBLASIntCast(n-ds->k-1,&n2)); /* size of trailing block */
   n3 = n1+n2;
   off = l+l*ld;
-  d  = ds->rmat[DS_MAT_T];
-  e  = ds->rmat[DS_MAT_T]+ld;
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  e = d+ld;
 
   /* Reduce to tridiagonal form */
   PetscCall(DSIntermediate_HEP(ds));
@@ -498,6 +507,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
 
   /* Set zero wi */
   if (wi) for (i=l;i<n;i++) wi[i] = 0.0;
@@ -521,8 +531,8 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   PetscCall(PetscBLASIntCast(ds->n-ds->l,&n1));
   off = l+l*ld;
-  d  = ds->rmat[DS_MAT_T];
-  e  = ds->rmat[DS_MAT_T]+ld;
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  e = d+ld;
 
   /* Reduce to tridiagonal form */
   PetscCall(DSIntermediate_HEP(ds));
@@ -556,6 +566,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (i=l;i<ds->n;i++) A[i+i*ld] = d[i];
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
 
   /* Set zero wi */
   if (wi) for (i=l;i<ds->n;i++) wi[i] = 0.0;
@@ -576,8 +587,8 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(PetscBLASIntCast(ds->bs,&bs));
   PetscCall(PetscBLASIntCast(ds->n,&n));
   nblks = n/bs;
-  d  = ds->rmat[DS_MAT_T];
-  e  = ds->rmat[DS_MAT_T]+ld;
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  e = d+ld;
   lrwork = 4*n*n+60*n+1;
   liwork = 5*n+5*nblks-1;
   lde = 2*bs+1;
@@ -622,6 +633,7 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (i=0;i<ds->n;i++) A[i+i*ld] = wr[i];
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
 
   /* Set zero wi */
   if (wi) for (i=0;i<ds->n;i++) wi[i] = 0.0;
@@ -663,6 +675,7 @@ PetscErrorCode DSSynchronize_HEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
   PetscMPIInt    n,rank,off=0,size,ldn,ld3;
   PetscScalar    *A,*Q;
+  PetscReal      *T;
 
   PetscFunctionBegin;
   if (ds->compact) kr = 3*ld;
@@ -674,23 +687,25 @@ PetscErrorCode DSSynchronize_HEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscCall(PetscMPIIntCast(ds->n-l,&n));
   PetscCall(PetscMPIIntCast(ld*(ds->n-l),&ldn));
   PetscCall(PetscMPIIntCast(ld*3,&ld3));
-  if (!ds->compact) PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  if (ds->compact) PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+  else PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   if (ds->state>DS_STATE_RAW) PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    if (ds->compact) PetscCallMPI(MPI_Pack(ds->rmat[DS_MAT_T],ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (ds->compact) PetscCallMPI(MPI_Pack(T,ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     else PetscCallMPI(MPI_Pack(A+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) PetscCallMPI(MPI_Pack(Q+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     if (eigr) PetscCallMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
   }
   PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    if (ds->compact) PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->rmat[DS_MAT_T],ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
+    if (ds->compact) PetscCallMPI(MPI_Unpack(ds->work,size,&off,T,ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
     else PetscCallMPI(MPI_Unpack(ds->work,size,&off,A+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) PetscCallMPI(MPI_Unpack(ds->work,size,&off,Q+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
   }
-  if (!ds->compact) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  if (ds->compact) PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
+  else PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   if (ds->state>DS_STATE_RAW) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   PetscFunctionReturn(0);
 }

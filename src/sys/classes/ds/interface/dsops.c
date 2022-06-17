@@ -283,7 +283,9 @@ PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
   else {
     if (ds->state==DS_STATE_TRUNCATED && t>=DS_MAT_Q) rows = ds->t;
     else rows = (t==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
-    cols = ds->n;
+    if (t==DS_MAT_T) cols = 3;
+    else if (t==DS_MAT_D) cols = 1;
+    else cols = ds->n;
   }
   if (m) *m = rows;
   if (n) *n = cols;
@@ -402,6 +404,11 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
    It is implemented with MatDenseGetSubMatrix(), and when no longer needed
    the user must call DSRestoreMat() which will invoke MatDenseRestoreSubMatrix().
 
+   For matrices DS_MAT_T and DS_MAT_D, this function will return a Mat object
+   that cannot be used directly for computations, since it uses compact storage
+   (three and one diagonals for T and D, respectively). In complex scalars, the
+   internal array stores real values, so it is sufficient with 2 columns for T.
+
    Level: advanced
 
 .seealso: DSRestoreMat(), DSSetDimensions(), DSGetArray(), DSGetArrayReal(), DSTruncate()
@@ -416,7 +423,6 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(A,3);
-  PetscCheck(m!=DS_MAT_T && m!=DS_MAT_D,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
 
   PetscCall(DSMatGetSize(ds,m,&rows,&cols));
   PetscCall(MatDenseGetSubMatrix(ds->omat[m],0,rows,0,cols,A));
@@ -437,7 +443,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 .  m  - the requested matrix
 -  A  - the fetched Mat object
 
-   Notes:
+   Note:
    A call to this function must match a previous call of DSGetMat().
 
    Level: advanced
@@ -458,8 +464,8 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
 }
 
 /*@C
-   DSGetArray - Returns a pointer to one of the internal arrays used to
-   represent matrices. You MUST call DSRestoreArray() when you no longer
+   DSGetArray - Returns a pointer to the internal array of one of the
+   matrices. You MUST call DSRestoreArray() when you no longer
    need to access the array.
 
    Not Collective
@@ -470,6 +476,9 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
 
    Output Parameter:
 .  a  - pointer to the values
+
+   Note:
+   To get read-only access, use DSGetMat() followed by MatDenseGetArrayRead().
 
    Level: advanced
 
@@ -513,9 +522,8 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
 }
 
 /*@C
-   DSGetArrayReal - Returns a pointer to one of the internal arrays used to
-   represent real matrices. You MUST call DSRestoreArrayReal() when you no longer
-   need to access the array.
+   DSGetArrayReal - Returns a real pointer to the internal array of T or D.
+   You MUST call DSRestoreArrayReal() when you no longer need to access the array.
 
    Not Collective
 
@@ -526,19 +534,32 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
    Output Parameter:
 .  a  - pointer to the values
 
+   Note:
+   This function can be used only for DS_MAT_T and DS_MAT_D. These matrices always
+   store real values, even in complex scalars, that is why the returned pointer is
+   PetscReal.
+
    Level: advanced
 
 .seealso: DSRestoreArrayReal(), DSGetArray()
 @*/
 PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
 {
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar *as;
+#endif
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMatReal(ds,m,2);
   PetscValidPointer(a,3);
-  *a = ds->rmat[m];
-  CHKMEMQ;
+#if defined(PETSC_USE_COMPLEX)
+  PetscCall(MatDenseGetArray(ds->omat[m],&as));
+  *a = (PetscReal*)as;
+#else
+  PetscCall(MatDenseGetArray(ds->omat[m],a));
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -558,13 +579,21 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
 @*/
 PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
 {
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar *as;
+#endif
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMatReal(ds,m,2);
   PetscValidPointer(a,3);
-  CHKMEMQ;
-  *a = 0;
+#if defined(PETSC_USE_COMPLEX)
+  PetscCall(MatDenseRestoreArray(ds->omat[m],&as));
+  *a = NULL;
+#else
+  PetscCall(MatDenseRestoreArray(ds->omat[m],a));
+#endif
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
