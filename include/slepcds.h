@@ -179,6 +179,8 @@ SLEPC_EXTERN PetscErrorCode DSSetRefined(DS,PetscBool);
 SLEPC_EXTERN PetscErrorCode DSGetRefined(DS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode DSGetMat(DS,DSMatType,Mat*);
 SLEPC_EXTERN PetscErrorCode DSRestoreMat(DS,DSMatType,Mat*);
+SLEPC_EXTERN PetscErrorCode DSGetMatAndColumn(DS,DSMatType,PetscInt,Mat*,Vec*);
+SLEPC_EXTERN PetscErrorCode DSRestoreMatAndColumn(DS,DSMatType,PetscInt,Mat*,Vec*);
 SLEPC_EXTERN PetscErrorCode DSGetArray(DS,DSMatType,PetscScalar*[]);
 SLEPC_EXTERN PetscErrorCode DSRestoreArray(DS,DSMatType,PetscScalar*[]);
 SLEPC_EXTERN PetscErrorCode DSGetArrayReal(DS,DSMatType,PetscReal*[]);

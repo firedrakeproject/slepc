@@ -9,6 +9,7 @@
 - 'FN': add support for matrix function computation on the GPU, whenever the `Mat`
   arguments of `FNEvaluateFunctionMat()` are of type `MATSEQDENSECUDA` (and similary
   for `FNEvaluateFunctionMatVec()`).
+- `DS`: new functions `DSGetMatAndColumn()`/`DSRestoreMatAndColumn()`.
 
 ### Changed
 

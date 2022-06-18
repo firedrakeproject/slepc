@@ -18,10 +18,9 @@
 PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i,k,l,ld,nv,t,nconv=0;
-  Mat             U;
+  PetscInt        k,l,ld,nv,t,nconv=0;
+  Mat             U,D;
   Vec             vomega,w=eps->work[0];
-  PetscScalar     *aux;
   PetscReal       *a,*b,beta,beta1=1.0,*omega;
   PetscBool       breakdown=PETSC_FALSE,symmlost=PETSC_FALSE;
 
@@ -32,15 +31,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
   PetscCall(EPSGetStartVector(eps,0,NULL));
 
   /* Extract sigma[0] from BV, computed during normalization */
+  PetscCall(DSSetDimensions(eps->ds,1,PETSC_DEFAULT,PETSC_DEFAULT));
   PetscCall(BVSetActiveColumns(eps->V,0,1));
-  PetscCall(VecCreateSeq(PETSC_COMM_SELF,1,&vomega));
+  PetscCall(DSGetMatAndColumn(eps->ds,DS_MAT_D,0,&D,&vomega));
   PetscCall(BVGetSignature(eps->V,vomega));
-  PetscCall(VecGetArray(vomega,&aux));
-  PetscCall(DSGetArrayReal(eps->ds,DS_MAT_D,&omega));
-  omega[0] = PetscRealPart(aux[0]);
-  PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega));
-  PetscCall(VecRestoreArray(vomega,&aux));
-  PetscCall(VecDestroy(&vomega));
+  PetscCall(DSRestoreMatAndColumn(eps->ds,DS_MAT_D,0,&D,&vomega));
   l = 0;
 
   /* Restart loop */
@@ -49,6 +44,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    PetscCall(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
     PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&a));
     b = a + ld;
     PetscCall(DSGetArrayReal(eps->ds,DS_MAT_D,&omega));
@@ -61,8 +57,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&a));
     PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega));
     PetscCall(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
-    if (l==0) PetscCall(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
-    else PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
+    PetscCall(DSSetState(eps->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE));
     PetscCall(BVSetActiveColumns(eps->V,eps->nconv,nv));
 
     /* Solve projected problem */
@@ -108,15 +103,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     /* Move restart vector and update signature */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       PetscCall(BVCopyColumn(eps->V,nv,k+l));
-      PetscCall(DSGetArrayReal(eps->ds,DS_MAT_D,&omega));
-      PetscCall(VecCreateSeq(PETSC_COMM_SELF,k+l,&vomega));
-      PetscCall(VecGetArray(vomega,&aux));
-      for (i=0;i<k+l;i++) aux[i] = omega[i];
-      PetscCall(VecRestoreArray(vomega,&aux));
       PetscCall(BVSetActiveColumns(eps->V,0,k+l));
+      PetscCall(DSGetMatAndColumn(eps->ds,DS_MAT_D,0,&D,&vomega));
       PetscCall(BVSetSignature(eps->V,vomega));
-      PetscCall(VecDestroy(&vomega));
-      PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_D,&omega));
+      PetscCall(DSRestoreMatAndColumn(eps->ds,DS_MAT_D,0,&D,&vomega));
     }
 
     eps->nconv = k;

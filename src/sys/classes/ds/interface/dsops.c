@@ -425,6 +425,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   PetscValidPointer(A,3);
 
   PetscCall(DSMatGetSize(ds,m,&rows,&cols));
+  PetscCheck(rows && cols,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSSetDimensions() first");
   PetscCall(MatDenseGetSubMatrix(ds->omat[m],0,rows,0,cols,A));
 
   /* set Hermitian flag */
@@ -461,6 +462,107 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
 
   PetscCall(MatDenseRestoreSubMatrix(ds->omat[m],A));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSGetMatAndColumn - Returns a sequential dense Mat object containing the requested
+   matrix and one of its columns as a Vec.
+
+   Not Collective
+
+   Input Parameters:
++  ds  - the direct solver context
+.  m   - the requested matrix
+-  col - the requested column
+
+   Output Parameters:
++  A   - Mat object
+-  v   - Vec object (the column)
+
+   Notes:
+   This calls DSGetMat() and then it extracts the selected column.
+   The user must call DSRestoreMatAndColumn() to recover the original state.
+   For matrices DS_MAT_T and DS_MAT_D, in complex scalars this function implies
+   copying from real values stored internally to scalar values in the Vec.
+
+   Level: advanced
+
+.seealso: DSRestoreMatAndColumn(), DSGetMat()
+@*/
+PetscErrorCode DSGetMatAndColumn(DS ds,DSMatType m,PetscInt col,Mat *A,Vec *v)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  DSCheckAlloc(ds,1);
+  DSCheckValidMat(ds,m,2);
+  PetscValidPointer(A,4);
+  PetscValidPointer(v,5);
+
+  PetscCall(DSGetMat(ds,m,A));
+  if (PetscDefined(USE_COMPLEX) && (m==DS_MAT_T || m==DS_MAT_D)) {
+    const PetscScalar *as;
+    PetscScalar       *vs;
+    PetscReal         *ar;
+    PetscInt          i,n,lda;
+    PetscCall(MatCreateVecs(*A,NULL,v));
+    PetscCall(VecGetSize(*v,&n));
+    PetscCall(MatDenseGetLDA(*A,&lda));
+    PetscCall(MatDenseGetArrayRead(*A,&as));
+    PetscCall(VecGetArrayWrite(*v,&vs));
+    ar = (PetscReal*)as;
+    for (i=0;i<n;i++) vs[i] = ar[i+col*lda];
+    PetscCall(VecRestoreArrayWrite(*v,&vs));
+    PetscCall(MatDenseRestoreArrayRead(*A,&as));
+  } else PetscCall(MatDenseGetColumnVec(*A,col,v));
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSRestoreMatAndColumn - Restores the matrix and vector after DSGetMatAndColumn()
+   was called.
+
+   Not Collective
+
+   Input Parameters:
++  ds  - the direct solver context
+.  m   - the requested matrix
+.  col - the requested column
+.  A   - the fetched Mat object
+-  v   - the fetched Vec object
+
+   Note:
+   A call to this function must match a previous call of DSGetMatAndColumn().
+
+   Level: advanced
+
+.seealso: DSGetMatAndColumn(), DSRestoreMat()
+@*/
+PetscErrorCode DSRestoreMatAndColumn(DS ds,DSMatType m,PetscInt col,Mat *A,Vec *v)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  DSCheckAlloc(ds,1);
+  DSCheckValidMat(ds,m,2);
+  PetscValidPointer(A,4);
+  PetscValidPointer(v,5);
+
+  if (PetscDefined(USE_COMPLEX) && (m==DS_MAT_T || m==DS_MAT_D)) {
+    const PetscScalar *vs;
+    PetscScalar       *as;
+    PetscReal         *ar;
+    PetscInt          i,n,lda;
+    PetscCall(VecGetSize(*v,&n));
+    PetscCall(MatDenseGetLDA(*A,&lda));
+    PetscCall(MatDenseGetArray(*A,&as));
+    PetscCall(VecGetArrayRead(*v,&vs));
+    ar = (PetscReal*)as;
+    for (i=0;i<n;i++) ar[i+col*lda] = PetscRealPart(vs[i]);
+    PetscCall(VecRestoreArrayRead(*v,&vs));
+    PetscCall(MatDenseRestoreArray(*A,&as));
+    PetscCall(VecDestroy(v));
+  } else PetscCall(MatDenseRestoreColumnVec(*A,col,v));
+  PetscCall(DSRestoreMat(ds,m,A));
   PetscFunctionReturn(0);
 }
 
