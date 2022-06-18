@@ -1064,7 +1064,7 @@ PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
 {
   PetscFunctionBegin;
-  if (m==DS_MAT_A || m==DS_MAT_B) *flg = PETSC_TRUE;
+  if ((m==DS_MAT_A && !ds->extrarow) || m==DS_MAT_B) *flg = PETSC_TRUE;
   else *flg = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

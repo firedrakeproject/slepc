@@ -429,6 +429,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 
   /* set Hermitian flag */
   PetscCall(DSMatIsHermitian(ds,m,&flg));
+  PetscCall(MatSetOption(*A,MAT_SYMMETRIC,flg));
   PetscCall(MatSetOption(*A,MAT_HERMITIAN,flg));
   PetscFunctionReturn(0);
 }
