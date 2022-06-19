@@ -225,9 +225,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        j,*pj,k,l,nv,ld,nconv;
-  Mat             U,Op,H;
+  Mat             U,Op,H,T;
   PetscScalar     *g;
-  PetscReal       beta,gamma=1.0,*a,*b;
+  PetscReal       beta,gamma=1.0;
   PetscBool       breakdown,harmonic,hermitian;
 
   PetscFunctionBegin;
@@ -251,11 +251,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     PetscCall(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
     PetscCall(STGetOperator(eps->st,&Op));
     if (hermitian) {
-      PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&a));
-      b = a + ld;
-      PetscCall(BVMatLanczos(eps->V,Op,a,b,eps->nconv+l,&nv,&breakdown));
-      beta = b[nv-1];
-      PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&a));
+      PetscCall(DSGetMat(eps->ds,DS_MAT_T,&T));
+      PetscCall(BVMatLanczos(eps->V,Op,T,eps->nconv+l,&nv,&beta,&breakdown));
+      PetscCall(DSRestoreMat(eps->ds,DS_MAT_T,&T));
     } else {
       PetscCall(DSGetMat(eps->ds,DS_MAT_A,&H));
       PetscCall(BVMatArnoldi(eps->V,Op,H,eps->nconv+l,&nv,&beta,&breakdown));

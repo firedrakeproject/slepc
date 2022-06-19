@@ -452,43 +452,62 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
    This function simply calls another function which depends on the selected
    reorthogonalization strategy.
 */
-static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscInt k,PetscInt *m,PetscBool *breakdown,PetscReal anorm)
+static PetscErrorCode EPSBasicLanczos(EPS eps,PetscInt k,PetscInt *m,PetscReal *betam,PetscBool *breakdown,PetscReal anorm)
 {
   EPS_LANCZOS        *lanczos = (EPS_LANCZOS*)eps->data;
   PetscScalar        *T;
-  PetscInt           i,n=*m;
-  PetscReal          betam;
+  PetscInt           i,n=*m,ld;
+  PetscReal          *alpha,*beta;
   BVOrthogRefineType orthog_ref;
-  Mat                Op;
+  Mat                Op,M;
 
   PetscFunctionBegin;
+  PetscCall(DSGetLeadingDimension(eps->ds,&ld));
   switch (lanczos->reorthog) {
     case EPS_LANCZOS_REORTHOG_LOCAL:
+      PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&alpha));
+      beta = alpha + ld;
       PetscCall(EPSLocalLanczos(eps,alpha,beta,k,m,breakdown));
+      *betam = beta[*m-1];
+      PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&alpha));
       break;
     case EPS_LANCZOS_REORTHOG_FULL:
       PetscCall(STGetOperator(eps->st,&Op));
-      PetscCall(BVMatLanczos(eps->V,Op,alpha,beta,k,m,breakdown));
+      PetscCall(DSGetMat(eps->ds,DS_MAT_T,&M));
+      PetscCall(BVMatLanczos(eps->V,Op,M,k,m,betam,breakdown));
+      PetscCall(DSRestoreMat(eps->ds,DS_MAT_T,&M));
       PetscCall(STRestoreOperator(eps->st,&Op));
       break;
     case EPS_LANCZOS_REORTHOG_SELECTIVE:
+      PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&alpha));
+      beta = alpha + ld;
       PetscCall(EPSSelectiveLanczos(eps,alpha,beta,k,m,breakdown,anorm));
+      *betam = beta[*m-1];
+      PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&alpha));
       break;
     case EPS_LANCZOS_REORTHOG_PERIODIC:
     case EPS_LANCZOS_REORTHOG_PARTIAL:
+      PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&alpha));
+      beta = alpha + ld;
       PetscCall(EPSPartialLanczos(eps,alpha,beta,k,m,breakdown,anorm));
+      *betam = beta[*m-1];
+      PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&alpha));
       break;
     case EPS_LANCZOS_REORTHOG_DELAYED:
       PetscCall(PetscMalloc1(n*n,&T));
       PetscCall(BVGetOrthogonalization(eps->V,NULL,&orthog_ref,NULL,NULL));
-      if (orthog_ref == BV_ORTHOG_REFINE_NEVER) PetscCall(EPSDelayedArnoldi1(eps,T,n,k,m,&betam,breakdown));
-      else PetscCall(EPSDelayedArnoldi(eps,T,n,k,m,&betam,breakdown));
+      if (orthog_ref == BV_ORTHOG_REFINE_NEVER) PetscCall(EPSDelayedArnoldi1(eps,T,n,k,m,betam,breakdown));
+      else PetscCall(EPSDelayedArnoldi(eps,T,n,k,m,betam,breakdown));
+      n = *m;
+      PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&alpha));
+      beta = alpha + ld;
       for (i=k;i<n-1;i++) {
         alpha[i] = PetscRealPart(T[n*i+i]);
         beta[i] = PetscRealPart(T[n*i+i+1]);
       }
       alpha[n-1] = PetscRealPart(T[n*(n-1)+n-1]);
-      beta[n-1] = betam;
+      beta[n-1] = *betam;
+      PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&alpha));
       PetscCall(PetscFree(T));
       break;
   }
@@ -502,7 +521,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
   Vec            vi,vj,w;
   Mat            U;
   PetscScalar    *Y,*ritz,stmp;
-  PetscReal      *d,*e,*bnd,anorm,beta,norm,rtmp,resnorm;
+  PetscReal      *bnd,anorm,beta,norm,rtmp,resnorm;
   PetscBool      breakdown;
   char           *conv,ctmp;
 
@@ -522,11 +541,8 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
     /* Compute an ncv-step Lanczos factorization */
     n = PetscMin(nconv+eps->mpd,ncv);
-    PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&d));
-    e = d + ld;
-    PetscCall(EPSBasicLanczos(eps,d,e,nconv,&n,&breakdown,anorm));
-    beta = e[n-1];
-    PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&d));
+    PetscCall(DSSetDimensions(eps->ds,n,nconv,PETSC_DEFAULT));
+    PetscCall(EPSBasicLanczos(eps,nconv,&n,&beta,&breakdown,anorm));
     PetscCall(DSSetDimensions(eps->ds,n,nconv,0));
     PetscCall(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
     PetscCall(BVSetActiveColumns(eps->V,nconv,n));
