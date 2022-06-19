@@ -29,7 +29,7 @@ ST Object: 1 MPI process
       matrix ordering: natural
       factor fill ratio given 1., needed 1.
         Factored matrix follows:
-          Mat Object: 1 MPI process
+          Mat Object: (st_) 1 MPI process
             type: seqsbaij
             rows=1225, cols=1225
             package used to perform factorization: petsc

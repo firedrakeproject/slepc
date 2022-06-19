@@ -45,7 +45,7 @@ PC Object: 4 MPI processes
         tolerance for zero pivot 2.22045e-14
         matrix ordering: nd
           Factored matrix follows:
-            Mat Object: 1 MPI process
+            Mat Object: (pc_hpddm_levels_1_sub_) 1 MPI process
               type: seqaij
               package used to perform factorization: petsc
       linear system matrix = precond matrix:
@@ -68,7 +68,7 @@ PC Object: 4 MPI processes
         tolerance for zero pivot 2.22045e-14
         matrix ordering: natural
           Factored matrix follows:
-            Mat Object: 1 MPI process
+            Mat Object: (pc_hpddm_coarse_) 1 MPI process
               type: seqsbaij
               package used to perform factorization: petsc
                   block size is 10

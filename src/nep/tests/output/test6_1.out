@@ -30,7 +30,7 @@ NEP Object: (check_myprefix_) 1 MPI process
             matrix ordering: natural
             factor fill ratio given 1., needed 1.
               Factored matrix follows:
-                Mat Object: 1 MPI process
+                Mat Object: (sub_) 1 MPI process
                   type: seqaij
                   rows=128, cols=128
                   package used to perform factorization: petsc
