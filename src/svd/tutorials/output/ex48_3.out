@@ -2,7 +2,7 @@
 Generalized singular value problem stored in file.
 
  Reading COMPLEX matrix from a binary file...
- Matrix B was not provided, setting B=bidiag(1,-1) with p=320
+ Using B=bidiag(1,-1) with p=320
 
  All requested generalized singular values computed up to the required tolerance:
      82.39279, 23.30991, 15.42172

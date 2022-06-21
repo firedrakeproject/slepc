@@ -11,7 +11,9 @@
 static char help[] = "Solves a GSVD problem with matrices loaded from a file.\n"
   "The command line options are:\n"
   "  -f1 <filename>, PETSc binary file containing matrix A.\n"
-  "  -f2 <filename>, PETSc binary file containing matrix B (optional).\n\n";
+  "  -f2 <filename>, PETSc binary file containing matrix B (optional). Instead of"
+  "     a file it is possible to specify one of 'identity', 'bidiagonal' or 'tridiagonal'"
+  "  -p <p>, in case B is not taken from a file.\n\n";
 
 #include <slepcsvd.h>
 
@@ -19,8 +21,8 @@ int main(int argc,char **argv)
 {
   Mat            A,B;             /* matrices */
   SVD            svd;             /* singular value problem solver context */
-  PetscInt       i,m,n,p,Istart,Iend,col[2];
-  PetscScalar    vals[] = { -1, 1 };
+  PetscInt       i,m,n,p,Istart,Iend,col[3];
+  PetscScalar    vals[3];
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   PetscBool      flg,terse;
@@ -49,29 +51,65 @@ int main(int argc,char **argv)
   PetscCall(MatGetSize(A,&m,&n));
 
   PetscCall(PetscOptionsGetString(NULL,NULL,"-f2",filename,sizeof(filename),&flg));
+  PetscCheck(flg,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Must indicate a file name for matrix B with the -f2 option, or alternatively the strings 'identity', 'bidiagonal', or 'tridiagonal'");
+  PetscCall(PetscStrcmp(filename,"identity",&flg));
   if (flg) {
-    PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
-    PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
-    PetscCall(MatSetFromOptions(B));
-    PetscCall(MatLoad(B,viewer));
-    PetscCall(PetscViewerDestroy(&viewer));
-  } else {
-    p = n+1;
+    p = n;
     PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,&flg));
-    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=bidiag(1,-1) with p=%" PetscInt_FMT "\n\n",p));
+    PetscCall(PetscPrintf(PETSC_COMM_WORLD," Using B=I with p=%" PetscInt_FMT "\n\n",p));
     PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
     PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
     PetscCall(MatSetFromOptions(B));
     PetscCall(MatSetUp(B));
-    PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
-    for (i=Istart;i<Iend;i++) {
-      col[0]=i-1; col[1]=i;
-      if (i==0) PetscCall(MatSetValue(B,i,col[1],vals[1],INSERT_VALUES));
-      else if (i<n) PetscCall(MatSetValues(B,1,&i,2,col,vals,INSERT_VALUES));
-      else if (i==n) PetscCall(MatSetValue(B,i,col[0],vals[0],INSERT_VALUES));
-    }
     PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
     PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+    PetscCall(MatShift(B,1.0));
+  } else {
+    PetscCall(PetscStrcmp(filename,"bidiagonal",&flg));
+    if (flg) {
+      p = n+1;
+      PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,&flg));
+      vals[0]=-1; vals[1]=1;
+      PetscCall(PetscPrintf(PETSC_COMM_WORLD," Using B=bidiag(1,-1) with p=%" PetscInt_FMT "\n\n",p));
+      PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+      PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
+      PetscCall(MatSetFromOptions(B));
+      PetscCall(MatSetUp(B));
+      PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
+      for (i=Istart;i<Iend;i++) {
+        col[0]=i-1; col[1]=i;
+        if (i==0) PetscCall(MatSetValue(B,i,col[1],vals[1],INSERT_VALUES));
+        else if (i<n) PetscCall(MatSetValues(B,1,&i,2,col,vals,INSERT_VALUES));
+        else if (i==n) PetscCall(MatSetValue(B,i,col[0],vals[0],INSERT_VALUES));
+      }
+      PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+      PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+    } else {
+      PetscCall(PetscStrcmp(filename,"tridiagonal",&flg));
+      if (flg) {
+        p = n-2;
+        PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,&flg));
+        vals[0]=-1; vals[1]=2; vals[2]=-1;
+        PetscCall(PetscPrintf(PETSC_COMM_WORLD," Using B=tridiag(-1,2,-1) with p=%" PetscInt_FMT "\n\n",p));
+        PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+        PetscCall(MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,p,n));
+        PetscCall(MatSetFromOptions(B));
+        PetscCall(MatSetUp(B));
+        PetscCall(MatGetOwnershipRange(B,&Istart,&Iend));
+        for (i=Istart;i<Iend;i++) {
+          col[0]=i; col[1]=i+1; col[2]=i+2;
+          PetscCall(MatSetValues(B,1,&i,3,col,vals,INSERT_VALUES));
+        }
+        PetscCall(MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY));
+        PetscCall(MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY));
+      } else {  /* load file */
+        PetscCall(PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer));
+        PetscCall(MatCreate(PETSC_COMM_WORLD,&B));
+        PetscCall(MatSetFromOptions(B));
+        PetscCall(MatLoad(B,viewer));
+        PetscCall(PetscViewerDestroy(&viewer));
+      }
+    }
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -140,13 +178,13 @@ int main(int argc,char **argv)
 
    testset:
       requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
-      args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -svd_nsv 3 -terse
+      args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -f2 bidiagonal -svd_nsv 3 -terse
       output_file: output/ex48_2.out
       filter: sed -e "s/30749/30748/"
       timeoutfactor: 2
       test:
          suffix: 2
-         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -svd_trlanczos_ksp_rtol 1e-10
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -svd_trlanczos_ksp_rtol 1e-10 -svd_trlanczos_scale 100
          requires: !defined(PETSCTEST_VALGRIND)
       test:
          suffix: 2_spqr
@@ -161,7 +199,7 @@ int main(int argc,char **argv)
 
    test:
       requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES) !defined(PETSCTEST_VALGRIND)
-      args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -p 320 -svd_nsv 3 -svd_type trlanczos -svd_trlanczos_ksp_rtol 1e-14 -terse
+      args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -f2 bidiagonal -p 320 -svd_nsv 3 -svd_type trlanczos -svd_trlanczos_ksp_rtol 1e-14 -svd_trlanczos_scale 100 -terse
       timeoutfactor: 2
       suffix: 3
 
