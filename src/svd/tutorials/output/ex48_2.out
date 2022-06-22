@@ -4,6 +4,6 @@ Generalized singular value problem stored in file.
  Reading COMPLEX matrix from a binary file...
  Matrix B was not provided, setting B=bidiag(1,-1) with p=325
 
- All requested singular values computed up to the required tolerance:
+ All requested generalized singular values computed up to the required tolerance:
      34.30748, 18.35946, 13.07144
 

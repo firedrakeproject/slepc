@@ -3,6 +3,6 @@ Generalized singular value decomposition, (15+21)x20
 
 TRLANCZOS: restarting parameter 0.40 (locking)
 TRLANCZOS: scale parameter 1.
- All requested singular values computed up to the required tolerance:
+ All requested generalized singular values computed up to the required tolerance:
      7.88497, 7.54775, 7.01129, 6.31157
 

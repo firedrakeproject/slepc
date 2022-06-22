@@ -102,7 +102,7 @@ int main(int argc,char **argv)
   PetscCall(SVDGetType(svd,&type));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type));
   PetscCall(SVDGetDimensions(svd,&nsv,NULL,NULL));
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested singular values: %" PetscInt_FMT "\n",nsv));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD," Number of requested generalized singular values: %" PetscInt_FMT "\n",nsv));
   PetscCall(SVDGetTolerances(svd,&tol,&maxit));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%" PetscInt_FMT "\n",(double)tol,maxit));
 

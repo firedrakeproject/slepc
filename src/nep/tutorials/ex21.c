@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Simple 1-D nonlinear eigenproblem (matrix-free version, sequential).\n\n"
+static char help[] = "Simple 1-D nonlinear eigenproblem (matrix-free version).\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions\n\n";
 
