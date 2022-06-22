@@ -158,7 +158,7 @@ int main(int argc,char **argv)
    testset:
       args: -pep_type ciss -rg_type ellipse -rg_ellipse_center 1+.5i -rg_ellipse_radius .15 -terse
       requires: complex
-      filter: sed -e "s/95386/95385/" | sed -e "s/91010/91009/" | sed -e "s/93092/93091/" | sed -e "s/96723/96724/" | sed -e "s/43015/43016/"
+      filter: sed -e "s/95386/95385/" | sed -e "s/91010/91009/" | sed -e "s/93092/93091/" | sed -e "s/96723/96724/" | sed -e "s/43015/43016/" | sed -e "s/53513/53514/"
       output_file: output/butterfly_ciss.out
       timeoutfactor: 2
       test:
