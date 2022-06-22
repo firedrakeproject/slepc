@@ -1,6 +1,6 @@
 
 GSVD of inverse interpolation problem, (256+512)x256
 
- All requested singular values computed up to the required tolerance:
+ All requested generalized singular values computed up to the required tolerance:
      21.59298, 9.72317, 6.06969, 5.31180, 3.80627, 3.32275
 
