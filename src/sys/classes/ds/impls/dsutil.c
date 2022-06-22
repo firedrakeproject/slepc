@@ -18,13 +18,15 @@
    Compute the (real) Schur form of A. At the end, A is (quasi-)triangular and Q
    contains the unitary matrix of Schur vectors. Eigenvalues are returned in wr,wi
 */
-PetscErrorCode DSSolve_NHEP_Private(DS ds,PetscScalar *A,PetscScalar *Q,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSSolve_NHEP_Private(DS ds,DSMatType mA,DSMatType mQ,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscScalar    *work,*tau;
+  PetscScalar    *work,*tau,*A,*Q;
   PetscInt       i,j;
   PetscBLASInt   ilo,lwork,info,n,k,ld;
 
   PetscFunctionBegin;
+  PetscCall(MatDenseGetArray(ds->omat[mA],&A));
+  PetscCall(MatDenseGetArray(ds->omat[mQ],&Q));
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   PetscCall(PetscBLASIntCast(ds->l+1,&ilo));
@@ -79,6 +81,8 @@ PetscErrorCode DSSolve_NHEP_Private(DS ds,PetscScalar *A,PetscScalar *Q,PetscSca
   if (wi) for (i=ds->l;i<n;i++) wi[i] = 0.0;
 #endif
   SlepcCheckLapackInfo("hseqr",info);
+  PetscCall(MatDenseRestoreArray(ds->omat[mA],&A));
+  PetscCall(MatDenseRestoreArray(ds->omat[mQ],&Q));
   PetscFunctionReturn(0);
 }
 
@@ -86,9 +90,9 @@ PetscErrorCode DSSolve_NHEP_Private(DS ds,PetscScalar *A,PetscScalar *Q,PetscSca
    Sort a Schur form represented by the (quasi-)triangular matrix T and
    the unitary matrix Q, and return the sorted eigenvalues in wr,wi
 */
-PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *T,PetscScalar *Q,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSSort_NHEP_Total(DS ds,DSMatType mT,DSMatType mQ,PetscScalar *wr,PetscScalar *wi)
 {
-  PetscScalar    re;
+  PetscScalar    re,*T,*Q;
   PetscInt       i,j,pos,result;
   PetscBLASInt   ifst,ilst,info,n,ld;
 #if !defined(PETSC_USE_COMPLEX)
@@ -96,6 +100,8 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *T,PetscScalar *Q,PetscScalar
 #endif
 
   PetscFunctionBegin;
+  PetscCall(MatDenseGetArray(ds->omat[mT],&T));
+  PetscCall(MatDenseGetArray(ds->omat[mQ],&Q));
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
 #if !defined(PETSC_USE_COMPLEX)
@@ -159,6 +165,8 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *T,PetscScalar *Q,PetscScalar
     if (wi[i] != 0) i++;
 #endif
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[mT],&T));
+  PetscCall(MatDenseRestoreArray(ds->omat[mQ],&Q));
   PetscFunctionReturn(0);
 }
 
@@ -166,15 +174,18 @@ PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *T,PetscScalar *Q,PetscScalar
    Reorder a Schur form represented by T,Q according to a permutation perm,
    and return the sorted eigenvalues in wr,wi
 */
-PetscErrorCode DSSortWithPermutation_NHEP_Private(DS ds,PetscInt *perm,PetscScalar *T,PetscScalar *Q,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSSortWithPermutation_NHEP_Private(DS ds,PetscInt *perm,DSMatType mT,DSMatType mQ,PetscScalar *wr,PetscScalar *wi)
 {
   PetscInt       i,j,pos,inc=1;
   PetscBLASInt   ifst,ilst,info,n,ld;
+  PetscScalar    *T,*Q;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    *work;
 #endif
 
   PetscFunctionBegin;
+  PetscCall(MatDenseGetArray(ds->omat[mT],&T));
+  PetscCall(MatDenseGetArray(ds->omat[mQ],&Q));
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
 #if !defined(PETSC_USE_COMPLEX)
@@ -220,5 +231,7 @@ PetscErrorCode DSSortWithPermutation_NHEP_Private(DS ds,PetscInt *perm,PetscScal
     } else wi[j] = 0.0;
 #endif
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[mT],&T));
+  PetscCall(MatDenseRestoreArray(ds->omat[mQ],&Q));
   PetscFunctionReturn(0);
 }

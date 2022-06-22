@@ -314,10 +314,10 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0;
   PetscInt       nconv=0,deg=pep->nmat-1;
-  PetscScalar    *om,sigma;
+  PetscScalar    sigma;
   PetscReal      beta,norm=1.0,*omega,*a,*b;
   PetscBool      breakdown,symmlost=PETSC_FALSE,sinv=PETSC_FALSE,falselock=PETSC_TRUE,flg;
-  Mat            MQ,A;
+  Mat            MQ,A,D;
   Vec            vomega;
 
   PetscFunctionBegin;
@@ -349,15 +349,11 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
   /* Get the starting Arnoldi vector */
   PetscCall(BVTensorBuildFirstColumn(ctx->V,pep->nini));
-  PetscCall(DSGetArrayReal(pep->ds,DS_MAT_D,&omega));
-  PetscCall(VecCreateSeq(PETSC_COMM_SELF,1,&vomega));
+  PetscCall(DSSetDimensions(pep->ds,1,PETSC_DEFAULT,PETSC_DEFAULT));
   PetscCall(BVSetActiveColumns(ctx->V,0,1));
+  PetscCall(DSGetMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
   PetscCall(BVGetSignature(ctx->V,vomega));
-  PetscCall(VecGetArray(vomega,&om));
-  omega[0] = PetscRealPart(om[0]);
-  PetscCall(VecRestoreArray(vomega,&om));
-  PetscCall(DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega));
-  PetscCall(VecDestroy(&vomega));
+  PetscCall(DSRestoreMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
 
   /* Restart loop */
   l = 0;
@@ -370,6 +366,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
+    PetscCall(DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l));
     PetscCall(PEPSTOARrun(pep,a,b,omega,pep->nconv+l,&nv,&breakdown,&symmlost,pep->work));
     beta = b[nv-1];
     if (symmlost && nv==pep->nconv+l) {
@@ -418,19 +415,15 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     /* Update S */
     PetscCall(DSGetMat(pep->ds,DS_MAT_Q,&MQ));
     PetscCall(BVMultInPlace(ctx->V,MQ,pep->nconv,k+l));
-    PetscCall(MatDestroy(&MQ));
+    PetscCall(DSRestoreMat(pep->ds,DS_MAT_Q,&MQ));
 
     /* Copy last column of S */
     PetscCall(BVCopyColumn(ctx->V,nv,k+l));
-    PetscCall(DSGetArrayReal(pep->ds,DS_MAT_D,&omega));
-    PetscCall(VecCreateSeq(PETSC_COMM_SELF,k+l,&vomega));
-    PetscCall(VecGetArray(vomega,&om));
-    for (j=0;j<k+l;j++) om[j] = omega[j];
-    PetscCall(VecRestoreArray(vomega,&om));
     PetscCall(BVSetActiveColumns(ctx->V,0,k+l));
+    PetscCall(DSSetDimensions(pep->ds,k+l,PETSC_DEFAULT,PETSC_DEFAULT));
+    PetscCall(DSGetMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
     PetscCall(BVSetSignature(ctx->V,vomega));
-    PetscCall(VecDestroy(&vomega));
-    PetscCall(DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega));
+    PetscCall(DSRestoreMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
 
     if (breakdown && pep->reason == PEP_CONVERGED_ITERATING) {
       /* stop if breakdown */

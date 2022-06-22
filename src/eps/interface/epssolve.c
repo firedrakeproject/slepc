@@ -65,7 +65,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
           PetscCall(DSVectors(eps->ds,DS_MAT_X,NULL,NULL));
           PetscCall(DSGetMat(eps->ds,DS_MAT_X,&Z));
           PetscCall(BVMultInPlace(eps->V,Z,0,n));
-          PetscCall(MatDestroy(&Z));
+          PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&Z));
         }
         /* in case of STFILTER discard computed eigenvalues that lie outside the wanted interval */
         PetscCall(PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilter));

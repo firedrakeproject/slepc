@@ -1083,7 +1083,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
   PetscScalar    *om,sigma,*back,*S,*pQ;
   PetscReal      beta,norm=1.0,*omega,*a,*b,eta,lambda;
   PetscBool      breakdown,symmlost=PETSC_FALSE,sinv,falselock=PETSC_TRUE;
-  Mat            MS,MQ;
+  Mat            MS,MQ,D;
   Vec            v,vomega;
   PEP_SR         sr;
   BVOrthogType   otype;
@@ -1186,14 +1186,10 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
     PetscCall(DSRestoreArray(pep->ds,DS_MAT_Q,&pQ));
   }
   PetscCall(BVSetActiveColumns(ctx->V,0,k+1));
-  PetscCall(DSGetArrayReal(pep->ds,DS_MAT_D,&omega));
-  PetscCall(VecCreateSeq(PETSC_COMM_SELF,k+1,&vomega));
+  PetscCall(DSSetDimensions(pep->ds,k+1,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSGetMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
   PetscCall(BVGetSignature(ctx->V,vomega));
-  PetscCall(VecGetArray(vomega,&om));
-  for (j=0;j<k+1;j++) omega[j] = PetscRealPart(om[j]);
-  PetscCall(VecRestoreArray(vomega,&om));
-  PetscCall(DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega));
-  PetscCall(VecDestroy(&vomega));
+  PetscCall(DSRestoreMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
 
   PetscCall(PetscInfo(pep,"Start STOAR: sigma=%g in [%g,%g], for deflation: left=%" PetscInt_FMT " right=%" PetscInt_FMT ", searching: left=%" PetscInt_FMT " right=%" PetscInt_FMT "\n",(double)sr->sPres->value,(double)(sr->sPres->neighb[0]?sr->sPres->neighb[0]->value:sr->int0),(double)(sr->sPres->neighb[1]?sr->sPres->neighb[1]->value:sr->int1),sr->ndef0,sr->ndef1,sr->sPres->nsch[0],sr->sPres->nsch[1]));
 
@@ -1265,19 +1261,17 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
     /* Update S */
     PetscCall(DSGetMat(pep->ds,DS_MAT_Q,&MQ));
     PetscCall(BVMultInPlace(ctx->V,MQ,pep->nconv,k+l));
-    PetscCall(MatDestroy(&MQ));
+    PetscCall(DSRestoreMat(pep->ds,DS_MAT_Q,&MQ));
 
     /* Copy last column of S */
     PetscCall(BVCopyColumn(ctx->V,nv,k+l));
-    PetscCall(DSGetArrayReal(pep->ds,DS_MAT_D,&omega));
-    PetscCall(VecCreateSeq(PETSC_COMM_SELF,k+l,&vomega));
-    PetscCall(VecGetArray(vomega,&om));
-    for (j=0;j<k+l;j++) om[j] = omega[j];
-    PetscCall(VecRestoreArray(vomega,&om));
     PetscCall(BVSetActiveColumns(ctx->V,0,k+l));
-    PetscCall(BVSetSignature(ctx->V,vomega));
-    PetscCall(VecDestroy(&vomega));
-    PetscCall(DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega));
+    if (k+l) {
+      PetscCall(DSSetDimensions(pep->ds,k+l,PETSC_DEFAULT,PETSC_DEFAULT));
+      PetscCall(DSGetMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
+      PetscCall(BVSetSignature(ctx->V,vomega));
+      PetscCall(DSRestoreMatAndColumn(pep->ds,DS_MAT_D,0,&D,&vomega));
+    }
 
     if (breakdown && pep->reason == PEP_CONVERGED_ITERATING) {
       /* stop if breakdown */

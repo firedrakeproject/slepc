@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test the NEPProjectOperator() operator.\n\n"
+static char help[] = "Test the NEPProjectOperator() function.\n\n"
   "This is based on ex22.\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"

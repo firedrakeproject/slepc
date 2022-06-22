@@ -371,6 +371,6 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
   PetscCall(DSGetMat(eps->ds,DS_MAT_X,&X));
   PetscCall(BVSetActiveColumns(eps->V,0,eps->nconv));
   PetscCall(BVMultInPlace(eps->V,X,0,eps->nconv));
-  PetscCall(MatDestroy(&X));
+  PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&X));
   PetscFunctionReturn(0);
 }

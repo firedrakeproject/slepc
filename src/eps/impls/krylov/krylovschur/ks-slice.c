@@ -837,7 +837,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        i,k,l,ld,nv,*iwork,j,count0,count1,iterCompl=0,n0,n1;
-  Mat             U,Op;
+  Mat             U,Op,T;
   PetscScalar     *Q,*A;
   PetscReal       *a,*b,beta,lambda;
   EPS_shift       sPres;
@@ -860,7 +860,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     PetscCall(BVSetActiveColumns(eps->V,0,l+1));
     PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
     PetscCall(BVMultInPlace(eps->V,U,0,l+1));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&U));
   } else {
     /* Get the starting Lanczos vector */
     PetscCall(EPSGetStartVector(eps,0,NULL));
@@ -871,14 +871,13 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     eps->its++; sr->itsKs++;
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    PetscCall(DSGetArrayReal(eps->ds,DS_MAT_T,&a));
-    b = a + ld;
+    PetscCall(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
+    PetscCall(DSGetMat(eps->ds,DS_MAT_T,&T));
     PetscCall(STGetOperator(eps->st,&Op));
-    PetscCall(BVMatLanczos(eps->V,Op,a,b,eps->nconv+l,&nv,&breakdown));
+    PetscCall(BVMatLanczos(eps->V,Op,T,eps->nconv+l,&nv,&beta,&breakdown));
     PetscCall(STRestoreOperator(eps->st,&Op));
     sr->nv = nv;
-    beta = b[nv-1];
-    PetscCall(DSRestoreArrayReal(eps->ds,DS_MAT_T,&a));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_T,&T));
     PetscCall(DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l));
     if (l==0) PetscCall(DSSetState(eps->ds,DS_STATE_INTERMEDIATE));
     else PetscCall(DSSetState(eps->ds,DS_STATE_RAW));
@@ -974,7 +973,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
     PetscCall(BVMultInPlace(eps->V,U,eps->nconv,k+l));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&U));
 
     /* Normalize u and append it to V */
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) PetscCall(BVCopyColumn(eps->V,nv,k+l));

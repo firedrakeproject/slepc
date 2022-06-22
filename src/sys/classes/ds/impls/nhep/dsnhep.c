@@ -31,42 +31,42 @@ PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   PetscCall(DSViewMat(ds,viewer,DS_MAT_A));
   if (ds->state>DS_STATE_INTERMEDIATE) PetscCall(DSViewMat(ds,viewer,DS_MAT_Q));
-  if (ds->mat[DS_MAT_X]) PetscCall(DSViewMat(ds,viewer,DS_MAT_X));
-  if (ds->mat[DS_MAT_Y]) PetscCall(DSViewMat(ds,viewer,DS_MAT_Y));
+  if (ds->omat[DS_MAT_X]) PetscCall(DSViewMat(ds,viewer,DS_MAT_X));
+  if (ds->omat[DS_MAT_Y]) PetscCall(DSViewMat(ds,viewer,DS_MAT_Y));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
-  PetscInt       i,j;
-  PetscBLASInt   info,ld,n,n1,lwork,inc=1;
-  PetscScalar    sdummy,done=1.0,zero=0.0;
-  PetscReal      *sigma;
-  PetscBool      iscomplex = PETSC_FALSE;
-  PetscScalar    *A = ds->mat[DS_MAT_A];
-  PetscScalar    *Q = ds->mat[DS_MAT_Q];
-  PetscScalar    *X = ds->mat[left?DS_MAT_Y:DS_MAT_X];
-  PetscScalar    *W;
+  PetscInt          i,j;
+  PetscBLASInt      info,ld,n,n1,lwork,inc=1;
+  PetscScalar       sdummy,done=1.0,zero=0.0;
+  PetscReal         *sigma;
+  PetscBool         iscomplex = PETSC_FALSE;
+  PetscScalar       *X,*W;
+  const PetscScalar *A,*Q;
 
   PetscFunctionBegin;
   PetscCheck(!left,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for left vectors");
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   n1 = n+1;
-  if ((*k)<n-1 && A[(*k)+1+(*k)*ld]!=0.0) iscomplex = PETSC_TRUE;
-  PetscCheck(!iscomplex,PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for complex eigenvalues yet");
   PetscCall(DSAllocateWork_Private(ds,5*ld,6*ld,0));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
-  W = ds->mat[DS_MAT_W];
   lwork = 5*ld;
   sigma = ds->rwork+5*ld;
 
   /* build A-w*I in W */
+  PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_W],&W));
+  if ((*k)<n-1 && A[(*k)+1+(*k)*ld]!=0.0) iscomplex = PETSC_TRUE;
+  PetscCheck(!iscomplex,PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for complex eigenvalues yet");
   for (j=0;j<n;j++)
     for (i=0;i<=n;i++)
       W[i+j*ld] = A[i+j*ld];
   for (i=0;i<n;i++)
     W[i+i*ld] -= A[(*k)+(*k)*ld];
+  PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_A],&A));
 
   /* compute SVD of W */
 #if !defined(PETSC_USE_COMPLEX)
@@ -81,7 +81,12 @@ static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *r
 
   /* update vector with right singular vector associated to smallest singular value,
      accumulating the transformation matrix Q */
+  PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_Q],&Q));
+  PetscCall(MatDenseGetArray(ds->omat[left?DS_MAT_Y:DS_MAT_X],&X));
   PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,W+n-1,&ld,&zero,X+(*k)*ld,&inc));
+  PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_Q],&Q));
+  PetscCall(MatDenseRestoreArray(ds->omat[left?DS_MAT_Y:DS_MAT_X],&X));
+  PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_W],&W));
   PetscFunctionReturn(0);
 }
 
@@ -96,15 +101,13 @@ static PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
 
 static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
-  PetscInt       i;
-  PetscBLASInt   mm=1,mout,info,ld,n,*select,inc=1,cols=1,zero=0;
-  PetscScalar    sone=1.0,szero=0.0;
-  PetscReal      norm,done=1.0;
-  PetscBool      iscomplex = PETSC_FALSE;
-  PetscScalar    *A = ds->mat[DS_MAT_A];
-  PetscScalar    *Q = ds->mat[DS_MAT_Q];
-  PetscScalar    *X = ds->mat[left?DS_MAT_Y:DS_MAT_X];
-  PetscScalar    *Y;
+  PetscInt          i;
+  PetscBLASInt      mm=1,mout,info,ld,n,*select,inc=1,cols=1,zero=0;
+  PetscScalar       sone=1.0,szero=0.0;
+  PetscReal         norm,done=1.0;
+  PetscBool         iscomplex = PETSC_FALSE;
+  PetscScalar       *X,*Y;
+  const PetscScalar *A,*Q;
 
   PetscFunctionBegin;
   PetscCall(PetscBLASIntCast(ds->n,&n));
@@ -114,6 +117,8 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
   for (i=0;i<n;i++) select[i] = (PetscBLASInt)PETSC_FALSE;
 
   /* compute k-th eigenvector Y of A */
+  PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseGetArray(ds->omat[left?DS_MAT_Y:DS_MAT_X],&X));
   Y = X+(*k)*ld;
   select[*k] = (PetscBLASInt)PETSC_TRUE;
 #if !defined(PETSC_USE_COMPLEX)
@@ -128,14 +133,17 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
 #endif
   SlepcCheckLapackInfo("trevc",info);
   PetscCheck(mout==mm,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
+  PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_A],&A));
 
   /* accumulate and normalize eigenvectors */
   if (ds->state>=DS_STATE_CONDENSED) {
+    PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_Q],&Q));
     PetscCall(PetscArraycpy(ds->work,Y,mout*ld));
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,Q,&ld,ds->work,&inc,&szero,Y,&inc));
 #if !defined(PETSC_USE_COMPLEX)
     if (iscomplex) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,Q,&ld,ds->work+ld,&inc,&szero,Y+ld,&inc));
 #endif
+    PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_Q],&Q));
     cols = 1;
     norm = BLASnrm2_(&n,Y,&inc);
 #if !defined(PETSC_USE_COMPLEX)
@@ -154,27 +162,30 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
     if (iscomplex) *rnorm = SlepcAbsEigenvalue(Y[n-1],Y[n-1+ld]);
     else *rnorm = PetscAbsScalar(Y[n-1]);
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[left?DS_MAT_Y:DS_MAT_X],&X));
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
 {
-  PetscInt       i;
-  PetscBLASInt   n,ld,mout,info,inc=1,cols,zero=0;
-  PetscBool      iscomplex;
-  PetscScalar    *X,*Y,*Z,*A = ds->mat[DS_MAT_A];
-  PetscReal      norm,done=1.0;
-  const char     *side,*back;
+  PetscInt          i;
+  PetscBLASInt      n,ld,mout,info,inc=1,cols,zero=0;
+  PetscBool         iscomplex;
+  PetscScalar       *X,*Y,*Z;
+  const PetscScalar *A,*Q;
+  PetscReal         norm,done=1.0;
+  const char        *side,*back;
 
   PetscFunctionBegin;
+  PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_A],&A));
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   if (left) {
     X = NULL;
-    Y = ds->mat[DS_MAT_Y];
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Y],&Y));
     side = "L";
   } else {
-    X = ds->mat[DS_MAT_X];
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_X],&X));
     Y = NULL;
     side = "R";
   }
@@ -182,7 +193,9 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   if (ds->state>=DS_STATE_CONDENSED) {
     /* DSSolve() has been called, backtransform with matrix Q */
     back = "B";
-    PetscCall(PetscArraycpy(Z,ds->mat[DS_MAT_Q],ld*ld));
+    PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_Q],&Q));
+    PetscCall(PetscArraycpy(Z,Q,ld*ld));
+    PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_Q],&Q));
   } else back = "A";
 #if !defined(PETSC_USE_COMPLEX)
   PetscCall(DSAllocateWork_Private(ds,3*ld,0,0));
@@ -208,6 +221,8 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
     SlepcCheckLapackInfo("lascl",info);
     if (iscomplex) i++;
   }
+  PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseRestoreArray(ds->omat[left?DS_MAT_Y:DS_MAT_X],&Z));
   PetscFunctionReturn(0);
 }
 
@@ -243,7 +258,7 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
 {
   PetscInt       i;
   PetscBLASInt   info,n,ld,mout,lwork,*selection;
-  PetscScalar    *T = ds->mat[DS_MAT_A],*Q = ds->mat[DS_MAT_Q],*work;
+  PetscScalar    *T,*Q,*work;
   PetscReal      dummy;
 #if !defined(PETSC_USE_COMPLEX)
   PetscBLASInt   *iwork,liwork;
@@ -251,6 +266,8 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
 
   PetscFunctionBegin;
   PetscCheck(k,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Must supply argument k");
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&T));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
 #if !defined(PETSC_USE_COMPLEX)
@@ -279,13 +296,15 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
 #endif
   SlepcCheckLapackInfo("trsen",info);
   *k = mout;
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&T));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscFunctionBegin;
-  if (!rr || wr == rr) PetscCall(DSSort_NHEP_Total(ds,ds->mat[DS_MAT_A],ds->mat[DS_MAT_Q],wr,wi));
+  if (!rr || wr == rr) PetscCall(DSSort_NHEP_Total(ds,DS_MAT_A,DS_MAT_Q,wr,wi));
   else PetscCall(DSSort_NHEP_Arbitrary(ds,wr,wi,rr,ri,k));
   PetscFunctionReturn(0);
 }
@@ -293,27 +312,30 @@ PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
 static PetscErrorCode DSSortWithPermutation_NHEP(DS ds,PetscInt *perm,PetscScalar *wr,PetscScalar *wi)
 {
   PetscFunctionBegin;
-  PetscCall(DSSortWithPermutation_NHEP_Private(ds,perm,ds->mat[DS_MAT_A],ds->mat[DS_MAT_Q],wr,wi));
+  PetscCall(DSSortWithPermutation_NHEP_Private(ds,perm,DS_MAT_A,DS_MAT_Q,wr,wi));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
 {
-  PetscInt       i;
-  PetscBLASInt   n,ld,incx=1;
-  PetscScalar    *A,*Q,*x,*y,one=1.0,zero=0.0;
+  PetscInt          i;
+  PetscBLASInt      n,ld,incx=1;
+  PetscScalar       *A,*x,*y,one=1.0,zero=0.0;
+  const PetscScalar *Q;
 
   PetscFunctionBegin;
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
-  A  = ds->mat[DS_MAT_A];
-  Q  = ds->mat[DS_MAT_Q];
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_Q],&Q));
   PetscCall(DSAllocateWork_Private(ds,2*ld,0,0));
   x = ds->work;
   y = ds->work+ld;
   for (i=0;i<n;i++) x[i] = PetscConj(A[n+i*ld]);
   PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
   for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_Q],&Q));
   ds->k = n;
   PetscFunctionReturn(0);
 }
@@ -324,7 +346,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidScalarPointer(wi,3);
 #endif
-  PetscCall(DSSolve_NHEP_Private(ds,ds->mat[DS_MAT_A],ds->mat[DS_MAT_Q],wr,wi));
+  PetscCall(DSSolve_NHEP_Private(ds,DS_MAT_A,DS_MAT_Q,wr,wi));
   PetscFunctionReturn(0);
 }
 
@@ -332,6 +354,7 @@ PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k;
   PetscMPIInt    n,rank,off=0,size,ldn;
+  PetscScalar    *A,*Q;
 
   PetscFunctionBegin;
   k = (ds->n-l)*ld;
@@ -342,10 +365,12 @@ PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscCall(PetscMPIIntCast(k*sizeof(PetscScalar),&size));
   PetscCall(PetscMPIIntCast(ds->n-l,&n));
   PetscCall(PetscMPIIntCast(ld*(ds->n-l),&ldn));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  if (ds->state>DS_STATE_RAW) PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    if (ds->state>DS_STATE_RAW) PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPI_Pack(A+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (ds->state>DS_STATE_RAW) PetscCallMPI(MPI_Pack(Q+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     if (eigr) PetscCallMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi) PetscCallMPI(MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
@@ -353,22 +378,25 @@ PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    if (ds->state>DS_STATE_RAW) PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPI_Unpack(ds->work,size,&off,A+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (ds->state>DS_STATE_RAW) PetscCallMPI(MPI_Unpack(ds->work,size,&off,Q+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
 #endif
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  if (ds->state>DS_STATE_RAW) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
-  PetscScalar *A = ds->mat[DS_MAT_A];
+  PetscScalar *A;
 
   PetscFunctionBegin;
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
 #if defined(PETSC_USE_DEBUG)
   /* make sure diagonal 2x2 block is not broken */
   PetscCheck(ds->state<DS_STATE_CONDENSED || n==0 || n==ds->n || A[n+(n-1)*ld]==0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
@@ -391,6 +419,7 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n,PetscBool trim)
     ds->t = ds->n;   /* truncated length equal to previous dimension */
     ds->n = n;
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscFunctionReturn(0);
 }
 
@@ -414,8 +443,8 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 
   /* use workspace matrix W to avoid overwriting A */
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
-  A = ds->mat[DS_MAT_W];
-  PetscCall(PetscArraycpy(A,ds->mat[DS_MAT_A],ds->ld*ds->ld));
+  PetscCall(MatCopy(ds->omat[DS_MAT_A],ds->omat[DS_MAT_W],SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&A));
 
   /* norm of A */
   if (ds->state<DS_STATE_INTERMEDIATE) hn = LAPACKlange_("I",&n,&n,A,&ld,rwork);
@@ -427,6 +456,7 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
   PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info));
   SlepcCheckLapackInfo("getri",info);
   hin = LAPACKlange_("I",&n,&n,A,&ld,rwork);
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&A));
 
   *cond = hn*hin;
   PetscFunctionReturn(0);
@@ -434,16 +464,16 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 
 PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gammaout)
 {
-  PetscInt       i,j;
-  PetscBLASInt   *ipiv,info,n,ld,one=1,ncol;
-  PetscScalar    *A,*B,*Q,*g=gin,*ghat;
-  PetscScalar    done=1.0,dmone=-1.0,dzero=0.0;
-  PetscReal      gamma=1.0;
+  PetscInt          i,j;
+  PetscBLASInt      *ipiv,info,n,ld,one=1,ncol;
+  PetscScalar       *A,*B,*g=gin,*ghat,done=1.0,dmone=-1.0,dzero=0.0;
+  const PetscScalar *Q;
+  PetscReal         gamma=1.0;
 
   PetscFunctionBegin;
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
-  A  = ds->mat[DS_MAT_A];
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
 
   if (!recover) {
 
@@ -455,8 +485,8 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     }
     /* use workspace matrix W to factor A-tau*eye(n) */
     PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
-    B = ds->mat[DS_MAT_W];
-    PetscCall(PetscArraycpy(B,A,ld*ld));
+    PetscCall(MatCopy(ds->omat[DS_MAT_A],ds->omat[DS_MAT_W],SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&B));
 
     /* Vector g initially stores b = beta*e_n^T */
     PetscCall(PetscArrayzero(g,n));
@@ -470,6 +500,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n,&one,B,&ld,ipiv,g,&ld,&info));
     SlepcCheckLapackInfo("getrs",info);
     PetscCall(PetscLogFlops(2.0*n*n-n));
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&B));
 
     /* A = A + g*b' */
     for (i=0;i<n;i++) A[i+(n-1)*ld] += g[i]*beta;
@@ -478,7 +509,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 
     PetscCall(DSAllocateWork_Private(ds,ld,0,0));
     ghat = ds->work;
-    Q    = ds->mat[DS_MAT_Q];
+    PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_Q],&Q));
 
     /* g^ = -Q(:,idx)'*g */
     PetscCall(PetscBLASIntCast(ds->l+ds->k,&ncol));
@@ -491,6 +522,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 
     /* g~ = (I-Q(:,idx)*Q(:,idx)')*g = g+Q(:,idx)*g^ */
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&ncol,&done,Q,&ld,ghat,&one,&done,g,&one));
+    PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_Q],&Q));
   }
 
   /* Compute gamma factor */
@@ -499,6 +531,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
   if (recover && ds->extrarow) {
     for (j=ds->l;j<ds->l+ds->k;j++) A[ds->n+j*ld] *= gamma;
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscFunctionReturn(0);
 }
 

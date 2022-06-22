@@ -22,7 +22,7 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_U));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_V));
-  PetscCall(DSAllocateMatReal_Private(ds,DS_MAT_T));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
   PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt)));
@@ -57,13 +57,15 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
 static PetscErrorCode DSSwitchFormat_SVD(DS ds)
 {
   DS_SVD         *ctx = (DS_SVD*)ds->data;
-  PetscReal      *T = ds->rmat[DS_MAT_T];
-  PetscScalar    *A = ds->mat[DS_MAT_A];
+  PetscReal      *T;
+  PetscScalar    *A;
   PetscInt       i,m=ctx->m,k=ds->k,ld=ds->ld;
 
   PetscFunctionBegin;
   PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   /* switch from compact (arrow) to dense storage */
+  PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_A],&A));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
   PetscCall(PetscArrayzero(A,ld*ld));
   for (i=0;i<k;i++) {
     A[i+i*ld] = T[i];
@@ -74,6 +76,8 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds)
     A[i+i*ld]   = T[i];
     A[i-1+i*ld] = T[i-1+ld];
   }
+  PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_A],&A));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   PetscFunctionReturn(0);
 }
 
@@ -82,7 +86,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
   DS_SVD            *ctx = (DS_SVD*)ds->data;
   PetscViewerFormat format;
   PetscInt          i,j,r,c,m=ctx->m,rows,cols;
-  PetscReal         value;
+  PetscReal         *T,value;
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
@@ -93,6 +97,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
   }
   PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   if (ds->compact) {
+    PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     rows = ds->n;
     cols = ds->extrarow? m+1: m;
@@ -100,19 +105,19 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
       PetscCall(PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rows,cols));
       PetscCall(PetscViewerASCIIPrintf(viewer,"zzz = zeros(%" PetscInt_FMT ",3);\n",2*ds->n));
       PetscCall(PetscViewerASCIIPrintf(viewer,"zzz = [\n"));
-      for (i=0;i<PetscMin(ds->n,m);i++) PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i)));
+      for (i=0;i<PetscMin(ds->n,m);i++) PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)T[i]));
       for (i=0;i<cols-1;i++) {
         r = PetscMax(i+2,ds->k+1);
         c = i+1;
-        PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",c,r,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i)));
+        PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",c,r,(double)T[i+ds->ld]));
       }
       PetscCall(PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]));
     } else {
       for (i=0;i<rows;i++) {
         for (j=0;j<cols;j++) {
-          if (i==j) value = *(ds->rmat[DS_MAT_T]+i);
-          else if (i<ds->k && j==ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+PetscMin(i,j));
-          else if (i+1==j && i>=ds->k) value = *(ds->rmat[DS_MAT_T]+ds->ld+i);
+          if (i==j) value = T[i];
+          else if (i<ds->k && j==ds->k) value = T[PetscMin(i,j)+ds->ld];
+          else if (i+1==j && i>=ds->k) value = T[i+ds->ld];
           else value = 0.0;
           PetscCall(PetscViewerASCIIPrintf(viewer," %18.16e ",(double)value));
         }
@@ -121,6 +126,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
     }
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     PetscCall(PetscViewerFlush(viewer));
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   } else PetscCall(DSViewMat(ds,viewer,DS_MAT_A));
   if (ds->state>DS_STATE_INTERMEDIATE) {
     PetscCall(DSViewMat(ds,viewer,DS_MAT_U));
@@ -155,8 +161,7 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   l = ds->l;
   n = PetscMin(ds->n,ctx->m);
-  A = ds->mat[DS_MAT_A];
-  d = ds->rmat[DS_MAT_T];
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
   perm = ds->perm;
   if (!rr) PetscCall(DSSortEigenvaluesReal_Private(ds,d,perm));
   else PetscCall(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
@@ -164,33 +169,38 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscCall(DSPermuteBoth_Private(ds,l,n,ds->n,ctx->m,DS_MAT_U,DS_MAT_V,perm));
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   if (!ds->compact) {
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
     for (i=l;i<n;i++) A[i+i*ld] = wr[i];
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
 {
-  DS_SVD         *ctx = (DS_SVD*)ds->data;
-  PetscInt       i;
-  PetscBLASInt   n=0,m=0,ld,incx=1;
-  PetscScalar    *A,*U,*x,*y,one=1.0,zero=0.0;
-  PetscReal      *e,beta;
+  DS_SVD            *ctx = (DS_SVD*)ds->data;
+  PetscInt          i;
+  PetscBLASInt      n=0,m=0,ld,incx=1;
+  PetscScalar       *A,*x,*y,one=1.0,zero=0.0;
+  PetscReal         *T,*e,beta;
+  const PetscScalar *U;
 
   PetscFunctionBegin;
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ctx->m,&m));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
-  A = ds->mat[DS_MAT_A];
-  U = ds->mat[DS_MAT_U];
-  e = ds->rmat[DS_MAT_T]+ld;
-
+  PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_U],&U));
   if (ds->compact) {
+    PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+    e = T+ld;
     beta = e[m-1];   /* in compact, we assume all entries are zero except the last one */
     for (i=0;i<n;i++) e[i] = PetscRealPart(beta*U[n-1+i*ld]);
     ds->k = m;
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   } else {
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
     PetscCall(DSAllocateWork_Private(ds,2*ld,0,0));
     x = ds->work;
     y = ds->work+ld;
@@ -198,17 +208,20 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
     PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,U,&ld,x,&incx,&zero,y,&incx));
     for (i=0;i<n;i++) A[i+m*ld] = PetscConj(y[i]);
     ds->k = m;
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
+  PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_U],&U));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
-  PetscScalar *A = ds->mat[DS_MAT_A];
+  PetscScalar *A;
   DS_SVD      *ctx = (DS_SVD*)ds->data;
 
   PetscFunctionBegin;
+  if (!ds->compact && ds->extrarow) PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   if (trim) {
     if (!ds->compact && ds->extrarow) {   /* clean extra column */
       for (i=l;i<ds->n;i++) A[i+ctx->m*ld] = 0.0;
@@ -231,6 +244,7 @@ PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
     ds->n  = n;
     ctx->m = n;
   }
+  if (!ds->compact && ds->extrarow) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscFunctionReturn(0);
 }
 
@@ -251,11 +265,11 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
   m1 = m-l;
   off = l+l*ld;
-  A = ds->mat[DS_MAT_A];
-  U = ds->mat[DS_MAT_U];
-  V = ds->mat[DS_MAT_V];
-  d = ds->rmat[DS_MAT_T];
-  e = ds->rmat[DS_MAT_T]+ld;
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_V],&V));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  e = d+ld;
   PetscCall(PetscArrayzero(U,ld*ld));
   for (i=0;i<l;i++) U[i+i*ld] = 1.0;
   PetscCall(PetscArrayzero(V,ld*ld));
@@ -265,11 +279,9 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* solve bidiagonal SVD problem */
     for (i=0;i<l;i++) wr[i] = d[i];
 #if defined(PETSC_USE_COMPLEX)
-    PetscCall(DSAllocateWork_Private(ds,0,3*n1*n1+4*n1,8*n1));
-    PetscCall(DSAllocateMatReal_Private(ds,DS_MAT_U));
-    PetscCall(DSAllocateMatReal_Private(ds,DS_MAT_V));
-    Ur = ds->rmat[DS_MAT_U];
-    Vr = ds->rmat[DS_MAT_V];
+    PetscCall(DSAllocateWork_Private(ds,0,3*n1*n1+4*n1+2*ld*ld,8*n1));
+    Ur = ds->rwork+3*n1*n1+4*n1;
+    Vr = ds->rwork+3*n1*n1+4*n1+ld*ld;
 #else
     PetscCall(DSAllocateWork_Private(ds,0,3*n1*n1+4*n1+ld*ld,8*n1));
     Ur = U;
@@ -288,7 +300,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   } else {
     /* solve general rectangular SVD problem */
     PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
-    W = ds->mat[DS_MAT_W];
+    PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_W],&W));
     if (ds->compact) PetscCall(DSSwitchFormat_SVD(ds));
     for (i=0;i<l;i++) wr[i] = d[i];
     nm = PetscMin(n,m);
@@ -312,6 +324,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (i=l;i<m;i++) {
       for (j=l;j<m;j++) V[i+j*ld] = PetscConj(W[j+i*ld]);  /* transpose VT returned by Lapack */
     }
+    PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_W],&W));
   }
   for (i=l;i<PetscMin(ds->n,ctx->m);i++) wr[i] = d[i];
 
@@ -321,6 +334,10 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     for (i=l;i<m;i++) PetscCall(PetscArrayzero(A+l+i*ld,n-l));
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
   }
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_V],&V));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscFunctionReturn(0);
 }
 
@@ -328,6 +345,8 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
   PetscMPIInt    n,rank,off=0,size,ldn,ld3;
+  PetscScalar    *A,*U,*V;
+  PetscReal      *T;
 
   PetscFunctionBegin;
   if (ds->compact) kr = 3*ld;
@@ -339,25 +358,37 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscCall(PetscMPIIntCast(ds->n-l,&n));
   PetscCall(PetscMPIIntCast(ld*(ds->n-l),&ldn));
   PetscCall(PetscMPIIntCast(3*ld,&ld3));
+  if (ds->compact) PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+  else PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  if (ds->state>DS_STATE_RAW) {
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_V],&V));
+  }
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    if (ds->compact) PetscCallMPI(MPI_Pack(ds->rmat[DS_MAT_T],ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    else PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (ds->compact) PetscCallMPI(MPI_Pack(T,ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    else PetscCallMPI(MPI_Pack(A+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) {
-      PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_U]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-      PetscCallMPI(MPI_Pack(ds->mat[DS_MAT_V]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Pack(U+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Pack(V+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     }
     if (eigr) PetscCallMPI(MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
   }
   PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    if (ds->compact) PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->rmat[DS_MAT_T],ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
-    else PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (ds->compact) PetscCallMPI(MPI_Unpack(ds->work,size,&off,T,ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
+    else PetscCallMPI(MPI_Unpack(ds->work,size,&off,A+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) {
-      PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_U]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-      PetscCallMPI(MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_V]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Unpack(ds->work,size,&off,U+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Unpack(ds->work,size,&off,V+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     }
     if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+  }
+  if (ds->compact) PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  if (ds->state>DS_STATE_RAW) {
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
   }
   PetscFunctionReturn(0);
 }
@@ -370,9 +401,12 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   switch (t) {
     case DS_MAT_A:
-    case DS_MAT_T:
       *rows = ds->n;
       *cols = ds->extrarow? ctx->m+1: ctx->m;
+      break;
+    case DS_MAT_T:
+      *rows = ds->n;
+      *cols = PetscDefined(USE_COMPLEX)? 2: 3;
       break;
     case DS_MAT_U:
       *rows = ds->state==DS_STATE_TRUNCATED? ds->t: ds->n;

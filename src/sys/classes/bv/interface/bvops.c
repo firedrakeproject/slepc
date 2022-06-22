@@ -653,7 +653,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   PetscCall(MatProductSymbolic(G));
   PetscCall(MatProductNumeric(G));
   PetscCall(MatProductClear(G));
-  PetscCall(MatDestroy(&X));
+  PetscCall(DSRestoreMat(ds,DS_MAT_X,&X));
   PetscCall(MatDestroy(&Xt));
   PetscCall(MatDestroy(&M));
   /* B = B*G */

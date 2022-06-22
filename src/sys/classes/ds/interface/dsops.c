@@ -137,7 +137,7 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt l,PetscInt k)
   PetscValidLogicalCollectiveInt(ds,k,4);
   on = ds->n; ol = ds->l; ok = ds->k;
   if (n==PETSC_DECIDE || n==PETSC_DEFAULT) {
-    ds->n = ds->ld;
+    ds->n = ds->extrarow? ds->ld-1: ds->ld;
   } else {
     PetscCheck(n>=0 && n<=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between 0 and ld");
     PetscCall(PetscObjectTypeCompareAny((PetscObject)ds,&issvd,DSSVD,DSGSVD,""));  /* SVD and GSVD have extra column instead of extra row */
@@ -283,7 +283,9 @@ PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
   else {
     if (ds->state==DS_STATE_TRUNCATED && t>=DS_MAT_Q) rows = ds->t;
     else rows = (t==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
-    cols = ds->n;
+    if (t==DS_MAT_T) cols = PetscDefined(USE_COMPLEX)? 2: 3;
+    else if (t==DS_MAT_D) cols = 1;
+    else cols = ds->n;
   }
   if (m) *m = rows;
   if (n) *n = cols;
@@ -325,12 +327,13 @@ PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
 PetscErrorCode DSGetTruncateSize_Default(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 {
 #if !defined(PETSC_USE_COMPLEX)
-  PetscScalar *A = ds->mat[DS_MAT_A];
+  PetscScalar val;
 #endif
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  if (A[l+(*k)+(l+(*k)-1)*ds->ld] != 0.0) {
+  PetscCall(MatGetValue(ds->omat[DS_MAT_A],l+(*k),l+(*k)-1,&val));
+  if (val != 0.0) {
     if (l+(*k)<n-1) (*k)++;
     else (*k)--;
   }
@@ -392,14 +395,19 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 .  A  - Mat object
 
    Notes:
-   The Mat is created with sizes equal to the current DS dimensions (nxm),
-   then it is filled with the values that would be obtained with DSGetArray()
+   The returned Mat has sizes equal to the current DS dimensions (nxm),
+   and contains the values that would be obtained with DSGetArray()
    (not DSGetArrayReal()). If the DS was truncated, then the number of rows
    is equal to the dimension prior to truncation, see DSTruncate().
    The communicator is always PETSC_COMM_SELF.
 
-   When no longer needed, the user can either destroy the matrix or call
-   DSRestoreMat(). The latter will copy back the modified values.
+   It is implemented with MatDenseGetSubMatrix(), and when no longer needed
+   the user must call DSRestoreMat() which will invoke MatDenseRestoreSubMatrix().
+
+   For matrices DS_MAT_T and DS_MAT_D, this function will return a Mat object
+   that cannot be used directly for computations, since it uses compact storage
+   (three and one diagonals for T and D, respectively). In complex scalars, the
+   internal array stores real values, so it is sufficient with 2 columns for T.
 
    Level: advanced
 
@@ -407,39 +415,23 @@ PetscErrorCode DSGetTruncateSize(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 @*/
 PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 {
-  PetscInt       j,rows,cols,arows,acols;
-  PetscBool      create=PETSC_FALSE,flg;
-  PetscScalar    *pA,*M;
+  PetscInt  rows,cols;
+  PetscBool flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(A,3);
-  PetscCheck(m!=DS_MAT_T && m!=DS_MAT_D,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
 
   PetscCall(DSMatGetSize(ds,m,&rows,&cols));
-  if (!ds->omat[m]) create=PETSC_TRUE;
-  else {
-    PetscCall(MatGetSize(ds->omat[m],&arows,&acols));
-    if (arows!=rows || acols!=cols) {
-      PetscCall(MatDestroy(&ds->omat[m]));
-      create=PETSC_TRUE;
-    }
-  }
-  if (create) PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]));
+  PetscCheck(rows && cols,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must call DSSetDimensions() first");
+  PetscCall(MatDenseGetSubMatrix(ds->omat[m],0,rows,0,cols,A));
 
   /* set Hermitian flag */
   PetscCall(DSMatIsHermitian(ds,m,&flg));
-  PetscCall(MatSetOption(ds->omat[m],MAT_HERMITIAN,flg));
-
-  /* copy entries */
-  PetscCall(PetscObjectReference((PetscObject)ds->omat[m]));
-  *A = ds->omat[m];
-  M  = ds->mat[m];
-  PetscCall(MatDenseGetArray(*A,&pA));
-  for (j=0;j<cols;j++) PetscCall(PetscArraycpy(pA+j*rows,M+j*ds->ld,rows));
-  PetscCall(MatDenseRestoreArray(*A,&pA));
+  PetscCall(MatSetOption(*A,MAT_SYMMETRIC,flg));
+  PetscCall(MatSetOption(*A,MAT_HERMITIAN,flg));
   PetscFunctionReturn(0);
 }
 
@@ -453,13 +445,8 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 .  m  - the requested matrix
 -  A  - the fetched Mat object
 
-   Notes:
+   Note:
    A call to this function must match a previous call of DSGetMat().
-   The effect is that the contents of the Mat are copied back to the
-   DS internal array, and the matrix is destroyed.
-
-   It is not compulsory to call this function, the matrix obtained with
-   DSGetMat() can simply be destroyed if entries need not be copied back.
 
    Level: advanced
 
@@ -467,29 +454,121 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 @*/
 PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
 {
-  PetscInt       j,rows,cols;
-  PetscScalar    *pA,*M;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(A,3);
-  PetscCheck(ds->omat[m],PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSRestoreMat must match a previous call to DSGetMat");
-  PetscCheck(ds->omat[m]==*A,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with DSGetMat");
 
-  PetscCall(MatGetSize(*A,&rows,&cols));
-  M  = ds->mat[m];
-  PetscCall(MatDenseGetArray(*A,&pA));
-  for (j=0;j<cols;j++) PetscCall(PetscArraycpy(M+j*ds->ld,pA+j*rows,rows));
-  PetscCall(MatDenseRestoreArray(*A,&pA));
-  PetscCall(MatDestroy(A));
+  PetscCall(MatDenseRestoreSubMatrix(ds->omat[m],A));
+  PetscCall(PetscObjectStateIncrease((PetscObject)ds));
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSGetMatAndColumn - Returns a sequential dense Mat object containing the requested
+   matrix and one of its columns as a Vec.
+
+   Not Collective
+
+   Input Parameters:
++  ds  - the direct solver context
+.  m   - the requested matrix
+-  col - the requested column
+
+   Output Parameters:
++  A   - Mat object
+-  v   - Vec object (the column)
+
+   Notes:
+   This calls DSGetMat() and then it extracts the selected column.
+   The user must call DSRestoreMatAndColumn() to recover the original state.
+   For matrices DS_MAT_T and DS_MAT_D, in complex scalars this function implies
+   copying from real values stored internally to scalar values in the Vec.
+
+   Level: advanced
+
+.seealso: DSRestoreMatAndColumn(), DSGetMat()
+@*/
+PetscErrorCode DSGetMatAndColumn(DS ds,DSMatType m,PetscInt col,Mat *A,Vec *v)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  DSCheckAlloc(ds,1);
+  DSCheckValidMat(ds,m,2);
+  PetscValidPointer(A,4);
+  PetscValidPointer(v,5);
+
+  PetscCall(DSGetMat(ds,m,A));
+  if (PetscDefined(USE_COMPLEX) && (m==DS_MAT_T || m==DS_MAT_D)) {
+    const PetscScalar *as;
+    PetscScalar       *vs;
+    PetscReal         *ar;
+    PetscInt          i,n,lda;
+    PetscCall(MatCreateVecs(*A,NULL,v));
+    PetscCall(VecGetSize(*v,&n));
+    PetscCall(MatDenseGetLDA(*A,&lda));
+    PetscCall(MatDenseGetArrayRead(*A,&as));
+    PetscCall(VecGetArrayWrite(*v,&vs));
+    ar = (PetscReal*)as;
+    for (i=0;i<n;i++) vs[i] = ar[i+col*lda];
+    PetscCall(VecRestoreArrayWrite(*v,&vs));
+    PetscCall(MatDenseRestoreArrayRead(*A,&as));
+  } else PetscCall(MatDenseGetColumnVec(*A,col,v));
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSRestoreMatAndColumn - Restores the matrix and vector after DSGetMatAndColumn()
+   was called.
+
+   Not Collective
+
+   Input Parameters:
++  ds  - the direct solver context
+.  m   - the requested matrix
+.  col - the requested column
+.  A   - the fetched Mat object
+-  v   - the fetched Vec object
+
+   Note:
+   A call to this function must match a previous call of DSGetMatAndColumn().
+
+   Level: advanced
+
+.seealso: DSGetMatAndColumn(), DSRestoreMat()
+@*/
+PetscErrorCode DSRestoreMatAndColumn(DS ds,DSMatType m,PetscInt col,Mat *A,Vec *v)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  DSCheckAlloc(ds,1);
+  DSCheckValidMat(ds,m,2);
+  PetscValidPointer(A,4);
+  PetscValidPointer(v,5);
+
+  if (PetscDefined(USE_COMPLEX) && (m==DS_MAT_T || m==DS_MAT_D)) {
+    const PetscScalar *vs;
+    PetscScalar       *as;
+    PetscReal         *ar;
+    PetscInt          i,n,lda;
+    PetscCall(VecGetSize(*v,&n));
+    PetscCall(MatDenseGetLDA(*A,&lda));
+    PetscCall(MatDenseGetArray(*A,&as));
+    PetscCall(VecGetArrayRead(*v,&vs));
+    ar = (PetscReal*)as;
+    for (i=0;i<n;i++) ar[i+col*lda] = PetscRealPart(vs[i]);
+    PetscCall(VecRestoreArrayRead(*v,&vs));
+    PetscCall(MatDenseRestoreArray(*A,&as));
+    PetscCall(VecDestroy(v));
+  } else PetscCall(MatDenseRestoreColumnVec(*A,col,v));
+  PetscCall(DSRestoreMat(ds,m,A));
   PetscFunctionReturn(0);
 }
 
 /*@C
-   DSGetArray - Returns a pointer to one of the internal arrays used to
-   represent matrices. You MUST call DSRestoreArray() when you no longer
+   DSGetArray - Returns a pointer to the internal array of one of the
+   matrices. You MUST call DSRestoreArray() when you no longer
    need to access the array.
 
    Not Collective
@@ -500,6 +579,9 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
 
    Output Parameter:
 .  a  - pointer to the values
+
+   Note:
+   To get read-only access, use DSGetMat() followed by MatDenseGetArrayRead().
 
    Level: advanced
 
@@ -512,8 +594,7 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(a,3);
-  *a = ds->mat[m];
-  CHKMEMQ;
+  PetscCall(MatDenseGetArray(ds->omat[m],a));
   PetscFunctionReturn(0);
 }
 
@@ -538,16 +619,14 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(a,3);
-  CHKMEMQ;
-  *a = 0;
+  PetscCall(MatDenseRestoreArray(ds->omat[m],a));
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
 
 /*@C
-   DSGetArrayReal - Returns a pointer to one of the internal arrays used to
-   represent real matrices. You MUST call DSRestoreArrayReal() when you no longer
-   need to access the array.
+   DSGetArrayReal - Returns a real pointer to the internal array of T or D.
+   You MUST call DSRestoreArrayReal() when you no longer need to access the array.
 
    Not Collective
 
@@ -558,19 +637,32 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
    Output Parameter:
 .  a  - pointer to the values
 
+   Note:
+   This function can be used only for DS_MAT_T and DS_MAT_D. These matrices always
+   store real values, even in complex scalars, that is why the returned pointer is
+   PetscReal.
+
    Level: advanced
 
 .seealso: DSRestoreArrayReal(), DSGetArray()
 @*/
 PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
 {
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar *as;
+#endif
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMatReal(ds,m,2);
   PetscValidPointer(a,3);
-  *a = ds->rmat[m];
-  CHKMEMQ;
+#if defined(PETSC_USE_COMPLEX)
+  PetscCall(MatDenseGetArray(ds->omat[m],&as));
+  *a = (PetscReal*)as;
+#else
+  PetscCall(MatDenseGetArray(ds->omat[m],a));
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -590,13 +682,21 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
 @*/
 PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
 {
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar *as;
+#endif
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   DSCheckValidMatReal(ds,m,2);
   PetscValidPointer(a,3);
-  CHKMEMQ;
-  *a = 0;
+#if defined(PETSC_USE_COMPLEX)
+  PetscCall(MatDenseRestoreArray(ds->omat[m],&as));
+  *a = NULL;
+#else
+  PetscCall(MatDenseRestoreArray(ds->omat[m],a));
+#endif
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
   PetscFunctionReturn(0);
 }
@@ -839,7 +939,7 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscCheck(mat<DS_NUM_MAT,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   PetscCheck(ds->ops->vectors,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   PetscCheck(!rnorm || j,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must give a value of j");
-  if (!ds->mat[mat]) PetscCall(DSAllocateMat_Private(ds,mat));
+  if (!ds->omat[mat]) PetscCall(DSAllocateMat_Private(ds,mat));
   if (!j) PetscCall(PetscInfo(ds,"Computing all vectors on %s\n",DSMatName[mat]));
   PetscCall(PetscLogEventBegin(DS_Vectors,ds,0,0,0));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
@@ -1012,71 +1112,5 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
   ds->state   = DS_STATE_RAW;
   ds->compact = PETSC_FALSE;
   PetscCall(PetscObjectStateIncrease((PetscObject)ds));
-  PetscFunctionReturn(0);
-}
-
-/*@
-   DSCopyMat - Copies the contents of a sequential dense Mat object to
-   the indicated DS matrix, or vice versa.
-
-   Not Collective
-
-   Input Parameters:
-+  ds   - the direct solver context
-.  m    - the requested matrix
-.  mr   - first row of m to be considered
-.  mc   - first column of m to be considered
-.  A    - Mat object
-.  Ar   - first row of A to be considered
-.  Ac   - first column of A to be considered
-.  rows - number of rows to copy
-.  cols - number of columns to copy
--  out  - whether the data is copied out of the DS
-
-   Note:
-   If out=true, the values of the DS matrix m are copied to A, otherwise
-   the entries of A are copied to the DS.
-
-   Level: developer
-
-.seealso: DSGetMat()
-@*/
-PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscInt Ar,PetscInt Ac,PetscInt rows,PetscInt cols,PetscBool out)
-{
-  PetscInt       j,mrows,mcols,arows,acols;
-  PetscScalar    *pA,*M;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  DSCheckAlloc(ds,1);
-  PetscValidLogicalCollectiveEnum(ds,m,2);
-  DSCheckValidMat(ds,m,2);
-  PetscValidLogicalCollectiveInt(ds,mr,3);
-  PetscValidLogicalCollectiveInt(ds,mc,4);
-  PetscValidHeaderSpecific(A,MAT_CLASSID,5);
-  PetscValidLogicalCollectiveInt(ds,Ar,6);
-  PetscValidLogicalCollectiveInt(ds,Ac,7);
-  PetscValidLogicalCollectiveInt(ds,rows,8);
-  PetscValidLogicalCollectiveInt(ds,cols,9);
-  PetscValidLogicalCollectiveBool(ds,out,10);
-  if (!rows || !cols) PetscFunctionReturn(0);
-
-  PetscCall(DSMatGetSize(ds,m,&mrows,&mcols));
-  PetscCall(MatGetSize(A,&arows,&acols));
-  PetscCheck(m!=DS_MAT_T && m!=DS_MAT_D,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
-  PetscCheck(mr>=0 && mr<mrows,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in m");
-  PetscCheck(mc>=0 && mc<mcols,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial column in m");
-  PetscCheck(Ar>=0 && Ar<arows,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in A");
-  PetscCheck(Ac>=0 && Ac<acols,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial column in A");
-  PetscCheck(mr+rows<=mrows && Ar+rows<=arows,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid number of rows");
-  PetscCheck(mc+cols<=mcols && Ac+cols<=acols,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid number of columns");
-
-  M  = ds->mat[m];
-  PetscCall(MatDenseGetArray(A,&pA));
-  for (j=0;j<cols;j++) {
-    if (out) PetscCall(PetscArraycpy(pA+(Ac+j)*arows+Ar,M+(mc+j)*ds->ld+mr,rows));
-    else PetscCall(PetscArraycpy(M+(mc+j)*ds->ld+mr,pA+(Ac+j)*arows+Ar,rows));
-  }
-  PetscCall(MatDenseRestoreArray(A,&pA));
   PetscFunctionReturn(0);
 }

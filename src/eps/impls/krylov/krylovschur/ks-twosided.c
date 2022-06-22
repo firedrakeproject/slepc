@@ -200,10 +200,10 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     PetscCall(BVSetActiveColumns(eps->W,eps->nconv,nv));
     PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
     PetscCall(BVMultInPlace(eps->V,U,eps->nconv,k+l));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&U));
     PetscCall(DSGetMat(eps->ds,DS_MAT_Z,&U));
     PetscCall(BVMultInPlace(eps->W,U,eps->nconv,k+l));
-    PetscCall(MatDestroy(&U));
+    PetscCall(DSRestoreMat(eps->ds,DS_MAT_Z,&U));
     if (eps->reason == EPS_CONVERGED_ITERATING && !breakdown) {
       PetscCall(BVCopyColumn(eps->V,nv,k+l));
       PetscCall(BVCopyColumn(eps->W,nv,k+l));

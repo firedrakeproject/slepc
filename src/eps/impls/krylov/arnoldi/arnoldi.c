@@ -106,12 +106,12 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     if (refined) {
       PetscCall(DSGetMat(eps->ds,DS_MAT_X,&U));
       PetscCall(BVMultInPlace(eps->V,U,eps->nconv,k+1));
-      PetscCall(MatDestroy(&U));
+      PetscCall(DSRestoreMat(eps->ds,DS_MAT_X,&U));
       PetscCall(BVOrthonormalizeColumn(eps->V,k,PETSC_FALSE,NULL,NULL));
     } else {
       PetscCall(DSGetMat(eps->ds,DS_MAT_Q,&U));
       PetscCall(BVMultInPlace(eps->V,U,eps->nconv,PetscMin(k+1,nv)));
-      PetscCall(MatDestroy(&U));
+      PetscCall(DSRestoreMat(eps->ds,DS_MAT_Q,&U));
     }
     PetscCall((*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx));
     if (eps->reason == EPS_CONVERGED_ITERATING && breakdown) {

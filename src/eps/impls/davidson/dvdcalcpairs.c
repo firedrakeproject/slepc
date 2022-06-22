@@ -52,6 +52,7 @@ static PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
 static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
 {
   Vec               v;
+  Mat               A,B,H0,G0;
   PetscScalar       *pA;
   const PetscScalar *pv;
   PetscInt          i,lV,kV,n,ld;
@@ -60,8 +61,18 @@ static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   n = kV-lV;
   PetscCall(DSSetDimensions(d->eps->ds,n,0,0));
-  PetscCall(DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,lV,lV,n,n,PETSC_FALSE));
-  if (d->G) PetscCall(DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,lV,lV,n,n,PETSC_FALSE));
+  PetscCall(DSGetMat(d->eps->ds,DS_MAT_A,&A));
+  PetscCall(MatDenseGetSubMatrix(d->H,lV,lV+n,lV,lV+n,&H0));
+  PetscCall(MatCopy(H0,A,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseRestoreSubMatrix(d->H,&H0));
+  PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_A,&A));
+  if (d->G) {
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_B,&B));
+    PetscCall(MatDenseGetSubMatrix(d->G,lV,lV+n,lV,lV+n,&G0));
+    PetscCall(MatCopy(G0,B,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(d->G,&G0));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_B,&B));
+  }
   /* Set the signature on projected matrix B */
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     PetscCall(DSGetLeadingDimension(d->eps->ds,&ld));
@@ -95,15 +106,18 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
   PetscBool         symm=PETSC_FALSE,set,flg;
 
   PetscFunctionBegin;
-  PetscCall(MatGetSize(A,&m0,&n0)); ldA_=m0;
+  PetscCall(MatGetSize(A,&m0,&n0));
+  PetscCall(MatDenseGetLDA(A,&ldA_));
   PetscAssert(m0==n0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"A should be square");
   PetscAssert(lA>=0 && lA<=m0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial row, column in A");
   PetscAssert(kA>=0 && kA>=lA && kA<=m0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid final row, column in A");
   PetscCall(MatIsHermitianKnown(A,&set,&flg));
   symm = set? flg: PETSC_FALSE;
-  PetscCall(MatGetSize(Q,&m0,&n0)); ldQ_=nQ_=m0;
+  PetscCall(MatGetSize(Q,&m0,&n0)); nQ_=m0;
+  PetscCall(MatDenseGetLDA(Q,&ldQ_));
   PetscAssert(l>=0 && l<=n0 && l+dA_<=n0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Q");
-  PetscCall(MatGetSize(Z,&m0,&n0)); ldZ_=m0;
+  PetscCall(MatGetSize(Z,&m0,&n0));
+  PetscCall(MatDenseGetLDA(Z,&ldZ_));
   PetscAssert(l>=0 && l<=n0 && l+dA_<=n0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid initial column in Z");
   PetscCall(MatGetSize(aux,&m0,&n0));
   PetscAssert(m0*n0>=nQ_*dA_,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"aux should be larger");
@@ -147,8 +161,8 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   PetscCall(BVGetActiveColumns(d->eps->V,&lV,&kV));
   PetscCall(EPSXDUpdateProj(Q,Z,0,d->H,lV,lV+d->V_tra_e,d->auxM));
   if (d->G) PetscCall(EPSXDUpdateProj(Q,Z,0,d->G,lV,lV+d->V_tra_e,d->auxM));
-  PetscCall(MatDestroy(&Q));
-  if (d->W) PetscCall(MatDestroy(&Z));
+  PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q));
+  if (d->W) PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z));
 
   PetscCall(PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,DSGHIEP,DSGHEP,""));
   if (d->V_tra_s==0 || symm) PetscFunctionReturn(0);
@@ -185,15 +199,20 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
 static inline PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,BV bv,DSMatType mat)
 {
   PetscInt       l,k,n;
-  Mat            auxM;
+  Mat            M,M0,auxM,auxM0;
 
   PetscFunctionBegin;
   PetscCall(BVGetActiveColumns(d->eps->V,&l,&k));
-  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM));
-  PetscCall(MatZeroEntries(auxM));
   PetscCall(DSGetDimensions(d->eps->ds,&n,NULL,NULL,NULL));
   PetscAssert(k-l==n,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Consistency broken");
-  PetscCall(DSCopyMat(d->eps->ds,mat,0,0,auxM,l,l,n,d->V_tra_e,PETSC_TRUE));
+  PetscCall(DSGetMat(d->eps->ds,mat,&M));
+  PetscCall(MatDenseGetSubMatrix(M,0,n,0,d->V_tra_e,&M0));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM));
+  PetscCall(MatDenseGetSubMatrix(auxM,l,l+n,l,l+d->V_tra_e,&auxM0));
+  PetscCall(MatCopy(M0,auxM0,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseRestoreSubMatrix(auxM,&auxM0));
+  PetscCall(MatDenseRestoreSubMatrix(M,&M0));
+  PetscCall(DSRestoreMat(d->eps->ds,mat,&M));
   PetscCall(BVMultInPlace(bv,auxM,l,l+d->V_tra_e));
   PetscCall(MatDestroy(&auxM));
   PetscFunctionReturn(0);
@@ -388,6 +407,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
 {
   PetscInt          i,ld;
   Vec               v;
+  Mat               A,B,H0,G0;
   PetscScalar       *pA;
   const PetscScalar *pv;
   PetscBool         symm;
@@ -397,8 +417,18 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   PetscCall(PetscObjectTypeCompare((PetscObject)d->eps->ds,DSHEP,&symm));
   if (symm) PetscFunctionReturn(0);
   PetscCall(DSSetDimensions(d->eps->ds,d->eps->nconv,0,0));
-  PetscCall(DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE));
-  if (d->G) PetscCall(DSCopyMat(d->eps->ds,DS_MAT_B,0,0,d->G,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE));
+  PetscCall(DSGetMat(d->eps->ds,DS_MAT_A,&A));
+  PetscCall(MatDenseGetSubMatrix(d->H,0,d->eps->nconv,0,d->eps->nconv,&H0));
+  PetscCall(MatCopy(H0,A,SAME_NONZERO_PATTERN));
+  PetscCall(MatDenseRestoreSubMatrix(d->H,&H0));
+  PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_A,&A));
+  if (d->G) {
+    PetscCall(DSGetMat(d->eps->ds,DS_MAT_B,&B));
+    PetscCall(MatDenseGetSubMatrix(d->G,0,d->eps->nconv,0,d->eps->nconv,&G0));
+    PetscCall(MatCopy(G0,B,SAME_NONZERO_PATTERN));
+    PetscCall(MatDenseRestoreSubMatrix(d->G,&G0));
+    PetscCall(DSRestoreMat(d->eps->ds,DS_MAT_B,&B));
+  }
   /* Set the signature on projected matrix B */
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     PetscCall(DSGetLeadingDimension(d->eps->ds,&ld));

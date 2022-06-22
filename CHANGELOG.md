@@ -9,16 +9,22 @@
 - 'FN': add support for matrix function computation on the GPU, whenever the `Mat`
   arguments of `FNEvaluateFunctionMat()` are of type `MATSEQDENSECUDA` (and similary
   for `FNEvaluateFunctionMatVec()`).
+- `DS`: new functions `DSGetMatAndColumn()`/`DSRestoreMatAndColumn()`.
 
 ### Changed
 
 - In configure, now the arguments intended to store link flags (and libraries) instead of
   being represented as comma-separated lists should be specified via a quoted string, e.g.,
   `--with-arpack-lib="-L/opt/soft/arpack -Wl,-rpath,/opt/soft/arpack -lparpack -larpack"`.
+- Interface of `BVMatLanczos()` changed to receive a `Mat` instead of pointers, in a
+  similar way to `BVMatArnoldi()`.
+- `DS`: now every call to `DSGetMat()` must be paired with a call to `DSRestoreMat()`, it
+  is not longer possible to just `MatDestroy()` the matrix.
 
 ### Removed
 
 - Remove python2 support, python-3.4+ is now required.
+- `DS`: remove `DSCopyMat()`.
 
 ## [3.17] - 2022-03-31
 

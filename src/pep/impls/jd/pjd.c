@@ -1347,12 +1347,12 @@ PetscErrorCode PEPSolve_JD(PEP pep)
         PetscCall(DSRestoreArray(pep->ds,DS_MAT_Y,&pX));
         PetscCall(DSGetMat(pep->ds,DS_MAT_X,&X));
         PetscCall(BVMultInPlace(pjd->V,X,0,minv));
+        PetscCall(DSRestoreMat(pep->ds,DS_MAT_X,&X));
         if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
          PetscCall(DSGetMat(pep->ds,DS_MAT_Y,&Y));
          PetscCall(BVMultInPlace(pjd->W,Y,pep->nconv,minv));
          PetscCall(DSRestoreMat(pep->ds,DS_MAT_Y,&Y));
         }
-        PetscCall(MatDestroy(&X));
         nv = minv;
         bupdated = 0;
       } else {

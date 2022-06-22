@@ -42,23 +42,25 @@ PetscErrorCode NEPDeflationExtendInvariantPair(NEP_EXT_OP extop,Vec u,PetscScala
 
 PetscErrorCode NEPDeflationExtractEigenpair(NEP_EXT_OP extop,PetscInt k,Vec u,PetscScalar lambda,DS ds)
 {
-  PetscScalar    *Ap;
-  PetscInt       ldh=extop->szd+1,ldds,i,j,k1=k+1;
+  Mat            A,H;
+  PetscInt       ldh=extop->szd+1,ldds,k1=k+1;
   PetscScalar    *eigr,*eigi,*t,*Z;
   Vec            x;
 
   PetscFunctionBegin;
   PetscCall(NEPDeflationExtendInvariantPair(extop,u,lambda,k));
+  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,k1,k1,extop->H,&H));
+  PetscCall(MatDenseSetLDA(H,ldh));
   PetscCall(PetscCalloc3(k1,&eigr,k1,&eigi,extop->szd,&t));
   PetscCall(DSReset(ds));
   PetscCall(DSSetType(ds,DSNHEP));
   PetscCall(DSAllocate(ds,ldh));
   PetscCall(DSGetLeadingDimension(ds,&ldds));
-  PetscCall(DSGetArray(ds,DS_MAT_A,&Ap));
-  for (j=0;j<k1;j++)
-    for (i=0;i<k1;i++) Ap[j*ldds+i] = extop->H[j*ldh+i];
-  PetscCall(DSRestoreArray(ds,DS_MAT_A,&Ap));
   PetscCall(DSSetDimensions(ds,k1,0,k1));
+  PetscCall(DSGetMat(ds,DS_MAT_A,&A));
+  PetscCall(MatCopy(H,A,SAME_NONZERO_PATTERN));
+  PetscCall(DSRestoreMat(ds,DS_MAT_A,&A));
+  PetscCall(MatDestroy(&H));
   PetscCall(DSSolve(ds,eigr,eigi));
   PetscCall(DSVectors(ds,DS_MAT_X,&k,NULL));
   PetscCall(DSGetArray(ds,DS_MAT_X,&Z));
@@ -748,11 +750,12 @@ PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscBool sincfun,Pet
 
 PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
 {
-  PetscScalar       *T,*Ei,*w1,*w2,*w=NULL,*ww,*hH,*hHprev,*pts;
+  Mat               A,Ei;
+  PetscScalar       *T,*w1,*w2,*w=NULL,*ww,*hH,*hHprev,*pts;
   PetscScalar       alpha,alpha2,*AB,sone=1.0,zero=0.0,*basisv,s;
   const PetscScalar *E;
   PetscInt          i,ldds,nwork=0,szd,nv,j,k,n;
-  PetscBLASInt      inc=1,nv_,ldds_,dim_,dim2,szdk,szd_,n_,ldh_;
+  PetscBLASInt      inc=1,nv_,ldds_,dim_,szdk,szd_,n_,ldh_;
   PetscMPIInt       np;
   NEP_DEF_PROJECT   proj=(NEP_DEF_PROJECT)ctx;
   NEP_EXT_OP        extop=proj->extop;
@@ -761,18 +764,19 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
   PetscFunctionBegin;
   PetscCall(DSGetDimensions(ds,&nv,NULL,NULL,NULL));
   PetscCall(DSGetLeadingDimension(ds,&ldds));
-  PetscCall(DSGetArray(ds,mat,&T));
-  PetscCall(PetscArrayzero(T,ldds*nv));
-  PetscCall(PetscBLASIntCast(ldds*nv,&dim2));
+  PetscCall(DSGetMat(ds,mat,&A));
+  PetscCall(MatZeroEntries(A));
   /* mat = V1^*T(lambda)V1 */
   for (i=0;i<nep->nt;i++) {
     if (deriv) PetscCall(FNEvaluateDerivative(nep->f[i],lambda,&alpha));
     else PetscCall(FNEvaluateFunction(nep->f[i],lambda,&alpha));
-    PetscCall(DSGetArray(ds,DSMatExtra[i],&Ei));
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&dim2,&alpha,Ei,&inc,T,&inc));
-    PetscCall(DSRestoreArray(ds,DSMatExtra[i],&Ei));
+    PetscCall(DSGetMat(ds,DSMatExtra[i],&Ei));
+    PetscCall(MatAXPY(A,alpha,Ei,SAME_NONZERO_PATTERN));
+    PetscCall(DSRestoreMat(ds,DSMatExtra[i],&Ei));
   }
+  PetscCall(DSRestoreMat(ds,mat,&A));
   if (!extop->ref && extop->n) {
+    PetscCall(DSGetArray(ds,mat,&T));
     n = extop->n;
     szd = extop->szd;
     PetscCall(PetscArrayzero(proj->work,proj->lwork));
@@ -846,8 +850,8 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
     }
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&nv_,&n_,&sone,AB,&szd_,proj->V2,&szd_,&zero,w,&szd_));
     PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&nv_,&nv_,&n_,&sone,proj->V2,&szd_,w,&szd_,&sone,T,&ldds_));
+    PetscCall(DSRestoreArray(ds,mat,&T));
   }
-  PetscCall(DSRestoreArray(ds,mat,&T));
   PetscFunctionReturn(0);
 }
 

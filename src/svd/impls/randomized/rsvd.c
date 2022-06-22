@@ -113,8 +113,8 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     PetscCall(DSGetMat(svd->ds,DS_MAT_V,&V));
     PetscCall(BVMultInPlace(svd->U,V,svd->nconv,svd->ncv));
     PetscCall(BVMultInPlace(svd->V,U,svd->nconv,svd->ncv));
-    PetscCall(MatDestroy(&U));
-    PetscCall(MatDestroy(&V));
+    PetscCall(DSRestoreMat(svd->ds,DS_MAT_U,&U));
+    PetscCall(DSRestoreMat(svd->ds,DS_MAT_V,&V));
     /* Check convergence */
     k = 0;
     for (i=svd->nconv;i<svd->ncv;i++) {

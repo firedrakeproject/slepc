@@ -190,7 +190,7 @@ PetscErrorCode NEPComputeVectors_Schur(NEP nep)
   PetscCall(DSVectors(nep->ds,DS_MAT_X,NULL,NULL));
   PetscCall(DSGetMat(nep->ds,DS_MAT_X,&Z));
   PetscCall(BVMultInPlace(nep->V,Z,0,nep->nconv));
-  PetscCall(MatDestroy(&Z));
+  PetscCall(DSRestoreMat(nep->ds,DS_MAT_X,&Z));
   PetscCall(BVNormalize(nep->V,nep->eigi));
   PetscFunctionReturn(0);
 }

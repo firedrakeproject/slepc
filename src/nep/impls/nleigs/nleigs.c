@@ -1066,17 +1066,21 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
 /*
   Compute a run of Arnoldi iterations
 */
-PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscScalar *K,PetscScalar *H,PetscInt ldh,BV W,PetscInt k,PetscInt *M,PetscBool *breakdown,Vec *t_)
+PetscErrorCode NEPNLEIGSTOARrun(NEP nep,Mat MK,Mat MH,BV W,PetscInt k,PetscInt *M,PetscReal *betah,PetscScalar *betak,PetscBool *breakdown,Vec *t_)
 {
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
-  PetscInt       i,j,m=*M,lwa,deg=ctx->nmat-1,lds,nqt,ld,l;
+  PetscInt       i,j,m=*M,lwa,deg=ctx->nmat-1,lds,nqt,ld,l,ldh;
   Vec            t;
   PetscReal      norm;
-  PetscScalar    *x,*work,*tt,sigma,*cont,*S;
+  PetscScalar    *x,*work,*tt,sigma=1.0,*cont,*S,*K,*H;
   PetscBool      lindep;
   Mat            MS;
 
   PetscFunctionBegin;
+  *betah = 0.0; *betak = 0.0;
+  PetscCall(MatDenseGetArray(MH,&H));
+  if (MK) PetscCall(MatDenseGetArray(MK,&K));
+  PetscCall(MatDenseGetLDA(MH,&ldh));
   PetscCall(BVTensorGetFactors(ctx->V,NULL,&MS));
   PetscCall(MatDenseGetArray(MS,&S));
   PetscCall(BVGetSizes(nep->V,NULL,NULL,&ld));
@@ -1120,8 +1124,12 @@ PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscScalar *K,PetscScalar *H,PetscInt l
     PetscCall(BVScaleColumn(ctx->V,j+1,1.0/norm));
     PetscCall(BVSetActiveColumns(nep->V,l,nqt));
   }
+  *betah = norm;
+  if (ctx->nshifts) *betak = norm*sigma;
   PetscCall(PetscFree4(x,work,tt,cont));
   PetscCall(MatDenseRestoreArray(MS,&S));
+  PetscCall(MatDenseRestoreArray(MH,&H));
+  if (MK) PetscCall(MatDenseRestoreArray(MK,&K));
   PetscCall(BVTensorRestoreFactors(ctx->V,NULL,&MS));
   PetscFunctionReturn(0);
 }
@@ -1129,14 +1137,14 @@ PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscScalar *K,PetscScalar *H,PetscInt l
 PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 {
   NEP_NLEIGS        *ctx = (NEP_NLEIGS*)nep->data;
-  PetscInt          i,k=0,l,nv=0,ld,lds,ldds,nq;
+  PetscInt          i,k=0,l,nv=0,ld,lds,nq;
   PetscInt          deg=ctx->nmat-1,nconv=0,dsn,dsk;
-  PetscScalar       *H,*pU,*K,betak=0,*eigr,*eigi;
+  PetscScalar       *pU,betak=0,*eigr,*eigi;
   const PetscScalar *S;
   PetscReal         betah;
   PetscBool         falselock=PETSC_FALSE,breakdown=PETSC_FALSE;
   BV                W;
-  Mat               MS,MQ,U;
+  Mat               H,K=NULL,MS,MQ,U;
 
   PetscFunctionBegin;
   if (ctx->lock) {
@@ -1146,19 +1154,19 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
   PetscCall(BVGetSizes(nep->V,NULL,NULL,&ld));
   lds = deg*ld;
-  PetscCall(DSGetLeadingDimension(nep->ds,&ldds));
   if (!ctx->nshifts) PetscCall(PetscMalloc2(nep->ncv,&eigr,nep->ncv,&eigi));
   else { eigr = nep->eigr; eigi = nep->eigi; }
   PetscCall(BVDuplicateResize(nep->V,PetscMax(nep->nt-1,ctx->nmat-1),&W));
 
   /* clean projected matrix (including the extra-arrow) */
-  PetscCall(DSGetArray(nep->ds,DS_MAT_A,&H));
-  PetscCall(PetscArrayzero(H,ldds*ldds));
-  PetscCall(DSRestoreArray(nep->ds,DS_MAT_A,&H));
+  PetscCall(DSSetDimensions(nep->ds,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSGetMat(nep->ds,DS_MAT_A,&H));
+  PetscCall(MatZeroEntries(H));
+  PetscCall(DSRestoreMat(nep->ds,DS_MAT_A,&H));
   if (ctx->nshifts) {
-    PetscCall(DSGetArray(nep->ds,DS_MAT_B,&H));
-    PetscCall(PetscArrayzero(H,ldds*ldds));
-    PetscCall(DSRestoreArray(nep->ds,DS_MAT_B,&H));
+    PetscCall(DSGetMat(nep->ds,DS_MAT_B,&H));
+    PetscCall(MatZeroEntries(H));
+    PetscCall(DSRestoreMat(nep->ds,DS_MAT_B,&H));
   }
 
   /* Get the starting Arnoldi vector */
@@ -1171,15 +1179,11 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
     /* Compute an nv-step Krylov relation */
     nv = PetscMin(nep->nconv+nep->mpd,nep->ncv);
-    if (ctx->nshifts) PetscCall(DSGetArray(nep->ds,DS_MAT_A,&K));
-    PetscCall(DSGetArray(nep->ds,ctx->nshifts?DS_MAT_B:DS_MAT_A,&H));
-    PetscCall(NEPNLEIGSTOARrun(nep,K,H,ldds,W,nep->nconv+l,&nv,&breakdown,nep->work));
-    betah = PetscAbsScalar(H[(nv-1)*ldds+nv]);
-    PetscCall(DSRestoreArray(nep->ds,ctx->nshifts?DS_MAT_B:DS_MAT_A,&H));
-    if (ctx->nshifts) {
-      betak = K[(nv-1)*ldds+nv];
-      PetscCall(DSRestoreArray(nep->ds,DS_MAT_A,&K));
-    }
+    if (ctx->nshifts) PetscCall(DSGetMat(nep->ds,DS_MAT_A,&K));
+    PetscCall(DSGetMat(nep->ds,ctx->nshifts?DS_MAT_B:DS_MAT_A,&H));
+    PetscCall(NEPNLEIGSTOARrun(nep,K,H,W,nep->nconv+l,&nv,&betah,&betak,&breakdown,nep->work));
+    PetscCall(DSRestoreMat(nep->ds,ctx->nshifts?DS_MAT_B:DS_MAT_A,&H));
+    if (ctx->nshifts) PetscCall(DSRestoreMat(nep->ds,DS_MAT_A,&K));
     PetscCall(DSSetDimensions(nep->ds,nv,nep->nconv,nep->nconv+l));
     if (l==0) PetscCall(DSSetState(nep->ds,DS_STATE_INTERMEDIATE));
     else PetscCall(DSSetState(nep->ds,DS_STATE_RAW));
@@ -1213,7 +1217,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     /* Update S */
     PetscCall(DSGetMat(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&MQ));
     PetscCall(BVMultInPlace(ctx->V,MQ,nep->nconv,k+l));
-    PetscCall(MatDestroy(&MQ));
+    PetscCall(DSRestoreMat(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&MQ));
 
     /* Copy last column of S */
     PetscCall(BVCopyColumn(ctx->V,nv,k+l));
@@ -1251,7 +1255,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     if (ctx->nshifts) {
       PetscCall(DSGetMat(nep->ds,DS_MAT_B,&MQ));
       PetscCall(BVMultInPlace(ctx->V,MQ,0,nep->nconv));
-      PetscCall(MatDestroy(&MQ));
+      PetscCall(DSRestoreMat(nep->ds,DS_MAT_B,&MQ));
     }
     PetscCall(BVTensorGetFactors(ctx->V,NULL,&MS));
     PetscCall(MatDenseGetArrayRead(MS,&S));

@@ -193,18 +193,21 @@ static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscBool sinvert,PetscScalar 
 /*
   Compute a run of Arnoldi iterations dim(work)=ld
 */
-static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscBool *breakdown,Vec *t_)
+static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,Mat A,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown,Vec *t_)
 {
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscInt       j,m=*M,deg=pep->nmat-1,ld;
-  PetscInt       lds,nqt,l;
+  PetscInt       ldh,lds,nqt,l;
   Vec            t;
   PetscReal      norm;
   PetscBool      flg,sinvert=PETSC_FALSE,lindep;
-  PetscScalar    *x,*S;
+  PetscScalar    *H,*x,*S;
   Mat            MS;
 
   PetscFunctionBegin;
+  *beta = 0.0;
+  PetscCall(MatDenseGetArray(A,&H));
+  PetscCall(MatDenseGetLDA(A,&ldh));
   PetscCall(BVTensorGetFactors(ctx->V,NULL,&MS));
   PetscCall(MatDenseGetArray(MS,&S));
   PetscCall(BVGetSizes(pep->V,NULL,NULL,&ld));
@@ -246,9 +249,11 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscScalar *H,PetscI
     PetscCall(BVScaleColumn(ctx->V,j+1,1.0/norm));
     PetscCall(BVSetActiveColumns(pep->V,l,nqt));
   }
+  *beta = norm;
   PetscCall(BVSetActiveColumns(ctx->V,0,*M));
   PetscCall(MatDenseRestoreArray(MS,&S));
   PetscCall(BVTensorRestoreFactors(ctx->V,NULL,&MS));
+  PetscCall(MatDenseRestoreArray(A,&H));
   PetscFunctionReturn(0);
 }
 
@@ -283,10 +288,10 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt sr,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt deg,PetscScalar *H,PetscInt ldh)
+static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt sr,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt deg,Mat HH)
 {
-  PetscInt       i,j,jj,lds,ldt,d=pep->nmat-1,idxcpy=0;
-  PetscScalar    *At,*Bt,*Hj,*Hp,*T,sone=1.0,g,a,*pM,*work;
+  PetscInt       i,j,jj,ldh,lds,ldt,d=pep->nmat-1,idxcpy=0;
+  PetscScalar    *H,*At,*Bt,*Hj,*Hp,*T,sone=1.0,g,a,*pM,*work;
   PetscBLASInt   k_,sr_,lds_,ldh_,info,*p,lwork,ldt_;
   PetscBool      transf=PETSC_FALSE,flg;
   PetscReal      norm,maxnrm,*rwork;
@@ -295,6 +300,8 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 
   PetscFunctionBegin;
   if (k==0) PetscFunctionReturn(0);
+  PetscCall(MatDenseGetArray(HH,&H));
+  PetscCall(MatDenseGetLDA(HH,&ldh));
   lds = deg*ld;
   PetscCall(PetscCalloc6(k,&p,sr*k,&At,k*k,&Bt,k*k,&Hj,k*k,&Hp,sr*k,&work));
   PetscCall(PetscBLASIntCast(sr,&sr_));
@@ -418,18 +425,19 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
   }
   if (transf) PetscCall(PetscFree(T));
   PetscCall(PetscFree6(p,At,Bt,Hj,Hp,work));
+  PetscCall(MatDenseRestoreArray(HH,&H));
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,ldds,nq=0,nconv=0;
+  PetscInt       i,j,k,l,nv=0,ld,lds,nq=0,nconv=0;
   PetscInt       nmat=pep->nmat,deg=nmat-1;
-  PetscScalar    *S,*H,sigma;
+  PetscScalar    *S,sigma;
   PetscReal      beta;
   PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,sinv=PETSC_FALSE;
-  Mat            MS,MQ;
+  Mat            H,MS,MQ;
 
   PetscFunctionBegin;
   PetscCall(PetscCitationsRegister(citation,&cited));
@@ -437,7 +445,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* undocumented option to use a cheaper locking instead of the true locking */
     PetscCall(PetscOptionsGetBool(NULL,NULL,"-pep_toar_falselocking",&falselock,NULL));
   }
-  PetscCall(DSGetLeadingDimension(pep->ds,&ldds));
   PetscCall(STGetShift(pep->st,&sigma));
 
   /* update polynomial basis coefficients */
@@ -463,9 +470,10 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (flg) sigma = 0.0;
 
   /* clean projected matrix (including the extra-arrow) */
-  PetscCall(DSGetArray(pep->ds,DS_MAT_A,&H));
-  PetscCall(PetscArrayzero(H,ldds*ldds));
-  PetscCall(DSRestoreArray(pep->ds,DS_MAT_A,&H));
+  PetscCall(DSSetDimensions(pep->ds,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
+  PetscCall(DSGetMat(pep->ds,DS_MAT_A,&H));
+  PetscCall(MatZeroEntries(H));
+  PetscCall(DSRestoreMat(pep->ds,DS_MAT_A,&H));
 
   /* Get the starting Arnoldi vector */
   PetscCall(BVTensorBuildFirstColumn(ctx->V,pep->nini));
@@ -477,10 +485,9 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
     /* compute an nv-step Lanczos factorization */
     nv = PetscMax(PetscMin(nconv+pep->mpd,pep->ncv),nv);
-    PetscCall(DSGetArray(pep->ds,DS_MAT_A,&H));
-    PetscCall(PEPTOARrun(pep,sigma,H,ldds,pep->nconv+l,&nv,&breakdown,pep->work));
-    beta = PetscAbsScalar(H[(nv-1)*ldds+nv]);
-    PetscCall(DSRestoreArray(pep->ds,DS_MAT_A,&H));
+    PetscCall(DSGetMat(pep->ds,DS_MAT_A,&H));
+    PetscCall(PEPTOARrun(pep,sigma,H,pep->nconv+l,&nv,&beta,&breakdown,pep->work));
+    PetscCall(DSRestoreMat(pep->ds,DS_MAT_A,&H));
     PetscCall(DSSetDimensions(pep->ds,nv,pep->nconv,pep->nconv+l));
     PetscCall(DSSetState(pep->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE));
     PetscCall(BVSetActiveColumns(ctx->V,pep->nconv,nv));
@@ -512,7 +519,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* update S */
     PetscCall(DSGetMat(pep->ds,DS_MAT_Q,&MQ));
     PetscCall(BVMultInPlace(ctx->V,MQ,pep->nconv,k+l));
-    PetscCall(MatDestroy(&MQ));
+    PetscCall(DSRestoreMat(pep->ds,DS_MAT_Q,&MQ));
 
     /* copy last column of S */
     PetscCall(BVCopyColumn(ctx->V,nv,k+l));
@@ -549,11 +556,11 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       /* extract invariant pair */
       PetscCall(BVTensorGetFactors(ctx->V,NULL,&MS));
       PetscCall(MatDenseGetArray(MS,&S));
-      PetscCall(DSGetArray(pep->ds,DS_MAT_A,&H));
+      PetscCall(DSGetMat(pep->ds,DS_MAT_A,&H));
       PetscCall(BVGetSizes(pep->V,NULL,NULL,&ld));
       lds = deg*ld;
-      PetscCall(PEPExtractInvariantPair(pep,sigma,nq,pep->nconv,S,ld,deg,H,ldds));
-      PetscCall(DSRestoreArray(pep->ds,DS_MAT_A,&H));
+      PetscCall(PEPExtractInvariantPair(pep,sigma,nq,pep->nconv,S,ld,deg,H));
+      PetscCall(DSRestoreMat(pep->ds,DS_MAT_A,&H));
       PetscCall(DSSetDimensions(pep->ds,pep->nconv,0,0));
       PetscCall(DSSetState(pep->ds,DS_STATE_RAW));
       PetscCall(PEPNewtonRefinement_TOAR(pep,sigma,&pep->rits,NULL,pep->nconv,S,lds));
@@ -562,7 +569,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       PetscCall(DSSynchronize(pep->ds,pep->eigr,pep->eigi));
       PetscCall(DSGetMat(pep->ds,DS_MAT_Q,&MQ));
       PetscCall(BVMultInPlace(ctx->V,MQ,0,pep->nconv));
-      PetscCall(MatDestroy(&MQ));
+      PetscCall(DSRestoreMat(pep->ds,DS_MAT_Q,&MQ));
       PetscCall(MatDenseRestoreArray(MS,&S));
       PetscCall(BVTensorRestoreFactors(ctx->V,NULL,&MS));
     }
