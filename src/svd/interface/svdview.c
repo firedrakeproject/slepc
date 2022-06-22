@@ -224,7 +224,7 @@ static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer 
       PetscFunctionReturn(0);
     }
   }
-  PetscCall(PetscViewerASCIIPrintf(viewer," All requested singular values computed up to the required tolerance:"));
+  PetscCall(PetscViewerASCIIPrintf(viewer," All requested %ssingular values computed up to the required tolerance:",svd->isgeneralized?"generalized ":""));
   for (i=0;i<=(svd->nsv-1)/8;i++) {
     PetscCall(PetscViewerASCIIPrintf(viewer,"\n     "));
     for (j=0;j<PetscMin(8,svd->nsv-8*i);j++) {
