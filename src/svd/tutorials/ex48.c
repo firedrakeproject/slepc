@@ -203,4 +203,22 @@ int main(int argc,char **argv)
       timeoutfactor: 2
       suffix: 3
 
+   testset:
+      requires: double !complex !defined(PETSC_USE_64BIT_INDICES)
+      args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -f2 identity -svd_nsv 3 -svd_ncv 24 -svd_smallest -terse
+      output_file: output/ex48_4.out
+      test:
+         suffix: 4
+         args: -svd_type trlanczos
+      test:
+         suffix: 4_spqr
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type qr
+         requires: suitesparse
+      test:
+         suffix: 4_cross
+         args: -svd_type cross -svd_cross_explicitmatrix
+      test:
+         suffix: 4_cyclic
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix
+
 TEST*/
