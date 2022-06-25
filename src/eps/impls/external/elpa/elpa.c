@@ -17,14 +17,14 @@
 
 #define PetscCallELPA(func, ...) do {                                                   \
     PetscErrorCode elpa_ierr_; \
-    PetscStackPushForeign(PetscStringize(func));                                   \
+    PetscStackPushExternal(PetscStringize(func));                                   \
     func(__VA_ARGS__,&elpa_ierr_);                                              \
     PetscStackPop;                                                                             \
     PetscCheck(!elpa_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(__VA_ARGS__,&elpa_ierr)),elpa_ierr_); \
   } while (0)
 
 #define PetscCallELPARET(func, ...) do {                                                   \
-    PetscStackPushForeign(PetscStringize(func));                                                      \
+    PetscStackPushExternal(PetscStringize(func));                                                      \
     PetscErrorCode elpa_ierr_ = func(__VA_ARGS__);                                              \
     PetscStackPop;                                                                             \
     PetscCheck(!elpa_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(__VA_ARGS__)),elpa_ierr_); \
@@ -32,7 +32,7 @@
 
 #define PetscCallELPANOARG(func) do {                                                   \
     PetscErrorCode elpa_ierr_; \
-    PetscStackPushForeign(PetscStringize(func));                                   \
+    PetscStackPushExternal(PetscStringize(func));                                   \
     func(&elpa_ierr_);                                              \
     PetscStackPop;                                                                             \
     PetscCheck(!elpa_ierr_,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error calling %s: error code %d",PetscStringize(func(&elpa_ierr)),elpa_ierr_); \

@@ -116,7 +116,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscCall(BVGetColumn(eps->V,0,&v0));
   PetscCall(VecGetArray(v0,&pV));
 
-  PetscStackCall("TRLan",TRLan_(MatMult_TRLAN,ipar,&n,&ncv,eps->eigr,pV,&n,tr->work,&tr->lwork));
+  PetscStackCallExternalVoid("TRLan",TRLan_(MatMult_TRLAN,ipar,&n,&ncv,eps->eigr,pV,&n,tr->work,&tr->lwork));
 
   PetscCall(VecRestoreArray(v0,&pV));
   PetscCall(BVRestoreColumn(eps->V,0,&v0));
