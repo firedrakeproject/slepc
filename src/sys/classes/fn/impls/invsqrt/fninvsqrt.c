@@ -55,7 +55,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Schur(FN fn,Mat A,Mat B)
   PetscCall(FNSqrtmSchur(fn,n,Ba,n,PETSC_FALSE));
   /* compute B = A\B */
   PetscCall(PetscMalloc1(ld,&ipiv));
-  PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
+  PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
   SlepcCheckLapackInfo("gesv",info);
   PetscCall(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
   PetscCall(PetscFree(ipiv));
@@ -84,7 +84,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
   PetscCall(FNSqrtmSchur(fn,n,Ba,n,PETSC_TRUE));
   /* compute B_1 = A\B_1 */
   PetscCall(PetscMalloc1(ld,&ipiv));
-  PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Wa,&ld,ipiv,Ba,&ld,&info));
+  PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Wa,&ld,ipiv,Ba,&ld,&info));
   SlepcCheckLapackInfo("gesv",info);
   PetscCall(PetscFree(ipiv));
   PetscCall(MatDenseRestoreArray(W,&Wa));
@@ -146,7 +146,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi(FN fn,Mat A,Mat B)
   PetscCall(FNSqrtmSadeghi(fn,n,Ba,n));
   /* compute B = A\B */
   PetscCall(PetscMalloc1(ld,&ipiv));
-  PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
+  PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
   SlepcCheckLapackInfo("gesv",info);
   PetscCall(PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n));
   PetscCall(PetscFree(ipiv));

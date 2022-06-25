@@ -185,9 +185,9 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
 #if defined(PETSC_USE_COMPLEX)
   rwork = ds->rwork;
-  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,beta,U,&ldd,W,&ldd,work,&lwork,rwork,&info));
+  PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,beta,U,&ldd,W,&ldd,work,&lwork,rwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,U,&ldd,W,&ldd,work,&lwork,&info));
+  PetscCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,U,&ldd,W,&ldd,work,&lwork,&info));
 #endif
   SlepcCheckLapackInfo("ggev",info);
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
@@ -223,13 +223,13 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
       cols = 2;
     }
 #endif
-    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&cols,X+j*ds->ld,&ld,&info));
+    PetscCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&cols,X+j*ds->ld,&ld,&info));
     SlepcCheckLapackInfo("lascl",info);
     norm = BLASnrm2_(&n,Y+j*ds->ld,&one);
 #if !defined(PETSC_USE_COMPLEX)
     if (wi[j] != 0.0) norm = SlepcAbsEigenvalue(norm,BLASnrm2_(&n,Y+(j+1)*ds->ld,&one));
 #endif
-    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&cols,Y+j*ds->ld,&ld,&info));
+    PetscCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&norm,&done,&n,&cols,Y+j*ds->ld,&ld,&info));
     SlepcCheckLapackInfo("lascl",info);
 #if !defined(PETSC_USE_COMPLEX)
     if (wi[j] != 0.0) j++;

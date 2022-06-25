@@ -244,10 +244,10 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
     /* special block-diagonal structure and therefore Q_1^T * V and */
     /* Q_2^T * U can be formed separately. */
 
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("T", &sbrk, &cutpnt, &done,
+    PetscCallBLAS("BLASgemv",BLASgemv_("T", &sbrk, &cutpnt, &done,
               &q[cutpnt - sbrk], &ldq, v, &one, &dzero, &work[iz], &one));
     nmc = n - cutpnt;
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("T", &sbrkp1, &nmc, &done,
+    PetscCallBLAS("BLASgemv",BLASgemv_("T", &sbrkp1, &nmc, &done,
               &q[cpp1-1 + (cpp1-1)*ldq], &ldq, u,
               &one, &dzero, &work[iz + cutpnt], &one));
 
@@ -256,9 +256,9 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
     /* for the higher rank modifications, the vectors V and U */
     /* have to be multiplied with the full eigenvector matrix */
 
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("T", &sbrk, &n, &done,
+    PetscCallBLAS("BLASgemv",BLASgemv_("T", &sbrk, &n, &done,
               &q[cutpnt - sbrk], &ldq, v, &one, &dzero, &work[iz], &one));
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("T", &sbrkp1, &n, &done, &q[cpp1-1],
+    PetscCallBLAS("BLASgemv",BLASgemv_("T", &sbrkp1, &n, &done, &q[cpp1-1],
               &ldq, u, &one, &done, &work[iz], &one));
 
   }
@@ -340,7 +340,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
     n1 = k;
     n2 = n - k;
-    PetscStackCallBLAS("LAPACKlamrg",LAPACKlamrg_(&n1, &n2, ev, &one, &mone, indxq));
+    PetscCallBLAS("LAPACKlamrg",LAPACKlamrg_(&n1, &n2, ev, &one, &mone, indxq));
     if (k == 0) for (i = 0; i < n; ++i) indxq[i] = i+1;
 
   } else {

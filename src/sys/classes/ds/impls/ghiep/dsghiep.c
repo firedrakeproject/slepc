@@ -203,7 +203,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
     b[0] = s1; b[1] = 0.0; b[2] = 0.0; b[3] = s2;
     ep = LAPACKlamch_("S");
     /* Compute eigenvalues of the block */
-    PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
+    PetscCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
     PetscCheck(wi!=0.0,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Real block in DSVectors_GHIEP");
     /* Complex eigenvalues */
     PetscCheck(scal1>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
@@ -219,7 +219,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
     norm = 1.0/norm;
     if (ds->state >= DS_STATE_CONDENSED) {
       alpha = norm;
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&two,&two,&alpha,Q+k*ld,&ld,Y,&two,&szero,X+k*ld,&ld));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&two,&two,&alpha,Q+k*ld,&ld,Y,&two,&szero,X+k*ld,&ld));
       if (rnorm) *rnorm = SlepcAbsEigenvalue(X[ds->n-1+k*ld],X[ds->n-1+(k+1)*ld]);
     } else {
       PetscCall(PetscArrayzero(X+k*ld,2*ld));
@@ -240,7 +240,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
     norm = 1.0/norm;
     if (ds->state >= DS_STATE_CONDENSED) {
       alpha = norm;
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&two,&alpha,Q+k*ld,&ld,Y,&one,&szero,X+k*ld,&one));
+      PetscCallBLAS("BLASgemv",BLASgemv_("N",&n_,&two,&alpha,Q+k*ld,&ld,Y,&one,&szero,X+k*ld,&one));
       if (rnorm) *rnorm = PetscAbsScalar(X[ds->n-1+k*ld]);
     } else {
       PetscCall(PetscArrayzero(X+k*ld,2*ld));
@@ -344,7 +344,7 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,
       b[0] = s1; b[1] = 0.0; b[2] = 0.0; b[3] = s2;
       ep = LAPACKlamch_("S");
       /* Compute eigenvalues of the block */
-      PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi1));
+      PetscCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi1));
       PetscCheck(scal1>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
       if (wi1==0.0) { /* Real eigenvalues */
         PetscCheck(scal2>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
@@ -447,7 +447,7 @@ PetscErrorCode DSUpdateExtraRow_GHIEP(DS ds)
     x = ds->work;
     y = ds->work+ld;
     for (i=0;i<n;i++) x[i] = PetscConj(A[n+i*ld]);
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
+    PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
     for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
     ds->k = n;
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
@@ -513,9 +513,9 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_X],&X));
   for (i=0;i<n1;i++) select[i] = 1;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,NULL,infoC,&info));
+  PetscCallBLAS("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,NULL,infoC,&info));
 #else
-  PetscStackCallBLAS("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,NULL,infoC,&info));
+  PetscCallBLAS("LAPACKhsein",LAPACKhsein_("R","N","N",select,&n1,H+off,&ld,wr+ds->l,NULL,&ld,X+off,&ld,&n1,&mout,ds->work,ds->rwork,NULL,infoC,&info));
 
   /* Separate real and imaginary part of complex eigenvectors */
   for (j=ds->l;j<ds->n;j++) {
@@ -598,7 +598,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
         ep = LAPACKlamch_("S");
 
         /* Compute eigenvalues of the block */
-        PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
+        PetscCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,b,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
         if (wi==0.0) { /* Real eigenvalues */
           isreal = PETSC_TRUE;
           PetscCheck(scal1>=ep && scal2>=ep,PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
@@ -651,7 +651,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
           A[(i+1)+ld*i]   = 0.0;
           A[i+ld*(i+1)]   = 0.0;
         }
-        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&two,&two,&sone,Q+ds->l+i*ld,&ld,Y,&two,&szero,ds->work,&m));
+        PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&two,&two,&sone,Q+ds->l+i*ld,&ld,Y,&two,&szero,ds->work,&m));
         PetscCall(PetscArraycpy(Q+ds->l+i*ld,ds->work,m));
         PetscCall(PetscArraycpy(Q+ds->l+(i+1)*ld,ds->work+m,m));
       }
@@ -751,9 +751,9 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,ds->work,&lwork,&info));
+  PetscCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,ds->work,&lwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,NULL,&ld,ds->work,&lwork,&info));
+  PetscCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,NULL,&ld,ds->work,&lwork,&info));
   for (i=ds->l;i<ds->n;i++) if (PetscAbsReal(PetscImaginaryPart(wr[i]))<10*PETSC_MACHINE_EPSILON) wr[i] = PetscRealPart(wr[i]);
   /* Sort to have consecutive conjugate pairs */
   for (i=ds->l;i<ds->n;i++) {
@@ -875,9 +875,9 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_X));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_X],&X));
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgeevx",LAPACKgeevx_("B","N","V","N",&n_,H,&n_,wr+ds->l,wi+ds->l,NULL,&ld,X+off,&ld,&ilo,&ihi,scale,&nrm,rcde,rcdv,ds->work+nwu,&lwork,NULL,&info));
+  PetscCallBLAS("LAPACKgeevx",LAPACKgeevx_("B","N","V","N",&n_,H,&n_,wr+ds->l,wi+ds->l,NULL,&ld,X+off,&ld,&ilo,&ihi,scale,&nrm,rcde,rcdv,ds->work+nwu,&lwork,NULL,&info));
 #else
-  PetscStackCallBLAS("LAPACKgeevx",LAPACKgeevx_("B","N","V","N",&n_,H,&n_,wr+ds->l,NULL,&ld,X+off,&ld,&ilo,&ihi,scale,&nrm,rcde,rcdv,ds->work+nwu,&lwork,ds->rwork+nwru,&info));
+  PetscCallBLAS("LAPACKgeevx",LAPACKgeevx_("B","N","V","N",&n_,H,&n_,wr+ds->l,NULL,&ld,X+off,&ld,&ilo,&ihi,scale,&nrm,rcde,rcdv,ds->work+nwu,&lwork,ds->rwork+nwru,&info));
 
   /* Sort to have consecutive conjugate pairs
      Separate real and imaginary part of complex eigenvectors*/

@@ -33,9 +33,9 @@ PetscErrorCode LMEDenseRankSVD(LME lme,PetscInt n,PetscScalar *A,PetscInt lda,Pe
   lw_ = 10*n_;
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined (PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&n_,&n_,A,&lda_,sg,U,&ldu_,NULL,&n_,work,&lw_,&info));
+  PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&n_,&n_,A,&lda_,sg,U,&ldu_,NULL,&n_,work,&lw_,&info));
 #else
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&n_,&n_,A,&lda_,sg,U,&ldu_,NULL,&n_,work,&lw_,rwork,&info));
+  PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&n_,&n_,A,&lda_,sg,U,&ldu_,NULL,&n_,work,&lw_,rwork,&info));
 #endif
   PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("gesvd",info);
@@ -70,13 +70,13 @@ static PetscErrorCode LyapunovCholResidual(PetscInt m,PetscScalar *A,PetscInt ld
   PetscCall(PetscMalloc2(m*m,&M,m*m,&R));
 
   /* R = B*B' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&kk,&done,B,&lb,B,&lb,&zero,R,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&kk,&done,B,&lb,B,&lb,&zero,R,&n));
   /* M = A*U' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,A,&la,U,&lu,&zero,M,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,A,&la,U,&lu,&zero,M,&n));
   /* R = R+M*U */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,M,&n,U,&lu,&done,R,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,M,&n,U,&lu,&done,R,&n));
   /* R = R+U'*M' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","C",&n,&n,&n,&done,U,&lu,M,&n,&done,R,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("C","C",&n,&n,&n,&done,U,&lu,M,&n,&done,R,&n));
 
   *res = LAPACKlange_("F",&n,&n,R,&n,NULL);
   PetscCall(PetscFree2(M,R));
@@ -102,9 +102,9 @@ static PetscErrorCode LyapunovResidual(PetscInt m,PetscScalar *A,PetscInt lda,Pe
 
   /* R = B+A*X */
   for (i=0;i<m;i++) PetscCall(PetscArraycpy(R+i*m,B+i*ldb,m));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,A,&la,X,&lx,&done,R,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,A,&la,X,&lx,&done,R,&n));
   /* R = R+X*A' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,X,&lx,A,&la,&done,R,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,X,&lx,A,&la,&done,R,&n));
 
   *res = LAPACKlange_("F",&n,&n,R,&n,NULL);
   PetscCall(PetscFree(R));
@@ -137,7 +137,7 @@ static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt
   }
 
   /* compute the real Schur form of W */
-  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,wi,Q,&n,work,&lwork,NULL,&info));
+  PetscCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,wi,Q,&n,work,&lwork,NULL,&info));
   SlepcCheckLapackInfo("gees",info);
 #if defined(PETSC_USE_DEBUG)
   for (i=0;i<m;i++) PetscCheck(PetscRealPart(wr[i])<0.0,PETSC_COMM_SELF,PETSC_ERR_USER_INPUT,"Eigenvalue with non-negative real part, the coefficient matrix is not stable");
@@ -149,14 +149,14 @@ static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt
   }
 
   /* solve Lyapunov equation (Hammarling) */
-  PetscStackCallBLAS("SLICOTsb03od",SLICOTsb03od_("C","F","N",&n,&kk,W,&n,Q,&n,U,&lu,&scal,wr,wi,work,&lwork,&info));
+  PetscCallBLAS("SLICOTsb03od",SLICOTsb03od_("C","F","N",&n,&kk,W,&n,Q,&n,U,&lu,&scal,wr,wi,work,&lwork,&info));
   PetscCheck(!info,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%" PetscBLASInt_FMT,info);
   PetscCheck(scal==1.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
 
   /* resnorm = norm(H(m+1,:)*U'*U), use Q(:,1) = U'*U(:,m) */
   if (res) {
     for (j=0;j<m;j++) Q[j] = U[j+(m-1)*ldu];
-    PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","C","N",&n,U,&lu,Q,&ione));
+    PetscCallBLAS("BLAStrmv",BLAStrmv_("U","C","N",&n,U,&lu,Q,&ione));
     PetscCheck(k==1,PETSC_COMM_SELF,PETSC_ERR_LIB,"Residual error is intended for k=1 only, but you set k=%" PetscInt_FMT,k);
     *res *= BLASnrm2_(&n,Q,&ione);
   }
@@ -187,7 +187,7 @@ static PetscErrorCode CholeskyFactor(PetscInt m,PetscScalar *A,PetscInt lda)
   for (i=0;i<m;i++) PetscCall(PetscArraycpy(S+i*m,A+i*lda,m));
 
   /* compute upper Cholesky factor in R */
-  PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n,A,&ld,&info));
+  PetscCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n,A,&ld,&info));
   PetscCall(PetscLogFlops((1.0*n*n*n)/3.0));
 
   if (info) {
@@ -195,7 +195,7 @@ static PetscErrorCode CholeskyFactor(PetscInt m,PetscScalar *A,PetscInt lda)
       PetscCall(PetscArraycpy(A+i*lda,S+i*m,m));
       A[i+i*lda] += 50.0*PETSC_MACHINE_EPSILON;
     }
-    PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n,A,&ld,&info));
+    PetscCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n,A,&ld,&info));
     SlepcCheckLapackInfo("potrf",info);
     PetscCall(PetscLogFlops((1.0*n*n*n)/3.0));
   }
@@ -242,9 +242,9 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 
   /* compute the (real) Schur form of W */
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,W,&n,wr,wi,Q,&n,work,&lwork,&info));
+  PetscCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,W,&n,wr,wi,Q,&n,work,&lwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,W,&n,wr,Q,&n,work,&lwork,&info));
+  PetscCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,W,&n,wr,Q,&n,work,&lwork,&info));
 #endif
   SlepcCheckLapackInfo("hseqr",info);
 #if defined(PETSC_USE_DEBUG)
@@ -252,17 +252,17 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 #endif
 
   /* C = -Z*Z', Z = Q'*B */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n,&kk,&n,&done,Q,&n,B,&lb,&zero,Z,&n));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&kk,&dmone,Z,&n,Z,&n,&zero,C,&lu));
+  PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&n,&kk,&n,&done,Q,&n,B,&lb,&zero,Z,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&kk,&dmone,Z,&n,Z,&n,&zero,C,&lu));
 
   /* solve triangular Sylvester equation */
-  PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,W,&n,W,&n,C,&lu,&scal,&info));
+  PetscCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,W,&n,W,&n,C,&lu,&scal,&info));
   SlepcCheckLapackInfo("trsyl",info);
   PetscCheck(scal==1.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
 
   /* back-transform C = Q*C*Q' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,C,&n,&zero,W,&n));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,W,&n,Q,&n,&zero,C,&lu));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,C,&n,&zero,W,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,W,&n,Q,&n,&zero,C,&lu));
 
   /* resnorm = norm(H(m+1,:)*Y) */
   if (res) {
@@ -373,7 +373,7 @@ static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,Pet
   }
 
   /* compute the real Schur form of W */
-  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,wi,Q,&n,work,&lwork,NULL,&info));
+  PetscCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,wi,Q,&n,work,&lwork,NULL,&info));
   SlepcCheckLapackInfo("gees",info);
 
   /* copy -B into X */
@@ -382,7 +382,7 @@ static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,Pet
   }
 
   /* solve Lyapunov equation (Hammarling) */
-  PetscStackCallBLAS("SLICOTsb03md",SLICOTsb03md_("C","X","F","N",&n,W,&n,Q,&n,X,&lx,&scal,&sep,&ferr,wr,wi,iwork,work,&lwork,&info));
+  PetscCallBLAS("SLICOTsb03md",SLICOTsb03md_("C","X","F","N",&n,W,&n,Q,&n,X,&lx,&scal,&sep,&ferr,wr,wi,iwork,work,&lwork,&info));
   PetscCheck(!info,PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%" PetscBLASInt_FMT,info);
   PetscCheck(scal==1.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",scal);
 
@@ -428,24 +428,24 @@ static PetscErrorCode Lyapunov_LAPACK(PetscInt m,PetscScalar *A,PetscInt lda,Pet
 
   /* compute the (real) Schur form of W */
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,wi,Q,&n,work,&lwork,NULL,&info));
+  PetscCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,wi,Q,&n,work,&lwork,NULL,&info));
 #else
-  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,Q,&n,work,&lwork,rwork,NULL,&info));
+  PetscCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,Q,&n,work,&lwork,rwork,NULL,&info));
 #endif
   SlepcCheckLapackInfo("gees",info);
 
   /* X = -Q'*B*Q */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n,&n,&n,&done,Q,&n,B,&lb,&zero,Z,&n));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&dmone,Z,&n,Q,&n,&zero,X,&lx));
+  PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&n,&n,&n,&done,Q,&n,B,&lb,&zero,Z,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&dmone,Z,&n,Q,&n,&zero,X,&lx));
 
   /* solve triangular Sylvester equation */
-  PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,W,&n,W,&n,X,&lx,&scal,&info));
+  PetscCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,W,&n,W,&n,X,&lx,&scal,&info));
   SlepcCheckLapackInfo("trsyl",info);
   PetscCheck(scal==1.0,PETSC_COMM_SELF,PETSC_ERR_SUP,"Current implementation cannot handle scale factor %g",(double)scal);
 
   /* back-transform X = Q*X*Q' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,X,&n,&zero,W,&n));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,W,&n,Q,&n,&zero,X,&lx));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,X,&n,&zero,W,&n));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,W,&n,Q,&n,&zero,X,&lx));
 
   PetscCall(PetscFPTrapPop());
 #if !defined(PETSC_USE_COMPLEX)

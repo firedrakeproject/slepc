@@ -44,7 +44,7 @@ PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ld
     }
     a = 1/ca[idx-1];
     g = (idx==1)?0.0:-cg[idx-1]/ca[idx-1];
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&a,T,&ldt_,Tp,&ldtp_,&g,Tj,&ldtj_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&a,T,&ldt_,Tp,&ldtp_,&g,Tj,&ldtj_));
     for (i=0;i<k;i++) T[i*ldt+i] += cb[idx-1];
   }
   PetscFunctionReturn(0);

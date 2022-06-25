@@ -102,15 +102,14 @@ static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,Pet
   /* orthogonalize: compute h */
   PetscCall(BVDotVec(V,v,h));
   PetscCall(BVDotVec(V,w,work));
-  if (j>0)
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione));
+  if (j>0) PetscCallBLAS("BLASgemv",BLASgemv_("C",&j_1,&j,&one,H,&ldh,work,&ione,&one,h,&ione));
   PetscCall(VecDot(w,t,&dot));
   h[j] += dot;
 
   /* orthogonalize: update v and w */
   PetscCall(BVMultVec(V,-1.0,1.0,v,h));
   if (j>0) {
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&j_1,&j,&one,H,&ldh,h,&ione,&zero,work,&ione));
+    PetscCallBLAS("BLASgemv",BLASgemv_("N",&j_1,&j,&one,H,&ldh,h,&ione,&zero,work,&ione));
     PetscCall(BVMultVec(V,-1.0,1.0,w,work));
   }
   PetscCall(VecAXPY(w,-h[j],t));

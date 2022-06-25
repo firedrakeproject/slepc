@@ -63,12 +63,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
   if (s>0.5) {
     sexp = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0))+2);
     scale = PetscPowRealInt(2.0,-sexp);
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&scale,As,&inc));
+    PetscCallBLAS("BLASscal",BLASscal_(&ld2,&scale,As,&inc));
     PetscCall(PetscLogFlops(1.0*n*n));
   } else sexp = 0;
 
   /* Horner evaluation */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,As,&ld,As,&ld,&zero,A2,&ld));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,As,&ld,As,&ld,&zero,A2,&ld));
   PetscCall(PetscLogFlops(2.0*n*n*n));
   PetscCall(PetscArrayzero(Q,ld2));
   PetscCall(PetscArrayzero(P,ld2));
@@ -80,12 +80,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
   odd = PETSC_TRUE;
   for (k=p-1;k>0;k--) {
     if (odd) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A2,&ld,&zero,W,&ld));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,A2,&ld,&zero,W,&ld));
       SWAP(Q,W,aux);
       for (j=0;j<n;j++) Q[j+j*ld] += c[k-1];
       odd = PETSC_FALSE;
     } else {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A2,&ld,&zero,W,&ld));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,A2,&ld,&zero,W,&ld));
       SWAP(P,W,aux);
       for (j=0;j<n;j++) P[j+j*ld] += c[k-1];
       odd = PETSC_TRUE;
@@ -93,27 +93,27 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
     PetscCall(PetscLogFlops(2.0*n*n*n));
   }
   /*if (odd) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,As,&ld,&zero,W,&ld));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,As,&ld,&zero,W,&ld));
     SWAP(Q,W,aux);
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
+    PetscCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
+    PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
     SlepcCheckLapackInfo("gesv",info);
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
+    PetscCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++) P[j+j*ld] += 1.0;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
+    PetscCallBLAS("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
   } else {*/
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,As,&ld,&zero,W,&ld));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,As,&ld,&zero,W,&ld));
     SWAP(P,W,aux);
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
+    PetscCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
+    PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
     SlepcCheckLapackInfo("gesv",info);
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
+    PetscCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++) P[j+j*ld] += 1.0;
   /*}*/
   PetscCall(PetscLogFlops(2.0*n*n*n+2.0*n*n*n/3.0+4.0*n*n));
 
   for (k=1;k<=sexp;k++) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,P,&ld,&zero,W,&ld));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,P,&ld,&zero,W,&ld));
     PetscCall(PetscArraycpy(P,W,ld2));
   }
   if (P!=Ba) PetscCall(PetscArraycpy(Ba,P,ld2));
@@ -443,19 +443,19 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     PetscCall(PetscArraycpy(sMaux,Aa,n2));
     /* estimate rightmost eigenvalue and shift A with it */
 #if !defined(PETSC_USE_COMPLEX)
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,&work1,&query,&info));
+    PetscCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,&work1,&query,&info));
     SlepcCheckLapackInfo("geev",info);
     PetscCall(PetscBLASIntCast((PetscInt)work1,&lwork));
     PetscCall(PetscMalloc1(lwork,&work));
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,work,&lwork,&info));
+    PetscCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,work,&lwork,&info));
     PetscCall(PetscFree(work));
 #else
     PetscCall(PetscArraycpy(Maux,Aa,n2));
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,Maux,&n,wr,NULL,&n,NULL,&n,&work1,&query,rwork,&info));
+    PetscCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,Maux,&n,wr,NULL,&n,NULL,&n,&work1,&query,rwork,&info));
     SlepcCheckLapackInfo("geev",info);
     PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork));
     PetscCall(PetscMalloc2(2*n,&rwork,lwork,&work));
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,Maux,&n,wr,NULL,&n,NULL,&n,work,&lwork,rwork,&info));
+    PetscCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,Maux,&n,wr,NULL,&n,NULL,&n,work,&lwork,rwork,&info));
     PetscCall(PetscFree2(rwork,work));
 #endif
     SlepcCheckLapackInfo("geev",info);
@@ -489,7 +489,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     if (shift) expshift = PetscExpReal(shift);
     for (i=0;i<n;i++) sMaux[i+i*n] += 1.0;
     if (shift) {
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,sMaux,&one));
+      PetscCallBLAS("BLASscal",BLASscal_(&n2,&expshift,sMaux,&one));
       PetscCall(PetscLogFlops(1.0*(n+n2)));
     } else PetscCall(PetscLogFlops(1.0*n));
     PetscCall(PetscArraycpy(Ba,sMaux,n2));
@@ -510,7 +510,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   PetscCall(PetscArraycpy(As,sMaux,n2));
 #endif
   scale = 1.0/PetscPowRealInt(2.0,s);
-  PetscStackCallBLAS("BLASCOMPLEXscal",BLASCOMPLEXscal_(&n2,&scale,As,&one));
+  PetscCallBLAS("BLASCOMPLEXscal",BLASCOMPLEXscal_(&n2,&scale,As,&one));
   PetscCall(SlepcLogFlopsComplex(1.0*n2));
 
   /* evaluate Pade approximant (partial fraction or product form) */
@@ -537,7 +537,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
           Maux[j+j*n] -= p[2*i];
           RR[j+j*n] = r[2*i];
         }
-        PetscStackCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,Maux,&n,piv,RR,&n,&info));
+        PetscCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,Maux,&n,piv,RR,&n,&info));
         SlepcCheckLapackInfo("gesv",info);
         for (j=0;j<n2;j++) {
           expmA[j] += RR[j] + PetscConj(RR[j]);
@@ -554,7 +554,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
           Maux[j+j*n] -= p[ipsize-1];
           RR[j+j*n] = r[irsize-1];
         }
-        PetscStackCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,Maux,&n,piv,RR,&n,&info));
+        PetscCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,Maux,&n,piv,RR,&n,&info));
         SlepcCheckLapackInfo("gesv",info);
         for (j=0;j<n2;j++) {
           expmA[j] += RR[j];
@@ -569,7 +569,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
           Maux[j+j*n] -= p[i];
           RR[j+j*n] = r[i];
         }
-        PetscStackCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,Maux,&n,piv,RR,&n,&info));
+        PetscCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,Maux,&n,piv,RR,&n,&info));
         SlepcCheckLapackInfo("gesv",info);
         for (j=0;j<n2;j++) {
           expmA[j] += RR[j];
@@ -586,11 +586,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
       } else {
         PetscCall(PetscArraycpy(RR,As,n2));
         for (j=1;j<i;j++) {
-          PetscStackCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,RR,&n,&czero,Maux,&n));
+          PetscCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,RR,&n,&czero,Maux,&n));
           SWAP(RR,Maux,aux);
           PetscCall(SlepcLogFlopsComplex(2.0*n*n*n));
         }
-        PetscStackCallBLAS("BLASCOMPLEXscal",BLASCOMPLEXscal_(&n2,&remainterm[iremainsize-1-i],RR,&one));
+        PetscCallBLAS("BLASCOMPLEXscal",BLASCOMPLEXscal_(&n2,&remainterm[iremainsize-1-i],RR,&one));
         PetscCall(SlepcLogFlopsComplex(1.0*n2));
       }
       for (j=0;j<n2;j++) {
@@ -616,13 +616,13 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
       for (j=0;j<n;j++) {
         RR[j+j*n] -= rootp[i];
       }
-      PetscStackCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,expmA,&n,&czero,Maux,&n));
+      PetscCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,expmA,&n,&czero,Maux,&n));
       SWAP(expmA,Maux,aux);
       PetscCall(PetscArraycpy(RR,As,n2));
       for (j=0;j<n;j++) {
         RR[j+j*n] -= rootq[i];
       }
-      PetscStackCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,RR,&n,piv,expmA,&n,&info));
+      PetscCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,RR,&n,piv,expmA,&n,&info));
       SlepcCheckLapackInfo("gesv",info);
       /* loop(n) + gemm + loop(n) + gesv */
       PetscCall(SlepcLogFlopsComplex(1.0*n+(2.0*n*n*n)+1.0*n+(2.0*n*n*n/3.0+2.0*n*n*n)));
@@ -633,7 +633,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
       for (j=0;j<n;j++) {
         RR[j+j*n] -= rootp[i];
       }
-      PetscStackCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,expmA,&n,&czero,Maux,&n));
+      PetscCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,expmA,&n,&czero,Maux,&n));
       SWAP(expmA,Maux,aux);
       PetscCall(SlepcLogFlopsComplex(1.0*n+2.0*n*n*n));
     }
@@ -641,11 +641,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     for (i=minlen;i<ipsize;i++) {
       PetscCall(PetscArraycpy(RR,As,n2));
       for (j=0;j<n;j++) RR[j+j*n] -= rootq[i];
-      PetscStackCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,RR,&n,piv,expmA,&n,&info));
+      PetscCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,RR,&n,piv,expmA,&n,&info));
       SlepcCheckLapackInfo("gesv",info);
       PetscCall(SlepcLogFlopsComplex(1.0*n+(2.0*n*n*n/3.0+2.0*n*n*n)));
     }
-    PetscStackCallBLAS("BLASCOMPLEXscal",BLASCOMPLEXscal_(&n2,&mult,expmA,&one));
+    PetscCallBLAS("BLASCOMPLEXscal",BLASCOMPLEXscal_(&n2,&mult,expmA,&one));
     PetscCall(SlepcLogFlopsComplex(1.0*n2));
     PetscCall(PetscFree2(rootp,rootq));
   }
@@ -660,7 +660,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 
   /* perform repeated squaring */
   for (i=0;i<s;i++) { /* final squaring */
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,Ba2,&n,Ba2,&n,&szero,sMaux,&n));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,Ba2,&n,Ba2,&n,&szero,sMaux,&n));
     SWAP(Ba2,sMaux,saux);
     PetscCall(PetscLogFlops(2.0*n*n*n));
   }
@@ -670,7 +670,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   }
   if (shift) {
     expshift = PetscExpReal(shift);
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,Ba,&one));
+    PetscCallBLAS("BLASscal",BLASscal_(&n2,&expshift,Ba,&one));
     PetscCall(PetscLogFlops(1.0*n2));
   }
 
@@ -748,7 +748,7 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
     goto done;
   }
   if (n<SMALLN) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[2],&n_,Apowers[2],&n_,&szero,work,&n_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[2],&n_,Apowers[2],&n_,&szero,work,&n_));
     d8 = PetscPowReal(LAPACKlange_("O",&n_,&n_,work,&n_,rwork),1.0/8.0);
     PetscCall(PetscLogFlops(2.0*n*n*n+1.0*n*n));
   } else {
@@ -765,7 +765,7 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
     goto done;
   }
   if (n<SMALLN) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[2],&n_,Apowers[3],&n_,&szero,work,&n_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[2],&n_,Apowers[3],&n_,&szero,work,&n_));
     d10 = PetscPowReal(LAPACKlange_("O",&n_,&n_,work,&n_,rwork),1.0/10.0);
     PetscCall(PetscLogFlops(2.0*n*n*n+1.0*n*n));
   } else {
@@ -778,9 +778,9 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
   if (*s) {
     Ascaled = work+3*n*n;
     n2 = n_*n_;
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&n2,A,&one,Ascaled,&one));
+    PetscCallBLAS("BLAScopy",BLAScopy_(&n2,A,&one,Ascaled,&one));
     sfactor = PetscPowRealInt(2.0,-(*s));
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&sfactor,Ascaled,&one));
+    PetscCallBLAS("BLASscal",BLASscal_(&n2,&sfactor,Ascaled,&one));
     PetscCall(PetscLogFlops(1.0*n*n));
   } else Ascaled = A;
   *s += ell(n_,Ascaled,coeff[4],13,work,rand);
@@ -828,9 +828,9 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   Apowers[4] = Apowers[3] + n*n;      /* Apowers[4] = A^8 */
 
   PetscCall(PetscArraycpy(Apowers[0],Aa,n2));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[0],&n_,Apowers[0],&n_,&szero,Apowers[1],&n_));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[1],&n_,Apowers[1],&n_,&szero,Apowers[2],&n_));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[1],&n_,Apowers[2],&n_,&szero,Apowers[3],&n_));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[0],&n_,Apowers[0],&n_,&szero,Apowers[1],&n_));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[1],&n_,Apowers[1],&n_,&szero,Apowers[2],&n_));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[1],&n_,Apowers[2],&n_,&szero,Apowers[3],&n_));
   PetscCall(PetscLogFlops(6.0*n*n*n));
 
   /* Compute scaling parameter and order of Pade approximant */
@@ -839,7 +839,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   if (s) { /* rescale */
     for (j=0;j<4;j++) {
       scale = PetscPowRealInt(2.0,-PetscMax(2*j,1)*s);
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&scale,Apowers[j],&one));
+      PetscCallBLAS("BLASscal",BLASscal_(&n2,&scale,Apowers[j],&one));
     }
     PetscCall(PetscLogFlops(4.0*n*n));
   }
@@ -861,7 +861,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
     case 5:
     case 7:
     case 9:
-      if (m==9) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[1],&n_,Apowers[3],&n_,&szero,Apowers[4],&n_));
+      if (m==9) PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[1],&n_,Apowers[3],&n_,&szero,Apowers[4],&n_));
       PetscCall(PetscArrayzero(P,n2));
       PetscCall(PetscArrayzero(Q,n2));
       for (j=0;j<n;j++) {
@@ -869,59 +869,59 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
         Q[j+j*n] = c[0];
       }
       for (j=m;j>=3;j-=2) {
-        PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[j],Apowers[(j+1)/2-1],&one,P,&one));
-        PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[j-1],Apowers[(j+1)/2-1],&one,Q,&one));
+        PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[j],Apowers[(j+1)/2-1],&one,P,&one));
+        PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[j-1],Apowers[(j+1)/2-1],&one,Q,&one));
         PetscCall(PetscLogFlops(4.0*n*n));
       }
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[0],&n_,P,&n_,&szero,W,&n_));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[0],&n_,P,&n_,&szero,W,&n_));
       PetscCall(PetscLogFlops(2.0*n*n*n));
       SWAP(P,W,aux);
       break;
     case 13:
       /*  P = A*(Apowers[3]*(c[13]*Apowers[3] + c[11]*Apowers[2] + c[9]*Apowers[1])
               + c[7]*Apowers[3] + c[5]*Apowers[2] + c[3]*Apowers[1] + c[1]*I)       */
-      PetscStackCallBLAS("BLAScopy",BLAScopy_(&n2,Apowers[3],&one,P,&one));
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&c[13],P,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[11],Apowers[2],&one,P,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[9],Apowers[1],&one,P,&one));
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[3],&n_,P,&n_,&szero,W,&n_));
+      PetscCallBLAS("BLAScopy",BLAScopy_(&n2,Apowers[3],&one,P,&one));
+      PetscCallBLAS("BLASscal",BLASscal_(&n2,&c[13],P,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[11],Apowers[2],&one,P,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[9],Apowers[1],&one,P,&one));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[3],&n_,P,&n_,&szero,W,&n_));
       PetscCall(PetscLogFlops(5.0*n*n+2.0*n*n*n));
       PetscCall(PetscArrayzero(P,n2));
       for (j=0;j<n;j++) P[j+j*n] = c[1];
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[7],Apowers[3],&one,P,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[5],Apowers[2],&one,P,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[3],Apowers[1],&one,P,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&sone,P,&one,W,&one));
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[0],&n_,W,&n_,&szero,P,&n_));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[7],Apowers[3],&one,P,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[5],Apowers[2],&one,P,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[3],Apowers[1],&one,P,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&sone,P,&one,W,&one));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[0],&n_,W,&n_,&szero,P,&n_));
       PetscCall(PetscLogFlops(7.0*n*n+2.0*n*n*n));
       /*  Q = Apowers[3]*(c[12]*Apowers[3] + c[10]*Apowers[2] + c[8]*Apowers[1])
               + c[6]*Apowers[3] + c[4]*Apowers[2] + c[2]*Apowers[1] + c[0]*I        */
-      PetscStackCallBLAS("BLAScopy",BLAScopy_(&n2,Apowers[3],&one,Q,&one));
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&c[12],Q,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[10],Apowers[2],&one,Q,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[8],Apowers[1],&one,Q,&one));
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[3],&n_,Q,&n_,&szero,W,&n_));
+      PetscCallBLAS("BLAScopy",BLAScopy_(&n2,Apowers[3],&one,Q,&one));
+      PetscCallBLAS("BLASscal",BLASscal_(&n2,&c[12],Q,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[10],Apowers[2],&one,Q,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[8],Apowers[1],&one,Q,&one));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[3],&n_,Q,&n_,&szero,W,&n_));
       PetscCall(PetscLogFlops(5.0*n*n+2.0*n*n*n));
       PetscCall(PetscArrayzero(Q,n2));
       for (j=0;j<n;j++) Q[j+j*n] = c[0];
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[6],Apowers[3],&one,Q,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[4],Apowers[2],&one,Q,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[2],Apowers[1],&one,Q,&one));
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&sone,W,&one,Q,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[6],Apowers[3],&one,Q,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[4],Apowers[2],&one,Q,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[2],Apowers[1],&one,Q,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&sone,W,&one,Q,&one));
       PetscCall(PetscLogFlops(7.0*n*n));
       break;
     default: SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %" PetscInt_FMT,m);
   }
-  PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&smone,P,&one,Q,&one));
-  PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n_,&n_,Q,&n_,ipiv,P,&n_,&info));
+  PetscCallBLAS("BLASaxpy",BLASaxpy_(&n2,&smone,P,&one,Q,&one));
+  PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n_,&n_,Q,&n_,ipiv,P,&n_,&info));
   SlepcCheckLapackInfo("gesv",info);
-  PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&stwo,P,&one));
+  PetscCallBLAS("BLASscal",BLASscal_(&n2,&stwo,P,&one));
   for (j=0;j<n;j++) P[j+j*n] += 1.0;
   PetscCall(PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n));
 
   /* Squaring */
   for (j=1;j<=s;j++) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,P,&n_,P,&n_,&szero,W,&n_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,P,&n_,P,&n_,&szero,W,&n_));
     SWAP(P,W,aux);
   }
   if (P!=Ba) PetscCall(PetscArraycpy(Ba,P,n2));

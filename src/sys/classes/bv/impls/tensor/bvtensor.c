@@ -136,7 +136,7 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
   PetscCall(PetscBLASIntCast(lds,&lds_));
   if (PetscUnlikely(ctx->qB)) {
     x = ctx->sw;
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,S+j*lds,&one,&szero,x,&one));
+    PetscCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,S+j*lds,&one,&szero,x,&one));
     dot = PetscRealPart(BLASdot_(&lds_,S+j*lds,&one,x,&one));
     PetscCall(BV_SafeSqrt(bv,dot,norm));
   } else {
@@ -187,26 +187,26 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
     }
     for (i=-bv->nc;i<k;i++) {
       if (which && i>=0 && !which[i]) continue;
-      if (ctx->qB) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
+      if (ctx->qB) PetscCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
       /* c_i = (s_k, s_i) */
       dot = PetscRealPart(BLASdot_(&lds_,pS+i*lds,&one,x,&one));
       if (bv->indef) dot /= PetscRealPart(omega[i]);
       PetscCall(BV_SetValue(bv,i,0,cc,dot));
       /* s_k = s_k - c_i s_i */
       dot = -dot;
-      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&lds_,&dot,pS+i*lds,&one,pS+k*lds,&one));
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&lds_,&dot,pS+i*lds,&one,pS+k*lds,&one));
     }
     if (PetscUnlikely(bv->indef)) PetscCall(VecRestoreArrayRead(bv->omega,&omega));
 
   } else {  /* classical Gram-Schmidt */
-    if (ctx->qB) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
+    if (ctx->qB) PetscCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
 
     /* cc = S_{0:k-1}^* s_k */
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&lds_,&k_,&sone,pS,&lds_,x,&one,&szero,cc,&one));
+    PetscCallBLAS("BLASgemv",BLASgemv_("C",&lds_,&k_,&sone,pS,&lds_,x,&one,&szero,cc,&one));
 
     /* s_k = s_k - S_{0:k-1} cc */
     if (PetscUnlikely(bv->indef)) PetscCall(BV_ApplySignature(bv,k,cc,PETSC_TRUE));
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&k_,&sonem,pS,&lds_,cc,&one,&sone,pS+k*lds,&one));
+    PetscCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&k_,&sonem,pS,&lds_,cc,&one,&sone,pS+k*lds,&one));
     if (PetscUnlikely(bv->indef)) PetscCall(BV_ApplySignature(bv,k,cc,PETSC_FALSE));
   }
 
@@ -406,9 +406,9 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
     }
     PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined (PETSC_USE_COMPLEX)
-    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,&info));
+    PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,&info));
 #else
-    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,rwork+n,&info));
+    PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,rwork+n,&info));
 #endif
     SlepcCheckLapackInfo("gesvd",info);
     PetscCall(PetscFPTrapPop());
@@ -416,7 +416,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
     rk = PetscMin(newc,nrow);
     for (i=0;i<rk;i++) {
       t = sg[i];
-      PetscStackCallBLAS("BLASscal",BLASscal_(&newctdeg,&t,Z+i,&n_));
+      PetscCallBLAS("BLASscal",BLASscal_(&newctdeg,&t,Z+i,&n_));
     }
     for (i=0;i<deg;i++) {
       for (j=lock;j<lock+newc;j++) {
@@ -429,11 +429,11 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
       against pQ so that next M has rank nnc+d-1 instead of nrow+d-1
     */
     for (i=0;i<deg;i++) {
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pQ+offu,&rs1_,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_,&zero,SS+i*newc*nnc,&newc_));
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pQ+offu,&rs1_,SS+i*newc*nnc,&newc_,&sone,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_));
+      PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pQ+offu,&rs1_,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_,&zero,SS+i*newc*nnc,&newc_));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pQ+offu,&rs1_,SS+i*newc*nnc,&newc_,&sone,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_));
       /* repeat orthogonalization step */
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pQ+offu,&rs1_,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_,&zero,SS2,&newc_));
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pQ+offu,&rs1_,SS2,&newc_,&sone,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_));
+      PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pQ+offu,&rs1_,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_,&zero,SS2,&newc_));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pQ+offu,&rs1_,SS2,&newc_,&sone,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_));
       for (j=0;j<newc*nnc;j++) *(SS+i*newc*nnc+j) += SS2[j];
     }
   }
@@ -444,9 +444,9 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   }
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined (PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,&info));
+  PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,&info));
 #else
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,rwork+n,&info));
+  PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,rwork+n,&info));
 #endif
   SlepcCheckLapackInfo("gesvd",info);
   PetscCall(PetscFPTrapPop());
@@ -457,7 +457,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   /* the SVD has rank (at most) nnc+deg-1 */
   for (i=0;i<rk;i++) {
     t = sg[i];
-    PetscStackCallBLAS("BLASscal",BLASscal_(&nnctdeg,&t,Z+i,&n_));
+    PetscCallBLAS("BLASscal",BLASscal_(&nnctdeg,&t,Z+i,&n_));
   }
   /* update S */
   PetscCall(PetscArrayzero(S+cs1*lds,(V->m-cs1)*lds));
@@ -482,12 +482,12 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   PetscCall(PetscBLASIntCast(rk,&rk_));
   PetscCall(PetscBLASIntCast(cs1-lock,&nnc_));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&nrow_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
+  PetscCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&nrow_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
   SlepcCheckLapackInfo("geqrf",info);
   for (i=0;i<deg;i++) {
-    PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&rk_,&nnc_,&sone,pQ+offu,&rs1_,S+lock*lds+lock+i*ctx->ld,&lds_));
+    PetscCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&rk_,&nnc_,&sone,pQ+offu,&rs1_,S+lock*lds+lock+i*ctx->ld,&lds_));
   }
-  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&nrow_,&rk_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
+  PetscCallBLAS("LAPACKorgqr",LAPACKorgqr_(&nrow_,&rk_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
   SlepcCheckLapackInfo("orgqr",info);
   PetscCall(PetscFPTrapPop());
 
@@ -508,8 +508,8 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
         PetscCall(MatNestGetSubMat(V->matrix,r,c,&A));
         if (A) {
           qB = ctx->qB+r*ctx->ld+c*ctx->ld*lds;
-          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&rs1_,&rk_,&rs1_,&sone,qB,&lds_,pQ,&rs1_,&zero,work+nwu,&rs1_));
-          PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rs1_,&sone,pQ,&rs1_,work+nwu,&rs1_,&zero,qB,&lds_));
+          PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&rs1_,&rk_,&rs1_,&sone,qB,&lds_,pQ,&rs1_,&zero,work+nwu,&rs1_));
+          PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rs1_,&sone,pQ,&rs1_,work+nwu,&rs1_,&zero,qB,&lds_));
           for (i=0;i<rk;i++) {
             for (j=0;j<i;j++) qB[i+j*lds] = PetscConj(qB[j+i*lds]);
             qB[i+i*lds] = PetscRealPart(qB[i+i*lds]);
