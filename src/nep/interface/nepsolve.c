@@ -752,9 +752,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
   case NEP_USER_INTERFACE_CALLBACK:
     PetscCheck(nep->computefunction,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
     PetscCall(PetscLogEventBegin(NEP_FunctionEval,nep,A,B,0));
-    PetscStackPush("NEP user Function function");
-    PetscCall((*nep->computefunction)(nep,lambda,A,B,nep->functionctx));
-    PetscStackPop;
+    PetscCallBack("NEP user Function function",(*nep->computefunction)(nep,lambda,A,B,nep->functionctx));
     PetscCall(PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0));
     break;
   case NEP_USER_INTERFACE_SPLIT:
@@ -803,9 +801,7 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
   case NEP_USER_INTERFACE_CALLBACK:
     PetscCheck(nep->computejacobian,PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
     PetscCall(PetscLogEventBegin(NEP_JacobianEval,nep,A,0,0));
-    PetscStackPush("NEP user Jacobian function");
-    PetscCall((*nep->computejacobian)(nep,lambda,A,nep->jacobianctx));
-    PetscStackPop;
+    PetscCallBack("NEP user Jacobian function",(*nep->computejacobian)(nep,lambda,A,nep->jacobianctx));
     PetscCall(PetscLogEventEnd(NEP_JacobianEval,nep,A,0,0));
     break;
   case NEP_USER_INTERFACE_SPLIT:
