@@ -61,7 +61,8 @@ SLEPC_EXTERN PetscClassId SVD_CLASSID;
 .seealso: SVDSetProblemType(), SVDGetProblemType()
 E*/
 typedef enum { SVD_STANDARD=1,
-               SVD_GENERALIZED    /* GSVD */
+               SVD_GENERALIZED,   /* GSVD */
+               SVD_HYPERBOLIC     /* HSVD */
              } SVDProblemType;
 
 /*E
@@ -138,10 +139,13 @@ SLEPC_EXTERN PetscErrorCode SVDGetType(SVD,SVDType*);
 SLEPC_EXTERN PetscErrorCode SVDSetProblemType(SVD,SVDProblemType);
 SLEPC_EXTERN PetscErrorCode SVDGetProblemType(SVD,SVDProblemType*);
 SLEPC_EXTERN PetscErrorCode SVDIsGeneralized(SVD,PetscBool*);
+SLEPC_EXTERN PetscErrorCode SVDIsHyperbolic(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDSetOperators(SVD,Mat,Mat);
 PETSC_DEPRECATED_FUNCTION("Use SVDSetOperators()") static inline PetscErrorCode SVDSetOperator(SVD svd,Mat A) {return SVDSetOperators(svd,A,NULL);}
 SLEPC_EXTERN PetscErrorCode SVDGetOperators(SVD,Mat*,Mat*);
 PETSC_DEPRECATED_FUNCTION("Use SVDGetOperators()") static inline PetscErrorCode SVDGetOperator(SVD svd,Mat *A) {return SVDGetOperators(svd,A,NULL);}
+SLEPC_EXTERN PetscErrorCode SVDSetSignature(SVD,Vec);
+SLEPC_EXTERN PetscErrorCode SVDGetSignature(SVD,Vec*);
 SLEPC_EXTERN PetscErrorCode SVDSetInitialSpaces(SVD,PetscInt,Vec[],PetscInt,Vec[]);
 PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") static inline PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt nr,Vec *isr) {return SVDSetInitialSpaces(svd,nr,isr,0,NULL);}
 PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") static inline PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt nl,Vec *isl) {return SVDSetInitialSpaces(svd,0,NULL,nl,isl);}

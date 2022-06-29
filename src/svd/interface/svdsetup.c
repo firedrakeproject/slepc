@@ -104,6 +104,74 @@ PetscErrorCode SVDGetOperators(SVD svd,Mat *A,Mat *B)
 }
 
 /*@
+   SVDSetSignature - Set the signature matrix defining a hyperbolic singular value problem.
+
+   Collective on svd
+
+   Input Parameters:
++  svd   - the singular value solver context
+-  omega - a vector containing the diagonal elements of the signature matrix (or NULL)
+
+   Notes:
+   The signature matrix is relevant only for hyperbolic problems (HSVD).
+   Use NULL to reset a previously set signature.
+
+   Level: intermediate
+
+.seealso: SVDSetProblemType(), SVDSetOperators(), SVDGetSignature()
+@*/
+PetscErrorCode SVDSetSignature(SVD svd,Vec omega)
+{
+  PetscInt N,Ma,n,ma;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  if (omega) {
+    PetscValidHeaderSpecific(omega,VEC_CLASSID,2);
+    PetscCheckSameComm(svd,1,omega,2);
+  }
+
+  if (omega && svd->OP) {  /* Check sizes */
+    PetscCall(VecGetSize(omega,&N));
+    PetscCall(VecGetLocalSize(omega,&n));
+    PetscCall(MatGetSize(svd->OP,&Ma,NULL));
+    PetscCall(MatGetLocalSize(svd->OP,&ma,NULL));
+    PetscCheck(N==Ma,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Global size of signature (%" PetscInt_FMT ") does not match the row size of A (%" PetscInt_FMT ")",N,Ma);
+    PetscCheck(n==ma,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Local size of signature (%" PetscInt_FMT ") does not match the local row size of A (%" PetscInt_FMT ")",n,ma);
+  }
+
+  if (omega) PetscCall(PetscObjectReference((PetscObject)omega));
+  PetscCall(VecDestroy(&svd->omega));
+  svd->omega = omega;
+  svd->state = SVD_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDGetSignature - Get the signature matrix defining a hyperbolic singular value problem.
+
+   Collective on svd
+
+   Input Parameter:
+.  svd - the singular value solver context
+
+   Output Parameter:
+.  omega - a vector containing the diagonal elements of the signature matrix
+
+   Level: intermediate
+
+.seealso: SVDSetSignature()
+@*/
+PetscErrorCode SVDGetSignature(SVD svd,Vec *omega)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(omega,2);
+  *omega = svd->omega;
+  PetscFunctionReturn(0);
+}
+
+/*@
    SVDSetUp - Sets up all the internal data structures necessary for the
    execution of the singular value solver.
 
@@ -137,22 +205,31 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* reset the convergence flag from the previous solves */
   svd->reason = SVD_CONVERGED_ITERATING;
 
-  /* Set default solver type (SVDSetFromOptions was not called) */
+  /* set default solver type (SVDSetFromOptions was not called) */
   if (!((PetscObject)svd)->type_name) PetscCall(SVDSetType(svd,SVDCROSS));
   if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
 
   /* check matrices */
   PetscCheck(svd->OP,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");
 
-  /* Set default problem type */
-  if (!svd->problem_type) {
-    if (svd->OPb) PetscCall(SVDSetProblemType(svd,SVD_GENERALIZED));
-    else PetscCall(SVDSetProblemType(svd,SVD_STANDARD));
-  } else if (!svd->OPb && svd->isgeneralized) {
-    PetscCall(PetscInfo(svd,"Problem type set as generalized but no matrix B was provided; reverting to a standard singular value problem\n"));
-    svd->isgeneralized = PETSC_FALSE;
-    svd->problem_type = SVD_STANDARD;
-  } else PetscCheck(!svd->OPb || svd->isgeneralized,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type does not match the number of matrices");
+  if (!svd->problem_type) {  /* set default problem type */
+    if (svd->OPb) {
+      PetscCheck(!svd->omega,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"There is no support yet for generalized hyperbolic problems");
+      PetscCall(SVDSetProblemType(svd,SVD_GENERALIZED));
+    } else {
+      if (svd->omega) PetscCall(SVDSetProblemType(svd,SVD_HYPERBOLIC));
+      else PetscCall(SVDSetProblemType(svd,SVD_STANDARD));
+    }
+  } else {  /* check consistency of problem type set by user */
+    if (svd->OPb) {
+      PetscCheck(svd->isgeneralized,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type does not match the number of matrices");
+      PetscCheck(!svd->omega,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"There is no support yet for generalized hyperbolic problems");
+    } else {
+      PetscCheck(!svd->isgeneralized,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type does not match the number of matrices");
+      if (svd->omega) PetscCheck(svd->ishyperbolic,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: the problem type must be set to hyperbolic when passing a signature with SVDSetSignature()");
+      else PetscCheck(!svd->ishyperbolic,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_INCOMP,"Inconsistent SVD state: a hyperbolic problem requires passing a signature with SVDSetSignature()");
+    }
+  }
 
   /* determine how to handle the transpose */
   svd->expltrans = PETSC_TRUE;
@@ -392,7 +469,9 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
   /* allocate sigma */
   if (requested != oldsize || !svd->sigma) {
     PetscCall(PetscFree3(svd->sigma,svd->perm,svd->errest));
+    if (svd->sign) PetscCall(PetscFree(svd->sign));
     PetscCall(PetscMalloc3(requested,&svd->sigma,requested,&svd->perm,requested,&svd->errest));
+    if (svd->ishyperbolic) PetscCall(PetscMalloc1(requested,&svd->sign));
     PetscCall(PetscLogObjectMemory((PetscObject)svd,PetscMax(0,requested-oldsize)*(2*sizeof(PetscReal)+sizeof(PetscInt))));
   }
   /* allocate V */

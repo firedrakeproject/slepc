@@ -57,6 +57,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
   svd->OP               = NULL;
   svd->OPb              = NULL;
+  svd->omega            = NULL;
   svd->max_it           = PETSC_DEFAULT;
   svd->nsv              = 1;
   svd->ncv              = PETSC_DEFAULT;
@@ -92,6 +93,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->ISL              = NULL;
   svd->sigma            = NULL;
   svd->errest           = NULL;
+  svd->sign             = NULL;
   svd->perm             = NULL;
   svd->nworkl           = 0;
   svd->nworkr           = 0;
@@ -136,6 +138,7 @@ PetscErrorCode SVDReset(SVD svd)
   if (svd->ops->reset) PetscCall((svd->ops->reset)(svd));
   PetscCall(MatDestroy(&svd->OP));
   PetscCall(MatDestroy(&svd->OPb));
+  PetscCall(VecDestroy(&svd->omega));
   PetscCall(MatDestroy(&svd->A));
   PetscCall(MatDestroy(&svd->B));
   PetscCall(MatDestroy(&svd->AT));
@@ -172,6 +175,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   PetscCall(SVDReset(*svd));
   if ((*svd)->ops->destroy) PetscCall((*(*svd)->ops->destroy)(*svd));
   if ((*svd)->sigma) PetscCall(PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest));
+  if ((*svd)->sign) PetscCall(PetscFree((*svd)->sign));
   PetscCall(DSDestroy(&(*svd)->ds));
   PetscCall(PetscFree((*svd)->sc));
   /* just in case the initial vectors have not been used */

@@ -14,6 +14,7 @@ cdef extern from * nogil:
     ctypedef enum SlepcSVDProblemType "SVDProblemType":
         SVD_STANDARD
         SVD_GENERALIZED
+        SVD_HYPERBOLIC
 
     ctypedef enum SlepcSVDWhich "SVDWhich":
         SVD_LARGEST
@@ -73,6 +74,7 @@ cdef extern from * nogil:
     int SVDSetProblemType(SlepcSVD,SlepcSVDProblemType)
     int SVDGetProblemType(SlepcSVD,SlepcSVDProblemType*)
     int SVDIsGeneralized(SlepcSVD,PetscBool*)
+    int SVDIsHyperbolic(SlepcSVD,PetscBool*)
     int SVDSetBV(SlepcSVD,SlepcBV,SlepcBV)
     int SVDGetBV(SlepcSVD,SlepcBV*,SlepcBV*)
     int SVDSetDS(SlepcSVD,SlepcDS)
@@ -80,6 +82,8 @@ cdef extern from * nogil:
 
     int SVDSetOperators(SlepcSVD,PetscMat,PetscMat)
     int SVDGetOperators(SlepcSVD,PetscMat*,PetscMat*)
+    int SVDSetSignature(SlepcSVD,PetscVec)
+    int SVDGetSignature(SlepcSVD,PetscVec*)
 
     int SVDSetInitialSpaces(SlepcSVD,PetscInt,PetscVec*,PetscInt,PetscVec*)
 

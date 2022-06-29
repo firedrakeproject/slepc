@@ -41,6 +41,7 @@ PetscErrorCode SVDSetUp_Lanczos(SVD svd)
 
   PetscFunctionBegin;
   SVDCheckStandard(svd);
+  SVDCheckDefinite(svd);
   PetscCall(MatGetSize(svd->A,NULL,&N));
   PetscCall(SVDSetDimensions_Default(svd));
   PetscCheck(svd->ncv<=svd->nsv+svd->mpd,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nev+mpd");

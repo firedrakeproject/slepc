@@ -161,6 +161,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   EPSProblemType ptype;
 
   PetscFunctionBegin;
+  SVDCheckDefinite(svd);
   if (!cross->eps) PetscCall(SVDCrossGetEPS(svd,&cross->eps));
   PetscCall(MatDestroy(&cross->C));
   PetscCall(MatDestroy(&cross->D));

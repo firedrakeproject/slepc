@@ -638,8 +638,10 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
     PetscCall(PetscOptionsBoolGroupBegin("-svd_standard","Singular value decomposition (SVD)","SVDSetProblemType",&flg));
     if (flg) PetscCall(SVDSetProblemType(svd,SVD_STANDARD));
-    PetscCall(PetscOptionsBoolGroupEnd("-svd_generalized","Generalized singular value decomposition (GSVD)","SVDSetProblemType",&flg));
+    PetscCall(PetscOptionsBoolGroup("-svd_generalized","Generalized singular value decomposition (GSVD)","SVDSetProblemType",&flg));
     if (flg) PetscCall(SVDSetProblemType(svd,SVD_GENERALIZED));
+    PetscCall(PetscOptionsBoolGroupEnd("-svd_hyperbolic","Hyperbolic singular value decomposition (HSVD)","SVDSetProblemType",&flg));
+    if (flg) PetscCall(SVDSetProblemType(svd,SVD_HYPERBOLIC));
 
     PetscCall(PetscOptionsBool("-svd_implicittranspose","Handle matrix transpose implicitly","SVDSetImplicitTranspose",svd->impltrans,&val,&flg));
     if (flg) PetscCall(SVDSetImplicitTranspose(svd,val));
@@ -723,14 +725,16 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
 
    Options Database Keys:
 +  -svd_standard    - standard singular value decomposition (SVD)
--  -svd_generalized - generalized singular value problem (GSVD)
+.  -svd_generalized - generalized singular value problem (GSVD)
+-  -svd_hyperbolic  - hyperbolic singular value problem (HSVD)
 
    Notes:
    The GSVD requires that two matrices have been passed via SVDSetOperators().
+   The HSVD requires that a signature matrix has been passed via SVDSetSignature().
 
    Level: intermediate
 
-.seealso: SVDSetOperators(), SVDSetType(), SVDGetProblemType(), SVDProblemType
+.seealso: SVDSetOperators(), SVDSetSignature(), SVDSetType(), SVDGetProblemType(), SVDProblemType
 @*/
 PetscErrorCode SVDSetProblemType(SVD svd,SVDProblemType type)
 {
@@ -741,9 +745,15 @@ PetscErrorCode SVDSetProblemType(SVD svd,SVDProblemType type)
   switch (type) {
     case SVD_STANDARD:
       svd->isgeneralized = PETSC_FALSE;
+      svd->ishyperbolic  = PETSC_FALSE;
       break;
     case SVD_GENERALIZED:
       svd->isgeneralized = PETSC_TRUE;
+      svd->ishyperbolic  = PETSC_FALSE;
+      break;
+    case SVD_HYPERBOLIC:
+      svd->isgeneralized = PETSC_FALSE;
+      svd->ishyperbolic  = PETSC_TRUE;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Unknown singular value problem type");
@@ -791,7 +801,7 @@ PetscErrorCode SVDGetProblemType(SVD svd,SVDProblemType *type)
 
    Level: intermediate
 
-.seealso: SVDIsHermitian(), SVDIsPositive()
+.seealso: SVDIsHyperbolic()
 @*/
 PetscErrorCode SVDIsGeneralized(SVD svd,PetscBool* is)
 {
@@ -799,6 +809,31 @@ PetscErrorCode SVDIsGeneralized(SVD svd,PetscBool* is)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidBoolPointer(is,2);
   *is = svd->isgeneralized;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   SVDIsHyperbolic - Ask if the SVD object corresponds to a hyperbolic
+   singular value problem.
+
+   Not collective
+
+   Input Parameter:
+.  svd - the singular value solver context
+
+   Output Parameter:
+.  is - the answer
+
+   Level: intermediate
+
+.seealso: SVDIsGeneralized()
+@*/
+PetscErrorCode SVDIsHyperbolic(SVD svd,PetscBool* is)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidBoolPointer(is,2);
+  *is = svd->ishyperbolic;
   PetscFunctionReturn(0);
 }
 

@@ -27,6 +27,7 @@ typedef struct _SVDOps *SVDOps;
 struct _SVDOps {
   PetscErrorCode (*solve)(SVD);
   PetscErrorCode (*solveg)(SVD);
+  PetscErrorCode (*solveh)(SVD);
   PetscErrorCode (*setup)(SVD);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,SVD);
   PetscErrorCode (*publishoptions)(SVD);
@@ -60,6 +61,7 @@ struct _p_SVD {
   PETSCHEADER(struct _SVDOps);
   /*------------------------- User parameters ---------------------------*/
   Mat            OP,OPb;           /* problem matrices */
+  Vec            omega;            /* signature for hyperbolic problems */
   PetscInt       max_it;           /* max iterations */
   PetscInt       nsv;              /* number of requested values */
   PetscInt       ncv;              /* basis size */
@@ -96,6 +98,7 @@ struct _p_SVD {
   Vec            *IS,*ISL;         /* placeholder for references to user initial space */
   PetscReal      *sigma;           /* singular values */
   PetscReal      *errest;          /* error estimates */
+  PetscReal      *sign;            /* +-1 for each singular value in hyperbolic problems=U'*Omega*U */
   PetscInt       *perm;            /* permutation for singular value ordering */
   PetscInt       nworkl,nworkr;    /* number of work vectors */
   Vec            *workl,*workr;    /* work vectors */
@@ -110,6 +113,7 @@ struct _p_SVD {
   PetscBool      expltrans;        /* explicit transpose created */
   PetscReal      nrma,nrmb;        /* computed matrix norms */
   PetscBool      isgeneralized;
+  PetscBool      ishyperbolic;
   SVDConvergedReason reason;
 };
 
@@ -141,6 +145,15 @@ struct _p_SVD {
     } \
   } while (0)
 #define SVDCheckStandard(svd) SVDCheckStandardCondition(svd,PETSC_TRUE,"")
+
+/* SVDCheckDefinite: the problem is not hyperbolic */
+#define SVDCheckDefiniteCondition(svd,condition,msg) \
+  do { \
+    if (condition) { \
+      PetscCheck(!(svd)->ishyperbolic,PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for hyperbolic problems",((PetscObject)(svd))->type_name,(msg)); \
+    } \
+  } while (0)
+#define SVDCheckDefinite(svd) SVDCheckDefiniteCondition(svd,PETSC_TRUE,"")
 
 /* Check for unsupported features */
 #define SVDCheckUnsupportedCondition(svd,mask,condition,msg) \

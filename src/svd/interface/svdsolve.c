@@ -62,6 +62,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 +  -svd_view - print information about the solver used
 .  -svd_view_mat0 - view the first matrix (A)
 .  -svd_view_mat1 - view the second matrix (B)
+.  -svd_view_signature - view the signature matrix (omega)
 .  -svd_view_vectors - view the computed singular vectors
 .  -svd_view_values - view the computed singular values
 .  -svd_converged_reason - print reason for convergence, and number of iterations
@@ -107,6 +108,9 @@ PetscErrorCode SVDSolve(SVD svd)
     case SVD_GENERALIZED:
       PetscCall((*svd->ops->solveg)(svd));
       break;
+    case SVD_HYPERBOLIC:
+      PetscCall((*svd->ops->solveh)(svd));
+      break;
   }
   svd->state = SVD_STATE_SOLVED;
 
@@ -129,6 +133,7 @@ PetscErrorCode SVDSolve(SVD svd)
   PetscCall(SVDVectorsViewFromOptions(svd));
   PetscCall(MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat0"));
   if (svd->isgeneralized) PetscCall(MatViewFromOptions(svd->OPb,(PetscObject)svd,"-svd_view_mat1"));
+  if (svd->ishyperbolic) PetscCall(VecViewFromOptions(svd->omega,(PetscObject)svd,"-svd_view_signature"));
 
   /* Remove the initial subspaces */
   svd->nini = 0;
@@ -427,6 +432,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   /* allocate work vectors */
   switch (svd->problem_type) {
     case SVD_STANDARD:
+    case SVD_HYPERBOLIC:
       PetscCall(SVDSetWorkVecs(svd,2,2));
       u = svd->workl[0];
       v = svd->workr[0];
@@ -447,6 +453,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   PetscCall(SVDGetSingularTriplet(svd,i,&sigma,u,v));
   switch (svd->problem_type) {
     case SVD_STANDARD:
+    case SVD_HYPERBOLIC:
       PetscCall(SVDComputeResidualNorms_Standard(svd,sigma,u,v,x,y,&norm1,&norm2));
       break;
     case SVD_GENERALIZED:

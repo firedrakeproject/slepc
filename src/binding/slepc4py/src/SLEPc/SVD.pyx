@@ -34,9 +34,11 @@ class SVDProblemType(object):
 
     - `STANDARD`:    Standard SVD.
     - `GENERALIZED`: Generalized singular value decomposition (GSVD).
+    - `HYPERBOLIC` : Hyperbolic singular value decomposition (HSVD).
     """
     STANDARD    = SVD_STANDARD
     GENERALIZED = SVD_GENERALIZED
+    HYPERBOLIC  = SVD_HYPERBOLIC
 
 class SVDErrorType(object):
     """
@@ -322,6 +324,20 @@ cdef class SVD(Object):
         """
         cdef PetscBool tval = PETSC_FALSE
         CHKERR( SVDIsGeneralized(self.svd, &tval) )
+        return toBool(tval)
+
+    def isHyperbolic(self):
+        """
+        Tells whether the SVD object corresponds to a hyperbolic
+        singular value problem.
+
+        Returns
+        -------
+        flag: bool
+              True if the problem was specified as hyperbolic.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( SVDIsHyperbolic(self.svd, &tval) )
         return toBool(tval)
 
     #
@@ -636,6 +652,35 @@ cdef class SVD(Object):
         """
         cdef PetscMat Bmat = B.mat if B is not None else <PetscMat>NULL
         CHKERR( SVDSetOperators(self.svd, A.mat, Bmat) )
+
+    def getSignature(self):
+        """
+        Gets the signature matrix defining a hyperbolic singular value problem.
+
+        Returns
+        -------
+        omega: Vec
+           A vector containing the diagonal elements of the signature matrix.
+        """
+        cdef Vec omega = Vec()
+        CHKERR( SVDGetSignature(self.svd, &omega.vec) )
+        if (omega.vec == NULL):
+            return None
+        else:
+            PetscINCREF(omega.obj)
+            return omega
+
+    def setSignature(self, Vec omega=None):
+        """
+        Sets the signature matrix defining a hyperbolic singular value problem.
+
+        Parameters
+        ----------
+        omega: Vec, optional
+           A vector containing the diagonal elements of the signature matrix.
+        """
+        cdef PetscVec Ovec = omega.vec if omega is not None else <PetscVec>NULL
+        CHKERR( SVDSetSignature(self.svd, Ovec) )
 
     #
 
