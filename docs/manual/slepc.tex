@@ -246,7 +246,7 @@ Linear matrix equation        & $AXE+DXB=C$   & \texttt{LME} & See notes \\\hlin
 \item Most users are typically interested in linear eigenproblems only.
 \item In each problem class there may exist several subclasses (problem types in \slepc terminology), for instance symmetric-definite generalized eigenproblem in \texttt{EPS}.
 \item The solver class (module) is named after the problem class. For historical reasons, the one for linear eigenvalue problems is called \texttt{EPS} rather than \texttt{LEP}.
-\item The \texttt{SVD} module also supports the GSVD in addition to the SVD shown in the table.
+\item In addition to the SVD shown in the table, the \texttt{SVD} module also supports other related problems such as the GSVD and the HSVD.
 \item In previous \slepc versions there was a \texttt{QEP} module for quadratic eigenproblems. It has been replaced by \texttt{PEP}. %See \S\ref{sec:qeppep} for upgrading application code that used \texttt{QEP}.
 \item For the action of a matrix function (\texttt{MFN}), in \slepc we focus on methods that are closely related to methods for eigenvalue problems.
 \item The solver class \texttt{LME} is still experimental and it is not covered in this manual yet.

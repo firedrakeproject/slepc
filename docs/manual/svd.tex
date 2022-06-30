@@ -8,7 +8,7 @@
 
 In many aspects, the user interface of \ident{SVD} resembles that of \ident{EPS}. For this reason, this chapter and chapter \ref{cap:eps} have a very similar structure.
 	
-\section{Mathematical Background}
+\section{\label{sec:svdback}Mathematical Background}
 
 This section provides some basic concepts about the singular value decomposition and other related problems. The objective is to set up the notation and also to justify some of the solution approaches, particularly those based on the \ident{EPS} object. As in the case of eigensolvers, some of the implemented methods are described in detail in the \slepc \hyperlink{str}{technical reports}.
 
@@ -167,6 +167,54 @@ The formulation that is analog to the eigenproblem associated with the cyclic ma
 \right).
 \end{equation}
 
+\subsection{\label{sec:hsvd}The Hyperbolic Singular Value Decomposition (HSVD)}
+
+The hyperbolic singular value decomposition (HSVD) was introduced in~\citep{Onn:1991:EMP}, motivated by some signal processing applications such as the so-called covariance differencing problem. The formulation of the HSVD is similar to that of the SVD, except that $U$ is orthogonal with respect to a signature matrix,
+\begin{equation}
+\label{eq:hsvd}
+A=U\Sigma V^*,\qquad U^*\Omega U=\tilde\Omega,
+\end{equation}
+where $\Omega=\mathrm{diag}(\pm 1)$ is an $m\times m$ signature matrix provided by the user, while $\tilde\Omega$ is another signature matrix obtained as part of the solution. Sometimes $U$ is said to be a hyperexchange matrix, or also an $(\Omega,\tilde\Omega)$-orthogonal matrix. Note that in the problem definition normally found in the literature it is $V$ that is $(\Omega,\tilde\Omega)$-orthogonal and not $U$. We choose this definition for consistency with respect to the generalized HSVD of two matrices. If the user wants to compute the HSVD according to the alternative definition, then it suffices to (conjugate) transpose the input matrix $A$, using for instance \ident{MatHermitianTranspose}.
+
+As in the case of the SVD, the solution of the problem consists in singular triplets $(\sigma_i,u_i,v_i)$, with $\sigma_i$ real and nonnegative and sorted in nonincreasing order. Note that these quantities are different from those of \S\ref{sec:svd}, even though we use the same notation here. With each singular triplet, there is an associated sign $\tilde\omega_i$ (either 1 or $-1$), the corresponding diagonal element of $\tilde\Omega$. In SLEPc, this value is not returned by the user interface, but if required it can be easily computed as $u_i^*\Omega u_i$.
+
+The relations between left and right singular vectors are slightly different from those of the standard SVD. We have $AV=U\Sigma$ and $A^*\Omega U=V\Sigma^*\tilde\Omega$, so for $m\geq n$ the following relations hold, together with~\eqref{eq:svdleft}:
+\begin{align}
+\label{eq:hsvdright}
+A^*\Omega u_i&=v_i\sigma_i\tilde\omega_i\;,\quad i=1,\ldots,n,\\
+\label{eq:hsvdright2}
+A^*\Omega u_i&=0\;,\quad i=n+1,\ldots,m.
+\end{align}
+In SLEPc we will compute a partial HSVD consisting of either the largest or smallest hyperbolic singular triplets. Note that the sign $\tilde\omega_i$ is not used when sorting for largest or smallest $\sigma_i$.
+
+\paragraph{Equivalent Eigenvalue Problems.}
+Once again, we can derive cross and cyclic schemes to compute the decomposition by solving an eigenvalue problem. The cross product matrix approach has two forms, to be selected depending on whether $m\geq n$ or not, as discussed in \S\ref{sec:svd}. The first form,
+\begin{equation}
+\label{eq:heigleft}
+A^*\Omega Av_i=\sigma_i^2\tilde\omega_iv_i,\\
+\end{equation}
+is derived by pre-multiplying~\eqref{eq:svdleft} by $A^*\Omega$ an then using~\eqref{eq:hsvdright}. This eigenproblem can be solved as a HEP (cf.~\S\ref{sec:defprob}) and may have both positive and negative eigenvalues, corresponding to $\tilde\omega_i=1$ and $\tilde\omega_i=-1$, respectively. Once the right vector $v_i$ has been computed, the corresponding left vector can be obtained using~\eqref{eq:svdleft} with just a matrix-vector product, $u_i=\sigma_i^{-1}Av_i$.
+
+The second form of cross computes the left vectors first, by pre-multiplying~\eqref{eq:hsvdright} by $A$ and then using~\eqref{eq:svdleft},
+\begin{equation}
+\label{eq:heigright}
+AA^*\Omega u_i=\sigma_i^2\tilde\omega_iu_i.
+\end{equation}
+In this case, the right singular vectors are obtained as $v_i=(\sigma_i\tilde\omega_i)^{-1}A^*\Omega u_i$. The coefficient matrix of~\eqref{eq:heigright} is non-Hermitian, so the eigenproblem has to be solved as non-Hermitian, or alternatively it can be formulated as a generalized eigenvalue problem of GHIEP type (cf.~\S\ref{sec:defprob}) for the indefinite pencil $(AA^*,\Omega)$,
+\begin{equation}
+\label{eq:heigright2}
+AA^*\hat{u}_i=\sigma_i^2\tilde\omega_i\Omega \hat{u}_i,
+\end{equation}
+with $\hat{u}=\Omega u$. The eigenvectors obtained from~\eqref{eq:heigright} or~\eqref{eq:heigright2} must be normalized so that $U^*\Omega U=\tilde\Omega$ holds.
+
+Finally, in the cyclic matrix approach for the HSVD we must solve a generalized eigenvalue problem defined by the matrices of order $(m+n)$
+\begin{equation}
+\label{eq:hcyclic}
+H(A)=\begin{bmatrix}0&A\\A^*&0\end{bmatrix},\qquad
+\hat\Omega=\begin{bmatrix}\Omega&0\\0&I\end{bmatrix}.
+\end{equation}
+As in the case of~\eqref{eq:heigright2}, this pencil is Hermitian-indefinite and hence it may have complex eigenvalues. However, it can be shown that nonzero eigenvalues of the pencil $(H(A),\hat\Omega)$ are either real (equal to $\pm\sigma_i$ for a certain hyperbolic singular value $\sigma_i$) or purely imaginary (equal to $\pm\sigma_ij$ for a certain $\sigma_i$ with $j=\sqrt{-1}$). The associated eigenvectors are $\left[\begin{smallmatrix}\varsigma_i u_i\\v_i\end{smallmatrix}\right]$, where $\varsigma_i$ is either $\pm 1$ or $\pm j$.
+
 %---------------------------------------------------
 \section{Basic Usage}
 
@@ -215,20 +263,27 @@ The problem matrices are provided with the following function
 	SVDSetOperators(SVD svd,Mat A,Mat B);
 	\end{Verbatim}
 where \texttt{A} can be any matrix, not necessarily square, stored in any allowed \petsc format including the matrix-free mechanism (see \S\ref{sec:supported} for a detailed discussion), and \texttt{B} is generally set to \texttt{NULL} except in the case of computing the GSVD.
+If the problem is hyperbolic (\S\ref{sec:hsvd}) then in addition a signature matrix $\Omega$ must be provided with
+	\findex{SVDSetSignature}
+	\begin{Verbatim}[fontsize=\small]
+	SVDSetSignature(SVD svd,Vec omega);
+	\end{Verbatim}
+Note that $\Omega$ is represented as a vector containing values equal to 1 or $-1$.
 
 The problem type can be specified with the function
 	\findex{SVDSetProblemType}
 	\begin{Verbatim}[fontsize=\small]
 	SVDSetProblemType(SVD svd,SVDProblemType type);
 	\end{Verbatim}
-Note that in \ident{SVD} calling it is currently not strictly required, since if only one matrix is passed to \ident{SVDSetOperators} the problem type will default to a standard SVD, while if two matrices are passed then it defaults to GSVD. Table~\ref{tab:ptypesvd} lists the supported problem types.
+Note that in \ident{SVD} calling it is currently not strictly required, since the problem type can be deduced from the information passed by the user: if only one matrix is passed to \ident{SVDSetOperators} the problem type will default to a standard SVD (or hyperbolic SVD if a signature has been provided), while if two matrices are passed then it defaults to GSVD. Still, it is recommended to always call \ident{SVDSetProblemType}. Table~\ref{tab:ptypesvd} lists the supported problem types.
 
 \begin{table}[t]
 \centering
 {\small \begin{tabular}{lll}
 Problem Type              & \ident{SVDProblemType}    & Command line key\\\hline
 Standard SVD              & \texttt{SVD\_STANDARD}    & \texttt{-svd\_standard}\\
-Generalized SVD (GSVD)    & \texttt{SVD\_GENERALIZED} & \texttt{-svd\_generalized}\\\hline
+Generalized SVD (GSVD)    & \texttt{SVD\_GENERALIZED} & \texttt{-svd\_generalized}\\
+Hyperbolic SVD (HSVD)     & \texttt{SVD\_HYPERBOLIC}  & \texttt{-svd\_hyperbolic}\\\hline
 \end{tabular} }
 \caption{\label{tab:ptypesvd}Problem types considered in \ident{SVD}.}
 \end{table}
@@ -275,29 +330,29 @@ which can also be specified at the command line. This criterion is used both for
 
 The available methods for computing the partial SVD are shown in Table \ref{tab:svdsolvers}. These methods can be classified in the following categories:
 \begin{itemize}
-\item Solvers based on \ident{EPS}. These solvers set up an \ident{EPS} object internally, thus using the available eigensolvers for solving the SVD problem. The two possible approaches in this case are the cross product matrix and the cyclic matrix, as described in \S\ref{sec:svd}.
+\item Solvers based on \ident{EPS}. These solvers set up an \ident{EPS} object internally, thus using the available eigensolvers for solving the SVD problem. The two possible approaches in this case are the cross product matrix and the cyclic matrix, as described in \S\ref{sec:svdback}.
 \item Specific SVD solvers. These are typically eigensolvers that have been adapted algorithmically to exploit the structure of the SVD or GSVD problems. There are two Lanczos-type solvers in this category: Lanczos and thick-restart Lanczos, see \hyperlink{str}{[STR-8]} for a detailed description of these methods. In this category, we could also add the randomized SVD (RSVD), a special solver that does not compute individual singular vectors accurately, but rather a low-rank approximation of $A$ by means of randomized techniques.
 \item The \lapack solver. This is an interface to some LAPACK routines, analog of those in the case of eigenproblems. These routines operate in dense mode with only one processor and therefore are suitable only for moderate size problems. This solver should be used only for debugging purposes.
 \item External packages: \scalapack and \elemental are dense packages and compute the complete SVD, while \primme offers Davidson-type methods to compute only a few singular triplets.
 \end{itemize}
-The default solver is the one that uses the cross product matrix (\texttt{cross}), usually the fastest and most memory-efficient approach. See a more detailed explanation below.
+The default solver is the one that uses the cross product matrix (\texttt{cross}), usually the fastest and most memory-efficient approach, at least for the standard SVD. See a more detailed explanation below.
 
 \begin{table}
 \centering
 {\small \begin{tabular}{lllll}
-                           &                        & {\footnotesize Options} & Supports & \\
-Method                     & \ident{SVDType}        & {\footnotesize Database Name}& GSVD &Default \\\hline
-Cross Product              & \texttt{SVDCROSS}      & \texttt{cross}        & yes & $\star$ \\
-Cyclic Matrix              & \texttt{SVDCYCLIC}     & \texttt{cyclic}       & yes & \\
+                           &                        & {\footnotesize Options} & {\footnotesize Supported} \\
+Method                     & \ident{SVDType}        & {\footnotesize Database Name}& {\footnotesize Problems} &Default \\\hline
+Cross Product              & \texttt{SVDCROSS}      & \texttt{cross}        & G,H & $\star$ \\
+Cyclic Matrix              & \texttt{SVDCYCLIC}     & \texttt{cyclic}       & G,H & \\
 Lanczos                    & \texttt{SVDLANCZOS}    & \texttt{lanczos}      & & \\
-Thick-restart Lanczos      & \texttt{SVDTRLANCZOS}  & \texttt{trlanczos}    & yes & \\
+Thick-restart Lanczos      & \texttt{SVDTRLANCZOS}  & \texttt{trlanczos}    & G & \\
 Randomized SVD (RSVD)      & \texttt{SVDRANDOMIZED} & \texttt{randomized}   & & \\\hline
-\lapack solver             & \texttt{SVDLAPACK}     & \texttt{lapack}       & yes & \\
+\lapack solver             & \texttt{SVDLAPACK}     & \texttt{lapack}       & G & \\
 Wrapper to \scalapack      & \texttt{SVDSCALAPACK}  & \texttt{scalapack}    & & \\
 Wrapper to \elemental      & \texttt{SVDELEMENTAL}  & \texttt{elemental}    & & \\
 Wrapper to \primme         & \texttt{SVDPRIMME}     & \texttt{primme}       & & \\\hline
 \end{tabular} }
-\caption{\label{tab:svdsolvers}List of solvers available in the \ident{SVD} module.}
+\caption{\label{tab:svdsolvers}List of solvers available in the \ident{SVD} module. In the column of supported problems, `G' means GSVD and `H' means HSVD (the standard SVD is supported by all solvers).}
 \end{table}
 
 The solution method can be specified procedurally or via the command line. The application programmer can set it by means of the command
@@ -307,9 +362,9 @@ The solution method can be specified procedurally or via the command line. The a
 	\end{Verbatim}
 while the user writes the options database command \Verb!-svd_type! followed by the name of the method (see Table \ref{tab:svdsolvers}).
 
-Note that not all solvers in the \ident{SVD} module support the GSVD problem of \S\ref{sec:gsvd}. Table \ref{tab:svdsolvers} indicates which solvers can be used for this.
+Note that not all solvers in the \ident{SVD} module support non-standard problems (\S\ref{sec:gsvd}-\S\ref{sec:hsvd}). Table \ref{tab:svdsolvers} indicates which solvers can be used for these.
 
-The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP} (or \ident{EPS\_GHEP} in the case of the GSVD). These solvers implement the cross product matrix approach \eqref{eq:eigleft}, and the cyclic matrix approach \eqref{eq:cyclic}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver.
+The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP} (or \ident{EPS\_GHEP} in the case of the GSVD, or \ident{EPS\_GHIEP} in the case of the HSVD). These solvers implement the cross product matrix and the cyclic matrix approaches as described in~\S\ref{sec:svdback}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver (with variations in the case of non-standard problems).
 
 In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explicitly by default, since the resulting matrix may be much less sparse than the original matrix. By default, a shell matrix is created internally in the \ident{SVD} object and passed to the \ident{EPS} object. Still, the user may choose to force the computation of $A^*A$ explicitly, by means of \petsc's sparse matrix-matrix product subroutines. This is set with
 	\findex{SVDCrossSetExplicitMatrix}
@@ -366,11 +421,11 @@ Normally, the user is interested in the singular values only, or the complete si
 	\begin{Verbatim}[fontsize=\small]
 	SVDGetSingularTriplet(SVD svd,PetscInt j,PetscReal *sigma,Vec u,Vec v);
 	\end{Verbatim}
-returns the $j$-th computed singular triplet, $(\sigma_j,u_j,v_j)$, where both $u_j$ and $v_j$ are normalized to have unit norm. Typically, this function is called inside a loop for each value of \texttt{j} from 0 to \texttt{nconv}--1. Note that singular values are ordered according to the same criterion specified with function \ident{SVDSetWhichSingularTriplets} for selecting the portion of the spectrum of interest.
+returns the $j$-th computed singular triplet, $(\sigma_j,u_j,v_j)$, where both $u_j$ and $v_j$ are normalized to have unit norm\footnote{The exception is in the HSVD, where $u_j$ is normalized so that $U^*\Omega U=\tilde\Omega$.}. Typically, this function is called inside a loop for each value of \texttt{j} from 0 to \texttt{nconv}--1. Note that singular values are ordered according to the same criterion specified with function \ident{SVDSetWhichSingularTriplets} for selecting the portion of the spectrum of interest.
 
 In some applications, it may be enough to compute only the right singular vectors. This is especially important in cases in which memory requirements are critical (remember that both $U_k$ and $V_k$ are dense matrices, and $U_k$ may require much more storage than $V_k$, see Figure \ref{fig:svd}). In \slepc, there is no general option for specifying this, but the default behavior of some solvers is to compute only right vectors and allocate/compute left vectors only in the case that the user requests them. This is done in the \texttt{cross} solver and in some special variants of other solvers such as one-sided Lanczos (consult the \hyperlink{str}{[STR-8]} technical report for specific solver options).
 
-In the case of the GSVD, the \texttt{sigma} argument of \ident{SVDGetSingularTriplet} contains $\sigma_i=c_i/s_i$ and the second \texttt{Vec} argument (\texttt{v}) contains the right singular vectors ($x_i$), while the first \texttt{Vec} argument (\texttt{u}) contains the other vectors of the decomposition stacked on top of each other, as a single $(m+p)$-vector: $\begin{bmatrix}u_i\\v_i\end{bmatrix}$.
+In the case of the GSVD, the \texttt{sigma} argument of \ident{SVDGetSingularTriplet} contains $\sigma_i=c_i/s_i$ and the second \texttt{Vec} argument (\texttt{v}) contains the right singular vectors ($x_i$), while the first \texttt{Vec} argument (\texttt{u}) contains the other vectors of the decomposition stacked on top of each other, as a single $(m+p)$-vector: $\left[\begin{smallmatrix}u_i\\v_i\end{smallmatrix}\right]$.
 
 \paragraph{Reliability of the Computed Solution.}
 
@@ -395,6 +450,12 @@ In the case of the GSVD, the function \ident{SVDComputeError} will compute a res
 \|r_\mathrm{GSVD}\|_2=\left(\|\tilde{s}^2A^*\tilde{u}-\tilde{c}B^*B\tilde{x}\|_2^2+\|\tilde{c}^2B^*\tilde{v}-\tilde{s}A^*A\tilde{x}\|_2^2\right)^{\frac{1}{2}},
 \end{equation}
 where $\tilde{x}$, $\tilde{u}$, $\tilde{v}$ are the computed singular vectors corresponding to $\tilde{\sigma}$, and $\tilde{c}$, $\tilde{s}$ are obtained from $\tilde{\sigma}$ as $\tilde{s}=1/\sqrt{1+\tilde{\sigma}^2}$ and $\tilde{c}=\tilde{\sigma}\tilde{s}$. See~\citep{Alvarruiz:2022:TRL} for details.
+
+Similarly, in the HSVD we employ a modified residual
+\begin{equation}
+\|r_\mathrm{HSVD}\|_2=\left(\|A\tilde{v}-\tilde{\sigma}\tilde{u}\|_2^2+\|A^*\Omega\tilde{u}-\tilde{\sigma}\tilde{\omega}\tilde{v}\|_2^2\right)^{\frac{1}{2}},
+\end{equation}
+where $\tilde\omega$ is the corresponding element of the signature $\tilde\Omega$ of the definition~\eqref{eq:hsvd}.
 
 \paragraph{Controlling and Monitoring Convergence.}
 
