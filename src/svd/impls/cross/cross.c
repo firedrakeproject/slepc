@@ -25,7 +25,7 @@ typedef struct {
 
 typedef struct {
   Mat       A,AT;
-  Vec       w,diag;
+  Vec       w,diag,omega;
   PetscBool swapped;
 } SVD_CROSS_SHELL;
 
@@ -36,6 +36,7 @@ static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
   PetscFunctionBegin;
   PetscCall(MatShellGetContext(B,&ctx));
   PetscCall(MatMult(ctx->A,x,ctx->w));
+  if (ctx->omega && !ctx->swapped) PetscCall(VecPointwiseMult(ctx->w,ctx->w,ctx->omega));
   PetscCall(MatMult(ctx->AT,ctx->w,y));
   PetscFunctionReturn(0);
 }
@@ -102,21 +103,27 @@ static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
   SVD_CROSS_SHELL *ctx;
   PetscInt        n;
   VecType         vtype;
+  Mat             B;
 
   PetscFunctionBegin;
   if (cross->explicitmatrix) {
+    if (!svd->ishyperbolic || svd->swapped) B = (!svd->expltrans && svd->swapped)? AT: A;
+    else {  /* duplicate A and scale by signature */
+      PetscCall(MatDuplicate(A,MAT_COPY_VALUES,&B));
+      PetscCall(MatDiagonalScale(B,svd->omega,NULL));
+    }
     if (svd->expltrans) {  /* explicit transpose */
-      PetscCall(MatProductCreate(AT,A,NULL,C));
+      PetscCall(MatProductCreate(AT,B,NULL,C));
       PetscCall(MatProductSetType(*C,MATPRODUCT_AB));
     } else {  /* implicit transpose */
 #if defined(PETSC_USE_COMPLEX)
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Must use explicit transpose with complex scalars");
 #else
       if (!svd->swapped) {
-        PetscCall(MatProductCreate(A,A,NULL,C));
+        PetscCall(MatProductCreate(A,B,NULL,C));
         PetscCall(MatProductSetType(*C,MATPRODUCT_AtB));
       } else {
-        PetscCall(MatProductCreate(AT,AT,NULL,C));
+        PetscCall(MatProductCreate(B,AT,NULL,C));
         PetscCall(MatProductSetType(*C,MATPRODUCT_ABt));
       }
 #endif
@@ -124,17 +131,19 @@ static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
     PetscCall(MatProductSetFromOptions(*C));
     PetscCall(MatProductSymbolic(*C));
     PetscCall(MatProductNumeric(*C));
+    if (svd->ishyperbolic && !svd->swapped) PetscCall(MatDestroy(&B));
   } else {
     PetscCall(PetscNew(&ctx));
     ctx->A       = A;
     ctx->AT      = AT;
+    ctx->omega   = svd->omega;
     ctx->swapped = svd->swapped;
     PetscCall(MatCreateVecs(A,NULL,&ctx->w));
     PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->w));
     PetscCall(MatGetLocalSize(A,NULL,&n));
     PetscCall(MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,(void*)ctx,C));
     PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cross));
-    PetscCall(MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross));
+    if (!svd->ishyperbolic || svd->swapped) PetscCall(MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross));
     PetscCall(MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_Cross));
     PetscCall(MatGetVecType(A,&vtype));
     PetscCall(MatSetVecType(*C,vtype));
@@ -159,9 +168,12 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   ST             st;
   PetscBool      trackall,issinv;
   EPSProblemType ptype;
+  EPSWhich       which;
+  Mat            Omega;
+  MatType        Atype;
+  PetscInt       n,N;
 
   PetscFunctionBegin;
-  SVDCheckDefinite(svd);
   if (!cross->eps) PetscCall(SVDCrossGetEPS(svd,&cross->eps));
   PetscCall(MatDestroy(&cross->C));
   PetscCall(MatDestroy(&cross->D));
@@ -171,6 +183,18 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     PetscCall(EPSSetOperators(cross->eps,cross->C,cross->D));
     PetscCall(EPSGetProblemType(cross->eps,&ptype));
     if (!ptype) PetscCall(EPSSetProblemType(cross->eps,EPS_GHEP));
+  } else if (svd->ishyperbolic && svd->swapped) {
+    PetscCall(MatGetType(svd->OP,&Atype));
+    PetscCall(MatGetSize(svd->A,NULL,&N));
+    PetscCall(MatGetLocalSize(svd->A,NULL,&n));
+    PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
+    PetscCall(MatSetSizes(Omega,n,n,N,N));
+    PetscCall(MatSetType(Omega,Atype));
+    PetscCall(MatSetUp(Omega));
+    PetscCall(MatDiagonalSet(Omega,svd->omega,INSERT_VALUES));
+    PetscCall(EPSSetOperators(cross->eps,cross->C,Omega));
+    PetscCall(EPSSetProblemType(cross->eps,EPS_GHIEP));
+    PetscCall(MatDestroy(&Omega));
   } else {
     PetscCall(EPSSetOperators(cross->eps,cross->C,NULL));
     PetscCall(EPSSetProblemType(cross->eps,EPS_HEP));
@@ -180,12 +204,14 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     if (svd->isgeneralized && svd->which==SVD_SMALLEST) {
       PetscCall(STSetType(st,STSINVERT));
       PetscCall(EPSSetTarget(cross->eps,0.0));
-      PetscCall(EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_REAL));
+      which = EPS_TARGET_REAL;
     } else {
       PetscCall(PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv));
-      if (issinv) PetscCall(EPSSetWhichEigenpairs(cross->eps,EPS_TARGET_MAGNITUDE));
-      else PetscCall(EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL));
+      if (issinv) which = EPS_TARGET_MAGNITUDE;
+      else if (svd->ishyperbolic) which = svd->which==SVD_LARGEST?EPS_LARGEST_MAGNITUDE:EPS_SMALLEST_MAGNITUDE;
+      else which = svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL;
     }
+    PetscCall(EPSSetWhichEigenpairs(cross->eps,which));
     PetscCall(EPSSetDimensions(cross->eps,svd->nsv,svd->ncv,svd->mpd));
     PetscCall(EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it));
     switch (svd->conv) {
@@ -242,12 +268,15 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   for (i=0;i<svd->nconv;i++) {
     PetscCall(EPSGetEigenvalue(cross->eps,i,&lambda,NULL));
     sigma = PetscRealPart(lambda);
-    PetscCheck(sigma>-10*PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)svd),PETSC_ERR_FP,"Negative eigenvalue computed by EPS: %g",(double)sigma);
-    if (sigma<0.0) {
-      PetscCall(PetscInfo(svd,"Negative eigenvalue computed by EPS: %g, resetting to 0\n",(double)sigma));
-      sigma = 0.0;
+    if (svd->ishyperbolic) svd->sigma[i] = PetscSqrtReal(PetscAbsReal(sigma));
+    else {
+      PetscCheck(sigma>-10*PETSC_MACHINE_EPSILON,PetscObjectComm((PetscObject)svd),PETSC_ERR_FP,"Negative eigenvalue computed by EPS: %g",(double)sigma);
+      if (sigma<0.0) {
+        PetscCall(PetscInfo(svd,"Negative eigenvalue computed by EPS: %g, resetting to 0\n",(double)sigma));
+        sigma = 0.0;
+      }
+      svd->sigma[i] = PetscSqrtReal(sigma);
     }
-    svd->sigma[i] = PetscSqrtReal(sigma);
   }
   PetscFunctionReturn(0);
 }
@@ -256,8 +285,9 @@ PetscErrorCode SVDComputeVectors_Cross(SVD svd)
 {
   SVD_CROSS         *cross = (SVD_CROSS*)svd->data;
   PetscInt          i,mloc,ploc;
-  Vec               u,v,x,uv;
-  PetscScalar       *dst,alpha,lambda;
+  Vec               u,v,x,uv,w,omega2=NULL;
+  Mat               Omega;
+  PetscScalar       *dst,alpha,lambda,*varray;
   const PetscScalar *src;
   PetscReal         nrm;
 
@@ -291,6 +321,28 @@ PetscErrorCode SVDComputeVectors_Cross(SVD svd)
     }
     PetscCall(VecDestroy(&v));
     PetscCall(VecDestroy(&u));
+  } else if (svd->ishyperbolic && svd->swapped) {  /* was solved as GHIEP, set u=Omega*u and normalize */
+    PetscCall(EPSGetOperators(cross->eps,NULL,&Omega));
+    PetscCall(MatCreateVecs(Omega,&w,NULL));
+    PetscCall(VecCreateSeq(PETSC_COMM_SELF,svd->ncv,&omega2));
+    PetscCall(VecGetArrayWrite(omega2,&varray));
+    for (i=0;i<svd->nconv;i++) {
+      PetscCall(BVGetColumn(svd->V,i,&v));
+      PetscCall(EPSGetEigenvector(cross->eps,i,v,NULL));
+      PetscCall(MatMult(Omega,v,w));
+      PetscCall(VecDot(v,w,&alpha));
+      svd->sign[i] = PetscSign(PetscRealPart(alpha));
+      varray[i] = svd->sign[i];
+      alpha = 1.0/PetscSqrtScalar(PetscAbsScalar(alpha));
+      PetscCall(VecScale(w,alpha));
+      PetscCall(VecCopy(w,v));
+      PetscCall(BVRestoreColumn(svd->V,i,&v));
+    }
+    PetscCall(BVSetSignature(svd->V,omega2));
+    PetscCall(VecRestoreArrayWrite(omega2,&varray));
+    PetscCall(VecDestroy(&omega2));
+    PetscCall(VecDestroy(&w));
+    PetscCall(SVDComputeVectors_Left(svd));
   } else {
     for (i=0;i<svd->nconv;i++) {
       PetscCall(BVGetColumn(svd->V,i,&v));
@@ -548,6 +600,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
 
   svd->ops->solve          = SVDSolve_Cross;
   svd->ops->solveg         = SVDSolve_Cross;
+  svd->ops->solveh         = SVDSolve_Cross;
   svd->ops->setup          = SVDSetUp_Cross;
   svd->ops->setfromoptions = SVDSetFromOptions_Cross;
   svd->ops->destroy        = SVDDestroy_Cross;
