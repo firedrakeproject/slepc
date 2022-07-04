@@ -101,6 +101,10 @@ int main(int argc,char **argv)
                  Solve the problem, display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  PetscCall(MatCreateVecs(A,&v,&u));
+  PetscCall(VecSet(u,1.0));
+  PetscCall(VecSet(v,1.0));
+  PetscCall(SVDSetInitialSpaces(svd,1,&v,1,&u));
   PetscCall(SVDSolve(svd));
 
   /* show detailed info unless -terse option is given by user */
@@ -118,7 +122,6 @@ int main(int argc,char **argv)
   PetscCall(SVDGetConverged(svd,&nconv));
   if (nconv>0 && !skiporth) {
     PetscCall(SVDGetTolerances(svd,&tol,NULL));
-    PetscCall(MatCreateVecs(A,&v,&u));
     PetscCall(VecDuplicateVecs(u,nconv,&U));
     PetscCall(VecDuplicateVecs(v,nconv,&V));
     for (i=0;i<nconv;i++) PetscCall(SVDGetSingularTriplet(svd,i,NULL,U[i],V[i]));
@@ -128,9 +131,9 @@ int main(int argc,char **argv)
     else PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g (U) %g (V)\n",(double)lev1,(double)lev2));
     PetscCall(VecDestroyVecs(nconv,&U));
     PetscCall(VecDestroyVecs(nconv,&V));
-    PetscCall(VecDestroy(&u));
-    PetscCall(VecDestroy(&v));
   }
+  PetscCall(VecDestroy(&u));
+  PetscCall(VecDestroy(&v));
 
   /* free work space */
   PetscCall(SVDDestroy(&svd));
@@ -146,25 +149,49 @@ int main(int argc,char **argv)
    testset:
       args: -file ${DATAFILESPATH}/matrices/real/illc1033.petsc -svd_nsv 62 -p 40 -terse
       requires: double !complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
+      filter: grep -v Reading
       output_file: output/ex52_1.out
       test:
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}} -svd_implicittranspose {{0 1}}
          suffix: 1_cross
+      test:
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}} -svd_ncv 300
+         suffix: 1_cyclic
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/real/illc1033.petsc -transpose -svd_nsv 6 -p 130 -terse
       requires: double !complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
+      filter: grep -v Reading
       output_file: output/ex52_2.out
       test:
-         args: -svd_type cross -svd_cross_explicitmatrix {{0 1}} -svd_implicittranspose {{0 1}}
+         args: -svd_type cross -svd_cross_explicitmatrix {{0 1}} -svd_implicittranspose {{0 1}} -svd_ncv 100
          suffix: 2_cross
+      test:
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
+         suffix: 2_cyclic
 
    testset:
-      args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -svd_nsv 12 -p 24 -terse
+      args: -file ${DATAFILESPATH}/matrices/complex/illc1033.petsc -svd_nsv 62 -p 40 -terse
       requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
-      output_file: output/ex52_3.out
+      filter: grep -v Reading
+      output_file: output/ex52_1.out
       test:
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
          suffix: 3_cross
+      test:
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
+         suffix: 3_cyclic
+
+   testset:
+      args: -file ${DATAFILESPATH}/matrices/complex/illc1033.petsc -transpose -svd_nsv 6 -p 130 -terse
+      requires: double complex datafilespath !defined(PETSC_USE_64BIT_INDICES)
+      filter: grep -v Reading
+      output_file: output/ex52_2.out
+      test:
+         args: -svd_type cross -svd_cross_explicitmatrix {{0 1}} -svd_ncv 100
+         suffix: 4_cross
+      test:
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
+         suffix: 4_cyclic
 
 TEST*/

@@ -1,7 +1,6 @@
 
 Hyperbolic singular value problem stored in file.
 
- Reading REAL matrix from a binary file...
 
  Matrix dimensions: 1033x320, using signature Omega=blkdiag(-I_40,I_993)
 
