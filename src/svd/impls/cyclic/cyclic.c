@@ -377,7 +377,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
         PetscCall(EPSSetTarget(cyclic->eps,0.0));
       }
     }
-    PetscCall(EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv,svd->mpd));
+    PetscCall(EPSSetDimensions(cyclic->eps,2*svd->nsv,svd->ncv,svd->mpd));
     PetscCall(EPSSetTolerances(cyclic->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it));
     switch (svd->conv) {
     case SVD_CONV_ABS:
