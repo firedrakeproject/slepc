@@ -195,7 +195,7 @@ int main(int argc,char **argv)
          requires: !complex
       test:
          suffix: 2_cyclic
-         args: -svd_type cyclic -svd_tol 1e-8
+         args: -svd_type cyclic -svd_tol 1e-9
          requires: double
       test:
          suffix: 2_lapack

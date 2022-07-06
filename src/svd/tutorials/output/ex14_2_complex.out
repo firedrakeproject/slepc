@@ -11,14 +11,14 @@ SVD Object: 1 MPI process
         using the locking variant
       problem type: hermitian eigenvalue problem
       selected portion of the spectrum: closest to target: 12. (in magnitude)
-      number of eigenvalues (nev): 2
-      number of column vectors (ncv): 17
-      maximum dimension of projected problem (mpd): 17
+      number of eigenvalues (nev): 4
+      number of column vectors (ncv): 19
+      maximum dimension of projected problem (mpd): 19
       maximum number of iterations: 100
       convergence test: relative to the eigenvalue
     BV Object: (svd_cyclic_) 1 MPI process
       type: svec
-      18 columns of global length 648
+      20 columns of global length 648
       vector orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)
       block orthogonalization method: GS
@@ -52,14 +52,14 @@ SVD Object: 1 MPI process
           type: seqaij
           rows=648, cols=648
           total: nonzeros=54108, allocated nonzeros=54108
-          total number of mallocs used during MatSetValues calls =0
+          total number of mallocs used during MatSetValues calls=0
             not using I-node routines
   problem type: (standard) singular value problem
   transpose mode: explicit
   selected portion of the spectrum: largest
   number of singular values (nsv): 2
-  number of column vectors (ncv): 17
-  maximum dimension of projected problem (mpd): 17
+  number of column vectors (ncv): 19
+  maximum dimension of projected problem (mpd): 19
   maximum number of iterations: 100
   convergence test: relative to the singular value
  Number of iterations of the method: 3

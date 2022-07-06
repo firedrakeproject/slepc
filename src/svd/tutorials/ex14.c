@@ -123,7 +123,7 @@ int main(int argc,char **argv)
          requires: elemental
       test:
          suffix: 2
-         args: -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -svd_view
+         args: -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.5 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -svd_view
          filter: grep -v tolerance
       test:
          suffix: 2_cross

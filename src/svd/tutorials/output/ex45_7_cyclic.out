@@ -1,0 +1,21 @@
+
+Generalized singular value decomposition, (20+21)x15
+
+ Solution method: cyclic
+
+ Number of requested generalized singular values: 4
+ Stopping condition: tol=1e-08, maxit=100
+ Number of converged approximate singular triplets: 8
+
+          sigma           ||r||/||[A;B]||
+  --------------------- ------------------
+        7.881111          removed
+        7.533093          removed
+        6.981027          removed
+        6.263891          removed
+        5.430669          removed
+        4.535536          removed
+        3.632812          removed
+        2.772383          removed
+
+Level of orthogonality below the tolerance

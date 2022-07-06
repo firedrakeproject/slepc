@@ -199,7 +199,7 @@ int main(int argc,char **argv)
          suffix: 4
 
    testset:
-      args: -m 25 -n 20 -p 21 -svd_smallest -svd_nsv 4
+      args: -m 25 -n 20 -p 21 -svd_smallest -svd_nsv 2
       filter: grep -v "Solution method" | grep -v "Number of iterations" | sed -e "s/, maxit=1[0]*$//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double
       output_file: output/ex45_5.out
@@ -225,9 +225,13 @@ int main(int argc,char **argv)
       test:
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
          suffix: 6_cross
-      test:
-         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
-         suffix: 6_cyclic
+
+   test:
+      args: -m 15 -n 20 -p 21 -svd_nsv 4 -svd_ncv 9 -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
+      filter: grep -v "Number of iterations" | sed -e "s/7.884967/7.884968/" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      requires: double
+      suffix: 6_cyclic
+      output_file: output/ex45_6_cyclic.out
 
    testset:
       args: -m 20 -n 15 -p 21 -svd_nsv 4 -svd_ncv 9
@@ -240,9 +244,13 @@ int main(int argc,char **argv)
       test:
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
          suffix: 7_cross
-      test:
-         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
-         suffix: 7_cyclic
+
+   test:
+      args: -m 20 -n 15 -p 21 -svd_nsv 4 -svd_ncv 16 -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
+      filter: grep -v "Number of iterations" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      requires: double
+      suffix: 7_cyclic
+      output_file: output/ex45_7_cyclic.out
 
    test:
        args: -m 25 -n 20 -p 21 -svd_smallest -svd_nsv 2 -svd_ncv 5 -svd_type trlanczos -svd_trlanczos_gbidiag {{upper lower}} -svd_trlanczos_scale {{0.1 -20}}

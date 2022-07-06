@@ -10,15 +10,15 @@ SVD Object: 1 MPI process
         50% of basis vectors kept after restart
         using the locking variant
       problem type: symmetric eigenvalue problem
-      selected portion of the spectrum: closest to target: 12. (in magnitude)
-      number of eigenvalues (nev): 2
-      number of column vectors (ncv): 17
-      maximum dimension of projected problem (mpd): 17
+      selected portion of the spectrum: closest to target: 12.5 (in magnitude)
+      number of eigenvalues (nev): 4
+      number of column vectors (ncv): 19
+      maximum dimension of projected problem (mpd): 19
       maximum number of iterations: 100
       convergence test: relative to the eigenvalue
     BV Object: (svd_cyclic_) 1 MPI process
       type: svec
-      18 columns of global length 400
+      20 columns of global length 400
       vector orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)
       block orthogonalization method: GS
@@ -28,7 +28,7 @@ SVD Object: 1 MPI process
       solving the problem with: Implicit QR method (_steqr)
     ST Object: (svd_cyclic_) 1 MPI process
       type: sinvert
-      shift: 12.
+      shift: 12.5
       number of matrices: 1
       KSP Object: (svd_cyclic_st_) 1 MPI process
         type: preonly
@@ -52,14 +52,14 @@ SVD Object: 1 MPI process
           type: seqaij
           rows=400, cols=400
           total: nonzeros=2640, allocated nonzeros=2640
-          total number of mallocs used during MatSetValues calls =0
+          total number of mallocs used during MatSetValues calls=0
             not using I-node routines
   problem type: (standard) singular value problem
   transpose mode: explicit
   selected portion of the spectrum: largest
   number of singular values (nsv): 2
-  number of column vectors (ncv): 17
-  maximum dimension of projected problem (mpd): 17
+  number of column vectors (ncv): 19
+  maximum dimension of projected problem (mpd): 19
   maximum number of iterations: 100
   convergence test: relative to the singular value
  Number of iterations of the method: 2
@@ -67,5 +67,5 @@ SVD Object: 1 MPI process
 
  Number of requested singular values: 2
  Stopping condition: tol=1e-08, maxit=100
-     12.40671, 12.17279
+     12.40671, 12.40671
 
