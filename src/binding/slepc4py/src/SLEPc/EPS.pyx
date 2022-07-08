@@ -1202,6 +1202,21 @@ cdef class EPS(Object):
 
     #
 
+    def setEigenvalueComparison(self, comparison, args=None, kargs=None):
+        """
+        Specifies the eigenvalue comparison function when
+        `setWhichEigenpairs()` is set to `EPS.Which.USER`.
+        """
+        if comparison is not None:
+            if args is None: args = ()
+            if kargs is None: kargs = {}
+            self.set_attr('__comparison__', (comparison, args, kargs))
+            ctx = self.get_attr('__comparison__')
+            CHKERR( EPSSetEigenvalueComparison(self.eps, EPS_Comparison, <void*>ctx) )
+        else:
+            self.set_attr('__comparison__', None)
+            CHKERR( EPSSetEigenvalueComparison(self.eps, NULL, NULL) )
+
     def setMonitor(self, monitor, args=None, kargs=None):
         """
         Appends a monitor function to the list of monitors.
