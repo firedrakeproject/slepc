@@ -105,6 +105,12 @@ cdef extern from * nogil:
                                              PetscScalar*,
                                              PetscScalar*,
                                              void*) except PETSC_ERR_PYTHON
+    ctypedef int (*SlepcEPSComparisonFunction)(PetscScalar,
+                                               PetscScalar,
+                                               PetscScalar,
+                                               PetscScalar,
+                                               PetscInt*,
+                                               void*) except PETSC_ERR_PYTHON
 
     int EPSView(SlepcEPS,PetscViewer)
     int EPSDestroy(SlepcEPS*)
@@ -183,6 +189,7 @@ cdef extern from * nogil:
     int EPSStoppingBasic(SlepcEPS,PetscInt,PetscInt,PetscInt,PetscInt,SlepcEPSConvergedReason*,void*) except PETSC_ERR_PYTHON
 
     int EPSSetArbitrarySelection(SlepcEPS,SlepcEPSArbitraryFunction,void*);
+    int EPSSetEigenvalueComparison(SlepcEPS,SlepcEPSComparisonFunction,void*);
 
     int EPSGetErrorEstimate(SlepcEPS,PetscInt,PetscReal*)
     int EPSComputeError(SlepcEPS,PetscInt,SlepcEPSErrorType,PetscReal*)
@@ -347,6 +354,20 @@ cdef int EPS_Arbitrary(
     else:
         rr[0] = asScalar(r)
         ri[0] = 0.0
+
+# -----------------------------------------------------------------------------
+
+cdef int EPS_Comparison(
+    PetscScalar  ar,
+    PetscScalar  ai,
+    PetscScalar  br,
+    PetscScalar  bi,
+    PetscInt*    res,
+    void         *ctx,
+    ) except PETSC_ERR_PYTHON with gil:
+    (comparison, args, kargs) = <object>ctx
+    r = comparison(toComplex(ar, ai), toComplex(br, bi), args, **kargs)
+    res[0] = asInt(r)
 
 # -----------------------------------------------------------------------------
 
