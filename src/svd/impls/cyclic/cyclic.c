@@ -330,7 +330,8 @@ static PetscErrorCode EPSConv_Cyclic(EPS eps,PetscScalar eigr,PetscScalar eigi,P
 PetscErrorCode SVDSetUp_Cyclic(SVD svd)
 {
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          M,N,m,n,p,k,i,isl,offset;
+  PetscInt          M,N,m,n,p,k,i,isl,offset,nev,ncv,mpd,maxit;
+  PetscReal         tol;
   const PetscScalar *isa;
   PetscScalar       *va;
   EPSProblemType    ptype;
@@ -377,8 +378,16 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
         PetscCall(EPSSetTarget(cyclic->eps,0.0));
       }
     }
-    PetscCall(EPSSetDimensions(cyclic->eps,2*svd->nsv,svd->ncv,svd->mpd));
-    PetscCall(EPSSetTolerances(cyclic->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it));
+    PetscCall(EPSGetDimensions(cyclic->eps,&nev,&ncv,&mpd));
+    PetscCheck(nev==1 || nev>=2*svd->nsv,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"The number of requested eigenvalues %" PetscInt_FMT " must be at least 2*%" PetscInt_FMT,nev,svd->nsv);
+    nev = PetscMax(nev,2*svd->nsv);
+    if (ncv==PETSC_DEFAULT && svd->ncv!=PETSC_DEFAULT) ncv = PetscMax(3*svd->nsv,svd->ncv);
+    if (mpd==PETSC_DEFAULT && svd->mpd!=PETSC_DEFAULT) mpd = svd->mpd;
+    PetscCall(EPSSetDimensions(cyclic->eps,nev,ncv,mpd));
+    PetscCall(EPSGetTolerances(cyclic->eps,&tol,&maxit));
+    if (tol==PETSC_DEFAULT) tol = svd->tol==PETSC_DEFAULT? SLEPC_DEFAULT_TOL/10.0: svd->tol;
+    if (maxit==PETSC_DEFAULT && svd->max_it!=PETSC_DEFAULT) maxit = svd->max_it;
+    PetscCall(EPSSetTolerances(cyclic->eps,tol,maxit));
     switch (svd->conv) {
     case SVD_CONV_ABS:
       PetscCall(EPSSetConvergenceTest(cyclic->eps,EPS_CONV_ABS));break;
