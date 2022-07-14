@@ -42,97 +42,98 @@
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}[xscale=0.7,yscale=0.8]
-  \tikzstyle{interface}=[fill=black!5,font=\sffamily\bfseries]
+  \tikzstyle{interface}=[fill=black!5,font=\sffamily\bfseries,text depth=.25ex]
   \tikzstyle{implem}=[font=\sffamily\small,text badly centered]
   \tikzstyle{every node}=[transform shape]
+  \tikzstyle{onel}=[text depth=.25ex]
   \def\levsep{1.85} % separation of levels
   \def\hint{0.6} % height interface
   \def\himp{1} % height implementation
   \node[above,text centered,font=\sffamily\bfseries\Large] at (5.25,5*\levsep) {PETSc};
   \draw[interface] (0,\levsep+\himp) rectangle node {Matrices} +(6.2,\hint);
-  \draw[implem] (0,\levsep) rectangle node {CSR} ++(1.1,1) ++(0,-1)
+  \draw[implem] (0,\levsep) rectangle node[onel] {CSR} ++(1.1,1) ++(0,-1)
                 rectangle node[text width=1.3cm] {Block CSR} ++(1.3,1) ++(0,-1)
-                rectangle node {Dense} ++(1.3,1) ++(0,-1)
-                rectangle node {CUSPARSE} ++(1.8,1) ++(0,-1)
-                rectangle node {\dots} ++(.7,1);
+                rectangle node[onel] {Dense} ++(1.3,1) ++(0,-1)
+                rectangle node[onel] {CUSPARSE} ++(1.8,1) ++(0,-1)
+                rectangle node[onel] {\dots} ++(.7,1);
   \draw[interface] (6.4,\levsep+\himp) rectangle node {Vectors} +(3,\hint);
-  \draw[implem] (6.4,\levsep) rectangle node {MPI} ++(1.1,1) ++(0,-1)
-                      rectangle node {CUDA} ++(1.2,1) ++(0,-1)
-                      rectangle node {\dots} ++(.7,1);
+  \draw[implem] (6.4,\levsep) rectangle node[onel] {MPI} ++(1.1,1) ++(0,-1)
+                      rectangle node[onel] {CUDA} ++(1.2,1) ++(0,-1)
+                      rectangle node[onel] {\dots} ++(.7,1);
   \draw[interface] (9.6,\levsep+\himp) rectangle node {IS} +(.9,\hint);
-  \draw[implem] (9.6,\levsep) rectangle node {\dots} ++(.9,1);
+  \draw[implem] (9.6,\levsep) rectangle node[onel] {\dots} ++(.9,1);
   \draw[interface] (0,2*\levsep+\himp) rectangle node {Preconditioners} +(10.5,\hint);
   \draw[implem] (0,2*\levsep) rectangle node[text width=1.6cm] {Additive Schwarz} ++(1.6,1) ++(0,-1)
                 rectangle node[text width=1.2cm] {Block Jacobi} ++(1.4,1) ++(0,-1)
-                rectangle node {Jacobi} ++(1.3,1) ++(0,-1)
-                rectangle node {SOR} ++(1.1,1) ++(0,-1)
-                rectangle node {GAMG} ++(1.2,1) ++(0,-1)
-                rectangle node {ILU} ++(1,1) ++(0,-1)
-                rectangle node {LU} ++(1,1) ++(0,-1)
-                rectangle node[yshift=-.5pt] {QR} ++(1,1) ++(0,-1)
-                rectangle node {\dots} ++(.9,1);
+                rectangle node[onel] {Jacobi} ++(1.3,1) ++(0,-1)
+                rectangle node[onel] {SOR} ++(1.1,1) ++(0,-1)
+                rectangle node[onel] {GAMG} ++(1.2,1) ++(0,-1)
+                rectangle node[onel] {ILU} ++(1,1) ++(0,-1)
+                rectangle node[onel] {LU} ++(1,1) ++(0,-1)
+                rectangle node[onel] {QR} ++(1,1) ++(0,-1)
+                rectangle node[onel] {\dots} ++(.9,1);
   \draw[interface] (0,3*\levsep+\himp) rectangle node {Krylov Subspace Methods} +(10.5,\hint);
-  \draw[implem] (0,3*\levsep) rectangle node {GMRES} ++(1.3,1) ++(0,-1)
-                rectangle node {CG} ++(0.7,1) ++(0,-1)
-                rectangle node {CGS} ++(0.9,1) ++(0,-1)
-                rectangle node {Bi-CGStab} ++(1.7,1) ++(0,-1)
-                rectangle node[yshift=-1pt] {TFQMR} ++(1.4,1) ++(0,-1)
-                rectangle node {Rich.} ++(1.2,1) ++(0,-1)
-                rectangle node[yshift=-1.2pt] {Cheby.} ++(1.2,1) ++(0,-1)
-                rectangle node[yshift=-.5pt] {LSQR} ++(1,1) ++(0,-1)
-                rectangle node {\dots} ++(1.1,1);
+  \draw[implem] (0,3*\levsep) rectangle node[onel] {GMRES} ++(1.3,1) ++(0,-1)
+                rectangle node[onel] {CG} ++(0.7,1) ++(0,-1)
+                rectangle node[onel] {CGS} ++(0.9,1) ++(0,-1)
+                rectangle node[onel] {Bi-CGStab} ++(1.7,1) ++(0,-1)
+                rectangle node[onel] {TFQMR} ++(1.4,1) ++(0,-1)
+                rectangle node[onel] {Rich.} ++(1.2,1) ++(0,-1)
+                rectangle node[onel] {Cheby.} ++(1.2,1) ++(0,-1)
+                rectangle node[onel] {LSQR} ++(1,1) ++(0,-1)
+                rectangle node[onel] {\dots} ++(1.1,1);
   \draw[interface] (0,4*\levsep+\himp) rectangle node {Nonlinear Systems} +(4.2,\hint);
   \draw[implem] (0,4*\levsep) rectangle node[text width=1.2cm] {Line Search} ++(1.5,1) ++(0,-1)
                 rectangle node[text width=1.2cm,yshift=-1pt] {Trust Region} ++(1.5,1) ++(0,-1)
-                rectangle node {\dots} ++(1.2,1);
+                rectangle node[onel] {\dots} ++(1.2,1);
   \draw[interface] (4.5,4*\levsep+\himp) rectangle node {Time Steppers} +(6,\hint);
-  \draw[implem] (4.5,4*\levsep) rectangle node {Euler} ++(1.1,1) ++(0,-1)
+  \draw[implem] (4.5,4*\levsep) rectangle node[onel] {Euler} ++(1.1,1) ++(0,-1)
                 rectangle node[text width=1.5cm] {Backward Euler} ++(1.7,1) ++(0,-1)
-                rectangle node {RK} ++(1.0,1) ++(0,-1)
-                rectangle node {BDF} ++(1.1,1) ++(0,-1)
-                rectangle node {\dots} ++(1.1,1);
+                rectangle node[onel] {RK} ++(1.0,1) ++(0,-1)
+                rectangle node[onel] {BDF} ++(1.1,1) ++(0,-1)
+                rectangle node[onel] {\dots} ++(1.1,1);
   \node[above,text centered,font=\sffamily\bfseries\Large] at (15.1,5*\levsep) {SLEPc};
-  \draw[interface] (11,4*\levsep+\himp) rectangle node[yshift=-1pt] {Nonlinear Eigensolver} +(6.5,\hint);
-  \draw[implem] (11,4*\levsep) rectangle node {SLP} ++(.9,1) ++(0,-1)
-                rectangle node {RII} ++(.8,1) ++(0,-1)
+  \draw[interface] (11,4*\levsep+\himp) rectangle node {Nonlinear Eigensolver} +(6.5,\hint);
+  \draw[implem] (11,4*\levsep) rectangle node[onel] {SLP} ++(.9,1) ++(0,-1)
+                rectangle node[onel] {RII} ++(.8,1) ++(0,-1)
                 rectangle node[text width=1.2cm] {N-Arnoldi} ++(1.3,1) ++(0,-1)
-                rectangle node[yshift=-1pt] {Interp.} ++(1.2,1) ++(0,-1)
-                rectangle node {CISS} ++(1.1,1) ++(0,-1)
-                rectangle node {NLEIGS} ++(1.2,1);
+                rectangle node[onel] {Interp.} ++(1.2,1) ++(0,-1)
+                rectangle node[onel] {CISS} ++(1.1,1) ++(0,-1)
+                rectangle node[onel] {NLEIGS} ++(1.2,1);
   \draw[interface] (17.8,4*\levsep+\himp) rectangle node {M.~Function} +(2.6,\hint);
-  \draw[implem] (17.8,4*\levsep) rectangle node[yshift=-1pt] {Krylov} ++(1.2,1) ++(0,-1)
-                rectangle node[yshift=-1pt] {Expokit} ++(1.4,1);
-  \draw[interface] (11,3*\levsep+\himp) rectangle node[yshift=-1pt] {Polynomial Eigensolver} +(4.1,\hint);
-  \draw[implem] (11,3*\levsep) rectangle node {TOAR} ++(1.1,1) ++(0,-1)
+  \draw[implem] (17.8,4*\levsep) rectangle node[onel] {Krylov} ++(1.2,1) ++(0,-1)
+                rectangle node[onel] {Expokit} ++(1.4,1);
+  \draw[interface] (11,3*\levsep+\himp) rectangle node {Polynomial Eigensolver} +(4.1,\hint);
+  \draw[implem] (11,3*\levsep) rectangle node[onel] {TOAR} ++(1.1,1) ++(0,-1)
                 rectangle node[text width=1.2cm] {Linear\-ization} ++(1.2,1) ++(0,-1)
-                rectangle node {CISS} ++(1,1) ++(0,-1)
-                rectangle node {JD} ++(.8,1) ++(0,-1);
+                rectangle node[onel] {CISS} ++(1,1) ++(0,-1)
+                rectangle node[onel] {JD} ++(.8,1) ++(0,-1);
   \draw[interface] (15.4,3*\levsep+\himp) rectangle node {SVD-Type Solver} +(5,\hint);
   \draw[implem] (15.4,3*\levsep) rectangle node[text width=1.2cm] {Cross Product} ++(1.3,1) ++(0,-1)
                 rectangle node[text width=1.2cm] {Cyclic Matrix} ++(1.2,1) ++(0,-1)
                 rectangle node[text width=1.4cm] {Thick R. Lanczos} ++(1.4,1) ++(0,-1)
-                rectangle node {Rand.} ++(1.1,1);
+                rectangle node[onel] {Rand.} ++(1.1,1);
   \draw[interface] (11,2*\levsep+\himp) rectangle node {Linear Eigensolver} +(9.4,\hint);
-  \draw[implem] (11,2*\levsep) rectangle node[yshift=-1pt] {Krylov-Schur} ++(2.1,1) ++(0,-1)
-                rectangle node[yshift=-1pt] {Subspace} ++(1.5,1) ++(0,-1)
-                rectangle node {GD} ++(1.0,1) ++(0,-1)
-                rectangle node {JD} ++(1.0,1) ++(0,-1)
-                rectangle node {LOBPCG} ++(1.6,1) ++(0,-1)
-                rectangle node {CISS} ++(1.1,1) ++(0,-1)
-                rectangle node {\dots} ++(1.1,1);
-  \draw[interface] (11,\levsep+\himp) rectangle node[yshift=-1pt] {Spectral Transformation} +(5.2,\hint);
-  \draw[implem] (11,\levsep) rectangle node {Shift} ++(1,1) ++(0,-1)
+  \draw[implem] (11,2*\levsep) rectangle node[onel] {Krylov-Schur} ++(2.1,1) ++(0,-1)
+                rectangle node[onel] {Subspace} ++(1.5,1) ++(0,-1)
+                rectangle node[onel] {GD} ++(1.0,1) ++(0,-1)
+                rectangle node[onel] {JD} ++(1.0,1) ++(0,-1)
+                rectangle node[onel] {LOBPCG} ++(1.6,1) ++(0,-1)
+                rectangle node[onel] {CISS} ++(1.1,1) ++(0,-1)
+                rectangle node[onel] {\dots} ++(1.1,1);
+  \draw[interface] (11,\levsep+\himp) rectangle node {Spectral Transformation} +(5.2,\hint);
+  \draw[implem] (11,\levsep) rectangle node[onel] {Shift} ++(1,1) ++(0,-1)
                 rectangle node[text width=1.6cm] {Shift-and-invert} ++(1.7,1) ++(0,-1)
-                rectangle node[yshift=-1pt] {Cayley} ++(1.3,1) ++(0,-1)
+                rectangle node[onel] {Cayley} ++(1.3,1) ++(0,-1)
                 rectangle node[text width=1.2cm] {Poly. Filter} ++(1.2,1);
   \draw[interface] (16.35,\levsep+\himp) rectangle node {BV} +(.9,\hint) ++(1.05,0)
                    rectangle node {DS} +(.9,\hint) ++(1.05,0)
                    rectangle node {RG} +(.9,\hint) ++(1.05,0)
                    rectangle node {FN} +(.9,\hint);
-  \draw[implem] (16.35,\levsep) rectangle node {\dots} ++(.9,1);
-  \draw[implem] (17.4,\levsep) rectangle node {\dots} ++(.9,1);
-  \draw[implem] (18.45,\levsep) rectangle node {\dots} ++(.9,1);
-  \draw[implem] (19.5,\levsep) rectangle node {\dots} ++(.9,1);
+  \draw[implem] (16.35,\levsep) rectangle node[onel] {\dots} ++(.9,1);
+  \draw[implem] (17.4,\levsep) rectangle node[onel] {\dots} ++(.9,1);
+  \draw[implem] (18.45,\levsep) rectangle node[onel] {\dots} ++(.9,1);
+  \draw[implem] (19.5,\levsep) rectangle node[onel] {\dots} ++(.9,1);
 \end{tikzpicture}
 \caption{\label{fig:slepc}Numerical components of \petsc and \slepc.}
 \end{figure}
