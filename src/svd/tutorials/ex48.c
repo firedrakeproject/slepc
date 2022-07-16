@@ -221,5 +221,11 @@ int main(int argc,char **argv)
       test:
          suffix: 4_cyclic
          args: -svd_type cyclic -svd_cyclic_explicitmatrix
+      test:
+         suffix: 4_hpddm
+         nsize: 4
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix -svd_trlanczos_pc_type hpddm
+         args: -prefix_push svd_trlanczos_pc_hpddm_ -levels_1_st_share_sub_ksp -levels_1_eps_nev 10 -levels_1_eps_threshold 0.005 -levels_1_pc_asm_type basic -define_subdomains -levels_1_pc_asm_sub_mat_type sbaij -coarse_pc_type cholesky -levels_1_sub_pc_type cholesky -prefix_pop
+         requires: hpddm
 
 TEST*/
