@@ -19,8 +19,12 @@
  */
 PetscErrorCode SVDComputeVectors_Left(SVD svd)
 {
-  Vec            tl;
-  PetscInt       oldsize;
+  Vec                tl,omega2,u,v,w;
+  PetscInt           i,n,N,oldsize;
+  MatType            Atype;
+  VecType            vtype;
+  Mat                Omega;
+  const PetscScalar* varray;
 
   PetscFunctionBegin;
   if (!svd->leftbasis) {
@@ -35,8 +39,45 @@ PetscErrorCode SVDComputeVectors_Left(SVD svd)
     }
     PetscCall(BVSetActiveColumns(svd->V,0,svd->nconv));
     PetscCall(BVSetActiveColumns(svd->U,0,svd->nconv));
-    PetscCall(BVMatMult(svd->V,svd->A,svd->U));
+    if (!svd->ishyperbolic) PetscCall(BVMatMult(svd->V,svd->A,svd->U));
+    else if (svd->swapped) {  /* compute right singular vectors as V=A'*Omega*U */
+      PetscCall(MatCreateVecs(svd->A,&w,NULL));
+      for (i=0;i<svd->nconv;i++) {
+        PetscCall(BVGetColumn(svd->V,i,&v));
+        PetscCall(BVGetColumn(svd->U,i,&u));
+        PetscCall(VecPointwiseMult(w,v,svd->omega));
+        PetscCall(MatMult(svd->A,w,u));
+        PetscCall(BVRestoreColumn(svd->V,i,&v));
+        PetscCall(BVRestoreColumn(svd->U,i,&u));
+      }
+      PetscCall(VecDestroy(&w));
+    } else {  /* compute left singular vectors as usual U=A*V, and set-up Omega-orthogonalization of U */
+      PetscCall(MatGetType(svd->A,&Atype));
+      PetscCall(BVGetSizes(svd->U,&n,&N,NULL));
+      PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
+      PetscCall(MatSetSizes(Omega,n,n,N,N));
+      PetscCall(MatSetType(Omega,Atype));
+      PetscCall(MatSetUp(Omega));
+      PetscCall(MatDiagonalSet(Omega,svd->omega,INSERT_VALUES));
+      PetscCall(BVMatMult(svd->V,svd->A,svd->U));
+      PetscCall(BVSetMatrix(svd->U,Omega,PETSC_TRUE));
+      PetscCall(MatDestroy(&Omega));
+    }
     PetscCall(BVOrthogonalize(svd->U,NULL));
+    if (svd->ishyperbolic && !svd->swapped) {  /* store signature after Omega-orthogonalization */
+      PetscCall(MatGetVecType(svd->A,&vtype));
+      PetscCall(VecCreate(PETSC_COMM_SELF,&omega2));
+      PetscCall(VecSetSizes(omega2,svd->nconv,svd->nconv));
+      PetscCall(VecSetType(omega2,vtype));
+      PetscCall(BVGetSignature(svd->U,omega2));
+      PetscCall(VecGetArrayRead(omega2,&varray));
+      for (i=0;i<svd->nconv;i++) {
+        svd->sign[i] = PetscRealPart(varray[i]);
+        if (PetscRealPart(varray[i])<0.0) PetscCall(BVScaleColumn(svd->U,i,-1.0));
+      }
+      PetscCall(VecRestoreArrayRead(omega2,&varray));
+      PetscCall(VecDestroy(&omega2));
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -62,6 +103,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 +  -svd_view - print information about the solver used
 .  -svd_view_mat0 - view the first matrix (A)
 .  -svd_view_mat1 - view the second matrix (B)
+.  -svd_view_signature - view the signature matrix (omega)
 .  -svd_view_vectors - view the computed singular vectors
 .  -svd_view_values - view the computed singular values
 .  -svd_converged_reason - print reason for convergence, and number of iterations
@@ -107,6 +149,9 @@ PetscErrorCode SVDSolve(SVD svd)
     case SVD_GENERALIZED:
       PetscCall((*svd->ops->solveg)(svd));
       break;
+    case SVD_HYPERBOLIC:
+      PetscCall((*svd->ops->solveh)(svd));
+      break;
   }
   svd->state = SVD_STATE_SOLVED;
 
@@ -129,6 +174,7 @@ PetscErrorCode SVDSolve(SVD svd)
   PetscCall(SVDVectorsViewFromOptions(svd));
   PetscCall(MatViewFromOptions(svd->OP,(PetscObject)svd,"-svd_view_mat0"));
   if (svd->isgeneralized) PetscCall(MatViewFromOptions(svd->OPb,(PetscObject)svd,"-svd_view_mat1"));
+  if (svd->ishyperbolic) PetscCall(VecViewFromOptions(svd->omega,(PetscObject)svd,"-svd_view_signature"));
 
   /* Remove the initial subspaces */
   svd->nini = 0;
@@ -383,6 +429,39 @@ static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigm
   PetscFunctionReturn(0);
 }
 
+/*
+   SVDComputeResidualNorms_Hyperbolic - Computes the norms of the left and
+   right residuals associated with the i-th computed singular triplet.
+
+   Input Parameters:
+     sigma - singular value
+     sign  - corresponding element of the signature Omega2
+     u,v   - singular vectors
+     x,y,z - three work vectors with the same dimensions as u,v,u
+*/
+static PetscErrorCode SVDComputeResidualNorms_Hyperbolic(SVD svd,PetscReal sigma,PetscReal sign,Vec u,Vec v,Vec x,Vec y,Vec z,PetscReal *norm1,PetscReal *norm2)
+{
+  PetscInt       M,N;
+
+  PetscFunctionBegin;
+  /* norm1 = ||A*v-sigma*u||_2 */
+  if (norm1) {
+    PetscCall(MatMult(svd->OP,v,x));
+    PetscCall(VecAXPY(x,-sigma,u));
+    PetscCall(VecNorm(x,NORM_2,norm1));
+  }
+  /* norm2 = ||A^T*Omega*u-sigma*sign*v||_2 */
+  if (norm2) {
+    PetscCall(MatGetSize(svd->OP,&M,&N));
+    PetscCall(VecPointwiseMult(z,u,svd->omega));
+    if (M<N) PetscCall(MatMult(svd->A,z,y));
+    else PetscCall(MatMult(svd->AT,z,y));
+    PetscCall(VecAXPY(y,-sigma*sign,v));
+    PetscCall(VecNorm(y,NORM_2,norm2));
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@
    SVDComputeError - Computes the error (based on the residual norm) associated
    with the i-th singular triplet.
@@ -415,7 +494,7 @@ static PetscErrorCode SVDComputeResidualNorms_Generalized(SVD svd,PetscReal sigm
 PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *error)
 {
   PetscReal      sigma,norm1,norm2;
-  Vec            u=NULL,v=NULL,x=NULL,y=NULL;
+  Vec            u=NULL,v=NULL,x=NULL,y=NULL,z=NULL;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -441,6 +520,14 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       x = svd->workr[1];
       y = svd->workr[2];
       break;
+    case SVD_HYPERBOLIC:
+      PetscCall(SVDSetWorkVecs(svd,3,2));
+      u = svd->workl[0];
+      v = svd->workr[0];
+      x = svd->workl[1];
+      y = svd->workr[1];
+      z = svd->workl[2];
+      break;
   }
 
   /* compute residual norm and error */
@@ -451,6 +538,9 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       break;
     case SVD_GENERALIZED:
       PetscCall(SVDComputeResidualNorms_Generalized(svd,sigma,u,v,x,y,&norm1,&norm2));
+      break;
+    case SVD_HYPERBOLIC:
+      PetscCall(SVDComputeResidualNorms_Hyperbolic(svd,sigma,svd->sign[svd->perm[i]],u,v,x,y,z,&norm1,&norm2));
       break;
   }
   *error = PetscSqrtReal(norm1*norm1+norm2*norm2);

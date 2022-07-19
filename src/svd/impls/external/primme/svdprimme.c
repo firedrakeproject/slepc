@@ -153,6 +153,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 
   PetscFunctionBegin;
   SVDCheckStandard(svd);
+  SVDCheckDefinite(svd);
   PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)svd),&numProcs));
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&procID));
 

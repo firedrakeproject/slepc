@@ -1,0 +1,10 @@
+
+Hyperbolic singular value problem stored in file.
+
+
+ Matrix dimensions: 320x1033, using signature Omega=blkdiag(-I_130,I_190)
+
+ All requested singular values computed up to the required tolerance:
+     1.97932, 1.88697, 1.83783, 1.77308, 1.70708, 1.70213
+
+Level of orthogonality below the tolerance

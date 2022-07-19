@@ -19,6 +19,7 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   PetscInt       M,N,P=0;
 
   PetscFunctionBegin;
+  SVDCheckDefinite(svd);
   PetscCall(MatGetSize(svd->A,&M,&N));
   if (!svd->isgeneralized) svd->ncv = N;
   else {

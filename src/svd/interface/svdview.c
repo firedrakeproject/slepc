@@ -64,6 +64,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
       switch (svd->problem_type) {
         case SVD_STANDARD:    type = "(standard) singular value problem"; break;
         case SVD_GENERALIZED: type = "generalized singular value problem"; break;
+        case SVD_HYPERBOLIC:  type = "hyperbolic singular value problem"; break;
       }
     } else type = "not yet set";
     PetscCall(PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type));

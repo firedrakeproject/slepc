@@ -332,12 +332,14 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
   PetscInt          M,N,m,n,p,k,i,isl,offset,nev,ncv,mpd,maxit;
   PetscReal         tol;
-  const PetscScalar *isa;
+  const PetscScalar *isa,*oa;
   PetscScalar       *va;
   EPSProblemType    ptype;
   PetscBool         trackall,issinv;
   Vec               v,t;
   ST                st;
+  Mat               Omega;
+  MatType           Atype;
 
   PetscFunctionBegin;
   PetscCall(MatGetSize(svd->A,&M,&N));
@@ -359,6 +361,26 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
     PetscCall(EPSSetOperators(cyclic->eps,cyclic->C,cyclic->D));
     PetscCall(EPSGetProblemType(cyclic->eps,&ptype));
     if (!ptype) PetscCall(EPSSetProblemType(cyclic->eps,EPS_GHEP));
+  } else if (svd->ishyperbolic) {
+    PetscCall(SVDCyclicGetCyclicMat(svd,svd->A,svd->AT,&cyclic->C));
+    PetscCall(MatCreateVecs(cyclic->C,&v,NULL));
+    PetscCall(VecSet(v,1.0));
+    PetscCall(VecGetArrayRead(svd->omega,&oa));
+    PetscCall(VecGetArray(v,&va));
+    if (svd->swapped) PetscCall(PetscArraycpy(va+m,oa,n));
+    else PetscCall(PetscArraycpy(va,oa,m));
+    PetscCall(VecRestoreArrayRead(svd->omega,&oa));
+    PetscCall(VecRestoreArray(v,&va));
+    PetscCall(MatGetType(svd->OP,&Atype));
+    PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
+    PetscCall(MatSetSizes(Omega,m+n,m+n,M+N,M+N));
+    PetscCall(MatSetType(Omega,Atype));
+    PetscCall(MatSetUp(Omega));
+    PetscCall(MatDiagonalSet(Omega,v,INSERT_VALUES));
+    PetscCall(EPSSetOperators(cyclic->eps,cyclic->C,Omega));
+    PetscCall(EPSSetProblemType(cyclic->eps,EPS_GHIEP));
+    PetscCall(MatDestroy(&Omega));
+    PetscCall(VecDestroy(&v));
   } else {
     PetscCall(SVDCyclicGetCyclicMat(svd,svd->A,svd->AT,&cyclic->C));
     PetscCall(EPSSetOperators(cyclic->eps,cyclic->C,NULL));
@@ -369,6 +391,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       PetscCall(EPSGetST(cyclic->eps,&st));
       PetscCall(PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv));
       if (issinv) PetscCall(EPSSetWhichEigenpairs(cyclic->eps,EPS_TARGET_MAGNITUDE));
+      else if (svd->ishyperbolic) PetscCall(EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_MAGNITUDE));
       else PetscCall(EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL));
     } else {
       if (svd->isgeneralized) {  /* computes sigma^{-1} via alternative pencil */
@@ -460,11 +483,28 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode SVDCyclicCheckEigenvalue(SVD svd,PetscScalar er,PetscScalar ei,PetscReal *sigma,PetscBool *isreal)
+{
+  PetscFunctionBegin;
+  if (svd->ishyperbolic && PetscDefined(USE_COMPLEX) && PetscAbsReal(PetscImaginaryPart(er))>10*PetscAbsReal(PetscRealPart(er))) {
+    *sigma = PetscImaginaryPart(er);
+    if (isreal) *isreal = PETSC_FALSE;
+  } else if (svd->ishyperbolic && !PetscDefined(USE_COMPLEX) && PetscAbsScalar(ei)>10*PetscAbsScalar(er)) {
+    *sigma = PetscRealPart(ei);
+    if (isreal) *isreal = PETSC_FALSE;
+  } else {
+    *sigma = PetscRealPart(er);
+    if (isreal) *isreal = PETSC_TRUE;
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode SVDSolve_Cyclic(SVD svd)
 {
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
   PetscInt       i,j,nconv;
-  PetscScalar    sigma;
+  PetscScalar    er,ei;
+  PetscReal      sigma;
 
   PetscFunctionBegin;
   PetscCall(EPSSolve(cyclic->eps));
@@ -472,10 +512,11 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   PetscCall(EPSGetIterationNumber(cyclic->eps,&svd->its));
   PetscCall(EPSGetConvergedReason(cyclic->eps,(EPSConvergedReason*)&svd->reason));
   for (i=0,j=0;i<nconv;i++) {
-    PetscCall(EPSGetEigenvalue(cyclic->eps,i,&sigma,NULL));
-    if (PetscRealPart(sigma) > 0.0) {
-      if (svd->isgeneralized && svd->which==SVD_SMALLEST) svd->sigma[j] = 1.0/PetscRealPart(sigma);
-      else svd->sigma[j] = PetscRealPart(sigma);
+    PetscCall(EPSGetEigenvalue(cyclic->eps,i,&er,&ei));
+    PetscCall(SVDCyclicCheckEigenvalue(svd,er,ei,&sigma,NULL));
+    if (sigma>0.0) {
+      if (svd->isgeneralized && svd->which==SVD_SMALLEST) svd->sigma[j] = 1.0/sigma;
+      else svd->sigma[j] = sigma;
       j++;
     }
   }
@@ -483,90 +524,274 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDComputeVectors_Cyclic(SVD svd)
+static PetscErrorCode SVDComputeVectors_Cyclic_Standard(SVD svd)
 {
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          i,j,m,p,nconv;
-  PetscScalar       *dst,sigma;
-  const PetscScalar *src,*px;
-  Vec               u,v,x,x1,x2,uv;
+  PetscInt          i,j,m,nconv;
+  PetscScalar       er,ei;
+  PetscReal         sigma;
+  const PetscScalar *px;
+  Vec               x,x1,x2;
 
   PetscFunctionBegin;
-  PetscCall(EPSGetConverged(cyclic->eps,&nconv));
   PetscCall(MatCreateVecs(cyclic->C,&x,NULL));
   PetscCall(MatGetLocalSize(svd->A,&m,NULL));
-  if (svd->isgeneralized && svd->which==SVD_SMALLEST) PetscCall(MatCreateVecsEmpty(svd->B,&x1,&x2));
-  else PetscCall(MatCreateVecsEmpty(svd->A,&x2,&x1));
-  if (svd->isgeneralized) {
-    PetscCall(MatCreateVecs(svd->A,NULL,&u));
-    PetscCall(MatCreateVecs(svd->B,NULL,&v));
-    PetscCall(MatGetLocalSize(svd->B,&p,NULL));
-  }
+  PetscCall(MatCreateVecsEmpty(svd->A,&x2,&x1));
+  PetscCall(EPSGetConverged(cyclic->eps,&nconv));
   for (i=0,j=0;i<nconv;i++) {
-    PetscCall(EPSGetEigenpair(cyclic->eps,i,&sigma,NULL,x,NULL));
-    if (PetscRealPart(sigma) > 0.0) {
-      if (svd->isgeneralized) {
-        if (svd->which==SVD_SMALLEST) {
-          /* evec_i = 1/sqrt(2)*[ v_i; w_i ],  w_i = x_i/c_i */
-          PetscCall(VecGetArrayRead(x,&px));
-          PetscCall(VecPlaceArray(x2,px));
-          PetscCall(VecPlaceArray(x1,px+p));
-          PetscCall(VecCopy(x2,v));
-          PetscCall(VecScale(v,PETSC_SQRT2));  /* v_i = sqrt(2)*evec_i_1 */
-          PetscCall(VecScale(x1,PETSC_SQRT2)); /* w_i = sqrt(2)*evec_i_2 */
-          PetscCall(MatMult(svd->A,x1,u));     /* A*w_i = u_i */
-          PetscCall(VecScale(x1,1.0/PetscSqrtScalar(1.0+sigma*sigma)));  /* x_i = w_i*c_i */
-          PetscCall(BVInsertVec(svd->V,j,x1));
-          PetscCall(VecResetArray(x2));
-          PetscCall(VecResetArray(x1));
-          PetscCall(VecRestoreArrayRead(x,&px));
-        } else {
-          /* evec_i = 1/sqrt(2)*[ u_i; w_i ],  w_i = x_i/s_i */
-          PetscCall(VecGetArrayRead(x,&px));
-          PetscCall(VecPlaceArray(x1,px));
-          PetscCall(VecPlaceArray(x2,px+m));
-          PetscCall(VecCopy(x1,u));
-          PetscCall(VecScale(u,PETSC_SQRT2));  /* u_i = sqrt(2)*evec_i_1 */
-          PetscCall(VecScale(x2,PETSC_SQRT2)); /* w_i = sqrt(2)*evec_i_2 */
-          PetscCall(MatMult(svd->B,x2,v));     /* B*w_i = v_i */
-          PetscCall(VecScale(x2,1.0/PetscSqrtScalar(1.0+sigma*sigma)));  /* x_i = w_i*s_i */
-          PetscCall(BVInsertVec(svd->V,j,x2));
-          PetscCall(VecResetArray(x1));
-          PetscCall(VecResetArray(x2));
-          PetscCall(VecRestoreArrayRead(x,&px));
-        }
-        /* copy [u;v] to U[j] */
-        PetscCall(BVGetColumn(svd->U,j,&uv));
-        PetscCall(VecGetArrayWrite(uv,&dst));
-        PetscCall(VecGetArrayRead(u,&src));
-        PetscCall(PetscArraycpy(dst,src,m));
-        PetscCall(VecRestoreArrayRead(u,&src));
-        PetscCall(VecGetArrayRead(v,&src));
-        PetscCall(PetscArraycpy(dst+m,src,p));
-        PetscCall(VecRestoreArrayRead(v,&src));
-        PetscCall(VecRestoreArrayWrite(uv,&dst));
-        PetscCall(BVRestoreColumn(svd->U,j,&uv));
-      } else {
-        PetscCall(VecGetArrayRead(x,&px));
-        PetscCall(VecPlaceArray(x1,px));
-        PetscCall(VecPlaceArray(x2,px+m));
-        PetscCall(BVInsertVec(svd->U,j,x1));
-        PetscCall(BVScaleColumn(svd->U,j,PETSC_SQRT2));
-        PetscCall(BVInsertVec(svd->V,j,x2));
-        PetscCall(BVScaleColumn(svd->V,j,PETSC_SQRT2));
-        PetscCall(VecResetArray(x1));
-        PetscCall(VecResetArray(x2));
-        PetscCall(VecRestoreArrayRead(x,&px));
-      }
-      j++;
-    }
+    PetscCall(EPSGetEigenpair(cyclic->eps,i,&er,&ei,x,NULL));
+    PetscCall(SVDCyclicCheckEigenvalue(svd,er,ei,&sigma,NULL));
+    if (sigma<0.0) continue;
+    PetscCall(VecGetArrayRead(x,&px));
+    PetscCall(VecPlaceArray(x1,px));
+    PetscCall(VecPlaceArray(x2,px+m));
+    PetscCall(BVInsertVec(svd->U,j,x1));
+    PetscCall(BVScaleColumn(svd->U,j,PETSC_SQRT2));
+    PetscCall(BVInsertVec(svd->V,j,x2));
+    PetscCall(BVScaleColumn(svd->V,j,PETSC_SQRT2));
+    PetscCall(VecResetArray(x1));
+    PetscCall(VecResetArray(x2));
+    PetscCall(VecRestoreArrayRead(x,&px));
+    j++;
   }
   PetscCall(VecDestroy(&x));
   PetscCall(VecDestroy(&x1));
   PetscCall(VecDestroy(&x2));
-  if (svd->isgeneralized) {
-    PetscCall(VecDestroy(&u));
-    PetscCall(VecDestroy(&v));
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode SVDComputeVectors_Cyclic_Generalized(SVD svd)
+{
+  SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
+  PetscInt          i,j,m,p,nconv;
+  PetscScalar       *dst,er,ei;
+  PetscReal         sigma;
+  const PetscScalar *src,*px;
+  Vec               u,v,x,x1,x2,uv;
+
+  PetscFunctionBegin;
+  PetscCall(MatGetLocalSize(svd->A,&m,NULL));
+  PetscCall(MatGetLocalSize(svd->B,&p,NULL));
+  PetscCall(MatCreateVecs(cyclic->C,&x,NULL));
+  if (svd->which==SVD_SMALLEST) PetscCall(MatCreateVecsEmpty(svd->B,&x1,&x2));
+  else PetscCall(MatCreateVecsEmpty(svd->A,&x2,&x1));
+  PetscCall(MatCreateVecs(svd->A,NULL,&u));
+  PetscCall(MatCreateVecs(svd->B,NULL,&v));
+  PetscCall(EPSGetConverged(cyclic->eps,&nconv));
+  for (i=0,j=0;i<nconv;i++) {
+    PetscCall(EPSGetEigenpair(cyclic->eps,i,&er,&ei,x,NULL));
+    PetscCall(SVDCyclicCheckEigenvalue(svd,er,ei,&sigma,NULL));
+    if (sigma<0.0) continue;
+    if (svd->which==SVD_SMALLEST) {
+      /* evec_i = 1/sqrt(2)*[ v_i; w_i ],  w_i = x_i/c_i */
+      PetscCall(VecGetArrayRead(x,&px));
+      PetscCall(VecPlaceArray(x2,px));
+      PetscCall(VecPlaceArray(x1,px+p));
+      PetscCall(VecCopy(x2,v));
+      PetscCall(VecScale(v,PETSC_SQRT2));  /* v_i = sqrt(2)*evec_i_1 */
+      PetscCall(VecScale(x1,PETSC_SQRT2)); /* w_i = sqrt(2)*evec_i_2 */
+      PetscCall(MatMult(svd->A,x1,u));     /* A*w_i = u_i */
+      PetscCall(VecScale(x1,1.0/PetscSqrtScalar(1.0+sigma*sigma)));  /* x_i = w_i*c_i */
+      PetscCall(BVInsertVec(svd->V,j,x1));
+      PetscCall(VecResetArray(x2));
+      PetscCall(VecResetArray(x1));
+      PetscCall(VecRestoreArrayRead(x,&px));
+    } else {
+      /* evec_i = 1/sqrt(2)*[ u_i; w_i ],  w_i = x_i/s_i */
+      PetscCall(VecGetArrayRead(x,&px));
+      PetscCall(VecPlaceArray(x1,px));
+      PetscCall(VecPlaceArray(x2,px+m));
+      PetscCall(VecCopy(x1,u));
+      PetscCall(VecScale(u,PETSC_SQRT2));  /* u_i = sqrt(2)*evec_i_1 */
+      PetscCall(VecScale(x2,PETSC_SQRT2)); /* w_i = sqrt(2)*evec_i_2 */
+      PetscCall(MatMult(svd->B,x2,v));     /* B*w_i = v_i */
+      PetscCall(VecScale(x2,1.0/PetscSqrtScalar(1.0+sigma*sigma)));  /* x_i = w_i*s_i */
+      PetscCall(BVInsertVec(svd->V,j,x2));
+      PetscCall(VecResetArray(x1));
+      PetscCall(VecResetArray(x2));
+      PetscCall(VecRestoreArrayRead(x,&px));
+    }
+    /* copy [u;v] to U[j] */
+    PetscCall(BVGetColumn(svd->U,j,&uv));
+    PetscCall(VecGetArrayWrite(uv,&dst));
+    PetscCall(VecGetArrayRead(u,&src));
+    PetscCall(PetscArraycpy(dst,src,m));
+    PetscCall(VecRestoreArrayRead(u,&src));
+    PetscCall(VecGetArrayRead(v,&src));
+    PetscCall(PetscArraycpy(dst+m,src,p));
+    PetscCall(VecRestoreArrayRead(v,&src));
+    PetscCall(VecRestoreArrayWrite(uv,&dst));
+    PetscCall(BVRestoreColumn(svd->U,j,&uv));
+    j++;
+  }
+  PetscCall(VecDestroy(&x));
+  PetscCall(VecDestroy(&x1));
+  PetscCall(VecDestroy(&x2));
+  PetscCall(VecDestroy(&u));
+  PetscCall(VecDestroy(&v));
+  PetscFunctionReturn(0);
+}
+
+#if defined(PETSC_USE_COMPLEX)
+/* VecMaxAbs: returns the entry of x that has max(abs(x(i))), using w as a workspace vector */
+static PetscErrorCode VecMaxAbs(Vec x,Vec w,PetscScalar *v)
+{
+  PetscMPIInt       size,rank,root;
+  const PetscScalar *xx;
+  const PetscInt    *ranges;
+  PetscReal         val;
+  PetscInt          p;
+
+  PetscFunctionBegin;
+  PetscCall(VecCopy(x,w));
+  PetscCall(VecAbs(w));
+  PetscCall(VecMax(w,&p,&val));
+  PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)x),&size));
+  PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)x),&rank));
+  PetscCall(VecGetOwnershipRanges(x,&ranges));
+  for (root=0;root<size;root++) if (p>=ranges[root] && p<ranges[root+1]) break;
+  if (rank==root) {
+    PetscCall(VecGetArrayRead(x,&xx));
+    *v = xx[p-ranges[root]];
+    PetscCall(VecRestoreArrayRead(x,&xx));
+  }
+  PetscCallMPI(MPI_Bcast(v,1,MPIU_SCALAR,root,PetscObjectComm((PetscObject)x)));
+  PetscFunctionReturn(0);
+}
+#endif
+
+static PetscErrorCode SVDComputeVectors_Cyclic_Hyperbolic(SVD svd)
+{
+  SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
+  PetscInt          i,j,m,n,N,nconv;
+  PetscScalar       er,ei;
+  PetscReal         sigma,nrm;
+  PetscBool         isreal;
+  const PetscScalar *px;
+  Vec               u,x,xi=NULL,x1,x2,x1i=NULL,x2i;
+  Mat               Omega;
+  MatType           Atype;
+  BV                U=NULL,V=NULL;
+#if !defined(PETSC_USE_COMPLEX)
+  const PetscScalar *pxi;
+  PetscReal         nrmr,nrmi;
+#else
+  PetscScalar       alpha;
+#endif
+
+  PetscFunctionBegin;
+  PetscCall(MatCreateVecs(cyclic->C,&x,svd->ishyperbolic?&xi:NULL));
+  PetscCall(MatGetLocalSize(svd->A,&m,NULL));
+  PetscCall(MatCreateVecsEmpty(svd->OP,&x2,&x1));
+#if defined(PETSC_USE_COMPLEX)
+  PetscCall(MatCreateVecs(svd->OP,&x2i,&x1i));
+#else
+  PetscCall(MatCreateVecsEmpty(svd->OP,&x2i,&x1i));
+#endif
+  /* set-up Omega-normalization of U */
+  U = svd->swapped? svd->V: svd->U;
+  V = svd->swapped? svd->U: svd->V;
+  PetscCall(MatGetType(svd->A,&Atype));
+  PetscCall(BVGetSizes(U,&n,&N,NULL));
+  PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
+  PetscCall(MatSetSizes(Omega,n,n,N,N));
+  PetscCall(MatSetType(Omega,Atype));
+  PetscCall(MatSetUp(Omega));
+  PetscCall(MatDiagonalSet(Omega,svd->omega,INSERT_VALUES));
+  PetscCall(BVSetMatrix(U,Omega,PETSC_TRUE));
+  PetscCall(MatDestroy(&Omega));
+
+  PetscCall(EPSGetConverged(cyclic->eps,&nconv));
+  for (i=0,j=0;i<nconv;i++) {
+    PetscCall(EPSGetEigenpair(cyclic->eps,i,&er,&ei,x,xi));
+    PetscCall(SVDCyclicCheckEigenvalue(svd,er,ei,&sigma,&isreal));
+    if (sigma<0.0) continue;
+    PetscCall(VecGetArrayRead(x,&px));
+    if (svd->swapped) {
+      PetscCall(VecPlaceArray(x2,px));
+      PetscCall(VecPlaceArray(x1,px+m));
+    } else {
+      PetscCall(VecPlaceArray(x1,px));
+      PetscCall(VecPlaceArray(x2,px+n));
+    }
+#if defined(PETSC_USE_COMPLEX)
+    PetscCall(BVInsertVec(U,j,x1));
+    PetscCall(BVInsertVec(V,j,x2));
+    if (!isreal) {
+      PetscCall(VecMaxAbs(x1,x1i,&alpha));
+      PetscCall(BVScaleColumn(U,j,PetscAbsScalar(alpha)/alpha));
+      PetscCall(BVScaleColumn(V,j,PetscAbsScalar(alpha)/(alpha*PETSC_i)));
+    }
+#else
+    PetscCall(VecGetArrayRead(xi,&pxi));
+    if (svd->swapped) {
+      PetscCall(VecPlaceArray(x2i,pxi));
+      PetscCall(VecPlaceArray(x1i,pxi+m));
+    } else {
+      PetscCall(VecPlaceArray(x1i,pxi));
+      PetscCall(VecPlaceArray(x2i,pxi+n));
+    }
+    PetscCall(VecNorm(x2,NORM_2,&nrmr));
+    PetscCall(VecNorm(x2i,NORM_2,&nrmi));
+    if (nrmi>nrmr) {
+      if (isreal) {
+        PetscCall(BVInsertVec(U,j,x1i));
+        PetscCall(BVInsertVec(V,j,x2i));
+      } else {
+        PetscCall(BVInsertVec(U,j,x1));
+        PetscCall(BVInsertVec(V,j,x2i));
+      }
+    } else {
+      if (isreal) {
+        PetscCall(BVInsertVec(U,j,x1));
+        PetscCall(BVInsertVec(V,j,x2));
+      } else {
+        PetscCall(BVInsertVec(U,j,x1i));
+        PetscCall(BVScaleColumn(U,j,-1.0));
+        PetscCall(BVInsertVec(V,j,x2));
+      }
+    }
+    PetscCall(VecResetArray(x1i));
+    PetscCall(VecResetArray(x2i));
+    PetscCall(VecRestoreArrayRead(xi,&pxi));
+#endif
+    PetscCall(VecResetArray(x1));
+    PetscCall(VecResetArray(x2));
+    PetscCall(VecRestoreArrayRead(x,&px));
+    PetscCall(BVGetColumn(U,j,&u));
+    PetscCall(VecPointwiseMult(u,u,svd->omega));
+    PetscCall(BVRestoreColumn(U,j,&u));
+    PetscCall(BVNormColumn(U,j,NORM_2,&nrm));
+    PetscCall(BVScaleColumn(U,j,1.0/PetscAbs(nrm)));
+    svd->sign[j] = PetscSign(nrm);
+    PetscCall(BVNormColumn(V,j,NORM_2,&nrm));
+    PetscCall(BVScaleColumn(V,j,1.0/nrm));
+    j++;
+  }
+  PetscCall(VecDestroy(&x));
+  PetscCall(VecDestroy(&x1));
+  PetscCall(VecDestroy(&x2));
+  PetscCall(VecDestroy(&xi));
+  PetscCall(VecDestroy(&x1i));
+  PetscCall(VecDestroy(&x2i));
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDComputeVectors_Cyclic(SVD svd)
+{
+  PetscFunctionBegin;
+  switch (svd->problem_type) {
+    case SVD_STANDARD:
+      PetscCall(SVDComputeVectors_Cyclic_Standard(svd));
+      break;
+    case SVD_GENERALIZED:
+      PetscCall(SVDComputeVectors_Cyclic_Generalized(svd));
+      break;
+    case SVD_HYPERBOLIC:
+      PetscCall(SVDComputeVectors_Cyclic_Hyperbolic(svd));
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Unknown singular value problem type");
   }
   PetscFunctionReturn(0);
 }
@@ -576,14 +801,16 @@ static PetscErrorCode EPSMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
   PetscInt       i,j;
   SVD            svd = (SVD)ctx;
   PetscScalar    er,ei;
+  PetscReal      sigma;
 
   PetscFunctionBegin;
   nconv = 0;
   for (i=0,j=0;i<PetscMin(nest,svd->ncv);i++) {
     er = eigr[i]; ei = eigi[i];
     PetscCall(STBackTransform(eps->st,1,&er,&ei));
-    if (PetscRealPart(er) > 0.0) {
-      svd->sigma[j] = PetscRealPart(er);
+    PetscCall(SVDCyclicCheckEigenvalue(svd,er,ei,&sigma,NULL));
+    if (sigma>0.0) {
+      svd->sigma[j]  = sigma;
       svd->errest[j] = errest[i];
       if (errest[i] && errest[i] < svd->tol) nconv++;
       j++;
@@ -822,6 +1049,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
   svd->data                = (void*)cyclic;
   svd->ops->solve          = SVDSolve_Cyclic;
   svd->ops->solveg         = SVDSolve_Cyclic;
+  svd->ops->solveh         = SVDSolve_Cyclic;
   svd->ops->setup          = SVDSetUp_Cyclic;
   svd->ops->setfromoptions = SVDSetFromOptions_Cyclic;
   svd->ops->destroy        = SVDDestroy_Cyclic;
