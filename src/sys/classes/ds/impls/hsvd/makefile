@@ -8,12 +8,12 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-SOURCEC  = dsutil.c
+SOURCEC  = dshsvd.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = hep nhep ghep ghiep gnhep nhepts svd gsvd hsvd pep nep
-LOCDIR   = src/sys/classes/ds/impls/
+DIRS     =
 MANSEC   = DS
+LOCDIR   = src/sys/classes/ds/impls/hsvd/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

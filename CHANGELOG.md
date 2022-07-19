@@ -1,5 +1,11 @@
 # Changelog of SLEPc versions
 
+## [unreleased]
+
+### Added
+
+- New `DSHSVD` type for the hyperbolic SVD.
+
 ## [3.18] - 2022-10-01
 
 ### Added

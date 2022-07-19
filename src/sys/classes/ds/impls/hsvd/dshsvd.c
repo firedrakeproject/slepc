@@ -14,9 +14,9 @@
 typedef struct {
   PetscInt m;              /* number of columns */
   PetscInt t;              /* number of rows of V after truncating */
-} DS_SVD;
+} DS_HSVD;
 
-PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
+PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
 {
   PetscFunctionBegin;
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_A));
@@ -25,6 +25,7 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
+  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt)));
   PetscFunctionReturn(0);
 }
 
@@ -53,50 +54,63 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
     -----------------------------------------
 */
 
-static PetscErrorCode DSSwitchFormat_SVD(DS ds)
+static PetscErrorCode DSSwitchFormat_HSVD(DS ds)
 {
-  DS_SVD         *ctx = (DS_SVD*)ds->data;
-  PetscReal      *T;
-  PetscScalar    *A;
+  DS_HSVD        *ctx = (DS_HSVD*)ds->data;
+  PetscReal      *T,*S;
+  PetscScalar    *A,*B;
   PetscInt       i,m=ctx->m,k=ds->k,ld=ds->ld;
 
   PetscFunctionBegin;
-  PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   /* switch from compact (arrow) to dense storage */
-  PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&S));
   PetscCall(PetscArrayzero(A,ld*ld));
+  PetscCall(PetscArrayzero(B,ld*ld));
   for (i=0;i<k;i++) {
     A[i+i*ld] = T[i];
     A[i+k*ld] = T[i+ld];
+    B[i+i*ld] = S[i];
   }
   A[k+k*ld] = T[k];
+  B[k+k*ld] = S[k];
   for (i=k+1;i<m;i++) {
     A[i+i*ld]   = T[i];
     A[i-1+i*ld] = T[i-1+ld];
+    B[i+i*ld]   = S[i];
   }
-  PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&S));
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
+PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
 {
-  DS_SVD            *ctx = (DS_SVD*)ds->data;
+  DS_HSVD           *ctx = (DS_HSVD*)ds->data;
   PetscViewerFormat format;
   PetscInt          i,j,r,c,m=ctx->m,rows,cols;
-  PetscReal         *T,value;
+  PetscReal         *T,*S,value;
+  const char        *methodname[] = {
+                     "Cross"
+  };
+  const int         nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
-  if (format == PETSC_VIEWER_ASCII_INFO) PetscFunctionReturn(0);
-  if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-    PetscCall(PetscViewerASCIIPrintf(viewer,"number of columns: %" PetscInt_FMT "\n",m));
+  PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
+    if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscCall(PetscViewerASCIIPrintf(viewer,"number of columns: %" PetscInt_FMT "\n",m));
+    if (ds->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]));
     PetscFunctionReturn(0);
   }
-  PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
   if (ds->compact) {
     PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+    PetscCall(DSGetArrayReal(ds,DS_MAT_D,&S));
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_FALSE));
     rows = ds->n;
     cols = ds->extrarow? m+1: m;
@@ -111,7 +125,13 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
         PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",c,r,(double)T[i+ds->ld]));
       }
       PetscCall(PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",ds->n,ds->n));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"omega = zeros(%" PetscInt_FMT ",3);\n",3*ds->n));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"omega = [\n"));
+      for (i=0;i<ds->n;i++) PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)S[i]));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(omega);\n",DSMatName[DS_MAT_B]));
     } else {
+      PetscCall(PetscViewerASCIIPrintf(viewer,"T\n"));
       for (i=0;i<rows;i++) {
         for (j=0;j<cols;j++) {
           if (i==j) value = T[i];
@@ -122,11 +142,24 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
         }
         PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
       }
+      PetscCall(PetscViewerASCIIPrintf(viewer,"omega\n"));
+      for (i=0;i<ds->n;i++) {
+        for (j=0;j<ds->n;j++) {
+          if (i==j) value = S[i];
+          else value = 0.0;
+          PetscCall(PetscViewerASCIIPrintf(viewer," %18.16e ",(double)value));
+        }
+        PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
+      }
     }
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     PetscCall(PetscViewerFlush(viewer));
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  } else PetscCall(DSViewMat(ds,viewer,DS_MAT_A));
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&S));
+  } else {
+    PetscCall(DSViewMat(ds,viewer,DS_MAT_A));
+    PetscCall(DSViewMat(ds,viewer,DS_MAT_B));
+  }
   if (ds->state>DS_STATE_INTERMEDIATE) {
     PetscCall(DSViewMat(ds,viewer,DS_MAT_U));
     PetscCall(DSViewMat(ds,viewer,DS_MAT_V));
@@ -134,7 +167,7 @@ PetscErrorCode DSView_SVD(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
+PetscErrorCode DSVectors_HSVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   switch (mat) {
@@ -148,22 +181,26 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+PetscErrorCode DSSort_HSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
-  DS_SVD         *ctx = (DS_SVD*)ds->data;
+  DS_HSVD        *ctx = (DS_HSVD*)ds->data;
   PetscInt       n,l,i,*perm,ld=ds->ld;
-  PetscScalar    *A;
-  PetscReal      *d;
+  PetscScalar    *A,*B;
+  PetscReal      *d,*s;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
-  PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   l = ds->l;
   n = PetscMin(ds->n,ctx->m);
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&s));
+  PetscCall(DSAllocateWork_Private(ds,0,ds->ld,0));
   perm = ds->perm;
   if (!rr) PetscCall(DSSortEigenvaluesReal_Private(ds,d,perm));
   else PetscCall(DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE));
+  PetscCall(PetscArraycpy(ds->rwork,s,n));
+  for (i=l;i<n;i++) s[i]  = ds->rwork[perm[i]];
   for (i=l;i<n;i++) wr[i] = d[perm[i]];
   PetscCall(DSPermuteBoth_Private(ds,l,n,ds->n,ctx->m,DS_MAT_U,DS_MAT_V,perm));
   for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
@@ -171,14 +208,18 @@ PetscErrorCode DSSort_SVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
     for (i=l;i<n;i++) A[i+i*ld] = wr[i];
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
+    for (i=l;i<n;i++) B[i+i*ld] = s[i];
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
   }
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
+PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
 {
-  DS_SVD            *ctx = (DS_SVD*)ds->data;
+  DS_HSVD           *ctx = (DS_HSVD*)ds->data;
   PetscInt          i;
   PetscBLASInt      n=0,m=0,ld,incx=1;
   PetscScalar       *A,*x,*y,one=1.0,zero=0.0;
@@ -186,7 +227,7 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
   const PetscScalar *U;
 
   PetscFunctionBegin;
-  PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ctx->m,&m));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
@@ -204,7 +245,7 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
     x = ds->work;
     y = ds->work+ld;
     for (i=0;i<n;i++) x[i] = PetscConj(A[i+m*ld]);
-    PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,U,&ld,x,&incx,&zero,y,&incx));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,U,&ld,x,&incx,&zero,y,&incx));
     for (i=0;i<n;i++) A[i+m*ld] = PetscConj(y[i]);
     ds->k = m;
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
@@ -213,11 +254,11 @@ PetscErrorCode DSUpdateExtraRow_SVD(DS ds)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
+PetscErrorCode DSTruncate_HSVD(DS ds,PetscInt n,PetscBool trim)
 {
   PetscInt    i,ld=ds->ld,l=ds->l;
   PetscScalar *A;
-  DS_SVD      *ctx = (DS_SVD*)ds->data;
+  DS_HSVD     *ctx = (DS_HSVD*)ds->data;
 
   PetscFunctionBegin;
   if (!ds->compact && ds->extrarow) PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
@@ -247,16 +288,16 @@ PetscErrorCode DSTruncate_SVD(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
+PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-  DS_SVD         *ctx = (DS_SVD*)ds->data;
+  DS_HSVD        *ctx = (DS_HSVD*)ds->data;
   PetscInt       i,j;
   PetscBLASInt   n1,m1,info,l = 0,n = 0,m = 0,nm,ld,off,lwork;
   PetscScalar    *A,*U,*V,*W,qwork;
   PetscReal      *d,*e,*Ur,*Vr;
 
   PetscFunctionBegin;
-  PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ctx->m,&m));
   PetscCall(PetscBLASIntCast(ds->l,&l));
@@ -286,7 +327,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     Ur = U;
     Vr = ds->rwork+3*n1*n1+4*n1;
 #endif
-    PetscCallBLAS("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n1,d+l,e+l,Ur+off,&ld,Vr+off,&ld,NULL,NULL,ds->rwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n1,d+l,e+l,Ur+off,&ld,Vr+off,&ld,NULL,NULL,ds->rwork,ds->iwork,&info));
     SlepcCheckLapackInfo("bdsdc",info);
     for (i=l;i<n;i++) {
       for (j=l;j<n;j++) {
@@ -300,24 +341,24 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     /* solve general rectangular SVD problem */
     PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
     PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_W],&W));
-    if (ds->compact) PetscCall(DSSwitchFormat_SVD(ds));
+    if (ds->compact) PetscCall(DSSwitchFormat_HSVD(ds));
     for (i=0;i<l;i++) wr[i] = d[i];
     nm = PetscMin(n,m);
     PetscCall(DSAllocateWork_Private(ds,0,0,8*nm));
     lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
     PetscCall(DSAllocateWork_Private(ds,0,5*nm*nm+7*nm,0));
-    PetscCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info));
 #else
-    PetscCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,&qwork,&lwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,&qwork,&lwork,ds->iwork,&info));
 #endif
     SlepcCheckLapackInfo("gesdd",info);
     PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(qwork),&lwork));
     PetscCall(DSAllocateWork_Private(ds,lwork,0,0));
 #if defined(PETSC_USE_COMPLEX)
-    PetscCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
 #else
-    PetscCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,ds->work,&lwork,ds->iwork,&info));
+    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,ds->work,&lwork,ds->iwork,&info));
 #endif
     SlepcCheckLapackInfo("gesdd",info);
     for (i=l;i<m;i++) {
@@ -341,12 +382,12 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #if !defined(PETSC_HAVE_MPIUNI)
-PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+PetscErrorCode DSSynchronize_HSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
-  PetscMPIInt    n,rank,off=0,size,ldn,ld3;
-  PetscScalar    *A,*U,*V;
-  PetscReal      *T;
+  PetscMPIInt    n,rank,off=0,size,ldn,ld3,ld_;
+  PetscScalar    *A,*B,*U,*V;
+  PetscReal      *T,*D;
 
   PetscFunctionBegin;
   if (ds->compact) kr = 3*ld;
@@ -358,16 +399,27 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscCall(PetscMPIIntCast(ds->n-l,&n));
   PetscCall(PetscMPIIntCast(ld*(ds->n-l),&ldn));
   PetscCall(PetscMPIIntCast(3*ld,&ld3));
-  if (ds->compact) PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
-  else PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(PetscMPIIntCast(ld,&ld_));
+  if (ds->compact) {
+    PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+    PetscCall(DSGetArrayReal(ds,DS_MAT_D,&D));
+  } else {
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
+  }
   if (ds->state>DS_STATE_RAW) {
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_V],&V));
   }
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    if (ds->compact) PetscCallMPI(MPI_Pack(T,ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    else PetscCallMPI(MPI_Pack(A+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    if (ds->compact) {
+      PetscCallMPI(MPI_Pack(T,ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Pack(D,ld_,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    } else {
+      PetscCallMPI(MPI_Pack(A+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Pack(B+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    }
     if (ds->state>DS_STATE_RAW) {
       PetscCallMPI(MPI_Pack(U+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
       PetscCallMPI(MPI_Pack(V+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
@@ -376,16 +428,26 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    if (ds->compact) PetscCallMPI(MPI_Unpack(ds->work,size,&off,T,ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
-    else PetscCallMPI(MPI_Unpack(ds->work,size,&off,A+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    if (ds->compact) {
+      PetscCallMPI(MPI_Unpack(ds->work,size,&off,T,ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Unpack(ds->work,size,&off,D,ld_,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
+    } else {
+      PetscCallMPI(MPI_Unpack(ds->work,size,&off,A+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+      PetscCallMPI(MPI_Unpack(ds->work,size,&off,B+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    }
     if (ds->state>DS_STATE_RAW) {
       PetscCallMPI(MPI_Unpack(ds->work,size,&off,U+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
       PetscCallMPI(MPI_Unpack(ds->work,size,&off,V+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     }
     if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
   }
-  if (ds->compact) PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  else PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  if (ds->compact) {
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
+  } else {
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
+  }
   if (ds->state>DS_STATE_RAW) {
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
@@ -394,20 +456,28 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 }
 #endif
 
-PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+PetscErrorCode DSMatGetSize_HSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
-  DS_SVD *ctx = (DS_SVD*)ds->data;
+  DS_HSVD *ctx = (DS_HSVD*)ds->data;
 
   PetscFunctionBegin;
-  PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSSVDSetDimensions()");
+  PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   switch (t) {
     case DS_MAT_A:
       *rows = ds->n;
       *cols = ds->extrarow? ctx->m+1: ctx->m;
       break;
+    case DS_MAT_B:
+      *rows = PetscMax(ctx->m,ds->n);
+      *cols = PetscMax(ctx->m,ds->n);
+      break;
     case DS_MAT_T:
       *rows = ds->n;
       *cols = PetscDefined(USE_COMPLEX)? 2: 3;
+      break;
+    case DS_MAT_D:
+      *rows = PetscMax(ctx->m,ds->n);
+      *cols = 1;
       break;
     case DS_MAT_U:
       *rows = ds->state==DS_STATE_TRUNCATED? ds->t: ds->n;
@@ -423,9 +493,9 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode DSSVDSetDimensions_SVD(DS ds,PetscInt m)
+static PetscErrorCode DSHSVDSetDimensions_HSVD(DS ds,PetscInt m)
 {
-  DS_SVD *ctx = (DS_SVD*)ds->data;
+  DS_HSVD *ctx = (DS_HSVD*)ds->data;
 
   PetscFunctionBegin;
   DSCheckAlloc(ds,1);
@@ -439,7 +509,7 @@ static PetscErrorCode DSSVDSetDimensions_SVD(DS ds,PetscInt m)
 }
 
 /*@
-   DSSVDSetDimensions - Sets the number of columns for a DSSVD.
+   DSHSVDSetDimensions - Sets the number of columns for a DSHSVD.
 
    Logically Collective on ds
 
@@ -453,20 +523,20 @@ static PetscErrorCode DSSVDSetDimensions_SVD(DS ds,PetscInt m)
 
    Level: intermediate
 
-.seealso: DSSVDGetDimensions(), DSSetDimensions()
+.seealso: DSHSVDGetDimensions(), DSSetDimensions()
 @*/
-PetscErrorCode DSSVDSetDimensions(DS ds,PetscInt m)
+PetscErrorCode DSHSVDSetDimensions(DS ds,PetscInt m)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,m,2);
-  PetscTryMethod(ds,"DSSVDSetDimensions_C",(DS,PetscInt),(ds,m));
+  PetscTryMethod(ds,"DSHSVDSetDimensions_C",(DS,PetscInt),(ds,m));
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode DSSVDGetDimensions_SVD(DS ds,PetscInt *m)
+static PetscErrorCode DSHSVDGetDimensions_HSVD(DS ds,PetscInt *m)
 {
-  DS_SVD *ctx = (DS_SVD*)ds->data;
+  DS_HSVD *ctx = (DS_HSVD*)ds->data;
 
   PetscFunctionBegin;
   *m = ctx->m;
@@ -474,7 +544,7 @@ static PetscErrorCode DSSVDGetDimensions_SVD(DS ds,PetscInt *m)
 }
 
 /*@
-   DSSVDGetDimensions - Returns the number of columns for a DSSVD.
+   DSHSVDGetDimensions - Returns the number of columns for a DSHSVD.
 
    Not collective
 
@@ -486,77 +556,79 @@ static PetscErrorCode DSSVDGetDimensions_SVD(DS ds,PetscInt *m)
 
    Level: intermediate
 
-.seealso: DSSVDSetDimensions()
+.seealso: DSHSVDSetDimensions()
 @*/
-PetscErrorCode DSSVDGetDimensions(DS ds,PetscInt *m)
+PetscErrorCode DSHSVDGetDimensions(DS ds,PetscInt *m)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidIntPointer(m,2);
-  PetscUseMethod(ds,"DSSVDGetDimensions_C",(DS,PetscInt*),(ds,m));
+  PetscUseMethod(ds,"DSHSVDGetDimensions_C",(DS,PetscInt*),(ds,m));
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSDestroy_SVD(DS ds)
+PetscErrorCode DSDestroy_HSVD(DS ds)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(ds->data));
-  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDSetDimensions_C",NULL));
-  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDGetDimensions_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetDimensions_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetDimensions_C",NULL));
   PetscFunctionReturn(0);
 }
 
 /*MC
-   DSSVD - Dense Singular Value Decomposition.
+   DSHSVD - Dense Singular Value Decomposition.
 
    Level: beginner
 
    Notes:
    The problem is expressed as A = U*Sigma*V', where A is rectangular in
-   general, with n rows and m columns. Sigma is a diagonal matrix whose diagonal
-   elements are the arguments of DSSolve(). After solve, A is overwritten
-   with Sigma.
+   general, with n rows and m columns. U is orthogonal with respect to a
+   signature matrix, stored in B. V is orthogonal. Sigma is a diagonal
+   matrix whose diagonal elements are the arguments of DSSolve(). After
+   solve, A is overwritten with Sigma, B is overwritten with the new signature.
 
-   The orthogonal (or unitary) matrices of left and right singular vectors, U
-   and V, have size n and m, respectively. The number of columns m must
-   be specified via DSSVDSetDimensions().
+   The matrices of left and right singular vectors, U and V, have size n and m,
+   respectively. The number of columns m must be specified via DSHSVDSetDimensions().
 
    If the DS object is in the intermediate state, A is assumed to be in upper
    bidiagonal form (possibly with an arrow) and is stored in compact format
-   on matrix T. Otherwise, no particular structure is assumed. The compact
-   storage is implemented for the square case only, m=n. The extra row should
-   be interpreted in this case as an extra column.
+   on matrix T, and then the signature is stored in D. Otherwise, no particular
+   structure is assumed. The compact storage is implemented for the square case
+   only, m=n. The extra row should be interpreted in this case as an extra column.
 
    Used DS matrices:
 +  DS_MAT_A - problem matrix
--  DS_MAT_T - upper bidiagonal matrix
+.  DS_MAT_B - second problem matrix, storing the signature
+.  DS_MAT_T - upper bidiagonal matrix
+-  DS_MAT_D - diagonal matrix (signature)
 
    Implemented methods:
-.  0 - Divide and Conquer (_bdsdc or _gesdd)
+.  0 - Cross
 
-.seealso: DSCreate(), DSSetType(), DSType, DSSVDSetDimensions()
+.seealso: DSCreate(), DSSetType(), DSType, DSHSVDSetDimensions()
 M*/
-SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
+SLEPC_EXTERN PetscErrorCode DSCreate_HSVD(DS ds)
 {
-  DS_SVD         *ctx;
+  DS_HSVD         *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNew(&ctx));
+  PetscCall(PetscNewLog(ds,&ctx));
   ds->data = (void*)ctx;
 
-  ds->ops->allocate      = DSAllocate_SVD;
-  ds->ops->view          = DSView_SVD;
-  ds->ops->vectors       = DSVectors_SVD;
-  ds->ops->solve[0]      = DSSolve_SVD_DC;
-  ds->ops->sort          = DSSort_SVD;
+  ds->ops->allocate      = DSAllocate_HSVD;
+  ds->ops->view          = DSView_HSVD;
+  ds->ops->vectors       = DSVectors_HSVD;
+  ds->ops->solve[0]      = DSSolve_HSVD_CROSS;
+  ds->ops->sort          = DSSort_HSVD;
 #if !defined(PETSC_HAVE_MPIUNI)
-  ds->ops->synchronize   = DSSynchronize_SVD;
+  ds->ops->synchronize   = DSSynchronize_HSVD;
 #endif
-  ds->ops->truncate      = DSTruncate_SVD;
-  ds->ops->update        = DSUpdateExtraRow_SVD;
-  ds->ops->destroy       = DSDestroy_SVD;
-  ds->ops->matgetsize    = DSMatGetSize_SVD;
-  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDSetDimensions_C",DSSVDSetDimensions_SVD));
-  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSSVDGetDimensions_C",DSSVDGetDimensions_SVD));
+  ds->ops->truncate      = DSTruncate_HSVD;
+  ds->ops->update        = DSUpdateExtraRow_HSVD;
+  ds->ops->destroy       = DSDestroy_HSVD;
+  ds->ops->matgetsize    = DSMatGetSize_HSVD;
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetDimensions_C",DSHSVDSetDimensions_HSVD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetDimensions_C",DSHSVDGetDimensions_HSVD));
   PetscFunctionReturn(0);
 }
