@@ -281,7 +281,7 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
     for (i=0;i<k;i++) T[i*ldt+i] -= cb[idx-1];
     a = 1/ca[idx-1];
     g = (idx==1)?0.0:-cg[idx-1]/ca[idx-1];
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&a,T,&ldt_,*Tj,&k_,&g,*Tp,&k_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&a,T,&ldt_,*Tj,&k_,&g,*Tp,&k_));
     pt = *Tj; *Tj = *Tp; *Tp = pt;
     for (i=0;i<k;i++) T[i*ldt+i] += cb[idx-1];
   }
@@ -319,10 +319,10 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     for (i=0;i<k;i++) PetscCall(PetscArraycpy(T+k*i,H+i*ldh,k));
     if (flg) {
       PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-      PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&k_,&k_,T,&k_,p,&info));
+      PetscCallBLAS("LAPACKgetrf",LAPACKgetrf_(&k_,&k_,T,&k_,p,&info));
       SlepcCheckLapackInfo("getrf",info);
       PetscCall(PetscBLASIntCast(sr*k,&lwork));
-      PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&k_,T,&k_,p,work,&lwork,&info));
+      PetscCallBLAS("LAPACKgetri",LAPACKgetri_(&k_,T,&k_,p,work,&lwork,&info));
       SlepcCheckLapackInfo("getri",info);
       PetscCall(PetscFPTrapPop());
     }
@@ -376,7 +376,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
       PetscCall(BVMatMult(pep->V,A[j],Y));
       PetscCall(PEPEvaluateBasisM(pep,k,T,ldt,i,&Hp,&Hj));
       for (i=0;i<pep->nmat-1;i++) {
-        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&sr_,&k_,&k_,&a,S+i*ld,&lds_,Hj,&k_,&g,At,&sr_));
+        PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&sr_,&k_,&k_,&a,S+i*ld,&lds_,Hj,&k_,&g,At,&sr_));
         PetscCall(MatDenseGetArray(M,&pM));
         for (jj=0;jj<k;jj++) PetscCall(PetscArraycpy(pM+jj*sr,At+jj*sr,sr));
         PetscCall(MatDenseRestoreArray(M,&pM));
@@ -411,11 +411,11 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     PetscCall(PEPEvaluateBasisM(pep,k,T,ldt,0,&Hp,&Hj));
     for (i=1;i<deg;i++) {
       PetscCall(PEPEvaluateBasisM(pep,k,T,ldt,i,&Hp,&Hj));
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&k_,&sr_,&k_,&sone,Hj,&k_,S+i*ld,&lds_,&sone,At,&k_));
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&k_,&k_,&k_,&sone,Hj,&k_,Hj,&k_,&sone,Bt,&k_));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&k_,&sr_,&k_,&sone,Hj,&k_,S+i*ld,&lds_,&sone,At,&k_));
+      PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&k_,&k_,&k_,&sone,Hj,&k_,Hj,&k_,&sone,Bt,&k_));
     }
     PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&k_,&sr_,Bt,&k_,p,At,&k_,&info));
+    PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&k_,&sr_,Bt,&k_,p,At,&k_,&info));
     PetscCall(PetscFPTrapPop());
     SlepcCheckLapackInfo("gesv",info);
     for (j=0;j<sr;j++) {

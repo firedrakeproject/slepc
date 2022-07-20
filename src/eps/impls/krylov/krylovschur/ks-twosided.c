@@ -47,10 +47,10 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv,PetscReal b
   PetscCall(PetscBLASIntCast(nv,&n_));
   PetscCall(PetscBLASIntCast(ncv,&ncv_));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-  PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n_,&n_,A,&ncv_,p,&info));
+  PetscCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n_,&n_,A,&ncv_,p,&info));
   SlepcCheckLapackInfo("getrf",info);
   PetscCall(PetscLogFlops(2.0*n_*n_*n_/3.0));
-  PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n_,&one,A,&ncv_,p,w,&ncv_,&info));
+  PetscCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n_,&one,A,&ncv_,p,w,&ncv_,&info));
   SlepcCheckLapackInfo("getrs",info);
   PetscCall(PetscLogFlops(2.0*n_*n_-n_));
   PetscCall(BVMultColumn(eps->V,-1.0,1.0,nv,w));
@@ -60,7 +60,7 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv,PetscReal b
   PetscCall(BVGetColumn(eps->W,nv,&u));
   PetscCall(BVDotVec(eps->V,u,w));
   PetscCall(BVRestoreColumn(eps->W,nv,&u));
-  PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n_,&one,A,&ncv_,p,w,&ncv_,&info));
+  PetscCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n_,&one,A,&ncv_,p,w,&ncv_,&info));
   PetscCall(PetscFPTrapPop());
   PetscCall(BVMultColumn(eps->W,-1.0,1.0,nv,w));
   PetscCall(DSGetArray(eps->ds,DS_MAT_B,&T));
@@ -111,10 +111,10 @@ static PetscErrorCode EPSTwoSidedRQUpdate2(EPS eps,Mat M,PetscInt k)
   PetscCall(PetscBLASIntCast(nv,&n_));
   PetscCall(PetscBLASIntCast(ld,&ld_));
   PetscCall(DSGetArray(eps->ds,DS_MAT_Q,&Q));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,pM,&ncv_,Q,&ld_,&zero,w,&ncv_));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,pM,&ncv_,Q,&ld_,&zero,w,&ncv_));
   PetscCall(DSRestoreArray(eps->ds,DS_MAT_Q,&Q));
   PetscCall(DSGetArray(eps->ds,DS_MAT_Z,&Q));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n_,&n_,&n_,&sone,Q,&ld_,w,&ncv_,&zero,pM,&ncv_));
+  PetscCallBLAS("BLASgemm",BLASgemm_("C","N",&n_,&n_,&n_,&sone,Q,&ld_,w,&ncv_,&zero,pM,&ncv_));
   PetscCall(DSRestoreArray(eps->ds,DS_MAT_Z,&Q));
   PetscCall(MatDenseRestoreArray(M,&pM));
   PetscCall(PetscFree2(w,c));

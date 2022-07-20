@@ -554,15 +554,15 @@ L200:
   /* multiply with \Sigma1 */
 
   for (i = 0; i < rank[0]; ++i) {
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&ksk, &e[(rp1 + i+1)*l1e], &one, &d[i*l1d], &one));
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ksk, &e[i + rp1*l1e], &d[i*l1d], &one));
+    PetscCallBLAS("BLAScopy",BLAScopy_(&ksk, &e[(rp1 + i+1)*l1e], &one, &d[i*l1d], &one));
+    PetscCallBLAS("BLASscal",BLASscal_(&ksk, &e[i + rp1*l1e], &d[i*l1d], &one));
   }
 
   /* multiply the first RANK(1) columns of D1 with V1^T and */
   /* subtract the result from the proper part of Z (previously */
   /* initialized with D1) */
 
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, rank, &dmone,
+  PetscCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, rank, &dmone,
           d, &l1d, &e[(rank[0]+1)*l1e], &l1e, &done, z, &ldz));
 
   /* restore the original D1 from WORK */
@@ -571,7 +571,7 @@ L200:
 
   /* eigenanalysis of block 1 (using DSYEVD) */
 
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, z, &ldz, ev, work, &lwork, info));
+  PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, z, &ldz, ev, work, &lwork, info));
   SlepcCheckLapackInfo("syev",*info);
 
   /* EV(1:) contains the eigenvalues in ascending order */
@@ -608,15 +608,15 @@ L200:
       /* multiply with \Sigma(K-1) */
 
       for (i = 0; i < rank[k-1]; ++i) {
-        PetscStackCallBLAS("BLAScopy",BLAScopy_(&ksk, &e[(i+(k-1)*l2e)*l1e], &one, &d[(i+k*l2d)*l1d], &one));
-        PetscStackCallBLAS("BLASscal",BLASscal_(&ksk, &e[i+(rank[k-1]+(k-1)*l2e)*l1e], &d[(i+k*l2d)*l1d], &one));
+        PetscCallBLAS("BLAScopy",BLAScopy_(&ksk, &e[(i+(k-1)*l2e)*l1e], &one, &d[(i+k*l2d)*l1d], &one));
+        PetscCallBLAS("BLASscal",BLASscal_(&ksk, &e[i+(rank[k-1]+(k-1)*l2e)*l1e], &d[(i+k*l2d)*l1d], &one));
       }
 
       /* multiply the first RANK(K-1) columns of Dk with U(k-1)^T and */
       /* subtract the result from the proper part of Z (previously */
       /* initialized with Dk) */
 
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, &rank[k-1],
+      PetscCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, &rank[k-1],
                     &dmone, &d[k*l1d*l2d],
                     &l1d, &e[(k-1)*l1e*l2e], &l1e, &done, &z[np+np*ldz], &ldz));
 
@@ -624,15 +624,15 @@ L200:
       /* multiply with \Sigmak */
 
       for (i = 0; i < rank[k]; ++i) {
-        PetscStackCallBLAS("BLAScopy",BLAScopy_(&ksk, &e[(rp1+i+1 + k*l2e)*l1e], &one, &d[(i + k*l2d)*l1d], &one));
-        PetscStackCallBLAS("BLASscal",BLASscal_(&ksk, &e[i + (rp1 + k*l2e)*l1e], &d[(i + k*l2d)*l1d], &one));
+        PetscCallBLAS("BLAScopy",BLAScopy_(&ksk, &e[(rp1+i+1 + k*l2e)*l1e], &one, &d[(i + k*l2d)*l1d], &one));
+        PetscCallBLAS("BLASscal",BLASscal_(&ksk, &e[i + (rp1 + k*l2e)*l1e], &d[(i + k*l2d)*l1d], &one));
       }
 
       /* multiply the first RANK(K) columns of Dk with Vk^T and */
       /* subtract the result from the proper part of Z (previously */
       /* updated with [- U(k-1) \Sigma(k-1) U(k-1)^T]) */
 
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, &rank[k],
+      PetscCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, &rank[k],
                     &dmone, &d[k*l1d*l2d], &l1d,
                     &e[(rank[k]+1 + k*l2e)*l1e], &l1e, &done, &z[np+np*ldz], &ldz));
 
@@ -642,7 +642,7 @@ L200:
 
       /* eigenanalysis of block K (using dsyevd) */
 
-      PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, &z[np+np*ldz],
+      PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, &z[np+np*ldz],
                      &ldz, &ev[np], work, &lwork, info));
       SlepcCheckLapackInfo("syev",*info);
 
@@ -677,9 +677,9 @@ L200:
   /* multiply with \Sigma(nblks-1) */
 
   for (i = 0; i < rank[nblks-2]; ++i) {
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&ksk, &e[(i + (nblks-2)*l2e)*l1e],
+    PetscCallBLAS("BLAScopy",BLAScopy_(&ksk, &e[(i + (nblks-2)*l2e)*l1e],
               &one, &d[(i + (nblks-1)*l2d)*l1d], &one));
-    PetscStackCallBLAS("BLASscal",BLASscal_(&ksk,
+    PetscCallBLAS("BLASscal",BLASscal_(&ksk,
               &e[i + (rank[nblks-2] + (nblks-2)*l2e)*l1e],
               &d[(i + (nblks-1)*l2d)*l1d], &one));
   }
@@ -688,7 +688,7 @@ L200:
   /* and subtract the result from the proper part of Z (previously */
   /* initialized with D(nblks)) */
 
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, &rank[nblks - 2],
+  PetscCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, &rank[nblks - 2],
           &dmone, &d[(nblks-1)*l1d*l2d], &l1d,
           &e[(nblks-2)*l1e*l2e], &l1e, &done, &z[np+np*ldz], &ldz));
 
@@ -698,7 +698,7 @@ L200:
 
   /* eigenanalysis of block NBLKS (using dsyevd) */
 
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, &z[np+np*ldz], &ldz, &ev[np], work, &lwork, info));
+  PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, &z[np+np*ldz], &ldz, &ev[np], work, &lwork, info));
   SlepcCheckLapackInfo("syev",*info);
 
   /* EV(NPP1:) contains the eigenvalues in ascending order */
@@ -758,12 +758,12 @@ L200:
   for (i = 0; i < n; ++i) {
     j = iwork[i];
     work[i] = ev[j-1];
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&n, &z[(j-1)*ldz], &one, &work[n*(i+1)], &one));
+    PetscCallBLAS("BLAScopy",BLAScopy_(&n, &z[(j-1)*ldz], &one, &work[n*(i+1)], &one));
   }
 
   /* copy ordered eigenvalues back from WORK(1:N) into EV */
 
-  PetscStackCallBLAS("BLAScopy",BLAScopy_(&n, work, &one, ev, &one));
+  PetscCallBLAS("BLAScopy",BLAScopy_(&n, work, &one, ev, &one));
 
   /* copy ordered eigenvectors back from WORK(N+1:N+1+N^2) into Z */
 

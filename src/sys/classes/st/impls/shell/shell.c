@@ -90,7 +90,7 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   PetscCheck(shell->apply,PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No apply() routine provided to Shell ST");
   PetscCall(PetscObjectStateGet((PetscObject)y,&instate));
-  PetscStackCall("STSHELL user function apply()",PetscCall((*shell->apply)(st,x,y)));
+  PetscCallBack("STSHELL user function apply()",(*shell->apply)(st,x,y));
   PetscCall(PetscObjectStateGet((PetscObject)y,&outstate));
   if (instate == outstate) {
     /* user forgot to increase the state of the output vector */
@@ -107,7 +107,7 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   PetscCheck(shell->applytrans,PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
   PetscCall(PetscObjectStateGet((PetscObject)y,&instate));
-  PetscStackCall("STSHELL user function applytrans()",PetscCall((*shell->applytrans)(st,x,y)));
+  PetscCallBack("STSHELL user function applytrans()",(*shell->applytrans)(st,x,y));
   PetscCall(PetscObjectStateGet((PetscObject)y,&outstate));
   if (instate == outstate) {
     /* user forgot to increase the state of the output vector */
@@ -121,7 +121,7 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   ST_SHELL       *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
-  if (shell->backtransform) PetscStackCall("STSHELL user function backtransform()",PetscCall((*shell->backtransform)(st,n,eigr,eigi)));
+  if (shell->backtransform) PetscCallBack("STSHELL user function backtransform()",(*shell->backtransform)(st,n,eigr,eigi));
   PetscFunctionReturn(0);
 }
 

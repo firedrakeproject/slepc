@@ -231,7 +231,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
 
     /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
     temp = e[j+1];
-    PetscStackCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&e[j],&c,&s,&e[j+1]));
+    PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&e[j],&c,&s,&e[j+1]));
     s = -s;
 
     /* Apply rotation to diagonal elements */
@@ -242,14 +242,14 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
 
     /* Apply rotation to Q */
     j2 = j+2;
-    PetscStackCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s));
+    PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s));
 
     /* Chase newly introduced off-diagonal entry to the top left corner */
     for (i=j-1;i>=0;i--) {
       off  = -s*e[i];
       e[i] = c*e[i];
       temp = e[i+1];
-      PetscStackCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&off,&c,&s,&e[i+1]));
+      PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&off,&c,&s,&e[i+1]));
       s = -s;
       temp = (d[i]-d[i+1])*s - 2.0*c*e[i];
       p = s*temp;
@@ -257,7 +257,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
       d[i] -= p;
       e[i] = -e[i] - c*temp;
       j2 = j+2;
-      PetscStackCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
+      PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
     }
   }
   PetscFunctionReturn(0);
@@ -306,9 +306,9 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
       tau  = ds->work;
       work = ds->work+ld;
       lwork = ld*ld;
-      PetscStackCallBLAS("LAPACKsytrd",LAPACKsytrd_("L",&n2,Q+off,&ld,d+l,e+l,tau,work,&lwork,&info));
+      PetscCallBLAS("LAPACKsytrd",LAPACKsytrd_("L",&n2,Q+off,&ld,d+l,e+l,tau,work,&lwork,&info));
       SlepcCheckLapackInfo("sytrd",info);
-      PetscStackCallBLAS("LAPACKorgtr",LAPACKorgtr_("L",&n2,Q+off,&ld,tau,work,&lwork,&info));
+      PetscCallBLAS("LAPACKorgtr",LAPACKorgtr_("L",&n2,Q+off,&ld,tau,work,&lwork,&info));
       SlepcCheckLapackInfo("orgtr",info);
     } else {
       /* copy tridiagonal to d,e */
@@ -373,7 +373,7 @@ PetscErrorCode DSUpdateExtraRow_HEP(DS ds)
     x = ds->work;
     y = ds->work+ld;
     for (i=0;i<n;i++) x[i] = PetscConj(A[n+i*ld]);
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
+    PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,Q,&ld,x,&incx,&zero,y,&incx));
     for (i=0;i<n;i++) A[n+i*ld] = PetscConj(y[i]);
     ds->k = n;
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
@@ -407,7 +407,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   PetscCall(DSAllocateWork_Private(ds,0,2*ld,0));
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
-  PetscStackCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n1,d+l,e+l,Q+off,&ld,ds->rwork,&info));
+  PetscCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n1,d+l,e+l,Q+off,&ld,ds->rwork,&info));
   SlepcCheckLapackInfo("steqr",info);
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   for (i=l;i<n;i++) wr[i] = d[i];
@@ -473,10 +473,10 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if defined(PETSC_USE_COMPLEX)
   ritz = ds->rwork+lrwork;
   Qr   = ds->rwork+lrwork+ld;
-  PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,ritz+l,Qr+off,&ld,isuppz,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
+  PetscCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,ritz+l,Qr+off,&ld,isuppz,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
   for (i=l;i<n;i++) wr[i] = ritz[i];
 #else
-  PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
+  PetscCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
 #endif
   SlepcCheckLapackInfo("stevr",info);
 #if defined(PETSC_USE_COMPLEX)
@@ -487,7 +487,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (ds->state<DS_STATE_INTERMEDIATE) {  /* accumulate previous Q */
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_W],&W));
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n3,&n3,&n3,&one,W+off,&ld,Q+off,&ld,&zero,A+off,&ld));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&W));
     PetscCall(MatDenseGetSubMatrix(ds->omat[DS_MAT_A],ds->l,ds->n,ds->l,ds->n,&At));
@@ -545,11 +545,11 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
 #if !defined(PETSC_USE_COMPLEX)
   PetscCall(DSAllocateWork_Private(ds,0,lrwork,liwork));
-  PetscStackCallBLAS("LAPACKstedc",LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
+  PetscCallBLAS("LAPACKstedc",LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
 #else
   lwork = ld*ld;
   PetscCall(DSAllocateWork_Private(ds,lwork,lrwork,liwork));
-  PetscStackCallBLAS("LAPACKstedc",LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->work,&lwork,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
+  PetscCallBLAS("LAPACKstedc",LAPACKstedc_("V",&n1,d+l,e+l,Q+off,&ld,ds->work,&lwork,ds->rwork,&lrwork,ds->iwork,&liwork,&info));
   /* Fixing Lapack bug*/
   for (j=ds->l;j<ds->n;j++)
     for (i=0;i<ds->l;i++) Q[i+j*ld] = 0.0;
@@ -738,9 +738,9 @@ PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
   hn = LAPACKlange_("I",&n,&n,A,&ld,rwork);
 
   /* norm of inv(A) */
-  PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info));
+  PetscCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info));
   SlepcCheckLapackInfo("getrf",info);
-  PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info));
+  PetscCallBLAS("LAPACKgetri",LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info));
   SlepcCheckLapackInfo("getri",info);
   hin = LAPACKlange_("I",&n,&n,A,&ld,rwork);
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_W],&A));
@@ -777,7 +777,7 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
   /* compute qr */
   PetscCall(PetscBLASIntCast(k+1,&n1));
   PetscCall(PetscBLASIntCast(k,&n0));
-  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1,&n0,Q,&ld,tau,work,&lwork,&info));
+  PetscCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1,&n0,Q,&ld,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("geqrf",info);
 
   /* copy R from Q */
@@ -786,7 +786,7 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
       R[i+j*ld] = Q[i+j*ld];
 
   /* compute orthogonal matrix in Q */
-  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
+  PetscCallBLAS("LAPACKorgqr",LAPACKorgqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("orgqr",info);
 
   /* compute the updated matrix of projected problem */
@@ -794,7 +794,7 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
     for (i=0;i<k+1;i++)
       A[j*ld+i] = Q[i*ld+j];
   alpha = -1.0/alpha;
-  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n1,&n0,&alpha,R,&ld,A,&ld));
+  PetscCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n1,&n0,&alpha,R,&ld,A,&ld));
   for (i=0;i<k;i++)
     A[ld*i+i] -= alpha;
 

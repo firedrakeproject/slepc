@@ -404,20 +404,20 @@ static PetscErrorCode gauss_legendre(PetscBLASInt n,PetscScalar *x,PetscScalar *
   /* workspace query and memory allocation */
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,&dummy,&a,&lwork,&rdummy,&info));
+  PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,&dummy,&a,&lwork,&rdummy,&info));
   PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork));
   PetscCall(PetscMalloc3(n,&eig,lwork,&work,PetscMax(1,3*n-2),&rwork));
 #else
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,&dummy,&a,&lwork,&info));
+  PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,&dummy,&a,&lwork,&info));
   PetscCall(PetscBLASIntCast((PetscInt)a,&lwork));
   PetscCall(PetscMalloc2(n,&eig,lwork,&work));
 #endif
 
   /* compute eigendecomposition */
 #if defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,rwork,&info));
+  PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,rwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,&info));
+  PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,&info));
 #endif
   SlepcCheckLapackInfo("syev",info);
 
@@ -460,7 +460,7 @@ static PetscErrorCode pade_approx(PetscBLASInt n,PetscScalar *T,PetscScalar *L,P
     for (i=0;i<n;i++) for (j=0;j<n;j++) K[i+j*ld] = nodes[k]*T[i+j*ld];
     for (i=0;i<n;i++) K[i+i*ld] += 1.0;
     for (i=0;i<n;i++) for (j=0;j<n;j++) W[i+j*ld] = T[i+j*ld];
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,K,&n,ipiv,W,&n,&info));
+    PetscCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,K,&n,ipiv,W,&n,&info));
     for (i=0;i<n;i++) for (j=0;j<n;j++) L[i+j*ld] += wts[k]*W[i+j*ld];
   }
   PetscFunctionReturn(0);
@@ -559,10 +559,10 @@ static PetscErrorCode FNLogmPade(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASIn
   PetscCall(PetscCalloc7(n,&wr,n*k,&W,n*n,&Q,n*n,&Troot,n*n,&L,lwork,&work,n-1,&blockformat));
 #if !defined(PETSC_USE_COMPLEX)
   PetscCall(PetscMalloc1(n,&wi));
-  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,wi,Q,&ld,work,&lwork,NULL,&info));
+  PetscCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,wi,Q,&ld,work,&lwork,NULL,&info));
 #else
   PetscCall(PetscMalloc1(n,&rwork));
-  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,Q,&ld,work,&lwork,rwork,NULL,&info));
+  PetscCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,Q,&ld,work,&lwork,rwork,NULL,&info));
 #endif
   SlepcCheckLapackInfo("gees",info);
 
@@ -593,8 +593,8 @@ static PetscErrorCode FNLogmPade(FN fn,PetscBLASInt n,PetscScalar *T,PetscBLASIn
   PetscCall(recompute_diag_blocks_log(n,L,T,ld,blockformat));
 
   /* backtransform B = Q*L*Q' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&k,&n,&one,L,&ld,Q,&ld,&zero,W,&ld));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k,&n,&one,Q,&ld,W,&ld,&zero,T,&ld));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&k,&n,&one,L,&ld,Q,&ld,&zero,W,&ld));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k,&n,&one,Q,&ld,W,&ld,&zero,T,&ld));
 
   /* flop count: Schur decomposition, and backtransform */
   PetscCall(PetscLogFlops(25.0*n*n*n+4.0*n*n*k));

@@ -140,8 +140,8 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
   PetscCall(PetscBLASIntCast(lds,&lds_));
 
   /* C = 2*S*X*S.' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&dtwo,S,&lds_,X,&n_,&zero,Y,&n_));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&n_,&n_,&n_,&done,Y,&n_,S,&lds_,&zero,C,&n_));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&dtwo,S,&lds_,X,&n_,&zero,Y,&n_));
+  PetscCallBLAS("BLASgemm",BLASgemm_("N","T",&n_,&n_,&n_,&done,Y,&n_,S,&lds_,&zero,C,&n_));
 
   /* Solve S*Y + Y*S' = -C */
   PetscCall(LMEDenseLyapunov(matctx->lme,n,(PetscScalar*)S,lds,C,n,Y,n));
@@ -188,9 +188,9 @@ static PetscErrorCode EV2x2(PetscScalar *M,PetscInt ld,PetscScalar *wr,PetscScal
   PetscCall(PetscBLASIntCast(ld,&ld_));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&two,M,&ld_,wr,wi,NULL,&ld_,vec,&ld_,work,&lwork,&info));
+  PetscCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&two,M,&ld_,wr,wi,NULL,&ld_,vec,&ld_,work,&lwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&two,M,&ld_,wr,NULL,&ld_,vec,&ld_,work,&lwork,rwork,&info));
+  PetscCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&two,M,&ld_,wr,NULL,&ld_,vec,&ld_,work,&lwork,rwork,&info));
 #endif
   SlepcCheckLapackInfo("geev",info);
   PetscCall(PetscFPTrapPop());

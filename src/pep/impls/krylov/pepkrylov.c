@@ -54,7 +54,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   PetscCall(PetscBLASIntCast(ldds,&ldds_));
 
   if (pep->extract==PEP_EXTRACT_NONE || pep->refine==PEP_REFINE_MULTIPLE) {
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nq_,&k_,&k_,&sone,S,&lds_,X,&ldds_,&szero,SS,&nq_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&nq_,&k_,&k_,&sone,S,&lds_,X,&ldds_,&szero,SS,&nq_));
   } else {
     switch (pep->extract) {
     case PEP_EXTRACT_NONE:
@@ -67,11 +67,11 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
           norm = SlepcAbsEigenvalue(vals[j],ivals[j]);
           if (max < norm) { max = norm; idxcpy = j; }
         }
-        PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
+        PetscCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
 #if !defined(PETSC_USE_COMPLEX)
         if (PetscRealPart(ei[i])!=0.0) {
           i++;
-          PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
+          PetscCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
         }
 #endif
       }
@@ -90,20 +90,20 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
       for (i=0;i<k;i++) {
         max = 0.0;
         for (j=0;j<deg;j++) {
-          PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+j*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
+          PetscCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+j*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
           PetscCall(BVMultVec(pep->V,1.0,0.0,xr,SS+i*nq));
 #if !defined(PETSC_USE_COMPLEX)
-          PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+j*ld,&lds_,X+(i+1)*ldds,&one,&szero,SS+i*nq,&one));
+          PetscCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+j*ld,&lds_,X+(i+1)*ldds,&one,&szero,SS+i*nq,&one));
           PetscCall(BVMultVec(pep->V,1.0,0.0,xi,SS+i*nq));
 #endif
           PetscCall(PEPComputeResidualNorm_Private(pep,er[i],ei[i],xr,xi,w,&norm));
           if (norm>max) { max = norm; idxcpy=j; }
         }
-        PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
+        PetscCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
 #if !defined(PETSC_USE_COMPLEX)
         if (PetscRealPart(ei[i])!=0.0) {
           i++;
-          PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
+          PetscCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
         }
 #endif
       }
@@ -130,23 +130,23 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
 #if !defined(PETSC_USE_COMPLEX)
           if (ei[i]!=0.0) {
             PetscCall(PetscArrayzero(tr,k));
-            PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+i*ldds,&one,tr,&one));
-            PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&ivals[j],X+(i+1)*ldds,&one,tr,&one));
+            PetscCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+i*ldds,&one,tr,&one));
+            PetscCallBLAS("BLASaxpy",BLASaxpy_(&k_,&ivals[j],X+(i+1)*ldds,&one,tr,&one));
             PetscCall(PetscArrayzero(ti,k));
-            PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+(i+1)*ldds,&one,ti,&one));
+            PetscCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+(i+1)*ldds,&one,ti,&one));
             alpha = -ivals[j];
-            PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&alpha,X+i*ldds,&one,ti,&one));
+            PetscCallBLAS("BLASaxpy",BLASaxpy_(&k_,&alpha,X+i*ldds,&one,ti,&one));
             alpha = 1.0;
           }
 #endif
-          PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&alpha,S+j*ld,&lds_,yr,&one,&sone,SS+i*nq,&one));
+          PetscCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&alpha,S+j*ld,&lds_,yr,&one,&sone,SS+i*nq,&one));
           t += SlepcAbsEigenvalue(vals[j],ivals[j])*SlepcAbsEigenvalue(vals[j],ivals[j]);
           if (yi) {
-            PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&alpha,S+j*ld,&lds_,yi,&one,&sone,SS+(i+1)*nq,&one));
+            PetscCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&alpha,S+j*ld,&lds_,yi,&one,&sone,SS+(i+1)*nq,&one));
           }
         }
         cols = yi? 2: 1;
-        PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&t,&done,&nq_,&cols,SS+i*nq,&nq_,&info));
+        PetscCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&t,&done,&nq_,&cols,SS+i*nq,&nq_,&info));
         SlepcCheckLapackInfo("lascl",info);
         if (yi) i++;
       }

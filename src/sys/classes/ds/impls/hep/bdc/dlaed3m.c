@@ -190,7 +190,7 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
 
     /* ....calling DLAED4 for eigenpair J.... */
 
-    PetscStackCallBLAS("LAPACKlaed4",LAPACKlaed4_(&k, &j, dlamda, w, &q[(j-1)*ldq], &rho, &d[j-1], info));
+    PetscCallBLAS("LAPACKlaed4",LAPACKlaed4_(&k, &j, dlamda, w, &q[(j-1)*ldq], &rho, &d[j-1], info));
     SlepcCheckLapackInfo("laed4",*info);
 
     if (j < k) {
@@ -227,12 +227,12 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
   /* Compute updated W (used for computing the eigenvectors corresponding */
   /* to the previously computed eigenvalues). */
 
-  PetscStackCallBLAS("BLAScopy",BLAScopy_(&k, w, &one, s, &one));
+  PetscCallBLAS("BLAScopy",BLAScopy_(&k, w, &one, s, &one));
 
   /* Initialize W(I) = Q(I,I) */
 
   i1 = ldq + 1;
-  PetscStackCallBLAS("BLAScopy",BLAScopy_(&k, q, &i1, w, &one));
+  PetscCallBLAS("BLAScopy",BLAScopy_(&k, q, &i1, w, &one));
   for (j = 0; j < k; ++j) {
     for (i = 0; i < j; ++i) {
       w[i] *= q[i+j*ldq] / (dlamda[i] - dlamda[j]);
@@ -290,7 +290,7 @@ L110:
       /* lower block) with S and write the result into the lower part of */
       /* Q, i.e., Q(N1+1:N,1:K) */
 
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "N", &n2, &k, &n23, &done,
+      PetscCallBLAS("BLASgemm",BLASgemm_("N", "N", &n2, &k, &n23, &done,
                   &q2[iq2-1], &n2, s, &n23, &dzero, &q[n1], &ldq));
     } else {
       for (j=0;j<k;j++) for (i=0;i<n2;i++) q[n1+i+j*ldq] = 0.0;
@@ -306,7 +306,7 @@ L110:
       /* upper block) with S and write the result into the upper part of */
       /* Q, i.e., Q(1:N1,1:K) */
 
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "N", &n1, &k, &n12, &done,
+      PetscCallBLAS("BLASgemm",BLASgemm_("N", "N", &n1, &k, &n12, &done,
                   q2, &n1, s, &n12, &dzero, q, &ldq));
     } else {
       for (j=0;j<k;j++) for (i=0;i<n1;i++) q[i+j*ldq] = 0.0;

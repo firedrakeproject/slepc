@@ -199,7 +199,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
 
   /* Modify Z so that RHO is positive. */
 
-  if (*rho < 0.) PetscStackCallBLAS("BLASscal",BLASscal_(&n2, &dmone, &z[n1], &one));
+  if (*rho < 0.) PetscCallBLAS("BLASscal",BLASscal_(&n2, &dmone, &z[n1], &one));
 
   /* Normalize z so that norm2(z) = 1.  Since z is the concatenation of */
   /* two normalized vectors, norm2(z) = sqrt(2). (NOTE that this holds also */
@@ -208,7 +208,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
   /* general banded matrix !) */
 
   t = 1. / PETSC_SQRT2;
-  PetscStackCallBLAS("BLASscal",BLASscal_(&n, &t, z, &one));
+  PetscCallBLAS("BLASscal",BLASscal_(&n, &t, z, &one));
 
   /* NOTE: at this point the value of RHO is modified in order to */
   /*       normalize Z:    RHO = ABS( norm2(z)**2 * RHO */
@@ -223,7 +223,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
   /* re-integrate the deflated parts from the last pass */
 
   for (i = 0; i < n; ++i) dlamda[i] = d[indxq[i]-1];
-  PetscStackCallBLAS("LAPACKlamrg",LAPACKlamrg_(&n1, &n2, dlamda, &one, &one, indxc));
+  PetscCallBLAS("LAPACKlamrg",LAPACKlamrg_(&n1, &n2, dlamda, &one, &one, indxc));
   for (i = 0; i < n; ++i) indx[i] = indxq[indxc[i]-1];
   for (i = 0; i < n; ++i) indxq[i] = 0;
 
@@ -270,12 +270,12 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
     iq2 = 1;
     for (j = 0; j < n; ++j) {
       i = indx[j]; indxq[j] = i;
-      PetscStackCallBLAS("BLAScopy",BLAScopy_(&n, &q[(i-1)*ldq], &one, &q2[iq2-1], &one));
+      PetscCallBLAS("BLAScopy",BLAScopy_(&n, &q[(i-1)*ldq], &one, &q2[iq2-1], &one));
       dlamda[j] = d[i-1];
       iq2 += n;
     }
     for (j=0;j<n;j++) for (i=0;i<n;i++) q[i+j*ldq] = q2[i+j*n];
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&n, dlamda, &one, d, &one));
+    PetscCallBLAS("BLAScopy",BLAScopy_(&n, dlamda, &one, d, &one));
     PetscFunctionReturn(0);
   }
 
@@ -357,7 +357,7 @@ L80:
         /* to 4 */
 
         coltyp[pj] = 4;
-        PetscStackCallBLAS("BLASrot",BLASrot_(&n, &q[pj*ldq], &one, &q[nj*ldq], &one, &c, &s));
+        PetscCallBLAS("BLASrot",BLASrot_(&n, &q[pj*ldq], &one, &q[nj*ldq], &one, &c, &s));
         t = d[pj] * (c * c) + d[nj] * (s * s);
         d[nj] = d[pj] * (s * s) + d[nj] * (c * c);
         d[pj] = t;
@@ -444,7 +444,7 @@ L100:
   iq2 = (ctot[0] + ctot[1]) * n1;
   for (j = 0; j < ctot[0]; ++j) {
     js = indx[i];
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&n1, &q[(js-1)*ldq], &one, &q2[iq1], &one));
+    PetscCallBLAS("BLAScopy",BLAScopy_(&n1, &q[(js-1)*ldq], &one, &q2[iq1], &one));
     z[i] = d[js-1];
     ++i;
     iq1 += n1;
@@ -452,8 +452,8 @@ L100:
 
   for (j = 0; j < ctot[1]; ++j) {
     js = indx[i];
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&n1, &q[(js-1)*ldq], &one, &q2[iq1], &one));
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&n2, &q[n1+(js-1)*ldq], &one, &q2[iq2], &one));
+    PetscCallBLAS("BLAScopy",BLAScopy_(&n1, &q[(js-1)*ldq], &one, &q2[iq1], &one));
+    PetscCallBLAS("BLAScopy",BLAScopy_(&n2, &q[n1+(js-1)*ldq], &one, &q2[iq2], &one));
     z[i] = d[js-1];
     ++i;
     iq1 += n1;
@@ -462,7 +462,7 @@ L100:
 
   for (j = 0; j < ctot[2]; ++j) {
     js = indx[i];
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&n2, &q[n1+(js-1)*ldq], &one, &q2[iq2], &one));
+    PetscCallBLAS("BLAScopy",BLAScopy_(&n2, &q[n1+(js-1)*ldq], &one, &q2[iq2], &one));
     z[i] = d[js-1];
     ++i;
     iq2 += n2;
@@ -471,7 +471,7 @@ L100:
   iq1 = iq2;
   for (j = 0; j < ctot[3]; ++j) {
     js = indx[i];
-    PetscStackCallBLAS("BLAScopy",BLAScopy_(&n, &q[(js-1)*ldq], &one, &q2[iq2], &one));
+    PetscCallBLAS("BLAScopy",BLAScopy_(&n, &q[(js-1)*ldq], &one, &q2[iq2], &one));
     iq2 += n;
     z[i] = d[js-1];
     ++i;
@@ -482,7 +482,7 @@ L100:
 
   for (j=0;j<ctot[3];j++) for (i=0;i<n;i++) q[i+(j+*k)*ldq] = q2[iq1+i+j*n];
   i1 = n - *k;
-  PetscStackCallBLAS("BLAScopy",BLAScopy_(&i1, &z[*k], &one, &d[*k], &one));
+  PetscCallBLAS("BLAScopy",BLAScopy_(&i1, &z[*k], &one, &d[*k], &one));
 
   /* Copy CTOT into COLTYP for referencing in DLAED3M. */
 

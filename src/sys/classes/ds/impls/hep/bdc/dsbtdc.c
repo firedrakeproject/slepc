@@ -315,7 +315,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
         z[i + j*ldz] = d[i + j*l1d];
       }
     }
-    PetscStackCallBLAS("LAPACKsyevd",LAPACKsyevd_("V", "L", &n, z, &ldz, ev, work, &lwork, iwork, &liwork, info));
+    PetscCallBLAS("LAPACKsyevd",LAPACKsyevd_("V", "L", &n, z, &ldz, ev, work, &lwork, iwork, &liwork, info));
     SlepcCheckLapackInfo("syevd",*info);
     *info = -102;
     PetscFunctionReturn(0);
@@ -372,7 +372,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
     /* storing V^T + 5*N/2 workspace =  N**2/2 + 3*N. */
 
     i1 = lwork - iwspc;
-    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("O", "S", &kskp1, &ksk,
+    PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("O", "S", &kskp1, &ksk,
             &e[k*l1e*l2e], &l1e, &work[isvals],
             &work[iu], &ldu, &work[ivt], &ldvt, &work[iwspc], &i1, info));
     SlepcCheckLapackInfo("gesvd",*info);
@@ -550,7 +550,7 @@ L20:
       spneed = 2*nk*nk + nk * 6 + 1;
       PetscCheck(spneed<=lwork,PETSC_COMM_SELF,PETSC_ERR_MEM,"dsbtdc: not enough workspace for DSYEVD, info = %" PetscBLASInt_FMT,lwork - 200 - spneed);
 
-      PetscStackCallBLAS("LAPACKsyevd",LAPACKsyevd_("V", "L", &nk,
+      PetscCallBLAS("LAPACKsyevd",LAPACKsyevd_("V", "L", &nk,
                     &z[np + np*ldz], &ldz, &ev[np],
                     work, &lwork, &iwork[nblks-1], &liwork, info));
       SlepcCheckLapackInfo("syevd",*info);
@@ -589,7 +589,7 @@ L20:
       nk += ksk;
 
       /* scale the diagonal block */
-      PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("L", &zero, &zero,
+      PetscCallBLAS("LAPACKlascl",LAPACKlascl_("L", &zero, &zero,
                     &anorm, &done, &ksk, &ksk, &d[k*l2d*l1d], &l1d, info));
       SlepcCheckLapackInfo("lascl",*info);
 
@@ -617,7 +617,7 @@ L20:
 
     /* Scale back the computed eigenvalues. */
 
-    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G", &zero, &zero, &done,
+    PetscCallBLAS("LAPACKlascl",LAPACKlascl_("G", &zero, &zero, &done,
             &anorm, &nk, &one, &ev[np], &nk, info));
     SlepcCheckLapackInfo("lascl",*info);
 
@@ -651,7 +651,7 @@ L20:
     if (k != i) {
       ev[k] = ev[i];
       ev[i] = p;
-      PetscStackCallBLAS("BLASswap",BLASswap_(&n, &z[i*ldz], &one, &z[k*ldz], &one));
+      PetscCallBLAS("BLASswap",BLASswap_(&n, &z[i*ldz], &one, &z[k*ldz], &one));
     }
   }
 

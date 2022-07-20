@@ -190,14 +190,14 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
       PetscCall(PetscBLASIntCast(n-j-1,&m));
       /* Forming and applying reflectors */
       if (n0 > 1) {
-        PetscStackCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n0,A+ni-n0+j*lda,A+ni-n0+j*lda+1,&inc,&tau));
+        PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n0,A+ni-n0+j*lda,A+ni-n0+j*lda+1,&inc,&tau));
         /* Apply reflector */
         if (PetscAbsScalar(tau) != 0.0) {
           t=*(A+ni-n0+j*lda);  *(A+ni-n0+j*lda)=1.0;
-          PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("R",&m,&n0,A+ni-n0+j*lda,&inc,&tau,A+j+1+(j+1)*lda,&lda_,work+nwu));
-          PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0,&m,A+ni-n0+j*lda,&inc,&tau,A+j+1+(j+1)*lda,&lda_,work+nwu));
+          PetscCallBLAS("LAPACKlarf",LAPACKlarf_("R",&m,&n0,A+ni-n0+j*lda,&inc,&tau,A+j+1+(j+1)*lda,&lda_,work+nwu));
+          PetscCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0,&m,A+ni-n0+j*lda,&inc,&tau,A+j+1+(j+1)*lda,&lda_,work+nwu));
           /* Update Q */
-          PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n0,A+ni-n0+j*lda,&inc,&tau,Q+(j+1)*ldq,&ldq_,work+nwu));
+          PetscCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n0,A+ni-n0+j*lda,&inc,&tau,Q+(j+1)*ldq,&ldq_,work+nwu));
           *(A+ni-n0+j*lda) = t;
           for (i=1;i<n0;i++) {
             *(A+ni-n0+j*lda+i) = 0.0;  *(A+j+(ni-n0+i)*lda) = 0.0;
@@ -206,14 +206,14 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
         }
       }
       if (n1 > 1) {
-        PetscStackCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1,A+n-n1+j*lda,A+n-n1+j*lda+1,&inc,&tau));
+        PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1,A+n-n1+j*lda,A+n-n1+j*lda+1,&inc,&tau));
         /* Apply reflector */
         if (PetscAbsScalar(tau) != 0.0) {
           t=*(A+n-n1+j*lda);  *(A+n-n1+j*lda)=1.0;
-          PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("R",&m,&n1,A+n-n1+j*lda,&inc,&tau,A+j+1+(n-n1)*lda,&lda_,work+nwu));
-          PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n1,&m,A+n-n1+j*lda,&inc,&tau,A+n-n1+(j+1)*lda,&lda_,work+nwu));
+          PetscCallBLAS("LAPACKlarf",LAPACKlarf_("R",&m,&n1,A+n-n1+j*lda,&inc,&tau,A+j+1+(n-n1)*lda,&lda_,work+nwu));
+          PetscCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n1,&m,A+n-n1+j*lda,&inc,&tau,A+n-n1+(j+1)*lda,&lda_,work+nwu));
           /* Update Q */
-          PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n1,A+n-n1+j*lda,&inc,&tau,Q+(n-n1)*ldq,&ldq_,work+nwu));
+          PetscCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n1,A+n-n1+j*lda,&inc,&tau,Q+(n-n1)*ldq,&ldq_,work+nwu));
           *(A+n-n1+j*lda) = t;
           for (i=1;i<n1;i++) {
             *(A+n-n1+i+j*lda) = 0.0;  *(A+j+(n-n1+i)*lda) = 0.0;
@@ -289,12 +289,8 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
   tr1->idx[1] = idx1;
   PetscCall(PetscBLASIntCast(tr1->n[0],&n0_));
   PetscCall(PetscBLASIntCast(tr1->n[1],&n1_));
-  if (tr1->n[0] > 1) {
-    PetscStackCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n0_,x+tr1->idx[0],x+tr1->idx[0]+1,&inc,tr1->tau));
-  }
-  if (tr1->n[1]> 1) {
-    PetscStackCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1_,x+tr1->idx[1],x+tr1->idx[1]+1,&inc,tr1->tau+1));
-  }
+  if (tr1->n[0] > 1) PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n0_,x+tr1->idx[0],x+tr1->idx[0]+1,&inc,tr1->tau));
+  if (tr1->n[1]> 1) PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1_,x+tr1->idx[1],x+tr1->idx[1]+1,&inc,tr1->tau+1));
   if (tr1->idx[0]<tr1->idx[1]) PetscCall(HRGen(PetscRealPart(x[tr1->idx[0]]),PetscRealPart(x[tr1->idx[1]]),&(tr1->type),&(tr1->cs),&(tr1->sn),&(tr1->alpha),ncond));
   else {
     tr1->alpha = PetscRealPart(x[tr1->idx[0]]);
@@ -305,11 +301,11 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
     /* Apply first transformation to second column */
     if (tr1->n[0] > 1 && PetscAbsScalar(tr1->tau[0])!=0.0) {
       x[tr1->idx[0]] = 1.0;
-      PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0_,&inc,x+tr1->idx[0],&inc,tr1->tau,y+tr1->idx[0],&n0_,work));
+      PetscCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0_,&inc,x+tr1->idx[0],&inc,tr1->tau,y+tr1->idx[0],&n0_,work));
     }
     if (tr1->n[1] > 1 && PetscAbsScalar(tr1->tau[1])!=0.0) {
       x[tr1->idx[1]] = 1.0;
-      PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n1_,&inc,x+tr1->idx[1],&inc,tr1->tau+1,y+tr1->idx[1],&n1_,work));
+      PetscCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n1_,&inc,x+tr1->idx[1],&inc,tr1->tau+1,y+tr1->idx[1],&n1_,work));
     }
     if (tr1->idx[0]<tr1->idx[1]) PetscCall(HRApply(1,y+tr1->idx[0],1,y+tr1->idx[1],1,tr1->cs,-tr1->sn));
     tr2->n[0] = tr1->n[0];
@@ -328,12 +324,8 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
     /* Hyperbolic transformation to make zeros in y */
     PetscCall(PetscBLASIntCast(tr2->n[0],&n0_));
     PetscCall(PetscBLASIntCast(tr2->n[1],&n1_));
-    if (tr2->n[0] > 1) {
-      PetscStackCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n0_,y+tr2->idx[0],y+tr2->idx[0]+1,&inc,tr2->tau));
-    }
-    if (tr2->n[1]> 1) {
-      PetscStackCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1_,y+tr2->idx[1],y+tr2->idx[1]+1,&inc,tr2->tau+1));
-    }
+    if (tr2->n[0] > 1) PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n0_,y+tr2->idx[0],y+tr2->idx[0]+1,&inc,tr2->tau));
+    if (tr2->n[1]> 1) PetscCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1_,y+tr2->idx[1],y+tr2->idx[1]+1,&inc,tr2->tau+1));
     if (tr2->idx[0]<tr2->idx[1]) PetscCall(HRGen(PetscRealPart(y[tr2->idx[0]]),PetscRealPart(y[tr2->idx[1]]),&(tr2->type),&(tr2->cs),&(tr2->sn),&(tr2->alpha),&ncond2));
     else {
       tr2->alpha = PetscRealPart(y[tr2->idx[0]]);
@@ -412,13 +404,13 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     PetscCall(PetscBLASIntCast(n-j-sz,&mr));
     if (tr1->n[0] > 1 && PetscAbsScalar(tr1->tau[0])!=0.0) {
       x[tr1->idx[0]] = 1.0;
-      PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0_,&mr,x+tr1->idx[0],&inc,tr1->tau,R+(j+sz)*ldr+tr1->idx[0],&ldr_,work+nwu));
-      PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n0_,x+tr1->idx[0],&inc,tr1->tau,H+(tr1->idx[0])*ldh,&ldh_,work+nwu));
+      PetscCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0_,&mr,x+tr1->idx[0],&inc,tr1->tau,R+(j+sz)*ldr+tr1->idx[0],&ldr_,work+nwu));
+      PetscCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n0_,x+tr1->idx[0],&inc,tr1->tau,H+(tr1->idx[0])*ldh,&ldh_,work+nwu));
     }
     if (tr1->n[1] > 1 && PetscAbsScalar(tr1->tau[1])!=0.0) {
       x[tr1->idx[1]] = 1.0;
-      PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n1_,&mr,x+tr1->idx[1],&inc,tr1->tau+1,R+(j+sz)*ldr+tr1->idx[1],&ldr_,work+nwu));
-      PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n1_,x+tr1->idx[1],&inc,tr1->tau+1,H+(tr1->idx[1])*ldh,&ldh_,work+nwu));
+      PetscCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n1_,&mr,x+tr1->idx[1],&inc,tr1->tau+1,R+(j+sz)*ldr+tr1->idx[1],&ldr_,work+nwu));
+      PetscCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n1_,x+tr1->idx[1],&inc,tr1->tau+1,H+(tr1->idx[1])*ldh,&ldh_,work+nwu));
     }
     if (tr1->idx[0]<tr1->idx[1]) {
       PetscCall(HRApply(mr,R+(j+sz)*ldr+tr1->idx[0],ldr,R+(j+sz)*ldr+tr1->idx[1],ldr,tr1->cs,-tr1->sn));
@@ -441,13 +433,13 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
       PetscCall(PetscBLASIntCast(n-tr2->idx[0],&mh));
       if (tr2->n[0] > 1 && PetscAbsScalar(tr2->tau[0])!=0.0) {
         y[tr2->idx[0]] = 1.0;
-        PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0_,&mr,y+tr2->idx[0],&inc,tr2->tau,R+(j+2)*ldr+tr2->idx[0],&ldr_,work+nwu));
-        PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n0_,y+tr2->idx[0],&inc,tr2->tau,H+(tr2->idx[0])*ldh,&ldh_,work+nwu));
+        PetscCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0_,&mr,y+tr2->idx[0],&inc,tr2->tau,R+(j+2)*ldr+tr2->idx[0],&ldr_,work+nwu));
+        PetscCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n0_,y+tr2->idx[0],&inc,tr2->tau,H+(tr2->idx[0])*ldh,&ldh_,work+nwu));
       }
       if (tr2->n[1] > 1 && PetscAbsScalar(tr2->tau[1])!=0.0) {
         y[tr2->idx[1]] = 1.0;
-        PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n1_,&mr,y+tr2->idx[1],&inc,tr2->tau+1,R+(j+2)*ldr+tr2->idx[1],&ldr_,work+nwu));
-        PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n1_,y+tr2->idx[1],&inc,tr2->tau+1,H+(tr2->idx[1])*ldh,&ldh_,work+nwu));
+        PetscCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n1_,&mr,y+tr2->idx[1],&inc,tr2->tau+1,R+(j+2)*ldr+tr2->idx[1],&ldr_,work+nwu));
+        PetscCallBLAS("LAPACKlarf",LAPACKlarf_("R",&n_,&n1_,y+tr2->idx[1],&inc,tr2->tau+1,H+(tr2->idx[1])*ldh,&ldh_,work+nwu));
       }
       if (tr2->idx[0]<tr2->idx[1]) {
         PetscCall(HRApply(mr,R+(j+2)*ldr+tr2->idx[0],ldr,R+(j+2)*ldr+tr2->idx[1],ldr,tr2->cs,-tr2->sn));
@@ -666,7 +658,7 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
     PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
     PetscCall(MatCopy(ds->omat[DS_MAT_Q],ds->omat[DS_MAT_W],SAME_NONZERO_PATTERN));
     PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_W],&W));
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&nv_,&n_,&sone,W+off,&ld_,X+off,&ld_,&szero,Q+off,&ld_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&nv_,&n_,&sone,W+off,&ld_,X+off,&ld_,&szero,Q+off,&ld_));
     PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_W],&W));
   } else {
     PetscCall(PetscArrayzero(Q,ld*ld));

@@ -81,12 +81,12 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
     PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined(PETSC_USE_COMPLEX)
     PetscCall(PetscMalloc1(lwork,&work));
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n_,C,&n_,wr,wi,NULL,&n_,NULL,&n_,work,&lwork,&info));
+    PetscCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n_,C,&n_,wr,wi,NULL,&n_,NULL,&n_,work,&lwork,&info));
     if (info) *avail = PETSC_FALSE;
     PetscCall(PetscFree(work));
 #else
     PetscCall(PetscMalloc2(2*deg,&rwork,lwork,&work));
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n_,C,&n_,wr,NULL,&n_,NULL,&n_,work,&lwork,rwork,&info));
+    PetscCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n_,C,&n_,wr,NULL,&n_,NULL,&n_,work,&lwork,rwork,&info));
     if (info) *avail = PETSC_FALSE;
     PetscCall(PetscFree2(rwork,work));
 #endif
@@ -239,17 +239,17 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
     PetscCall(PetscBLASIntCast(cont,&m_));
     PetscCall(PetscBLASIntCast(k+1,&n_));
 #if defined(PETSC_USE_COMPLEX)
-    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","A",&m_,&n_,A,&lda_,S,NULL,&lda_,VT,&lda_,work,&lwork,rwork,&info));
+    PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","A",&m_,&n_,A,&lda_,S,NULL,&lda_,VT,&lda_,work,&lwork,rwork,&info));
 #else
-    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","A",&m_,&n_,A,&lda_,S,NULL,&lda_,VT,&lda_,work,&lwork,&info));
+    PetscCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","A",&m_,&n_,A,&lda_,S,NULL,&lda_,VT,&lda_,work,&lwork,&info));
 #endif
     SlepcCheckLapackInfo("gesvd",info);
     for (i=0;i<=k;i++) {
       ww[i] = PetscConj(VT[i*ndpt+k]);
       D[i] = ww[i]*f[i];
     }
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lda_,&n_,&sone,C,&lda_,D,&one,&szero,N,&one));
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lda_,&n_,&sone,C,&lda_,ww,&one,&szero,D,&one));
+    PetscCallBLAS("BLASgemv",BLASgemv_("N",&lda_,&n_,&sone,C,&lda_,D,&one,&szero,N,&one));
+    PetscCallBLAS("BLASgemv",BLASgemv_("N",&lda_,&n_,&sone,C,&lda_,ww,&one,&szero,D,&one));
     for (i=0;i<ndpt;i++) if (R[i]>=0) R[i] = PetscAbsScalar(F[i]-N[i]/D[i]);
     /* next support point */
     err = 0.0;
@@ -270,9 +270,9 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
   C[0] = 0.0; C[k+1+(k+1)*ndpt] = 1.0;
   n_++;
 #if defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","N",&n_,A,&lda_,C,&lda_,D,N,NULL,&lda_,NULL,&lda_,work,&lwork,rwork,&info));
+  PetscCallBLAS("LAPACKggev",LAPACKggev_("N","N",&n_,A,&lda_,C,&lda_,D,N,NULL,&lda_,NULL,&lda_,work,&lwork,rwork,&info));
 #else
-  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","N",&n_,A,&lda_,C,&lda_,D,VT,N,NULL,&lda_,NULL,&lda_,work,&lwork,&info));
+  PetscCallBLAS("LAPACKggev",LAPACKggev_("N","N",&n_,A,&lda_,C,&lda_,D,VT,N,NULL,&lda_,NULL,&lda_,work,&lwork,&info));
 #endif
   SlepcCheckLapackInfo("ggev",info);
   cont = 0.0;
@@ -635,7 +635,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   pH[nmax*nmax-1] = s[nmax-1];
   pK[nmax*nmax-1] = 1.0;
   PetscCall(PetscBLASIntCast(nmax,&n_));
-  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","L","N","U",&n_,&n_,&sone,pK,&n_,pH,&n_));
+  PetscCallBLAS("BLAStrsm",BLAStrsm_("R","L","N","U",&n_,&n_,&sone,pK,&n_,pH,&n_));
   /* The matrix to be used is in H. K will be a work-space matrix */
   PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,nmax,nmax,pH,&H));
   PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,nmax,nmax,pK,&K));
@@ -1045,7 +1045,7 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
     PetscCall(PetscBLASIntCast(n1,&n1_));
     PetscCall(PetscBLASIntCast(end+1,&dim));
     PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-    PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1_,&n_,W,&n1_,tau,work+nwu,&n1_,&info));
+    PetscCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1_,&n_,W,&n1_,tau,work+nwu,&n1_,&info));
     SlepcCheckLapackInfo("geqrf",info);
     for (i=0;i<end;i++) t[i] = 0.0;
     t[end] = 1.0;
@@ -1054,10 +1054,10 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
       x[ini+j] = 1.0;
       for (i=j+1;i<n1;i++) x[i+ini] = W[i+n1*j];
       tau[j] = PetscConj(tau[j]);
-      PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&dim,&one,x,&one,tau+j,t,&dim,work+nwu));
+      PetscCallBLAS("LAPACKlarf",LAPACKlarf_("L",&dim,&one,x,&one,tau+j,t,&dim,work+nwu));
     }
     PetscCall(PetscBLASIntCast(lds,&lds_));
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&n1_,&sone,S,&lds_,t,&one,&szero,cont,&one));
+    PetscCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&n1_,&sone,S,&lds_,t,&one,&szero,cont,&one));
     PetscCall(PetscFPTrapPop());
   }
   PetscFunctionReturn(0);

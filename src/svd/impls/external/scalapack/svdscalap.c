@@ -75,23 +75,23 @@ PetscErrorCode SVDSolve_ScaLAPACK(SVD svd)
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if !defined(PETSC_USE_COMPLEX)
   /* allocate workspace */
-  PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,&minlwork,&lwork,&info));
+  PetscCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,&minlwork,&lwork,&info));
   PetscCheckScaLapackInfo("gesvd",info);
   PetscCall(PetscBLASIntCast((PetscInt)minlwork,&lwork));
   PetscCall(PetscMalloc1(lwork,&work));
   /* call computational routine */
-  PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,work,&lwork,&info));
+  PetscCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,work,&lwork,&info));
   PetscCheckScaLapackInfo("gesvd",info);
   PetscCall(PetscFree(work));
 #else
   /* allocate workspace */
-  PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,&minlwork,&lwork,&dummy,&info));
+  PetscCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,&minlwork,&lwork,&dummy,&info));
   PetscCheckScaLapackInfo("gesvd",info);
   PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(minlwork),&lwork));
   lrwork = 1+4*PetscMax(a->M,a->N);
   PetscCall(PetscMalloc2(lwork,&work,lrwork,&rwork));
   /* call computational routine */
-  PetscStackCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,work,&lwork,rwork,&info));
+  PetscCallBLAS("SCALAPACKgesvd",SCALAPACKgesvd_("V","V",&a->M,&a->N,a->loc,&one,&one,a->desc,svd->sigma,z->loc,&one,&one,z->desc,q->loc,&one,&one,q->desc,work,&lwork,rwork,&info));
   PetscCheckScaLapackInfo("gesvd",info);
   PetscCall(PetscFree2(work,rwork));
 #endif

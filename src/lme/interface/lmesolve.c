@@ -222,7 +222,7 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   if (n) {
     PetscCall(BVGetArrayRead(C1,&A));
     PetscCall(BVGetArrayRead(W,&B));
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&l_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&l_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
     PetscCall(BVRestoreArrayRead(C1,&A));
     PetscCall(BVRestoreArrayRead(W,&B));
   }
@@ -240,7 +240,7 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   if (n) {
     PetscCall(BVGetArrayRead(AX,&A));
     PetscCall(BVGetArrayRead(W,&B));
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
     PetscCall(BVRestoreArrayRead(AX,&A));
     PetscCall(BVRestoreArrayRead(W,&B));
   }
@@ -257,7 +257,7 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   if (n) {
     PetscCall(BVGetArrayRead(X1,&A));
     PetscCall(BVGetArrayRead(W,&B));
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
+    PetscCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
     PetscCall(BVRestoreArrayRead(X1,&A));
     PetscCall(BVRestoreArrayRead(W,&B));
   }

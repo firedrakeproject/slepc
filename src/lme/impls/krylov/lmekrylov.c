@@ -98,7 +98,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
         PetscCall(PetscBLASIntCast(m,&m_));
         PetscCall(PetscBLASIntCast(n,&n_));
         PetscCall(PetscBLASIntCast(rank,&rk_));
-        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m_,&rk_,&rk_,&sone,U+its*m,&n_,L,&n_,&zero,Qarray+(*col)*m,&m_));
+        PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&m_,&rk_,&rk_,&sone,U+its*m,&n_,L,&n_,&zero,Qarray+(*col)*m,&m_));
         PetscCall(MatDenseRestoreArray(Q,&Qarray));
         PetscCall(BVSetActiveColumns(*X1,*col,*col+rank));
         PetscCall(BVMult(*X1,1.0,1.0,lme->V,Q));

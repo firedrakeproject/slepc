@@ -81,7 +81,7 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
   PetscCall(PetscBLASIntCast(data->size_iXKZ,&n));
   PetscCall(PetscBLASIntCast(data->ldiXKZ,&ld));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-  PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
+  PetscCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
   PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("getrs",info);
 
@@ -130,7 +130,7 @@ static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscI
   PetscCall(PetscBLASIntCast(data->size_iXKZ,&n));
   PetscCall(PetscBLASIntCast(data->ldiXKZ,&ld));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-  PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
+  PetscCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
   PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("getrs",info);
 
@@ -571,7 +571,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   for (i=0;i<size_KZ;i++) PetscCall(PetscArraycpy(&data->iXKZ[data->ldiXKZ*i],&data->XKZ[data->ldXKZ*i],size_KZ));
   PetscCall(PetscBLASIntCast(data->ldiXKZ,&ldXKZ));
   PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
-  PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&s,&s,data->iXKZ,&ldXKZ,data->iXKZPivots,&info));
+  PetscCallBLAS("LAPACKgetrf",LAPACKgetrf_(&s,&s,data->iXKZ,&ldXKZ,data->iXKZPivots,&info));
   PetscCall(PetscFPTrapPop());
   SlepcCheckLapackInfo("getrf",info);
   PetscFunctionReturn(0);
