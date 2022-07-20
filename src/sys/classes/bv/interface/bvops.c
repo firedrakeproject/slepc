@@ -644,9 +644,8 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   for (i=0;i<bv->k;i++) d[i+i*bv->m] = (1.0/condn+(1.0-1.0/condn)/(bv->k-1)*i)/PetscSqrtScalar(eig[i]);
   PetscCall(MatDenseRestoreArray(M,&d));
   /* G = X*M*X' */
-  PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&Xt));
   PetscCall(DSGetMat(ds,DS_MAT_X,&X));
-  PetscCall(MatTranspose(X,MAT_REUSE_MATRIX,&Xt));
+  PetscCall(MatTranspose(X,MAT_INITIAL_MATRIX,&Xt));
   PetscCall(MatProductCreate(Xt,M,NULL,&G));
   PetscCall(MatProductSetType(G,MATPRODUCT_PtAP));
   PetscCall(MatProductSetFromOptions(G));
