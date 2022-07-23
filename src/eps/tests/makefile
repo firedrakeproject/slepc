@@ -17,87 +17,66 @@ include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 #------------------------------------------------------------------------------------
 
 testtest5_blopex: test5.PETSc
-	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" -o "${MPIEXEC}" = "/bin/false" ]; then \
-	  echo "Skipping BLOPEX test"; \
-	elif [ -f test5 ]; then \
-	  test=test5_2_blopex; check=test5_2; \
-	  if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
-	  ${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > $${test}.tmp 2>&1; \
-	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
-	    echo "BLOPEX example src/eps/tests/test5 run successfully with 1 MPI process"; \
-	  else \
-	    echo "Possible error running BLOPEX src/eps/tests/test5 with 1 MPI process"; \
-	    cat $${test}.tmp; fail=1; \
-	  fi; \
-	  ${RM} $${test}.tmp; \
-	else fail=1; fi; \
-	exit $${fail}
+	@test=test5_2_blopex; check=test5_2; \
+	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
+	${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > $${test}.tmp 2>&1; \
+	if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+	  echo "BLOPEX example src/eps/tests/test5 run successfully with 1 MPI process"; \
+	else \
+	  echo "Possible error running BLOPEX src/eps/tests/test5 with 1 MPI process"; \
+	  cat $${test}.tmp; \
+          touch ${SLEPC_DIR}/check_error; \
+	fi; \
+	${RM} $${test}.tmp
 
 testtest7f: test7f.PETSc
-	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
-	  echo "Running with batch filesystem; to test run src/eps/tests/test7f " ; \
-	  echo "with your systems batch system"; \
-	elif [ "${MPIEXEC}" = "/bin/false" ]; then \
-	  echo "*mpiexec not found*. Please run src/eps/tests/test7f manually"; \
-	elif [ -f test7f ]; then \
-	  test=test7f_1; check=test7f_1; \
-	  GFORTRAN_UNBUFFERED_ALL=1 ${MPIEXEC} -n 1 ./test7f -eps_nev 4 -eps_ncv 22 | ${SED} -e 's/83791/83792/'> $${test}.tmp 2>&1; \
-	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
-	    echo "Fortran example src/eps/tests/test7f run successfully with 1 MPI process"; \
-	  else \
-	    echo "Possible error running Fortran src/eps/tests/test7f with 1 MPI process"; \
-	    cat $${test}.tmp; fail=1; \
-	  fi; \
-	  ${RM} $${test}.tmp; \
-	else fail=1; fi; \
-	exit $${fail}
+	@test=test7f_1; check=test7f_1; \
+	GFORTRAN_UNBUFFERED_ALL=1 ${MPIEXEC} -n 1 ./test7f -eps_nev 4 -eps_ncv 22 | ${SED} -e 's/83791/83792/'> $${test}.tmp 2>&1; \
+	if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+	  echo "Fortran example src/eps/tests/test7f run successfully with 1 MPI process"; \
+	else \
+	  echo "Possible error running Fortran src/eps/tests/test7f with 1 MPI process"; \
+	  cat $${test}.tmp; \
+          touch ${SLEPC_DIR}/check_error; \
+	fi; \
+	${RM} $${test}.tmp
 
 testtest10: test10.PETSc
-	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
-	  echo "Running with batch filesystem; to test run src/eps/tests/test10" ; \
-	  echo "with your systems batch system"; \
-	elif [ "${MPIEXEC}" = "/bin/false" ]; then \
-	  echo "*mpiexec not found*. Please run src/eps/tests/test10 manually"; \
-	elif [ -f test10 ]; then \
-	  test=test10_1; check=test10_1_ks; \
-	  options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude"; \
-	  ${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/82109/82110/' > $${test}.tmp 2>&1; \
-	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
-	    echo "C/C++ example src/eps/tests/test10 run successfully with 1 MPI process"; \
-	  else \
-	    echo "Possible error running C/C++ src/eps/tests/test10 with 1 MPI process"; \
-	    cat $${test}.tmp; fail=1; \
-	  fi; \
-	  if [ $${fail} -eq 0 -a "${MPIEXEC}" != "${PETSC_DIR}/lib/petsc/bin/petsc-mpiexec.uni" ]; then \
-	    ${MPIEXEC} -n 2 ./test10 $${options} > $${test}.tmp 2>&1; \
-	    if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
-	      echo "C/C++ example src/eps/tests/test10 run successfully with 2 MPI process"; \
-	    else \
-	      echo "Possible error running C/C++ src/eps/tests/test10 with 2 MPI process"; \
-	      cat $${test}.tmp; fail=1; \
-	    fi; \
-	  fi; \
-	  ${RM} $${test}.tmp; \
-	else fail=1; fi; \
-	exit $${fail}
+	@test=test10_1; check=test10_1_ks; \
+	options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude"; \
+	${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/82109/82110/' > $${test}.tmp 2>&1; \
+	if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+	  echo "C/C++ example src/eps/tests/test10 run successfully with 1 MPI process"; \
+	else \
+	  echo "Possible error running C/C++ src/eps/tests/test10 with 1 MPI process"; \
+	  cat $${test}.tmp; \
+          touch ${SLEPC_DIR}/check_error; \
+	fi; \
+	${RM} $${test}.tmp
+
+testtest10_mpi: test10.PETSc
+	@test=test10_1; check=test10_1_ks; \
+	options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude"; \
+	${MPIEXEC} -n 2 ./test10 $${options} | ${SED} -e 's/82109/82110/' > $${test}.tmp 2>&1; \
+	if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+	  echo "C/C++ example src/eps/tests/test10 run successfully with 2 MPI process"; \
+	else \
+	  echo "Possible error running C/C++ src/eps/tests/test10 with 2 MPI process"; \
+	  cat $${test}.tmp; \
+          touch ${SLEPC_DIR}/check_error; \
+	fi; \
+	${RM} $${test}.tmp
 
 testtest10_cuda: test10.PETSc
-	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
-	  echo "Running with batch filesystem; to test run src/eps/tests/test10" ; \
-	  echo "with your systems batch system"; \
-	elif [ "${MPIEXEC}" = "/bin/false" ]; then \
-	  echo "*mpiexec not found*. Please run src/eps/tests/test10 manually"; \
-	elif [ -f test10 ]; then \
-	  test=test10_1; check=test10_1_ks; \
-	  options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude -mat_type aijcusparse"; \
-	  ${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/30055/30054/' > $${test}.tmp 2>&1; \
-	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
-	    echo "C/C++ example src/eps/tests/test10 run successfully with CUDA"; \
-	  else \
-	    echo "Possible error running C/C++ src/eps/tests/test10 with CUDA"; \
-	    cat $${test}.tmp; fail=1; \
-	  fi; \
-	  ${RM} $${test}.tmp; \
-	else fail=1; fi; \
-	exit $${fail}
+	@test=test10_1; check=test10_1_ks; \
+	options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude -mat_type aijcusparse"; \
+	${MPIEXEC} -n 1 ./test10 $${options} | ${SED} -e 's/30055/30054/' > $${test}.tmp 2>&1; \
+	if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+	  echo "C/C++ example src/eps/tests/test10 run successfully with CUDA"; \
+	else \
+	  echo "Possible error running C/C++ src/eps/tests/test10 with CUDA"; \
+	  cat $${test}.tmp; \
+          touch ${SLEPC_DIR}/check_error; \
+	fi; \
+	${RM} $${test}.tmp;
 
