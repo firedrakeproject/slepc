@@ -52,6 +52,7 @@ int main(int argc,char **argv)
   PetscBool         flag;
   CTX_SHELL         *ctx;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag));

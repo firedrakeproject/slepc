@@ -16,6 +16,7 @@ int main(int argc,char **argv)
 {
   FN             fn1,fn2;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(FNCreate(PETSC_COMM_WORLD,&fn1));
   PetscCall(FNSetOptionsPrefix(fn1,"f1_"));

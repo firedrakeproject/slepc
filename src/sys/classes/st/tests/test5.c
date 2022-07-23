@@ -22,6 +22,7 @@ int main (int argc,char **argv)
   PetscInt       N,n=4,i,j,II,Istart,Iend;
   PetscScalar    d;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   N = n*n;

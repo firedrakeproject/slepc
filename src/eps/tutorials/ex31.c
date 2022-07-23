@@ -525,6 +525,7 @@ int main(int argc,char **argv)
   PetscScalar    kr,ki;
   PetscBool      terse;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCheck(size==1,PETSC_COMM_WORLD,PETSC_ERR_SUP,"Only for sequential runs");

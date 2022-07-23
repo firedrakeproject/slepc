@@ -34,6 +34,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   char           str[50];
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   N = m*(m+1)/2;

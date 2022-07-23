@@ -77,6 +77,7 @@ int main(int argc,char **argv)
   PetscBool      initv=PETSC_FALSE,skipnorm=PETSC_FALSE;
   Vec            IV[2];
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

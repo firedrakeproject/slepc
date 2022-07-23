@@ -47,6 +47,7 @@ int main(int argc,char **argv)
   PetscReal      tau=0.001,h,a=20,xi,tol;
   PetscBool      terse;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));

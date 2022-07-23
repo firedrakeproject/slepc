@@ -90,6 +90,7 @@ int main(int argc,char **argv)
   PetscBool      flg,terse;
   PetscRandom    rctx;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n3-D Laplacian Eigenproblem\n\n"));

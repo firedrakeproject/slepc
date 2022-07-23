@@ -37,6 +37,7 @@ int main(int argc,char **argv)
   PetscScalar    coeffs,shifts[]={1.06,1.1,1.12,1.15},*rkshifts,val;
   PetscErrorCode (*fsing)(NEP,PetscInt*,PetscScalar*,void*);
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%" PetscInt_FMT "\n\n",n));

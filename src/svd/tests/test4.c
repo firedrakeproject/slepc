@@ -43,6 +43,7 @@ int main(int argc,char **argv)
   const char           *ctest[] = { "absolute", "relative to the singular value", "user-defined" };
   const char           *stest[] = { "basic", "user-defined" };
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));

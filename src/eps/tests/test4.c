@@ -24,6 +24,7 @@ int main(int argc,char **argv)
   PetscBool      flg,gd2;
   char           epstype[30] = "krylovschur";
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

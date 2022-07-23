@@ -27,6 +27,7 @@ int main(int argc,char **argv)
   BV             V;
   PetscRandom    rand;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

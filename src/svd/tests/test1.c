@@ -42,6 +42,7 @@ int main(int argc,char **argv)
   PetscBool      flg;
   EPS            eps;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));

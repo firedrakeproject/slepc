@@ -35,6 +35,7 @@ int main(int argc,char **argv)
   PEPProblemType     ptype;
   PetscViewerAndFormat *vf;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Quadratic Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 

@@ -59,6 +59,7 @@ int main(int argc,char **argv)
   PetscReal      tol,relerr;
   PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   comm = PETSC_COMM_WORLD;
   /* Create a quadrilateral mesh on domain (0,1)x(0,1) */

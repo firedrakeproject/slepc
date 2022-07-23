@@ -28,6 +28,7 @@ int main(int argc,char **argv)
   const char           *prefix;
   PetscViewerAndFormat *vf;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   N = n*n;

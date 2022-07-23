@@ -51,6 +51,7 @@ int main(int argc,char **argv)
   PetscReal      re,im,tol,norm,error;
   PetscBool      draw_sol=PETSC_FALSE;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%" PetscInt_FMT "\n\n",n));

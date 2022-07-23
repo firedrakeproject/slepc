@@ -17,6 +17,7 @@ int main(int argc,char **argv)
   char           pkg[128] = "arpack";
   PetscBool      has,flg;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetString(NULL,NULL,"-pkg",pkg,sizeof(pkg),NULL));
   PetscCall(SlepcHasExternalPackage(pkg,&has));

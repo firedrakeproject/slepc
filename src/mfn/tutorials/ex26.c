@@ -26,6 +26,7 @@ int main(int argc,char **argv)
   PetscInt       N,n=10,m,Istart,Iend,i,j,II;
   PetscBool      flag;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
