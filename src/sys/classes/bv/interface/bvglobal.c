@@ -830,10 +830,6 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
 {
   PetscReal      norm;
   PetscInt       i;
-  Vec            v;
-#if !defined(PETSC_USE_COMPLEX)
-  Vec            v1;
-#endif
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -847,25 +843,6 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
       PetscCall(BVScaleColumn(bv,i,1.0/norm));
     }
   } else if (bv->ops->normalize) PetscCall((*bv->ops->normalize)(bv,eigi));
-  else {
-    for (i=bv->l;i<bv->k;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-      if (eigi && eigi[i] != 0.0) {
-        PetscCall(BVGetColumn(bv,i,&v));
-        PetscCall(BVGetColumn(bv,i+1,&v1));
-        PetscCall(VecNormalizeComplex(v,v1,PETSC_TRUE,NULL));
-        PetscCall(BVRestoreColumn(bv,i,&v));
-        PetscCall(BVRestoreColumn(bv,i+1,&v1));
-        i++;
-      } else
-#endif
-      {
-        PetscCall(BVGetColumn(bv,i,&v));
-        PetscCall(VecNormalize(v,NULL));
-        PetscCall(BVRestoreColumn(bv,i,&v));
-      }
-    }
-  }
   PetscCall(PetscLogEventEnd(BV_Normalize,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
