@@ -402,7 +402,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_PRIMME(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_PRIMME      *ctx = (EPS_PRIMME*)eps->data;
   PetscInt        bs;

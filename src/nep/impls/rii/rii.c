@@ -203,7 +203,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP nep)
+PetscErrorCode NEPSetFromOptions_RII(NEP nep,PetscOptionItems *PetscOptionsObject)
 {
   NEP_RII        *ctx = (NEP_RII*)nep->data;
   PetscBool      flg;

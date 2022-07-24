@@ -329,7 +329,7 @@ PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,SVD svd)
+PetscErrorCode SVDSetFromOptions_PRIMME(SVD svd,PetscOptionItems *PetscOptionsObject)
 {
   SVD_PRIMME      *ctx = (SVD_PRIMME*)svd->data;
   PetscInt        bs;

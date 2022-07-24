@@ -885,8 +885,8 @@ PetscErrorCode BVSetFromOptions(BV bv)
     PetscCall(PetscOptionsGetBool(NULL,NULL,"-bv_reproducible_random",&bv->rrandom,NULL));
 
     if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
-    else if (bv->ops->setfromoptions) PetscCall((*bv->ops->setfromoptions)(PetscOptionsObject,bv));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)bv));
+    else if (bv->ops->setfromoptions) PetscCall((*bv->ops->setfromoptions)(bv,PetscOptionsObject));
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)bv,PetscOptionsObject));
   PetscOptionsEnd();
   bv->sfocalled = PETSC_TRUE;
   PetscFunctionReturn(0);

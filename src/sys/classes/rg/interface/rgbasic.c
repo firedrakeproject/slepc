@@ -280,8 +280,8 @@ PetscErrorCode RGSetFromOptions(RG rg)
     PetscCall(PetscOptionsReal("-rg_scale","Scaling factor","RGSetScale",1.0,&sfactor,&flg));
     if (flg) PetscCall(RGSetScale(rg,sfactor));
 
-    if (rg->ops->setfromoptions) PetscCall((*rg->ops->setfromoptions)(PetscOptionsObject,rg));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)rg));
+    if (rg->ops->setfromoptions) PetscCall((*rg->ops->setfromoptions)(rg,PetscOptionsObject));
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)rg,PetscOptionsObject));
   PetscOptionsEnd();
   PetscFunctionReturn(0);
 }

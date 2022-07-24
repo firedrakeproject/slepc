@@ -525,7 +525,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSSetFromOptions_LyapII(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_LyapII(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
   PetscInt       k,array[2]={PETSC_DEFAULT,PETSC_DEFAULT};

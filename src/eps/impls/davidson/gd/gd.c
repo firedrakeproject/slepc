@@ -30,7 +30,7 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/davidson.h>
 
-PetscErrorCode EPSSetFromOptions_GD(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_GD(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,flg2,op,orth;
   PetscInt       opi,opi0;

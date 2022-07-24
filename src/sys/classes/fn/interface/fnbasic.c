@@ -894,8 +894,8 @@ PetscErrorCode FNSetFromOptions(FN fn)
     PetscCall(PetscOptionsEnum("-fn_parallel","Operation mode in parallel runs","FNSetParallel",FNParallelTypes,(PetscEnum)fn->pmode,(PetscEnum*)&pmode,&flg));
     if (flg) PetscCall(FNSetParallel(fn,pmode));
 
-    if (fn->ops->setfromoptions) PetscCall((*fn->ops->setfromoptions)(PetscOptionsObject,fn));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)fn));
+    if (fn->ops->setfromoptions) PetscCall((*fn->ops->setfromoptions)(fn,PetscOptionsObject));
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)fn,PetscOptionsObject));
   PetscOptionsEnd();
   PetscFunctionReturn(0);
 }

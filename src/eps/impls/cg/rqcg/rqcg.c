@@ -333,7 +333,7 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSSetFromOptions_RQCG(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_RQCG(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg;
   PetscInt       nrest;

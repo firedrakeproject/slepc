@@ -192,8 +192,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     PetscCall(PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",NULL));
     PetscCall(PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",NULL));
 
-    if (nep->ops->setfromoptions) PetscCall((*nep->ops->setfromoptions)(PetscOptionsObject,nep));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)nep));
+    if (nep->ops->setfromoptions) PetscCall((*nep->ops->setfromoptions)(nep,PetscOptionsObject));
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)nep,PetscOptionsObject));
   PetscOptionsEnd();
 
   if (!nep->V) PetscCall(NEPGetBV(nep,&nep->V));

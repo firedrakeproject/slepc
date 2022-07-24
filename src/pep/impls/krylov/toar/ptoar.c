@@ -755,7 +755,7 @@ PetscErrorCode PEPTOARGetLocking(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode PEPSetFromOptions_TOAR(PetscOptionItems *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_TOAR(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,lock;
   PetscReal      keep;

@@ -129,7 +129,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSSetFromOptions_Arnoldi(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_Arnoldi(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      set,val;
   EPS_ARNOLDI    *arnoldi = (EPS_ARNOLDI*)eps->data;

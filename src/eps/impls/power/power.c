@@ -693,7 +693,7 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_Power(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_POWER         *power = (EPS_POWER*)eps->data;
   PetscBool         flg,val;

@@ -371,7 +371,7 @@ PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_BLOPEX(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg;
   PetscInt       bs;

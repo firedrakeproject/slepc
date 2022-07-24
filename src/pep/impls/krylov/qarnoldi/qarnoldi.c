@@ -444,7 +444,7 @@ PetscErrorCode PEPQArnoldiGetLocking(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptionItems *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_QArnoldi(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,lock;
   PetscReal      keep;

@@ -739,8 +739,8 @@ PetscErrorCode DSSetFromOptions(DS ds)
     PetscCall(PetscOptionsEnum("-ds_parallel","Operation mode in parallel runs","DSSetParallel",DSParallelTypes,(PetscEnum)ds->pmode,(PetscEnum*)&pmode,&flag));
     if (flag) PetscCall(DSSetParallel(ds,pmode));
 
-    if (ds->ops->setfromoptions) PetscCall((*ds->ops->setfromoptions)(PetscOptionsObject,ds));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)ds));
+    if (ds->ops->setfromoptions) PetscCall((*ds->ops->setfromoptions)(ds,PetscOptionsObject));
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)ds,PetscOptionsObject));
   PetscOptionsEnd();
   PetscFunctionReturn(0);
 }

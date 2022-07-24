@@ -404,7 +404,7 @@ static inline PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
+PetscErrorCode BVSetFromOptions_Vecs(BV bv,PetscOptionItems *PetscOptionsObject)
 {
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
@@ -512,7 +512,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   /* Deferred call to setfromoptions */
   if (bv->defersfo) {
     PetscObjectOptionsBegin((PetscObject)bv);
-    PetscCall(BVSetFromOptions_Vecs(PetscOptionsObject,bv));
+    PetscCall(BVSetFromOptions_Vecs(bv,PetscOptionsObject));
     PetscOptionsEnd();
   }
   PetscCall(BVVecsSetVmip(bv,ctx->vmip));

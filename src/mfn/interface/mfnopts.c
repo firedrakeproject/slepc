@@ -117,8 +117,8 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     /* -----------------------------------------------------------------------*/
     PetscCall(PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",NULL));
 
-    if (mfn->ops->setfromoptions) PetscCall((*mfn->ops->setfromoptions)(PetscOptionsObject,mfn));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)mfn));
+    if (mfn->ops->setfromoptions) PetscCall((*mfn->ops->setfromoptions)(mfn,PetscOptionsObject));
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)mfn,PetscOptionsObject));
   PetscOptionsEnd();
 
   if (!mfn->V) PetscCall(MFNGetBV(mfn,&mfn->V));

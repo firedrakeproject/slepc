@@ -136,8 +136,8 @@ PetscErrorCode STSetFromOptions(ST st)
     PetscCall(PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&bval,&flg));
     if (flg) PetscCall(STSetTransform(st,bval));
 
-    if (st->ops->setfromoptions) PetscCall((*st->ops->setfromoptions)(PetscOptionsObject,st));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st));
+    if (st->ops->setfromoptions) PetscCall((*st->ops->setfromoptions)(st,PetscOptionsObject));
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)st,PetscOptionsObject));
   PetscOptionsEnd();
 
   if (st->usesksp) {

@@ -1178,7 +1178,7 @@ PetscErrorCode DSNEPGetRG(DS ds,RG *rg)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSSetFromOptions_NEP(PetscOptionItems *PetscOptionsObject,DS ds)
+PetscErrorCode DSSetFromOptions_NEP(DS ds,PetscOptionItems *PetscOptionsObject)
 {
   PetscInt       k;
   PetscBool      flg;

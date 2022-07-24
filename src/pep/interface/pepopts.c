@@ -218,8 +218,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     PetscCall(PetscOptionsName("-pep_error_relative","Print relative errors of each eigenpair","PEPErrorView",NULL));
     PetscCall(PetscOptionsName("-pep_error_backward","Print backward errors of each eigenpair","PEPErrorView",NULL));
 
-    if (pep->ops->setfromoptions) PetscCall((*pep->ops->setfromoptions)(PetscOptionsObject,pep));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)pep));
+    if (pep->ops->setfromoptions) PetscCall((*pep->ops->setfromoptions)(pep,PetscOptionsObject));
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)pep,PetscOptionsObject));
   PetscOptionsEnd();
 
   if (!pep->V) PetscCall(PEPGetBV(pep,&pep->V));

@@ -1347,7 +1347,7 @@ PetscErrorCode EPSKrylovSchurGetKSP(EPS eps,KSP *ksp)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_KrylovSchur(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscBool       flg,lock,b,f1,f2,f3,isfilt;
