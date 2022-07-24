@@ -298,6 +298,37 @@ PetscErrorCode BVDestroy_Contiguous(BV bv)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVView_Contiguous(BV bv,PetscViewer viewer)
+{
+  PetscInt          j;
+  Vec               v;
+  PetscViewerFormat format;
+  PetscBool         isascii,ismatlab=PETSC_FALSE;
+  const char        *bvname,*name;
+
+  PetscFunctionBegin;
+  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
+  if (isascii) {
+    PetscCall(PetscViewerGetFormat(viewer,&format));
+    if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+    if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
+  }
+  if (ismatlab) {
+    PetscCall(PetscObjectGetName((PetscObject)bv,&bvname));
+    PetscCall(PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname));
+  }
+  for (j=0;j<bv->m;j++) {
+    PetscCall(BVGetColumn(bv,j,&v));
+    PetscCall(VecView(v,viewer));
+    if (ismatlab) {
+      PetscCall(PetscObjectGetName((PetscObject)v,&name));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",bvname,bvname,name,name));
+    }
+    PetscCall(BVRestoreColumn(bv,j,&v));
+  }
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
 {
   BV_CONTIGUOUS  *ctx;
@@ -376,5 +407,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->getmat           = BVGetMat_Default;
   bv->ops->restoremat       = BVRestoreMat_Default;
   bv->ops->destroy          = BVDestroy_Contiguous;
+  bv->ops->view             = BVView_Contiguous;
   PetscFunctionReturn(0);
 }

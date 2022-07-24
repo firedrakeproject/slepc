@@ -517,36 +517,6 @@ PetscErrorCode BVGetOptionsPrefix(BV bv,const char *prefix[])
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
-{
-  PetscInt          j;
-  Vec               v;
-  PetscViewerFormat format;
-  PetscBool         isascii,ismatlab=PETSC_FALSE;
-  const char        *bvname,*name;
-
-  PetscFunctionBegin;
-  PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
-  if (isascii) {
-    PetscCall(PetscViewerGetFormat(viewer,&format));
-    if (format == PETSC_VIEWER_ASCII_MATLAB) ismatlab = PETSC_TRUE;
-  }
-  if (ismatlab) {
-    PetscCall(PetscObjectGetName((PetscObject)bv,&bvname));
-    PetscCall(PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname));
-  }
-  for (j=-bv->nc;j<bv->m;j++) {
-    PetscCall(BVGetColumn(bv,j,&v));
-    PetscCall(VecView(v,viewer));
-    if (ismatlab) {
-      PetscCall(PetscObjectGetName((PetscObject)v,&name));
-      PetscCall(PetscViewerASCIIPrintf(viewer,"%s=[%s,%s];clear %s\n",bvname,bvname,name,name));
-    }
-    PetscCall(BVRestoreColumn(bv,j,&v));
-  }
-  PetscFunctionReturn(0);
-}
-
 /*@C
    BVView - Prints the BV data structure.
 
@@ -627,7 +597,6 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
       if (bv->ops->view) PetscCall((*bv->ops->view)(bv,viewer));
     } else {
       if (bv->ops->view) PetscCall((*bv->ops->view)(bv,viewer));
-      else PetscCall(BVView_Default(bv,viewer));
     }
   } else PetscCall((*bv->ops->view)(bv,viewer));
   PetscFunctionReturn(0);
