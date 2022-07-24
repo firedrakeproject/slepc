@@ -22,7 +22,7 @@
 PetscErrorCode PEPSetDefaultST(PEP pep)
 {
   PetscFunctionBegin;
-  if (pep->ops->setdefaultst) PetscCall((*pep->ops->setdefaultst)(pep));
+  PetscTryTypeMethod(pep,setdefaultst);
   if (!((PetscObject)pep->st)->type_name) PetscCall(STSetType(pep->st,STSHIFT));
   PetscFunctionReturn(0);
 }
@@ -122,7 +122,7 @@ PetscErrorCode PEPSetUp(PEP pep)
     }
   }
   /* call specific solver setup */
-  PetscCall((*pep->ops->setup)(pep));
+  PetscUseTypeMethod(pep,setup);
 
   /* set tolerance if not yet set */
   if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL;

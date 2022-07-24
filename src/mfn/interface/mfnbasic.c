@@ -67,17 +67,13 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)mfn,viewer));
-    if (mfn->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*mfn->ops->view)(mfn,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(mfn,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",mfn->ncv));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",mfn->max_it));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)mfn->tol));
-  } else {
-    if (mfn->ops->view) PetscCall((*mfn->ops->view)(mfn,viewer));
-  }
+  } else PetscTryTypeMethod(mfn,view,viewer);
   PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
   if (!mfn->V) PetscCall(MFNGetFN(mfn,&mfn->fn));
   PetscCall(FNView(mfn->fn,viewer));
@@ -278,7 +274,7 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
   PetscCall(PetscFunctionListFind(MFNList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown MFN type given: %s",type);
 
-  if (mfn->ops->destroy) PetscCall((*mfn->ops->destroy)(mfn));
+  PetscTryTypeMethod(mfn,destroy);
   PetscCall(PetscMemzero(mfn->ops,sizeof(struct _MFNOps)));
 
   mfn->setupcalled = 0;
@@ -406,7 +402,7 @@ PetscErrorCode MFNReset(MFN mfn)
   PetscFunctionBegin;
   if (mfn) PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (!mfn) PetscFunctionReturn(0);
-  if (mfn->ops->reset) PetscCall((mfn->ops->reset)(mfn));
+  PetscTryTypeMethod(mfn,reset);
   PetscCall(MatDestroy(&mfn->A));
   PetscCall(BVDestroy(&mfn->V));
   PetscCall(VecDestroyVecs(mfn->nwork,&mfn->work));
@@ -434,7 +430,7 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   PetscValidHeaderSpecific(*mfn,MFN_CLASSID,1);
   if (--((PetscObject)(*mfn))->refct > 0) { *mfn = 0; PetscFunctionReturn(0); }
   PetscCall(MFNReset(*mfn));
-  if ((*mfn)->ops->destroy) PetscCall((*(*mfn)->ops->destroy)(*mfn));
+  PetscTryTypeMethod(*mfn,destroy);
   PetscCall(FNDestroy(&(*mfn)->fn));
   PetscCall(MatDestroy(&(*mfn)->AT));
   PetscCall(MFNMonitorCancel(*mfn));

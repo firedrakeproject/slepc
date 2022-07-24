@@ -109,7 +109,7 @@ PetscErrorCode NEPSetUp(NEP nep)
     }
   }
   /* call specific solver setup */
-  PetscCall((*nep->ops->setup)(nep));
+  PetscUseTypeMethod(nep,setup);
 
   /* set tolerance if not yet set */
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;

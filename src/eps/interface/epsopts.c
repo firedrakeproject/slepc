@@ -222,7 +222,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     PetscCall(PetscOptionsName("-eps_error_relative","Print relative errors of each eigenpair","EPSErrorView",NULL));
     PetscCall(PetscOptionsName("-eps_error_backward","Print backward errors of each eigenpair","EPSErrorView",NULL));
 
-    if (eps->ops->setfromoptions) PetscCall((*eps->ops->setfromoptions)(eps,PetscOptionsObject));
+    PetscTryTypeMethod(eps,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)eps,PetscOptionsObject));
   PetscOptionsEnd();
 

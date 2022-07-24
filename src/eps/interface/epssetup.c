@@ -22,7 +22,7 @@
 PetscErrorCode EPSSetDefaultST(EPS eps)
 {
   PetscFunctionBegin;
-  if (eps->ops->setdefaultst) PetscCall((*eps->ops->setdefaultst)(eps));
+  PetscTryTypeMethod(eps,setdefaultst);
   if (!((PetscObject)eps->st)->type_name) PetscCall(STSetType(eps->st,STSHIFT));
   PetscFunctionReturn(0);
 }
@@ -320,7 +320,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
 
   /* call specific solver setup */
-  PetscCall((*eps->ops->setup)(eps));
+  PetscUseTypeMethod(eps,setup);
 
   /* if purification is set, check that it really makes sense */
   if (eps->purify) {
@@ -339,7 +339,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
 
   /* set up sorting criterion */
-  if (eps->ops->setupsort) PetscCall((*eps->ops->setupsort)(eps));
+  PetscTryTypeMethod(eps,setupsort);
 
   /* Build balancing matrix if required */
   if (eps->balance!=EPS_BALANCE_USER) {

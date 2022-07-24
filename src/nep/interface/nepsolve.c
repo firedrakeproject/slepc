@@ -38,7 +38,7 @@ PetscErrorCode NEPComputeVectors(NEP nep)
 {
   PetscFunctionBegin;
   NEPCheckSolved(nep,1);
-  if (nep->state==NEP_STATE_SOLVED && nep->ops->computevectors) PetscCall((*nep->ops->computevectors)(nep));
+  if (nep->state==NEP_STATE_SOLVED) PetscTryTypeMethod(nep,computevectors);
   nep->state = NEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
@@ -95,7 +95,7 @@ PetscErrorCode NEPSolve(NEP nep)
   PetscCall(RGViewFromOptions(nep->rg,NULL,"-rg_view"));
 
   /* call solver */
-  PetscCall((*nep->ops->solve)(nep));
+  PetscUseTypeMethod(nep,solve);
   PetscCheck(nep->reason,PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   nep->state = NEP_STATE_SOLVED;
 

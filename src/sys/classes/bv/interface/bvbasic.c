@@ -49,7 +49,7 @@ PetscErrorCode BVSetType(BV bv,BVType type)
   PetscCall(PetscFunctionListFind(BVList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested BV type %s",type);
 
-  if (bv->ops->destroy) PetscCall((*bv->ops->destroy)(bv));
+  PetscTryTypeMethod(bv,destroy);
   PetscCall(PetscMemzero(bv->ops,sizeof(struct _BVOps)));
 
   PetscCall(PetscObjectChangeTypeName((PetscObject)bv,type));
@@ -136,7 +136,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   }
   if (bv->ops->create) {
     PetscCall(PetscLogEventBegin(BV_Create,bv,0,0,0));
-    PetscCall((*bv->ops->create)(bv));
+    PetscUseTypeMethod(bv,create);
     PetscCall(PetscLogEventEnd(BV_Create,bv,0,0,0));
     bv->ops->create = 0;
     bv->defersfo = PETSC_FALSE;
@@ -181,7 +181,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   bv->t = t;
   PetscCall(PetscObjectReference((PetscObject)t));
   if (bv->ops->create) {
-    PetscCall((*bv->ops->create)(bv));
+    PetscUseTypeMethod(bv,create);
     bv->ops->create = 0;
     bv->defersfo = PETSC_FALSE;
   }
@@ -344,7 +344,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   BVCheckOp(bv,1,resize);
 
   PetscCall(PetscLogEventBegin(BV_Create,bv,0,0,0));
-  PetscCall((*bv->ops->resize)(bv,m,copy));
+  PetscUseTypeMethod(bv,resize,m,copy);
   PetscCall(VecDestroy(&bv->buffer));
   PetscCall(BVDestroy(&bv->cached));
   PetscCall(PetscFree2(bv->h,bv->c));
@@ -885,7 +885,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
     PetscCall(PetscOptionsGetBool(NULL,NULL,"-bv_reproducible_random",&bv->rrandom,NULL));
 
     if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
-    else if (bv->ops->setfromoptions) PetscCall((*bv->ops->setfromoptions)(bv,PetscOptionsObject));
+    else PetscTryTypeMethod(bv,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)bv,PetscOptionsObject));
   PetscOptionsEnd();
   bv->sfocalled = PETSC_TRUE;
@@ -1115,7 +1115,7 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   PetscCheck(j!=bv->ci[0] && j!=bv->ci[1],PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Column %" PetscInt_FMT " already fetched in a previous call to BVGetColumn",j);
   l = BVAvailableVec;
   PetscCheck(l!=-1,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Too many requested columns; you must call BVRestoreColumn for one of the previously fetched columns");
-  PetscCall((*bv->ops->getcolumn)(bv,j,v));
+  PetscUseTypeMethod(bv,getcolumn,j,v);
   bv->ci[l] = j;
   PetscCall(PetscObjectStateGet((PetscObject)bv->cv[l],&bv->st[l]));
   PetscCall(PetscObjectGetId((PetscObject)bv->cv[l],&bv->id[l]));
@@ -1161,7 +1161,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscCheck(id==bv->id[l],PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same Vec that was obtained with BVGetColumn");
   PetscCall(PetscObjectStateGet((PetscObject)*v,&st));
   if (st!=bv->st[l]) PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  PetscCall((*bv->ops->restorecolumn)(bv,j,v));
+  PetscUseTypeMethod(bv,restorecolumn,j,v);
   bv->ci[l] = -bv->nc-1;
   bv->st[l] = -1;
   bv->id[l] = 0;
@@ -1200,7 +1200,7 @@ PetscErrorCode BVGetArray(BV bv,PetscScalar **a)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   BVCheckOp(bv,1,getarray);
-  PetscCall((*bv->ops->getarray)(bv,a));
+  PetscUseTypeMethod(bv,getarray,a);
   PetscFunctionReturn(0);
 }
 
@@ -1227,7 +1227,7 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  if (bv->ops->restorearray) PetscCall((*bv->ops->restorearray)(bv,a));
+  PetscTryTypeMethod(bv,restorearray,a);
   if (a) *a = NULL;
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
@@ -1264,7 +1264,7 @@ PetscErrorCode BVGetArrayRead(BV bv,const PetscScalar **a)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   BVCheckOp(bv,1,getarrayread);
-  PetscCall((*bv->ops->getarrayread)(bv,a));
+  PetscUseTypeMethod(bv,getarrayread,a);
   PetscFunctionReturn(0);
 }
 
@@ -1288,7 +1288,7 @@ PetscErrorCode BVRestoreArrayRead(BV bv,const PetscScalar **a)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  if (bv->ops->restorearrayread) PetscCall((*bv->ops->restorearrayread)(bv,a));
+  PetscTryTypeMethod(bv,restorearrayread,a);
   if (a) *a = NULL;
   PetscFunctionReturn(0);
 }
@@ -1421,7 +1421,7 @@ PetscErrorCode BVGetMat(BV bv,Mat *A)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscValidPointer(A,2);
-  PetscCall((*bv->ops->getmat)(bv,A));
+  PetscUseTypeMethod(bv,getmat,A);
   PetscFunctionReturn(0);
 }
 
@@ -1464,7 +1464,7 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
   PetscValidPointer(A,2);
   PetscCheck(bv->Aget,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVRestoreMat must match a previous call to BVGetMat");
   PetscCheck(bv->Aget==*A,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with BVGetMat");
-  PetscCall((*bv->ops->restoremat)(bv,A));
+  PetscUseTypeMethod(bv,restoremat,A);
   PetscFunctionReturn(0);
 }
 
@@ -1488,7 +1488,7 @@ static inline PetscErrorCode BVDuplicate_Private(BV V,BV W)
   if (V->rand) PetscCall(PetscObjectReference((PetscObject)V->rand));
   W->rand         = V->rand;
   W->sfocalled    = V->sfocalled;
-  if (V->ops->duplicate) PetscCall((*V->ops->duplicate)(V,W));
+  PetscTryTypeMethod(V,duplicate,W);
   PetscCall(PetscObjectStateIncrease((PetscObject)W));
   PetscFunctionReturn(0);
 }
@@ -1649,7 +1649,7 @@ PetscErrorCode BVCopy(BV V,BV W)
     PetscCall(VecRestoreArray(W->omega,&womega));
     PetscCall(VecRestoreArrayRead(V->omega,&vomega));
   }
-  PetscCall((*V->ops->copy)(V,W));
+  PetscUseTypeMethod(V,copy,W);
   PetscCall(PetscLogEventEnd(BV_Copy,V,W,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)W));
   PetscFunctionReturn(0);
@@ -1731,7 +1731,7 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
     omega[i] = omega[j];
     PetscCall(VecRestoreArray(V->omega,&omega));
   }
-  PetscCall((*V->ops->copycolumn)(V,j,i));
+  PetscUseTypeMethod(V,copycolumn,j,i);
   PetscCall(PetscLogEventEnd(BV_Copy,V,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
@@ -1842,7 +1842,7 @@ PetscErrorCode BVRestoreSplit(BV bv,BV *L,BV *R)
   PetscCheck(!L || ((*L)->ci[0]<=(*L)->nc-1 && (*L)->ci[1]<=(*L)->nc-1),PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Argument 2 has unrestored columns, use BVRestoreColumn()");
   PetscCheck(!R || ((*R)->ci[0]<=(*R)->nc-1 && (*R)->ci[1]<=(*R)->nc-1),PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Argument 3 has unrestored columns, use BVRestoreColumn()");
 
-  if (bv->ops->restoresplit) PetscCall((*bv->ops->restoresplit)(bv,L,R));
+  PetscTryTypeMethod(bv,restoresplit,L,R);
   bv->lsplit = 0;
   if (L) *L = NULL;
   if (R) *R = NULL;

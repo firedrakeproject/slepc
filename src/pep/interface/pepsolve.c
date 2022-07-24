@@ -38,7 +38,7 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 {
   PetscFunctionBegin;
   PEPCheckSolved(pep,1);
-  if (pep->state==PEP_STATE_SOLVED && pep->ops->computevectors) PetscCall((*pep->ops->computevectors)(pep));
+  if (pep->state==PEP_STATE_SOLVED) PetscTryTypeMethod(pep,computevectors);
   pep->state = PEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
@@ -47,7 +47,7 @@ PetscErrorCode PEPExtractVectors(PEP pep)
 {
   PetscFunctionBegin;
   PEPCheckSolved(pep,1);
-  if (pep->state==PEP_STATE_SOLVED && pep->ops->extractvectors) PetscCall((*pep->ops->extractvectors)(pep));
+  if (pep->state==PEP_STATE_SOLVED) PetscTryTypeMethod(pep,extractvectors);
   PetscFunctionReturn(0);
 }
 
@@ -106,7 +106,7 @@ PetscErrorCode PEPSolve(PEP pep)
   PetscCall(RGViewFromOptions(pep->rg,NULL,"-rg_view"));
 
   /* Call solver */
-  PetscCall((*pep->ops->solve)(pep));
+  PetscUseTypeMethod(pep,solve);
   PetscCheck(pep->reason,PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   pep->state = PEP_STATE_SOLVED;
 
@@ -118,7 +118,7 @@ PetscErrorCode PEPSolve(PEP pep)
     PetscCall(STPostSolve(pep->st));
     /* Map eigenvalues back to the original problem */
     PetscCall(STGetTransform(pep->st,&flg));
-    if (flg && pep->ops->backtransform) PetscCall((*pep->ops->backtransform)(pep));
+    if (flg) PetscTryTypeMethod(pep,backtransform);
   }
 
 #if !defined(PETSC_USE_COMPLEX)

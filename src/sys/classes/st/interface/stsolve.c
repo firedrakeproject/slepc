@@ -54,7 +54,6 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   STCheckMatrices(st,1);
   PetscCheck(x!=y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   PetscCall(VecSetErrorIfLocked(y,3));
-  PetscCheck(st->ops->apply,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
   PetscCall(STGetOperator_Private(st,&Op));
   PetscCall(MatMult(Op,x,y));
   PetscFunctionReturn(0);
@@ -101,8 +100,7 @@ PetscErrorCode STApplyMat(ST st,Mat X,Mat Y)
   PetscValidType(st,1);
   STCheckMatrices(st,1);
   PetscCheck(X!=Y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"X and Y must be different matrices");
-  PetscCheck(st->ops->applymat,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applymat");
-  PetscCall((*st->ops->applymat)(st,X,Y));
+  PetscUseTypeMethod(st,applymat,X,Y);
   PetscFunctionReturn(0);
 }
 
@@ -147,7 +145,6 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   STCheckMatrices(st,1);
   PetscCheck(x!=y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   PetscCall(VecSetErrorIfLocked(y,3));
-  PetscCheck(st->ops->applytrans,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
   PetscCall(STGetOperator_Private(st,&Op));
   PetscCall(MatMultTranspose(Op,x,y));
   PetscFunctionReturn(0);
@@ -186,7 +183,6 @@ PetscErrorCode STApplyHermitianTranspose(ST st,Vec x,Vec y)
   STCheckMatrices(st,1);
   PetscCheck(x!=y,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   PetscCall(VecSetErrorIfLocked(y,3));
-  PetscCheck(st->ops->applytrans,PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
   PetscCall(STGetOperator_Private(st,&Op));
   PetscCall(MatMultHermitianTranspose(Op,x,y));
   PetscFunctionReturn(0);
@@ -219,7 +215,7 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
   PetscValidType(st,1);
   PetscValidPointer(B,2);
   STCheckMatrices(st,1);
-  PetscCall((*st->ops->getbilinearform)(st,B));
+  PetscUseTypeMethod(st,getbilinearform,B);
   PetscFunctionReturn(0);
 }
 
@@ -244,9 +240,9 @@ static PetscErrorCode MatMult_STOperator(Mat Op,Vec x,Vec y)
   PetscCall(PetscLogEventBegin(ST_Apply,st,x,y,0));
   if (st->D) { /* with balancing */
     PetscCall(VecPointwiseDivide(st->wb,x,st->D));
-    PetscCall((*st->ops->apply)(st,st->wb,y));
+    PetscUseTypeMethod(st,apply,st->wb,y);
     PetscCall(VecPointwiseMult(y,y,st->D));
-  } else PetscCall((*st->ops->apply)(st,x,y));
+  } else PetscUseTypeMethod(st,apply,x,y);
   PetscCall(PetscLogEventEnd(ST_Apply,st,x,y,0));
   PetscFunctionReturn(0);
 }
@@ -261,9 +257,9 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
   PetscCall(PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0));
   if (st->D) { /* with balancing */
     PetscCall(VecPointwiseMult(st->wb,x,st->D));
-    PetscCall((*st->ops->applytrans)(st,st->wb,y));
+    PetscUseTypeMethod(st,applytrans,st->wb,y);
     PetscCall(VecPointwiseDivide(y,y,st->D));
-  } else PetscCall((*st->ops->applytrans)(st,x,y));
+  } else PetscUseTypeMethod(st,applytrans,x,y);
   PetscCall(PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0));
   PetscFunctionReturn(0);
 }
@@ -285,9 +281,9 @@ static PetscErrorCode MatMultHermitianTranspose_STOperator(Mat Op,Vec x,Vec y)
   PetscCall(VecConjugate(st->wht));
   if (st->D) { /* with balancing */
     PetscCall(VecPointwiseMult(st->wb,st->wht,st->D));
-    PetscCall((*st->ops->applytrans)(st,st->wb,y));
+    PetscUseTypeMethod(st,applytrans,st->wb,y);
     PetscCall(VecPointwiseDivide(y,y,st->D));
-  } else PetscCall((*st->ops->applytrans)(st,st->wht,y));
+  } else PetscUseTypeMethod(st,applytrans,st->wht,y);
   PetscCall(VecConjugate(y));
   PetscCall(PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0));
   PetscFunctionReturn(0);
@@ -463,7 +459,7 @@ PetscErrorCode STComputeOperator(ST st)
       PetscCall(PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat)));
     }
     PetscCall(PetscLogEventBegin(ST_ComputeOperator,st,0,0,0));
-    PetscCall((*st->ops->computeoperator)(st));
+    PetscUseTypeMethod(st,computeoperator);
     PetscCall(PetscLogEventEnd(ST_ComputeOperator,st,0,0,0));
     if (st->usesksp) {
       if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
@@ -537,7 +533,7 @@ PetscErrorCode STSetUp(ST st)
       PetscCall(PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat)));
     }
   }
-  if (st->ops->setup) PetscCall((*st->ops->setup)(st));
+  PetscTryTypeMethod(st,setup);
   st->state = ST_STATE_SETUP;
   PetscCall(PetscLogEventEnd(ST_SetUp,st,0,0,0));
   PetscFunctionReturn(0);
@@ -669,7 +665,7 @@ PetscErrorCode STPostSolve(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  if (st->ops->postsolve) PetscCall((*st->ops->postsolve)(st));
+  PetscTryTypeMethod(st,postsolve);
   PetscFunctionReturn(0);
 }
 
@@ -695,7 +691,7 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  if (st->ops->backtransform) PetscCall((*st->ops->backtransform)(st,n,eigr,eigi));
+  PetscTryTypeMethod(st,backtransform,n,eigr,eigi);
   PetscFunctionReturn(0);
 }
 

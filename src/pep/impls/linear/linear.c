@@ -680,7 +680,7 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   PetscCall(EPSSetTarget(ctx->eps,sigma*pep->sfactor));
 
   PetscCall(STGetTransform(pep->st,&flg));
-  if (flg && pep->ops->backtransform) PetscCall((*pep->ops->backtransform)(pep));
+  if (flg) PetscTryTypeMethod(pep,backtransform);
   if (pep->sfactor!=1.0) {
     /* Restore original values */
     for (i=0;i<pep->nmat;i++) {

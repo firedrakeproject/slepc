@@ -312,7 +312,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   if (!svd->isgeneralized && svd->conv==SVD_CONV_NORM && !svd->nrma) PetscCall(MatNorm(svd->OP,NORM_INFINITY,&svd->nrma));
 
   /* call specific solver setup */
-  PetscCall((*svd->ops->setup)(svd));
+  PetscUseTypeMethod(svd,setup);
 
   /* set tolerance if not yet set */
   if (svd->tol==PETSC_DEFAULT) svd->tol = SLEPC_DEFAULT_TOL;

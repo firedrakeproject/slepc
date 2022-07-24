@@ -59,7 +59,7 @@ PetscErrorCode STSetType(ST st,STType type)
   PetscCall(PetscFunctionListFind(STList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
 
-  if (st->ops->destroy) PetscCall((*st->ops->destroy)(st));
+  PetscTryTypeMethod(st,destroy);
   PetscCall(PetscMemzero(st->ops,sizeof(struct _STOps)));
 
   st->state   = ST_STATE_INITIAL;
@@ -136,7 +136,7 @@ PetscErrorCode STSetFromOptions(ST st)
     PetscCall(PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&bval,&flg));
     if (flg) PetscCall(STSetTransform(st,bval));
 
-    if (st->ops->setfromoptions) PetscCall((*st->ops->setfromoptions)(st,PetscOptionsObject));
+    PetscTryTypeMethod(st,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)st,PetscOptionsObject));
   PetscOptionsEnd();
 

@@ -221,8 +221,8 @@ PetscErrorCode BVBiorthonormalizeColumn(BV V,BV W,PetscInt j,PetscReal *delta)
   PetscCall(BVRestoreColumn(V,j,&y));
   PetscCall(BVRestoreColumn(W,j,&z));
   deltat = PetscSqrtReal(PetscAbsScalar(alpha));
-  if (V->n) PetscCall((*V->ops->scale)(V,j,1.0/PetscConj(alpha/deltat)));
-  if (W->n) PetscCall((*W->ops->scale)(W,j,1.0/deltat));
+  if (V->n) PetscUseTypeMethod(V,scale,j,1.0/PetscConj(alpha/deltat));
+  if (W->n) PetscUseTypeMethod(W,scale,j,1.0/deltat);
   PetscCall(PetscLogEventEnd(BV_Scale,V,0,0,0));
   if (delta) *delta = deltat;
   PetscCall(PetscObjectStateIncrease((PetscObject)V));

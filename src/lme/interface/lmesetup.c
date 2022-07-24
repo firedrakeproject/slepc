@@ -94,7 +94,7 @@ PetscErrorCode LMESetUp(LME lme)
   PetscCheck(lme->problem_type==LME_LYAPUNOV,PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"There is no solver yet for this matrix equation type");
 
   /* call specific solver setup */
-  PetscCall((*lme->ops->setup)(lme));
+  PetscUseTypeMethod(lme,setup);
 
   /* set tolerance if not yet set */
   if (lme->tol==PETSC_DEFAULT) lme->tol = SLEPC_DEFAULT_TOL;

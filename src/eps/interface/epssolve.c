@@ -19,7 +19,7 @@ PetscErrorCode EPSComputeVectors(EPS eps)
 {
   PetscFunctionBegin;
   EPSCheckSolved(eps,1);
-  if (eps->state==EPS_STATE_SOLVED && eps->ops->computevectors) PetscCall((*eps->ops->computevectors)(eps));
+  if (eps->state==EPS_STATE_SOLVED) PetscTryTypeMethod(eps,computevectors);
   eps->state = EPS_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
@@ -39,8 +39,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
       PetscCall(STIsInjective(eps->st,&injective));
       if (injective) {
         /* one-to-one mapping: backtransform eigenvalues */
-        PetscCheck(eps->ops->backtransform,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, spectral transform should have a backtransform operation");
-        PetscCall((*eps->ops->backtransform)(eps));
+        PetscUseTypeMethod(eps,backtransform);
       } else {
         /* compute eigenvalues from Rayleigh quotient */
         PetscCall(DSGetDimensions(eps->ds,&n,NULL,NULL,NULL));
@@ -144,7 +143,7 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscCall(RGViewFromOptions(eps->rg,NULL,"-rg_view"));
 
   /* Call solver */
-  PetscCall((*eps->ops->solve)(eps));
+  PetscUseTypeMethod(eps,solve);
   PetscCheck(eps->reason,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   eps->state = EPS_STATE_SOLVED;
 

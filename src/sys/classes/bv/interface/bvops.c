@@ -73,7 +73,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscCheck(X->n==Y->n,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", Y %" PetscInt_FMT,X->n,Y->n);
 
   PetscCall(PetscLogEventBegin(BV_Mult,X,Y,0,0));
-  PetscCall((*Y->ops->mult)(Y,alpha,beta,X,Q));
+  PetscUseTypeMethod(Y,mult,alpha,beta,X,Q);
   PetscCall(PetscLogEventEnd(BV_Mult,X,Y,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)Y));
   PetscFunctionReturn(0);
@@ -128,7 +128,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
   PetscCheck(N==X->N && n==X->n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ") do not match BV sizes (global %" PetscInt_FMT ", local %" PetscInt_FMT ")",N,n,X->N,X->n);
 
   PetscCall(PetscLogEventBegin(BV_MultVec,X,y,0,0));
-  PetscCall((*X->ops->multvec)(X,alpha,beta,y,q));
+  PetscUseTypeMethod(X,multvec,alpha,beta,y,q);
   PetscCall(PetscLogEventEnd(BV_MultVec,X,y,0,0));
   PetscFunctionReturn(0);
 }
@@ -183,7 +183,7 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   X->k = j;
   if (!q && !X->buffer) PetscCall(BVGetBufferVec(X,&X->buffer));
   PetscCall(BVGetColumn(X,j,&y));
-  PetscCall((*X->ops->multvec)(X,alpha,beta,y,q));
+  PetscUseTypeMethod(X,multvec,alpha,beta,y,q);
   PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
   PetscCall(PetscLogEventEnd(BV_MultVec,X,0,0,0));
@@ -239,7 +239,7 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   if (s>=e) PetscFunctionReturn(0);
 
   PetscCall(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
-  PetscCall((*V->ops->multinplace)(V,Q,s,e));
+  PetscUseTypeMethod(V,multinplace,Q,s,e);
   PetscCall(PetscLogEventEnd(BV_MultInPlace,V,Q,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
@@ -288,7 +288,7 @@ PetscErrorCode BVMultInPlaceHermitianTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
   if (s>=e || !V->n) PetscFunctionReturn(0);
 
   PetscCall(PetscLogEventBegin(BV_MultInPlace,V,Q,0,0));
-  PetscCall((*V->ops->multinplacetrans)(V,Q,s,e));
+  PetscUseTypeMethod(V,multinplacetrans,Q,s,e);
   PetscCall(PetscLogEventEnd(BV_MultInPlace,V,Q,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);
@@ -320,7 +320,7 @@ PetscErrorCode BVScale(BV bv,PetscScalar alpha)
   if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-  if (bv->n) PetscCall((*bv->ops->scale)(bv,-1,alpha));
+  if (bv->n) PetscUseTypeMethod(bv,scale,-1,alpha);
   PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
@@ -353,7 +353,7 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-  if (bv->n) PetscCall((*bv->ops->scale)(bv,j,alpha));
+  if (bv->n) PetscUseTypeMethod(bv,scale,j,alpha);
   PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
@@ -717,7 +717,7 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   PetscCheck(V->k-V->l==Y->k-Y->l,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %" PetscInt_FMT " active columns, should match %" PetscInt_FMT " active columns in V",Y->k-Y->l,V->k-V->l);
 
   PetscCall(PetscLogEventBegin(BV_MatMult,V,A,Y,0));
-  PetscCall((*V->ops->matmult)(V,A,Y));
+  PetscUseTypeMethod(V,matmult,A,Y);
   PetscCall(PetscLogEventEnd(BV_MatMult,V,A,Y,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)Y));
   PetscFunctionReturn(0);

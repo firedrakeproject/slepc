@@ -75,18 +75,14 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)lme,viewer));
-    if (lme->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*lme->ops->view)(lme,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(lme,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  equation type: %s\n",eqname[lme->problem_type]));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %" PetscInt_FMT "\n",lme->ncv));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %" PetscInt_FMT "\n",lme->max_it));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)lme->tol));
-  } else {
-    if (lme->ops->view) PetscCall((*lme->ops->view)(lme,viewer));
-  }
+  } else PetscTryTypeMethod(lme,view,viewer);
   PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
   if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));
   PetscCall(BVView(lme->V,viewer));
@@ -289,7 +285,7 @@ PetscErrorCode LMESetType(LME lme,LMEType type)
   PetscCall(PetscFunctionListFind(LMEList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown LME type given: %s",type);
 
-  if (lme->ops->destroy) PetscCall((*lme->ops->destroy)(lme));
+  PetscTryTypeMethod(lme,destroy);
   PetscCall(PetscMemzero(lme->ops,sizeof(struct _LMEOps)));
 
   lme->setupcalled = 0;
@@ -417,7 +413,7 @@ PetscErrorCode LMEReset(LME lme)
   PetscFunctionBegin;
   if (lme) PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   if (!lme) PetscFunctionReturn(0);
-  if (lme->ops->reset) PetscCall((lme->ops->reset)(lme));
+  PetscTryTypeMethod(lme,reset);
   PetscCall(MatDestroy(&lme->A));
   PetscCall(MatDestroy(&lme->B));
   PetscCall(MatDestroy(&lme->D));
@@ -450,7 +446,7 @@ PetscErrorCode LMEDestroy(LME *lme)
   PetscValidHeaderSpecific(*lme,LME_CLASSID,1);
   if (--((PetscObject)(*lme))->refct > 0) { *lme = 0; PetscFunctionReturn(0); }
   PetscCall(LMEReset(*lme));
-  if ((*lme)->ops->destroy) PetscCall((*(*lme)->ops->destroy)(*lme));
+  PetscTryTypeMethod(*lme,destroy);
   PetscCall(LMEMonitorCancel(*lme));
   PetscCall(PetscHeaderDestroy(lme));
   PetscFunctionReturn(0);

@@ -576,7 +576,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   }
   PetscCall(STGetTransform(pep->st,&flg));
   if (pep->refine!=PEP_REFINE_MULTIPLE || pep->rits==0) {
-    if (!flg && pep->ops->backtransform) PetscCall((*pep->ops->backtransform)(pep));
+    if (!flg) PetscTryTypeMethod(pep,backtransform);
     if (pep->sfactor!=1.0) {
       for (j=0;j<pep->nconv;j++) {
         pep->eigr[j] *= pep->sfactor;

@@ -120,7 +120,7 @@ PetscErrorCode BVDestroy(BV *bv)
   PetscValidHeaderSpecific(*bv,BV_CLASSID,1);
   PetscCheck(!(*bv)->lsplit,PetscObjectComm((PetscObject)(*bv)),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
   if (--((PetscObject)(*bv))->refct > 0) { *bv = 0; PetscFunctionReturn(0); }
-  if ((*bv)->ops->destroy) PetscCall((*(*bv)->ops->destroy)(*bv));
+  PetscTryTypeMethod(*bv,destroy);
   PetscCall(VecDestroy(&(*bv)->t));
   PetscCall(MatDestroy(&(*bv)->matrix));
   PetscCall(VecDestroy(&(*bv)->Bx));
@@ -594,11 +594,9 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
           break;
       }
       if (bv->rrandom) PetscCall(PetscViewerASCIIPrintf(viewer,"  generating random vectors independent of the number of processes\n"));
-      if (bv->ops->view) PetscCall((*bv->ops->view)(bv,viewer));
-    } else {
-      if (bv->ops->view) PetscCall((*bv->ops->view)(bv,viewer));
     }
-  } else PetscCall((*bv->ops->view)(bv,viewer));
+  }
+  PetscTryTypeMethod(bv,view,viewer);
   PetscFunctionReturn(0);
 }
 

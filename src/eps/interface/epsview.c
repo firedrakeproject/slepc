@@ -57,11 +57,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer));
-    if (eps->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*eps->ops->view)(eps,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(eps,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
     if (eps->problem_type) {
       switch (eps->problem_type) {
         case EPS_HEP:    type = SLEPC_STRING_HERMITIAN " eigenvalue problem"; break;
@@ -169,9 +167,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->nini) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(eps->nini)));
     if (eps->ninil) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided left initial space: %" PetscInt_FMT "\n",PetscAbs(eps->ninil)));
     if (eps->nds) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %" PetscInt_FMT "\n",PetscAbs(eps->nds)));
-  } else {
-    if (eps->ops->view) PetscCall((*eps->ops->view)(eps,viewer));
-  }
+  } else PetscTryTypeMethod(eps,view,viewer);
   PetscCall(PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLOPEX,EPSELEMENTAL,EPSFEAST,EPSPRIMME,EPSSCALAPACK,EPSELPA,EPSEVSL,EPSTRLAN,""));
   if (!isexternal) {
     PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));

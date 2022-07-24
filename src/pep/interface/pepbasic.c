@@ -170,7 +170,7 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
   PetscCall(PetscFunctionListFind(PEPList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown PEP type given: %s",type);
 
-  if (pep->ops->destroy) PetscCall((*pep->ops->destroy)(pep));
+  PetscTryTypeMethod(pep,destroy);
   PetscCall(PetscMemzero(pep->ops,sizeof(struct _PEPOps)));
 
   pep->state = PEP_STATE_INITIAL;
@@ -298,7 +298,7 @@ PetscErrorCode PEPReset(PEP pep)
   PetscFunctionBegin;
   if (pep) PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (!pep) PetscFunctionReturn(0);
-  if (pep->ops->reset) PetscCall((pep->ops->reset)(pep));
+  PetscTryTypeMethod(pep,reset);
   if (pep->st) PetscCall(STReset(pep->st));
   if (pep->refineksp) PetscCall(KSPReset(pep->refineksp));
   if (pep->nmat) {
@@ -335,7 +335,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
   PetscValidHeaderSpecific(*pep,PEP_CLASSID,1);
   if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
   PetscCall(PEPReset(*pep));
-  if ((*pep)->ops->destroy) PetscCall((*(*pep)->ops->destroy)(*pep));
+  PetscTryTypeMethod(*pep,destroy);
   if ((*pep)->eigr) PetscCall(PetscFree4((*pep)->eigr,(*pep)->eigi,(*pep)->errest,(*pep)->perm));
   PetscCall(STDestroy(&(*pep)->st));
   PetscCall(RGDestroy(&(*pep)->rg));

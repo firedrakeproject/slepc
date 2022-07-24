@@ -228,7 +228,7 @@ PetscErrorCode FNSetType(FN fn,FNType type)
   PetscCall(PetscFunctionListFind(FNList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested FN type %s",type);
 
-  if (fn->ops->destroy) PetscCall((*fn->ops->destroy)(fn));
+  PetscTryTypeMethod(fn,destroy);
   PetscCall(PetscMemzero(fn->ops,sizeof(struct _FNOps)));
 
   PetscCall(PetscObjectChangeTypeName((PetscObject)fn,type));
@@ -473,7 +473,7 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
   PetscValidScalarPointer(y,3);
   PetscCall(PetscLogEventBegin(FN_Evaluate,fn,0,0,0));
   xf = fn->alpha*x;
-  PetscCall((*fn->ops->evaluatefunction)(fn,xf,&yf));
+  PetscUseTypeMethod(fn,evaluatefunction,xf,&yf);
   *y = fn->beta*yf;
   PetscCall(PetscLogEventEnd(FN_Evaluate,fn,0,0,0));
   PetscFunctionReturn(0);
@@ -509,7 +509,7 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
   PetscValidScalarPointer(y,3);
   PetscCall(PetscLogEventBegin(FN_Evaluate,fn,0,0,0));
   xf = fn->alpha*x;
-  PetscCall((*fn->ops->evaluatederivative)(fn,xf,&yf));
+  PetscUseTypeMethod(fn,evaluatederivative,xf,&yf);
   *y = fn->alpha*fn->beta*yf;
   PetscCall(PetscLogEventEnd(FN_Evaluate,fn,0,0,0));
   PetscFunctionReturn(0);
@@ -554,7 +554,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,const PetscScalar 
   /* W = f(Lambda)*Q' */
   for (i=0;i<n;i++) {
     x = fn->alpha*eig[i];
-    PetscCall((*fn->ops->evaluatefunction)(fn,x,&y));  /* y = f(x) */
+    PetscUseTypeMethod(fn,evaluatefunction,x,&y);  /* y = f(x) */
     for (j=0;j<k;j++) W[i+j*ld] = PetscConj(Q[j+i*ld])*fn->beta*y;
   }
   /* Bs = Q*W */
@@ -596,8 +596,8 @@ PetscErrorCode FNEvaluateFunctionMat_Basic(FN fn,Mat A,Mat F)
   PetscFunctionBegin;
   PetscCall(PetscObjectTypeCompare((PetscObject)A,MATSEQDENSECUDA,&iscuda));
   if (iscuda && !fn->ops->evaluatefunctionmatcuda[fn->method]) PetscCall(PetscInfo(fn,"The method %" PetscInt_FMT " is not implemented for CUDA, falling back to CPU version\n",fn->method));
-  if (iscuda && fn->ops->evaluatefunctionmatcuda[fn->method]) PetscCall((*fn->ops->evaluatefunctionmatcuda[fn->method])(fn,A,F));
-  else if (fn->ops->evaluatefunctionmat[fn->method]) PetscCall((*fn->ops->evaluatefunctionmat[fn->method])(fn,A,F));
+  if (iscuda && fn->ops->evaluatefunctionmatcuda[fn->method]) PetscUseTypeMethod(fn,evaluatefunctionmatcuda[fn->method],A,F);
+  else if (fn->ops->evaluatefunctionmat[fn->method]) PetscUseTypeMethod(fn,evaluatefunctionmat[fn->method],A,F);
   else {
     PetscCheck(fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in this FN type");
     PetscCheck(!fn->method,PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN type");
@@ -783,8 +783,8 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
         PetscCall(FN_AllocateWorkMat(fn,A,&M));
         PetscCall(MatScale(M,fn->alpha));
       } else M = A;
-      if (iscuda && fn->ops->evaluatefunctionmatveccuda[fn->method]) PetscCall((*fn->ops->evaluatefunctionmatveccuda[fn->method])(fn,M,v));
-      else if (fn->ops->evaluatefunctionmatvec[fn->method]) PetscCall((*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v));
+      if (iscuda && fn->ops->evaluatefunctionmatveccuda[fn->method]) PetscUseTypeMethod(fn,evaluatefunctionmatveccuda[fn->method],M,v);
+      else if (fn->ops->evaluatefunctionmatvec[fn->method]) PetscUseTypeMethod(fn,evaluatefunctionmatvec[fn->method],M,v);
       else PetscCall(FNEvaluateFunctionMatVec_Default(fn,M,v));
       if (fn->alpha!=(PetscScalar)1.0) PetscCall(FN_FreeWorkMat(fn,&M));
       /* scale result */
@@ -894,7 +894,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
     PetscCall(PetscOptionsEnum("-fn_parallel","Operation mode in parallel runs","FNSetParallel",FNParallelTypes,(PetscEnum)fn->pmode,(PetscEnum*)&pmode,&flg));
     if (flg) PetscCall(FNSetParallel(fn,pmode));
 
-    if (fn->ops->setfromoptions) PetscCall((*fn->ops->setfromoptions)(fn,PetscOptionsObject));
+    PetscTryTypeMethod(fn,setfromoptions,PetscOptionsObject);
     PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)fn,PetscOptionsObject));
   PetscOptionsEnd();
   PetscFunctionReturn(0);
@@ -939,11 +939,9 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
     PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)fn,viewer));
     PetscCallMPI(MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size));
     if (size>1) PetscCall(PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",FNParallelTypes[fn->pmode]));
-    if (fn->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*fn->ops->view)(fn,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(fn,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
@@ -1011,7 +1009,7 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   PetscCall(FNSetMethod(*newfn,meth));
   PetscCall(FNGetParallel(fn,&ptype));
   PetscCall(FNSetParallel(*newfn,ptype));
-  if (fn->ops->duplicate) PetscCall((*fn->ops->duplicate)(fn,comm,newfn));
+  PetscTryTypeMethod(fn,duplicate,comm,newfn);
   PetscFunctionReturn(0);
 }
 
@@ -1035,7 +1033,7 @@ PetscErrorCode FNDestroy(FN *fn)
   if (!*fn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
   if (--((PetscObject)(*fn))->refct > 0) { *fn = 0; PetscFunctionReturn(0); }
-  if ((*fn)->ops->destroy) PetscCall((*(*fn)->ops->destroy)(*fn));
+  PetscTryTypeMethod(*fn,destroy);
   for (i=0;i<(*fn)->nw;i++) PetscCall(MatDestroy(&(*fn)->W[i]));
   PetscCall(PetscHeaderDestroy(fn));
   PetscFunctionReturn(0);
