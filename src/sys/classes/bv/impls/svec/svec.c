@@ -496,6 +496,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->resize           = BVResize_Svec;
     bv->ops->getcolumn        = BVGetColumn_Svec;
     bv->ops->restorecolumn    = BVRestoreColumn_Svec;
+    bv->ops->getmat           = BVGetMat_Default;
+    bv->ops->restoremat       = BVRestoreMat_Default;
   }
   bv->ops->norm             = BVNorm_Svec;
   bv->ops->norm_local       = BVNorm_Local_Svec;

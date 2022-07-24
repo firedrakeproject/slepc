@@ -1362,6 +1362,35 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
+{
+  PetscScalar *vv,*aa;
+  PetscBool   create=PETSC_FALSE;
+  PetscInt    m,cols;
+
+  PetscFunctionBegin;
+  m = bv->k-bv->l;
+  if (!bv->Aget) create=PETSC_TRUE;
+  else {
+    PetscCall(MatDenseGetArray(bv->Aget,&aa));
+    PetscCheck(!aa,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
+    PetscCall(MatGetSize(bv->Aget,NULL,&cols));
+    if (cols!=m) {
+      PetscCall(MatDestroy(&bv->Aget));
+      create=PETSC_TRUE;
+    }
+  }
+  PetscCall(BVGetArray(bv,&vv));
+  if (create) {
+    PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
+    PetscCall(MatDenseReplaceArray(bv->Aget,NULL));  /* replace with a null pointer, the value after BVRestoreMat */
+    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Aget));
+  }
+  PetscCall(MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n));  /* set the actual pointer */
+  *A = bv->Aget;
+  PetscFunctionReturn(0);
+}
+
 /*@
    BVGetMat - Returns a Mat object of dense type that shares the memory of
    the BV object.
@@ -1388,36 +1417,24 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
 @*/
 PetscErrorCode BVGetMat(BV bv,Mat *A)
 {
-  PetscScalar    *vv,*aa;
-  PetscBool      create=PETSC_FALSE;
-  PetscInt       m,cols;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscValidPointer(A,2);
-  if (bv->ops->getmat) PetscCall((*bv->ops->getmat)(bv,A));
-  else {
-    m = bv->k-bv->l;
-    if (!bv->Aget) create=PETSC_TRUE;
-    else {
-      PetscCall(MatDenseGetArray(bv->Aget,&aa));
-      PetscCheck(!aa,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
-      PetscCall(MatGetSize(bv->Aget,NULL,&cols));
-      if (cols!=m) {
-        PetscCall(MatDestroy(&bv->Aget));
-        create=PETSC_TRUE;
-      }
-    }
-    PetscCall(BVGetArray(bv,&vv));
-    if (create) {
-      PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
-      PetscCall(MatDenseReplaceArray(bv->Aget,NULL));  /* replace with a null pointer, the value after BVRestoreMat */
-      PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Aget));
-    }
-    PetscCall(MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n));  /* set the actual pointer */
-    *A = bv->Aget;
-  }
+  PetscCall((*bv->ops->getmat)(bv,A));
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode BVRestoreMat_Default(BV bv,Mat *A)
+{
+  PetscScalar *vv,*aa;
+
+  PetscFunctionBegin;
+  PetscCall(MatDenseGetArray(bv->Aget,&aa));
+  vv = aa-(bv->nc+bv->l)*bv->n;
+  PetscCall(MatDenseResetArray(bv->Aget));
+  PetscCall(BVRestoreArray(bv,&vv));
+  *A = NULL;
   PetscFunctionReturn(0);
 }
 
@@ -1441,22 +1458,13 @@ PetscErrorCode BVGetMat(BV bv,Mat *A)
 @*/
 PetscErrorCode BVRestoreMat(BV bv,Mat *A)
 {
-  PetscScalar    *vv,*aa;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   BVCheckSizes(bv,1);
   PetscValidPointer(A,2);
   PetscCheck(bv->Aget,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVRestoreMat must match a previous call to BVGetMat");
   PetscCheck(bv->Aget==*A,PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with BVGetMat");
-  if (bv->ops->restoremat) PetscCall((*bv->ops->restoremat)(bv,A));
-  else {
-    PetscCall(MatDenseGetArray(bv->Aget,&aa));
-    vv = aa-(bv->nc+bv->l)*bv->n;
-    PetscCall(MatDenseResetArray(bv->Aget));
-    PetscCall(BVRestoreArray(bv,&vv));
-    *A = NULL;
-  }
+  PetscCall((*bv->ops->restoremat)(bv,A));
   PetscFunctionReturn(0);
 }
 
@@ -1707,8 +1715,7 @@ PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
 @*/
 PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
 {
-  Vec            z,w;
-  PetscScalar    *omega;
+  PetscScalar *omega;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
@@ -1724,14 +1731,7 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
     omega[i] = omega[j];
     PetscCall(VecRestoreArray(V->omega,&omega));
   }
-  if (V->ops->copycolumn) PetscCall((*V->ops->copycolumn)(V,j,i));
-  else {
-    PetscCall(BVGetColumn(V,j,&z));
-    PetscCall(BVGetColumn(V,i,&w));
-    PetscCall(VecCopy(z,w));
-    PetscCall(BVRestoreColumn(V,j,&z));
-    PetscCall(BVRestoreColumn(V,i,&w));
-  }
+  PetscCall((*V->ops->copycolumn)(V,j,i));
   PetscCall(PetscLogEventEnd(BV_Copy,V,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)V));
   PetscFunctionReturn(0);

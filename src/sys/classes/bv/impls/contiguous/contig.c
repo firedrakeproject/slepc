@@ -373,6 +373,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->restorecolumn    = BVRestoreColumn_Contiguous;
   bv->ops->getarray         = BVGetArray_Contiguous;
   bv->ops->getarrayread     = BVGetArrayRead_Contiguous;
+  bv->ops->getmat           = BVGetMat_Default;
+  bv->ops->restoremat       = BVRestoreMat_Default;
   bv->ops->destroy          = BVDestroy_Contiguous;
   PetscFunctionReturn(0);
 }

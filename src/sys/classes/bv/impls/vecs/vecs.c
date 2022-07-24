@@ -548,6 +548,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->restorearray     = BVRestoreArray_Vecs;
   bv->ops->getarrayread     = BVGetArrayRead_Vecs;
   bv->ops->restorearrayread = BVRestoreArrayRead_Vecs;
+  bv->ops->getmat           = BVGetMat_Default;
+  bv->ops->restoremat       = BVRestoreMat_Default;
   bv->ops->destroy          = BVDestroy_Vecs;
   bv->ops->duplicate        = BVDuplicate_Vecs;
   bv->ops->setfromoptions   = BVSetFromOptions_Vecs;

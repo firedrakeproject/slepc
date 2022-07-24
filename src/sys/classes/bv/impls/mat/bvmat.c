@@ -454,6 +454,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->restorearray     = BVRestoreArray_Mat;
   bv->ops->getarrayread     = BVGetArrayRead_Mat;
   bv->ops->restorearrayread = BVRestoreArrayRead_Mat;
+  bv->ops->getmat           = BVGetMat_Default;
+  bv->ops->restoremat       = BVRestoreMat_Default;
   bv->ops->destroy          = BVDestroy_Mat;
   if (!ctx->mpi) bv->ops->view = BVView_Mat;
   PetscFunctionReturn(0);
