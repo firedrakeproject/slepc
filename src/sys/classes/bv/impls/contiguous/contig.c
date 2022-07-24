@@ -257,6 +257,16 @@ PetscErrorCode BVGetColumn_Contiguous(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVRestoreColumn_Contiguous(BV bv,PetscInt j,Vec *v)
+{
+  PetscInt l;
+
+  PetscFunctionBegin;
+  l = (j==bv->ci[0])? 0: 1;
+  bv->cv[l] = NULL;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVGetArray_Contiguous(BV bv,PetscScalar **a)
 {
   BV_CONTIGUOUS *ctx = (BV_CONTIGUOUS*)bv->data;
@@ -360,6 +370,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->copycolumn       = BVCopyColumn_Contiguous;
   bv->ops->resize           = BVResize_Contiguous;
   bv->ops->getcolumn        = BVGetColumn_Contiguous;
+  bv->ops->restorecolumn    = BVRestoreColumn_Contiguous;
   bv->ops->getarray         = BVGetArray_Contiguous;
   bv->ops->getarrayread     = BVGetArrayRead_Contiguous;
   bv->ops->destroy          = BVDestroy_Contiguous;

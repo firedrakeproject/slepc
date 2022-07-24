@@ -334,6 +334,16 @@ PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVRestoreColumn_Vecs(BV bv,PetscInt j,Vec *v)
+{
+  PetscInt l;
+
+  PetscFunctionBegin;
+  l = (j==bv->ci[0])? 0: 1;
+  bv->cv[l] = NULL;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
 {
   BV_VECS           *ctx = (BV_VECS*)bv->data;
@@ -533,6 +543,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->copycolumn       = BVCopyColumn_Vecs;
   bv->ops->resize           = BVResize_Vecs;
   bv->ops->getcolumn        = BVGetColumn_Vecs;
+  bv->ops->restorecolumn    = BVRestoreColumn_Vecs;
   bv->ops->getarray         = BVGetArray_Vecs;
   bv->ops->restorearray     = BVRestoreArray_Vecs;
   bv->ops->getarrayread     = BVGetArrayRead_Vecs;

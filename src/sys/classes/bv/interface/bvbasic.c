@@ -1161,8 +1161,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscCheck(id==bv->id[l],PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same Vec that was obtained with BVGetColumn");
   PetscCall(PetscObjectStateGet((PetscObject)*v,&st));
   if (st!=bv->st[l]) PetscCall(PetscObjectStateIncrease((PetscObject)bv));
-  if (bv->ops->restorecolumn) PetscCall((*bv->ops->restorecolumn)(bv,j,v));
-  else bv->cv[l] = NULL;
+  PetscCall((*bv->ops->restorecolumn)(bv,j,v));
   bv->ci[l] = -bv->nc-1;
   bv->st[l] = -1;
   bv->id[l] = 0;
