@@ -208,7 +208,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   Mat            aux;
 
   PetscFunctionBegin;
-  SVDCheckDefinite(svd);
   PetscCall(MatGetSize(svd->A,&M,&N));
   PetscCall(SVDSetDimensions_Default(svd));
   PetscCheck(svd->ncv<=svd->nsv+svd->mpd,PetscObjectComm((PetscObject)svd),PETSC_ERR_USER_INPUT,"The value of ncv must not be larger than nsv+mpd");
@@ -217,7 +216,7 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   if (!lanczos->keep) lanczos->keep = 0.5;
   svd->leftbasis = PETSC_TRUE;
   PetscCall(SVDAllocateSolution(svd,1));
-  dstype = DSSVD;
+  dstype = svd->ishyperbolic? DSHSVD: DSSVD;
   if (svd->isgeneralized) {
     PetscCall(MatGetSize(svd->B,&P,NULL));
     if (lanczos->bidiag == SVD_TRLANCZOS_GBIDIAG_LOWER && ((svd->which==SVD_LARGEST && P<=N) || (svd->which==SVD_SMALLEST && M>N && P<=N))) {
@@ -252,6 +251,23 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     }
     /* Explicit matrix is created here, when updating the scale */
     PetscCall(MatZUpdateScale(svd));
+  }
+  else if (svd->ishyperbolic) {
+    Mat      Omega;
+    MatType  Atype;
+    PetscInt mm,MM;
+    BV       U = svd->swapped? svd->V: svd->U;
+
+    PetscCall(MatGetType(svd->OP,&Atype));
+    PetscCall(BVGetSizes(U,&mm,&MM,NULL));
+    PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
+    PetscCall(MatSetSizes(Omega,mm,mm,MM,MM));
+    PetscCall(MatSetType(Omega,Atype));
+    PetscCall(MatSetUp(Omega));
+    PetscCall(MatDiagonalSet(Omega,svd->omega,INSERT_VALUES));
+    PetscCall(BVSetMatrix(U,Omega,PETSC_TRUE));
+    PetscCall(MatDestroy(&Omega));
+    PetscCall(SVDSetWorkVecs(svd,1,0));
   }
   PetscCall(DSSetType(svd->ds,dstype));
   PetscCall(DSSetCompact(svd->ds,PETSC_TRUE));
@@ -546,6 +562,167 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   /* free working space */
   PetscCall(PetscFree(w));
   if (swork) PetscCall(PetscFree(swork));
+  PetscCall(DSTruncate(svd->ds,svd->nconv,PETSC_TRUE));
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDLanczosHSVD(SVD svd,PetscReal *alpha,PetscReal *beta,PetscReal *omega,Mat A,Mat AT,BV V,BV U,PetscInt k,PetscInt *n,PetscBool *breakdown)
+{
+  PetscInt       i;
+  Vec            u,v,ou=svd->workl[0];
+  PetscBool      lindep=PETSC_FALSE;
+  PetscReal      norm;
+
+  PetscFunctionBegin;
+  for (i=k;i<*n;i++) {
+    PetscCall(BVGetColumn(V,i,&v));
+    PetscCall(BVGetColumn(U,i,&u));
+    PetscCall(MatMult(A,v,u));
+    PetscCall(BVRestoreColumn(V,i,&v));
+    PetscCall(BVRestoreColumn(U,i,&u));
+    PetscCall(BVOrthonormalizeColumn(U,i,PETSC_FALSE,alpha+i,&lindep));
+    omega[i] = PetscSign(alpha[i]);
+    if (PetscUnlikely(lindep)) {
+      *n = i;
+      break;
+    }
+
+    PetscCall(BVGetColumn(V,i+1,&v));
+    PetscCall(BVGetColumn(U,i,&u));
+    PetscCall(VecPointwiseMult(ou,svd->omega,u));
+    PetscCall(MatMult(AT,ou,v));
+    PetscCall(BVRestoreColumn(V,i+1,&v));
+    PetscCall(BVRestoreColumn(U,i,&u));
+    PetscCall(BVOrthonormalizeColumn(V,i+1,PETSC_FALSE,&norm,&lindep));
+    beta[i] = omega[i]*norm;
+    if (PetscUnlikely(lindep)) {
+      *n = i+1;
+      break;
+    }
+  }
+
+  if (breakdown) *breakdown = lindep;
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDSolve_TRLanczos_HSVD(SVD svd)
+{
+  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
+  PetscReal      *alpha,*beta,*omega;
+  PetscScalar    *w;
+  PetscInt       i,k,l,nv,ld,nini;
+  Mat            UU,VV,D,A,AT;
+  BV             U,V;
+  PetscBool      breakdown=PETSC_FALSE;
+  BVOrthogType   orthog;
+  Vec            vomega;
+
+  PetscFunctionBegin;
+  /* undo the effect of swapping in this function */
+  if (svd->swapped) {
+    A = svd->AT;
+    AT = svd->A;
+    U = svd->V;
+    V = svd->U;
+    nini = svd->ninil;
+  } else {
+    A = svd->A;
+    AT = svd->AT;
+    U = svd->U;
+    V = svd->V;
+    nini = svd->nini;
+  }
+  /* allocate working space */
+  PetscCall(DSGetLeadingDimension(svd->ds,&ld));
+  PetscCall(BVGetOrthogonalization(V,&orthog,NULL,NULL,NULL));
+  PetscCall(PetscMalloc1(ld,&w));
+  PetscCheck(!lanczos->oneside,PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Oneside orthogonalization not supported for HSVD");
+
+  /* normalize start vector */
+  if (!nini) {
+    PetscCall(BVSetRandomColumn(V,0));
+    PetscCall(BVOrthonormalizeColumn(V,0,PETSC_TRUE,NULL,NULL));
+  }
+
+  l = 0;
+  while (svd->reason == SVD_CONVERGED_ITERATING) {
+    svd->its++;
+
+    /* inner loop */
+    nv = PetscMin(svd->nconv+svd->mpd,svd->ncv);
+    PetscCall(DSGetArrayReal(svd->ds,DS_MAT_T,&alpha));
+    beta = alpha + ld;
+    PetscCall(DSGetArrayReal(svd->ds,DS_MAT_D,&omega));
+    PetscCall(SVDLanczosHSVD(svd,alpha,beta,omega,A,AT,V,U,svd->nconv+l,&nv,&breakdown));
+    PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_T,&alpha));
+    PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_D,&omega));
+    PetscCall(BVSetActiveColumns(V,svd->nconv,nv));
+    PetscCall(BVSetActiveColumns(U,svd->nconv,nv));
+
+    /* solve projected problem */
+    PetscCall(DSSetDimensions(svd->ds,nv,svd->nconv,svd->nconv+l));
+    PetscCall(DSHSVDSetDimensions(svd->ds,nv));
+    PetscCall(DSSetState(svd->ds,l?DS_STATE_RAW:DS_STATE_INTERMEDIATE));
+    PetscCall(DSSolve(svd->ds,w,NULL));
+    PetscCall(DSSort(svd->ds,w,NULL,NULL,NULL,NULL));
+    PetscCall(DSUpdateExtraRow(svd->ds));
+    PetscCall(DSSynchronize(svd->ds,w,NULL));
+    PetscCall(DSGetArrayReal(svd->ds,DS_MAT_D,&omega));
+    for (i=svd->nconv;i<nv;i++) {
+      svd->sigma[i] = PetscRealPart(w[i]);
+      svd->sign[i] = omega[i];
+    }
+    PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_D,&omega));
+
+    /* check convergence */
+    PetscCall(SVDKrylovConvergence(svd,PETSC_FALSE,svd->nconv,nv-svd->nconv,1.0,&k));
+    PetscCall((*svd->stopping)(svd,svd->its,svd->max_it,k,svd->nsv,&svd->reason,svd->stoppingctx));
+
+    /* update l */
+    if (svd->reason != SVD_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
+    else l = PetscMax(1,(PetscInt)((nv-k)*lanczos->keep));
+    if (!lanczos->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged triplets */
+    if (l) PetscCall(PetscInfo(svd,"Preparing to restart keeping l=%" PetscInt_FMT " vectors\n",l));
+
+    if (svd->reason == SVD_CONVERGED_ITERATING) {
+      if (PetscUnlikely(breakdown || k==nv)) {
+        /* Start a new bidiagonalization */
+        PetscCall(PetscInfo(svd,"Breakdown in bidiagonalization (it=%" PetscInt_FMT ")\n",svd->its));
+        if (k<svd->nsv) {
+          PetscCall(BVSetRandomColumn(V,k));
+          PetscCall(BVOrthonormalizeColumn(V,k,PETSC_FALSE,NULL,&breakdown));
+          if (breakdown) {
+            svd->reason = SVD_DIVERGED_BREAKDOWN;
+            PetscCall(PetscInfo(svd,"Unable to generate more start vectors\n"));
+          }
+        }
+      } else PetscCall(DSTruncate(svd->ds,k+l,PETSC_FALSE));
+    }
+
+    /* compute converged singular vectors and restart vectors */
+    PetscCall(DSGetMat(svd->ds,DS_MAT_V,&VV));
+    PetscCall(BVMultInPlace(V,VV,svd->nconv,k+l));
+    PetscCall(DSRestoreMat(svd->ds,DS_MAT_V,&VV));
+    PetscCall(DSGetMat(svd->ds,DS_MAT_U,&UU));
+    PetscCall(BVMultInPlace(U,UU,svd->nconv,k+l));
+    PetscCall(DSRestoreMat(svd->ds,DS_MAT_U,&UU));
+
+    /* copy the last vector of V to be the next initial vector
+       and change signature matrix of U */
+    if (svd->reason == SVD_CONVERGED_ITERATING && !breakdown) {
+      PetscCall(BVCopyColumn(V,nv,k+l));
+      PetscCall(BVSetActiveColumns(U,0,k+l));
+      PetscCall(DSGetMatAndColumn(svd->ds,DS_MAT_D,0,&D,&vomega));
+      PetscCall(BVSetSignature(U,vomega));
+      PetscCall(DSRestoreMatAndColumn(svd->ds,DS_MAT_D,0,&D,&vomega));
+    }
+
+    svd->nconv = k;
+    PetscCall(SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,nv));
+  }
+
+  /* free working space */
+  PetscCall(PetscFree(w));
   PetscCall(DSTruncate(svd->ds,svd->nconv,PETSC_TRUE));
   PetscFunctionReturn(0);
 }
@@ -2136,6 +2313,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   svd->ops->setup          = SVDSetUp_TRLanczos;
   svd->ops->solve          = SVDSolve_TRLanczos;
   svd->ops->solveg         = SVDSolve_TRLanczos_GSVD;
+  svd->ops->solveh         = SVDSolve_TRLanczos_HSVD;
   svd->ops->destroy        = SVDDestroy_TRLanczos;
   svd->ops->reset          = SVDReset_TRLanczos;
   svd->ops->setfromoptions = SVDSetFromOptions_TRLanczos;
