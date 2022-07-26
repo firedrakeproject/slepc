@@ -22,6 +22,7 @@ int main(int argc,char **argv)
   PetscInt       n=10,i,Istart,Iend;
   STMatMode      matmode;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nPreconditioner for 1-D Laplacian, n=%" PetscInt_FMT "\n\n",n));

@@ -92,6 +92,7 @@ int main(int argc,char **argv)
   PetscScalar       value,c,uval,*warray;
   const PetscScalar *uarray;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

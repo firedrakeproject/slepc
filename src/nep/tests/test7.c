@@ -56,6 +56,7 @@ int main(int argc,char **argv)
   PetscScalar    coeffs;
   MatCtx         *ctx;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL));

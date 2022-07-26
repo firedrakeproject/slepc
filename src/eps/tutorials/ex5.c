@@ -31,6 +31,7 @@ int main(int argc,char **argv)
   PetscMPIInt    rank;
   PetscBool      terse;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));

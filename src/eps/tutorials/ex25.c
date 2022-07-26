@@ -31,6 +31,7 @@ int main(int argc,char **argv)
   Mat            F;
 #endif
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

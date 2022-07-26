@@ -38,6 +38,7 @@ int main(int argc,char **argv)
   PetscReal      mu=1.0,tau=10.0,kappa=5.0;
   PetscBool      terse=PETSC_FALSE;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

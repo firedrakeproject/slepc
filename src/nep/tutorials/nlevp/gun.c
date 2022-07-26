@@ -44,6 +44,7 @@ int main(int argc,char **argv)
   PetscInt       i;
   PetscViewer    viewer;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"GUN problem\n\n"));

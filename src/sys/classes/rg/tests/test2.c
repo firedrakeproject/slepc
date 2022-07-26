@@ -39,6 +39,7 @@ int main(int argc,char **argv)
   PetscReal      re,im,radius,vscale,start_ang,end_ang,width,a,b,c,d;
   PetscScalar    center,cr[NPOINTS],ci[NPOINTS];
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(RGCreate(PETSC_COMM_WORLD,&rg));
 

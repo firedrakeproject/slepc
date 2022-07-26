@@ -51,6 +51,7 @@ int main(int argc,char **argv)
   PetscInt       n=30,i,Istart,Iend,nev;
   PetscBool      isShell,terse;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 #if defined(PETSC_HAVE_COMPLEX)
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

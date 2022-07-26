@@ -22,6 +22,7 @@ int main(int argc,char **argv)
   PetscReal      tol=PETSC_SMALL;
   PetscViewer    viewer;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

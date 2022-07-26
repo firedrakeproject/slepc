@@ -25,6 +25,7 @@ int main(int argc,char **argv)
   PetscReal      alpha,beta,restart;
   PetscBool      flg,lock;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-nini",&nini,NULL));

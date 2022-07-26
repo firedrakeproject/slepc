@@ -20,6 +20,7 @@ int main(int argc,char **argv)
   PetscCall(PetscInitialized(&pInitialized));
   PetscCall(SlepcInitialized(&sInitialized));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"PetscInitialized=%d, SlepcInitialized=%d.\n",(int)pInitialized,(int)sInitialized));
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscInitialized(&pInitialized));
   PetscCall(SlepcInitialized(&sInitialized));

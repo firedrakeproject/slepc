@@ -87,6 +87,7 @@ int main(int argc,char **argv)
   PetscBool      flg,terse,permute=PETSC_FALSE;
   PetscRandom    rctx;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg));

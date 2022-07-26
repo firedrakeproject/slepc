@@ -26,6 +26,7 @@ int main(int argc,char **argv)
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt       N,m=15,nev;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));

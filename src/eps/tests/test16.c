@@ -29,6 +29,7 @@ int main(int argc,char **argv)
   EPS            eps;         /* eigenproblem solver context */
   PetscInt       n=30,i,Istart,Iend;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nTridiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));

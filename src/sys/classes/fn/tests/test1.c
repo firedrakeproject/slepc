@@ -19,6 +19,7 @@ int main(int argc,char **argv)
   PetscScalar    x,y,yp,p[10],q[10],five=5.0,*pp,*qq;
   char           strx[50],str[50];
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(FNCreate(PETSC_COMM_WORLD,&fn));
 

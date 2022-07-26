@@ -73,6 +73,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,inplace,matcuda;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));

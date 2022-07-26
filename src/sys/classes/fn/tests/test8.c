@@ -88,6 +88,7 @@ int main(int argc,char **argv)
   PetscReal      v;
   char           strx[50],str[50];
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));

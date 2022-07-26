@@ -24,6 +24,7 @@ int main(int argc,char **argv)
   PetscReal      error,tol,sigma,mu=PETSC_SQRT_MACHINE_EPSILON;
   PetscInt       n=100,i,j,Istart,Iend,nsv,maxit,its,nconv;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

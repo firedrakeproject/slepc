@@ -29,6 +29,7 @@ int main(int argc,char **args)
   char           dir[PETSC_MAX_PATH_LEN],name[PETSC_MAX_PATH_LEN];
   PetscBool      flg;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&args,NULL,help));
   PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCheck(size == 4,PETSC_COMM_WORLD,PETSC_ERR_USER,"This example requires 4 processes");

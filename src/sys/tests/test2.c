@@ -22,6 +22,7 @@ int main(int argc,char **argv)
 #endif
 #endif
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
 #if defined(PETSC_USE_DEBUG)

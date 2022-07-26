@@ -40,6 +40,7 @@ int main(int argc,char **argv)
   PetscReal      kappa=1.0,m=1.0;
   PetscScalar    sigma;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

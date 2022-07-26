@@ -70,6 +70,7 @@ int main(int argc,char **argv)
   PetscScalar    origin=0.0;
   PetscBool      flg,delay,skipnorm=PETSC_FALSE;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));

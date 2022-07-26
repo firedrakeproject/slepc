@@ -21,6 +21,7 @@ int main(int argc,char **argv)
   PetscReal      norm,normc,norm12[2],norm12c[2],vmax,vmin;
   PetscScalar    dot[2],dotc[2];
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD,&size));
   PetscCallMPI(MPI_Comm_rank(PETSC_COMM_WORLD,&rank));

@@ -48,6 +48,7 @@ int main(int argc,char **argv)
   PetscBool      terse,initv=PETSC_FALSE;
   const char     *prefix;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL));

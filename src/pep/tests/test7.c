@@ -25,6 +25,7 @@ int main(int argc,char **argv)
   PetscInt       n=100,Istart,Iend,i,*inertias,ns,nev,ncv,mpd;
   PetscReal      mu=1.0,tau=10.0,kappa=5.0,int0,int1,*shifts;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

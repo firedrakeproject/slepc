@@ -39,6 +39,7 @@ int main(int argc,char **argv)
   PetscReal      lev1=0.0,lev2=0.0,tol=PETSC_SMALL;
   PetscBool      skiporth=PETSC_FALSE;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&M,NULL));

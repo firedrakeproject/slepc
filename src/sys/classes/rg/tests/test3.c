@@ -17,6 +17,7 @@ int main(int argc,char **argv)
   RG             rg;
   PetscBool      vertical=PETSC_FALSE,symm;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetBool(NULL,NULL,"-vertical",&vertical,NULL));
 

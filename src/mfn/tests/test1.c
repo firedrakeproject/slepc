@@ -28,6 +28,7 @@ int main(int argc,char **argv)
   char               filename[PETSC_MAX_PATH_LEN];
   MFNConvergedReason reason;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL));

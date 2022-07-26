@@ -25,6 +25,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      flg,symm;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

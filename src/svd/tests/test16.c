@@ -37,6 +37,7 @@ int main(int argc,char **argv)
   PetscInt       m=15,n=20,p=21,Istart,Iend,i,j,d,col[2];
   PetscScalar    valsa[] = { 1, 2 }, valsb[] = { 2, 1 };
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

@@ -29,6 +29,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      flg,terse,skiporth=PETSC_FALSE,transpose=PETSC_FALSE;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

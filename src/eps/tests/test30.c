@@ -20,6 +20,7 @@ int main(int argc,char **argv)
   KSP            ksp;
   PetscInt       n=20,i,Istart,Iend,nrest;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%" PetscInt_FMT "\n\n",n));
 

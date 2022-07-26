@@ -19,6 +19,7 @@ int main(int argc,char **argv)
   PetscReal      tol=PetscMax(1000*PETSC_MACHINE_EPSILON,1e-9);
   PetscInt       n=30,i,Istart,Iend,nev,ncv;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%" PetscInt_FMT "\n\n",n));

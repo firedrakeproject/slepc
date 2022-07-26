@@ -28,6 +28,7 @@ int main(int argc,char **argv)
   PetscBool           flg,lock,oneside;
   SVDTRLanczosGBidiag bidiag;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));

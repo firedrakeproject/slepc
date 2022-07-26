@@ -60,6 +60,7 @@ int main(int argc,char **argv)
   PetscBool          terse,flg;
   PetscViewer        viewer;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));

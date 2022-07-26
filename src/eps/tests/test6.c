@@ -24,6 +24,7 @@ int main(int argc,char **argv)
   PetscReal      tol=PETSC_SMALL;
   PetscInt       n=30,i,Istart,Iend,seed=0x12345678;
 
+  PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
 
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
