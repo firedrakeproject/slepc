@@ -126,10 +126,10 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
   mm = iscomplex? 2: 1;
   if (iscomplex) select[(*k)+1] = (PetscBLASInt)PETSC_TRUE;
   PetscCall(DSAllocateWork_Private(ds,3*ld,0,0));
-  PetscCallBLAS("LAPACKtrevc",LAPACKtrevc_(left?"L":"R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,&info));
+  PetscCallBLAS("LAPACKtrevc",LAPACKtrevc_(left?"L":"R","S",select,&n,(PetscScalar*)A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,&info));
 #else
   PetscCall(DSAllocateWork_Private(ds,2*ld,ld,0));
-  PetscCallBLAS("LAPACKtrevc",LAPACKtrevc_(left?"L":"R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,ds->rwork,&info));
+  PetscCallBLAS("LAPACKtrevc",LAPACKtrevc_(left?"L":"R","S",select,&n,(PetscScalar*)A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,ds->rwork,&info));
 #endif
   SlepcCheckLapackInfo("trevc",info);
   PetscCheck(mout==mm,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
@@ -199,10 +199,10 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   } else back = "A";
 #if !defined(PETSC_USE_COMPLEX)
   PetscCall(DSAllocateWork_Private(ds,3*ld,0,0));
-  PetscCallBLAS("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
+  PetscCallBLAS("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,(PetscScalar*)A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,&info));
 #else
   PetscCall(DSAllocateWork_Private(ds,2*ld,ld,0));
-  PetscCallBLAS("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
+  PetscCallBLAS("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,(PetscScalar*)A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
 #endif
   SlepcCheckLapackInfo("trevc",info);
 
