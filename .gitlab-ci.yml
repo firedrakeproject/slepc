@@ -658,7 +658,7 @@ intel-c-mkl-libs:
     - .stage-3
     - .linux_test
   tags:
-    - compiler:intel, name:sejmet
+    - compiler:intel, name:hapy
   variables:
     LOAD_MODULES: icc mpi mkl
     MAKE_FFLAGS: -warn errors
