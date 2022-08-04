@@ -5,6 +5,9 @@ from petsc4py import PETSc
 from slepc4py import SLEPc
 import numpy as np
 
+# this a sequential example
+assert PETSc.COMM_WORLD.getSize() == 1
+
 Print = PETSc.Sys.Print
 
 def laplace2d(U, x, f):
