@@ -921,7 +921,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 }
 
 /*
-  Extend the TOAR basis by applying the the matrix operator
+  Extend the TOAR basis by applying the matrix operator
   over a vector which is decomposed on the TOAR way
   Input:
     - S,V: define the latest Arnoldi vector (nv vectors in V)

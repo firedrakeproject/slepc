@@ -89,7 +89,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
 }
 
 /*
-  Extend the TOAR basis by applying the the matrix operator
+  Extend the TOAR basis by applying the matrix operator
   over a vector which is decomposed in the TOAR way
   Input:
     - pbc: array containing the polynomial basis coefficients
