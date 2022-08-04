@@ -330,8 +330,8 @@ cdef class BV(Object):
         refine: `BV.OrthogRefineType` enumerate
               The type of refinement.
         eta:  float
-              Parameter for selective refinement (used when the the
-              refinement type `BV.OrthogRefineType.IFNEEDED`).
+              Parameter for selective refinement (used when the
+              refinement type is `BV.OrthogRefineType.IFNEEDED`).
         block: `BV.OrthogBlockType` enumerate
               The type of block orthogonalization .
         """
