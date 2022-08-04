@@ -176,7 +176,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
        Solve again, calling PEPReset() since matrix size has changed
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  /*PetscCall(PEPReset(pep));*/  /* not required, will be called in PEPSetOperators() */
+  /* PetscCall(PEPReset(pep)); */  /* not required, will be called in PEPSetOperators() */
   A[0] = K; A[1] = C; A[2] = M;
   PetscCall(PEPSetOperators(pep,3,A));
   PetscCall(PEPSolve(pep));

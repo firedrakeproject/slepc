@@ -104,7 +104,7 @@ int main(int argc,char **argv)
        Solve again, calling EPSReset() since matrix size has changed
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /*PetscCall(EPSReset(eps));*/  /* not required, will be called in EPSSetOperators() */
+  /* PetscCall(EPSReset(eps)); */  /* not required, will be called in EPSSetOperators() */
   PetscCall(EPSSetOperators(eps,B,NULL));
   PetscCall(EPSSolve(eps));
 

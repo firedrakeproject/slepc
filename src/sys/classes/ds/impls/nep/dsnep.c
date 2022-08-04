@@ -611,7 +611,7 @@ static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
    Level: advanced
 
 .seealso: DSNEPGetFN(), DSAllocate()
- @*/
+@*/
 PetscErrorCode DSNEPSetFN(DS ds,PetscInt n,FN fn[])
 {
   PetscInt       i;
