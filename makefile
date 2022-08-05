@@ -100,26 +100,45 @@ info:
 	-@echo "Using MAKEFLAGS: -j$(MAKE_NP) -l$(MAKE_LOAD) $(MAKEFLAGS)"
 	-@echo "=========================================="
 
+#
 # Simple test examples for checking a correct installation
+#
+RUN_TEST = ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR}
+
 check_install: check
 check:
-	+@(${OMAKE_SELF} PETSC_OPTIONS="${PETSC_OPTIONS} ${PETSC_TEST_OPTIONS}" PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check_build 2>&1; echo $$? > ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log) | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log; ecode=`cat ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log`; rm ./${PETSC_ARCH}/lib/slepc/conf/checkstatus.log; exit $${ecode}
-check_build:
-	-@echo "Running test examples to verify correct installation"
+	-@echo "Running check examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
-	+@cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} clean-legacy
-	+@cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10
+	@if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+           echo "Running with batch filesystem, cannot run make check"; \
+        elif [ "${MPIEXEC}" = "/bin/false" ]; then \
+           echo "*mpiexec not found*. cannot run make check"; \
+        else \
+          ${RM} -f check_error; \
+	  ${RUN_TEST} PETSC_OPTIONS="${PETSC_OPTIONS} ${PETSC_TEST_OPTIONS}" PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" check_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log; \
+          if [ -f check_error ]; then \
+            echo "Error while running make check"; \
+            ${RM} -f check_error; \
+            exit 1; \
+          fi; \
+          ${RM} -f check_error; \
+        fi
+
+check_build:
+	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
+	+@cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10
+	+@if [ ! "${MPI_IS_MPIUNI}" ]; then cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_mpi; fi
 	+@egrep "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
          if test -s .ftn.log; then \
-           cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; \
+           cd src/eps/tests >/dev/null; ${RUN_TEST} testtest7f; \
          fi ; ${RM} .ftn.log
 	+@if [ "${CUDA_LIB}" != "" ]; then \
-           cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10_cuda; \
+           cd src/eps/tests >/dev/null; ${RUN_TEST} testtest10_cuda; \
          fi
 	+@if [ "${BLOPEX_LIB}" != "" ]; then \
-           cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; \
+           cd src/eps/tests >/dev/null; ${RUN_TEST} testtest5_blopex; \
          fi
-	+@cd src/eps/tests >/dev/null; ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} clean-legacy
+	+@cd src/eps/tests >/dev/null; ${RUN_TEST} clean-legacy
 	-@echo "Completed test examples"
 
 # Compare ABI/API of two versions of PETSc library with the old one defined by PETSC_{DIR,ARCH}_ABI_OLD
