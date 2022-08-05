@@ -44,11 +44,28 @@ class SlepcConfig(PetscConfig):
             raise DistutilsError("SLEPc not found")
         if not os.path.isdir(slepc_dir):
             raise DistutilsError("invalid SLEPC_DIR")
+        self.sversion = self._get_slepc_version(slepc_dir)
         self._get_slepc_config(petsc_dir,slepc_dir)
         self.SLEPC_DIR = self['SLEPC_DIR']
         self.SLEPC_DESTDIR = dest_dir
         self.SLEPC_LIB = self['SLEPC_LIB']
         self.SLEPC_EXTERNAL_LIB_DIR = self['SLEPC_EXTERNAL_LIB_DIR']
+
+    def _get_slepc_version(self, slepc_dir):
+        import re
+        version_re = {
+            'major'  : re.compile(r"#define\s+SLEPC_VERSION_MAJOR\s+(\d+)"),
+            'minor'  : re.compile(r"#define\s+SLEPC_VERSION_MINOR\s+(\d+)"),
+            'micro'  : re.compile(r"#define\s+SLEPC_VERSION_SUBMINOR\s+(\d+)"),
+            'release': re.compile(r"#define\s+SLEPC_VERSION_RELEASE\s+(-*\d+)"),
+            }
+        slepcversion_h = os.path.join(slepc_dir, 'include', 'slepcversion.h')
+        with open(slepcversion_h, 'rt') as f: data = f.read()
+        major = int(version_re['major'].search(data).groups()[0])
+        minor = int(version_re['minor'].search(data).groups()[0])
+        micro = int(version_re['micro'].search(data).groups()[0])
+        release = int(version_re['release'].search(data).groups()[0])
+        return  (major, minor, micro), (release == 1)
 
     def _get_slepc_config(self, petsc_dir, slepc_dir):
         from os.path import join, isdir
@@ -117,7 +134,11 @@ class SlepcConfig(PetscConfig):
 
     def log_info(self):
         if not self.SLEPC_DIR: return
+        version = ".".join([str(i) for i in self.sversion[0]])
+        release = ("development", "release")[self.sversion[1]]
+        version_info = version + ' ' + release
         log.info('SLEPC_DIR:    %s' % self.SLEPC_DIR)
+        log.info('version:      %s' % version_info)
         PetscConfig.log_info(self)
 
 
