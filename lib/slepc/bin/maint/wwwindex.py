@@ -121,7 +121,7 @@ def printsingleindex(outfilename,alphabet_dict):
             fd.write('<H3> <CENTER> | ')
             for key_tmp in alphabet_index:
                   if key == key_tmp:
-                        fd.write( '<FONT COLOR="#CC3333">' + key_tmp.upper() + '</FONT> | \n' )
+                        fd.write( '<FONT COLOR="#883300">' + key_tmp.upper() + '</FONT> | \n' )
                   else:
                         fd.write('<A HREF="singleindex.html#' + key_tmp + '"> ' + \
                                  key_tmp.upper() + ' </A> | \n')
@@ -175,8 +175,8 @@ def modifylevel(filename,secname):
       # Now takeout the level info, and move it to the end,
       # and also add the bold format.
       tmpbuf = re_level.sub('',buf)
-      re_loc = re.compile('(<FONT COLOR="#CC3333">Location:</FONT>)')
-      tmpbuf = re_loc.sub('</B><H3><FONT COLOR="#CC3333">Level</FONT></H3>' + level + r'<BR>\n<H3><FONT COLOR="#CC3333">Location</FONT></H3>\n',tmpbuf)
+      re_loc = re.compile('(<FONT COLOR="#883300">Location: </FONT>)')
+      tmpbuf = re_loc.sub('</B><H3><FONT COLOR="#883300">Level</FONT></H3>' + level + r'<BR>\n<H3><FONT COLOR="#883300">Location</FONT></H3>\n',tmpbuf)
 
       # Modify .c#,.h#,.cu#,.cxx# to .c.html#,.h.html#,.cu.html#,.cxx.html#
       re_loc = re.compile('.c#')
