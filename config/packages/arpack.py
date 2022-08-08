@@ -19,7 +19,7 @@ class Arpack(package.Package):
     self.installable    = True
     self.downloadable   = True
     #self.version        = '3.8.0'
-    self.gitcommit      = '08e2368179d8a234f64c44d8ff354de17b039c56'
+    self.gitcommit      = '17e6bba6b29fd345e43825f62c32f16fee0892ee'
     obj = self.version if hasattr(self,'version') else self.gitcommit
     self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+obj+'.tar.gz'
     self.archive        = 'arpack-ng-'+obj+'.tar.gz'
