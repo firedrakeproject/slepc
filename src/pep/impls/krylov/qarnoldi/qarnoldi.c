@@ -96,7 +96,7 @@ static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,Pet
   if (onorm) {
     PetscCall(VecNorm(v,NORM_2,&x));
     PetscCall(VecNorm(w,NORM_2,&y));
-    *onorm = PetscSqrtReal(x*x+y*y);
+    *onorm = SlepcAbs(x,y);
   }
 
   /* orthogonalize: compute h */
@@ -118,7 +118,7 @@ static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,Pet
   if (norm) {
     PetscCall(VecNorm(v,NORM_2,&x));
     PetscCall(VecNorm(w,NORM_2,&y));
-    *norm = PetscSqrtReal(x*x+y*y);
+    *norm = SlepcAbs(x,y);
   }
   PetscFunctionReturn(0);
 }
@@ -218,7 +218,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   PetscCall(BVCopyVec(pep->V,1,w));
   PetscCall(VecNorm(v,NORM_2,&x));
   PetscCall(VecNorm(w,NORM_2,&y));
-  norm = PetscSqrtReal(x*x+y*y);
+  norm = SlepcAbs(x,y);
   PetscCall(VecScale(v,1.0/norm));
   PetscCall(VecScale(w,1.0/norm));
 

@@ -543,7 +543,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
       PetscCall(SVDComputeResidualNorms_Hyperbolic(svd,sigma,svd->sign[svd->perm[i]],u,v,x,y,z,&norm1,&norm2));
       break;
   }
-  *error = PetscSqrtReal(norm1*norm1+norm2*norm2);
+  *error = SlepcAbs(norm1,norm2);
   switch (type) {
     case SVD_ERROR_ABSOLUTE:
       break;
