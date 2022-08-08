@@ -42,7 +42,7 @@ static PetscErrorCode UnifiedRotation(PetscReal x,PetscReal y,PetscReal sygn,Pet
     c = x/nrm; s = y/nrm;
     PetscCheck(sygn==1.0 || sygn==-1,PETSC_COMM_SELF,PETSC_ERR_PLIB,"Value of sygn sent to transetup must be 1 or -1");
     if (sygn == 1.0) {  /* set up a rotator */
-      nrm = PetscSqrtReal(c*c+s*s);
+      nrm = SlepcAbs(c,s);
       c = c/nrm; s = s/nrm;
       /* rot = [c s; -s c]; */
       rot[0] = c; rot[1] = -s; rot[2] = s; rot[3] = c;

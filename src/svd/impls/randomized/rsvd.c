@@ -53,9 +53,10 @@ static PetscErrorCode SVDRandomizedResidualNorm(SVD svd,PetscInt i,PetscScalar s
   Vec            u,v,wu,wv;
 
   PetscFunctionBegin;
-  wu = svd->swapped? svd->workr[0]: svd->workl[0];
-  wv = svd->swapped? svd->workl[0]: svd->workr[0];
+  *res = 1.0;
   if (svd->conv!=SVD_CONV_MAXIT) {
+    wu = svd->swapped? svd->workr[0]: svd->workl[0];
+    wv = svd->swapped? svd->workl[0]: svd->workr[0];
     PetscCall(BVGetColumn(svd->V,i,&v));
     PetscCall(BVGetColumn(svd->U,i,&u));
     /* norm1 = ||A*v-sigma*u||_2 */
@@ -68,9 +69,7 @@ static PetscErrorCode SVDRandomizedResidualNorm(SVD svd,PetscInt i,PetscScalar s
     PetscCall(VecNorm(wv,NORM_2,&norm2));
     PetscCall(BVRestoreColumn(svd->V,i,&v));
     PetscCall(BVRestoreColumn(svd->U,i,&u));
-    *res = PetscSqrtReal(norm1*norm1+norm2*norm2);
-  } else {
-    *res = 1.0;
+    *res = SlepcAbs(norm1,norm2);
   }
   PetscFunctionReturn(0);
 }
