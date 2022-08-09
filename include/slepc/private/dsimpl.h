@@ -118,6 +118,7 @@ SLEPC_INTERN PetscErrorCode DSPermuteBoth_Private(DS,PetscInt,PetscInt,PetscInt,
 SLEPC_INTERN PetscErrorCode DSGetTruncateSize_Default(DS,PetscInt,PetscInt,PetscInt*);
 
 SLEPC_INTERN PetscErrorCode DSGHIEPOrthogEigenv(DS,DSMatType,PetscScalar*,PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode DSPseudoOrthog_HR(PetscInt*,PetscScalar*,PetscInt,PetscReal*,PetscScalar*,PetscInt,PetscBLASInt*,PetscBLASInt*,PetscBool*,PetscScalar*);
 SLEPC_INTERN PetscErrorCode DSGHIEPComplexEigs(DS,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
 SLEPC_INTERN PetscErrorCode DSGHIEPInverseIteration(DS,PetscScalar*,PetscScalar*);
 SLEPC_INTERN PetscErrorCode DSIntermediate_GHIEP(DS);

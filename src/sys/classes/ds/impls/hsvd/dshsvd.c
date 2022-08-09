@@ -23,9 +23,9 @@ PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_U));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_V));
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
+  PetscCall(DSAllocateMat_Private(ds,DS_MAT_D));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
-  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt)));
   PetscFunctionReturn(0);
 }
 
@@ -54,6 +54,7 @@ PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
     -----------------------------------------
 */
 
+#if 0
 static PetscErrorCode DSSwitchFormat_HSVD(DS ds)
 {
   DS_HSVD        *ctx = (DS_HSVD*)ds->data;
@@ -88,6 +89,7 @@ static PetscErrorCode DSSwitchFormat_HSVD(DS ds)
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&S));
   PetscFunctionReturn(0);
 }
+#endif
 
 PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
 {
@@ -245,7 +247,7 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
     x = ds->work;
     y = ds->work+ld;
     for (i=0;i<n;i++) x[i] = PetscConj(A[i+m*ld]);
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,U,&ld,x,&incx,&zero,y,&incx));
+    PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,U,&ld,x,&incx,&zero,y,&incx));
     for (i=0;i<n;i++) A[i+m*ld] = PetscConj(y[i]);
     ds->k = m;
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
@@ -288,96 +290,145 @@ PetscErrorCode DSTruncate_HSVD(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode ArrowTrididiag(PetscBLASInt n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt ld)
+{
+  PetscBLASInt i,j,j2,one=1;
+  PetscReal    c,s,p,off,temp;
+
+  PetscFunctionBegin;
+  if (n<=2) PetscFunctionReturn(0);
+
+  for (j=0;j<n-2;j++) {
+
+    /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
+    temp = e[j+1];
+    PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&e[j],&c,&s,&e[j+1]));
+    s = -s;
+
+    /* Apply rotation to diagonal elements */
+    temp   = d[j+1];
+    e[j]   = c*s*(temp-d[j]);
+    d[j+1] = s*s*d[j] + c*c*temp;
+    d[j]   = c*c*d[j] + s*s*temp;
+
+    /* Apply rotation to Q */
+    j2 = j+2;
+    PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s));
+
+    /* Chase newly introduced off-diagonal entry to the top left corner */
+    for (i=j-1;i>=0;i--) {
+      off  = -s*e[i];
+      e[i] = c*e[i];
+      temp = e[i+1];
+      PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&off,&c,&s,&e[i+1]));
+      s = -s;
+      temp = (d[i]-d[i+1])*s - 2.0*c*e[i];
+      p = s*temp;
+      d[i+1] += p;
+      d[i] -= p;
+      e[i] = -e[i] - c*temp;
+      j2 = j+2;
+      PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+
 PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_HSVD        *ctx = (DS_HSVD*)ds->data;
-  PetscInt       i,j;
-  PetscBLASInt   n1,m1,info,l = 0,n = 0,m = 0,nm,ld,off,lwork;
-  PetscScalar    *A,*U,*V,*W,qwork;
-  PetscReal      *d,*e,*Ur,*Vr;
+  PetscInt       i,j,k=ds->k,rwu=0,iwu=0,swu=0,nv;
+  PetscBLASInt   n1,n2,info,l=0,n=0,m=0,ld,off,size,one=1,*perm,*cmplx;
+  PetscScalar    *A,*U,*V,scal,*R;
+  PetscReal      *d,*e,*dd,*ee,*Omega,*D;
 
   PetscFunctionBegin;
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ctx->m,&m));
+  PetscCheck(!(n-m),PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non-square matrices");
   PetscCall(PetscBLASIntCast(ds->l,&l));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
+  PetscCall(PetscBLASIntCast(PetscMax(0,ds->k-ds->l+1),&n2));
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
-  m1 = m-l;
   off = l+l*ld;
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
   e = d+ld;
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&Omega));
   PetscCall(PetscArrayzero(U,ld*ld));
   for (i=0;i<l;i++) U[i+i*ld] = 1.0;
   PetscCall(PetscArrayzero(V,ld*ld));
-  for (i=0;i<l;i++) V[i+i*ld] = 1.0;
+  for (i=0;i<n;i++) V[i+i*ld] = 1.0;
 
-  if (ds->state>DS_STATE_RAW) {
-    /* solve bidiagonal SVD problem */
-    for (i=0;i<l;i++) wr[i] = d[i];
-#if defined(PETSC_USE_COMPLEX)
-    PetscCall(DSAllocateWork_Private(ds,0,3*n1*n1+4*n1+2*ld*ld,8*n1));
-    Ur = ds->rwork+3*n1*n1+4*n1;
-    Vr = ds->rwork+3*n1*n1+4*n1+ld*ld;
-#else
-    PetscCall(DSAllocateWork_Private(ds,0,3*n1*n1+4*n1+ld*ld,8*n1));
-    Ur = U;
-    Vr = ds->rwork+3*n1*n1+4*n1;
-#endif
-    PetscStackCallBLAS("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n1,d+l,e+l,Ur+off,&ld,Vr+off,&ld,NULL,NULL,ds->rwork,ds->iwork,&info));
-    SlepcCheckLapackInfo("bdsdc",info);
-    for (i=l;i<n;i++) {
-      for (j=l;j<n;j++) {
-#if defined(PETSC_USE_COMPLEX)
-        U[i+j*ld] = Ur[i+j*ld];
-#endif
-        V[i+j*ld] = PetscConj(Vr[j+i*ld]);  /* transpose VT returned by Lapack */
-      }
-    }
-  } else {
-    /* solve general rectangular SVD problem */
-    PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
-    PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_W],&W));
-    if (ds->compact) PetscCall(DSSwitchFormat_HSVD(ds));
-    for (i=0;i<l;i++) wr[i] = d[i];
-    nm = PetscMin(n,m);
-    PetscCall(DSAllocateWork_Private(ds,0,0,8*nm));
-    lwork = -1;
-#if defined(PETSC_USE_COMPLEX)
-    PetscCall(DSAllocateWork_Private(ds,0,5*nm*nm+7*nm,0));
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,&qwork,&lwork,ds->rwork,ds->iwork,&info));
-#else
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,&qwork,&lwork,ds->iwork,&info));
-#endif
-    SlepcCheckLapackInfo("gesdd",info);
-    PetscCall(PetscBLASIntCast((PetscInt)PetscRealPart(qwork),&lwork));
-    PetscCall(DSAllocateWork_Private(ds,lwork,0,0));
-#if defined(PETSC_USE_COMPLEX)
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,ds->work,&lwork,ds->rwork,ds->iwork,&info));
-#else
-    PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n1,&m1,A+off,&ld,d+l,U+off,&ld,W+off,&ld,ds->work,&lwork,ds->iwork,&info));
-#endif
-    SlepcCheckLapackInfo("gesdd",info);
-    for (i=l;i<m;i++) {
-      for (j=l;j<m;j++) V[i+j*ld] = PetscConj(W[j+i*ld]);  /* transpose VT returned by Lapack */
-    }
-    PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_W],&W));
+  PetscCheck(ds->compact,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non compact storage");
+  /* Form the tridiagonal cross product */
+  PetscCall(DSAllocateWork_Private(ds,(n+6)*ld,4*ld,2*ld));
+  R = ds->work+swu;
+  swu += n*n;
+  perm = ds->iwork + iwu;
+  iwu += n;
+  cmplx = ds->iwork+iwu;
+  iwu += n;
+  dd = ds->rwork+rwu;
+  rwu += ld;
+  ee = ds->rwork+rwu;
+  rwu += ld;
+  for (i=0;i<l;i++) {dd[i] = d[i]*d[i]*Omega[i]; ee[i] = 0.0;}
+  for (i=l;i<=ds->k;i++) {
+    dd[i] = Omega[i]*d[i]*d[i];
+    ee[i] = Omega[i]*d[i]*e[i];
   }
-  for (i=l;i<PetscMin(ds->n,ctx->m);i++) wr[i] = d[i];
+  for (i=l;i<k;i++) dd[k] += Omega[i]*e[i]*e[i];
+  for (i=k+1;i<n;i++) {
+    dd[i] = Omega[i]*d[i]*d[i]+Omega[i-1]*e[i-1]*e[i-1];
+    ee[i] = Omega[i]*d[i]*e[i];
+  }
+  /* Reduce to tridiagonal form */
+  PetscCall(ArrowTrididiag(n2,dd+l,ee+l,V+off,ld));
+
+  /* Solve the tridiagonal eigenproblem */
+  for (i=0;i<l;i++) wr[i] = d[i];
+
+  PetscCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n1,dd+l,ee+l,V+off,&ld,ds->rwork+rwu,&info));
+  SlepcCheckLapackInfo("steqr",info);
+  for (i=l;i<n;i++) wr[i] = PetscSqrtScalar(PetscAbs(dd[i]));
+  if (wi) for (i=l;i<n;i++) wi[i] = 0.0;
+
+  /* Build left singular vectors */
+  size = n1*ld;
+  PetscCall(PetscArrayzero(U+l*ld,size));
+  for (i=l;i<n-1;i++) {
+    PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,d+i,V+l*ld+i,&ld,U+l*ld+i,&ld));
+    j = (i<k)?k:i+1;
+    PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,e+i,V+l*ld+j,&ld,U+l*ld+i,&ld));
+  }
+  PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&d[n-1],V+off+(n1-1),&ld,U+off+(n1-1),&ld));
+  for (i=l;i<n;i++) {scal = 1.0/wr[i]; PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,U+i*ld+l,&one));}
+
+  /* Reinforce orthogonality */
+  nv = n1;
+  for (i=0;i<n;i++) cmplx[i] = 0;
+  PetscCall(DSPseudoOrthog_HR(&nv,U+off,ld,Omega+l,R,ld,perm,cmplx,NULL,ds->work+swu));
+
+  /* Update projected problem */
+  for (i=l;i<n;i++) {e[i] = 0.0; dd[i] = wr[i];}
+
+  /* Update vectors V with R */
+  scal = -1.0;
+  for (i=0;i<nv;i++) {
+    if (R[i+i*ld] < 0.0) PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,V+(i+l)*ld+l,&one));
+  }
 
   /* create diagonal matrix as a result */
-  if (ds->compact) PetscCall(PetscArrayzero(e,n-1));
-  else {
-    for (i=l;i<m;i++) PetscCall(PetscArrayzero(A+l+i*ld,n-l));
-    for (i=l;i<n;i++) A[i+i*ld] = d[i];
-  }
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
   PetscFunctionReturn(0);
 }
 
@@ -613,7 +664,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_HSVD(DS ds)
   DS_HSVD         *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(ds,&ctx));
+  PetscCall(PetscNew(&ctx));
   ds->data = (void*)ctx;
 
   ds->ops->allocate      = DSAllocate_HSVD;
