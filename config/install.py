@@ -13,7 +13,7 @@ class Installer:
     if len(args)<6:
       print('********************************************************************')
       print('Installation script error - not enough arguments:')
-      print('./config/install.py SLEPC_DIR PETSC_DIR SLEPC_INSTALLDIR -destDir=DESTDIR PETSC_ARCH LIB_SUFFIX RANLIB')
+      print('./config/install.py SLEPC_DIR PETSC_DIR SLEPC_INSTALLDIR -destDir=DESTDIR [-no-examples] PETSC_ARCH LIB_SUFFIX RANLIB')
       print('********************************************************************')
       sys.exit(1)
     self.rootDir     = args[0]
@@ -28,6 +28,10 @@ class Installer:
       print('Error in argument, should start with -destDir=')
       print('********************************************************************')
       sys.exit(1)
+    self.copyexamples = True
+    if args[4] == '-no-examples':
+      self.copyexamples = False
+      del args[4]
     self.arch        = args[4]
     self.arLibSuffix = args[5]
     self.ranlib      = ' '.join(args[6:])
@@ -331,14 +335,15 @@ for dir in dirs:
 
   def installShare(self):
     self.copies.extend(self.copytree(self.rootShareDir, self.destShareDir))
-    examplesdir=os.path.join(self.destShareDir,'slepc','examples')
-    if os.path.exists(examplesdir):
-      shutil.rmtree(examplesdir)
-    os.mkdir(examplesdir)
-    os.mkdir(os.path.join(examplesdir,'src'))
-    self.copyExamples(self.rootSrcDir,os.path.join(examplesdir,'src'))
-    self.copyConfig(self.rootDir,examplesdir)
-    self.fixExamplesMakefile(os.path.join(examplesdir,'gmakefile.test'))
+    if self.copyexamples:
+      examplesdir=os.path.join(self.destShareDir,'slepc','examples')
+      if os.path.exists(examplesdir):
+        shutil.rmtree(examplesdir)
+      os.mkdir(examplesdir)
+      os.mkdir(os.path.join(examplesdir,'src'))
+      self.copyExamples(self.rootSrcDir,os.path.join(examplesdir,'src'))
+      self.copyConfig(self.rootDir,examplesdir)
+      self.fixExamplesMakefile(os.path.join(examplesdir,'gmakefile.test'))
     return
 
   def copyLib(self, src, dst):
