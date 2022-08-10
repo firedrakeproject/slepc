@@ -145,10 +145,10 @@ class Installer:
     newlines+='PETSC_DIR='+self.petscDir+'\n'
     newlines+='PETSC_ARCH=\n'
     for line in alllines.split('\n')[1:]:
-      if line.startswith('TESTLOGFILE'):
-        newlines+='TESTLOGFILE = $(TESTDIR)/examples-install.log\n'
-      elif line.startswith('CONFIGDIR'):
-        newlines+='CONFIGDIR:=$(SLEPC_DIR)/$(PETSC_ARCH)/share/slepc/examples/config\n'
+      if line.startswith('TESTLOGTAPFILE'):
+        newlines+='TESTLOGTAPFILE = $(TESTDIR)/test_install_tap.log\n'
+      elif line.startswith('TESTLOGERRFILE'):
+        newlines+='TESTLOGERRFILE = $(TESTDIR)/test_install_err.log\n'
       elif line.startswith('$(generatedtest)') and 'slepcvariables' in line:
         newlines+='all: test\n\n'+line+'\n'
       else:
