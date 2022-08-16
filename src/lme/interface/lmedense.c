@@ -248,7 +248,7 @@ static PetscErrorCode HessLyapunovChol_LAPACK(PetscInt m,PetscScalar *H,PetscInt
 #endif
   SlepcCheckLapackInfo("hseqr",info);
 #if defined(PETSC_USE_DEBUG)
-  for (i=0;i<m;i++) PetscCheck(PetscRealPart(wr[i])<0.0,PETSC_COMM_SELF,PETSC_ERR_USER_INPUT,"Eigenvalue with non-negative real part %g, the coefficient matrix is not stable",PetscRealPart(wr[i]));
+  for (i=0;i<m;i++) PetscCheck(PetscRealPart(wr[i])<0.0,PETSC_COMM_SELF,PETSC_ERR_USER_INPUT,"Eigenvalue with non-negative real part %g, the coefficient matrix is not stable",(double)PetscRealPart(wr[i]));
 #endif
 
   /* C = -Z*Z', Z = Q'*B */

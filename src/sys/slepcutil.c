@@ -175,10 +175,10 @@ PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *X
   for (i=0;i<nrows;i++) {
     for (j=0;j<ncols;j++) {
 #if defined(PETSC_USE_COMPLEX)
-      PetscCall(PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",PetscRealPart(Xr[i+j*ldx]),PetscImaginaryPart(Xr[i+j*ldx])));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",(double)PetscRealPart(Xr[i+j*ldx]),(double)PetscImaginaryPart(Xr[i+j*ldx])));
 #else
-      if (Xi) PetscCall(PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",Xr[i+j*ldx],Xi[i+j*ldx]));
-      else PetscCall(PetscViewerASCIIPrintf(viewer,"%.18g ",Xr[i+j*ldx]));
+      if (Xi) PetscCall(PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",(double)Xr[i+j*ldx],(double)Xi[i+j*ldx]));
+      else PetscCall(PetscViewerASCIIPrintf(viewer,"%.18g ",(double)Xr[i+j*ldx]));
 #endif
     }
     PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
