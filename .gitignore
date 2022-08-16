@@ -73,3 +73,4 @@ GSYMS
 GTAGS
 CMakeLists.txt
 docs/manual/slepc.pdf
+pkg.gitcommit
