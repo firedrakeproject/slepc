@@ -1,75 +1,95 @@
-# enums
-native BVOrthogType
-native BVOrthogRefineType
-native BVOrthogBlockType
-native BVMatMultType
-native BVSVDMethod
-native DSStateType
-native DSMatType
-native DSParallelType
-native FNCombineType
-native FNParallelType
-native RGQuadRule
-native STMatMode
-native EPSProblemType
-native EPSExtraction
-native EPSWhich
-native EPSBalance
-native EPSErrorType
-native EPSConv
-native EPSStop
-native EPSConvergedReason
-native EPSPowerShiftType
-native EPSLanczosReorthogType
-native EPSPRIMMEMethod
-native EPSCISSQuadRule
-native EPSCISSExtraction
-native EPSEVSLDOSMethod
-native EPSEVSLDamping
-native LMEProblemType
-native LMEConvergedReason
-native MFNConvergedReason
-native NEPProblemType
-native NEPWhich
-native NEPErrorType
-native NEPRefine
-native NEPRefineScheme
-native NEPConv
-native NEPStop
-native NEPConvergedReason
-native NEPCISSExtraction
-native PEPProblemType
-native PEPWhich
-native PEPBasis
-native PEPScale
-native PEPRefine
-native PEPRefineScheme
-native PEPExtract
-native PEPErrorType
-native PEPConv
-native PEPStop
-native PEPConvergedReason
-native PEPJDProjection
-native SVDProblemType
-native SVDWhich
-native SVDErrorType
-native SVDConv
-native SVDStop
-native SVDConvergedReason
-native SVDPRIMMEMethod
-#
-nativeptr EPS
-nativeptr PEP
-nativeptr NEP
-nativeptr SVD
-nativeptr MFN
-nativeptr LME
-nativeptr ST
-nativeptr BV
-nativeptr FN
-nativeptr RG
-nativeptr DS
+# slepcsc.h
 nativeptr SlepcSC
-#
-parm errparm z
-parm errparmlocal __z
+
+# slepcbv.h
+nativeptr BV
+native    BVOrthogType
+native    BVOrthogRefineType
+native    BVOrthogBlockType
+native    BVMatMultType
+native    BVSVDMethod
+
+# slepcds.h
+nativeptr DS
+native    DSStateType
+native    DSMatType
+native    DSParallelType
+
+# slepcfn.h
+nativeptr FN
+native    FNCombineType
+native    FNParallelType
+
+# slepcrg.h, slepcrgtypes.h
+nativeptr RG
+native    RGQuadRule
+
+# slepcst.h
+nativeptr ST
+native    STMatMode
+
+# slepceps.h
+nativeptr EPS
+native    EPSProblemType
+native    EPSExtraction
+native    EPSWhich
+native    EPSBalance
+native    EPSErrorType
+native    EPSConv
+native    EPSStop
+native    EPSConvergedReason
+native    EPSPowerShiftType
+native    EPSLanczosReorthogType
+native    EPSPRIMMEMethod
+native    EPSCISSQuadRule
+native    EPSCISSExtraction
+native    EPSEVSLDOSMethod
+native    EPSEVSLDamping
+
+# slepclme.h
+nativeptr LME
+native    LMEProblemType
+native    LMEConvergedReason
+
+# slepcmfn.h
+nativeptr MFN
+native    MFNConvergedReason
+
+# slepcnep.h
+nativeptr NEP
+native    NEPProblemType
+native    NEPWhich
+native    NEPErrorType
+native    NEPRefine
+native    NEPRefineScheme
+native    NEPConv
+native    NEPStop
+native    NEPConvergedReason
+native    NEPCISSExtraction
+
+# slepcpep.h
+nativeptr PEP
+native    PEPProblemType
+native    PEPWhich
+native    PEPBasis
+native    PEPScale
+native    PEPRefine
+native    PEPRefineScheme
+native    PEPExtract
+native    PEPErrorType
+native    PEPConv
+native    PEPStop
+native    PEPConvergedReason
+native    PEPJDProjection
+native    PEPCISSExtraction
+
+# slepcsvd.h
+nativeptr SVD
+native    SVDProblemType
+native    SVDWhich
+native    SVDErrorType
+native    SVDConv
+native    SVDStop
+native    SVDConvergedReason
+native    SVDTRLanczosGBidiag
+native    SVDPRIMMEMethod
