@@ -752,3 +752,15 @@ gnu-c-complex128:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --download-f2cblaslapack --with-precision=__float128 --with-clanguage=c++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
+intel-c-int64-nompi-mkl:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - compiler:intel, name:maat
+  variables:
+    LOAD_MODULES: icc mpi mkl
+    MAKE_FFLAGS: -warn errors
+    PETSC_CONFIG_OPTS: --with-cc=icc --with-fc=ifort --with-cxx=icpc --with-blaslapack-dir=/opt/intel/oneapi/mkl/latest --with-64-bit-indices --with-64-bit-blas-indices --with-mpi=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
+

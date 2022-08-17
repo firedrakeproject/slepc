@@ -19,11 +19,12 @@ class Arpack(package.Package):
     self.installable    = True
     self.downloadable   = True
     #self.version        = '3.8.0'
-    self.gitcommit      = '17e6bba6b29fd345e43825f62c32f16fee0892ee'
+    self.gitcommit      = '5131f792f289c4e63b4cb1f56003e59507910132'
     obj = self.version if hasattr(self,'version') else self.gitcommit
     self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+obj+'.tar.gz'
     self.archive        = 'arpack-ng-'+obj+'.tar.gz'
     self.supportssingle = True
+    self.supports64bint = True
     self.fortran        = True
     self.hasheaders     = True   # the option --with-arpack-include=... is simply ignored
     self.ProcessArgs(argdb)
@@ -77,6 +78,8 @@ class Arpack(package.Package):
 
     # Check user options
     if petsc.ind64:
+      if not petsc.mpiuni:
+        self.log.Exit('Parallel ARPACK does not support 64-bit integers')
       if not petsc.blaslapackint64:
         self.log.Exit('To install ARPACK with 64-bit integers you also need a BLAS with 64-bit integers')
 
