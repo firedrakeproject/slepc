@@ -1278,7 +1278,7 @@ PetscErrorCode EPSReset_CISS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_CISS(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscReal         r3,r4;
   PetscInt          i,i1,i2,i3,i4,i5,i6,i7;

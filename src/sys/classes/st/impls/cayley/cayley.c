@@ -198,7 +198,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode STSetFromOptions_Cayley(PetscOptionItems *PetscOptionsObject,ST st)
+PetscErrorCode STSetFromOptions_Cayley(ST st,PetscOptionItems *PetscOptionsObject)
 {
   PetscScalar    nu;
   PetscBool      flg;

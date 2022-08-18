@@ -60,11 +60,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)nep,viewer));
-    if (nep->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*nep->ops->view)(nep,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(nep,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
     if (nep->problem_type) {
       switch (nep->problem_type) {
         case NEP_GENERAL:  type = "general nonlinear eigenvalue problem"; break;
@@ -155,9 +153,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       if (nep->npart>1) PetscCall(PetscViewerASCIIPrintf(viewer,"  splitting communicator in %" PetscInt_FMT " partitions for refinement\n",nep->npart));
     }
     if (nep->nini) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(nep->nini)));
-  } else {
-    if (nep->ops->view) PetscCall((*nep->ops->view)(nep,viewer));
-  }
+  } else PetscTryTypeMethod(nep,view,viewer);
   PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
   if (!nep->V) PetscCall(NEPGetBV(nep,&nep->V));
   PetscCall(BVView(nep->V,viewer));

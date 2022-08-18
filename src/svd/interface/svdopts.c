@@ -701,8 +701,8 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     PetscCall(PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL));
     PetscCall(PetscOptionsName("-svd_error_norm","Print errors relative to the matrix norms of each singular triplet","SVDErrorView",NULL));
 
-    if (svd->ops->setfromoptions) PetscCall((*svd->ops->setfromoptions)(PetscOptionsObject,svd));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)svd));
+    PetscTryTypeMethod(svd,setfromoptions,PetscOptionsObject);
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)svd,PetscOptionsObject));
   PetscOptionsEnd();
 
   if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,NULL));

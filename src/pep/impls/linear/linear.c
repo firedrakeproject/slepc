@@ -680,7 +680,7 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   PetscCall(EPSSetTarget(ctx->eps,sigma*pep->sfactor));
 
   PetscCall(STGetTransform(pep->st,&flg));
-  if (flg && pep->ops->backtransform) PetscCall((*pep->ops->backtransform)(pep));
+  if (flg) PetscTryTypeMethod(pep,backtransform);
   if (pep->sfactor!=1.0) {
     /* Restore original values */
     for (i=0;i<pep->nmat;i++) {
@@ -702,7 +702,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_Linear(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      set,val;
   PetscInt       k;

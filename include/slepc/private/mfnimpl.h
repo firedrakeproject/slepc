@@ -27,7 +27,7 @@ typedef struct _MFNOps *MFNOps;
 struct _MFNOps {
   PetscErrorCode (*solve)(MFN,Vec,Vec);
   PetscErrorCode (*setup)(MFN);
-  PetscErrorCode (*setfromoptions)(PetscOptionItems*,MFN);
+  PetscErrorCode (*setfromoptions)(MFN,PetscOptionItems*);
   PetscErrorCode (*publishoptions)(MFN);
   PetscErrorCode (*destroy)(MFN);
   PetscErrorCode (*reset)(MFN);

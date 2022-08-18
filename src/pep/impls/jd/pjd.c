@@ -1851,7 +1851,7 @@ PetscErrorCode PEPJDGetProjection(PEP pep,PEPJDProjection *proj)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_JD(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool       flg,b1;
   PetscReal       r1;

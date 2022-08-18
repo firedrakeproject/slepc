@@ -739,8 +739,8 @@ PetscErrorCode DSSetFromOptions(DS ds)
     PetscCall(PetscOptionsEnum("-ds_parallel","Operation mode in parallel runs","DSSetParallel",DSParallelTypes,(PetscEnum)ds->pmode,(PetscEnum*)&pmode,&flag));
     if (flag) PetscCall(DSSetParallel(ds,pmode));
 
-    if (ds->ops->setfromoptions) PetscCall((*ds->ops->setfromoptions)(PetscOptionsObject,ds));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)ds));
+    PetscTryTypeMethod(ds,setfromoptions,PetscOptionsObject);
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)ds,PetscOptionsObject));
   PetscOptionsEnd();
   PetscFunctionReturn(0);
 }
@@ -793,11 +793,9 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
       else PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
       PetscCall(PetscViewerASCIIPrintf(viewer,"  flags:%s%s%s\n",ds->compact?" compact":"",ds->extrarow?" extrarow":"",ds->refined?" refined":""));
     }
-    if (ds->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*ds->ops->view)(ds,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(ds,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
   }
   PetscFunctionReturn(0);
 }
@@ -853,7 +851,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
     PetscCall(PetscInfo(ds,"Allocating memory with leading dimension=%" PetscInt_FMT "\n",ld));
     PetscCall(DSReset(ds));
     ds->ld = ld;
-    PetscCall((*ds->ops->allocate)(ds,ld));
+    PetscUseTypeMethod(ds,allocate,ld);
   }
   PetscFunctionReturn(0);
 }
@@ -910,7 +908,7 @@ PetscErrorCode DSDestroy(DS *ds)
   PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
   if (--((PetscObject)(*ds))->refct > 0) { *ds = 0; PetscFunctionReturn(0); }
   PetscCall(DSReset(*ds));
-  if ((*ds)->ops->destroy) PetscCall((*(*ds)->ops->destroy)(*ds));
+  PetscTryTypeMethod(*ds,destroy);
   PetscCall(PetscFree((*ds)->work));
   PetscCall(PetscFree((*ds)->rwork));
   PetscCall(PetscFree((*ds)->iwork));

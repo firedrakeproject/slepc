@@ -393,7 +393,7 @@ PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *i
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG rg)
+PetscErrorCode RGSetFromOptions_Polygon(RG rg,PetscOptionItems *PetscOptionsObject)
 {
   PetscScalar    array[VERTMAX];
   PetscInt       i,k;

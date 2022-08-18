@@ -135,7 +135,7 @@ PetscErrorCode SVDReset(SVD svd)
   PetscFunctionBegin;
   if (svd) PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (!svd) PetscFunctionReturn(0);
-  if (svd->ops->reset) PetscCall((svd->ops->reset)(svd));
+  PetscTryTypeMethod(svd,reset);
   PetscCall(MatDestroy(&svd->OP));
   PetscCall(MatDestroy(&svd->OPb));
   PetscCall(VecDestroy(&svd->omega));
@@ -173,7 +173,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   PetscValidHeaderSpecific(*svd,SVD_CLASSID,1);
   if (--((PetscObject)(*svd))->refct > 0) { *svd = 0; PetscFunctionReturn(0); }
   PetscCall(SVDReset(*svd));
-  if ((*svd)->ops->destroy) PetscCall((*(*svd)->ops->destroy)(*svd));
+  PetscTryTypeMethod(*svd,destroy);
   if ((*svd)->sigma) PetscCall(PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest));
   if ((*svd)->sign) PetscCall(PetscFree((*svd)->sign));
   PetscCall(DSDestroy(&(*svd)->ds));
@@ -230,7 +230,7 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   PetscCall(PetscFunctionListFind(SVDList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown SVD type given: %s",type);
 
-  if (svd->ops->destroy) PetscCall((*svd->ops->destroy)(svd));
+  PetscTryTypeMethod(svd,destroy);
   PetscCall(PetscMemzero(svd->ops,sizeof(struct _SVDOps)));
 
   svd->state = SVD_STATE_INITIAL;

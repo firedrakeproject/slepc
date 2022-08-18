@@ -25,7 +25,7 @@ typedef struct _DSOps *DSOps;
 
 struct _DSOps {
   PetscErrorCode (*allocate)(DS,PetscInt);
-  PetscErrorCode (*setfromoptions)(PetscOptionItems*,DS);
+  PetscErrorCode (*setfromoptions)(DS,PetscOptionItems*);
   PetscErrorCode (*view)(DS,PetscViewer);
   PetscErrorCode (*vectors)(DS,DSMatType,PetscInt*,PetscReal*);
   PetscErrorCode (*solve[DS_MAX_SOLVE])(DS,PetscScalar*,PetscScalar*);

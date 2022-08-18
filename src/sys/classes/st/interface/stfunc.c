@@ -101,7 +101,7 @@ PetscErrorCode STReset(ST st)
   if (st) PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (!st) PetscFunctionReturn(0);
   STCheckNotSeized(st,1);
-  if (st->ops->reset) PetscCall((*st->ops->reset)(st));
+  PetscTryTypeMethod(st,reset);
   if (st->ksp) PetscCall(KSPReset(st->ksp));
   PetscCall(MatDestroyMatrices(PetscMax(2,st->nmat),&st->T));
   PetscCall(MatDestroyMatrices(PetscMax(2,st->nmat),&st->A));
@@ -141,7 +141,7 @@ PetscErrorCode STDestroy(ST *st)
   PetscValidHeaderSpecific(*st,ST_CLASSID,1);
   if (--((PetscObject)(*st))->refct > 0) { *st = 0; PetscFunctionReturn(0); }
   PetscCall(STReset(*st));
-  if ((*st)->ops->destroy) PetscCall((*(*st)->ops->destroy)(*st));
+  PetscTryTypeMethod(*st,destroy);
   PetscCall(KSPDestroy(&(*st)->ksp));
   PetscCall(PetscHeaderDestroy(st));
   PetscFunctionReturn(0);
@@ -658,7 +658,7 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscValidLogicalCollectiveScalar(st,shift,2);
   if (st->sigma != shift) {
     STCheckNotSeized(st,1);
-    if (st->state==ST_STATE_SETUP && st->ops->setshift) PetscCall((*st->ops->setshift)(st,shift));
+    if (st->state==ST_STATE_SETUP) PetscTryTypeMethod(st,setshift,shift);
     st->sigma = shift;
   }
   st->sigma_set = PETSC_TRUE;
@@ -1033,11 +1033,9 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring));
   if (isascii) {
     PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)st,viewer));
-    if (st->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*st->ops->view)(st,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(st,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
     PetscCall(SlepcSNPrintfScalar(str,sizeof(str),st->sigma,PETSC_FALSE));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  shift: %s\n",str));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  number of matrices: %" PetscInt_FMT "\n",st->nmat));
@@ -1057,7 +1055,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   } else if (isstring) {
     PetscCall(STGetType(st,&cstr));
     PetscCall(PetscViewerStringSPrintf(viewer," %-7.7s",cstr));
-    if (st->ops->view) PetscCall((*st->ops->view)(st,viewer));
+    PetscTryTypeMethod(st,view,viewer);
   }
   if (st->usesksp) {
     if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));

@@ -451,7 +451,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     }
   }
   PetscCall(STGetTransform(pep->st,&flg));
-  if (!flg && pep->ops->backtransform) PetscCall((*pep->ops->backtransform)(pep));
+  if (!flg) PetscTryTypeMethod(pep,backtransform);
   if (pep->sfactor!=1.0) {
     for (j=0;j<pep->nconv;j++) {
       pep->eigr[j] *= pep->sfactor;
@@ -472,7 +472,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_STOAR(PEP pep,PetscOptionItems *PetscOptionsObject)
 {
   PetscBool      flg,lock,b,f1,f2,f3;
   PetscInt       i,j,k;

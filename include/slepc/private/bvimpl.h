@@ -55,7 +55,7 @@ struct _BVOps {
   PetscErrorCode (*restoremat)(BV,Mat*);
   PetscErrorCode (*duplicate)(BV,BV);
   PetscErrorCode (*create)(BV);
-  PetscErrorCode (*setfromoptions)(PetscOptionItems*,BV);
+  PetscErrorCode (*setfromoptions)(BV,PetscOptionItems*);
   PetscErrorCode (*view)(BV,PetscViewer);
   PetscErrorCode (*destroy)(BV);
 };
@@ -246,6 +246,8 @@ SLEPC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,const Pet
 SLEPC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
 SLEPC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,NormType,PetscReal*,PetscBool);
 SLEPC_INTERN PetscErrorCode BVNormalize_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,PetscScalar*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVGetMat_Default(BV,Mat*);
+SLEPC_INTERN PetscErrorCode BVRestoreMat_Default(BV,Mat*);
 SLEPC_INTERN PetscErrorCode BVMatCholInv_LAPACK_Private(BV,Mat,Mat);
 SLEPC_INTERN PetscErrorCode BVMatTriInv_LAPACK_Private(BV,Mat,Mat);
 SLEPC_INTERN PetscErrorCode BVMatSVQB_LAPACK_Private(BV,Mat,Mat);

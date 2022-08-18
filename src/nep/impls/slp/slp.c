@@ -245,7 +245,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPSetFromOptions_SLP(PetscOptionItems *PetscOptionsObject,NEP nep)
+PetscErrorCode NEPSetFromOptions_SLP(NEP nep,PetscOptionItems *PetscOptionsObject)
 {
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
   PetscBool      flg;

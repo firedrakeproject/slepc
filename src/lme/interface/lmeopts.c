@@ -130,8 +130,8 @@ PetscErrorCode LMESetFromOptions(LME lme)
     /* -----------------------------------------------------------------------*/
     PetscCall(PetscOptionsName("-lme_view","Print detailed information on solver used","LMEView",NULL));
 
-    if (lme->ops->setfromoptions) PetscCall((*lme->ops->setfromoptions)(PetscOptionsObject,lme));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)lme));
+    PetscTryTypeMethod(lme,setfromoptions,PetscOptionsObject);
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)lme,PetscOptionsObject));
   PetscOptionsEnd();
 
   if (!lme->V) PetscCall(LMEGetBV(lme,&lme->V));

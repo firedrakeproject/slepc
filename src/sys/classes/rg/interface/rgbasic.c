@@ -214,7 +214,7 @@ PetscErrorCode RGSetType(RG rg,RGType type)
   PetscCall(PetscFunctionListFind(RGList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested RG type %s",type);
 
-  if (rg->ops->destroy) PetscCall((*rg->ops->destroy)(rg));
+  PetscTryTypeMethod(rg,destroy);
   PetscCall(PetscMemzero(rg->ops,sizeof(struct _RGOps)));
 
   PetscCall(PetscObjectChangeTypeName((PetscObject)rg,type));
@@ -280,8 +280,8 @@ PetscErrorCode RGSetFromOptions(RG rg)
     PetscCall(PetscOptionsReal("-rg_scale","Scaling factor","RGSetScale",1.0,&sfactor,&flg));
     if (flg) PetscCall(RGSetScale(rg,sfactor));
 
-    if (rg->ops->setfromoptions) PetscCall((*rg->ops->setfromoptions)(PetscOptionsObject,rg));
-    PetscCall(PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)rg));
+    PetscTryTypeMethod(rg,setfromoptions,PetscOptionsObject);
+    PetscCall(PetscObjectProcessOptionsHandlers((PetscObject)rg,PetscOptionsObject));
   PetscOptionsEnd();
   PetscFunctionReturn(0);
 }
@@ -323,16 +323,12 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)rg,viewer));
-    if (rg->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*rg->ops->view)(rg,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(rg,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
     if (rg->complement) PetscCall(PetscViewerASCIIPrintf(viewer,"  selected region is the complement of the specified one\n"));
     if (rg->sfactor!=1.0) PetscCall(PetscViewerASCIIPrintf(viewer,"  scaling factor = %g\n",(double)rg->sfactor));
-  } else if (isdraw) {
-    if (rg->ops->view) PetscCall((*rg->ops->view)(rg,viewer));
-  }
+  } else if (isdraw) PetscTryTypeMethod(rg,view,viewer);
   PetscFunctionReturn(0);
 }
 
@@ -381,8 +377,8 @@ PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
   PetscValidBoolPointer(trivial,2);
-  if (rg->ops->istrivial) PetscCall((*rg->ops->istrivial)(rg,trivial));
-  else *trivial = PETSC_FALSE;
+  *trivial = PETSC_FALSE;
+  PetscTryTypeMethod(rg,istrivial,trivial);
   PetscFunctionReturn(0);
 }
 
@@ -437,7 +433,7 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
       px /= rg->sfactor;
       py /= rg->sfactor;
     }
-    PetscCall((*rg->ops->checkinside)(rg,px,py,inside+i));
+    PetscUseTypeMethod(rg,checkinside,px,py,inside+i);
     if (PetscUnlikely(rg->complement)) inside[i] = -inside[i];
   }
   PetscFunctionReturn(0);
@@ -470,9 +466,8 @@ PetscErrorCode RGIsAxisymmetric(RG rg,PetscBool vertical,PetscBool *symm)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
   PetscValidBoolPointer(symm,3);
-
-  if (rg->ops->isaxisymmetric) PetscCall((*rg->ops->isaxisymmetric)(rg,vertical,symm));
-  else *symm = PETSC_FALSE;
+  *symm = PETSC_FALSE;
+  PetscTryTypeMethod(rg,isaxisymmetric,vertical,symm);
   PetscFunctionReturn(0);
 }
 
@@ -560,7 +555,7 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
   PetscCheck(cr || ci,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"cr and ci cannot be NULL simultaneously");
 #endif
   PetscCheck(!rg->complement,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Cannot compute contour of region with complement flag set");
-  PetscCall((*rg->ops->computecontour)(rg,n,cr,ci));
+  PetscUseTypeMethod(rg,computecontour,n,cr,ci);
   for (i=0;i<n;i++) {
     if (cr) cr[i] *= rg->sfactor;
     if (ci) ci[i] *= rg->sfactor;
@@ -604,7 +599,7 @@ PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c
     if (c) *c = -PETSC_MAX_REAL;
     if (d) *d =  PETSC_MAX_REAL;
   } else {
-    PetscCall((*rg->ops->computebbox)(rg,a,b,c,d));
+    PetscUseTypeMethod(rg,computebbox,a,b,c,d);
     if (a && *a!=-PETSC_MAX_REAL) *a *= rg->sfactor;
     if (b && *b!= PETSC_MAX_REAL) *b *= rg->sfactor;
     if (c && *c!=-PETSC_MAX_REAL) *c *= rg->sfactor;
@@ -651,8 +646,7 @@ PetscErrorCode RGComputeQuadrature(RG rg,RGQuadRule quad,PetscInt n,PetscScalar 
   PetscValidScalarPointer(w,6);
 
   PetscCall(RGComputeContour(rg,n,z,NULL));
-  PetscCheck(rg->ops->computequadrature,PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Quadrature rules not implemented for this region type");
-  PetscCall((*rg->ops->computequadrature)(rg,quad,n,z,zn,w));
+  PetscUseTypeMethod(rg,computequadrature,quad,n,z,zn,w);
   PetscFunctionReturn(0);
 }
 
@@ -833,7 +827,7 @@ PetscErrorCode RGDestroy(RG *rg)
   if (!*rg) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*rg,RG_CLASSID,1);
   if (--((PetscObject)(*rg))->refct > 0) { *rg = 0; PetscFunctionReturn(0); }
-  if ((*rg)->ops->destroy) PetscCall((*(*rg)->ops->destroy)(*rg));
+  PetscTryTypeMethod(*rg,destroy);
   PetscCall(PetscHeaderDestroy(rg));
   PetscFunctionReturn(0);
 }

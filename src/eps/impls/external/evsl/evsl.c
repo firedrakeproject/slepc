@@ -731,7 +731,7 @@ PetscErrorCode EPSView_EVSL(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSSetFromOptions_EVSL(PetscOptionItems *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_EVSL(EPS eps,PetscOptionItems *PetscOptionsObject)
 {
   PetscReal        array[2]={0,0},th;
   PetscInt         k,i1,i2,i3,i4;

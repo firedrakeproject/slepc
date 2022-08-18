@@ -46,7 +46,7 @@ PetscErrorCode STSetUp_Filter(ST st)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode STSetFromOptions_Filter(PetscOptionItems *PetscOptionsObject,ST st)
+PetscErrorCode STSetFromOptions_Filter(ST st,PetscOptionItems *PetscOptionsObject)
 {
   PetscReal      array[2]={0,0};
   PetscInt       k;

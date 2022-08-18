@@ -31,7 +31,7 @@ static PetscErrorCode MFNSolve_Private(MFN mfn,Vec b,Vec x)
   /* call solver */
   PetscCall(PetscLogEventBegin(MFN_Solve,mfn,b,x,0));
   if (b!=x) PetscCall(VecLockReadPush(b));
-  PetscCall((*mfn->ops->solve)(mfn,b,x));
+  PetscUseTypeMethod(mfn,solve,b,x);
   if (b!=x) PetscCall(VecLockReadPop(b));
   PetscCall(PetscLogEventEnd(MFN_Solve,mfn,b,x,0));
 

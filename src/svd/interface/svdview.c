@@ -55,11 +55,9 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)svd,viewer));
-    if (svd->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*svd->ops->view)(svd,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(svd,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
     if (svd->problem_type) {
       switch (svd->problem_type) {
         case SVD_STANDARD:    type = "(standard) singular value problem"; break;
@@ -97,9 +95,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     PetscCall(PetscViewerASCIIUseTabs(viewer,PETSC_TRUE));
     if (svd->nini) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(svd->nini)));
     if (svd->ninil) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %" PetscInt_FMT "\n",PetscAbs(svd->ninil)));
-  } else {
-    if (svd->ops->view) PetscCall((*svd->ops->view)(svd,viewer));
-  }
+  } else PetscTryTypeMethod(svd,view,viewer);
   PetscCall(PetscObjectTypeCompareAny((PetscObject)svd,&isshell,SVDCROSS,SVDCYCLIC,SVDSCALAPACK,SVDELEMENTAL,SVDPRIMME,""));
   if (!isshell) {
     PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));

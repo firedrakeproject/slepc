@@ -171,7 +171,7 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   PetscCall(PetscFunctionListFind(EPSList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown EPS type given: %s",type);
 
-  if (eps->ops->destroy) PetscCall((*eps->ops->destroy)(eps));
+  PetscTryTypeMethod(eps,destroy);
   PetscCall(PetscMemzero(eps->ops,sizeof(struct _EPSOps)));
 
   eps->state = EPS_STATE_INITIAL;
@@ -305,7 +305,7 @@ PetscErrorCode EPSReset(EPS eps)
   PetscFunctionBegin;
   if (eps) PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (!eps) PetscFunctionReturn(0);
-  if (eps->ops->reset) PetscCall((eps->ops->reset)(eps));
+  PetscTryTypeMethod(eps,reset);
   if (eps->st) PetscCall(STReset(eps->st));
   PetscCall(VecDestroy(&eps->D));
   PetscCall(BVDestroy(&eps->V));
@@ -335,7 +335,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   PetscValidHeaderSpecific(*eps,EPS_CLASSID,1);
   if (--((PetscObject)(*eps))->refct > 0) { *eps = 0; PetscFunctionReturn(0); }
   PetscCall(EPSReset(*eps));
-  if ((*eps)->ops->destroy) PetscCall((*(*eps)->ops->destroy)(*eps));
+  PetscTryTypeMethod(*eps,destroy);
   if ((*eps)->eigr) PetscCall(PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm));
   if ((*eps)->rr) PetscCall(PetscFree2((*eps)->rr,(*eps)->ri));
   PetscCall(STDestroy(&(*eps)->st));

@@ -227,7 +227,7 @@ static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,Pe
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,NEP nep)
+PetscErrorCode NEPSetFromOptions_Interpol(NEP nep,PetscOptionItems *PetscOptionsObject)
 {
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   PetscInt       i;

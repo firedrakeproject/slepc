@@ -86,7 +86,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 {
   PetscFunctionBegin;
   SVDCheckSolved(svd,1);
-  if (svd->state==SVD_STATE_SOLVED && svd->ops->computevectors) PetscCall((*svd->ops->computevectors)(svd));
+  if (svd->state==SVD_STATE_SOLVED) PetscTryTypeMethod(svd,computevectors);
   svd->state = SVD_STATE_VECTORS;
   PetscFunctionReturn(0);
 }
@@ -144,13 +144,13 @@ PetscErrorCode SVDSolve(SVD svd)
 
   switch (svd->problem_type) {
     case SVD_STANDARD:
-      PetscCall((*svd->ops->solve)(svd));
+      PetscUseTypeMethod(svd,solve);
       break;
     case SVD_GENERALIZED:
-      PetscCall((*svd->ops->solveg)(svd));
+      PetscUseTypeMethod(svd,solveg);
       break;
     case SVD_HYPERBOLIC:
-      PetscCall((*svd->ops->solveh)(svd));
+      PetscUseTypeMethod(svd,solveh);
       break;
   }
   svd->state = SVD_STATE_SOLVED;

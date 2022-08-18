@@ -256,6 +256,26 @@ PetscErrorCode BVNorm_End_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVNormalize_Vecs(BV bv,PetscScalar *eigi)
+{
+  BV_VECS  *ctx = (BV_VECS*)bv->data;
+  PetscInt i;
+
+  PetscFunctionBegin;
+  for (i=bv->l;i<bv->k;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi && eigi[i] != 0.0) {
+      PetscCall(VecNormalizeComplex(ctx->V[bv->nc+i],ctx->V[bv->nc+i+1],PETSC_TRUE,NULL));
+      i++;
+    } else
+#endif
+    {
+      PetscCall(VecNormalize(ctx->V[bv->nc+i],NULL));
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
 {
   BV_VECS        *v = (BV_VECS*)V->data,*w = (BV_VECS*)W->data;
@@ -334,6 +354,16 @@ PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVRestoreColumn_Vecs(BV bv,PetscInt j,Vec *v)
+{
+  PetscInt l;
+
+  PetscFunctionBegin;
+  l = (j==bv->ci[0])? 0: 1;
+  bv->cv[l] = NULL;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
 {
   BV_VECS           *ctx = (BV_VECS*)bv->data;
@@ -404,7 +434,7 @@ static inline PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
+PetscErrorCode BVSetFromOptions_Vecs(BV bv,PetscOptionItems *PetscOptionsObject)
 {
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
@@ -512,7 +542,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   /* Deferred call to setfromoptions */
   if (bv->defersfo) {
     PetscObjectOptionsBegin((PetscObject)bv);
-    PetscCall(BVSetFromOptions_Vecs(PetscOptionsObject,bv));
+    PetscCall(BVSetFromOptions_Vecs(bv,PetscOptionsObject));
     PetscOptionsEnd();
   }
   PetscCall(BVVecsSetVmip(bv,ctx->vmip));
@@ -528,15 +558,19 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->norm             = BVNorm_Vecs;
   bv->ops->norm_begin       = BVNorm_Begin_Vecs;
   bv->ops->norm_end         = BVNorm_End_Vecs;
+  bv->ops->normalize        = BVNormalize_Vecs;
   bv->ops->matmult          = BVMatMult_Vecs;
   bv->ops->copy             = BVCopy_Vecs;
   bv->ops->copycolumn       = BVCopyColumn_Vecs;
   bv->ops->resize           = BVResize_Vecs;
   bv->ops->getcolumn        = BVGetColumn_Vecs;
+  bv->ops->restorecolumn    = BVRestoreColumn_Vecs;
   bv->ops->getarray         = BVGetArray_Vecs;
   bv->ops->restorearray     = BVRestoreArray_Vecs;
   bv->ops->getarrayread     = BVGetArrayRead_Vecs;
   bv->ops->restorearrayread = BVRestoreArrayRead_Vecs;
+  bv->ops->getmat           = BVGetMat_Default;
+  bv->ops->restoremat       = BVRestoreMat_Default;
   bv->ops->destroy          = BVDestroy_Vecs;
   bv->ops->duplicate        = BVDuplicate_Vecs;
   bv->ops->setfromoptions   = BVSetFromOptions_Vecs;

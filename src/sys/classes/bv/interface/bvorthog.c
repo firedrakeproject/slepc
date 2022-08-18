@@ -39,7 +39,7 @@ static inline PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q)
   ksave = X->k;
   X->k = j+1;
   PetscCall(BVGetColumn(X,j,&y));
-  PetscCall((*X->ops->dotvec)(X,y,q));
+  PetscUseTypeMethod(X,dotvec,y,q);
   PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
   PetscCall(PetscLogEventEnd(BV_DotVec,X,0,0,0));
@@ -417,7 +417,7 @@ PetscErrorCode BVOrthonormalizeColumn(BV bv,PetscInt j,PetscBool replace,PetscRe
   if (nrm!=1.0 && nrm!=0.0) {
     alpha = 1.0/nrm;
     PetscCall(PetscLogEventBegin(BV_Scale,bv,0,0,0));
-    if (bv->n) PetscCall((*bv->ops->scale)(bv,j,alpha));
+    if (bv->n) PetscUseTypeMethod(bv,scale,j,alpha);
     PetscCall(PetscLogEventEnd(BV_Scale,bv,0,0,0));
   }
   if (norm) *norm = nrm;

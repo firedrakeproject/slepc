@@ -1457,7 +1457,7 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SVDSetFromOptions_TRLanczos(PetscOptionItems *PetscOptionsObject,SVD svd)
+PetscErrorCode SVDSetFromOptions_TRLanczos(SVD svd,PetscOptionItems *PetscOptionsObject)
 {
   SVD_TRLANCZOS       *lanczos = (SVD_TRLANCZOS*)svd->data;
   PetscBool           flg,val,lock;

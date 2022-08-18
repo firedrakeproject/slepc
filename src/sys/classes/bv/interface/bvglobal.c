@@ -39,7 +39,7 @@ static inline PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
   for (j=X->l;j<jend;j++) {
     if (symm) Y->k = j+1;
     PetscCall(BVGetColumn(X->cached,j,&z));
-    PetscCall((*Y->ops->dotvec)(Y,z,marray+j*m+Y->l));
+    PetscUseTypeMethod(Y,dotvec,z,marray+j*m+Y->l);
     PetscCall(BVRestoreColumn(X->cached,j,&z));
     if (symm) {
       for (i=X->l;i<j;i++)
@@ -113,8 +113,8 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
     if (X->vmm==BV_MATMULT_VECS) {
       /* perform computation column by column */
       PetscCall(BVDot_Private(X,Y,M));
-    } else PetscCall((*X->ops->dot)(X->cached,Y,M));
-  } else PetscCall((*X->ops->dot)(X,Y,M));
+    } else PetscUseTypeMethod(X->cached,dot,Y,M);
+  } else PetscUseTypeMethod(X,dot,Y,M);
   PetscCall(PetscLogEventEnd(BV_Dot,X,Y,0,0));
   PetscFunctionReturn(0);
 }
@@ -165,7 +165,7 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar m[])
   PetscCheck(X->n==n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", y %" PetscInt_FMT,X->n,n);
 
   PetscCall(PetscLogEventBegin(BV_DotVec,X,y,0,0));
-  PetscCall((*X->ops->dotvec)(X,y,m));
+  PetscUseTypeMethod(X,dotvec,y,m);
   PetscCall(PetscLogEventEnd(BV_DotVec,X,y,0,0));
   PetscFunctionReturn(0);
 }
@@ -202,7 +202,7 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
   PetscCall(VecGetLocalSize(y,&n));
   PetscCheck(X->n==n,PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %" PetscInt_FMT ", y %" PetscInt_FMT,X->n,n);
 
-  if (X->ops->dotvec_begin) PetscCall((*X->ops->dotvec_begin)(X,y,m));
+  if (X->ops->dotvec_begin) PetscUseTypeMethod(X,dotvec_begin,y,m);
   else {
     BVCheckOp(X,1,dotvec_local);
     nv = X->k-X->l;
@@ -215,7 +215,7 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
       sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
     PetscCall(PetscLogEventBegin(BV_DotVec,X,y,0,0));
-    PetscCall((*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin));
+    PetscUseTypeMethod(X,dotvec_local,y,sr->lvalues+sr->numopsbegin);
     sr->numopsbegin += nv;
     PetscCall(PetscLogEventEnd(BV_DotVec,X,y,0,0));
   }
@@ -248,7 +248,7 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
   PetscValidType(X,1);
   BVCheckSizes(X,1);
 
-  if (X->ops->dotvec_end) PetscCall((*X->ops->dotvec_end)(X,y,m));
+  if (X->ops->dotvec_end) PetscUseTypeMethod(X,dotvec_end,y,m);
   else {
     nv = X->k-X->l;
     PetscCall(PetscObjectGetComm((PetscObject)X,&comm));
@@ -319,7 +319,7 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   X->k = j;
   if (!q && !X->buffer) PetscCall(BVGetBufferVec(X,&X->buffer));
   PetscCall(BVGetColumn(X,j,&y));
-  PetscCall((*X->ops->dotvec)(X,y,q));
+  PetscUseTypeMethod(X,dotvec,y,q);
   PetscCall(BVRestoreColumn(X,j,&y));
   X->k = ksave;
   PetscCall(PetscLogEventEnd(BV_DotVec,X,0,0,0));
@@ -360,7 +360,7 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
   X->k = j;
   PetscCall(BVGetColumn(X,j,&y));
 
-  if (X->ops->dotvec_begin) PetscCall((*X->ops->dotvec_begin)(X,y,m));
+  if (X->ops->dotvec_begin) PetscUseTypeMethod(X,dotvec_begin,y,m);
   else {
     BVCheckOp(X,1,dotvec_local);
     nv = X->k-X->l;
@@ -373,7 +373,7 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
       sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
     PetscCall(PetscLogEventBegin(BV_DotVec,X,0,0,0));
-    PetscCall((*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin));
+    PetscUseTypeMethod(X,dotvec_local,y,sr->lvalues+sr->numopsbegin);
     sr->numopsbegin += nv;
     PetscCall(PetscLogEventEnd(BV_DotVec,X,0,0,0));
   }
@@ -417,7 +417,7 @@ PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
 
   if (X->ops->dotvec_end) {
     PetscCall(BVGetColumn(X,j,&y));
-    PetscCall((*X->ops->dotvec_end)(X,y,m));
+    PetscUseTypeMethod(X,dotvec_end,y,m);
     PetscCall(BVRestoreColumn(X,j,&y));
   } else {
     nv = X->k-X->l;
@@ -508,7 +508,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
   PetscCheck(!bv->matrix,PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Matrix norm not available for non-standard inner product");
 
   PetscCall(PetscLogEventBegin(BV_Norm,bv,0,0,0));
-  PetscCall((*bv->ops->norm)(bv,-1,type,val));
+  PetscUseTypeMethod(bv,norm,-1,type,val);
   PetscCall(PetscLogEventEnd(BV_Norm,bv,0,0,0));
   PetscFunctionReturn(0);
 }
@@ -679,7 +679,7 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
     PetscCall(BVGetColumn(bv,j,&z));
     PetscCall(BVNorm_Private(bv,z,type,val));
     PetscCall(BVRestoreColumn(bv,j,&z));
-  } else PetscCall((*bv->ops->norm)(bv,j,type,val));
+  } else PetscUseTypeMethod(bv,norm,j,type,val);
   PetscCall(PetscLogEventEnd(BV_NormVec,bv,0,0,0));
   PetscFunctionReturn(0);
 }
@@ -721,7 +721,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscCall(PetscLogEventBegin(BV_NormVec,bv,0,0,0));
   PetscCall(BVGetColumn(bv,j,&z));
   if (bv->matrix) PetscCall(BVNorm_Begin_Private(bv,z,type,val)); /* non-standard inner product */
-  else if (bv->ops->norm_begin) PetscCall((*bv->ops->norm_begin)(bv,j,type,val));
+  else if (bv->ops->norm_begin) PetscUseTypeMethod(bv,norm_begin,j,type,val);
   else {
     BVCheckOp(bv,1,norm_local);
     PetscCall(PetscObjectGetComm((PetscObject)z,&comm));
@@ -729,7 +729,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
     PetscCheck(sr->state==STATE_BEGIN,PetscObjectComm((PetscObject)bv),PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
     if (sr->numopsbegin >= sr->maxops) PetscCall(PetscSplitReductionExtend(sr));
     sr->invecs[sr->numopsbegin] = (void*)bv;
-    PetscCall((*bv->ops->norm_local)(bv,j,type,&lresult));
+    PetscUseTypeMethod(bv,norm_local,j,type,&lresult);
     if (type == NORM_2) lresult = lresult*lresult;
     if (type == NORM_MAX) sr->reducetype[sr->numopsbegin] = PETSC_SR_REDUCE_MAX;
     else sr->reducetype[sr->numopsbegin] = PETSC_SR_REDUCE_SUM;
@@ -774,7 +774,7 @@ PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
 
   PetscCall(BVGetColumn(bv,j,&z));
   if (bv->matrix) PetscCall(BVNorm_End_Private(bv,z,type,val)); /* non-standard inner product */
-  else if (bv->ops->norm_end) PetscCall((*bv->ops->norm_end)(bv,j,type,val));
+  else if (bv->ops->norm_end) PetscUseTypeMethod(bv,norm_end,j,type,val);
   else {
     PetscCall(PetscObjectGetComm((PetscObject)z,&comm));
     PetscCall(PetscSplitReductionGet(comm,&sr));
@@ -830,10 +830,6 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
 {
   PetscReal      norm;
   PetscInt       i;
-  Vec            v;
-#if !defined(PETSC_USE_COMPLEX)
-  Vec            v1;
-#endif
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -846,26 +842,7 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
       PetscCall(BVNormColumn(bv,i,NORM_2,&norm));
       PetscCall(BVScaleColumn(bv,i,1.0/norm));
     }
-  } else if (bv->ops->normalize) PetscCall((*bv->ops->normalize)(bv,eigi));
-  else {
-    for (i=bv->l;i<bv->k;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-      if (eigi && eigi[i] != 0.0) {
-        PetscCall(BVGetColumn(bv,i,&v));
-        PetscCall(BVGetColumn(bv,i+1,&v1));
-        PetscCall(VecNormalizeComplex(v,v1,PETSC_TRUE,NULL));
-        PetscCall(BVRestoreColumn(bv,i,&v));
-        PetscCall(BVRestoreColumn(bv,i+1,&v1));
-        i++;
-      } else
-#endif
-      {
-        PetscCall(BVGetColumn(bv,i,&v));
-        PetscCall(VecNormalize(v,NULL));
-        PetscCall(BVRestoreColumn(bv,i,&v));
-      }
-    }
-  }
+  } else PetscTryTypeMethod(bv,normalize,eigi);
   PetscCall(PetscLogEventEnd(BV_Normalize,bv,0,0,0));
   PetscCall(PetscObjectStateIncrease((PetscObject)bv));
   PetscFunctionReturn(0);
@@ -891,7 +868,7 @@ static inline PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar *marra
     PetscCall(BVRestoreColumn(X,j,&z));
     ulim = PetscMin(ly+(j-lx)+1,ky);
     Y->l = 0; Y->k = ulim;
-    PetscCall((*Y->ops->dotvec)(Y,f,marray+j*ldm));
+    PetscUseTypeMethod(Y,dotvec,f,marray+j*ldm);
     if (symm) {
       for (i=0;i<j;i++) marray[j+i*ldm] = PetscConj(marray[i+j*ldm]);
     }
@@ -905,7 +882,7 @@ static inline PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar *marra
       PetscCall(BVRestoreColumn(Y,j,&z));
       ulim = PetscMin(lx+(j-ly),kx);
       X->l = 0; X->k = ulim;
-      PetscCall((*X->ops->dotvec)(X,f,Y->h));
+      PetscUseTypeMethod(X,dotvec,f,Y->h);
       for (i=0;i<ulim;i++) marray[j+i*ldm] = PetscConj(Y->h[i]);
     }
   }

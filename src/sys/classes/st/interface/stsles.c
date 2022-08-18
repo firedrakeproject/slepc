@@ -24,7 +24,7 @@ PetscErrorCode STSetDefaultKSP(ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
   if (!st->ksp) PetscCall(STGetKSP(st,&st->ksp));
-  if (st->ops->setdefaultksp) PetscCall((*st->ops->setdefaultksp)(st));
+  PetscTryTypeMethod(st,setdefaultksp);
   PetscFunctionReturn(0);
 }
 
@@ -400,6 +400,6 @@ PetscErrorCode STCheckNullSpace(ST st,BV V)
   PetscCheck(st->state,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must call STSetUp() first");
 
   PetscCall(BVGetNumConstraints(V,&nc));
-  if (nc && st->ops->checknullspace) PetscCall((*st->ops->checknullspace)(st,V));
+  if (nc) PetscTryTypeMethod(st,checknullspace,V);
   PetscFunctionReturn(0);
 }

@@ -55,7 +55,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (mfn->ncv > N) mfn->ncv = N;
 
   /* call specific solver setup */
-  PetscCall((*mfn->ops->setup)(mfn));
+  PetscUseTypeMethod(mfn,setup);
 
   /* set tolerance if not yet set */
   if (mfn->tol==PETSC_DEFAULT) mfn->tol = SLEPC_DEFAULT_TOL;

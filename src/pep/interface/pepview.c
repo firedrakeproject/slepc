@@ -60,11 +60,9 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   PetscCall(PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii));
   if (isascii) {
     PetscCall(PetscObjectPrintClassNamePrefixType((PetscObject)pep,viewer));
-    if (pep->ops->view) {
-      PetscCall(PetscViewerASCIIPushTab(viewer));
-      PetscCall((*pep->ops->view)(pep,viewer));
-      PetscCall(PetscViewerASCIIPopTab(viewer));
-    }
+    PetscCall(PetscViewerASCIIPushTab(viewer));
+    PetscTryTypeMethod(pep,view,viewer);
+    PetscCall(PetscViewerASCIIPopTab(viewer));
     if (pep->problem_type) {
       switch (pep->problem_type) {
         case PEP_GENERAL:    type = "general polynomial eigenvalue problem"; break;
@@ -160,9 +158,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       if (pep->npart>1) PetscCall(PetscViewerASCIIPrintf(viewer,"  splitting communicator in %" PetscInt_FMT " partitions for refinement\n",pep->npart));
     }
     if (pep->nini) PetscCall(PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %" PetscInt_FMT "\n",PetscAbs(pep->nini)));
-  } else {
-    if (pep->ops->view) PetscCall((*pep->ops->view)(pep,viewer));
-  }
+  } else PetscTryTypeMethod(pep,view,viewer);
   PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO));
   if (!pep->V) PetscCall(PEPGetBV(pep,&pep->V));
   PetscCall(BVView(pep->V,viewer));

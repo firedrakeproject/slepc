@@ -166,7 +166,7 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   PetscCall(PetscFunctionListFind(NEPList,type,&r));
   PetscCheck(r,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unknown NEP type given: %s",type);
 
-  if (nep->ops->destroy) PetscCall((*nep->ops->destroy)(nep));
+  PetscTryTypeMethod(nep,destroy);
   PetscCall(PetscMemzero(nep->ops,sizeof(struct _NEPOps)));
 
   nep->state = NEP_STATE_INITIAL;
@@ -316,7 +316,7 @@ PetscErrorCode NEPReset(NEP nep)
   PetscFunctionBegin;
   if (nep) PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (!nep) PetscFunctionReturn(0);
-  if (nep->ops->reset) PetscCall((nep->ops->reset)(nep));
+  PetscTryTypeMethod(nep,reset);
   if (nep->refineksp) PetscCall(KSPReset(nep->refineksp));
   PetscCall(NEPReset_Problem(nep));
   PetscCall(BVDestroy(&nep->V));
@@ -347,7 +347,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   PetscValidHeaderSpecific(*nep,NEP_CLASSID,1);
   if (--((PetscObject)(*nep))->refct > 0) { *nep = 0; PetscFunctionReturn(0); }
   PetscCall(NEPReset(*nep));
-  if ((*nep)->ops->destroy) PetscCall((*(*nep)->ops->destroy)(*nep));
+  PetscTryTypeMethod(*nep,destroy);
   if ((*nep)->eigr) PetscCall(PetscFree4((*nep)->eigr,(*nep)->eigi,(*nep)->errest,(*nep)->perm));
   PetscCall(RGDestroy(&(*nep)->rg));
   PetscCall(DSDestroy(&(*nep)->ds));
