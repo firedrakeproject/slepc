@@ -18,11 +18,11 @@ PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_MultVec = 0,BV_MultInP
 static PetscBool BVPackageInitialized = PETSC_FALSE;
 MPI_Op MPIU_TSQR = 0,MPIU_LAPY2;
 
-const char *BVOrthogTypes[] = {"CGS","MGS","BVOrthogType","BV_ORTHOG_",0};
-const char *BVOrthogRefineTypes[] = {"IFNEEDED","NEVER","ALWAYS","BVOrthogRefineType","BV_ORTHOG_REFINE_",0};
-const char *BVOrthogBlockTypes[] = {"GS","CHOL","TSQR","TSQRCHOL","SVQB","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
-const char *BVMatMultTypes[] = {"VECS","MAT","MAT_SAVE","BVMatMultType","BV_MATMULT_",0};
-const char *BVSVDMethods[] = {"REFINE","QR","QR_CAA","BVSVDMethod","BV_SVD_METHOD_",0};
+const char *BVOrthogTypes[] = {"CGS","MGS","BVOrthogType","BV_ORTHOG_",NULL};
+const char *BVOrthogRefineTypes[] = {"IFNEEDED","NEVER","ALWAYS","BVOrthogRefineType","BV_ORTHOG_REFINE_",NULL};
+const char *BVOrthogBlockTypes[] = {"GS","CHOL","TSQR","TSQRCHOL","SVQB","BVOrthogBlockType","BV_ORTHOG_BLOCK_",NULL};
+const char *BVMatMultTypes[] = {"VECS","MAT","MAT_SAVE","BVMatMultType","BV_MATMULT_",NULL};
+const char *BVSVDMethods[] = {"REFINE","QR","QR_CAA","BVSVDMethod","BV_SVD_METHOD_",NULL};
 
 /*@C
    BVFinalizePackage - This function destroys everything in the Slepc interface
@@ -119,7 +119,7 @@ PetscErrorCode BVDestroy(BV *bv)
   if (!*bv) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*bv,BV_CLASSID,1);
   PetscCheck(!(*bv)->lsplit,PetscObjectComm((PetscObject)(*bv)),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
-  if (--((PetscObject)(*bv))->refct > 0) { *bv = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*bv))->refct > 0) { *bv = NULL; PetscFunctionReturn(0); }
   PetscTryTypeMethod(*bv,destroy);
   PetscCall(VecDestroy(&(*bv)->t));
   PetscCall(MatDestroy(&(*bv)->matrix));
@@ -160,7 +160,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 
   PetscFunctionBegin;
   PetscValidPointer(newbv,2);
-  *newbv = 0;
+  *newbv = NULL;
   PetscCall(BVInitializePackage());
   PetscCall(SlepcHeaderCreate(bv,BV_CLASSID,"BV","Basis Vectors","BV",comm,BVDestroy,BVView));
 

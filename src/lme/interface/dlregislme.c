@@ -12,8 +12,8 @@
 
 static PetscBool LMEPackageInitialized = PETSC_FALSE;
 
-const char *LMEProblemTypes[] = {"LYAPUNOV","SYLVESTER","GEN_LYAPUNOV","GEN_SYLVESTER","DT_LYAPUNOV","STEIN","LMEProblemType","LME_",0};
-const char *const LMEConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","LMEConvergedReason","LME_",0};
+const char *LMEProblemTypes[] = {"LYAPUNOV","SYLVESTER","GEN_LYAPUNOV","GEN_SYLVESTER","DT_LYAPUNOV","STEIN","LMEProblemType","LME_",NULL};
+const char *const LMEConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","LMEConvergedReason","LME_",NULL};
 const char *const*LMEConvergedReasons = LMEConvergedReasons_Shifted + 2;
 
 /*@C

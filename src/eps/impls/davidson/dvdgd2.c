@@ -200,7 +200,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
   if (ksp) {
     PetscCall(KSPGetPC(ksp,&pc));
     PetscCall(dvd_static_precond_PC(d,b,pc));
-  } else PetscCall(dvd_static_precond_PC(d,b,0));
+  } else PetscCall(dvd_static_precond_PC(d,b,NULL));
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {

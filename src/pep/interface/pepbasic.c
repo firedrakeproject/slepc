@@ -18,7 +18,7 @@ PetscClassId      PEP_CLASSID = 0;
 PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Refine = 0,PEP_CISS_SVD = 0;
 
 /* List of registered PEP routines */
-PetscFunctionList PEPList = 0;
+PetscFunctionList PEPList = NULL;
 PetscBool         PEPRegisterAllCalled = PETSC_FALSE;
 
 /* List of registered PEP monitors */
@@ -51,7 +51,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
 
   PetscFunctionBegin;
   PetscValidPointer(outpep,2);
-  *outpep = 0;
+  *outpep = NULL;
   PetscCall(PEPInitializePackage());
   PetscCall(SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView));
 
@@ -333,7 +333,7 @@ PetscErrorCode PEPDestroy(PEP *pep)
   PetscFunctionBegin;
   if (!*pep) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*pep,PEP_CLASSID,1);
-  if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*pep))->refct > 0) { *pep = NULL; PetscFunctionReturn(0); }
   PetscCall(PEPReset(*pep));
   PetscTryTypeMethod(*pep,destroy);
   if ((*pep)->eigr) PetscCall(PetscFree4((*pep)->eigr,(*pep)->eigi,(*pep)->errest,(*pep)->perm));

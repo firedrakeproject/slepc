@@ -18,7 +18,7 @@ PetscClassId      LME_CLASSID = 0;
 PetscLogEvent     LME_SetUp = 0,LME_Solve = 0,LME_ComputeError = 0;
 
 /* List of registered LME routines */
-PetscFunctionList LMEList = 0;
+PetscFunctionList LMEList = NULL;
 PetscBool         LMERegisterAllCalled = PETSC_FALSE;
 
 /* List of registered LME monitors */
@@ -209,7 +209,7 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
 
   PetscFunctionBegin;
   PetscValidPointer(outlme,2);
-  *outlme = 0;
+  *outlme = NULL;
   PetscCall(LMEInitializePackage());
   PetscCall(SlepcHeaderCreate(lme,LME_CLASSID,"LME","Linear Matrix Equation","LME",comm,LMEDestroy,LMEView));
 
@@ -444,7 +444,7 @@ PetscErrorCode LMEDestroy(LME *lme)
   PetscFunctionBegin;
   if (!*lme) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*lme,LME_CLASSID,1);
-  if (--((PetscObject)(*lme))->refct > 0) { *lme = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*lme))->refct > 0) { *lme = NULL; PetscFunctionReturn(0); }
   PetscCall(LMEReset(*lme));
   PetscTryTypeMethod(*lme,destroy);
   PetscCall(LMEMonitorCancel(*lme));

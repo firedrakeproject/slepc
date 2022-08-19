@@ -18,7 +18,7 @@ PetscClassId      SVD_CLASSID = 0;
 PetscLogEvent     SVD_SetUp = 0,SVD_Solve = 0;
 
 /* List of registered SVD routines */
-PetscFunctionList SVDList = 0;
+PetscFunctionList SVDList = NULL;
 PetscBool         SVDRegisterAllCalled = PETSC_FALSE;
 
 /* List of registered SVD monitors */
@@ -51,7 +51,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 
   PetscFunctionBegin;
   PetscValidPointer(outsvd,2);
-  *outsvd = 0;
+  *outsvd = NULL;
   PetscCall(SVDInitializePackage());
   PetscCall(SlepcHeaderCreate(svd,SVD_CLASSID,"SVD","Singular Value Decomposition","SVD",comm,SVDDestroy,SVDView));
 
@@ -171,7 +171,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
   PetscFunctionBegin;
   if (!*svd) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*svd,SVD_CLASSID,1);
-  if (--((PetscObject)(*svd))->refct > 0) { *svd = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*svd))->refct > 0) { *svd = NULL; PetscFunctionReturn(0); }
   PetscCall(SVDReset(*svd));
   PetscTryTypeMethod(*svd,destroy);
   if ((*svd)->sigma) PetscCall(PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest));
