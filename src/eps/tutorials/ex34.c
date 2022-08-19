@@ -503,7 +503,7 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
 
    testset:
       requires: double
-      args: -petscspace_degree 1 -petscspace_poly_tensor
+      args: -petscspace_degree 1 -petscspace_poly_tensor -checkfunctionlist 0
       output_file: output/ex34_1.out
       test:
          suffix: 1
