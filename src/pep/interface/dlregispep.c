@@ -12,16 +12,16 @@
 
 static PetscBool PEPPackageInitialized = PETSC_FALSE;
 
-const char *PEPBasisTypes[] = {"MONOMIAL","CHEBYSHEV1","CHEBYSHEV2","LEGENDRE","LAGUERRE","HERMITE","PEPBasis","PEP_BASIS_",0};
-const char *PEPScaleTypes[] = {"NONE","SCALAR","DIAGONAL","BOTH","PEPScale","PEP_SCALE_",0};
-const char *PEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","PEPRefine","PEP_REFINE_",0};
-const char *PEPRefineSchemes[] = {"","SCHUR","MBE","EXPLICIT","PEPRefineScheme","PEP_REFINE_SCHEME_",0};
-const char *PEPExtractTypes[] = {"","NONE","NORM","RESIDUAL","STRUCTURED","PEPExtract","PEP_EXTRACT_",0};
-const char *PEPErrorTypes[] = {"ABSOLUTE","RELATIVE","BACKWARD","PEPErrorType","PEP_ERROR_",0};
-const char *const PEPConvergedReasons_Shifted[] = {"","DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","PEPConvergedReason","PEP_",0};
+const char *PEPBasisTypes[] = {"MONOMIAL","CHEBYSHEV1","CHEBYSHEV2","LEGENDRE","LAGUERRE","HERMITE","PEPBasis","PEP_BASIS_",NULL};
+const char *PEPScaleTypes[] = {"NONE","SCALAR","DIAGONAL","BOTH","PEPScale","PEP_SCALE_",NULL};
+const char *PEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","PEPRefine","PEP_REFINE_",NULL};
+const char *PEPRefineSchemes[] = {"","SCHUR","MBE","EXPLICIT","PEPRefineScheme","PEP_REFINE_SCHEME_",NULL};
+const char *PEPExtractTypes[] = {"","NONE","NORM","RESIDUAL","STRUCTURED","PEPExtract","PEP_EXTRACT_",NULL};
+const char *PEPErrorTypes[] = {"ABSOLUTE","RELATIVE","BACKWARD","PEPErrorType","PEP_ERROR_",NULL};
+const char *const PEPConvergedReasons_Shifted[] = {"","DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","PEPConvergedReason","PEP_",NULL};
 const char *const*PEPConvergedReasons = PEPConvergedReasons_Shifted + 4;
-const char *PEPJDProjectionTypes[] = {"HARMONIC","ORTHOGONAL","PEPJDProjection","PEP_JD_PROJECTION_",0};
-const char *PEPCISSExtractions[] = {"RITZ","HANKEL","CAA","PEPCISSExtraction","PEP_CISS_EXTRACTION_",0};
+const char *PEPJDProjectionTypes[] = {"HARMONIC","ORTHOGONAL","PEPJDProjection","PEP_JD_PROJECTION_",NULL};
+const char *PEPCISSExtractions[] = {"RITZ","HANKEL","CAA","PEPCISSExtraction","PEP_CISS_EXTRACTION_",NULL};
 
 /*@C
    PEPFinalizePackage - This function destroys everything in the Slepc interface

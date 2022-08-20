@@ -223,7 +223,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
   PetscReal      *alpha,*beta;
   PetscScalar    *swork,*w,*P;
   PetscInt       i,k,j,nv,ld;
-  Vec            u=0,u_1=0;
+  Vec            u=NULL,u_1=NULL;
   Mat            U,V;
 
   PetscFunctionBegin;

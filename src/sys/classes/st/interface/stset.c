@@ -14,7 +14,7 @@
 #include <slepc/private/stimpl.h>      /*I "slepcst.h" I*/
 
 PetscBool         STRegisterAllCalled = PETSC_FALSE;
-PetscFunctionList STList = 0;
+PetscFunctionList STList = NULL;
 
 /*@C
    STSetType - Builds ST for a particular spectral transformation.

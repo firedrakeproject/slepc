@@ -14,7 +14,7 @@
 #include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
 
 PetscBool         BVRegisterAllCalled = PETSC_FALSE;
-PetscFunctionList BVList = 0;
+PetscFunctionList BVList = NULL;
 
 /*@C
    BVSetType - Selects the type for the BV object.
@@ -138,7 +138,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
     PetscCall(PetscLogEventBegin(BV_Create,bv,0,0,0));
     PetscUseTypeMethod(bv,create);
     PetscCall(PetscLogEventEnd(BV_Create,bv,0,0,0));
-    bv->ops->create = 0;
+    bv->ops->create = NULL;
     bv->defersfo = PETSC_FALSE;
   }
   PetscFunctionReturn(0);
@@ -182,7 +182,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   PetscCall(PetscObjectReference((PetscObject)t));
   if (bv->ops->create) {
     PetscUseTypeMethod(bv,create);
-    bv->ops->create = 0;
+    bv->ops->create = NULL;
     bv->defersfo = PETSC_FALSE;
   }
   PetscFunctionReturn(0);

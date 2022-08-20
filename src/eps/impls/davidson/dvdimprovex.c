@@ -454,7 +454,7 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     PetscCall(KSPGetPC(data->ksp, &data->old_pc));
     PetscCall(PetscObjectTypeCompare((PetscObject)data->old_pc,PCNONE,&t));
     data->lastTol = 0.5;
-    if (t) data->old_pc = 0;
+    if (t) data->old_pc = NULL;
     else {
       PetscCall(PetscObjectReference((PetscObject)data->old_pc));
       PetscCall(PCCreate(PetscObjectComm((PetscObject)d->eps),&pc));
@@ -490,7 +490,7 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     PetscCall(KSPSetUp(data->ksp));
     PetscCall(MatDestroy(&A));
   } else {
-    data->old_pc = 0;
+    data->old_pc = NULL;
     data->friends = NULL;
   }
   PetscCall(BVSetActiveColumns(data->KZ,0,0));
@@ -729,7 +729,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
   if (ksp) {
     PetscCall(KSPGetPC(ksp,&pc));
     PetscCall(dvd_static_precond_PC(d,b,pc));
-  } else PetscCall(dvd_static_precond_PC(d,b,0));
+  } else PetscCall(dvd_static_precond_PC(d,b,NULL));
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {

@@ -264,7 +264,7 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
       }
     }
     if (m==0) {
-      r = q = 0;
+      r = q = NULL;
       if (k==3) {
         for (i=0;i<4;i++) remain[i] = remain3[i];
       } else if (k==2) {

@@ -13,14 +13,14 @@
 
 #include <slepc/private/dsimpl.h>      /*I "slepcds.h" I*/
 
-PetscFunctionList DSList = 0;
+PetscFunctionList DSList = NULL;
 PetscBool         DSRegisterAllCalled = PETSC_FALSE;
 PetscClassId      DS_CLASSID = 0;
 PetscLogEvent     DS_Solve = 0,DS_Vectors = 0,DS_Synchronize = 0,DS_Other = 0;
 static PetscBool  DSPackageInitialized = PETSC_FALSE;
 
-const char *DSStateTypes[] = {"RAW","INTERMEDIATE","CONDENSED","TRUNCATED","DSStateType","DS_STATE_",0};
-const char *DSParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","DISTRIBUTED","DSParallelType","DS_PARALLEL_",0};
+const char *DSStateTypes[] = {"RAW","INTERMEDIATE","CONDENSED","TRUNCATED","DSStateType","DS_STATE_",NULL};
+const char *DSParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","DISTRIBUTED","DSParallelType","DS_PARALLEL_",NULL};
 const char *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","V","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
 DSMatType  DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9};
 
@@ -108,7 +108,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
 
   PetscFunctionBegin;
   PetscValidPointer(newds,2);
-  *newds = 0;
+  *newds = NULL;
   PetscCall(DSInitializePackage());
   PetscCall(SlepcHeaderCreate(ds,DS_CLASSID,"DS","Direct Solver (or Dense System)","DS",comm,DSDestroy,DSView));
 
@@ -906,7 +906,7 @@ PetscErrorCode DSDestroy(DS *ds)
   PetscFunctionBegin;
   if (!*ds) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*ds,DS_CLASSID,1);
-  if (--((PetscObject)(*ds))->refct > 0) { *ds = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*ds))->refct > 0) { *ds = NULL; PetscFunctionReturn(0); }
   PetscCall(DSReset(*ds));
   PetscTryTypeMethod(*ds,destroy);
   PetscCall(PetscFree((*ds)->work));

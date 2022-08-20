@@ -18,7 +18,7 @@ PetscClassId      MFN_CLASSID = 0;
 PetscLogEvent     MFN_SetUp = 0,MFN_Solve = 0;
 
 /* List of registered MFN routines */
-PetscFunctionList MFNList = 0;
+PetscFunctionList MFNList = NULL;
 PetscBool         MFNRegisterAllCalled = PETSC_FALSE;
 
 /* List of registered MFN monitors */
@@ -202,7 +202,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
 
   PetscFunctionBegin;
   PetscValidPointer(outmfn,2);
-  *outmfn = 0;
+  *outmfn = NULL;
   PetscCall(MFNInitializePackage());
   PetscCall(SlepcHeaderCreate(mfn,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView));
 
@@ -428,7 +428,7 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   PetscFunctionBegin;
   if (!*mfn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*mfn,MFN_CLASSID,1);
-  if (--((PetscObject)(*mfn))->refct > 0) { *mfn = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*mfn))->refct > 0) { *mfn = NULL; PetscFunctionReturn(0); }
   PetscCall(MFNReset(*mfn));
   PetscTryTypeMethod(*mfn,destroy);
   PetscCall(FNDestroy(&(*mfn)->fn));

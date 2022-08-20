@@ -13,7 +13,7 @@
 
 #include <slepc/private/rgimpl.h>      /*I "slepcrg.h" I*/
 
-PetscFunctionList RGList = 0;
+PetscFunctionList RGList = NULL;
 PetscBool         RGRegisterAllCalled = PETSC_FALSE;
 PetscClassId      RG_CLASSID = 0;
 static PetscBool  RGPackageInitialized = PETSC_FALSE;
@@ -92,7 +92,7 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
 
   PetscFunctionBegin;
   PetscValidPointer(newrg,2);
-  *newrg = 0;
+  *newrg = NULL;
   PetscCall(RGInitializePackage());
   PetscCall(SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView));
   rg->complement = PETSC_FALSE;
@@ -826,7 +826,7 @@ PetscErrorCode RGDestroy(RG *rg)
   PetscFunctionBegin;
   if (!*rg) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*rg,RG_CLASSID,1);
-  if (--((PetscObject)(*rg))->refct > 0) { *rg = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*rg))->refct > 0) { *rg = NULL; PetscFunctionReturn(0); }
   PetscTryTypeMethod(*rg,destroy);
   PetscCall(PetscHeaderDestroy(rg));
   PetscFunctionReturn(0);

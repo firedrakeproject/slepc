@@ -298,7 +298,7 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
   PetscCall(ISCreateStride(PETSC_COMM_SELF,n*n,0,1,&perm));
   PetscCall(MatDestroy(&matctx->F));
   PetscCall(MatDuplicate(matctx->A,MAT_COPY_VALUES,&matctx->F));
-  PetscCall(MatLUFactor(matctx->F,perm,perm,0));
+  PetscCall(MatLUFactor(matctx->F,perm,perm,NULL));
   PetscCall(ISDestroy(&perm));
 #else
   PetscCall(MatCopy(S,matctx->S,SAME_NONZERO_PATTERN));

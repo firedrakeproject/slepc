@@ -18,7 +18,7 @@ PetscClassId      NEP_CLASSID = 0;
 PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0,NEP_Resolvent = 0,NEP_CISS_SVD = 0;
 
 /* List of registered NEP routines */
-PetscFunctionList NEPList = 0;
+PetscFunctionList NEPList = NULL;
 PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
 
 /* List of registered NEP monitors */
@@ -48,7 +48,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 
   PetscFunctionBegin;
   PetscValidPointer(outnep,2);
-  *outnep = 0;
+  *outnep = NULL;
   PetscCall(NEPInitializePackage());
   PetscCall(SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView));
 
@@ -345,7 +345,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
   PetscFunctionBegin;
   if (!*nep) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*nep,NEP_CLASSID,1);
-  if (--((PetscObject)(*nep))->refct > 0) { *nep = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*nep))->refct > 0) { *nep = NULL; PetscFunctionReturn(0); }
   PetscCall(NEPReset(*nep));
   PetscTryTypeMethod(*nep,destroy);
   if ((*nep)->eigr) PetscCall(PetscFree4((*nep)->eigr,(*nep)->eigi,(*nep)->errest,(*nep)->perm));

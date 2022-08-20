@@ -319,7 +319,7 @@ PetscErrorCode SlepcFinalize(void)
 PetscErrorCode SlepcInitializeNoArguments(void)
 {
   int  argc = 0;
-  char **args = 0;
+  char **args = NULL;
 
   PetscFunctionBegin;
   PetscCall(SlepcInitialize(&argc,&args,NULL,NULL));

@@ -14,13 +14,13 @@
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 #include <slepcblaslapack.h>
 
-PetscFunctionList FNList = 0;
+PetscFunctionList FNList = NULL;
 PetscBool         FNRegisterAllCalled = PETSC_FALSE;
 PetscClassId      FN_CLASSID = 0;
 PetscLogEvent     FN_Evaluate = 0;
 static PetscBool  FNPackageInitialized = PETSC_FALSE;
 
-const char *FNParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","FNParallelType","FN_PARALLEL_",0};
+const char *FNParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","FNParallelType","FN_PARALLEL_",NULL};
 
 /*@C
    FNFinalizePackage - This function destroys everything in the Slepc interface
@@ -98,7 +98,7 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
 
   PetscFunctionBegin;
   PetscValidPointer(newfn,2);
-  *newfn = 0;
+  *newfn = NULL;
   PetscCall(FNInitializePackage());
   PetscCall(SlepcHeaderCreate(fn,FN_CLASSID,"FN","Math Function","FN",comm,FNDestroy,FNView));
 
@@ -1032,7 +1032,7 @@ PetscErrorCode FNDestroy(FN *fn)
   PetscFunctionBegin;
   if (!*fn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
-  if (--((PetscObject)(*fn))->refct > 0) { *fn = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*fn))->refct > 0) { *fn = NULL; PetscFunctionReturn(0); }
   PetscTryTypeMethod(*fn,destroy);
   for (i=0;i<(*fn)->nw;i++) PetscCall(MatDestroy(&(*fn)->W[i]));
   PetscCall(PetscHeaderDestroy(fn));

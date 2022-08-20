@@ -17,7 +17,7 @@ PetscClassId     ST_CLASSID = 0;
 PetscLogEvent    ST_SetUp = 0,ST_ComputeOperator = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
-const char *STMatModes[] = {"COPY","INPLACE","SHELL","STMatMode","ST_MATMODE_",0};
+const char *STMatModes[] = {"COPY","INPLACE","SHELL","STMatMode","ST_MATMODE_",NULL};
 
 /*@C
    STFinalizePackage - This function destroys everything in the Slepc interface
@@ -139,7 +139,7 @@ PetscErrorCode STDestroy(ST *st)
   PetscFunctionBegin;
   if (!*st) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*st,ST_CLASSID,1);
-  if (--((PetscObject)(*st))->refct > 0) { *st = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*st))->refct > 0) { *st = NULL; PetscFunctionReturn(0); }
   PetscCall(STReset(*st));
   PetscTryTypeMethod(*st,destroy);
   PetscCall(KSPDestroy(&(*st)->ksp));
@@ -168,7 +168,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 
   PetscFunctionBegin;
   PetscValidPointer(newst,2);
-  *newst = 0;
+  *newst = NULL;
   PetscCall(STInitializePackage());
   PetscCall(SlepcHeaderCreate(st,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView));
 

@@ -18,7 +18,7 @@ PetscClassId      EPS_CLASSID = 0;
 PetscLogEvent     EPS_SetUp = 0,EPS_Solve = 0,EPS_CISS_SVD = 0;
 
 /* List of registered EPS routines */
-PetscFunctionList EPSList = 0;
+PetscFunctionList EPSList = NULL;
 PetscBool         EPSRegisterAllCalled = PETSC_FALSE;
 
 /* List of registered EPS monitors */
@@ -51,7 +51,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   PetscFunctionBegin;
   PetscValidPointer(outeps,2);
-  *outeps = 0;
+  *outeps = NULL;
   PetscCall(EPSInitializePackage());
   PetscCall(SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView));
 
@@ -333,7 +333,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
   PetscFunctionBegin;
   if (!*eps) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*eps,EPS_CLASSID,1);
-  if (--((PetscObject)(*eps))->refct > 0) { *eps = 0; PetscFunctionReturn(0); }
+  if (--((PetscObject)(*eps))->refct > 0) { *eps = NULL; PetscFunctionReturn(0); }
   PetscCall(EPSReset(*eps));
   PetscTryTypeMethod(*eps,destroy);
   if ((*eps)->eigr) PetscCall(PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm));
