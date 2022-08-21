@@ -195,4 +195,16 @@ int main(int argc,char **argv)
          args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
          suffix: 4_cyclic
 
+   testset:
+      args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -svd_smallest -svd_nsv 3 -p 1 -terse
+      requires: double !complex !defined(PETSC_USE_64BIT_INDICES)
+      filter: grep -v Reading
+      output_file: output/ex52_5.out
+      test:
+         args: -svd_type cross -svd_max_it 1000
+         suffix: 5_cross
+      test:
+         args: -svd_type cyclic -svd_max_it 4000 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type jacobi
+         suffix: 5_cyclic
+
 TEST*/
