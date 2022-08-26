@@ -850,7 +850,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
    Level: beginner
 
 .seealso: NEPGetSplitOperatorTerm(), NEPGetSplitOperatorInfo(), NEPSetSplitPreconditioner()
- @*/
+@*/
 PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructure str)
 {
   PetscInt       i,n=0,m,m0=0,mloc,nloc,mloc0=0;
@@ -988,7 +988,7 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
    Level: advanced
 
 .seealso: NEPGetSplitPreconditionerTerm(), NEPGetSplitPreconditionerInfo(), NEPSetSplitOperator()
- @*/
+@*/
 PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructure strp)
 {
   PetscInt       i,n=0,m,m0=0,mloc,nloc,mloc0=0;

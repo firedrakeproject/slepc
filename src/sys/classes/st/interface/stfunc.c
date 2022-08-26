@@ -260,7 +260,7 @@ static inline PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm,PetscBo
    Level: intermediate
 
 .seealso: STGetMatrix(), STGetNumMatrices(), STSetUp(), STReset()
- @*/
+@*/
 PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
 {
   PetscInt       i;
@@ -533,7 +533,7 @@ PetscErrorCode STGetPreconditionerMat(ST st,Mat *mat)
    Level: advanced
 
 .seealso: STGetSplitPreconditionerTerm(), STGetSplitPreconditionerInfo(), STSetPreconditionerMat(), STSetMatrices(), STSetMatStructure()
- @*/
+@*/
 PetscErrorCode STSetSplitPreconditioner(ST st,PetscInt n,Mat Psplit[],MatStructure strp)
 {
   PetscInt       i,N=0,M,M0=0,mloc,nloc,mloc0=0;

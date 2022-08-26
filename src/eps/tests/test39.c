@@ -104,7 +104,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   PetscCall(PetscPrintf(PETSC_COMM_WORLD,"\nSecond solve:\n\n"));
-  /*PetscCall(EPSReset(eps));*/  /* not required, will be called in EPSSetOperators() */
+  /* PetscCall(EPSReset(eps)); */  /* not required, will be called in EPSSetOperators() */
   PetscCall(EPSSetOperators(eps,B,NULL));
   PetscCall(EPSSolve(eps));
 

@@ -221,7 +221,7 @@ PetscErrorCode NEPViewFromOptions(NEP nep,PetscObject obj,const char name[])
 
    Level: intermediate
 
-.seealso: NEPSetConvergenceTest(), NEPSetTolerances(), NEPGetIterationNumber(), NEPConvergedReasonViewFromOptions(
+.seealso: NEPSetConvergenceTest(), NEPSetTolerances(), NEPGetIterationNumber(), NEPConvergedReasonViewFromOptions()
 @*/
 PetscErrorCode NEPConvergedReasonView(NEP nep,PetscViewer viewer)
 {
