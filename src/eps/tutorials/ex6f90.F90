@@ -9,9 +9,8 @@
 !
 !  Program usage: mpiexec -n <np> ./ex6f [-help] [-m <m>] [all SLEPc options]
 !
-!  Description: This example solves the eigensystem arising in the Ising
-!  model for ferromagnetic materials. The file mvmisg.f must be linked
-!  together. Information about the model can be found at the following
+!  Description: Eigensystem from the Ising model for ferromagnetic materials.
+!  Information about the model can be found at the following
 !  site https://math.nist.gov/MatrixMarket/data/NEP
 !
 !  The command line options are:

@@ -9,8 +9,8 @@
 !
 !  Program usage: mpiexec -n <np> ./ex23f90 [-help] [-t <t>] [-m <m>] [SLEPc opts]
 !
-!  Description: Computes exp(t*A)*v for a matrix associated with a
-!  Markov model. This is the Fortran90 equivalent to ex23.c
+!  Description: Computes exp(t*A)*v for a matrix from a Markov model.
+!  This is the Fortran90 equivalent to ex23.c
 !
 !  The command line options are:
 !    -t <t>, where <t> = time parameter (multiplies the matrix)
