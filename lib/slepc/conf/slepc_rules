@@ -129,10 +129,15 @@ slepc_html: chk_c2html
           cat ${SLEPC_DIR}/src/docs/manualpages-sec/header_${MANSEC} | sed -e "s?<A HREF=\"SLEPC_DIR[a-z/]*\">Examples</A>?<A HREF=\"$${ROOT}/docs/manualpages/${MANSEC}\">Manual pages</A>?g" -e "s?SLEPC_DIR?$${ROOT}/?g"> $${loc}/index.html; \
           echo "<p>" >> $${loc}/index.html ;\
           loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;\
-          if [ "${EXAMPLESC}" != "" ] ; then \
-            for file in ${EXAMPLESC} foo ; do \
+          base=`basename ${LOCDIR}`; \
+          if [ "$${base}" = "tutorials" -o "$${base}" = "nlevp" ] ; then \
+            for file in ${EXAMPLESALL} foo ; do \
               if [ -f $$file ]; then \
-                cmess=`grep "static\( const\)\? char help" $${file} | cut -d\" -f2 | cut -d\. -f1`; \
+                if [ "$${file%.F}.F" = "$${file}" -o "$${file%.F90}.F90" = "$${file}" ]; then \
+                  cmess=`grep "Description:" $${file} | cut -d: -f2`; \
+                else \
+                  cmess=`grep "static\( const\)\? char help" $${file} | cut -d\" -f2 | cut -d\. -f1`; \
+                fi; \
                 echo "<a href=\"$${file}.html\">$${file}: $${cmess}</a><br>" >> $${loc}/index.html;\
                 ${PYTHON} ${PETSC_DIR}/lib/petsc/bin/maint/latexinexamples.py $${loc}/$${file}.html;\
               fi; \

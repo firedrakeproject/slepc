@@ -52,6 +52,9 @@ SLEPC_LIB       = ${SLEPC_C_SH_LIB_PATH} -L${SLEPC_LIB_DIR} ${SLEPC_LIB_BASIC} $
 
 SLEPC_EXTERNAL_LIB = ${ARPACK_LIB} ${BLOPEX_LIB} ${ELPA_LIB} ${EVSL_LIB} ${HPDDM_LIB} ${PRIMME_LIB} ${SLICOT_LIB} ${TRLAN_LIB}
 
+# Override PETSc variable to have examples listed in order
+EXAMPLESALL = `(ls *.c *.cxx *.F *.F90 *.cu *.cpp | sort -V) 2> /dev/null`
+
 # Redefine variable used to build shared libraries
 SHLIBS = libslepcsys libslepcmfn libslepclme libslepceps libslepcsvd libslepcpep libslepcnep
 
