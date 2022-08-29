@@ -21,9 +21,9 @@ chk_slepcdir:
 
 chk_in_slepcdir:
 	@if [ ! -f include/slepcversion.h ]; then \
-	  printf ${PETSC_TEXT_HILIGHT}"*********************** ERROR **********************************************\n" ; \
-	  echo " This target should be invoked in top level SLEPc source dir!"; \
-	  printf "****************************************************************************"${PETSC_TEXT_NORMAL}"\n" ;  false; fi
+          printf ${PETSC_TEXT_HILIGHT}"*********************** ERROR **********************************************\n" ; \
+          echo " This target should be invoked in top level SLEPc source dir!"; \
+          printf "****************************************************************************"${PETSC_TEXT_NORMAL}"\n" ;  false; fi
 
 slepc_manualpages:
 	-@if [ "${MANSEC}" = "" ] ; then \
@@ -34,7 +34,7 @@ slepc_manualpages:
             ${DOCTEXT} -html \
                    -mpath ${LOC}/docs/manualpages/$${LMANSEC} -heading SLEPc \
                    -defn ${SLEPC_DIR}/src/docs/doctext/html.def \
-                   -locdir ${LOCDIR} -mapref ${LOC}/docs/manualpages/manualpages.cit -Wargdesc $${f} 2>&1 | tee -a ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err; \
+                   -locdir ${LOCDIR} -mapref ${LOC}/docs/manualpages/htmlmap -Wargdesc $${f} 2>&1 | tee -a ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err; \
             if [ -f "${LOC}/docs/manualpages/$${LMANSEC}" ]; then chmod g+w "${LOC}"/docs/manualpages/$${LMANSEC}/*; fi; \
           done; \
         else \
@@ -43,7 +43,7 @@ slepc_manualpages:
           ${DOCTEXT} -html \
                  -mpath ${LOC}/docs/manualpages/$${LMANSEC} -heading SLEPc \
                  -defn ${SLEPC_DIR}/src/docs/doctext/html.def \
-                 -locdir ${LOCDIR} -mapref ${LOC}/docs/manualpages/manualpages.cit -Wargdesc ${SOURCED} 2>&1 | tee -a ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err; \
+                 -locdir ${LOCDIR} -mapref ${LOC}/docs/manualpages/htmlmap -Wargdesc ${SOURCED} 2>&1 | tee -a ${SLEPC_DIR}/${PETSC_ARCH}/manualpages.err; \
           if [ -f "${LOC}/docs/manualpages/$${LMANSEC}" ]; then chmod g+w "${LOC}"/docs/manualpages/$${LMANSEC}/*; fi; \
         fi
 
@@ -69,32 +69,66 @@ slepc_manexamples:
                 fi; \
               done; \
             fi; \
-	  done; \
+          done; \
         fi
 
+petsc_manualpages_buildcite: chk_manualpage_dir
+	-@export petscidx_tmp=$$(mktemp -d); \
+          echo Generating index of PETSc man pages; \
+          petscrelease=`grep '^#define PETSC_VERSION_RELEASE ' ${PETSC_DIR}/include/petscversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
+          if [ $${petscrelease} = 1 ]; then petscbranch="release"; else petscbranch="main"; fi; \
+          DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
+          TEXTFILTER_PATH=${PETSC_DIR}/doc/classic/doctext; export TEXTFILTER_PATH; \
+          cp ${PETSC_DIR}/include/*.h $$petscidx_tmp; \
+          for f in `ls $${petscidx_tmp}`; do \
+            LMANSEC=`grep SUBMANSEC $${petscidx_tmp}/$${f} | sed s'?[ ]*/\*[ ]*SUBMANSEC[ ]*=[ ]*\([a-zA-Z]*\)[ ]*\*/?\1?'g`; \
+            if [ "$${LMANSEC}" = "" ]; then LMANSEC="MissingSUBMANSEC"; fi; \
+            if [ ! -d $${petscidx_tmp}/$${LMANSEC} ]; then ${MKDIR} $${petscidx_tmp}/$${LMANSEC}; fi; \
+            ${DOCTEXT} -html -indexdir "https://petsc.org/$${petscbranch}/docs/manualpages/$${LMANSEC}" \
+              -index $${petscidx_tmp}/petscmanualpages.cit \
+              -mpath $${petscidx_tmp}/$${LMANSEC} $${petscidx_tmp}/$${f}; \
+          done; \
+          if [ -d ${PETSC_DIR}/src ]; then \
+            for f in `find ${PETSC_DIR}/src \( -name tutorials -o -name tests -o -name "ftn-*" \) -prune -o -name "*.c" -print`; do \
+              base=`basename $$f`; \
+              makef=$${f%$${base}}makefile; \
+              if [ -f $${makef} ]; then \
+                LMANSEC=`grep SUBMANSEC $${makef} | cut -d= -f2 | tr -d " \t"`; \
+                if [ "$${LMANSEC}" = "" ]; then LMANSEC=`grep MANSEC $${makef} | cut -d= -f2 | tr -d " \t"`; fi; \
+                if [ "$${LMANSEC}" != "" ]; then \
+                  if [ ! -d $${petscidx_tmp}/$${LMANSEC} ]; then ${MKDIR} $${petscidx_tmp}/$${LMANSEC}; fi; \
+                  ${DOCTEXT} -html -indexdir "https://petsc.org/$${petscbranch}/docs/manualpages/$${LMANSEC}" \
+                    -index $${petscidx_tmp}/petscmanualpages.cit \
+                    -mpath $${petscidx_tmp}/$${LMANSEC} $${f}; \
+                fi; \
+              fi; \
+            done; \
+          fi; \
+          cp $${petscidx_tmp}/petscmanualpages.cit ${LOC}/docs/manualpages; \
+          ${RM} -r $${petscidx_tmp}
+
 slepc_manualpages_buildcite: chk_manualpage_dir
-	@-if [ "${MANSEC}" = "" ] ; then \
+	@-DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
+          TEXTFILTER_PATH=${PETSC_DIR}/doc/classic/doctext; export TEXTFILTER_PATH; \
+          if [ "${MANSEC}" = "" ] ; then \
             for f in ${SOURCED}; do \
               LMANSEC=`grep SUBMANSEC $${f} | sed s'?[ ]*/\*[ ]*SUBMANSEC[ ]*=[ ]*\([a-zA-Z]*\)[ ]*\*/?\1?'g`; \
               if [ "$${LMANSEC}" = "" ] ; then LMANSEC="MissingSUBMANSEC"; fi; \
-              DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
-	      TEXTFILTER_PATH=${PETSC_DIR}/doc/classic/doctext; export TEXTFILTER_PATH; \
               ${DOCTEXT} -html -indexdir ../$${LMANSEC} \
-		-index ${LOC}/docs/manualpages/manualpages.cit \
-		-mpath ${LOC}/docs/manualpages/$${LMANSEC} $${f}; \
+                -index ${LOC}/docs/manualpages/manualpages.cit \
+                -mpath ${LOC}/docs/manualpages/$${LMANSEC} $${f}; \
             done; \
           else \
             if [ "${SUBMANSEC}" = "" ] ; then LMANSEC=${MANSEC}; else LMANSEC=${SUBMANSEC}; fi; \
-            DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
-	    TEXTFILTER_PATH=${PETSC_DIR}/doc/classic/doctext; export TEXTFILTER_PATH; \
             ${DOCTEXT} -html -indexdir ../$${LMANSEC} \
-		-index ${LOC}/docs/manualpages/manualpages.cit \
-		-mpath ${LOC}/docs/manualpages/$${LMANSEC} ${SOURCED}; \
+              -index ${LOC}/docs/manualpages/manualpages.cit \
+              -mpath ${LOC}/docs/manualpages/$${LMANSEC} ${SOURCED}; \
           fi
 
 slepc_html: chk_c2html
 	-@export htmlmap_tmp=$$(mktemp) ;\
           sed -e s?man+../?man+ROOT/docs/manualpages/? ${LOC}/docs/manualpages/manualpages.cit > $$htmlmap_tmp ;\
+          cat ${LOC}/docs/manualpages/petscmanualpages.cit >> $$htmlmap_tmp ;\
           cat ${PETSC_DIR}/doc/classic/mpi.www.index >> $$htmlmap_tmp ;\
           ROOT=`echo ${LOCDIR} | sed -e s?/[a-z]*?/..?g -e s?src/??g -e s?include/??g` ;\
           loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
@@ -157,9 +191,9 @@ slepc_html: chk_c2html
             echo " " >> $${loc}/index.html; \
             echo "<a href=\"makefile.html\">makefile</a><br>" >> $${loc}/index.html; \
           fi ;\
-	  loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`; \
-	  cat makefile | ${C2HTML} | ${MAPNAMES} -map $$htmlmap_tmp -inhtml > $${loc}/makefile.html; \
-	  ${RM} $$htmlmap_tmp
+          loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`; \
+          cat makefile | ${C2HTML} | ${MAPNAMES} -map $$htmlmap_tmp -inhtml > $${loc}/makefile.html; \
+          ${RM} $$htmlmap_tmp
 
 ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files:
 	@touch -t 197102020000 ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files
