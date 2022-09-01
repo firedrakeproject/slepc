@@ -397,7 +397,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       if (svd->isgeneralized) {  /* computes sigma^{-1} via alternative pencil */
         PetscCall(EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL));
       } else {
-        PetscCall(EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL));
+        if (svd->ishyperbolic) PetscCall(EPSSetWhichEigenpairs(cyclic->eps,EPS_TARGET_MAGNITUDE));
+        else PetscCall(EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL));
         PetscCall(EPSSetTarget(cyclic->eps,0.0));
       }
     }
