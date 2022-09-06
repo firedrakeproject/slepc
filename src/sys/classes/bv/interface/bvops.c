@@ -808,8 +808,8 @@ PetscErrorCode BVMatMultTranspose(BV V,Mat A,BV Y)
 @*/
 PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
 {
-  PetscInt       M,N,m,n;
-  Mat            AH;
+  PetscInt       j,M,N,m,n;
+  Vec            v,y;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
@@ -831,9 +831,18 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
   PetscCheck(n==Y->n,PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_INCOMP,"Mismatching local column dimension A %" PetscInt_FMT ", Y %" PetscInt_FMT,n,Y->n);
   PetscCheck(V->k-V->l==Y->k-Y->l,PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %" PetscInt_FMT " active columns, should match %" PetscInt_FMT " active columns in V",Y->k-Y->l,V->k-V->l);
 
+  /* TODO: recover this code if PETSc ever gets MATPRODUCT_AhB done
   PetscCall(MatCreateHermitianTranspose(A,&AH));
   PetscCall(BVMatMult(V,AH,Y));
   PetscCall(MatDestroy(&AH));
+  */
+  for (j=0;j<V->k-V->l;j++) {
+    PetscCall(BVGetColumn(V,V->l+j,&v));
+    PetscCall(BVGetColumn(Y,Y->l+j,&y));
+    PetscCall(MatMultHermitianTranspose(A,v,y));
+    PetscCall(BVRestoreColumn(V,V->l+j,&v));
+    PetscCall(BVRestoreColumn(Y,Y->l+j,&y));
+  }
   PetscFunctionReturn(0);
 }
 
