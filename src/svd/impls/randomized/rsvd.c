@@ -74,6 +74,20 @@ static PetscErrorCode SVDRandomizedResidualNorm(SVD svd,PetscInt i,PetscScalar s
   PetscFunctionReturn(0);
 }
 
+/* If A is a virtual Hermitian transpose, then BVMatMult will fail if PRODUCT_AhB is not implemented */
+static PetscErrorCode BlockMatMult(BV V,Mat A,BV Y,Mat AT)
+{
+  PetscFunctionBegin;
+  if (!PetscDefined(USE_COMPLEX)) PetscCall(BVMatMult(V,A,Y));
+  else {
+    PetscBool flg=PETSC_FALSE;
+    PetscCall(PetscObjectTypeCompare((PetscObject)A,MATHERMITIANTRANSPOSEVIRTUAL,&flg));
+    if (flg) PetscCall(BVMatMultHermitianTranspose(V,AT,Y));
+    else PetscCall(BVMatMult(V,A,Y));
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode SVDSolve_Randomized(SVD svd)
 {
   PetscScalar    *w;
@@ -93,11 +107,11 @@ PetscErrorCode SVDSolve_Randomized(SVD svd)
     PetscCall(BVSetActiveColumns(svd->V,svd->nconv,svd->ncv));
     PetscCall(BVSetActiveColumns(svd->U,svd->nconv,svd->ncv));
     /* Form AG */
-    PetscCall(BVMatMult(svd->V,svd->A,svd->U));
+    PetscCall(BlockMatMult(svd->V,svd->A,svd->U,svd->AT));
     /* Orthogonalization Q=qr(AG)*/
     PetscCall(BVOrthogonalize(svd->U,NULL));
     /* Form B^*= AQ */
-    PetscCall(BVMatMult(svd->U,svd->AT,svd->V));
+    PetscCall(BlockMatMult(svd->U,svd->AT,svd->V,svd->A));
 
     PetscCall(DSSetDimensions(svd->ds,svd->ncv,svd->nconv,svd->ncv));
     PetscCall(DSSVDSetDimensions(svd->ds,svd->ncv));
