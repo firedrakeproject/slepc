@@ -163,7 +163,7 @@ gnu-c99-mlib-static:
 gnu-lint:
   extends: .stage-1
   tags:
-    - linux-fedora, name:jepri
+    - linux-debian, name:selene
   variables:
     PETSC_CONFIG_OPTS: --with-fc=0 --with-debugging=1
     TEST_SEARCH: eps_tests-test10_1
@@ -426,7 +426,7 @@ pip-install:
   extends: .test
   stage: stage-2
   tags:
-    - pip, name:jepri
+    - pip, name:selene
   before_script:
     - date
     - hostname
@@ -506,7 +506,7 @@ gnu-c-c99-nompi:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora, name:jepri
+    - name:sejmet
   variables:
     PETSC_CONFIG_OPTS: --CFLAGS='-std=c99 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0 --with-mpi=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-lib='-L/usr/local/opt/arpack-ng-3.8.0/lib -Wl,-rpath,/usr/local/opt/arpack-ng-3.8.0/lib -lparpack -larpack' --with-blopex-dir=/usr/local/opt/blopex --with-trlan-dir=/usr/local/opt/trlan-201009 --with-packages-download-dir=/var/local/downloads --download-primme --download-primme-cflags=-std=c99
@@ -526,7 +526,7 @@ gnu-c-complex:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora, name:jepri
+    - name:selene
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-petsc4py
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --download-primme --download-blopex --with-packages-download-dir=/var/local/downloads --with-slepc4py
@@ -560,7 +560,7 @@ clang-c-complex:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora, compiler:clang, name:jepri
+    - compiler:clang, name:maat
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-3.2 --with-blopex-dir=/usr/local/opt/blopex
@@ -582,7 +582,7 @@ gnu-c-float128:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora, name:jepri
+    - name:athor
   variables:
     PETSC_CONFIG_OPTS: --download-f2cblaslapack --with-precision=__float128
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
@@ -603,7 +603,7 @@ gnu-c-single:
     - .stage-3
     - .linux_test
   tags:
-    - linux-fedora, name:jepri
+    - name:selene
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --download-scalapack
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0
@@ -718,7 +718,7 @@ clang-c-single:
     - .stage-2
     - .linux_test
   tags:
-    - compiler:clang, name:jepri
+    - compiler:clang, name:maat
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/clang/bin/mpicc --with-cxx=/opt/mpich/clang/bin/mpicxx --with-fc=0 --with-mpiexec=/opt/mpich/clang/bin/mpiexec --with-precision=single
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme
@@ -728,7 +728,7 @@ gnu-c-complex-single:
     - .stage-3
     - .linux_test
   tags:
-    - compiler:clang, name:jepri
+    - name:selene
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
@@ -748,7 +748,7 @@ gnu-c-nocxx:
     - .stage-3
     - .linux_test
   tags:
-    - name:jepri
+    - name:athor
   variables:
     PETSC_CONFIG_OPTS: --with-cxx=0 --COPTFLAGS='-g -O -fsanitize=address' --FOPTFLAGS='-g -O -fsanitize=address'
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-arpack
