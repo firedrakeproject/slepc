@@ -120,7 +120,7 @@ SLEPC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
 
 /* Definitions needed to work with CUDA kernels */
 #if defined(PETSC_HAVE_CUDA)
-#include <petscdevice.h>
+#include <petscdevice_cuda.h>
 
 #define X_AXIS 0
 #define Y_AXIS 1
