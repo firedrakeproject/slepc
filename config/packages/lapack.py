@@ -59,7 +59,7 @@ class Lapack(package.Package):
   def Check(self,slepcconf,slepcvars,petsc):
 
     # LAPACK standard functions
-    l = ['laev2','gehrd','lanhs','ggsvd','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl']
+    l = ['laev2','gehrd','lanhs','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl']
 
     # LAPACK functions with different real and complex names
     if petsc.scalar == 'real':
@@ -88,13 +88,13 @@ class Lapack(package.Package):
     # LAPACK functions which are always used in real version
     l = ['stevr','bdsdc','lag2','lasv2','lartg','laed4','lamrg']
     if petsc.precision == 'single':
-      prefix = 's'
+      rprefix = 's'
     elif petsc.precision == '__float128':
-      prefix = 'q'
+      rprefix = 'q'
     else:
-      prefix = 'd'
+      rprefix = 'd'
     for i in l:
-      functions.append(prefix + i)
+      functions.append(rprefix + i)
 
     # check for all functions at once
     allf = [self.Mangle(i) for i in functions]
@@ -114,10 +114,15 @@ class Lapack(package.Package):
             nf = i[1:]
           slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
 
-    # check ggsvd3 separately, as it is likely missing, do not issue warning
-    i = prefix + 'ggsvd3'
-    self.log.write('=== Checking LAPACK '+i+' function...')
-    if not self.LinkBlasLapack([self.Mangle(i)],[],'',petsc):
-      nf = i[1:]
-      slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
+    # check ggsvd3 separately, if it is missing check for ggsvd (deprecated in recent lapack)
+    for f in ['ggsvd3','ggsvd']:
+      i = prefix + f
+      self.log.write('=== Checking LAPACK '+i+' function...')
+      if not self.LinkBlasLapack([self.Mangle(i)],[],'',petsc):
+        if f == 'ggsvd': # do not warn if ggsvd3 is missing
+          if hasattr(self,'missing'): self.missing.append(i)
+          else: self.missing = [i]
+        nf = i[1:]
+        slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
+      else: break
 
