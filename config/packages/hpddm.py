@@ -17,7 +17,7 @@ class HPDDM(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'hpddm'
     self.downloadable   = True
-    self.gitcommit      = '6f96e6cb8eef3356c71b5405eb9e6fd6390661a4'
+    self.gitcommit      = 'd28da835cc0865b64d9bf8736dd5b10173722e00'
     self.url            = 'https://github.com/hpddm/hpddm/archive/'+self.gitcommit+'.tar.gz'
     self.archive        = 'hpddm-'+self.gitcommit+'.tar.gz'
     self.supportssingle = True
@@ -48,7 +48,7 @@ class HPDDM(package.Package):
     l = self.slflag+d+' -L'+d+' -lpetsc'
     d = libdir
     cmd = petsc.cxx+' '+petsc.getCXXFlags()+' -I'+os.path.join('.','include')+' -I'+os.path.join(petsc.dir,petsc.arch,'include')+' -I'+os.path.join(slepc.dir,'include')+' -I'+os.path.join(archdir,'include')+' -I'+os.path.join(petsc.dir,'include')+' -DPETSC_HAVE_SLEPC=1 -DSLEPC_LIB_DIR="'+d+'"'
-    (result,output) = self.RunCommand('cd '+builddir+'&&'+cmd+' '+os.path.join('interface','petsc','ksp','hpddm.cxx')+' -c -o '+os.path.join('interface','ksphpddm.o')+'&&'+cmd+' '+os.path.join('interface','petsc','pc','hpddm.cxx')+' -c -o '+os.path.join('interface','pchpddm.o')+'&&'+cmd+' '+os.path.join('interface','hpddm_petsc.cpp')+' -c -o '+os.path.join('interface','hpddm_petsc.o'))
+    (result,output) = self.RunCommand('cd '+builddir+'&&'+cmd+' '+os.path.join('interface','petsc','ksp','hpddm.cxx')+' -c -o '+os.path.join('interface','ksphpddm.o')+'&&'+cmd+' '+os.path.join('interface','petsc','pc','pchpddm.cxx')+' -c -o '+os.path.join('interface','pchpddm.o')+'&&'+cmd+' '+os.path.join('interface','hpddm_petsc.cpp')+' -c -o '+os.path.join('interface','hpddm_petsc.o'))
     if result:
       self.log.Exit('Compilation of HPDDM failed')
     (result,output) = self.RunCommand('cd '+builddir+'&& make -f SONAME_SL_LINKER soname && make -f SONAME_SL_LINKER sl_linker')
