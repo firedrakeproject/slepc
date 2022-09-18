@@ -270,7 +270,6 @@ PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
   PetscCall(VecSetType(vnew,((PetscObject)bv->t)->type_name));
   PetscCall(VecSetSizes(vnew,m*bv->n,PETSC_DECIDE));
   PetscCall(VecSetBlockSize(vnew,bs));
-  PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)vnew));
   if (((PetscObject)bv)->name) {
     PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
     PetscCall(PetscObjectSetName((PetscObject)vnew,str));
@@ -443,7 +442,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     PetscCall(VecSetSizes(ctx->v,tlocal,tglobal));
     PetscCall(VecSetBlockSize(ctx->v,bs));
   }
-  PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)ctx->v));
   if (((PetscObject)bv)->name) {
     PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
     PetscCall(PetscObjectSetName((PetscObject)ctx->v,str));

@@ -26,12 +26,9 @@ PetscErrorCode DSAllocate_NHEPTS(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_Z));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
-  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt)));
   PetscCall(PetscMalloc1(ld,&ctx->wr));
-  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscScalar)));
 #if !defined(PETSC_USE_COMPLEX)
   PetscCall(PetscMalloc1(ld,&ctx->wi));
-  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscScalar)));
 #endif
   PetscFunctionReturn(0);
 }

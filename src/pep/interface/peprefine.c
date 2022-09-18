@@ -63,12 +63,8 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
     PetscCall(PetscMalloc2(pep->nmat,&ctx->A,pep->npart,&ctx->scatter_id));
 
     /* Duplicate matrices */
-    for (i=0;i<pep->nmat;i++) {
-      PetscCall(MatCreateRedundantMatrix(pep->A[i],0,child,MAT_INITIAL_MATRIX,&ctx->A[i]));
-      PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A[i]));
-    }
+    for (i=0;i<pep->nmat;i++) PetscCall(MatCreateRedundantMatrix(pep->A[i],0,child,MAT_INITIAL_MATRIX,&ctx->A[i]));
     PetscCall(MatCreateVecs(ctx->A[0],&ctx->v,NULL));
-    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->v));
 
     /* Create scatters for sending vectors to each subcommucator */
     PetscCall(BVGetColumn(pep->V,0,&v));

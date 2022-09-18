@@ -201,15 +201,12 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
   PetscCall(PEPAllocateSolution(pep,0));
   if (ctx->weight) PetscCall(PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma));
   PetscCall(PetscMalloc4(ctx->N,&ctx->weight,ctx->N,&ctx->omega,ctx->N,&ctx->pp,ctx->L_max*ctx->M,&ctx->sigma));
-  PetscCall(PetscLogObjectMemory((PetscObject)pep,3*ctx->N*sizeof(PetscScalar)+ctx->L_max*ctx->N*sizeof(PetscReal)));
 
   /* allocate basis vectors */
   PetscCall(BVDestroy(&ctx->S));
   PetscCall(BVDuplicateResize(pep->V,ctx->L*ctx->M,&ctx->S));
-  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->S));
   PetscCall(BVDestroy(&ctx->V));
   PetscCall(BVDuplicateResize(pep->V,ctx->L,&ctx->V));
-  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->V));
 
   /* check if a user-defined split preconditioner has been set */
   PetscCall(STGetSplitPreconditionerInfo(pep->st,&nsplit,NULL));
@@ -221,10 +218,7 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
 
   contour = ctx->contour;
   PetscCall(SlepcContourRedundantMat(contour,pep->nmat,pep->A,ctx->Psplit));
-  if (!ctx->J) {
-    PetscCall(MatDuplicate(contour->pA?contour->pA[0]:pep->A[0],MAT_DO_NOT_COPY_VALUES,&ctx->J));
-    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->J));
-  }
+  if (!ctx->J) PetscCall(MatDuplicate(contour->pA?contour->pA[0]:pep->A[0],MAT_DO_NOT_COPY_VALUES,&ctx->J));
   if (contour->pA) {
     PetscCall(BVGetColumn(ctx->V,0,&v0));
     PetscCall(SlepcContourScatterCreate(contour,v0));
@@ -234,7 +228,6 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
     PetscCall(BVSetSizesFromVec(ctx->pV,contour->xsub,pep->n));
     PetscCall(BVSetFromOptions(ctx->pV));
     PetscCall(BVResize(ctx->pV,ctx->L,PETSC_FALSE));
-    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->pV));
   }
 
   PetscCall(BVDestroy(&ctx->Y));
@@ -887,7 +880,6 @@ static PetscErrorCode PEPCISSGetKSPs_CISS(PEP pep,PetscInt *nsolve,KSP **ksp)
       PetscCall(PetscObjectIncrementTabLevel((PetscObject)contour->ksp[i],(PetscObject)pep,1));
       PetscCall(KSPSetOptionsPrefix(contour->ksp[i],((PetscObject)pep)->prefix));
       PetscCall(KSPAppendOptionsPrefix(contour->ksp[i],"pep_ciss_"));
-      PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)contour->ksp[i]));
       PetscCall(PetscObjectSetOptions((PetscObject)contour->ksp[i],((PetscObject)pep)->options));
       PetscCall(KSPSetErrorIfNotConverged(contour->ksp[i],PETSC_TRUE));
       PetscCall(KSPSetTolerances(contour->ksp[i],SlepcDefaultTol(pep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));

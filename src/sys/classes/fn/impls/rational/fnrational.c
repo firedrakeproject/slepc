@@ -238,7 +238,6 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
   PetscCall(PetscFree(ctx->pcoeff));
   if (np) {
     PetscCall(PetscMalloc1(np,&ctx->pcoeff));
-    PetscCall(PetscLogObjectMemory((PetscObject)fn,np*sizeof(PetscScalar)));
     for (i=0;i<np;i++) ctx->pcoeff[i] = pcoeff[i];
   }
   PetscFunctionReturn(0);
@@ -336,7 +335,6 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
   PetscCall(PetscFree(ctx->qcoeff));
   if (nq) {
     PetscCall(PetscMalloc1(nq,&ctx->qcoeff));
-    PetscCall(PetscLogObjectMemory((PetscObject)fn,nq*sizeof(PetscScalar)));
     for (i=0;i<nq;i++) ctx->qcoeff[i] = qcoeff[i];
   }
   PetscFunctionReturn(0);
@@ -456,13 +454,11 @@ PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
   ctx2->np = ctx->np;
   if (ctx->np) {
     PetscCall(PetscMalloc1(ctx->np,&ctx2->pcoeff));
-    PetscCall(PetscLogObjectMemory((PetscObject)(*newfn),ctx->np*sizeof(PetscScalar)));
     for (i=0;i<ctx->np;i++) ctx2->pcoeff[i] = ctx->pcoeff[i];
   }
   ctx2->nq = ctx->nq;
   if (ctx->nq) {
     PetscCall(PetscMalloc1(ctx->nq,&ctx2->qcoeff));
-    PetscCall(PetscLogObjectMemory((PetscObject)(*newfn),ctx->nq*sizeof(PetscScalar)));
     for (i=0;i<ctx->nq;i++) ctx2->qcoeff[i] = ctx->qcoeff[i];
   }
   PetscFunctionReturn(0);

@@ -352,7 +352,6 @@ static PetscErrorCode NEPInterpolSetPEP_Interpol(NEP nep,PEP pep)
   PetscCall(PetscObjectReference((PetscObject)pep));
   PetscCall(PEPDestroy(&ctx->pep));
   ctx->pep = pep;
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep));
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -391,7 +390,6 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1));
     PetscCall(PEPSetOptionsPrefix(ctx->pep,((PetscObject)nep)->prefix));
     PetscCall(PEPAppendOptionsPrefix(ctx->pep,"nep_interpol_"));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->pep,((PetscObject)nep)->options));
     PetscCall(PEPMonitorSet(ctx->pep,PEPMonitor_Interpol,nep,NULL));
   }

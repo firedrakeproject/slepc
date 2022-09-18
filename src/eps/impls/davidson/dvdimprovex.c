@@ -448,7 +448,6 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     v0[1] = v0[0];
     PetscCall(VecCreateCompWithVecs(v0,data->ksp_max_size,NULL,&data->friends));
     PetscCall(BVRestoreColumn(d->eps->V,0,&v0[0]));
-    PetscCall(PetscLogObjectParent((PetscObject)d->eps,(PetscObject)data->friends));
 
     /* Save the current pc and set a PCNONE */
     PetscCall(KSPGetPC(data->ksp, &data->old_pc));

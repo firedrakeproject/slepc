@@ -356,7 +356,6 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
 #endif
     } else PetscCall(VecCreateSeq(PETSC_COMM_SELF,m,&v));
-    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)v));
     if (copy) {
       PetscCall(VecGetArray(v,&array));
       PetscCall(VecGetArrayRead(bv->omega,&omega));
@@ -719,7 +718,6 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
   PetscCall(PetscObjectReference((PetscObject)buffer));
   PetscCall(VecDestroy(&bv->buffer));
   bv->buffer = buffer;
-  PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->buffer));
   PetscFunctionReturn(0);
 }
 
@@ -770,7 +768,6 @@ PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
     PetscCall(VecCreate(PETSC_COMM_SELF,&bv->buffer));
     PetscCall(VecSetSizes(bv->buffer,PETSC_DECIDE,ld*bv->m));
     PetscCall(VecSetType(bv->buffer,((PetscObject)bv->t)->type_name));
-    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->buffer));
   }
   *buffer = bv->buffer;
   PetscFunctionReturn(0);
@@ -799,7 +796,6 @@ PetscErrorCode BVSetRandomContext(BV bv,PetscRandom rand)
   PetscCall(PetscObjectReference((PetscObject)rand));
   PetscCall(PetscRandomDestroy(&bv->rand));
   bv->rand = rand;
-  PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->rand));
   PetscFunctionReturn(0);
 }
 
@@ -825,7 +821,6 @@ PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
   PetscValidPointer(rand,2);
   if (!bv->rand) {
     PetscCall(PetscRandomCreate(PetscObjectComm((PetscObject)bv),&bv->rand));
-    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->rand));
     if (bv->cuda) PetscCall(PetscRandomSetType(bv->rand,PETSCCURAND));
     if (bv->sfocalled) PetscCall(PetscRandomSetFromOptions(bv->rand));
     if (bv->rrandom) {
@@ -1384,7 +1379,6 @@ PetscErrorCode BVGetMat_Default(BV bv,Mat *A)
   if (create) {
     PetscCall(MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
     PetscCall(MatDenseReplaceArray(bv->Aget,NULL));  /* replace with a null pointer, the value after BVRestoreMat */
-    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Aget));
   }
   PetscCall(MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n));  /* set the actual pointer */
   *A = bv->Aget;
@@ -1594,7 +1588,6 @@ PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
     PetscCall(BVCreate(PetscObjectComm((PetscObject)bv),&bv->cached));
     PetscCall(BVSetSizesFromVec(bv->cached,bv->t,bv->m));
     PetscCall(BVDuplicate_Private(bv,bv->cached));
-    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->cached));
   }
   *cached = bv->cached;
   PetscFunctionReturn(0);
@@ -1746,7 +1739,6 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
   if (*split && ncols!=(*split)->m) PetscCall(BVDestroy(split));
   if (!*split) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)bv),split));
-    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)*split));
     (*split)->issplit = left? 1: 2;
     (*split)->splitparent = bv;
     PetscCall(BVSetSizesFromVec(*split,bv->t,ncols));

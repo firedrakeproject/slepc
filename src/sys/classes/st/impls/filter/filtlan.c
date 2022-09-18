@@ -1070,10 +1070,7 @@ PetscErrorCode MatMatMult_FILTLAN(Mat A,Mat B,Mat C,void *pctx)
   if (!ctx->nW) {  /* allocate work matrices */
     ctx->nW = 4;
     PetscCall(PetscMalloc1(ctx->nW,&ctx->W));
-    PetscCall(PetscLogObjectMemory((PetscObject)st,ctx->nW*sizeof(Mat)));
-    for (i=0;i<ctx->nW;i++) {
-      PetscCall(MatDuplicate(B,MAT_DO_NOT_COPY_VALUES,&ctx->W[i]));
-    }
+    for (i=0;i<ctx->nW;i++) PetscCall(MatDuplicate(B,MAT_DO_NOT_COPY_VALUES,&ctx->W[i]));
   }
   PetscCall(FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProductBlock(ctx->T,B,ctx->W[0],ctx->baseFilter,2*ctx->baseDegree+2,ctx->intervals,npoints-1,ctx->opts->intervalWeights,ctx->polyDegree,st->work,C,ctx->W[1],ctx->W[2],ctx->W[3]));
   PetscCall(MatMatMult(ctx->T,ctx->W[0],MAT_REUSE_MATRIX,PETSC_DEFAULT,&C));
@@ -1149,7 +1146,6 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
     PetscCall(MatShellSetOperation(*G,MATOP_MULT,(void(*)(void))MatMult_FILTLAN));
     PetscCall(MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSE,MATDENSE));
     PetscCall(MatShellSetMatProductOperation(*G,MATPRODUCT_AB,NULL,MatMatMult_FILTLAN,NULL,MATDENSECUDA,MATDENSECUDA));
-    PetscCall(PetscLogObjectParent((PetscObject)st,(PetscObject)*G));
   }
   PetscFunctionReturn(0);
 }

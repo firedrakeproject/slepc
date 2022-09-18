@@ -511,7 +511,6 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   PetscCall(PetscObjectReference((PetscObject)st));
   PetscCall(STDestroy(&eps->st));
   eps->st = st;
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->st));
   PetscFunctionReturn(0);
 }
 
@@ -539,7 +538,6 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
   if (!eps->st) {
     PetscCall(STCreate(PetscObjectComm((PetscObject)eps),&eps->st));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->st,(PetscObject)eps,0));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->st));
     PetscCall(PetscObjectSetOptions((PetscObject)eps->st,((PetscObject)eps)->options));
   }
   *st = eps->st;
@@ -568,7 +566,6 @@ PetscErrorCode EPSSetBV(EPS eps,BV V)
   PetscCall(PetscObjectReference((PetscObject)V));
   PetscCall(BVDestroy(&eps->V));
   eps->V = V;
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V));
   PetscFunctionReturn(0);
 }
 
@@ -595,7 +592,6 @@ PetscErrorCode EPSGetBV(EPS eps,BV *V)
   if (!eps->V) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)eps),&eps->V));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->V,(PetscObject)eps,0));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V));
     PetscCall(PetscObjectSetOptions((PetscObject)eps->V,((PetscObject)eps)->options));
   }
   *V = eps->V;
@@ -630,7 +626,6 @@ PetscErrorCode EPSSetRG(EPS eps,RG rg)
   PetscCall(PetscObjectReference((PetscObject)rg));
   PetscCall(RGDestroy(&eps->rg));
   eps->rg = rg;
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rg));
   PetscFunctionReturn(0);
 }
 
@@ -657,7 +652,6 @@ PetscErrorCode EPSGetRG(EPS eps,RG *rg)
   if (!eps->rg) {
     PetscCall(RGCreate(PetscObjectComm((PetscObject)eps),&eps->rg));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->rg,(PetscObject)eps,0));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rg));
     PetscCall(PetscObjectSetOptions((PetscObject)eps->rg,((PetscObject)eps)->options));
   }
   *rg = eps->rg;
@@ -690,7 +684,6 @@ PetscErrorCode EPSSetDS(EPS eps,DS ds)
   PetscCall(PetscObjectReference((PetscObject)ds));
   PetscCall(DSDestroy(&eps->ds));
   eps->ds = ds;
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ds));
   PetscFunctionReturn(0);
 }
 
@@ -717,7 +710,6 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
   if (!eps->ds) {
     PetscCall(DSCreate(PetscObjectComm((PetscObject)eps),&eps->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->ds,(PetscObject)eps,0));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ds));
     PetscCall(PetscObjectSetOptions((PetscObject)eps->ds,((PetscObject)eps)->options));
   }
   *ds = eps->ds;

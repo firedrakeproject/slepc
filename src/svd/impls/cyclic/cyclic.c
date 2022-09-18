@@ -112,10 +112,6 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
     ctx->swapped = svd->swapped;
     PetscCall(MatCreateVecsEmpty(A,&ctx->x2,&ctx->x1));
     PetscCall(MatCreateVecsEmpty(A,&ctx->y2,&ctx->y1));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->x1));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->x2));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->y1));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->y2));
     PetscCall(MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,ctx,C));
     PetscCall(MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cyclic));
     PetscCall(MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_Cyclic));
@@ -128,7 +124,6 @@ static PetscErrorCode SVDCyclicGetCyclicMat(SVD svd,Mat A,Mat AT,Mat *C)
     PetscCall(MatGetVecType(A,&vtype));
     PetscCall(MatSetVecType(*C,vtype));
   }
-  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)*C));
   PetscFunctionReturn(0);
 }
 
@@ -297,10 +292,6 @@ static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
     PetscCall(MatCreateVecsEmpty(A,&ctx->x2,NULL));
     PetscCall(MatCreateVecsEmpty(A,&ctx->y2,NULL));
     PetscCall(MatCreateVecs(A,NULL,&ctx->w));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->x1));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->x2));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->y1));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->y2));
     PetscCall(MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,ctx,C));
     PetscCall(MatShellSetOperation(*C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_ECross));
     PetscCall(MatShellSetOperation(*C,MATOP_DESTROY,(void(*)(void))MatDestroy_ECross));
@@ -313,7 +304,6 @@ static PetscErrorCode SVDCyclicGetECrossMat(SVD svd,Mat A,Mat AT,Mat *C,Vec t)
     PetscCall(MatGetVecType(A,&vtype));
     PetscCall(MatSetVecType(*C,vtype));
   }
-  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)*C));
   PetscFunctionReturn(0);
 }
 
@@ -924,10 +914,9 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   PetscFunctionBegin;
   PetscCall(PetscObjectReference((PetscObject)eps));
   PetscCall(EPSDestroy(&cyclic->eps));
-  cyclic->eps = eps;
+  cyclic->eps     = eps;
   cyclic->usereps = PETSC_TRUE;
-  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps));
-  svd->state = SVD_STATE_INITIAL;
+  svd->state      = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -965,7 +954,6 @@ static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1));
     PetscCall(EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix));
     PetscCall(EPSAppendOptionsPrefix(cyclic->eps,"svd_cyclic_"));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps));
     PetscCall(PetscObjectSetOptions((PetscObject)cyclic->eps,((PetscObject)svd)->options));
     PetscCall(EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL));
     PetscCall(EPSMonitorSet(cyclic->eps,EPSMonitor_Cyclic,svd,NULL));

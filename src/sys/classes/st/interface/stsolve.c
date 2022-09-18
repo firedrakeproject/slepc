@@ -273,10 +273,7 @@ static PetscErrorCode MatMultHermitianTranspose_STOperator(Mat Op,Vec x,Vec y)
   PetscCall(MatShellGetContext(Op,&st));
   PetscCall(STSetUp(st));
   PetscCall(PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0));
-  if (!st->wht) {
-    PetscCall(MatCreateVecs(st->A[0],&st->wht,NULL));
-    PetscCall(PetscLogObjectParent((PetscObject)st,(PetscObject)st->wht));
-  }
+  if (!st->wht) PetscCall(MatCreateVecs(st->A[0],&st->wht,NULL));
   PetscCall(VecCopy(x,st->wht));
   PetscCall(VecConjugate(st->wht));
   if (st->D) { /* with balancing */
@@ -454,10 +451,7 @@ PetscErrorCode STComputeOperator(ST st)
   if (!st->opready && st->ops->computeoperator) {
     PetscCall(PetscInfo(st,"Building the operator matrices\n"));
     STCheckMatrices(st,1);
-    if (!st->T) {
-      PetscCall(PetscCalloc1(PetscMax(2,st->nmat),&st->T));
-      PetscCall(PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat)));
-    }
+    if (!st->T) PetscCall(PetscCalloc1(PetscMax(2,st->nmat),&st->T));
     PetscCall(PetscLogEventBegin(ST_ComputeOperator,st,0,0,0));
     PetscUseTypeMethod(st,computeoperator);
     PetscCall(PetscLogEventEnd(ST_ComputeOperator,st,0,0,0));
@@ -521,17 +515,11 @@ PetscErrorCode STSetUp(ST st)
     PetscCall(MatGetLocalSize(st->A[0],NULL,&n));
     PetscCall(VecGetLocalSize(st->D,&k));
     PetscCheck(n==k,PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Balance matrix has wrong dimension %" PetscInt_FMT " (should be %" PetscInt_FMT ")",k,n);
-    if (!st->wb) {
-      PetscCall(VecDuplicate(st->D,&st->wb));
-      PetscCall(PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb));
-    }
+    if (!st->wb) PetscCall(VecDuplicate(st->D,&st->wb));
   }
   if (st->nmat<3 && st->transform) PetscCall(STComputeOperator(st));
   else {
-    if (!st->T) {
-      PetscCall(PetscCalloc1(PetscMax(2,st->nmat),&st->T));
-      PetscCall(PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat)));
-    }
+    if (!st->T) PetscCall(PetscCalloc1(PetscMax(2,st->nmat),&st->T));
   }
   PetscTryTypeMethod(st,setup);
   st->state = ST_STATE_SETUP;
@@ -582,7 +570,6 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
         for (i=0;i<nmat;i++) matIdx[i] = k+i;
       }
       PetscCall(STMatShellCreate(st,alpha,nmat,matIdx,coeffs,S));
-      PetscCall(PetscLogObjectParent((PetscObject)st,(PetscObject)*S));
       if (st->nmat>2) PetscCall(PetscFree(matIdx));
     } else PetscCall(STMatShellShift(*S,alpha));
     break;
@@ -607,7 +594,6 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
         PetscCall(MatDestroy(S));
         PetscCall(MatDuplicate(A[k+ini],MAT_COPY_VALUES,S));
         PetscCall(MatSetOption(*S,MAT_NEW_NONZERO_ALLOCATION_ERR,PETSC_FALSE));
-        PetscCall(PetscLogObjectParent((PetscObject)st,(PetscObject)*S));
       }
       if (coeffs && coeffs[ini]!=1.0) PetscCall(MatScale(*S,coeffs[ini]));
       for (i=ini+k+1;i<PetscMax(2,st->nmat);i++) {
@@ -794,7 +780,6 @@ PetscErrorCode STSetWorkVecs(ST st,PetscInt nw)
     st->nwork = nw;
     PetscCall(PetscMalloc1(nw,&st->work));
     for (i=0;i<nw;i++) PetscCall(STMatCreateVecs(st,&st->work[i],NULL));
-    PetscCall(PetscLogObjectParents(st,nw,st->work));
   }
   PetscFunctionReturn(0);
 }

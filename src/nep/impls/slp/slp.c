@@ -361,7 +361,6 @@ static PetscErrorCode NEPSLPSetEPS_SLP(NEP nep,EPS eps)
   PetscCall(PetscObjectReference((PetscObject)eps));
   PetscCall(EPSDestroy(&ctx->eps));
   ctx->eps = eps;
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps));
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -400,7 +399,6 @@ static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1));
     PetscCall(EPSSetOptionsPrefix(ctx->eps,((PetscObject)nep)->prefix));
     PetscCall(EPSAppendOptionsPrefix(ctx->eps,"nep_slp_"));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->eps,((PetscObject)nep)->options));
   }
   *eps = ctx->eps;
@@ -440,7 +438,6 @@ static PetscErrorCode NEPSLPSetEPSLeft_SLP(NEP nep,EPS eps)
   PetscCall(PetscObjectReference((PetscObject)eps));
   PetscCall(EPSDestroy(&ctx->epsts));
   ctx->epsts = eps;
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->epsts));
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -480,7 +477,6 @@ static PetscErrorCode NEPSLPGetEPSLeft_SLP(NEP nep,EPS *eps)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->epsts,(PetscObject)nep,1));
     PetscCall(EPSSetOptionsPrefix(ctx->epsts,((PetscObject)nep)->prefix));
     PetscCall(EPSAppendOptionsPrefix(ctx->epsts,"nep_slp_left_"));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->epsts));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->epsts,((PetscObject)nep)->options));
   }
   *eps = ctx->epsts;
@@ -520,8 +516,7 @@ static PetscErrorCode NEPSLPSetKSP_SLP(NEP nep,KSP ksp)
   PetscFunctionBegin;
   PetscCall(PetscObjectReference((PetscObject)ksp));
   PetscCall(KSPDestroy(&ctx->ksp));
-  ctx->ksp = ksp;
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp));
+  ctx->ksp   = ksp;
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -560,7 +555,6 @@ static PetscErrorCode NEPSLPGetKSP_SLP(NEP nep,KSP *ksp)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)nep,1));
     PetscCall(KSPSetOptionsPrefix(ctx->ksp,((PetscObject)nep)->prefix));
     PetscCall(KSPAppendOptionsPrefix(ctx->ksp,"nep_slp_"));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)nep)->options));
     PetscCall(KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE));
     PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));

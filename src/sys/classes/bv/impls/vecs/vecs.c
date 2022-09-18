@@ -328,7 +328,6 @@ PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
 
   PetscFunctionBegin;
   PetscCall(VecDuplicateVecs(bv->t,m,&newV));
-  PetscCall(PetscLogObjectParents(bv,m,newV));
   if (((PetscObject)bv)->name) {
     for (j=0;j<m;j++) {
       PetscCall(PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j));
@@ -518,7 +517,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   } else {
     /* regular BV: create array of Vecs to store the BV columns */
     PetscCall(VecDuplicateVecs(bv->t,bv->m,&ctx->V));
-    PetscCall(PetscLogObjectParents(bv,bv->m,ctx->V));
     if (((PetscObject)bv)->name) {
       for (j=0;j<bv->m;j++) {
         PetscCall(PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j));

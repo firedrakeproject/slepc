@@ -118,7 +118,6 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   EPS_KRYLOVSCHUR    *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   PetscReal          eta;
   PetscInt           k;
-  PetscLogDouble     cnt;
   BVType             type;
   BVOrthogType       orthog_type;
   BVOrthogRefineType orthog_ref;
@@ -132,13 +131,10 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   k = PetscMax(1,sr->numEigs);
   PetscCall(PetscFree4(sr->eigr,sr->eigi,sr->errest,sr->perm));
   PetscCall(PetscMalloc4(k,&sr->eigr,k,&sr->eigi,k,&sr->errest,k,&sr->perm));
-  cnt = 2*k*sizeof(PetscScalar) + 2*k*sizeof(PetscReal) + k*sizeof(PetscInt);
-  PetscCall(PetscLogObjectMemory((PetscObject)eps,cnt));
 
   /* allocate sr->V and transfer options from eps->V */
   PetscCall(BVDestroy(&sr->V));
   PetscCall(BVCreate(PetscObjectComm((PetscObject)eps),&sr->V));
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)sr->V));
   if (!eps->V) PetscCall(EPSGetBV(eps,&eps->V));
   if (!((PetscObject)(eps->V))->type_name) PetscCall(BVSetType(sr->V,BVSVEC));
   else {
@@ -735,7 +731,6 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS
   if (sr->nPend >= sr->maxPend) {
     sr->maxPend *= 2;
     PetscCall(PetscMalloc1(sr->maxPend,&pending2));
-    PetscCall(PetscLogObjectMemory((PetscObject)eps,sr->maxPend*sizeof(EPS_shift*)));
     for (i=0;i<sr->nPend;i++) pending2[i] = sr->pending[i];
     PetscCall(PetscFree(sr->pending));
     sr->pending = pending2;
@@ -1264,7 +1259,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     sr->maxPend = 100; /* Initial size */
     sr->nPend = 0;
     PetscCall(PetscMalloc1(sr->maxPend,&sr->pending));
-    PetscCall(PetscLogObjectMemory((PetscObject)eps,sr->maxPend*sizeof(EPS_shift*)));
     PetscCall(EPSCreateShift(eps,sr->int0,NULL,NULL));
     /* extract first shift */
     sr->sPrev = NULL;
@@ -1277,7 +1271,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     lds = PetscMin(eps->mpd,eps->ncv);
     PetscCall(PetscCalloc1(lds*lds,&sr->S));
     PetscCall(PetscMalloc1(eps->ncv,&sr->back));
-    PetscCall(PetscLogObjectMemory((PetscObject)eps,(lds*lds+eps->ncv)*sizeof(PetscScalar)));
     for (i=0;i<sr->numEigs;i++) {
       sr->eigr[i]   = 0.0;
       sr->eigi[i]   = 0.0;
@@ -1286,7 +1279,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     }
     /* Vectors for deflation */
     PetscCall(PetscMalloc1(sr->numEigs,&sr->idxDef));
-    PetscCall(PetscLogObjectMemory((PetscObject)eps,sr->numEigs*sizeof(PetscInt)));
     sr->indexEig = 0;
     /* Main loop */
     while (sr->sPres) {

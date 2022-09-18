@@ -478,7 +478,6 @@ PetscErrorCode LMESetBV(LME lme,BV bv)
   PetscCall(PetscObjectReference((PetscObject)bv));
   PetscCall(BVDestroy(&lme->V));
   lme->V = bv;
-  PetscCall(PetscLogObjectParent((PetscObject)lme,(PetscObject)lme->V));
   PetscFunctionReturn(0);
 }
 
@@ -506,7 +505,6 @@ PetscErrorCode LMEGetBV(LME lme,BV *bv)
   if (!lme->V) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)lme),&lme->V));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)lme->V,(PetscObject)lme,0));
-    PetscCall(PetscLogObjectParent((PetscObject)lme,(PetscObject)lme->V));
     PetscCall(PetscObjectSetOptions((PetscObject)lme->V,((PetscObject)lme)->options));
   }
   *bv = lme->V;

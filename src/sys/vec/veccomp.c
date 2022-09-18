@@ -318,7 +318,6 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
   PetscFunctionBegin;
   PetscCall(VecCreate(comm,V));
   PetscCall(PetscMalloc1(n,&x));
-  PetscCall(PetscLogObjectMemory((PetscObject)*V,n*sizeof(Vec)));
   for (i=0;i<n;i++) {
     PetscCall(VecCreate(comm,&x[i]));
     PetscCall(VecSetSizes(x[i],PETSC_DECIDE,Nx[i]));
@@ -370,7 +369,6 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
   SlepcValidVecComp(win,1);
   PetscCall(VecCreate(PetscObjectComm((PetscObject)win),V));
   PetscCall(PetscMalloc1(s->nx,&x));
-  PetscCall(PetscLogObjectMemory((PetscObject)*V,s->nx*sizeof(Vec)));
   for (i=0;i<s->nx;i++) {
     if (s->x[i]) PetscCall(VecDuplicate(s->x[i],&x[i]));
     else x[i] = NULL;
@@ -425,7 +423,6 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
   if (!s->nx) {
     /* vector has been created via VecCreate+VecSetType+VecSetSizes, so allocate data structures */
     PetscCall(PetscMalloc1(n,&s->x));
-    PetscCall(PetscLogObjectMemory((PetscObject)win,n*sizeof(Vec)));
     PetscCall(VecGetSize(win,&N));
     PetscCheck(N%n==0,PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Global dimension %" PetscInt_FMT " is not divisible by %" PetscInt_FMT,N,n);
     PetscCall(VecGetLocalSize(win,&nlocal));

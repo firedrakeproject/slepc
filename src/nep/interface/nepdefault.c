@@ -41,7 +41,6 @@ PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
     PetscCall(BVGetColumn(nep->V,0,&t));
     PetscCall(VecDuplicateVecs(t,nw,&nep->work));
     PetscCall(BVRestoreColumn(nep->V,0,&t));
-    PetscCall(PetscLogObjectParents(nep,nw,nep->work));
   }
   PetscFunctionReturn(0);
 }

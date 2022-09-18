@@ -157,10 +157,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
     PetscCall(BVSetType(eps->V,BVCONTIGUOUS));
   }
   PetscCall(EPSAllocateSolution(eps,0));
-  if (!blopex->w) {
-    PetscCall(BVCreateVec(eps->V,&blopex->w));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->w));
-  }
+  if (!blopex->w) PetscCall(BVCreateVec(eps->V,&blopex->w));
 
 #if defined(PETSC_USE_COMPLEX)
   blopex->blap_fn.zpotrf = PETSC_zpotrf_interface;

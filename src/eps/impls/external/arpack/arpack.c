@@ -36,11 +36,9 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 #if defined(PETSC_USE_COMPLEX)
   PetscCall(PetscFree(ar->rwork));
   PetscCall(PetscMalloc1(ncv,&ar->rwork));
-  PetscCall(PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscReal)));
   ar->lworkl = 3*ncv*ncv+5*ncv;
   PetscCall(PetscFree(ar->workev));
   PetscCall(PetscMalloc1(3*ncv,&ar->workev));
-  PetscCall(PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar)));
 #else
   if (eps->ishermitian) {
     ar->lworkl = ncv*(ncv+8);
@@ -48,18 +46,14 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
     ar->lworkl = 3*ncv*ncv+6*ncv;
     PetscCall(PetscFree(ar->workev));
     PetscCall(PetscMalloc1(3*ncv,&ar->workev));
-    PetscCall(PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar)));
   }
 #endif
   PetscCall(PetscFree(ar->workl));
   PetscCall(PetscMalloc1(ar->lworkl,&ar->workl));
-  PetscCall(PetscLogObjectMemory((PetscObject)eps,ar->lworkl*sizeof(PetscScalar)));
   PetscCall(PetscFree(ar->select));
   PetscCall(PetscMalloc1(ncv,&ar->select));
-  PetscCall(PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscInt)));
   PetscCall(PetscFree(ar->workd));
   PetscCall(PetscMalloc1(3*eps->nloc,&ar->workd));
-  PetscCall(PetscLogObjectMemory((PetscObject)eps,3*eps->nloc*sizeof(PetscScalar)));
 
   PetscCall(EPSAllocateSolution(eps,0));
   PetscCall(EPS_SetInnerProduct(eps));

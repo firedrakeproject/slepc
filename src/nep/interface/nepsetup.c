@@ -66,13 +66,8 @@ PetscErrorCode NEPSetUp(NEP nep)
     break;
   case NEP_USER_INTERFACE_SPLIT:
     PetscCall(MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->function));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function));
-    if (nep->P) {
-      PetscCall(MatDuplicate(nep->P[0],MAT_DO_NOT_COPY_VALUES,&nep->function_pre));
-      PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function_pre));
-    }
+    if (nep->P) PetscCall(MatDuplicate(nep->P[0],MAT_DO_NOT_COPY_VALUES,&nep->function_pre));
     PetscCall(MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->jacobian));
     PetscCall(MatGetSize(nep->A[0],&nep->n,NULL));
     PetscCall(MatGetLocalSize(nep->A[0],&nep->nloc,NULL));
     break;
@@ -281,8 +276,7 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
 @*/
 PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 {
-  PetscInt       oldsize,newc,requested;
-  PetscLogDouble cnt;
+  PetscInt       oldsize,requested;
   PetscRandom    rand;
   Mat            T;
   Vec            t;
@@ -292,14 +286,11 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 
   /* oldsize is zero if this is the first time setup is called */
   PetscCall(BVGetSizes(nep->V,NULL,NULL,&oldsize));
-  newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize || !nep->eigr) {
     PetscCall(PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm));
     PetscCall(PetscMalloc4(requested,&nep->eigr,requested,&nep->eigi,requested,&nep->errest,requested,&nep->perm));
-    cnt = newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
-    PetscCall(PetscLogObjectMemory((PetscObject)nep,cnt));
   }
 
   /* allocate V */

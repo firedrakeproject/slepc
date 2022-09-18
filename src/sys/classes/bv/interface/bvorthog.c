@@ -563,7 +563,6 @@ static inline PetscErrorCode BV_GetBufferMat(BV bv)
     PetscCall(VecGetArray(bv->buffer,&array));
     PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,ld,bv->m,array,&bv->Abuffer));
     PetscCall(VecRestoreArray(bv->buffer,&array));
-    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Abuffer));
   }
   PetscFunctionReturn(0);
 }

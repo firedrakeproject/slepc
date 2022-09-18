@@ -139,7 +139,6 @@ static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
     ctx->omega   = svd->omega;
     ctx->swapped = svd->swapped;
     PetscCall(MatCreateVecs(A,NULL,&ctx->w));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->w));
     PetscCall(MatGetLocalSize(A,NULL,&n));
     PetscCall(MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,(void*)ctx,C));
     PetscCall(MatShellSetOperation(*C,MATOP_MULT,(void(*)(void))MatMult_Cross));
@@ -148,7 +147,6 @@ static PetscErrorCode SVDCrossGetProductMat(SVD svd,Mat A,Mat AT,Mat *C)
     PetscCall(MatGetVecType(A,&vtype));
     PetscCall(MatSetVecType(*C,vtype));
   }
-  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)*C));
   PetscFunctionReturn(0);
 }
 
@@ -473,10 +471,9 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   PetscFunctionBegin;
   PetscCall(PetscObjectReference((PetscObject)eps));
   PetscCall(EPSDestroy(&cross->eps));
-  cross->eps = eps;
+  cross->eps     = eps;
   cross->usereps = PETSC_TRUE;
-  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps));
-  svd->state = SVD_STATE_INITIAL;
+  svd->state     = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -514,7 +511,6 @@ static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1));
     PetscCall(EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix));
     PetscCall(EPSAppendOptionsPrefix(cross->eps,"svd_cross_"));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps));
     PetscCall(PetscObjectSetOptions((PetscObject)cross->eps,((PetscObject)svd)->options));
     PetscCall(EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL));
     PetscCall(EPSMonitorSet(cross->eps,EPSMonitor_Cross,svd,NULL));

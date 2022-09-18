@@ -302,11 +302,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   }
 
   /* Prepare auxiliary vectors */
-  if (!ops->x) {
-    PetscCall(MatCreateVecsEmpty(ops->A,&ops->x,&ops->y));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->x));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->y));
-  }
+  if (!ops->x) PetscCall(MatCreateVecsEmpty(ops->A,&ops->x,&ops->y));
   PetscFunctionReturn(0);
 }
 

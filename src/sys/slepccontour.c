@@ -27,7 +27,6 @@ PetscErrorCode SlepcContourDataCreate(PetscInt n,PetscInt npart,PetscObject pare
   PetscCall(PetscSubcommCreate(PetscObjectComm(parent),&(*contour)->subcomm));
   PetscCall(PetscSubcommSetNumber((*contour)->subcomm,npart));
   PetscCall(PetscSubcommSetType((*contour)->subcomm,PETSC_SUBCOMM_INTERLACED));
-  PetscCall(PetscLogObjectMemory(parent,sizeof(PetscSubcomm)));
   (*contour)->npoints = n / npart;
   if (n%npart > (*contour)->subcomm->color) (*contour)->npoints++;
   PetscFunctionReturn(0);
@@ -97,16 +96,10 @@ PetscErrorCode SlepcContourRedundantMat(SlepcContourData contour,PetscInt nmat,M
   if (contour->subcomm && contour->subcomm->n != 1) {
     PetscCall(PetscSubcommGetChild(contour->subcomm,&child));
     PetscCall(PetscCalloc1(nmat,&contour->pA));
-    for (i=0;i<nmat;i++) {
-      PetscCall(MatCreateRedundantMatrix(A[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pA[i]));
-      PetscCall(PetscLogObjectParent(contour->parent,(PetscObject)contour->pA[i]));
-    }
+    for (i=0;i<nmat;i++) PetscCall(MatCreateRedundantMatrix(A[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pA[i]));
     if (P) {
       PetscCall(PetscCalloc1(nmat,&contour->pP));
-      for (i=0;i<nmat;i++) {
-        PetscCall(MatCreateRedundantMatrix(P[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pP[i]));
-        PetscCall(PetscLogObjectParent(contour->parent,(PetscObject)contour->pP[i]));
-      }
+      for (i=0;i<nmat;i++) PetscCall(MatCreateRedundantMatrix(P[i],contour->subcomm->n,child,MAT_INITIAL_MATRIX,&contour->pP[i]));
     }
     contour->nmat = nmat;
   }

@@ -464,7 +464,6 @@ PetscErrorCode MFNSetBV(MFN mfn,BV bv)
   PetscCall(PetscObjectReference((PetscObject)bv));
   PetscCall(BVDestroy(&mfn->V));
   mfn->V = bv;
-  PetscCall(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->V));
   PetscFunctionReturn(0);
 }
 
@@ -492,7 +491,6 @@ PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
   if (!mfn->V) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)mfn),&mfn->V));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)mfn->V,(PetscObject)mfn,0));
-    PetscCall(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->V));
     PetscCall(PetscObjectSetOptions((PetscObject)mfn->V,((PetscObject)mfn)->options));
   }
   *bv = mfn->V;
@@ -525,7 +523,6 @@ PetscErrorCode MFNSetFN(MFN mfn,FN fn)
   PetscCall(PetscObjectReference((PetscObject)fn));
   PetscCall(FNDestroy(&mfn->fn));
   mfn->fn = fn;
-  PetscCall(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->fn));
   PetscFunctionReturn(0);
 }
 
@@ -552,7 +549,6 @@ PetscErrorCode MFNGetFN(MFN mfn,FN *fn)
   if (!mfn->fn) {
     PetscCall(FNCreate(PetscObjectComm((PetscObject)mfn),&mfn->fn));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)mfn->fn,(PetscObject)mfn,0));
-    PetscCall(PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->fn));
     PetscCall(PetscObjectSetOptions((PetscObject)mfn->fn,((PetscObject)mfn)->options));
   }
   *fn = mfn->fn;

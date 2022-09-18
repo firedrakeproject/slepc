@@ -1194,10 +1194,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,PEP_REFINE_EXPLICIT *m
 
   /* Duplicate pep matrices */
   PetscCall(PetscMalloc3(pep->nmat,&matctx->A,nsubc,&matctx->scatter_id,nsubc,&matctx->scatterp_id));
-  for (i=0;i<pep->nmat;i++) {
-    PetscCall(MatCreateRedundantMatrix(A[i],0,child,MAT_INITIAL_MATRIX,&matctx->A[i]));
-    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)matctx->A[i]));
-  }
+  for (i=0;i<pep->nmat;i++) PetscCall(MatCreateRedundantMatrix(A[i],0,child,MAT_INITIAL_MATRIX,&matctx->A[i]));
 
   /* Create Scatter */
   PetscCall(MatCreateVecs(matctx->A[0],&matctx->t,NULL));
@@ -1360,7 +1357,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   PetscCheck(nsubc<=k,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Number of subcommunicators should not be larger than the invariant pair dimension");
   PetscCall(BVSetActiveColumns(pep->V,0,k));
   PetscCall(BVDuplicateResize(pep->V,k,&dV));
-  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)dV));
   if (pep->scheme!=PEP_REFINE_SCHEME_SCHUR) {
     PetscCall(PetscMalloc1(1,&matctx));
     if (nsubc>1) { /* splitting in subcommunicators */

@@ -299,8 +299,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
 
     PetscCall((*fcreate[i][0])(PetscObjectComm((PetscObject)pep),ctx,&ctx->A));
     PetscCall((*fcreate[i][1])(PetscObjectComm((PetscObject)pep),ctx,&ctx->B));
-    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A));
-    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B));
 
   } else {   /* implicit matrix */
     PetscCheck(pep->problem_type==PEP_GENERAL,PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option if problem type is not general");
@@ -317,18 +315,15 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     PetscCall(MatCreateVecsEmpty(pep->A[0],&ctx->w[0],&ctx->w[1]));
     PetscCall(MatCreateVecsEmpty(pep->A[0],&ctx->w[2],&ctx->w[3]));
     PetscCall(MatCreateVecs(pep->A[0],&ctx->w[4],&ctx->w[5]));
-    PetscCall(PetscLogObjectParents(pep,6,ctx->w));
     PetscCall(MatCreateShell(PetscObjectComm((PetscObject)pep),deg*pep->nloc,deg*pep->nloc,deg*pep->n,deg*pep->n,ctx,&ctx->A));
     if (sinv && !transf) PetscCall(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert));
     else PetscCall(MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Shift));
     PetscCall(STShellSetApply(st,Apply_Linear));
-    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->A));
     ctx->pep = pep;
 
     PetscCall(PEPBasisCoefficients(pep,pep->pbc));
     if (!transf) {
       PetscCall(PetscMalloc1(pep->nmat,&pep->solvematcoeffs));
-      PetscCall(PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar)));
       if (sinv) PetscCall(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
       else {
         for (i=0;i<deg;i++) pep->solvematcoeffs[i] = 0.0;
@@ -884,10 +879,9 @@ static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
   PetscFunctionBegin;
   PetscCall(PetscObjectReference((PetscObject)eps));
   PetscCall(EPSDestroy(&ctx->eps));
-  ctx->eps = eps;
+  ctx->eps     = eps;
   ctx->usereps = PETSC_TRUE;
-  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps));
-  pep->state = PEP_STATE_INITIAL;
+  pep->state   = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -925,7 +919,6 @@ static PetscErrorCode PEPLinearGetEPS_Linear(PEP pep,EPS *eps)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)pep,1));
     PetscCall(EPSSetOptionsPrefix(ctx->eps,((PetscObject)pep)->prefix));
     PetscCall(EPSAppendOptionsPrefix(ctx->eps,"pep_linear_"));
-    PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->eps,((PetscObject)pep)->options));
     PetscCall(EPSMonitorSet(ctx->eps,EPSMonitor_Linear,pep,NULL));
   }

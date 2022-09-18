@@ -288,7 +288,6 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscCall(PetscObjectReference((PetscObject)ksp));
   PetscCall(KSPDestroy(&st->ksp));
   st->ksp = ksp;
-  PetscCall(PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp));
   PetscFunctionReturn(0);
 }
 
@@ -318,7 +317,6 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1));
     PetscCall(KSPSetOptionsPrefix(st->ksp,((PetscObject)st)->prefix));
     PetscCall(KSPAppendOptionsPrefix(st->ksp,"st_"));
-    PetscCall(PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp));
     PetscCall(PetscObjectSetOptions((PetscObject)st->ksp,((PetscObject)st)->options));
     PetscCall(KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
   }

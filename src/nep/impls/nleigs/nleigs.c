@@ -1730,7 +1730,6 @@ static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,PetscInt *nsolve,KSP **ksp
       PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1));
       PetscCall(KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix));
       PetscCall(KSPAppendOptionsPrefix(ctx->ksp[i],"nep_nleigs_"));
-      PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]));
       PetscCall(PetscObjectSetOptions((PetscObject)ctx->ksp[i],((PetscObject)nep)->options));
       PetscCall(KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE));
       PetscCall(KSPSetTolerances(ctx->ksp[i],1e-3*SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));

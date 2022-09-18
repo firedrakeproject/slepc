@@ -579,7 +579,6 @@ PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
   PetscCall(VecSetType(vnew,((PetscObject)bv->t)->type_name));
   PetscCall(VecSetSizes(vnew,m*bv->n,PETSC_DECIDE));
   PetscCall(VecSetBlockSize(vnew,bs));
-  PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)vnew));
   if (((PetscObject)bv)->name) {
     PetscCall(PetscSNPrintf(str,sizeof(str),"%s_0",((PetscObject)bv)->name));
     PetscCall(PetscObjectSetName((PetscObject)vnew,str));
@@ -679,7 +678,6 @@ PetscErrorCode BVGetMat_Svec_CUDA(BV bv,Mat *A)
   if (create) {
     PetscCall(MatCreateDenseCUDA(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget)); /* pass a pointer to avoid allocation of storage */
     PetscCall(MatDenseCUDAReplaceArray(bv->Aget,NULL));  /* replace with a null pointer, the value after BVRestoreMat */
-    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Aget));
   }
   PetscCall(MatDenseCUDAPlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n));  /* set the actual pointer */
   *A = bv->Aget;

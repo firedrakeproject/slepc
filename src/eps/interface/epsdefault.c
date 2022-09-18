@@ -201,7 +201,6 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
     PetscCall(BVGetColumn(eps->V,0,&t));
     PetscCall(VecDuplicateVecs(t,nw,&eps->work));
     PetscCall(BVRestoreColumn(eps->V,0,&t));
-    PetscCall(PetscLogObjectParents(eps,nw,eps->work));
   }
   PetscFunctionReturn(0);
 }

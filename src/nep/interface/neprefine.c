@@ -65,12 +65,8 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     PetscCall(PetscMalloc2(nep->nt,&ctx->A,nep->npart,&ctx->scatter_id));
 
     /* Duplicate matrices */
-    for (i=0;i<nep->nt;i++) {
-      PetscCall(MatCreateRedundantMatrix(nep->A[i],0,child,MAT_INITIAL_MATRIX,&ctx->A[i]));
-      PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->A[i]));
-    }
+    for (i=0;i<nep->nt;i++) PetscCall(MatCreateRedundantMatrix(nep->A[i],0,child,MAT_INITIAL_MATRIX,&ctx->A[i]));
     PetscCall(MatCreateVecs(ctx->A[0],&ctx->v,NULL));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->v));
 
     /* Duplicate FNs */
     PetscCall(PetscMalloc1(nep->nt,&ctx->fn));

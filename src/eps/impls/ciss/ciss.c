@@ -284,15 +284,12 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscCall(BVGetRandomContext(eps->V,&rand));  /* make sure the random context is available when duplicating */
   if (ctx->weight) PetscCall(PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma));
   PetscCall(PetscMalloc4(ctx->N,&ctx->weight,ctx->N+1,&ctx->omega,ctx->N,&ctx->pp,ctx->L_max*ctx->M,&ctx->sigma));
-  PetscCall(PetscLogObjectMemory((PetscObject)eps,3*ctx->N*sizeof(PetscScalar)+ctx->L_max*ctx->N*sizeof(PetscReal)));
 
   /* allocate basis vectors */
   PetscCall(BVDestroy(&ctx->S));
   PetscCall(BVDuplicateResize(eps->V,ctx->L*ctx->M,&ctx->S));
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->S));
   PetscCall(BVDestroy(&ctx->V));
   PetscCall(BVDuplicateResize(eps->V,ctx->L,&ctx->V));
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->V));
 
   PetscCall(STGetMatrix(eps->st,0,&A[0]));
   PetscCall(MatIsShell(A[0],&flg));
@@ -320,7 +317,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     PetscCall(BVSetSizesFromVec(ctx->pV,contour->xsub,eps->n));
     PetscCall(BVSetFromOptions(ctx->pV));
     PetscCall(BVResize(ctx->pV,ctx->L,PETSC_FALSE));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->pV));
   }
 
   EPSCheckDefinite(eps);
@@ -333,7 +329,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     PetscCall(BVSetFromOptions(ctx->Y));
     PetscCall(BVResize(ctx->Y,contour->npoints*ctx->L,PETSC_FALSE));
   } else PetscCall(BVDuplicateResize(eps->V,contour->npoints*ctx->L,&ctx->Y));
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->Y));
 
   if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) PetscCall(DSSetType(eps->ds,DSGNHEP));
   else if (eps->isgeneralized) {
@@ -1216,7 +1211,6 @@ static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
       PetscCall(PetscObjectIncrementTabLevel((PetscObject)contour->ksp[i],(PetscObject)eps,1));
       PetscCall(KSPSetOptionsPrefix(contour->ksp[i],((PetscObject)eps)->prefix));
       PetscCall(KSPAppendOptionsPrefix(contour->ksp[i],"eps_ciss_"));
-      PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)contour->ksp[i]));
       PetscCall(PetscObjectSetOptions((PetscObject)contour->ksp[i],((PetscObject)eps)->options));
       PetscCall(KSPSetErrorIfNotConverged(contour->ksp[i],PETSC_TRUE));
       PetscCall(KSPSetTolerances(contour->ksp[i],SlepcDefaultTol(eps->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
