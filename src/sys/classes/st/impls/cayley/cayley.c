@@ -321,7 +321,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
   ST_CAYLEY      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(st,&ctx));
+  PetscCall(PetscNew(&ctx));
   st->data = (void*)ctx;
 
   st->usesksp = PETSC_TRUE;

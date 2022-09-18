@@ -672,7 +672,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   EPS_LOBPCG     *lobpcg;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&lobpcg));
+  PetscCall(PetscNew(&lobpcg));
   eps->data = (void*)lobpcg;
   lobpcg->lock = PETSC_TRUE;
 

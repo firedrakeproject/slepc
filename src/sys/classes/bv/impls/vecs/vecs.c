@@ -505,7 +505,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   Vec            *Vpar;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(bv,&ctx));
+  PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
   if (PetscUnlikely(bv->issplit)) {

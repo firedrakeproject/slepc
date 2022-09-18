@@ -591,7 +591,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
   SVD_CROSS      *cross;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(svd,&cross));
+  PetscCall(PetscNew(&cross));
   svd->data = (void*)cross;
 
   svd->ops->solve          = SVDSolve_Cross;

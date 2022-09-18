@@ -761,7 +761,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
   EPS_LYAPII     *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->useds = PETSC_TRUE;

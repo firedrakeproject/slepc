@@ -484,7 +484,7 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
   FN_RATIONAL    *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(fn,&ctx));
+  PetscCall(PetscNew(&ctx));
   fn->data = (void*)ctx;
 
   fn->ops->evaluatefunction          = FNEvaluateFunction_Rational;

@@ -1485,7 +1485,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   EPS_KRYLOVSCHUR *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data   = (void*)ctx;
   ctx->lock   = PETSC_TRUE;
   ctx->nev    = 1;

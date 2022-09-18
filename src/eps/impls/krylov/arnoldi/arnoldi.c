@@ -243,7 +243,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
   EPS_ARNOLDI    *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->useds = PETSC_TRUE;

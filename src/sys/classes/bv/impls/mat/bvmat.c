@@ -394,7 +394,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   BV             parent;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(bv,&ctx));
+  PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
   PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi));

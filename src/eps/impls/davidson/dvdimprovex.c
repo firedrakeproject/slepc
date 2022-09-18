@@ -732,7 +732,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    PetscCall(PetscNewLog(d->eps,&data));
+    PetscCall(PetscNew(&data));
     data->dynamic = dynamic;
     PetscCall(PetscMalloc1(size_P*size_P,&data->XKZ));
     PetscCall(PetscMalloc1(size_P*size_P,&data->iXKZ));

@@ -647,7 +647,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   NEP_SLP        *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(nep,&ctx));
+  PetscCall(PetscNew(&ctx));
   nep->data = (void*)ctx;
 
   nep->useds  = PETSC_TRUE;

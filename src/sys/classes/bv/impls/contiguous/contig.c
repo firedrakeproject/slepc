@@ -340,7 +340,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   Vec            *Vpar;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(bv,&ctx));
+  PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
   PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi));

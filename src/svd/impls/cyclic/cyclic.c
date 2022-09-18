@@ -1034,7 +1034,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
   SVD_CYCLIC     *cyclic;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(svd,&cyclic));
+  PetscCall(PetscNew(&cyclic));
   svd->data                = (void*)cyclic;
   svd->ops->solve          = SVDSolve_Cyclic;
   svd->ops->solveg         = SVDSolve_Cyclic;

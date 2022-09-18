@@ -1410,7 +1410,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = ctx;
 
   eps->useds = PETSC_TRUE;

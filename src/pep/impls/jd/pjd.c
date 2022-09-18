@@ -1955,7 +1955,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   PEP_JD         *pjd;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(pep,&pjd));
+  PetscCall(PetscNew(&pjd));
   pep->data = (void*)pjd;
 
   pep->lineariz = PETSC_FALSE;

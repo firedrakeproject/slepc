@@ -236,7 +236,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
 
   /* Allocate a new Vec_Comp */
   if (v->data) PetscCall(PetscFree(v->data));
-  PetscCall(PetscNewLog(v,&s));
+  PetscCall(PetscNew(&s));
   PetscCall(PetscMemcpy(v->ops,&DvOps,sizeof(DvOps)));
   v->data        = (void*)s;
   v->petscnative = PETSC_FALSE;
@@ -258,7 +258,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
         PetscCall(VecGetLocalSize(x[i],&k));
         lN+= k;
       }
-      PetscCall(PetscNewLog(v,&n));
+      PetscCall(PetscNew(&n));
       s->n = n;
       n->n = nx;
       n->N = N;
@@ -434,7 +434,7 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
       PetscCall(VecSetFromOptions(s->x[i]));
     }
     if (!s->n) {
-      PetscCall(PetscNewLog(win,&nn));
+      PetscCall(PetscNew(&nn));
       s->n = nn;
       nn->N = N;
       nn->lN = nlocal;

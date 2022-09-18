@@ -742,7 +742,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   NEP_RII        *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(nep,&ctx));
+  PetscCall(PetscNew(&ctx));
   nep->data = (void*)ctx;
   ctx->max_inner_it = 10;
   ctx->lag          = 1;

@@ -152,7 +152,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
   EPS_TRLAN      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->ops->solve          = EPSSolve_TRLAN;

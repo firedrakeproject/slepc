@@ -112,7 +112,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Elemental(EPS eps)
   EPS_Elemental  *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->categ = EPS_CATEGORY_OTHER;

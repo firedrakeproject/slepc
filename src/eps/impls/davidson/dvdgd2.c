@@ -204,7 +204,7 @@ PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscIn
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    PetscCall(PetscNewLog(d->eps,&data));
+    PetscCall(PetscNew(&data));
     d->improveX_data = data;
     data->size_X = b->max_size_X;
     d->improveX = dvd_improvex_gd2_gen;

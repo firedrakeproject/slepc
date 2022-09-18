@@ -288,7 +288,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST st)
   ST_SHELL       *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(st,&ctx));
+  PetscCall(PetscNew(&ctx));
   st->data = (void*)ctx;
 
   st->usesksp = PETSC_FALSE;

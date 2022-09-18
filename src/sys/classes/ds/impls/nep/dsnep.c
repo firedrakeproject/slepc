@@ -1290,7 +1290,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   DS_NEP         *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(ds,&ctx));
+  PetscCall(PetscNew(&ctx));
   ds->data = (void*)ctx;
   ctx->max_mid = 4;
   ctx->nnod    = 64;

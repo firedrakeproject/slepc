@@ -591,7 +591,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&data));
+  PetscCall(PetscNew(&data));
   eps->data = (void*)data;
 
   data->blocksize   = 1;

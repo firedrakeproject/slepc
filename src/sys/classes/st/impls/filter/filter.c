@@ -411,7 +411,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   FILTLAN_IOP    iop;
   FILTLAN_PFI    pfi;
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(st,&ctx));
+  PetscCall(PetscNew(&ctx));
   st->data = (void*)ctx;
 
   st->usesksp = PETSC_FALSE;
@@ -423,7 +423,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   ctx->polyDegree         = 0;
   ctx->baseDegree         = 10;
 
-  PetscCall(PetscNewLog(st,&iop));
+  PetscCall(PetscNew(&iop));
   ctx->opts               = iop;
   iop->intervalWeights[0] = 100.0;
   iop->intervalWeights[1] = 1.0;
@@ -443,7 +443,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   iop->yBottomLine        = 0.001;
   iop->yRippleLimit       = 0.8;
 
-  PetscCall(PetscNewLog(st,&pfi));
+  PetscCall(PetscNew(&pfi));
   ctx->filterInfo         = pfi;
 
   st->ops->apply           = STApply_Generic;

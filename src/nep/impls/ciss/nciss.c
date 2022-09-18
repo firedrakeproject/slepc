@@ -1074,7 +1074,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(nep,&ctx));
+  PetscCall(PetscNew(&ctx));
   nep->data = ctx;
   /* set default values of parameters */
   ctx->N                  = 32;

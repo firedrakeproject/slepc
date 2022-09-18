@@ -460,7 +460,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NHEPTS(DS ds)
   DS_NHEPTS      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(ds,&ctx));
+  PetscCall(PetscNew(&ctx));
   ds->data = (void*)ctx;
 
   ds->ops->allocate        = DSAllocate_NHEPTS;

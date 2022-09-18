@@ -468,7 +468,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
   NEP_INTERPOL   *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(nep,&ctx));
+  PetscCall(PetscNew(&ctx));
   nep->data   = (void*)ctx;
   ctx->maxdeg = 5;
   ctx->tol    = PETSC_DEFAULT;

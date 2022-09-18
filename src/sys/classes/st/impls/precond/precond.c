@@ -219,7 +219,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   ST_PRECOND     *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(st,&ctx));
+  PetscCall(PetscNew(&ctx));
   st->data = (void*)ctx;
 
   st->usesksp = PETSC_TRUE;

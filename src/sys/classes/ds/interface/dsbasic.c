@@ -697,7 +697,7 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(sc,2);
-  if (!ds->sc) PetscCall(PetscNewLog(ds,&ds->sc));
+  if (!ds->sc) PetscCall(PetscNew(&ds->sc));
   *sc = ds->sc;
   PetscFunctionReturn(0);
 }

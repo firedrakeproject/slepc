@@ -112,7 +112,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->isgeneralized    = PETSC_FALSE;
   svd->reason           = SVD_CONVERGED_ITERATING;
 
-  PetscCall(PetscNewLog(svd,&svd->sc));
+  PetscCall(PetscNew(&svd->sc));
   *outsvd = svd;
   PetscFunctionReturn(0);
 }

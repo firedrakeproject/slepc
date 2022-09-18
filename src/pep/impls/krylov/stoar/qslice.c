@@ -500,7 +500,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
 
   /* create spectrum slicing context and initialize it */
   PetscCall(PEPQSliceResetSR(pep));
-  PetscCall(PetscNewLog(pep,&sr));
+  PetscCall(PetscNew(&sr));
   ctx->sr   = sr;
   sr->itsKs = 0;
   sr->nleap = 0;
@@ -590,7 +590,7 @@ static PetscErrorCode PEPCreateShift(PEP pep,PetscReal val,PEP_shift neighb0,PEP
 
   PetscFunctionBegin;
   sr = ctx->sr;
-  PetscCall(PetscNewLog(pep,&s));
+  PetscCall(PetscNew(&s));
   s->value = val;
   s->neighb[0] = neighb0;
   if (neighb0) neighb0->neighb[1] = s;

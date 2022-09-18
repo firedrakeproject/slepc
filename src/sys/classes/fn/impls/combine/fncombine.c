@@ -322,7 +322,7 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
   FN_COMBINE     *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(fn,&ctx));
+  PetscCall(PetscNew(&ctx));
   fn->data = (void*)ctx;
 
   fn->ops->evaluatefunction          = FNEvaluateFunction_Combine;

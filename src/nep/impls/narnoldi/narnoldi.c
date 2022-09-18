@@ -423,7 +423,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
   NEP_NARNOLDI   *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(nep,&ctx));
+  PetscCall(PetscNew(&ctx));
   nep->data = (void*)ctx;
   ctx->lag  = 1;
 

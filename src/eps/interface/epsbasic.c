@@ -122,7 +122,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->ishermitian     = PETSC_FALSE;
   eps->reason          = EPS_CONVERGED_ITERATING;
 
-  PetscCall(PetscNewLog(eps,&eps->sc));
+  PetscCall(PetscNew(&eps->sc));
   *outeps = eps;
   PetscFunctionReturn(0);
 }

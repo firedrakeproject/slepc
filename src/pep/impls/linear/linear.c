@@ -1007,7 +1007,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
   PEP_LINEAR     *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(pep,&ctx));
+  PetscCall(PetscNew(&ctx));
   pep->data = (void*)ctx;
 
   pep->lineariz       = PETSC_TRUE;

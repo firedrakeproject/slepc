@@ -98,7 +98,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Elemental(SVD svd)
   SVD_Elemental  *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(svd,&ctx));
+  PetscCall(PetscNew(&ctx));
   svd->data = (void*)ctx;
 
   svd->ops->solve          = SVDSolve_Elemental;

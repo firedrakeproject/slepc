@@ -85,7 +85,7 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
   if (b->state >= DVD_STATE_CONF) {
     /* If the preconditioner is valid */
     if (pc) {
-      PetscCall(PetscNewLog(d->eps,&dvdpc));
+      PetscCall(PetscNew(&dvdpc));
       dvdpc->pc = pc;
       PetscCall(PetscObjectReference((PetscObject)pc));
       d->improvex_precond_data = dvdpc;
@@ -308,7 +308,7 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,Pe
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    PetscCall(PetscNewLog(d->eps,&dvdh));
+    PetscCall(PetscNew(&dvdh));
     dvdh->withTarget = fixedTarget;
     dvdh->mode = mode;
     if (fixedTarget) dvd_harm_transf(dvdh, t);

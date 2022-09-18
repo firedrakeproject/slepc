@@ -324,7 +324,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
   EPS_FEAST      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->categ = EPS_CATEGORY_CONTOUR;

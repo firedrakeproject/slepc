@@ -807,7 +807,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
   EPS_EVSL       *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   ctx->nslices = 0;

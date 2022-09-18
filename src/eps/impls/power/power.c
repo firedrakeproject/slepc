@@ -1125,7 +1125,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   EPS_POWER      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->useds = PETSC_TRUE;

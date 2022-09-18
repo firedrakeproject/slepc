@@ -161,7 +161,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_ELPA(EPS eps)
   EPS_ELPA       *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->categ = EPS_CATEGORY_OTHER;

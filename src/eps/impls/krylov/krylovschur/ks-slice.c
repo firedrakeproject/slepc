@@ -304,7 +304,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
   /* create spectrum slicing context and initialize it */
   PetscCall(EPSSliceResetSR(eps));
-  PetscCall(PetscNewLog(eps,&sr));
+  PetscCall(PetscNew(&sr));
   ctx->sr = sr;
   sr->itsKs = 0;
   sr->nleap = 0;
@@ -714,7 +714,7 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS
     sr->nPend++;
     PetscFunctionReturn(0);
   }
-  PetscCall(PetscNewLog(eps,&s));
+  PetscCall(PetscNew(&s));
   s->value = val;
   s->neighb[0] = neighb0;
   if (neighb0) neighb0->neighb[1] = s;

@@ -118,7 +118,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->resolvent       = NULL;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
-  PetscCall(PetscNewLog(nep,&nep->sc));
+  PetscCall(PetscNew(&nep->sc));
   *outnep = nep;
   PetscFunctionReturn(0);
 }

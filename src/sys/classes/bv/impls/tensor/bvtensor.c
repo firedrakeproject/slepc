@@ -717,7 +717,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   BV_TENSOR      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(bv,&ctx));
+  PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
   ctx->puk = -1;
 

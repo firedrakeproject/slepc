@@ -499,7 +499,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD svd)
   SVD_PRIMME     *primme;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(svd,&primme));
+  PetscCall(PetscNew(&primme));
   svd->data = (void*)primme;
 
   primme_svds_initialize(&primme->primme);

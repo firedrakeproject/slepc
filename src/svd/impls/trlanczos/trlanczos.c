@@ -2125,7 +2125,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(svd,&ctx));
+  PetscCall(PetscNew(&ctx));
   svd->data = (void*)ctx;
 
   ctx->lock    = PETSC_TRUE;

@@ -255,7 +255,7 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Phi(FN fn)
   FN_PHI         *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(fn,&ctx));
+  PetscCall(PetscNew(&ctx));
   fn->data = (void*)ctx;
   ctx->k   = 1;
 

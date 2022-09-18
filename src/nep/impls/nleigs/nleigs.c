@@ -2000,7 +2000,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   NEP_NLEIGS     *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(nep,&ctx));
+  PetscCall(PetscNew(&ctx));
   nep->data  = (void*)ctx;
   ctx->lock  = PETSC_TRUE;
   ctx->ddtol = PETSC_DEFAULT;

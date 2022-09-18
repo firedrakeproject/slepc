@@ -539,7 +539,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   DS_SVD         *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(ds,&ctx));
+  PetscCall(PetscNew(&ctx));
   ds->data = (void*)ctx;
 
   ds->ops->allocate      = DSAllocate_SVD;

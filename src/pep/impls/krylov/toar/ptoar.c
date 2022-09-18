@@ -805,7 +805,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   PEP_TOAR       *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(pep,&ctx));
+  PetscCall(PetscNew(&ctx));
   pep->data = (void*)ctx;
 
   pep->lineariz = PETSC_TRUE;

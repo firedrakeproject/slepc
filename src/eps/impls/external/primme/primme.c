@@ -573,7 +573,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
   EPS_PRIMME     *primme;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&primme));
+  PetscCall(PetscNew(&primme));
   eps->data = (void*)primme;
 
   primme_initialize(&primme->primme);

@@ -367,7 +367,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
   EPS_RQCG       *rqcg;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&rqcg));
+  PetscCall(PetscNew(&rqcg));
   eps->data = (void*)rqcg;
 
   eps->useds = PETSC_TRUE;

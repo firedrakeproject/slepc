@@ -398,7 +398,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 #endif
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(bv,&ctx));
+  PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
   PetscCall(PetscObjectTypeCompareAny((PetscObject)bv->t,&bv->cuda,VECSEQCUDA,VECMPICUDA,""));

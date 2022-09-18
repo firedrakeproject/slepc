@@ -121,7 +121,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->lineariz        = PETSC_FALSE;
   pep->reason          = PEP_CONVERGED_ITERATING;
 
-  PetscCall(PetscNewLog(pep,&pep->sc));
+  PetscCall(PetscNew(&pep->sc));
   *outpep = pep;
   PetscFunctionReturn(0);
 }

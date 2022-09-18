@@ -277,7 +277,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
   EPS_ARPACK     *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->ops->solve          = EPSSolve_ARPACK;
