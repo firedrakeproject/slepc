@@ -57,15 +57,9 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   if (!ctx->allocsize) {
     ctx->allocsize = eps->mpd;
     PetscCall(BVDuplicateResize(eps->V,eps->mpd,&ctx->AV));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->AV));
-    if (nmat>1) {
-      PetscCall(BVDuplicate(ctx->AV,&ctx->W));
-      PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->W));
-    }
+    if (nmat>1) PetscCall(BVDuplicate(ctx->AV,&ctx->W));
     PetscCall(BVDuplicate(ctx->AV,&ctx->P));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->P));
     PetscCall(BVDuplicate(ctx->AV,&ctx->G));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->G));
   } else if (ctx->allocsize!=eps->mpd) {
     ctx->allocsize = eps->mpd;
     PetscCall(BVResize(ctx->AV,eps->mpd,PETSC_FALSE));
@@ -373,7 +367,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
   EPS_RQCG       *rqcg;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&rqcg));
+  PetscCall(PetscNew(&rqcg));
   eps->data = (void*)rqcg;
 
   eps->useds = PETSC_TRUE;

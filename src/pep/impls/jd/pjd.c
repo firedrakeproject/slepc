@@ -990,7 +990,6 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep,Vec *ww)
 #endif
   PetscCall(VecCreateCompWithVecs(v,kspsf,NULL,&pjd->vtempl));
   PetscCall(BVRestoreColumn(pjd->V,0,&v[0]));
-  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pjd->vtempl));
 
   /* Replace preconditioner with one containing projectors */
   PetscCall(PCCreate(PetscObjectComm((PetscObject)pep),&pjd->pcshell));
@@ -1956,7 +1955,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   PEP_JD         *pjd;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(pep,&pjd));
+  PetscCall(PetscNew(&pjd));
   pep->data = (void*)pjd;
 
   pep->lineariz = PETSC_FALSE;

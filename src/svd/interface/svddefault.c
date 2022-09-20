@@ -137,7 +137,6 @@ PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
     else PetscCall(MatCreateVecsEmpty(svd->OP,NULL,&t));
     PetscCall(VecDuplicateVecs(t,nleft,&svd->workl));
     PetscCall(VecDestroy(&t));
-    PetscCall(PetscLogObjectParents(svd,nleft,svd->workl));
   }
   if (svd->nworkr < nright) {
     PetscCall(VecDestroyVecs(svd->nworkr,&svd->workr));
@@ -145,7 +144,6 @@ PetscErrorCode SVDSetWorkVecs(SVD svd,PetscInt nleft,PetscInt nright)
     PetscCall(MatCreateVecsEmpty(svd->OP,&t,NULL));
     PetscCall(VecDuplicateVecs(t,nright,&svd->workr));
     PetscCall(VecDestroy(&t));
-    PetscCall(PetscLogObjectParents(svd,nright,svd->workr));
   }
   PetscFunctionReturn(0);
 }

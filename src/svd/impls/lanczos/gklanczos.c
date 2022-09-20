@@ -427,7 +427,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD svd)
   SVD_LANCZOS    *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(svd,&ctx));
+  PetscCall(PetscNew(&ctx));
   svd->data = (void*)ctx;
 
   svd->ops->setup          = SVDSetUp_Lanczos;

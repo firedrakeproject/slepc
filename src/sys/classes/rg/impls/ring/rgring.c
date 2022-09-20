@@ -417,7 +417,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
   RG_RING        *ring;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(rg,&ring));
+  PetscCall(PetscNew(&ring));
   ring->center    = 0.0;
   ring->radius    = PETSC_MAX_REAL;
   ring->vscale    = 1.0;

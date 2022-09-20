@@ -89,7 +89,6 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   PetscCall(BVRestoreColumn(Vext,0,&f));
 
   PetscCall(DSCreate(PetscObjectComm((PetscObject)nep),&ds));
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ds));
   PetscCall(DSSetType(ds,DSNEP));
   PetscCall(DSNEPSetFN(ds,nep->nt,nep->f));
   PetscCall(DSAllocate(ds,nep->ncv));
@@ -308,7 +307,6 @@ static PetscErrorCode NEPNArnoldiSetKSP_NArnoldi(NEP nep,KSP ksp)
   PetscCall(PetscObjectReference((PetscObject)ksp));
   PetscCall(KSPDestroy(&ctx->ksp));
   ctx->ksp = ksp;
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp));
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -347,7 +345,6 @@ static PetscErrorCode NEPNArnoldiGetKSP_NArnoldi(NEP nep,KSP *ksp)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)nep,1));
     PetscCall(KSPSetOptionsPrefix(ctx->ksp,((PetscObject)nep)->prefix));
     PetscCall(KSPAppendOptionsPrefix(ctx->ksp,"nep_narnoldi_"));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)nep)->options));
     PetscCall(KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE));
     PetscCall(KSPSetTolerances(ctx->ksp,SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
@@ -426,7 +423,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
   NEP_NARNOLDI   *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(nep,&ctx));
+  PetscCall(PetscNew(&ctx));
   nep->data = (void*)ctx;
   ctx->lag  = 1;
 

@@ -221,11 +221,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   PetscCall(SVDAllocateSolution(svd,0));
 
   /* Prepare auxiliary vectors */
-  if (!ops->x) {
-    PetscCall(MatCreateVecsEmpty(svd->A,&ops->x,&ops->y));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ops->x));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ops->y));
-  }
+  if (!ops->x) PetscCall(MatCreateVecsEmpty(svd->A,&ops->x,&ops->y));
   PetscFunctionReturn(0);
 }
 
@@ -247,7 +243,6 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
 
   /* Allocating left and right singular vectors contiguously */
   PetscCall(PetscCalloc1(ops->primme.numSvals*(ops->primme.mLocal+ops->primme.nLocal),&svecs));
-  PetscCall(PetscLogObjectMemory((PetscObject)svd,sizeof(PetscReal)*ops->primme.numSvals*(ops->primme.mLocal+ops->primme.nLocal)));
 
   /* Call PRIMME solver */
   PetscCall(PetscMalloc2(svd->ncv,&svals,svd->ncv,&rnorms));
@@ -504,7 +499,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD svd)
   SVD_PRIMME     *primme;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(svd,&primme));
+  PetscCall(PetscNew(&primme));
   svd->data = (void*)primme;
 
   primme_svds_initialize(&primme->primme);

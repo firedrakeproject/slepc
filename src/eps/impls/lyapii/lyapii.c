@@ -76,7 +76,6 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
 
   if (!ctx->ds) {
     PetscCall(DSCreate(PetscObjectComm((PetscObject)eps),&ctx->ds));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ds));
     PetscCall(DSSetType(ctx->ds,DSSVD));
   }
   PetscCall(DSAllocate(ctx->ds,ctx->rkl));
@@ -641,7 +640,6 @@ static PetscErrorCode EPSLyapIISetLME_LyapII(EPS eps,LME lme)
   PetscCall(PetscObjectReference((PetscObject)lme));
   PetscCall(LMEDestroy(&ctx->lme));
   ctx->lme = lme;
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->lme));
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -680,7 +678,6 @@ static PetscErrorCode EPSLyapIIGetLME_LyapII(EPS eps,LME *lme)
     PetscCall(LMESetOptionsPrefix(ctx->lme,((PetscObject)eps)->prefix));
     PetscCall(LMEAppendOptionsPrefix(ctx->lme,"eps_lyapii_"));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->lme,(PetscObject)eps,1));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->lme));
   }
   *lme = ctx->lme;
   PetscFunctionReturn(0);
@@ -764,7 +761,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
   EPS_LYAPII     *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->useds = PETSC_TRUE;

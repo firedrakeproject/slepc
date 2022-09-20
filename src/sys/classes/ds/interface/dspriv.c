@@ -59,7 +59,6 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
   if (ds->omat[m]) PetscCall(MatZeroEntries(ds->omat[m]));
   else {
     PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]));
-    PetscCall(PetscLogObjectParent((PetscObject)ds,(PetscObject)ds->omat[m]));
   }
   PetscFunctionReturn(0);
 }
@@ -70,19 +69,16 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
   if (s>ds->lwork) {
     PetscCall(PetscFree(ds->work));
     PetscCall(PetscMalloc1(s,&ds->work));
-    PetscCall(PetscLogObjectMemory((PetscObject)ds,(s-ds->lwork)*sizeof(PetscScalar)));
     ds->lwork = s;
   }
   if (r>ds->lrwork) {
     PetscCall(PetscFree(ds->rwork));
     PetscCall(PetscMalloc1(r,&ds->rwork));
-    PetscCall(PetscLogObjectMemory((PetscObject)ds,(r-ds->lrwork)*sizeof(PetscReal)));
     ds->lrwork = r;
   }
   if (i>ds->liwork) {
     PetscCall(PetscFree(ds->iwork));
     PetscCall(PetscMalloc1(i,&ds->iwork));
-    PetscCall(PetscLogObjectMemory((PetscObject)ds,(i-ds->liwork)*sizeof(PetscBLASInt)));
     ds->liwork = i;
   }
   PetscFunctionReturn(0);

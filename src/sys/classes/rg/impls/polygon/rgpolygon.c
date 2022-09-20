@@ -445,7 +445,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
   RG_POLYGON     *polygon;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(rg,&polygon));
+  PetscCall(PetscNew(&polygon));
   rg->data = (void*)polygon;
 
   rg->ops->istrivial      = RGIsTrivial_Polygon;

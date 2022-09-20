@@ -28,7 +28,6 @@ PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
   for (i=0;i<=ctx->d;i++) PetscCall(DSAllocateMat_Private(ds,DSMatExtra[i]));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld*ctx->d,&ds->perm));
-  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*ctx->d*sizeof(PetscInt)));
   PetscFunctionReturn(0);
 }
 
@@ -512,7 +511,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   DS_PEP         *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(ds,&ctx));
+  PetscCall(PetscNew(&ctx));
   ds->data = (void*)ctx;
 
   ds->ops->allocate      = DSAllocate_PEP;

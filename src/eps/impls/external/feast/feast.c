@@ -71,7 +71,6 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   ncv = eps->ncv;
   PetscCall(PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq));
   PetscCall(PetscMalloc4(eps->nloc*ncv,&ctx->work1,eps->nloc*ncv,&ctx->work2,ncv*ncv,&ctx->Aq,ncv*ncv,&ctx->Bq));
-  PetscCall(PetscLogObjectMemory((PetscObject)eps,(2*eps->nloc*ncv+2*ncv*ncv)*sizeof(PetscScalar)));
 
   PetscCall(EPSAllocateSolution(eps,0));
   PetscCall(EPSSetWorkVecs(eps,2));
@@ -325,7 +324,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
   EPS_FEAST      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->categ = EPS_CATEGORY_CONTOUR;

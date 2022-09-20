@@ -492,7 +492,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
   PEP_QARNOLDI   *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(pep,&ctx));
+  PetscCall(PetscNew(&ctx));
   pep->data = (void*)ctx;
 
   pep->lineariz = PETSC_TRUE;

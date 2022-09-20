@@ -717,7 +717,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   BV_TENSOR      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(bv,&ctx));
+  PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
   ctx->puk = -1;
 
@@ -798,9 +798,7 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
   ctx->d  = d;
   ctx->ld = m;
   PetscCall(PetscObjectReference((PetscObject)U));
-  PetscCall(PetscLogObjectParent((PetscObject)*V,(PetscObject)U));
   PetscCall(MatCreateSeqDense(PETSC_COMM_SELF,d*m,m-d+1,NULL,&ctx->S));
-  PetscCall(PetscLogObjectParent((PetscObject)*V,(PetscObject)ctx->S));
   PetscCall(PetscObjectSetName((PetscObject)ctx->S,"S"));
 
   /* Copy user-provided attributes of U */

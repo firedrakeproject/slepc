@@ -90,7 +90,6 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
 {
   PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PetscInt       k;
-  PetscLogDouble cnt;
   BVType         type;
   Vec            t;
   PEP_SR         sr = ctx->sr;
@@ -102,13 +101,10 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
   PetscCall(PetscCalloc4(k,&sr->eigr,k,&sr->eigi,k,&sr->errest,k,&sr->perm));
   PetscCall(PetscFree(sr->qinfo));
   PetscCall(PetscCalloc1(k,&sr->qinfo));
-  cnt = 2*k*sizeof(PetscScalar) + 2*k*sizeof(PetscReal) + k*sizeof(PetscInt);
-  PetscCall(PetscLogObjectMemory((PetscObject)pep,cnt));
 
   /* allocate sr->V and transfer options from pep->V */
   PetscCall(BVDestroy(&sr->V));
   PetscCall(BVCreate(PetscObjectComm((PetscObject)pep),&sr->V));
-  PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)sr->V));
   if (!pep->V) PetscCall(PEPGetBV(pep,&pep->V));
   if (!((PetscObject)(pep->V))->type_name) PetscCall(BVSetType(sr->V,BVSVEC));
   else {
@@ -504,7 +500,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
 
   /* create spectrum slicing context and initialize it */
   PetscCall(PEPQSliceResetSR(pep));
-  PetscCall(PetscNewLog(pep,&sr));
+  PetscCall(PetscNew(&sr));
   ctx->sr   = sr;
   sr->itsKs = 0;
   sr->nleap = 0;
@@ -594,7 +590,7 @@ static PetscErrorCode PEPCreateShift(PEP pep,PetscReal val,PEP_shift neighb0,PEP
 
   PetscFunctionBegin;
   sr = ctx->sr;
-  PetscCall(PetscNewLog(pep,&s));
+  PetscCall(PetscNew(&s));
   s->value = val;
   s->neighb[0] = neighb0;
   if (neighb0) neighb0->neighb[1] = s;
@@ -611,7 +607,6 @@ static PetscErrorCode PEPCreateShift(PEP pep,PetscReal val,PEP_shift neighb0,PEP
   if (sr->nPend >= sr->maxPend) {
     sr->maxPend *= 2;
     PetscCall(PetscMalloc1(sr->maxPend,&pending2));
-    PetscCall(PetscLogObjectMemory((PetscObject)pep,sr->maxPend*sizeof(PEP_shift*)));
     for (i=0;i<sr->nPend;i++) pending2[i] = sr->pending[i];
     PetscCall(PetscFree(sr->pending));
     sr->pending = pending2;
@@ -1397,7 +1392,6 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   sr->maxPend = 100; /* Initial size */
   sr->nPend = 0;
   PetscCall(PetscMalloc1(sr->maxPend,&sr->pending));
-  PetscCall(PetscLogObjectMemory((PetscObject)pep,sr->maxPend*sizeof(PEP_shift*)));
   PetscCall(PEPCreateShift(pep,sr->int0,NULL,NULL));
   /* extract first shift */
   sr->sPrev = NULL;
@@ -1415,7 +1409,6 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   }
   /* Vectors for deflation */
   PetscCall(PetscMalloc2(sr->numEigs,&sr->idxDef0,sr->numEigs,&sr->idxDef1));
-  PetscCall(PetscLogObjectMemory((PetscObject)pep,2*sr->numEigs*sizeof(PetscInt)));
   sr->indexEig = 0;
   while (sr->sPres) {
     /* Search for deflation */

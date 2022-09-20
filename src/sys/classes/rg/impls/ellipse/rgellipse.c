@@ -278,7 +278,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
   RG_ELLIPSE     *ellipse;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(rg,&ellipse));
+  PetscCall(PetscNew(&ellipse));
   ellipse->center = 0.0;
   ellipse->radius = PETSC_MAX_REAL;
   ellipse->vscale = 1.0;

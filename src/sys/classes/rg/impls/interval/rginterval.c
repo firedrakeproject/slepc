@@ -349,7 +349,7 @@ SLEPC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
   RG_INTERVAL    *interval;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(rg,&interval));
+  PetscCall(PetscNew(&interval));
   interval->a = -PETSC_MAX_REAL;
   interval->b = PETSC_MAX_REAL;
   interval->c = -PETSC_MAX_REAL;

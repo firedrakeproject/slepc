@@ -1229,18 +1229,15 @@ PetscErrorCode EPSKrylovSchurGetChildEPS(EPS eps,EPS *childeps)
       PetscCall(PetscSubcommCreate(PetscObjectComm((PetscObject)eps),&ctx->subc));
       PetscCall(PetscSubcommSetNumber(ctx->subc,ctx->npart));
       PetscCall(PetscSubcommSetType(ctx->subc,PETSC_SUBCOMM_CONTIGUOUS));
-      PetscCall(PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm)));
       PetscCall(PetscSubcommGetChild(ctx->subc,&child));
 
       /* Duplicate matrices */
       PetscCall(MatCreateRedundantMatrix(A,0,child,MAT_INITIAL_MATRIX,&Ar));
-      PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)Ar));
       ctx->Astate = Astate;
       ctx->Aid = Aid;
       PetscCall(MatPropagateSymmetryOptions(A,Ar));
       if (B) {
         PetscCall(MatCreateRedundantMatrix(B,0,child,MAT_INITIAL_MATRIX,&Br));
-        PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)Br));
         ctx->Bstate = Bstate;
         ctx->Bid = Bid;
         PetscCall(MatPropagateSymmetryOptions(B,Br));
@@ -1488,7 +1485,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   EPS_KRYLOVSCHUR *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data   = (void*)ctx;
   ctx->lock   = PETSC_TRUE;
   ctx->nev    = 1;

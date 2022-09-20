@@ -285,10 +285,8 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   if (!same) {
     PetscCall(MatDestroyMatrices(PetscMax(2,st->nmat),&st->A));
     PetscCall(PetscCalloc1(PetscMax(2,n),&st->A));
-    PetscCall(PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(Mat)));
     PetscCall(PetscFree(st->Astate));
     PetscCall(PetscMalloc1(PetscMax(2,n),&st->Astate));
-    PetscCall(PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(PetscInt)));
   }
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
@@ -566,7 +564,6 @@ PetscErrorCode STSetSplitPreconditioner(ST st,PetscInt n,Mat Psplit[],MatStructu
   /* allocate space and copy matrices */
   if (n) {
     PetscCall(PetscMalloc1(n,&st->Psplit));
-    PetscCall(PetscLogObjectMemory((PetscObject)st,n*sizeof(Mat)));
     for (i=0;i<n;i++) st->Psplit[i] = Psplit[i];
   }
   st->nsplit = n;

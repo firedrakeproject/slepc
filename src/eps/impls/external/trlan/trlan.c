@@ -44,7 +44,6 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   else PetscCall(PetscBLASIntCast(eps->nloc*(tr->maxlan+1-eps->ncv) + tr->maxlan*(tr->maxlan+10),&tr->lwork));
   if (tr->work) PetscCall(PetscFree(tr->work));
   PetscCall(PetscMalloc1(tr->lwork,&tr->work));
-  PetscCall(PetscLogObjectMemory((PetscObject)eps,tr->lwork*sizeof(PetscReal)));
 
   PetscCall(EPSAllocateSolution(eps,0));
   PetscFunctionReturn(0);
@@ -153,7 +152,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
   EPS_TRLAN      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->ops->solve          = EPSSolve_TRLAN;

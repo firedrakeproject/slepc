@@ -472,7 +472,6 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
     if (svd->sign) PetscCall(PetscFree(svd->sign));
     PetscCall(PetscMalloc3(requested,&svd->sigma,requested,&svd->perm,requested,&svd->errest));
     if (svd->ishyperbolic) PetscCall(PetscMalloc1(requested,&svd->sign));
-    PetscCall(PetscLogObjectMemory((PetscObject)svd,PetscMax(0,requested-oldsize)*(2*sizeof(PetscReal)+sizeof(PetscInt))));
   }
   /* allocate V */
   if (!svd->V) PetscCall(SVDGetBV(svd,&svd->V,NULL));

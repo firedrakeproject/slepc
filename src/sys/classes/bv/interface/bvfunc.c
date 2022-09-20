@@ -653,7 +653,6 @@ PetscErrorCode BVAllocateWork_Private(BV bv,PetscInt s)
   if (s>bv->lwork) {
     PetscCall(PetscFree(bv->work));
     PetscCall(PetscMalloc1(s,&bv->work));
-    PetscCall(PetscLogObjectMemory((PetscObject)bv,(s-bv->lwork)*sizeof(PetscScalar)));
     bv->lwork = s;
   }
   PetscFunctionReturn(0);

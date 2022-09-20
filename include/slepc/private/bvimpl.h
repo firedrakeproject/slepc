@@ -143,10 +143,7 @@ static inline PetscErrorCode BV_IPMatMult(BV bv,Vec x)
 {
   PetscFunctionBegin;
   if (((PetscObject)x)->id != bv->xid || ((PetscObject)x)->state != bv->xstate) {
-    if (PetscUnlikely(!bv->Bx)) {
-      PetscCall(MatCreateVecs(bv->matrix,&bv->Bx,NULL));
-      PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx));
-    }
+    if (PetscUnlikely(!bv->Bx)) PetscCall(MatCreateVecs(bv->matrix,&bv->Bx,NULL));
     PetscCall(MatMult(bv->matrix,x,bv->Bx));
     PetscCall(PetscObjectGetId((PetscObject)x,&bv->xid));
     PetscCall(PetscObjectStateGet((PetscObject)x,&bv->xstate));
@@ -177,10 +174,7 @@ static inline PetscErrorCode BV_IPMatMultBV(BV bv)
 static inline PetscErrorCode BV_AllocateCoeffs(BV bv)
 {
   PetscFunctionBegin;
-  if (!bv->h) {
-    PetscCall(PetscMalloc2(bv->nc+bv->m,&bv->h,bv->nc+bv->m,&bv->c));
-    PetscCall(PetscLogObjectMemory((PetscObject)bv,2*bv->m*sizeof(PetscScalar)));
-  }
+  if (!bv->h) PetscCall(PetscMalloc2(bv->nc+bv->m,&bv->h,bv->nc+bv->m,&bv->c));
   PetscFunctionReturn(0);
 }
 
@@ -198,7 +192,6 @@ static inline PetscErrorCode BV_AllocateSignature(BV bv)
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_PLIB,"Something wrong happened");
 #endif
     } else PetscCall(VecCreateSeq(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega));
-    PetscCall(PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->omega));
     PetscCall(VecSet(bv->omega,1.0));
   }
   PetscFunctionReturn(0);

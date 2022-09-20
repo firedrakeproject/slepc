@@ -91,16 +91,9 @@ PetscErrorCode EPSSetUp_EVSL(EPS eps)
   if (size==1) {
     PetscCall(PetscObjectReference((PetscObject)A));
     ctx->A = A;
-  } else {
-    PetscCall(MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&ctx->A));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->A));
-  }
+  } else PetscCall(MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&ctx->A));
   SetAMatvec(eps->n,&AMatvec_EVSL,(void*)ctx);
-  if (!ctx->x) {
-    PetscCall(MatCreateVecsEmpty(ctx->A,&ctx->x,&ctx->y));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->x));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->y));
-  }
+  if (!ctx->x) PetscCall(MatCreateVecsEmpty(ctx->A,&ctx->x,&ctx->y));
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION | EPS_FEATURE_CONVERGENCE);
 
@@ -814,7 +807,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_EVSL(EPS eps)
   EPS_EVSL       *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   ctx->nslices = 0;

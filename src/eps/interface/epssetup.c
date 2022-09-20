@@ -345,10 +345,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (eps->balance!=EPS_BALANCE_USER) {
     PetscCall(STSetBalanceMatrix(eps->st,NULL));
     if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
-      if (!eps->D) {
-        PetscCall(BVCreateVec(eps->V,&eps->D));
-        PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->D));
-      }
+      if (!eps->D) PetscCall(BVCreateVec(eps->V,&eps->D));
       PetscCall(EPSBuildBalance_Krylov(eps));
       PetscCall(STSetBalanceMatrix(eps->st,eps->D));
     }
@@ -656,8 +653,7 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
 @*/
 PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 {
-  PetscInt       oldsize,newc,requested;
-  PetscLogDouble cnt;
+  PetscInt       oldsize,requested;
   PetscRandom    rand;
   Vec            t;
 
@@ -666,21 +662,17 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 
   /* oldsize is zero if this is the first time setup is called */
   PetscCall(BVGetSizes(eps->V,NULL,NULL,&oldsize));
-  newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize || !eps->eigr) {
     PetscCall(PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm));
     PetscCall(PetscMalloc4(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->perm));
-    cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
-    PetscCall(PetscLogObjectMemory((PetscObject)eps,cnt));
   }
 
   /* workspace for the case of arbitrary selection */
   if (eps->arbitrary) {
     if (eps->rr) PetscCall(PetscFree2(eps->rr,eps->ri));
     PetscCall(PetscMalloc2(requested,&eps->rr,requested,&eps->ri));
-    PetscCall(PetscLogObjectMemory((PetscObject)eps,2*newc*sizeof(PetscScalar)));
   }
 
   /* allocate V */

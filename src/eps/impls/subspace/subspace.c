@@ -347,7 +347,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
   EPS_SUBSPACE *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data  = (void*)ctx;
 
   eps->useds = PETSC_TRUE;

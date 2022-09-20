@@ -152,7 +152,6 @@ PetscErrorCode NEPDeflationCreateBV(NEP_EXT_OP extop,PetscInt sz,BV *V)
     PetscCall(BVGetOrthogonalization(nep->V,&otype,&oref,&oeta,&oblock));
     PetscCall(BVSetOrthogonalization(*V,otype,oref,oeta,oblock));
     PetscCall(PetscObjectStateIncrease((PetscObject)*V));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)*V));
   } else PetscCall(BVDuplicateResize(nep->V,sz,V));
   PetscFunctionReturn(0);
 }

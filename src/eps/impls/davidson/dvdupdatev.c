@@ -381,7 +381,7 @@ PetscErrorCode dvd_managementV_basic(dvdDashboard *d,dvdBlackboard *b,PetscInt b
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    PetscCall(PetscNewLog(d->eps,&data));
+    PetscCall(PetscNew(&data));
     data->mpd = b->max_size_V;
     data->min_size_V = min_size_V;
     d->bs = bs;

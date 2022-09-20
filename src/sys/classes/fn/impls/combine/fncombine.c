@@ -217,11 +217,9 @@ static PetscErrorCode FNCombineSetChildren_Combine(FN fn,FNCombineType comb,FN f
   PetscCall(PetscObjectReference((PetscObject)f1));
   PetscCall(FNDestroy(&ctx->f1));
   ctx->f1 = f1;
-  PetscCall(PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f1));
   PetscCall(PetscObjectReference((PetscObject)f2));
   PetscCall(FNDestroy(&ctx->f2));
   ctx->f2 = f2;
-  PetscCall(PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f2));
   PetscFunctionReturn(0);
 }
 
@@ -259,17 +257,11 @@ static PetscErrorCode FNCombineGetChildren_Combine(FN fn,FNCombineType *comb,FN 
   PetscFunctionBegin;
   if (comb) *comb = ctx->comb;
   if (f1) {
-    if (!ctx->f1) {
-      PetscCall(FNCreate(PetscObjectComm((PetscObject)fn),&ctx->f1));
-      PetscCall(PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f1));
-    }
+    if (!ctx->f1) PetscCall(FNCreate(PetscObjectComm((PetscObject)fn),&ctx->f1));
     *f1 = ctx->f1;
   }
   if (f2) {
-    if (!ctx->f2) {
-      PetscCall(FNCreate(PetscObjectComm((PetscObject)fn),&ctx->f2));
-      PetscCall(PetscLogObjectParent((PetscObject)fn,(PetscObject)ctx->f2));
-    }
+    if (!ctx->f2) PetscCall(FNCreate(PetscObjectComm((PetscObject)fn),&ctx->f2));
     *f2 = ctx->f2;
   }
   PetscFunctionReturn(0);
@@ -330,7 +322,7 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
   FN_COMBINE     *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(fn,&ctx));
+  PetscCall(PetscNew(&ctx));
   fn->data = (void*)ctx;
 
   fn->ops->evaluatefunction          = FNEvaluateFunction_Combine;

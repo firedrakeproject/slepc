@@ -76,10 +76,8 @@ static inline PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
       create=PETSC_TRUE;
     }
   }
-  if (create) {
-    PetscCall(MatDuplicate(A,MAT_COPY_VALUES,&fn->W[fn->cw]));
-    PetscCall(PetscLogObjectParent((PetscObject)fn,(PetscObject)fn->W[fn->cw]));
-  } else PetscCall(MatCopy(A,fn->W[fn->cw],SAME_NONZERO_PATTERN));
+  if (create) PetscCall(MatDuplicate(A,MAT_COPY_VALUES,&fn->W[fn->cw]));
+  else PetscCall(MatCopy(A,fn->W[fn->cw],SAME_NONZERO_PATTERN));
   *M = fn->W[fn->cw];
   fn->cw++;
   PetscFunctionReturn(0);

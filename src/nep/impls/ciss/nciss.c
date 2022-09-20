@@ -221,15 +221,12 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscCall(NEPAllocateSolution(nep,0));
   if (ctx->weight) PetscCall(PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma));
   PetscCall(PetscMalloc4(ctx->N,&ctx->weight,ctx->N,&ctx->omega,ctx->N,&ctx->pp,ctx->L_max*ctx->M,&ctx->sigma));
-  PetscCall(PetscLogObjectMemory((PetscObject)nep,3*ctx->N*sizeof(PetscScalar)+ctx->L_max*ctx->N*sizeof(PetscReal)));
 
   /* allocate basis vectors */
   PetscCall(BVDestroy(&ctx->S));
   PetscCall(BVDuplicateResize(nep->V,ctx->L*ctx->M,&ctx->S));
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->S));
   PetscCall(BVDestroy(&ctx->V));
   PetscCall(BVDuplicateResize(nep->V,ctx->L,&ctx->V));
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->V));
 
   contour = ctx->contour;
   if (contour->subcomm && contour->subcomm->n != 1 && nep->fui==NEP_USER_INTERFACE_CALLBACK) {
@@ -237,10 +234,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
     PetscCall(SlepcContourRedundantMat(contour,1,&nep->function,(nep->function!=nep->function_pre)?&nep->function_pre:NULL));
   } else PetscCall(SlepcContourRedundantMat(contour,nep->nt,nep->A,nep->P));
   if (contour->pA) {
-    if (!ctx->J) {
-      PetscCall(MatDuplicate(contour->pA[0],MAT_DO_NOT_COPY_VALUES,&ctx->J));
-      PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->J));
-    }
+    if (!ctx->J) PetscCall(MatDuplicate(contour->pA[0],MAT_DO_NOT_COPY_VALUES,&ctx->J));
     PetscCall(BVGetColumn(ctx->V,0,&v0));
     PetscCall(SlepcContourScatterCreate(contour,v0));
     PetscCall(BVRestoreColumn(ctx->V,0,&v0));
@@ -249,7 +243,6 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
     PetscCall(BVSetSizesFromVec(ctx->pV,contour->xsub,nep->n));
     PetscCall(BVSetFromOptions(ctx->pV));
     PetscCall(BVResize(ctx->pV,ctx->L,PETSC_FALSE));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pV));
   }
 
   PetscCall(BVDestroy(&ctx->Y));
@@ -920,7 +913,6 @@ static PetscErrorCode NEPCISSGetKSPs_CISS(NEP nep,PetscInt *nsolve,KSP **ksp)
       PetscCall(PetscObjectIncrementTabLevel((PetscObject)contour->ksp[i],(PetscObject)nep,1));
       PetscCall(KSPSetOptionsPrefix(contour->ksp[i],((PetscObject)nep)->prefix));
       PetscCall(KSPAppendOptionsPrefix(contour->ksp[i],"nep_ciss_"));
-      PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)contour->ksp[i]));
       PetscCall(PetscObjectSetOptions((PetscObject)contour->ksp[i],((PetscObject)nep)->options));
       PetscCall(KSPSetErrorIfNotConverged(contour->ksp[i],PETSC_TRUE));
       PetscCall(KSPSetTolerances(contour->ksp[i],SlepcDefaultTol(nep->tol),PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT));
@@ -1082,7 +1074,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(nep,&ctx));
+  PetscCall(PetscNew(&ctx));
   nep->data = ctx;
   /* set default values of parameters */
   ctx->N                  = 32;

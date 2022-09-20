@@ -833,7 +833,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
   EPS_LANCZOS    *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
   ctx->reorthog = (EPSLanczosReorthogType)-1;
 

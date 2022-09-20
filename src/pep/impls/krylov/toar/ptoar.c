@@ -75,7 +75,6 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   if (!flg) {
     PetscCall(PetscFree(pep->solvematcoeffs));
     PetscCall(PetscMalloc1(pep->nmat,&pep->solvematcoeffs));
-    PetscCall(PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar)));
     PetscCall(PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv));
     if (sinv) PetscCall(PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL));
     else {
@@ -806,7 +805,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   PEP_TOAR       *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(pep,&ctx));
+  PetscCall(PetscNew(&ctx));
   pep->data = (void*)ctx;
 
   pep->lineariz = PETSC_TRUE;

@@ -140,7 +140,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_ScaLAPACK(SVD svd)
   SVD_ScaLAPACK  *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(svd,&ctx));
+  PetscCall(PetscNew(&ctx));
   svd->data = (void*)ctx;
 
   svd->ops->solve          = SVDSolve_ScaLAPACK;

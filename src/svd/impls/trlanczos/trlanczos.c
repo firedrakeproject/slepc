@@ -116,7 +116,6 @@ static PetscErrorCode MatZUpdateScale(SVD svd)
     if (!sametype) Atype = MATAIJ;
     PetscCall(MatConvert(lanczos->Z,Atype,MAT_INPLACE_MATRIX,&lanczos->Z));
     if (scalef != 1.0) PetscCall(MatDestroy(&mats[1]));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z));
   } else {
     PetscCall(MatShellGetContext(lanczos->Z,&zdata));
     zdata->scalef = scalef;
@@ -250,7 +249,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 #endif
       PetscCall(MatShellSetOperation(lanczos->Z,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Z));
       PetscCall(MatShellSetOperation(lanczos->Z,MATOP_DESTROY,(void(*)(void))MatDestroy_Z));
-      PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)lanczos->Z));
     }
     /* Explicit matrix is created here, when updating the scale */
     PetscCall(MatZUpdateScale(svd));
@@ -1388,7 +1386,6 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
 
   /* Create BV for U1 */
   PetscCall(BVCreate(PetscObjectComm((PetscObject)svd),&U1));
-  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)U1));
   PetscCall(BVGetType(svd->U,&type));
   PetscCall(BVSetType(U1,type));
   PetscCall(BVGetSizes(svd->U,NULL,NULL,&k));
@@ -1396,7 +1393,6 @@ PetscErrorCode SVDSolve_TRLanczos_GSVD(SVD svd)
 
   /* Create BV for U2 */
   PetscCall(BVCreate(PetscObjectComm((PetscObject)svd),&U2));
-  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)U2));
   PetscCall(BVSetType(U2,type));
   PetscCall(BVSetSizes(U2,p,PETSC_DECIDE,k));
 
@@ -1663,8 +1659,7 @@ static PetscErrorCode SVDTRLanczosSetKSP_TRLanczos(SVD svd,KSP ksp)
   PetscFunctionBegin;
   PetscCall(PetscObjectReference((PetscObject)ksp));
   PetscCall(KSPDestroy(&ctx->ksp));
-  ctx->ksp = ksp;
-  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->ksp));
+  ctx->ksp   = ksp;
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -1707,7 +1702,6 @@ static PetscErrorCode SVDTRLanczosGetKSP_TRLanczos(SVD svd,KSP *ksp)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)svd,1));
     PetscCall(KSPSetOptionsPrefix(ctx->ksp,((PetscObject)svd)->prefix));
     PetscCall(KSPAppendOptionsPrefix(ctx->ksp,"svd_trlanczos_"));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)ctx->ksp));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->ksp,((PetscObject)svd)->options));
     PetscCall(KSPSetType(ctx->ksp,KSPLSQR));
     PetscCall(KSPGetPC(ctx->ksp,&pc));
@@ -2131,7 +2125,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   SVD_TRLANCZOS  *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(svd,&ctx));
+  PetscCall(PetscNew(&ctx));
   svd->data = (void*)ctx;
 
   ctx->lock    = PETSC_TRUE;

@@ -971,7 +971,6 @@ static PetscErrorCode EPSPowerSetSNES_Power(EPS eps,SNES snes)
   PetscCall(PetscObjectReference((PetscObject)snes));
   PetscCall(SNESDestroy(&power->snes));
   power->snes = snes;
-  PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)power->snes));
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -1010,7 +1009,6 @@ static PetscErrorCode EPSPowerGetSNES_Power(EPS eps,SNES *snes)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)power->snes,(PetscObject)eps,1));
     PetscCall(SNESSetOptionsPrefix(power->snes,((PetscObject)eps)->prefix));
     PetscCall(SNESAppendOptionsPrefix(power->snes,"eps_power_"));
-    PetscCall(PetscLogObjectParent((PetscObject)eps,(PetscObject)power->snes));
     PetscCall(PetscObjectSetOptions((PetscObject)power->snes,((PetscObject)eps)->options));
   }
   *snes = power->snes;
@@ -1127,7 +1125,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   EPS_POWER      *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(eps,&ctx));
+  PetscCall(PetscNew(&ctx));
   eps->data = (void*)ctx;
 
   eps->useds = PETSC_TRUE;

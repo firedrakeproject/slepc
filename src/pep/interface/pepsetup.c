@@ -212,14 +212,8 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   /* build balancing matrix if required */
   if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) {
-    if (!pep->Dl) {
-      PetscCall(BVCreateVec(pep->V,&pep->Dl));
-      PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dl));
-    }
-    if (!pep->Dr) {
-      PetscCall(BVCreateVec(pep->V,&pep->Dr));
-      PetscCall(PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->Dr));
-    }
+    if (!pep->Dl) PetscCall(BVCreateVec(pep->V,&pep->Dl));
+    if (!pep->Dr) PetscCall(BVCreateVec(pep->V,&pep->Dr));
     PetscCall(PEPBuildDiagonalScaling(pep));
   }
 
@@ -290,7 +284,6 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 
   PetscCall(PetscMalloc1(nmat,&pep->A));
   PetscCall(PetscCalloc2(3*nmat,&pep->pbc,nmat,&pep->nrma));
-  PetscCall(PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal)));
   for (i=0;i<nmat;i++) {
     pep->A[i]   = A[i];
     pep->pbc[i] = 1.0;  /* default to monomial basis */
@@ -445,8 +438,7 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
 @*/
 PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
 {
-  PetscInt       oldsize,newc,requested,requestedbv;
-  PetscLogDouble cnt;
+  PetscInt       oldsize,requested,requestedbv;
   Vec            t;
 
   PetscFunctionBegin;
@@ -460,9 +452,6 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
   if (requested != oldsize || !pep->eigr) {
     PetscCall(PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm));
     PetscCall(PetscMalloc4(requested,&pep->eigr,requested,&pep->eigi,requested,&pep->errest,requested,&pep->perm));
-    newc = PetscMax(0,requested-oldsize);
-    cnt = 2*newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
-    PetscCall(PetscLogObjectMemory((PetscObject)pep,cnt));
   }
 
   /* allocate V */

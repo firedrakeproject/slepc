@@ -71,7 +71,6 @@ PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
   for (i=0;i<ctx->nf;i++) PetscCall(DSAllocateMat_Private(ds,DSMatExtra[i]));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld*ctx->max_mid,&ds->perm));
-  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*ctx->max_mid*sizeof(PetscInt)));
   PetscFunctionReturn(0);
 }
 
@@ -1104,7 +1103,6 @@ static PetscErrorCode DSNEPSetRG_NEP(DS ds,RG rg)
   PetscCall(PetscObjectReference((PetscObject)rg));
   PetscCall(RGDestroy(&dsctx->rg));
   dsctx->rg = rg;
-  PetscCall(PetscLogObjectParent((PetscObject)ds,(PetscObject)dsctx->rg));
   PetscFunctionReturn(0);
 }
 
@@ -1147,7 +1145,6 @@ static PetscErrorCode DSNEPGetRG_NEP(DS ds,RG *rg)
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)ctx->rg,(PetscObject)ds,1));
     PetscCall(RGSetOptionsPrefix(ctx->rg,((PetscObject)ds)->prefix));
     PetscCall(RGAppendOptionsPrefix(ctx->rg,"ds_nep_"));
-    PetscCall(PetscLogObjectParent((PetscObject)ds,(PetscObject)ctx->rg));
     PetscCall(PetscObjectSetOptions((PetscObject)ctx->rg,((PetscObject)ds)->options));
   }
   *rg = ctx->rg;
@@ -1293,7 +1290,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   DS_NEP         *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(ds,&ctx));
+  PetscCall(PetscNew(&ctx));
   ds->data = (void*)ctx;
   ctx->max_mid = 4;
   ctx->nnod    = 64;

@@ -110,7 +110,7 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    PetscCall(PetscNewLog(d->eps,&data));
+    PetscCall(PetscNew(&data));
     data->k = k;
     data->user = user;
     data->old_initV_data = d->initV_data;

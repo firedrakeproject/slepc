@@ -231,7 +231,6 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
     if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,PETSC_DECIDE,newarray+j*bv->n,newV+j));
     else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,bv->n,newarray+j*bv->n,newV+j));
   }
-  PetscCall(PetscLogObjectParents(bv,m,newV));
   if (((PetscObject)bv)->name) {
     for (j=0;j<m;j++) {
       PetscCall(PetscSNPrintf(str,sizeof(str),"%s_%" PetscInt_FMT,((PetscObject)bv)->name,j));
@@ -341,7 +340,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   Vec            *Vpar;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(bv,&ctx));
+  PetscCall(PetscNew(&ctx));
   bv->data = (void*)ctx;
 
   PetscCall(PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi));
@@ -369,7 +368,6 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
       if (ctx->mpi) PetscCall(VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*nloc,ctx->V+j));
       else PetscCall(VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*nloc,ctx->V+j));
     }
-    PetscCall(PetscLogObjectParents(bv,bv->m,ctx->V));
   }
   if (((PetscObject)bv)->name) {
     for (j=0;j<bv->m;j++) {

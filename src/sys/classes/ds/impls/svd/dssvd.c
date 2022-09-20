@@ -25,7 +25,6 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
   PetscCall(DSAllocateMat_Private(ds,DS_MAT_T));
   PetscCall(PetscFree(ds->perm));
   PetscCall(PetscMalloc1(ld,&ds->perm));
-  PetscCall(PetscLogObjectMemory((PetscObject)ds,ld*sizeof(PetscInt)));
   PetscFunctionReturn(0);
 }
 
@@ -540,7 +539,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   DS_SVD         *ctx;
 
   PetscFunctionBegin;
-  PetscCall(PetscNewLog(ds,&ctx));
+  PetscCall(PetscNew(&ctx));
   ds->data = (void*)ctx;
 
   ds->ops->allocate      = DSAllocate_SVD;

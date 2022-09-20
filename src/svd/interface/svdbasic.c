@@ -112,7 +112,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->isgeneralized    = PETSC_FALSE;
   svd->reason           = SVD_CONVERGED_ITERATING;
 
-  PetscCall(PetscNewLog(svd,&svd->sc));
+  PetscCall(PetscNew(&svd->sc));
   *outsvd = svd;
   PetscFunctionReturn(0);
 }
@@ -368,7 +368,6 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
     PetscCall(PetscObjectReference((PetscObject)V));
     PetscCall(BVDestroy(&svd->V));
     svd->V = V;
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->V));
   }
   if (U) {
     PetscValidHeaderSpecific(U,BV_CLASSID,3);
@@ -376,7 +375,6 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
     PetscCall(PetscObjectReference((PetscObject)U));
     PetscCall(BVDestroy(&svd->U));
     svd->U = U;
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->U));
   }
   PetscFunctionReturn(0);
 }
@@ -406,7 +404,6 @@ PetscErrorCode SVDGetBV(SVD svd,BV *V,BV *U)
     if (!svd->V) {
       PetscCall(BVCreate(PetscObjectComm((PetscObject)svd),&svd->V));
       PetscCall(PetscObjectIncrementTabLevel((PetscObject)svd->V,(PetscObject)svd,0));
-      PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->V));
       PetscCall(PetscObjectSetOptions((PetscObject)svd->V,((PetscObject)svd)->options));
     }
     *V = svd->V;
@@ -415,7 +412,6 @@ PetscErrorCode SVDGetBV(SVD svd,BV *V,BV *U)
     if (!svd->U) {
       PetscCall(BVCreate(PetscObjectComm((PetscObject)svd),&svd->U));
       PetscCall(PetscObjectIncrementTabLevel((PetscObject)svd->U,(PetscObject)svd,0));
-      PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->U));
       PetscCall(PetscObjectSetOptions((PetscObject)svd->U,((PetscObject)svd)->options));
     }
     *U = svd->U;
@@ -449,7 +445,6 @@ PetscErrorCode SVDSetDS(SVD svd,DS ds)
   PetscCall(PetscObjectReference((PetscObject)ds));
   PetscCall(DSDestroy(&svd->ds));
   svd->ds = ds;
-  PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ds));
   PetscFunctionReturn(0);
 }
 
@@ -477,7 +472,6 @@ PetscErrorCode SVDGetDS(SVD svd,DS *ds)
   if (!svd->ds) {
     PetscCall(DSCreate(PetscObjectComm((PetscObject)svd),&svd->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)svd->ds,(PetscObject)svd,0));
-    PetscCall(PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ds));
     PetscCall(PetscObjectSetOptions((PetscObject)svd->ds,((PetscObject)svd)->options));
   }
   *ds = svd->ds;

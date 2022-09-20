@@ -118,7 +118,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->resolvent       = NULL;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
-  PetscCall(PetscNewLog(nep,&nep->sc));
+  PetscCall(PetscNew(&nep->sc));
   *outnep = nep;
   PetscFunctionReturn(0);
 }
@@ -388,7 +388,6 @@ PetscErrorCode NEPSetBV(NEP nep,BV bv)
   PetscCall(PetscObjectReference((PetscObject)bv));
   PetscCall(BVDestroy(&nep->V));
   nep->V = bv;
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V));
   PetscFunctionReturn(0);
 }
 
@@ -416,7 +415,6 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
   if (!nep->V) {
     PetscCall(BVCreate(PetscObjectComm((PetscObject)nep),&nep->V));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)nep->V,(PetscObject)nep,0));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V));
     PetscCall(PetscObjectSetOptions((PetscObject)nep->V,((PetscObject)nep)->options));
   }
   *bv = nep->V;
@@ -451,7 +449,6 @@ PetscErrorCode NEPSetRG(NEP nep,RG rg)
   PetscCall(PetscObjectReference((PetscObject)rg));
   PetscCall(RGDestroy(&nep->rg));
   nep->rg = rg;
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg));
   PetscFunctionReturn(0);
 }
 
@@ -479,7 +476,6 @@ PetscErrorCode NEPGetRG(NEP nep,RG *rg)
   if (!nep->rg) {
     PetscCall(RGCreate(PetscObjectComm((PetscObject)nep),&nep->rg));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)nep->rg,(PetscObject)nep,0));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg));
     PetscCall(PetscObjectSetOptions((PetscObject)nep->rg,((PetscObject)nep)->options));
   }
   *rg = nep->rg;
@@ -512,7 +508,6 @@ PetscErrorCode NEPSetDS(NEP nep,DS ds)
   PetscCall(PetscObjectReference((PetscObject)ds));
   PetscCall(DSDestroy(&nep->ds));
   nep->ds = ds;
-  PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds));
   PetscFunctionReturn(0);
 }
 
@@ -540,7 +535,6 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
   if (!nep->ds) {
     PetscCall(DSCreate(PetscObjectComm((PetscObject)nep),&nep->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)nep->ds,(PetscObject)nep,0));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds));
     PetscCall(PetscObjectSetOptions((PetscObject)nep->ds,((PetscObject)nep)->options));
   }
   *ds = nep->ds;
@@ -576,12 +570,10 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
       PetscCall(PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&nep->refinesubc));
       PetscCall(PetscSubcommSetNumber(nep->refinesubc,nep->npart));
       PetscCall(PetscSubcommSetType(nep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS));
-      PetscCall(PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm)));
       PetscCall(PetscSubcommGetChild(nep->refinesubc,&comm));
     } else PetscCall(PetscObjectGetComm((PetscObject)nep,&comm));
     PetscCall(KSPCreate(comm,&nep->refineksp));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)nep->refineksp,(PetscObject)nep,0));
-    PetscCall(PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->refineksp));
     PetscCall(PetscObjectSetOptions((PetscObject)nep->refineksp,((PetscObject)nep)->options));
     PetscCall(KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix));
     PetscCall(KSPAppendOptionsPrefix(*ksp,"nep_refine_"));
@@ -884,13 +876,10 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt nt,Mat A[],FN f[],MatStructu
 
   /* allocate space and copy matrices and functions */
   PetscCall(PetscMalloc1(nt,&nep->A));
-  PetscCall(PetscLogObjectMemory((PetscObject)nep,nt*sizeof(Mat)));
   for (i=0;i<nt;i++) nep->A[i] = A[i];
   PetscCall(PetscMalloc1(nt,&nep->f));
-  PetscCall(PetscLogObjectMemory((PetscObject)nep,nt*sizeof(FN)));
   for (i=0;i<nt;i++) nep->f[i] = f[i];
   PetscCall(PetscCalloc1(nt,&nep->nrma));
-  PetscCall(PetscLogObjectMemory((PetscObject)nep,nt*sizeof(PetscReal)));
   nep->nt    = nt;
   nep->mstr  = str;
   nep->fui   = NEP_USER_INTERFACE_SPLIT;
@@ -1021,7 +1010,6 @@ PetscErrorCode NEPSetSplitPreconditioner(NEP nep,PetscInt ntp,Mat P[],MatStructu
   /* allocate space and copy matrices */
   if (ntp) {
     PetscCall(PetscMalloc1(ntp,&nep->P));
-    PetscCall(PetscLogObjectMemory((PetscObject)nep,ntp*sizeof(Mat)));
     for (i=0;i<ntp;i++) nep->P[i] = P[i];
   }
   nep->mstrp = strp;
