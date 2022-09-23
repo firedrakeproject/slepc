@@ -9,7 +9,7 @@
 - `SVD`: support for the hyperbolic SVD (HSVD), with a signature matrix passed with
   `SVDSetSignature()`.
 - `FN`: add support for matrix function computation on the GPU, whenever the `Mat`
-  arguments of `FNEvaluateFunctionMat()` are of type `MATSEQDENSECUDA` (and similary
+  arguments of `FNEvaluateFunctionMat()` are of type `MATSEQDENSECUDA` (and similarly
   for `FNEvaluateFunctionMatVec()`).
 - `DS`: new functions `DSGetMatAndColumn()`/`DSRestoreMatAndColumn()`.
 
@@ -164,7 +164,7 @@
 - `NEP`: support for automatic determination of singularities in NLEIGS with the AAA algorithm.
 - `NEP`: support for left eigenvectors and approximation of the resolvent.
 - `FN`: implemented matrix logarithm.
-- Enable compilation with non-GNU compilers in Windows plaforms.
+- Enable compilation with non-GNU compilers in Windows platforms.
 - Added support for `DESTDIR` in prefix install.
 
 ## [3.10] - 2018-09-18
@@ -187,7 +187,7 @@
 - Released under 2-clause BSD license.
 - New solver class `LME` for linear matrix equations (such as Lyapunov or Sylvester) whose
   solution has low rank.
-- `NEP`: added specific suport for rational eigenvalue problems with `NEPSetProblemType()`.
+- `NEP`: added specific support for rational eigenvalue problems with `NEPSetProblemType()`.
 - Added nonlinear inverse iteration as an option of `EPSPOWER`.
 - Added a preliminary implementation of polynomial filters in `STFILTER` to compute interior
   eigenvalues of symmetric problems without factorizing a matrix.
@@ -282,7 +282,7 @@
   eigensolver in SLEPc. It can be used for computing smallest eigenvalues of symmetric-definite
   matrix pairs without inverting any matrix (a preconditioner can be used instead).
 - Added a customizable parameter to specify how to restart in Krylov-Schur, see
-  `EPSKrylovSchurSetRestart`. Tunning this parameter may speed up convergence significantly in
+  `EPSKrylovSchurSetRestart`. Tuning this parameter may speed up convergence significantly in
   some cases.
 - Added support for generalized symmetric-indefinite eigenproblems in Krylov-Schur and the Davidson
   solvers. To use this, set the problem type to `EPS_GHIEP`.
@@ -404,7 +404,7 @@
   much faster than the old one.
 - The `arnoldi` eigensolver has been re-implemented as well. The new implementation is much more
   robust and efficient.
-- A new Spectral Tranformation (`ST`) has been added: the generalized Cayley transform.
+- A new Spectral Transformation (`ST`) has been added: the generalized Cayley transform.
 - Support for user-provided deflation subspaces has been added, see `EPSAttachDeflationSpace()`.
 - Support for preservation of symmetry in eigensolvers. For this feature, the user must explicitly
   call `EPSSetProblemType()` in symmetric problems.
