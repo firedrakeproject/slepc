@@ -14,7 +14,7 @@
 
        [1] C. Campos and J.E. Roman, "NEP: a module for the parallel solution
            of nonlinear eigenvalue problems in SLEPc", ACM Trans. Math. Soft.
-           (to appear), arXiv:1910.11712, 2021.
+           47(3), 23:1--23:29, 2021.
 */
 
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
