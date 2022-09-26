@@ -30,17 +30,16 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
 \newblock SIAM, Philadelphia.
 
 \bibitem[{Balay {\em et~al.\/}(2022)Balay, Abhyankar, Adams, Benson, Brown, Brune,
-  Buschelman, Constantinescu, Dalcin, Dener, Eijkhout, Gropp, Hapla, Isaac, Faibussowitsch, Jolivet,
+  Buschelman, Constantinescu, Dalcin, Dener, Eijkhout, Faibussowitsch, Gropp, Hapla, Isaac, Jolivet,
   Karpeyev, Kaushik, Knepley, Kong, Kruger, May, McInnes, Mills, Mitchell, Munson,
   Roman, Rupp, Sanan, Sarich, Smith, Zampini, Zhang, Zhang, and Zhang}]{Balay:PUM}
 Balay, S., S.~Abhyankar, M.~Adams, S.~Benson, J.~Brown, P.~Brune, K.~Buschelman,
-  E.~Constantinescu, L.~Dalcin, A.~Dener, V.~Eijkhout, W.~Gropp, V.~Hapla, T.~Isaac,
-  J.~Faibussowitsch, P.~Jolivet, D.~Karpeyev, D.~Kaushik, M.~Knepley, F.~Kong, S.~Kruger, D.~May,
+  E.~Constantinescu, L.~Dalcin, A.~Dener, V.~Eijkhout, J.~Faibussowitsch, W.~Gropp, V.~Hapla,
+  T.~Isaac, P.~Jolivet, D.~Karpeyev, D.~Kaushik, M.~Knepley, F.~Kong, S.~Kruger, D.~May,
   L.~C. McInnes, R.~T. Mills, L.~Mitchell, T.~Munson, J.~E. Roman, K.~Rupp, P.~Sanan,
   J.~Sarich, B.~Smith, S.~Zampini, H.~Zhang, H.~Zhang, and J.~Zhang (2022).
-\newblock {PETSc/TAO} Users Manual.
-\newblock Technical Report ANL-21/39 - Revision 3.18, Argonne National
-  Laboratory.
+\newblock {PETSc/TAO} Users Manual Revision 3.18.
+\newblock Argonne Technical Memorandum ANL-21/39.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and
   Smith}]{Balay:1997:EMP}
