@@ -244,11 +244,12 @@ static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backt
 -  backtr - the application-provided backtransform routine
 
    Calling sequence of backtr:
-$  PetscErrorCode backtr(ST st,PetscScalar *eigr,PetscScalar *eigi)
+$  PetscErrorCode backtr(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 
 +  st   - the spectral transformation context
-.  eigr - pointer ot the real part of the eigenvalue to transform back
--  eigi - pointer ot the imaginary part
+.  n    - number of eigenvalues to be backtransformed
+.  eigr - pointer ot the real parts of the eigenvalues to transform back
+-  eigi - pointer ot the imaginary parts
 
    Level: advanced
 

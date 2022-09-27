@@ -660,7 +660,7 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
          previously set value)
 
    Calling Sequence of fun:
-$   fun(NEP nep,PetscScalar lambda,Mat F,Mat P,void *ctx)
+$   fun(NEP nep,PetscScalar lambda,Mat T,Mat P,void *ctx)
 
 +  nep    - the NEP context
 .  lambda - the scalar argument where T(.) must be evaluated
