@@ -59,7 +59,7 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
    Calling Sequence of monitor:
-$   monitor(EPS eps,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal* errest,int nest,void *mctx)
+$   monitor(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal* errest,PetscInt nest,void *mctx)
 
 +  eps    - eigensolver context obtained from EPSCreate()
 .  its    - iteration number

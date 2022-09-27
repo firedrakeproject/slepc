@@ -23,10 +23,13 @@
     SlepcSC - Data structure (C struct) for storing information about
         the sorting criterion used by different eigensolver objects.
 
+   Notes:
    The SlepcSC structure contains a mapping function and a comparison
    function (with associated contexts).
    The mapping function usually calls ST's backtransform.
-   The comparison function must have the following calling sequence:
+   An optional region can also be used to give higher priority to values inside it.
+
+   The comparison function must have the following calling sequence
 
 $  comparison(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
 
@@ -37,7 +40,6 @@ $  comparison(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscI
 .  res - result of comparison
 -  ctx - optional context, stored in comparisonctx
 
-   Note:
    The returning parameter 'res' can be
 +  negative - if the 1st value is preferred to the 2st one
 .  zero     - if both values are equally preferred
