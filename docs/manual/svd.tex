@@ -402,7 +402,7 @@ Similarly, in the case of GSVD the thick-restart Lanczos solver uses a \ident{KS
 	SVDTRLanczosGetKSP(SVD svd,KSP *ksp);
 	\end{Verbatim}
 or with the corresponding command-line options prefixed with \texttt{-svd\_trlanczos\_}. This \ident{KSP} object is used to solve a linear least squares problem at each Lanczos step with coefficient matrix $Z$
-~\eqref{eq:qr}.
+~\eqref{eq:qr}, which by default is a shell matrix but the user can choose to create it explicitly with the function \ident{SVDTRLanczosSetExplicitMatrix}.
 
 %---------------------------------------------------
 \section{Retrieving the Solution}
@@ -437,9 +437,9 @@ where $\tilde{\sigma}$, $\tilde{u}$ and $\tilde{v}$ represent any of the \texttt
 
 Given the above definition, the following relation holds
 \begin{equation}
-|\sigma-\tilde{\sigma}|\leq \|r\|_2,
+|\sigma-\tilde{\sigma}|\leq \|r_\mathrm{SVD}\|_2,
 \end{equation}
-where $\sigma$ is an exact singular value. The associated error can be obtained in terms of $\|r\|_2$ with the following function:
+where $\sigma$ is an exact singular value. The associated error can be obtained in terms of $\|r_\mathrm{SVD}\|_2$ with the following function:
 	\findex{SVDComputeError}
 	\begin{Verbatim}[fontsize=\small]
 	SVDComputeError(SVD svd,PetscInt j,SVDErrorType type,PetscReal *error);
@@ -479,5 +479,5 @@ As in the case of eigensolvers, the user can choose different convergence tests,
 
 \paragraph{Viewing the Solution.}
 
-There is support for different kinds of viewers for the solution, as in the case of eigensolvers. One can for instance use \Verb!-svd_view_values!, \Verb!-svd_view_vectors!, \Verb!-svd_error_relative!, or \Verb!-svd_converged_reason!. See description in \S\ref{sec:epsviewers}.
+There is support for different kinds of viewers for the solution, as in the case of eigensolvers. One can for instance use \Verb!-svd_view_values!, \Verb!-svd_view_vectors!, \Verb!-svd_error_relative!, or \Verb!-svd_converged_reason!. See the description in \S\ref{sec:epsviewers}.
 
