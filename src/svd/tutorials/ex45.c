@@ -208,8 +208,11 @@ int main(int argc,char **argv)
          args: -svd_type trlanczos -svd_ncv 8 -svd_trlanczos_gbidiag {{upper lower}} -svd_trlanczos_oneside {{0 1}}
          suffix: 5
       test:
-         args: -svd_type cross -svd_ncv 10 -svd_cross_explicitmatrix {{0 1}}
+         args: -svd_type cross -svd_ncv 10 -svd_cross_explicitmatrix
          suffix: 5_cross
+      test:
+         args: -svd_type cross -svd_ncv 10 -svd_cross_eps_type krylovschur -svd_cross_st_type sinvert -svd_cross_eps_target 0 -svd_cross_st_ksp_type gmres -svd_cross_st_pc_type jacobi
+         suffix: 5_cross_implicit
       test:
          args: -svd_type cyclic -svd_ncv 12 -svd_cyclic_explicitmatrix {{0 1}}
          suffix: 5_cyclic

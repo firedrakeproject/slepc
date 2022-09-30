@@ -219,6 +219,9 @@ int main(int argc,char **argv)
          suffix: 4_cross
          args: -svd_type cross -svd_cross_explicitmatrix
       test:
+         suffix: 4_cross_implicit
+         args: -svd_type cross -svd_cross_eps_type lobpcg -svd_cross_st_ksp_type cg -svd_cross_st_pc_type jacobi -svd_max_it 1000
+      test:
          suffix: 4_cyclic
          args: -svd_type cyclic -svd_cyclic_explicitmatrix
       test:

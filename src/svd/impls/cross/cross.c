@@ -164,7 +164,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
 {
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   ST             st;
-  PetscBool      trackall,issinv;
+  PetscBool      trackall,issinv,isks;
   EPSProblemType ptype;
   EPSWhich       which;
   Mat            Omega;
@@ -199,12 +199,15 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   }
   if (!cross->usereps) {
     PetscCall(EPSGetST(cross->eps,&st));
+    PetscCall(PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv));
+    PetscCall(PetscObjectTypeCompare((PetscObject)cross->eps,EPSKRYLOVSCHUR,&isks));
     if (svd->isgeneralized && svd->which==SVD_SMALLEST) {
-      PetscCall(STSetType(st,STSINVERT));
-      PetscCall(EPSSetTarget(cross->eps,0.0));
-      which = EPS_TARGET_REAL;
+      if (cross->explicitmatrix && isks && !issinv) {  /* default to shift-and-invert */
+        PetscCall(STSetType(st,STSINVERT));
+        PetscCall(EPSSetTarget(cross->eps,0.0));
+        which = EPS_TARGET_REAL;
+      } else which = issinv?EPS_TARGET_REAL:EPS_SMALLEST_REAL;
     } else {
-      PetscCall(PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv));
       if (issinv) which = EPS_TARGET_MAGNITUDE;
       else if (svd->ishyperbolic) which = svd->which==SVD_LARGEST?EPS_LARGEST_MAGNITUDE:EPS_SMALLEST_MAGNITUDE;
       else which = svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL;
