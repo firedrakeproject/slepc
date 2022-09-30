@@ -10,6 +10,6 @@
 
 LOCDIR     = src/svd/tests/
 MANSEC     = SVD
-TESTS      = test1 test2 test3 test4 test4f test5 test6 test7 test8 test9 test10 test11 test12 test13 test14 test15 test16 test18
+TESTS      = test1 test2 test3 test4 test4f test5 test6 test7 test8 test9 test10 test11 test12 test13 test14 test15 test16 test18 test19
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
