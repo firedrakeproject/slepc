@@ -223,18 +223,22 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
 {
   DS_HSVD           *ctx = (DS_HSVD*)ds->data;
   PetscInt          i;
-  PetscBLASInt      n=0,m=0,ld,incx=1;
-  PetscScalar       *A,*x,*y,one=1.0,zero=0.0;
-  PetscReal         *T,*e,beta;
-  const PetscScalar *U;
+  PetscBLASInt      n=0,m=0,ld,l,n1,incx=1;
+  PetscScalar       *A,*U,*x,*y,one=1.0,zero=0.0;
+  PetscReal         *T,*e,*Omega,beta;
 
   PetscFunctionBegin;
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ctx->m,&m));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
-  PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_U],&U));
+  PetscCall(PetscBLASIntCast(ds->l,&l));
+  n1 = n-l;
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&Omega));
   if (ds->compact) {
+    /* Update U: U<-U*Omega   TODO: should this go here or somewhere else? */
+    for (i=l;i<n;i++) PetscCallBLAS("BLASscal",BLASscal_(&n1,Omega+i,U+i*ld+l,&incx));
     PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
     e = T+ld;
     beta = e[m-1];   /* in compact, we assume all entries are zero except the last one */
@@ -252,7 +256,8 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
     ds->k = m;
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
-  PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&Omega));
   PetscFunctionReturn(0);
 }
 
@@ -340,8 +345,8 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   DS_HSVD        *ctx = (DS_HSVD*)ds->data;
   PetscInt       i,j,k=ds->k,rwu=0,iwu=0,swu=0,nv;
   PetscBLASInt   n1,n2,info,l=0,n=0,m=0,ld,off,size,one=1,*perm,*cmplx;
-  PetscScalar    *A,*U,*V,scal,*R;
-  PetscReal      *d,*e,*dd,*ee,*Omega,*D;
+  PetscScalar    *U,*V,scal,*R;
+  PetscReal      *d,*e,*dd,*ee,*Omega;
 
   PetscFunctionBegin;
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
@@ -353,7 +358,6 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(PetscBLASIntCast(PetscMax(0,ds->k-ds->l+1),&n2));
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
   off = l+l*ld;
-  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
@@ -365,7 +369,9 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (i=0;i<n;i++) V[i+i*ld] = 1.0;
 
   PetscCheck(ds->compact,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non compact storage");
-  /* Form the tridiagonal cross product */
+
+  /* Form the arrow tridiagonal cross product T=A'*Omega*A, where A is the arrow
+     bidiagonal matrix formed by d, e. T is stored in dd, ee */
   PetscCall(DSAllocateWork_Private(ds,(n+6)*ld,4*ld,2*ld));
   R = ds->work+swu;
   swu += n*n;
@@ -387,18 +393,18 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     dd[i] = Omega[i]*d[i]*d[i]+Omega[i-1]*e[i-1]*e[i-1];
     ee[i] = Omega[i]*d[i]*e[i];
   }
-  /* Reduce to tridiagonal form */
+
+  /* Reduce T to tridiagonal form */
   PetscCall(ArrowTrididiag(n2,dd+l,ee+l,V+off,ld));
 
-  /* Solve the tridiagonal eigenproblem */
+  /* Solve the tridiagonal eigenproblem corresponding to T */
   for (i=0;i<l;i++) wr[i] = d[i];
-
   PetscCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n1,dd+l,ee+l,V+off,&ld,ds->rwork+rwu,&info));
   SlepcCheckLapackInfo("steqr",info);
   for (i=l;i<n;i++) wr[i] = PetscSqrtScalar(PetscAbs(dd[i]));
   if (wi) for (i=l;i<n;i++) wi[i] = 0.0;
 
-  /* Build left singular vectors */
+  /* Build left singular vectors: U=A*V*Sigma^-1 */
   size = n1*ld;
   PetscCall(PetscArrayzero(U+l*ld,size));
   for (i=l;i<n-1;i++) {
@@ -407,6 +413,7 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,e+i,V+l*ld+j,&ld,U+l*ld+i,&ld));
   }
   PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&d[n-1],V+off+(n1-1),&ld,U+off+(n1-1),&ld));
+  /* Multiply by Sigma^-1 */
   for (i=l;i<n;i++) {scal = 1.0/wr[i]; PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,U+i*ld+l,&one));}
 
   /* Reinforce orthogonality */
@@ -415,7 +422,8 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(DSPseudoOrthog_HR(&nv,U+off,ld,Omega+l,R,ld,perm,cmplx,NULL,ds->work+swu));
 
   /* Update projected problem */
-  for (i=l;i<n;i++) {e[i] = 0.0; dd[i] = wr[i];}
+  for (i=l;i<n;i++) d[i] = wr[i];
+  PetscCall(PetscArrayzero(e,n-1));
 
   /* Update vectors V with R */
   scal = -1.0;
@@ -424,11 +432,10 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 
   /* create diagonal matrix as a result */
-  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
-  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&Omega));
   PetscFunctionReturn(0);
 }
 
