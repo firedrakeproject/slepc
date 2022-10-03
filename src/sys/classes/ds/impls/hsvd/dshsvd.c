@@ -199,9 +199,11 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
   n1 = n-l;
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
   PetscCall(DSGetArrayReal(ds,DS_MAT_D,&Omega));
+  x = ds->work;
   if (ds->compact) {
     /* Update U: U<-U*Omega */
-    for (i=l;i<n;i++) PetscCallBLAS("BLASscal",BLASscal_(&n1,Omega+i,U+i*ld+l,&incx));
+    for (i=l;i<n;i++) x[i] = Omega[i];
+    for (i=l;i<n;i++) PetscCallBLAS("BLASscal",BLASscal_(&n1,x+i,U+i*ld+l,&incx));
     PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
     e = T+ld;
     beta = e[m-1];   /* in compact, we assume all entries are zero except the last one */
@@ -211,7 +213,6 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
   } else {
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
     PetscCall(DSAllocateWork_Private(ds,2*ld,0,0));
-    x = ds->work;
     y = ds->work+ld;
     for (i=0;i<n;i++) x[i] = PetscConj(A[i+m*ld]);
     PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,U,&ld,x,&incx,&zero,y,&incx));
@@ -370,11 +371,14 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   size = n1*ld;
   PetscCall(PetscArrayzero(U+l*ld,size));
   for (i=l;i<n-1;i++) {
-    PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,d+i,V+l*ld+i,&ld,U+l*ld+i,&ld));
+    scal = d[i];
+    PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&scal,V+l*ld+i,&ld,U+l*ld+i,&ld));
     j = (i<k)?k:i+1;
-    PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,e+i,V+l*ld+j,&ld,U+l*ld+i,&ld));
+    scal = e[i];
+    PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&scal,V+l*ld+j,&ld,U+l*ld+i,&ld));
   }
-  PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&d[n-1],V+off+(n1-1),&ld,U+off+(n1-1),&ld));
+  scal = d[n-1];
+  PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&scal,V+off+(n1-1),&ld,U+off+(n1-1),&ld));
   /* Multiply by Sigma^-1 */
   for (i=l;i<n;i++) {scal = 1.0/wr[i]; PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,U+i*ld+l,&one));}
 
@@ -384,16 +388,15 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(DSPseudoOrthog_HR(&nv,U+off,ld,Omega+l,R,ld,perm,cmplx,NULL,ds->work+swu));
 
   /* Update projected problem */
-  for (i=l;i<n;i++) d[i] = wr[i];
+  for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
   PetscCall(PetscArrayzero(e,n-1));
 
   /* Update vectors V with R */
   scal = -1.0;
   for (i=0;i<nv;i++) {
-    if (R[i+i*ld] < 0.0) PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,V+(i+l)*ld+l,&one));
+    if (PetscRealPart(R[i+i*ld]) < 0.0) PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,V+(i+l)*ld+l,&one));
   }
 
-  /* create diagonal matrix as a result */
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
