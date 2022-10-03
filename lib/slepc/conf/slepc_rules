@@ -80,13 +80,14 @@ petsc_manualpages_buildcite: chk_manualpage_dir
           DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
           TEXTFILTER_PATH=${PETSC_DIR}/doc/classic/doctext; export TEXTFILTER_PATH; \
           cp ${PETSC_DIR}/include/*.h $$petscidx_tmp; \
+          doctext_common_def=${PETSC_DIR}/doc/classic/doctext/doctextcommon.txt; \
           for f in `ls $${petscidx_tmp}`; do \
             LMANSEC=`grep SUBMANSEC $${petscidx_tmp}/$${f} | sed s'?[ ]*/\*[ ]*SUBMANSEC[ ]*=[ ]*\([a-zA-Z]*\)[ ]*\*/?\1?'g`; \
             if [ "$${LMANSEC}" = "" ]; then LMANSEC="MissingSUBMANSEC"; fi; \
             if [ ! -d $${petscidx_tmp}/$${LMANSEC} ]; then ${MKDIR} $${petscidx_tmp}/$${LMANSEC}; fi; \
             ${DOCTEXT} -html -indexdir "https://petsc.org/$${petscbranch}/docs/manualpages/$${LMANSEC}" \
               -index $${petscidx_tmp}/petscmanualpages.cit \
-              -mpath $${petscidx_tmp}/$${LMANSEC} $${petscidx_tmp}/$${f}; \
+              -mpath $${petscidx_tmp}/$${LMANSEC} $${doctext_common_def} $${petscidx_tmp}/$${f}; \
           done; \
           if [ -d ${PETSC_DIR}/src ]; then \
             for f in `find ${PETSC_DIR}/src \( -name tutorials -o -name tests -o -name "ftn-*" \) -prune -o -name "*.c" -print`; do \
