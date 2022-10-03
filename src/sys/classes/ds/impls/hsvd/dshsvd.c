@@ -54,43 +54,6 @@ PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
     -----------------------------------------
 */
 
-#if 0
-static PetscErrorCode DSSwitchFormat_HSVD(DS ds)
-{
-  DS_HSVD        *ctx = (DS_HSVD*)ds->data;
-  PetscReal      *T,*S;
-  PetscScalar    *A,*B;
-  PetscInt       i,m=ctx->m,k=ds->k,ld=ds->ld;
-
-  PetscFunctionBegin;
-  PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
-  /* switch from compact (arrow) to dense storage */
-  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
-  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
-  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
-  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&S));
-  PetscCall(PetscArrayzero(A,ld*ld));
-  PetscCall(PetscArrayzero(B,ld*ld));
-  for (i=0;i<k;i++) {
-    A[i+i*ld] = T[i];
-    A[i+k*ld] = T[i+ld];
-    B[i+i*ld] = S[i];
-  }
-  A[k+k*ld] = T[k];
-  B[k+k*ld] = S[k];
-  for (i=k+1;i<m;i++) {
-    A[i+i*ld]   = T[i];
-    A[i-1+i*ld] = T[i-1+ld];
-    B[i+i*ld]   = S[i];
-  }
-  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
-  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
-  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&S));
-  PetscFunctionReturn(0);
-}
-#endif
-
 PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
 {
   DS_HSVD           *ctx = (DS_HSVD*)ds->data;
@@ -98,7 +61,7 @@ PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
   PetscInt          i,j,r,c,m=ctx->m,rows,cols;
   PetscReal         *T,*S,value;
   const char        *methodname[] = {
-                     "Cross"
+                     "Cross product A'*Omega*A"
   };
   const int         nmeth=PETSC_STATIC_ARRAY_LENGTH(methodname);
 
@@ -237,7 +200,7 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
   PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
   PetscCall(DSGetArrayReal(ds,DS_MAT_D,&Omega));
   if (ds->compact) {
-    /* Update U: U<-U*Omega   TODO: should this go here or somewhere else? */
+    /* Update U: U<-U*Omega */
     for (i=l;i<n;i++) PetscCallBLAS("BLASscal",BLASscal_(&n1,Omega+i,U+i*ld+l,&incx));
     PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
     e = T+ld;
@@ -338,7 +301,6 @@ static PetscErrorCode ArrowTrididiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pe
   }
   PetscFunctionReturn(0);
 }
-
 
 PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
@@ -635,7 +597,7 @@ PetscErrorCode DSDestroy_HSVD(DS ds)
 }
 
 /*MC
-   DSHSVD - Dense Singular Value Decomposition.
+   DSHSVD - Dense Hyperbolic Singular Value Decomposition.
 
    Level: beginner
 
@@ -651,9 +613,12 @@ PetscErrorCode DSDestroy_HSVD(DS ds)
 
    If the DS object is in the intermediate state, A is assumed to be in upper
    bidiagonal form (possibly with an arrow) and is stored in compact format
-   on matrix T, and then the signature is stored in D. Otherwise, no particular
-   structure is assumed. The compact storage is implemented for the square case
+   on matrix T, and then the signature is stored in D. Otherwise, the solver will
+   fail (not implemented yet). The compact storage is implemented for the square case
    only, m=n. The extra row should be interpreted in this case as an extra column.
+
+   The DSUpdateExtraRow() operation also updates matrix U, in addition to the extra
+   row, by post-multiplying it by the output signature.
 
    Used DS matrices:
 +  DS_MAT_A - problem matrix
@@ -662,7 +627,7 @@ PetscErrorCode DSDestroy_HSVD(DS ds)
 -  DS_MAT_D - diagonal matrix (signature)
 
    Implemented methods:
-.  0 - Cross
+.  0 - Cross product A'*Omega*A
 
 .seealso: DSCreate(), DSSetType(), DSType, DSHSVDSetDimensions()
 M*/

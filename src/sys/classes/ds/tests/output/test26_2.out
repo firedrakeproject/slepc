@@ -5,7 +5,7 @@ DS Object: 1 MPI process
   dimensions: ld=12, n=10, l=0, k=0
   flags: compact
   number of columns: 10
-  solving the problem with: Cross
+  solving the problem with: Cross product A'*Omega*A
 Initial - - - - - - - - -
 %DS Object: 1 MPI process
 %  type: hsvd

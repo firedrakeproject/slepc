@@ -3,13 +3,13 @@ DS Object: 1 MPI process
   type: hsvd
   current state: RAW
   dimensions: ld=12, n=10, l=2, k=5
-  flags: compact
+  flags: compact extrarow
   number of columns: 10
   solving the problem with: Cross product A'*Omega*A
 Initial - - - - - - - - -
 %DS Object: 1 MPI process
 %  type: hsvd
-% Size = 10 10
+% Size = 10 11
 zzz = zeros(20,3);
 zzz = [
 1 1  1.0000000000000000e+00
@@ -31,6 +31,7 @@ zzz = [
 7 8  1.0000000000000000e+00
 8 9  1.0000000000000000e+00
 9 10  1.0000000000000000e+00
+10 11  1.0000000000000000e+00
 ];
 T = spconvert(zzz);
 % Size = 10 10
