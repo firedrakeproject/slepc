@@ -548,6 +548,7 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k;
@@ -603,6 +604,7 @@ PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscFunctionReturn(0);
 }
+#endif
 
 PetscErrorCode DSTruncate_GNHEP(DS ds,PetscInt n,PetscBool trim)
 {
@@ -675,7 +677,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GNHEP(DS ds)
   ds->ops->vectors         = DSVectors_GNHEP;
   ds->ops->solve[0]        = DSSolve_GNHEP;
   ds->ops->sort            = DSSort_GNHEP;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize     = DSSynchronize_GNHEP;
+#endif
   ds->ops->gettruncatesize = DSGetTruncateSize_Default;
   ds->ops->truncate        = DSTruncate_GNHEP;
   ds->ops->update          = DSUpdateExtraRow_GNHEP;

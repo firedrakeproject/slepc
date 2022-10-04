@@ -564,6 +564,7 @@ PetscErrorCode DSCond_GSVD(DS ds,PetscReal *cond)
   PetscFunctionReturn(0);
 }
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   DS_GSVD        *ctx = (DS_GSVD*)ds->data;
@@ -620,6 +621,7 @@ PetscErrorCode DSSynchronize_GSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscFunctionReturn(0);
 }
+#endif
 
 PetscErrorCode DSMatGetSize_GSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
@@ -811,7 +813,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GSVD(DS ds)
   ds->ops->vectors       = DSVectors_GSVD;
   ds->ops->sort          = DSSort_GSVD;
   ds->ops->solve[0]      = DSSolve_GSVD;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize   = DSSynchronize_GSVD;
+#endif
   ds->ops->truncate      = DSTruncate_GSVD;
   ds->ops->update        = DSUpdateExtraRow_GSVD;
   ds->ops->cond          = DSCond_GSVD;

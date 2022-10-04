@@ -669,6 +669,7 @@ PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(0);
 }
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_HEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
@@ -708,6 +709,7 @@ PetscErrorCode DSSynchronize_HEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   if (ds->state>DS_STATE_RAW) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   PetscFunctionReturn(0);
 }
+#endif
 
 PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
 {
@@ -852,7 +854,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->solve[3]      = DSSolve_HEP_BDC;
 #endif
   ds->ops->sort          = DSSort_HEP;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize   = DSSynchronize_HEP;
+#endif
   ds->ops->truncate      = DSTruncate_HEP;
   ds->ops->update        = DSUpdateExtraRow_HEP;
   ds->ops->cond          = DSCond_HEP;

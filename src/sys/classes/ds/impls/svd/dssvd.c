@@ -340,6 +340,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
@@ -391,6 +392,7 @@ PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscFunctionReturn(0);
 }
+#endif
 
 PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
@@ -547,7 +549,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->vectors       = DSVectors_SVD;
   ds->ops->solve[0]      = DSSolve_SVD_DC;
   ds->ops->sort          = DSSort_SVD;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize   = DSSynchronize_SVD;
+#endif
   ds->ops->truncate      = DSTruncate_SVD;
   ds->ops->update        = DSUpdateExtraRow_SVD;
   ds->ops->destroy       = DSDestroy_SVD;

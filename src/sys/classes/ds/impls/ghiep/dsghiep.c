@@ -996,6 +996,7 @@ PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(0);
 }
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscScalar    *A,*B,*Q;
@@ -1063,6 +1064,7 @@ PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   if (ds->state>DS_STATE_RAW) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   PetscFunctionReturn(0);
 }
+#endif
 
 PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
 {
@@ -1119,7 +1121,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->solve[1]        = DSSolve_GHIEP_HZ;
   ds->ops->solve[2]        = DSSolve_GHIEP_QR;
   ds->ops->sort            = DSSort_GHIEP;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize     = DSSynchronize_GHIEP;
+#endif
   ds->ops->gettruncatesize = DSGetTruncateSize_GHIEP;
   ds->ops->truncate        = DSTruncate_GHIEP;
   ds->ops->update          = DSUpdateExtraRow_GHIEP;

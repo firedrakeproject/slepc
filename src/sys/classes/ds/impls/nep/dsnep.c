@@ -528,6 +528,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 #endif
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   DS_NEP         *ctx = (DS_NEP*)ds->data;
@@ -571,6 +572,7 @@ PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   if (ds->state>=DS_STATE_CONDENSED) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
   PetscFunctionReturn(0);
 }
+#endif
 
 static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
 {
@@ -1306,7 +1308,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ds->ops->solve[1]       = DSSolve_NEP_Contour;
 #endif
   ds->ops->sort           = DSSort_NEP;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize    = DSSynchronize_NEP;
+#endif
   ds->ops->destroy        = DSDestroy_NEP;
   ds->ops->matgetsize     = DSMatGetSize_NEP;
 
