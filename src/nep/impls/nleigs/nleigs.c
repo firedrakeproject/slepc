@@ -1071,8 +1071,8 @@ PetscErrorCode NEPNLEIGSTOARrun(NEP nep,Mat MK,Mat MH,BV W,PetscInt k,PetscInt *
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i,j,m=*M,lwa,deg=ctx->nmat-1,lds,nqt,ld,l,ldh;
   Vec            t;
-  PetscReal      norm;
-  PetscScalar    *x,*work,*tt,sigma=1.0,*cont,*S,*K,*H;
+  PetscReal      norm=0.0;
+  PetscScalar    *x,*work,*tt,sigma=1.0,*cont,*S,*K=NULL,*H;
   PetscBool      lindep;
   Mat            MS;
 
@@ -1113,7 +1113,7 @@ PetscErrorCode NEPNLEIGSTOARrun(NEP nep,Mat MK,Mat MH,BV W,PetscInt k,PetscInt *
     /* Level-2 orthogonalization */
     PetscCall(BVOrthogonalizeColumn(ctx->V,j+1,H+j*ldh,&norm,breakdown));
     H[j+1+ldh*j] = norm;
-    if (ctx->nshifts) {
+    if (ctx->nshifts && MK) {
       for (i=0;i<=j;i++) K[i+ldh*j] = sigma*H[i+ldh*j] + tt[i];
       K[j+1+ldh*j] = sigma*H[j+1+ldh*j];
     }

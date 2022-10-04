@@ -959,10 +959,12 @@ PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
     /* make sure diagonal 2x2 block is not broken */
     PetscCheck(ds->state<DS_STATE_CONDENSED || n==0 || n==ds->n || T[n-1+ld]==0.0,PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"The given size would break a 2x2 block, call DSGetTruncateSize() first");
 #endif
-  } else PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  }
   if (trim) {
     if (!ds->compact && ds->extrarow) {   /* clean extra row */
+      PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
       for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
+      PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
     }
     ds->l = 0;
     ds->k = 0;
@@ -971,8 +973,10 @@ PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
   } else {
     if (!ds->compact && ds->extrarow && ds->k==ds->n) {
       /* copy entries of extra row to the new position, then clean last row */
+      PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
       for (i=l;i<n;i++) A[n+i*ld] = A[ds->n+i*ld];
       for (i=l;i<ds->n;i++) A[ds->n+i*ld] = 0.0;
+      PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
     }
     if (ds->compact) {
       b = T+ld;
@@ -988,7 +992,7 @@ PetscErrorCode DSTruncate_GHIEP(DS ds,PetscInt n,PetscBool trim)
   if (ds->compact) {
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&omega));
-  } else PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  }
   PetscFunctionReturn(0);
 }
 
