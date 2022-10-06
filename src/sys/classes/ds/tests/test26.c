@@ -92,11 +92,13 @@ int main(int argc,char **argv)
     /* Check that extra row is correct */
     PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
     PetscCall(DSGetArray(ds,DS_MAT_U,&U));
+    PetscCall(DSGetArrayReal(ds,DS_MAT_D,&D));
     d = 0.0;
-    for (i=l;i<n;i++) d += T[i+ld]-U[n-1+i*ld];
+    for (i=l;i<n;i++) d += T[i+ld]-D[i]*U[n-1+i*ld];
     if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d)));
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
     PetscCall(DSRestoreArray(ds,DS_MAT_U,&U));
+    PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
   }
   PetscCall(PetscFree(w));
   PetscCall(DSDestroy(&ds));

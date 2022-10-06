@@ -186,8 +186,9 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
 {
   DS_HSVD           *ctx = (DS_HSVD*)ds->data;
   PetscInt          i;
-  PetscBLASInt      n=0,m=0,ld,l,n1,incx=1;
-  PetscScalar       *A,*U,*x,*y,one=1.0,zero=0.0;
+  PetscBLASInt      n=0,m=0,ld,l,incx=1;
+  PetscScalar       *A,*x,*y,one=1.0,zero=0.0;
+  const PetscScalar *U;
   PetscReal         *T,*e,*Omega,beta;
 
   PetscFunctionBegin;
@@ -196,18 +197,14 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
   PetscCall(PetscBLASIntCast(ctx->m,&m));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   PetscCall(PetscBLASIntCast(ds->l,&l));
-  n1 = n-l;
-  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_U],&U));
   PetscCall(DSGetArrayReal(ds,DS_MAT_D,&Omega));
   x = ds->work;
   if (ds->compact) {
-    /* Update U: U<-U*Omega */
-    for (i=l;i<n;i++) x[i] = Omega[i];
-    for (i=l;i<n;i++) PetscCallBLAS("BLASscal",BLASscal_(&n1,x+i,U+i*ld+l,&incx));
     PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
     e = T+ld;
-    beta = e[m-1];   /* in compact, we assume all entries are zero except the last one */
-    for (i=0;i<n;i++) e[i] = PetscRealPart(beta*U[n-1+i*ld]);
+    beta = PetscAbs(e[m-1]);   /* in compact, we assume all entries are zero except the last one */
+    for (i=0;i<n;i++) e[i] = PetscRealPart(beta*U[n-1+i*ld]*Omega[i]);
     ds->k = m;
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   } else {
@@ -220,7 +217,7 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
     ds->k = m;
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   }
-  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
+  PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_U],&U));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&Omega));
   PetscFunctionReturn(0);
 }
@@ -619,9 +616,6 @@ PetscErrorCode DSDestroy_HSVD(DS ds)
    on matrix T, and then the signature is stored in D. Otherwise, the solver will
    fail (not implemented yet). The compact storage is implemented for the square case
    only, m=n. The extra row should be interpreted in this case as an extra column.
-
-   The DSUpdateExtraRow() operation also updates matrix U, in addition to the extra
-   row, by post-multiplying it by the output signature.
 
    Used DS matrices:
 +  DS_MAT_A - problem matrix
