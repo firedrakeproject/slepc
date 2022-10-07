@@ -521,7 +521,7 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
 
   /* Newton refinement */
-  PetscCall(DSNEPNewtonRefine(ds,k,wr));
+  if (ctx->Nit) PetscCall(DSNEPNewtonRefine(ds,k,wr));
   ds->t = k;
   PetscCall(PetscRandomDestroy(&rand));
   PetscFunctionReturn(0);
@@ -787,7 +787,7 @@ static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
   }
   if (its == PETSC_DECIDE || its == PETSC_DEFAULT) ctx->Nit = 3;
   else {
-    PetscCheck(its>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
+    PetscCheck(its>=0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
     ctx->Nit = its;
   }
   PetscFunctionReturn(0);
