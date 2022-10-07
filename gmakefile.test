@@ -7,8 +7,8 @@
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 TESTSRCDIR := $(dir $(mkfile_path))src
 
-include $(SLEPC_DIR)/$(PETSC_ARCH)/lib/slepc/conf/slepcvariables
-include $(SLEPC_DIR)/lib/slepc/conf/slepc_variables
+-include $(SLEPC_DIR)/$(PETSC_ARCH)/lib/slepc/conf/slepcvariables
+-include $(SLEPC_DIR)/lib/slepc/conf/slepc_variables
 
 TESTDIR ?= ./$(PETSC_ARCH)/tests
 MODDIR := $(SLEPC_DIR)/$(PETSC_ARCH)/include
@@ -109,7 +109,7 @@ endif
 $(generatedtest) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH_DIR) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
-ifneq ($(filter-out clean check info libs all checkbadSource allfortranstubs alletags,$(MAKECMDGOALS:clean%=clean)),)
+ifneq ($(filter-out clean check info slepc_libs all checkbadSource checkbadFileChange allfortranstubs alletags get%,$(MAKECMDGOALS:clean%=clean)),)
 include $(generatedtest)
 endif
 
@@ -131,20 +131,16 @@ ifneq ($(KOKKOS_USE_CUDA_COMPILER),)
   # Kokkos requires nvcc to be in PATH and the C++ compiler to be given in an environmental variable
   KOKC = PATH=`dirname $(CUDAC)`:$(PATH) NVCC_WRAPPER_DEFAULT_COMPILER="$(CUDA_CXX)" $(KOKKOS_BIN)/nvcc_wrapper --expt-extended-lambda
   SLEPC_COMPILE.kokkos.cxx = $(call quiet,KOKC) -c $(CUDAC_FLAGS) ${PETSC_CCPPFLAGS} $(CUDACPPFLAGS) $(CUDA_CXXFLAGS) $(MPICXX_INCLUDES) $(SLEPC_CC_INCLUDES)
-  SLEPC_LINK.kokkos.cxx = $(KOKC) $(CUDAC_FLAGS) $(MPICXX_INCLUDES) ${PETSC_CCPPFLAGS} $(CUDA_CXXFLAGS) $(CUDA_CXXLIBS) $(MPICXX_LIBS) $(LDFLAGS)
 else ifneq ($(KOKKOS_USE_HIP_COMPILER),)
   SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.hip.cpp)
-  SLEPC_LINK.kokkos.cxx = $(HIPC) $(HIPFLAGS) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(LDFLAGS) $(MPICXX_INCLUDES) $(MPICXX_LIBS)
 else ifneq ($(KOKKOS_USE_SYCL_COMPILER),)
   SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.sycl.cxx)
-  SLEPC_LINK.kokkos.cxx = $(SYCLC) $(SYCLFLAGS) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(LDFLAGS) $(MPICXX_INCLUDES) $(MPICXX_LIBS)
 else
   SLEPC_COMPILE.kokkos.cxx = $(SLEPC_COMPILE.cxx)
-  SLEPC_LINK.kokkos.cxx = $(CXXLINKER) $(CXXFLAGS) $(PETSC_CCPPFLAGS) $(CPPFLAGS) $(LDFLAGS)
 endif
 
 ifneq ($(RAJA_USE_CUDA_COMPILER),)
-  SLEPC_COMPILE.raja.cxx  = ${CUDAC} $(MPICXX_INCLUDES) ${CUDAC_FLAGS} ${CUFLAGS} -x cu -Xcudafe "--display_error_number" -c --compiler-options="${SLEPC_CC_INCLUDES} ${PETSC_CCPPFLAGS} ${PETSC_CC_INCLUDES} ${CUDA_CXXFLAGS}" --expt-extended-lambda --expt-relaxed-constexpr
+  SLEPC_COMPILE.raja.cxx  = ${CUDAC} $(MPICXX_INCLUDES) ${CUDAC_FLAGS} ${CUFLAGS} -x cu -Xcudafe "--display_error_number" -c --compiler-options="${SLEPC_CC_INCLUDES} ${PETSC_CXXCPPFLAGS} ${PETSC_CC_INCLUDES} ${CUDA_CXXFLAGS}" --expt-extended-lambda --expt-relaxed-constexpr
 else
   SLEPC_COMPILE.raja.cxx = ${CXX} -o $*.o -c ${CXX_FLAGS} ${CXXFLAGS} ${CXXCPPFLAGS}
 endif
@@ -204,7 +200,7 @@ endif
 
 #   This is a hack to fix a broken gfortran.
 define GFORTRAN_DEP_CLEANUP
-  if test -e "$(@:%.o=%.d)" && head -1 "$(@:%.o=%.d)" | fgrep -q -v : ; then\
+  if test -e "$(@:%.o=%.d)" && head -1 "$(@:%.o=%.d)" | grep -F -q -v : ; then\
     echo "$(@): \\" > $(@:%.o=%.dtemp) ; \
     tr '\n' '@' < $(@:%.o=%.d) | cut -d: -f2- | tr '@' '\n' >> $(@:%.o=%.dtemp) ; \
     mv $(@:%.o=%.dtemp) $(@:%.o=%.d); \
@@ -254,7 +250,7 @@ $(testexe.hip.cpp) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libpetscall)
 	-$(call macos-firewall-register,$@)
 
 $(testexe.kokkos.cxx) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libslepcall)
-	$(call quiet,SLEPC_LINK.kokkos.cxx) -o $@ $^ $(SLEPC_TEST_LIB)
+	$(call quiet,CLINKER) $(EXEFLAGS) -o $@ $^ $(SLEPC_TEST_LIB)
 	-$(call macos-firewall-register,$@)
 
 $(testexe.raja.cxx) : $(TESTDIR)/% : $(TESTDIR)/%.o $$^ $(libpetscall)
@@ -446,6 +442,9 @@ help-test:
 	-@echo "  ALT=1             Replace 'alt' output in SLEPC_DIR source tree (-M to test scripts)"
 	-@echo "  DIFF_NUMBERS=0    Do not diff numbers in the output (default is to diff numbers, as opposed to PETSc)"
 	-@echo "  CUDAMEMCHECK=1    Execute the tests using cuda-memcheck (-U to test scripts)"
+	-@echo "                    Use PETSC_CUDAMEMCHECK_COMMAND to change the executable to run and"
+	-@echo "                    PETSC_CUDAMEMCHECK_ARGS to change the arguments (note: both"
+	-@echo "                    cuda-memcheck and compute-sanitizer are supported)"
 	-@echo "  VALGRIND=1        Execute the tests using valgrind (-V to test scripts)"
 	-@echo "  DEBUG=1           Launch tests in the debugger (-d to the scripts)"
 	-@echo "  NP=<num proc>     Set a number of processors to pass to scripts."
