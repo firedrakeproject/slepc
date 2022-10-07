@@ -258,50 +258,6 @@ PetscErrorCode DSTruncate_HSVD(DS ds,PetscInt n,PetscBool trim)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode ArrowTrididiag(PetscBLASInt n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt ld)
-{
-  PetscBLASInt i,j,j2,one=1;
-  PetscReal    c,s,p,off,temp;
-
-  PetscFunctionBegin;
-  if (n<=2) PetscFunctionReturn(0);
-
-  for (j=0;j<n-2;j++) {
-
-    /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
-    temp = e[j+1];
-    PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&e[j],&c,&s,&e[j+1]));
-    s = -s;
-
-    /* Apply rotation to diagonal elements */
-    temp   = d[j+1];
-    e[j]   = c*s*(temp-d[j]);
-    d[j+1] = s*s*d[j] + c*c*temp;
-    d[j]   = c*c*d[j] + s*s*temp;
-
-    /* Apply rotation to Q */
-    j2 = j+2;
-    PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s));
-
-    /* Chase newly introduced off-diagonal entry to the top left corner */
-    for (i=j-1;i>=0;i--) {
-      off  = -s*e[i];
-      e[i] = c*e[i];
-      temp = e[i+1];
-      PetscCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&off,&c,&s,&e[i+1]));
-      s = -s;
-      temp = (d[i]-d[i+1])*s - 2.0*c*e[i];
-      p = s*temp;
-      d[i+1] += p;
-      d[i] -= p;
-      e[i] = -e[i] - c*temp;
-      j2 = j+2;
-      PetscCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_HSVD        *ctx = (DS_HSVD*)ds->data;
@@ -357,7 +313,7 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 
   /* Reduce T to tridiagonal form */
-  PetscCall(ArrowTrididiag(n2,dd+l,ee+l,V+off,ld));
+  PetscCall(DSArrowTridiag(n2,dd+l,ee+l,V+off,ld));
 
   /* Solve the tridiagonal eigenproblem corresponding to T */
   for (i=0;i<l;i++) wr[i] = d[i];

@@ -125,6 +125,7 @@ SLEPC_INTERN PetscErrorCode DSIntermediate_GHIEP(DS);
 SLEPC_INTERN PetscErrorCode DSSwitchFormat_GHIEP(DS,PetscBool);
 SLEPC_INTERN PetscErrorCode DSGHIEPRealBlocks(DS);
 SLEPC_INTERN PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode DSArrowTridiag(PetscBLASInt,PetscReal*,PetscReal*,PetscScalar*,PetscBLASInt);
 
 SLEPC_INTERN PetscErrorCode DSSolve_NHEP_Private(DS,DSMatType,DSMatType,PetscScalar*,PetscScalar*);
 SLEPC_INTERN PetscErrorCode DSSort_NHEP_Total(DS,DSMatType,DSMatType,PetscScalar*,PetscScalar*);
