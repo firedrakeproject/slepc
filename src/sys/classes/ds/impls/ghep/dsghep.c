@@ -144,6 +144,7 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscScalar    *A,*B,*Q;
@@ -180,6 +181,7 @@ PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   if (ds->state>DS_STATE_RAW) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   PetscFunctionReturn(0);
 }
+#endif
 
 PetscErrorCode DSHermitian_GHEP(DS ds,DSMatType m,PetscBool *flg)
 {
@@ -220,7 +222,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
   ds->ops->vectors       = DSVectors_GHEP;
   ds->ops->solve[0]      = DSSolve_GHEP;
   ds->ops->sort          = DSSort_GHEP;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize   = DSSynchronize_GHEP;
+#endif
   ds->ops->hermitian     = DSHermitian_GHEP;
   PetscFunctionReturn(0);
 }

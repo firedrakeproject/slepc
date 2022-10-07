@@ -78,6 +78,7 @@ static PetscErrorCode EPSCISSSetUp(EPS eps,Mat A,Mat B,Mat Pa,Mat Pb)
 
   PetscFunctionBegin;
   if (!ctx->contour || !ctx->contour->ksp) PetscCall(EPSCISSGetKSPs(eps,NULL,NULL));
+  PetscAssert(ctx->contour && ctx->contour->ksp,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Something went wrong with EPSCISSGetKSPs()");
   contour = ctx->contour;
   PetscCall(STGetMatStructure(eps->st,&str));
   PetscCall(STGetSplitPreconditionerInfo(eps->st,&nsplit,&strp));
@@ -112,6 +113,7 @@ static PetscErrorCode EPSCISSSolve(EPS eps,Mat B,BV V,PetscInt L_start,PetscInt 
   PetscFunctionBegin;
   if (!ctx->contour || !ctx->contour->ksp) PetscCall(EPSCISSGetKSPs(eps,NULL,NULL));
   contour = ctx->contour;
+  PetscAssert(ctx->contour && ctx->contour->ksp,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Something went wrong with EPSCISSGetKSPs()");
   PetscCall(BVSetActiveColumns(V,L_start,L_end));
   PetscCall(BVGetMat(V,&MV));
   for (i=0;i<contour->npoints;i++) {
@@ -1318,6 +1320,7 @@ PetscErrorCode EPSSetFromOptions_CISS(EPS eps,PetscOptionItems *PetscOptionsObje
   if (!eps->rg) PetscCall(EPSGetRG(eps,&eps->rg));
   PetscCall(RGSetFromOptions(eps->rg)); /* this is necessary here to set useconj */
   if (!ctx->contour || !ctx->contour->ksp) PetscCall(EPSCISSGetKSPs(eps,NULL,NULL));
+  PetscAssert(ctx->contour && ctx->contour->ksp,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Something went wrong with EPSCISSGetKSPs()");
   for (i=0;i<ctx->contour->npoints;i++) PetscCall(KSPSetFromOptions(ctx->contour->ksp[i]));
   PetscCall(PetscSubcommSetFromOptions(ctx->contour->subcomm));
   PetscFunctionReturn(0);
@@ -1365,6 +1368,7 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     if (ctx->usest) PetscCall(PetscViewerASCIIPrintf(viewer,"  using ST for linear solves\n"));
     else {
       if (!ctx->contour || !ctx->contour->ksp) PetscCall(EPSCISSGetKSPs(eps,NULL,NULL));
+      PetscAssert(ctx->contour && ctx->contour->ksp,PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Something went wrong with EPSCISSGetKSPs()");
       PetscCall(PetscViewerASCIIPushTab(viewer));
       if (ctx->npart>1 && ctx->contour->subcomm) {
         PetscCall(PetscViewerGetSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));

@@ -239,6 +239,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_PEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   DS_PEP         *ctx = (DS_PEP*)ds->data;
@@ -286,6 +287,7 @@ PetscErrorCode DSSynchronize_PEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscFunctionReturn(0);
 }
+#endif
 
 static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
 {
@@ -519,7 +521,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   ds->ops->vectors       = DSVectors_PEP;
   ds->ops->solve[0]      = DSSolve_PEP_QZ;
   ds->ops->sort          = DSSort_PEP;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize   = DSSynchronize_PEP;
+#endif
   ds->ops->destroy       = DSDestroy_PEP;
   ds->ops->matgetsize    = DSMatGetSize_PEP;
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",DSPEPSetDegree_PEP));
