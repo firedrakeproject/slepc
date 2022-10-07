@@ -85,9 +85,10 @@ PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
       PetscCall(PetscViewerASCIIPrintf(viewer,"zzz = [\n"));
       for (i=0;i<PetscMin(ds->n,m);i++) PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)T[i]));
       for (i=0;i<cols-1;i++) {
-        r = PetscMax(i+2,ds->k+1);
-        c = i+1;
-        PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",c,r,(double)T[i+ds->ld]));
+        c = PetscMax(i+2,ds->k+1);
+        r = i+1;
+        value = i<ds->l? 0.0: T[i+ds->ld];
+        PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",r,c,(double)value));
       }
       PetscCall(PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_T]));
       PetscCall(PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",ds->n,ds->n));
@@ -100,6 +101,7 @@ PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
       for (i=0;i<rows;i++) {
         for (j=0;j<cols;j++) {
           if (i==j) value = T[i];
+          else if (i<ds->l) value = 0.0;
           else if (i<ds->k && j==ds->k) value = T[PetscMin(i,j)+ds->ld];
           else if (i+1==j && i>=ds->k) value = T[i+ds->ld];
           else value = 0.0;
