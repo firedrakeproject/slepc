@@ -521,13 +521,14 @@ PetscErrorCode DSSolve_NEP_Contour(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
 
   /* Newton refinement */
-  PetscCall(DSNEPNewtonRefine(ds,k,wr));
+  if (ctx->Nit) PetscCall(DSNEPNewtonRefine(ds,k,wr));
   ds->t = k;
   PetscCall(PetscRandomDestroy(&rand));
   PetscFunctionReturn(0);
 }
 #endif
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   DS_NEP         *ctx = (DS_NEP*)ds->data;
@@ -571,6 +572,7 @@ PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   if (ds->state>=DS_STATE_CONDENSED) PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_X],&X));
   PetscFunctionReturn(0);
 }
+#endif
 
 static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
 {
@@ -787,7 +789,7 @@ static PetscErrorCode DSNEPSetRefine_NEP(DS ds,PetscReal tol,PetscInt its)
   }
   if (its == PETSC_DECIDE || its == PETSC_DEFAULT) ctx->Nit = 3;
   else {
-    PetscCheck(its>0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
+    PetscCheck(its>=0,PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The number of iterations must be >= 0");
     ctx->Nit = its;
   }
   PetscFunctionReturn(0);
@@ -1306,7 +1308,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ds->ops->solve[1]       = DSSolve_NEP_Contour;
 #endif
   ds->ops->sort           = DSSort_NEP;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize    = DSSynchronize_NEP;
+#endif
   ds->ops->destroy        = DSDestroy_NEP;
   ds->ops->matgetsize     = DSMatGetSize_NEP;
 

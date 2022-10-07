@@ -285,6 +285,7 @@ PetscErrorCode DSSolve_NHEPTS(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscFunctionReturn(0);
 }
 
+#if !defined(PETSC_HAVE_MPIUNI)
 PetscErrorCode DSSynchronize_NHEPTS(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k;
@@ -347,6 +348,7 @@ PetscErrorCode DSSynchronize_NHEPTS(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscFunctionReturn(0);
 }
+#endif
 
 PetscErrorCode DSGetTruncateSize_NHEPTS(DS ds,PetscInt l,PetscInt n,PetscInt *k)
 {
@@ -468,7 +470,9 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NHEPTS(DS ds)
   ds->ops->vectors         = DSVectors_NHEPTS;
   ds->ops->solve[0]        = DSSolve_NHEPTS;
   ds->ops->sort            = DSSort_NHEPTS;
+#if !defined(PETSC_HAVE_MPIUNI)
   ds->ops->synchronize     = DSSynchronize_NHEPTS;
+#endif
   ds->ops->gettruncatesize = DSGetTruncateSize_NHEPTS;
   ds->ops->truncate        = DSTruncate_NHEPTS;
   ds->ops->update          = DSUpdateExtraRow_NHEPTS;

@@ -198,7 +198,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,Mat A,PetscInt k,Pets
   PetscInt       j,m=*M,deg=pep->nmat-1,ld;
   PetscInt       ldh,lds,nqt,l;
   Vec            t;
-  PetscReal      norm;
+  PetscReal      norm=0.0;
   PetscBool      flg,sinvert=PETSC_FALSE,lindep;
   PetscScalar    *H,*x,*S;
   Mat            MS;

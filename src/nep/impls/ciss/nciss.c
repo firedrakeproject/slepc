@@ -121,6 +121,7 @@ static PetscErrorCode NEPCISSSetUp(NEP nep,Mat T,Mat P)
   PetscFunctionBegin;
   if (!ctx->contour || !ctx->contour->ksp) PetscCall(NEPCISSGetKSPs(nep,NULL,NULL));
   contour = ctx->contour;
+  PetscAssert(ctx->contour && ctx->contour->ksp,PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Something went wrong with NEPCISSGetKSPs()");
   for (i=0;i<contour->npoints;i++) {
     p_id = i*contour->subcomm->n + contour->subcomm->color;
     PetscCall(MatDuplicate(T,MAT_DO_NOT_COPY_VALUES,&Amat));
@@ -1014,6 +1015,7 @@ PetscErrorCode NEPSetFromOptions_CISS(NEP nep,PetscOptionItems *PetscOptionsObje
   if (!nep->rg) PetscCall(NEPGetRG(nep,&nep->rg));
   PetscCall(RGSetFromOptions(nep->rg)); /* this is necessary here to set useconj */
   if (!ctx->contour || !ctx->contour->ksp) PetscCall(NEPCISSGetKSPs(nep,NULL,NULL));
+  PetscAssert(ctx->contour && ctx->contour->ksp,PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Something went wrong with NEPCISSGetKSPs()");
   for (i=0;i<ctx->contour->npoints;i++) PetscCall(KSPSetFromOptions(ctx->contour->ksp[i]));
   PetscCall(PetscSubcommSetFromOptions(ctx->contour->subcomm));
   PetscFunctionReturn(0);
@@ -1054,6 +1056,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     PetscCall(PetscViewerASCIIPrintf(viewer,"  iterative refinement  { inner: %" PetscInt_FMT ", blocksize: %" PetscInt_FMT " }\n",ctx->refine_inner, ctx->refine_blocksize));
     PetscCall(PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",NEPCISSExtractions[ctx->extraction]));
     if (!ctx->contour || !ctx->contour->ksp) PetscCall(NEPCISSGetKSPs(nep,NULL,NULL));
+    PetscAssert(ctx->contour && ctx->contour->ksp,PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Something went wrong with NEPCISSGetKSPs()");
     PetscCall(PetscViewerASCIIPushTab(viewer));
     if (ctx->npart>1 && ctx->contour->subcomm) {
       PetscCall(PetscViewerGetSubViewer(viewer,ctx->contour->subcomm->child,&sviewer));
