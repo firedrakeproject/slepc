@@ -346,7 +346,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
 {
   struct HRtr    *tr1,*tr2,tr1_t,tr2_t,tr1_te,tr2_te;
   PetscScalar    *x,*y;
-  PetscReal      ncond,ncond_e;
+  PetscReal      ncond=0,ncond_e;
   PetscInt       nwu=0,i,d=1;
   PetscBLASInt   n0_,n1_,inc=1,mh,mr,n_,ldr_,ldh_;
   PetscReal      tolD = 1e+5;
@@ -482,8 +482,9 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
 
 /*
   compute V = HR whit H s-orthogonal and R upper triangular
+  (work: work space of minimum size 6*nv)
 */
-static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown,PetscScalar *work)
+PetscErrorCode DSPseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown,PetscScalar *work)
 {
   PetscInt       i,j,n,n0,n1,np,idx0,idx1,sz=1,k=0,t1,t2,nwu=0;
   PetscScalar    *col1,*col2;
@@ -603,7 +604,7 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
 #if defined(PETSC_USE_COMPLEX)
     vi = PetscImaginaryPart(wr[l+i]);
 #else
-    vi = PetscRealPart(wi[l+i]);
+    vi = wi?PetscRealPart(wi[l+i]):0.0;
 #endif
     if (vi!=0) {
       cmplxEig[i] = 1;
@@ -615,14 +616,16 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
 
   /* Perform HR decomposition */
   /* Hyperbolic rotators */
-  PetscCall(PseudoOrthog_HR(&nv,X+off,ld,s+l,R,ldr,perm,cmplxEig,NULL,ds->work+nwus));
+  PetscCall(DSPseudoOrthog_HR(&nv,X+off,ld,s+l,R,ldr,perm,cmplxEig,NULL,ds->work+nwus));
   /* Sort wr,wi perm */
   ts = ds->work+nwus;
   PetscCall(PetscArraycpy(ts,wr+l,n));
   for (i=0;i<n;i++) wr[i+l] = ts[perm[i]];
 #if !defined(PETSC_USE_COMPLEX)
-  PetscCall(PetscArraycpy(ts,wi+l,n));
-  for (i=0;i<n;i++) wi[i+l] = ts[perm[i]];
+  if (wi) {
+    PetscCall(PetscArraycpy(ts,wi+l,n));
+    for (i=0;i<n;i++) wi[i+l] = ts[perm[i]];
+  }
 #endif
   /* Projected Matrix */
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
@@ -638,7 +641,7 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
 #if defined(PETSC_USE_COMPLEX)
       vi = PetscImaginaryPart(wr[l+i]);
 #else
-      vi = PetscRealPart(wi[l+i]);
+      vi = wi?PetscRealPart(wi[l+i]):0.0;
 #endif
       if (cmplxEig[i]==-1) vi = -vi;
       tr = PetscRealPart((R[i+(i+1)*ldr]/R[i+i*ldr]))*vi;
@@ -652,20 +655,16 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
   /* accumulate previous Q */
-  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
   if (accum) {
+    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_Q],&Q));
     PetscCall(PetscBLASIntCast(nv,&nv_));
     PetscCall(DSAllocateMat_Private(ds,DS_MAT_W));
     PetscCall(MatCopy(ds->omat[DS_MAT_Q],ds->omat[DS_MAT_W],SAME_NONZERO_PATTERN));
     PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_W],&W));
     PetscCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&nv_,&n_,&sone,W+off,&ld_,X+off,&ld_,&szero,Q+off,&ld_));
     PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_W],&W));
-  } else {
-    PetscCall(PetscArrayzero(Q,ld*ld));
-    for (i=0;i<ds->l;i++) Q[i+i*ld] = 1.0;
-    for (i=0;i<n;i++) PetscCall(PetscArraycpy(Q+off+i*ld,X+off+i*ld,n));
+    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   }
-  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_Q],&Q));
   ds->t = nv+l;
   PetscCall(MatDenseRestoreArray(ds->omat[mat],&X));
   if (!ds->compact) PetscCall(DSSwitchFormat_GHIEP(ds,PETSC_FALSE));

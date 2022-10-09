@@ -50,6 +50,7 @@ typedef const char* DSType;
 #define DSGNHEP  "gnhep"
 #define DSNHEPTS "nhepts"
 #define DSSVD    "svd"
+#define DSHSVD   "hsvd"
 #define DSGSVD   "gsvd"
 #define DSPEP    "pep"
 #define DSNEP    "nep"
@@ -221,6 +222,8 @@ SLEPC_EXTERN PetscErrorCode DSSVDSetDimensions(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSSVDGetDimensions(DS,PetscInt*);
 SLEPC_EXTERN PetscErrorCode DSGSVDSetDimensions(DS,PetscInt,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSGSVDGetDimensions(DS,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSHSVDSetDimensions(DS,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSHSVDGetDimensions(DS,PetscInt*);
 
 SLEPC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);

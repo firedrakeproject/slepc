@@ -218,7 +218,7 @@ PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   ====
   Based on Fortran code contributed by Daniel Kressner
 */
-static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt ld)
+PetscErrorCode DSArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,PetscScalar *Q,PetscBLASInt ld)
 {
   PetscBLASInt i,j,j2,one=1;
   PetscReal    c,s,p,off,temp;
@@ -263,7 +263,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
 }
 
 /*
-   Reduce to tridiagonal form by means of ArrowTridiag.
+   Reduce to tridiagonal form by means of DSArrowTridiag.
 */
 static PetscErrorCode DSIntermediate_HEP(DS ds)
 {
@@ -288,7 +288,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
 
   if (ds->compact) {
 
-    if (ds->state<DS_STATE_INTERMEDIATE) ArrowTridiag(n1,d+l,e+l,Q+off,ld);
+    if (ds->state<DS_STATE_INTERMEDIATE) DSArrowTridiag(n1,d+l,e+l,Q+off,ld);
 
   } else {
 

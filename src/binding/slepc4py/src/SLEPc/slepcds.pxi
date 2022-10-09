@@ -8,6 +8,7 @@ cdef extern from * nogil:
     SlepcDSType DSGNHEP
     SlepcDSType DSNHEPTS
     SlepcDSType DSSVD
+    SlepcDSType DSHSVD
     SlepcDSType DSGSVD
     SlepcDSType DSPEP
     SlepcDSType DSNEP
@@ -85,6 +86,8 @@ cdef extern from * nogil:
 
     int DSSVDSetDimensions(SlepcDS,PetscInt)
     int DSSVDGetDimensions(SlepcDS,PetscInt*)
+    int DSHSVDSetDimensions(SlepcDS,PetscInt)
+    int DSHSVDGetDimensions(SlepcDS,PetscInt*)
     int DSGSVDSetDimensions(SlepcDS,PetscInt,PetscInt)
     int DSGSVDGetDimensions(SlepcDS,PetscInt*,PetscInt*)
 

@@ -11,6 +11,7 @@ class DSType(object):
     GNHEP   = S_(DSGNHEP)
     NHEPTS  = S_(DSNHEPTS)
     SVD     = S_(DSSVD)
+    HSVD    = S_(DSHSVD)
     GSVD    = S_(DSGSVD)
     PEP     = S_(DSPEP)
     NEP     = S_(DSNEP)
@@ -608,6 +609,31 @@ cdef class DS(Object):
         """
         cdef PetscInt val = 0
         CHKERR( DSSVDGetDimensions(self.ds, &val) )
+        return toInt(val)
+
+    def setHSVDDimensions(self, m):
+        """
+        Sets the number of columns of a `DS` of type `HSVD`.
+
+        Parameters
+        ----------
+        m: int
+           The number of columns.
+        """
+        cdef PetscInt val = asInt(m)
+        CHKERR( DSHSVDSetDimensions(self.ds, val) )
+
+    def getHSVDDimensions(self):
+        """
+        Gets the number of columns of a `DS` of type `HSVD`.
+
+        Returns
+        -------
+        m: int
+           The number of columns.
+        """
+        cdef PetscInt val = 0
+        CHKERR( DSHSVDGetDimensions(self.ds, &val) )
         return toInt(val)
 
     def setGSVDDimensions(self, m, p):
