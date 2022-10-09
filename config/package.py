@@ -122,6 +122,7 @@ class Package:
       elif self.installable:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(slepc,petsc)
+        self.packagelibs = self.DistilLibList(self.packagelibs,petsc)
         self.Check(slepcconf,slepcvars,petsc,archdir)
         if not self.havepackage: self.log.setLastFailed()
       try:
@@ -150,6 +151,30 @@ class Package:
       self.log.Exit(package+' cannot be used with 64-bit integers')
     if self.downloadpackage and self.fortran and not hasattr(petsc,'fc'):
       self.log.Exit('Option --download-'+self.packagename+' requires a Fortran compiler')
+
+  def DistilLibList(self,packagelibs,petsc):
+    libs = []
+    for l in packagelibs.split():
+      if l.endswith(petsc.sl_linker_suffix):
+        filename = os.path.basename(l)
+        libs.append('-L'+l.rstrip(filename))
+        libs.append(self.slflag+l.rstrip(filename))
+        libs.append('-l'+filename.lstrip('lib').rstrip('.'+petsc.sl_linker_suffix))
+      else:
+        libs.append(l)
+    newldflags = []
+    newlibs = []
+    dupflags = ['-L',self.slflag]
+    for j in libs:
+      # remove duplicate -L, -Wl,-rpath options - and only consecutive -l options
+      if j in newldflags and any([j.startswith(flg) for flg in dupflags]): continue
+      if newlibs and j == newlibs[-1]: continue
+      if list(filter(j.startswith,['-l'])) or list(filter(j.endswith,['.lib','.a','.so','.o'])) or j in ['-Wl,-Bstatic','-Wl,-Bdynamic','-Wl,--start-group','-Wl,--end-group']:
+        newlibs.append(j)
+      else:
+        newldflags.append(j)
+    liblist = ' '.join(newldflags + newlibs)
+    return liblist
 
   def GetArchiveName(self):
     '''Return name of archive after downloading'''
