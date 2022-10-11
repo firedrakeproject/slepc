@@ -35,6 +35,9 @@ PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
   Vec            t;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,nw,2);
+  PetscCheck(nw>0,PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %" PetscInt_FMT,nw);
   if (nep->nwork < nw) {
     PetscCall(VecDestroyVecs(nep->nwork,&nep->work));
     nep->nwork = nw;
