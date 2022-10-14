@@ -29,6 +29,7 @@
 */
 
 #include <slepc/private/svdimpl.h>          /*I "slepcsvd.h" I*/
+#include <slepc/private/bvimpl.h>
 
 static PetscBool  cited = PETSC_FALSE,citedg = PETSC_FALSE;
 static const char citation[] =
@@ -251,22 +252,9 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     }
     /* Explicit matrix is created here, when updating the scale */
     PetscCall(MatZUpdateScale(svd));
-  }
-  else if (svd->ishyperbolic) {
-    Mat      Omega;
-    MatType  Atype;
-    PetscInt mm,MM;
-    BV       U = svd->swapped? svd->V: svd->U;
-
-    PetscCall(MatGetType(svd->OP,&Atype));
-    PetscCall(BVGetSizes(U,&mm,&MM,NULL));
-    PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
-    PetscCall(MatSetSizes(Omega,mm,mm,MM,MM));
-    PetscCall(MatSetType(Omega,Atype));
-    PetscCall(MatSetUp(Omega));
-    PetscCall(MatDiagonalSet(Omega,svd->omega,INSERT_VALUES));
-    PetscCall(BVSetMatrix(U,Omega,PETSC_TRUE));
-    PetscCall(MatDestroy(&Omega));
+    
+  } else if (svd->ishyperbolic) {
+    PetscCall(BV_SetMatrixDiagonal(svd->swapped?svd->V:svd->U,svd->omega,svd->OP));
     PetscCall(SVDSetWorkVecs(svd,1,0));
   }
   PetscCall(DSSetType(svd->ds,dstype));

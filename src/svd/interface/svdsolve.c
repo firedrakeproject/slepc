@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/svdimpl.h>   /*I "slepcsvd.h" I*/
+#include <slepc/private/bvimpl.h>
 
 /*
   SVDComputeVectors_Left - Compute left singular vectors as U=A*V.
@@ -20,10 +21,8 @@
 PetscErrorCode SVDComputeVectors_Left(SVD svd)
 {
   Vec                tl,omega2,u,v,w;
-  PetscInt           i,n,N,oldsize;
-  MatType            Atype;
+  PetscInt           i,oldsize;
   VecType            vtype;
-  Mat                Omega;
   const PetscScalar* varray;
 
   PetscFunctionBegin;
@@ -52,16 +51,8 @@ PetscErrorCode SVDComputeVectors_Left(SVD svd)
       }
       PetscCall(VecDestroy(&w));
     } else {  /* compute left singular vectors as usual U=A*V, and set-up Omega-orthogonalization of U */
-      PetscCall(MatGetType(svd->A,&Atype));
-      PetscCall(BVGetSizes(svd->U,&n,&N,NULL));
-      PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
-      PetscCall(MatSetSizes(Omega,n,n,N,N));
-      PetscCall(MatSetType(Omega,Atype));
-      PetscCall(MatSetUp(Omega));
-      PetscCall(MatDiagonalSet(Omega,svd->omega,INSERT_VALUES));
+      PetscCall(BV_SetMatrixDiagonal(svd->U,svd->omega,svd->A));
       PetscCall(BVMatMult(svd->V,svd->A,svd->U));
-      PetscCall(BVSetMatrix(svd->U,Omega,PETSC_TRUE));
-      PetscCall(MatDestroy(&Omega));
     }
     PetscCall(BVOrthogonalize(svd->U,NULL));
     if (svd->ishyperbolic && !svd->swapped) {  /* store signature after Omega-orthogonalization */

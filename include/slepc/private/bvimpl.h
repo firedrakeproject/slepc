@@ -198,6 +198,27 @@ static inline PetscErrorCode BV_AllocateSignature(BV bv)
 }
 
 /*
+  BV_SetMatrixDiagonal - sets the inner product matrix for BV as a diagonal matrix
+  with the diagonal specified by vector vomega, using the same matrix type as matrix M
+*/
+static inline PetscErrorCode BV_SetMatrixDiagonal(BV bv,Vec vomega,Mat M)
+{
+  Mat      Omega;
+  MatType  Mtype;
+
+  PetscFunctionBegin;
+  PetscCall(MatGetType(M,&Mtype));
+  PetscCall(MatCreate(PetscObjectComm((PetscObject)bv),&Omega));
+  PetscCall(MatSetSizes(Omega,bv->n,bv->n,bv->N,bv->N));
+  PetscCall(MatSetType(Omega,Mtype));
+  PetscCall(MatSetUp(Omega));
+  PetscCall(MatDiagonalSet(Omega,vomega,INSERT_VALUES));
+  PetscCall(BVSetMatrix(bv,Omega,PETSC_TRUE));
+  PetscCall(MatDestroy(&Omega));
+  PetscFunctionReturn(0);
+}
+
+/*
   BVAvailableVec: First (0) or second (1) vector available for
   getcolumn operation (or -1 if both vectors already fetched).
 */
