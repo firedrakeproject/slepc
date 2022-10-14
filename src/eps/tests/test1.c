@@ -292,7 +292,7 @@ int main(int argc,char **argv)
    testset:
       nsize: 2
       args: -n 18 -eps_nev 7 -eps_ncv 32 -ds_parallel synchronized
-      filter: grep -v "orthogonality"
+      filter: grep -v "orthogonality" | sed -e "s/[+-]0\.0*i//g" | sed -e "s/0.61338/0.61339/g"
       output_file: output/test1_9.out
       test:
          suffix: 9_ks_ghep
