@@ -24,7 +24,6 @@
 */
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
-#include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 
 typedef struct {
   PEP       pep;

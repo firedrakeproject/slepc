@@ -9,7 +9,6 @@
 */
 
 #include <slepc/private/dsimpl.h>       /*I "slepcds.h" I*/
-#include <slepc/private/rgimpl.h>       /*I "slepcrg.h" I*/
 #include <slepcblaslapack.h>
 
 typedef struct {
