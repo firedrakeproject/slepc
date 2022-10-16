@@ -109,6 +109,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   PetscViewerFormat format;
 #if defined(PETSC_USE_COMPLEX)
   PetscBool         allreal = PETSC_TRUE;
+  const PetscReal   *vr;
 #endif
 
   PetscFunctionBegin;
@@ -125,10 +126,14 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   PetscCall(MatDenseGetArrayRead(ds->omat[m],&M));
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */
-  v = M;
-  for (i=0;i<rows;i++)
-    for (j=0;j<cols;j++)
-      if (PetscImaginaryPart(v[i+j*ds->ld])) { allreal = PETSC_FALSE; break; }
+  if (m!=DS_MAT_T && m!=DS_MAT_D) {
+    /* determine if matrix has all real values */
+    v = M;
+    for (i=0;i<rows;i++)
+      for (j=0;j<cols;j++)
+        if (PetscImaginaryPart(v[i+j*ds->ld])) { allreal = PETSC_FALSE; break; }
+  }
+  if (m==DS_MAT_T) cols=3;
 #endif
   if (format == PETSC_VIEWER_ASCII_MATLAB) {
     PetscCall(PetscViewerASCIIPrintf(viewer,"%% Size = %" PetscInt_FMT " %" PetscInt_FMT "\n",rows,cols));
@@ -137,14 +142,22 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 
   for (i=0;i<rows;i++) {
     v = M+i;
+#if defined(PETSC_USE_COMPLEX)
+    vr = (const PetscReal*)M+i;   /* handle compact storage, 2nd column is in imaginary part of 1st column */
+#endif
     for (j=0;j<cols;j++) {
 #if defined(PETSC_USE_COMPLEX)
-      if (allreal) PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)PetscRealPart(*v)));
-      else PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",(double)PetscRealPart(*v),(double)PetscImaginaryPart(*v)));
+      if (m!=DS_MAT_T && m!=DS_MAT_D) {
+        if (allreal) PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)PetscRealPart(*v)));
+        else PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",(double)PetscRealPart(*v),(double)PetscImaginaryPart(*v)));
+      } else PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)*vr));
 #else
       PetscCall(PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)*v));
 #endif
       v += ds->ld;
+#if defined(PETSC_USE_COMPLEX)
+      if (m==DS_MAT_T) vr += ds->ld;
+#endif
     }
     PetscCall(PetscViewerASCIIPrintf(viewer,"\n"));
   }
