@@ -517,7 +517,7 @@ PetscErrorCode DSSetExtraRow(DS ds,PetscBool ext)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveBool(ds,ext,2);
-  PetscCheck(ds->n==0 || ds->n!=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
+  PetscCheck(!ext || ds->n==0 || ds->n!=ds->ld,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot set extra row after setting n=ld");
   ds->extrarow = ext;
   PetscFunctionReturn(0);
 }
