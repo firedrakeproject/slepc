@@ -14,7 +14,6 @@
 */
 
 #include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 
 typedef struct {
   PetscBool explicitmatrix;
@@ -360,11 +359,13 @@ static PetscErrorCode EPSMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
   PetscInt       i;
   SVD            svd = (SVD)ctx;
   PetscScalar    er,ei;
+  ST             st;
 
   PetscFunctionBegin;
+  PetscCall(EPSGetST(eps,&st));
   for (i=0;i<PetscMin(nest,svd->ncv);i++) {
     er = eigr[i]; ei = eigi[i];
-    PetscCall(STBackTransform(eps->st,1,&er,&ei));
+    PetscCall(STBackTransform(st,1,&er,&ei));
     svd->sigma[i] = PetscSqrtReal(PetscAbsReal(PetscRealPart(er)));
     svd->errest[i] = errest[i];
   }
