@@ -105,7 +105,7 @@ PetscErrorCode SVDTwoSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta,BV V,B
     PetscCall(BVRestoreColumn(svd->U,*n-1,&u));
     PetscCall(BVOrthogonalizeColumn(svd->V,*n,NULL,beta+*n-1,&lindep));
   }
-  if (PetscUnlikely(breakdown)) *breakdown = lindep;
+  if (breakdown) *breakdown = lindep;
   PetscFunctionReturn(0);
 }
 

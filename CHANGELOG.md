@@ -5,6 +5,7 @@
 ### Added
 
 - New `DSHSVD` type for the hyperbolic SVD.
+- Support for the hyperbolic SVD (HSVD) in the `SVDTRLANCZOS` solver.
 
 ## [3.18] - 2022-10-01
 

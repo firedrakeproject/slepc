@@ -15,6 +15,7 @@
 
 #include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
+#include <slepc/private/bvimpl.h>
 #include "cyclic.h"
 
 static PetscErrorCode MatMult_Cyclic(Mat B,Vec x,Vec y)
@@ -654,14 +655,12 @@ static PetscErrorCode VecMaxAbs(Vec x,Vec w,PetscScalar *v)
 static PetscErrorCode SVDComputeVectors_Cyclic_Hyperbolic(SVD svd)
 {
   SVD_CYCLIC        *cyclic = (SVD_CYCLIC*)svd->data;
-  PetscInt          i,j,m,n,N,nconv;
+  PetscInt          i,j,m,n,nconv;
   PetscScalar       er,ei;
   PetscReal         sigma,nrm;
   PetscBool         isreal;
   const PetscScalar *px;
   Vec               u,x,xi=NULL,x1,x2,x1i=NULL,x2i;
-  Mat               Omega;
-  MatType           Atype;
   BV                U=NULL,V=NULL;
 #if !defined(PETSC_USE_COMPLEX)
   const PetscScalar *pxi;
@@ -682,16 +681,8 @@ static PetscErrorCode SVDComputeVectors_Cyclic_Hyperbolic(SVD svd)
   /* set-up Omega-normalization of U */
   U = svd->swapped? svd->V: svd->U;
   V = svd->swapped? svd->U: svd->V;
-  PetscCall(MatGetType(svd->A,&Atype));
-  PetscCall(BVGetSizes(U,&n,&N,NULL));
-  PetscCall(MatCreate(PetscObjectComm((PetscObject)svd),&Omega));
-  PetscCall(MatSetSizes(Omega,n,n,N,N));
-  PetscCall(MatSetType(Omega,Atype));
-  PetscCall(MatSetUp(Omega));
-  PetscCall(MatDiagonalSet(Omega,svd->omega,INSERT_VALUES));
-  PetscCall(BVSetMatrix(U,Omega,PETSC_TRUE));
-  PetscCall(MatDestroy(&Omega));
-
+  PetscCall(BVGetSizes(U,&n,NULL,NULL));
+  PetscCall(BV_SetMatrixDiagonal(U,svd->omega,svd->A));
   PetscCall(EPSGetConverged(cyclic->eps,&nconv));
   for (i=0,j=0;i<nconv;i++) {
     PetscCall(EPSGetEigenpair(cyclic->eps,i,&er,&ei,x,xi));

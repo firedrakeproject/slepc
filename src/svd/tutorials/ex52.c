@@ -158,6 +158,9 @@ int main(int argc,char **argv)
       test:
          args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}} -svd_ncv 300
          suffix: 1_cyclic
+      test:
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}}
+         suffix: 1_trlanczos
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/real/illc1033.petsc -transpose -svd_nsv 6 -p 130 -terse
@@ -170,6 +173,9 @@ int main(int argc,char **argv)
       test:
          args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
          suffix: 2_cyclic
+      test:
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -svd_implicittranspose {{0 1}}
+         suffix: 2_trlanczos
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/complex/illc1033.petsc -svd_nsv 62 -p 40 -terse
@@ -182,6 +188,9 @@ int main(int argc,char **argv)
       test:
          args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
          suffix: 3_cyclic
+      test:
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}}
+         suffix: 3_trlanczos
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/complex/illc1033.petsc -transpose -svd_nsv 6 -p 130 -terse
@@ -194,6 +203,9 @@ int main(int argc,char **argv)
       test:
          args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
          suffix: 4_cyclic
+      test:
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}}
+         suffix: 4_trlanczos
 
    testset:
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -svd_smallest -svd_nsv 3 -p 1 -terse
@@ -206,5 +218,8 @@ int main(int argc,char **argv)
       test:
          args: -svd_type cyclic -svd_max_it 4000 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type jacobi
          suffix: 5_cyclic
+      test:
+         args: -svd_type trlanczos -svd_max_it 2000
+         suffix: 5_trlanczos
 
 TEST*/
