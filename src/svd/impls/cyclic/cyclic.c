@@ -14,7 +14,6 @@
 */
 
 #include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
-#include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepc/private/bvimpl.h>
 #include "cyclic.h"
 
@@ -784,12 +783,14 @@ static PetscErrorCode EPSMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
   SVD            svd = (SVD)ctx;
   PetscScalar    er,ei;
   PetscReal      sigma;
+  ST             st;
 
   PetscFunctionBegin;
   nconv = 0;
+  PetscCall(EPSGetST(eps,&st));
   for (i=0,j=0;i<PetscMin(nest,svd->ncv);i++) {
     er = eigr[i]; ei = eigi[i];
-    PetscCall(STBackTransform(eps->st,1,&er,&ei));
+    PetscCall(STBackTransform(st,1,&er,&ei));
     PetscCall(SVDCyclicCheckEigenvalue(svd,er,ei,&sigma,NULL));
     if (sigma>0.0) {
       svd->sigma[j]  = sigma;
