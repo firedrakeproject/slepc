@@ -36,6 +36,7 @@
              filename = trim(filename)
           endif
           call SlepcInitializeF(filename,help,PETSC_TRUE,ierr)
+          CHKERRQ(ierr)
         end subroutine SlepcInitializeWithHelp
 
 #if defined(_WIN32) && defined(PETSC_USE_SHARED_LIBRARIES)
@@ -49,6 +50,7 @@
              filename = trim(filename)
           endif
           call SlepcInitializeF(filename,PETSC_NULL_CHARACTER,PETSC_TRUE,ierr)
+          CHKERRQ(ierr)
         end subroutine SlepcInitializeNoHelp
 
 #if defined(_WIN32) && defined(PETSC_USE_SHARED_LIBRARIES)
@@ -58,6 +60,7 @@
           PetscErrorCode             :: ierr
 
           call SlepcInitializeF(PETSC_NULL_CHARACTER,PETSC_NULL_CHARACTER,PETSC_FALSE,ierr)
+          CHKERRQ(ierr)
         end subroutine SlepcInitializeNoArguments
         end module
 
