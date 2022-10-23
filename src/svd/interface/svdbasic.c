@@ -473,6 +473,7 @@ PetscErrorCode SVDGetDS(SVD svd,DS *ds)
     PetscCall(DSCreate(PetscObjectComm((PetscObject)svd),&svd->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)svd->ds,(PetscObject)svd,0));
     PetscCall(PetscObjectSetOptions((PetscObject)svd->ds,((PetscObject)svd)->options));
+    PetscTryTypeMethod(svd,setdstype);
   }
   *ds = svd->ds;
   PetscFunctionReturn(0);

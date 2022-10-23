@@ -36,6 +36,7 @@ struct _PEPOps {
   PetscErrorCode (*computevectors)(PEP);
   PetscErrorCode (*extractvectors)(PEP);
   PetscErrorCode (*setdefaultst)(PEP);
+  PetscErrorCode (*setdstype)(PEP);
 };
 
 /*
