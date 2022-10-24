@@ -105,7 +105,6 @@ int main(int argc,char **argv)
   PetscCall(MatCreateVecs(A,&v,&u));
   PetscCall(VecSet(u,1.0));
   PetscCall(VecSet(v,1.0));
-  PetscCall(SVDSetInitialSpaces(svd,1,&v,1,&u));
   PetscCall(SVDSolve(svd));
 
   /* show detailed info unless -terse option is given by user */
@@ -186,10 +185,10 @@ int main(int argc,char **argv)
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
          suffix: 3_cross
       test:
-         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}} -svd_cyclic_bv_definite_tol 1e-13
          suffix: 3_cyclic
       test:
-         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}}
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -bv_definite_tol 1e-14
          suffix: 3_trlanczos
 
    testset:
@@ -198,10 +197,10 @@ int main(int argc,char **argv)
       filter: grep -v Reading
       output_file: output/ex52_2.out
       test:
-         args: -svd_type cross -svd_cross_explicitmatrix {{0 1}} -svd_ncv 100
+         args: -svd_type cross -svd_cross_explicitmatrix {{0 1}} -svd_ncv 100 -svd_cross_bv_definite_tol 1e-14
          suffix: 4_cross
       test:
-         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}}
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}} -svd_ncv 26
          suffix: 4_cyclic
       test:
          args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}}
@@ -213,13 +212,13 @@ int main(int argc,char **argv)
       filter: grep -v Reading
       output_file: output/ex52_5.out
       test:
-         args: -svd_type cross -svd_max_it 1000
+         args: -svd_type cross -svd_max_it 1000 -svd_cross_bv_definite_tol 1e-14
          suffix: 5_cross
       test:
-         args: -svd_type cyclic -svd_max_it 4000 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type jacobi
+         args: -svd_type cyclic -svd_max_it 4000 -svd_ncv 30 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type jacobi -svd_cyclic_bv_definite_tol 1e-14
          suffix: 5_cyclic
       test:
-         args: -svd_type trlanczos -svd_max_it 2000
+         args: -svd_type trlanczos -svd_max_it 4000 -svd_ncv 28 -bv_definite_tol 1e-14
          suffix: 5_trlanczos
 
 TEST*/
