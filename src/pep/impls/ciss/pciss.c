@@ -239,10 +239,7 @@ PetscErrorCode PEPSetUp_CISS(PEP pep)
     PetscCall(BVResize(ctx->Y,contour->npoints*ctx->L,PETSC_FALSE));
   } else PetscCall(BVDuplicateResize(pep->V,contour->npoints*ctx->L,&ctx->Y));
 
-  if (ctx->extraction == PEP_CISS_EXTRACTION_HANKEL) PetscCall(DSSetType(pep->ds,DSGNHEP));
-  else if (ctx->extraction == PEP_CISS_EXTRACTION_CAA) PetscCall(DSSetType(pep->ds,DSNHEP));
-  else {
-    PetscCall(DSSetType(pep->ds,DSPEP));
+  if (ctx->extraction == PEP_CISS_EXTRACTION_RITZ) {
     PetscCall(DSPEPSetDegree(pep->ds,pep->nmat-1));
     PetscCall(DSPEPSetCoefficients(pep->ds,pep->pbc));
   }
@@ -266,7 +263,6 @@ PetscErrorCode PEPSolve_CISS(PEP pep)
   PetscRandom      rand;
 
   PetscFunctionBegin;
-  PetscCall(DSSetFromOptions(pep->ds));
   PetscCall(DSGetSlepcSC(pep->ds,&sc));
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
@@ -1039,6 +1035,19 @@ PetscErrorCode PEPView_CISS(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode PEPSetDSType_CISS(PEP pep)
+{
+  PEP_CISS       *ctx = (PEP_CISS*)pep->data;
+
+  PetscFunctionBegin;
+  switch (ctx->extraction) {
+    case PEP_CISS_EXTRACTION_RITZ:   PetscCall(DSSetType(pep->ds,DSPEP)); break;
+    case PEP_CISS_EXTRACTION_HANKEL: PetscCall(DSSetType(pep->ds,DSGNHEP)); break;
+    case PEP_CISS_EXTRACTION_CAA:    PetscCall(DSSetType(pep->ds,DSNHEP)); break;
+  }
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode PEPCreate_CISS(PEP pep)
 {
   PEP_CISS       *ctx = (PEP_CISS*)pep->data;
@@ -1062,6 +1071,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_CISS(PEP pep)
   pep->ops->reset          = PEPReset_CISS;
   pep->ops->destroy        = PEPDestroy_CISS;
   pep->ops->view           = PEPView_CISS;
+  pep->ops->setdstype      = PEPSetDSType_CISS;
 
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPCISSSetSizes_C",PEPCISSSetSizes_CISS));
   PetscCall(PetscObjectComposeFunction((PetscObject)pep,"PEPCISSGetSizes_C",PEPCISSGetSizes_CISS));

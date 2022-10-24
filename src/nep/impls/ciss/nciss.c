@@ -254,10 +254,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
     PetscCall(BVResize(ctx->Y,contour->npoints*ctx->L,PETSC_FALSE));
   } else PetscCall(BVDuplicateResize(nep->V,contour->npoints*ctx->L,&ctx->Y));
 
-  if (ctx->extraction == NEP_CISS_EXTRACTION_HANKEL) PetscCall(DSSetType(nep->ds,DSGNHEP));
-  else if (ctx->extraction == NEP_CISS_EXTRACTION_CAA) PetscCall(DSSetType(nep->ds,DSNHEP));
-  else {
-    PetscCall(DSSetType(nep->ds,DSNEP));
+  if (ctx->extraction == NEP_CISS_EXTRACTION_RITZ)  {
     PetscCall(DSSetMethod(nep->ds,1));
     PetscCall(DSNEPSetRG(nep->ds,nep->rg));
     if (nep->fui==NEP_USER_INTERFACE_SPLIT) PetscCall(DSNEPSetFN(nep->ds,nep->nt,nep->f));
@@ -289,7 +286,6 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   PetscRandom      rand;
 
   PetscFunctionBegin;
-  PetscCall(DSSetFromOptions(nep->ds));
   PetscCall(DSGetSlepcSC(nep->ds,&sc));
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
@@ -1072,6 +1068,19 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode NEPSetDSType_CISS(NEP nep)
+{
+  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
+
+  PetscFunctionBegin;
+  switch (ctx->extraction) {
+    case NEP_CISS_EXTRACTION_RITZ:   PetscCall(DSSetType(nep->ds,DSNEP)); break;
+    case NEP_CISS_EXTRACTION_HANKEL: PetscCall(DSSetType(nep->ds,DSGNHEP)); break;
+    case NEP_CISS_EXTRACTION_CAA:    PetscCall(DSSetType(nep->ds,DSNHEP)); break;
+  }
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
 {
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
@@ -1097,6 +1106,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   nep->ops->reset          = NEPReset_CISS;
   nep->ops->destroy        = NEPDestroy_CISS;
   nep->ops->view           = NEPView_CISS;
+  nep->ops->setdstype      = NEPSetDSType_CISS;
 
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetSizes_C",NEPCISSSetSizes_CISS));
   PetscCall(PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetSizes_C",NEPCISSGetSizes_CISS));

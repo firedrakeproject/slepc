@@ -35,6 +35,7 @@ struct _SVDOps {
   PetscErrorCode (*reset)(SVD);
   PetscErrorCode (*view)(SVD,PetscViewer);
   PetscErrorCode (*computevectors)(SVD);
+  PetscErrorCode (*setdstype)(SVD);
 };
 
 /*

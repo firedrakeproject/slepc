@@ -33,6 +33,7 @@ struct _NEPOps {
   PetscErrorCode (*reset)(NEP);
   PetscErrorCode (*view)(NEP,PetscViewer);
   PetscErrorCode (*computevectors)(NEP);
+  PetscErrorCode (*setdstype)(NEP);
 };
 
 /*

@@ -36,6 +36,7 @@ struct _EPSOps {
   PetscErrorCode (*backtransform)(EPS);
   PetscErrorCode (*computevectors)(EPS);
   PetscErrorCode (*setdefaultst)(EPS);
+  PetscErrorCode (*setdstype)(EPS);
 };
 
 /*
