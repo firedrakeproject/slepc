@@ -204,7 +204,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
 {
   PetscInt       M,N,P,m,n,p;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  DSType         dstype;
   MatZData       *zdata;
   Mat            aux;
 
@@ -217,7 +216,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
   if (!lanczos->keep) lanczos->keep = 0.5;
   svd->leftbasis = PETSC_TRUE;
   PetscCall(SVDAllocateSolution(svd,1));
-  dstype = svd->ishyperbolic? DSHSVD: DSSVD;
   if (svd->isgeneralized) {
     PetscCall(MatGetSize(svd->B,&P,NULL));
     if (lanczos->bidiag == SVD_TRLANCZOS_GBIDIAG_LOWER && ((svd->which==SVD_LARGEST && P<=N) || (svd->which==SVD_SMALLEST && M>N && P<=N))) {
@@ -226,7 +224,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
       svd->swapped = PETSC_TRUE;
     } else svd->swapped = PETSC_FALSE;
 
-    if (lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_UPPER || lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_LOWER) dstype = DSGSVD;
     PetscCall(SVDSetWorkVecs(svd,1,1));
 
     if (svd->conv==SVD_CONV_ABS) {  /* Residual norms are multiplied by matrix norms */
@@ -257,7 +254,6 @@ PetscErrorCode SVDSetUp_TRLanczos(SVD svd)
     PetscCall(BV_SetMatrixDiagonal(svd->swapped?svd->V:svd->U,svd->omega,svd->OP));
     PetscCall(SVDSetWorkVecs(svd,1,0));
   }
-  PetscCall(DSSetType(svd->ds,dstype));
   PetscCall(DSSetCompact(svd->ds,PETSC_TRUE));
   PetscCall(DSSetExtraRow(svd->ds,PETSC_TRUE));
   PetscCall(DSAllocate(svd->ds,svd->ncv+1));
@@ -2285,6 +2281,18 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode SVDSetDSType_TRLanczos(SVD svd)
+{
+  SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
+  DSType         dstype;
+
+  PetscFunctionBegin;
+  dstype = svd->ishyperbolic? DSHSVD: DSSVD;
+  if (svd->OPb && (lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_UPPER || lanczos->bidiag==SVD_TRLANCZOS_GBIDIAG_LOWER)) dstype = DSGSVD;
+  PetscCall(DSSetType(svd->ds,dstype));
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
 {
   SVD_TRLANCZOS  *ctx;
@@ -2306,6 +2314,7 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD svd)
   svd->ops->reset          = SVDReset_TRLanczos;
   svd->ops->setfromoptions = SVDSetFromOptions_TRLanczos;
   svd->ops->view           = SVDView_TRLanczos;
+  svd->ops->setdstype      = SVDSetDSType_TRLanczos;
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetOneSide_C",SVDTRLanczosSetOneSide_TRLanczos));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosGetOneSide_C",SVDTRLanczosGetOneSide_TRLanczos));
   PetscCall(PetscObjectComposeFunction((PetscObject)svd,"SVDTRLanczosSetGBidiag_C",SVDTRLanczosSetGBidiag_TRLanczos));

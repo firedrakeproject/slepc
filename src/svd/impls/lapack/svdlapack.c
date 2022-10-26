@@ -241,7 +241,7 @@ PetscErrorCode SVDSolve_LAPACK_HSVD(SVD svd)
 PetscErrorCode SVDSetDSType_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
-  PetscCall(DSSetType(svd->ds,svd->isgeneralized?DSGSVD:svd->ishyperbolic?DSHSVD:DSSVD));
+  PetscCall(DSSetType(svd->ds,svd->OPb?DSGSVD:svd->omega?DSHSVD:DSSVD));
   PetscFunctionReturn(0);
 }
 
