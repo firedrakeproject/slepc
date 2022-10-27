@@ -282,7 +282,7 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
        bidiagonal matrix formed by d, e. T is stored in dd, ee */
     PetscCall(DSAllocateWork_Private(ds,(n+6)*ld,4*ld,2*ld));
     R = ds->work+swu;
-    swu += n*n;
+    swu += n*ld;
     perm = ds->iwork+iwu;
     iwu += n;
     cmplx = ds->iwork+iwu;
@@ -328,7 +328,7 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 
     PetscCall(DSAllocateWork_Private(ds,(n+6)*ld,PetscDefined(USE_COMPLEX)?3*ld:0,2*ld));
     R = ds->work+swu;
-    swu += n*n;
+    swu += n*ld;
     perm = ds->iwork+iwu;
     iwu += n;
     cmplx = ds->iwork+iwu;
@@ -361,6 +361,12 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     nv = n1;
     for (i=0;i<n;i++) cmplx[i] = 0;
     PetscCall(DSPseudoOrthog_HR(&nv,U+off,ld,Omega+l,R,ld,perm,cmplx,NULL,ds->work+swu));
+  } else { /* Compute signature R = U'*Omega*U */
+    for (j=0;j<n;j++) {
+      R[j+j*ld] = 0.0;
+      for (i=0;i<n;i++) R[j+j*ld] += PetscConj(U[i+j*ld])*Omega[i]*U[i+j*ld];
+    }
+    for (i=0;i<n;i++) Omega[i] = PetscRealPart(R[i+i*ld]);
   }
 
   /* Update projected problem */
