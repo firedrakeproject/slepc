@@ -326,13 +326,15 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   } else { /* non-compact */
 
-    PetscCall(DSAllocateWork_Private(ds,(n+6)*ld,PetscDefined(USE_COMPLEX)?3*ld:0,2*ld));
+    PetscCall(DSAllocateWork_Private(ds,(n+6)*ld,PetscDefined(USE_COMPLEX)?4*ld:ld,2*ld));
     R = ds->work+swu;
     swu += n*ld;
     perm = ds->iwork+iwu;
     iwu += n;
     cmplx = ds->iwork+iwu;
     iwu += n;
+    dd = ds->rwork+rwu;
+    rwu += ld;
     for (j=l;j<m;j++) {
       for (i=0;i<n;i++) ds->work[i] = Omega[i]*A[i+j*ld];
       PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&m,&sone,A,&ld,ds->work,&incx,&szero,V+j*ld,&incx));
@@ -342,13 +344,13 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     lwork = (n+6)*ld;
     PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
 #if defined(PETSC_USE_COMPLEX)
-    PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,d,ds->work,&lwork,ds->rwork,&info));
+    PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,ds->rwork+rwu,&info));
 #else
-    PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,d,ds->work,&lwork,&info));
+    PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,&info));
 #endif
     SlepcCheckLapackInfo("syev",info);
     PetscCall(PetscFPTrapPop());
-    for (i=l;i<PetscMin(n,m);i++) d[i] = PetscSqrtReal(PetscAbsReal(d[i]));
+    for (i=l;i<PetscMin(n,m);i++) d[i] = PetscSqrtReal(PetscAbsReal(dd[i]));
 
     /* Build left singular vectors: U=A*V*Sigma^-1 */
     for (j=l;j<PetscMin(n,m);j++) {
@@ -361,12 +363,8 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
     nv = n1;
     for (i=0;i<n;i++) cmplx[i] = 0;
     PetscCall(DSPseudoOrthog_HR(&nv,U+off,ld,Omega+l,R,ld,perm,cmplx,NULL,ds->work+swu));
-  } else { /* Compute signature R = U'*Omega*U */
-    for (j=0;j<n;j++) {
-      R[j+j*ld] = 0.0;
-      for (i=0;i<n;i++) R[j+j*ld] += PetscConj(U[i+j*ld])*Omega[i]*U[i+j*ld];
-    }
-    for (i=0;i<n;i++) Omega[i] = PetscRealPart(R[i+i*ld]);
+  } else { /* Update Omega */
+    for (i=l;i<PetscMin(n,m);i++) Omega[i] = PetscSign(dd[i]);
   }
 
   /* Update projected problem */
