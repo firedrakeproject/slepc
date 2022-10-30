@@ -710,6 +710,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   if (!svd->U) PetscCall(SVDGetBV(svd,NULL,&svd->U));
   PetscCall(BVSetFromOptions(svd->U));
   if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
+  PetscCall(SVDSetDSType(svd));
   PetscCall(DSSetFromOptions(svd->ds));
   PetscFunctionReturn(0);
 }

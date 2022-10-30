@@ -14,6 +14,31 @@
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
 
 /*@
+   NEPSetDSType - Sets the type of the internal DS object based on the current
+   settings of the nonlinear eigensolver.
+
+   Collective on nep
+
+   Input Parameter:
+.  nep - nonlinear eigensolver context
+
+   Note:
+   This function need not be called explicitly, since it will be called at
+   both NEPSetFromOptions() and NEPSetUp().
+
+   Level: developer
+
+.seealso: NEPSetFromOptions(), NEPSetUp()
+@*/
+PetscErrorCode NEPSetDSType(NEP nep)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscTryTypeMethod(nep,setdstype);
+  PetscFunctionReturn(0);
+}
+
+/*@
    NEPSetUp - Sets up all the internal data structures necessary for the
    execution of the NEP solver.
 
@@ -54,6 +79,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* set default solver type (NEPSetFromOptions was not called) */
   if (!((PetscObject)nep)->type_name) PetscCall(NEPSetType(nep,NEPRII));
   if (nep->useds && !nep->ds) PetscCall(NEPGetDS(nep,&nep->ds));
+  if (nep->useds) PetscCall(NEPSetDSType(nep));
   if (!nep->rg) PetscCall(NEPGetRG(nep,&nep->rg));
   if (!((PetscObject)nep->rg)->type_name) PetscCall(RGSetType(nep->rg,RGINTERVAL));
 

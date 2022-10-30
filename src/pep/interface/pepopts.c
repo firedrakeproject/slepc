@@ -227,6 +227,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   if (!pep->rg) PetscCall(PEPGetRG(pep,&pep->rg));
   PetscCall(RGSetFromOptions(pep->rg));
   if (!pep->ds) PetscCall(PEPGetDS(pep,&pep->ds));
+  PetscCall(PEPSetDSType(pep));
   PetscCall(DSSetFromOptions(pep->ds));
   if (!pep->st) PetscCall(PEPGetST(pep,&pep->st));
   PetscCall(PEPSetDefaultST(pep));

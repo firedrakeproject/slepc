@@ -711,7 +711,6 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
     PetscCall(DSCreate(PetscObjectComm((PetscObject)eps),&eps->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)eps->ds,(PetscObject)eps,0));
     PetscCall(PetscObjectSetOptions((PetscObject)eps->ds,((PetscObject)eps)->options));
-    PetscTryTypeMethod(eps,setdstype);
   }
   *ds = eps->ds;
   PetscFunctionReturn(0);

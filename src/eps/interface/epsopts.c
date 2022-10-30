@@ -232,6 +232,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscCall(RGSetFromOptions(eps->rg));
   if (eps->useds) {
     if (!eps->ds) PetscCall(EPSGetDS(eps,&eps->ds));
+    PetscCall(EPSSetDSType(eps));
     PetscCall(DSSetFromOptions(eps->ds));
   }
   if (!eps->st) PetscCall(EPSGetST(eps,&eps->st));
