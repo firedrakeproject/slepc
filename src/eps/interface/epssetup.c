@@ -240,6 +240,31 @@ PetscErrorCode EPSSetUpSort_Default(EPS eps)
 }
 
 /*@
+   EPSSetDSType - Sets the type of the internal DS object based on the current
+   settings of the eigenvalue solver.
+
+   Collective on eps
+
+   Input Parameter:
+.  eps - eigenproblem solver context
+
+   Note:
+   This function need not be called explicitly, since it will be called at
+   both EPSSetFromOptions() and EPSSetUp().
+
+   Level: developer
+
+.seealso: EPSSetFromOptions(), EPSSetUp()
+@*/
+PetscErrorCode EPSSetDSType(EPS eps)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscTryTypeMethod(eps,setdstype);
+  PetscFunctionReturn(0);
+}
+
+/*@
    EPSSetUp - Sets up all the internal data structures necessary for the
    execution of the eigensolver. Then calls STSetUp() for any set-up
    operations associated to the ST object.
@@ -279,6 +304,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   PetscCall(STSetTransform(eps->st,PETSC_TRUE));
   if (eps->useds && !eps->ds) PetscCall(EPSGetDS(eps,&eps->ds));
+  if (eps->useds) PetscCall(EPSSetDSType(eps));
   if (eps->twosided) {
     PetscCheck(!eps->ishermitian || (eps->isgeneralized && !eps->ispositive),PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for %s problems",SLEPC_STRING_HERMITIAN);
   }

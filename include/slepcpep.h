@@ -213,6 +213,7 @@ SLEPC_EXTERN PetscErrorCode PEPGetTarget(PEP,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode PEPSetInterval(PEP,PetscReal,PetscReal);
 SLEPC_EXTERN PetscErrorCode PEPGetInterval(PEP,PetscReal*,PetscReal*);
 SLEPC_EXTERN PetscErrorCode PEPSetFromOptions(PEP);
+SLEPC_EXTERN PetscErrorCode PEPSetDSType(PEP);
 SLEPC_EXTERN PetscErrorCode PEPSetUp(PEP);
 SLEPC_EXTERN PetscErrorCode PEPSolve(PEP);
 SLEPC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);

@@ -39,6 +39,31 @@ PetscErrorCode PEPSetDefaultST_Transform(PEP pep)
 }
 
 /*@
+   PEPSetDSType - Sets the type of the internal DS object based on the current
+   settings of the polynomial eigensolver.
+
+   Collective on pep
+
+   Input Parameter:
+.  pep - polynomial eigensolver context
+
+   Note:
+   This function need not be called explicitly, since it will be called at
+   both PEPSetFromOptions() and PEPSetUp().
+
+   Level: developer
+
+.seealso: PEPSetFromOptions(), PEPSetUp()
+@*/
+PetscErrorCode PEPSetDSType(PEP pep)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscTryTypeMethod(pep,setdstype);
+  PetscFunctionReturn(0);
+}
+
+/*@
    PEPSetUp - Sets up all the internal data structures necessary for the
    execution of the PEP solver.
 
@@ -79,6 +104,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!pep->st) PetscCall(PEPGetST(pep,&pep->st));
   PetscCall(PEPSetDefaultST(pep));
   if (!pep->ds) PetscCall(PEPGetDS(pep,&pep->ds));
+  PetscCall(PEPSetDSType(pep));
   if (!pep->rg) PetscCall(PEPGetRG(pep,&pep->rg));
   if (!((PetscObject)pep->rg)->type_name) PetscCall(RGSetType(pep->rg,RGINTERVAL));
 

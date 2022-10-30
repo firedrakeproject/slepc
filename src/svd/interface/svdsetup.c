@@ -172,6 +172,31 @@ PetscErrorCode SVDGetSignature(SVD svd,Vec *omega)
 }
 
 /*@
+   SVDSetDSType - Sets the type of the internal DS object based on the current
+   settings of the singular value solver.
+
+   Collective on svd
+
+   Input Parameter:
+.  svd - singular value solver context
+
+   Note:
+   This function need not be called explicitly, since it will be called at
+   both SVDSetFromOptions() and SVDSetUp().
+
+   Level: developer
+
+.seealso: SVDSetFromOptions(), SVDSetUp()
+@*/
+PetscErrorCode SVDSetDSType(SVD svd)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscTryTypeMethod(svd,setdstype);
+  PetscFunctionReturn(0);
+}
+
+/*@
    SVDSetUp - Sets up all the internal data structures necessary for the
    execution of the singular value solver.
 
@@ -208,6 +233,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   /* set default solver type (SVDSetFromOptions was not called) */
   if (!((PetscObject)svd)->type_name) PetscCall(SVDSetType(svd,SVDCROSS));
   if (!svd->ds) PetscCall(SVDGetDS(svd,&svd->ds));
+  PetscCall(SVDSetDSType(svd));
 
   /* check matrices */
   PetscCheck(svd->OP,PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperators() must be called first");

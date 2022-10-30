@@ -202,6 +202,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscCall(RGSetFromOptions(nep->rg));
   if (nep->useds) {
     if (!nep->ds) PetscCall(NEPGetDS(nep,&nep->ds));
+    PetscCall(NEPSetDSType(nep));
     PetscCall(DSSetFromOptions(nep->ds));
   }
   if (!nep->refineksp) PetscCall(NEPRefineGetKSP(nep,&nep->refineksp));

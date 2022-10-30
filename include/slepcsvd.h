@@ -161,6 +161,7 @@ SLEPC_EXTERN PetscErrorCode SVDSetFromOptions(SVD);
 SLEPC_EXTERN PetscErrorCode SVDSetOptionsPrefix(SVD,const char*);
 SLEPC_EXTERN PetscErrorCode SVDAppendOptionsPrefix(SVD,const char*);
 SLEPC_EXTERN PetscErrorCode SVDGetOptionsPrefix(SVD,const char*[]);
+SLEPC_EXTERN PetscErrorCode SVDSetDSType(SVD);
 SLEPC_EXTERN PetscErrorCode SVDSetUp(SVD);
 SLEPC_EXTERN PetscErrorCode SVDSolve(SVD);
 SLEPC_EXTERN PetscErrorCode SVDGetIterationNumber(SVD,PetscInt*);

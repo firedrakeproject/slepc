@@ -168,6 +168,7 @@ SLEPC_EXTERN PetscErrorCode NEPGetProblemType(NEP,NEPProblemType*);
 SLEPC_EXTERN PetscErrorCode NEPSetTarget(NEP,PetscScalar);
 SLEPC_EXTERN PetscErrorCode NEPGetTarget(NEP,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode NEPSetFromOptions(NEP);
+SLEPC_EXTERN PetscErrorCode NEPSetDSType(NEP);
 SLEPC_EXTERN PetscErrorCode NEPSetUp(NEP);
 SLEPC_EXTERN PetscErrorCode NEPSolve(NEP);
 SLEPC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);

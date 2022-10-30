@@ -196,6 +196,7 @@ SLEPC_EXTERN PetscErrorCode EPSGetBalance(EPS,EPSBalance*,PetscInt*,PetscReal*);
 SLEPC_EXTERN PetscErrorCode EPSSetOperators(EPS,Mat,Mat);
 SLEPC_EXTERN PetscErrorCode EPSGetOperators(EPS,Mat*,Mat*);
 SLEPC_EXTERN PetscErrorCode EPSSetFromOptions(EPS);
+SLEPC_EXTERN PetscErrorCode EPSSetDSType(EPS);
 SLEPC_EXTERN PetscErrorCode EPSSetUp(EPS);
 SLEPC_EXTERN PetscErrorCode EPSSolve(EPS);
 SLEPC_EXTERN PetscErrorCode EPSView(EPS,PetscViewer);

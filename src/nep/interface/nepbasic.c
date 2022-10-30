@@ -536,7 +536,6 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
     PetscCall(DSCreate(PetscObjectComm((PetscObject)nep),&nep->ds));
     PetscCall(PetscObjectIncrementTabLevel((PetscObject)nep->ds,(PetscObject)nep,0));
     PetscCall(PetscObjectSetOptions((PetscObject)nep->ds,((PetscObject)nep)->options));
-    PetscTryTypeMethod(nep,setdstype);
   }
   *ds = nep->ds;
   PetscFunctionReturn(0);
