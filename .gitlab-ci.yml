@@ -615,7 +615,7 @@ gnu-c-coverage:
   tags:
     - name:jepri
   variables:
-    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-debugging=1 --with-gcov=1 --CXXFLAGS='-O -g' --with-cxx-dialect=11
+    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-debugging=1 --with-coverage=1 --CXXFLAGS='-O -g' --with-cxx-dialect=11
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan --download-blopex --download-hpddm --download-evsl
     COVERAGE: 1
 
@@ -626,7 +626,7 @@ gnu-c-complex-coverage:
   tags:
     - linux-ubuntu, name:hapy
   variables:
-    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-scalar-type=complex --with-debugging=1 --with-gcov=1
+    PETSC_CONFIG_OPTS: --with-fortran-bindings=0 --with-scalar-type=complex --with-debugging=1 --with-coverage=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --with-arpack-dir=/usr/local/opt/arpack-ng-3.8.0 --with-primme-dir=/usr/local/opt/primme-3.2 --download-blopex --download-hpddm
     COVERAGE: 1
 
