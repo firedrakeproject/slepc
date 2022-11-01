@@ -12,8 +12,9 @@
 #include <slepcblaslapack.h>
 
 typedef struct {
-  PetscInt m;              /* number of columns */
-  PetscInt t;              /* number of rows of V after truncating */
+  PetscInt  m;             /* number of columns */
+  PetscInt  t;             /* number of rows of V after truncating */
+  PetscBool reorth;        /* reorthogonalize left vectors */
 } DS_HSVD;
 
 PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
@@ -29,7 +30,7 @@ PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-/*   0       l           k                 n-1
+/*   0       l           k                 m-1
     -----------------------------------------
     |*       .           .                  |
     |  *     .           .                  |
@@ -50,7 +51,7 @@ PetscErrorCode DSAllocate_HSVD(DS ds,PetscInt ld)
     |                                x x    |
     |                                  x x  |
     |                                    x x|
-    |                                      x|
+n-1 |                                      x|
     -----------------------------------------
 */
 
@@ -67,12 +68,13 @@ PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscCall(PetscViewerGetFormat(viewer,&format));
-  PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscCall(PetscViewerASCIIPrintf(viewer,"number of columns: %" PetscInt_FMT "\n",m));
     if (ds->method<nmeth) PetscCall(PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]));
+    if (ctx->reorth) PetscCall(PetscViewerASCIIPrintf(viewer,"reorthogonalizing left vectors\n"));
     PetscFunctionReturn(0);
   }
+  PetscCheck(m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   if (ds->compact) {
     PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
     PetscCall(DSGetArrayReal(ds,DS_MAT_D,&S));
@@ -95,7 +97,7 @@ PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
       PetscCall(PetscViewerASCIIPrintf(viewer,"omega = zeros(%" PetscInt_FMT ",3);\n",3*ds->n));
       PetscCall(PetscViewerASCIIPrintf(viewer,"omega = [\n"));
       for (i=0;i<ds->n;i++) PetscCall(PetscViewerASCIIPrintf(viewer,"%" PetscInt_FMT " %" PetscInt_FMT "  %18.16e\n",i+1,i+1,(double)S[i]));
-      PetscCall(PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(omega);\n",DSMatName[DS_MAT_B]));
+      PetscCall(PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(omega);\n",DSMatName[DS_MAT_D]));
     } else {
       PetscCall(PetscViewerASCIIPrintf(viewer,"T\n"));
       for (i=0;i<rows;i++) {
@@ -125,7 +127,7 @@ PetscErrorCode DSView_HSVD(DS ds,PetscViewer viewer)
     PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&S));
   } else {
     PetscCall(DSViewMat(ds,viewer,DS_MAT_A));
-    PetscCall(DSViewMat(ds,viewer,DS_MAT_B));
+    PetscCall(DSViewMat(ds,viewer,DS_MAT_D));
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
     PetscCall(DSViewMat(ds,viewer,DS_MAT_U));
@@ -152,7 +154,7 @@ PetscErrorCode DSSort_HSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
 {
   DS_HSVD        *ctx = (DS_HSVD*)ds->data;
   PetscInt       n,l,i,*perm,ld=ds->ld;
-  PetscScalar    *A,*B;
+  PetscScalar    *A;
   PetscReal      *d,*s;
 
   PetscFunctionBegin;
@@ -175,9 +177,6 @@ PetscErrorCode DSSort_HSVD(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
     for (i=l;i<n;i++) A[i+i*ld] = wr[i];
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
-    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
-    for (i=l;i<n;i++) B[i+i*ld] = s[i];
-    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
   }
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&s));
@@ -188,8 +187,7 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
 {
   DS_HSVD           *ctx = (DS_HSVD*)ds->data;
   PetscInt          i;
-  PetscBLASInt      n=0,m=0,ld,l,incx=1;
-  PetscScalar       *A,*x,*y,one=1.0,zero=0.0;
+  PetscBLASInt      n=0,m=0,ld,l;
   const PetscScalar *U;
   PetscReal         *T,*e,*Omega,beta;
 
@@ -201,24 +199,13 @@ PetscErrorCode DSUpdateExtraRow_HSVD(DS ds)
   PetscCall(PetscBLASIntCast(ds->l,&l));
   PetscCall(MatDenseGetArrayRead(ds->omat[DS_MAT_U],&U));
   PetscCall(DSGetArrayReal(ds,DS_MAT_D,&Omega));
-  x = ds->work;
-  if (ds->compact) {
-    PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
-    e = T+ld;
-    beta = PetscAbs(e[m-1]);   /* in compact, we assume all entries are zero except the last one */
-    for (i=0;i<n;i++) e[i] = PetscRealPart(beta*U[n-1+i*ld]*Omega[i]);
-    ds->k = m;
-    PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-  } else {
-    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
-    PetscCall(DSAllocateWork_Private(ds,2*ld,0,0));
-    y = ds->work+ld;
-    for (i=0;i<n;i++) x[i] = PetscConj(A[i+m*ld]);
-    PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&one,U,&ld,x,&incx,&zero,y,&incx));
-    for (i=0;i<n;i++) A[i+m*ld] = PetscConj(y[i]);
-    ds->k = m;
-    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
-  }
+  PetscCheck(ds->compact,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non-compact storage");
+  PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+  e = T+ld;
+  beta = PetscAbs(e[m-1]);   /* in compact, we assume all entries are zero except the last one */
+  for (i=0;i<n;i++) e[i] = PetscRealPart(beta*U[n-1+i*ld]*Omega[i]);
+  ds->k = m;
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
   PetscCall(MatDenseRestoreArrayRead(ds->omat[DS_MAT_U],&U));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&Omega));
   PetscFunctionReturn(0);
@@ -262,20 +249,22 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   DS_HSVD        *ctx = (DS_HSVD*)ds->data;
   PetscInt       i,j,k=ds->k,rwu=0,iwu=0,swu=0,nv;
-  PetscBLASInt   n1,n2,info,l=0,n=0,m=0,ld,off,size,one=1,*perm,*cmplx;
-  PetscScalar    *U,*V,scal,*R;
+  PetscBLASInt   n1,n2,info,l=0,n=0,m=0,ld,off,one=1,*perm,*cmplx,incx=1,lwork;
+  PetscScalar    *A,*U,*V,scal,*R,sone=1.0,szero=0.0;
   PetscReal      *d,*e,*dd,*ee,*Omega;
 
   PetscFunctionBegin;
   PetscCheck(ctx->m,PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"You should set the number of columns with DSHSVDSetDimensions()");
   PetscCall(PetscBLASIntCast(ds->n,&n));
   PetscCall(PetscBLASIntCast(ctx->m,&m));
-  PetscCheck(!(n-m),PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non-square matrices");
+  PetscCheck(!ds->compact || n==m,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non-square matrices in compact storage");
+  PetscCheck(ds->compact || n>=m,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for the case of more columns than rows");
   PetscCall(PetscBLASIntCast(ds->l,&l));
   PetscCall(PetscBLASIntCast(ds->ld,&ld));
   PetscCall(PetscBLASIntCast(PetscMax(0,ds->k-ds->l+1),&n2));
   n1 = n-l;     /* n1 = size of leading block, excl. locked + size of trailing block */
   off = l+l*ld;
+  PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseGetArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSGetArrayReal(ds,DS_MAT_T,&d));
@@ -285,73 +274,118 @@ PetscErrorCode DSSolve_HSVD_CROSS(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (i=0;i<l;i++) U[i+i*ld] = 1.0;
   PetscCall(PetscArrayzero(V,ld*ld));
   for (i=0;i<n;i++) V[i+i*ld] = 1.0;
-
-  PetscCheck(ds->compact,PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for non compact storage");
-
-  /* Form the arrow tridiagonal cross product T=A'*Omega*A, where A is the arrow
-     bidiagonal matrix formed by d, e. T is stored in dd, ee */
-  PetscCall(DSAllocateWork_Private(ds,(n+6)*ld,4*ld,2*ld));
-  R = ds->work+swu;
-  swu += n*n;
-  perm = ds->iwork + iwu;
-  iwu += n;
-  cmplx = ds->iwork+iwu;
-  iwu += n;
-  dd = ds->rwork+rwu;
-  rwu += ld;
-  ee = ds->rwork+rwu;
-  rwu += ld;
-  for (i=0;i<l;i++) {dd[i] = d[i]*d[i]*Omega[i]; ee[i] = 0.0;}
-  for (i=l;i<=ds->k;i++) {
-    dd[i] = Omega[i]*d[i]*d[i];
-    ee[i] = Omega[i]*d[i]*e[i];
-  }
-  for (i=l;i<k;i++) dd[k] += Omega[i]*e[i]*e[i];
-  for (i=k+1;i<n;i++) {
-    dd[i] = Omega[i]*d[i]*d[i]+Omega[i-1]*e[i-1]*e[i-1];
-    ee[i] = Omega[i]*d[i]*e[i];
-  }
-
-  /* Reduce T to tridiagonal form */
-  PetscCall(DSArrowTridiag(n2,dd+l,ee+l,V+off,ld));
-
-  /* Solve the tridiagonal eigenproblem corresponding to T */
   for (i=0;i<l;i++) wr[i] = d[i];
-  PetscCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n1,dd+l,ee+l,V+off,&ld,ds->rwork+rwu,&info));
-  SlepcCheckLapackInfo("steqr",info);
-  for (i=l;i<n;i++) wr[i] = PetscSqrtScalar(PetscAbs(dd[i]));
-  if (wi) for (i=l;i<n;i++) wi[i] = 0.0;
+  if (wi) for (i=0;i<l;i++) wi[i] = 0.0;
 
-  /* Build left singular vectors: U=A*V*Sigma^-1 */
-  size = n1*ld;
-  PetscCall(PetscArrayzero(U+l*ld,size));
-  for (i=l;i<n-1;i++) {
-    scal = d[i];
-    PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&scal,V+l*ld+i,&ld,U+l*ld+i,&ld));
-    j = (i<k)?k:i+1;
-    scal = e[i];
-    PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&scal,V+l*ld+j,&ld,U+l*ld+i,&ld));
+  if (ds->compact) {
+    /* Form the arrow tridiagonal cross product T=A'*Omega*A, where A is the arrow
+       bidiagonal matrix formed by d, e. T is stored in dd, ee */
+    PetscCall(DSAllocateWork_Private(ds,(n+6)*ld,4*ld,2*ld));
+    R = ds->work+swu;
+    swu += n*ld;
+    perm = ds->iwork+iwu;
+    iwu += n;
+    cmplx = ds->iwork+iwu;
+    iwu += n;
+    dd = ds->rwork+rwu;
+    rwu += ld;
+    ee = ds->rwork+rwu;
+    rwu += ld;
+    for (i=0;i<l;i++) {dd[i] = d[i]*d[i]*Omega[i]; ee[i] = 0.0;}
+    for (i=l;i<=ds->k;i++) {
+      dd[i] = Omega[i]*d[i]*d[i];
+      ee[i] = Omega[i]*d[i]*e[i];
+    }
+    for (i=l;i<k;i++) dd[k] += Omega[i]*e[i]*e[i];
+    for (i=k+1;i<n;i++) {
+      dd[i] = Omega[i]*d[i]*d[i]+Omega[i-1]*e[i-1]*e[i-1];
+      ee[i] = Omega[i]*d[i]*e[i];
+    }
+
+    /* Reduce T to tridiagonal form */
+    PetscCall(DSArrowTridiag(n2,dd+l,ee+l,V+off,ld));
+
+    /* Solve the tridiagonal eigenproblem corresponding to T */
+    PetscCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n1,dd+l,ee+l,V+off,&ld,ds->rwork+rwu,&info));
+    SlepcCheckLapackInfo("steqr",info);
+    for (i=l;i<n;i++) wr[i] = PetscSqrtScalar(PetscAbs(dd[i]));
+
+    /* Build left singular vectors: U=A*V*Sigma^-1 */
+    PetscCall(PetscArrayzero(U+l*ld,n1*ld));
+    for (i=l;i<n-1;i++) {
+      scal = d[i];
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&scal,V+l*ld+i,&ld,U+l*ld+i,&ld));
+      j = (i<k)?k:i+1;
+      scal = e[i];
+      PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&scal,V+l*ld+j,&ld,U+l*ld+i,&ld));
+    }
+    scal = d[n-1];
+    PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&scal,V+off+(n1-1),&ld,U+off+(n1-1),&ld));
+    /* Multiply by Sigma^-1 */
+    for (i=l;i<n;i++) {scal = 1.0/wr[i]; PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,U+i*ld+l,&one));}
+
+  } else { /* non-compact */
+
+    PetscCall(DSAllocateWork_Private(ds,(n+6)*ld,PetscDefined(USE_COMPLEX)?4*ld:ld,2*ld));
+    R = ds->work+swu;
+    swu += n*ld;
+    perm = ds->iwork+iwu;
+    iwu += n;
+    cmplx = ds->iwork+iwu;
+    iwu += n;
+    dd = ds->rwork+rwu;
+    rwu += ld;
+    for (j=l;j<m;j++) {
+      for (i=0;i<n;i++) ds->work[i] = Omega[i]*A[i+j*ld];
+      PetscCallBLAS("BLASgemv",BLASgemv_("C",&n,&m,&sone,A,&ld,ds->work,&incx,&szero,V+j*ld,&incx));
+    }
+
+    /* compute eigenvalues */
+    lwork = (n+6)*ld;
+    PetscCall(PetscFPTrapPush(PETSC_FP_TRAP_OFF));
+#if defined(PETSC_USE_COMPLEX)
+    PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,ds->rwork+rwu,&info));
+#else
+    PetscCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&m,V,&ld,dd,ds->work,&lwork,&info));
+#endif
+    SlepcCheckLapackInfo("syev",info);
+    PetscCall(PetscFPTrapPop());
+    for (i=l;i<PetscMin(n,m);i++) d[i] = PetscSqrtReal(PetscAbsReal(dd[i]));
+
+    /* Build left singular vectors: U=A*V*Sigma^-1 */
+    for (j=l;j<PetscMin(n,m);j++) {
+      scal = 1.0/d[j];
+      PetscCallBLAS("BLASgemv",BLASgemv_("N",&n,&m,&scal,A,&ld,V+j*ld,&incx,&szero,U+j*ld,&incx));
+    }
   }
-  scal = d[n-1];
-  PetscCallBLAS("BLASaxpy",BLASaxpy_(&n1,&scal,V+off+(n1-1),&ld,U+off+(n1-1),&ld));
-  /* Multiply by Sigma^-1 */
-  for (i=l;i<n;i++) {scal = 1.0/wr[i]; PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,U+i*ld+l,&one));}
 
-  /* Reinforce orthogonality */
-  nv = n1;
-  for (i=0;i<n;i++) cmplx[i] = 0;
-  PetscCall(DSPseudoOrthog_HR(&nv,U+off,ld,Omega+l,R,ld,perm,cmplx,NULL,ds->work+swu));
+  if (ctx->reorth) { /* Reinforce orthogonality */
+    nv = n1;
+    for (i=0;i<n;i++) cmplx[i] = 0;
+    PetscCall(DSPseudoOrthog_HR(&nv,U+off,ld,Omega+l,R,ld,perm,cmplx,NULL,ds->work+swu));
+  } else { /* Update Omega */
+    for (i=l;i<PetscMin(n,m);i++) Omega[i] = PetscSign(dd[i]);
+  }
 
   /* Update projected problem */
-  for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
-  PetscCall(PetscArrayzero(e,n-1));
+  if (ds->compact) {
+    for (i=l;i<n;i++) d[i] = PetscRealPart(wr[i]);
+    PetscCall(PetscArrayzero(e,n-1));
+  } else {
+    for (i=l;i<m;i++) PetscCall(PetscArrayzero(A+l+i*ld,n-l));
+    for (i=l;i<n;i++) A[i+i*ld] = d[i];
+  }
+  for (i=l;i<PetscMin(n,m);i++) wr[i] = d[i];
+  if (wi) for (i=l;i<PetscMin(n,m);i++) wi[i] = 0.0;
 
-  /* Update vectors V with R */
-  scal = -1.0;
-  for (i=0;i<nv;i++) {
-    if (PetscRealPart(R[i+i*ld]) < 0.0) PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,V+(i+l)*ld+l,&one));
+  if (ctx->reorth) { /* Update vectors V with R */
+    scal = -1.0;
+    for (i=0;i<nv;i++) {
+      if (PetscRealPart(R[i+i*ld]) < 0.0) PetscCallBLAS("BLASscal",BLASscal_(&n1,&scal,V+(i+l)*ld+l,&one));
+    }
   }
 
+  PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_U],&U));
   PetscCall(MatDenseRestoreArrayWrite(ds->omat[DS_MAT_V],&V));
   PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&d));
@@ -364,7 +398,7 @@ PetscErrorCode DSSynchronize_HSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscInt       ld=ds->ld,l=ds->l,k=0,kr=0;
   PetscMPIInt    n,rank,off=0,size,ldn,ld3,ld_;
-  PetscScalar    *A,*B,*U,*V;
+  PetscScalar    *A,*U,*V;
   PetscReal      *T,*D;
 
   PetscFunctionBegin;
@@ -378,26 +412,18 @@ PetscErrorCode DSSynchronize_HSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscCall(PetscMPIIntCast(ld*(ds->n-l),&ldn));
   PetscCall(PetscMPIIntCast(3*ld,&ld3));
   PetscCall(PetscMPIIntCast(ld,&ld_));
-  if (ds->compact) {
-    PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
-    PetscCall(DSGetArrayReal(ds,DS_MAT_D,&D));
-  } else {
-    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
-    PetscCall(MatDenseGetArray(ds->omat[DS_MAT_B],&B));
-  }
+  if (ds->compact) PetscCall(DSGetArrayReal(ds,DS_MAT_T,&T));
+  else PetscCall(MatDenseGetArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&D));
   if (ds->state>DS_STATE_RAW) {
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_U],&U));
     PetscCall(MatDenseGetArray(ds->omat[DS_MAT_V],&V));
   }
   PetscCallMPI(MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank));
   if (!rank) {
-    if (ds->compact) {
-      PetscCallMPI(MPI_Pack(T,ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-      PetscCallMPI(MPI_Pack(D,ld_,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    } else {
-      PetscCallMPI(MPI_Pack(A+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-      PetscCallMPI(MPI_Pack(B+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
-    }
+    if (ds->compact) PetscCallMPI(MPI_Pack(T,ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    else PetscCallMPI(MPI_Pack(A+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPI_Pack(D,ld_,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) {
       PetscCallMPI(MPI_Pack(U+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
       PetscCallMPI(MPI_Pack(V+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds)));
@@ -406,26 +432,18 @@ PetscErrorCode DSSynchronize_HSVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   }
   PetscCallMPI(MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds)));
   if (rank) {
-    if (ds->compact) {
-      PetscCallMPI(MPI_Unpack(ds->work,size,&off,T,ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
-      PetscCallMPI(MPI_Unpack(ds->work,size,&off,D,ld_,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
-    } else {
-      PetscCallMPI(MPI_Unpack(ds->work,size,&off,A+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-      PetscCallMPI(MPI_Unpack(ds->work,size,&off,B+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
-    }
+    if (ds->compact) PetscCallMPI(MPI_Unpack(ds->work,size,&off,T,ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
+    else PetscCallMPI(MPI_Unpack(ds->work,size,&off,A+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
+    PetscCallMPI(MPI_Unpack(ds->work,size,&off,D,ld_,MPIU_REAL,PetscObjectComm((PetscObject)ds)));
     if (ds->state>DS_STATE_RAW) {
       PetscCallMPI(MPI_Unpack(ds->work,size,&off,U+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
       PetscCallMPI(MPI_Unpack(ds->work,size,&off,V+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
     }
     if (eigr) PetscCallMPI(MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds)));
   }
-  if (ds->compact) {
-    PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
-    PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
-  } else {
-    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
-    PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_B],&B));
-  }
+  if (ds->compact) PetscCall(DSRestoreArrayReal(ds,DS_MAT_T,&T));
+  else PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_A],&A));
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
   if (ds->state>DS_STATE_RAW) {
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_U],&U));
     PetscCall(MatDenseRestoreArray(ds->omat[DS_MAT_V],&V));
@@ -445,16 +463,12 @@ PetscErrorCode DSMatGetSize_HSVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols
       *rows = ds->n;
       *cols = ds->extrarow? ctx->m+1: ctx->m;
       break;
-    case DS_MAT_B:
-      *rows = PetscMax(ctx->m,ds->n);
-      *cols = PetscMax(ctx->m,ds->n);
-      break;
     case DS_MAT_T:
       *rows = ds->n;
       *cols = PetscDefined(USE_COMPLEX)? 2: 3;
       break;
     case DS_MAT_D:
-      *rows = PetscMax(ctx->m,ds->n);
+      *rows = ds->n;
       *cols = 1;
       break;
     case DS_MAT_U:
@@ -545,12 +559,100 @@ PetscErrorCode DSHSVDGetDimensions(DS ds,PetscInt *m)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode DSHSVDSetReorthogonalize_HSVD(DS ds,PetscBool reorth)
+{
+  DS_HSVD *ctx = (DS_HSVD*)ds->data;
+
+  PetscFunctionBegin;
+  ctx->reorth = reorth;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSHSVDSetReorthogonalize - Sets the reorthogonalization of the left vectors in a DSHSVD.
+
+   Logically Collective on ds
+
+   Input Parameters:
++  ds     - the direct solver context
+-  reorth - the reorthogonalization flag
+
+   Options Database Key:
+.  -ds_hsvd_reorthog <bool> - sets the reorthogonalization flag
+
+   Note:
+   The computed left vectors (U) should be orthogonal with respect to the signature (D).
+   But it may be necessary to enforce this with a final reorthogonalization step (omitted
+   by default).
+
+   Level: intermediate
+
+.seealso: DSHSVDGetReorthogonalize()
+@*/
+PetscErrorCode DSHSVDSetReorthogonalize(DS ds,PetscBool reorth)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(ds,reorth,2);
+  PetscTryMethod(ds,"DSHSVDSetReorthogonalize_C",(DS,PetscBool),(ds,reorth));
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSHSVDGetReorthogonalize_HSVD(DS ds,PetscBool *reorth)
+{
+  DS_HSVD *ctx = (DS_HSVD*)ds->data;
+
+  PetscFunctionBegin;
+  *reorth = ctx->reorth;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSHSVDGetReorthogonalize - Returns the reorthogonalization flag of a DSHSVD.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  reorth - the reorthogonalization flag
+
+   Level: intermediate
+
+.seealso: DSHSVDSetReorthogonalize()
+@*/
+PetscErrorCode DSHSVDGetReorthogonalize(DS ds,PetscBool *reorth)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidBoolPointer(reorth,2);
+  PetscUseMethod(ds,"DSHSVDGetReorthogonalize_C",(DS,PetscBool*),(ds,reorth));
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode DSSetFromOptions_HSVD(DS ds,PetscOptionItems *PetscOptionsObject)
+{
+  PetscBool      flg,reorth;
+
+  PetscFunctionBegin;
+  PetscOptionsHeadBegin(PetscOptionsObject,"DS HSVD Options");
+
+    PetscCall(PetscOptionsBool("-ds_hsvd_reorthog","Reorthogonalize U vectors","DSHSVDSetReorthogonalize",PETSC_FALSE,&reorth,&flg));
+    if (flg) PetscCall(DSHSVDSetReorthogonalize(ds,reorth));
+
+  PetscOptionsHeadEnd();
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSDestroy_HSVD(DS ds)
 {
   PetscFunctionBegin;
   PetscCall(PetscFree(ds->data));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetDimensions_C",NULL));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetDimensions_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetReorthogonalize_C",NULL));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetReorthogonalize_C",NULL));
   PetscFunctionReturn(0);
 }
 
@@ -562,22 +664,20 @@ PetscErrorCode DSDestroy_HSVD(DS ds)
    Notes:
    The problem is expressed as A = U*Sigma*V', where A is rectangular in
    general, with n rows and m columns. U is orthogonal with respect to a
-   signature matrix, stored in B. V is orthogonal. Sigma is a diagonal
+   signature matrix, stored in D. V is orthogonal. Sigma is a diagonal
    matrix whose diagonal elements are the arguments of DSSolve(). After
-   solve, A is overwritten with Sigma, B is overwritten with the new signature.
+   solve, A is overwritten with Sigma, D is overwritten with the new signature.
 
    The matrices of left and right singular vectors, U and V, have size n and m,
    respectively. The number of columns m must be specified via DSHSVDSetDimensions().
 
    If the DS object is in the intermediate state, A is assumed to be in upper
    bidiagonal form (possibly with an arrow) and is stored in compact format
-   on matrix T, and then the signature is stored in D. Otherwise, the solver will
-   fail (not implemented yet). The compact storage is implemented for the square case
+   on matrix T. The compact storage is implemented for the square case
    only, m=n. The extra row should be interpreted in this case as an extra column.
 
    Used DS matrices:
 +  DS_MAT_A - problem matrix
-.  DS_MAT_B - second problem matrix, storing the signature
 .  DS_MAT_T - upper bidiagonal matrix
 -  DS_MAT_D - diagonal matrix (signature)
 
@@ -594,19 +694,22 @@ SLEPC_EXTERN PetscErrorCode DSCreate_HSVD(DS ds)
   PetscCall(PetscNew(&ctx));
   ds->data = (void*)ctx;
 
-  ds->ops->allocate      = DSAllocate_HSVD;
-  ds->ops->view          = DSView_HSVD;
-  ds->ops->vectors       = DSVectors_HSVD;
-  ds->ops->solve[0]      = DSSolve_HSVD_CROSS;
-  ds->ops->sort          = DSSort_HSVD;
+  ds->ops->allocate       = DSAllocate_HSVD;
+  ds->ops->setfromoptions = DSSetFromOptions_HSVD;
+  ds->ops->view           = DSView_HSVD;
+  ds->ops->vectors        = DSVectors_HSVD;
+  ds->ops->solve[0]       = DSSolve_HSVD_CROSS;
+  ds->ops->sort           = DSSort_HSVD;
 #if !defined(PETSC_HAVE_MPIUNI)
-  ds->ops->synchronize   = DSSynchronize_HSVD;
+  ds->ops->synchronize    = DSSynchronize_HSVD;
 #endif
-  ds->ops->truncate      = DSTruncate_HSVD;
-  ds->ops->update        = DSUpdateExtraRow_HSVD;
-  ds->ops->destroy       = DSDestroy_HSVD;
-  ds->ops->matgetsize    = DSMatGetSize_HSVD;
+  ds->ops->truncate       = DSTruncate_HSVD;
+  ds->ops->update         = DSUpdateExtraRow_HSVD;
+  ds->ops->destroy        = DSDestroy_HSVD;
+  ds->ops->matgetsize     = DSMatGetSize_HSVD;
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetDimensions_C",DSHSVDSetDimensions_HSVD));
   PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetDimensions_C",DSHSVDGetDimensions_HSVD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDSetReorthogonalize_C",DSHSVDSetReorthogonalize_HSVD));
+  PetscCall(PetscObjectComposeFunction((PetscObject)ds,"DSHSVDGetReorthogonalize_C",DSHSVDGetReorthogonalize_HSVD));
   PetscFunctionReturn(0);
 }

@@ -24,7 +24,7 @@ int main(int argc,char **argv)
   Vec            u,v,vomega,*U,*V;
   MatType        Atype;
   PetscReal      tol,lev1=0.0,lev2=0.0;
-  PetscInt       M,N,p=0,i,Istart,Iend,nconv;
+  PetscInt       M,N,p=0,i,Istart,Iend,nconv,nsv;
   char           filename[PETSC_MAX_PATH_LEN];
   PetscViewer    viewer;
   PetscBool      flg,terse,skiporth=PETSC_FALSE,transpose=PETSC_FALSE;
@@ -120,6 +120,8 @@ int main(int argc,char **argv)
   /* check orthogonality */
   PetscCall(PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL));
   PetscCall(SVDGetConverged(svd,&nconv));
+  PetscCall(SVDGetDimensions(svd,&nsv,NULL,NULL));
+  nconv = PetscMin(nconv,nsv);
   if (nconv>0 && !skiporth) {
     PetscCall(SVDGetTolerances(svd,&tol,NULL));
     PetscCall(VecDuplicateVecs(u,nconv,&U));
@@ -160,6 +162,9 @@ int main(int argc,char **argv)
       test:
          args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}}
          suffix: 1_trlanczos
+      test:
+         args: -svd_type lapack
+         suffix: 1_lapack
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/real/illc1033.petsc -transpose -svd_nsv 6 -p 130 -terse
@@ -185,11 +190,14 @@ int main(int argc,char **argv)
          args: -svd_type cross -svd_cross_explicitmatrix {{0 1}}
          suffix: 3_cross
       test:
-         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}} -svd_cyclic_bv_definite_tol 1e-13
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix {{0 1}} -svd_cyclic_bv_definite_tol 1e-13 -svd_cyclic_st_ksp_type gmres -svd_cyclic_st_pc_type jacobi
          suffix: 3_cyclic
       test:
-         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -bv_definite_tol 1e-14
+         args: -svd_type trlanczos -svd_trlanczos_explicitmatrix {{0 1}} -bv_definite_tol 1e-13
          suffix: 3_trlanczos
+      test:
+         args: -svd_type lapack
+         suffix: 3_lapack
 
    testset:
       args: -file ${DATAFILESPATH}/matrices/complex/illc1033.petsc -transpose -svd_nsv 6 -p 130 -terse
@@ -220,5 +228,8 @@ int main(int argc,char **argv)
       test:
          args: -svd_type trlanczos -svd_max_it 4000 -svd_ncv 28 -bv_definite_tol 1e-14
          suffix: 5_trlanczos
+      test:
+         args: -svd_type lapack
+         suffix: 5_lapack
 
 TEST*/

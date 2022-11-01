@@ -48,7 +48,7 @@ omega = [
 9 9  1.0000000000000000e+00
 10 10  1.0000000000000000e+00
 ];
-B = spconvert(omega);
+D = spconvert(omega);
 Computed singular values =
   1.00000
   2.00000

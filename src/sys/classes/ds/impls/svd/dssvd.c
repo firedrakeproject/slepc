@@ -28,7 +28,7 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-/*   0       l           k                 n-1
+/*   0       l           k                 m-1
     -----------------------------------------
     |*       .           .                  |
     |  *     .           .                  |
@@ -49,7 +49,7 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
     |                                x x    |
     |                                  x x  |
     |                                    x x|
-    |                                      x|
+n-1 |                                      x|
     -----------------------------------------
 */
 

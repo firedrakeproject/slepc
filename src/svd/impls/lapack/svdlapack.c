@@ -19,7 +19,6 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   PetscInt       M,N,P=0;
 
   PetscFunctionBegin;
-  SVDCheckDefinite(svd);
   PetscCall(MatGetSize(svd->A,&M,&N));
   if (!svd->isgeneralized) svd->ncv = N;
   else {
@@ -31,7 +30,6 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
   if (svd->max_it==PETSC_DEFAULT) svd->max_it = 1;
   svd->leftbasis = PETSC_TRUE;
   PetscCall(SVDAllocateSolution(svd,0));
-  PetscCall(DSSetType(svd->ds,svd->isgeneralized?DSGSVD:DSSVD));
   PetscCall(DSAllocate(svd->ds,PetscMax(N,PetscMax(M,P))));
   PetscFunctionReturn(0);
 }
@@ -170,11 +168,90 @@ PetscErrorCode SVDSolve_LAPACK_GSVD(SVD svd)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode SVDSolve_LAPACK_HSVD(SVD svd)
+{
+  PetscInt          M,N,n,i,j,k,ld,lowu,lowv,highu,highv;
+  Mat               A,Ar,mat,D;
+  Vec               u,v,vomega;
+  PetscScalar       *pU,*pV,*pu,*pv,*w;
+  PetscReal         *pD;
+
+  PetscFunctionBegin;
+  PetscCall(DSGetLeadingDimension(svd->ds,&ld));
+  PetscCall(MatCreateRedundantMatrix(svd->OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar));
+  PetscCall(MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat));
+  PetscCall(MatDestroy(&Ar));
+  PetscCall(MatGetSize(mat,&M,&N));
+  PetscCall(DSSetDimensions(svd->ds,M,0,0));
+  PetscCall(DSHSVDSetDimensions(svd->ds,N));
+  PetscCall(DSGetMat(svd->ds,DS_MAT_A,&A));
+  PetscCall(MatCopy(mat,A,SAME_NONZERO_PATTERN));
+  PetscCall(DSRestoreMat(svd->ds,DS_MAT_A,&A));
+  PetscCall(DSGetMatAndColumn(svd->ds,DS_MAT_D,0,&D,&vomega));
+  PetscCall(VecCopy(svd->omega,vomega));
+  PetscCall(DSRestoreMatAndColumn(svd->ds,DS_MAT_D,0,&D,&vomega));
+  PetscCall(DSSetState(svd->ds,DS_STATE_RAW));
+
+  n = PetscMin(M,N);
+  PetscCall(PetscMalloc1(n,&w));
+  PetscCall(DSSolve(svd->ds,w,NULL));
+  PetscCall(DSSort(svd->ds,w,NULL,NULL,NULL,NULL));
+  PetscCall(DSSynchronize(svd->ds,w,NULL));
+
+  /* copy singular vectors */
+  PetscCall(DSGetArrayReal(svd->ds,DS_MAT_D,&pD));
+  PetscCall(DSGetArray(svd->ds,DS_MAT_U,&pU));
+  PetscCall(DSGetArray(svd->ds,DS_MAT_V,&pV));
+  for (i=0;i<n;i++) {
+    if (svd->which == SVD_SMALLEST) k = n - i - 1;
+    else k = i;
+    svd->sigma[k] = PetscRealPart(w[i]);
+    svd->sign[k]  = pD[i];
+    PetscCall(BVGetColumn(svd->U,k,&u));
+    PetscCall(BVGetColumn(svd->V,k,&v));
+    PetscCall(VecGetOwnershipRange(u,&lowu,&highu));
+    PetscCall(VecGetOwnershipRange(v,&lowv,&highv));
+    PetscCall(VecGetArray(u,&pu));
+    PetscCall(VecGetArray(v,&pv));
+    if (M>=N) {
+      for (j=lowu;j<highu;j++) pu[j-lowu] = pU[i*ld+j];
+      for (j=lowv;j<highv;j++) pv[j-lowv] = pV[i*ld+j];
+    } else {
+      for (j=lowu;j<highu;j++) pu[j-lowu] = pV[i*ld+j];
+      for (j=lowv;j<highv;j++) pv[j-lowv] = pU[i*ld+j];
+    }
+    PetscCall(VecRestoreArray(u,&pu));
+    PetscCall(VecRestoreArray(v,&pv));
+    PetscCall(BVRestoreColumn(svd->U,k,&u));
+    PetscCall(BVRestoreColumn(svd->V,k,&v));
+  }
+  PetscCall(DSRestoreArrayReal(svd->ds,DS_MAT_D,&pD));
+  PetscCall(DSRestoreArray(svd->ds,DS_MAT_U,&pU));
+  PetscCall(DSRestoreArray(svd->ds,DS_MAT_V,&pV));
+
+  svd->nconv  = n;
+  svd->its    = 1;
+  svd->reason = SVD_CONVERGED_TOL;
+
+  PetscCall(MatDestroy(&mat));
+  PetscCall(PetscFree(w));
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode SVDSetDSType_LAPACK(SVD svd)
+{
+  PetscFunctionBegin;
+  PetscCall(DSSetType(svd->ds,svd->OPb?DSGSVD:svd->omega?DSHSVD:DSSVD));
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
-  svd->ops->setup   = SVDSetUp_LAPACK;
-  svd->ops->solve   = SVDSolve_LAPACK;
-  svd->ops->solveg  = SVDSolve_LAPACK_GSVD;
+  svd->ops->setup     = SVDSetUp_LAPACK;
+  svd->ops->solve     = SVDSolve_LAPACK;
+  svd->ops->solveg    = SVDSolve_LAPACK_GSVD;
+  svd->ops->solveh    = SVDSolve_LAPACK_HSVD;
+  svd->ops->setdstype = SVDSetDSType_LAPACK;
   PetscFunctionReturn(0);
 }

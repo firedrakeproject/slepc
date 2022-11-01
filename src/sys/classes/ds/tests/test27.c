@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test DSSVD.\n\n";
+static char help[] = "Test DSHSVD with dense storage.\n\n";
 
 #include <slepcds.h>
 
@@ -16,32 +16,32 @@ int main(int argc,char **argv)
 {
   DS             ds;
   SlepcSC        sc;
-  PetscReal      sigma,rnorm,aux;
-  PetscScalar    *A,*U,*w,d;
-  PetscInt       i,j,k,n=15,m=10,m1,ld;
+  PetscReal      *D,sigma,rnorm,aux;
+  PetscScalar    *A,*U,*w;
+  PetscInt       i,j,k,n=15,m=10,m1,p=1,ld;
   PetscViewer    viewer;
-  PetscBool      verbose,extrarow;
+  PetscBool      verbose;
 
   PetscFunctionBeginUser;
   PetscCall(SlepcInitialize(&argc,&argv,(char*)0,help));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL));
   PetscCall(PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL));
   k = PetscMin(n,m);
-  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type SVD - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n,m));
+  PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type HSVD - dimension %" PetscInt_FMT "x%" PetscInt_FMT ".\n",n,m));
+  PetscCall(PetscOptionsGetInt(NULL,NULL,"-p",&p,NULL));
+  PetscCheck(p>=0 && p<=m,PETSC_COMM_WORLD,PETSC_ERR_USER_INPUT,"Wrong value %" PetscInt_FMT ", must be 0<=p<=%" PetscInt_FMT,p,m);
   PetscCall(PetscOptionsHasName(NULL,NULL,"-verbose",&verbose));
-  PetscCall(PetscOptionsHasName(NULL,NULL,"-extrarow",&extrarow));
 
   /* Create DS object */
   PetscCall(DSCreate(PETSC_COMM_WORLD,&ds));
-  PetscCall(DSSetType(ds,DSSVD));
+  PetscCall(DSSetType(ds,DSHSVD));
   PetscCall(DSSetFromOptions(ds));
   ld = PetscMax(n,m)+2;  /* test leading dimension larger than n */
   PetscCall(DSAllocate(ds,ld));
   PetscCall(DSSetDimensions(ds,n,0,0));
-  PetscCall(DSSVDSetDimensions(ds,m));
-  PetscCall(DSSVDGetDimensions(ds,&m1));
+  PetscCall(DSHSVDSetDimensions(ds,m));
+  PetscCall(DSHSVDGetDimensions(ds,&m1));
   PetscCheck(m1==m,PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Inconsistent dimension value");
-  PetscCall(DSSetExtraRow(ds,extrarow));
 
   /* Set up viewer */
   PetscCall(PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer));
@@ -58,8 +58,11 @@ int main(int argc,char **argv)
   for (j=1;j<n/2;j++) {
     for (i=0;i<n-j;i++) { if ((i+j)<n && i<m) A[(i+j)+i*ld]=-1.0; }
   }
-  if (extrarow) { A[n-2+m*ld]=1.0; A[n-1+m*ld]=1.0; }  /* really an extra column */
   PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
+  /* Fill signature matrix */
+  PetscCall(DSGetArrayReal(ds,DS_MAT_D,&D));
+  for (i=0;i<n;i++) D[i] = (i<p)? -1.0: 1.0;
+  PetscCall(DSRestoreArrayReal(ds,DS_MAT_D,&D));
   PetscCall(DSSetState(ds,DS_STATE_RAW));
   if (verbose) {
     PetscCall(PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB));
@@ -76,7 +79,6 @@ int main(int argc,char **argv)
   sc->mapobj        = NULL;
   PetscCall(DSSolve(ds,w,NULL));
   PetscCall(DSSort(ds,w,NULL,NULL,NULL,NULL));
-  if (extrarow) PetscCall(DSUpdateExtraRow(ds));
   if (verbose) {
     PetscCall(PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n"));
     PetscCall(DSView(ds,viewer));
@@ -87,17 +89,6 @@ int main(int argc,char **argv)
   for (i=0;i<k;i++) {
     sigma = PetscRealPart(w[i]);
     PetscCall(PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma));
-  }
-
-  if (extrarow) {
-    /* Check that extra column is correct */
-    PetscCall(DSGetArray(ds,DS_MAT_A,&A));
-    PetscCall(DSGetArray(ds,DS_MAT_U,&U));
-    d = 0.0;
-    for (i=0;i<n;i++) d += A[i+m*ld]-U[n-2+i*ld]-U[n-1+i*ld];
-    if (PetscAbsScalar(d)>10*PETSC_MACHINE_EPSILON) PetscCall(PetscPrintf(PETSC_COMM_WORLD,"Warning: there is a mismatch in the extra row of %g\n",(double)PetscAbsScalar(d)));
-    PetscCall(DSRestoreArray(ds,DS_MAT_A,&A));
-    PetscCall(DSRestoreArray(ds,DS_MAT_U,&U));
   }
 
   /* Singular vectors */
@@ -123,11 +114,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      requires: !single
-
-   test:
-      suffix: 2
-      args: -extrarow
       requires: !single
 
 TEST*/
