@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepcsys.h>
 #include <petsc/private/fortranimpl.h>
+#include <slepcsys.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define slepcinitializefortran_     SLEPCINITIALIZEFORTRAN

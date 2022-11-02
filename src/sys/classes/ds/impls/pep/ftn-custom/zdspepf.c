@@ -9,7 +9,7 @@
 */
 
 #include <petsc/private/fortranimpl.h>
-#include <slepc/private/dsimpl.h>
+#include <slepcds.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define dspepsetcoefficients_    DSPEPSETCOEFFICIENTS

@@ -9,7 +9,7 @@
 */
 
 #include <petsc/private/fortranimpl.h>
-#include <slepc/private/lmeimpl.h>
+#include <slepclme.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define lmedestroy_                       LMEDESTROY
