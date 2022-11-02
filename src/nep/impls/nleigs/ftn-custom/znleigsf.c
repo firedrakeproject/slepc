@@ -9,7 +9,7 @@
 */
 
 #include <petsc/private/fortranimpl.h>
-#include <slepc/private/nepimpl.h>
+#include <slepcnep.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define nepnleigssetsingularitiesfunction_ NEPNLEIGSSETSINGULARITIESFUNCTION

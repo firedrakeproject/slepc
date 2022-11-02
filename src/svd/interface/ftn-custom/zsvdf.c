@@ -9,7 +9,6 @@
 */
 
 #include <petsc/private/fortranimpl.h>
-#include <slepc/private/slepcimpl.h>
 #include <slepcsvd.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)

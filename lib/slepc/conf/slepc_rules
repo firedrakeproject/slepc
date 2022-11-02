@@ -72,8 +72,9 @@ slepc_manexamples:
           done; \
         fi
 
-petsc_manualpages_buildcite: chk_manualpage_dir
+petsc_manualpages_buildcite:
 	-@export petscidx_tmp=$$(mktemp -d); \
+          if [ ! -d "${LOC}/docs/manualpages" ]; then ${MKDIR} ${LOC}/docs/manualpages; fi; \
           echo Generating index of PETSc man pages; \
           petscrelease=`grep '^#define PETSC_VERSION_RELEASE ' ${PETSC_DIR}/include/petscversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
           if [ $${petscrelease} = 1 ]; then petscbranch="release"; else petscbranch="main"; fi; \
@@ -100,7 +101,7 @@ petsc_manualpages_buildcite: chk_manualpage_dir
                   if [ ! -d $${petscidx_tmp}/$${LMANSEC} ]; then ${MKDIR} $${petscidx_tmp}/$${LMANSEC}; fi; \
                   ${DOCTEXT} -html -indexdir "https://petsc.org/$${petscbranch}/docs/manualpages/$${LMANSEC}" \
                     -index $${petscidx_tmp}/petscmanualpages.cit \
-                    -mpath $${petscidx_tmp}/$${LMANSEC} $${f}; \
+                    -mpath $${petscidx_tmp}/$${LMANSEC} $${doctext_common_def} $${f}; \
                 fi; \
               fi; \
             done; \
@@ -108,19 +109,31 @@ petsc_manualpages_buildcite: chk_manualpage_dir
           cp $${petscidx_tmp}/petscmanualpages.cit ${LOC}/docs/manualpages; \
           ${RM} -r $${petscidx_tmp}
 
-slepc_manualpages_buildcite: chk_manualpage_dir
+slepc_manualpages_buildcite:
 	@-DOCTEXT_PATH=${PETSC_DIR}/doc/classic/doctext; export DOCTEXT_PATH; \
           TEXTFILTER_PATH=${PETSC_DIR}/doc/classic/doctext; export TEXTFILTER_PATH; \
           if [ "${MANSEC}" = "" ] ; then \
             for f in ${SOURCED}; do \
               LMANSEC=`grep SUBMANSEC $${f} | sed s'?[ ]*/\*[ ]*SUBMANSEC[ ]*=[ ]*\([a-zA-Z]*\)[ ]*\*/?\1?'g`; \
-              if [ "$${LMANSEC}" = "" ] ; then LMANSEC="MissingSUBMANSEC"; fi; \
+              if [ "$${LMANSEC}" = "" ] ; then \
+                LMANSEC="MissingSUBMANSEC"; \
+                pwd | grep -e ftn-custom -e slepc/finclude -e slepc/private > /dev/null; fnd=$?; \
+                if [ "$${fnd}" == "1" ]; then \
+                  echo "Missing MANSEC or SUBMANSEC definition in " `pwd`/$${f} ; \
+                fi; \
+              fi; \
+              if [ ! -d "${LOC}/docs/manualpages/$${LMANSEC}" ] && ([ "$${LMANSEC}" != "MissingSUBMANSEC" ] || [ "$${fnd}" == "1" ]); then \
+                echo Making directory ${LOC}/docs/manualpages/$${LMANSEC} for manual pages from $${f}; ${MKDIR} ${LOC}/docs/manualpages/$${LMANSEC}; \
+              fi; \
               ${DOCTEXT} -html -indexdir ../$${LMANSEC} \
                 -index ${LOC}/docs/manualpages/manualpages.cit \
                 -mpath ${LOC}/docs/manualpages/$${LMANSEC} $${f}; \
             done; \
           else \
             if [ "${SUBMANSEC}" = "" ] ; then LMANSEC=${MANSEC}; else LMANSEC=${SUBMANSEC}; fi; \
+            if [ ! -d "${LOC}/docs/manualpages/$${LMANSEC}" ]; then \
+              echo Making directory ${LOC}/docs/manualpages/$${LMANSEC} for manual pages; ${MKDIR} ${LOC}/docs/manualpages/$${LMANSEC}; \
+            fi; \
             ${DOCTEXT} -html -indexdir ../$${LMANSEC} \
               -index ${LOC}/docs/manualpages/manualpages.cit \
               -mpath ${LOC}/docs/manualpages/$${LMANSEC} ${SOURCED}; \
@@ -155,7 +168,7 @@ slepc_html: chk_c2html
                      -e "s/ierr\s+=\s+//g" \
                      -e "s/PETSC[A-Z]*_DLLEXPORT//g" $$i | ${C2HTML} -n | \
               awk '{ sub(/<pre width="80">/,"<pre width=\"80\">\n"); print }' | ${PYTHON} ${PETSC_DIR}/lib/petsc/bin/maint/fixinclude.py $$i $${SLEPC_DIR} | \
-              egrep -v '(PetscValid|PetscFunctionBegin|PetscCheck|PetscErrorCode ierr;|#if !defined\(__|#define __|#undef __|EXTERN_C )' | \
+              grep -E -v '(PetscValid|PetscFunctionBegin|PetscCheck|PetscErrorCode ierr;|#if !defined\(__|#define __|#undef __|EXTERN_C )' | \
               ${MAPNAMES} -map $$htmlmap_tmp -inhtml | sed -e s?ROOT?$${IROOT}?g >> $${loc}/$$i.html ; \
             fi; \
           done ;\
