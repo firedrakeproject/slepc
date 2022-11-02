@@ -9,7 +9,7 @@
 */
 
 #include <petsc/private/fortranimpl.h>
-#include <slepc/private/pepimpl.h>
+#include <slepcpep.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define pepstoargetinertias_        PEPSTOARGETINERTIAS

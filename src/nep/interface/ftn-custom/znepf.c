@@ -9,9 +9,8 @@
 */
 
 #include <petsc/private/fortranimpl.h>
-#include <slepc/private/slepcimpl.h>
-#include <slepc/private/nepimpl.h>
 #include <petsc/private/f90impl.h>
+#include <slepcnep.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define nepdestroy_                       NEPDESTROY
