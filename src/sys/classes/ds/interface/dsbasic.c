@@ -50,7 +50,7 @@ PetscErrorCode DSFinalizePackage(void)
 
 .seealso: SlepcInitialize()
 @*/
-PetscErrorCode DSInitializePackage()
+PetscErrorCode DSInitializePackage(void)
 {
   char           logList[256];
   PetscBool      opt,pkg;
