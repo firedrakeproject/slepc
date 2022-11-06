@@ -208,7 +208,7 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode SlepcCitationsInitialize()
+PetscErrorCode SlepcCitationsInitialize(void)
 {
   PetscFunctionBegin;
   PetscCall(PetscCitationsRegister("@Article{slepc-toms,\n"

@@ -88,7 +88,7 @@ PetscErrorCode SVDInitializePackage(void)
   This one registers all the SVD methods that are in the basic SLEPc libslepcsvd
   library.
  */
-SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsvd()
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsvd(void)
 {
   PetscFunctionBegin;
   PetscCall(SVDInitializePackage());

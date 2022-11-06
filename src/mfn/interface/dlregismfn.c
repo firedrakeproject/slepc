@@ -85,7 +85,7 @@ PetscErrorCode MFNInitializePackage(void)
   This one registers all the MFN methods that are in the basic SLEPc libslepcmfn
   library.
  */
-SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn()
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void)
 {
   PetscFunctionBegin;
   PetscCall(MFNInitializePackage());
