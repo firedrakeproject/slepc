@@ -95,7 +95,7 @@ PetscErrorCode PEPInitializePackage(void)
   This one registers all the PEP methods that are in the basic SLEPc libslepcpep
   library.
  */
-SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcpep()
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcpep(void)
 {
   PetscFunctionBegin;
   PetscCall(PEPInitializePackage());
