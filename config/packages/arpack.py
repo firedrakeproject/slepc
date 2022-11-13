@@ -95,6 +95,8 @@ class Arpack(package.Package):
         confopt = confopt + ['-DBUILD_SHARED_LIBS=OFF']
       if petsc.ind64:
         confopt = confopt + ['-DINTERFACE64=1']
+      if 'MSYSTEM' in os.environ:
+        confopt = confopt + ['-G "MSYS Makefiles"']
       (result,output) = self.RunCommand('cd '+builddir+' && '+petsc.cmake+' '+' '.join(confopt)+' '+self.buildflags+' .. && '+petsc.make+' -j'+petsc.make_np+' && '+petsc.make+' install')
 
     else: # Build with autoreconf
