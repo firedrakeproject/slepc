@@ -122,7 +122,8 @@ class Package:
       elif self.installable:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(slepc,petsc)
-        self.packagelibs = self.DistilLibList(self.packagelibs,petsc)
+        if petsc.buildsharedlib:
+          self.packagelibs = self.DistilLibList(self.packagelibs,petsc)
         self.Check(slepcconf,slepcvars,petsc,archdir)
         if not self.havepackage: self.log.setLastFailed()
       try:
