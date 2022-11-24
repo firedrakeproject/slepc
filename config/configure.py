@@ -51,6 +51,25 @@ def WriteReconfigScript(reconfig,slepcdir,usedargs):
     reconfig.write('sys.argv.extend(\''+usedargs+'\'.split())\n')
   reconfig.write('execfile(os.path.join(\''+slepcdir+'\',\'config\',\'configure.py\'))\n')
 
+def ResetConfigureHash(hashfile,log):
+  ''' Removes the configure hash file '''
+  try:
+    log.write('Deleting configure hash file: '+hashfile)
+    os.remove(hashfile)
+  except:
+    log.write('Unable to delete configure hash file: '+hashfile)
+
+def Epilog(slepc,petsc):
+  print()
+  print('xxx'+'='*74+'xxx')
+  print(' Configure stage complete. Now build the SLEPc library with:')
+  if petsc.isinstall:
+    print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir)
+  else:
+    print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir+' PETSC_ARCH='+petsc.archname)
+  print('xxx'+'='*74+'xxx')
+  print()
+
 # Use en_US as language so that compiler messages are in English
 def fixLang(lang):
   if lang in os.environ and os.environ[lang] != '':
@@ -204,6 +223,28 @@ if archdirexisted:
         shutil.rmtree(os.path.join(archdir,rdir))
       except: pass
 
+# Generate/check configure hash file
+configurehash = slepc.GetConfigureHash(argdb,petsc)
+hashfile = os.path.join(confdir,'configure-hash')
+log.write('Checking configure hashfile')
+if slepc.force:
+  ResetConfigureHash(hashfile,log)
+else:
+  # compare hash with existing configure-hash file
+  a = ''
+  try:
+    with open(hashfile,'r') as f:
+      a = f.read()
+  except:
+    log.write('No previous hashfile found')
+  if a == configurehash:
+    log.Println('\n')
+    log.write('configure hash file '+hashfile+' matches; no need to run configure.')
+    log.Println('Your configure options and state have not changed; no need to rerun configure.')
+    log.Println('However you can force a configure run using the option: --force')
+    Epilog(slepc,petsc)
+    sys.exit(0)
+
 # Write main configuration files
 if not slepc.prefixdir:
   slepc.prefixdir = archdir
@@ -248,6 +289,14 @@ if not slepc.isinstall:
   except OSError as e:
     log.Exit('Unable to make reconfigure script executable:\n'+str(e))
 
+# Configure successful, write configure-hash file
+ResetConfigureHash(hashfile,log)
+try:
+  with open(hashfile,'w') as f:
+    f.write(configurehash)
+except:
+  log.write('Error when writing configure-hash file')
+
 # Print summary
 log.NewSection('')
 log.Println('')
@@ -258,12 +307,4 @@ for pkg in checkpackages:
   pkg.ShowInfo()
 log.write('\nFinishing Configure Run at '+time.ctime(time.time()))
 log.write('='*80)
-print()
-print('xxx'+'='*74+'xxx')
-print(' Configure stage complete. Now build the SLEPc library with:')
-if petsc.isinstall:
-  print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir)
-else:
-  print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir+' PETSC_ARCH='+petsc.archname)
-print('xxx'+'='*74+'xxx')
-print()
+Epilog(slepc,petsc)

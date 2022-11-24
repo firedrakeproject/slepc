@@ -23,6 +23,7 @@ class SLEPc(package.Package):
     print('\nConfiguration:')
     print('  --help, -h'.ljust(wd)+': Display this help and exit')
     print('  --with-clean=<bool>'.ljust(wd)+': Delete prior build files including externalpackages')
+    print('  --force=<bool>'.ljust(wd)+': Bypass configure hash caching, and run to completion')
     print('  --with-packages-download-dir=<dir>'.ljust(wd)+': Skip network download of tarballs and locate them in specified dir')
     print('  --with-packages-build-dir=<dir>'.ljust(wd)+': Location to unpack and run the build process for downloaded packages')
     print('\nSLEPc:')
@@ -31,6 +32,7 @@ class SLEPc(package.Package):
 
   def ProcessArgs(self,argdb):
     self.clean       = argdb.PopBool('with-clean')[0]
+    self.force       = argdb.PopBool('force')[0]
     self.datadir     = argdb.PopPath('DATAFILESPATH',exist=True)[0]
     self.downloaddir = argdb.PopPath('with-packages-download-dir',exist=True)[0]
     self.pkgbuilddir = argdb.PopPath('with-packages-build-dir',exist=True)[0]
@@ -211,4 +213,28 @@ class SLEPc(package.Package):
 
   def AddDefine(self,conffile,name,value,prefix='SLEPC_'):
     conffile.write('#define '+prefix+name+' "'+value+'"\n')
+
+  def GetConfigureHash(self,argdb,petsc):
+    ''' Generate string to be saved as configure-hash to uniquely identify the current configure run '''
+    import hashlib
+    import platform
+    hash = 'Uname: '+platform.uname().system+' '+platform.uname().processor+'\n'
+    hash += 'PATH=' + os.environ.get('PATH','') + '\n'
+    hash += str(petsc) + '\n'
+    args = sorted(set(filter(lambda x: (x != '--force'),argdb.UsedArgsList())))
+    hash += 'SLEPc configure options:\n' + '\n'.join('    '+a for a in args) + '\n'
+    chash = ''
+    try:
+      for root, dirs, files in os.walk('config'):
+        for f in files:
+          if not f.endswith('.py') or f.startswith('.') or f.startswith('#'):
+            continue
+          fname = os.path.join(root,f)
+          with open(fname,'rb') as f:
+            chash += hashlib.sha256(f.read()).hexdigest() + '  ' + fname + '\n'
+    except:
+      self.log.Warn('Error generating file list/hash from config directory for configure hash, forcing new configuration')
+      return ''
+    hash += '\n'.join(sorted(chash.splitlines()))
+    return hash
 
