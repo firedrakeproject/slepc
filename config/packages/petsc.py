@@ -16,6 +16,30 @@ class PETSc(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename = 'petsc'
 
+  def __str__(self):
+    ''' String conversion, used when writing the configure-hash file '''
+    if not hasattr(self,'dir'): return ''
+    conf = 'PETSC_DIR=' + self.dir + '\n'
+    if not hasattr(self,'lversion'): return conf
+    conf += 'PETSc version: ' + self.lversion + '\n'
+    if not hasattr(self,'arch'): return conf
+    conf += 'PETSC_ARCH=' + self.arch + '\n'
+    conf += 'PETSC_SCALAR=' + self.scalar + '\n'
+    conf += 'PETSC_PRECISION=' + self.precision + '\n'
+    conf += 'BLASLAPACK_LIB=' + self.blaslapack_lib + '\n'
+    conf += 'CC=' + self.cc + '\n'
+    conf += 'CC_FLAGS=' + self.cc_flags + '\n'
+    if hasattr(self,'fc'):
+      conf += 'FC=' + self.fc + '\n'
+      conf += 'FC_FLAGS=' + self.fc_flags + '\n'
+    if hasattr(self,'cxx'):
+      conf += 'CXX=' + self.cxx + '\n'
+      conf += 'CXX_FLAGS=' + self.cxx_flags + '\n'
+    conf += 'PETSc configure options:\n'
+    args = sorted(set(self.configure_options.split()))
+    conf += '\n'.join('    '+a for a in args) + '\n'
+    return conf
+
   def ShowHelp(self):
     pass
 
@@ -101,7 +125,7 @@ class PETSc(package.Package):
           elif k == 'BUILDSHAREDLIB' and v=='yes':
             self.buildsharedlib = True
           else:
-            if k in ['AR','AR_FLAGS','AR_LIB_SUFFIX','BFORT','BLASLAPACK_LIB','CC','CC_FLAGS','CC_LINKER_SLFLAG','CMAKE','CPP','CXX','CXX_FLAGS','FC_FLAGS','MAKE','MAKE_NP','PREFIXDIR','RANLIB','SCALAPACK_LIB','SL_LINKER_SUFFIX']:
+            if k in ['AR','AR_FLAGS','AR_LIB_SUFFIX','BFORT','BLASLAPACK_LIB','CC','CC_FLAGS','CC_LINKER_SLFLAG','CMAKE','CONFIGURE_OPTIONS','CPP','CXX','CXX_FLAGS','FC_FLAGS','MAKE','MAKE_NP','PREFIXDIR','RANLIB','SCALAPACK_LIB','SL_LINKER_SUFFIX']:
               setattr(self,k.lower(),v)
     except:
       self.log.Exit('Cannot process file ' + petscvariables)
